@@ -9,12 +9,14 @@ import 'package:path_provider/path_provider.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:intl/intl.dart'; // Para formatear la fecha
 import 'package:devocional_nuevo/pages/favorites_page.dart';
+import 'package:flutter/cupertino.dart'; // NECESARIO para CupertinoIcons
+import 'package:flutter/services.dart'; // Necesario para Clipboard (si se usa para copiar texto)
 
 // Importa tus propios modelos y providers
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
-// Importa la página de favoritos
-import 'package:devocional_nuevo/pages/settings_page.dart'; // Importa la página de configuración
+// Importa la página de configuración
+import 'package:devocional_nuevo/pages/settings_page.dart';
 
 // --- DevocionalesPage (Página principal de devocionales) ---
 class DevocionalesPage extends StatefulWidget {
@@ -29,38 +31,6 @@ class DevocionalesPage extends StatefulWidget {
 class _DevocionalesPageState extends State<DevocionalesPage> {
   final ScreenshotController screenshotController = ScreenshotController();
   int _currentDevocionalIndex = 0;
-
-  // --- Método para detectar la dirección del swipe (deshabilitado por ahora) ---
-  // Offset _dragStart = Offset.zero;
-
-  // void _onHorizontalDragStart(DragStartDetails details) {
-  //   _dragStart = details.globalPosition;
-  // }
-
-  // void _onHorizontalDragEnd(DragEndDetails details) {
-  //   final dx = details.globalPosition.dx - _dragStart.dx;
-  //   if (dx.abs() > 50) {
-  //     final devocionalProvider = Provider.of<DevocionalProvider>(context, listen: false);
-  //     final List<Devocional> devocionales = devocionalProvider.devocionales;
-
-  //     if (dx < 0) { // Deslizar de derecha a izquierda (siguiente)
-  //       if (_currentDevocionalIndex < devocionales.length - 1) {
-  //         setState(() {
-  //           _currentDevocionalIndex++;
-  //         });
-  //         if (devocionalProvider.showInvitationDialog) {
-  //           _showInvitation(context);
-  //         }
-  //       }
-  //     } else { // Deslizar de izquierda a derecha (anterior)
-  //       if (_currentDevocionalIndex > 0) {
-  //         setState(() {
-  //           _currentDevocionalIndex--;
-  //         });
-  //       }
-  //     }
-  //   }
-  // }
 
   // Métodos para navegar, reutilizando la lógica del BottomAppBar
   void _goToNextDevocional() {
@@ -142,8 +112,7 @@ class _DevocionalesPageState extends State<DevocionalesPage> {
                 Text(
                   "Jesucristo, creo que moriste en la cruz por mi, te pido perdón y me arrepiento de corazón por mis pecados. Te pido seas mi Salvador y el señor de vida. Líbrame de la muerte eterna y escribe mi nombre en el libro de la vida.\nEn el poderoso nombre de Jesús, amén.\n",
                   textAlign: TextAlign.justify,
-                  style: TextStyle(
-                      fontWeight: FontWeight.bold, fontStyle: FontStyle.italic),
+                  style: TextStyle(fontWeight: FontWeight.bold),
                 ),
                 Text(
                   "Si hiciste esta oración y lo crees:\nSerás salvo tu y tu casa (Hch 16:31)\nVivirás eternamente (Jn 11:25-26)\nNunca más tendrás sed (Jn 4:14)\nEstarás con Cristo en los cielos (Ap 19:9)\nHay gozo en los cielos cuando un pecador se arrepiente (Luc 15:10)\nEscrito está y Dios es fiel (Dt 7:9)\n\nDesde ya tienes salvación y vida nueva en Jesucristo.",
@@ -164,7 +133,7 @@ class _DevocionalesPageState extends State<DevocionalesPage> {
                   },
                 ),
                 const Expanded(
-                    child: Text('Ya la hice 🙏,No mostrar nuevamente')),
+                    child: Text('Ya la hice 🙏\nNo mostrar nuevamente')),
               ],
             ),
             Align(
@@ -175,7 +144,7 @@ class _DevocionalesPageState extends State<DevocionalesPage> {
                       .setInvitationDialogVisibility(!doNotShowAgainChecked);
                   Navigator.of(context).pop();
                 },
-                child: const Text("Entendido",
+                child: const Text("Continuar",
                     style: TextStyle(color: Colors.deepPurple)),
               ),
             ),
@@ -211,7 +180,7 @@ class _DevocionalesPageState extends State<DevocionalesPage> {
         backgroundColor: Colors.deepPurple,
         foregroundColor: Colors.white,
         // Título fijo en lugar de la fecha
-        title: const Text('Devocional Diario',
+        title: const Text('Mi espacio íntimo con Dios',
             style: TextStyle(color: Colors.white)),
         centerTitle: true,
         actions: [
@@ -219,38 +188,34 @@ class _DevocionalesPageState extends State<DevocionalesPage> {
             builder: (context, devocionalProvider, child) {
               return Row(
                 children: [
-                  // Selector de Idioma (Mantenido en AppBar si es deseado)
-                  DropdownButtonHideUnderline(
-                    child: DropdownButton<String>(
-                      value: devocionalProvider.selectedLanguage,
-                      icon: const Icon(Icons.language, color: Colors.white),
-                      dropdownColor: Colors.deepPurple[700],
-                      onChanged: (String? newValue) {
-                        if (newValue != null) {
-                          devocionalProvider.setSelectedLanguage(newValue);
-                          setState(() {
-                            _currentDevocionalIndex = 0;
-                          });
-                        }
-                      },
-                      items: <String>['es', 'en']
-                          .map<DropdownMenuItem<String>>((String value) {
-                        return DropdownMenuItem<String>(
-                          value: value,
-                          child: Text(
-                            value.toUpperCase(),
-                            style: const TextStyle(color: Colors.white),
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                  ),
-                  // Selector de Versión (Mantenido en AppBar si es deseado)
+                  // Selector de Versión (Mantenido en AppBar)
                   DropdownButtonHideUnderline(
                     child: DropdownButton<String>(
                       value: devocionalProvider.selectedVersion,
-                      icon: const Icon(Icons.menu_book, color: Colors.white),
+                      // Icono de libro original
+                      icon:
+                          const Icon(CupertinoIcons.book, color: Colors.white),
                       dropdownColor: Colors.deepPurple[700],
+                      // selectedItemBuilder para mostrar el icono y el texto de la versión en el botón
+                      selectedItemBuilder: (BuildContext context) {
+                        // Asegúrate que lista coincide con la lista 'items' de abajo.
+                        return <String>[
+                          'RVR1960',
+                          'NTV'
+                        ] // Ajusta si tus versiones son diferentes.
+                            .map<Widget>((String itemValue) {
+                          return SizedBox(
+                            width:
+                                40.0, // Puedes ajustar este valor si el texto en el menú desplegable sigue cortándose (ej. 90.0, 100.0)
+                            child: Text(
+                              itemValue, // El texto real de la versión
+                              style: const TextStyle(
+                                  color: Colors
+                                      .transparent), // Hace el texto INVISIBLE en el botón
+                            ),
+                          );
+                        }).toList();
+                      },
                       onChanged: (String? newValue) {
                         if (newValue != null) {
                           devocionalProvider.setSelectedVersion(newValue);
@@ -259,31 +224,38 @@ class _DevocionalesPageState extends State<DevocionalesPage> {
                           });
                         }
                       },
-                      items: <String>['RVR1960', 'NVI']
-                          .map<DropdownMenuItem<String>>((String value) {
+                      // 'items' define las opciones que se ven cuando el Dropdown se despliega.
+                      items: <String>[
+                        'RVR1960',
+                        'NTV'
+                      ] // Asegúrate que esta sea la lista real de versiones de tu app.
+                          .map<DropdownMenuItem<String>>((String itemValue) {
                         return DropdownMenuItem<String>(
-                          value: value,
+                          value: itemValue,
+                          // El 'child' del DropdownMenuItem muestra el texto real y completo de la versión aquí.
                           child: Text(
-                            value,
+                            itemValue, // Mostrará el texto real y completo de la versión aquí.
                             style: const TextStyle(color: Colors.white),
                           ),
                         );
                       }).toList(),
                     ),
                   ),
-                  // Botón para ir a favoritos
-                  IconButton(
-                    icon: const Icon(Icons.bookmark_border),
-                    tooltip: 'Ver favoritos',
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const FavoritesPage(),
-                        ),
-                      );
-                    },
-                  ),
+                  // Botón para ir a favoritos REMOVIDO DE AQUÍ
+                  // IconButton(
+                  //   icon: const Icon(
+                  //     CupertinoIcons.square_favorites_alt, // Icono de favoritos
+                  //   ),
+                  //   tooltip: 'Ver favoritos',
+                  //   onPressed: () {
+                  //     Navigator.push(
+                  //       context,
+                  //       MaterialPageRoute(
+                  //         builder: (context) => const FavoritesPage(),
+                  //       ),
+                  //     );
+                  //   },
+                  // ),
                 ],
               );
             },
@@ -359,7 +331,6 @@ class _DevocionalesPageState extends State<DevocionalesPage> {
               // --- Contenido del Devocional (Desplazable) ---
               Expanded(
                 child: Screenshot(
-                  // <<-- CORRECCIÓN APLICADA AQUÍ: Se agregó 'child:'
                   controller: screenshotController,
                   child: Container(
                     color: Theme.of(context).scaffoldBackgroundColor,
@@ -370,12 +341,14 @@ class _DevocionalesPageState extends State<DevocionalesPage> {
                         children: [
                           // Versículo
                           Container(
-                            padding: const EdgeInsets.all(12),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 6),
                             decoration: BoxDecoration(
                               color: Colors.deepPurple[100],
                               borderRadius: BorderRadius.circular(10),
-                              border:
-                                  Border.all(color: Colors.deepPurple.shade300),
+                              border: Border.all(
+                                  color:
+                                      const Color.fromARGB(255, 221, 207, 245)),
                             ),
                             child: AutoSizeText(
                               currentDevocional.versiculo,
@@ -384,11 +357,10 @@ class _DevocionalesPageState extends State<DevocionalesPage> {
                                   .textTheme
                                   .titleLarge!
                                   .copyWith(
-                                    fontStyle: FontStyle.italic,
                                     fontWeight: FontWeight.bold,
                                     color: Colors.deepPurple.shade800,
                                   ),
-                              maxLines: 5,
+                              maxLines: 12,
                             ),
                           ),
                           const SizedBox(height: 20),
@@ -500,7 +472,6 @@ class _DevocionalesPageState extends State<DevocionalesPage> {
                     ),
                   ),
                 ),
-                // ), // Cierre del GestureDetector
               ),
               // --- Botones de Navegación (Anterior/Siguiente) ---
               Consumer<DevocionalProvider>(
@@ -612,8 +583,8 @@ class _DevocionalesPageState extends State<DevocionalesPage> {
                           builder: (context) => const SettingsPage()),
                     );
                   },
-                  icon:
-                      const Icon(Icons.settings, color: Colors.white, size: 30),
+                  icon: const Icon(CupertinoIcons.text_badge_plus,
+                      color: Colors.white, size: 30), // <<-- LÍNEA MODIFICADA
                 ),
               ],
             ),

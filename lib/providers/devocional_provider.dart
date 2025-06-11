@@ -20,8 +20,9 @@ class DevocionalProvider with ChangeNotifier {
   // Propiedades para el idioma y la versión seleccionados
   String _selectedLanguage =
       'es'; // Idioma por defecto (se detectará del dispositivo)
-  String _selectedVersion =
-      'RVR1960'; // Versión por defecto, corregida a RVR1960
+  String
+      _selectedVersion = //aca se agregan nuevas versiones cuando hayan, para devocional page
+      'RVR1960'; // Versión por defecto
 
   List<Devocional> _favoriteDevocionales =
       []; // Lista de devocionales favoritos
