@@ -71,7 +71,7 @@ class _SettingsPageState extends State<SettingsPage> {
     return Scaffold(
       appBar: AppBar(
         title:
-            const Text('Más opciones', style: TextStyle(color: Colors.white)),
+        const Text('Más opciones', style: TextStyle(color: Colors.white)),
         backgroundColor: Colors.deepPurple,
         foregroundColor: Colors.white,
       ),
@@ -80,23 +80,31 @@ class _SettingsPageState extends State<SettingsPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Inicio de la sección del botón de donación corregido
             SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                icon: Image.network(
-                  'https://www.paypalobjects.com/webstatic/icon/pp258.png',
-                  height: 15,
+              child: Align(
+                alignment: Alignment.topRight,
+                child: ElevatedButton( // ANTES: ElevatedButton.icon. AHORA: ElevatedButton.
+                  // icon: Image.network( // ANTES: Se eliminó la propiedad icon.
+                  //   'https://www.paypalobjects.com/webstatic/icon/pp258.png',
+                  //   height: 16,
+                  // ),
+                  child: const Text( // ANTES: label. AHORA: child.
+                    'Donar',
+                    style: TextStyle(fontSize: 16),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.yellow[700],
+                    foregroundColor: Colors.black,
+                    textStyle: const TextStyle(fontWeight: FontWeight.bold),
+                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
+                    minimumSize: const Size(100, 30),
+                  ),
+                  onPressed: _launchPaypal,
                 ),
-                label: const Text('Donar con PayPal / Tarjeta',
-                    style: TextStyle(fontSize: 16)),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.yellow[700],
-                  foregroundColor: Colors.black,
-                  textStyle: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                onPressed: _launchPaypal,
               ),
             ),
+            // Fin de la sección del botón de donación corregido
             //const SizedBox(height: 30),
             //const Text(
             //'Preferencias',
@@ -116,10 +124,10 @@ class _SettingsPageState extends State<SettingsPage> {
                       value: 'es',
                       child: Text('Español'),
                     ),
-                    DropdownMenuItem(
-                      value: 'en',
-                      child: Text('Inglés'),
-                    ),
+                    //DropdownMenuItem(
+                    //value: 'en',
+                    //child: Text('Inglés'), //comentado, luego habilitar
+                    //),
                   ],
                   onChanged: (String? newValue) {
                     if (newValue != null) {

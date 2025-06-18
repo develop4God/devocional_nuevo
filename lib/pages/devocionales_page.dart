@@ -200,8 +200,8 @@ class _DevocionalesPageState extends State<DevocionalesPage> {
                       selectedItemBuilder: (BuildContext context) {
                         // Asegúrate que lista coincide con la lista 'items' de abajo.
                         return <String>[
-                          'RVR1960',
-                          'NTV'
+                          'RVR1960'//,
+                          //'NTV'
                         ] // Ajusta si tus versiones son diferentes.
                             .map<Widget>((String itemValue) {
                           return SizedBox(
@@ -226,8 +226,8 @@ class _DevocionalesPageState extends State<DevocionalesPage> {
                       },
                       // 'items' define las opciones que se ven cuando el Dropdown se despliega.
                       items: <String>[
-                        'RVR1960',
-                        'NTV'
+                        'RVR1960'//,
+                        //'NTV'
                       ] // Asegúrate que esta sea la lista real de versiones de tu app.
                           .map<DropdownMenuItem<String>>((String itemValue) {
                         return DropdownMenuItem<String>(
