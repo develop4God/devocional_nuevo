@@ -5,8 +5,10 @@ import 'package:flutter/material.dart'; // ¡Importante! Necesario para GlobalKe
 // --- Constantes ---
 // Es una buena práctica definir URLs y claves de SharedPreferences como constantes dentro de una clase.
 class Constants {
-  static const String apiUrl =
-      'https://raw.githubusercontent.com/develop4God/Devocionales-json/refs/heads/main/Devocionales_20250608_162909_es_RVR1960.json';
+  // AHORA: Función para generar la URL del JSON de devocionales por año.
+  static String getDevocionalesApiUrl(int year) {
+    return 'https://raw.githubusercontent.com/develop4God/Devocionales-json/refs/heads/main/Devocional_year_$year.json';
+  }
 
   // Las siguientes constantes no son necesarias en el nuevo modelo basado en fechas y objetos
   // pero las mantengo aquí si las usas en otras partes de tu código por ahora.

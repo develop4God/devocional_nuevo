@@ -90,7 +90,8 @@ class DevocionalProvider with ChangeNotifier {
     notifyListeners(); // Notificar que la carga ha comenzado
 
     try {
-      final response = await http.get(Uri.parse(Constants.apiUrl));
+      // AHORA: Obtiene el año actual para pasarlo a la función que genera la URL.
+    final response = await http.get(Uri.parse(Constants.getDevocionalesApiUrl(DateTime.now().year)));
 
       if (response.statusCode != 200) {
         throw Exception(
@@ -240,17 +241,25 @@ class DevocionalProvider with ChangeNotifier {
     if (isFavorite(devocional)) {
       _favoriteDevocionales.removeWhere((fav) => fav.id == devocional.id);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Devocional removido de favoritos'),
+        SnackBar(
+          content: const Text(
+            'Devocional removido de favoritos',
+            style: const TextStyle(color: Colors.black), // <<-- AQUÍ VA EL STYLE
+          ),
           duration: Duration(seconds: 2),
+          backgroundColor: Colors.deepPurple[100],
         ),
       );
     } else {
       _favoriteDevocionales.add(devocional);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Devocional guardado como favorito'),
+        SnackBar(
+          content: const Text(
+            'Devocional guardado como favorito',
+            style: const TextStyle(color: Colors.black),
+          ),
           duration: Duration(seconds: 2),
+          backgroundColor: Colors.deepPurple[100],
         ),
       );
     }

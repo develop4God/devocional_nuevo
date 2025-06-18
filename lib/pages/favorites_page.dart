@@ -14,7 +14,7 @@ class FavoritesPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.deepPurple,
+        backgroundColor: Colors.deepPurple[400],
         foregroundColor: Colors.white,
         title: const Text('Mis favoritos guardados'),
         centerTitle: true,

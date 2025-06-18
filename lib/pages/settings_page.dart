@@ -72,7 +72,7 @@ class _SettingsPageState extends State<SettingsPage> {
       appBar: AppBar(
         title:
         const Text('Más opciones', style: TextStyle(color: Colors.white)),
-        backgroundColor: Colors.deepPurple,
+        backgroundColor: Colors.deepPurple[400],
         foregroundColor: Colors.white,
       ),
       body: Padding(

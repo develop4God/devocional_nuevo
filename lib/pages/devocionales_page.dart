@@ -8,7 +8,7 @@ import 'dart:io' show File;
 import 'package:path_provider/path_provider.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:intl/intl.dart'; // Para formatear la fecha
-import 'package:devocional_nuevo/pages/favorites_page.dart';
+//import 'package:devocional_nuevo/pages/favorites_page.dart';
 import 'package:flutter/cupertino.dart'; // NECESARIO para CupertinoIcons
 import 'package:flutter/services.dart'; // Necesario para Clipboard (si se usa para copiar texto)
 
@@ -177,7 +177,7 @@ class _DevocionalesPageState extends State<DevocionalesPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.deepPurple,
+        backgroundColor: Colors.deepPurple[400],
         foregroundColor: Colors.white,
         // Título fijo en lugar de la fecha
         title: const Text('Mi espacio íntimo con Dios',
@@ -312,8 +312,8 @@ class _DevocionalesPageState extends State<DevocionalesPage> {
 
           final Devocional currentDevocional =
               devocionales[_currentDevocionalIndex];
-          final bool isFavorite =
-              devocionalProvider.isFavorite(currentDevocional);
+          //final bool isFavorite =
+              //devocionalProvider.isFavorite(currentDevocional);
 
           return Column(
             // Columna principal del body para elementos fijos y desplazables
@@ -344,7 +344,7 @@ class _DevocionalesPageState extends State<DevocionalesPage> {
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 12, vertical: 6),
                             decoration: BoxDecoration(
-                              color: Colors.deepPurple[100],
+                              color: Colors.deepPurple[50],
                               borderRadius: BorderRadius.circular(10),
                               border: Border.all(
                                   color:
@@ -538,7 +538,7 @@ class _DevocionalesPageState extends State<DevocionalesPage> {
               : false;
 
           return BottomAppBar(
-            color: Colors.deepPurple,
+            color: Colors.deepPurple[400],
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
