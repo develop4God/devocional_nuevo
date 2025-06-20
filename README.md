@@ -1,58 +1,3 @@
-Descripción del Flujo y Componentes:
-
-main.dart: Es el punto de entrada de la aplicación. Configura el tema, la localización y el DevocionalProvider global utilizando ChangeNotifierProvider, y lanza la SplashScreen.
-
-SplashScreen: La primera pantalla visible. Muestra una animación mientras la aplicación se inicializa. Después de un tiempo, navega a AppInitializer.
-
-AppInitializer: Un widget intermedio crucial. Su initState llama a _initializeAppData que, a su vez, invoca devocionalProvider.initializeData(). Una vez que los datos están cargados, navega a la DevocionalesPage.
-
-DevocionalProvider: El corazón de la gestión de datos de la aplicación (usando el patrón Provider). Es un ChangeNotifier que:
-
-Carga devocionales desde una API Remota (JSON de GitHub) usando http.
-
-Detecta y gestiona el idioma y la versión seleccionados por el usuario, guardándolos en SharedPreferences.
-
-Filtra los devocionales cargados según la versión seleccionada.
-
-Maneja la lógica de "favoritos" (añadir/quitar) y persiste esta lista en SharedPreferences.
-
-Controla la visibilidad de un "diálogo de invitación" (Oración de Fe), también guardando la preferencia en SharedPreferences.
-
-Notifica a sus consumidores (widgets de UI) sobre cambios en los datos.
-
-DevocionalModel: Define la estructura de datos para un devocional (Devocional) y sus subcomponentes (ParaMeditar). Incluye métodos fromJson y toJson para la serialización y deserialización de datos, facilitando su almacenamiento y recuperación.
-
-constants.dart: Contiene la lógica para construir la URL de la API remota de devocionales (basada en el año) y otras constantes como las claves para SharedPreferences.
-
-DevocionalesPage: La pantalla principal donde los usuarios ven el contenido del devocional del día.
-
-Consume los datos del DevocionalProvider.
-
-Permite la navegación entre devocionales (anterior/siguiente).
-
-Ofrece opciones para marcar como favorito, compartir (como texto o imagen - captura de pantalla) y navegar a la SettingsPage.
-
-Muestra un diálogo de "Oración de Fe" si no se ha deshabilitado.
-
-FavoritesPage: Muestra una lista de todos los devocionales que el usuario ha marcado como favoritos.
-
-También consume el DevocionalProvider para obtener la lista de favoritos.
-
-Permite "quitar de favoritos".
-
-Al tocar un favorito, navega de vuelta a la DevocionalesPage mostrando ese devocional específico.
-
-SettingsPage: La pantalla de ajustes.
-
-Permite cambiar el idioma (actualmente solo español, pero preparado para más).
-
-Incluye un botón para donaciones (enlace a PayPal).
-
-Permite navegar a la FavoritesPage directamente.
-
-HomePage: (Contenedor de Pestañas Opcional): Aunque existe en el código, no está directamente enlazada en el flujo de inicio actual (main.dart -> SplashScreen -> AppInitializer -> DevocionalesPage). Su propósito es servir como un contenedor con una BottomNavigationBar para navegar entre DevocionalesPage, FavoritesPage y SettingsPage como pestañas. Esto podría ser una evolución futura de la navegación principal.
-
-README para la Aplicación Flutter de Devocionales
 Aplicación de Devocionales Bíblicos
 🌐 Selecciona tu Idioma / Select your Language
 Español (ES)
@@ -80,116 +25,145 @@ Interfaz Intuitiva: Navegación sencilla entre devocionales y secciones de la ap
 🏗️ Arquitectura y Componentes Clave
 La aplicación está construida utilizando el framework Flutter y sigue principios de arquitectura modular y gestión de estado con Provider.
 
-Diagrama de Arquitectura de la Aplicación
+Diagrama de Arquitectura Técnica de la Aplicación
+Este diagrama ilustra las principales pantallas, los proveedores de datos y las interacciones clave dentro de tu aplicación de devocionales.
+
 graph TD
-    subgraph App de Devocionales
-        A[main.dart<br>(Punto de Entrada)] --> B(SplashScreen<br>(Animación Inicial))
-        B --> C(AppInitializer<br>(Carga y Setup Inicial))
-        C --> D(DevocionalesPage<br>(Contenido Principal))
+    subgraph Capa de Presentación (UI)
+        A[main.dart<br>Punto de Entrada] --> B(SplashScreen<br>Animación Inicial)
+        B -- Navega a --> C(AppInitializer<br>Carga de Datos)
+        C -- Inicialización Completa --> D(DevocionalesPage<br>Contenido Principal<br>[Image: Devocional Diario])
+        D -- Acción de Usuario --> E(SettingsPage<br>Opciones/Ajustes<br>[Image: Pantalla de Ajustes])
+        D -- Acción de Usuario --> G(FavoritesPage<br>Devocionales Favoritos<br>[Image: Lista de Favoritos])
 
-        D -- Navega a --> E(SettingsPage<br>(Opciones/Ajustes))
-        D -- Toggle/Gestiona --> F(DevocionalProvider<br>(Gestión de Estado/Datos))
-
-        E -- Navega a --> G(FavoritesPage<br>(Devocionales Favoritos))
-        G -- Navega de vuelta a --> D
-
-        F -- Obtiene Datos --> H(API Remota<br>(GitHub JSON))
-        F -- Guarda/Carga Datos --> I(SharedPreferences<br>(Datos Locales))
-        F -- Usa Estructura --> J(DevocionalModel<br>(Modelos de Datos))
-
-        K(HomePage<br>(Contenedor de Pestañas Opcional))
+        E -- Navega a --> G
+        G -- Toca Devocional --> D
     end
 
-    subgraph Componentes Clave
-        J -- Define Estructura --> Devocional{Devocional y ParaMeditar}
-        H -- URL de API --> L(constants.dart<br>(Constantes/URLs))
+    subgraph Capa de Lógica y Datos
+        F(DevocionalProvider<br>Gestión de Estado y Datos<br>Notificador)
+        J(DevocionalModel<br>Definición de Modelos)
+        L(Constants.dart<br>URLs y Constantes)
+        I(SharedPreferences<br>Almacenamiento Local)
+        H(API Remota<br>GitHub JSON Devocionales)
     end
+
+    C -- Accede y Llama Métodos --> F
+    D -- Consume Datos de UI --> F
+    E -- Modifica Preferencias --> F
+    G -- Consume Datos de UI --> F
+    F -- Carga/Actualiza Datos --> H
+    F -- Persiste/Lee Preferencias --> I
+    F -- Serializa/Deserializa --> J
+    H -- URL de Contenido --> L
+    J -- Define Estructura --> Devocional{Devocional y Para Meditar Objetos}
 
     style D fill:#f9f,stroke:#333,stroke-width:2px
     style G fill:#f9f,stroke:#333,stroke-width:2px
     style E fill:#f9f,stroke:#333,stroke-width:2px
     style F fill:#ADD8E6,stroke:#333,stroke-width:2px
     style J fill:#FFD700,stroke:#333,stroke-width:2px
-    style K fill:#D3D3D3,stroke:#333,stroke-width:1px
+    style I fill:#lightgreen,stroke:#333,stroke-width:2px
+    style H fill:#FFB6C1,stroke:#333,stroke-width:2px
+    style L fill:#90EE90,stroke:#333,stroke-width:2px
 
-Descripción de Archivos Clave (lib folder)
-main.dart:
+Descripción del Flujo Técnico y Componentes:
 
-Propósito: Punto de entrada de la aplicación.
+main.dart: Punto de entrada de la aplicación. Configura el tema, la localización y el DevocionalProvider global utilizando ChangeNotifierProvider, y lanza la SplashScreen.
 
-Funcionalidad: Inicializa Flutter, configura la internacionalización de fechas, envuelve la aplicación en ChangeNotifierProvider para DevocionalProvider, define el tema visual global y establece SplashScreen como la pantalla inicial.
+SplashScreen: La primera pantalla visible. Muestra una animación mientras la aplicación se inicializa. Después de un tiempo, navega a AppInitializer.
 
-splash_screen.dart:
+AppInitializer: Un widget intermedio crucial encargado de la inicialización asíncrona de los datos de la aplicación. Utiliza Provider para acceder al DevocionalProvider y llama a su método initializeData(). Una vez que los datos están cargados (o se produce un error), navega a la DevocionalesPage.
 
-Propósito: Pantalla de carga inicial.
+DevocionalProvider: El corazón de la gestión de estado y datos de la aplicación (usando el patrón Provider). Es un ChangeNotifier que:
 
-Funcionalidad: Muestra una animación de desvanecimiento con una imagen de fondo y un mensaje. Después de un breve retraso, navega a AppInitializer para comenzar la carga real de datos.
+Carga devocionales desde una API Remota (JSON de GitHub) usando la librería http.
 
-app_initializer.dart:
+Detecta y gestiona el idioma y la versión seleccionados por el usuario, guardándolos en SharedPreferences (almacenamiento local persistente).
 
-Propósito: Encargado de la inicialización asíncrona de los datos de la aplicación.
+Filtra los devocionales cargados según la versión bíblica seleccionada.
 
-Funcionalidad: Utiliza Provider para acceder al DevocionalProvider y llama a su método initializeData(). Una vez que los datos están cargados (o se produce un error), navega a la DevocionalesPage.
+Maneja la lógica de "favoritos" (añadir/quitar) y persiste esta lista en SharedPreferences.
 
-providers/devocional_provider.dart:
+Controla la visibilidad de un "diálogo de invitación" (Oración de Fe), también guardando la preferencia en SharedPreferences.
 
-Propósito: Gestiona el estado y los datos de los devocionales a lo largo de la aplicación.
+Notifica a sus consumidores (widgets de UI) sobre cambios en los datos, lo que provoca que la interfaz de usuario se actualice.
 
-Funcionalidad:
+DevocionalModel: Define la estructura de datos para un devocional (Devocional) y sus subcomponentes (ParaMeditar). Incluye métodos fromJson y toJson para la serialización y deserialización de datos, facilitando su almacenamiento y recuperación.
 
-Carga todos los devocionales de un año específico desde un JSON remoto (servido por GitHub).
+constants.dart: Contiene la lógica para construir la URL de la API remota de devocionales (basada en el año) y otras constantes como las claves para SharedPreferences.
 
-Filtra los devocionales por la versión bíblica seleccionada (ej. RVR1960).
+DevocionalesPage: La pantalla principal donde los usuarios ven el contenido del devocional del día. Consume los datos del DevocionalProvider, permite la navegación entre devocionales (anterior/siguiente), ofrece opciones para marcar como favorito, compartir (como texto o imagen - captura de pantalla) y navegar a la SettingsPage. Muestra un diálogo de "Oración de Fe" si no se ha deshabilitado.
 
-Maneja la lista de devocionales favoritos del usuario, guardándolos y cargándolos usando shared_preferences.
+FavoritesPage: Muestra una lista de todos los devocionales que el usuario ha marcado como favoritos. También consume el DevocionalProvider para obtener la lista de favoritos, permite "quitar de favoritos" y, al tocar un favorito, navega de vuelta a la DevocionalesPage mostrando ese devocional específico.
 
-Gestiona la preferencia para mostrar o no el diálogo de la "Oración de Fe".
+SettingsPage: La pantalla de ajustes. Permite cambiar el idioma (actualmente solo español, pero preparado para más), incluye un botón para donaciones (enlace a PayPal) y proporciona un enlace directo a la FavoritesPage.
 
-Notifica a los widgets que escuchan sobre cualquier cambio de estado (ej. datos cargados, favorito añadido).
+HomePage: (Contenedor de Pestañas Opcional): Aunque existe en el código, no está directamente enlazada en el flujo de inicio actual (main.dart -> SplashScreen -> AppInitializer -> DevocionalesPage). Su propósito es servir como un contenedor con una BottomNavigationBar para navegar entre DevocionalesPage, FavoritesPage y SettingsPage como pestañas. Esto podría ser una evolución futura de la navegación principal.
 
-models/devocional_model.dart:
+🚶 Flujo de Usuario (UI/UX)
+Este diagrama describe la experiencia del usuario al interactuar con la aplicación, mostrando cómo navegan entre las diferentes pantallas y realizan acciones clave.
 
-Propósito: Define las estructuras de datos (Devocional y ParaMeditar) utilizadas para representar el contenido de los devocionales.
+graph TD
+    A[Inicio App<br>(Usuario Toca Ícono)] --> B(SplashScreen<br>Animación de Carga)
+    B -- Tiempo + Carga Datos --> C(DevocionalesPage<br>Ver Devocional Diario<br>[Image: Pantalla Principal Devocional])
+    C -- Swipe Izquierda/Botón Siguiente --> C1(DevocionalesPage<br>Ver Siguiente Devocional)
+    C -- Swipe Derecha/Botón Anterior --> C2(DevocionalesPage<br>Ver Devocional Anterior)
 
-Funcionalidad: Incluye constructores factory (fromJson) para parsear objetos JSON en instancias de Dart, y métodos toJson para serializar instancias de Dart a objetos JSON (útil para guardar favoritos).
+    C -- Tocar Ícono Corazón --> C3{Devocional Favorito?<br>Sí/No}
+    C3 -- Sí --> C4(Remover de Favoritos<br>Mensaje Confirmación)
+    C3 -- No --> C5(Añadir a Favoritos<br>Mensaje Confirmación)
 
-utils/constants.dart:
+    C -- Tocar Ícono Compartir Texto --> C6(Compartir Devocional<br>Como Texto)
+    C -- Tocar Ícono Compartir Imagen --> C7(Compartir Devocional<br>Como Captura de Pantalla)
 
-Propósito: Almacena constantes y utilidades globales.
+    C -- Tocar Ícono Ajustes --> D(SettingsPage<br>Acceder a Opciones<br>[Image: Pantalla de Ajustes])
+    D -- Tocar "Favoritos guardados" --> E(FavoritesPage<br>Ver Lista de Favoritos<br>[Image: Lista de Favoritos])
+    E -- Tocar Devocional en Lista --> C
 
-Funcionalidad: Contiene la función getDevocionalesApiUrl para construir la URL del archivo JSON de devocionales en GitHub, basándose en el año. También define claves para SharedPreferences.
+    D -- Tocar "Donar" --> D1(Abrir Navegador<br>Página de PayPal)
 
-pages/devocionales_page.dart:
+    C -- Cada cierto número de devocionales --> F{Mostrar Oración de Fe?<br>Si no marcada "No mostrar"}
+    F -- Oración mostrada --> G(Diálogo de Oración<br>"Oración de fe..."<br>[Image: Diálogo de Oración])
+    G -- Tocar "Continuar" + (Opcional "No mostrar nuevamente") --> C
 
-Propósito: Muestra el devocional actual con opciones de interacción.
+    C --> End[Continuar Explorando]
+    E --> End
+    D --> End
 
-Funcionalidad:
+    style C fill:#D3D3D3,stroke:#333,stroke-width:1px
+    style D fill:#D3D3D3,stroke:#333,stroke-width:1px
+    style E fill:#D3D3D3,stroke:#333,stroke-width:1px
 
-Muestra el versículo, reflexión, "para meditar" y la oración del devocional actual.
+Descripción del Flujo de Usuario:
 
-Permite navegar entre devocionales anteriores y siguientes.
+Inicio de la Aplicación: El usuario toca el ícono de la aplicación.
 
-Integra botones para marcar/desmarcar como favorito, compartir el contenido como texto o como una captura de pantalla, y acceder a la página de ajustes.
+SplashScreen: Se muestra una animación inicial y un mensaje de carga mientras la aplicación se prepara.
 
-Muestra el diálogo de la "Oración de Fe" bajo ciertas condiciones.
+DevocionalesPage (Pantalla Principal): Una vez que los datos están cargados, el usuario es llevado a la pantalla del devocional diario. Aquí puede:
 
-pages/favorites_page.dart:
+Navegar: Deslizar (swipe) o usar los botones de flecha para ir al devocional anterior o siguiente.
 
-Propósito: Muestra la lista de devocionales marcados como favoritos.
+Marcar como Favorito: Tocar el ícono del corazón. Si ya es favorito, se quita de la lista; de lo contrario, se añade. Se muestra un breve mensaje de confirmación.
 
-Funcionalidad: Presenta una lista desplazable de tarjetas de devocionales favoritos. Al hacer clic en una tarjeta, navega de vuelta a la DevocionalesPage para mostrar ese devocional específico. Permite eliminar devocionales de la lista de favoritos.
+Compartir: Tocar el ícono de compartir para elegir entre compartir el devocional como texto simple o como una captura de pantalla de la página actual.
 
-pages/home_page.dart:
+Ajustes: Tocar el ícono de ajustes para ir a la SettingsPage.
 
-Propósito: (Potencial) Servir como contenedor principal con navegación por pestañas.
+Oración de Fe: Periódicamente, después de navegar por algunos devocionales, se le puede presentar un diálogo con la "Oración de Fe". El usuario puede leerla y optar por no mostrarla nuevamente.
 
-Funcionalidad: Define un BottomNavigationBar para alternar entre DevocionalesPage, FavoritesPage y una SettingsPage (placeholder). Nota: En el flujo actual de la aplicación, esta HomePage no es directamente utilizada como la pantalla principal después de la inicialización, pero representa una estructura de navegación común en aplicaciones Flutter.
+SettingsPage (Pantalla de Ajustes): Desde aquí, el usuario puede:
 
-pages/settings_page.dart:
+Cambiar el idioma de la aplicación (actualmente solo Español está activo).
 
-Propósito: Ofrece opciones de configuración y enlaces externos.
+Tocar un botón "Donar" que abre una página de PayPal en el navegador externo.
 
-Funcionalidad: Permite al usuario cambiar el idioma de la aplicación (actualmente solo español). Incluye un botón para hacer donaciones (enlace a PayPal). Proporciona un enlace directo a la FavoritesPage.
+Navegar a la FavoritesPage.
+
+FavoritesPage (Pantalla de Favoritos): Muestra una lista de todos los devocionales que el usuario ha marcado previamente. Al tocar un devocional en esta lista, el usuario es llevado de vuelta a la DevocionalesPage, directamente al devocional seleccionado. También puede quitar devocionales de favoritos desde esta lista.
+
+Fin de Interacción: El usuario puede continuar explorando los devocionales o cerrar la aplicación.
 
 ⚙️ Configuración y Ejecución
 Requisitos Previos
@@ -239,140 +213,141 @@ Intuitive Interface: Easy navigation between devotionals and app sections.
 🏗️ Architecture and Key Components
 The application is built using the Flutter framework and follows principles of modular architecture and state management with Provider.
 
-Application Architecture Diagram
+Application Technical Architecture Diagram
+This diagram illustrates the main screens, data providers, and key interactions within your devotional application.
+
 graph TD
-    subgraph Devotional App
-        A[main.dart<br>(Entry Point)] --> B(SplashScreen<br>(Initial Animation))
-        B --> C(AppInitializer<br>(Data Loading & Setup))
-        C --> D(DevocionalesPage<br>(Main Content))
+    subgraph Presentation Layer (UI)
+        A[main.dart<br>Entry Point] --> B(SplashScreen<br>Initial Animation)
+        B -- Navigates to --> C(AppInitializer<br>Data Loading)
+        C -- Initialization Complete --> D(DevocionalesPage<br>Main Content<br>[Image: Daily Devotional])
+        D -- User Action --> E(SettingsPage<br>Options/Settings<br>[Image: Settings Screen])
+        D -- User Action --> G(FavoritesPage<br>Favorite Devotionals<br>[Image: Favorites List])
 
-        D -- Navigates to --> E(SettingsPage<br>(Options/Settings))
-        D -- Toggles/Manages --> F(DevocionalProvider<br>(State/Data Management))
-
-        E -- Navigates to --> G(FavoritesPage<br>(Favorite Devotionals))
-        G -- Navigates back to --> D
-
-        F -- Fetches Data From --> H(Remote API<br>(GitHub JSON))
-        F -- Saves/Loads Data --> I(SharedPreferences<br>(Local Data))
-        F -- Uses Structure --> J(DevocionalModel<br>(Data Models))
-
-        K(HomePage<br>(Optional Tab Container))
+        E -- Navigates to --> G
+        G -- Taps Devotional --> D
     end
 
-    subgraph Key Components
-        J -- Defines Structure --> Devotional{Devotional & ParaMeditar}
-        H -- API URL from --> L(constants.dart<br>(Constants/URLs))
+    subgraph Logic and Data Layer
+        F(DevocionalProvider<br>State & Data Management<br>Notifier)
+        J(DevocionalModel<br>Model Definitions)
+        L(Constants.dart<br>URLs & Constants)
+        I(SharedPreferences<br>Local Storage)
+        H(Remote API<br>GitHub JSON Devotionals)
     end
+
+    C -- Accesses & Calls Methods --> F
+    D -- Consumes UI Data --> F
+    E -- Modifies Preferences --> F
+    G -- Consumes UI Data --> F
+    F -- Loads/Updates Data --> H
+    F -- Persists/Reads Preferences --> I
+    F -- Serializes/Deserializes --> J
+    H -- Content URL from --> L
+    J -- Defines Structure --> Devocional{Devocional & ParaMeditar Objects}
 
     style D fill:#f9f,stroke:#333,stroke-width:2px
     style G fill:#f9f,stroke:#333,stroke-width:2px
     style E fill:#f9f,stroke:#333,stroke-width:2px
     style F fill:#ADD8E6,stroke:#333,stroke-width:2px
     style J fill:#FFD700,stroke:#333,stroke-width:2px
-    style K fill:#D3D3D3,stroke:#333,stroke-width:1px
+    style I fill:#lightgreen,stroke:#333,stroke-width:2px
+    style H fill:#FFB6C1,stroke:#333,stroke-width:2px
+    style L fill:#90EE90,stroke:#333,stroke-width:2px
 
-Description of Key Files (lib folder)
-main.dart:
+Description of Technical Flow and Components:
+main.dart: The application's entry point. It configures the theme, localization, and the global DevocionalProvider using ChangeNotifierProvider, then launches the SplashScreen.
 
-Purpose: Application entry point.
+SplashScreen: The first visible screen. It displays an animation while the app initializes. After a short delay, it navigates to AppInitializer.
 
-Functionality: Initializes Flutter, configures date internationalization, wraps the application in ChangeNotifierProvider for DevocionalProvider, defines the global visual theme, and sets SplashScreen as the initial screen.
+AppInitializer: A crucial intermediate widget responsible for asynchronous application data initialization. It uses Provider to access the DevocionalProvider and calls its initializeData() method. Once data is loaded (or an error occurs), it navigates to DevocionalesPage.
 
-splash_screen.dart:
+DevocionalProvider: The core of the application's state and data management (using the Provider pattern). It is a ChangeNotifier that:
 
-Purpose: Initial loading screen.
+Loads devotionals from a Remote API (GitHub JSON) using the http library.
 
-Functionality: Displays a fading animation with a background image and a message. After a short delay, it navigates to AppInitializer to begin the actual data loading.
+Detects and manages the language and version selected by the user, saving them to SharedPreferences (persistent local storage).
 
-app_initializer.dart:
+Filters loaded devotionals based on the selected Bible version.
 
-Purpose: Handles asynchronous application data initialization.
+Handles "favorite" logic (add/remove) and persists this list in SharedPreferences.
 
-Functionality: Uses Provider to access the DevocionalProvider and calls its initializeData() method. Once data is loaded (or an error occurs), it navigates to DevocionalesPage.
+Controls the visibility of a "Prayer of Faith" dialog, also saving the preference in SharedPreferences.
 
-providers/devocional_provider.dart:
+Notifies its consumers (UI widgets) of any state changes, triggering UI updates.
 
-Purpose: Manages the state and data of the devotionals throughout the application.
+DevocionalModel: Defines the data structures for a devotional (Devocional) and its sub-components (ParaMeditar). It includes factory constructors (fromJson) to parse JSON objects into Dart instances, and toJson methods to serialize Dart instances to JSON objects (useful for saving favorites).
 
-Functionality:
+constants.dart: Contains the logic to construct the URL for the remote devotional JSON API (based on the year) and other constants such as SharedPreferences keys.
 
-Loads all devotionals for a specific year from a remote JSON (served via GitHub).
+DevocionalesPage: The main screen where users view the current devotional content. It consumes data from the DevocionalProvider, allows navigation between previous and next devotionals, offers options to mark as favorite, share (as text or image - screenshot), and navigate to the SettingsPage. It displays a "Prayer of Faith" dialog under certain conditions.
 
-Filters devotionals by the selected Bible version (e.g., RVR1960).
+FavoritesPage: Displays a list of all devotionals the user has marked as favorites. It also consumes the DevocionalProvider to get the list of favorites, allows "unfavoriting," and upon tapping a favorite, navigates back to the DevocionalesPage displaying that specific devotional.
 
-Manages the user's list of favorite devotionals, saving and loading them using shared_preferences.
+SettingsPage: The settings screen. It allows changing the application's language (currently only Spanish is active), includes a button for donations (PayPal link), and provides a direct link to the FavoritesPage.
 
-Manages the preference to show or hide a "Prayer of Faith" dialog.
+HomePage: (Optional Tab Container): Although it exists in the code, it's not directly linked in the current application's startup flow (main.dart -> SplashScreen -> AppInitializer -> DevocionalesPage). Its purpose is to serve as a container with a BottomNavigationBar to navigate between DevocionalesPage, FavoritesPage, and SettingsPage as tabs. This could be a future evolution of the main navigation.
 
-Notifies listening widgets of any state changes (e.g., data loaded, favorite added).
+🚶 User Flow (UI/UX)
+This diagram describes the user experience when interacting with the application, showing how they navigate between different screens and perform key actions.
 
-models/devocional_model.dart:
+graph TD
+    A[App Launch<br>(User Taps Icon)] --> B(SplashScreen<br>Loading Animation)
+    B -- Time + Data Load --> C(DevocionalesPage<br>View Daily Devotional<br>[Image: Main Devotional Screen])
+    C -- Swipe Left/Next Button --> C1(DevocionalesPage<br>View Next Devotional)
+    C -- Swipe Right/Previous Button --> C2(DevocionalesPage<br>View Previous Devotional)
 
-Purpose: Defines the data structures (Devocional and ParaMeditar) used to represent the devotional content.
+    C -- Tap Heart Icon --> C3{Devotional Favorite?<br>Yes/No}
+    C3 -- Yes --> C4(Remove From Favorites<br>Confirmation Message)
+    C3 -- No --> C5(Add to Favorites<br>Confirmation Message)
 
-Functionality: Includes factory constructors (fromJson) to parse JSON objects into Dart instances, and toJson methods to serialize Dart instances into JSON objects (useful for saving favorites).
+    C -- Tap Share Text Icon --> C6(Share Devotional<br>As Text)
+    C -- Tap Share Image Icon --> C7(Share Devotional<br>As Screenshot)
 
-utils/constants.dart:
+    C -- Tap Settings Icon --> D(SettingsPage<br>Access Options<br>[Image: Settings Screen])
+    D -- Tap "Saved Favorites" --> E(FavoritesPage<br>View Favorites List<br>[Image: Favorites List])
+    E -- Tap Devotional in List --> C
 
-Purpose: Stores global constants and utilities.
+    D -- Tap "Donate" --> D1(Open Browser<br>PayPal Page)
 
-Functionality: Contains the getDevocionalesApiUrl function to construct the URL for the devotional JSON file on GitHub, based on the year. Also defines keys for SharedPreferences.
+    C -- Every N Devotionals --> F{Show Prayer of Faith?<br>If not "Do not show again" checked}
+    F -- Prayer Shown --> G(Prayer Dialog<br>"Prayer of faith..."<br>[Image: Prayer Dialog])
+    G -- Tap "Continue" + (Optional "Do not show again") --> C
 
-pages/devocionales_page.dart:
+    C --> End[Continue Exploring]
+    E --> End
+    D --> End
 
-Purpose: Displays the current devotional with interaction options.
+    style C fill:#D3D3D3,stroke:#333,stroke-width:1px
+    style D fill:#D3D3D3,stroke:#333,stroke-width:1px
+    style E fill:#D3D3D3,stroke:#333,stroke-width:1px
 
-Functionality:
+Description of User Flow:
 
-Shows the verse, reflection, "for meditation," and prayer of the current devotional.
+App Launch: The user taps the application icon.
 
-Allows navigation between previous and next devotionals.
+SplashScreen: An initial animation and loading message are displayed while the app prepares.
 
-Integrates buttons to mark/unmark as favorite, share content as text or a screenshot, and access the settings page.
+DevocionalesPage (Main Screen): Once data is loaded, the user is taken to the daily devotional screen. Here they can:
 
-Displays the "Prayer of Faith" dialog under certain conditions.
+Navigate: Swipe or use arrow buttons to go to the previous or next devotional.
 
-pages/favorites_page.dart:
+Mark as Favorite: Tap the heart icon. If already a favorite, it's removed; otherwise, it's added. A brief confirmation message is shown.
 
-Purpose: Displays the list of devotionals marked as favorites.
+Share: Tap the share icon to choose between sharing the devotional content as plain text or as a screenshot of the current page.
 
-Functionality: Presents a scrollable list of favorite devotional cards. Clicking a card navigates back to the DevocionalesPage to display that specific devotional. Allows removing devotionals from the favorites list.
+Settings: Tap the settings icon to go to the SettingsPage.
 
-pages/home_page.dart:
+Prayer of Faith: Periodically, after navigating through some devotionals, a "Prayer of Faith" dialog may be presented. The user can read it and opt not to show it again.
 
-Purpose: (Potential) To serve as the main container with tab navigation.
+SettingsPage (Settings Screen): From here, the user can:
 
-Functionality: Defines a BottomNavigationBar to switch between DevocionalesPage, FavoritesPage, and a placeholder SettingsPage. Note: In the current application flow, this HomePage is not directly used as the main screen after initialization, but it represents a common navigation structure in Flutter apps.
+Change the application language (currently only Spanish is active).
 
-pages/settings_page.dart:
+Tap a "Donate" button that opens a PayPal page in the external browser.
 
-Purpose: Offers configuration options and external links.
+Navigate to the FavoritesPage.
 
-Functionality: Allows the user to change the application's language (currently only Spanish). Includes a button for donations (PayPal link). Provides a direct link to the FavoritesPage.
+FavoritesPage (Favorites Screen): Displays a list of all devotionals the user has previously marked as favorites. Tapping a devotional in this list takes the user back to the DevocionalesPage, directly to the selected devotional. Users can also remove devotionals from the favorites list from here.
 
-⚙️ Setup and Execution
-Prerequisites
-Flutter SDK installed and configured.
-
-A code editor (like VS Code or Android Studio).
-
-An emulator or physical device to run the app.
-
-Steps to Run
-Clone the repository:
-
-git clone https://github.com/develop4God/Devocional_nuevo.git
-
-Navigate to the project directory:
-
-cd Devocional_nuevo
-
-Get Flutter dependencies:
-
-flutter pub get
-
-Run the application:
-
-flutter run
-
-Make sure you have an emulator or device connected and selected.
+End of Interaction: The user can continue exploring devotionals or close the application.
