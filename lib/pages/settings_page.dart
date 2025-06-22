@@ -1,9 +1,12 @@
+// lib/pages/settings_page.dart (o la ruta que tengas)
+
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:developer' as developer;
 import 'package:flutter/cupertino.dart'; // Necesario para CupertinoIcons
 
-import 'package:devocional_nuevo/pages/favorites_page.dart'; // Importado para la navegación a FavoritesPage
+import 'package:devocional_nuevo/pages/favorites_page.dart';
+import 'package:devocional_nuevo/pages/about_page.dart'; //
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -21,7 +24,6 @@ class _SettingsPageState extends State<SettingsPage> {
         'https://www.paypal.com/donate/?hosted_button_id=CGQNBA4YPUG7A';
 
     // Añadir el parámetro de idioma para español.
-    // 'es_ES' es para español de España. Puedes probar con 'es_LA' o solo 'es' si 'es_ES' no funciona como esperas.
     const String paypalUrlWithLocale = '$baseUrl&locale.x=es_ES';
 
     final url = Uri.parse(paypalUrlWithLocale);
@@ -71,9 +73,9 @@ class _SettingsPageState extends State<SettingsPage> {
     return Scaffold(
       appBar: AppBar(
         title:
-        const Text('Más opciones', style: TextStyle(color: Colors.white)),
-        backgroundColor: Colors.deepPurple[400],
-        foregroundColor: Colors.white,
+        const Text('Más opciones', style: TextStyle(color: Colors.white)), // El color del texto seguirá siendo blanco por tu AppBarTheme en main.dart
+        // Ya no necesitas especificar backgroundColor ni foregroundColor aquí.
+        // Ahora heredará automáticamente de tu ThemeData en main.dart
       ),
       body: Padding(
         padding: const EdgeInsets.all(24.0),
@@ -84,12 +86,8 @@ class _SettingsPageState extends State<SettingsPage> {
             SizedBox(
               child: Align(
                 alignment: Alignment.topRight,
-                child: ElevatedButton( // ANTES: ElevatedButton.icon. AHORA: ElevatedButton.
-                  // icon: Image.network( // ANTES: Se eliminó la propiedad icon.
-                  //   'https://www.paypalobjects.com/webstatic/icon/pp258.png',
-                  //   height: 16,
-                  // ),
-                  child: const Text( // ANTES: label. AHORA: child.
+                child: ElevatedButton(
+                  child: const Text(
                     'Donar',
                     style: TextStyle(fontSize: 16),
                   ),
@@ -105,12 +103,6 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
             ),
             // Fin de la sección del botón de donación corregido
-            //const SizedBox(height: 30),
-            //const Text(
-            //'Preferencias',
-            //style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-            //),
-            //const SizedBox(height: 30),
             Row(
               children: [
                 const Icon(Icons.language, color: Colors.deepPurple),
@@ -139,9 +131,8 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
               ],
             ),
-            // --- Nueva fila para "Favoritos guardados" (ahora totalmente interactiva) ---
-            const SizedBox(height: 20), // Espacio entre el idioma y favoritos
-            // Usamos InkWell para que toda la fila sea clickeable y tenga feedback visual
+            // --- Fila para "Favoritos guardados" ---
+            const SizedBox(height: 20),
             InkWell(
               onTap: () {
                 Navigator.push(
@@ -150,24 +141,40 @@ class _SettingsPageState extends State<SettingsPage> {
                       builder: (context) => const FavoritesPage()),
                 );
               },
-              child: Padding(
-                // Añadimos Padding aquí para mantener el espaciado interno de la fila
-                padding: const EdgeInsets.symmetric(
-                    vertical: 8.0), // Ajusta este padding si es necesario
+              child: const Padding(
+                padding: EdgeInsets.symmetric(vertical: 8.0),
                 child: Row(
                   children: [
-                    const Icon(
-                        CupertinoIcons
-                            .square_favorites_alt, // Icono de favoritos
+                    Icon(CupertinoIcons.square_favorites_alt,
                         color: Colors.deepPurple),
-                    const SizedBox(width: 10),
-                    const Text('Favoritos guardados', // Texto para favoritos
-                        style: TextStyle(fontSize: 18)),
-                    // Eliminamos Spacer y IconButton de flecha, ya que toda la fila es clickeable
+                    SizedBox(width: 10),
+                    Text('Favoritos guardados', style: TextStyle(fontSize: 18)),
                   ],
                 ),
               ),
             ),
+            // --- NUEVA SECCIÓN: Fila para "Acerca de Devocionales Cristianos" ---
+            const SizedBox(height: 20), // Espacio entre Favoritos y Acerca de
+            InkWell(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const AboutPage()),
+                );
+              },
+              child: const Padding(
+                padding: EdgeInsets.symmetric(vertical: 8.0),
+                child: Row(
+                  children: [
+                    Icon(Icons.info_outline, color: Colors.deepPurple), // Ícono de información
+                    SizedBox(width: 10),
+                    Text('Acerca de Devocionales Cristianos', // Texto de la opción
+                        style: TextStyle(fontSize: 18)),
+                  ],
+                ),
+              ),
+            ),
+            // --- FIN NUEVA SECCIÓN ---
           ],
         ),
       ),

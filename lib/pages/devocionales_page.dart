@@ -177,8 +177,9 @@ class _DevocionalesPageState extends State<DevocionalesPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.deepPurple[400],
-        foregroundColor: Colors.white,
+        // Remueve backgroundColor y foregroundColor para heredar del tema global
+        // backgroundColor: Colors.deepPurple[400], // <-- Comentada o eliminada
+        // foregroundColor: Colors.white,            // <-- Comentada o eliminada
         // Título fijo en lugar de la fecha
         title: const Text('Mi espacio íntimo con Dios',
             style: TextStyle(color: Colors.white)),
@@ -538,7 +539,8 @@ class _DevocionalesPageState extends State<DevocionalesPage> {
               : false;
 
           return BottomAppBar(
-            color: Colors.deepPurple[400],
+            // Asigna el color de fondo de la AppBar del tema global
+            color: Theme.of(context).appBarTheme.backgroundColor, // <-- ¡CAMBIAR A ESTA LÍNEA!
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [

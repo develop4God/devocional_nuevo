@@ -1,45 +1,74 @@
-# Miscellaneous
-*.class
-*.log
-*.pyc
-*.swp
-.DS_Store
-.atom/
-.build/
-.buildlog/
-.history
-.svn/
-.swiftpm/
-migrate_working_dir/
-
-# IntelliJ related
-*.iml
-*.ipr
-*.iws
-.idea/
-
-# The .vscode folder contains launch configuration and tasks you configure in
-# VS Code which you may wish to be included in version control, so this line
-# is commented out by default.
-#.vscode/
-
-# Flutter/Dart/Pub related
-**/doc/api/
-**/ios/Flutter/.last_build_id
-.dart_tool/
+# Archivos y carpetas generados por Flutter y el entorno de desarrollo
 .flutter-plugins
 .flutter-plugins-dependencies
-.pub-cache/
-.pub/
-/build/
+.flutter-tool-environment
+.dart_tool/
+.fvm/
+.idea/
+.vscode/
+build/
+*.iml
+*.packages
+*.flutter-plugins-cache
+.gradle/
+android/.gradle/
+ios/.symlinks/
+ios/Flutter/.last_build_id
+ios/Flutter/Generated.xcconfig
+ios/Flutter/flutter_export_environment.sh
+ios/Pods/
+ios/Runner.xcodeproj/project.xcworkspace/
+ios/Runner.xcodeproj/xcuserdata/
+ios/Runner.xcworkspace/xcuserdata/
+ios/Runner.xcworkspace/xcshareddata/
+ios/Flutter/flutter_export_environment.sh
+ios/Flutter/Flutter.framework/
+ios/Flutter/Flutter.podspec
+ios/Flutter.podspec
+ios/Runner.xcodeproj/project.pbxproj.before_merge
+ios/Runner.xcodeproj/project.pbxproj.orig
+ios/Runner.xcodeproj/project.pbxproj.rej
+ios/Runner.xcodeproj/xcshareddata/
+ios/Runner.xcodeproj/xcuserdata/
+ios/Runner.xcworkspace/contents.xcworkspacedata
+ios/Flutter/Flutter.xcconfig
+ios/Flutter/Generated.xcconfig
+ios/Flutter/flutter_export_environment.sh
+ios/Pods/Manifest.lock
+ios/Runner.xcodeproj/xcshareddata/xcschemes/
+ios/Runner.xcworkspace/contents.xcworkspacedata
+ios/Runner.xcworkspace/xcuserdata/
+ios/Runner/Runner.entitlements # Si tienes configurado automáticamente entitlements, a veces se puede ignorar, pero cuidado.
+ios/Runner/Runner.xctest/
+ios/Flutter/App.framework/
+ios/Flutter/Flutter.framework/
+ios/Flutter/Generated.xcconfig
+ios/Flutter/flutter_export_environment.sh
 
-# Symbolication related
-app.*.symbols
+# Archivos específicos del sistema operativo
+.DS_Store # macOS
+Thumbs.db # Windows
 
-# Obfuscation related
-app.*.map.json
+# Archivos de logs y temporales
+*.log
+*.tmp
+*.bak
 
-# Android Studio will place build artifacts here
-/android/app/debug
-/android/app/profile
-/android/app/release
+# Archivos de entorno y configuración sensible
+.env # Si usas archivos .env para variables de entorno
+key.properties # ¡Importante! El archivo de clave de firma de Android
+
+# IDE specific files
+*.iml # IntelliJ/Android Studio project files
+.vscode/ # VS Code settings
+.project # Eclipse
+.classpath
+.settings/
+
+# Archivos de compilación específicos de la plataforma (adicionales a 'build/')
+**/android/*.apk
+**/android/*.aab
+**/android/*.jar
+**/ios/*.ipa
+**/ios/*.xcarchive
+**/ios/*.dSYM
