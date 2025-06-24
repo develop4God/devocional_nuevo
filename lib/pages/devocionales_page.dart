@@ -10,7 +10,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:intl/intl.dart'; // Para formatear la fecha
 //import 'package:devocional_nuevo/pages/favorites_page.dart';
 import 'package:flutter/cupertino.dart'; // NECESARIO para CupertinoIcons
-//import 'package:flutter/services.dart'; // Necesario para Clipboard (si se usa para copiar texto)
+import 'package:shared_preferences/shared_preferences.dart';
 
 // Importa tus propios modelos y providers
 import 'package:devocional_nuevo/models/devocional_model.dart';
@@ -31,6 +31,8 @@ class DevocionalesPage extends StatefulWidget {
 class _DevocionalesPageState extends State<DevocionalesPage> {
   final ScreenshotController screenshotController = ScreenshotController();
   int _currentDevocionalIndex = 0;
+// Clave para SharedPreferences
+  static const String _lastDevocionalIndexKey = 'lastDevocionalIndex';
 
   // Métodos para navegar, reutilizando la lógica del BottomAppBar
   void _goToNextDevocional() {
@@ -46,6 +48,8 @@ class _DevocionalesPageState extends State<DevocionalesPage> {
       if (devocionalProvider.showInvitationDialog) {
         _showInvitation(context);
       }
+      // ¡IMPORTANTE! Guardar el índice después de avanzar, incluso si se llega al final
+      _saveCurrentDevocionalIndex();
     }
   }
 
@@ -56,24 +60,61 @@ class _DevocionalesPageState extends State<DevocionalesPage> {
       });
     }
   }
-
+// Método para guardar el índice actual del devocional
+  Future<void> _saveCurrentDevocionalIndex() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_lastDevocionalIndexKey, _currentDevocionalIndex);
+    print('Índice de devocional guardado: $_currentDevocionalIndex');
+  }
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async { // ¡Ahora es ASYNC!
       final devocionalProvider =
-          Provider.of<DevocionalProvider>(context, listen: false);
+      Provider.of<DevocionalProvider>(context, listen: false);
 
+      // Asegúrate de que los datos del provider estén listos
       if (!devocionalProvider.isLoading &&
           devocionalProvider.devocionales.isEmpty) {
-        devocionalProvider.initializeData();
+        await devocionalProvider.initializeData(); // Espera a que se inicialicen los datos
       }
 
-      // Si se pasa un ID inicial, encontrar su índice
+      // *** Lógica para cargar el último índice de devocional visto ***
+      if (devocionalProvider.devocionales.isNotEmpty) { // Solo si hay devocionales para evitar errores
+        final prefs = await SharedPreferences.getInstance();
+        final int? savedIndex = prefs.getInt(_lastDevocionalIndexKey);
+
+        if (mounted) {
+          setState(() {
+            if (savedIndex != null) {
+              // Si hay un índice guardado, calculamos el "siguiente" devocional.
+              // Asegúrate de no exceder el tamaño de la lista.
+              // Si savedIndex es el último, volvemos al principio (0).
+              _currentDevocionalIndex = (savedIndex + 1) % devocionalProvider.devocionales.length;
+              print('Devocional cargado al inicio (índice siguiente): $_currentDevocionalIndex');
+            } else {
+              // Si no hay índice guardado (primera vez que se abre la app), empezar en 0.
+              _currentDevocionalIndex = 0;
+              print('No hay índice guardado. Iniciando en el primer devocional (índice 0).');
+            }
+          });
+        }
+      } else {
+        // Si no hay devocionales disponibles al inicio, asegura que el índice sea 0
+        if (mounted) {
+          setState(() {
+            _currentDevocionalIndex = 0;
+          });
+        }
+        print('No hay devocionales disponibles para cargar el índice.');
+      }
+
+      // Si se pasa un ID inicial, encontrar su índice. Esta lógica DEBE SOBREESCRIBIR el índice guardado.
+      // Esto asegura que si el usuario viene de favoritos, se muestre el devocional específico.
       if (widget.initialDevocionalId != null &&
           devocionalProvider.devocionales.isNotEmpty) {
         final index = devocionalProvider.devocionales.indexWhere(
-          (d) => d.id == widget.initialDevocionalId,
+              (d) => d.id == widget.initialDevocionalId,
         );
         if (index != -1) {
           setState(() {
@@ -219,9 +260,9 @@ class _DevocionalesPageState extends State<DevocionalesPage> {
                       onChanged: (String? newValue) {
                         if (newValue != null) {
                           devocionalProvider.setSelectedVersion(newValue);
-                          setState(() {
-                            _currentDevocionalIndex = 0;
-                          });
+                          //setState(() {
+                            //_currentDevocionalIndex = 0; comentado para que no vuelva al inicio
+                          //});
                         }
                       },
                       // 'items' define las opciones que se ven cuando el Dropdown se despliega.
