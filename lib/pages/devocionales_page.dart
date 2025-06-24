@@ -10,7 +10,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:intl/intl.dart'; // Para formatear la fecha
 //import 'package:devocional_nuevo/pages/favorites_page.dart';
 import 'package:flutter/cupertino.dart'; // NECESARIO para CupertinoIcons
-import 'package:flutter/services.dart'; // Necesario para Clipboard (si se usa para copiar texto)
+//import 'package:flutter/services.dart'; // Necesario para Clipboard (si se usa para copiar texto)
 
 // Importa tus propios modelos y providers
 import 'package:devocional_nuevo/models/devocional_model.dart';
@@ -158,7 +158,7 @@ class _DevocionalesPageState extends State<DevocionalesPage> {
   Future<void> _shareAsText(Devocional devocional) async {
     final text =
         "Devocional del día:\n\nVersículo: ${devocional.versiculo}\n\nReflexión: ${devocional.reflexion}\n\nPara Meditar:\n${devocional.paraMeditar.map((p) => '${p.cita}: ${p.texto}').join('\n')}\n\nOración: ${devocional.oracion}\n\nVersión: ${devocional.version ?? 'N/A'}\nIdioma: ${devocional.language ?? 'N/A'}\nFecha: ${DateFormat('dd/MM/yyyy').format(devocional.date)}";
-    await Share.share(text);
+    await SharePlus.instance.share(ShareParams(text: text));
   }
 
   /// Comparte el devocional como imagen (captura de pantalla).
@@ -168,8 +168,7 @@ class _DevocionalesPageState extends State<DevocionalesPage> {
       final directory = await getApplicationDocumentsDirectory();
       final imagePath = await File('${directory.path}/devocional.png').create();
       await imagePath.writeAsBytes(image);
-      await Share.shareXFiles([XFile(imagePath.path)],
-          text: 'Devocional del día');
+      await SharePlus.instance.share(ShareParams(files: [XFile(imagePath.path)], text: 'Devocional del día'));
     }
   }
 
@@ -495,8 +494,7 @@ class _DevocionalesPageState extends State<DevocionalesPage> {
                             Icons.arrow_back,
                             color: _currentDevocionalIndex > 0
                                 ? Colors.deepPurple // Color cuando está activo
-                                : Colors.deepPurple
-                                    .withOpacity(0.3), // Más transparente
+                                : Colors.deepPurple.withValues(alpha: 0.3), // Más transparente
                             size: 35, // Un poco más grandes
                           ),
                         ),
@@ -512,8 +510,7 @@ class _DevocionalesPageState extends State<DevocionalesPage> {
                             color: _currentDevocionalIndex <
                                     devocionales.length - 1
                                 ? Colors.deepPurple // Color cuando está activo
-                                : Colors.deepPurple
-                                    .withOpacity(0.3), // Más transparente
+                                : Colors.deepPurple.withValues(alpha: 0.3), // Más transparente
                             size: 35, // Un poco más grandes
                           ),
                         ),
