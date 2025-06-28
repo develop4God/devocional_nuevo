@@ -535,7 +535,7 @@ class _DevocionalesPageState extends State<DevocionalesPage> {
                             Icons.arrow_back,
                             color: _currentDevocionalIndex > 0
                                 ? Colors.deepPurple // Color cuando está activo
-                                : Colors.deepPurple.withValues(alpha: 0.3), // Más transparente
+                                : Colors.deepPurple.withOpacity(0.3), // Más transparente
                             size: 35, // Un poco más grandes
                           ),
                         ),
@@ -551,7 +551,7 @@ class _DevocionalesPageState extends State<DevocionalesPage> {
                             color: _currentDevocionalIndex <
                                     devocionales.length - 1
                                 ? Colors.deepPurple // Color cuando está activo
-                                : Colors.deepPurple.withValues(alpha: 0.3), // Más transparente
+                                : Colors.deepPurple.withOpacity(0.3), // Más transparente
                             size: 35, // Un poco más grandes
                           ),
                         ),

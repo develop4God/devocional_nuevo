@@ -8,11 +8,15 @@ import 'package:flutter_localizations/flutter_localizations.dart'; // Importaci√
 // Importa los archivos que acabas de separar
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/splash_screen.dart'; // Aseg√∫rate de que esta ruta sea correcta
+import 'package:devocional_nuevo/services/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await initializeDateFormatting('es', null);
+  
+  // Inicializar servicio de notificaciones
+  await NotificationService().initialize();
 
   runApp(const MyApp());
 }
