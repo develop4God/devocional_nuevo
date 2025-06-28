@@ -30,6 +30,7 @@ class DevocionalesPage extends StatefulWidget {
 
 class _DevocionalesPageState extends State<DevocionalesPage> {
   final ScreenshotController screenshotController = ScreenshotController();
+  final ScrollController _scrollController = ScrollController(); // Agregado ScrollController
   int _currentDevocionalIndex = 0;
 // Clave para SharedPreferences
   static const String _lastDevocionalIndexKey = 'lastDevocionalIndex';
@@ -44,6 +45,8 @@ class _DevocionalesPageState extends State<DevocionalesPage> {
       setState(() {
         _currentDevocionalIndex++;
       });
+      // Resetear el scroll al inicio del nuevo devocional
+      _scrollToTop();
       // Mostrar la oración de fe si showInvitationDialog es true al avanzar
       if (devocionalProvider.showInvitationDialog) {
         _showInvitation(context);
@@ -58,8 +61,25 @@ class _DevocionalesPageState extends State<DevocionalesPage> {
       setState(() {
         _currentDevocionalIndex--;
       });
+      // Resetear el scroll al inicio del nuevo devocional
+      _scrollToTop();
     }
   }
+
+  // Método para hacer scroll al inicio del devocional
+  void _scrollToTop() {
+    // Usar WidgetsBinding para asegurar que el widget esté completamente construido
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients && mounted) {
+        _scrollController.animateTo(
+          0.0,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
+    });
+  }
+
 // Método para guardar el índice actual del devocional
   Future<void> _saveCurrentDevocionalIndex() async {
     final prefs = await SharedPreferences.getInstance();
@@ -376,6 +396,7 @@ class _DevocionalesPageState extends State<DevocionalesPage> {
                   child: Container(
                     color: Theme.of(context).scaffoldBackgroundColor,
                     child: SingleChildScrollView(
+                      controller: _scrollController, // Agregado el controller
                       padding: const EdgeInsets.all(16.0),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -535,7 +556,7 @@ class _DevocionalesPageState extends State<DevocionalesPage> {
                             Icons.arrow_back,
                             color: _currentDevocionalIndex > 0
                                 ? Colors.deepPurple // Color cuando está activo
-                                : Colors.deepPurple.withValues(alpha: 0.3), // Más transparente
+                                : Colors.deepPurple.withOpacity(0.3), // Más transparente
                             size: 35, // Un poco más grandes
                           ),
                         ),
@@ -551,7 +572,7 @@ class _DevocionalesPageState extends State<DevocionalesPage> {
                             color: _currentDevocionalIndex <
                                     devocionales.length - 1
                                 ? Colors.deepPurple // Color cuando está activo
-                                : Colors.deepPurple.withValues(alpha: 0.3), // Más transparente
+                                : Colors.deepPurple.withOpacity(0.3), // Más transparente
                             size: 35, // Un poco más grandes
                           ),
                         ),
@@ -632,5 +653,11 @@ class _DevocionalesPageState extends State<DevocionalesPage> {
         },
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose(); // Liberar el ScrollController
+    super.dispose();
   }
 }
