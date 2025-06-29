@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">Devocionales Cristianos</string>
+    <!-- Configuración para Firebase Cloud Messaging -->
+    <string name="default_notification_channel_id">high_importance_channel</string>
 </resources>

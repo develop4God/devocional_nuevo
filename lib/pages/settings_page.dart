@@ -6,7 +6,9 @@ import 'dart:developer' as developer;
 import 'package:flutter/cupertino.dart'; // Necesario para CupertinoIcons
 
 import 'package:devocional_nuevo/pages/favorites_page.dart';
-import 'package:devocional_nuevo/pages/about_page.dart'; //
+import 'package:devocional_nuevo/pages/about_page.dart';
+import 'package:devocional_nuevo/pages/notification_permission_page.dart';
+import 'package:devocional_nuevo/services/notification_service.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -17,6 +19,24 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage> {
   String _selectedLanguage = 'es'; // Idioma por defecto
+  bool _notificationsEnabled = false;
+  String _notificationTime = '08:00';
+  final NotificationService _notificationService = NotificationService();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadNotificationSettings();
+  }
+
+  Future<void> _loadNotificationSettings() async {
+    final enabled = await _notificationService.areNotificationsEnabled();
+    final time = await _notificationService.getNotificationTime();
+    setState(() {
+      _notificationsEnabled = enabled;
+      _notificationTime = time;
+    });
+  }
 
   Future<void> _launchPaypal() async {
     // URL original del botón de donación
@@ -64,6 +84,107 @@ class _SettingsPageState extends State<SettingsPage> {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(message)),
+      );
+    }
+  }
+
+  Future<void> _toggleNotifications(bool enabled) async {
+    if (enabled) {
+      // Verificar si tenemos permisos
+      final hasPermission = await _notificationService.hasNotificationPermissions();
+      
+      if (!hasPermission) {
+        // Si no tenemos permisos, mostrar pantalla de solicitud
+        final result = await Navigator.push<bool>(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const NotificationPermissionPage(),
+          ),
+        );
+        
+        // Si el usuario no concedió permisos, no activar notificaciones
+        if (result != true) {
+          return;
+        }
+      }
+    }
+    
+    setState(() {
+      _notificationsEnabled = enabled;
+    });
+    
+    await _notificationService.setNotificationsEnabled(enabled);
+    
+    if (enabled) {
+      _showSuccessSnackBar('Notificaciones activadas para las $_notificationTime');
+    } else {
+      _showSuccessSnackBar('Notificaciones desactivadas');
+    }
+  }
+
+  Future<void> _selectNotificationTime() async {
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay(
+        hour: int.parse(_notificationTime.split(':')[0]),
+        minute: int.parse(_notificationTime.split(':')[1]),
+      ),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: Theme.of(context).colorScheme.copyWith(
+              primary: Colors.deepPurple,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (picked != null) {
+      final timeString = '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
+      setState(() {
+        _notificationTime = timeString;
+      });
+      
+      await _notificationService.setNotificationTime(timeString);
+      
+      if (_notificationsEnabled) {
+        _showSuccessSnackBar('Hora de notificación actualizada: $timeString');
+      }
+    }
+  }
+
+  Future<void> _testNotification() async {
+    // URL de una imagen de ejemplo para la notificación
+    const String imageUrl = 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80';
+    
+    try {
+      await _notificationService.showImmediateNotification(
+        title: '🙏 Prueba de Notificación',
+        body: '¡Las notificaciones están funcionando correctamente!',
+        payload: 'test_notification',
+        bigPicture: imageUrl,
+      );
+      _showSuccessSnackBar('Notificación de prueba enviada');
+    } catch (e) {
+      // Si hay error con la imagen, enviar notificación sin imagen
+      await _notificationService.showImmediateNotification(
+        title: '🙏 Prueba de Notificación',
+        body: '¡Las notificaciones están funcionando correctamente!',
+      );
+      _showSuccessSnackBar('Notificación de prueba enviada (sin imagen)');
+    }
+  }
+
+  void _showSuccessSnackBar(String message) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: Colors.green,
+          duration: const Duration(seconds: 3),
+        ),
       );
     }
   }
@@ -131,7 +252,113 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
               ],
             ),
+            
+            // --- SECCIÓN DE NOTIFICACIONES ---
+            const SizedBox(height: 30),
+            const Divider(),
+            const SizedBox(height: 20),
+            
+            // Título de la sección
+            const Row(
+              children: [
+                Icon(Icons.notifications, color: Colors.deepPurple),
+                SizedBox(width: 10),
+                Text(
+                  'Notificaciones',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.deepPurple,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 15),
+            
+            // Switch para habilitar/deshabilitar notificaciones
+            Row(
+              children: [
+                const Icon(Icons.notifications_active, color: Colors.deepPurple),
+                const SizedBox(width: 10),
+                const Expanded(
+                  child: Text(
+                    'Recordatorio diario',
+                    style: TextStyle(fontSize: 16),
+                  ),
+                ),
+                Switch(
+                  value: _notificationsEnabled,
+                  onChanged: _toggleNotifications,
+                  activeColor: Colors.deepPurple,
+                ),
+              ],
+            ),
+            
+            // Selector de hora (solo visible si las notificaciones están habilitadas)
+            if (_notificationsEnabled) ...[
+              const SizedBox(height: 15),
+              InkWell(
+                onTap: _selectNotificationTime,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.access_time, color: Colors.deepPurple),
+                      const SizedBox(width: 10),
+                      const Expanded(
+                        child: Text(
+                          'Hora de notificación',
+                          style: TextStyle(fontSize: 16),
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.deepPurple.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.deepPurple),
+                        ),
+                        child: Text(
+                          _notificationTime,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.deepPurple,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      const Icon(Icons.chevron_right, color: Colors.deepPurple),
+                    ],
+                  ),
+                ),
+              ),
+              
+              // Botón de prueba
+              const SizedBox(height: 15),
+              Center(
+                child: ElevatedButton.icon(
+                  onPressed: _testNotification,
+                  icon: const Icon(Icons.send),
+                  label: const Text('Probar notificación'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.deepPurple,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 10,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+            
             // --- Fila para "Favoritos guardados" ---
+            const SizedBox(height: 30),
+            const Divider(),
             const SizedBox(height: 20),
             InkWell(
               onTap: () {

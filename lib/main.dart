@@ -4,15 +4,52 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/date_symbol_data_local.dart'; // Importación necesaria para initializeDateFormatting
 import 'package:flutter_localizations/flutter_localizations.dart'; // Importación para delegados de localización
+import 'package:firebase_core/firebase_core.dart';
+import 'package:workmanager/workmanager.dart';
 
 // Importa los archivos que acabas de separar
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/splash_screen.dart'; // Asegúrate de que esta ruta sea correcta
+import 'package:devocional_nuevo/services/notification_service.dart';
+import 'package:devocional_nuevo/services/firebase_messaging_service.dart';
+import 'package:devocional_nuevo/services/background_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await initializeDateFormatting('es', null);
+  
+  try {
+    // Inicializar Firebase
+    await Firebase.initializeApp();
+    
+    // Inicializar servicio de notificaciones locales
+    await NotificationService().initialize();
+    
+    // Inicializar servicio de notificaciones remotas (Firebase)
+    await FirebaseMessagingService().initialize();
+    
+    // Inicializar servicio de tareas en segundo plano
+    await Workmanager().initialize(
+      callbackDispatcher,
+      isInDebugMode: true,
+    );
+    
+    // Programar tareas periódicas
+    await BackgroundService().scheduleDailyDevotionalFetch();
+    
+    // Suscribirse al tema general de notificaciones
+    await FirebaseMessagingService().subscribeToTopic('general');
+    
+    // Obtener y guardar el token FCM
+    final token = await FirebaseMessagingService().getToken();
+    if (token != null) {
+      await NotificationService().saveDeviceToken(token);
+    }
+  } catch (e) {
+    debugPrint('Error al inicializar servicios: $e');
+    // Continuar con la app incluso si hay error en la inicialización de servicios
+  }
 
   runApp(const MyApp());
 }
