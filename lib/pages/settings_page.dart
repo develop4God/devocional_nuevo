@@ -6,7 +6,8 @@ import 'dart:developer' as developer;
 import 'package:flutter/cupertino.dart'; // Necesario para CupertinoIcons
 
 import 'package:devocional_nuevo/pages/favorites_page.dart';
-import 'package:devocional_nuevo/pages/about_page.dart'; //
+import 'package:devocional_nuevo/pages/about_page.dart';
+import 'package:devocional_nuevo/pages/notification_permission_page.dart';
 import 'package:devocional_nuevo/services/notification_service.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -88,6 +89,26 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Future<void> _toggleNotifications(bool enabled) async {
+    if (enabled) {
+      // Verificar si tenemos permisos
+      final hasPermission = await _notificationService.hasNotificationPermissions();
+      
+      if (!hasPermission) {
+        // Si no tenemos permisos, mostrar pantalla de solicitud
+        final result = await Navigator.push<bool>(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const NotificationPermissionPage(),
+          ),
+        );
+        
+        // Si el usuario no concedió permisos, no activar notificaciones
+        if (result != true) {
+          return;
+        }
+      }
+    }
+    
     setState(() {
       _notificationsEnabled = enabled;
     });
@@ -135,11 +156,25 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Future<void> _testNotification() async {
-    await _notificationService.showImmediateNotification(
-      title: '🙏 Prueba de Notificación',
-      body: '¡Las notificaciones están funcionando correctamente!',
-    );
-    _showSuccessSnackBar('Notificación de prueba enviada');
+    // URL de una imagen de ejemplo para la notificación
+    const String imageUrl = 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80';
+    
+    try {
+      await _notificationService.showImmediateNotification(
+        title: '🙏 Prueba de Notificación',
+        body: '¡Las notificaciones están funcionando correctamente!',
+        payload: 'test_notification',
+        bigPicture: imageUrl,
+      );
+      _showSuccessSnackBar('Notificación de prueba enviada');
+    } catch (e) {
+      // Si hay error con la imagen, enviar notificación sin imagen
+      await _notificationService.showImmediateNotification(
+        title: '🙏 Prueba de Notificación',
+        body: '¡Las notificaciones están funcionando correctamente!',
+      );
+      _showSuccessSnackBar('Notificación de prueba enviada (sin imagen)');
+    }
   }
 
   void _showSuccessSnackBar(String message) {

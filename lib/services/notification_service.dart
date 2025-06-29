@@ -1,11 +1,15 @@
 // lib/services/notification_service.dart
 
+import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart';
 
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
@@ -19,6 +23,11 @@ class NotificationService {
   static const String _notificationsEnabledKey = 'notifications_enabled';
   static const String _notificationTimeKey = 'notification_time';
   static const String _defaultNotificationTime = '08:00'; // 8:00 AM por defecto
+  static const String _lastNotificationDateKey = 'last_notification_date';
+  static const String _deviceTokenKey = 'device_token';
+
+  // Callback para manejar la navegación cuando se toca una notificación
+  Function(String? payload)? onNotificationTapped;
 
   /// Inicializar el servicio de notificaciones
   Future<void> initialize() async {
@@ -52,13 +61,19 @@ class NotificationService {
 
     // Solicitar permisos
     await _requestPermissions();
+    
+    // Verificar si es un nuevo día para programar notificación
+    await _checkAndScheduleForNewDay();
   }
 
   /// Manejar cuando se toca una notificación
   void _onNotificationTapped(NotificationResponse notificationResponse) {
     debugPrint('Notificación tocada: ${notificationResponse.payload}');
-    // Aquí puedes agregar lógica para navegar a una página específica
-    // Por ejemplo, abrir el devocional del día
+    
+    // Llamar al callback si está definido
+    if (onNotificationTapped != null) {
+      onNotificationTapped!(notificationResponse.payload);
+    }
   }
 
   /// Solicitar permisos de notificación
@@ -117,6 +132,24 @@ class NotificationService {
     }
   }
 
+  /// Verificar si es un nuevo día para programar notificación
+  Future<void> _checkAndScheduleForNewDay() async {
+    final prefs = await SharedPreferences.getInstance();
+    final lastNotificationDate = prefs.getString(_lastNotificationDateKey);
+    
+    final today = DateTime.now().toIso8601String().split('T')[0];
+    
+    if (lastNotificationDate != today) {
+      // Es un nuevo día, guardar la fecha actual
+      await prefs.setString(_lastNotificationDateKey, today);
+      
+      // Si las notificaciones están habilitadas, programar para hoy
+      if (await areNotificationsEnabled()) {
+        await scheduleDailyNotification();
+      }
+    }
+  }
+
   /// Programar notificación diaria
   Future<void> scheduleDailyNotification() async {
     // Cancelar notificaciones existentes
@@ -144,6 +177,23 @@ class NotificationService {
       scheduledDate = scheduledDate.add(const Duration(days: 1));
     }
 
+    // Intentar obtener el título del devocional para hoy
+    String title = '🙏 Devocional de Hoy';
+    String body = 'Tu momento de reflexión diaria te está esperando';
+    
+    try {
+      // Aquí podrías hacer una petición a tu API para obtener el título del devocional
+      // Por ejemplo:
+      // final devotionalData = await _fetchDevotionalData();
+      // if (devotionalData != null) {
+      //   title = '🙏 ${devotionalData['title']}';
+      //   body = devotionalData['summary'] ?? body;
+      // }
+    } catch (e) {
+      debugPrint('Error al obtener datos del devocional: $e');
+      // Usar los valores por defecto si hay error
+    }
+
     // Configuración de la notificación para Android
     const AndroidNotificationDetails androidPlatformChannelSpecifics =
         AndroidNotificationDetails(
@@ -155,6 +205,7 @@ class NotificationService {
       icon: '@mipmap/ic_launcher',
       sound: RawResourceAndroidNotificationSound('notification'),
       enableVibration: true,
+      styleInformation: BigTextStyleInformation(''),
     );
 
     // Configuración de la notificación para iOS
@@ -175,8 +226,8 @@ class NotificationService {
     // Programar notificación
     await _flutterLocalNotificationsPlugin.zonedSchedule(
       0, // ID de la notificación
-      '🙏 Devocional de Hoy',
-      'Tu momento de reflexión diaria te está esperando',
+      title,
+      body,
       scheduledDate,
       platformChannelSpecifics,
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
@@ -189,20 +240,66 @@ class NotificationService {
     debugPrint('Notificación programada para: $scheduledDate');
   }
 
-  /// Mostrar notificación inmediata (para testing)
+  /// Mostrar notificación inmediata (para testing o notificaciones manuales)
   Future<void> showImmediateNotification({
     String title = '🙏 Devocional de Hoy',
     String body = 'Tu momento de reflexión diaria te está esperando',
+    String? payload,
+    String? bigPicture,
   }) async {
-    const AndroidNotificationDetails androidPlatformChannelSpecifics =
-        AndroidNotificationDetails(
-      'immediate_devotional',
-      'Devocional Inmediato',
-      channelDescription: 'Notificación inmediata del devocional',
-      importance: Importance.high,
-      priority: Priority.high,
-      icon: '@mipmap/ic_launcher',
-    );
+    AndroidNotificationDetails androidPlatformChannelSpecifics;
+    
+    // Si hay una imagen grande, configurar notificación con estilo BigPicture
+    if (bigPicture != null) {
+      try {
+        final String largeIconPath = await _downloadAndSaveFile(
+          bigPicture,
+          'largeIcon.png',
+        );
+        
+        final String bigPicturePath = await _downloadAndSaveFile(
+          bigPicture,
+          'bigPicture.png',
+        );
+        
+        androidPlatformChannelSpecifics = AndroidNotificationDetails(
+          'immediate_devotional',
+          'Devocional Inmediato',
+          channelDescription: 'Notificación inmediata del devocional',
+          importance: Importance.high,
+          priority: Priority.high,
+          icon: '@mipmap/ic_launcher',
+          largeIcon: FilePathAndroidBitmap(largeIconPath),
+          styleInformation: BigPictureStyleInformation(
+            FilePathAndroidBitmap(bigPicturePath),
+            hideExpandedLargeIcon: true,
+          ),
+        );
+      } catch (e) {
+        debugPrint('Error al configurar notificación con imagen: $e');
+        // Si hay error, usar notificación estándar
+        androidPlatformChannelSpecifics = const AndroidNotificationDetails(
+          'immediate_devotional',
+          'Devocional Inmediato',
+          channelDescription: 'Notificación inmediata del devocional',
+          importance: Importance.high,
+          priority: Priority.high,
+          icon: '@mipmap/ic_launcher',
+          styleInformation: BigTextStyleInformation(''),
+        );
+      }
+    } else {
+      // Notificación estándar sin imagen
+      androidPlatformChannelSpecifics = const AndroidNotificationDetails(
+        'immediate_devotional',
+        'Devocional Inmediato',
+        channelDescription: 'Notificación inmediata del devocional',
+        importance: Importance.high,
+        priority: Priority.high,
+        icon: '@mipmap/ic_launcher',
+        styleInformation: BigTextStyleInformation(''),
+      );
+    }
 
     const DarwinNotificationDetails iOSPlatformChannelSpecifics =
         DarwinNotificationDetails(
@@ -210,9 +307,10 @@ class NotificationService {
       presentAlert: true,
       presentBadge: true,
       presentSound: true,
+      attachments: [], // Aquí podrías añadir adjuntos para iOS
     );
 
-    const NotificationDetails platformChannelSpecifics = NotificationDetails(
+    final NotificationDetails platformChannelSpecifics = NotificationDetails(
       android: androidPlatformChannelSpecifics,
       iOS: iOSPlatformChannelSpecifics,
     );
@@ -222,8 +320,18 @@ class NotificationService {
       title,
       body,
       platformChannelSpecifics,
-      payload: 'immediate_devotional',
+      payload: payload ?? 'immediate_devotional',
     );
+  }
+
+  /// Descargar y guardar un archivo desde una URL
+  Future<String> _downloadAndSaveFile(String url, String fileName) async {
+    final Directory directory = await getApplicationDocumentsDirectory();
+    final String filePath = '${directory.path}/$fileName';
+    final http.Response response = await http.get(Uri.parse(url));
+    final File file = File(filePath);
+    await file.writeAsBytes(response.bodyBytes);
+    return filePath;
   }
 
   /// Cancelar todas las notificaciones
@@ -246,5 +354,37 @@ class NotificationService {
       return true; // Simplificado, en producción podrías hacer una verificación más robusta
     }
     return true;
+  }
+  
+  /// Guardar token del dispositivo para notificaciones remotas
+  Future<void> saveDeviceToken(String token) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_deviceTokenKey, token);
+    debugPrint('Token del dispositivo guardado: $token');
+  }
+  
+  /// Obtener token del dispositivo
+  Future<String?> getDeviceToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_deviceTokenKey);
+  }
+  
+  /// Obtener datos del devocional para la notificación
+  Future<Map<String, dynamic>?> _fetchDevotionalData() async {
+    try {
+      // Aquí implementarías la lógica para obtener los datos del devocional
+      // desde tu API o base de datos
+      
+      // Ejemplo:
+      // final response = await http.get(Uri.parse('https://tu-api.com/devocional/hoy'));
+      // if (response.statusCode == 200) {
+      //   return jsonDecode(response.body);
+      // }
+      
+      return null;
+    } catch (e) {
+      debugPrint('Error al obtener datos del devocional: $e');
+      return null;
+    }
   }
 }
