@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:share_plus/share_plus.dart';
 import 'dart:io' show File;
+import 'dart:typed_data';
 import 'package:path_provider/path_provider.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:intl/intl.dart'; // Para formatear la fecha
@@ -209,7 +210,13 @@ class _DevocionalesPageState extends State<DevocionalesPage> {
       final directory = await getApplicationDocumentsDirectory();
       final imagePath = await File('${directory.path}/devocional.png').create();
       await imagePath.writeAsBytes(image);
-      await Share.shareFiles([imagePath.path], text: 'Devocional del día');
+      
+      // Compartir el archivo de imagen
+      await Share.shareFiles(
+        [imagePath.path],
+        text: 'Devocional del día',
+        subject: 'Devocional',
+      );
     }
   }
 
