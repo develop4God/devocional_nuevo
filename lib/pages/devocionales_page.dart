@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:cross_file/cross_file.dart';
 import 'dart:io' show File;
 import 'package:path_provider/path_provider.dart';
 import 'package:auto_size_text/auto_size_text.dart';
@@ -199,7 +200,7 @@ class _DevocionalesPageState extends State<DevocionalesPage> {
   Future<void> _shareAsText(Devocional devocional) async {
     final text =
         "Devocional del día:\n\nVersículo: ${devocional.versiculo}\n\nReflexión: ${devocional.reflexion}\n\nPara Meditar:\n${devocional.paraMeditar.map((p) => '${p.cita}: ${p.texto}').join('\n')}\n\nOración: ${devocional.oracion}\n\nVersión: ${devocional.version ?? 'N/A'}\nIdioma: ${devocional.language ?? 'N/A'}\nFecha: ${DateFormat('dd/MM/yyyy').format(devocional.date)}";
-    await SharePlus.instance.share(ShareParams(text: text));
+    await Share.share(text);
   }
 
   /// Comparte el devocional como imagen (captura de pantalla).
@@ -209,7 +210,7 @@ class _DevocionalesPageState extends State<DevocionalesPage> {
       final directory = await getApplicationDocumentsDirectory();
       final imagePath = await File('${directory.path}/devocional.png').create();
       await imagePath.writeAsBytes(image);
-      await SharePlus.instance.share(ShareParams(files: [XFile(imagePath.path)], text: 'Devocional del día'));
+      await Share.shareXFiles([XFile(imagePath.path)], text: 'Devocional del día');
     }
   }
 
