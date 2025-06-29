@@ -1,129 +1,82 @@
 // lib/services/background_service.dart
+// Servicio para manejar tareas en segundo plano y notificaciones periódicas
 
-import 'package:flutter/foundation.dart';
-import 'package:workmanager/workmanager.dart';
+import 'dart:isolate';
+import 'dart:ui';
+import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import 'notification_service.dart';
 
-// Identificadores de tareas
-const String fetchDevotionalTask = 'fetchDevotionalTask';
-const String checkForUpdatesTask = 'checkForUpdatesTask';
+class BackgroundService {
+  static const String _isolateName = 'isolate';
+  static const int _alarmId = 0;
 
-// Esta función debe definirse a nivel global para ser llamada por Workmanager
-@pragma('vm:entry-point')
-void callbackDispatcher() {
-  Workmanager().executeTask((taskName, inputData) async {
-    debugPrint('Ejecutando tarea en segundo plano: $taskName');
-    
-    switch (taskName) {
-      case fetchDevotionalTask:
-        await _handleFetchDevotionalTask();
-        break;
-      case checkForUpdatesTask:
-        await _handleCheckForUpdatesTask();
-        break;
-      default:
-        debugPrint('Tarea desconocida: $taskName');
-    }
-    
-    return Future.value(true);
-  });
-}
+  /// Inicializa el servicio de alarmas y configura la comunicación entre aislados
+  static Future<void> initialize() async {
+    // Inicializar el servicio de alarmas de Android
+    await AndroidAlarmManager.initialize();
 
-// Manejar la tarea de obtener el devocional
-Future<void> _handleFetchDevotionalTask() async {
-  debugPrint('Obteniendo devocional en segundo plano');
-  
-  try {
-    // Aquí implementarías la lógica para obtener el devocional del día
-    // Por ejemplo, hacer una petición HTTP a tu API
-    
-    // Verificar si las notificaciones están habilitadas
+    // Registrar el puerto para comunicación entre aislados
+    final ReceivePort port = ReceivePort();
+    IsolateNameServer.registerPortWithName(port.sendPort, _isolateName);
+
+    // Escuchar mensajes del aislado secundario
+    port.listen((dynamic data) async {
+      // Este callback se ejecuta cuando recibimos un mensaje
+      if (data != null) {
+        // Usar el singleton de NotificationService para mostrar la notificación
+        await NotificationService().showDailyDevotionalNotification();
+      }
+    });
+  }
+
+  /// Programa notificaciones periódicas diarias
+  static Future<void> schedulePeriodicNotifications() async {
     final prefs = await SharedPreferences.getInstance();
-    final notificationsEnabled = prefs.getBool('notifications_enabled') ?? false;
-    
+    final notificationsEnabled = prefs.getBool('notifications_enabled') ?? true;
+
     if (notificationsEnabled) {
-      // Mostrar notificación con el devocional del día
-      final notificationService = NotificationService();
-      await notificationService.showImmediateNotification(
-        title: '🙏 Devocional de Hoy',
-        body: 'Tu momento de reflexión diaria te está esperando',
+      // Programar verificación diaria a las 8:00 AM
+      await AndroidAlarmManager.periodic(
+        const Duration(days: 1),
+        _alarmId,
+        _fireNotification,
+        startAt: DateTime.now().add(const Duration(days: 1)).copyWith(hour: 8, minute: 0),
+        exact: true,
+        wakeup: true,
+        rescheduleOnReboot: true,
       );
     }
-  } catch (e) {
-    debugPrint('Error al obtener devocional en segundo plano: $e');
   }
-}
 
-// Manejar la tarea de verificar actualizaciones
-Future<void> _handleCheckForUpdatesTask() async {
-  debugPrint('Verificando actualizaciones en segundo plano');
-  
-  try {
-    // Aquí implementarías la lógica para verificar si hay actualizaciones
-    // Por ejemplo, comparar la versión actual con la versión en el servidor
-    
-    // Si hay una actualización disponible, mostrar notificación
-    final notificationService = NotificationService();
-    await notificationService.showImmediateNotification(
-      title: '📱 Actualización Disponible',
-      body: 'Hay una nueva versión de la aplicación disponible',
-    );
-  } catch (e) {
-    debugPrint('Error al verificar actualizaciones en segundo plano: $e');
+  /// Cancela todas las notificaciones periódicas programadas
+  static Future<void> cancelPeriodicNotifications() async {
+    await AndroidAlarmManager.cancel(_alarmId);
   }
-}
 
-class BackgroundService {
-  static final BackgroundService _instance = BackgroundService._internal();
-  factory BackgroundService() => _instance;
-  BackgroundService._internal();
-  
-  // Inicializar el servicio de tareas en segundo plano
-  Future<void> initialize() async {
-    await Workmanager().initialize(
-      callbackDispatcher,
-      isInDebugMode: kDebugMode,
-    );
-    
-    debugPrint('Servicio de tareas en segundo plano inicializado');
+  /// Callback que se ejecuta cuando se dispara la alarma
+  @pragma('vm:entry-point')
+  static Future<void> _fireNotification() async {
+    // Intentar comunicarse con el aislado principal
+    final SendPort? send = IsolateNameServer.lookupPortByName(_isolateName);
+    send?.send(null);
+
+    // Disparar notificación usando el singleton de NotificationService
+    await NotificationService().showDailyDevotionalNotification();
   }
-  
-  // Programar tarea periódica para obtener el devocional
-  Future<void> scheduleDailyDevotionalFetch() async {
-    await Workmanager().registerPeriodicTask(
-      'dailyDevotional',
-      fetchDevotionalTask,
-      frequency: const Duration(hours: 24),
-      constraints: Constraints(
-        networkType: NetworkType.connected,
-        requiresBatteryNotLow: true,
-      ),
-      existingWorkPolicy: ExistingWorkPolicy.replace,
-    );
-    
-    debugPrint('Tarea diaria de devocional programada');
-  }
-  
-  // Programar tarea periódica para verificar actualizaciones
-  Future<void> scheduleWeeklyUpdateCheck() async {
-    await Workmanager().registerPeriodicTask(
-      'weeklyUpdate',
-      checkForUpdatesTask,
-      frequency: const Duration(days: 7),
-      constraints: Constraints(
-        networkType: NetworkType.connected,
-      ),
-      existingWorkPolicy: ExistingWorkPolicy.replace,
-    );
-    
-    debugPrint('Tarea semanal de verificación de actualizaciones programada');
-  }
-  
-  // Cancelar todas las tareas programadas
-  Future<void> cancelAllTasks() async {
-    await Workmanager().cancelAll();
-    debugPrint('Todas las tareas en segundo plano canceladas');
+
+  /// Punto de entrada para el aislado secundario
+  /// Esta función es necesaria para que el aislado pueda ejecutarse correctamente
+  @pragma('vm:entry-point')
+  static void _isolateEntryPoint() {
+    // Configurar comunicación entre aislados
+    final ReceivePort port = ReceivePort();
+    IsolateNameServer.registerPortWithName(port.sendPort, _isolateName);
+
+    // Escuchar mensajes y mostrar notificaciones cuando sea necesario
+    port.listen((dynamic data) async {
+      // Usar el singleton de NotificationService para mostrar la notificación
+      await NotificationService().showDailyDevotionalNotification();
+    });
   }
 }

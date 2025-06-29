@@ -72,3 +72,4 @@ key.properties # ¡Importante! El archivo de clave de firma de Android
 **/ios/*.ipa
 **/ios/*.xcarchive
 **/ios/*.dSYM
+.aider*

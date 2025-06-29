@@ -1,6 +1,4 @@
 // lib/services/notification_service.dart
-
-import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -17,7 +15,7 @@ class NotificationService {
   NotificationService._internal();
 
   final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin =
-      FlutterLocalNotificationsPlugin();
+  FlutterLocalNotificationsPlugin();
 
   // Claves para SharedPreferences
   static const String _notificationsEnabledKey = 'notifications_enabled';
@@ -33,14 +31,14 @@ class NotificationService {
   Future<void> initialize() async {
     // Inicializar timezone
     tz.initializeTimeZones();
-    
+
     // Configuración para Android
     const AndroidInitializationSettings initializationSettingsAndroid =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
+    AndroidInitializationSettings('@mipmap/ic_launcher');
 
     // Configuración para iOS
     const DarwinInitializationSettings initializationSettingsIOS =
-        DarwinInitializationSettings(
+    DarwinInitializationSettings(
       requestAlertPermission: true,
       requestBadgePermission: true,
       requestSoundPermission: true,
@@ -48,7 +46,7 @@ class NotificationService {
 
     // Configuración general
     const InitializationSettings initializationSettings =
-        InitializationSettings(
+    InitializationSettings(
       android: initializationSettingsAndroid,
       iOS: initializationSettingsIOS,
     );
@@ -61,7 +59,7 @@ class NotificationService {
 
     // Solicitar permisos
     await _requestPermissions();
-    
+
     // Verificar si es un nuevo día para programar notificación
     await _checkAndScheduleForNewDay();
   }
@@ -69,7 +67,7 @@ class NotificationService {
   /// Manejar cuando se toca una notificación
   void _onNotificationTapped(NotificationResponse notificationResponse) {
     debugPrint('Notificación tocada: ${notificationResponse.payload}');
-    
+
     // Llamar al callback si está definido
     if (onNotificationTapped != null) {
       onNotificationTapped!(notificationResponse.payload);
@@ -86,12 +84,12 @@ class NotificationService {
       // Para iOS
       final bool? result = await _flutterLocalNotificationsPlugin
           .resolvePlatformSpecificImplementation<
-              IOSFlutterLocalNotificationsPlugin>()
+          IOSFlutterLocalNotificationsPlugin>()
           ?.requestPermissions(
-            alert: true,
-            badge: true,
-            sound: true,
-          );
+        alert: true,
+        badge: true,
+        sound: true,
+      );
       return result ?? false;
     }
     return true;
@@ -107,7 +105,7 @@ class NotificationService {
   Future<void> setNotificationsEnabled(bool enabled) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_notificationsEnabledKey, enabled);
-    
+
     if (enabled) {
       await scheduleDailyNotification();
     } else {
@@ -125,7 +123,7 @@ class NotificationService {
   Future<void> setNotificationTime(String time) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_notificationTimeKey, time);
-    
+
     // Si las notificaciones están habilitadas, reprogramar
     if (await areNotificationsEnabled()) {
       await scheduleDailyNotification();
@@ -136,13 +134,13 @@ class NotificationService {
   Future<void> _checkAndScheduleForNewDay() async {
     final prefs = await SharedPreferences.getInstance();
     final lastNotificationDate = prefs.getString(_lastNotificationDateKey);
-    
+
     final today = DateTime.now().toIso8601String().split('T')[0];
-    
+
     if (lastNotificationDate != today) {
       // Es un nuevo día, guardar la fecha actual
       await prefs.setString(_lastNotificationDateKey, today);
-      
+
       // Si las notificaciones están habilitadas, programar para hoy
       if (await areNotificationsEnabled()) {
         await scheduleDailyNotification();
@@ -180,7 +178,7 @@ class NotificationService {
     // Intentar obtener el título del devocional para hoy
     String title = '🙏 Devocional de Hoy';
     String body = 'Tu momento de reflexión diaria te está esperando';
-    
+
     try {
       // Aquí podrías hacer una petición a tu API para obtener el título del devocional
       // Por ejemplo:
@@ -196,7 +194,7 @@ class NotificationService {
 
     // Configuración de la notificación para Android
     const AndroidNotificationDetails androidPlatformChannelSpecifics =
-        AndroidNotificationDetails(
+    AndroidNotificationDetails(
       'daily_devotional',
       'Devocional Diario',
       channelDescription: 'Recordatorio diario para leer el devocional',
@@ -210,7 +208,7 @@ class NotificationService {
 
     // Configuración de la notificación para iOS
     const DarwinNotificationDetails iOSPlatformChannelSpecifics =
-        DarwinNotificationDetails(
+    DarwinNotificationDetails(
       sound: 'default',
       presentAlert: true,
       presentBadge: true,
@@ -232,7 +230,7 @@ class NotificationService {
       platformChannelSpecifics,
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
       uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
+      UILocalNotificationDateInterpretation.absoluteTime,
       matchDateTimeComponents: DateTimeComponents.time, // Repetir diariamente
       payload: 'daily_devotional',
     );
@@ -248,7 +246,7 @@ class NotificationService {
     String? bigPicture,
   }) async {
     AndroidNotificationDetails androidPlatformChannelSpecifics;
-    
+
     // Si hay una imagen grande, configurar notificación con estilo BigPicture
     if (bigPicture != null) {
       try {
@@ -256,12 +254,12 @@ class NotificationService {
           bigPicture,
           'largeIcon.png',
         );
-        
+
         final String bigPicturePath = await _downloadAndSaveFile(
           bigPicture,
           'bigPicture.png',
         );
-        
+
         androidPlatformChannelSpecifics = AndroidNotificationDetails(
           'immediate_devotional',
           'Devocional Inmediato',
@@ -302,7 +300,7 @@ class NotificationService {
     }
 
     const DarwinNotificationDetails iOSPlatformChannelSpecifics =
-        DarwinNotificationDetails(
+    DarwinNotificationDetails(
       sound: 'default',
       presentAlert: true,
       presentBadge: true,
@@ -355,36 +353,82 @@ class NotificationService {
     }
     return true;
   }
-  
+
   /// Guardar token del dispositivo para notificaciones remotas
   Future<void> saveDeviceToken(String token) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_deviceTokenKey, token);
     debugPrint('Token del dispositivo guardado: $token');
   }
-  
+
   /// Obtener token del dispositivo
   Future<String?> getDeviceToken() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(_deviceTokenKey);
   }
-  
-  /// Obtener datos del devocional para la notificación
-  Future<Map<String, dynamic>?> _fetchDevotionalData() async {
+
+  /// Mostrar notificación del devocional diario (para el servicio en segundo plano)
+  Future<void> showDailyDevotionalNotification() async {
+    // Verificar si las notificaciones están habilitadas
+    if (!await areNotificationsEnabled()) {
+      debugPrint('Notificaciones deshabilitadas, no se mostrará la notificación diaria');
+      return;
+    }
+
+    // Obtener título y mensaje para la notificación
+    String title = '🙏 Devocional de Hoy';
+    String body = 'Tu momento de reflexión diaria te está esperando';
+
     try {
-      // Aquí implementarías la lógica para obtener los datos del devocional
-      // desde tu API o base de datos
-      
-      // Ejemplo:
-      // final response = await http.get(Uri.parse('https://tu-api.com/devocional/hoy'));
-      // if (response.statusCode == 200) {
-      //   return jsonDecode(response.body);
-      // }
-      
-      return null;
+      // Aquí podrías hacer una petición a tu API para obtener el título del devocional
+      // Similar a lo que tienes en scheduleDailyNotification
     } catch (e) {
       debugPrint('Error al obtener datos del devocional: $e');
-      return null;
     }
+
+    // Configuración de la notificación para Android
+    const AndroidNotificationDetails androidPlatformChannelSpecifics =
+    AndroidNotificationDetails(
+      'daily_devotional',
+      'Devocional Diario',
+      channelDescription: 'Recordatorio diario para leer el devocional',
+      importance: Importance.high,
+      priority: Priority.high,
+      icon: '@mipmap/ic_launcher',
+      sound: RawResourceAndroidNotificationSound('notification'),
+      enableVibration: true,
+      styleInformation: BigTextStyleInformation(''),
+    );
+
+    // Configuración de la notificación para iOS
+    const DarwinNotificationDetails iOSPlatformChannelSpecifics =
+    DarwinNotificationDetails(
+      sound: 'default',
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: true,
+    );
+
+    // Configuración general
+    const NotificationDetails platformChannelSpecifics = NotificationDetails(
+      android: androidPlatformChannelSpecifics,
+      iOS: iOSPlatformChannelSpecifics,
+    );
+
+    // Mostrar notificación
+    await _flutterLocalNotificationsPlugin.show(
+      0, // Mismo ID que la notificación programada
+      title,
+      body,
+      platformChannelSpecifics,
+      payload: 'daily_devotional',
+    );
+
+    debugPrint('Notificación diaria mostrada');
+
+    // Actualizar la fecha de la última notificación
+    final prefs = await SharedPreferences.getInstance();
+    final today = DateTime.now().toIso8601String().split('T')[0];
+    await prefs.setString(_lastNotificationDateKey, today);
   }
 }

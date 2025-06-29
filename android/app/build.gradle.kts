@@ -26,6 +26,8 @@ android {
     ndkVersion = "27.0.12077973"
 
     compileOptions {
+        // ✅ CAMBIO 1: Agregar esta línea
+        isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
@@ -40,6 +42,8 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        // ✅ CAMBIO 2: Agregar esta línea si no está
+        multiDexEnabled = true
     }
 
     // INICIO DEL BLOQUE DE CONFIGURACIÓN DE FIRMA (igual que antes)
@@ -60,4 +64,21 @@ android {
     }
 }
 
-// dependencies { ... } si las tienes al final.
+// ✅ CAMBIO 3: Agregar esta sección de dependencies
+
+dependencies {
+    // Core library desugaring
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
+    
+    // Multidex support
+    implementation("androidx.multidex:multidex:2.0.1")
+    
+   // Excluir WorkManager
+    implementation("androidx.work:work-runtime:2.7.0") {
+        exclude(group = "androidx.work", module = "work-runtime")
+    }
+    
+   // Asegurarse de que android_alarm_manager_plus esté correctamente configurado
+    implementation("dev.fluttercommunity.plus:android_alarm_manager_plus:+")
+
+}
