@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:cross_file/cross_file.dart';
 import 'dart:io' show File;
 import 'package:path_provider/path_provider.dart';
 import 'package:auto_size_text/auto_size_text.dart';
@@ -210,7 +209,7 @@ class _DevocionalesPageState extends State<DevocionalesPage> {
       final directory = await getApplicationDocumentsDirectory();
       final imagePath = await File('${directory.path}/devocional.png').create();
       await imagePath.writeAsBytes(image);
-      await Share.shareXFiles([XFile(imagePath.path)], text: 'Devocional del día');
+      await Share.shareFiles([imagePath.path], text: 'Devocional del día');
     }
   }
 
