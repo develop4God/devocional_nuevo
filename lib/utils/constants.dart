@@ -21,6 +21,7 @@ class Constants {
   static const String PREF_DONT_SHOW_INVITATION = 'dontShowInvitation';
   static const String PREF_CURRENT_INDEX =
       'currentIndex'; // Esto ya no se usa en el nuevo Provider
+  static const String PREF_LAST_NOTIFICATION_DATE = 'lastNotificationDate';
 }
 
 // Clase de utilidad para obtener el contexto del Navigator.

@@ -7,14 +7,14 @@ import 'package:provider/provider.dart';
 import 'package:intl/date_symbol_data_local.dart'; // Para formateo de fechas en español
 import 'package:flutter_localizations/flutter_localizations.dart'; // Para soporte de localización
 import 'package:firebase_core/firebase_core.dart';
-import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart'; // Reemplazado workmanager
+import 'package:workmanager/workmanager.dart'; // Para tareas en segundo plano
 
 // Importaciones de archivos locales
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/splash_screen.dart';
 import 'package:devocional_nuevo/services/notification_service.dart';
 import 'package:devocional_nuevo/services/firebase_messaging_service.dart';
-import 'package:devocional_nuevo/services/background_service.dart';
+import 'package:devocional_nuevo/services/background_service_new.dart';
 
 /// Función principal que inicia la aplicación
 void main() async {
@@ -34,14 +34,12 @@ void main() async {
     // Inicializar servicio de notificaciones remotas (Firebase)
     await FirebaseMessagingService().initialize();
 
-    // Inicializar servicio de alarmas para tareas en segundo plano
-    await AndroidAlarmManager.initialize();
-
     // Inicializar servicio de tareas en segundo plano
-    await BackgroundService.initialize();
-
+    final backgroundService = BackgroundServiceNew();
+    await backgroundService.initialize();
+    
     // Programar notificaciones periódicas
-    await BackgroundService.schedulePeriodicNotifications();
+    await backgroundService.registerPeriodicTask();
 
     // Suscribirse al tema general de notificaciones
     await FirebaseMessagingService().subscribeToTopic('general');

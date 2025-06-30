@@ -244,9 +244,9 @@ class DevocionalProvider with ChangeNotifier {
         SnackBar(
           content: const Text(
             'Devocional removido de favoritos',
-            style: const TextStyle(color: Colors.black), // <<-- AQUÍ VA EL STYLE
+            style: TextStyle(color: Colors.black), // Corregido: eliminado const duplicado
           ),
-          duration: Duration(seconds: 2),
+          duration: const Duration(seconds: 2),
           backgroundColor: Colors.deepPurple[100],
         ),
       );
@@ -256,9 +256,9 @@ class DevocionalProvider with ChangeNotifier {
         SnackBar(
           content: const Text(
             'Devocional guardado como favorito',
-            style: const TextStyle(color: Colors.black),
+            style: TextStyle(color: Colors.black),
           ),
-          duration: Duration(seconds: 2),
+          duration: const Duration(seconds: 2),
           backgroundColor: Colors.deepPurple[100],
         ),
       );

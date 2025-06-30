@@ -8,6 +8,7 @@ plugins {
     id("kotlin-android")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
+    id("com.google.gms.google-services")
 }
 
 // INICIO DEL BLOQUE DE CARGA DE PROPIEDADES (igual que antes, pero ahora los imports lo hacen funcionar)
@@ -60,6 +61,12 @@ android {
     buildTypes {
         release {
             signingConfig = signingConfigs.getByName("release")
+            isMinifyEnabled = true
+            proguardFiles(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro")
+        }
+        debug {
+            isMinifyEnabled = false
+            proguardFiles(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro")
         }
     }
 }
@@ -73,12 +80,20 @@ dependencies {
     // Multidex support
     implementation("androidx.multidex:multidex:2.0.1")
     
-   // Excluir WorkManager
+    // Flutter embedding v2 dependencies
+    implementation("androidx.window:window:1.0.0")
+    implementation("androidx.window:window-java:1.0.0")
+    
+    // Excluir WorkManager
     implementation("androidx.work:work-runtime:2.7.0") {
         exclude(group = "androidx.work", module = "work-runtime")
     }
     
-   // Asegurarse de que android_alarm_manager_plus esté correctamente configurado
-    implementation("dev.fluttercommunity.plus:android_alarm_manager_plus:+")
-
+    // Configuración para workmanager
+    implementation("androidx.work:work-runtime-ktx:2.7.0")
+    
+    // Firebase dependencies
+    implementation(platform("com.google.firebase:firebase-bom:32.7.0"))
+    implementation("com.google.firebase:firebase-analytics")
+    implementation("com.google.firebase:firebase-messaging")
 }

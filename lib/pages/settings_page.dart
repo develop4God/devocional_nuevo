@@ -94,6 +94,9 @@ class _SettingsPageState extends State<SettingsPage> {
       final hasPermission = await _notificationService.hasNotificationPermissions();
       
       if (!hasPermission) {
+        // Verificar si el widget todavía está montado antes de usar el contexto
+        if (!mounted) return;
+        
         // Si no tenemos permisos, mostrar pantalla de solicitud
         final result = await Navigator.push<bool>(
           context,
@@ -101,6 +104,9 @@ class _SettingsPageState extends State<SettingsPage> {
             builder: (context) => const NotificationPermissionPage(),
           ),
         );
+        
+        // Verificar nuevamente si el widget todavía está montado
+        if (!mounted) return;
         
         // Si el usuario no concedió permisos, no activar notificaciones
         if (result != true) {
@@ -208,10 +214,7 @@ class _SettingsPageState extends State<SettingsPage> {
               child: Align(
                 alignment: Alignment.topRight,
                 child: ElevatedButton(
-                  child: const Text(
-                    'Donar',
-                    style: TextStyle(fontSize: 16),
-                  ),
+                  onPressed: _launchPaypal,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.yellow[700],
                     foregroundColor: Colors.black,
@@ -219,7 +222,10 @@ class _SettingsPageState extends State<SettingsPage> {
                     padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
                     minimumSize: const Size(100, 30),
                   ),
-                  onPressed: _launchPaypal,
+                  child: const Text(
+                    'Donar',
+                    style: TextStyle(fontSize: 16),
+                  ),
                 ),
               ),
             ),

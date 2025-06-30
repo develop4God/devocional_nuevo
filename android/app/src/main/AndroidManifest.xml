@@ -30,9 +30,9 @@
 
     <application
         android:label="Devocionales Cristianos"
-        android:name="${applicationName}"
+        android:name=".Application"
         android:icon="@mipmap/ic_launcher"
-        android:enableOnBackInvokedCallback="true">
+        android:enableOnBackInvokedCallback="true"
         android:networkSecurityConfig="@xml/network_security_config">
         
         <activity
@@ -87,22 +87,17 @@
             </intent-filter>
         </receiver>
         
-        <!-- Configuración para AndroidAlarmManager -->
-        <service
-            android:name="dev.fluttercommunity.plus.androidalarmmanager.AlarmService"
-            android:permission="android.permission.BIND_JOB_SERVICE"
-            android:exported="false" />
-        <receiver
-            android:name="dev.fluttercommunity.plus.androidalarmmanager.AlarmBroadcastReceiver"
-            android:exported="false" />
-        <receiver
-            android:name="dev.fluttercommunity.plus.androidalarmmanager.RebootBroadcastReceiver"
-            android:enabled="false"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="android.intent.action.BOOT_COMPLETED" />
-            </intent-filter>
-        </receiver>
+        <!-- Configuración para WorkManager -->
+        <provider
+            android:name="androidx.startup.InitializationProvider"
+            android:authorities="${applicationId}.androidx-startup"
+            android:exported="false"
+            tools:node="merge">
+            <meta-data
+                android:name="androidx.work.WorkManagerInitializer"
+                android:value="androidx.startup"
+                tools:node="remove" />
+        </provider>
         
         <meta-data
             android:name="flutterEmbedding"
