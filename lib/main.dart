@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/date_symbol_data_local.dart'; // Para formateo de fechas en español
 import 'package:flutter_localizations/flutter_localizations.dart'; // Para soporte de localización
 import 'package:firebase_core/firebase_core.dart';
+import 'package:timezone/data/latest.dart' as tz; // Importación correcta para inicializar timezone
 import 'package:workmanager/workmanager.dart'; // Para tareas en segundo plano
 
 // Importaciones de archivos locales
@@ -20,6 +21,8 @@ import 'package:devocional_nuevo/services/background_service_new.dart';
 void main() async {
   // Asegura que los widgets estén inicializados antes de hacer operaciones asíncronas
   WidgetsFlutterBinding.ensureInitialized();
+  // Inicializar timezone globalmente al inicio de la aplicación
+  tz.initializeTimeZones();
 
   // Inicializar formato de fechas en español
   await initializeDateFormatting('es', null);
