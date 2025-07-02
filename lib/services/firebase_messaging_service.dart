@@ -110,6 +110,17 @@ class FirebaseMessagingService {
     debugPrint('Cancelada suscripción al tema: $topic');
   }
   
+  // Método para obtener y mostrar el token FCM en consola
+  Future<void> printFcmToken() async {
+    print('Intentando obtener el token FCM...');
+    try {
+      String? token = await _firebaseMessaging.getToken();
+      print('FCM Token: ' + (token ?? 'No se pudo obtener el token'));
+    } catch (e) {
+      print('Error al obtener el token FCM: ' + e.toString());
+    }
+  }
+
   // Manejar un mensaje recibido cuando la app está en primer plano
   void _handleMessage(RemoteMessage message) {
     RemoteNotification? notification = message.notification;

@@ -430,5 +430,6 @@ class NotificationService {
     final prefs = await SharedPreferences.getInstance();
     final today = DateTime.now().toIso8601String().split('T')[0];
     await prefs.setString(_lastNotificationDateKey, today);
+    debugPrint('Fecha de la última notificación actualizada: $today');
   }
 }

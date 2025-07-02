@@ -47,6 +47,9 @@ void main() async {
     // Suscribirse al tema general de notificaciones
     await FirebaseMessagingService().subscribeToTopic('general');
 
+    // Imprimir el token FCM en consola automáticamente al iniciar la app
+    await FirebaseMessagingService().printFcmToken();
+
     // Obtener y guardar el token FCM
     final token = await FirebaseMessagingService().getToken();
     if (token != null) {
