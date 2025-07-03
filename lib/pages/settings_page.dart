@@ -148,7 +148,14 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
             // Favoritos guardados
             const SizedBox(height: 30),
-            const SizedBox(height: 20),
+            const Row(
+              children: [
+                Icon(Icons.favorite, color: Colors.deepPurple),
+                SizedBox(width: 10),
+                Text('Favoritos', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              ],
+            ),
+            const SizedBox(height: 15),
             InkWell(
               onTap: () {
                 Navigator.push(
