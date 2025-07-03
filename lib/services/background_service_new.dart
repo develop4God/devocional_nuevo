@@ -1,7 +1,6 @@
-import 'dart:async';
-import 'dart:io';
+import 'dart:developer' as developer;
 import 'dart:ui';
-
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:workmanager/workmanager.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -30,10 +29,12 @@ class BackgroundServiceNew {
     
     // Registrar la tarea periódica
     await registerPeriodicTask();
+    developer.log('BackgroundServiceNew: Workmanager initialized and periodic task registered', name: 'BackgroundServiceNew');
   }
   
   // Registrar una tarea periódica
   Future<void> registerPeriodicTask() async {
+    developer.log('BackgroundServiceNew: Registering periodic task', name: 'BackgroundServiceNew');
     await Workmanager().registerPeriodicTask(
       'periodicTask',
       taskName,
@@ -48,11 +49,14 @@ class BackgroundServiceNew {
       existingWorkPolicy: ExistingWorkPolicy.replace,
       backoffPolicy: BackoffPolicy.linear,
       backoffPolicyDelay: const Duration(minutes: 15),
+
     );
+    developer.log('BackgroundServiceNew: Periodic task registered', name: 'BackgroundServiceNew');
   }
   
   // Registrar una tarea única
   Future<void> registerOneOffTask() async {
+    developer.log('BackgroundServiceNew: Registering one-off task', name: 'BackgroundServiceNew');
     await Workmanager().registerOneOffTask(
       'oneOffTask',
       taskName,
@@ -72,6 +76,7 @@ class BackgroundServiceNew {
   
   // Cancelar todas las tareas
   Future<void> cancelAllTasks() async {
+    developer.log('BackgroundServiceNew: Cancelling all Workmanager tasks', name: 'BackgroundServiceNew');
     await Workmanager().cancelAll();
   }
 }
@@ -79,18 +84,23 @@ class BackgroundServiceNew {
 // Esta función debe estar en el ámbito global
 @pragma('vm:entry-point')
 void callbackDispatcher() {
+  developer.log('callbackDispatcher: Task execution started', name: 'BackgroundServiceCallback');
   Workmanager().executeTask((taskName, inputData) async {
+    developer.log('callbackDispatcher: Executing task: $taskName', name: 'BackgroundServiceCallback');
     try {
+      // Inicializar Firebase para este aislado
+      await Firebase.initializeApp(); // ✅ CAMBIO 2: Nueva línea
       // Inicializar DartPluginRegistrant para poder usar plugins en el callback
       WidgetsFlutterBinding.ensureInitialized();
       DartPluginRegistrant.ensureInitialized();
+      developer.log('callbackDispatcher: DartPluginRegistrant initialized', name: 'BackgroundServiceCallback');
       
       // Ejecutar la tarea en segundo plano
       await _executeBackgroundTask();
       
       return true;
     } catch (e) {
-      print('Error en la tarea en segundo plano: $e');
+      developer.log('ERROR in callbackDispatcher: $e', name: 'BackgroundServiceCallback', error: e);
       return false;
     }
   });
@@ -118,6 +128,6 @@ Future<void> _executeBackgroundTask() async {
       await prefs.setString(Constants.PREF_LAST_NOTIFICATION_DATE, today);
     }
   } catch (e) {
-    print('Error al ejecutar la tarea en segundo plano: $e');
+    developer.log('Error al ejecutar la tarea en segundo plano: $e');
   }
 }

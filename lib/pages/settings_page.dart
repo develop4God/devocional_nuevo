@@ -4,10 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:developer' as developer;
 import 'package:flutter/cupertino.dart';
+import 'package:provider/provider.dart'; // Importa provider
 
 import 'package:devocional_nuevo/pages/favorites_page.dart';
 import 'package:devocional_nuevo/pages/about_page.dart';
 import 'package:devocional_nuevo/pages/notification_page.dart';
+import 'package:devocional_nuevo/providers/theme_provider.dart'; // Importa el ThemeProvider
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -66,9 +68,32 @@ class _SettingsPageState extends State<SettingsPage> {
 
   @override
   Widget build(BuildContext context) {
+    // Accede al ThemeProvider para obtener y cambiar el tema
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    // Obtiene el esquema de colores del tema actual
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+    // Obtiene el tema de texto del tema actual
+    final TextTheme textTheme = Theme.of(context).textTheme;
+
+    // Lista de nombres de temas disponibles para mostrar en el selector
+    final List<String> themeNames = [
+      'Deep Purple (Light)',
+      'Deep Purple (Dark)',
+      'Light Green (Light)',
+      'Light Green (Dark)',
+      'Cyan (Light)',
+      'Cyan (Dark)',
+      'Light Blue (Light)',
+      'Light Blue (Dark)',
+    ];
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Más opciones', style: TextStyle(color: Colors.white)),
+        title: Text(
+          'Más opciones',
+          // Usa el color del foreground del AppBar del tema
+          style: TextStyle(color: Theme.of(context).appBarTheme.foregroundColor),
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(24.0),
@@ -82,6 +107,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 child: ElevatedButton(
                   onPressed: _launchPaypal,
                   style: ElevatedButton.styleFrom(
+                    // El color de fondo del botón de donar no debería cambiar con el tema
                     backgroundColor: Colors.yellow[700],
                     foregroundColor: Colors.black,
                     textStyle: const TextStyle(fontWeight: FontWeight.bold),
@@ -98,9 +124,11 @@ class _SettingsPageState extends State<SettingsPage> {
             // Selección de idioma
             Row(
               children: [
-                const Icon(Icons.language, color: Colors.deepPurple),
+                // Icono de idioma usa el color primario del tema
+                Icon(Icons.language, color: colorScheme.primary),
                 const SizedBox(width: 10),
-                const Text('Idioma:', style: TextStyle(fontSize: 18)),
+                // Texto de idioma usa el color de texto de la superficie
+                Text('Idioma:', style: TextStyle(fontSize: 18, color: textTheme.bodyMedium?.color)),
                 const SizedBox(width: 10),
                 DropdownButton<String>(
                   value: _selectedLanguage,
@@ -124,6 +152,36 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
               ],
             ),
+            const SizedBox(height: 20), // Espacio entre Idioma y Tema
+
+            // Sección para seleccionar el tema
+            Text(
+              'Seleccionar Tema:',
+              style: textTheme.titleLarge?.copyWith(color: colorScheme.onSurface), // Usa el color de texto de la superficie
+            ),
+            const SizedBox(height: 10),
+            // Dropdown para elegir el tema
+            DropdownButtonFormField<String>(
+              value: themeProvider.currentThemeName, // Tema actual seleccionado
+              decoration: InputDecoration(
+                border: const OutlineInputBorder(),
+                labelText: 'Tema',
+                labelStyle: TextStyle(color: textTheme.bodyMedium?.color), // Color del label
+              ),
+              items: themeNames.map((String name) {
+                return DropdownMenuItem<String>(
+                  value: name,
+                  child: Text(name, style: TextStyle(color: textTheme.bodyMedium?.color)), // Color del texto del item
+                );
+              }).toList(),
+              onChanged: (String? newValue) {
+                if (newValue != null) {
+                  themeProvider.setTheme(newValue); // Cambia el tema usando el provider
+                }
+              },
+            ),
+            const SizedBox(height: 20), // Espacio después del selector de tema
+
             // Línea para acceder a la configuración de notificaciones
             InkWell(
               onTap: () {
@@ -132,29 +190,24 @@ class _SettingsPageState extends State<SettingsPage> {
                   MaterialPageRoute(builder: (context) => const NotificationPage()),
                 );
               },
-              child: const Padding(
-                padding: EdgeInsets.symmetric(vertical: 8.0),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
                 child: Row(
                   children: [
-                    Icon(Icons.notifications, color: Colors.deepPurple),
-                    SizedBox(width: 10),
+                    // Icono de notificaciones usa el color primario del tema
+                    Icon(Icons.notifications, color: colorScheme.primary),
+                    const SizedBox(width: 10),
+                    // Texto de notificaciones usa el color de texto de la superficie
                     Text(
                       'Configuración de notificaciones',
-                      style: TextStyle(fontSize: 18),
+                      style: TextStyle(fontSize: 18, color: textTheme.bodyMedium?.color),
                     ),
                   ],
                 ),
               ),
             ),
             // Favoritos guardados
-            const SizedBox(height: 30),
-            const Row(
-              children: [
-                Icon(Icons.favorite, color: Colors.deepPurple),
-                SizedBox(width: 10),
-                Text('Favoritos', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-              ],
-            ),
+            // Texto de favoritos usa el color de texto de la superficie
             const SizedBox(height: 15),
             InkWell(
               onTap: () {
@@ -164,14 +217,16 @@ class _SettingsPageState extends State<SettingsPage> {
                       builder: (context) => const FavoritesPage()),
                 );
               },
-              child: const Padding(
-                padding: EdgeInsets.symmetric(vertical: 8.0),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
                 child: Row(
                   children: [
+                    // Icono de favoritos guardados usa el color primario del tema
                     Icon(CupertinoIcons.square_favorites_alt,
-                        color: Colors.deepPurple),
-                    SizedBox(width: 10),
-                    Text('Favoritos guardados', style: TextStyle(fontSize: 18)),
+                        color: colorScheme.primary),
+                    const SizedBox(width: 10),
+                    // Texto de favoritos guardados usa el color de texto de la superficie
+                    Text('Favoritos guardados', style: TextStyle(fontSize: 18, color: textTheme.bodyMedium?.color)),
                   ],
                 ),
               ),
@@ -185,14 +240,16 @@ class _SettingsPageState extends State<SettingsPage> {
                   MaterialPageRoute(builder: (context) => const AboutPage()),
                 );
               },
-              child: const Padding(
-                padding: EdgeInsets.symmetric(vertical: 8.0),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
                 child: Row(
                   children: [
-                    Icon(Icons.info_outline, color: Colors.deepPurple),
-                    SizedBox(width: 10),
+                    // Icono de información usa el color primario del tema
+                    Icon(Icons.info_outline, color: colorScheme.primary),
+                    const SizedBox(width: 10),
+                    // Texto de acerca de usa el color de texto de la superficie
                     Text('Acerca de Devocionales Cristianos',
-                        style: TextStyle(fontSize: 18)),
+                        style: TextStyle(fontSize: 18, color: textTheme.bodyMedium?.color)),
                   ],
                 ),
               ),

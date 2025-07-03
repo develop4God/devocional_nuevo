@@ -1,91 +1,71 @@
+// lib/providers/theme_provider.dart
+// Este archivo maneja la lógica de cambio de temas y notifica a los oyentes sobre los cambios.
+
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:shared_preferences/shared_preferences.dart'; // Importa shared_preferences
+import 'package:devocional_nuevo/utils/theme_constants.dart'; // Importa las constantes de tema
 
 class ThemeProvider extends ChangeNotifier {
-  static const String _themeKey = 'theme_mode';
-  
-  ThemeMode _themeMode = ThemeMode.light;
-  
+  static const String _themeKey = 'theme_name'; // Clave para guardar el nombre del tema
+
+  // Tema por defecto al iniciar la aplicación
+  ThemeData _currentTheme = lightThemePurple;
+  String _currentThemeName = 'Deep Purple (Light)';
+
   ThemeProvider() {
-    _loadThemeMode();
+    _loadThemePreference(); // Cargar la preferencia de tema al inicializar
   }
-  
-  ThemeMode get themeMode => _themeMode;
-  
-  ThemeData get currentTheme {
-    return _themeMode == ThemeMode.dark
-        ? _darkTheme
-        : _lightTheme;
-  }
-  
-  final _lightTheme = ThemeData(
-    brightness: Brightness.light,
-    primarySwatch: Colors.deepPurple,
-    primaryColor: Colors.deepPurple,
-    scaffoldBackgroundColor: Colors.white,
-    appBarTheme: const AppBarTheme(
-      backgroundColor: Colors.deepPurple,
-      foregroundColor: Colors.white,
-    ),
-    textTheme: const TextTheme(
-      bodyLarge: TextStyle(color: Colors.black87),
-      bodyMedium: TextStyle(color: Colors.black87),
-    ),
-    colorScheme: ColorScheme.fromSwatch(
-      primarySwatch: Colors.deepPurple,
-    ).copyWith(
-      secondary: Colors.deepPurpleAccent,
-      background: Colors.white,
-    ),
-  );
-  
-  final _darkTheme = ThemeData(
-    brightness: Brightness.dark,
-    primarySwatch: Colors.deepPurple,
-    primaryColor: Colors.deepPurple[300],
-    scaffoldBackgroundColor: const Color(0xFF121212),
-    appBarTheme: AppBarTheme(
-      backgroundColor: Colors.deepPurple[700],
-      foregroundColor: Colors.white,
-    ),
-    textTheme: const TextTheme(
-      bodyLarge: TextStyle(color: Colors.white),
-      bodyMedium: TextStyle(color: Colors.white70),
-    ),
-    colorScheme: ColorScheme.fromSwatch(
-      primarySwatch: Colors.deepPurple,
-      brightness: Brightness.dark,
-    ).copyWith(
-      secondary: Colors.deepPurpleAccent[100],
-      background: const Color(0xFF121212),
-    ),
-  );
-  
-  void toggleTheme() {
-    _themeMode = _themeMode == ThemeMode.light
-        ? ThemeMode.dark
-        : ThemeMode.light;
-    _saveThemeMode();
-    notifyListeners();
-  }
-  
-  Future<void> _loadThemeMode() async {
-    final prefs = await SharedPreferences.getInstance();
-    final themeValue = prefs.getString(_themeKey);
-    
-    if (themeValue == 'dark') {
-      _themeMode = ThemeMode.dark;
-    } else {
-      _themeMode = ThemeMode.light;
+
+  ThemeData get currentTheme => _currentTheme;
+  String get currentThemeName => _currentThemeName;
+
+  // Método para establecer el tema
+  void setTheme(String themeName) {
+    switch (themeName) {
+      case 'Deep Purple (Light)':
+        _currentTheme = lightThemePurple;
+        break;
+      case 'Deep Purple (Dark)':
+        _currentTheme = darkThemePurple;
+        break;
+      case 'Light Green (Light)':
+        _currentTheme = lightThemeGreen;
+        break;
+      case 'Light Green (Dark)':
+        _currentTheme = darkThemeGreen;
+        break;
+      case 'Cyan (Light)':
+        _currentTheme = lightThemeCyan;
+        break;
+      case 'Cyan (Dark)':
+        _currentTheme = darkThemeCyan;
+        break;
+      case 'Light Blue (Light)':
+        _currentTheme = lightThemeBlue;
+        break;
+      case 'Light Blue (Dark)':
+        _currentTheme = darkThemeBlue;
+        break;
+      default:
+        _currentTheme = lightThemePurple; // Tema por defecto si no coincide
     }
-    
-    notifyListeners();
+    _currentThemeName = themeName; // Actualiza el nombre del tema
+    _saveThemePreference(themeName); // Guarda la preferencia del tema
+    notifyListeners(); // Notifica a los widgets que escuchan
   }
-  
-  Future<void> _saveThemeMode() async {
+
+  // Carga la preferencia de tema guardada
+  Future<void> _loadThemePreference() async {
     final prefs = await SharedPreferences.getInstance();
-    final themeValue = _themeMode == ThemeMode.dark ? 'dark' : 'light';
-    
-    await prefs.setString(_themeKey, themeValue);
+    final savedThemeName = prefs.getString(_themeKey);
+    if (savedThemeName != null) {
+      setTheme(savedThemeName); // Aplica el tema guardado
+    }
+  }
+
+  // Guarda la preferencia de tema
+  Future<void> _saveThemePreference(String themeName) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_themeKey, themeName);
   }
 }

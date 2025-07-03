@@ -5,11 +5,9 @@ import 'package:provider/provider.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:share_plus/share_plus.dart'; // Incluye XFile
 import 'dart:io' show File;
-// Eliminada importación no utilizada: import 'dart:typed_data';
 import 'package:path_provider/path_provider.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:intl/intl.dart'; // Para formatear la fecha
-//import 'package:devocional_nuevo/pages/favorites_page.dart';
 import 'package:flutter/cupertino.dart'; // NECESARIO para CupertinoIcons
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -39,7 +37,7 @@ class _DevocionalesPageState extends State<DevocionalesPage> {
   // Métodos para navegar, reutilizando la lógica del BottomAppBar
   void _goToNextDevocional() {
     final devocionalProvider =
-        Provider.of<DevocionalProvider>(context, listen: false);
+    Provider.of<DevocionalProvider>(context, listen: false);
     final List<Devocional> devocionales = devocionalProvider.devocionales;
 
     if (_currentDevocionalIndex < devocionales.length - 1) {
@@ -149,20 +147,27 @@ class _DevocionalesPageState extends State<DevocionalesPage> {
   /// Muestra el diálogo de la Oración de Fe.
   void _showInvitation(BuildContext context) {
     final devocionalProvider =
-        Provider.of<DevocionalProvider>(context, listen: false);
+    Provider.of<DevocionalProvider>(context, listen: false);
     bool doNotShowAgainChecked = !devocionalProvider.showInvitationDialog;
+
+    // Obtiene el esquema de colores del tema actual
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+    // Obtiene el tema de texto del tema actual
+    final TextTheme textTheme = Theme.of(context).textTheme;
 
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
-          title: const Text(
+          // El color de fondo del AlertDialog se adapta al tema
+          backgroundColor: colorScheme.surface,
+          title: Text(
             "¡Oración de fe, para vida eterna!",
             textAlign: TextAlign.center,
-            style: TextStyle(fontWeight: FontWeight.bold),
+            style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, color: colorScheme.onSurface),
           ),
-          content: const SingleChildScrollView(
+          content: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
@@ -170,15 +175,17 @@ class _DevocionalesPageState extends State<DevocionalesPage> {
                 Text(
                   "Repite esta oración en voz alta, con fe y creyendo con todo el corazón:\n",
                   textAlign: TextAlign.justify,
+                  style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface),
                 ),
                 Text(
                   "Jesucristo, creo que moriste en la cruz por mi, te pido perdón y me arrepiento de corazón por mis pecados. Te pido seas mi Salvador y el señor de vida. Líbrame de la muerte eterna y escribe mi nombre en el libro de la vida.\nEn el poderoso nombre de Jesús, amén.\n",
                   textAlign: TextAlign.justify,
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                  style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold, color: colorScheme.onSurface),
                 ),
                 Text(
                   "Si hiciste esta oración y lo crees:\nSerás salvo tu y tu casa (Hch 16:31)\nVivirás eternamente (Jn 11:25-26)\nNunca más tendrás sed (Jn 4:14)\nEstarás con Cristo en los cielos (Ap 19:9)\nHay gozo en los cielos cuando un pecador se arrepiente (Luc 15:10)\nEscrito está y Dios es fiel (Dt 7:9)\n\nDesde ya tienes salvación y vida nueva en Jesucristo.",
                   textAlign: TextAlign.justify,
+                  style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface),
                 ),
               ],
             ),
@@ -193,9 +200,10 @@ class _DevocionalesPageState extends State<DevocionalesPage> {
                       doNotShowAgainChecked = val ?? false;
                     });
                   },
+                  activeColor: colorScheme.primary, // Color del checkbox cuando está activo
                 ),
-                const Expanded(
-                    child: Text('Ya la hice 🙏\nNo mostrar nuevamente')),
+                Expanded(
+                    child: Text('Ya la hice 🙏\nNo mostrar nuevamente', style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface))),
               ],
             ),
             Align(
@@ -206,8 +214,9 @@ class _DevocionalesPageState extends State<DevocionalesPage> {
                       .setInvitationDialogVisibility(!doNotShowAgainChecked);
                   Navigator.of(context).pop();
                 },
-                child: const Text("Continuar",
-                    style: TextStyle(color: Colors.deepPurple)),
+                // El texto del botón "Continuar" usa el color primario del tema
+                child: Text("Continuar",
+                    style: TextStyle(color: colorScheme.primary)),
               ),
             ),
           ],
@@ -230,7 +239,7 @@ class _DevocionalesPageState extends State<DevocionalesPage> {
       final directory = await getApplicationDocumentsDirectory();
       final imagePath = await File('${directory.path}/devocional.png').create();
       await imagePath.writeAsBytes(image);
-      
+
       // Compartir el archivo de imagen usando shareXFiles (reemplazando shareFiles que está obsoleto)
       await Share.shareXFiles(
         [XFile(imagePath.path)],
@@ -242,14 +251,16 @@ class _DevocionalesPageState extends State<DevocionalesPage> {
 
   @override
   Widget build(BuildContext context) {
+    // Obtiene el esquema de colores del tema actual
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+    // Obtiene el tema de texto del tema actual
+    final TextTheme textTheme = Theme.of(context).textTheme;
+
     return Scaffold(
       appBar: AppBar(
-        // Remueve backgroundColor y foregroundColor para heredar del tema global
-        // backgroundColor: Colors.deepPurple[400], // <-- Comentada o eliminada
-        // foregroundColor: Colors.white,            // <-- Comentada o eliminada
-        // Título fijo en lugar de la fecha
-        title: const Text('Mi espacio íntimo con Dios',
-            style: TextStyle(color: Colors.white)),
+        // El título del AppBar usa el color del foreground del AppBar del tema
+        title: Text('Mi espacio íntimo con Dios',
+            style: TextStyle(color: Theme.of(context).appBarTheme.foregroundColor)),
         centerTitle: true,
         actions: [
           Consumer<DevocionalProvider>(
@@ -260,10 +271,11 @@ class _DevocionalesPageState extends State<DevocionalesPage> {
                   DropdownButtonHideUnderline(
                     child: DropdownButton<String>(
                       value: devocionalProvider.selectedVersion,
-                      // Icono de libro original
+                      // Icono de libro original usa el color del foreground del AppBar del tema
                       icon:
-                          const Icon(CupertinoIcons.book, color: Colors.white),
-                      dropdownColor: Colors.deepPurple[700],
+                      Icon(CupertinoIcons.book, color: Theme.of(context).appBarTheme.foregroundColor),
+                      // El color del dropdown se adapta al color de superficie del tema
+                      dropdownColor: colorScheme.surface,
                       // selectedItemBuilder para mostrar el icono y el texto de la versión en el botón
                       selectedItemBuilder: (BuildContext context) {
                         // Asegúrate que lista coincide con la lista 'items' de abajo.
@@ -274,7 +286,7 @@ class _DevocionalesPageState extends State<DevocionalesPage> {
                             .map<Widget>((String itemValue) {
                           return SizedBox(
                             width:
-                                40.0, // Puedes ajustar este valor si el texto en el menú desplegable sigue cortándose (ej. 90.0, 100.0)
+                            40.0, // Puedes ajustar este valor si el texto en el menú desplegable sigue cortándose (ej. 90.0, 100.0)
                             child: Text(
                               itemValue, // El texto real de la versión
                               style: const TextStyle(
@@ -288,7 +300,7 @@ class _DevocionalesPageState extends State<DevocionalesPage> {
                         if (newValue != null) {
                           devocionalProvider.setSelectedVersion(newValue);
                           //setState(() {
-                            //_currentDevocionalIndex = 0; comentado para que no vuelva al inicio
+                          //_currentDevocionalIndex = 0; comentado para que no vuelva al inicio
                           //});
                         }
                       },
@@ -303,27 +315,12 @@ class _DevocionalesPageState extends State<DevocionalesPage> {
                           // El 'child' del DropdownMenuItem muestra el texto real y completo de la versión aquí.
                           child: Text(
                             itemValue, // Mostrará el texto real y completo de la versión aquí.
-                            style: const TextStyle(color: Colors.white),
+                            style: TextStyle(color: colorScheme.onSurface), // Color del texto del item
                           ),
                         );
                       }).toList(),
                     ),
                   ),
-                  // Botón para ir a favoritos REMOVIDO DE AQUÍ
-                  // IconButton(
-                  //   icon: const Icon(
-                  //     CupertinoIcons.square_favorites_alt, // Icono de favoritos
-                  //   ),
-                  //   tooltip: 'Ver favoritos',
-                  //   onPressed: () {
-                  //     Navigator.push(
-                  //       context,
-                  //       MaterialPageRoute(
-                  //         builder: (context) => const FavoritesPage(),
-                  //       ),
-                  //     );
-                  //   },
-                  // ),
                 ],
               );
             },
@@ -365,10 +362,11 @@ class _DevocionalesPageState extends State<DevocionalesPage> {
           }
 
           if (devocionales.isEmpty) {
-            return const Center(
+            return Center(
               child: Text(
                 'No hay devocionales disponibles para el idioma/versión seleccionados.',
                 textAlign: TextAlign.center,
+                style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface),
               ),
             );
           }
@@ -379,9 +377,9 @@ class _DevocionalesPageState extends State<DevocionalesPage> {
           }
 
           final Devocional currentDevocional =
-              devocionales[_currentDevocionalIndex];
+          devocionales[_currentDevocionalIndex];
           //final bool isFavorite =
-              //devocionalProvider.isFavorite(currentDevocional);
+          //devocionalProvider.isFavorite(currentDevocional);
 
           return Column(
             // Columna principal del body para elementos fijos y desplazables
@@ -392,8 +390,9 @@ class _DevocionalesPageState extends State<DevocionalesPage> {
                 child: Text(
                   // Muestra SIEMPRE la fecha actual del sistema
                   DateFormat('EEEE, d MMMM', 'es').format(DateTime.now()),
-                  style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                      fontWeight: FontWeight.bold, color: Colors.deepPurple),
+                  // El color de la fecha usa el color primario del tema
+                  style: textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold, color: colorScheme.primary),
                 ),
               ),
               // --- Contenido del Devocional (Desplazable) ---
@@ -401,6 +400,7 @@ class _DevocionalesPageState extends State<DevocionalesPage> {
                 child: Screenshot(
                   controller: screenshotController,
                   child: Container(
+                    // El color de fondo del contenedor se adapta al scaffoldBackgroundColor del tema
                     color: Theme.of(context).scaffoldBackgroundColor,
                     child: SingleChildScrollView(
                       controller: _scrollController, // Agregado el controller
@@ -413,22 +413,21 @@ class _DevocionalesPageState extends State<DevocionalesPage> {
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 12, vertical: 6),
                             decoration: BoxDecoration(
-                              color: Colors.deepPurple[50],
+                              // El color de fondo del versículo usa un tono claro del color primario del tema
+                              color: colorScheme.primary.withOpacity(0.1),
                               borderRadius: BorderRadius.circular(10),
                               border: Border.all(
-                                  color:
-                                      const Color.fromARGB(255, 221, 207, 245)),
+                                // El color del borde usa un tono más oscuro del color primario del tema
+                                  color: colorScheme.primary.withOpacity(0.3)),
                             ),
                             child: AutoSizeText(
                               currentDevocional.versiculo,
                               textAlign: TextAlign.center,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleLarge!
-                                  .copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.deepPurple.shade800,
-                                  ),
+                              style: textTheme.titleLarge?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                // El color del texto del versículo usa un tono más oscuro del color primario del tema
+                                  color: colorScheme.onSurface,
+                              ),
                               maxLines: 12,
                             ),
                           ),
@@ -437,49 +436,46 @@ class _DevocionalesPageState extends State<DevocionalesPage> {
                           // Reflexión
                           Text(
                             'Reflexión:',
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleLarge!
-                                .copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.deepPurple),
+                            style: textTheme.titleLarge?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                // El color del título de reflexión usa el color primario del tema
+                                color: colorScheme.primary),
                           ),
                           const SizedBox(height: 10),
                           Text(
                             currentDevocional.reflexion,
-                            style: const TextStyle(fontSize: 16),
+                            style: textTheme.bodyMedium?.copyWith(fontSize: 16, color: colorScheme.onSurface), // Color del texto de la reflexión
                           ),
                           const SizedBox(height: 20),
 
                           // Sección "Para Meditar"
                           Text(
                             'Para Meditar:',
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleLarge!
-                                .copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.deepPurple),
+                            style: textTheme.titleLarge?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                // El color del título "Para Meditar" usa el color primario del tema
+                                color: colorScheme.primary),
                           ),
                           const SizedBox(height: 10),
                           ...currentDevocional.paraMeditar.map((item) {
                             return Padding(
                               padding:
-                                  const EdgeInsets.symmetric(vertical: 4.0),
+                              const EdgeInsets.symmetric(vertical: 4.0),
                               child: Text.rich(
                                 TextSpan(
                                   children: [
                                     TextSpan(
                                       text: '${item.cita}: ',
-                                      style: const TextStyle(
+                                      style: textTheme.bodyMedium?.copyWith(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 16,
-                                        color: Colors.deepPurple,
+                                        // El color de la cita usa el color primario del tema
+                                        color: colorScheme.primary,
                                       ),
                                     ),
                                     TextSpan(
                                       text: item.texto,
-                                      style: const TextStyle(fontSize: 16),
+                                      style: textTheme.bodyMedium?.copyWith(fontSize: 16, color: colorScheme.onSurface), // Color del texto del versículo
                                     ),
                                   ],
                                 ),
@@ -491,17 +487,15 @@ class _DevocionalesPageState extends State<DevocionalesPage> {
                           // Oración
                           Text(
                             'Oración:',
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleLarge!
-                                .copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.deepPurple),
+                            style: textTheme.titleLarge?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                // El color del título "Oración" usa el color primario del tema
+                                color: colorScheme.primary),
                           ),
                           const SizedBox(height: 10),
                           Text(
                             currentDevocional.oracion,
-                            style: const TextStyle(fontSize: 16),
+                            style: textTheme.bodyMedium?.copyWith(fontSize: 16, color: colorScheme.onSurface), // Color del texto de la oración
                           ),
                           const SizedBox(height: 20),
 
@@ -514,25 +508,23 @@ class _DevocionalesPageState extends State<DevocionalesPage> {
                               children: [
                                 Text(
                                   'Detalles:',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .titleLarge!
-                                      .copyWith(
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.deepPurple),
+                                  style: textTheme.titleLarge?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      // El color del título "Detalles" usa el color primario del tema
+                                      color: colorScheme.primary),
                                 ),
                                 const SizedBox(height: 10),
                                 if (currentDevocional.version != null)
                                   Text('Versión: ${currentDevocional.version}',
-                                      style: const TextStyle(fontSize: 14)),
+                                      style: textTheme.bodySmall?.copyWith(fontSize: 14, color: colorScheme.onSurface)), // Color del texto de la versión
                                 if (currentDevocional.language != null)
                                   Text('Idioma: ${currentDevocional.language}',
-                                      style: const TextStyle(fontSize: 14)),
+                                      style: textTheme.bodySmall?.copyWith(fontSize: 14, color: colorScheme.onSurface)), // Color del texto del idioma
                                 if (currentDevocional.tags != null &&
                                     currentDevocional.tags!.isNotEmpty)
                                   Text(
                                       'Temas: ${currentDevocional.tags!.join(', ')}',
-                                      style: const TextStyle(fontSize: 14)),
+                                      style: textTheme.bodySmall?.copyWith(fontSize: 14, color: colorScheme.onSurface)), // Color del texto de los temas
                                 const SizedBox(height: 20),
                               ],
                             ),
@@ -561,9 +553,10 @@ class _DevocionalesPageState extends State<DevocionalesPage> {
                               : null, // Deshabilitar si es el primero
                           icon: Icon(
                             Icons.arrow_back,
+                            // El color de la flecha usa el color primario del tema
                             color: _currentDevocionalIndex > 0
-                                ? Colors.deepPurple // Color cuando está activo
-                                : Colors.deepPurple.withOpacity(0.3), // Más transparente
+                                ? colorScheme.primary
+                                : colorScheme.primary.withOpacity(0.3), // Más transparente si está deshabilitado
                             size: 35, // Un poco más grandes
                           ),
                         ),
@@ -571,15 +564,16 @@ class _DevocionalesPageState extends State<DevocionalesPage> {
                         IconButton(
                           tooltip: 'Siguiente devocional',
                           onPressed:
-                              _currentDevocionalIndex < devocionales.length - 1
-                                  ? _goToNextDevocional
-                                  : null, // Deshabilitar si es el último
+                          _currentDevocionalIndex < devocionales.length - 1
+                              ? _goToNextDevocional
+                              : null, // Deshabilitar si es el último
                           icon: Icon(
                             Icons.arrow_forward,
+                            // El color de la flecha usa el color primario del tema
                             color: _currentDevocionalIndex <
-                                    devocionales.length - 1
-                                ? Colors.deepPurple // Color cuando está activo
-                                : Colors.deepPurple.withOpacity(0.3), // Más transparente
+                                devocionales.length - 1
+                                ? colorScheme.primary
+                                : colorScheme.primary.withOpacity(0.3), // Más transparente si está deshabilitado
                             size: 35, // Un poco más grandes
                           ),
                         ),
@@ -606,7 +600,7 @@ class _DevocionalesPageState extends State<DevocionalesPage> {
 
           return BottomAppBar(
             // Asigna el color de fondo de la AppBar del tema global
-            color: Theme.of(context).appBarTheme.backgroundColor, // <-- ¡CAMBIAR A ESTA LÍNEA!
+            color: Theme.of(context).appBarTheme.backgroundColor,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
@@ -617,11 +611,11 @@ class _DevocionalesPageState extends State<DevocionalesPage> {
                       : 'Guardar como favorito',
                   onPressed: currentDevocional != null
                       ? () => devocionalProvider.toggleFavorite(
-                          currentDevocional, context)
+                      currentDevocional, context)
                       : null, // Deshabilitar si no hay devocional
                   icon: Icon(
                     isFavorite ? Icons.favorite : Icons.favorite_border,
-                    color: Colors.red, // Siempre rojo para favoritos
+                    color: Colors.red, // Siempre rojo para favoritos (color fijo por diseño)
                     size: 30,
                   ),
                 ),
@@ -631,7 +625,8 @@ class _DevocionalesPageState extends State<DevocionalesPage> {
                   onPressed: currentDevocional != null
                       ? () => _shareAsText(currentDevocional)
                       : null,
-                  icon: const Icon(Icons.share, color: Colors.white, size: 30),
+                  // El color del icono de compartir usa el color del foreground del AppBar del tema
+                  icon: Icon(Icons.share, color: Theme.of(context).appBarTheme.foregroundColor, size: 30),
                 ),
                 // Botón Compartir como Imagen
                 IconButton(
@@ -639,7 +634,8 @@ class _DevocionalesPageState extends State<DevocionalesPage> {
                   onPressed: currentDevocional != null
                       ? () => _shareAsImage(currentDevocional)
                       : null,
-                  icon: const Icon(Icons.image, color: Colors.white, size: 30),
+                  // El color del icono de imagen usa el color del foreground del AppBar del tema
+                  icon: Icon(Icons.image, color: Theme.of(context).appBarTheme.foregroundColor, size: 30),
                 ),
                 // Botón de Configuración
                 IconButton(
@@ -651,8 +647,9 @@ class _DevocionalesPageState extends State<DevocionalesPage> {
                           builder: (context) => const SettingsPage()),
                     );
                   },
-                  icon: const Icon(CupertinoIcons.text_badge_plus,
-                      color: Colors.white, size: 30), // <<-- LÍNEA MODIFICADA
+                  // El color del icono de configuración usa el color del foreground del AppBar del tema
+                  icon: Icon(CupertinoIcons.text_badge_plus,
+                      color: Theme.of(context).appBarTheme.foregroundColor, size: 30),
                 ),
               ],
             ),

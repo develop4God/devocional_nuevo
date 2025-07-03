@@ -21,11 +21,11 @@ class DevocionalProvider with ChangeNotifier {
   String _selectedLanguage =
       'es'; // Idioma por defecto (se detectará del dispositivo)
   String
-      _selectedVersion = //aca se agregan nuevas versiones cuando hayan, para devocional page
+  _selectedVersion = //aca se agregan nuevas versiones cuando hayan, para devocional page
       'RVR1960'; // Versión por defecto
 
   List<Devocional> _favoriteDevocionales =
-      []; // Lista de devocionales favoritos
+  []; // Lista de devocionales favoritos
   bool _showInvitationDialog = true; // Para el diálogo de invitación
 
   // Getters públicos
@@ -91,7 +91,7 @@ class DevocionalProvider with ChangeNotifier {
 
     try {
       // AHORA: Obtiene el año actual para pasarlo a la función que genera la URL.
-    final response = await http.get(Uri.parse(Constants.getDevocionalesApiUrl(DateTime.now().year)));
+      final response = await http.get(Uri.parse(Constants.getDevocionalesApiUrl(DateTime.now().year)));
 
       if (response.statusCode != 200) {
         throw Exception(
@@ -102,18 +102,18 @@ class DevocionalProvider with ChangeNotifier {
 
       // Acceder a la sección 'data' del JSON y luego al idioma detectado/seleccionado
       final Map<String, dynamic>? languageRoot =
-          data['data'] as Map<String, dynamic>?;
+      data['data'] as Map<String, dynamic>?;
       final Map<String, dynamic>? languageData =
-          languageRoot?[_selectedLanguage] as Map<String, dynamic>?;
+      languageRoot?[_selectedLanguage] as Map<String, dynamic>?;
 
       if (languageData == null) {
         debugPrint(
             'Advertencia: No se encontraron datos para el idioma $_selectedLanguage');
         _allDevocionalesForCurrentLanguage = [];
         _filteredDevocionales =
-            []; // Asegurarse de que esta lista también se vacíe
+        []; // Asegurarse de que esta lista también se vacíe
         _errorMessage =
-            'No se encontraron datos para el idioma: $_selectedLanguage en la estructura JSON.';
+        'No se encontraron datos para el idioma: $_selectedLanguage en la estructura JSON.';
         // No llamar notifyListeners aquí, ya que el finally lo hará.
         return; // Salir de la función si no hay datos del idioma
       }
@@ -142,10 +142,10 @@ class DevocionalProvider with ChangeNotifier {
       // notifyListeners() ya se llama dentro de _filterDevocionalesByVersion
     } catch (e) {
       _errorMessage =
-          'Error al cargar los devocionales para el idioma $_selectedLanguage: $e';
+      'Error al cargar los devocionales para el idioma $_selectedLanguage: $e';
       _allDevocionalesForCurrentLanguage = [];
       _filteredDevocionales =
-          []; // Vaciar también la lista filtrada en caso de error
+      []; // Vaciar también la lista filtrada en caso de error
       debugPrint('Error en _fetchAllDevocionalesForLanguage: $e');
       notifyListeners(); // Notificar en caso de error
     } finally {
@@ -164,7 +164,7 @@ class DevocionalProvider with ChangeNotifier {
         _allDevocionalesForCurrentLanguage.isNotEmpty) {
       // Solo mostrar advertencia si hay devocionales en el idioma pero no para la versión
       _errorMessage =
-          'No se encontraron devocionales para la versión $_selectedVersion en el idioma $_selectedLanguage.';
+      'No se encontraron devocionales para la versión $_selectedVersion en el idioma $_selectedLanguage.';
       debugPrint('Advertencia: $_errorMessage');
     } else if (_allDevocionalesForCurrentLanguage.isEmpty) {
       // Si no hay ningún devocional cargado, el error ya se manejaría en _fetchAllDevocionalesForLanguage
@@ -238,28 +238,35 @@ class DevocionalProvider with ChangeNotifier {
       return;
     }
 
+    // Obtiene el esquema de colores del tema actual
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+
     if (isFavorite(devocional)) {
       _favoriteDevocionales.removeWhere((fav) => fav.id == devocional.id);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text(
+          content: Text(
             'Devocional removido de favoritos',
-            style: TextStyle(color: Colors.black), // Corregido: eliminado const duplicado
+            // El color del texto del SnackBar usa el color 'onPrimary' del esquema de colores del tema
+            style: TextStyle(color: colorScheme.onSecondary),
           ),
           duration: const Duration(seconds: 2),
-          backgroundColor: Colors.deepPurple[100],
+          // El color de fondo del SnackBar usa el color 'primary' del esquema de colores del tema
+          backgroundColor: colorScheme.secondary,
         ),
       );
     } else {
       _favoriteDevocionales.add(devocional);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text(
+          content: Text(
             'Devocional guardado como favorito',
-            style: TextStyle(color: Colors.black),
+            // El color del texto del SnackBar usa el color 'onPrimary' del esquema de colores del tema
+            style: TextStyle(color: colorScheme.onSecondary),
           ),
           duration: const Duration(seconds: 2),
-          backgroundColor: Colors.deepPurple[100],
+          // El color de fondo del SnackBar usa el color 'primary' del esquema de colores del tema
+          backgroundColor: colorScheme.secondary,
         ),
       );
     }

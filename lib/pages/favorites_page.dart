@@ -14,7 +14,7 @@ class FavoritesPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.deepPurple[400],
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor, // Usa el color de fondo del AppBar del tema
         foregroundColor: Colors.white,
         title: const Text('Mis favoritos guardados'),
         centerTitle: true,
@@ -98,7 +98,7 @@ class FavoritesPage extends StatelessWidget {
                                   .textTheme
                                   .titleSmall!
                                   .copyWith(
-                                      color: Colors.deepPurple,
+                                  color: Theme.of(context).colorScheme.primary, // Usa el color primario del tema
                                       fontWeight: FontWeight.bold),
                             ),
                             const SizedBox(height: 8),

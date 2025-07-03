@@ -68,10 +68,14 @@ class _NotificationPageState extends State<NotificationPage> {
         minute: int.parse(_notificationTime.split(':')[1]),
       ),
       builder: (context, child) {
+        // Asegura que el TimePicker también use los colores del tema
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: Theme.of(context).colorScheme.copyWith(
-              primary: Colors.deepPurple,
+              primary: Theme.of(context).colorScheme.primary, // Usa el color primario del tema
+              onPrimary: Theme.of(context).colorScheme.onPrimary, // Usa el color de texto sobre primario
+              surface: Theme.of(context).colorScheme.surface, // Usa el color de superficie del tema
+              onSurface: Theme.of(context).colorScheme.onSurface, // Usa el color de texto sobre superficie
             ),
           ),
           child: child!,
@@ -118,7 +122,7 @@ class _NotificationPageState extends State<NotificationPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(message),
-          backgroundColor: Colors.green,
+          backgroundColor: Colors.green, // Se mantiene verde para éxito
           duration: const Duration(seconds: 3),
         ),
       );
@@ -127,25 +131,33 @@ class _NotificationPageState extends State<NotificationPage> {
 
   @override
   Widget build(BuildContext context) {
+    // Obtiene el esquema de colores del tema actual
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+    // Obtiene el tema de texto del tema actual
+    final TextTheme textTheme = Theme.of(context).textTheme;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Notificaciones', style: TextStyle(color: Colors.white)),
+        title: Text(
+          'Notificaciones',
+          style: TextStyle(color: Theme.of(context).appBarTheme.foregroundColor), // Usa el color del foreground del AppBar del tema
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Row(
+            Row( // Eliminado const para poder usar colorScheme
               children: [
-                Icon(Icons.notifications, color: Colors.deepPurple),
-                SizedBox(width: 10),
+                Icon(Icons.notifications, color: colorScheme.primary), // Usa el color primario del tema
+                const SizedBox(width: 10),
                 Text(
                   'Notificaciones',
-                  style: TextStyle(
+                  style: TextStyle( // Eliminado const para poder usar colorScheme
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: Colors.deepPurple,
+                    color: colorScheme.primary, // Usa el color primario del tema
                   ),
                 ),
               ],
@@ -153,18 +165,18 @@ class _NotificationPageState extends State<NotificationPage> {
             const SizedBox(height: 15),
             Row(
               children: [
-                const Icon(Icons.notifications_active, color: Colors.deepPurple),
+                Icon(Icons.notifications_active, color: colorScheme.primary), // Usa el color primario del tema
                 const SizedBox(width: 10),
-                const Expanded(
+                Expanded(
                   child: Text(
                     'Recordatorio diario',
-                    style: TextStyle(fontSize: 16),
+                    style: textTheme.bodyMedium?.copyWith(fontSize: 16, color: colorScheme.onSurface), // Usa el color de texto de la superficie
                   ),
                 ),
                 Switch(
                   value: _notificationsEnabled,
                   onChanged: _toggleNotifications,
-                  activeColor: Colors.deepPurple,
+                  activeColor: colorScheme.primary, // Usa el color primario del tema
                 ),
               ],
             ),
@@ -176,12 +188,12 @@ class _NotificationPageState extends State<NotificationPage> {
                   padding: const EdgeInsets.symmetric(vertical: 8.0),
                   child: Row(
                     children: [
-                      const Icon(Icons.access_time, color: Colors.deepPurple),
+                      Icon(Icons.access_time, color: colorScheme.primary), // Usa el color primario del tema
                       const SizedBox(width: 10),
-                      const Expanded(
+                      Expanded(
                         child: Text(
                           'Hora de notificación',
-                          style: TextStyle(fontSize: 16),
+                          style: textTheme.bodyMedium?.copyWith(fontSize: 16, color: colorScheme.onSurface), // Usa el color de texto de la superficie
                         ),
                       ),
                       Container(
@@ -190,21 +202,21 @@ class _NotificationPageState extends State<NotificationPage> {
                           vertical: 6,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.deepPurple.withOpacity(0.1),
+                          color: colorScheme.primary.withAlpha((255 * 0.1).round()), // Usar withAlpha para la transparencia
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.deepPurple),
+                          border: Border.all(color: colorScheme.primary), // Usa el color primario para el borde
                         ),
                         child: Text(
                           _notificationTime,
-                          style: const TextStyle(
+                          style: textTheme.bodyMedium?.copyWith( // Usa el estilo de texto del tema
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
-                            color: Colors.deepPurple,
+                            color: colorScheme.primary, // Usa el color primario del tema
                           ),
                         ),
                       ),
                       const SizedBox(width: 8),
-                      const Icon(Icons.chevron_right, color: Colors.deepPurple),
+                      Icon(Icons.chevron_right, color: colorScheme.primary), // Usa el color primario del tema
                     ],
                   ),
                 ),
@@ -213,11 +225,11 @@ class _NotificationPageState extends State<NotificationPage> {
               Center(
                 child: ElevatedButton.icon(
                   onPressed: _testNotification,
-                  icon: const Icon(Icons.send),
-                  label: const Text('Probar notificación'),
+                  icon: Icon(Icons.send, color: Theme.of(context).elevatedButtonTheme.style?.foregroundColor?.resolve(WidgetState.values.toSet())),
+                  label: Text('Probar notificación', style: TextStyle(color: Theme.of(context).elevatedButtonTheme.style?.foregroundColor?.resolve(WidgetState.values.toSet()))),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.deepPurple,
-                    foregroundColor: Colors.white,
+                    backgroundColor: colorScheme.primary, // Usa el color primario del tema
+                    foregroundColor: colorScheme.onPrimary, // Usa el color de texto sobre primario
                     padding: const EdgeInsets.symmetric(
                       horizontal: 20,
                       vertical: 10,

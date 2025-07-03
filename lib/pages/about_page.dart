@@ -55,7 +55,10 @@ class _AboutPageState extends State<AboutPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Acerca de tu app'),
+        title: Text(
+          'Acerca de tu app',
+          style: TextStyle(color: Theme.of(context).appBarTheme.foregroundColor), // Usa el color del foreground del AppBar del tema
+        ),
         centerTitle: true, // Asegura que el título del AppBar esté centrado si hay espacio
       ),
       body: SingleChildScrollView(
@@ -93,7 +96,7 @@ class _AboutPageState extends State<AboutPage> {
             Text(
               'Versión $_appVersion',
               style: textTheme.bodySmall?.copyWith(
-                color: Colors.grey[600],
+                color: colorScheme.onSurface, // MODIFICADO: de Colors.grey[600] a colorScheme.onSurface
               ),
               textAlign: TextAlign.center, // centrado
             ),
@@ -102,7 +105,7 @@ class _AboutPageState extends State<AboutPage> {
             // Descripción de la Aplicación
             Text(
               'Devocionales Cristianos te trae inspiración diaria directamente a tu teléfono. Disfruta de mensajes bíblicos actualizados, explora, guarda tus favoritos, comparte la palabra y personaliza tu experiencia de lectura.',
-              style: textTheme.bodyLarge, // Usa el estilo de texto del tema
+              style: textTheme.bodyLarge?.copyWith(color: colorScheme.onSurface), // MODIFICADO: Añadido colorScheme.onSurface
               textAlign: TextAlign.center, //centrado
             ),
             const SizedBox(height: 30),
@@ -111,7 +114,7 @@ class _AboutPageState extends State<AboutPage> {
             Text(
               'Características Principales:',
               style: textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold),
+                  fontWeight: FontWeight.bold, color: colorScheme.onSurface), // MODIFICADO: Añadido colorScheme.onSurface
               textAlign: TextAlign.center, // centrado
             ),
             const SizedBox(height: 10),
@@ -134,8 +137,7 @@ class _AboutPageState extends State<AboutPage> {
               child: Text(
                 'Desarrollado por Develop4God',
                 style: textTheme.bodyMedium?.copyWith(
-
-                  color: Colors.grey[700],
+                  color: colorScheme.onSurface, // MODIFICADO: de Colors.grey[700] a colorScheme.onSurface
                 ),
                 textAlign: TextAlign.center, // Este textAlign ahora centrará el texto dentro del Center
               ),
@@ -146,11 +148,10 @@ class _AboutPageState extends State<AboutPage> {
             Center( // Envuelve el botón en un Center para centrarlo horizontalmente
               child: ElevatedButton.icon(
                 onPressed: () => _launchURL('https://develop4god.github.io/'),
-                icon: const Icon(Icons.public),
-                label: const Text('Términos y Condiciones / Copyright'),
+                icon: Icon(Icons.public, color: colorScheme.onPrimary), // MODIFICADO: de Colors.white a colorScheme.onPrimary
+                label: Text('Términos y Condiciones / Copyright', style: TextStyle(color: colorScheme.onPrimary)), // MODIFICADO: de Colors.white a colorScheme.onPrimary
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.deepPurple, // Color de fondo del botón
-                  foregroundColor: Colors.white, // Color del texto y el icono del botón
+                  backgroundColor: colorScheme.primary, // MODIFICADO: de Colors.deepPurple a colorScheme.primary
                   padding: const EdgeInsets.symmetric(
                       horizontal: 24, vertical: 12),
                   shape: RoundedRectangleBorder(
@@ -181,7 +182,7 @@ class _FeatureItem extends StatelessWidget {
         style: Theme
             .of(context)
             .textTheme
-            .bodyMedium, // Usa el estilo de texto del tema
+            .bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurface), // MODIFICADO: Añadido colorScheme.onSurface
         textAlign: TextAlign.center, // centrado
       ),
     );

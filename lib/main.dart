@@ -17,6 +17,10 @@ import 'package:devocional_nuevo/services/notification_service.dart';
 import 'package:devocional_nuevo/services/firebase_messaging_service.dart';
 import 'package:devocional_nuevo/services/background_service_new.dart';
 
+// Importaciones para el sistema de temas
+import 'package:devocional_nuevo/providers/theme_provider.dart'; // Importa el ThemeProvider
+import 'package:devocional_nuevo/pages/settings_page.dart'; // Importa la página de ajustes para las rutas
+
 /// Función principal que inicia la aplicación
 void main() async {
   // Asegura que los widgets estén inicializados antes de hacer operaciones asíncronas
@@ -40,7 +44,7 @@ void main() async {
     // Inicializar servicio de tareas en segundo plano
     final backgroundService = BackgroundServiceNew();
     await backgroundService.initialize();
-    
+
     // Programar notificaciones periódicas
     await backgroundService.registerPeriodicTask();
 
@@ -60,8 +64,16 @@ void main() async {
     // Continuar con la app incluso si hay error en la inicialización de servicios
   }
 
-  // Iniciar la aplicación
-  runApp(const MyApp());
+  // Iniciar la aplicación envolviendo MyApp con ChangeNotifierProvider para ThemeProvider
+  runApp(
+    MultiProvider( // Usamos MultiProvider para tener múltiples providers
+      providers: [
+        ChangeNotifierProvider(create: (context) => DevocionalProvider()),
+        ChangeNotifierProvider(create: (context) => ThemeProvider()), // Agrega ThemeProvider
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
 /// Widget principal de la aplicación
@@ -70,53 +82,31 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Obtener el ThemeProvider para acceder al tema actual
+    final themeProvider = Provider.of<ThemeProvider>(context);
+
     // Configurar el Provider para gestión de estado
-    return ChangeNotifierProvider(
-      create: (context) => DevocionalProvider(),
-      child: MaterialApp(
-        title: 'Devocionales',
-        debugShowCheckedModeBanner: false,
-        // Configuración del tema de la aplicación
-        theme: ThemeData(
-          primarySwatch: Colors.deepPurple,
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-          appBarTheme: const AppBarTheme(
-            elevation: 0,
-            backgroundColor: Colors.deepPurple,
-            foregroundColor: Colors.white,
-          ),
-          visualDensity: VisualDensity.adaptivePlatformDensity,
-          useMaterial3: true,
-          // Estilos de texto personalizados
-          textTheme: const TextTheme(
-            displaySmall: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-              color: Color.fromARGB(255, 255, 255, 255),
-              shadows: [
-                Shadow(
-                  offset: Offset(2.0, 2.0),
-                  blurRadius: 5.0,
-                  color: Color.fromARGB(200, 0, 0, 0),
-                ),
-              ],
-            ),
-            // Otros estilos de texto pueden agregarse aquí
-          ),
-        ),
-        // Configuración de localización para soporte multiidioma
-        localizationsDelegates: const [
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-        ],
-        supportedLocales: const [
-          Locale('en', ''), // Inglés
-          Locale('es', ''), // Español
-        ],
-        // Pantalla inicial de la aplicación
-        home: const SplashScreen(),
-      ),
+    return MaterialApp(
+      title: 'Devocionales',
+      debugShowCheckedModeBanner: false,
+      // Usar el tema actual del ThemeProvider
+      theme: themeProvider.currentTheme,
+      // Configuración de localización para soporte multiidioma
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('en', ''), // Inglés
+        Locale('es', ''), // Español
+      ],
+      // Pantalla inicial de la aplicación
+      home: const SplashScreen(),
+      // Definir las rutas de la aplicación
+      routes: {
+        '/settings': (context) => const SettingsPage(), // Ruta para la página de ajustes
+      },
     );
   }
 }
