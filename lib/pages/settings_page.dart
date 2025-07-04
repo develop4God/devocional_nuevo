@@ -1,4 +1,5 @@
 // lib/pages/settings_page.dart
+// Esta página permite al usuario configurar las opciones de la aplicación, incluyendo el tema.
 
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -10,6 +11,7 @@ import 'package:devocional_nuevo/pages/favorites_page.dart';
 import 'package:devocional_nuevo/pages/about_page.dart';
 import 'package:devocional_nuevo/pages/notification_page.dart';
 import 'package:devocional_nuevo/providers/theme_provider.dart'; // Importa el ThemeProvider
+import 'package:devocional_nuevo/utils/theme_constants.dart'; // Importa las constantes de tema para acceder a appThemeFamilies
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -75,17 +77,8 @@ class _SettingsPageState extends State<SettingsPage> {
     // Obtiene el tema de texto del tema actual
     final TextTheme textTheme = Theme.of(context).textTheme;
 
-    // Lista de nombres de temas disponibles para mostrar en el selector
-    final List<String> themeNames = [
-      'Deep Purple (Light)',
-      'Deep Purple (Dark)',
-      'Light Green (Light)',
-      'Light Green (Dark)',
-      'Cyan (Light)',
-      'Cyan (Dark)',
-      'Light Blue (Light)',
-      'Light Blue (Dark)',
-    ];
+    // Lista de nombres de familias de temas disponibles (obtenida directamente de theme_constants)
+    final List<String> themeFamilies = appThemeFamilies.keys.toList();
 
     return Scaffold(
       appBar: AppBar(
@@ -154,33 +147,53 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
             const SizedBox(height: 20), // Espacio entre Idioma y Tema
 
-            // Sección para seleccionar el tema
+            // Sección para seleccionar la familia de tema
             Text(
-              'Seleccionar Tema:',
+              'Seleccionar Familia de Tema:', // MODIFICADO: Texto del título
               style: textTheme.titleLarge?.copyWith(color: colorScheme.onSurface), // Usa el color de texto de la superficie
             ),
             const SizedBox(height: 10),
-            // Dropdown para elegir el tema
+            // Dropdown para elegir la familia de tema
             DropdownButtonFormField<String>(
-              value: themeProvider.currentThemeName, // Tema actual seleccionado
+              value: themeProvider.currentThemeFamily, // MODIFICADO: Usar currentThemeFamily
               decoration: InputDecoration(
                 border: const OutlineInputBorder(),
-                labelText: 'Tema',
+                labelText: 'Familia de Tema', // MODIFICADO: Texto del label
                 labelStyle: TextStyle(color: textTheme.bodyMedium?.color), // Color del label
               ),
-              items: themeNames.map((String name) {
+              items: themeFamilies.map((String familyName) {
                 return DropdownMenuItem<String>(
-                  value: name,
-                  child: Text(name, style: TextStyle(color: textTheme.bodyMedium?.color)), // Color del texto del item
+                  value: familyName,
+                  child: Text(familyName, style: TextStyle(color: textTheme.bodyMedium?.color)), // Color del texto del item
                 );
               }).toList(),
               onChanged: (String? newValue) {
                 if (newValue != null) {
-                  themeProvider.setTheme(newValue); // Cambia el tema usando el provider
+                  themeProvider.setThemeFamily(newValue); // MODIFICADO: Usar setThemeFamily
                 }
               },
             ),
-            const SizedBox(height: 20), // Espacio después del selector de tema
+            const SizedBox(height: 20), // Espacio después del selector de familia de tema
+
+            // Sección para alternar el modo (claro/oscuro)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Modo Oscuro:',
+                  style: textTheme.titleLarge?.copyWith(color: colorScheme.onSurface),
+                ),
+                Switch(
+                  value: themeProvider.currentBrightness == Brightness.dark, // MODIFICADO: Usar currentBrightness
+                  onChanged: (bool value) {
+                    // MODIFICADO: Usar setBrightness directamente
+                    themeProvider.setBrightness(value ? Brightness.dark : Brightness.light);
+                  },
+                  activeColor: colorScheme.primary, // Color del switch cuando está activo
+                ),
+              ],
+            ),
+            const SizedBox(height: 20), // Espacio después del switch de modo
 
             // Línea para acceder a la configuración de notificaciones
             InkWell(
@@ -207,7 +220,16 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
             ),
             // Favoritos guardados
-            // Texto de favoritos usa el color de texto de la superficie
+            const SizedBox(height: 30),
+            Row(
+              children: [
+                // Icono de favoritos usa el color primario del tema
+                Icon(Icons.favorite, color: colorScheme.primary),
+                const SizedBox(width: 10),
+                // Texto de favoritos usa el color de texto de la superficie
+                Text('Favoritos', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: textTheme.bodyMedium?.color)),
+              ],
+            ),
             const SizedBox(height: 15),
             InkWell(
               onTap: () {
