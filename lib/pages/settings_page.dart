@@ -11,7 +11,7 @@ import 'package:devocional_nuevo/pages/favorites_page.dart';
 import 'package:devocional_nuevo/pages/about_page.dart';
 import 'package:devocional_nuevo/pages/notification_page.dart';
 import 'package:devocional_nuevo/providers/theme_provider.dart'; // Importa el ThemeProvider
-import 'package:devocional_nuevo/utils/theme_constants.dart'; // Importa las constantes de tema para acceder a appThemeFamilies
+import 'package:devocional_nuevo/utils/theme_constants.dart'; // Importa las constantes de tema para acceder a appThemeFamilies y settingsOptionTextStyle
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -148,28 +148,34 @@ class _SettingsPageState extends State<SettingsPage> {
             const SizedBox(height: 20), // Espacio entre Idioma y Tema
 
             // Sección para seleccionar la familia de tema
-            Text(
-              'Seleccionar Familia de Tema:', // MODIFICADO: Texto del título
-              style: textTheme.titleLarge?.copyWith(color: colorScheme.onSurface), // Usa el color de texto de la superficie
+            Row( // Agrupamos el icono y el texto en una nueva Row
+              children: [
+                Icon(Icons.palette, color: colorScheme.primary), // Icono para temas
+                const SizedBox(width: 10), // Espacio entre icono y texto
+                Text(
+                  'Seleccionar Tema:',
+                  style: textTheme.bodyMedium?.merge(settingsOptionTextStyle).copyWith(color: colorScheme.onSurface), // MODIFICADO: Estilo estandarizado
+                ),
+              ],
             ),
             const SizedBox(height: 10),
             // Dropdown para elegir la familia de tema
             DropdownButtonFormField<String>(
-              value: themeProvider.currentThemeFamily, // MODIFICADO: Usar currentThemeFamily
+              value: themeProvider.currentThemeFamily,
               decoration: InputDecoration(
                 border: const OutlineInputBorder(),
-                labelText: 'Familia de Tema', // MODIFICADO: Texto del label
-                labelStyle: TextStyle(color: textTheme.bodyMedium?.color), // Color del label
+                labelText: 'Colores',
+                labelStyle: TextStyle(color: textTheme.bodyMedium?.color),
               ),
               items: themeFamilies.map((String familyName) {
                 return DropdownMenuItem<String>(
                   value: familyName,
-                  child: Text(familyName, style: TextStyle(color: textTheme.bodyMedium?.color)), // Color del texto del item
+                  child: Text(themeDisplayNames[familyName] ?? familyName, style: TextStyle(color: textTheme.bodyMedium?.color)),
                 );
               }).toList(),
               onChanged: (String? newValue) {
                 if (newValue != null) {
-                  themeProvider.setThemeFamily(newValue); // MODIFICADO: Usar setThemeFamily
+                  themeProvider.setThemeFamily(newValue);
                 }
               },
             ),
@@ -179,17 +185,21 @@ class _SettingsPageState extends State<SettingsPage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  'Modo Oscuro:',
-                  style: textTheme.titleLarge?.copyWith(color: colorScheme.onSurface),
+                Row( // Agrupamos el icono y el texto en una nueva Row
+                  children: [
+                    Icon(Icons.contrast, color: colorScheme.primary), // Icono para "Luz baja"
+                    const SizedBox(width: 10), // Espacio entre el icono y el texto
+                    Text(
+                      'Luz baja:',
+                      style: textTheme.bodyMedium?.merge(settingsOptionTextStyle).copyWith(color: colorScheme.onSurface), // MODIFICADO: Estilo estandarizado
+                    ),
+                  ],
                 ),
                 Switch(
-                  value: themeProvider.currentBrightness == Brightness.dark, // MODIFICADO: Usar currentBrightness
+                  value: themeProvider.currentBrightness == Brightness.dark,
                   onChanged: (bool value) {
-                    // MODIFICADO: Usar setBrightness directamente
                     themeProvider.setBrightness(value ? Brightness.dark : Brightness.light);
                   },
-                  activeColor: colorScheme.primary, // Color del switch cuando está activo
                 ),
               ],
             ),
@@ -213,23 +223,13 @@ class _SettingsPageState extends State<SettingsPage> {
                     // Texto de notificaciones usa el color de texto de la superficie
                     Text(
                       'Configuración de notificaciones',
-                      style: TextStyle(fontSize: 18, color: textTheme.bodyMedium?.color),
+                      style: textTheme.bodyMedium?.merge(settingsOptionTextStyle).copyWith(color: colorScheme.onSurface), // MODIFICADO: Estilo estandarizado
                     ),
                   ],
                 ),
               ),
             ),
-            // Favoritos guardados
-            const SizedBox(height: 30),
-            Row(
-              children: [
-                // Icono de favoritos usa el color primario del tema
-                Icon(Icons.favorite, color: colorScheme.primary),
-                const SizedBox(width: 10),
-                // Texto de favoritos usa el color de texto de la superficie
-                Text('Favoritos', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: textTheme.bodyMedium?.color)),
-              ],
-            ),
+
             const SizedBox(height: 15),
             InkWell(
               onTap: () {
@@ -248,7 +248,7 @@ class _SettingsPageState extends State<SettingsPage> {
                         color: colorScheme.primary),
                     const SizedBox(width: 10),
                     // Texto de favoritos guardados usa el color de texto de la superficie
-                    Text('Favoritos guardados', style: TextStyle(fontSize: 18, color: textTheme.bodyMedium?.color)),
+                    Text('Favoritos guardados', style: textTheme.bodyMedium?.merge(settingsOptionTextStyle).copyWith(color: colorScheme.onSurface)), // MODIFICADO: Estilo estandarizado
                   ],
                 ),
               ),
@@ -271,7 +271,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     const SizedBox(width: 10),
                     // Texto de acerca de usa el color de texto de la superficie
                     Text('Acerca de Devocionales Cristianos',
-                        style: TextStyle(fontSize: 18, color: textTheme.bodyMedium?.color)),
+                        style: textTheme.bodyMedium?.merge(settingsOptionTextStyle).copyWith(color: colorScheme.onSurface)), // MODIFICADO: Estilo estandarizado
                   ],
                 ),
               ),
