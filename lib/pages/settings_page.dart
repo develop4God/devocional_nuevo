@@ -10,6 +10,7 @@ import 'package:provider/provider.dart'; // Importa provider
 import 'package:devocional_nuevo/pages/favorites_page.dart';
 import 'package:devocional_nuevo/pages/about_page.dart';
 import 'package:devocional_nuevo/pages/notification_page.dart';
+import 'package:devocional_nuevo/pages/contact_page.dart'; // Importa ContactPage para la navegación directa
 import 'package:devocional_nuevo/providers/theme_provider.dart'; // Importa el ThemeProvider
 import 'package:devocional_nuevo/utils/theme_constants.dart'; // Importa las constantes de tema para acceder a appThemeFamilies y settingsOptionTextStyle
 
@@ -154,7 +155,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 const SizedBox(width: 10), // Espacio entre icono y texto
                 Text(
                   'Seleccionar Tema:',
-                  style: textTheme.bodyMedium?.merge(settingsOptionTextStyle).copyWith(color: colorScheme.onSurface), // MODIFICADO: Estilo estandarizado
+                  style: textTheme.bodyMedium?.merge(settingsOptionTextStyle).copyWith(color: colorScheme.onSurface), // Estilo estandarizado
                 ),
               ],
             ),
@@ -191,7 +192,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     const SizedBox(width: 10), // Espacio entre el icono y el texto
                     Text(
                       'Luz baja:',
-                      style: textTheme.bodyMedium?.merge(settingsOptionTextStyle).copyWith(color: colorScheme.onSurface), // MODIFICADO: Estilo estandarizado
+                      style: textTheme.bodyMedium?.merge(settingsOptionTextStyle).copyWith(color: colorScheme.onSurface), // Estilo estandarizado
                     ),
                   ],
                 ),
@@ -221,9 +222,13 @@ class _SettingsPageState extends State<SettingsPage> {
                     Icon(Icons.notifications, color: colorScheme.primary),
                     const SizedBox(width: 10),
                     // Texto de notificaciones usa el color de texto de la superficie
-                    Text(
-                      'Configuración de notificaciones',
-                      style: textTheme.bodyMedium?.merge(settingsOptionTextStyle).copyWith(color: colorScheme.onSurface), // MODIFICADO: Estilo estandarizado
+                    Expanded(
+                      child: Text(
+                        'Configuración de notificaciones',
+                        style: textTheme.bodyMedium?.merge(settingsOptionTextStyle).copyWith(color: colorScheme.onSurface), // Estilo estandarizado
+                        maxLines: 1, // Añadido para evitar desbordamiento
+                        overflow: TextOverflow.ellipsis, // Añadido para truncar texto
+                      ),
                     ),
                   ],
                 ),
@@ -248,13 +253,49 @@ class _SettingsPageState extends State<SettingsPage> {
                         color: colorScheme.primary),
                     const SizedBox(width: 10),
                     // Texto de favoritos guardados usa el color de texto de la superficie
-                    Text('Favoritos guardados', style: textTheme.bodyMedium?.merge(settingsOptionTextStyle).copyWith(color: colorScheme.onSurface)), // MODIFICADO: Estilo estandarizado
+                    Expanded(
+                      child: Text(
+                        'Favoritos guardados',
+                        style: textTheme.bodyMedium?.merge(settingsOptionTextStyle).copyWith(color: colorScheme.onSurface), // Estilo estandarizado
+                        maxLines: 1, // Añadido para evitar desbordamiento
+                        overflow: TextOverflow.ellipsis, // Añadido para truncar texto
+                      ),
+                    ),
                   ],
                 ),
               ),
             ),
+
+            // Opcion para Contáctanos, entre Favoritos guardados y Acerca de
+            const SizedBox(height: 20), // Espacio después de favoritos guardados
+            InkWell(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const ContactPage()), // Navega directamente a ContactPage
+                );
+              },
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: Row(
+                  children: [
+                    Icon(Icons.contact_mail, color: colorScheme.primary), // Icono para contacto
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        'Contáctanos',
+                        style: textTheme.bodyMedium?.merge(settingsOptionTextStyle).copyWith(color: colorScheme.onSurface),
+                        maxLines: 1, // Añadido para evitar desbordamiento
+                        overflow: TextOverflow.ellipsis, // Añadido para truncar texto
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
             // Acerca de
-            const SizedBox(height: 20),
+            const SizedBox(height: 20), // Espacio antes de Acerca de
             InkWell(
               onTap: () {
                 Navigator.push(
@@ -270,8 +311,14 @@ class _SettingsPageState extends State<SettingsPage> {
                     Icon(Icons.info_outline, color: colorScheme.primary),
                     const SizedBox(width: 10),
                     // Texto de acerca de usa el color de texto de la superficie
-                    Text('Acerca de Devocionales Cristianos',
-                        style: textTheme.bodyMedium?.merge(settingsOptionTextStyle).copyWith(color: colorScheme.onSurface)), // MODIFICADO: Estilo estandarizado
+                    Expanded(
+                      child: Text(
+                        'Acerca de Devocionales Cristianos',
+                        style: textTheme.bodyMedium?.merge(settingsOptionTextStyle).copyWith(color: colorScheme.onSurface), // Estilo estandarizado
+                        maxLines: 1, // Añadido para evitar desbordamiento
+                        overflow: TextOverflow.ellipsis, // Añadido para truncar texto
+                      ),
+                    ),
                   ],
                 ),
               ),
