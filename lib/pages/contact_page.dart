@@ -25,7 +25,7 @@ class _ContactPageState extends State<ContactPage> {
     'Errores/Bugs',
     'Opinión/Feedback',
     'Mejoras/Improvements',
-    'Solicitud de oración'
+    'Otros'
   ];
 
 // Mantener para el indicador de envío
