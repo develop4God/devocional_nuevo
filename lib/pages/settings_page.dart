@@ -4,15 +4,15 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:developer' as developer;
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/cupertino.dart'; // Para CupertinoIcons.square_favorites_alt
 import 'package:provider/provider.dart'; // Importa provider
 
 import 'package:devocional_nuevo/pages/favorites_page.dart';
 import 'package:devocional_nuevo/pages/about_page.dart';
-import 'package:devocional_nuevo/pages/notification_page.dart';
 import 'package:devocional_nuevo/pages/contact_page.dart'; // Importa ContactPage para la navegación directa
 import 'package:devocional_nuevo/providers/theme_provider.dart'; // Importa el ThemeProvider
 import 'package:devocional_nuevo/utils/theme_constants.dart'; // Importa las constantes de tema para acceder a appThemeFamilies y settingsOptionTextStyle
+import 'package:devocional_nuevo/pages/notification_config_page.dart'; // Importa la nueva página de configuración de notificaciones
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -28,7 +28,7 @@ class _SettingsPageState extends State<SettingsPage> {
     const String baseUrl =
         'https://www.paypal.com/donate/?hosted_button_id=CGQNBA4YPUG7A';
     const String paypalUrlWithLocale = '$baseUrl&locale.x=es_ES';
-    final url = Uri.parse(paypalUrlWithLocale);
+    final Uri url = Uri.parse(paypalUrlWithLocale);
 
     developer.log('Intentando abrir URL: $url', name: 'PayPalLaunch');
 
@@ -36,8 +36,7 @@ class _SettingsPageState extends State<SettingsPage> {
       developer.log('canLaunchUrl devolvió true. Intentando launchUrl.',
           name: 'PayPalLaunch');
       try {
-        bool launched = await launchUrl(url,
-            mode: LaunchMode.platformDefault);
+        final launched = await launchUrl(url, mode: LaunchMode.externalApplication);
 
         if (!launched) {
           developer.log('launchUrl devolvió false. No se pudo lanzar.',
@@ -83,10 +82,9 @@ class _SettingsPageState extends State<SettingsPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(
+        title: const Text(
           'Más opciones',
-          // Usa el color del foreground del AppBar del tema
-          style: TextStyle(color: Theme.of(context).appBarTheme.foregroundColor),
+          style: TextStyle(color: Colors.white),
         ),
       ),
       body: Padding(
@@ -101,11 +99,11 @@ class _SettingsPageState extends State<SettingsPage> {
                 child: ElevatedButton(
                   onPressed: _launchPaypal,
                   style: ElevatedButton.styleFrom(
-                    // El color de fondo del botón de donar no debería cambiar con el tema
-                    backgroundColor: Colors.yellow[700],
+                    backgroundColor: Colors.yellow[700], // Botón amarillo
                     foregroundColor: Colors.black,
                     textStyle: const TextStyle(fontWeight: FontWeight.bold),
-                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
+                    padding:
+                    const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
                     minimumSize: const Size(100, 30),
                   ),
                   child: const Text(
@@ -115,14 +113,17 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
               ),
             ),
-            // Selección de idioma
+            const SizedBox(height: 20),
+            // Sección para seleccionar el idioma
             Row(
               children: [
-                // Icono de idioma usa el color primario del tema
                 Icon(Icons.language, color: colorScheme.primary),
                 const SizedBox(width: 10),
-                // Texto de idioma usa el color de texto de la superficie
-                Text('Idioma:', style: TextStyle(fontSize: 18, color: textTheme.bodyMedium?.color)),
+                Text(
+                  'Idioma:',
+                  style: textTheme.bodyMedium
+                      ?.copyWith(fontSize: 18, color: colorScheme.onSurface),
+                ),
                 const SizedBox(width: 10),
                 DropdownButton<String>(
                   value: _selectedLanguage,
@@ -131,47 +132,45 @@ class _SettingsPageState extends State<SettingsPage> {
                       value: 'es',
                       child: Text('Español'),
                     ),
-                    //DropdownMenuItem(
-                    //value: 'en',
-                    //child: Text('Inglés'),
-                    //),
                   ],
                   onChanged: (String? newValue) {
                     if (newValue != null) {
                       setState(() {
                         _selectedLanguage = newValue;
+                        // TODO: Implementar lógica para cambiar el idioma de la aplicación
+                        developer.log('Idioma cambiado a: $_selectedLanguage', name: 'SettingsPage');
                       });
                     }
                   },
                 ),
               ],
             ),
-            const SizedBox(height: 20), // Espacio entre Idioma y Tema
-
+            const SizedBox(height: 20),
             // Sección para seleccionar la familia de tema
-            Row( // Agrupamos el icono y el texto en una nueva Row
+            Row(
               children: [
-                Icon(Icons.palette, color: colorScheme.primary), // Icono para temas
-                const SizedBox(width: 10), // Espacio entre icono y texto
+                Icon(Icons.palette, color: colorScheme.primary),
+                const SizedBox(width: 10),
                 Text(
                   'Seleccionar Tema:',
-                  style: textTheme.bodyMedium?.merge(settingsOptionTextStyle).copyWith(color: colorScheme.onSurface), // Estilo estandarizado
+                  style: textTheme.bodyMedium
+                      ?.merge(settingsOptionTextStyle)
+                      .copyWith(color: colorScheme.onSurface),
                 ),
               ],
             ),
             const SizedBox(height: 10),
-            // Dropdown para elegir la familia de tema
             DropdownButtonFormField<String>(
               value: themeProvider.currentThemeFamily,
-              decoration: InputDecoration(
-                border: const OutlineInputBorder(),
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
                 labelText: 'Colores',
-                labelStyle: TextStyle(color: textTheme.bodyMedium?.color),
+                labelStyle: TextStyle(color: Colors.black),
               ),
               items: themeFamilies.map((String familyName) {
                 return DropdownMenuItem<String>(
                   value: familyName,
-                  child: Text(themeDisplayNames[familyName] ?? familyName, style: TextStyle(color: textTheme.bodyMedium?.color)),
+                  child: Text(themeDisplayNames[familyName] ?? familyName),
                 );
               }).toList(),
               onChanged: (String? newValue) {
@@ -180,122 +179,120 @@ class _SettingsPageState extends State<SettingsPage> {
                 }
               },
             ),
-            const SizedBox(height: 20), // Espacio después del selector de familia de tema
-
-            // Sección para alternar el modo (claro/oscuro)
+            const SizedBox(height: 20),
+            // Opción para Luz baja (modo oscuro)
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row( // Agrupamos el icono y el texto en una nueva Row
+                Row(
                   children: [
-                    Icon(Icons.contrast, color: colorScheme.primary), // Icono para "Luz baja"
-                    const SizedBox(width: 10), // Espacio entre el icono y el texto
+                    Icon(Icons.contrast, color: colorScheme.primary),
+                    const SizedBox(width: 10),
                     Text(
                       'Luz baja:',
-                      style: textTheme.bodyMedium?.merge(settingsOptionTextStyle).copyWith(color: colorScheme.onSurface), // Estilo estandarizado
+                      style: textTheme.bodyMedium
+                          ?.merge(settingsOptionTextStyle)
+                          .copyWith(color: colorScheme.onSurface),
                     ),
                   ],
                 ),
                 Switch(
                   value: themeProvider.currentBrightness == Brightness.dark,
                   onChanged: (bool value) {
-                    themeProvider.setBrightness(value ? Brightness.dark : Brightness.light);
+                    themeProvider.setBrightness(
+                        value ? Brightness.dark : Brightness.light);
                   },
                 ),
               ],
             ),
-            const SizedBox(height: 20), // Espacio después del switch de modo
-
-            // Línea para acceder a la configuración de notificaciones
-            InkWell(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const NotificationPage()),
-                );
-              },
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                child: Row(
-                  children: [
-                    // Icono de notificaciones usa el color primario del tema
-                    Icon(Icons.notifications, color: colorScheme.primary),
-                    const SizedBox(width: 10),
-                    // Texto de notificaciones usa el color de texto de la superficie
-                    Expanded(
-                      child: Text(
-                        'Configuración de notificaciones',
-                        style: textTheme.bodyMedium?.merge(settingsOptionTextStyle).copyWith(color: colorScheme.onSurface), // Estilo estandarizado
-                        maxLines: 1, // Añadido para evitar desbordamiento
-                        overflow: TextOverflow.ellipsis, // Añadido para truncar texto
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 15),
+            const SizedBox(height: 20),
+            // Aquí es donde se cambia la navegación a NotificationConfigPage
             InkWell(
               onTap: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                      builder: (context) => const FavoritesPage()),
+                      builder: (context) => const NotificationConfigPage()),
                 );
               },
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8.0),
                 child: Row(
                   children: [
-                    // Icono de favoritos guardados usa el color primario del tema
-                    Icon(CupertinoIcons.square_favorites_alt,
-                        color: colorScheme.primary),
+                    Icon(Icons.notifications, color: colorScheme.primary),
                     const SizedBox(width: 10),
-                    // Texto de favoritos guardados usa el color de texto de la superficie
                     Expanded(
                       child: Text(
-                        'Favoritos guardados',
-                        style: textTheme.bodyMedium?.merge(settingsOptionTextStyle).copyWith(color: colorScheme.onSurface), // Estilo estandarizado
-                        maxLines: 1, // Añadido para evitar desbordamiento
-                        overflow: TextOverflow.ellipsis, // Añadido para truncar texto
+                        'Configuración de notificaciones',
+                        style: textTheme.bodyMedium
+                            ?.merge(settingsOptionTextStyle)
+                            .copyWith(color: colorScheme.onSurface),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                   ],
                 ),
               ),
             ),
-
-            // Opcion para Contáctanos, entre Favoritos guardados y Acerca de
-            const SizedBox(height: 20), // Espacio después de favoritos guardados
+            const SizedBox(height: 15),
             InkWell(
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const ContactPage()), // Navega directamente a ContactPage
+                  MaterialPageRoute(builder: (context) => const FavoritesPage()),
                 );
               },
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8.0),
                 child: Row(
                   children: [
-                    Icon(Icons.contact_mail, color: colorScheme.primary), // Icono para contacto
+                    Icon(CupertinoIcons.square_favorites_alt,
+                        color: colorScheme.primary),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
-                        'Contáctanos',
-                        style: textTheme.bodyMedium?.merge(settingsOptionTextStyle).copyWith(color: colorScheme.onSurface),
-                        maxLines: 1, // Añadido para evitar desbordamiento
-                        overflow: TextOverflow.ellipsis, // Añadido para truncar texto
+                        'Favoritos guardados',
+                        style: textTheme.bodyMedium
+                            ?.merge(settingsOptionTextStyle)
+                            .copyWith(color: colorScheme.onSurface),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis, // CORRECCIÓN AQUÍ: Era TextTema.ellipsis
                       ),
                     ),
                   ],
                 ),
               ),
             ),
-
-            // Acerca de
-            const SizedBox(height: 20), // Espacio antes de Acerca de
+            const SizedBox(height: 20),
+            InkWell(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const ContactPage()),
+                );
+              },
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: Row(
+                  children: [
+                    Icon(Icons.contact_mail, color: colorScheme.primary),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        'Contáctanos',
+                        style: textTheme.bodyMedium
+                            ?.merge(settingsOptionTextStyle)
+                            .copyWith(color: colorScheme.onSurface),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
             InkWell(
               onTap: () {
                 Navigator.push(
@@ -307,16 +304,16 @@ class _SettingsPageState extends State<SettingsPage> {
                 padding: const EdgeInsets.symmetric(vertical: 8.0),
                 child: Row(
                   children: [
-                    // Icono de información usa el color primario del tema
                     Icon(Icons.info_outline, color: colorScheme.primary),
                     const SizedBox(width: 10),
-                    // Texto de acerca de usa el color de texto de la superficie
                     Expanded(
                       child: Text(
                         'Acerca de Devocionales Cristianos',
-                        style: textTheme.bodyMedium?.merge(settingsOptionTextStyle).copyWith(color: colorScheme.onSurface), // Estilo estandarizado
-                        maxLines: 1, // Añadido para evitar desbordamiento
-                        overflow: TextOverflow.ellipsis, // Añadido para truncar texto
+                        style: textTheme.bodyMedium
+                            ?.merge(settingsOptionTextStyle)
+                            .copyWith(color: colorScheme.onSurface),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                   ],
