@@ -39,7 +39,7 @@ android {
 
     defaultConfig {
         applicationId = "com.develop4god.devocional_nuevo"
-        minSdk = flutter.minSdkVersion
+        minSdk = 23 // CAMBIO: Aumentar la versión mínima del SDK a 23
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
@@ -75,7 +75,7 @@ android {
 
 dependencies {
     // Core library desugaring
-    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
     
     // Multidex support
     implementation("androidx.multidex:multidex:2.0.1")

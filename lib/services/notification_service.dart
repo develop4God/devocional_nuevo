@@ -1,13 +1,24 @@
-// lib/services/notification_service.dart
-import 'dart:io';
+//notification_service.dart
+//Manejo de FCM y Eliminación de Programación Local
+import 'dart:developer' as developer;
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:timezone/timezone.dart' as tz;
-import 'package:timezone/data/latest.dart' as tz;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:http/http.dart' as http;
-import 'package:path_provider/path_provider.dart';
+import 'package:timezone/data/latest_all.dart' as tzdata;
+import 'package:timezone/timezone.dart' as tz;
+import 'package:flutter_timezone/flutter_timezone.dart';
+
+// Importaciones para Firebase Cloud Messaging y Firestore
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
+// Las siguientes importaciones están comentadas porque no se usan en la lógica actual.
+// Si las necesitas para futuros métodos (ej. _downloadAndSaveFile), descomenta.
+// import 'package:http/http.dart' as http;
+// import 'package:path_provider/path_provider.dart';
+// import 'dart:io' as io;
 
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
@@ -17,151 +28,323 @@ class NotificationService {
   final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin =
   FlutterLocalNotificationsPlugin();
 
-  // Claves para SharedPreferences
+  final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
   static const String _notificationsEnabledKey = 'notifications_enabled';
   static const String _notificationTimeKey = 'notification_time';
-  static const String _defaultNotificationTime = '08:00'; // 8:00 AM por defecto
-  static const String _lastNotificationDateKey = 'last_notification_date';
-  static const String _deviceTokenKey = 'device_token';
+  static const String _defaultNotificationTime = '09:00';
+  static const String _fcmTokenKey = 'fcm_token';
 
-  // Callback para manejar la navegación cuando se toca una notificación
   Function(String? payload)? onNotificationTapped;
 
-  /// Inicializar el servicio de notificaciones
   Future<void> initialize() async {
-    // Inicializar timezone
-    tz.initializeTimeZones();
+    try {
+      tzdata.initializeTimeZones();
+      final String currentTimeZone = await FlutterTimezone.getLocalTimezone();
+      tz.setLocalLocation(tz.getLocation(currentTimeZone));
+      developer.log(
+          'NotificationService: tz.local.name: ${tz.local.name}, tz.local.currentTimeZone: ${tz.local.currentTimeZone}',
+          name: 'NotificationService');
 
-    // Configuración para Android
-    const AndroidInitializationSettings initializationSettingsAndroid =
-    AndroidInitializationSettings('@mipmap/ic_launcher');
+      const AndroidInitializationSettings initializationSettingsAndroid =
+      AndroidInitializationSettings('@mipmap/ic_launcher');
 
-    // Configuración para iOS
-    const DarwinInitializationSettings initializationSettingsIOS =
-    DarwinInitializationSettings(
-      requestAlertPermission: true,
-      requestBadgePermission: true,
-      requestSoundPermission: true,
-    );
+      const DarwinInitializationSettings initializationSettingsIOS =
+      DarwinInitializationSettings(
+        requestAlertPermission: true,
+        requestBadgePermission: true,
+        requestSoundPermission: true,
+      );
 
-    // Configuración general
-    const InitializationSettings initializationSettings =
-    InitializationSettings(
-      android: initializationSettingsAndroid,
-      iOS: initializationSettingsIOS,
-    );
+      const InitializationSettings initializationSettings =
+      InitializationSettings(
+        android: initializationSettingsAndroid,
+        iOS: initializationSettingsIOS,
+      );
 
-    // Inicializar plugin
-    await _flutterLocalNotificationsPlugin.initialize(
-      initializationSettings,
-      onDidReceiveNotificationResponse: _onNotificationTapped,
-    );
+      await _flutterLocalNotificationsPlugin.initialize(
+        initializationSettings,
+        onDidReceiveNotificationResponse: _onNotificationTapped,
+      );
 
-    // Solicitar permisos
-    await _requestPermissions();
+      await _requestPermissions();
+      developer.log('NotificationService: Initialized',
+          name: 'NotificationService');
 
-    // Verificar si es un nuevo día para programar notificación
-    await _checkAndScheduleForNewDay();
+      // Inicializar FCM y gestionar el token, y configurar los listeners de mensajes
+      await _initializeFCM();
+
+      // Manejar el mensaje inicial si la app se abrió desde una notificación
+      final RemoteMessage? initialMessage = await _firebaseMessaging.getInitialMessage();
+      if (initialMessage != null) {
+        developer.log('NotificationService: Aplicación abierta desde notificación inicial: ${initialMessage.messageId}', name: 'NotificationService');
+        _handleMessage(initialMessage);
+      }
+
+    } catch (e) {
+      developer.log('ERROR en NotificationService: $e',
+          name: 'NotificationService', error: e);
+    }
   }
 
-  /// Manejar cuando se toca una notificación
-  void _onNotificationTapped(NotificationResponse notificationResponse) {
-    debugPrint('Notificación tocada: ${notificationResponse.payload}');
+  // Método para inicializar FCM, obtener/guardar token y configurar listeners
+  Future<void> _initializeFCM() async {
+    try {
+      // Solicitar permiso para notificaciones (iOS y Android 13+)
+      NotificationSettings settings = await _firebaseMessaging.requestPermission(
+        alert: true,
+        announcement: false,
+        badge: true,
+        carPlay: false,
+        criticalAlert: false,
+        provisional: false,
+        sound: true,
+      );
 
-    // Llamar al callback si está definido
+      developer.log('NotificationService: Permiso de usuario concedido: ${settings.authorizationStatus}', name: 'NotificationService');
+
+      // Obtener el token FCM
+      String? token = await _firebaseMessaging.getToken();
+      if (token != null) {
+        developer.log('NotificationService: Token FCM obtenido: $token', name: 'NotificationService');
+        await _saveFcmToken(token); // Guardar token en Firestore
+      } else {
+        developer.log('NotificationService: El token FCM es nulo.', name: 'NotificationService');
+      }
+
+      // Escuchar cambios en el token
+      _firebaseMessaging.onTokenRefresh.listen((newToken) {
+        developer.log('NotificationService: Token FCM refrescado: $newToken', name: 'NotificationService');
+        _saveFcmToken(newToken); // Actualizar token en Firestore
+      });
+
+      // NUEVO: Listener para mensajes FCM cuando la app está en primer plano
+      FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+        developer.log('NotificationService: Mensaje FCM en primer plano: ${message.messageId}', name: 'NotificationService');
+        _handleMessage(message);
+      });
+
+      // NUEVO: Listener para cuando el usuario toca una notificación FCM
+      FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+        developer.log('NotificationService: Aplicación abierta desde notificación: ${message.messageId}', name: 'NotificationService');
+        _handleMessage(message);
+      });
+
+    } catch (e) {
+      developer.log('ERROR en _initializeFCM: $e', name: 'NotificationService', error: e);
+    }
+  }
+
+  // NUEVO: Método para manejar mensajes FCM y mostrarlos localmente
+  void _handleMessage(RemoteMessage message) {
+    if (message.notification != null) {
+      developer.log('NotificationService: Mensaje FCM contiene notificación: ${message.notification!.title}', name: 'NotificationService');
+      showImmediateNotification(
+        message.notification!.title ?? 'Notificación',
+        message.notification!.body ?? 'Contenido de la notificación',
+        payload: message.data['payload'] as String?,
+        id: message.messageId.hashCode, // Usar un ID único para la notificación local
+      );
+    } else if (message.data.isNotEmpty) {
+      developer.log('NotificationService: Mensaje FCM contiene solo datos: ${message.data}', name: 'NotificationService');
+      // Puedes procesar mensajes de datos aquí si no tienen una sección de notificación.
+      // Por ejemplo, mostrar una notificación local personalizada basada en los datos.
+      showImmediateNotification(
+        message.data['title'] ?? 'Notificación de Datos',
+        message.data['body'] ?? 'Contenido de datos',
+        payload: message.data['payload'] as String?,
+        id: message.messageId.hashCode,
+      );
+    }
+  }
+
+  // Método para guardar el token FCM en Firestore
+  Future<void> _saveFcmToken(String token) async {
+    try {
+      final User? user = _auth.currentUser;
+      if (user == null) {
+        developer.log('NotificationService: Usuario no autenticado, no se puede guardar el token FCM.', name: 'NotificationService');
+        return;
+      }
+
+      final tokenRef = _firestore.collection('users').doc(user.uid).collection('fcmTokens').doc(token);
+
+      await tokenRef.set({
+        'token': token,
+        'createdAt': FieldValue.serverTimestamp(),
+        'platform': defaultTargetPlatform.toString(),
+      }, SetOptions(merge: true));
+
+      developer.log('NotificationService: Token FCM guardado en Firestore para el usuario ${user.uid}', name: 'NotificationService');
+
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_fcmTokenKey, token);
+      developer.log('NotificationService: Token FCM guardado en SharedPreferences.', name: 'NotificationService');
+
+    } catch (e) {
+      developer.log('ERROR en _saveFcmToken: $e', name: 'NotificationService', error: e);
+    }
+  }
+
+  void _onNotificationTapped(NotificationResponse notificationResponse) {
+    developer.log('Notificación tocada: ${notificationResponse.payload}',
+        name: 'NotificationService');
     if (onNotificationTapped != null) {
       onNotificationTapped!(notificationResponse.payload);
     }
   }
 
-  /// Solicitar permisos de notificación
   Future<bool> _requestPermissions() async {
-    if (defaultTargetPlatform == TargetPlatform.android) {
-      // Para Android 13+ (API 33+)
-      final status = await Permission.notification.request();
-      return status == PermissionStatus.granted;
-    } else if (defaultTargetPlatform == TargetPlatform.iOS) {
-      // Para iOS
-      final bool? result = await _flutterLocalNotificationsPlugin
-          .resolvePlatformSpecificImplementation<
-          IOSFlutterLocalNotificationsPlugin>()
-          ?.requestPermissions(
-        alert: true,
-        badge: true,
-        sound: true,
-      );
-      return result ?? false;
+    try {
+      bool granted = true;
+      if (defaultTargetPlatform == TargetPlatform.android) {
+        final notificationStatus = await Permission.notification.request();
+        granted = granted && notificationStatus == PermissionStatus.granted;
+
+        if (await Permission.scheduleExactAlarm.isDenied) {
+          final alarmStatus = await Permission.scheduleExactAlarm.request();
+          granted = granted && alarmStatus == PermissionStatus.granted;
+        }
+
+        if (await Permission.ignoreBatteryOptimizations.isDenied) {
+          final batteryStatus =
+          await Permission.ignoreBatteryOptimizations.request();
+          granted = granted && batteryStatus == PermissionStatus.granted;
+        }
+      } else if (defaultTargetPlatform == TargetPlatform.iOS) {
+        final bool? result = await _flutterLocalNotificationsPlugin
+            .resolvePlatformSpecificImplementation<
+            IOSFlutterLocalNotificationsPlugin>()
+            ?.requestPermissions(
+          alert: true,
+          badge: true,
+          sound: true,
+        );
+        granted = result ?? false;
+      }
+      developer.log('NotificationService: Permisos concedidos: $granted',
+          name: 'NotificationService');
+      return granted;
+    } catch (e) {
+      developer.log('ERROR en _requestPermissions: $e',
+          name: 'NotificationService', error: e);
+      return false;
     }
-    return true;
   }
 
-  /// Verificar si las notificaciones están habilitadas en configuración
   Future<bool> areNotificationsEnabled() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getBool(_notificationsEnabledKey) ?? false;
+    return prefs.getBool(_notificationsEnabledKey) ?? true;
   }
 
-  /// Habilitar/deshabilitar notificaciones
   Future<void> setNotificationsEnabled(bool enabled) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_notificationsEnabledKey, enabled);
-
-    if (enabled) {
-      await scheduleDailyNotification();
-    } else {
-      await cancelAllNotifications();
-    }
+    developer.log('NotificationService: Notificaciones activadas establecidas en $enabled',
+        name: 'NotificationService');
+    // IMPORTANTE: Las llamadas a scheduleDailyNotification() y cancelScheduledNotifications()
+    // se eliminan de aquí. La programación diaria ahora se gestiona desde el servidor (Cloud Function)
+    // a través de FCM.
+    // if (enabled) {
+    //   await scheduleDailyNotification();
+    // } else {
+    //   await cancelScheduledNotifications();
+    // }
   }
 
-  /// Obtener hora de notificación configurada
   Future<String> getNotificationTime() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(_notificationTimeKey) ?? _defaultNotificationTime;
   }
 
-  /// Establecer hora de notificación
   Future<void> setNotificationTime(String time) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_notificationTimeKey, time);
-
-    // Si las notificaciones están habilitadas, reprogramar
-    if (await areNotificationsEnabled()) {
-      await scheduleDailyNotification();
-    }
+    developer.log('NotificationService: Hora de notificación establecida en $time',
+        name: 'NotificationService');
+    // IMPORTANTE: La llamada a scheduleDailyNotification() se elimina de aquí.
+    // La programación diaria ahora se gestiona desde el servidor (Cloud Function)
+    // a través de FCM.
+    // if (await areNotificationsEnabled()) {
+    //   await scheduleDailyNotification();
+    // }
   }
 
-  /// Verificar si es un nuevo día para programar notificación
-  Future<void> _checkAndScheduleForNewDay() async {
-    final prefs = await SharedPreferences.getInstance();
-    final lastNotificationDate = prefs.getString(_lastNotificationDateKey);
+  Future<void> showImmediateNotification(String title, String body,
+      {String? payload, int? id}) async {
+    try {
+      AndroidNotificationDetails? androidPlatformChannelSpecifics;
 
-    final today = DateTime.now().toIso8601String().split('T')[0];
-
-    if (lastNotificationDate != today) {
-      // Es un nuevo día, guardar la fecha actual
-      await prefs.setString(_lastNotificationDateKey, today);
-
-      // Si las notificaciones están habilitadas, programar para hoy
-      if (await areNotificationsEnabled()) {
-        await scheduleDailyNotification();
+      if (defaultTargetPlatform == TargetPlatform.android) {
+        androidPlatformChannelSpecifics = const AndroidNotificationDetails(
+          'immediate_devotional',
+          'Devocional Inmediato',
+          channelDescription: 'Notificación inmediata del devocional',
+          importance: Importance.max,
+          priority: Priority.high,
+          icon: '@mipmap/ic_launcher',
+          styleInformation: BigTextStyleInformation(''),
+        );
+      } else {
+        androidPlatformChannelSpecifics = const AndroidNotificationDetails(
+          'immediate_devotional',
+          'Devocional Inmediato',
+          channelDescription: 'Notificación inmediata del devocional',
+          importance: Importance.max,
+          priority: Priority.high,
+          icon: '@mipmap/ic_launcher',
+          styleInformation: BigTextStyleInformation(''),
+        );
       }
+
+      const DarwinNotificationDetails iOSPlatformChannelSpecifics =
+      DarwinNotificationDetails(
+        sound: 'default',
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+      );
+
+      final NotificationDetails platformChannelSpecifics = NotificationDetails(
+        android: androidPlatformChannelSpecifics,
+        iOS: iOSPlatformChannelSpecifics,
+      );
+
+      await _flutterLocalNotificationsPlugin.show(
+        id ?? 1,
+        title,
+        body,
+        platformChannelSpecifics,
+        payload: payload ?? 'immediate_devotional',
+      );
+      developer.log('Notificación inmediata mostrada: $title',
+          name: 'NotificationService');
+    } catch (e) {
+      developer.log('ERROR en showImmediateNotification: $e',
+          name: 'NotificationService', error: e);
     }
   }
 
-  /// Programar notificación diaria
+  // Esta función ahora solo se usa para mostrar la notificación localmente
+  // cuando el backend (Cloud Function) envía un mensaje FCM.
+  // Ya NO se usa para programar la notificación diaria desde la app.
   Future<void> scheduleDailyNotification() async {
-    // Cancelar notificaciones existentes
-    await cancelAllNotifications();
+    // La lógica de cancelación y programación se mantiene si se necesita para otros fines locales,
+    // pero para la notificación diaria, el servidor es el que orquesta.
+    await cancelScheduledNotifications();
 
-    // Obtener hora configurada
-    final timeString = await getNotificationTime();
-    final timeParts = timeString.split(':');
-    final hour = int.parse(timeParts[0]);
-    final minute = int.parse(timeParts[1]);
+    final String timeString = await getNotificationTime();
+    final List<String> timeParts = timeString.split(':');
+    final int hour = int.parse(timeParts[0]);
+    final int minute = int.parse(timeParts[1]);
 
-    // Crear fecha/hora para la notificación
-    final now = tz.TZDateTime.now(tz.local);
-    var scheduledDate = tz.TZDateTime(
+    final tz.TZDateTime now = tz.TZDateTime.now(tz.local);
+    developer.log(
+        'NotificationService: tz.TZDateTime.now(tz.local) obtenido: $now',
+        name: 'NotificationService');
+    tz.TZDateTime scheduledDate = tz.TZDateTime(
       tz.local,
       now.year,
       now.month,
@@ -170,35 +353,19 @@ class NotificationService {
       minute,
     );
 
-    // Si la hora ya pasó hoy, programar para mañana
     if (scheduledDate.isBefore(now)) {
       scheduledDate = scheduledDate.add(const Duration(days: 1));
     }
+    developer.log(
+        'NotificationService: Fecha programada final para notificación diaria: $scheduledDate',
+        name: 'NotificationService');
 
-    // Intentar obtener el título del devocional para hoy
-    String title = '🙏 Devocional de Hoy';
-    String body = 'Tu momento de reflexión diaria te está esperando';
-
-    try {
-      // Aquí podrías hacer una petición a tu API para obtener el título del devocional
-      // Por ejemplo:
-      // final devotionalData = await _fetchDevotionalData();
-      // if (devotionalData != null) {
-      //   title = '🙏 ${devotionalData['title']}';
-      //   body = devotionalData['summary'] ?? body;
-      // }
-    } catch (e) {
-      debugPrint('Error al obtener datos del devocional: $e');
-      // Usar los valores por defecto si hay error
-    }
-
-    // Configuración de la notificación para Android
     const AndroidNotificationDetails androidPlatformChannelSpecifics =
     AndroidNotificationDetails(
       'daily_devotional',
       'Devocional Diario',
       channelDescription: 'Recordatorio diario para leer el devocional',
-      importance: Importance.high,
+      importance: Importance.max,
       priority: Priority.high,
       icon: '@mipmap/ic_launcher',
       sound: RawResourceAndroidNotificationSound('notification'),
@@ -206,7 +373,6 @@ class NotificationService {
       styleInformation: BigTextStyleInformation(''),
     );
 
-    // Configuración de la notificación para iOS
     const DarwinNotificationDetails iOSPlatformChannelSpecifics =
     DarwinNotificationDetails(
       sound: 'default',
@@ -215,221 +381,52 @@ class NotificationService {
       presentSound: true,
     );
 
-    // Configuración general
     const NotificationDetails platformChannelSpecifics = NotificationDetails(
       android: androidPlatformChannelSpecifics,
       iOS: iOSPlatformChannelSpecifics,
     );
 
-    // Programar notificación
     await _flutterLocalNotificationsPlugin.zonedSchedule(
-      0, // ID de la notificación
-      title,
-      body,
+      0,
+      'Recordatorio Diario',
+      '¡Es hora de tu devocional diario!',
       scheduledDate,
       platformChannelSpecifics,
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      uiLocalNotificationDateInterpretation:
-      UILocalNotificationDateInterpretation.absoluteTime,
-      matchDateTimeComponents: DateTimeComponents.time, // Repetir diariamente
-      payload: 'daily_devotional',
+      matchDateTimeComponents: DateTimeComponents.time,
+      payload: 'daily_devotional_payload',
     );
-
-    debugPrint('Notificación programada para: $scheduledDate');
+    developer.log('Notificación diaria programada para: $scheduledDate',
+        name: 'NotificationService');
   }
 
-  /// Mostrar notificación inmediata (para testing o notificaciones manuales)
-  Future<void> showImmediateNotification({
-    String title = '🙏 Devocional de Hoy',
-    String body = 'Tu momento de reflexión diaria te está esperando',
-    String? payload,
-    String? bigPicture,
-  }) async {
-    AndroidNotificationDetails androidPlatformChannelSpecifics;
-
-    // Si hay una imagen grande, configurar notificación con estilo BigPicture
-    if (bigPicture != null) {
-      try {
-        final String largeIconPath = await _downloadAndSaveFile(
-          bigPicture,
-          'largeIcon.png',
-        );
-
-        final String bigPicturePath = await _downloadAndSaveFile(
-          bigPicture,
-          'bigPicture.png',
-        );
-
-        androidPlatformChannelSpecifics = AndroidNotificationDetails(
-          'immediate_devotional',
-          'Devocional Inmediato',
-          channelDescription: 'Notificación inmediata del devocional',
-          importance: Importance.high,
-          priority: Priority.high,
-          icon: '@mipmap/ic_launcher',
-          largeIcon: FilePathAndroidBitmap(largeIconPath),
-          styleInformation: BigPictureStyleInformation(
-            FilePathAndroidBitmap(bigPicturePath),
-            hideExpandedLargeIcon: true,
-          ),
-        );
-      } catch (e) {
-        debugPrint('Error al configurar notificación con imagen: $e');
-        // Si hay error, usar notificación estándar
-        androidPlatformChannelSpecifics = const AndroidNotificationDetails(
-          'immediate_devotional',
-          'Devocional Inmediato',
-          channelDescription: 'Notificación inmediata del devocional',
-          importance: Importance.high,
-          priority: Priority.high,
-          icon: '@mipmap/ic_launcher',
-          styleInformation: BigTextStyleInformation(''),
-        );
-      }
-    } else {
-      // Notificación estándar sin imagen
-      androidPlatformChannelSpecifics = const AndroidNotificationDetails(
-        'immediate_devotional',
-        'Devocional Inmediato',
-        channelDescription: 'Notificación inmediata del devocional',
-        importance: Importance.high,
-        priority: Priority.high,
-        icon: '@mipmap/ic_launcher',
-        styleInformation: BigTextStyleInformation(''),
-      );
-    }
-
-    const DarwinNotificationDetails iOSPlatformChannelSpecifics =
-    DarwinNotificationDetails(
-      sound: 'default',
-      presentAlert: true,
-      presentBadge: true,
-      presentSound: true,
-      attachments: [], // Aquí podrías añadir adjuntos para iOS
-    );
-
-    final NotificationDetails platformChannelSpecifics = NotificationDetails(
-      android: androidPlatformChannelSpecifics,
-      iOS: iOSPlatformChannelSpecifics,
-    );
-
-    await _flutterLocalNotificationsPlugin.show(
-      1, // ID diferente para notificaciones inmediatas
-      title,
-      body,
-      platformChannelSpecifics,
-      payload: payload ?? 'immediate_devotional',
-    );
-  }
-
-  /// Descargar y guardar un archivo desde una URL
-  Future<String> _downloadAndSaveFile(String url, String fileName) async {
-    final Directory directory = await getApplicationDocumentsDirectory();
-    final String filePath = '${directory.path}/$fileName';
-    final http.Response response = await http.get(Uri.parse(url));
-    final File file = File(filePath);
-    await file.writeAsBytes(response.bodyBytes);
-    return filePath;
-  }
-
-  /// Cancelar todas las notificaciones
-  Future<void> cancelAllNotifications() async {
+  Future<void> cancelScheduledNotifications() async {
     await _flutterLocalNotificationsPlugin.cancelAll();
-    debugPrint('Todas las notificaciones canceladas');
+    developer.log(
+        'NotificationService: Todas las notificaciones programadas canceladas',
+        name: 'NotificationService');
   }
 
-  /// Obtener notificaciones pendientes (para debug)
-  Future<List<PendingNotificationRequest>> getPendingNotifications() async {
-    return await _flutterLocalNotificationsPlugin.pendingNotificationRequests();
-  }
+// Métodos que estaban en tu archivo pero no se usan actualmente
+// Si los necesitas, asegúrate de que las importaciones (http, path_provider, io) estén activas.
+// Future<void> _checkAndSetLastNotificationDate() async {
+//   final prefs = await SharedPreferences.getInstance();
+//   final lastNotificationDate = prefs.getString(_lastNotificationDateKey);
+//   final today = DateTime.now().toIso8601String().split('T')[0];
 
-  /// Verificar si hay permisos de notificación
-  Future<bool> hasNotificationPermissions() async {
-    if (defaultTargetPlatform == TargetPlatform.android) {
-      return await Permission.notification.isGranted;
-    } else if (defaultTargetPlatform == TargetPlatform.iOS) {
-      // Para iOS, verificar a través del plugin
-      return true; // Simplificado, en producción podrías hacer una verificación más robusta
-    }
-    return true;
-  }
+//   if (lastNotificationDate != today) {
+//     await scheduleDailyNotification();
+//     await prefs.setString(_lastNotificationDateKey, today);
+//   }
+// }
 
-  /// Guardar token del dispositivo para notificaciones remotas
-  Future<void> saveDeviceToken(String token) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_deviceTokenKey, token);
-    debugPrint('Token del dispositivo guardado: $token');
-  }
-
-  /// Obtener token del dispositivo
-  Future<String?> getDeviceToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_deviceTokenKey);
-  }
-
-  /// Mostrar notificación del devocional diario (para el servicio en segundo plano)
-  Future<void> showDailyDevotionalNotification() async {
-    // Verificar si las notificaciones están habilitadas
-    if (!await areNotificationsEnabled()) {
-      debugPrint('Notificaciones deshabilitadas, no se mostrará la notificación diaria');
-      return;
-    }
-
-    // Obtener título y mensaje para la notificación
-    String title = '🙏 Devocional de Hoy';
-    String body = 'Tu momento de reflexión diaria te está esperando';
-
-    try {
-      // Aquí podrías hacer una petición a tu API para obtener el título del devocional
-      // Similar a lo que tienes en scheduleDailyNotification
-    } catch (e) {
-      debugPrint('Error al obtener datos del devocional: $e');
-    }
-
-    // Configuración de la notificación para Android
-    const AndroidNotificationDetails androidPlatformChannelSpecifics =
-    AndroidNotificationDetails(
-      'daily_devotional',
-      'Devocional Diario',
-      channelDescription: 'Recordatorio diario para leer el devocional',
-      importance: Importance.high,
-      priority: Priority.high,
-      icon: '@mipmap/ic_launcher',
-      sound: RawResourceAndroidNotificationSound('notification'),
-      enableVibration: true,
-      styleInformation: BigTextStyleInformation(''),
-    );
-
-    // Configuración de la notificación para iOS
-    const DarwinNotificationDetails iOSPlatformChannelSpecifics =
-    DarwinNotificationDetails(
-      sound: 'default',
-      presentAlert: true,
-      presentBadge: true,
-      presentSound: true,
-    );
-
-    // Configuración general
-    const NotificationDetails platformChannelSpecifics = NotificationDetails(
-      android: androidPlatformChannelSpecifics,
-      iOS: iOSPlatformChannelSpecifics,
-    );
-
-    // Mostrar notificación
-    await _flutterLocalNotificationsPlugin.show(
-      0, // Mismo ID que la notificación programada
-      title,
-      body,
-      platformChannelSpecifics,
-      payload: 'daily_devotional',
-    );
-
-    debugPrint('Notificación diaria mostrada');
-
-    // Actualizar la fecha de la última notificación
-    final prefs = await SharedPreferences.getInstance();
-    final today = DateTime.now().toIso8601String().split('T')[0];
-    await prefs.setString(_lastNotificationDateKey, today);
-    debugPrint('Fecha de la última notificación actualizada: $today');
-  }
+// Future<String> _downloadAndSaveFile(String url, String fileName) async {
+//   final io.Directory directory = await getApplicationDocumentsDirectory();
+//   final String filePath = '${directory.path}/$fileName';
+//   final http.Response response = await http.get(Uri.parse(url));
+//   final io.File file = io.File(filePath);
+//   await file.writeAsBytes(response.bodyBytes);
+//   developer.log('File downloaded and saved: $filePath', name: 'NotificationService');
+//   return filePath;
+// }
 }
