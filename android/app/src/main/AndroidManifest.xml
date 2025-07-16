@@ -10,8 +10,31 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="com.google.android.gms.permission.AD_ID"/>
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-  
- 
+
+    <!-- NUEVO: Declaraciones de consulta para abrir enlaces web y otras apps -->
+    <!-- Necesario para Android 11 (API 30) y superiores para que url_launcher pueda abrir navegadores, correo, etc. -->
+    <queries>
+        <!-- Para abrir enlaces web (HTTP/HTTPS) -->
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="https" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="http" />
+        </intent>
+        <!-- Para abrir enlaces de correo electrónico (mailto) -->
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="mailto" />
+        </intent>
+        <!-- Puedes añadir otros si tu app abre tel:, sms:, etc. -->
+        <!-- <intent>
+            <action android:name="android.intent.action.DIAL" />
+            <data android:scheme="tel" />
+        </intent> -->
+    </queries>
+    <!-- FIN NUEVO -->
 
     <application
         android:label="Devocionales Cristianos" 
