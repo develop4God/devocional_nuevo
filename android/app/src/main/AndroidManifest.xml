@@ -9,11 +9,11 @@
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
-    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+  
+ 
 
     <application
-        android:label="Devocionales"
+        android:label="Devocionales Cristianos" 
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
 

@@ -1,5 +1,8 @@
-//notification_service.dart
-//Manejo de FCM y Eliminación de Programación Local
+// lib/services/notification_service.dart
+//notification_service.dart - Save User Timezone to Firestore
+//notification_service.dart - Guardar lastLogin en Firestore
+
+
 import 'dart:developer' as developer;
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -7,7 +10,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/data/latest_all.dart' as tzdata;
 import 'package:timezone/timezone.dart' as tz;
-import 'package:flutter_timezone/flutter_timezone.dart';
+import 'package:flutter_timezone/flutter_timezone.dart'; // Used to get local timezone string
 
 // Importaciones para Firebase Cloud Messaging y Firestore
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -48,21 +51,17 @@ class NotificationService {
           'NotificationService: tz.local.name: ${tz.local.name}, tz.local.currentTimeZone: ${tz.local.currentTimeZone}',
           name: 'NotificationService');
 
-      const AndroidInitializationSettings initializationSettingsAndroid =
-      AndroidInitializationSettings('@mipmap/ic_launcher');
-
-      const DarwinInitializationSettings initializationSettingsIOS =
-      DarwinInitializationSettings(
-        requestAlertPermission: true,
-        requestBadgePermission: true,
-        requestSoundPermission: true,
-      );
-
+      // INICIO DEL CAMBIO: Se inicializan las configuraciones directamente en InitializationSettings
       const InitializationSettings initializationSettings =
       InitializationSettings(
-        android: initializationSettingsAndroid,
-        iOS: initializationSettingsIOS,
+        android: AndroidInitializationSettings('@mipmap/ic_launcher'),
+        iOS: DarwinInitializationSettings(
+          requestAlertPermission: true,
+          requestBadgePermission: true,
+          requestSoundPermission: true,
+        ),
       );
+      // FIN DEL CAMBIO
 
       await _flutterLocalNotificationsPlugin.initialize(
         initializationSettings,
@@ -82,6 +81,9 @@ class NotificationService {
         developer.log('NotificationService: Aplicación abierta desde notificación inicial: ${initialMessage.messageId}', name: 'NotificationService');
         _handleMessage(initialMessage);
       }
+
+      // NUEVO: Guardar la zona horaria del usuario en Firestore
+      await _saveUserTimezoneToFirestore();
 
     } catch (e) {
       developer.log('ERROR en NotificationService: $e',
@@ -169,7 +171,13 @@ class NotificationService {
         return;
       }
 
-      final tokenRef = _firestore.collection('users').doc(user.uid).collection('fcmTokens').doc(token);
+      // Añadir el campo lastLogin al documento principal del usuario
+      final userDocRef = _firestore.collection('users').doc(user.uid);
+      await userDocRef.set({
+        'lastLogin': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true)); // Usar merge para no sobrescribir subcolecciones
+
+      final tokenRef = userDocRef.collection('fcmTokens').doc(token);
 
       await tokenRef.set({
         'token': token,
@@ -177,7 +185,7 @@ class NotificationService {
         'platform': defaultTargetPlatform.toString(),
       }, SetOptions(merge: true));
 
-      developer.log('NotificationService: Token FCM guardado en Firestore para el usuario ${user.uid}', name: 'NotificationService');
+      developer.log('NotificationService: Token FCM y lastLogin guardados en Firestore para el usuario ${user.uid}', name: 'NotificationService');
 
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_fcmTokenKey, token);
@@ -185,6 +193,29 @@ class NotificationService {
 
     } catch (e) {
       developer.log('ERROR en _saveFcmToken: $e', name: 'NotificationService', error: e);
+    }
+  }
+
+  // NUEVO MÉTODO: Guardar la zona horaria del usuario en Firestore
+  Future<void> _saveUserTimezoneToFirestore() async {
+    try {
+      final User? user = _auth.currentUser;
+      if (user == null) {
+        developer.log('NotificationService: Usuario no autenticado, no se puede guardar la zona horaria.', name: 'NotificationService');
+        return;
+      }
+
+      final String userTimezone = await FlutterTimezone.getLocalTimezone();
+      final settingsRef = _firestore.collection('users').doc(user.uid).collection('settings').doc('notifications');
+
+      await settingsRef.set({
+        'userTimezone': userTimezone,
+        'lastUpdated': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true)); // Usa merge para no sobrescribir otras configuraciones
+
+      developer.log('NotificationService: Zona horaria del usuario ($userTimezone) guardada en Firestore para el usuario ${user.uid}', name: 'NotificationService');
+    } catch (e) {
+      developer.log('ERROR en _saveUserTimezoneToFirestore: $e', name: 'NotificationService', error: e);
     }
   }
 
@@ -244,6 +275,18 @@ class NotificationService {
     await prefs.setBool(_notificationsEnabledKey, enabled);
     developer.log('NotificationService: Notificaciones activadas establecidas en $enabled',
         name: 'NotificationService');
+
+    // Guardar el estado de las notificaciones en Firestore
+    final User? user = _auth.currentUser;
+    if (user != null) {
+      final settingsRef = _firestore.collection('users').doc(user.uid).collection('settings').doc('notifications');
+      await settingsRef.set({
+        'notificationsEnabled': enabled, // Guardar el estado 'enabled'
+        'lastUpdated': FieldValue.serverTimestamp(), // Opcional: actualizar la marca de tiempo
+      }, SetOptions(merge: true)); // Usar merge para no sobrescribir otros campos
+      developer.log('NotificationService: Estado de notificaciones ($enabled) guardado en Firestore para el usuario ${user.uid}', name: 'NotificationService');
+    }
+
     // IMPORTANTE: Las llamadas a scheduleDailyNotification() y cancelScheduledNotifications()
     // se eliminan de aquí. La programación diaria ahora se gestiona desde el servidor (Cloud Function)
     // a través de FCM.

@@ -1,6 +1,7 @@
 // lib/utils/theme_constants.dart
 // Este archivo define las constantes de ThemeData para los diferentes temas de la aplicación,
 // agrupados por familia de color y modo (claro/oscuro).
+//ajustes tema green y pink
 
 import 'package:flutter/material.dart';
 // Necesario para WidgetStateProperty y WidgetState
@@ -211,18 +212,18 @@ final Map<String, Map<String, ThemeData>> appThemeFamilies = {
       // Eliminado switchTheme de aquí, se hereda de _baseDarkTheme
     ),
   },
-  'Light Green': {
+  'Green': {
     'light': _baseLightTheme.copyWith(
       // Eliminado 'primarySwatch' de aquí para evitar el error "isn't defined"
       appBarTheme: const AppBarTheme(
-        backgroundColor: Colors.lightGreen,
+        backgroundColor: Colors.green,
         foregroundColor: Colors.white, // Asegura buen contraste
       ),
       colorScheme: ColorScheme.fromSwatch(
-        primarySwatch: Colors.lightGreen,
+        primarySwatch: Colors.green,
         brightness: Brightness.light,
       ).copyWith(
-        secondary: Colors.lightGreenAccent,
+        secondary: Colors.greenAccent,
         surface: Colors.white, // Corregido de 'background' a 'surface'
         onPrimary: Colors.white, // Asegura buen contraste
         onSecondary: Colors.black87,
@@ -233,7 +234,7 @@ final Map<String, Map<String, ThemeData>> appThemeFamilies = {
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.lightGreen,
+          backgroundColor: Colors.green,
           foregroundColor: Colors.black87,
         ),
       ),
@@ -242,15 +243,15 @@ final Map<String, Map<String, ThemeData>> appThemeFamilies = {
     'dark': _baseDarkTheme.copyWith(
       // Eliminado 'primarySwatch' de aquí para evitar el error "isn't defined"
       appBarTheme: AppBarTheme(
-        backgroundColor: Colors.lightGreen.shade900,
+        backgroundColor: Colors.green.shade900,
         foregroundColor: Colors.white,
       ),
       colorScheme: ColorScheme.fromSwatch(
-        primarySwatch: Colors.lightGreen,
+        primarySwatch: Colors.green,
         brightness: Brightness.dark,
       ).copyWith(
-        primary: Colors.lightGreen.shade700,
-        secondary: Colors.lightGreenAccent.shade700,
+        primary: Colors.green.shade700,
+        secondary: Colors.lightGreenAccent.shade700, // Manteniendo este para un acento consistente
         surface: const Color(0xFF121212),
         onPrimary: Colors.white,
         onSecondary: Colors.white,
@@ -261,13 +262,70 @@ final Map<String, Map<String, ThemeData>> appThemeFamilies = {
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.lightGreen.shade700,
+          backgroundColor: Colors.green.shade700,
           foregroundColor: Colors.white,
         ),
       ),
       // Eliminado switchTheme de aquí, se hereda de _baseDarkTheme
     ),
   },
+  'Pink': { // INICIO: Nuevo tema 'Pink'
+    'light': _baseLightTheme.copyWith(
+      // Eliminado 'primarySwatch' de aquí para evitar el error "isn't defined"
+      appBarTheme: const AppBarTheme(
+        backgroundColor: Colors.pink,
+        foregroundColor: Colors.white, // Asegura buen contraste
+      ),
+      colorScheme: ColorScheme.fromSwatch(
+        primarySwatch: Colors.pink,
+        brightness: Brightness.light,
+      ).copyWith(
+        secondary: Colors.pinkAccent,
+        surface: Colors.white, // Corregido de 'background' a 'surface'
+        onPrimary: Colors.white, // Asegura buen contraste
+        onSecondary: Colors.black87,
+        onSurface: Colors.black87, // Corregido de 'onBackground' a 'onSurface'
+        // 'onBackground' ha sido reemplazado por 'onSurface'
+        error: Colors.red,
+        onError: Colors.white,
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.pink,
+          foregroundColor: Colors.black87,
+        ),
+      ),
+      // Eliminado switchTheme de aquí, se hereda de _baseLightTheme
+    ),
+    'dark': _baseDarkTheme.copyWith(
+      // Eliminado 'primarySwatch' de aquí para evitar el error "isn't defined"
+      appBarTheme: AppBarTheme(
+        backgroundColor: Colors.pink.shade900,
+        foregroundColor: Colors.white,
+      ),
+      colorScheme: ColorScheme.fromSwatch(
+        primarySwatch: Colors.pink,
+        brightness: Brightness.dark,
+      ).copyWith(
+        primary: Colors.pink.shade700,
+        secondary: Colors.pinkAccent.shade700,
+        surface: const Color(0xFF121212),
+        onPrimary: Colors.white,
+        onSecondary: Colors.white,
+        onSurface: Colors.white,
+        // 'onBackground' ha sido reemplazado por 'onSurface'
+        error: Colors.redAccent,
+        onError: Colors.white,
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.pink.shade700,
+          foregroundColor: Colors.white,
+        ),
+      ),
+      // Eliminado switchTheme de aquí, se hereda de _baseDarkTheme
+    ),
+  }, // FIN: Nuevo tema 'Pink'
   'Cyan': {
     'light': _baseLightTheme.copyWith(
       // Eliminado 'primarySwatch' de aquí para evitar el error "isn't defined"
@@ -390,9 +448,10 @@ final Map<String, Map<String, ThemeData>> appThemeFamilies = {
 };
 // Constante para mapear los nombres internos de los temas a nombres amigables para el usuario
 const Map<String, String> themeDisplayNames = {
-  'Light Green': 'Vida',
   'Deep Purple': 'Realeza',
   'Cyan': 'Obediencia',
+  'Green': 'Vida',
+  'Pink': 'Pureza',
   'Light Blue': 'Celestial',
 };
 // Estilo de texto estandarizado para títulos de sección/opciones en SettingsPage
