@@ -109,13 +109,9 @@ class NotificationService {
 
       // Obtener el token FCM
       String? token = await _firebaseMessaging.getToken();
-      if (token != null) {
-        developer.log('NotificationService: Token FCM obtenido: $token', name: 'NotificationService');
-        await _saveFcmToken(token); // Guardar token en Firestore
-      } else {
-        developer.log('NotificationService: El token FCM es nulo.', name: 'NotificationService');
-      }
-
+      developer.log('NotificationService: Token FCM obtenido: $token', name: 'NotificationService');
+      await _saveFcmToken(token!); // Guardar token en Firestore
+    
       // Escuchar cambios en el token
       _firebaseMessaging.onTokenRefresh.listen((newToken) {
         developer.log('NotificationService: Token FCM refrescado: $newToken', name: 'NotificationService');
