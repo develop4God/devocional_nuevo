@@ -40,7 +40,7 @@ logger.info('Cloud Function: Referencia a Firestore obtenida.', { structuredData
 // Define la Cloud Function principal para enviar notificaciones diarias.
 // Se activará CADA HORA en UTC para optimizar costos en producción.
 exports.sendDailyDevotionalNotification = onSchedule({
-    schedule: '* * * * *', // CAMBIO AQUÍ: Ejecutar CADA HORA (minuto 0, cualquier hora, cualquier día, cualquier mes, cualquier día de la semana)
+    schedule: '0 * * * *', // CAMBIO AQUÍ: Ejecutar CADA HORA (minuto 0, cualquier hora, cualquier día, cualquier mes, cualquier día de la semana)
     timeZone: 'UTC',       // IMPORTANTE: La función se ejecuta en UTC.
     // Opcional: Configurar límites de recursos para la función (ajustar según necesidad y presupuesto)
     // memory: '128MiB', // Puedes aumentar si la lógica de usuario es muy pesada
