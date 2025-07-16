@@ -189,7 +189,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     Icon(Icons.contrast, color: colorScheme.primary),
                     const SizedBox(width: 10),
                     Text(
-                      'Luz baja:',
+                      'Luz baja (modo oscuro):',
                       style: textTheme.bodyMedium
                           ?.merge(settingsOptionTextStyle)
                           .copyWith(color: colorScheme.onSurface),
