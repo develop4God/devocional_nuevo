@@ -1,9 +1,14 @@
 // Jenkinsfile
-pipeline {
-    agent any // Indica que el pipeline puede ejecutarse en cualquier agente disponible
+// Este archivo define el pipeline de CI/CD para tu aplicación Flutter Devocional_nuevo.
+// Se ejecutará en un contenedor Docker con Jenkins y Flutter preinstalados.
 
-    // Las variables de entorno para Flutter ya están configuradas en la imagen Docker
-    // No necesitamos redefinir FLUTTER_HOME o PATH aquí a menos que sea necesario un ajuste específico
+pipeline {
+    // Define dónde se ejecutará el pipeline. 'any' significa cualquier agente disponible.
+    agent any
+
+    // Define variables de entorno que serán accesibles durante la ejecución del pipeline.
+    // La variable FLUTTER_HOME y PATH ya están configuradas en la imagen Docker personalizada,
+    // pero se incluyen aquí para claridad o si se necesita un ajuste específico.
     environment {
         // Asegúrate de que esta ruta coincida con la instalación de Flutter en tu imagen Docker
         // Por ejemplo, si lo instalaste en /opt/flutter en el Dockerfile
@@ -11,8 +16,10 @@ pipeline {
         PATH = "${FLUTTER_HOME}/bin:${PATH}"
     }
 
+    // Define las etapas principales del pipeline.
     stages {
-        stage('Checkout Code') { // Etapa 1: Obtener el código de GitHub
+        // Etapa 1: Obtener el código fuente de tu repositorio de GitHub.
+        stage('Checkout Code') {
             steps {
                 // Clona tu repositorio. Asegúrate de que la URL y la rama sean correctas.
                 git url: 'https://github.com/develop4God/Devocional_nuevo.git',
@@ -20,21 +27,25 @@ pipeline {
             }
         }
 
-        stage('Install Dependencies') { // Etapa 2: Instalar dependencias de Flutter
+        // Etapa 2: Instalar las dependencias de Flutter (paquetes pub).
+        stage('Install Dependencies') {
             steps {
                 // Ejecuta 'flutter pub get' para descargar los paquetes necesarios.
-                sh 'flutter pub get'
+                sh 'flutter pub pub get' // Cambiado a 'flutter pub pub get' por si 'flutter pub get' no funciona directamente
             }
         }
 
-        stage('Run Tests') { // Etapa 3: Ejecutar las pruebas automatizadas de tu aplicación.
+        // Etapa 3: Ejecutar las pruebas automatizadas de tu aplicación.
+        stage('Run Tests') {
             steps {
                 // Ejecuta todas las pruebas definidas en tu proyecto Flutter.
                 sh 'flutter test'
             }
         }
 
-        stage('Build Android Debug APK') { // Etapa 4: Construir el APK de depuración/desarrollo.
+        // Etapa 4: Construir el APK de depuración/desarrollo.
+        // Este APK es útil para pruebas rápidas en dispositivos o emuladores durante el desarrollo.
+        stage('Build Android Debug APK') {
             steps {
                 // Compila la aplicación para Android en modo depuración.
                 sh 'flutter build apk --debug'
@@ -48,7 +59,9 @@ pipeline {
             }
         }
 
-        stage('Build Android AAB for Store') { // Etapa 5: Construir el Android App Bundle (AAB) para la tienda.
+        // Etapa 5: Construir el Android App Bundle (AAB) para la tienda.
+        // El AAB es el formato recomendado por Google para subir a Google Play Store.
+        stage('Build Android AAB for Store') {
             steps {
                 // Compila la aplicación para Android en formato AAB en modo release.
                 // Asegúrate de tener tu keystore configurado si estás firmando para producción.
@@ -64,32 +77,6 @@ pipeline {
                 }
             }
         }
-
-        // --- Opcional: Otras etapas que podrías querer añadir en el futuro ---
-        /*
-        // Etapa Opcional: Construir la aplicación web de Flutter.
-        stage('Build Web App') {
-            steps {
-                sh 'flutter build web --release'
-            }
-            post {
-                success {
-                    archiveArtifacts artifacts: 'build/web/**/*', fingerprint: true
-                    echo "Aplicación web generada y archivada en build/web."
-                }
-            }
-        }
-
-        // Etapa Opcional: Despliegue a un entorno de staging o Firebase App Distribution.
-        stage('Deploy to Staging/Firebase') {
-            steps {
-                echo 'Desplegando artefactos...'
-                // Aquí irían los comandos para subir el APK/AAB a un servicio de despliegue.
-                // Ejemplo para Firebase App Distribution (requiere Firebase CLI y plugin):
-                // sh 'firebase appdistribution:distribute build/app/outputs/flutter-apk/app-release.apk --app <your-app-id> --release-notes "Nueva versión de prueba" --groups "testers"'
-            }
-        }
-        */
     }
 
     // Acciones que se ejecutan después de que el pipeline termina, independientemente del resultado.
