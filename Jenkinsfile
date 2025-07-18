@@ -10,9 +10,9 @@ pipeline {
     // La variable FLUTTER_HOME y PATH ya están configuradas en la imagen Docker personalizada,
     // pero se incluyen aquí para claridad o si se necesita un ajuste específico.
     environment {
-        ANDROID_HOME = '/opt/android-sdk' // Ruta del SDK en WSL
-        // MODIFICACIÓN: Añadir la ruta del ejecutable de Flutter al PATH
-        PATH = "${env.PATH}:/mnt/c/src/flutter/bin:${env.ANDROID_HOME}/cmdline-tools/latest/bin:${env.ANDROID_HOME}/platform-tools:${env.ANDROID_HOME}/build-tools/34.0.0"
+        ANDROID_HOME = '/opt/android-sdk' // Ruta del SDK de Android en WSL
+        // MODIFICACIÓN: Actualizar la ruta del ejecutable de Flutter al PATH en la nueva ubicación de WSL
+        PATH = "${env.PATH}:/opt/flutter/bin:${env.ANDROID_HOME}/cmdline-tools/latest/bin:${env.ANDROID_HOME}/platform-tools:${env.ANDROID_HOME}/build-tools/34.0.0"
         // Nota: 'build-tools/34.0.0' se usó porque es la que instalaste. Ajusta si usas otra.
     }
 
