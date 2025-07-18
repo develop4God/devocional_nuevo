@@ -14,6 +14,7 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/pages/devocionales_page.dart';
+import 'package:devocional_nuevo/providers/theme_provider.dart'; // Importa el ThemeProvider
 
 // --- Mocks y Fakes para el test ---
 
@@ -24,6 +25,11 @@ class MockDevocionalProvider extends Mock
 
 // Mock de ScreenshotController
 class MockScreenshotController extends Mock implements ScreenshotController {}
+
+// Mock de ThemeProvider
+class MockThemeProvider extends Mock
+    with ChangeNotifier
+    implements ThemeProvider {}
 
 // Extiende PathProviderPlatform e implementa explícitamente el método a mockear.
 class MockPathProviderPlatform extends PathProviderPlatform with Mock {
@@ -96,6 +102,7 @@ void main() {
 
   late MockDevocionalProvider mockDevocionalProvider;
   late MockScreenshotController mockScreenshotController;
+  late MockThemeProvider mockThemeProvider; // Declara el mock de ThemeProvider
 
   setUpAll(() async {
     PathProviderPlatform.instance = mockPathProvider;
@@ -106,6 +113,7 @@ void main() {
     registerFallbackValue(FakeBuildContext());
     registerFallbackValue(FileMode.write);
     registerFallbackValue(XFile('dummy_path'));
+    registerFallbackValue(Brightness.light); // Para ThemeProvider
 
     await initializeDateFormatting('es', null);
 
@@ -123,6 +131,7 @@ void main() {
   setUp(() {
     mockDevocionalProvider = MockDevocionalProvider();
     mockScreenshotController = MockScreenshotController();
+    mockThemeProvider = MockThemeProvider(); // Inicializa el mock de ThemeProvider
 
     // SIEMPRE: stub global para evitar errores de null en bool
     when(() => mockDevocionalProvider.isFavorite(any())).thenReturn(false);
@@ -133,6 +142,13 @@ void main() {
     when(() => mockDevocionalProvider.errorMessage).thenReturn(null);
     when(() => mockDevocionalProvider.devocionales).thenReturn([mockDevocional1, mockDevocional2]);
     when(() => mockDevocionalProvider.selectedVersion).thenReturn('RVR1960');
+
+    // Mocks para ThemeProvider
+    when(() => mockThemeProvider.currentThemeFamily).thenReturn('default');
+    when(() => mockThemeProvider.currentBrightness).thenReturn(Brightness.light);
+    when(() => mockThemeProvider.setThemeFamily(any())).thenAnswer((_) {});
+    when(() => mockThemeProvider.setBrightness(any())).thenAnswer((_) {});
+
 
     // Mockea las llamadas a métodos del provider (void methods)
     when(() => mockDevocionalProvider.initializeData()).thenAnswer((_) async {});
@@ -147,14 +163,31 @@ void main() {
   tearDown(() {
     reset(mockDevocionalProvider);
     reset(mockScreenshotController);
+    reset(mockThemeProvider); // Resetea el mock de ThemeProvider
   });
 
   group('DevocionalesPage UI and Interaction', () {
+    // MODIFICACIÓN: createWidgetUnderTest ahora envuelve con MultiProvider para incluir ThemeProvider
     Widget createWidgetUnderTest() {
-      return ChangeNotifierProvider<DevocionalProvider>.value(
-        value: mockDevocionalProvider,
+      return MultiProvider(
+        providers: [
+          ChangeNotifierProvider<DevocionalProvider>.value(
+            value: mockDevocionalProvider,
+          ),
+          ChangeNotifierProvider<ThemeProvider>.value( // AÑADIDO: ThemeProvider para las pruebas
+            value: mockThemeProvider,
+          ),
+        ],
         child: MaterialApp(
           home: DevocionalesPage(key: GlobalKey(),),
+          // MODIFICACIÓN: Añadir rutas para que Navigator.push funcione en las pruebas
+          routes: {
+            '/settings': (context) => const Text('Settings Page Mock'), // Mock simple para la ruta de Settings
+            '/favorites': (context) => const Text('Favorites Page Mock'),
+            '/contact': (context) => const Text('Contact Page Mock'),
+            '/about': (context) => const Text('About Page Mock'),
+            '/notifications': (context) => const Text('Notifications Page Mock'),
+          },
         ),
       );
     }
@@ -230,6 +263,12 @@ void main() {
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
 
+      // MODIFICACIÓN: Usar find.byKey si el IconButton tiene una clave, o ser más específico
+      // Asumiendo que el icono de favorito está en un IconButton en el AppBar
+      // Si hay varios iconos de borde de corazón, necesitamos ser más específicos.
+      // Podrías añadir una Key al IconButton del favorito en tu DevocionalesPage.
+      // Ejemplo: IconButton(key: const Key('favoriteButton'), icon: Icon(Icons.favorite_border), ...)
+      // Por ahora, intentemos con un finder más específico si el icono está en el AppBar:
       expect(find.byIcon(Icons.favorite_border), findsOneWidget);
       expect(find.byIcon(Icons.favorite), findsNothing);
 
@@ -239,7 +278,7 @@ void main() {
         mockDevocionalProvider.notifyListeners();
       });
 
-      await tester.tap(find.byIcon(Icons.favorite_border));
+      await tester.tap(find.byIcon(Icons.favorite_border)); // Asumiendo que ahora solo encuentra uno
       await tester.pumpAndSettle();
 
       expect(find.byIcon(Icons.favorite), findsOneWidget);
@@ -250,10 +289,20 @@ void main() {
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
 
-      await tester.tap(find.byIcon(CupertinoIcons.text_badge_plus));
+      // MODIFICACIÓN: Usar find.byIcon(Icons.settings) o el icono correcto para el botón de configuración
+      // Si el icono es CupertinoIcons.text_badge_plus, usarlo directamente.
+      // Si el botón tiene un texto "Más opciones" en el AppBar, el finder de texto también podría funcionar.
+      // La salida del error sugiere que el texto "Más opciones" se busca después de la navegación.
+      // El error ProviderNotFoundException indica que la SettingsPage se estaba construyendo.
+      // Asegúrate de que el icono para navegar a SettingsPage sea correcto.
+      // Si SettingsPage se abre como una nueva ruta, el texto "Más opciones" debería ser el título del AppBar de SettingsPage.
+      await tester.tap(find.byIcon(CupertinoIcons.text_badge_plus)); // Icono para SettingsPage
       await tester.pumpAndSettle();
 
-      expect(find.text('Más opciones'), findsOneWidget);
+      // MODIFICACIÓN: Verificar que la ruta se ha abierto y el texto del AppBar es visible.
+      // Si SettingsPage tiene un AppBar con el título 'Más opciones', este finder debería funcionar.
+      expect(find.text('Settings Page Mock'), findsOneWidget); // Verifica el mock de la ruta
+      expect(find.text('Más opciones'), findsOneWidget); // Verifica el título real del AppBar de SettingsPage si se renderiza
     });
 
     testWidgets('Muestra el diálogo de invitación cuando showInvitationDialog es true', (WidgetTester tester) async {
