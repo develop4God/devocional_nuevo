@@ -50,6 +50,7 @@ pipeline {
                 // MODIFICACIÓN: Excluir la prueba "Navega a la página de Configuración"
             // MODIFICACIÓN: Excluir la prueba "Navega a la página de Configuración" usando --exclude
             //sh 'flutter test'
+                echo 'Skipping Flutter tests as requested.' // NUEVO: Paso para evitar el error de Jenkinsfile
             }
         }
 
