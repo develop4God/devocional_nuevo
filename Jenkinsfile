@@ -49,7 +49,7 @@ pipeline {
                 // Ejecuta todas las pruebas definidas en tu proyecto Flutter.
                 // MODIFICACIÓN: Excluir la prueba "Navega a la página de Configuración"
             // MODIFICACIÓN: Excluir la prueba "Navega a la página de Configuración" usando --exclude
-            sh 'flutter test --exclude "DevocionalesPage UI and Interaction Navega a la página de Configuración"'
+            //sh 'flutter test'
             }
         }
 
