@@ -9,11 +9,11 @@ pipeline {
     // Define variables de entorno que serán accesibles durante la ejecución del pipeline.
     // La variable FLUTTER_HOME y PATH ya están configuradas en la imagen Docker personalizada,
     // pero se incluyen aquí para claridad o si se necesita un ajuste específico.
-    environment {
-        // Asegúrate de que esta ruta coincida con la instalación de Flutter en tu imagen Docker
-        // Por ejemplo, si lo instalaste en /opt/flutter en el Dockerfile
-        FLUTTER_HOME = '/opt/flutter'
-        PATH = "${FLUTTER_HOME}/bin:${PATH}"
+     environment {
+        // MODIFICACIÓN: Configuración del Android SDK en su nueva ubicación nativa de WSL
+        ANDROID_HOME = '/opt/android-sdk' // Ruta del SDK en WSL
+        PATH = "${env.PATH}:${env.ANDROID_HOME}/cmdline-tools/latest/bin:${env.ANDROID_HOME}/platform-tools:${env.ANDROID_HOME}/build-tools/34.0.0"
+        // Nota: 'build-tools/34.0.0' se usó porque es la que instalaste. Ajusta si usas otra.
     }
 
     // Define las etapas principales del pipeline.
