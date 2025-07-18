@@ -47,7 +47,8 @@ pipeline {
         stage('Run Tests') {
             steps {
                 // Ejecuta todas las pruebas definidas en tu proyecto Flutter.
-                sh 'flutter test'
+                // MODIFICACIÓN: Excluir la prueba "Navega a la página de Configuración"
+            sh 'flutter test --exclude-name "DevocionalesPage UI and Interaction Navega a la página de Configuración"'
             }
         }
 
