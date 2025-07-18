@@ -30,14 +30,13 @@ pipeline {
         // Etapa 2: Instalar las dependencias de Flutter (paquetes pub).
         stage('Install Dependencies') {
             steps {
-                // Limpiar la caché de pub para evitar problemas de permisos o corrupción.
-                sh 'flutter pub cache clean' // <-- NUEVA LÍNEA AÑADIDA AQUÍ
+                // Limpiar la caché de pub para evitar problemas de permisos o corrupción, forzando la limpieza.
+                sh 'flutter pub cache clean --force' // <-- MODIFICADO: Añadido --force
 
-                // Asegura que el usuario 'jenkins' tenga permisos de escritura en el directorio del workspace.
-                // Esto es crucial para que 'flutter pub get' pueda escribir en .dart_tool/
-                // 'sudo' ahora estará disponible en la imagen Docker.
-                sh 'sudo chown -R jenkins:jenkins .' // Cambia el propietario del directorio actual y su contenido
-                sh 'sudo chmod -R u+w .' // Otorga permisos de escritura al propietario (jenkins)
+                // Las siguientes líneas de sudo chown y chmod han sido eliminadas.
+                // Jenkins ya tiene permisos sobre su workspace, y sudo requiere contraseña en pipelines.
+                // sh 'sudo chown -R jenkins:jenkins .' // ELIMINADO
+                // sh 'sudo chmod -R u+w .' // ELIMINADO
 
                 // Ejecuta 'flutter pub get' para descargar los paquetes necesarios.
                 sh 'flutter pub get'
