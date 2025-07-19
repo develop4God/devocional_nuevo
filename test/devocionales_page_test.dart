@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/rendering.dart'; // NUEVO: Importación para debugDumpApp
 import 'dart:typed_data';
 import 'package:share_plus/share_plus.dart';
 import 'package:flutter/material.dart';
@@ -15,6 +16,7 @@ import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/pages/devocionales_page.dart';
 import 'package:devocional_nuevo/providers/theme_provider.dart'; // Importa el ThemeProvider
+import 'package:devocional_nuevo/pages/settings_page.dart'; // Importa SettingsPage para usar en rutas
 
 // --- Mocks y Fakes para el test ---
 
@@ -26,21 +28,23 @@ class MockDevocionalProvider extends Mock
 // Mock de ScreenshotController
 class MockScreenshotController extends Mock implements ScreenshotController {}
 
-// Mock de ThemeProvider
+// MODIFICACIÓN: Mock de ThemeProvider con valores por defecto para getters no nulos
 class MockThemeProvider extends Mock
     with ChangeNotifier
-    implements ThemeProvider {}
+    implements ThemeProvider {
+  @override
+  String get currentThemeFamily => 'default'; // Asegura que siempre devuelva un String no nulo
+  @override
+  Brightness get currentBrightness => Brightness.light; // Asegura que siempre devuelva un Brightness no nulo
+}
 
 // Extiende PathProviderPlatform e implementa explícitamente el método a mockear.
 class MockPathProviderPlatform extends PathProviderPlatform with Mock {
-  MockPathProviderPlatform() : super();
+  MockPathProviderPlatform() : super(); // Vuelve al constructor sin token
 
   @override
-  Future<String?> getApplicationDocumentsPath() => super.noSuchMethod(
-    Invocation.method(#getApplicationDocumentsPath, []),
-  ) as Future<String?>;
+  Future<String?> getApplicationDocumentsPath() async => '/mock_app_documents_dir'; // Añade esta implementación concreta
 }
-
 // Fake para BuildContext
 class FakeBuildContext extends Fake implements BuildContext {}
 
@@ -106,8 +110,7 @@ void main() {
 
   setUpAll(() async {
     PathProviderPlatform.instance = mockPathProvider;
-    when(() => mockPathProvider.getApplicationDocumentsPath())
-        .thenAnswer((_) async => '/mock_app_documents_dir');
+
 
     registerFallbackValue(mockDevocional1);
     registerFallbackValue(FakeBuildContext());
@@ -132,6 +135,7 @@ void main() {
     mockDevocionalProvider = MockDevocionalProvider();
     mockScreenshotController = MockScreenshotController();
     mockThemeProvider = MockThemeProvider(); // Inicializa el mock de ThemeProvider
+    // NOTA: Los getters currentThemeFamily y currentBrightness ya tienen valores por defecto en MockThemeProvider
 
     // SIEMPRE: stub global para evitar errores de null en bool
     when(() => mockDevocionalProvider.isFavorite(any())).thenReturn(false);
@@ -143,11 +147,9 @@ void main() {
     when(() => mockDevocionalProvider.devocionales).thenReturn([mockDevocional1, mockDevocional2]);
     when(() => mockDevocionalProvider.selectedVersion).thenReturn('RVR1960');
 
-    // Mocks para ThemeProvider
-    when(() => mockThemeProvider.currentThemeFamily).thenReturn('default');
-    when(() => mockThemeProvider.currentBrightness).thenReturn(Brightness.light);
-    when(() => mockThemeProvider.setThemeFamily(any())).thenAnswer((_) {});
-    when(() => mockThemeProvider.setBrightness(any())).thenAnswer((_) {});
+    // Mocks para ThemeProvider - Corrección de Future<void>
+    when(() => mockThemeProvider.setThemeFamily(any())).thenAnswer((_) async {});
+    when(() => mockThemeProvider.setBrightness(any())).thenAnswer((_) async {});
 
 
     // Mockea las llamadas a métodos del provider (void methods)
@@ -181,8 +183,10 @@ void main() {
         child: MaterialApp(
           home: DevocionalesPage(key: GlobalKey(),),
           // MODIFICACIÓN: Añadir rutas para que Navigator.push funcione en las pruebas
+          // Usamos el widget real SettingsPage aquí para que el test pueda interactuar con él
+          // y verificar su contenido.
           routes: {
-            '/settings': (context) => const Text('Settings Page Mock'), // Mock simple para la ruta de Settings
+            '/settings': (context) => const SettingsPage(), // Usar la página real de Settings
             '/favorites': (context) => const Text('Favorites Page Mock'),
             '/contact': (context) => const Text('Contact Page Mock'),
             '/about': (context) => const Text('About Page Mock'),
@@ -263,14 +267,11 @@ void main() {
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
 
-      // MODIFICACIÓN: Usar find.byKey si el IconButton tiene una clave, o ser más específico
-      // Asumiendo que el icono de favorito está en un IconButton en el AppBar
-      // Si hay varios iconos de borde de corazón, necesitamos ser más específicos.
-      // Podrías añadir una Key al IconButton del favorito en tu DevocionalesPage.
-      // Ejemplo: IconButton(key: const Key('favoriteButton'), icon: Icon(Icons.favorite_border), ...)
-      // Por ahora, intentemos con un finder más específico si el icono está en el AppBar:
-      expect(find.byIcon(Icons.favorite_border), findsOneWidget);
-      expect(find.byIcon(Icons.favorite), findsNothing);
+      // MODIFICACIÓN: Buscar el IconButton por su tooltip, ya que está en el BottomAppBar
+      final favoriteButtonFinder = find.byTooltip('Guardar como favorito');
+
+      expect(favoriteButtonFinder, findsOneWidget); // Debe encontrar el botón por su tooltip
+      expect(find.byIcon(Icons.favorite), findsNothing); // Asegura que el corazón lleno no está inicialmente
 
       // Simula el cambio de estado al hacer favorito
       when(() => mockDevocionalProvider.toggleFavorite(mockDevocional1, any())).thenAnswer((_) {
@@ -278,31 +279,32 @@ void main() {
         mockDevocionalProvider.notifyListeners();
       });
 
-      await tester.tap(find.byIcon(Icons.favorite_border)); // Asumiendo que ahora solo encuentra uno
+      await tester.tap(favoriteButtonFinder); // Toca el botón de favorito
       await tester.pumpAndSettle();
 
+      // Verifica que el icono cambió a corazón lleno y el tooltip a 'Quitar de favoritos'
+      expect(find.byTooltip('Quitar de favoritos'), findsOneWidget);
       expect(find.byIcon(Icons.favorite), findsOneWidget);
-      expect(find.byIcon(Icons.favorite_border), findsNothing);
+      expect(find.byIcon(Icons.favorite_border), findsNothing); // Asegura que el corazón delineado ya no está
     });
 
     testWidgets('Navega a la página de Configuración', (WidgetTester tester) async {
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
 
-      // MODIFICACIÓN: Usar find.byIcon(Icons.settings) o el icono correcto para el botón de configuración
-      // Si el icono es CupertinoIcons.text_badge_plus, usarlo directamente.
-      // Si el botón tiene un texto "Más opciones" en el AppBar, el finder de texto también podría funcionar.
-      // La salida del error sugiere que el texto "Más opciones" se busca después de la navegación.
-      // El error ProviderNotFoundException indica que la SettingsPage se estaba construyendo.
-      // Asegúrate de que el icono para navegar a SettingsPage sea correcto.
-      // Si SettingsPage se abre como una nueva ruta, el texto "Más opciones" debería ser el título del AppBar de SettingsPage.
-      await tester.tap(find.byIcon(CupertinoIcons.text_badge_plus)); // Icono para SettingsPage
-      await tester.pumpAndSettle();
+      // MODIFICACIÓN: Buscar el IconButton de configuración por su tooltip, ya que está en el BottomAppBar
+      final settingsButtonFinder = find.byTooltip('Configuración');
 
-      // MODIFICACIÓN: Verificar que la ruta se ha abierto y el texto del AppBar es visible.
-      // Si SettingsPage tiene un AppBar con el título 'Más opciones', este finder debería funcionar.
-      expect(find.text('Settings Page Mock'), findsOneWidget); // Verifica el mock de la ruta
-      expect(find.text('Más opciones'), findsOneWidget); // Verifica el título real del AppBar de SettingsPage si se renderiza
+      expect(settingsButtonFinder, findsOneWidget); // Asegura que el botón de configuración está presente
+      await tester.tap(settingsButtonFinder); // Toca el botón de configuración
+      await tester.pump(); // NUEVO: Un pump adicional para un ciclo de renderizado extra
+      await tester.pumpAndSettle(); // Espera que la navegación y la nueva página se asienten
+
+      // MODIFICACIÓN: Verificar que la SettingsPage se ha renderizado y luego buscar el texto
+      expect(find.byType(SettingsPage), findsOneWidget); // Verifica que la SettingsPage está en el árbol
+      debugDumpApp();
+      expect(find.text('Más opciones'), findsOneWidget); // Busca el texto directamente en la página de configuración
+
     });
 
     testWidgets('Muestra el diálogo de invitación cuando showInvitationDialog es true', (WidgetTester tester) async {

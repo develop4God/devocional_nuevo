@@ -39,7 +39,9 @@ android {
 
     defaultConfig {
         applicationId = "com.develop4god.devocional_nuevo"
-        minSdk = 23 // CAMBIO: Aumentar la versión mínima del SDK a 23
+        // MODIFICACIÓN: Usar flutter.minSdkVersion con la sintaxis correcta de Kotlin DSL pruebas de Jenkins
+	minSdkVersion = flutter.minSdkVersion
+	//minSdk = 23 // CAMBIO: Aumentar la versión mínima del SDK a 23 este campo estaba previo y funcional, se comenta para poder probar jenkins
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
