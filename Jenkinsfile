@@ -33,11 +33,6 @@ pipeline {
                 // Limpiar la caché de pub para evitar problemas de permisos o corrupción, forzando la limpieza.
                 sh 'flutter pub cache clean --force' // <-- MODIFICADO: Añadido --force
 
-                // Las siguientes líneas de sudo chown y chmod han sido eliminadas.
-                // Jenkins ya tiene permisos sobre su workspace, y sudo requiere contraseña en pipelines.
-                // sh 'sudo chown -R jenkins:jenkins .' // ELIMINADO
-                // sh 'sudo chmod -R u+w .' // ELIMINADO
-
                 // Ejecuta 'flutter pub get' para descargar los paquetes necesarios.
                 sh 'flutter pub get'
             }
@@ -46,10 +41,6 @@ pipeline {
         // Etapa 3: Ejecutar las pruebas automatizadas de tu aplicación.
         stage('Run Tests') {
             steps {
-                // Ejecuta todas las pruebas definidas en tu proyecto Flutter.
-                // MODIFICACIÓN: Excluir la prueba "Navega a la página de Configuración"
-            // MODIFICACIÓN: Excluir la prueba "Navega a la página de Configuración" usando --exclude
-            //sh 'flutter test'
                 echo 'Skipping Flutter tests as requested.' // NUEVO: Paso para evitar el error de Jenkinsfile
             }
         }
@@ -58,8 +49,24 @@ pipeline {
         // Este APK es útil para pruebas rápidas en dispositivos o emuladores durante el desarrollo.
         stage('Build Android Debug APK') {
             steps {
-                // Compila la aplicación para Android en modo depuración.
-                sh 'flutter build apk --debug'
+                // MODIFICACIÓN: Usar credenciales seguras de Jenkins para la firma
+                withCredentials([
+                    file(credentialsId: 'UPLOAD_KEYSTORE_FILE', variable: 'KEYSTORE_FILE_PATH'),
+                    string(credentialsId: 'KEYSTORE_STORE_PASSWORD', variable: 'KEYSTORE_STORE_PASSWORD'),
+                    string(credentialsId: 'KEYSTORE_KEY_PASSWORD', variable: 'KEYSTORE_KEY_PASSWORD'),
+                    string(credentialsId: 'KEYSTORE_KEY_ALIAS', variable: 'KEYSTORE_KEY_ALIAS')
+                ]) {
+                    sh """
+                        # Establecer variables de entorno para Gradle
+                        export KEYSTORE_PATH="${KEYSTORE_FILE_PATH}"
+                        export KEYSTORE_PASSWORD="${KEYSTORE_STORE_PASSWORD}"
+                        export KEY_ALIAS="${KEYSTORE_KEY_ALIAS}"
+                        export KEY_PASSWORD="${KEYSTORE_KEY_PASSWORD}"
+
+                        # Ejecutar el build de Flutter
+                        flutter build apk --debug
+                    """
+                }
             }
             post {
                 success {
@@ -74,11 +81,24 @@ pipeline {
         // El AAB es el formato recomendado por Google para subir a Google Play Store.
         stage('Build Android AAB for Store') {
             steps {
-                // Compila la aplicación para Android en formato AAB en modo release.
-                // Asegúrate de tener tu keystore configurado si estás firmando para producción.
-                // Si no tienes el keystore configurado en el entorno de Jenkins,
-                // esta etapa puede fallar o generar un AAB sin firmar.
-                sh 'flutter build appbundle --release'
+                // MODIFICACIÓN: Usar credenciales seguras de Jenkins para la firma
+                withCredentials([
+                    file(credentialsId: 'UPLOAD_KEYSTORE_FILE', variable: 'KEYSTORE_FILE_PATH'),
+                    string(credentialsId: 'KEYSTORE_STORE_PASSWORD', variable: 'KEYSTORE_STORE_PASSWORD'),
+                    string(credentialsId: 'KEYSTORE_KEY_PASSWORD', variable: 'KEYSTORE_KEY_PASSWORD'),
+                    string(credentialsId: 'KEYSTORE_KEY_ALIAS', variable: 'KEYSTORE_KEY_ALIAS')
+                ]) {
+                    sh """
+                        # Establecer variables de entorno para Gradle
+                        export KEYSTORE_PATH="${KEYSTORE_FILE_PATH}"
+                        export KEYSTORE_PASSWORD="${KEYSTORE_STORE_PASSWORD}"
+                        export KEY_ALIAS="${KEYSTORE_KEY_ALIAS}"
+                        export KEY_PASSWORD="${KEYSTORE_KEY_PASSWORD}"
+
+                        # Compila la aplicación para Android en formato AAB en modo release.
+                        flutter build appbundle --release
+                    """
+                }
             }
             post {
                 success {
@@ -99,15 +119,15 @@ pipeline {
             echo '¡Build y pruebas exitosos para todas las etapas configuradas!'
             // Puedes añadir notificaciones aquí (ej. a Slack, correo electrónico).
             // mail to: 'tu_correo@example.com',
-            //      subject: "Jenkins Build Exitoso: ${env.JOB_NAME}",
-            //      body: "El build ${env.BUILD_NUMBER} de ${env.JOB_NAME} fue exitoso. URL: ${env.BUILD_URL}"
+            //       subject: "Jenkins Build Exitoso: ${env.JOB_NAME}",
+            //       body: "El build ${env.BUILD_NUMBER} de ${env.JOB_NAME} fue exitoso. URL: ${env.BUILD_URL}"
         }
         failure {
             echo '¡El pipeline falló! Revisa los logs para depurar el problema.'
             // Notificación de fallo.
             // mail to: 'tu_correo@example.com',
-            //      subject: "Jenkins Build Fallido: ${env.JOB_NAME}",
-            //      body: "El build ${env.BUILD_NUMBER} de ${env.JOB_NAME} falló. Revisa: ${env.BUILD_URL}"
+            //       subject: "Jenkins Build Fallido: ${env.JOB_NAME}",
+            //       body: "El build ${env.BUILD_NUMBER} de ${env.JOB_NAME} falló. Revisa: ${env.BUILD_URL}"
         }
     }
 }
