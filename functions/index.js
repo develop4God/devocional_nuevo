@@ -1,4 +1,4 @@
-// functions/index.js
+// index.js (Tu archivo de Cloud Function)
 
 // Importa las librerías necesarias de Firebase Functions y Firebase Admin SDK.
 const { onSchedule } = require('firebase-functions/v2/scheduler');
@@ -40,16 +40,16 @@ logger.info('Cloud Function: Referencia a Firestore obtenida.', { structuredData
 // Define la Cloud Function principal para enviar notificaciones diarias.
 // Se activará CADA HORA en UTC para optimizar costos en producción.
 exports.sendDailyDevotionalNotification = onSchedule({
-    schedule: '0 * * * *', // CAMBIO AQUÍ: Ejecutar CADA HORA (minuto 0, cualquier hora, cualquier día, cualquier mes, cualquier día de la semana)
-    timeZone: 'UTC',       // IMPORTANTE: La función se ejecuta en UTC.
+    schedule: '0 * * * *', // Ejecutar CADA HORA (minuto 0, cualquier hora, cualquier día, cualquier mes, cualquier día de la semana)
+    timeZone: 'UTC',      // IMPORTANTE: La función se ejecuta en UTC.
     // Opcional: Configurar límites de recursos para la función (ajustar según necesidad y presupuesto)
     // memory: '128MiB', // Puedes aumentar si la lógica de usuario es muy pesada
     // timeoutSeconds: 300, // 5 minutos, por si las consultas son lentas
 }, async (context) => {
     logger.info('Cloud Function: sendDailyDevotionalNotification - Ejecución iniciada.', { structuredData: true });
 
-    let devotionalTitle = 'Devocional Diario';
-    let devotionalBody = '¡Es hora de tu devocional diario!\n¡Recuerda conectarte hoy, con la palabra de Dios!';
+    let devotionalTitle = 'Pruebas Cerradas Google Play Store';
+    let devotionalBody = '¡Recuerda conectarte hoy con la palabra de Dios!';
     // TODO: En un paso futuro, puedes obtener el devocional real de Firestore aquí.
     /*
     try {
@@ -68,7 +68,8 @@ exports.sendDailyDevotionalNotification = onSchedule({
     }
     */
 
-    const tokensToSend = [];
+    // CAMBIO: Inicializamos tokensToSend dentro del loop para que se resetee por cada ejecución
+    // let tokensToSend = []; // Esta línea ya no es necesaria aquí
 
     // Obtener todos los usuarios
     logger.info('Cloud Function: Consultando la colección de usuarios en Firestore.', { structuredData: true });
@@ -103,101 +104,157 @@ exports.sendDailyDevotionalNotification = onSchedule({
         if (settingsDoc.exists) {
             const settingsData = settingsDoc.data();
             const notificationsEnabled = settingsData.notificationsEnabled;
-            const notificationTime = settingsData.notificationTime; // "HH:MM"
-            const userTimezone = settingsData.userTimezone; // Zona horaria del usuario (ej. "America/New_York")
+            const notificationTimeStr = settingsData.notificationTime; // "HH:MM"
+            const userTimezoneStr = settingsData.userTimezone; // Zona horaria del usuario (ej. "America/New_York")
+            // NUEVO: Obtener la fecha de la última notificación enviada
+            const lastNotificationSentTimestamp = settingsData.lastNotificationSentDate;
 
-            logger.info(`Cloud Function: Configuración para ${userId}: Habilitado: ${notificationsEnabled}, Hora: ${notificationTime}, Zona horaria: ${userTimezone}.`, { structuredData: true });
+            logger.info(`Cloud Function: Configuración para ${userId}: Habilitado: ${notificationsEnabled}, Hora: ${notificationTimeStr}, Zona horaria: ${userTimezoneStr}.`, { structuredData: true });
 
 
             // Si no hay zona horaria o notificaciones deshabilitadas, saltar este usuario
-            if (!notificationsEnabled || !userTimezone) {
+            if (!notificationsEnabled || !userTimezoneStr) { // CAMBIO: userTimezoneStr debe ser válido
                 logger.info(`Cloud Function: Usuario ${userId} no elegible (notificaciones deshabilitadas o zona horaria no definida).`, { structuredData: true });
                 continue;
             }
 
             // Convertir la hora actual UTC a la zona horaria del usuario
-            // y luego comparar con la hora de notificación preferida del usuario.
+            let userLocalTime;
             try {
                 // Verificar si la zona horaria es válida antes de usarla
-                if (!DateTime.local().setZone(userTimezone).isValid) {
-                    logger.warn(`Cloud Function: Zona horaria inválida para usuario ${userId}: ${userTimezone}. Saltando.`, { structuredData: true });
+                if (!DateTime.local().setZone(userTimezoneStr).isValid) { // CAMBIO: Usar DateTime.local() para validar zona
+                    logger.warn(`Cloud Function: Zona horaria inválida para usuario ${userId}: ${userTimezoneStr}. Saltando.`, { structuredData: true });
                     continue;
                 }
+                userLocalTime = nowUtc.setZone(userTimezoneStr);
+            } catch (e) {
+                logger.error(`Cloud Function: Error al establecer la zona horaria para ${userId} (${userTimezoneStr}): ${e.message}. Saltando.`, { structuredData: true });
+                continue;
+            }
 
-                const userLocalTime = nowUtc.setZone(userTimezone);
-                const [preferredHour, preferredMinute] = notificationTime.split(':').map(Number);
+            const [preferredHour, preferredMinute] = notificationTimeStr.split(':').map(Number); // CAMBIO: Renombrado a notificationTimeStr
+            if (isNaN(preferredHour) || isNaN(preferredMinute)) { // NUEVO: Validar si la hora es un número
+                logger.warn(`Cloud Function: Hora de notificación inválida para ${userId}: ${notificationTimeStr}. Saltando.`, { structuredData: true });
+                continue;
+            }
 
-                // Verificar si la hora actual en la zona horaria del usuario
-                // coincide con su hora de notificación preferida.
-                // Damos un margen de 5 minutos para la ejecución del cron.
-                const isTimeToSend = (
-                    userLocalTime.hour === preferredHour &&
-                    userLocalTime.minute >= preferredMinute &&
-                    userLocalTime.minute < preferredMinute + 5
-                );
+            // NUEVO: Calcular la fecha de hoy en la zona horaria del usuario (YYYY-MM-DD)
+            const todayInUserTimezone = userLocalTime.toISODate(); // Formato 'YYYY-MM-DD'
 
-                logger.info(`Cloud Function: Usuario ${userId} - Hora local calculada: ${userLocalTime.toFormat('HH:mm')}, Hora preferida: ${notificationTime}, ¿Es hora de enviar?: ${isTimeToSend}.`, { structuredData: true });
+            // NUEVO: Determinar la fecha de la última notificación enviada (en formato YYYY-MM-DD)
+            let lastSentDate = null;
+            if (lastNotificationSentTimestamp instanceof admin.firestore.Timestamp) {
+                lastSentDate = DateTime.fromJSDate(lastNotificationSentTimestamp.toDate(), { zone: userTimezoneStr }).toISODate();
+            } else if (typeof lastNotificationSentTimestamp === 'string') {
+                // Si por alguna razón se guardó como string, intentar parsearlo
+                lastSentDate = lastNotificationSentTimestamp;
+            }
 
+            // CAMBIO: Lógica para determinar si es hora de enviar la notificación
+            // Con el job corriendo CADA HORA, solo necesitamos que la hora coincida.
+            // Si el usuario pone 09:30 y el job corre a las 09:00, lo enviaremos a las 09:00.
+            const isTimeToSend = (userLocalTime.hour === preferredHour);
 
-                if (isTimeToSend) {
-                    logger.info(`Cloud Function: Usuario ${userId} es elegible. Recopilando tokens FCM.`, { structuredData: true });
-                    const fcmTokensRef = db.collection('users').doc(userId).collection('fcmTokens');
-                    const fcmTokensSnapshot = await fcmTokensRef.get();
+            // NUEVO: ¿Ya se envió una notificación para este usuario hoy?
+            const alreadySentToday = (lastSentDate === todayInUserTimezone);
 
-                    if (!fcmTokensSnapshot.empty) {
-                        fcmTokensSnapshot.docs.forEach(tokenDoc => {
-                            const tokenData = tokenDoc.data();
-                            if (tokenData.token) {
-                                tokensToSend.push(tokenData.token);
+            logger.info(`Cloud Function: Usuario ${userId} - Hora local calculada: ${userLocalTime.toFormat('HH:mm')}, Hora preferida: ${notificationTimeStr}, Último envío: ${lastSentDate || 'Nunca'}, Hoy: ${todayInUserTimezone}, ¿Ya enviado hoy?: ${alreadySentToday}, ¿Es hora de enviar?: ${isTimeToSend}.`, { structuredData: true });
+
+            // CAMBIO: La condición principal para enviar
+            if (isTimeToSend && !alreadySentToday) {
+                logger.info(`Cloud Function: Usuario ${userId} es elegible. Recopilando tokens FCM.`, { structuredData: true });
+                const fcmTokensRef = db.collection('users').doc(userId).collection('fcmTokens');
+                const fcmTokensSnapshot = await fcmTokensRef.get();
+
+                if (!fcmTokensSnapshot.empty) {
+                    const tokens = fcmTokensSnapshot.docs.map(doc => doc.id); // Asumiendo que el ID del documento es el token
+
+                    if (tokens.length === 0) {
+                        logger.warn(`Cloud Function: No se encontraron tokens FCM válidos para el usuario ${userId}. Saltando.`, { structuredData: true });
+                        continue;
+                    }
+
+                    // Construir el mensaje de notificación
+                    const message = {
+                        notification: {
+                            title: devotionalTitle,
+                            body: devotionalBody,
+                        },
+                        data: {
+                            userId: userId,
+                            notificationType: 'daily_devotional',
+                        },
+                        tokens: tokens, // Enviar a todos los tokens del usuario
+                    };
+
+                    // Enviar la notificación
+                    const response = await admin.messaging().sendEachForMulticast(message);
+                    logger.info(`Cloud Function: Notificaciones enviadas exitosamente a ${response.successCount} dispositivos. Fallaron ${response.failureCount}.`, { structuredData: true });
+
+                    // NUEVO: Actualizar lastNotificationSentDate en Firestore para este usuario
+                    await settingsRef.update({
+                        lastNotificationSentDate: admin.firestore.Timestamp.fromDate(userLocalTime.toJSDate()), // Guardar como Timestamp
+                    });
+                    logger.info(`Cloud Function: lastNotificationSentDate actualizado para ${userId} a ${todayInUserTimezone}.`, { structuredData: true });
+
+                    // Manejar tokens inválidos/expirados (opcional, pero buena práctica)
+                    if (response.failureCount > 0) {
+                        response.responses.forEach(async (resp, idx) => {
+                            if (!resp.success && (resp.error?.code === 'messaging/invalid-argument' || resp.error?.code === 'messaging/registration-token-not-registered')) {
+                                const invalidToken = tokens[idx];
+                                logger.warn(`Cloud Function: Token inválido detectado para ${userId}: ${invalidToken}. Eliminando.`, { structuredData: true });
+                                // Eliminar el token inválido de Firestore
+                                await db.collection('users').doc(userId).collection('fcmTokens').doc(invalidToken).delete();
                             }
                         });
-                        logger.info(`Cloud Function: ${fcmTokensSnapshot.size} tokens encontrados para usuario ${userId}.`, { structuredData: true });
-                    } else {
-                        logger.warn(`Cloud Function: Usuario ${userId} no tiene tokens FCM registrados.`, { structuredData: true });
                     }
+                } else {
+                    logger.warn(`Cloud Function: Usuario ${userId} no tiene tokens FCM registrados.`, { structuredData: true });
                 }
-            } catch (e) {
-                logger.error(`Cloud Function: Error procesando lógica de zona horaria para usuario ${userId}: ${e.message}`, { structuredData: true });
+            } else {
+                logger.info(`Cloud Function: Usuario ${userId} no elegible para envío en esta ejecución (ya enviado hoy o no es la hora).`, { structuredData: true });
             }
         } else {
             logger.info(`Cloud Function: Usuario ${userId} no tiene documento de configuración de notificaciones.`, { structuredData: true });
         }
     }
 
-    if (tokensToSend.length === 0) {
-        logger.info('Cloud Function: No hay tokens FCM válidos para enviar notificaciones en este momento.', { structuredData: true });
-        return null;
-    }
+    // CAMBIO: La lógica de envío global de tokensToSend se elimina, ya que se envía por usuario.
+    // if (tokensToSend.length === 0) {
+    //     logger.info('Cloud Function: No hay tokens FCM válidos para enviar notificaciones en este momento.', { structuredData: true });
+    //     return null;
+    // }
 
-    // 2. Enviar la notificación a todos los tokens recolectados
-    logger.info(`Cloud Function: Preparando para enviar notificación a ${tokensToSend.length} tokens.`, { structuredData: true });
-    const message = {
-        notification: {
-            title: devotionalTitle,
-            body: devotionalBody,
-        },
-        data: {
-            devotionalId: 'daily',
-            click_action: 'FLUTTER_NOTIFICATION_CLICK',
-        },
-        tokens: tokensToSend,
-    };
+    // CAMBIO: El bloque de envío de notificaciones se ha movido dentro del bucle de usuario.
+    // Por lo tanto, este bloque final de envío ya no es necesario aquí.
+    // logger.info(`Cloud Function: Preparando para enviar notificación a ${tokensToSend.length} tokens.`, { structuredData: true });
+    // const message = {
+    //     notification: {
+    //         title: devotionalTitle,
+    //         body: devotionalBody,
+    //     },
+    //     data: {
+    //         devotionalId: 'daily',
+    //         click_action: 'FLUTTER_NOTIFICATION_CLICK',
+    //     },
+    //     tokens: tokensToSend,
+    // };
 
-    try {
-        const response = await admin.messaging().sendEachForMulticast(message);
-        logger.info(`Cloud Function: Notificaciones enviadas exitosamente a ${response.successCount} dispositivos. Fallaron ${response.failureCount}.`, { structuredData: true });
+    // try {
+    //     const response = await admin.messaging().sendEachForMulticast(message);
+    //     logger.info(`Cloud Function: Notificaciones enviadas exitosamente a ${response.successCount} dispositivos. Fallaron ${response.failureCount}.`, { structuredData: true });
 
-        if (response.failureCount > 0) {
-            response.responses.forEach((resp, idx) => {
-                if (!resp.success) {
-                    const failedToken = tokensToSend[idx];
-                    logger.error(`Cloud Function: Falló el envío al token ${failedToken}: ${resp.error?.code || resp.error?.message || 'Error desconocido'}.`, { structuredData: true });
-                }
-            });
-        }
-    } catch (error) {
-        logger.error('Cloud Function: Error general al enviar notificaciones FCM:', error, { structuredData: true });
-    }
+    //     if (response.failureCount > 0) {
+    //         response.responses.forEach((resp, idx) => {
+    //             if (!resp.success) {
+    //                 const failedToken = tokensToSend[idx];
+    //                 logger.error(`Cloud Function: Falló el envío al token ${failedToken}: ${resp.error?.code || resp.error?.message || 'Error desconocido'}.`, { structuredData: true });
+    //             }
+    //         });
+    //     }
+    // } catch (error) {
+    //     logger.error('Cloud Function: Error general al enviar notificaciones FCM:', error, { structuredData: true });
+    // }
 
     logger.info('Cloud Function: Ejecución de sendDailyDevotionalNotification finalizada.', { structuredData: true });
     return null;
