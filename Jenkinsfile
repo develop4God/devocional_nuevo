@@ -46,29 +46,33 @@ pipeline {
                     string(credentialsId: 'KEYSTORE_KEY_PASSWORD', variable: 'KEYSTORE_KEY_PASSWORD'),
                     string(credentialsId: 'KEYSTORE_KEY_ALIAS', variable: 'KEYSTORE_KEY_ALIAS')
                 ]) {
-                    // Usar withEnv para definir variables de entorno de forma segura para el bloque sh
                     withEnv([
                         "KEYSTORE_FILE_PATH=${KEYSTORE_FILE_PATH}",
                         "KEYSTORE_STORE_PASSWORD=${KEYSTORE_STORE_PASSWORD}",
                         "KEYSTORE_KEY_PASSWORD=${KEYSTORE_KEY_PASSWORD}",
                         "KEYSTORE_KEY_ALIAS=${KEYSTORE_KEY_ALIAS}"
                     ]) {
-                        sh '''
-                            ./gradlew --stop
-                            flutter clean
-                            flutter build apk --debug \
-                              -PKEYSTORE_PATH="$KEYSTORE_FILE_PATH" \
-                              -PKEYSTORE_PASSWORD="$KEYSTORE_STORE_PASSWORD" \
-                              -PKEY_ALIAS="$KEYSTORE_KEY_ALIAS" \
-                              -PKEY_PASSWORD="$KEYSTORE_KEY_PASSWORD" \
-                              --no-daemon --stacktrace --info
-                        '''
+                        // Ejecutar flutter clean desde la raíz
+                        sh 'flutter clean'
+
+                        // Ejecutar gradlew desde directorio android
+                        dir('android') {
+                            sh '''
+                                ./gradlew --stop
+                                ./gradlew assembleDebug \
+                                  -PKEYSTORE_PATH="$KEYSTORE_FILE_PATH" \
+                                  -PKEYSTORE_PASSWORD="$KEYSTORE_STORE_PASSWORD" \
+                                  -PKEY_ALIAS="$KEYSTORE_KEY_ALIAS" \
+                                  -PKEY_PASSWORD="$KEYSTORE_KEY_PASSWORD" \
+                                  --no-daemon --stacktrace --info
+                            '''
+                        }
                     }
                 }
             }
             post {
                 success {
-                    archiveArtifacts artifacts: 'build/app/outputs/flutter-apk/app-debug.apk', fingerprint: true
+                    archiveArtifacts artifacts: 'android/app/build/outputs/apk/debug/app-debug.apk', fingerprint: true
                     echo "APK debug generado y archivado."
                 }
             }
@@ -82,29 +86,33 @@ pipeline {
                     string(credentialsId: 'KEYSTORE_KEY_PASSWORD', variable: 'KEYSTORE_KEY_PASSWORD'),
                     string(credentialsId: 'KEYSTORE_KEY_ALIAS', variable: 'KEYSTORE_KEY_ALIAS')
                 ]) {
-                    // Usar withEnv para definir variables de entorno de forma segura para el bloque sh
                     withEnv([
                         "KEYSTORE_FILE_PATH=${KEYSTORE_FILE_PATH}",
                         "KEYSTORE_STORE_PASSWORD=${KEYSTORE_STORE_PASSWORD}",
                         "KEYSTORE_KEY_PASSWORD=${KEYSTORE_KEY_PASSWORD}",
                         "KEYSTORE_KEY_ALIAS=${KEYSTORE_KEY_ALIAS}"
                     ]) {
-                        sh '''
-                            ./gradlew --stop
-                            flutter clean
-                            flutter build appbundle --release \
-                              -PKEYSTORE_PATH="$KEYSTORE_FILE_PATH" \
-                              -PKEYSTORE_PASSWORD="$KEYSTORE_STORE_PASSWORD" \
-                              -PKEY_ALIAS="$KEYSTORE_KEY_ALIAS" \
-                              -PKEY_PASSWORD="$KEYSTORE_KEY_PASSWORD" \
-                              --no-daemon --stacktrace --info
-                        '''
+                        // Ejecutar flutter clean desde la raíz
+                        sh 'flutter clean'
+
+                        // Ejecutar gradlew desde directorio android
+                        dir('android') {
+                            sh '''
+                                ./gradlew --stop
+                                ./gradlew bundleRelease \
+                                  -PKEYSTORE_PATH="$KEYSTORE_FILE_PATH" \
+                                  -PKEYSTORE_PASSWORD="$KEYSTORE_STORE_PASSWORD" \
+                                  -PKEY_ALIAS="$KEYSTORE_KEY_ALIAS" \
+                                  -PKEY_PASSWORD="$KEYSTORE_KEY_PASSWORD" \
+                                  --no-daemon --stacktrace --info
+                            '''
+                        }
                     }
                 }
             }
             post {
                 success {
-                    archiveArtifacts artifacts: 'build/app/outputs/bundle/release/app-release.aab', fingerprint: true
+                    archiveArtifacts artifacts: 'android/app/build/outputs/bundle/release/app-release.aab', fingerprint: true
                     echo "AAB para la tienda generado y archivado."
                 }
             }
