@@ -27,30 +27,36 @@ pipeline {
         }
 
         stage('Build Android Debug APK') {
-            steps {
-                withCredentials([
-                    file(credentialsId: 'UPLOAD_KEYSTORE_FILE', variable: 'KEYSTORE_FILE_PATH'),
-                    string(credentialsId: 'KEYSTORE_STORE_PASSWORD', variable: 'KEYSTORE_STORE_PASSWORD'),
-                    string(credentialsId: 'KEYSTORE_KEY_PASSWORD', variable: 'KEYSTORE_KEY_PASSWORD'),
-                    string(credentialsId: 'KEYSTORE_KEY_ALIAS', variable: 'KEYSTORE_KEY_ALIAS')
-                ]) {
-                    sh """
-                        flutter build apk --debug \\
-                          -PKEYSTORE_PATH='${KEYSTORE_FILE_PATH}' \\
-                          -PKEYSTORE_PASSWORD='${KEYSTORE_STORE_PASSWORD}' \\
-                          -PKEY_ALIAS='${KEYSTORE_KEY_ALIAS}' \\
-                          -PKEY_PASSWORD='${KEYSTORE_KEY_PASSWORD}'
-                    """
-                }
-            }
-            post {
-                success {
-                    archiveArtifacts artifacts: 'build/app/outputs/flutter-apk/app-debug.apk', fingerprint: true
-                    echo "APK de depuración generado y archivado: build/app/outputs/flutter-apk/app-debug.apk"
-                }
-            }
-        }
+    steps {
+        withCredentials([
+            file(credentialsId: 'UPLOAD_KEYSTORE_FILE', variable: 'KEYSTORE_FILE_PATH'),
+            string(credentialsId: 'KEYSTORE_STORE_PASSWORD', variable: 'KEYSTORE_STORE_PASSWORD'),
+            string(credentialsId: 'KEYSTORE_KEY_PASSWORD', variable: 'KEYSTORE_KEY_PASSWORD'),
+            string(credentialsId: 'KEYSTORE_KEY_ALIAS', variable: 'KEYSTORE_KEY_ALIAS')
+        ]) {
+            sh '''
+                # Detener cualquier daemon de Gradle corriendo
+                ./gradlew --stop
+                # Limpieza de Flutter y Gradle
+                flutter clean
 
+                # Ejecutar build sin daemon, con más logging para diagnóstico
+                flutter build apk --debug \
+                  -PKEYSTORE_PATH='${KEYSTORE_FILE_PATH}' \
+                  -PKEYSTORE_PASSWORD='${KEYSTORE_STORE_PASSWORD}' \
+                  -PKEY_ALIAS='${KEYSTORE_KEY_ALIAS}' \
+                  -PKEY_PASSWORD='${KEYSTORE_KEY_PASSWORD}' \
+                  --no-daemon --stacktrace --info
+            '''
+        }
+    }
+    post {
+        success {
+            archiveArtifacts artifacts: 'build/app/outputs/flutter-apk/app-debug.apk', fingerprint: true
+            echo "APK debug generado y archivado."
+        }
+    }
+}
         stage('Build Android AAB for Store') {
             steps {
                 withCredentials([
