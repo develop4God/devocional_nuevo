@@ -15,7 +15,7 @@ pipeline {
 
         stage('Install Dependencies') {
             steps {
-                sh 'flutter clean' // Mover flutter clean aquí, antes de flutter pub get
+                sh 'flutter clean' // CAMBIO: Esta línea se movió aquí, antes de flutter pub get
                 sh 'flutter pub cache clean --force'
                 sh 'flutter pub get'
             }
@@ -53,19 +53,19 @@ pipeline {
                         "KEYSTORE_KEY_PASSWORD=${KEYSTORE_KEY_PASSWORD}",
                         "KEYSTORE_KEY_ALIAS=${KEYSTORE_KEY_ALIAS}"
                     ]) {
-                        // Ya no es necesario ejecutar flutter clean aquí, se hizo en "Install Dependencies"
+                        // flutter clean ya no es necesario aquí, se movió a "Install Dependencies"
                         
                         // Ejecutar gradlew desde directorio android
                         dir('android') {
                             sh '''
                                 ./gradlew --stop
-                                ./gradlew assembleDebug \
-                                  -Pflutter.projectRoot=../ \
-                                  -PKEYSTORE_PATH="$KEYSTORE_FILE_PATH" \
-                                  -PKEYSTORE_PASSWORD="$KEYSTORE_STORE_PASSWORD" \
-                                  -PKEY_ALIAS="$KEYSTORE_KEY_ALIAS" \
-                                  -PKEY_PASSWORD="$KEYSTORE_KEY_PASSWORD" \
-                                  --no-daemon --stacktrace --info --verbose
+                                ./gradlew assembleDebug \\
+                                  -Pflutter.projectRoot=../ \\
+                                  -PKEYSTORE_PATH="$KEYSTORE_FILE_PATH" \\
+                                  -PKEYSTORE_PASSWORD="$KEYSTORE_STORE_PASSWORD" \\
+                                  -PKEY_ALIAS="$KEYSTORE_KEY_ALIAS" \\
+                                  -PKEY_PASSWORD="$KEYSTORE_KEY_PASSWORD" \\
+                                  --no-daemon --stacktrace --info -Pflutter.build.verbose=true // CAMBIO: Añadido -Pflutter.build.verbose=true y eliminado --verbose
                             '''
                         }
                     }
@@ -93,19 +93,19 @@ pipeline {
                         "KEYSTORE_KEY_PASSWORD=${KEYSTORE_KEY_PASSWORD}",
                         "KEYSTORE_KEY_ALIAS=${KEYSTORE_KEY_ALIAS}"
                     ]) {
-                        // Ya no es necesario ejecutar flutter clean aquí
+                        // flutter clean ya no es necesario aquí
                         
                         // Ejecutar gradlew desde directorio android
                         dir('android') {
                             sh '''
                                 ./gradlew --stop
-                                ./gradlew bundleRelease \
-                                  -Pflutter.projectRoot=../ \
-                                  -PKEYSTORE_PATH="$KEYSTORE_FILE_PATH" \
-                                  -PKEYSTORE_PASSWORD="$KEYSTORE_STORE_PASSWORD" \
-                                  -PKEY_ALIAS="$KEYSTORE_KEY_ALIAS" \
-                                  -PKEY_PASSWORD="$KEYSTORE_KEY_PASSWORD" \
-                                  --no-daemon --stacktrace --info --verbose
+                                ./gradlew bundleRelease \\
+                                  -Pflutter.projectRoot=../ \\
+                                  -PKEYSTORE_PATH="$KEYSTORE_FILE_PATH" \\
+                                  -PKEYSTORE_PASSWORD="$KEYSTORE_STORE_PASSWORD" \\
+                                  -PKEY_ALIAS="$KEYSTORE_KEY_ALIAS" \\
+                                  -PKEY_PASSWORD="$KEYSTORE_KEY_PASSWORD" \\
+                                  --no-daemon --stacktrace --info -Pflutter.build.verbose=true // CAMBIO: Añadido -Pflutter.build.verbose=true y eliminado --verbose
                             '''
                         }
                     }
