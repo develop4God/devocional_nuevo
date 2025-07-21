@@ -26,14 +26,12 @@ pipeline {
             }
         }
 
-        // Stage para verificar versión de Java usada en agente Jenkins
         stage('Check Java Version') {
             steps {
                 sh 'java -version'
             }
         }
 
-        // Stage para verificar JAVA_HOME en agente Jenkins
         stage('Check JAVA_HOME') {
             steps {
                 sh 'echo $JAVA_HOME'
@@ -48,23 +46,24 @@ pipeline {
                     string(credentialsId: 'KEYSTORE_KEY_PASSWORD', variable: 'KEYSTORE_KEY_PASSWORD'),
                     string(credentialsId: 'KEYSTORE_KEY_ALIAS', variable: 'KEYSTORE_KEY_ALIAS')
                 ]) {
-                    sh(script: '''
-                        ./gradlew --stop
-                        flutter clean
-
-                        flutter build apk --debug \\
-                          -PKEYSTORE_PATH="$KEYSTORE_FILE_PATH" \\
-                          -PKEYSTORE_PASSWORD="$KEYSTORE_STORE_PASSWORD" \\
-                          -PKEY_ALIAS="$KEYSTORE_KEY_ALIAS" \\
-                          -PKEY_PASSWORD="$KEYSTORE_KEY_PASSWORD" \\
-                          --no-daemon --stacktrace --info
-                    ''',
-                    environment: [
-                        "KEYSTORE_FILE_PATH=${KEYSTORE_FILE_PATH}",
-                        "KEYSTORE_STORE_PASSWORD=${KEYSTORE_STORE_PASSWORD}",
-                        "KEYSTORE_KEY_PASSWORD=${KEYSTORE_KEY_PASSWORD}",
-                        "KEYSTORE_KEY_ALIAS=${KEYSTORE_KEY_ALIAS}"
-                    ])
+                    sh(
+                        script: '''
+                            ./gradlew --stop
+                            flutter clean
+                            flutter build apk --debug \\
+                              -PKEYSTORE_PATH="$KEYSTORE_FILE_PATH" \\
+                              -PKEYSTORE_PASSWORD="$KEYSTORE_STORE_PASSWORD" \\
+                              -PKEY_ALIAS="$KEYSTORE_KEY_ALIAS" \\
+                              -PKEY_PASSWORD="$KEYSTORE_KEY_PASSWORD" \\
+                              --no-daemon --stacktrace --info
+                        ''',
+                        environment: [
+                            "KEYSTORE_FILE_PATH=${KEYSTORE_FILE_PATH}",
+                            "KEYSTORE_STORE_PASSWORD=${KEYSTORE_STORE_PASSWORD}",
+                            "KEYSTORE_KEY_PASSWORD=${KEYSTORE_KEY_PASSWORD}",
+                            "KEYSTORE_KEY_ALIAS=${KEYSTORE_KEY_ALIAS}"
+                        ]
+                    )
                 }
             }
             post {
@@ -83,23 +82,24 @@ pipeline {
                     string(credentialsId: 'KEYSTORE_KEY_PASSWORD', variable: 'KEYSTORE_KEY_PASSWORD'),
                     string(credentialsId: 'KEYSTORE_KEY_ALIAS', variable: 'KEYSTORE_KEY_ALIAS')
                 ]) {
-                    sh(script: '''
-                        ./gradlew --stop
-                        flutter clean
-
-                        flutter build appbundle --release \\
-                          -PKEYSTORE_PATH="$KEYSTORE_FILE_PATH" \\
-                          -PKEYSTORE_PASSWORD="$KEYSTORE_STORE_PASSWORD" \\
-                          -PKEY_ALIAS="$KEYSTORE_KEY_ALIAS" \\
-                          -PKEY_PASSWORD="$KEYSTORE_KEY_PASSWORD" \\
-                          --no-daemon --stacktrace --info
-                    ''',
-                    environment: [
-                        "KEYSTORE_FILE_PATH=${KEYSTORE_FILE_PATH}",
-                        "KEYSTORE_STORE_PASSWORD=${KEYSTORE_STORE_PASSWORD}",
-                        "KEYSTORE_KEY_PASSWORD=${KEYSTORE_KEY_PASSWORD}",
-                        "KEYSTORE_KEY_ALIAS=${KEYSTORE_KEY_ALIAS}"
-                    ])
+                    sh(
+                        script: '''
+                            ./gradlew --stop
+                            flutter clean
+                            flutter build appbundle --release \\
+                              -PKEYSTORE_PATH="$KEYSTORE_FILE_PATH" \\
+                              -PKEYSTORE_PASSWORD="$KEYSTORE_STORE_PASSWORD" \\
+                              -PKEY_ALIAS="$KEYSTORE_KEY_ALIAS" \\
+                              -PKEY_PASSWORD="$KEYSTORE_KEY_PASSWORD" \\
+                              --no-daemon --stacktrace --info
+                        ''',
+                        environment: [
+                            "KEYSTORE_FILE_PATH=${KEYSTORE_FILE_PATH}",
+                            "KEYSTORE_STORE_PASSWORD=${KEYSTORE_STORE_PASSWORD}",
+                            "KEYSTORE_KEY_PASSWORD=${KEYSTORE_KEY_PASSWORD}",
+                            "KEYSTORE_KEY_ALIAS=${KEYSTORE_KEY_ALIAS}"
+                        ]
+                    )
                 }
             }
             post {
