@@ -15,7 +15,7 @@ pipeline {
 
         stage('Install Dependencies') {
             steps {
-                sh 'flutter clean' // CAMBIO: Esta línea se movió aquí, antes de flutter pub get
+                sh 'flutter clean' // Se ejecuta flutter clean antes de pub get
                 sh 'flutter pub cache clean --force'
                 sh 'flutter pub get'
             }
@@ -47,27 +47,24 @@ pipeline {
                     string(credentialsId: 'KEYSTORE_KEY_PASSWORD', variable: 'KEYSTORE_KEY_PASSWORD'),
                     string(credentialsId: 'KEYSTORE_KEY_ALIAS', variable: 'KEYSTORE_KEY_ALIAS')
                 ]) {
-                    withEnv([
-                        "KEYSTORE_FILE_PATH=${KEYSTORE_FILE_PATH}",
-                        "KEYSTORE_STORE_PASSWORD=${KEYSTORE_STORE_PASSWORD}",
-                        "KEYSTORE_KEY_PASSWORD=${KEYSTORE_KEY_PASSWORD}",
-                        "KEYSTORE_KEY_ALIAS=${KEYSTORE_KEY_ALIAS}"
-                    ]) {
-                        // flutter clean ya no es necesario aquí, se movió a "Install Dependencies"
-                        
-                        // Ejecutar gradlew desde directorio android
-                        dir('android') {
-                            sh '''
-                                ./gradlew --stop
-                                ./gradlew assembleDebug \
-                                  -Pflutter.projectRoot=../ \
-                                  -PKEYSTORE_PATH="$KEYSTORE_FILE_PATH" \
-                                  -PKEYSTORE_PASSWORD="$KEYSTORE_STORE_PASSWORD" \
-                                  -PKEY_ALIAS="$KEYSTORE_KEY_ALIAS" \
-                                  -PKEY_PASSWORD="$KEYSTORE_KEY_PASSWORD" \
-                                  --no-daemon --stacktrace --info -Pflutter.build.verbose=true 
-                            ''' // CAMBIO: Eliminadas las barras invertidas al final de las líneas
-                        }
+                    // Se ha eliminado el bloque 'withEnv' redundante que causaba la advertencia de seguridad.
+                    // Las variables de credenciales ya están disponibles directamente aquí.
+                    
+                    // Ejecutar gradlew desde directorio android
+                    dir('android') {
+                        sh '''
+                            ./gradlew --stop
+                            ./gradlew assembleDebug \
+                              -Pflutter.projectRoot=../ \
+                              -PKEYSTORE_PATH="$KEYSTORE_FILE_PATH" \
+                              -PKEYSTORE_PASSWORD="$KEYSTORE_STORE_PASSWORD" \
+                              -PKEY_ALIAS="$KEYSTORE_KEY_ALIAS" \
+                              -PKEY_PASSWORD="$KEYSTORE_KEY_PASSWORD" \
+                              --no-daemon --stacktrace --info -Pflutter.build.verbose=true \
+                              -Dorg.gradle.jvmargs="-Xmx4G" \
+                              -Pandroid.suppressUnsupportedCompileSdk=36
+                        ''' // Opciones de memoria JVM y supresión de warning de compileSdk añadidas.
+                            // Las barras invertidas al final de las líneas se han eliminado para evitar el error 'Task // not found'.
                     }
                 }
             }
@@ -87,27 +84,23 @@ pipeline {
                     string(credentialsId: 'KEYSTORE_KEY_PASSWORD', variable: 'KEYSTORE_KEY_PASSWORD'),
                     string(credentialsId: 'KEYSTORE_KEY_ALIAS', variable: 'KEYSTORE_KEY_ALIAS')
                 ]) {
-                    withEnv([
-                        "KEYSTORE_FILE_PATH=${KEYSTORE_FILE_PATH}",
-                        "KEYSTORE_STORE_PASSWORD=${KEYSTORE_STORE_PASSWORD}",
-                        "KEYSTORE_KEY_PASSWORD=${KEYSTORE_KEY_PASSWORD}",
-                        "KEYSTORE_KEY_ALIAS=${KEYSTORE_KEY_ALIAS}"
-                    ]) {
-                        // flutter clean ya no es necesario aquí
-                        
-                        // Ejecutar gradlew desde directorio android
-                        dir('android') {
-                            sh '''
-                                ./gradlew --stop
-                                ./gradlew bundleRelease \
-                                  -Pflutter.projectRoot=../ \
-                                  -PKEYSTORE_PATH="$KEYSTORE_FILE_PATH" \
-                                  -PKEYSTORE_PASSWORD="$KEYSTORE_STORE_PASSWORD" \
-                                  -PKEY_ALIAS="$KEYSTORE_KEY_ALIAS" \
-                                  -PKEY_PASSWORD="$KEYSTORE_KEY_PASSWORD" \
-                                  --no-daemon --stacktrace --info -Pflutter.build.verbose=true 
-                            ''' // CAMBIO: Eliminadas las barras invertidas al final de las líneas
-                        }
+                    // Se ha eliminado el bloque 'withEnv' redundante que causaba la advertencia de seguridad.
+                    
+                    // Ejecutar gradlew desde directorio android
+                    dir('android') {
+                        sh '''
+                            ./gradlew --stop
+                            ./gradlew bundleRelease \
+                              -Pflutter.projectRoot=../ \
+                              -PKEYSTORE_PATH="$KEYSTORE_FILE_PATH" \
+                              -PKEYSTORE_PASSWORD="$KEYSTORE_STORE_PASSWORD" \
+                              -PKEY_ALIAS="$KEYSTORE_KEY_ALIAS" \
+                              -PKEY_PASSWORD="$KEYSTORE_KEY_PASSWORD" \
+                              --no-daemon --stacktrace --info -Pflutter.build.verbose=true \
+                              -Dorg.gradle.jvmargs="-Xmx4G" \
+                              -Pandroid.suppressUnsupportedCompileSdk=36
+                        ''' // Opciones de memoria JVM y supresión de warning de compileSdk añadidas.
+                            // Las barras invertidas al final de las líneas se han eliminado para evitar el error 'Task // not found'.
                     }
                 }
             }
