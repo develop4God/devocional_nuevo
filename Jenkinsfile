@@ -26,37 +26,55 @@ pipeline {
             }
         }
 
-        stage('Build Android Debug APK') {
-    steps {
-        withCredentials([
-            file(credentialsId: 'UPLOAD_KEYSTORE_FILE', variable: 'KEYSTORE_FILE_PATH'),
-            string(credentialsId: 'KEYSTORE_STORE_PASSWORD', variable: 'KEYSTORE_STORE_PASSWORD'),
-            string(credentialsId: 'KEYSTORE_KEY_PASSWORD', variable: 'KEYSTORE_KEY_PASSWORD'),
-            string(credentialsId: 'KEYSTORE_KEY_ALIAS', variable: 'KEYSTORE_KEY_ALIAS')
-        ]) {
-            sh '''
-                # Detener cualquier daemon de Gradle corriendo
-                ./gradlew --stop
-                # Limpieza de Flutter y Gradle
-                flutter clean
+        // Stage para verificar versión de Java usada en agente Jenkins
+        stage('Check Java Version') {
+            steps {
+                sh 'java -version'
+            }
+        }
 
-                # Ejecutar build sin daemon, con más logging para diagnóstico
-                flutter build apk --debug \
-                  -PKEYSTORE_PATH='${KEYSTORE_FILE_PATH}' \
-                  -PKEYSTORE_PASSWORD='${KEYSTORE_STORE_PASSWORD}' \
-                  -PKEY_ALIAS='${KEYSTORE_KEY_ALIAS}' \
-                  -PKEY_PASSWORD='${KEYSTORE_KEY_PASSWORD}' \
-                  --no-daemon --stacktrace --info
-            '''
+        // Stage para verificar JAVA_HOME en agente Jenkins
+        stage('Check JAVA_HOME') {
+            steps {
+                sh 'echo $JAVA_HOME'
+            }
         }
-    }
-    post {
-        success {
-            archiveArtifacts artifacts: 'build/app/outputs/flutter-apk/app-debug.apk', fingerprint: true
-            echo "APK debug generado y archivado."
+
+        stage('Build Android Debug APK') {
+            steps {
+                withCredentials([
+                    file(credentialsId: 'UPLOAD_KEYSTORE_FILE', variable: 'KEYSTORE_FILE_PATH'),
+                    string(credentialsId: 'KEYSTORE_STORE_PASSWORD', variable: 'KEYSTORE_STORE_PASSWORD'),
+                    string(credentialsId: 'KEYSTORE_KEY_PASSWORD', variable: 'KEYSTORE_KEY_PASSWORD'),
+                    string(credentialsId: 'KEYSTORE_KEY_ALIAS', variable: 'KEYSTORE_KEY_ALIAS')
+                ]) {
+                    sh(script: '''
+                        ./gradlew --stop
+                        flutter clean
+
+                        flutter build apk --debug \\
+                          -PKEYSTORE_PATH="$KEYSTORE_FILE_PATH" \\
+                          -PKEYSTORE_PASSWORD="$KEYSTORE_STORE_PASSWORD" \\
+                          -PKEY_ALIAS="$KEYSTORE_KEY_ALIAS" \\
+                          -PKEY_PASSWORD="$KEYSTORE_KEY_PASSWORD" \\
+                          --no-daemon --stacktrace --info
+                    ''',
+                    environment: [
+                        "KEYSTORE_FILE_PATH=${KEYSTORE_FILE_PATH}",
+                        "KEYSTORE_STORE_PASSWORD=${KEYSTORE_STORE_PASSWORD}",
+                        "KEYSTORE_KEY_PASSWORD=${KEYSTORE_KEY_PASSWORD}",
+                        "KEYSTORE_KEY_ALIAS=${KEYSTORE_KEY_ALIAS}"
+                    ])
+                }
+            }
+            post {
+                success {
+                    archiveArtifacts artifacts: 'build/app/outputs/flutter-apk/app-debug.apk', fingerprint: true
+                    echo "APK debug generado y archivado."
+                }
+            }
         }
-    }
-}
+
         stage('Build Android AAB for Store') {
             steps {
                 withCredentials([
@@ -65,19 +83,29 @@ pipeline {
                     string(credentialsId: 'KEYSTORE_KEY_PASSWORD', variable: 'KEYSTORE_KEY_PASSWORD'),
                     string(credentialsId: 'KEYSTORE_KEY_ALIAS', variable: 'KEYSTORE_KEY_ALIAS')
                 ]) {
-                    sh """
+                    sh(script: '''
+                        ./gradlew --stop
+                        flutter clean
+
                         flutter build appbundle --release \\
-                          -PKEYSTORE_PATH='${KEYSTORE_FILE_PATH}' \\
-                          -PKEYSTORE_PASSWORD='${KEYSTORE_STORE_PASSWORD}' \\
-                          -PKEY_ALIAS='${KEYSTORE_KEY_ALIAS}' \\
-                          -PKEY_PASSWORD='${KEYSTORE_KEY_PASSWORD}'
-                    """
+                          -PKEYSTORE_PATH="$KEYSTORE_FILE_PATH" \\
+                          -PKEYSTORE_PASSWORD="$KEYSTORE_STORE_PASSWORD" \\
+                          -PKEY_ALIAS="$KEYSTORE_KEY_ALIAS" \\
+                          -PKEY_PASSWORD="$KEYSTORE_KEY_PASSWORD" \\
+                          --no-daemon --stacktrace --info
+                    ''',
+                    environment: [
+                        "KEYSTORE_FILE_PATH=${KEYSTORE_FILE_PATH}",
+                        "KEYSTORE_STORE_PASSWORD=${KEYSTORE_STORE_PASSWORD}",
+                        "KEYSTORE_KEY_PASSWORD=${KEYSTORE_KEY_PASSWORD}",
+                        "KEYSTORE_KEY_ALIAS=${KEYSTORE_KEY_ALIAS}"
+                    ])
                 }
             }
             post {
                 success {
                     archiveArtifacts artifacts: 'build/app/outputs/bundle/release/app-release.aab', fingerprint: true
-                    echo "AAB para la tienda generado y archivado: build/app/outputs/bundle/release/app-release.aab"
+                    echo "AAB para la tienda generado y archivado."
                 }
             }
         }
