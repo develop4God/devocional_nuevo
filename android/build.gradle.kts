@@ -15,20 +15,18 @@ allprojects {
     }
 }
 
-// --- ELIMINA O COMENTA ESTAS LÍNEAS ---
-// val newBuildDir: Directory = rootProject.layout.buildDirectory.dir("../../build").get()
-// rootProject.layout.buildDirectory.value(newBuildDir)
-//
-// subprojects {
-//     val newSubprojectBuildDir: Directory = newBuildDir.dir(project.name)
-//     project.layout.buildDirectory.value(newSubprojectBuildDir)
-// }
-// subprojects {
-//     project.evaluationDependsOn(":app")
-// }
-// --------------------------------------
+// Mantén la redirección del buildDir como en tu configuración previa
+val newBuildDir: Directory = rootProject.layout.buildDirectory.dir("../../build").get()
+rootProject.layout.buildDirectory.value(newBuildDir)
 
-// Mantén la tarea clean que es útil para limpiar la carpeta de build
+subprojects {
+    val newSubprojectBuildDir: Directory = newBuildDir.dir(project.name)
+    project.layout.buildDirectory.value(newSubprojectBuildDir)
+}
+subprojects {
+    project.evaluationDependsOn(":app")
+}
+
 tasks.register<Delete>("clean") {
     delete(rootProject.layout.buildDirectory)
 }
