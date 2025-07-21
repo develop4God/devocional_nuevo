@@ -50,8 +50,8 @@ android {
     }
 
     // INICIO DEL BLOQUE DE CONFIGURACIÓN DE FIRMA (igual que antes)
-    signingConfigs {
-        create("release") {
+
+     signingConfigs.create("release") { // Esta línea ha sido modificada
             // MODIFICACIÓN: Leer propiedades directamente de Gradle (pasadas por Jenkins)
             // Si no se encuentran como propiedades de Gradle, recurrir a System.getenv o key.properties (para desarrollo local)
             storeFile = file(project.properties["KEYSTORE_PATH"]?.toString() ?: System.getenv("KEYSTORE_PATH") ?: keystoreProperties.getProperty("storeFile"))
