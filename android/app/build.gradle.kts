@@ -52,15 +52,25 @@ android {
     }
 
     // INICIO DEL BLOQUE DE CONFIGURACIÓN DE FIRMA
-    // MODIFICACIÓN: Restaurar la sintaxis de bloque correcta para signingConfigs
-    signingConfigs { // Esta línea es correcta, no se modifica aquí
+     signingConfigs {
         create("release") {
-            // MODIFICACIÓN: Leer propiedades directamente de Gradle (pasadas por Jenkins)
-            // Si no se encuentran como propiedades de Gradle, recurrir a System.getenv o key.properties (para desarrollo local)
-            storeFile = file(project.properties["KEYSTORE_PATH"]?.toString() ?: System.getenv("KEYSTORE_PATH") ?: keystoreProperties.getProperty("storeFile"))
-            storePassword = project.properties["KEYSTORE_PASSWORD"]?.toString() ?: System.getenv("KEYSTORE_PASSWORD") ?: keystoreProperties.getProperty("storePassword")
-            keyAlias = project.properties["KEY_ALIAS"]?.toString() ?: System.getenv("KEY_ALIAS") ?: keystoreProperties.getProperty("keyAlias")
-            keyPassword = project.properties["KEY_PASSWORD"]?.toString() ?: System.getenv("KEY_PASSWORD") ?: keystoreProperties.getProperty("keyPassword")
+            // Lee de project.properties, después de env, después de key.properties (solo si existe)
+            val storeFilePath = project.findProperty("KEYSTORE_PATH")?.toString()
+                ?: System.getenv("KEYSTORE_PATH")
+                ?: keystoreProperties.getProperty("storeFile")
+            if (storeFilePath == null) {
+                throw GradleException("KEYSTORE_PATH no definido para la firma. Revisa la configuración en Jenkins o key.properties.")
+            }
+            storeFile = file(storeFilePath)
+            storePassword = project.findProperty("KEYSTORE_PASSWORD")?.toString()
+                ?: System.getenv("KEYSTORE_PASSWORD")
+                ?: keystoreProperties.getProperty("storePassword")
+            keyAlias = project.findProperty("KEY_ALIAS")?.toString()
+                ?: System.getenv("KEY_ALIAS")
+                ?: keystoreProperties.getProperty("keyAlias")
+            keyPassword = project.findProperty("KEY_PASSWORD")?.toString()
+                ?: System.getenv("KEY_PASSWORD")
+                ?: keystoreProperties.getProperty("keyPassword")
         }
     }
     // FIN DEL BLOQUE DE CONFIGURACIÓN DE FIRMA
