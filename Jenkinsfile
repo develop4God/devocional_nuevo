@@ -2,6 +2,7 @@ pipeline {
     agent any
 
     environment {
+        // Ajusta la ruta a Flutter según tu servidor.
         FLUTTER_HOME = "/usr/local/flutter"
         PATH = "${env.FLUTTER_HOME}/bin:${env.PATH}"
     }
@@ -10,6 +11,12 @@ pipeline {
         stage('Clean Workspace') {
             steps {
                 deleteDir()
+            }
+        }
+        stage('Check Flutter') {
+            steps {
+                sh 'which flutter || echo "Flutter no está instalado o no está en el PATH"'
+                sh 'flutter --version || echo "Flutter no disponible"'
             }
         }
         stage('Flutter Pub Get') {
@@ -39,9 +46,7 @@ pipeline {
                               -PKEYSTORE_PASSWORD="$KEYSTORE_STORE_PASSWORD" \
                               -PKEY_ALIAS="$KEYSTORE_KEY_ALIAS" \
                               -PKEY_PASSWORD="$KEYSTORE_KEY_PASSWORD" \
-                              --no-daemon --stacktrace --info -Pflutter.build.verbose=true \
-                              -Dorg.gradle.jvmargs="-Xmx4G" \
-                              -Pandroid.suppressUnsupportedCompileSdk=36
+                              --no-daemon --stacktrace --info
                         '''
                     }
                 }
@@ -49,7 +54,6 @@ pipeline {
             post {
                 success {
                     archiveArtifacts artifacts: 'android/app/build/outputs/apk/debug/app-debug.apk', fingerprint: true
-                    echo "APK debug generado y archivado."
                 }
             }
         }
@@ -70,9 +74,7 @@ pipeline {
                               -PKEYSTORE_PASSWORD="$KEYSTORE_STORE_PASSWORD" \
                               -PKEY_ALIAS="$KEYSTORE_KEY_ALIAS" \
                               -PKEY_PASSWORD="$KEYSTORE_KEY_PASSWORD" \
-                              --no-daemon --stacktrace --info -Pflutter.build.verbose=true \
-                              -Dorg.gradle.jvmargs="-Xmx4G" \
-                              -Pandroid.suppressUnsupportedCompileSdk=36
+                              --no-daemon --stacktrace --info
                         '''
                     }
                 }
@@ -80,7 +82,6 @@ pipeline {
             post {
                 success {
                     archiveArtifacts artifacts: 'android/app/build/outputs/bundle/release/app-release.aab', fingerprint: true
-                    echo "AAB para la tienda generado y archivado."
                 }
             }
         }
