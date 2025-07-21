@@ -59,14 +59,14 @@ pipeline {
                         dir('android') {
                             sh '''
                                 ./gradlew --stop
-                                ./gradlew assembleDebug \\
-                                  -Pflutter.projectRoot=../ \\
-                                  -PKEYSTORE_PATH="$KEYSTORE_FILE_PATH" \\
-                                  -PKEYSTORE_PASSWORD="$KEYSTORE_STORE_PASSWORD" \\
-                                  -PKEY_ALIAS="$KEYSTORE_KEY_ALIAS" \\
-                                  -PKEY_PASSWORD="$KEYSTORE_KEY_PASSWORD" \\
-                                  --no-daemon --stacktrace --info -Pflutter.build.verbose=true // CAMBIO: Añadido -Pflutter.build.verbose=true y eliminado --verbose
-                            '''
+                                ./gradlew assembleDebug \
+                                  -Pflutter.projectRoot=../ \
+                                  -PKEYSTORE_PATH="$KEYSTORE_FILE_PATH" \
+                                  -PKEYSTORE_PASSWORD="$KEYSTORE_STORE_PASSWORD" \
+                                  -PKEY_ALIAS="$KEYSTORE_KEY_ALIAS" \
+                                  -PKEY_PASSWORD="$KEYSTORE_KEY_PASSWORD" \
+                                  --no-daemon --stacktrace --info -Pflutter.build.verbose=true 
+                            ''' // CAMBIO: Eliminadas las barras invertidas al final de las líneas
                         }
                     }
                 }
@@ -99,14 +99,14 @@ pipeline {
                         dir('android') {
                             sh '''
                                 ./gradlew --stop
-                                ./gradlew bundleRelease \\
-                                  -Pflutter.projectRoot=../ \\
-                                  -PKEYSTORE_PATH="$KEYSTORE_FILE_PATH" \\
-                                  -PKEYSTORE_PASSWORD="$KEYSTORE_STORE_PASSWORD" \\
-                                  -PKEY_ALIAS="$KEYSTORE_KEY_ALIAS" \\
-                                  -PKEY_PASSWORD="$KEYSTORE_KEY_PASSWORD" \\
-                                  --no-daemon --stacktrace --info -Pflutter.build.verbose=true // CAMBIO: Añadido -Pflutter.build.verbose=true y eliminado --verbose
-                            '''
+                                ./gradlew bundleRelease \
+                                  -Pflutter.projectRoot=../ \
+                                  -PKEYSTORE_PATH="$KEYSTORE_FILE_PATH" \
+                                  -PKEYSTORE_PASSWORD="$KEYSTORE_STORE_PASSWORD" \
+                                  -PKEY_ALIAS="$KEYSTORE_KEY_ALIAS" \
+                                  -PKEY_PASSWORD="$KEYSTORE_KEY_PASSWORD" \
+                                  --no-daemon --stacktrace --info -Pflutter.build.verbose=true 
+                            ''' // CAMBIO: Eliminadas las barras invertidas al final de las líneas
                         }
                     }
                 }
