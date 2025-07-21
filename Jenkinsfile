@@ -57,14 +57,12 @@ pipeline {
                     string(credentialsId: 'KEYSTORE_KEY_ALIAS', variable: 'KEYSTORE_KEY_ALIAS')
                 ]) {
                     sh """
-                        # Establecer variables de entorno para Gradle
-                        export KEYSTORE_PATH="${KEYSTORE_FILE_PATH}"
-                        export KEYSTORE_PASSWORD="${KEYSTORE_STORE_PASSWORD}"
-                        export KEY_ALIAS="${KEYSTORE_KEY_ALIAS}"
-                        export KEY_PASSWORD="${KEYSTORE_KEY_PASSWORD}"
-
-                        # Ejecutar el build de Flutter
-                        flutter build apk --debug
+                        # Ejecutar el build de Flutter, pasando las credenciales directamente como propiedades de Gradle
+                        flutter build apk --debug \\
+                          --dart-define=KEYSTORE_PATH='${KEYSTORE_FILE_PATH}' \\
+                          --dart-define=KEYSTORE_PASSWORD='${KEYSTORE_STORE_PASSWORD}' \\
+                          --dart-define=KEY_ALIAS='${KEYSTORE_KEY_ALIAS}' \\
+                          --dart-define=KEY_PASSWORD='${KEYSTORE_KEY_PASSWORD}'
                     """
                 }
             }
@@ -89,14 +87,12 @@ pipeline {
                     string(credentialsId: 'KEYSTORE_KEY_ALIAS', variable: 'KEYSTORE_KEY_ALIAS')
                 ]) {
                     sh """
-                        # Establecer variables de entorno para Gradle
-                        export KEYSTORE_PATH="${KEYSTORE_FILE_PATH}"
-                        export KEYSTORE_PASSWORD="${KEYSTORE_STORE_PASSWORD}"
-                        export KEY_ALIAS="${KEYSTORE_KEY_ALIAS}"
-                        export KEY_PASSWORD="${KEYSTORE_KEY_PASSWORD}"
-
-                        # Compila la aplicación para Android en formato AAB en modo release.
-                        flutter build appbundle --release
+                        # Compila la aplicación para Android en formato AAB en modo release, pasando las credenciales directamente como propiedades de Gradle
+                        flutter build appbundle --release \\
+                          --dart-define=KEYSTORE_PATH='${KEYSTORE_FILE_PATH}' \\
+                          --dart-define=KEYSTORE_PASSWORD='${KEYSTORE_STORE_PASSWORD}' \\
+                          --dart-define=KEY_ALIAS='${KEYSTORE_KEY_ALIAS}' \\
+                          --dart-define=KEY_PASSWORD='${KEYSTORE_KEY_PASSWORD}'
                     """
                 }
             }
