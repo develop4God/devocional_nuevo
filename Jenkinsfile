@@ -2,44 +2,27 @@ pipeline {
     agent any
 
     environment {
-        ANDROID_HOME = '/opt/android-sdk'
-        PATH = "${env.PATH}:/opt/flutter/bin:${env.ANDROID_HOME}/cmdline-tools/latest/bin:${env.ANDROID_HOME}/platform-tools:${env.ANDROID_HOME}/build-tools/34.0.0"
+        FLUTTER_HOME = "/usr/local/flutter"
+        PATH = "${env.FLUTTER_HOME}/bin:${env.PATH}"
     }
 
     stages {
-        stage('Checkout Code') {
+        stage('Clean Workspace') {
             steps {
-                git url: 'https://github.com/develop4God/Devocional_nuevo.git', branch: 'main'
+                deleteDir()
             }
         }
-
-        stage('Install Dependencies') {
+        stage('Flutter Pub Get') {
             steps {
-                sh 'flutter clean' // Se ejecuta flutter clean antes de pub get
-                sh 'flutter pub cache clean --force'
                 sh 'flutter pub get'
             }
         }
-
-        stage('Run Tests') {
+        stage('Flutter Build APK (Debug)') {
             steps {
-                echo 'Skipping Flutter tests as requested.'
+                sh 'flutter build apk --debug'
             }
         }
-
-        stage('Check Java Version') {
-            steps {
-                sh 'java -version'
-            }
-        }
-
-        stage('Check JAVA_HOME') {
-            steps {
-                sh 'echo $JAVA_HOME'
-            }
-        }
-
-        stage('Build Android Debug APK') {
+        stage('Build Android APK (Debug)') {
             steps {
                 withCredentials([
                     file(credentialsId: 'UPLOAD_KEYSTORE_FILE', variable: 'KEYSTORE_FILE_PATH'),
@@ -47,10 +30,6 @@ pipeline {
                     string(credentialsId: 'KEYSTORE_KEY_PASSWORD', variable: 'KEYSTORE_KEY_PASSWORD'),
                     string(credentialsId: 'KEYSTORE_KEY_ALIAS', variable: 'KEYSTORE_KEY_ALIAS')
                 ]) {
-                    // Se ha eliminado el bloque 'withEnv' redundante que causaba la advertencia de seguridad.
-                    // Las variables de credenciales ya están disponibles directamente aquí.
-                    
-                    // Ejecutar gradlew desde directorio android
                     dir('android') {
                         sh '''
                             ./gradlew --stop
@@ -63,8 +42,7 @@ pipeline {
                               --no-daemon --stacktrace --info -Pflutter.build.verbose=true \
                               -Dorg.gradle.jvmargs="-Xmx4G" \
                               -Pandroid.suppressUnsupportedCompileSdk=36
-                        ''' // Opciones de memoria JVM y supresión de warning de compileSdk añadidas.
-                            // Las barras invertidas al final de las líneas se han eliminado para evitar el error 'Task // not found'.
+                        '''
                     }
                 }
             }
@@ -75,7 +53,6 @@ pipeline {
                 }
             }
         }
-
         stage('Build Android AAB for Store') {
             steps {
                 withCredentials([
@@ -84,9 +61,6 @@ pipeline {
                     string(credentialsId: 'KEYSTORE_KEY_PASSWORD', variable: 'KEYSTORE_KEY_PASSWORD'),
                     string(credentialsId: 'KEYSTORE_KEY_ALIAS', variable: 'KEYSTORE_KEY_ALIAS')
                 ]) {
-                    // Se ha eliminado el bloque 'withEnv' redundante que causaba la advertencia de seguridad.
-                    
-                    // Ejecutar gradlew desde directorio android
                     dir('android') {
                         sh '''
                             ./gradlew --stop
@@ -99,8 +73,7 @@ pipeline {
                               --no-daemon --stacktrace --info -Pflutter.build.verbose=true \
                               -Dorg.gradle.jvmargs="-Xmx4G" \
                               -Pandroid.suppressUnsupportedCompileSdk=36
-                        ''' // Opciones de memoria JVM y supresión de warning de compileSdk añadidas.
-                            // Las barras invertidas al final de las líneas se han eliminado para evitar el error 'Task // not found'.
+                        '''
                     }
                 }
             }
