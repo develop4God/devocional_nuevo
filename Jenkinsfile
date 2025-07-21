@@ -15,6 +15,7 @@ pipeline {
 
         stage('Install Dependencies') {
             steps {
+                sh 'flutter clean' // Mover flutter clean aquí, antes de flutter pub get
                 sh 'flutter pub cache clean --force'
                 sh 'flutter pub get'
             }
@@ -52,9 +53,8 @@ pipeline {
                         "KEYSTORE_KEY_PASSWORD=${KEYSTORE_KEY_PASSWORD}",
                         "KEYSTORE_KEY_ALIAS=${KEYSTORE_KEY_ALIAS}"
                     ]) {
-                        // Ejecutar flutter clean desde la raíz
-                        sh 'flutter clean'
-
+                        // Ya no es necesario ejecutar flutter clean aquí, se hizo en "Install Dependencies"
+                        
                         // Ejecutar gradlew desde directorio android
                         dir('android') {
                             sh '''
@@ -93,9 +93,8 @@ pipeline {
                         "KEYSTORE_KEY_PASSWORD=${KEYSTORE_KEY_PASSWORD}",
                         "KEYSTORE_KEY_ALIAS=${KEYSTORE_KEY_ALIAS}"
                     ]) {
-                        // Ejecutar flutter clean desde la raíz
-                        sh 'flutter clean'
-
+                        // Ya no es necesario ejecutar flutter clean aquí
+                        
                         // Ejecutar gradlew desde directorio android
                         dir('android') {
                             sh '''
