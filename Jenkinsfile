@@ -57,15 +57,16 @@ pipeline {
 
                         // Ejecutar gradlew desde directorio android
                         dir('android') {
-                            sh '''
-                                ./gradlew --stop
-                                ./gradlew assembleDebug \
-                                  -PKEYSTORE_PATH="$KEYSTORE_FILE_PATH" \
-                                  -PKEYSTORE_PASSWORD="$KEYSTORE_STORE_PASSWORD" \
-                                  -PKEY_ALIAS="$KEYSTORE_KEY_ALIAS" \
-                                  -PKEY_PASSWORD="$KEYSTORE_KEY_PASSWORD" \
-                                  --no-daemon --stacktrace --info
-                            '''
+                            sh '''
+                                ./gradlew --stop
+                                ./gradlew assembleDebug \
+                                  -Pflutter.projectRoot=../ \
+                                  -PKEYSTORE_PATH="$KEYSTORE_FILE_PATH" \
+                                  -PKEYSTORE_PASSWORD="$KEYSTORE_STORE_PASSWORD" \
+                                  -PKEY_ALIAS="$KEYSTORE_KEY_ALIAS" \
+                                  -PKEY_PASSWORD="$KEYSTORE_KEY_PASSWORD" \
+                                  --no-daemon --stacktrace --info
+                            '''
                         }
                     }
                 }
