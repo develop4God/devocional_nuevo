@@ -12,6 +12,8 @@ plugins {
 }
 
 // INICIO DEL BLOQUE DE CARGA DE PROPIEDADES (igual que antes, pero ahora los imports lo hacen funcionar)
+// MODIFICACIÓN: Este bloque ya no es estrictamente necesario para la firma en Jenkins,
+// pero se mantiene si lo usas para builds locales fuera de Jenkins.
 val keystoreProperties = Properties()
 val keystorePropertiesFile = rootProject.file("key.properties")
 if (keystorePropertiesFile.exists()) {
@@ -40,8 +42,8 @@ android {
     defaultConfig {
         applicationId = "com.develop4god.devocional_nuevo"
         // MODIFICACIÓN: Usar flutter.minSdkVersion con la sintaxis correcta de Kotlin DSL pruebas de Jenkins
-	minSdkVersion(flutter.minSdkVersion)
-	//minSdk = 23 // CAMBIO: Aumentar la versión mínima del SDK a 23 este campo estaba previo y funcional, se comenta para poder probar jenkins
+        minSdkVersion(flutter.minSdkVersion)
+        //minSdk = 23 // CAMBIO: Aumentar la versión mínima del SDK a 23 este campo estaba previo y funcional, se comenta para poder probar jenkins
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
@@ -49,20 +51,23 @@ android {
         multiDexEnabled = true
     }
 
-    // INICIO DEL BLOQUE DE CONFIGURACIÓN DE FIRMA (igual que antes)
-
-     signingConfigs.create("release") { // Esta línea ha sido modificada
-            // MODIFICACIÓN: Leer propiedades directamente de Gradle (pasadas por Jenkins)
-            // Si no se encuentran como propiedades de Gradle, recurrir a System.getenv o key.properties (para desarrollo local)
-            storeFile = file(project.properties["KEYSTORE_PATH"]?.toString() ?: System.getenv("KEYSTORE_PATH") ?: keystoreProperties.getProperty("storeFile"))
-            storePassword = project.properties["KEYSTORE_PASSWORD"]?.toString() ?: System.getenv("KEYSTORE_PASSWORD") ?: keystoreProperties.getProperty("storePassword")
-            keyAlias = project.properties["KEY_ALIAS"]?.toString() ?: System.getenv("KEY_ALIAS") ?: keystoreProperties.getProperty("keyAlias")
-            keyPassword = project.properties["KEY_PASSWORD"]?.toString() ?: System.getenv("KEY_PASSWORD") ?: keystoreProperties.getProperty("keyPassword")
-        }
-    }
+    // INICIO DEL BLOQUE DE CONFIGURACIÓN DE FIRMA
+    // MODIFICACIÓN: Restaurar la sintaxis de bloque correcta para signingConfigs
+    signingConfigs { // Esta línea es correcta, no se modifica aquí
+        create("release") {
+            // MODIFICACIÓN: Leer propiedades directamente de Gradle (pasadas por Jenkins)
+            // Si no se encuentran como propiedades de Gradle, recurrir a System.getenv o key.properties (para desarrollo local)
+            storeFile = file(project.properties["KEYSTORE_PATH"]?.toString() ?: System.getenv("KEYSTORE_PATH") ?: keystoreProperties.getProperty("storeFile"))
+            storePassword = project.properties["KEYSTORE_PASSWORD"]?.toString() ?: System.getenv("KEYSTORE_PASSWORD") ?: keystoreProperties.getProperty("storePassword")
+            keyAlias = project.properties["KEY_ALIAS"]?.toString() ?: System.getenv("KEY_ALIAS") ?: keystoreProperties.getProperty("keyAlias")
+            keyPassword = project.properties["KEY_PASSWORD"]?.toString() ?: System.getenv("KEY_PASSWORD") ?: keystoreProperties.getProperty("keyPassword")
+        }
+    }
     // FIN DEL BLOQUE DE CONFIGURACIÓN DE FIRMA
 
-    buildTypes {
+    // INICIO DEL BLOQUE DE CONFIGURACIÓN DE TIPOS DE CONSTRUCCIÓN
+    // MODIFICACIÓN: Restaurar la sintaxis de bloque correcta para buildTypes
+    buildTypes { // Esta línea es correcta, no se modifica aquí
         release {
             signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = true
@@ -73,6 +78,7 @@ android {
             proguardFiles(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro")
         }
     }
+    // FIN DEL BLOQUE DE CONFIGURACIÓN DE TIPOS DE CONSTRUCCIÓN
 }
 
 // ✅ CAMBIO 3: Agregar esta sección de dependencies
