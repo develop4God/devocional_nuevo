@@ -1,4 +1,4 @@
-Jenkinsfile Finalpipeline {
+pipeline {
     agent any
 
     environment {
