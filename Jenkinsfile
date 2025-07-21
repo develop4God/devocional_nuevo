@@ -65,7 +65,7 @@ pipeline {
                                   -PKEYSTORE_PASSWORD="$KEYSTORE_STORE_PASSWORD" \
                                   -PKEY_ALIAS="$KEYSTORE_KEY_ALIAS" \
                                   -PKEY_PASSWORD="$KEYSTORE_KEY_PASSWORD" \
-                                  --no-daemon --stacktrace --info
+                                  --no-daemon --stacktrace --info --verbose
                             '''
                         }
                     }
@@ -105,7 +105,7 @@ pipeline {
                                   -PKEYSTORE_PASSWORD="$KEYSTORE_STORE_PASSWORD" \
                                   -PKEY_ALIAS="$KEYSTORE_KEY_ALIAS" \
                                   -PKEY_PASSWORD="$KEYSTORE_KEY_PASSWORD" \
-                                  --no-daemon --stacktrace --info
+                                  --no-daemon --stacktrace --info --verbose
                             '''
                         }
                     }
