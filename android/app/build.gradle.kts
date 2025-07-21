@@ -51,13 +51,15 @@ android {
 
     // INICIO DEL BLOQUE DE CONFIGURACIÓN DE FIRMA (igual que antes)
     signingConfigs {
-        create("release") {
-            storeFile = file(System.getenv("KEYSTORE_PATH") ?: keystoreProperties.getProperty("storeFile"))
-            storePassword = System.getenv("KEYSTORE_PASSWORD") ?: keystoreProperties.getProperty("storePassword")
-            keyAlias = System.getenv("KEY_ALIAS") ?: keystoreProperties.getProperty("keyAlias")
-            keyPassword = System.getenv("KEY_PASSWORD") ?: keystoreProperties.getProperty("keyPassword")
-        }
-    }
+        create("release") {
+            // MODIFICACIÓN: Leer propiedades directamente de Gradle (pasadas por Jenkins)
+            // Si no se encuentran como propiedades de Gradle, recurrir a System.getenv o key.properties (para desarrollo local)
+            storeFile = file(project.properties["KEYSTORE_PATH"]?.toString() ?: System.getenv("KEYSTORE_PATH") ?: keystoreProperties.getProperty("storeFile"))
+            storePassword = project.properties["KEYSTORE_PASSWORD"]?.toString() ?: System.getenv("KEYSTORE_PASSWORD") ?: keystoreProperties.getProperty("storePassword")
+            keyAlias = project.properties["KEY_ALIAS"]?.toString() ?: System.getenv("KEY_ALIAS") ?: keystoreProperties.getProperty("keyAlias")
+            keyPassword = project.properties["KEY_PASSWORD"]?.toString() ?: System.getenv("KEY_PASSWORD") ?: keystoreProperties.getProperty("keyPassword")
+        }
+    }
     // FIN DEL BLOQUE DE CONFIGURACIÓN DE FIRMA
 
     buildTypes {
