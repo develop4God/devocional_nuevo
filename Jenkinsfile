@@ -7,9 +7,10 @@ pipeline {
     }
 
     stages {
-        stage('Clean Workspace') {
+        stage('Checkout Code') {
             steps {
-                deleteDir()
+                // Descarga el código fuente antes de todo
+                checkout scm
             }
         }
         stage('Check Flutter') {
@@ -60,11 +61,6 @@ pipeline {
             }
         }
         stage('Build Android AAB for Store') {
-            when {
-                expression {
-                    return false // Skipped if APK build fails, but keep for future release builds
-                }
-            }
             steps {
                 withCredentials([
                     file(credentialsId: 'UPLOAD_KEYSTORE_FILE', variable: 'KEYSTORE_FILE_PATH'),
