@@ -10,12 +10,15 @@ pipeline {
 
         stage('Check Flutter') {
             steps {
-                withEnv(['FLUTTER_HOME=/mnt/c/src/flutter', 'PATH+FLUTTER=/mnt/c/src/flutter/bin']) {
-                    sh 'which flutter'
-                    sh 'flutter --version'
-                    sh 'echo $FLUTTER_HOME'
-                    sh 'ls $FLUTTER_HOME/packages/flutter_test'
-                }
+               withEnv([
+    'FLUTTER_HOME=/mnt/c/src/flutter',
+    'PATH+FLUTTER=/mnt/c/src/flutter/bin',
+    'PUB_CACHE=/var/lib/jenkins/.pub-cache'
+]) {
+    sh 'flutter clean'
+    sh 'flutter pub cache clean --force'
+    sh 'flutter pub get'
+}
             }
         }
 
