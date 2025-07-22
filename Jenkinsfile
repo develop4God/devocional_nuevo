@@ -1,81 +1,79 @@
 pipeline {
     agent any
 
-    environment {
-        FLUTTER_HOME = "/mnt/c/src/flutter"
-        PATH = "${env.FLUTTER_HOME}/bin:${env.PATH}"
-    }
+    // Eliminamos el bloque 'environment' global para evitar posibles warnings
+    // con la concatenación de PATH y definimos las variables localmente con withEnv.
 
     stages {
-        stage('Checkout Code') {
+        stage('Declarative: Checkout SCM') {
             steps {
-                // Descarga el código fuente antes de todo
                 checkout scm
             }
         }
+
+        stage('Checkout Code') {
+            steps {
+                checkout scm
+            }
+        }
+
         stage('Check Flutter') {
             steps {
-                sh 'which flutter || echo "Flutter no está instalado o no está en el PATH"'
-                sh 'flutter --version || echo "Flutter no disponible"'
+                // Definimos FLUTTER_HOME y PATH específicamente para esta etapa
+                withEnv(['FLUTTER_HOME=/mnt/c/src/flutter', 'PATH+FLUTTER=/mnt/c/src/flutter/bin']) {
+                    sh 'which flutter'
+                    sh 'flutter --version'
+                }
             }
         }
+
         stage('Install Dependencies') {
             steps {
-                sh 'flutter clean'
-                sh 'flutter pub cache clean --force'
-                sh 'flutter pub get'
+                // Definimos FLUTTER_HOME y PATH específicamente para esta etapa
+                withEnv(['FLUTTER_HOME=/mnt/c/src/flutter', 'PATH+FLUTTER=/mnt/c/src/flutter/bin']) {
+                    sh 'flutter clean'
+                    sh 'flutter pub cache clean --force'
+                    sh 'flutter pub get'
+                }
             }
         }
+
         stage('Run Tests') {
             steps {
-                echo 'Skipping Flutter tests as requested.'
+                // Definimos FLUTTER_HOME y PATH específicamente para esta etapa
+                withEnv(['FLUTTER_HOME=/mnt/c/src/flutter', 'PATH+FLUTTER=/mnt/c/src/flutter/bin']) {
+                    sh 'flutter test'
+                }
             }
         }
+
         stage('Check Java Version') {
             steps {
                 sh 'java -version'
             }
         }
+
         stage('Check JAVA_HOME') {
             steps {
-                sh 'echo $JAVA_HOME'
+                sh 'echo "JAVA_HOME is $JAVA_HOME"'
+                sh 'ls -l $JAVA_HOME' // Verify JAVA_HOME content
             }
         }
+
         stage('Build Android Debug APK') {
             steps {
-                withCredentials([
-                    file(credentialsId: 'UPLOAD_KEYSTORE_FILE', variable: 'KEYSTORE_FILE_PATH'),
-                    string(credentialsId: 'KEYSTORE_STORE_PASSWORD', variable: 'KEYSTORE_STORE_PASSWORD'),
-                    string(credentialsId: 'KEYSTORE_KEY_PASSWORD', variable: 'KEYSTORE_KEY_PASSWORD'),
-                    string(credentialsId: 'KEYSTORE_KEY_ALIAS', variable: 'KEYSTORE_KEY_ALIAS')
-                ]) {
-                    sh '''
-                        flutter build apk --debug --target-platform android-arm,android-arm64,android-x64 --split-per-abi --no-version-check --verbose -Pandroid.suppressUnsupportedCompileSdk=36 --build-name=49 --build-number=49 --dart-define=KEYSTORE_PATH="$KEYSTORE_FILE_PATH" --dart-define=KEYSTORE_STORE_PASSWORD="$KEYSTORE_STORE_PASSWORD" --dart-define=KEYSTORE_KEY_PASSWORD="$KEYSTORE_KEY_PASSWORD" --dart-define=KEYSTORE_KEY_ALIAS="$KEYSTORE_KEY_ALIAS"
-                    '''
-                }
-            }
-            post {
-                success {
-                    archiveArtifacts artifacts: 'android/app/build/outputs/apk/debug/app-debug.apk', fingerprint: true
+                // Definimos FLUTTER_HOME y PATH específicamente para esta etapa
+                withEnv(['FLUTTER_HOME=/mnt/c/src/flutter', 'PATH+FLUTTER=/mnt/c/src/flutter/bin']) {
+                    sh 'flutter build apk --debug'
                 }
             }
         }
+
         stage('Build Android AAB for Store') {
             steps {
-                withCredentials([
-                    file(credentialsId: 'UPLOAD_KEYSTORE_FILE', variable: 'KEYSTORE_FILE_PATH'),
-                    string(credentialsId: 'KEYSTORE_STORE_PASSWORD', variable: 'KEYSTORE_STORE_PASSWORD'),
-                    string(credentialsId: 'KEYSTORE_KEY_PASSWORD', variable: 'KEYSTORE_KEY_PASSWORD'),
-                    string(credentialsId: 'KEYSTORE_KEY_ALIAS', variable: 'KEYSTORE_KEY_ALIAS')
-                ]) {
-                    sh '''
-                        flutter build appbundle --release --target-platform android-arm,android-arm64,android-x64 --split-per-abi --no-version-check --verbose -Pandroid.suppressUnsupportedCompileSdk=36 --build-name=49 --build-number=49 --dart-define=KEYSTORE_PATH="$KEYSTORE_FILE_PATH" --dart-define=KEYSTORE_STORE_PASSWORD="$KEYSTORE_STORE_PASSWORD" --dart-define=KEYSTORE_KEY_PASSWORD="$KEYSTORE_KEY_PASSWORD" --dart-define=KEYSTORE_KEY_ALIAS="$KEYSTORE_KEY_ALIAS"
-                    '''
-                }
-            }
-            post {
-                success {
-                    archiveArtifacts artifacts: 'android/app/build/outputs/bundle/release/app-release.aab', fingerprint: true
+                // Definimos FLUTTER_HOME y PATH específicamente para esta etapa
+                withEnv(['FLUTTER_HOME=/mnt/c/src/flutter', 'PATH+FLUTTER=/mnt/c/src/flutter/bin']) {
+                    sh 'flutter build appbundle --release'
                 }
             }
         }
@@ -86,7 +84,7 @@ pipeline {
             echo 'Pipeline finalizado.'
         }
         success {
-            echo '¡Build y pruebas exitosos para todas las etapas configuradas!'
+            echo '¡El pipeline se ejecutó con éxito!'
         }
         failure {
             echo '¡El pipeline falló! Revisa los logs para depurar el problema.'
