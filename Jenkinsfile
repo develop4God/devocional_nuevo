@@ -2,44 +2,44 @@ pipeline {
     agent any
 
     environment {
-        ANDROID_HOME = '/opt/android-sdk'
-        // Priorizar la ruta de Flutter al principio del PATH
-        PATH = "/opt/flutter/bin:${env.PATH}:${env.ANDROID_HOME}/cmdline-tools/latest/bin:${env.ANDROID_HOME}/platform-tools:${env.ANDROID_HOME}/build-tools/34.0.0"
+        FLUTTER_HOME = "/mnt/c/src/flutter"
+        PATH = "${env.FLUTTER_HOME}/bin:${env.PATH}"
     }
 
     stages {
-        stage('Checkout Code') {
+        stage('Clean Workspace') {
             steps {
-                git url: 'https://github.com/develop4God/Devocional_nuevo.git', branch: 'main'
+                deleteDir()
             }
         }
-
+        stage('Check Flutter') {
+            steps {
+                sh 'which flutter || echo "Flutter no está instalado o no está en el PATH"'
+                sh 'flutter --version || echo "Flutter no disponible"'
+            }
+        }
         stage('Install Dependencies') {
             steps {
-                sh 'flutter clean' // Se ejecuta flutter clean antes de pub get
+                sh 'flutter clean'
                 sh 'flutter pub cache clean --force'
                 sh 'flutter pub get'
             }
         }
-
         stage('Run Tests') {
             steps {
                 echo 'Skipping Flutter tests as requested.'
             }
         }
-
         stage('Check Java Version') {
             steps {
                 sh 'java -version'
             }
         }
-
         stage('Check JAVA_HOME') {
             steps {
                 sh 'echo $JAVA_HOME'
             }
         }
-
         stage('Build Android Debug APK') {
             steps {
                 withCredentials([
@@ -48,38 +48,23 @@ pipeline {
                     string(credentialsId: 'KEYSTORE_KEY_PASSWORD', variable: 'KEYSTORE_KEY_PASSWORD'),
                     string(credentialsId: 'KEYSTORE_KEY_ALIAS', variable: 'KEYSTORE_KEY_ALIAS')
                 ]) {
-                    // El bloque 'withEnv' redundante se ha eliminado en versiones anteriores.
-                    // Las variables de credenciales ya están disponibles directamente aquí.
-                    
-                    // Usar 'flutter build apk' para una construcción más robusta.
-                    // Se usan comillas triples para el bloque sh, y las comillas internas de gradle-args
-                    // están escapadas para el shell.
                     sh '''
-                        flutter build apk --debug \
-                          --target-platform android-arm,android-arm64,android-x64 \
-                          --split-per-abi \
-                          --no-version-check \
-                          --verbose \
-                          --gradle-args="-Dorg.gradle.jvmargs=\\"-Xmx4G\\" -Pandroid.suppressUnsupportedCompileSdk=36" \
-                          --build-name=${BUILD_NUMBER} \
-                          --build-number=${BUILD_NUMBER} \
-                          --dart-define=KEYSTORE_PATH="${KEYSTORE_FILE_PATH}" \
-                          --dart-define=KEYSTORE_STORE_PASSWORD="${KEYSTORE_STORE_PASSWORD}" \
-                          --dart-define=KEYSTORE_KEY_PASSWORD="${KEYSTORE_KEY_PASSWORD}" \
-                          --dart-define=KEYSTORE_KEY_ALIAS="${KEYSTORE_KEY_ALIAS}"
+                        flutter build apk --debug --target-platform android-arm,android-arm64,android-x64 --split-per-abi --no-version-check --verbose -Pandroid.suppressUnsupportedCompileSdk=36 --build-name=49 --build-number=49 --dart-define=KEYSTORE_PATH="$KEYSTORE_FILE_PATH" --dart-define=KEYSTORE_STORE_PASSWORD="$KEYSTORE_STORE_PASSWORD" --dart-define=KEYSTORE_KEY_PASSWORD="$KEYSTORE_KEY_PASSWORD" --dart-define=KEYSTORE_KEY_ALIAS="$KEYSTORE_KEY_ALIAS"
                     '''
                 }
             }
             post {
                 success {
-                    // Archivar todos los APKs generados por --split-per-abi
-                    archiveArtifacts artifacts: 'build/app/outputs/flutter-apk/*.apk', fingerprint: true
-                    echo "APKs debug generados y archivados."
+                    archiveArtifacts artifacts: 'android/app/build/outputs/apk/debug/app-debug.apk', fingerprint: true
                 }
             }
         }
-
         stage('Build Android AAB for Store') {
+            when {
+                expression {
+                    return false // Skipped if APK build fails, but keep for future release builds
+                }
+            }
             steps {
                 withCredentials([
                     file(credentialsId: 'UPLOAD_KEYSTORE_FILE', variable: 'KEYSTORE_FILE_PATH'),
@@ -87,30 +72,14 @@ pipeline {
                     string(credentialsId: 'KEYSTORE_KEY_PASSWORD', variable: 'KEYSTORE_KEY_PASSWORD'),
                     string(credentialsId: 'KEYSTORE_KEY_ALIAS', variable: 'KEYSTORE_KEY_ALIAS')
                 ]) {
-                    // El bloque 'withEnv' redundante se ha eliminado en versiones anteriores.
-                    
-                    // Usar 'flutter build appbundle' para una construcción más robusta.
-                    // Se usan comillas triples para el bloque sh, y las comillas internas de gradle-args
-                    // están escapadas para el shell.
                     sh '''
-                        flutter build appbundle --release \
-                          --target-platform android-arm,android-arm64,android-x64 \
-                          --no-version-check \
-                          --verbose \
-                          --gradle-args="-Dorg.gradle.jvmargs=\\"-Xmx4G\\" -Pandroid.suppressUnsupportedCompileSdk=36" \
-                          --build-name=${BUILD_NUMBER} \
-                          --build-number=${BUILD_NUMBER} \
-                          --dart-define=KEYSTORE_PATH="${KEYSTORE_FILE_PATH}" \
-                          --dart-define=KEYSTORE_STORE_PASSWORD="${KEYSTORE_STORE_PASSWORD}" \
-                          --dart-define=KEYSTORE_KEY_PASSWORD="${KEYSTORE_KEY_PASSWORD}" \
-                          --dart-define=KEYSTORE_KEY_ALIAS="${KEYSTORE_KEY_ALIAS}"
+                        flutter build appbundle --release --target-platform android-arm,android-arm64,android-x64 --split-per-abi --no-version-check --verbose -Pandroid.suppressUnsupportedCompileSdk=36 --build-name=49 --build-number=49 --dart-define=KEYSTORE_PATH="$KEYSTORE_FILE_PATH" --dart-define=KEYSTORE_STORE_PASSWORD="$KEYSTORE_STORE_PASSWORD" --dart-define=KEYSTORE_KEY_PASSWORD="$KEYSTORE_KEY_PASSWORD" --dart-define=KEYSTORE_KEY_ALIAS="$KEYSTORE_KEY_ALIAS"
                     '''
                 }
             }
             post {
                 success {
-                    archiveArtifacts artifacts: 'build/app/outputs/bundle/release/*.aab', fingerprint: true
-                    echo "AAB para la tienda generado y archivado."
+                    archiveArtifacts artifacts: 'android/app/build/outputs/bundle/release/app-release.aab', fingerprint: true
                 }
             }
         }
