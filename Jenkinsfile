@@ -1,6 +1,14 @@
 pipeline {
     agent any
 
+    environment {
+        FLUTTER_HOME = '/mnt/c/src/flutter'
+        ANDROID_HOME = '/opt/android-sdk'
+        ANDROID_SDK_ROOT = '/opt/android-sdk'
+        PUB_CACHE = '/var/lib/jenkins/.pub-cache'
+        PATH = "$PATH:/mnt/c/src/flutter/bin:/opt/android-sdk/platform-tools:/opt/android-sdk/build-tools/34.0.0"
+    }
+
     stages {
         stage('Checkout Code') {
             steps {
@@ -8,48 +16,21 @@ pipeline {
             }
         }
 
-        stage('Check Flutter') {
+        stage('Flutter Clean & Pub Get') {
             steps {
-               withEnv([
-                   'FLUTTER_HOME=/mnt/c/src/flutter',
-                   'PATH+FLUTTER=/mnt/c/src/flutter/bin',
-                   'PUB_CACHE=/var/lib/jenkins/.pub-cache',
-                   'ANDROID_HOME=/opt/android-sdk',
-                   'ANDROID_SDK_ROOT=/opt/android-sdk',
-                   'PATH+ANDROID=/opt/android-sdk/platform-tools:/opt/android-sdk/build-tools/34.0.0'
-               ]) {
-                   sh 'flutter clean'
-                   sh 'flutter pub cache clean --force'
-                   sh 'flutter pub get'
-               }
-            }
-        }
-
-        stage('Install Dependencies') {
-            steps {
-                withEnv([
-                    'FLUTTER_HOME=/mnt/c/src/flutter',
-                    'PATH+FLUTTER=/mnt/c/src/flutter/bin',
-                    'ANDROID_HOME=/opt/android-sdk',
-                    'ANDROID_SDK_ROOT=/opt/android-sdk',
-                    'PATH+ANDROID=/opt/android-sdk/platform-tools:/opt/android-sdk/build-tools/34.0.0'
-                ]) {
-                    sh 'flutter clean'
-                    sh 'flutter pub cache clean --force'
-                    sh 'flutter pub get'
+                dir('/var/lib/jenkins/workspace/Devocional_nuevo_Android_CI') {
+                    sh '''
+                        flutter clean
+                        flutter pub cache clean --force
+                        flutter pub get
+                    '''
                 }
             }
         }
 
         stage('Run Tests') {
             steps {
-                withEnv([
-                    'FLUTTER_HOME=/mnt/c/src/flutter',
-                    'PATH+FLUTTER=/mnt/c/src/flutter/bin',
-                    'ANDROID_HOME=/opt/android-sdk',
-                    'ANDROID_SDK_ROOT=/opt/android-sdk',
-                    'PATH+ANDROID=/opt/android-sdk/platform-tools:/opt/android-sdk/build-tools/34.0.0'
-                ]) {
+                dir('/var/lib/jenkins/workspace/Devocional_nuevo_Android_CI') {
                     sh 'flutter test'
                 }
             }
@@ -69,13 +50,7 @@ pipeline {
 
         stage('Build Android Debug APK') {
             steps {
-                withEnv([
-                    'FLUTTER_HOME=/mnt/c/src/flutter',
-                    'PATH+FLUTTER=/mnt/c/src/flutter/bin',
-                    'ANDROID_HOME=/opt/android-sdk',
-                    'ANDROID_SDK_ROOT=/opt/android-sdk',
-                    'PATH+ANDROID=/opt/android-sdk/platform-tools:/opt/android-sdk/build-tools/34.0.0'
-                ]) {
+                dir('/var/lib/jenkins/workspace/Devocional_nuevo_Android_CI') {
                     sh 'flutter build apk --debug'
                 }
             }
@@ -83,13 +58,7 @@ pipeline {
 
         stage('Build Android AAB for Store') {
             steps {
-                withEnv([
-                    'FLUTTER_HOME=/mnt/c/src/flutter',
-                    'PATH+FLUTTER=/mnt/c/src/flutter/bin',
-                    'ANDROID_HOME=/opt/android-sdk',
-                    'ANDROID_SDK_ROOT=/opt/android-sdk',
-                    'PATH+ANDROID=/opt/android-sdk/platform-tools:/opt/android-sdk/build-tools/34.0.0'
-                ]) {
+                dir('/var/lib/jenkins/workspace/Devocional_nuevo_Android_CI') {
                     sh 'flutter build appbundle --release'
                 }
             }
