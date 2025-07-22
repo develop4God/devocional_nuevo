@@ -52,20 +52,8 @@ pipeline {
                     // Las variables de credenciales ya están disponibles directamente aquí.
                     
                     // Usar 'flutter build apk' para una construcción más robusta y que maneje las librerías nativas.
-                    sh '''
-                        flutter build apk --debug \
-                          --target-platform android-arm,android-arm64,android-x64 \
-                          --split-per-abi \
-                          --no-version-check \
-                          --verbose \
-                          --gradle-args='-Dorg.gradle.jvmargs="-Xmx4G" -Pandroid.suppressUnsupportedCompileSdk=36' \
-                          --build-name=${BUILD_NUMBER} \
-                          --build-number=${BUILD_NUMBER} \
-                          --dart-define=KEYSTORE_PATH="$KEYSTORE_FILE_PATH" \
-                          --dart-define=KEYSTORE_STORE_PASSWORD="$KEYSTORE_STORE_PASSWORD" \
-                          --dart-define=KEYSTORE_KEY_PASSWORD="$KEYSTORE_KEY_PASSWORD" \
-                          --dart-define=KEYSTORE_KEY_ALIAS="$KEYSTORE_KEY_ALIAS"
-                    '''
+                    // Todos los argumentos están en una sola línea lógica para evitar problemas de parsing de shell.
+                    sh "flutter build apk --debug --target-platform android-arm,android-arm64,android-x64 --split-per-abi --no-version-check --verbose --gradle-args='-Dorg.gradle.jvmargs=\"-Xmx4G\" -Pandroid.suppressUnsupportedCompileSdk=36' --build-name=${BUILD_NUMBER} --build-number=${BUILD_NUMBER} --dart-define=KEYSTORE_PATH=\"$KEYSTORE_FILE_PATH\" --dart-define=KEYSTORE_STORE_PASSWORD=\"$KEYSTORE_STORE_PASSWORD\" --dart-define=KEYSTORE_KEY_PASSWORD=\"$KEYSTORE_KEY_PASSWORD\" --dart-define=KEYSTORE_KEY_ALIAS=\"$KEYSTORE_KEY_ALIAS\""
                 }
             }
             post {
@@ -88,19 +76,8 @@ pipeline {
                     // El bloque 'withEnv' redundante se ha eliminado.
                     
                     // Usar 'flutter build appbundle' para una construcción más robusta y que maneje las librerías nativas.
-                    sh '''
-                        flutter build appbundle --release \
-                          --target-platform android-arm,android-arm64,android-x64 \
-                          --no-version-check \
-                          --verbose \
-                          --gradle-args='-Dorg.gradle.jvmargs="-Xmx4G" -Pandroid.suppressUnsupportedCompileSdk=36' \
-                          --build-name=${BUILD_NUMBER} \
-                          --build-number=${BUILD_NUMBER} \
-                          --dart-define=KEYSTORE_PATH="$KEYSTORE_FILE_PATH" \
-                          --dart-define=KEYSTORE_STORE_PASSWORD="$KEYSTORE_STORE_PASSWORD" \
-                          --dart-define=KEYSTORE_KEY_PASSWORD="$KEYSTORE_KEY_PASSWORD" \
-                          --dart-define=KEYSTORE_KEY_ALIAS="$KEYSTORE_KEY_ALIAS"
-                    '''
+                    // Todos los argumentos están en una sola línea lógica para evitar problemas de parsing de shell.
+                    sh "flutter build appbundle --release --target-platform android-arm,android-arm64,android-x64 --no-version-check --verbose --gradle-args='-Dorg.gradle.jvmargs=\"-Xmx4G\" -Pandroid.suppressUnsupportedCompileSdk=36' --build-name=${BUILD_NUMBER} --build-number=${BUILD_NUMBER} --dart-define=KEYSTORE_PATH=\"$KEYSTORE_FILE_PATH\" --dart-define=KEYSTORE_STORE_PASSWORD=\"$KEYSTORE_STORE_PASSWORD\" --dart-define=KEYSTORE_KEY_PASSWORD=\"$KEYSTORE_KEY_PASSWORD\" --dart-define=KEYSTORE_KEY_ALIAS=\"$KEYSTORE_KEY_ALIAS\""
                 }
             }
             post {
