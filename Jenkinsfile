@@ -33,10 +33,10 @@ pipeline {
                     env.ANDROID_SDK_ROOT = config.ANDROID_SDK_ROOT
 
                     // Opcional: Imprime las variables para depuración
-                    sh(script: 'echo "Variables de entorno cargadas (antes de PATH extendido):"', interpreter: 'bash')
-                    sh(script: 'echo "FLUTTER_HOME: $FLUTTER_HOME"', interpreter: 'bash')
-                    sh(script: 'echo "ANDROID_SDK_ROOT: $ANDROID_SDK_ROOT"', interpreter: 'bash')
-                    sh(script: 'echo "PATH actual: $PATH"', interpreter: 'bash') // PATH base de Jenkins
+                    sh 'echo "Variables de entorno cargadas (antes de PATH extendido):"'
+                    sh 'echo "FLUTTER_HOME: $FLUTTER_HOME"'
+                    sh 'echo "ANDROID_SDK_ROOT: $ANDROID_SDK_ROOT"'
+                    sh 'echo "PATH actual: $PATH"' // PATH base de Jenkins
                 }
             }
         }
@@ -50,14 +50,13 @@ pipeline {
                     "PATH+ANDROID_CMD_TOOLS=${env.ANDROID_SDK_ROOT}/cmdline-tools/latest/bin",
                     "PATH+ANDROID_PLATFORM_TOOLS=${env.ANDROID_SDK_ROOT}/platform-tools",
                     "PATH+ANDROID_BUILD_TOOLS=${env.ANDROID_SDK_ROOT}/build-tools/34.0.0",
-                    // --- NUEVAS LÍNEAS PARA EL LOCALE ---
                     "LANG=en_US.UTF-8",
                     "LC_ALL=en_US.UTF-8"
                 ]) {
-                    sh(script: 'echo "PATH dentro de Check Flutter: $PATH"', interpreter: 'bash') // Para depuración
-                    sh(script: 'which flutter', interpreter: 'bash') // Debería encontrar flutter ahora
-                    sh(script: 'flutter --version', interpreter: 'bash') // Muestra la versión de Flutter.
-                    sh(script: 'flutter doctor', interpreter: 'bash')    // Ejecuta el doctor de Flutter para verificar dependencias.
+                    sh 'echo "PATH dentro de Check Flutter: $PATH"' // Para depuración
+                    sh 'which flutter' // Debería encontrar flutter ahora
+                    sh 'flutter --version' // Muestra la versión de Flutter.
+                    sh 'flutter doctor'    // Ejecuta el doctor de Flutter para verificar dependencias.
                 }
             }
         }
@@ -74,9 +73,9 @@ pipeline {
                     "LANG=en_US.UTF-8",
                     "LC_ALL=en_US.UTF-8"
                 ]) {
-                    sh(script: 'flutter clean', interpreter: 'bash')             // Limpia el proyecto Flutter.
-                    sh(script: 'flutter pub cache clean --force', interpreter: 'bash') // Limpia la caché de paquetes de pub.
-                    sh(script: 'flutter pub get', interpreter: 'bash')           // Obtiene las dependencias del proyecto.
+                    sh 'flutter clean'             // Limpia el proyecto Flutter.
+                    sh 'flutter pub cache clean --force' // Limpia la caché de paquetes de pub.
+                    sh 'flutter pub get'           // Obtiene las dependencias del proyecto.
                 }
             }
         }
@@ -93,7 +92,7 @@ pipeline {
                     "LANG=en_US.UTF-8",
                     "LC_ALL=en_US.UTF-8"
                 ]) {
-                    sh(script: 'flutter test', interpreter: 'bash')
+                    sh 'flutter test'
                 }
             }
         }
@@ -101,13 +100,12 @@ pipeline {
         // Etapa 6: Verificar Versión de Java (asumiendo que Java está en PATH o JAVA_HOME)
         stage('Check Java Version') {
             steps {
-                // No necesita withEnv si Java ya está en el PATH base de Jenkins o vía JAVA_HOME.
-                // Sin embargo, para consistencia, podemos añadir el locale.
+                // Para consistencia, podemos añadir el locale.
                 withEnv([
                     "LANG=en_US.UTF-8",
                     "LC_ALL=en_US.UTF-8"
                 ]) {
-                    sh(script: 'java -version', interpreter: 'bash')
+                    sh 'java -version'
                 }
             }
         }
@@ -115,13 +113,12 @@ pipeline {
         // Etapa 7: Verificar JAVA_HOME
         stage('Check JAVA_HOME') {
             steps {
-                // No necesita withEnv si JAVA_HOME ya está configurado.
-                // Sin embargo, para consistencia, podemos añadir el locale.
+                // Para consistencia, podemos añadir el locale.
                 withEnv([
                     "LANG=en_US.UTF-8",
                     "LC_ALL=en_US.UTF-8"
                 ]) {
-                    sh(script: 'echo "JAVA_HOME is $JAVA_HOME"', interpreter: 'bash')
+                    sh 'echo "JAVA_HOME is $JAVA_HOME"'
                 }
             }
         }
@@ -138,7 +135,7 @@ pipeline {
                     "LANG=en_US.UTF-8",
                     "LC_ALL=en_US.UTF-8"
                 ]) {
-                    sh(script: 'flutter build apk --debug', interpreter: 'bash')
+                    sh 'flutter build apk --debug'
                 }
             }
         }
@@ -155,7 +152,7 @@ pipeline {
                     "LANG=en_US.UTF-8",
                     "LC_ALL=en_US.UTF-8"
                 ]) {
-                    sh(script: 'flutter build appbundle --release', interpreter: 'bash')
+                    sh 'flutter build appbundle --release'
                 }
             }
         }
@@ -166,15 +163,15 @@ pipeline {
     post {
         // Siempre: Se ejecuta siempre al finalizar el pipeline.
         always {
-            sh(script: 'echo "Pipeline finalizado."', interpreter: 'bash')
+            echo 'Pipeline finalizado.'
         }
         // Éxito: Se ejecuta si todas las etapas del pipeline se completan con éxito.
         success {
-            sh(script: 'echo "¡El pipeline se ejecutó con éxito!"', interpreter: 'bash')
+            echo '¡El pipeline se ejecutó con éxito!'
         }
         // Fallo: Se ejecuta si alguna etapa del pipeline falla.
         failure {
-            sh(script: 'echo "¡El pipeline falló! Revisa los logs para depurar el problema."', interpreter: 'bash')
+            echo '¡El pipeline falló! Revisa los logs para depurar el problema.'
         }
     }
 }
