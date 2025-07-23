@@ -15,7 +15,6 @@ allprojects {
     }
 }
 
-// Mantén la redirección del buildDir como en tu configuración previa
 val newBuildDir: Directory = rootProject.layout.buildDirectory.dir("../../build").get()
 rootProject.layout.buildDirectory.value(newBuildDir)
 
