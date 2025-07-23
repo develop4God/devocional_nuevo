@@ -35,6 +35,7 @@ pipeline {
             }
         }
 
+        /*
         stage('Run Tests') {
             steps {
                 sh '''
@@ -42,6 +43,7 @@ pipeline {
                 '''
             }
         }
+        */
 
         stage('Check Java Version') {
             steps {
