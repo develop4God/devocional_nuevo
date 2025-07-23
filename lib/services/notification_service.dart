@@ -187,24 +187,35 @@ class NotificationService {
 
   // NUEVO: Método para manejar mensajes FCM y mostrarlos localmente
   void _handleMessage(RemoteMessage message) {
-    if (message.notification != null) {
-      developer.log('NotificationService: Mensaje FCM contiene notificación: ${message.notification!.title}', name: 'NotificationService');
-      showImmediateNotification(
-        message.notification!.title ?? 'Notificación',
-        message.notification!.body ?? 'Contenido de la notificación',
-        payload: message.data['payload'] as String?,
-        id: message.messageId.hashCode, // Usar un ID único para la notificación local
-      );
-    } else if (message.data.isNotEmpty) {
-      developer.log('NotificationService: Mensaje FCM contiene solo datos: ${message.data}', name: 'NotificationService');
-      // Puedes procesar mensajes de datos aquí si no tienen una sección de notificación.
-      // Por ejemplo, mostrar una notificación local personalizada basada en los datos.
-      showImmediateNotification(
-        message.data['title'] ?? 'Notificación de Datos',
-        message.data['body'] ?? 'Contenido de datos',
-        payload: message.data['payload'] as String?,
-        id: message.messageId.hashCode,
-      );
+    // Solo procesar si el mensaje contiene una sección de notificación o datos relevantes
+    if (message.notification != null || message.data.isNotEmpty) {
+      developer.log('NotificationService: Mensaje FCM recibido. ID: ${message.messageId}', name: 'NotificationService');
+
+      // Si el mensaje FCM ya contiene una sección 'notification', el sistema operativo
+      // ya la mostrará automáticamente. No necesitamos mostrar una notificación local adicional
+      // a menos que queramos personalizarla o añadir lógica específica.
+      // Si quieres que FCM maneje la visualización por sí mismo, no llames a showImmediateNotification aquí.
+
+      // Si el mensaje es de solo datos y quieres mostrar una notificación:
+      if (message.notification == null && message.data.isNotEmpty) {
+        developer.log('NotificationService: Mensaje FCM contiene solo datos, mostrando notificación local.', name: 'NotificationService');
+        showImmediateNotification(
+          message.data['title'] ?? 'Notificación de Datos',
+          message.data['body'] ?? 'Contenido de datos',
+          payload: message.data['payload'] as String?,
+          id: message.messageId.hashCode,
+        );
+      }
+      // Si el mensaje tiene una sección de notificación, el SO ya la mostró.
+      // Aquí puedes manejar la lógica de navegación o actualización de UI si es necesario,
+      // pero no mostrar otra notificación local.
+      else if (message.notification != null) {
+        developer.log('NotificationService: Mensaje FCM contiene notificación (ya mostrada por el SO).', name: 'NotificationService');
+        // Aquí podrías añadir lógica para manejar el payload o navegar
+        // if (onNotificationTapped != null && message.data['payload'] != null) {
+        //   onNotificationTapped!(message.data['payload'] as String?);
+        // }
+      }
     }
   }
 
