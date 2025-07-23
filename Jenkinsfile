@@ -44,63 +44,34 @@ pipeline {
         // Etapa 3: Verificar la instalación de Flutter
         stage('Check Flutter') {
             steps {
-                // Aplicar PATH extendido y configurar el locale para los pasos dentro de esta etapa.
-                withEnv([
-                    "PATH+FLUTTER_BIN=${env.FLUTTER_HOME}/bin",
-                    "PATH+ANDROID_CMD_TOOLS=${env.ANDROID_SDK_ROOT}/cmdline-tools/latest/bin",
-                    "PATH+ANDROID_PLATFORM_TOOLS=${env.ANDROID_SDK_ROOT}/platform-tools",
-                    "PATH+ANDROID_BUILD_TOOLS=${env.ANDROID_SDK_ROOT}/build-tools/34.0.0",
-                    "LANG=en_US.UTF-8",
-                    "LC_ALL=en_US.UTF-8"
-                ]) {
-                    sh 'echo "PATH dentro de Check Flutter: $PATH"' // Para depuración
-                    sh 'which flutter' // Debería encontrar flutter ahora
-                    sh 'flutter --version' // Muestra la versión de Flutter.
-                    sh 'flutter doctor'    // Ejecuta el doctor de Flutter para verificar dependencias.
-                }
+                // No modificamos PATH para flutter, usamos wsl directamente
+                sh 'echo "Comprobando Flutter vía WSL..."'
+                sh 'wsl flutter --version' // Llamada a flutter vía WSL
+                sh 'wsl flutter doctor'    // Ejecuta flutter doctor vía WSL
             }
         }
 
         // Etapa 4: Instalar Dependencias
         stage('Install Dependencies') {
             steps {
-                // Aplicar PATH extendido y configurar el locale para los pasos dentro de esta etapa.
-                withEnv([
-                    "PATH+FLUTTER_BIN=${env.FLUTTER_HOME}/bin",
-                    "PATH+ANDROID_CMD_TOOLS=${env.ANDROID_SDK_ROOT}/cmdline-tools/latest/bin",
-                    "PATH+ANDROID_PLATFORM_TOOLS=${env.ANDROID_SDK_ROOT}/platform-tools",
-                    "PATH+ANDROID_BUILD_TOOLS=${env.ANDROID_SDK_ROOT}/build-tools/34.0.0",
-                    "LANG=en_US.UTF-8",
-                    "LC_ALL=en_US.UTF-8"
-                ]) {
-                    sh 'flutter clean'             // Limpia el proyecto Flutter.
-                    sh 'flutter pub cache clean --force' // Limpia la caché de paquetes de pub.
-                    sh 'flutter pub get'           // Obtiene las dependencias del proyecto.
-                }
+                sh 'echo "Instalando dependencias Flutter vía WSL..."'
+                sh 'wsl flutter clean' 
+                sh 'wsl flutter pub cache clean --force' 
+                sh 'wsl flutter pub get'  
             }
         }
 
         // Etapa 5: Ejecutar Pruebas
         stage('Run Tests') {
             steps {
-                // Aplicar PATH extendido y configurar el locale para los pasos dentro de esta etapa.
-                withEnv([
-                    "PATH+FLUTTER_BIN=${env.FLUTTER_HOME}/bin",
-                    "PATH+ANDROID_CMD_TOOLS=${env.ANDROID_SDK_ROOT}/cmdline-tools/latest/bin",
-                    "PATH+ANDROID_PLATFORM_TOOLS=${env.ANDROID_SDK_ROOT}/platform-tools",
-                    "PATH+ANDROID_BUILD_TOOLS=${env.ANDROID_SDK_ROOT}/build-tools/34.0.0",
-                    "LANG=en_US.UTF-8",
-                    "LC_ALL=en_US.UTF-8"
-                ]) {
-                    sh 'flutter test'
-                }
+                sh 'echo "Ejecutando pruebas con Flutter vía WSL..."'
+                sh 'wsl flutter test'
             }
         }
 
         // Etapa 6: Verificar Versión de Java (asumiendo que Java está en PATH o JAVA_HOME)
         stage('Check Java Version') {
             steps {
-                // Para consistencia, podemos añadir el locale.
                 withEnv([
                     "LANG=en_US.UTF-8",
                     "LC_ALL=en_US.UTF-8"
@@ -113,7 +84,6 @@ pipeline {
         // Etapa 7: Verificar JAVA_HOME
         stage('Check JAVA_HOME') {
             steps {
-                // Para consistencia, podemos añadir el locale.
                 withEnv([
                     "LANG=en_US.UTF-8",
                     "LC_ALL=en_US.UTF-8"
@@ -126,34 +96,16 @@ pipeline {
         // Etapa 8: Construir APK de Depuración para Android
         stage('Build Android Debug APK') {
             steps {
-                // Aplicar PATH extendido y configurar el locale para los pasos dentro de esta etapa.
-                withEnv([
-                    "PATH+FLUTTER_BIN=${env.FLUTTER_HOME}/bin",
-                    "PATH+ANDROID_CMD_TOOLS=${env.ANDROID_SDK_ROOT}/cmdline-tools/latest/bin",
-                    "PATH+ANDROID_PLATFORM_TOOLS=${env.ANDROID_SDK_ROOT}/platform-tools",
-                    "PATH+ANDROID_BUILD_TOOLS=${env.ANDROID_SDK_ROOT}/build-tools/34.0.0",
-                    "LANG=en_US.UTF-8",
-                    "LC_ALL=en_US.UTF-8"
-                ]) {
-                    sh 'flutter build apk --debug'
-                }
+                sh 'echo "Construyendo APK de Debug vía WSL..."'
+                sh 'wsl flutter build apk --debug'
             }
         }
 
         // Etapa 9: Construir AAB para la Tienda de Android
         stage('Build Android AAB for Store') {
             steps {
-                // Aplicar PATH extendido y configurar el locale para los pasos dentro de esta etapa.
-                withEnv([
-                    "PATH+FLUTTER_BIN=${env.FLUTTER_HOME}/bin",
-                    "PATH+ANDROID_CMD_TOOLS=${env.ANDROID_SDK_ROOT}/cmdline-tools/latest/bin",
-                    "PATH+ANDROID_PLATFORM_TOOLS=${env.ANDROID_SDK_ROOT}/platform-tools",
-                    "PATH+ANDROID_BUILD_TOOLS=${env.ANDROID_SDK_ROOT}/build-tools/34.0.0",
-                    "LANG=en_US.UTF-8",
-                    "LC_ALL=en_US.UTF-8"
-                ]) {
-                    sh 'flutter build appbundle --release'
-                }
+                sh 'echo "Construyendo AAB para tienda vía WSL..."'
+                sh 'wsl flutter build appbundle --release'
             }
         }
     }
