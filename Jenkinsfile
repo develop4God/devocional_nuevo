@@ -41,82 +41,98 @@ pipeline {
             }
         }
 
-        // --- Aplicar PATH extendido a todas las etapas siguientes ---
-        // Este bloque 'withEnv' es crucial. Asegura que el PATH se configure correctamente
-        // para todas las herramientas de Flutter y Android SDK en las etapas que envuelve.
-        stage('Pipeline Steps with Extended PATH') {
+        // Etapa 3: Verificar la instalación de Flutter
+        stage('Check Flutter') {
             steps {
+                // Aplicar PATH extendido solo a los pasos dentro de esta etapa.
                 withEnv([
-                    // Añade el directorio bin de Flutter al PATH
                     "PATH+FLUTTER_BIN=${env.FLUTTER_HOME}/bin",
-                    // Añade las herramientas de línea de comandos de Android al PATH
                     "PATH+ANDROID_CMD_TOOLS=${env.ANDROID_SDK_ROOT}/cmdline-tools/latest/bin",
-                    // Añade las herramientas de plataforma de Android (como adb) al PATH
                     "PATH+ANDROID_PLATFORM_TOOLS=${env.ANDROID_SDK_ROOT}/platform-tools",
-                    // Añade las herramientas de construcción de Android al PATH (ej. aapt, dx)
                     "PATH+ANDROID_BUILD_TOOLS=${env.ANDROID_SDK_ROOT}/build-tools/34.0.0"
                 ]) {
-                    // Dentro de este bloque, todas las etapas 'sh' tendrán el PATH extendido.
+                    sh 'echo "PATH dentro de Check Flutter: $PATH"' // Para depuración
+                    sh 'which flutter' // Debería encontrar flutter ahora
+                    sh 'flutter --version' // Muestra la versión de Flutter.
+                    sh 'flutter doctor'    // Ejecuta el doctor de Flutter para verificar dependencias.
+                }
+            }
+        }
 
-                    // Etapa 3: Verificar la instalación de Flutter
-                    stage('Check Flutter') {
-                        steps {
-                            sh 'echo "PATH dentro de Check Flutter: $PATH"' // Para depuración
-                            sh 'which flutter' // Debería encontrar flutter ahora
-                            sh 'flutter --version' // Muestra la versión de Flutter.
-                            sh 'flutter doctor'    // Ejecuta el doctor de Flutter para verificar dependencias.
-                        }
-                    }
+        // Etapa 4: Instalar Dependencias
+        stage('Install Dependencies') {
+            steps {
+                // Aplicar PATH extendido solo a los pasos dentro de esta etapa.
+                withEnv([
+                    "PATH+FLUTTER_BIN=${env.FLUTTER_HOME}/bin",
+                    "PATH+ANDROID_CMD_TOOLS=${env.ANDROID_SDK_ROOT}/cmdline-tools/latest/bin",
+                    "PATH+ANDROID_PLATFORM_TOOLS=${env.ANDROID_SDK_ROOT}/platform-tools",
+                    "PATH+ANDROID_BUILD_TOOLS=${env.ANDROID_SDK_ROOT}/build-tools/34.0.0"
+                ]) {
+                    sh 'flutter clean'             // Limpia el proyecto Flutter.
+                    sh 'flutter pub cache clean --force' // Limpia la caché de paquetes de pub.
+                    sh 'flutter pub get'           // Obtiene las dependencias del proyecto.
+                }
+            }
+        }
 
-                    // Etapa 4: Instalar Dependencias
-                    // Limpia el proyecto, limpia la caché de paquetes y obtiene las dependencias de Flutter.
-                    stage('Install Dependencies') {
-                        steps {
-                            sh 'flutter clean'             // Limpia el proyecto Flutter.
-                            sh 'flutter pub cache clean --force' // Limpia la caché de paquetes de pub.
-                            sh 'flutter pub get'           // Obtiene las dependencias del proyecto.
-                        }
-                    }
+        // Etapa 5: Ejecutar Pruebas
+        stage('Run Tests') {
+            steps {
+                // Aplicar PATH extendido solo a los pasos dentro de esta etapa.
+                withEnv([
+                    "PATH+FLUTTER_BIN=${env.FLUTTER_HOME}/bin",
+                    "PATH+ANDROID_CMD_TOOLS=${env.ANDROID_SDK_ROOT}/cmdline-tools/latest/bin",
+                    "PATH+ANDROID_PLATFORM_TOOLS=${env.ANDROID_SDK_ROOT}/platform-tools",
+                    "PATH+ANDROID_BUILD_TOOLS=${env.ANDROID_SDK_ROOT}/build-tools/34.0.0"
+                ]) {
+                    sh 'flutter test'
+                }
+            }
+        }
 
-                    // Etapa 5: Ejecutar Pruebas
-                    // Ejecuta las pruebas unitarias y de widget del proyecto Flutter.
-                    stage('Run Tests') {
-                        steps {
-                            sh 'flutter test'
-                        }
-                    }
+        // Etapa 6: Verificar Versión de Java (asumiendo que Java está en PATH o JAVA_HOME)
+        stage('Check Java Version') {
+            steps {
+                // No necesita withEnv si Java ya está en el PATH base de Jenkins o vía JAVA_HOME.
+                sh 'java -version'
+            }
+        }
 
-                    // Etapa 6: Verificar Versión de Java
-                    // Asegura que la versión de Java requerida esté instalada.
-                    stage('Check Java Version') {
-                        steps {
-                            sh 'java -version'
-                        }
-                    }
+        // Etapa 7: Verificar JAVA_HOME
+        stage('Check JAVA_HOME') {
+            steps {
+                // No necesita withEnv si JAVA_HOME ya está configurado.
+                sh 'echo "JAVA_HOME is $JAVA_HOME"'
+            }
+        }
 
-                    // Etapa 7: Verificar JAVA_HOME
-                    // Confirma que la variable de entorno JAVA_HOME esté configurada correctamente.
-                    stage('Check JAVA_HOME') {
-                        steps {
-                            sh 'echo "JAVA_HOME is $JAVA_HOME"'
-                        }
-                    }
+        // Etapa 8: Construir APK de Depuración para Android
+        stage('Build Android Debug APK') {
+            steps {
+                // Aplicar PATH extendido solo a los pasos dentro de esta etapa.
+                withEnv([
+                    "PATH+FLUTTER_BIN=${env.FLUTTER_HOME}/bin",
+                    "PATH+ANDROID_CMD_TOOLS=${env.ANDROID_SDK_ROOT}/cmdline-tools/latest/bin",
+                    "PATH+ANDROID_PLATFORM_TOOLS=${env.ANDROID_SDK_ROOT}/platform-tools",
+                    "PATH+ANDROID_BUILD_TOOLS=${env.ANDROID_SDK_ROOT}/build-tools/34.0.0"
+                ]) {
+                    sh 'flutter build apk --debug'
+                }
+            }
+        }
 
-                    // Etapa 8: Construir APK de Depuración para Android
-                    // Genera un archivo APK para propósitos de depuración.
-                    stage('Build Android Debug APK') {
-                        steps {
-                            sh 'flutter build apk --debug'
-                        }
-                    }
-
-                    // Etapa 9: Construir AAB para la Tienda de Android
-                    // Genera un Android App Bundle (AAB) optimizado para subir a Google Play Store.
-                    stage('Build Android AAB for Store') {
-                        steps {
-                            sh 'flutter build appbundle --release'
-                        }
-                    }
+        // Etapa 9: Construir AAB para la Tienda de Android
+        stage('Build Android AAB for Store') {
+            steps {
+                // Aplicar PATH extendido solo a los pasos dentro de esta etapa.
+                withEnv([
+                    "PATH+FLUTTER_BIN=${env.FLUTTER_HOME}/bin",
+                    "PATH+ANDROID_CMD_TOOLS=${env.ANDROID_SDK_ROOT}/cmdline-tools/latest/bin",
+                    "PATH+ANDROID_PLATFORM_TOOLS=${env.ANDROID_SDK_ROOT}/platform-tools",
+                    "PATH+ANDROID_BUILD_TOOLS=${env.ANDROID_SDK_ROOT}/build-tools/34.0.0"
+                ]) {
+                    sh 'flutter build appbundle --release'
                 }
             }
         }
