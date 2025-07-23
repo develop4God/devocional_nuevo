@@ -5,7 +5,7 @@ pipeline {
 
     // Entorno: Define variables de entorno que estarán disponibles en todo el pipeline.
     environment {
-        // Define una variable para la ruta del archivo .env.jenkins.
+        // Define la variable para la ruta del archivo .env.jenkins.
         // Asegúrate de que .env.jenkins esté en la raíz de tu repositorio.
         ENV_FILE = "${workspace}/.env.jenkins"
     }
@@ -22,84 +22,102 @@ pipeline {
         }
 
         // Etapa 2: Cargar Variables de Entorno
-        // Lee el archivo .env.jenkins y exporta sus variables al entorno del pipeline.
+        // Lee el archivo .env.jenkins y carga las variables en el entorno del pipeline.
         // Requiere el plugin "Pipeline Utility Steps" para 'readProperties'.
         stage('Load Environment Variables') {
             steps {
                 script {
                     // Lee el archivo .env.jenkins.
-                    def envVars = readProperties file: ENV_FILE
-                    // Itera sobre las variables leídas y las exporta al entorno de Jenkins.
-                    envVars.each { key, value ->
-                        env."${key}" = value
-                    }
-                    // Opcional: Imprime algunas variables para depuración.
-                    sh 'echo "Variables de entorno cargadas:"'
+                    def config = readProperties file: ENV_FILE
+                    env.FLUTTER_HOME = config.FLUTTER_HOME
+                    env.ANDROID_SDK_ROOT = config.ANDROID_SDK_ROOT
+
+                    // Opcional: Imprime las variables para depuración
+                    sh 'echo "Variables de entorno cargadas (antes de PATH extendido):"'
                     sh 'echo "FLUTTER_HOME: $FLUTTER_HOME"'
                     sh 'echo "ANDROID_SDK_ROOT: $ANDROID_SDK_ROOT"'
-                    sh 'echo "PATH: $PATH"'
-                    sh 'echo "Verificando PATH de Flutter: `which flutter`"'
-                    sh 'echo "Verificando PATH de ADB: `which adb`"'
+                    sh 'echo "PATH actual: $PATH"' // PATH base de Jenkins
                 }
             }
         }
 
-        // Etapa 3: Verificar la instalación de Flutter
-        // Ejecuta comandos de Flutter para verificar su versión y el estado de la instalación.
-        stage('Check Flutter') {
+        // --- Aplicar PATH extendido a todas las etapas siguientes ---
+        // Este bloque 'withEnv' es crucial. Asegura que el PATH se configure correctamente
+        // para todas las herramientas de Flutter y Android SDK en las etapas que envuelve.
+        stage('Pipeline Steps with Extended PATH') {
             steps {
-                sh 'flutter --version' // Muestra la versión de Flutter.
-                sh 'flutter doctor'    // Ejecuta el doctor de Flutter para verificar dependencias.
-            }
-        }
+                withEnv([
+                    // Añade el directorio bin de Flutter al PATH
+                    "PATH+FLUTTER_BIN=${env.FLUTTER_HOME}/bin",
+                    // Añade las herramientas de línea de comandos de Android al PATH
+                    "PATH+ANDROID_CMD_TOOLS=${env.ANDROID_SDK_ROOT}/cmdline-tools/latest/bin",
+                    // Añade las herramientas de plataforma de Android (como adb) al PATH
+                    "PATH+ANDROID_PLATFORM_TOOLS=${env.ANDROID_SDK_ROOT}/platform-tools",
+                    // Añade las herramientas de construcción de Android al PATH (ej. aapt, dx)
+                    "PATH+ANDROID_BUILD_TOOLS=${env.ANDROID_SDK_ROOT}/build-tools/34.0.0"
+                ]) {
+                    // Dentro de este bloque, todas las etapas 'sh' tendrán el PATH extendido.
 
-        // Etapa 4: Instalar Dependencias
-        // Limpia el proyecto, limpia la caché de paquetes y obtiene las dependencias de Flutter.
-        stage('Install Dependencies') {
-            steps {
-                sh 'flutter clean'             // Limpia el proyecto Flutter.
-                sh 'flutter pub cache clean --force' // Limpia la caché de paquetes de pub.
-                sh 'flutter pub get'           // Obtiene las dependencias del proyecto.
-            }
-        }
+                    // Etapa 3: Verificar la instalación de Flutter
+                    stage('Check Flutter') {
+                        steps {
+                            sh 'echo "PATH dentro de Check Flutter: $PATH"' // Para depuración
+                            sh 'which flutter' // Debería encontrar flutter ahora
+                            sh 'flutter --version' // Muestra la versión de Flutter.
+                            sh 'flutter doctor'    // Ejecuta el doctor de Flutter para verificar dependencias.
+                        }
+                    }
 
-        // Etapa 5: Ejecutar Pruebas
-        // Ejecuta las pruebas unitarias y de widget del proyecto Flutter.
-        stage('Run Tests') {
-            steps {
-                sh 'flutter test'
-            }
-        }
+                    // Etapa 4: Instalar Dependencias
+                    // Limpia el proyecto, limpia la caché de paquetes y obtiene las dependencias de Flutter.
+                    stage('Install Dependencies') {
+                        steps {
+                            sh 'flutter clean'             // Limpia el proyecto Flutter.
+                            sh 'flutter pub cache clean --force' // Limpia la caché de paquetes de pub.
+                            sh 'flutter pub get'           // Obtiene las dependencias del proyecto.
+                        }
+                    }
 
-        // Etapa 6: Verificar Versión de Java
-        // Asegura que la versión de Java requerida esté instalada.
-        stage('Check Java Version') {
-            steps {
-                sh 'java -version'
-            }
-        }
+                    // Etapa 5: Ejecutar Pruebas
+                    // Ejecuta las pruebas unitarias y de widget del proyecto Flutter.
+                    stage('Run Tests') {
+                        steps {
+                            sh 'flutter test'
+                        }
+                    }
 
-        // Etapa 7: Verificar JAVA_HOME
-        // Confirma que la variable de entorno JAVA_HOME esté configurada correctamente.
-        stage('Check JAVA_HOME') {
-            steps {
-                sh 'echo "JAVA_HOME is $JAVA_HOME"'
-            }
-        }
+                    // Etapa 6: Verificar Versión de Java
+                    // Asegura que la versión de Java requerida esté instalada.
+                    stage('Check Java Version') {
+                        steps {
+                            sh 'java -version'
+                        }
+                    }
 
-        // Etapa 8: Construir APK de Depuración para Android
-        // Genera un archivo APK para propósitos de depuración.
-        stage('Build Android Debug APK') {
-            steps {
-                sh 'flutter build apk --debug'
-            }
-        }
+                    // Etapa 7: Verificar JAVA_HOME
+                    // Confirma que la variable de entorno JAVA_HOME esté configurada correctamente.
+                    stage('Check JAVA_HOME') {
+                        steps {
+                            sh 'echo "JAVA_HOME is $JAVA_HOME"'
+                        }
+                    }
 
-        // Etapa 9: Construir AAB para la Tienda de Android
-        // Genera un Android App Bundle (AAB) optimizado para subir a Google Play Store.
-        stage('Build Android AAB for Store') {
-            steps {
-                sh 'flutter build appbundle --release'
+                    // Etapa 8: Construir APK de Depuración para Android
+                    // Genera un archivo APK para propósitos de depuración.
+                    stage('Build Android Debug APK') {
+                        steps {
+                            sh 'flutter build apk --debug'
+                        }
+                    }
+
+                    // Etapa 9: Construir AAB para la Tienda de Android
+                    // Genera un Android App Bundle (AAB) optimizado para subir a Google Play Store.
+                    stage('Build Android AAB for Store') {
+                        steps {
+                            sh 'flutter build appbundle --release'
+                        }
+                    }
+                }
             }
         }
     }
