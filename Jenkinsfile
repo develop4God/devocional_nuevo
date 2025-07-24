@@ -7,9 +7,9 @@ pipeline {
         ANDROID_SDK_ROOT = "/home/jenkins/Android/Sdk"
         ANDROID_HOME = "/home/jenkins/Android/Sdk"
         JAVA_HOME = "/usr/lib/jvm/java-11-openjdk-amd64"
-        PATH = "${env.PATH}:${FLUTTER_HOME}/bin:${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin:${ANDROID_SDK_ROOT}/platform-tools:${ANDROID_SDK_ROOT}/build-tools/34.0.0:${JAVA_HOME}/bin"
-        LANG = "en_US.UTF-8"
-        LC_ALL = "en_US.UTF-8"
+        
+        // PATH optimizado basado en evidencia de jobs exitosos
+        PATH = "${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin:${ANDROID_SDK_ROOT}/platform-tools:${ANDROID_SDK_ROOT}/build-tools/34.0.0:${FLUTTER_HOME}/bin:${JAVA_HOME}/bin:${PATH}"
     }
     
     stages {
@@ -23,65 +23,86 @@ pipeline {
         stage('Verificar Entorno') {
             steps {
                 echo '🔍 Verificando entorno (basado en micro-jobs exitosos)...'
-                sh '''
-                    echo "=== VARIABLES DE ENTORNO ==="
-                    echo "JAVA_HOME=$JAVA_HOME"
-                    echo "ANDROID_HOME=$ANDROID_HOME"  
-                    echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
-                    echo "FLUTTER_HOME=$FLUTTER_HOME"
-                    
-                    echo "=== VERIFICANDO HERRAMIENTAS ==="
-                    java -version
-                    flutter --version
-                    sdkmanager --version
-                    adb version
-                    
-                    echo "=== FLUTTER DOCTOR ANDROID ==="
-                    flutter doctor | grep -A 3 "Android toolchain" || true
-                '''
+                script {
+                    sh '''
+                        echo "=== VERIFICACIÓN DE HERRAMIENTAS CRÍTICAS ==="
+                        echo "📱 Verificando Android SDK..."
+                        which sdkmanager
+                        sdkmanager --version
+                        
+                        echo "🛠️ Verificando componentes Android..."
+                        ls -la "$ANDROID_SDK_ROOT/platforms/" || echo "❌ Platforms no encontrado"
+                        ls -la "$ANDROID_SDK_ROOT/build-tools/" || echo "❌ Build-tools no encontrado"
+                        ls -la "$ANDROID_SDK_ROOT/platform-tools/" || echo "❌ Platform-tools no encontrado"
+                        
+                        echo "🚀 Verificando Flutter..."
+                        which flutter
+                        flutter --version
+                        
+                        echo "☕ Verificando Java..."
+                        which java
+                        java --version
+                        
+                        echo "✅ Verificación de entorno completada"
+                    '''
+                }
             }
         }
         
         stage('Configurar Flutter') {
             steps {
                 echo '⚙️ Configurando Flutter para Android...'
-                sh '''
-                    # Configurar Flutter para usar nuestro Android SDK (validado en Job 2.2)
-                    flutter config --android-sdk $ANDROID_SDK_ROOT
-                    
-                    # Verificar configuración
-                    flutter config --list | grep -E "(android-sdk|jdk-dir)" || true
-                '''
+                script {
+                    sh '''
+                        echo "=== CONFIGURACIÓN DE FLUTTER ==="
+                        # Configurar Flutter para usar nuestro Android SDK
+                        flutter config --android-sdk "$ANDROID_SDK_ROOT"
+                        
+                        # Verificar configuración
+                        echo "📋 Verificando configuración aplicada..."
+                        flutter config
+                        
+                        # Flutter doctor específico para Android
+                        echo "🏥 Ejecutando Flutter Doctor para Android..."
+                        flutter doctor --android-licenses || echo "Licencias ya aceptadas"
+                        flutter doctor -v
+                    '''
+                }
             }
         }
         
         stage('Limpiar y Obtener Dependencias') {
             steps {
                 echo '🧹 Limpiando proyecto y obteniendo dependencias...'
-                sh '''
-                    # Limpiar build anterior
-                    flutter clean
-                    
-                    # Obtener dependencias del proyecto
-                    flutter pub get
-                    
-                    # Verificar que las dependencias se instalaron correctamente
-                    ls -la pubspec.yaml
-                    flutter pub deps --style=compact || true
-                '''
+                script {
+                    sh '''
+                        echo "=== LIMPIEZA Y DEPENDENCIAS ==="
+                        # Limpiar builds anteriores
+                        flutter clean
+                        
+                        # Verificar que existe pubspec.yaml
+                        if [ ! -f "pubspec.yaml" ]; then
+                            echo "❌ Error: pubspec.yaml no encontrado. ¿Es un proyecto Flutter válido?"
+                            exit 1
+                        fi
+                        
+                        # Obtener dependencias
+                        flutter pub get
+                        
+                        echo "✅ Dependencias obtenidas exitosamente"
+                    '''
+                }
             }
         }
         
         stage('Ejecutar Tests') {
             steps {
-                echo '🧪 Ejecutando tests unitarios...'
+                echo '🧪 Ejecutando tests...'
                 script {
+                    // Los tests que fallan no rompen el pipeline
                     def testResult = sh(script: 'flutter test', returnStatus: true)
                     if (testResult != 0) {
                         unstable('Tests fallaron pero continuamos el build')
-                        echo '⚠️ Algunos tests fallaron, pero el pipeline continúa'
-                    } else {
-                        echo '✅ Todos los tests pasaron exitosamente'
                     }
                 }
             }
@@ -89,70 +110,62 @@ pipeline {
         
         stage('Build APK Debug') {
             steps {
-                echo '📱 Construyendo APK Debug...'
-                sh '''
-                    # Build APK debug (rápido para testing)
-                    flutter build apk --debug
-                    
-                    # Verificar que el APK se creó
-                    ls -la build/app/outputs/flutter-apk/
-                    
-                    # Mostrar información del APK
-                    APK_PATH="build/app/outputs/flutter-apk/app-debug.apk"
-                    if [ -f "$APK_PATH" ]; then
-                        echo "✅ APK Debug creado exitosamente"
-                        echo "📊 Tamaño: $(du -h $APK_PATH | cut -f1)"
-                    else
-                        echo "❌ Error: APK Debug no encontrado"
-                        exit 1
-                    fi
-                '''
+                echo '🔨 Construyendo APK Debug...'
+                script {
+                    sh '''
+                        echo "=== BUILD APK DEBUG ==="
+                        flutter build apk --debug
+                        
+                        # Verificar que el APK se creó
+                        APK_PATH="build/app/outputs/flutter-apk/app-debug.apk"
+                        if [ -f "$APK_PATH" ]; then
+                            echo "✅ APK Debug creado exitosamente"
+                            ls -lh "$APK_PATH"
+                        else
+                            echo "❌ Error: APK Debug no encontrado"
+                            exit 1
+                        fi
+                    '''
+                }
             }
         }
         
         stage('Build App Bundle Release') {
             steps {
                 echo '📦 Construyendo App Bundle Release...'
-                sh '''
-                    # Build App Bundle para release (optimizado para Play Store)
-                    flutter build appbundle --release
-                    
-                    # Verificar que el App Bundle se creó
-                    ls -la build/app/outputs/bundle/release/
-                    
-                    # Mostrar información del App Bundle
-                    AAB_PATH="build/app/outputs/bundle/release/app-release.aab"
-                    if [ -f "$AAB_PATH" ]; then
-                        echo "✅ App Bundle Release creado exitosamente"
-                        echo "📊 Tamaño: $(du -h $AAB_PATH | cut -f1)"
-                    else
-                        echo "❌ Error: App Bundle Release no encontrado"
-                        exit 1
-                    fi
-                '''
+                script {
+                    sh '''
+                        echo "=== BUILD APP BUNDLE RELEASE ==="
+                        flutter build appbundle --release
+                        
+                        # Verificar que el AAB se creó
+                        AAB_PATH="build/app/outputs/bundle/release/app-release.aab"
+                        if [ -f "$AAB_PATH" ]; then
+                            echo "✅ App Bundle Release creado exitosamente"
+                            ls -lh "$AAB_PATH"
+                        else
+                            echo "❌ Error: App Bundle Release no encontrado"
+                            exit 1
+                        fi
+                    '''
+                }
             }
         }
         
         stage('Análisis Final') {
             steps {
-                echo '📊 Análisis final del build...'
-                sh '''
-                    echo "=== RESUMEN DEL BUILD ==="
-                    echo "✅ Proyecto Flutter construido exitosamente"
-                    
-                    echo "=== ARTEFACTOS GENERADOS ==="
-                    if [ -f "build/app/outputs/flutter-apk/app-debug.apk" ]; then
-                        echo "📱 APK Debug: $(du -h build/app/outputs/flutter-apk/app-debug.apk | cut -f1)"
-                    fi
-                    
-                    if [ -f "build/app/outputs/bundle/release/app-release.aab" ]; then
-                        echo "📦 App Bundle Release: $(du -h build/app/outputs/bundle/release/app-release.aab | cut -f1)"
-                    fi
-                    
-                    echo "=== FLUTTER DOCTOR FINAL ==="
-                    flutter doctor --android-licenses > /dev/null 2>&1 || true
-                    flutter doctor | grep -E "(Flutter|Android toolchain)" || true
-                '''
+                echo '📊 Realizando análisis final...'
+                script {
+                    sh '''
+                        echo "=== ANÁLISIS FINAL ==="
+                        echo "📁 Estructura de builds generados:"
+                        find build/app/outputs -name "*.apk" -o -name "*.aab" | while read file; do
+                            echo "  📱 $(basename "$file"): $(du -h "$file" | cut -f1)"
+                        done
+                        
+                        echo "✅ Análisis completado"
+                    '''
+                }
             }
         }
     }
@@ -161,33 +174,33 @@ pipeline {
         always {
             echo '🏁 Pipeline finalizado.'
             
-            // Archivar artefactos generados
             script {
+                // Archivar artefactos si existen
                 try {
-                    archiveArtifacts artifacts: '''
-                        build/app/outputs/flutter-apk/*.apk,
-                        build/app/outputs/bundle/release/*.aab
-                    ''', fingerprint: true, allowEmptyArchive: true
+                    archiveArtifacts artifacts: 'build/app/outputs/flutter-apk/*.apk,build/app/outputs/bundle/release/*.aab', 
+                                   fingerprint: true, 
+                                   allowEmptyArchive: true
                     echo '📁 Artefactos archivados exitosamente'
                 } catch (Exception e) {
                     echo "⚠️ No se pudieron archivar algunos artefactos: ${e.getMessage()}"
                 }
             }
         }
+        
         success {
             echo '''
-            🎉 ¡Pipeline ejecutado con éxito!
+            🎉 ¡PIPELINE EXITOSO! 
             
-            ✅ Entorno verificado y configurado
-            ✅ Dependencias Flutter instaladas  
-            ✅ Tests ejecutados
-            ✅ APK Debug generado
-            ✅ App Bundle Release generado
-            ✅ Artefactos archivados
+            ✅ Builds generados correctamente:
+            • APK Debug para testing
+            • App Bundle Release para Play Store
             
-            🚀 ¡Listo para deployment!
+            🚀 Artefactos disponibles en la sección de artifacts
+            
+            🙌 ¡Gloria a Dios por esta victoria!
             '''
         }
+        
         failure {
             echo '''
             ❌ Pipeline falló. Revisa los logs para identificar el problema.
@@ -201,16 +214,13 @@ pipeline {
             💡 Recuerda: Los micro-jobs demuestran que el entorno funciona correctamente
             '''
         }
+        
         unstable {
             echo '''
-            ⚠️ Pipeline completado con advertencias.
+            ⚠️ Pipeline completado con warnings (probablemente tests fallidos).
             
-            📊 Posibles causas:
-            - Tests unitarios fallaron (pero build fue exitoso)
-            - Warnings durante la compilación
-            - Algunos artefactos opcionales no se generaron
-            
-            ✅ Los builds principales fueron exitosos
+            ✅ Los builds se generaron correctamente
+            🧪 Revisa los tests que fallaron si es necesario
             '''
         }
     }
