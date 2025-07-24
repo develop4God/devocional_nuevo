@@ -1,25 +1,13 @@
 pipeline {
     agent any
 
-    // Bloque environment corregido para tu Jenkinsfile
-    
-environment {
-    // Variables validadas y probadas en los micro-jobs
-    FLUTTER_HOME = "/opt/flutter"
-    ANDROID_SDK_ROOT = "/home/jenkins/Android/Sdk"
-    ANDROID_HOME = "/home/jenkins/Android/Sdk"
-    JAVA_HOME = "/usr/lib/jvm/java-11-openjdk-amd64"
-
-    // PATH consolidado en una sola línea, replicando el éxito del Job 2.3
-    PATH = "${PATH}:${FLUTTER_HOME}/bin:${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin:${ANDROID_SDK_ROOT}/platform-tools:${ANDROID_SDK_ROOT}/build-tools/34.0.0:${JAVA_HOME}/bin"
-    // Añadir rutas al PATH usando PATH+NOMBRE (recomendado)
-    PATH+FLUTTER = "${FLUTTER_HOME}/bin"
-    PATH+CMDLINE = "${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin"
-    PATH+PLATFORM_TOOLS = "${ANDROID_SDK_ROOT}/platform-tools"
-    PATH+BUILD_TOOLS = "${ANDROID_SDK_ROOT}/build-tools/34.0.0"
-    PATH+JAVA = "${JAVA_HOME}/bin"
-}
-
+    environment {
+        // Variables de entorno limpias - SIN modificar PATH aquí
+        FLUTTER_HOME = "/opt/flutter"
+        ANDROID_SDK_ROOT = "/home/jenkins/Android/Sdk"
+        ANDROID_HOME = "/home/jenkins/Android/Sdk"
+        JAVA_HOME = "/usr/lib/jvm/java-11-openjdk-amd64"
+    }
 
     stages {
         stage('Checkout SCM') {
@@ -32,9 +20,18 @@ environment {
         stage('Verificar Entorno') {
             steps {
                 echo '🔍 Verificando entorno (basado en micro-jobs exitosos)...'
-                script {
+                // Usar withEnv como en la solución que funcionó
+                withEnv([
+                    "PATH+FLUTTER=${FLUTTER_HOME}/bin",
+                    "PATH+CMDLINE=${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin",
+                    "PATH+PLATFORM_TOOLS=${ANDROID_SDK_ROOT}/platform-tools",
+                    "PATH+BUILD_TOOLS=${ANDROID_SDK_ROOT}/build-tools/34.0.0",
+                    "PATH+JAVA=${JAVA_HOME}/bin"
+                ]) {
                     sh '''
                         echo "=== VERIFICACIÓN DE HERRAMIENTAS CRÍTICAS ==="
+                        echo "PATH actual: $PATH"
+                        
                         echo "📱 Verificando Android SDK..."
                         which sdkmanager
                         sdkmanager --version
@@ -61,7 +58,13 @@ environment {
         stage('Configurar Flutter') {
             steps {
                 echo '⚙️ Configurando Flutter para Android...'
-                script {
+                withEnv([
+                    "PATH+FLUTTER=${FLUTTER_HOME}/bin",
+                    "PATH+CMDLINE=${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin",
+                    "PATH+PLATFORM_TOOLS=${ANDROID_SDK_ROOT}/platform-tools",
+                    "PATH+BUILD_TOOLS=${ANDROID_SDK_ROOT}/build-tools/34.0.0",
+                    "PATH+JAVA=${JAVA_HOME}/bin"
+                ]) {
                     sh '''
                         echo "=== CONFIGURACIÓN DE FLUTTER ==="
                         # Configurar Flutter para usar nuestro Android SDK
@@ -83,7 +86,9 @@ environment {
         stage('Limpiar y Obtener Dependencias') {
             steps {
                 echo '🧹 Limpiando proyecto y obteniendo dependencias...'
-                script {
+                withEnv([
+                    "PATH+FLUTTER=${FLUTTER_HOME}/bin"
+                ]) {
                     sh '''
                         echo "=== LIMPIEZA Y DEPENDENCIAS ==="
                         # Limpiar builds anteriores
@@ -107,11 +112,15 @@ environment {
         stage('Ejecutar Tests') {
             steps {
                 echo '🧪 Ejecutando tests...'
-                script {
-                    // Los tests que fallan no rompen el pipeline
-                    def testResult = sh(script: 'flutter test', returnStatus: true)
-                    if (testResult != 0) {
-                        unstable('Tests fallaron pero continuamos el build')
+                withEnv([
+                    "PATH+FLUTTER=${FLUTTER_HOME}/bin"
+                ]) {
+                    script {
+                        // Los tests que fallan no rompen el pipeline
+                        def testResult = sh(script: 'flutter test', returnStatus: true)
+                        if (testResult != 0) {
+                            unstable('Tests fallaron pero continuamos el build')
+                        }
                     }
                 }
             }
@@ -120,7 +129,13 @@ environment {
         stage('Build APK Debug') {
             steps {
                 echo '🔨 Construyendo APK Debug...'
-                script {
+                withEnv([
+                    "PATH+FLUTTER=${FLUTTER_HOME}/bin",
+                    "PATH+CMDLINE=${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin",
+                    "PATH+PLATFORM_TOOLS=${ANDROID_SDK_ROOT}/platform-tools",
+                    "PATH+BUILD_TOOLS=${ANDROID_SDK_ROOT}/build-tools/34.0.0",
+                    "PATH+JAVA=${JAVA_HOME}/bin"
+                ]) {
                     sh '''
                         echo "=== BUILD APK DEBUG ==="
                         flutter build apk --debug
@@ -142,7 +157,13 @@ environment {
         stage('Build App Bundle Release') {
             steps {
                 echo '📦 Construyendo App Bundle Release...'
-                script {
+                withEnv([
+                    "PATH+FLUTTER=${FLUTTER_HOME}/bin",
+                    "PATH+CMDLINE=${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin",
+                    "PATH+PLATFORM_TOOLS=${ANDROID_SDK_ROOT}/platform-tools",
+                    "PATH+BUILD_TOOLS=${ANDROID_SDK_ROOT}/build-tools/34.0.0",
+                    "PATH+JAVA=${JAVA_HOME}/bin"
+                ]) {
                     sh '''
                         echo "=== BUILD APP BUNDLE RELEASE ==="
                         flutter build appbundle --release
@@ -164,17 +185,15 @@ environment {
         stage('Análisis Final') {
             steps {
                 echo '📊 Realizando análisis final...'
-                script {
-                    sh '''
-                        echo "=== ANÁLISIS FINAL ==="
-                        echo "📁 Estructura de builds generados:"
-                        find build/app/outputs -name "*.apk" -o -name "*.aab" | while read file; do
-                            echo "  📱 $(basename "$file"): $(du -h "$file" | cut -f1)"
-                        done
-                        
-                        echo "✅ Análisis completado"
-                    '''
-                }
+                sh '''
+                    echo "=== ANÁLISIS FINAL ==="
+                    echo "📁 Estructura de builds generados:"
+                    find build/app/outputs -name "*.apk" -o -name "*.aab" | while read file; do
+                        echo "  📱 $(basename "$file"): $(du -h "$file" | cut -f1)"
+                    done
+                    
+                    echo "✅ Análisis completado"
+                '''
             }
         }
     }
@@ -233,3 +252,4 @@ environment {
             '''
         }
     }
+}
