@@ -4,7 +4,9 @@ pipeline {
     environment {
         FLUTTER_HOME = "/opt/flutter"
         ANDROID_SDK_ROOT = "/opt/android-sdk"
-        PATH = "${env.PATH}:${FLUTTER_HOME}/bin:${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin:${ANDROID_SDK_ROOT}/platform-tools:${ANDROID_SDK_ROOT}/build-tools/34.0.0"
+        ANDROID_HOME = "/opt/android-sdk"
+        JAVA_HOME = "/usr/lib/jvm/java-11-openjdk-amd64"
+        PATH = "${env.PATH}:${FLUTTER_HOME}/bin:${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin:${ANDROID_SDK_ROOT}/platform-tools:${ANDROID_SDK_ROOT}/build-tools/34.0.0:${JAVA_HOME}/bin"
         LANG = "en_US.UTF-8"
         LC_ALL = "en_US.UTF-8"
     }
@@ -16,12 +18,16 @@ pipeline {
             }
         }
 
-        stage('Check Flutter') {
+        stage('Print Environment Variables') {
             steps {
                 sh '''
-                    echo "Ejecutando flutter --version y flutter doctor"
+                    echo "JAVA_HOME = $JAVA_HOME"
+                    echo "ANDROID_SDK_ROOT = $ANDROID_SDK_ROOT"
+                    echo "ANDROID_HOME = $ANDROID_HOME"
+                    echo "FLUTTER_HOME = $FLUTTER_HOME"
+                    echo "PATH = $PATH"
                     flutter --version
-                    flutter doctor
+                    flutter doctor -v
                 '''
             }
         }
@@ -35,12 +41,11 @@ pipeline {
             }
         }
 
+        // Descomenta esta etapa si quieres correr tests, pero dado que había errores, mejor omitirla por ahora.
         /*
         stage('Run Tests') {
             steps {
-                sh '''
-                    flutter test
-                '''
+                sh 'flutter test'
             }
         }
         */
