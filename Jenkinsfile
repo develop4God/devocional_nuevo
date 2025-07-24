@@ -9,14 +9,8 @@ environment {
     ANDROID_HOME = "/home/jenkins/Android/Sdk"
     JAVA_HOME = "/usr/lib/jvm/java-11-openjdk-amd64"
 
-    // PATH usando sintaxis recomendada por Jenkins para evitar duplicación
-    // Se eliminaron las comillas dobles alrededor de los nombres de las variables PATH+...
-    // para que Jenkins las interprete correctamente como adiciones al PATH.
-    PATH+ANDROID_SDK = "${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin"
-    PATH+ANDROID_PLATFORM = "${ANDROID_SDK_ROOT}/platform-tools"
-    PATH+ANDROID_BUILD = "${ANDROID_SDK_ROOT}/build-tools/34.0.0"
-    PATH+FLUTTER = "${FLUTTER_HOME}/bin"
-    PATH+JAVA = "${JAVA_HOME}/bin"
+    // PATH consolidado en una sola línea, replicando el éxito del Job 2.3
+    PATH = "${PATH}:${FLUTTER_HOME}/bin:${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin:${ANDROID_SDK_ROOT}/platform-tools:${ANDROID_SDK_ROOT}/build-tools/34.0.0:${JAVA_HOME}/bin"
 }
     
     stages {
