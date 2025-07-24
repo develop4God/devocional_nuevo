@@ -18,16 +18,21 @@ pipeline {
             }
         }
 
-        stage('Imprimir Variables de Entorno') {
+        stage('Preparar Flutter y Android SDK') {
             steps {
                 sh '''
-                    echo "JAVA_HOME = $JAVA_HOME"
-                    echo "ANDROID_SDK_ROOT = $ANDROID_SDK_ROOT"
-                    echo "FLUTTER_HOME = $FLUTTER_HOME"
-                    echo "PATH = $PATH"
+                    echo "JAVA_HOME=$JAVA_HOME"
+                    echo "ANDROID_HOME=$ANDROID_HOME"
+                    echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
+                    echo "FLUTTER_HOME=$FLUTTER_HOME"
+                    echo "PATH=$PATH"
+                    
+                    # Forzar Flutter a usar el SDK Android correcto
+                    flutter config --android-sdk $ANDROID_SDK_ROOT
+                    
+                    flutter --version
+                    flutter doctor -v
                 '''
-                sh 'flutter --version'
-                sh 'flutter doctor -v'
             }
         }
 
@@ -42,14 +47,16 @@ pipeline {
 
         stage('Test Unitarios (opcional)') {
             steps {
-                sh 'flutter test || true' // Así el build sigue aunque falle el test
+                sh 'flutter test || true' // Para que no falle el build si tests fallan
             }
         }
 
         stage('Verificar Java') {
             steps {
-                sh 'java -version'
-                sh 'echo "JAVA_HOME is $JAVA_HOME"'
+                sh '''
+                    java -version
+                    echo "JAVA_HOME is $JAVA_HOME"
+                '''
             }
         }
 
