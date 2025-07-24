@@ -1,7 +1,7 @@
 pipeline {
     agent any
     
-    // Bloque environment corregido para tu Jenkinsfile
+    
 environment {
     // Variables validadas y probadas en los micro-jobs
     FLUTTER_HOME = "/opt/flutter"
@@ -9,9 +9,14 @@ environment {
     ANDROID_HOME = "/home/jenkins/Android/Sdk"
     JAVA_HOME = "/usr/lib/jvm/java-11-openjdk-amd64"
 
-    // PATH consolidado en una sola línea, replicando el éxito del Job 2.3
-    PATH = "${PATH}:${FLUTTER_HOME}/bin:${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin:${ANDROID_SDK_ROOT}/platform-tools:${ANDROID_SDK_ROOT}/build-tools/34.0.0:${JAVA_HOME}/bin"
+    // Añadir rutas al PATH usando PATH+NOMBRE (recomendado)
+    PATH+FLUTTER = "${FLUTTER_HOME}/bin"
+    PATH+CMDLINE = "${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin"
+    PATH+PLATFORM_TOOLS = "${ANDROID_SDK_ROOT}/platform-tools"
+    PATH+BUILD_TOOLS = "${ANDROID_SDK_ROOT}/build-tools/34.0.0"
+    PATH+JAVA = "${JAVA_HOME}/bin"
 }
+
     
     stages {
         stage('Checkout SCM') {
