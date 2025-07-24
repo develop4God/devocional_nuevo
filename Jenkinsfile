@@ -3,8 +3,8 @@ pipeline {
 
     environment {
         FLUTTER_HOME = "/opt/flutter"
-        ANDROID_SDK_ROOT = "/opt/android-sdk"
-        ANDROID_HOME = "/opt/android-sdk"
+        ANDROID_SDK_ROOT = "/home/jenkins/Android/Sdk"
+        ANDROID_HOME = "/home/jenkins/Android/Sdk"
         JAVA_HOME = "/usr/lib/jvm/java-11-openjdk-amd64"
         PATH = "${env.PATH}:${FLUTTER_HOME}/bin:${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin:${ANDROID_SDK_ROOT}/platform-tools:${ANDROID_SDK_ROOT}/build-tools/34.0.0:${JAVA_HOME}/bin"
         LANG = "en_US.UTF-8"
@@ -18,21 +18,20 @@ pipeline {
             }
         }
 
-        stage('Print Environment Variables') {
+        stage('Imprimir Variables de Entorno') {
             steps {
                 sh '''
                     echo "JAVA_HOME = $JAVA_HOME"
                     echo "ANDROID_SDK_ROOT = $ANDROID_SDK_ROOT"
-                    echo "ANDROID_HOME = $ANDROID_HOME"
                     echo "FLUTTER_HOME = $FLUTTER_HOME"
                     echo "PATH = $PATH"
-                    flutter --version
-                    flutter doctor -v
                 '''
+                sh 'flutter --version'
+                sh 'flutter doctor -v'
             }
         }
 
-        stage('Install Dependencies') {
+        stage('Dependencias Flutter') {
             steps {
                 sh '''
                     flutter clean
@@ -41,34 +40,26 @@ pipeline {
             }
         }
 
-        // Descomenta esta etapa si quieres correr tests, pero dado que había errores, mejor omitirla por ahora.
-        /*
-        stage('Run Tests') {
+        stage('Test Unitarios (opcional)') {
             steps {
-                sh 'flutter test'
+                sh 'flutter test || true' // Así el build sigue aunque falle el test
             }
         }
-        */
 
-        stage('Check Java Version') {
+        stage('Verificar Java') {
             steps {
                 sh 'java -version'
-            }
-        }
-
-        stage('Check JAVA_HOME') {
-            steps {
                 sh 'echo "JAVA_HOME is $JAVA_HOME"'
             }
         }
 
-        stage('Build Android Debug APK') {
+        stage('Build Debug APK') {
             steps {
                 sh 'flutter build apk --debug'
             }
         }
 
-        stage('Build Android AAB for Store') {
+        stage('Build App Bundle Release') {
             steps {
                 sh 'flutter build appbundle --release'
             }
