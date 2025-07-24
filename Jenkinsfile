@@ -6,7 +6,8 @@ pipeline {
         FLUTTER_HOME = "/opt/flutter"
         ANDROID_SDK_ROOT = "/home/jenkins/Android/Sdk"
         ANDROID_HOME = "/home/jenkins/Android/Sdk"
-        JAVA_HOME = "/usr/lib/jvm/java-11-openjdk-amd64"
+        // CAMBIAR A Java 17 para Android Gradle Plugin
+        JAVA_HOME = "/usr/lib/jvm/java-17-openjdk-amd64"
     }
 
     stages {
