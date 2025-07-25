@@ -11,8 +11,10 @@ pipeline {
         GRADLE_USER_HOME = "${WORKSPACE}/.gradle"
     }
     stages {
-        stage('Checkout SCM') {
-            steps { checkout scm }
+        stage('Validar Proyecto Flutter') {
+            steps {
+                sh 'test -f pubspec.yaml || { echo "❌ No se encontró pubspec.yaml. ¿Proyecto Flutter correcto?"; exit 1; }'
+            }
         }
         stage('Verificar Entorno y Memoria') {
             steps {
@@ -55,7 +57,7 @@ pipeline {
                     pkill -9 -f gradle || true
                     pkill -9 -f GradleDaemon || true
                     sleep 2
-                    rm -rf ~/.gradle/daemon/ ~/.gradle/caches/ .gradle/ build/.gradle/ || true
+                    rm -rf .gradle/ build/.gradle/
                     free -h
                 '''
             }
@@ -82,7 +84,9 @@ EOF
         stage('🧼 Limpieza Final y Recursos') {
             steps {
                 sh '''
-                    kill $MEM_MONITOR_PID >/dev/null 2>&1 || true
+                    if [ -n "$MEM_MONITOR_PID" ] && kill -0 $MEM_MONITOR_PID 2>/dev/null; then
+                        kill $MEM_MONITOR_PID >/dev/null 2>&1
+                    fi
                     free -h
                 '''
             }
@@ -99,5 +103,3 @@ EOF
         }
     }
 }
-
-
