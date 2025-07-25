@@ -1,0 +1,125 @@
+//Jenkinsfile para pipeline “crítico” (build Android)
+
+pipeline {
+    agent any
+    environment {
+        FLUTTER_HOME = "/opt/flutter"
+        ANDROID_SDK_ROOT = "/home/jenkins/Android/Sdk"
+        ANDROID_HOME = "/home/jenkins/Android/Sdk"
+        JAVA_HOME = "/usr/lib/jvm/java-17-openjdk-amd64"
+        GRADLE_OPTS = '-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs="-Xmx1500m -XX:MaxMetaspaceSize=384m -XX:+HeapDumpOnOutOfMemoryError"'
+        ORG_GRADLE_PROJECT_android_useAndroidX = 'true'
+        GRADLE_USER_HOME = "${WORKSPACE}/.gradle"
+    }
+    options {
+        timeout(time: 15, unit: 'MINUTES')
+    }
+    stages {
+        stage('Check preliminaries') {
+            steps {
+                echo 'Verificando entorno...'
+                withEnv([
+                    "PATH+FLUTTER=${FLUTTER_HOME}/bin",
+                    "PATH+CMDLINE=${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin",
+                    "PATH+PLATFORM_TOOLS=${ANDROID_SDK_ROOT}/platform-tools",
+                    "PATH+BUILD_TOOLS=${ANDROID_SDK_ROOT}/build-tools/34.0.0",
+                    "PATH+JAVA=${JAVA_HOME}/bin"
+                ]) {
+                    sh '''
+                        which flutter
+                        flutter --version
+                        which java
+                        java --version
+                    '''
+                }
+            }
+        }
+        stage('Build App Bundle Release') {
+            steps {
+                withCredentials([
+                    file(credentialsId: 'UPLOAD_KEYSTORE_FILE', variable: 'KEYSTORE_PATH'),
+                    string(credentialsId: 'KEYSTORE_STORE_PASSWORD', variable: 'KEYSTORE_PASSWORD'),
+                    string(credentialsId: 'KEYSTORE_KEY_PASSWORD', variable: 'KEY_PASSWORD'),
+                    string(credentialsId: 'KEYSTORE_KEY_ALIAS', variable: 'KEY_ALIAS')
+                ]) {
+                    withEnv([
+                        "PATH+FLUTTER=${FLUTTER_HOME}/bin",
+                        "PATH+CMDLINE=${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin",
+                        "PATH+PLATFORM_TOOLS=${ANDROID_SDK_ROOT}/platform-tools",
+                        "PATH+BUILD_TOOLS=${ANDROID_SDK_ROOT}/build-tools/34.0.0",
+                        "PATH+JAVA=${JAVA_HOME}/bin"
+                    ]) {
+                        script {
+                            catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
+                                sh '''
+                                    pkill -9 -f gradle || true
+                                    pkill -9 -f GradleDaemon || true
+                                    rm -rf ~/.gradle/daemon/ || true
+                                    sleep 2
+                                    free -h
+                                    timeout 900 flutter build appbundle --release --no-tree-shake-icons --verbose
+                                    free -h
+
+                                    AAB_PATH="build/app/outputs/bundle/release/app-release.aab"
+                                    if [ -f "$AAB_PATH" ]; then
+                                        echo "🎉 App Bundle generado correctamente: $AAB_PATH"
+                                        ls -lh "$AAB_PATH"
+                                    else
+                                        echo "⚠️  App Bundle no encontrado."
+                                        find build -name "*.aab" || true
+                                        exit 1
+                                    fi
+                                '''
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        stage('Verify Artifacts') {
+            steps {
+                sh '''
+                    echo "Verificando artefactos generados (.aab y .apk):"
+                    find build -name "*.aab" -o -name "*.apk" || true
+                '''
+            }
+        }
+        stage('Final Cleanup') {
+            steps {
+                sh '''
+                    pkill -9 -f gradle || true
+                    pkill -9 -f GradleDaemon || true
+                    rm -rf ~/.gradle/daemon/ ~/.gradle/caches/ .gradle/ build/.gradle/ || true
+                    free -h
+                '''
+            }
+        }
+    }
+    post {
+        always {
+            echo '🏁 Pipeline crítico finalizado.'
+            sh '''
+                pkill -f gradle || true
+                pkill -f GradleDaemon || true
+                free -h
+            '''
+            archiveArtifacts artifacts: 'build/app/outputs/flutter-apk/*.apk,build/app/outputs/bundle/release/*.aab',
+                             fingerprint: true,
+                             allowEmptyArchive: true
+            archiveArtifacts artifacts: '**/*.log', allowEmptyArchive: true
+        }
+        success {
+            echo '🎉 Build completado exitosamente'
+        }
+        failure {
+            echo '💥 Build falló'
+            sh '''
+                free -h
+                df -h .
+                ps aux | grep gradle || true
+                ls -la build/ || true
+                dmesg | tail -20 || true
+            '''
+        }
+    }
+}
