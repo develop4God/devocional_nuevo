@@ -5,10 +5,8 @@ pipeline {
         ANDROID_SDK_ROOT = "/home/jenkins/Android/Sdk"
         ANDROID_HOME = "/home/jenkins/Android/Sdk"
         JAVA_HOME = "/usr/lib/jvm/java-17-openjdk-amd64"
-        // Configuraciones para optimizar Gradle
-        GRADLE_OPTS = '-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs="-Xmx6g -XX:MaxMetaspaceSize=2g -XX:+HeapDumpOnOutOfMemoryError"'
+        GRADLE_OPTS = '-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs="-Xmx2g -XX:MaxMetaspaceSize=512m -XX:+HeapDumpOnOutOfMemoryError"'
         ORG_GRADLE_PROJECT_android_useAndroidX = 'true'
-        // Limitar procesos paralelos para evitar sobrecarga de memoria
         GRADLE_USER_HOME = "${WORKSPACE}/.gradle"
     }
     stages {
@@ -46,32 +44,47 @@ pipeline {
                 }
             }
         }
+        stage('🧹 Limpiar Sistema') {
+            steps {
+                echo '🧹 Eliminando procesos y caché Gradle previos...'
+                sh '''
+                    # Estado antes
+                    free -h
+
+                    # Identificar y eliminar procesos Gradle
+                    pkill -9 -f gradle || true
+                    pkill -9 -f GradleDaemon || true
+                    sleep 3
+
+                    # Limpiar daemons y caches locales
+                    rm -rf ~/.gradle/daemon/ || true
+                    rm -rf ~/.gradle/caches/ || true
+
+                    # Estado después
+                    free -h
+                '''
+            }
+        }
         stage('Limpiar y Obtener Dependencias') {
             steps {
                 withEnv([
                     "PATH+FLUTTER=${FLUTTER_HOME}/bin"
                 ]) {
                     sh '''
-                        # Limpiar procesos gradle previos
-                        pkill -f gradle || true
-                        
                         flutter clean
                         flutter pub get
-                        
-                        # Crear gradle.properties optimizado si no existe
-                        if [ ! -f android/gradle.properties ]; then
-                            touch android/gradle.properties
-                        fi
-                        
-                        # Agregar configuraciones de optimización
-                        echo "org.gradle.daemon=false" >> android/gradle.properties
-                        echo "org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1g -XX:+HeapDumpOnOutOfMemoryError" >> android/gradle.properties
-                        echo "org.gradle.parallel=false" >> android/gradle.properties
-                        echo "org.gradle.configureondemand=false" >> android/gradle.properties
-                        echo "android.useAndroidX=true" >> android/gradle.properties
-                        echo "android.enableJetifier=true" >> android/gradle.properties
-                        
-                        echo "Configuración gradle.properties:"
+
+                        # Crear o sobrescribir gradle.properties de forma conservadora
+                        cat <<EOF > android/gradle.properties
+org.gradle.daemon=false
+org.gradle.jvmargs=-Xmx2g -XX:MaxMetaspaceSize=512m -XX:+HeapDumpOnOutOfMemoryError
+org.gradle.parallel=false
+org.gradle.configureondemand=false
+android.useAndroidX=true
+android.enableJetifier=true
+EOF
+
+                        echo "Configuración gradle.properties aplicada:"
                         cat android/gradle.properties
                     '''
                 }
@@ -93,41 +106,32 @@ pipeline {
                         "PATH+JAVA=${JAVA_HOME}/bin"
                     ]) {
                         script {
-                            try {
-                                sh '''
-                                    echo "Usando keystore en: $KEYSTORE_PATH"
-                                    
-                                    # Limpiar cualquier daemon gradle existente
-                                    pkill -f gradle || true
-                                    rm -rf ~/.gradle/daemon/ || true
-                                    
-                                    # Verificar memoria antes del build
-                                    echo "Memoria antes del build:"
-                                    free -h
-                                    
-                                    # Build con opciones específicas para CI
-                                    flutter build appbundle --release --no-tree-shake-icons --verbose
-                                    
-                                    AAB_PATH="build/app/outputs/bundle/release/app-release.aab"
-                                    if [ -f "$AAB_PATH" ]; then
-                                        echo "App Bundle Release generado correctamente"
-                                        ls -lh "$AAB_PATH"
-                                    else
-                                        echo "Error: App Bundle Release no encontrado"
-                                        echo "Contenido del directorio build:"
-                                        find build -name "*.aab" || true
-                                        exit 1
-                                    fi
-                                '''
-                            } catch (Exception e) {
-                                echo "Build falló, intentando build alternativo..."
-                                sh '''
-                                    # Método alternativo: usar gradle directamente
-                                    cd android
-                                    ./gradlew clean --no-daemon --stacktrace
-                                    ./gradlew bundleRelease --no-daemon --stacktrace --info
-                                '''
-                            }
+                            sh '''
+                                echo "Preparando build. Limpieza final de Gradle..."
+                                pkill -f gradle || true
+                                rm -rf ~/.gradle/daemon/ || true
+
+                                echo "Memoria antes del build:"
+                                free -h
+
+                                # Build directo con opciones para bajo consumo
+                                timeout 600 flutter build appbundle --release --no-tree-shake-icons --verbose
+
+                                echo "Memoria después del build:"
+                                free -h
+
+                                # Validación del artefacto AAB
+                                AAB_PATH="build/app/outputs/bundle/release/app-release.aab"
+                                if [ -f "$AAB_PATH" ]; then
+                                    echo "🎉 App Bundle generado correctamente: $AAB_PATH"
+                                    ls -lh "$AAB_PATH"
+                                else
+                                    echo "⚠️  App Bundle no encontrado."
+                                    echo "Buscando .aab alternativos..."
+                                    find build -name "*.aab" || true
+                                    exit 1
+                                fi
+                            '''
                         }
                     }
                 }
@@ -136,40 +140,30 @@ pipeline {
         stage('Verificar Artefactos') {
             steps {
                 sh '''
-                    echo "Verificando artefactos generados:"
+                    echo "Verificando artefactos generados (.aab y .apk):"
                     find build -name "*.aab" -o -name "*.apk" || true
-                    
-                    AAB_PATH="build/app/outputs/bundle/release/app-release.aab"
-                    if [ -f "$AAB_PATH" ]; then
-                        echo "✓ App Bundle encontrado: $AAB_PATH"
-                        ls -lh "$AAB_PATH"
-                        file "$AAB_PATH"
-                    else
-                        echo "✗ App Bundle no encontrado"
-                    fi
                 '''
             }
         }
     }
     post {
         always {
-            echo 'Pipeline finalizado.'
-            
-            // Limpiar procesos gradle
-            sh 'pkill -f gradle || true'
-            
-            // Archivar artefactos
-            archiveArtifacts artifacts: 'build/app/outputs/flutter-apk/*.apk,build/app/outputs/bundle/release/*.aab', 
-                            fingerprint: true, 
-                            allowEmptyArchive: true
+            echo '🏁 Pipeline finalizado.'
+            sh '''
+                pkill -f gradle || true
+                free -h
+            '''
+            archiveArtifacts artifacts: 'build/app/outputs/flutter-apk/*.apk,build/app/outputs/bundle/release/*.aab',
+                              fingerprint: true,
+                              allowEmptyArchive: true
         }
         success {
-            echo '✓ Build completado exitosamente'
+            echo '🎉 Build completado exitosamente'
         }
         failure {
-            echo '✗ Build falló'
+            echo '💥 Build falló'
             sh '''
-                echo "Información de debug:"
+                echo "Información de debug de memoria y procesos:"
                 free -h
                 df -h .
                 ps aux | grep gradle || true
@@ -177,7 +171,6 @@ pipeline {
             '''
         }
         cleanup {
-            // Limpiar archivos temporales
             sh '''
                 rm -rf .gradle/ || true
                 rm -rf build/.gradle/ || true
