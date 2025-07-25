@@ -5,8 +5,10 @@ pipeline {
         ANDROID_SDK_ROOT = "/home/jenkins/Android/Sdk"
         ANDROID_HOME = "/home/jenkins/Android/Sdk"
         JAVA_HOME = "/usr/lib/jvm/java-17-openjdk-amd64"
-        GRADLE_OPTS = '-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs="-Xmx2g -XX:MaxMetaspaceSize=512m -XX:+HeapDumpOnOutOfMemoryError"'
+        // Memoria conservadora para equipos con 4GB RAM
+        GRADLE_OPTS = '-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs="-Xmx1500m -XX:MaxMetaspaceSize=384m -XX:+HeapDumpOnOutOfMemoryError"'
         ORG_GRADLE_PROJECT_android_useAndroidX = 'true'
+        // Gradle usa el workspace para evitar conflictos con otros jobs
         GRADLE_USER_HOME = "${WORKSPACE}/.gradle"
     }
     stages {
@@ -15,7 +17,7 @@ pipeline {
                 checkout scm
             }
         }
-        stage('Verificar Entorno') {
+        stage('Verificar Entorno y Memoria') {
             steps {
                 echo 'Verificando entorno...'
                 withEnv([
@@ -40,6 +42,11 @@ pipeline {
                         free -h
                         echo "Espacio en disco:"
                         df -h .
+                        echo "Swap configurada:"
+                        cat /proc/swaps || true
+                        # Comenzar monitor de memoria en background
+                        (while true; do free -h; sleep 10; done) &
+                        MEM_MONITOR_PID=$!
                     '''
                 }
             }
@@ -48,19 +55,21 @@ pipeline {
             steps {
                 echo '🧹 Eliminando procesos y caché Gradle previos...'
                 sh '''
-                    # Estado antes
+                    echo "📊 Estado inicial del sistema:"
                     free -h
 
                     # Identificar y eliminar procesos Gradle
                     pkill -9 -f gradle || true
                     pkill -9 -f GradleDaemon || true
-                    sleep 3
+                    sleep 2
 
-                    # Limpiar daemons y caches locales
+                    # Limpiar daemons y caches locales, tanto global como local
                     rm -rf ~/.gradle/daemon/ || true
                     rm -rf ~/.gradle/caches/ || true
+                    rm -rf .gradle/ || true
+                    rm -rf build/.gradle/ || true
 
-                    # Estado después
+                    echo "📊 Estado después de limpieza:"
                     free -h
                 '''
             }
@@ -74,10 +83,10 @@ pipeline {
                         flutter clean
                         flutter pub get
 
-                        # Crear o sobrescribir gradle.properties de forma conservadora
+                        # Crear o sobrescribir gradle.properties con memoria ajustada y sin daemon, ni parallel, ni configureondemand
                         cat <<EOF > android/gradle.properties
 org.gradle.daemon=false
-org.gradle.jvmargs=-Xmx2g -XX:MaxMetaspaceSize=512m -XX:+HeapDumpOnOutOfMemoryError
+org.gradle.jvmargs=-Xmx1500m -XX:MaxMetaspaceSize=384m -XX:+HeapDumpOnOutOfMemoryError
 org.gradle.parallel=false
 org.gradle.configureondemand=false
 android.useAndroidX=true
@@ -108,8 +117,10 @@ EOF
                         script {
                             sh '''
                                 echo "Preparando build. Limpieza final de Gradle..."
-                                pkill -f gradle || true
+                                pkill -9 -f gradle || true
+                                pkill -9 -f GradleDaemon || true
                                 rm -rf ~/.gradle/daemon/ || true
+                                sleep 2
 
                                 echo "Memoria antes del build:"
                                 free -h
@@ -145,17 +156,39 @@ EOF
                 '''
             }
         }
+        stage('🧼 Limpieza Final y Recursos') {
+            steps {
+                sh '''
+                    # Detener monitor de memoria
+                    kill $MEM_MONITOR_PID >/dev/null 2>&1 || true
+
+                    # Limpieza de procesos y caches
+                    pkill -9 -f gradle || true
+                    pkill -9 -f GradleDaemon || true
+                    rm -rf ~/.gradle/daemon/ || true
+                    rm -rf ~/.gradle/caches/ || true
+                    rm -rf .gradle/ || true
+                    rm -rf build/.gradle/ || true
+
+                    echo "📊 Estado final de memoria:"
+                    free -h
+                '''
+            }
+        }
     }
     post {
         always {
             echo '🏁 Pipeline finalizado.'
             sh '''
                 pkill -f gradle || true
+                pkill -f GradleDaemon || true
                 free -h
             '''
             archiveArtifacts artifacts: 'build/app/outputs/flutter-apk/*.apk,build/app/outputs/bundle/release/*.aab',
                               fingerprint: true,
                               allowEmptyArchive: true
+            // Opcional: Guardar logs de memoria para análisis futuro
+            archiveArtifacts artifacts: '**/*.log', allowEmptyArchive: true
         }
         success {
             echo '🎉 Build completado exitosamente'
@@ -168,6 +201,8 @@ EOF
                 df -h .
                 ps aux | grep gradle || true
                 ls -la build/ || true
+                echo "Verifica el log del sistema (dmesg) si hay OOM Killer:"
+                dmesg | tail -20 || true
             '''
         }
         cleanup {
