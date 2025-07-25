@@ -1,5 +1,3 @@
-//Jenkinsfile para pipeline “crítico” (build Android)
-
 pipeline {
     agent any
     environment {
@@ -34,12 +32,56 @@ pipeline {
                 }
             }
         }
+        // --- INICIO DE CAMBIOS ---
+        stage('Diagnóstico de usuario y permisos') {
+            steps {
+                sh '''
+                    echo "Usuario actual: $(whoami)"
+                    echo "Grupos: $(groups)"
+                    ls -ld "${WORKSPACE}"
+                    touch prueba_pipeline.txt
+                    echo "OK: Jenkins puede crear archivos en el workspace"
+                    rm prueba_pipeline.txt
+                '''
+            }
+        }
+        stage('Validar Keystore') {
+            steps {
+                script {
+                    withCredentials([
+                        file(credentialsId: 'UPLOAD_KEYSTORE_FILE', variable: 'KEYSTORE_PATH'),
+                        string(credentialsId: 'KEYSTORE_STORE_PASSWORD', variable: 'KEYSTORE_STORE_PASSWORD'),
+                        string(credentialsId: 'KEYSTORE_KEY_ALIAS', variable: 'KEYSTORE_KEY_ALIAS'),
+                        string(credentialsId: 'KEYSTORE_KEY_PASSWORD', variable: 'KEYSTORE_KEY_PASSWORD')
+                    ]) {
+                        sh '''
+                            echo "Ruta real del keystore temporal: ${KEYSTORE_PATH}"
+                            ls -la "${KEYSTORE_PATH}"
+                            
+                            echo "Validando keystore directamente..."
+                            keytool -list -v -keystore "${KEYSTORE_PATH}" \\
+                                    -storepass "$KEYSTORE_STORE_PASSWORD" \\
+                                    -alias "$KEYSTORE_KEY_ALIAS" \\
+                                    -keypass "$KEYSTORE_KEY_PASSWORD"
+                            RET=$?
+                            if [ $RET -eq 0 ]; then
+                                echo "✅ Keystore válido"
+                            else
+                                echo "❌ Falló la validación del keystore (exit code: $RET)"
+                                exit 1 // Falla la compilación si el keystore no es válido
+                            fi
+                        '''
+                    }
+                }
+            }
+        }
+        // --- FIN DE CAMBIOS ---
         stage('Build App Bundle Release') {
             steps {
                 withCredentials([
                     file(credentialsId: 'UPLOAD_KEYSTORE_FILE', variable: 'KEYSTORE_PATH'),
-                    string(credentialsId: 'KEYSTORE_STORE_PASSWORD', variable: 'KEYSTORE_PASSWORD'),
-                    string(credentialsId: 'KEYSTORE_KEY_PASSWORD', variable: 'KEY_PASSWORD'),
+                    string(credentialsId: 'KEYSTORE_STORE_PASSWORD', variable: 'KEYSTORE_PASSWORD'), // Usar KEYSTORE_PASSWORD para compatibilidad con el entorno existente
+                    string(credentialsId: 'KEYSTORE_KEY_PASSWORD', variable: 'KEY_PASSWORD'), // Usar KEY_PASSWORD para compatibilidad con el entorno existente
                     string(credentialsId: 'KEYSTORE_KEY_ALIAS', variable: 'KEY_ALIAS')
                 ]) {
                     withEnv([
@@ -65,7 +107,7 @@ pipeline {
                                         echo "🎉 App Bundle generado correctamente: $AAB_PATH"
                                         ls -lh "$AAB_PATH"
                                     else
-                                        echo "⚠️  App Bundle no encontrado."
+                                        echo "⚠️ App Bundle no encontrado."
                                         find build -name "*.aab" || true
                                         exit 1
                                     fi
