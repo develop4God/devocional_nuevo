@@ -5,7 +5,7 @@ pipeline {
         ANDROID_SDK_ROOT = "/home/jenkins/Android/Sdk"
         ANDROID_HOME = "/home/jenkins/Android/Sdk"
         JAVA_HOME = "/usr/lib/jvm/java-17-openjdk-amd64"
-        GRADLE_OPTS = '-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs="-Xmx1500m -XX:MaxMetaspaceSize=384m -XX:+HeapDumpOnOutOfMemoryError"'
+        GRADLE_OPTS = '-Dorg.gradle.jvmargs="-Xmx1500m -XX:MaxMetaspaceSize=384m -XX:+HeapDumpOnOutOfMemoryError"' // Eliminado -Dorg.gradle.daemon=false para permitir el uso del daemon y la caché
         ORG_GRADLE_PROJECT_android_useAndroidX = 'true'
         GRADLE_USER_HOME = "${WORKSPACE}/.gradle"
     }
