@@ -91,16 +91,23 @@ pipeline {
                     ]) {
                         script {
                             catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
+                                // --- INICIO DE CAMBIOS: Limpieza y Compilación de Micro-job ---
                                 sh '''
+                                    echo "Realizando limpieza profunda y obteniendo dependencias antes de la compilación..."
                                     pkill -9 -f gradle || true
                                     pkill -9 -f GradleDaemon || true
                                     rm -rf ~/.gradle/daemon/ || true
-                                    sleep 2
+                                    flutter clean || true
+                                    flutter pub get || true
+                                    echo "Limpieza y obtención de dependencias completadas."
                                     free -h
-                                    timeout 900 flutter build appbundle --release --no-tree-shake-icons --verbose
+                                    echo "Iniciando 'flutter build appbundle'..."
+                                    flutter build appbundle --release --no-tree-shake-icons --verbose
+                                    echo "Comando 'flutter build appbundle' finalizado."
                                     free -h
                                 '''
-                                // --- INICIO DE CAMBIOS PARA BÚSQUEDA DINÁMICA Y DEBUG ---
+                                // --- FIN DE CAMBIOS: Limpieza y Compilación de Micro-job ---
+
                                 echo "--- Buscando artefactos de salida después de la compilación ---"
 
                                 // Buscar el AAB de release
@@ -132,7 +139,6 @@ pipeline {
                                 }
 
                                 echo "--- Fin de búsqueda de artefactos ---"
-                                // --- FIN DE CAMBIOS PARA BÚSQUEDA DINÁMICA Y DEBUG ---
                             }
                         }
                     }
