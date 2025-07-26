@@ -123,7 +123,8 @@ pipeline {
                             if (aabPath) {
                                 echo "🎉 App Bundle de Release encontrado en: ${aabPath}"
                                 sh "ls -lh \"${aabPath}\""
-                                env.AAB_FINAL_PATH = aabPath
+                                // Convertir path absoluto a relativo para Jenkins archiveArtifacts
+                                env.AAB_FINAL_PATH = aabPath.replace("${WORKSPACE}/", "")
                             } else {
                                 echo "⚠️ App Bundle de Release (*.aab) NO encontrado en build/app/outputs/bundle/release."
                                 echo "Realizando búsqueda más amplia de *.aab en build/app/outputs/bundle/:"
@@ -137,7 +138,8 @@ pipeline {
                             if (apkPath) {
                                 echo "🎉 APK de Release encontrado en: ${apkPath}"
                                 sh "ls -lh \"${apkPath}\""
-                                env.APK_FINAL_PATH = apkPath
+                                // Convertir path absoluto a relativo para Jenkins archiveArtifacts
+                                env.APK_FINAL_PATH = apkPath.replace("${WORKSPACE}/", "")
                             } else {
                                 echo "⚠️ APK de Release (*.apk) NO encontrado en build/app/outputs/flutter-apk."
                                 echo "Realizando búsqueda más amplia de *.apk en build/app/outputs/flutter-apk/:"
