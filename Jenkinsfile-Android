@@ -5,7 +5,8 @@ pipeline {
         ANDROID_SDK_ROOT = "/home/jenkins/Android/Sdk"
         ANDROID_HOME = "/home/jenkins/Android/Sdk"
         JAVA_HOME = "/usr/lib/jvm/java-17-openjdk-amd64"
-        GRADLE_OPTS = '-Dorg.gradle.jvmargs="-Xmx1500m -XX:MaxMetaspaceSize=384m -XX:+HeapDumpOnOutOfMemoryError"' // Daemon habilitado
+        // CAMBIO CRÍTICO: Deshabilitar daemon de Gradle como en el micro-job exitoso
+        GRADLE_OPTS = '-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs="-Xmx1500m -XX:MaxMetaspaceSize=384m -XX:+HeapDumpOnOutOfMemoryError"'
         ORG_GRADLE_PROJECT_android_useAndroidX = 'true'
         GRADLE_USER_HOME = "${WORKSPACE}/.gradle"
     }
@@ -85,6 +86,7 @@ pipeline {
         stage('Build App Bundle Release') {
             steps {
                 script {
+                    // CAMBIO CRÍTICO: Usar exactamente los mismos nombres de variables que en el micro-job exitoso
                     withCredentials([
                         file(credentialsId: 'UPLOAD_KEYSTORE_FILE', variable: 'KEYSTORE_PATH'),
                         string(credentialsId: 'KEYSTORE_STORE_PASSWORD', variable: 'KEYSTORE_PASSWORD'),
@@ -98,52 +100,52 @@ pipeline {
                             "PATH+BUILD_TOOLS=${ANDROID_SDK_ROOT}/build-tools/34.0.0",
                             "PATH+JAVA=${JAVA_HOME}/bin"
                         ]) {
-                            catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
-                                sh '''
-                                    echo "Realizando limpieza profunda y obteniendo dependencias antes de la compilación..."
-                                    pkill -9 -f gradle || true
-                                    pkill -9 -f GradleDaemon || true
-                                    rm -rf ~/.gradle/daemon/ || true
-                                    flutter clean || true
-                                    flutter pub get || true
-                                    echo "Limpieza y obtención de dependencias completadas."
-                                    free -h
-                                    echo "Iniciando 'flutter build appbundle'..."
-                                    flutter build appbundle --release --no-tree-shake-icons --verbose
-                                    echo "Comando 'flutter build appbundle' finalizado. Analizando salida..."
-                                    free -h
-                                '''
+                            // CAMBIO CRÍTICO: Remover catchError que puede ocultar errores reales
+                            sh '''
+                                echo "Realizando limpieza mínima antes de la compilación..."
+                                pkill -9 -f gradle || true
+                                pkill -9 -f GradleDaemon || true
+                                rm -rf ~/.gradle/daemon/ || true
+                                flutter clean || true
+                                flutter pub get || true
+                                echo "Limpieza mínima completada."
+                            '''
 
-                                echo "--- Buscando artefactos de salida después de la compilación ---"
+                            echo "Iniciando 'flutter build appbundle' para compilación principal..."
+                            sh '''
+                                flutter build appbundle --release --no-tree-shake-icons --verbose
+                            '''
+                            echo "Comando 'flutter build appbundle' finalizado. Analizando salida..."
 
-                                def aabPath = sh(script: "find \"${WORKSPACE}/build/app/outputs/bundle/release\" -name \"*.aab\" -type f -print -quit || true", returnStdout: true).trim()
-                                if (aabPath) {
-                                    echo "🎉 App Bundle de Release encontrado en: ${aabPath}"
-                                    sh "ls -lh \"${aabPath}\""
-                                    env.AAB_FINAL_PATH = aabPath
-                                } else {
-                                    echo "⚠️ App Bundle de Release (*.aab) NO encontrado en build/app/outputs/bundle/release."
-                                    echo "Realizando búsqueda más amplia de *.aab en build/app/outputs/bundle/:"
-                                    sh "find \"${WORKSPACE}/build/app/outputs/bundle\" -name \"*.aab\" || true"
-                                    env.AAB_FINAL_PATH = ""
-                                }
+                            echo "--- Buscando artefactos de salida después de la compilación ---"
 
-                                echo ""
-
-                                def apkPath = sh(script: "find \"${WORKSPACE}/build/app/outputs/flutter-apk\" -name \"*.apk\" -type f -print -quit || true", returnStdout: true).trim()
-                                if (apkPath) {
-                                    echo "🎉 APK de Release encontrado en: ${apkPath}"
-                                    sh "ls -lh \"${apkPath}\""
-                                    env.APK_FINAL_PATH = apkPath
-                                } else {
-                                    echo "⚠️ APK de Release (*.apk) NO encontrado en build/app/outputs/flutter-apk."
-                                    echo "Realizando búsqueda más amplia de *.apk en build/app/outputs/flutter-apk/:"
-                                    sh "find \"${WORKSPACE}/build/app/outputs/flutter-apk\" -name \"*.apk\" || true"
-                                    env.APK_FINAL_PATH = ""
-                                }
-
-                                echo "--- Fin de búsqueda de artefactos ---"
+                            def aabPath = sh(script: "find \"${WORKSPACE}/build/app/outputs/bundle/release\" -name \"*.aab\" -type f -print -quit || true", returnStdout: true).trim()
+                            if (aabPath) {
+                                echo "🎉 App Bundle de Release encontrado en: ${aabPath}"
+                                sh "ls -lh \"${aabPath}\""
+                                env.AAB_FINAL_PATH = aabPath
+                            } else {
+                                echo "⚠️ App Bundle de Release (*.aab) NO encontrado en build/app/outputs/bundle/release."
+                                echo "Realizando búsqueda más amplia de *.aab en build/app/outputs/bundle/:"
+                                sh "find \"${WORKSPACE}/build/app/outputs/bundle\" -name \"*.aab\" || true"
+                                env.AAB_FINAL_PATH = ""
                             }
+
+                            echo ""
+
+                            def apkPath = sh(script: "find \"${WORKSPACE}/build/app/outputs/flutter-apk\" -name \"*.apk\" -type f -print -quit || true", returnStdout: true).trim()
+                            if (apkPath) {
+                                echo "🎉 APK de Release encontrado en: ${apkPath}"
+                                sh "ls -lh \"${apkPath}\""
+                                env.APK_FINAL_PATH = apkPath
+                            } else {
+                                echo "⚠️ APK de Release (*.apk) NO encontrado en build/app/outputs/flutter-apk."
+                                echo "Realizando búsqueda más amplia de *.apk en build/app/outputs/flutter-apk/:"
+                                sh "find \"${WORKSPACE}/build/app/outputs/flutter-apk\" -name \"*.apk\" || true"
+                                env.APK_FINAL_PATH = ""
+                            }
+
+                            echo "--- Fin de búsqueda de artefactos ---"
                         }
                     }
                 }
