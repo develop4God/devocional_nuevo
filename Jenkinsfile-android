@@ -32,7 +32,6 @@ pipeline {
                 }
             }
         }
-        // --- INICIO DE CAMBIOS ---
         stage('Diagnóstico de usuario y permisos') {
             steps {
                 sh '''
@@ -57,7 +56,7 @@ pipeline {
                         sh '''
                             echo "Ruta real del keystore temporal: ${KEYSTORE_PATH}"
                             ls -la "${KEYSTORE_PATH}"
-                            
+
                             echo "Validando keystore directamente..."
                             keytool -list -v -keystore "${KEYSTORE_PATH}" \\
                                     -storepass "$KEYSTORE_STORE_PASSWORD" \\
@@ -75,13 +74,12 @@ pipeline {
                 }
             }
         }
-        // --- FIN DE CAMBIOS ---
         stage('Build App Bundle Release') {
             steps {
                 withCredentials([
                     file(credentialsId: 'UPLOAD_KEYSTORE_FILE', variable: 'KEYSTORE_PATH'),
-                    string(credentialsId: 'KEYSTORE_STORE_PASSWORD', variable: 'KEYSTORE_PASSWORD'), // Usar KEYSTORE_PASSWORD para compatibilidad con el entorno existente
-                    string(credentialsId: 'KEYSTORE_KEY_PASSWORD', variable: 'KEY_PASSWORD'), // Usar KEY_PASSWORD para compatibilidad con el entorno existente
+                    string(credentialsId: 'KEYSTORE_STORE_PASSWORD', variable: 'KEYSTORE_PASSWORD'),
+                    string(credentialsId: 'KEYSTORE_KEY_PASSWORD', variable: 'KEY_PASSWORD'),
                     string(credentialsId: 'KEYSTORE_KEY_ALIAS', variable: 'KEY_ALIAS')
                 ]) {
                     withEnv([
@@ -101,31 +99,56 @@ pipeline {
                                     free -h
                                     timeout 900 flutter build appbundle --release --no-tree-shake-icons --verbose
                                     free -h
-
-                                    AAB_PATH="build/app/outputs/bundle/release/app-release.aab"
-                                    if [ -f "$AAB_PATH" ]; then
-                                        echo "🎉 App Bundle generado correctamente: $AAB_PATH"
-                                        ls -lh "$AAB_PATH"
-                                    else
-                                        echo "⚠️ App Bundle no encontrado."
-                                        find build -name "*.aab" || true
-                                        exit 1
-                                    fi
                                 '''
+                                // --- INICIO DE CAMBIOS PARA BÚSQUEDA DINÁMICA Y DEBUG ---
+                                echo "--- Buscando artefactos de salida después de la compilación ---"
+
+                                // Buscar el AAB de release
+                                def aabPath = sh(script: "find \"${WORKSPACE}/build/app/outputs/bundle/release\" -name \"*.aab\" -type f -print -quit || true", returnStdout: true).trim()
+                                if (aabPath) {
+                                    echo "🎉 App Bundle de Release encontrado en: ${aabPath}"
+                                    sh "ls -lh \"${aabPath}\""
+                                    env.AAB_FINAL_PATH = aabPath
+                                } else {
+                                    echo "⚠️ App Bundle de Release (*.aab) NO encontrado en build/app/outputs/bundle/release."
+                                    echo "Realizando búsqueda más amplia de *.aab en build/app/outputs/bundle/:"
+                                    sh "find \"${WORKSPACE}/build/app/outputs/bundle\" -name \"*.aab\" || true"
+                                    env.AAB_FINAL_PATH = "" // Asegurarse de que la variable esté vacía si no se encuentra
+                                }
+
+                                echo "" // Línea en blanco para claridad
+
+                                // Buscar el APK de release (generalmente generado por appbundle también, o si se usa flutter build apk)
+                                def apkPath = sh(script: "find \"${WORKSPACE}/build/app/outputs/flutter-apk\" -name \"*.apk\" -type f -print -quit || true", returnStdout: true).trim()
+                                if (apkPath) {
+                                    echo "🎉 APK de Release encontrado en: ${apkPath}"
+                                    sh "ls -lh \"${apkPath}\""
+                                    env.APK_FINAL_PATH = apkPath
+                                } else {
+                                    echo "⚠️ APK de Release (*.apk) NO encontrado en build/app/outputs/flutter-apk."
+                                    echo "Realizando búsqueda más amplia de *.apk en build/app/outputs/flutter-apk/:"
+                                    sh "find \"${WORKSPACE}/build/app/outputs/flutter-apk\" -name \"*.apk\" || true"
+                                    env.APK_FINAL_PATH = "" // Asegurarse de que la variable esté vacía si no se encuentra
+                                }
+
+                                echo "--- Fin de búsqueda de artefactos ---"
+                                // --- FIN DE CAMBIOS PARA BÚSQUEDA DINÁMICA Y DEBUG ---
                             }
                         }
                     }
                 }
             }
         }
-        stage('Verify Artifacts') {
-            steps {
-                sh '''
-                    echo "Verificando artefactos generados (.aab y .apk):"
-                    find build -name "*.aab" -o -name "*.apk" || true
-                '''
-            }
-        }
+        // --- ELIMINADA LA ETAPA 'Verify Artifacts' ---
+        // stage('Verify Artifacts') {
+        //     steps {
+        //         sh '''
+        //             echo "Verificando artefactos generados (.aab y .apk):"
+        //             find build -name "*.aab" -o -name "*.apk" || true
+        //         '''
+        //     }
+        // }
+        // --- FIN DE ELIMINACIÓN ---
         stage('Final Cleanup') {
             steps {
                 sh '''
@@ -145,10 +168,28 @@ pipeline {
                 pkill -f GradleDaemon || true
                 free -h
             '''
-            archiveArtifacts artifacts: 'build/app/outputs/flutter-apk/*.apk,build/app/outputs/bundle/release/*.aab',
-                             fingerprint: true,
-                             allowEmptyArchive: true
-            archiveArtifacts artifacts: '**/*.log', allowEmptyArchive: true
+            // --- INICIO DE CAMBIOS PARA ARCHIVAR DINÁMICAMENTE ---
+            script {
+                def artifactsToArchive = []
+                if (env.AAB_FINAL_PATH) {
+                    artifactsToArchive.add(env.AAB_FINAL_PATH)
+                }
+                if (env.APK_FINAL_PATH) {
+                    artifactsToArchive.add(env.APK_FINAL_PATH)
+                }
+
+                if (artifactsToArchive) {
+                    echo "Archivando artefactos encontrados: ${artifactsToArchive.join(', ')}"
+                    archiveArtifacts artifacts: artifactsToArchive.join(','),
+                                     fingerprint: true,
+                                     allowEmptyArchive: true // Mantener true por si solo se encuentra uno o ninguno
+                } else {
+                    echo "No se encontraron artefactos .aab o .apk específicos para archivar."
+                }
+                // Archivar logs siempre, independientemente de los artefactos de build
+                archiveArtifacts artifacts: '**/*.log', allowEmptyArchive: true
+            }
+            // --- FIN DE CAMBIOS PARA ARCHIVAR DINÁMICAMENTE ---
         }
         success {
             echo '🎉 Build completado exitosamente'
