@@ -76,22 +76,23 @@ pipeline {
         }
         stage('Build App Bundle Release') {
             steps {
-                withCredentials([
-                    file(credentialsId: 'UPLOAD_KEYSTORE_FILE', variable: 'KEYSTORE_PATH'),
-                    string(credentialsId: 'KEYSTORE_STORE_PASSWORD', variable: 'KEYSTORE_PASSWORD'),
-                    string(credentialsId: 'KEYSTORE_KEY_PASSWORD', variable: 'KEY_PASSWORD'),
-                    string(credentialsId: 'KEYSTORE_KEY_ALIAS', variable: 'KEY_ALIAS')
-                ]) {
-                    withEnv([
-                        "PATH+FLUTTER=${FLUTTER_HOME}/bin",
-                        "PATH+CMDLINE=${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin",
-                        "PATH+PLATFORM_TOOLS=${ANDROID_SDK_ROOT}/platform-tools",
-                        "PATH+BUILD_TOOLS=${ANDROID_SDK_ROOT}/build-tools/34.0.0",
-                        "PATH+JAVA=${JAVA_HOME}/bin"
+                // Envuelve withCredentials y withEnv dentro de script para replicar la estructura del micro-job exitoso
+                script {
+                    withCredentials([
+                        file(credentialsId: 'UPLOAD_KEYSTORE_FILE', variable: 'KEYSTORE_PATH'),
+                        string(credentialsId: 'KEYSTORE_STORE_PASSWORD', variable: 'KEYSTORE_PASSWORD'),
+                        string(credentialsId: 'KEYSTORE_KEY_PASSWORD', variable: 'KEY_PASSWORD'),
+                        string(credentialsId: 'KEYSTORE_KEY_ALIAS', variable: 'KEY_ALIAS')
                     ]) {
-                        script {
+                        withEnv([
+                            "PATH+FLUTTER=${FLUTTER_HOME}/bin",
+                            "PATH+CMDLINE=${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin",
+                            "PATH+PLATFORM_TOOLS=${ANDROID_SDK_ROOT}/platform-tools",
+                            "PATH+BUILD_TOOLS=${ANDROID_SDK_ROOT}/build-tools/34.0.0",
+                            "PATH+JAVA=${JAVA_HOME}/bin"
+                        ]) {
                             catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
-                                // --- INICIO DE CAMBIOS: Limpieza y Compilación de Micro-job ---
+                                // --- INICIO DE CAMBIOS: Contenido exacto del 'sh' del micro-job exitoso ---
                                 sh '''
                                     echo "Realizando limpieza profunda y obteniendo dependencias antes de la compilación..."
                                     pkill -9 -f gradle || true
@@ -103,11 +104,12 @@ pipeline {
                                     free -h
                                     echo "Iniciando 'flutter build appbundle'..."
                                     flutter build appbundle --release --no-tree-shake-icons --verbose
-                                    echo "Comando 'flutter build appbundle' finalizado."
+                                    echo "Comando 'flutter build appbundle' finalizado. Analizando salida..."
                                     free -h
                                 '''
-                                // --- FIN DE CAMBIOS: Limpieza y Compilación de Micro-job ---
+                                // --- FIN DE CAMBIOS: Contenido exacto del 'sh' del micro-job exitoso ---
 
+                                // --- Lógica de búsqueda dinámica y depuración de artefactos (ya estaba, se mantiene) ---
                                 echo "--- Buscando artefactos de salida después de la compilación ---"
 
                                 // Buscar el AAB de release
@@ -120,12 +122,12 @@ pipeline {
                                     echo "⚠️ App Bundle de Release (*.aab) NO encontrado en build/app/outputs/bundle/release."
                                     echo "Realizando búsqueda más amplia de *.aab en build/app/outputs/bundle/:"
                                     sh "find \"${WORKSPACE}/build/app/outputs/bundle\" -name \"*.aab\" || true"
-                                    env.AAB_FINAL_PATH = "" // Asegurarse de que la variable esté vacía si no se encuentra
+                                    env.AAB_FINAL_PATH = ""
                                 }
 
-                                echo "" // Línea en blanco para claridad
+                                echo ""
 
-                                // Buscar el APK de release (generalmente generado por appbundle también, o si se usa flutter build apk)
+                                // Buscar el APK de release
                                 def apkPath = sh(script: "find \"${WORKSPACE}/build/app/outputs/flutter-apk\" -name \"*.apk\" -type f -print -quit || true", returnStdout: true).trim()
                                 if (apkPath) {
                                     echo "🎉 APK de Release encontrado en: ${apkPath}"
@@ -135,7 +137,7 @@ pipeline {
                                     echo "⚠️ APK de Release (*.apk) NO encontrado en build/app/outputs/flutter-apk."
                                     echo "Realizando búsqueda más amplia de *.apk en build/app/outputs/flutter-apk/:"
                                     sh "find \"${WORKSPACE}/build/app/outputs/flutter-apk\" -name \"*.apk\" || true"
-                                    env.APK_FINAL_PATH = "" // Asegurarse de que la variable esté vacía si no se encuentra
+                                    env.APK_FINAL_PATH = ""
                                 }
 
                                 echo "--- Fin de búsqueda de artefactos ---"
@@ -145,16 +147,7 @@ pipeline {
                 }
             }
         }
-        // --- ELIMINADA LA ETAPA 'Verify Artifacts' ---
-        // stage('Verify Artifacts') {
-        //     steps {
-        //         sh '''
-        //             echo "Verificando artefactos generados (.aab y .apk):"
-        //             find build -name "*.aab" -o -name "*.apk" || true
-        //         '''
-        //     }
-        // }
-        // --- FIN DE ELIMINACIÓN ---
+        // --- ELIMINADA LA ETAPA 'Verify Artifacts' (ya estaba eliminada, se mantiene así) ---
         stage('Final Cleanup') {
             steps {
                 sh '''
@@ -174,7 +167,7 @@ pipeline {
                 pkill -f GradleDaemon || true
                 free -h
             '''
-            // --- INICIO DE CAMBIOS PARA ARCHIVAR DINÁMICAMENTE ---
+            // --- INICIO DE CAMBIOS PARA ARCHIVAR DINÁMICAMENTE (ya estaban, se mantienen) ---
             script {
                 def artifactsToArchive = []
                 if (env.AAB_FINAL_PATH) {
@@ -188,11 +181,10 @@ pipeline {
                     echo "Archivando artefactos encontrados: ${artifactsToArchive.join(', ')}"
                     archiveArtifacts artifacts: artifactsToArchive.join(','),
                                      fingerprint: true,
-                                     allowEmptyArchive: true // Mantener true por si solo se encuentra uno o ninguno
+                                     allowEmptyArchive: true
                 } else {
                     echo "No se encontraron artefactos .aab o .apk específicos para archivar."
                 }
-                // Archivar logs siempre, independientemente de los artefactos de build
                 archiveArtifacts artifacts: '**/*.log', allowEmptyArchive: true
             }
             // --- FIN DE CAMBIOS PARA ARCHIVAR DINÁMICAMENTE ---
