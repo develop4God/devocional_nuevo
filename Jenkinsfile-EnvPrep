@@ -69,7 +69,7 @@ pipeline {
                         flutter clean
                         flutter pub get
                         cat <<EOF > android/gradle.properties
-org.gradle.daemon=false
+
 org.gradle.jvmargs=-Xmx1500m -XX:MaxMetaspaceSize=384m -XX:+HeapDumpOnOutOfMemoryError
 org.gradle.parallel=false
 org.gradle.configureondemand=false
