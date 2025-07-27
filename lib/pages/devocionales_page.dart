@@ -13,6 +13,7 @@ import 'dart:developer' as developer;
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/pages/settings_page.dart';
+import 'package:devocional_nuevo/services/update_service.dart';
 
 class DevocionalesPage extends StatefulWidget {
   final String? initialDevocionalId;
@@ -23,7 +24,7 @@ class DevocionalesPage extends StatefulWidget {
   State<DevocionalesPage> createState() => _DevocionalesPageState();
 }
 
-class _DevocionalesPageState extends State<DevocionalesPage> {
+class _DevocionalesPageState extends State<DevocionalesPage> with WidgetsBindingObserver {
   final ScreenshotController screenshotController = ScreenshotController();
   final ScrollController _scrollController = ScrollController();
   int _currentDevocionalIndex = 0;
@@ -32,7 +33,21 @@ class _DevocionalesPageState extends State<DevocionalesPage> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _loadInitialData();
+    
+    // Verificar actualizaciones al iniciar
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      UpdateService.checkForUpdate();
+    });
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // Verificar actualizaciones cuando la app vuelve del background
+      UpdateService.checkForUpdate();
+    }
   }
 
   Future<void> _loadInitialData() async {
@@ -615,6 +630,7 @@ class _DevocionalesPageState extends State<DevocionalesPage> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _scrollController.dispose();
     super.dispose();
   }
