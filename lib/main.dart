@@ -10,7 +10,7 @@ import 'package:devocional_nuevo/splash_screen.dart';
 import 'package:devocional_nuevo/services/notification_service.dart';
 // Eliminadas las importaciones de Workmanager y BackgroundServiceNew
 // import 'package:workmanager/workmanager.dart';
-// import 'package:devocional_nuevo/services/background_service_new.dart';
+
 import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';

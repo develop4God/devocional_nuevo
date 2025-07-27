@@ -5,7 +5,7 @@ class UpdateService {
 
   // Verificar si hay actualizaciones disponibles
   static Future<void> checkForUpdate() async {
-    try {n
+    try {
       final AppUpdateInfo info = await InAppUpdate.checkForUpdate();
 
       if (info.updateAvailability == UpdateAvailability.updateAvailable) {
