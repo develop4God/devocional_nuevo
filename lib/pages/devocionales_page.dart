@@ -236,7 +236,7 @@ class _DevocionalesPageState extends State<DevocionalesPage> with WidgetsBinding
 
   Future<void> _shareAsText(Devocional devocional) async {
     final text =
-        "Devocional del día:\n\nVersículo: ${devocional.versiculo}\n\nReflexión: ${devocional.reflexion}\n\nPara Meditar:\n${devocional.paraMeditar.map((p) => '${p.cita}: ${p.texto}').join('\n')}\n\nOración: ${devocional.oracion}\n\nVersión: ${devocional.version ?? 'N/A'}\nIdioma: ${devocional.language ?? 'N/A'}\nFecha: ${DateFormat('dd/MM/yyyy').format(devocional.date)}";
+        "Devocional del día:\n\nVersículo: ${devocional.versiculo}\n\nReflexión: ${devocional.reflexion}\n\nPara Meditar:\n${devocional.paraMeditar.map((p) => '${p.cita}: ${p.texto}').join('\n')}\n\nOración: ${devocional.oracion}"; // Líneas de Versión, Idioma, y Fecha eliminadas
     await SharePlus.instance.share(ShareParams(text: text));
   }
 
@@ -247,10 +247,12 @@ class _DevocionalesPageState extends State<DevocionalesPage> with WidgetsBinding
       final imagePath = await File('${directory.path}/devocional.png').create();
       await imagePath.writeAsBytes(image);
 
-      await Share.shareXFiles(
-        [XFile(imagePath.path)],
-        text: 'Devocional del día',
-        subject: 'Devocional',
+      await SharePlus.instance.share(
+        ShareParams(
+          files: [XFile(imagePath.path)],
+          text: 'Devocional del día',
+          subject: 'Devocional',
+        ),
       );
     }
   }
@@ -478,19 +480,21 @@ class _DevocionalesPageState extends State<DevocionalesPage> with WidgetsBinding
                                       color: colorScheme.primary),
                                 ),
                                 const SizedBox(height: 10),
-                                if (currentDevocional.version != null)
-                                  Text(
-                                      'Versión: ${currentDevocional.version}',
-                                      style: textTheme.bodySmall?.copyWith(fontSize: 14, color: colorScheme.onSurface)),
-                                if (currentDevocional.language != null)
-                                  Text(
-                                      'Idioma: ${currentDevocional.language}',
-                                      style: textTheme.bodySmall?.copyWith(fontSize: 14, color: colorScheme.onSurface)),
-                                if (currentDevocional.tags != null &&
+                                if (currentDevocional.tags != null && // Movido para que Temas vaya primero
                                     currentDevocional.tags!.isNotEmpty)
                                   Text(
                                       'Temas: ${currentDevocional.tags!.join(', ')}',
                                       style: textTheme.bodySmall?.copyWith(fontSize: 14, color: colorScheme.onSurface)),
+                                if (currentDevocional.version != null) // Movido para ir después de Temas
+                                  Text(
+                                      'Versión: ${currentDevocional.version}',
+                                      style: textTheme.bodySmall?.copyWith(fontSize: 14, color: colorScheme.onSurface)),
+                                const SizedBox(height: 10), // Espacio antes de la atribución
+                                Text(
+                                  'El texto bíblico Reina-Valera 1960® utilizado en la Aplicación es © Sociedades Bíblicas en América Latina, 1960. Derechos renovados 1988, Sociedades Bíblicas Unidas.',
+                                  style: textTheme.bodySmall?.copyWith(fontSize: 12, color: colorScheme.onSurface.withValues(alpha: 0.7)),
+                                  textAlign: TextAlign.justify,
+                                ),
                                 const SizedBox(height: 20),
                               ],
                             ),

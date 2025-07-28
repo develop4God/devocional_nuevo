@@ -18,19 +18,18 @@ class DevocionalProvider with ChangeNotifier {
   String? _errorMessage;
 
   // Propiedades para el idioma y la versión seleccionados
-  String _selectedLanguage =
-      'es'; // Idioma por defecto (se detectará del dispositivo)
-  String
-  _selectedVersion = //aca se agregan nuevas versiones cuando hayan, para devocional page
-      'RVR1960'; // Versión por defecto
+  String _selectedLanguage = 'es'; // Idioma por defecto (se detectará del dispositivo)
+  String _selectedVersion = 'RVR1960'; // Versión por defecto
 
-  List<Devocional> _favoriteDevocionales =
-  []; // Lista de devocionales favoritos
+  List<Devocional> _favoriteDevocionales = []; // Lista de devocionales favoritos
   bool _showInvitationDialog = true; // Para el diálogo de invitación
 
+  // Lista de idiomas soportados por tu API
+  static const List<String> _supportedLanguages = ['es']; // Agrega más cuando los tengas
+  static const String _fallbackLanguage = 'es'; // Idioma de fallback
+
   // Getters públicos
-  List<Devocional> get devocionales =>
-      _filteredDevocionales; // La UI consume esta lista filtrada
+  List<Devocional> get devocionales => _filteredDevocionales; // La UI consume esta lista filtrada
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
   String get selectedLanguage => _selectedLanguage;
@@ -54,19 +53,25 @@ class DevocionalProvider with ChangeNotifier {
     _isLoading = true;
     _errorMessage = null; // Limpiar errores al iniciar
 
-    // No llamar notifyListeners() aquí si esta función es llamada
-    // en un contexto donde el árbol de widgets aún se está construyendo.
-    // La notificación inicial ocurrirá al final de esta función,
-    // o cuando _fetchAllDevocionalesForLanguage/filterDevocionalesByVersion
-    // llamen a notifyListeners().
-
     try {
       final prefs = await SharedPreferences.getInstance();
-      // Cargar preferencias guardadas, o usar valores por defecto
-      _selectedLanguage = prefs.getString('selectedLanguage') ??
-          PlatformDispatcher.instance.locale.languageCode;
-      _selectedVersion = prefs.getString('selectedVersion') ??
-          'RVR1960'; // Asegúrate de que este sea tu valor por defecto principal
+
+      // Obtener el idioma del dispositivo
+      String deviceLanguage = PlatformDispatcher.instance.locale.languageCode;
+
+      // Cargar preferencias guardadas, con fallback inteligente
+      String savedLanguage = prefs.getString('selectedLanguage') ?? deviceLanguage;
+
+      // Aplicar fallback si el idioma no está soportado
+      _selectedLanguage = _getSupportedLanguageWithFallback(savedLanguage);
+
+      // Si el idioma cambió por el fallback, guardarlo
+      if (_selectedLanguage != savedLanguage) {
+        await prefs.setString('selectedLanguage', _selectedLanguage);
+        debugPrint('Idioma cambiado a $_selectedLanguage debido a falta de soporte para $savedLanguage');
+      }
+
+      _selectedVersion = prefs.getString('selectedVersion') ?? 'RVR1960';
 
       await _loadFavorites(); // Cargar favoritos guardados
       await _loadInvitationDialogPreference(); // Cargar preferencia del diálogo
@@ -75,12 +80,20 @@ class DevocionalProvider with ChangeNotifier {
     } catch (e) {
       _errorMessage = 'Error al inicializar los datos: $e';
       debugPrint('Error en initializeData: $e');
-      // Asegurarse de notificar en caso de error para que la UI pueda reaccionar
       notifyListeners();
     } finally {
       _isLoading = false;
-      // notifyListeners() ya se llama en _filterDevocionalesByVersion o en el catch.
     }
+  }
+
+  // Método para obtener un idioma soportado con fallback
+  String _getSupportedLanguageWithFallback(String requestedLanguage) {
+    if (_supportedLanguages.contains(requestedLanguage)) {
+      return requestedLanguage;
+    }
+
+    debugPrint('Idioma $requestedLanguage no soportado, usando fallback: $_fallbackLanguage');
+    return _fallbackLanguage;
   }
 
   // Carga todos los devocionales para el idioma actualmente seleccionado desde la API.
@@ -94,64 +107,81 @@ class DevocionalProvider with ChangeNotifier {
       final response = await http.get(Uri.parse(Constants.getDevocionalesApiUrl(DateTime.now().year)));
 
       if (response.statusCode != 200) {
-        throw Exception(
-            'Failed to load devocionales from API: ${response.statusCode}');
+        throw Exception('Failed to load devocionales from API: ${response.statusCode}');
       }
+
       final String responseBody = response.body;
       final Map<String, dynamic> data = json.decode(responseBody);
 
       // Acceder a la sección 'data' del JSON y luego al idioma detectado/seleccionado
-      final Map<String, dynamic>? languageRoot =
-      data['data'] as Map<String, dynamic>?;
-      final Map<String, dynamic>? languageData =
-      languageRoot?[_selectedLanguage] as Map<String, dynamic>?;
+      final Map<String, dynamic>? languageRoot = data['data'] as Map<String, dynamic>?;
+      final Map<String, dynamic>? languageData = languageRoot?[_selectedLanguage] as Map<String, dynamic>?;
 
       if (languageData == null) {
-        debugPrint(
-            'Advertencia: No se encontraron datos para el idioma $_selectedLanguage');
-        _allDevocionalesForCurrentLanguage = [];
-        _filteredDevocionales =
-        []; // Asegurarse de que esta lista también se vacíe
-        _errorMessage =
-        'No se encontraron datos para el idioma: $_selectedLanguage en la estructura JSON.';
-        // No llamar notifyListeners aquí, ya que el finally lo hará.
-        return; // Salir de la función si no hay datos del idioma
-      }
+        // Si no se encuentra el idioma actual, intentar con el fallback
+        if (_selectedLanguage != _fallbackLanguage) {
+          debugPrint('No se encontraron datos para $_selectedLanguage, intentando con fallback $_fallbackLanguage');
 
-      final List<Devocional> loadedDevocionales = [];
-      languageData.forEach((dateKey, dateValue) {
-        if (dateValue is List) {
-          for (var devocionalJson in dateValue) {
-            try {
-              // No filtramos por versión aquí; cargamos todos los devocionales del idioma.
-              loadedDevocionales.add(
-                  Devocional.fromJson(devocionalJson as Map<String, dynamic>));
-            } catch (e) {
-              debugPrint('Error al parsear devocional para $dateKey: $e');
-            }
+          final Map<String, dynamic>? fallbackData = languageRoot?[_fallbackLanguage] as Map<String, dynamic>?;
+
+          if (fallbackData != null) {
+            // Cambiar al idioma de fallback automáticamente
+            _selectedLanguage = _fallbackLanguage;
+            final prefs = await SharedPreferences.getInstance();
+            await prefs.setString('selectedLanguage', _fallbackLanguage);
+
+            // Procesar los datos del fallback
+            await _processLanguageData(fallbackData);
+            return;
           }
         }
-      });
 
-      // Ordenar los devocionales por fecha para mantener un orden consistente
-      loadedDevocionales.sort((a, b) => a.date.compareTo(b.date));
+        // Si ni el idioma solicitado ni el fallback están disponibles
+        debugPrint('Advertencia: No se encontraron datos para ningún idioma soportado');
+        _allDevocionalesForCurrentLanguage = [];
+        _filteredDevocionales = [];
+        _errorMessage = 'No se encontraron datos disponibles en la API.';
+        return;
+      }
 
-      _allDevocionalesForCurrentLanguage = loadedDevocionales;
-      _errorMessage = null; // Limpiar cualquier error previo
-      _filterDevocionalesByVersion(); // Ahora sí, aplicamos el filtro de versión
-      // notifyListeners() ya se llama dentro de _filterDevocionalesByVersion
+      // Procesar los datos del idioma solicitado
+      await _processLanguageData(languageData);
+
     } catch (e) {
-      _errorMessage =
-      'Error al cargar los devocionales para el idioma $_selectedLanguage: $e';
+      _errorMessage = 'Error al cargar los devocionales: $e';
       _allDevocionalesForCurrentLanguage = [];
-      _filteredDevocionales =
-      []; // Vaciar también la lista filtrada en caso de error
+      _filteredDevocionales = [];
       debugPrint('Error en _fetchAllDevocionalesForLanguage: $e');
-      notifyListeners(); // Notificar en caso de error
+      notifyListeners();
     } finally {
       _isLoading = false;
-      // notifyListeners() ya se llama en _filterDevocionalesByVersion o en el catch.
     }
+  }
+
+  // Método auxiliar para procesar los datos de un idioma
+  Future<void> _processLanguageData(Map<String, dynamic> languageData) async {
+    final List<Devocional> loadedDevocionales = [];
+
+    languageData.forEach((dateKey, dateValue) {
+      if (dateValue is List) {
+        for (var devocionalJson in dateValue) {
+          try {
+            // No filtramos por versión aquí; cargamos todos los devocionales del idioma.
+            loadedDevocionales.add(
+                Devocional.fromJson(devocionalJson as Map<String, dynamic>));
+          } catch (e) {
+            debugPrint('Error al parsear devocional para $dateKey: $e');
+          }
+        }
+      }
+    });
+
+    // Ordenar los devocionales por fecha para mantener un orden consistente
+    loadedDevocionales.sort((a, b) => a.date.compareTo(b.date));
+
+    _allDevocionalesForCurrentLanguage = loadedDevocionales;
+    _errorMessage = null; // Limpiar cualquier error previo
+    _filterDevocionalesByVersion(); // Ahora sí, aplicamos el filtro de versión
   }
 
   // Filtra los devocionales cargados por la versión actualmente seleccionada
@@ -160,11 +190,9 @@ class DevocionalProvider with ChangeNotifier {
         .where((devocional) => devocional.version == _selectedVersion)
         .toList();
 
-    if (_filteredDevocionales.isEmpty &&
-        _allDevocionalesForCurrentLanguage.isNotEmpty) {
+    if (_filteredDevocionales.isEmpty && _allDevocionalesForCurrentLanguage.isNotEmpty) {
       // Solo mostrar advertencia si hay devocionales en el idioma pero no para la versión
-      _errorMessage =
-      'No se encontraron devocionales para la versión $_selectedVersion en el idioma $_selectedLanguage.';
+      _errorMessage = 'No se encontraron devocionales para la versión $_selectedVersion.';
       debugPrint('Advertencia: $_errorMessage');
     } else if (_allDevocionalesForCurrentLanguage.isEmpty) {
       // Si no hay ningún devocional cargado, el error ya se manejaría en _fetchAllDevocionalesForLanguage
@@ -179,13 +207,21 @@ class DevocionalProvider with ChangeNotifier {
   // --- Métodos para cambiar idioma y versión ---
 
   void setSelectedLanguage(String language) async {
-    if (_selectedLanguage != language) {
-      _selectedLanguage = language;
+    // Aplicar fallback si el idioma no está soportado
+    String supportedLanguage = _getSupportedLanguageWithFallback(language);
+
+    if (_selectedLanguage != supportedLanguage) {
+      _selectedLanguage = supportedLanguage;
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('selectedLanguage', language);
+      await prefs.setString('selectedLanguage', supportedLanguage);
+
+      // Mostrar mensaje si se aplicó fallback
+      if (language != supportedLanguage) {
+        debugPrint('Idioma $language no disponible, usando $supportedLanguage');
+      }
+
       // Recargar y refiltrar todos los devocionales para el nuevo idioma
       await _fetchAllDevocionalesForLanguage();
-      // notifyListeners() ya se llama al final de _fetchAllDevocionalesForLanguage
     }
   }
 
@@ -196,7 +232,6 @@ class DevocionalProvider with ChangeNotifier {
       await prefs.setString('selectedVersion', version);
       // Solo refiltrar la lista actual, ya que el idioma no ha cambiado
       _filterDevocionalesByVersion();
-      // notifyListeners() ya se llama al final de _filterDevocionalesByVersion
     }
   }
 
@@ -211,7 +246,6 @@ class DevocionalProvider with ChangeNotifier {
           .map((item) => Devocional.fromJson(item as Map<String, dynamic>))
           .toList();
     }
-    // No notificar aquí, initializeData() lo hará
   }
 
   Future<void> _saveFavorites() async {
@@ -247,11 +281,9 @@ class DevocionalProvider with ChangeNotifier {
         SnackBar(
           content: Text(
             'Devocional removido de favoritos',
-            // El color del texto del SnackBar usa el color 'onPrimary' del esquema de colores del tema
             style: TextStyle(color: colorScheme.onSecondary),
           ),
           duration: const Duration(seconds: 2),
-          // El color de fondo del SnackBar usa el color 'primary' del esquema de colores del tema
           backgroundColor: colorScheme.secondary,
         ),
       );
@@ -261,26 +293,22 @@ class DevocionalProvider with ChangeNotifier {
         SnackBar(
           content: Text(
             'Devocional guardado como favorito',
-            // El color del texto del SnackBar usa el color 'onPrimary' del esquema de colores del tema
             style: TextStyle(color: colorScheme.onSecondary),
           ),
           duration: const Duration(seconds: 2),
-          // El color de fondo del SnackBar usa el color 'primary' del esquema de colores del tema
           backgroundColor: colorScheme.secondary,
         ),
       );
     }
-    _saveFavorites(); // Guardar el cambio inmediatamente
-    notifyListeners(); // Notificar a los widgets para que se actualicen
+    _saveFavorites();
+    notifyListeners();
   }
 
   // --- Lógica del Diálogo de Invitación ---
 
   Future<void> _loadInvitationDialogPreference() async {
     final prefs = await SharedPreferences.getInstance();
-    // Leer el valor guardado. Si no existe, se usa true por defecto.
     _showInvitationDialog = prefs.getBool('showInvitationDialog') ?? true;
-    // No notificar aquí; initializeData() lo hará
   }
 
   Future<void> setInvitationDialogVisibility(bool shouldShow) async {
@@ -288,5 +316,15 @@ class DevocionalProvider with ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('showInvitationDialog', shouldShow);
     notifyListeners();
+  }
+
+  // --- Métodos de utilidad ---
+
+  // Obtener lista de idiomas soportados (para UI de configuración)
+  List<String> get supportedLanguages => List.from(_supportedLanguages);
+
+  // Verificar si un idioma está soportado
+  bool isLanguageSupported(String language) {
+    return _supportedLanguages.contains(language);
   }
 }
