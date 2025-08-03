@@ -1,29 +1,36 @@
+# Flutter CI Workflow
+# -------------------
+# Este workflow de GitHub Actions ejecuta automáticamente:
+# - Análisis estático de código con Dart Analyzer (detecta errores y sugerencias de estilo)
+# - Pruebas unitarias y de widgets (archivos en la carpeta test/)
+# - (Opcional) Pruebas de integración si están configuradas en tu proyecto
+#
+# ¿Por qué usarlo?
+# - Garantiza que tus cambios no rompen el código ni la interfaz antes de aceptar PRs o hacer deploy.
+# - Automatiza el proceso de verificación de calidad cada vez que se hace push o PR.
+# - No genera costos en repositorios públicos.
+#
+# ¿Qué NO hace?
+# - No compila APK/AAB ni sube artefactos pesados (puedes agregarlo si lo necesitas).
+# - No ejecuta pruebas de integración avanzadas (puedes agregar jobs si tienes tests en integration_test/).
+#
+# Personaliza el workflow agregando más steps según tus necesidades de testeo o build.
 name: Flutter CI
 
 on:
   push:
-    branches: [main, master]
+    branches: [main, master, develop]
   pull_request:
-    branches: [main, master]
+    branches: [main, master, develop]
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-
-    - name: Set up Flutter
-      uses: subosito/flutter-action@v2
-      with:
-        flutter-version: 'stable'
-
-    - name: Install dependencies
-      run: flutter pub get
-
-    - name: Analyze code
-      run: flutter analyze
-
-    - name: Run tests
-      run: flutter test
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: stable
+      - run: flutter pub get
+      - run: flutter analyze
+      - run: flutter test
