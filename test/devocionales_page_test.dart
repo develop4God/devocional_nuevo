@@ -191,7 +191,7 @@ void main() {
     testWidgets('When DevocionalesLoading, shows CircularProgressIndicator',
         (WidgetTester tester) async {
       await tester.pumpWidget(makeTestableWidget(DevocionalesLoading()));
-      await tester.pumpAndSettle();
+      await tester.pump(); // Cambiado de pumpAndSettle a pump
 
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
     });
