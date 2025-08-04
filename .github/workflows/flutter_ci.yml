@@ -2,9 +2,9 @@ name: Flutter CI
 
 on:
   push:
-    branches: [main, master, develop]
+    branches: [main]
   pull_request:
-    branches: [main, master, develop]
+    branches: [main]
 
 jobs:
   test:
@@ -38,7 +38,7 @@ jobs:
       - name: Check logcat for Non-SDK API usage
         run: |
           adb logcat -d | grep 'Accessing hidden API' > sdk_warnings.txt || true
-          if [ -s sdk_warnings.txt ]; then
+          if [ "$(wc -c < sdk_warnings.txt)" -gt 0 ]; then
             echo "❌ Non-SDK API warnings found!"
             cat sdk_warnings.txt
             exit 1
