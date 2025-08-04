@@ -117,7 +117,6 @@ void main() {
     when(() => mockDevocionalProvider.errorMessage).thenReturn(null);
     when(() => mockDevocionalProvider.devocionales).thenReturn([mockDevocional1, mockDevocional2]);
     when(() => mockDevocionalProvider.selectedVersion).thenReturn('RVR1960');
-    // Corrige: isFavorite debe devolver false para cualquier devocional por defecto
     when(() => mockDevocionalProvider.isFavorite(any())).thenReturn(false);
 
     when(() => mockThemeProvider.setThemeFamily(any())).thenAnswer((_) async {});
@@ -159,7 +158,6 @@ void main() {
     }
 
     testWidgets('Alternar favorito correctamente', (WidgetTester tester) async {
-      // Corrige: isFavorite devuelve false, luego true tras toggle
       var isFav = false;
       when(() => mockDevocionalProvider.isFavorite(mockDevocional1)).thenAnswer((_) => isFav);
       when(() => mockDevocionalProvider.toggleFavorite(mockDevocional1, any())).thenAnswer((_) {
