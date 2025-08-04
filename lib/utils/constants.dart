@@ -14,14 +14,14 @@ class Constants {
   // pero las mantengo aquí si las usas en otras partes de tu código por ahora.
   // En el nuevo DevocionalProvider, 'seenIndices' y 'currentIndex' ya no se usan.
   // Y 'favorites' se gestiona directamente con la lista de Devocional objetos.
-  static const String PREF_SEEN_INDICES =
+  static const String prefSeenIndices =
       'seenIndices'; // Esto ya no se usa en el nuevo Provider
-  static const String PREF_FAVORITES =
+  static const String prefFavorites =
       'favorites'; // Esto ya no se usa directamente en el nuevo Provider (usa 'favorites' clave)
-  static const String PREF_DONT_SHOW_INVITATION = 'dontShowInvitation';
-  static const String PREF_CURRENT_INDEX =
+  static const String prefDontShowInvitation = 'dontShowInvitation';
+  static const String prefCurrentIndex =
       'currentIndex'; // Esto ya no se usa en el nuevo Provider
-  static const String PREF_LAST_NOTIFICATION_DATE = 'lastNotificationDate';
+  static const String prefLastNotificationDate = 'lastNotificationDate';
 }
 
 // Clase de utilidad para obtener el contexto del Navigator.
