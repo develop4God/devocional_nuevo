@@ -2,9 +2,9 @@ name: Flutter CI
 
 on:
   push:
-    branches: [main, master, develop]
+    branches: [main]
   pull_request:
-    branches: [main, master, develop]
+    branches: [main]
 
 jobs:
   test:
@@ -15,5 +15,33 @@ jobs:
         with:
           channel: stable
       - run: flutter pub get
-      - run: flutter analyze
+      - run: flutter analyze --fatal-infos
       - run: flutter test
+
+  integration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+      - run: flutter pub get
+
+      # Corre pruebas instrumentadas en emulador Android (API 29 = Android 10)
+      - name: Run integration tests on Android emulator
+        uses: ReactiveCircus/android-emulator-runner@v2
+        with:
+          api-level: 29
+          arch: x86_64
+          script: "flutter drive --target=integration_test/app_test.dart --driver=test_driver/app_test.dart"
+      # Busca advertencias de Non-SDK API usage en el logcat
+      - name: Check logcat for Non-SDK API usage
+        run: |
+          adb logcat -d | grep 'Accessing hidden API' > sdk_warnings.txt || true
+          if [ "$(wc -c < sdk_warnings.txt)" -gt 0 ]; then
+            echo "❌ Non-SDK API warnings found!"
+            cat sdk_warnings.txt
+            exit 1
+          else
+            echo "✅ No Non-SDK API warnings detected."
+          fi
