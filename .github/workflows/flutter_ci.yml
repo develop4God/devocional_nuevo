@@ -33,8 +33,7 @@ jobs:
         with:
           api-level: 29
           arch: x86_64
-          script: flutter drive --target=integration_test/app_test.dart
-
+          script: "flutter drive --target=integration_test/app_test.dart --driver=test_driver/app_test.dart"
       # Busca advertencias de Non-SDK API usage en el logcat
       - name: Check logcat for Non-SDK API usage
         run: |
