@@ -48,6 +48,8 @@ dependencies: # <-- ÚNICA SECCIÓN DEPENDENCIES
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  integration_test:
+    sdk: flutter
   flutter_lints: ^6.0.0
   mocktail: ^1.0.0
   path_provider_platform_interface: any
