@@ -118,21 +118,8 @@ void main() {
   });
 
   group('DevocionalesPage Bloc Tests', () {
-    // Create a simplified test widget that responds to Bloc states
-    Widget buildTestWidget(DevocionalesState state) {
-      return BlocBuilder<DevocionalesBloc, DevocionalesState>(
-        builder: (context, state) {
-          return Scaffold(
-            appBar: AppBar(
-              title: const Text('Mi espacio íntimo con Dios'),
-            ),
-            body: _buildBody(state),
-          );
-        },
-      );
-    }
-
-    Widget _buildBody(DevocionalesState state) {
+    // Helper function to build the body based on state
+    Widget buildBody(DevocionalesState state) {
       if (state is DevocionalesInitial) {
         return const Center(
           child: Text('Devocionales'),
@@ -157,6 +144,20 @@ void main() {
         );
       }
       return const SizedBox.shrink();
+    }
+
+    // Create a simplified test widget that responds to Bloc states
+    Widget buildTestWidget(DevocionalesState state) {
+      return BlocBuilder<DevocionalesBloc, DevocionalesState>(
+        builder: (context, blocState) {
+          return Scaffold(
+            appBar: AppBar(
+              title: const Text('Mi espacio íntimo con Dios'),
+            ),
+            body: buildBody(blocState),
+          );
+        },
+      );
     }
 
     Widget makeTestableWidget(DevocionalesState state) {
