@@ -20,7 +20,7 @@ jobs:
         uses: ReactiveCircus/android-emulator-runner@v2
         with:
           api-level: 29
-          arch: x86_64
+          arch: arm64-v8a
           script: |
             adb install build/app/outputs/apk/debug/app-debug.apk
             adb shell am start -n com.devocional_nuevo/.MainActivity
