@@ -8,8 +8,11 @@ void main() {
   testWidgets('App launches and shows home page', (WidgetTester tester) async {
     app.main();
     await tester.pumpAndSettle();
+    
+    // Esperar tiempo suficiente para que las animaciones se completen
+    await tester.pump(const Duration(seconds: 6));
 
-    // Cambia este texto si tu pantalla principal usa otro título
+    // El texto está en splash_screen.dart línea 113
     expect(find.text('Preparando tu espacio con Dios...'), findsOneWidget);
   });
 }
