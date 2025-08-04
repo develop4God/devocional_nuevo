@@ -10,6 +10,6 @@ void main() {
     await tester.pumpAndSettle();
 
     // Cambia este texto si tu pantalla principal usa otro título
-    expect(find.text('Mi espacio íntimo con Dios'), findsOneWidget);
+    expect(find.text('Preparando tu espacio con Dios...'), findsOneWidget);
   });
 }
