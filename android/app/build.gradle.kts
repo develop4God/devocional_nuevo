@@ -94,14 +94,7 @@ dependencies {
     // Flutter embedding v2 dependencies
     implementation("androidx.window:window:1.0.0")
     implementation("androidx.window:window-java:1.0.0")
-    
-    // Excluir WorkManager
-    implementation("androidx.work:work-runtime:2.7.0") {
-        exclude(group = "androidx.work", module = "work-runtime")
-    }
-    
-    // Configuración para workmanager
-    implementation("androidx.work:work-runtime-ktx:2.7.0")
+
     
     // Firebase dependencies
     implementation(platform("com.google.firebase:firebase-bom:33.16.0"))

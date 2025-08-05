@@ -3,7 +3,7 @@
 name: devocional_nuevo
 description: A new Flutter project.
 publish_to: 'none'
-version: 1.0.34+34
+version: 1.0.35+35
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -41,9 +41,6 @@ dependencies: # <-- ÚNICA SECCIÓN DEPENDENCIES
   firebase_core: ^3.15.1
   firebase_messaging: ^15.2.9
   cloud_firestore: ^5.0.2 # CAMBIO: Added cloud_firestore for database operations
-
-  # Para manejar tareas en segundo plano
-  workmanager: ^0.8.0
 
 dev_dependencies:
   flutter_test:

@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    package="com.develop4god.devocional_nuevo">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Eliminado el atributo package que ahora se define como namespace en build.gradle -->
 
     <!-- Permisos -->
     <uses-permission android:name="android.permission.INTERNET" />
@@ -11,8 +10,7 @@
     <uses-permission android:name="com.google.android.gms.permission.AD_ID"/>
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
-    <!-- NUEVO: Declaraciones de consulta para abrir enlaces web y otras apps -->
-    <!-- Necesario para Android 11 (API 30) y superiores para que url_launcher pueda abrir navegadores, correo, etc. -->
+    <!-- Declaraciones de consulta para abrir enlaces web y otras apps -->
     <queries>
         <!-- Para abrir enlaces web (HTTP/HTTPS) -->
         <intent>
@@ -28,16 +26,10 @@
             <action android:name="android.intent.action.VIEW" />
             <data android:scheme="mailto" />
         </intent>
-        <!-- Puedes añadir otros si tu app abre tel:, sms:, etc. -->
-        <!-- <intent>
-            <action android:name="android.intent.action.DIAL" />
-            <data android:scheme="tel" />
-        </intent> -->
     </queries>
-    <!-- FIN NUEVO -->
 
     <application
-        android:label="Devocionales Cristianos" 
+        android:label="Devocionales Cristianos"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
 
@@ -70,7 +62,9 @@
             android:value="2" />
 
         <!-- Receivers para flutter_local_notifications -->
-        <receiver android:name="com.dexterous.flutterlocalnotifications.ActionBroadcastReceiver" />
+        <receiver
+            android:name="com.dexterous.flutterlocalnotifications.ActionBroadcastReceiver"
+            android:exported="false" />
         <receiver
             android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver"
             android:exported="true">
@@ -80,73 +74,7 @@
             </intent-filter>
         </receiver>
 
-        <!-- Servicios y receivers para Workmanager -->
-        <service
-            android:name="androidx.work.impl.background.systemalarm.SystemAlarmService"
-            android:enabled="true"
-            tools:replace="android:enabled" />
-        <service
-            android:name="androidx.work.impl.background.systemjob.SystemJobService"
-            android:enabled="true"
-            android:exported="false"
-            android:permission="android.permission.BIND_JOB_SERVICE"
-            tools:replace="android:enabled,android:exported" />
-        <receiver
-            android:name="androidx.work.impl.utils.ForceStopRunnable$BroadcastReceiver"
-            android:enabled="true"
-            tools:replace="android:enabled" />
-        <receiver
-            android:name="androidx.work.impl.background.systemalarm.ConstraintProxy$BatteryChargingProxy"
-            android:enabled="true"
-            tools:replace="android:enabled">
-            <intent-filter>
-                <action android:name="android.intent.action.ACTION_POWER_CONNECTED" />
-                <action android:name="android.intent.action.ACTION_POWER_DISCONNECTED" />
-            </intent-filter>
-        </receiver>
-        <receiver
-            android:name="androidx.work.impl.background.systemalarm.ConstraintProxy$BatteryNotLowProxy"
-            android:enabled="true"
-            tools:replace="android:enabled">
-            <intent-filter>
-                <action android:name="android.intent.action.BATTERY_OKAY" />
-                <action android:name="android.intent.action.BATTERY_LOW" />
-            </intent-filter>
-        </receiver>
-        <receiver
-            android:name="androidx.work.impl.background.systemalarm.ConstraintProxy$StorageNotLowProxy"
-            android:enabled="true"
-            tools:replace="android:enabled">
-            <intent-filter>
-                <action android:name="android.intent.action.DEVICE_STORAGE_LOW" />
-                <action android:name="android.intent.action.DEVICE_STORAGE_OK" />
-            </intent-filter>
-        </receiver>
-        <receiver
-            android:name="androidx.work.impl.background.systemalarm.ConstraintProxy$NetworkStateProxy"
-            android:enabled="true"
-            tools:replace="android:enabled">
-            <intent-filter>
-                <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
-            </intent-filter>
-        </receiver>
-        <receiver
-            android:name="androidx.work.impl.background.systemalarm.RescheduleReceiver"
-            android:enabled="true"
-            tools:replace="android:enabled">
-            <intent-filter>
-                <action android:name="android.intent.action.BOOT_COMPLETED" />
-                <action android:name="android.intent.action.TIME_SET" />
-                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
-            </intent-filter>
-        </receiver>
-        <receiver
-            android:name="androidx.work.impl.background.systemalarm.ConstraintProxyUpdateReceiver"
-            android:enabled="true"
-            tools:replace="android:enabled">
-            <intent-filter>
-                <action android:name="androidx.work.impl.background.systemalarm.UpdateProxies" />
-            </intent-filter>
-        </receiver>
+        <!-- ELIMINAR TODA LA SECCIÓN DE WORKMANAGER QUE ESTABA AQUÍ -->
+
     </application>
 </manifest>
