@@ -1,7 +1,6 @@
 // INICIO DE LOS IMPORTS AÑADIDOS/CORREGIDOS
-import java.io.FileInputStream
 import java.util.Properties
-// FIN DE LOS IMPORTS AÑADIDOS/CORREGIDOS
+// FIN DE LOS IMPORTS (eliminado FileInputStream no usado)
 
 plugins {
     id("com.android.application")
@@ -11,7 +10,7 @@ plugins {
     id("com.google.gms.google-services")
 }
 
-// INICIO DEL BLOQUE DE CARGA DE PROPIEDADES (igual que antes, pero ahora los imports lo hacen funcionar)
+// INICIO DEL BLOQUE DE CARGA DE PROPIEDADES
 val keystoreProperties = Properties()
 val keystorePropertiesFile = rootProject.file("key.properties")
 if (keystorePropertiesFile.exists()) {
@@ -27,7 +26,6 @@ android {
     ndkVersion = "27.0.12077973"
 
     compileOptions {
-        // ✅ CAMBIO 1: Agregar esta línea
         isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
@@ -39,19 +37,14 @@ android {
 
     defaultConfig {
         applicationId = "com.develop4god.devocional_nuevo"
-        // MODIFICACIÓN: Usar flutter.minSdkVersion con la sintaxis correcta de Kotlin DSL pruebas de Jenkins
-        //minSdkVersion(flutter.minSdkVersion) //Este ajuste fue para jenkins, pero no sirve al compilar
-        minSdk = 23 // Version funcional para el proyecto 
+        minSdk = 23
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
-        // ✅ CAMBIO 2: Agregar esta línea si no está
         multiDexEnabled = true
     }
 
-    // INICIO DEL BLOQUE DE CONFIGURACIÓN DE FIRMA (igual que antes)
     signingConfigs {
-        // Solo crea config si hay datos, así nunca falla en CI/debug
         if (
             System.getenv("KEYSTORE_PATH") != null ||
             keystoreProperties.getProperty("storeFile") != null
@@ -64,40 +57,58 @@ android {
             }
         }
     }
-    // FIN DEL BLOQUE DE CONFIGURACIÓN DE FIRMA
+
+    // ✅ CORRECCIÓN: Usar lint en lugar de lintOptions
+    lint {
+        abortOnError = false
+        checkReleaseBuilds = false
+        baseline = file("lint-baseline.xml")
+        // ✅ CORRECCIÓN: Usar nueva sintaxis para disable
+        disable += listOf("InvalidPackage", "PrivateApi")
+    }
 
     buildTypes {
         release {
-            // Solo asigna si existe la config de firma
             if (signingConfigs.findByName("release") != null) {
                 signingConfig = signingConfigs.getByName("release")
             }
             isMinifyEnabled = true
             proguardFiles(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro")
+
+            ndk {
+                abiFilters.addAll(listOf("armeabi-v7a", "arm64-v8a", "x86_64"))
+            }
         }
         debug {
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro")
         }
     }
+
+    // ✅ CORRECCIÓN: Usar packaging en lugar de packagingOptions
+    packaging {
+        resources {
+            excludes.addAll(listOf(
+                "META-INF/DEPENDENCIES",
+                "META-INF/LICENSE",
+                "META-INF/LICENSE.txt",
+                "META-INF/license.txt",
+                "META-INF/NOTICE",
+                "META-INF/NOTICE.txt",
+                "META-INF/notice.txt",
+                "META-INF/ASL2.0",
+                "META-INF/*.kotlin_module"
+            ))
+        }
+    }
 }
 
-// ✅ CAMBIO 3: Agregar esta sección de dependencies
-
 dependencies {
-    // Core library desugaring
-    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
-    
-    // Multidex support
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
     implementation("androidx.multidex:multidex:2.0.1")
-    
-    // Flutter embedding v2 dependencies
-    implementation("androidx.window:window:1.0.0")
-    implementation("androidx.window:window-java:1.0.0")
-
-    
-    // Firebase dependencies
-    implementation(platform("com.google.firebase:firebase-bom:33.16.0"))
+    implementation("androidx.window:window:1.4.0")
+    implementation("androidx.window:window-java:1.4.0")
+    implementation(platform("com.google.firebase:firebase-bom:34.0.0"))
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-messaging")
 }

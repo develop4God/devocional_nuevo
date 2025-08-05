@@ -1,0 +1,35 @@
+{
+  "startIntents": [
+    {
+      "action": "android.intent.action.MAIN",
+      "package": "com.develop4God.devocional_nuevo",
+      "activity": "com.develop4God.devocional_nuevo.MainActivity"
+    }
+  ],
+  "actions": [
+    { "action": "click", "target": { "text": "Devocional anterior" } },
+    { "action": "click", "target": { "text": "Siguiente devocional" } },
+    { "action": "click", "target": { "text": "Guardar como favorito" } },
+    { "action": "click", "target": { "text": "Quitar de favoritos" } },
+    { "action": "click", "target": { "text": "Compartir como texto" } },
+    { "action": "click", "target": { "text": "Compartir como imagen (screenshot)" } },
+    { "action": "click", "target": { "text": "Favoritos guardados" } },
+    { "action": "click", "target": { "text": "Aún no tienes devocionales favoritos." } },
+    { "action": "click", "target": { "text": "Quitar de favoritos" } },
+    { "action": "click", "target": { "text": "Ajustes" } },
+    { "action": "click", "target": { "text": "Idioma" } },
+    { "action": "click", "target": { "text": "Español" } },
+    { "action": "click", "target": { "text": "Tema" } },
+    { "action": "click", "target": { "text": "Oscuro" } },
+    { "action": "click", "target": { "text": "Claro" } },
+    { "action": "click", "target": { "text": "Notificaciones" } },
+    { "action": "click", "target": { "text": "Permitir Notificaciones" } },
+    { "action": "click", "target": { "text": "Hora de notificación" } },
+    { "action": "input", "target": { "text": "Hora de notificación" }, "text": "08:00" },
+    { "action": "click", "target": { "text": "Contáctanos" } },
+    { "action": "click", "target": { "text": "Errores/Bugs" } },
+    { "action": "input", "target": { "text": "Mensaje" }, "text": "Mensaje de prueba para contacto" },
+    { "action": "click", "target": { "text": "Enviar" } },
+    { "action": "click", "target": { "text": "Acerca de Devocionales Cristianos" } }
+  ]
+}

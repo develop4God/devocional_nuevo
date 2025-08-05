@@ -74,7 +74,7 @@
             </intent-filter>
         </receiver>
 
-        <!-- ELIMINAR TODA LA SECCIÓN DE WORKMANAGER QUE ESTABA AQUÍ -->
+
 
     </application>
 </manifest>
