@@ -618,26 +618,4 @@ class NotificationService {
         name: 'NotificationService');
   }
 
-// Métodos que estaban en tu archivo pero no se usan actualmente
-// Si los necesitas, asegúrate de que las importaciones (http, path_provider, io) estén activas.
-// Future<void> _checkAndSetLastNotificationDate() async {
-//   final prefs = await SharedPreferences.getInstance();
-//   final lastNotificationDate = prefs.getString(_lastNotificationDateKey);
-//   final today = DateTime.now().toIso8601String().split('T')[0];
-
-//   if (lastNotificationDate != today) {
-//     await scheduleDailyNotification();
-//     await prefs.setString(_lastNotificationDateKey, today);
-//   }
-// }
-
-// Future<String> _downloadAndSaveFile(String url, String fileName) async {
-//   final io.Directory directory = await getApplicationDocumentsDirectory();
-//   final String filePath = '${directory.path}/$fileName';
-//   final http.Response response = await http.get(Uri.parse(url));
-//   final io.File file = io.File(filePath);
-//   await file.writeAsBytes(response.bodyBytes);
-//   developer.log('File downloaded and saved: $filePath', name: 'NotificationService');
-//   return filePath;
-// }
 }

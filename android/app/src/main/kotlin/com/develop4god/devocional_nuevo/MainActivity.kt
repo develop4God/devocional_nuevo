@@ -1,22 +1,48 @@
 package com.develop4god.devocional_nuevo
 
 import io.flutter.embedding.android.FlutterActivity
-import io.flutter.embedding.engine.FlutterEngine // Asegúrate de que esta línea esté presente y sin comentar
+import io.flutter.embedding.engine.FlutterEngine
+import io.flutter.plugin.common.MethodChannel
+import android.content.Intent
+import android.os.Bundle
 
 class MainActivity : FlutterActivity() {
-    // Este método es necesario si necesitas registrar plugins manualmente
-    // o realizar configuraciones específicas del motor de Flutter al inicio.
+
+    private val channel = "com.devocional_nuevo.test_channel"
+
+    // --- INICIO: Soporte para Firebase Test Lab Game Loop ---
+    override fun onCreate(savedInstanceState: Bundle?) {
+        // Importante: inicializa Flutter primero
+        super.onCreate(savedInstanceState)
+
+        // Si la app fue lanzada por un intent de Test Lab Game Loop, aplicar un pequeño retraso
+        if (intent.action != null && intent.action == "com.google.intent.action.TEST_LOOP") {
+            try {
+                // Espera 5 segundos para asegurar que la UI de Flutter se vea correctamente en el video de Test Lab
+                Thread.sleep(5000)
+                println("Firebase Test Lab: Retraso de 5 segundos aplicado para la prueba de Game Loop.")
+            } catch (e: InterruptedException) {
+                e.printStackTrace()
+            }
+        }
+    }
+    // --- FIN: Soporte para Firebase Test Lab Game Loop ---
+
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
-        // Si tienes plugins que necesitan ser registrados manualmente, hazlo aquí.
-        // Por ejemplo:
-        // GeneratedPluginRegistrant.registerWith(flutterEngine)
-        // El comentario original indicaba que no era necesario, lo cual es común
-        // si Application.kt o una clase similar lo maneja.
+
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, channel).setMethodCallHandler { call, result ->
+            if (call.method == "getInitialIntentAction") {
+                val action = intent.action
+                result.success(action)
+            } else {
+                result.notImplemented()
+            }
+        }
     }
 
-    // Los métodos provideFlutterEngine y getCachedEngineId ya no se sobrescriben
-    // en la mayoría de los casos de uso con las versiones recientes de Flutter.
-    // FlutterActivity maneja el motor de Flutter y el cacheo por defecto.
-    // Si los tenías comentados, asegúrate de que sigan así o elimínalos.
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+    }
 }

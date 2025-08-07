@@ -22,7 +22,7 @@ dependencies: # <-- ÚNICA SECCIÓN DEPENDENCIES
   auto_size_text: ^3.0.0
   path_provider: ^2.1.5
   provider: ^6.0.0
-  flutter_bloc: ^8.1.6
+  flutter_bloc: ^9.1.1
   intl: ^0.20.2
   cupertino_icons: ^1.0.8
   in_app_update: ^4.2.3
@@ -36,10 +36,10 @@ dependencies: # <-- ÚNICA SECCIÓN DEPENDENCIES
   flutter_timezone: ^4.1.1 #para obtener la zona horaria del dispositivo real
 
   # Firebase dependencies
-  firebase_core: ^2.24.2
-  firebase_messaging: ^14.7.10
-  firebase_auth: ^4.16.0
-  cloud_firestore: ^4.13.6
+  firebase_core: ^4.0.0
+  firebase_messaging: ^16.0.0
+  firebase_auth: ^6.0.0
+  cloud_firestore: ^6.0.0
 
 dev_dependencies:
   flutter_test:

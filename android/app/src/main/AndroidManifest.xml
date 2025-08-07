@@ -9,6 +9,8 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="com.google.android.gms.permission.AD_ID"/>
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+
 
     <!-- Declaraciones de consulta para abrir enlaces web y otras apps -->
     <queries>
@@ -54,6 +56,14 @@
                 <action android:name="FLUTTER_NOTIFICATION_CLICK" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
+            <!-- INICIO: Filtro para bucle de juego de Firebase Test Lab -->
+            <intent-filter>
+                <action android:name="com.google.intent.action.TEST_LOOP"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:mimeType="application/javascript"/> <!-- ¡Esta línea es la que faltaba! -->
+            </intent-filter>
+            <!-- FIN: Filtro para bucle de juego -->
+
         </activity>
 
         <!-- Meta-data para Flutter -->
