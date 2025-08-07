@@ -32,28 +32,150 @@ Future<String?> getInitialIntentAction() async {
   }
 }
 
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  final intentAction = await getInitialIntentAction();
+  final bool isGameLoop = (intentAction == 'com.google.intent.action.TEST_LOOP');
+
+  developer.log("Modo Game Loop: $isGameLoop", name: "GameLoopRunner");
+
+  if (!isGameLoop) {
+    await requestNotificationPermissionIfNeeded();
+  }
+
+  runApp(MyApp(isGameLoop: isGameLoop));
+}
+
+/// Aquí defines cómo pedir el permiso de notificaciones localmente
+Future<void> requestNotificationPermissionIfNeeded() async {
+  // Ejemplo básico para Android (ajusta acorde a tu implementación)
+  // No pidas permiso aquí si está en Game Loop (controlado arriba).
+  // Puedes usar plugins como permission_handler o flutter_local_notifications
+
+  // Sólo un placeholder con log:
+  developer.log("Solicitando permiso de notificaciones (solo en modo normal)", name: "GameLoopRunner");
+  // Aquí agrega tu llamada para pedir el permiso real, por ejemplo:
+  // final status = await Permission.notification.request();
+  // if (!status.isGranted) throw Exception("Permiso de notificaciones denegado");
+}
+
+class MyApp extends StatelessWidget {
+  final bool isGameLoop;
+
+  const MyApp({required this.isGameLoop, super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    if (isGameLoop) {
+      return GameLoopApp();
+    } else {
+      return NormalApp();
+    }
+  }
+}
+
+// --- Modo Game Loop ---
+
+class GameLoopApp extends StatefulWidget {
+  const GameLoopApp({super.key});
+
+  @override
+  State<GameLoopApp> createState() => _GameLoopAppState();
+}
+
+class _GameLoopAppState extends State<GameLoopApp> {
+  @override
+  void initState() {
+    super.initState();
+
+    // Ejecutar el Game Loop luego de construir el primer frame (para que Navigator esté listo)
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      try {
+        await runAutomatedGameLoop();
+        await reportTestResultAndExit(true, 'Game Loop completed successfully.');
+      } catch (e, s) {
+        developer.log('Error en Game Loop: $e', error: e, stackTrace: s);
+        await reportTestResultAndExit(false, 'Error durante Game Loop: $e');
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      navigatorKey: navigatorKey,
+      title: 'Devocional Game Loop',
+      theme: ThemeData(primarySwatch: Colors.blue),
+      home: testHomeWidget(),
+      routes: {
+        '/settings': (context) => const SettingsPageStub(),
+      },
+    );
+  }
+}
+
+// --- Modo Normal (UI estándar, permisos solicitados) ---
+
+class NormalApp extends StatelessWidget {
+  const NormalApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      navigatorKey: navigatorKey,
+      title: 'Devocional Normal',
+      theme: ThemeData(primarySwatch: Colors.blue),
+      home: testHomeWidget(),
+      routes: {
+        '/settings': (context) => const SettingsPageStub(),
+      },
+    );
+  }
+}
+
 Widget testHomeWidget() => const DevocionalesPage();
 
+class SettingsPageStub extends StatelessWidget {
+  const SettingsPageStub({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Settings')),
+      body: const Center(child: Text('Settings page')),
+    );
+  }
+}
+
+// Ejecuta las navegaciones automáticas del Game Loop
 Future<void> runAutomatedGameLoop() async {
   logStep('Iniciando Game Loop automatizado...');
   await Future.delayed(const Duration(seconds: 4));
+
   if (navigatorKey.currentState != null) {
     logStep("Navegando a SettingsPage");
     navigatorKey.currentState!.pushNamed('/settings');
     await Future.delayed(const Duration(seconds: 3));
+
     logStep("Regresando de SettingsPage");
     navigatorKey.currentState!.pop();
     await Future.delayed(const Duration(seconds: 2));
+
     logStep("Navegando a FavoritesPage");
     navigatorKey.currentState!.push(MaterialPageRoute(builder: (context) => const FavoritesPage()));
     await Future.delayed(const Duration(seconds: 3));
+
     logStep("Regresando de FavoritesPage");
     navigatorKey.currentState!.pop();
     await Future.delayed(const Duration(seconds: 2));
+  } else {
+    logStep("navigatorKey.currentState es null, no se puede navegar");
   }
   logStep('Flujo de navegación de prueba completado.');
 }
 
+// Guarda el resultado del test y cierra la app.
 Future<void> reportTestResultAndExit(bool success, String message) async {
   logStep('Reportando resultado del test y saliendo...');
   final directory = await getApplicationCacheDirectory();
@@ -77,8 +199,16 @@ Future<void> reportTestResultAndExit(bool success, String message) async {
     developer.log('GameLoopRunner: ERROR al escribir los resultados: $e', name: 'GameLoopRunner', error: e, stackTrace: s);
     logStep("ERROR escribiendo resultados: $e");
   }
-  SystemNavigator.pop();
+
+  // Notifica a Firebase Test Lab que el Game Loop terminó
+  try {
+    await _platform.invokeMethod('openUrl', 'firebase-game-loop-complete://');
+  } catch (e) {
+    developer.log('GameLoopRunner: ERROR llamando a firebase-game-loop-complete:// URL: $e', name: 'GameLoopRunner', error: e);
+  }
+
   logStep('Aplicación cerrada después del test.');
+  SystemNavigator.pop();
 }
 
 void logStep(String message) {

@@ -152,21 +152,10 @@ class _AppInitializerState extends State<AppInitializer> {
 
   Future<void> _checkGameLoop() async {
     final String? action = await runner.getInitialIntentAction();
-    if (action == "com.google.intent.action.TEST_LOOP") {
-      setState(() {
-        _isGameLoop = true;
-      });
-      try {
-        await runner.runAutomatedGameLoop();
-        await runner.reportTestResultAndExit(true, "Game loop test completed successfully.");
-      } catch (e) {
-        await runner.reportTestResultAndExit(false, "Game loop test failed: $e");
-      }
-    } else {
-      setState(() {
-        _isGameLoop = false;
-      });
-    }
+    setState(() {
+      _isGameLoop = action == "com.google.intent.action.TEST_LOOP";
+    });
+    // No se llama aquí a runAutomatedGameLoop ni reportTestResultAndExit
   }
 
   @override
@@ -179,17 +168,9 @@ class _AppInitializerState extends State<AppInitializer> {
       );
     }
     if (_isGameLoop == true) {
-      // Mostrar la UI de test para el video de Test Lab
-      return MaterialApp(
-        navigatorKey: navigatorKey,
-        debugShowCheckedModeBanner: false,
-        title: 'Devocionales',
-        home: runner.testHomeWidget(), // Widget principal para test
-        routes: {
-          '/settings': (context) => const SettingsPage(),
-        },
-      );
+      return const GameLoopWidget();
     }
+
     // App normal
     return MyApp();
   }
@@ -217,6 +198,45 @@ class MyApp extends StatelessWidget {
         Locale('es', ''),
       ],
       home: const SplashScreen(),
+      routes: {
+        '/settings': (context) => const SettingsPage(),
+      },
+    );
+  }
+}
+class GameLoopWidget extends StatefulWidget {
+  const GameLoopWidget({super.key});
+
+  @override
+  State<GameLoopWidget> createState() => _GameLoopWidgetState();
+}
+
+class _GameLoopWidgetState extends State<GameLoopWidget> {
+  bool _started = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!_started) {
+        _started = true;
+        try {
+          await runner.runAutomatedGameLoop();
+          await runner.reportTestResultAndExit(true, "Game loop test completed successfully.");
+        } catch (e) {
+          await runner.reportTestResultAndExit(false, "Game loop test failed: $e");
+        }
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      navigatorKey: navigatorKey,
+      debugShowCheckedModeBanner: false,
+      title: 'Devocionales',
+      home: runner.testHomeWidget(),
       routes: {
         '/settings': (context) => const SettingsPage(),
       },

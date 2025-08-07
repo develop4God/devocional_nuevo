@@ -489,11 +489,16 @@ class _DevocionalesPageState extends State<DevocionalesPage> with WidgetsBinding
                                   Text(
                                       'Versión: ${currentDevocional.version}',
                                       style: textTheme.bodySmall?.copyWith(fontSize: 14, color: colorScheme.onSurface)),
-                                const SizedBox(height: 5), // Espacio antes de la atribución
-                                Text(
-                                  'El texto bíblico Reina-Valera 1960® Sociedades Bíblicas en América Latina, 1960. Derechos renovados 1988, Sociedades Bíblicas Unidas.',
-                                  style: textTheme.bodySmall?.copyWith(fontSize: 12, color: colorScheme.onSurface.withValues(alpha: 0.7)),
-                                  textAlign: TextAlign.center,
+                                const SizedBox(height: 10), // Espacio antes de la atribución
+                                Center(
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                                    child: Text(
+                                      'El texto bíblico Reina-Valera 1960® Sociedades Bíblicas en América Latina, 1960. Derechos renovados 1988, Sociedades Bíblicas Unidas.',
+                                      style: textTheme.bodySmall?.copyWith(fontSize: 12, color: colorScheme.onSurface.withValues(alpha: 0.7)),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
                                 ),
                                 const SizedBox(height: 20),
                               ],
