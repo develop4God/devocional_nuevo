@@ -9,7 +9,7 @@ import 'package:intl/intl.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:developer' as developer;
-
+import 'package:devocional_nuevo/widgets/devocionales_page_drawer.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/pages/settings_page.dart';
@@ -263,6 +263,7 @@ class _DevocionalesPageState extends State<DevocionalesPage> with WidgetsBinding
     final TextTheme textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
+      drawer: const DevocionalesDrawer(), //nuevo drawer
       appBar: AppBar(
         title: Text(
           'Mi espacio íntimo con Dios',
