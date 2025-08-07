@@ -1,18 +1,17 @@
-// lib/pages/settings_page.dart
 // Esta página permite al usuario configurar las opciones de la aplicación, incluyendo el tema.
 
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:developer' as developer;
-import 'package:flutter/cupertino.dart'; // Para CupertinoIcons.square_favorites_alt
-import 'package:provider/provider.dart'; // Importa provider
+import 'package:flutter/cupertino.dart';
+import 'package:provider/provider.dart';
 
 import 'package:devocional_nuevo/pages/favorites_page.dart';
 import 'package:devocional_nuevo/pages/about_page.dart';
-import 'package:devocional_nuevo/pages/contact_page.dart'; // Importa ContactPage para la navegación directa
-import 'package:devocional_nuevo/providers/theme_provider.dart'; // Importa el ThemeProvider
-import 'package:devocional_nuevo/utils/theme_constants.dart'; // Importa las constantes de tema para acceder a appThemeFamilies y settingsOptionTextStyle
-import 'package:devocional_nuevo/pages/notification_config_page.dart'; // Importa la nueva página de configuración de notificaciones
+import 'package:devocional_nuevo/pages/contact_page.dart';
+import 'package:devocional_nuevo/providers/theme_provider.dart';
+import 'package:devocional_nuevo/utils/theme_constants.dart';
+import 'package:devocional_nuevo/pages/notification_config_page.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -70,14 +69,9 @@ class _SettingsPageState extends State<SettingsPage> {
 
   @override
   Widget build(BuildContext context) {
-    // Accede al ThemeProvider para obtener y cambiar el tema
     final themeProvider = Provider.of<ThemeProvider>(context);
-    // Obtiene el esquema de colores del tema actual
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
-    // Obtiene el tema de texto del tema actual
     final TextTheme textTheme = Theme.of(context).textTheme;
-
-    // Lista de nombres de familias de temas disponibles (obtenida directamente de theme_constants)
     final List<String> themeFamilies = appThemeFamilies.keys.toList();
 
     return Scaffold(
@@ -99,7 +93,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 child: ElevatedButton(
                   onPressed: _launchPaypal,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.yellow[700], // Botón amarillo
+                    backgroundColor: Colors.yellow[700],
                     foregroundColor: Colors.black,
                     textStyle: const TextStyle(fontWeight: FontWeight.bold),
                     padding:
@@ -137,7 +131,6 @@ class _SettingsPageState extends State<SettingsPage> {
                     if (newValue != null) {
                       setState(() {
                         _selectedLanguage = newValue;
-                        // TODO: Implementar lógica para cambiar el idioma de la aplicación
                         developer.log('Idioma cambiado a: $_selectedLanguage', name: 'SettingsPage');
                       });
                     }
@@ -147,6 +140,7 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
             const SizedBox(height: 20),
             // Sección para seleccionar la familia de tema
+            /*
             Row(
               children: [
                 Icon(Icons.palette, color: colorScheme.primary),
@@ -180,7 +174,9 @@ class _SettingsPageState extends State<SettingsPage> {
               },
             ),
             const SizedBox(height: 20),
+            */
             // Opción para Luz baja (modo oscuro)
+            /*
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -206,7 +202,9 @@ class _SettingsPageState extends State<SettingsPage> {
               ],
             ),
             const SizedBox(height: 20),
-            // Aquí es donde se cambia la navegación a NotificationConfigPage
+            */
+            // Configuración de notificaciones
+            /*
             InkWell(
               onTap: () {
                 Navigator.push(
@@ -236,6 +234,8 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
             ),
             const SizedBox(height: 15),
+            */
+            /*
             InkWell(
               onTap: () {
                 Navigator.push(
@@ -257,7 +257,7 @@ class _SettingsPageState extends State<SettingsPage> {
                             ?.merge(settingsOptionTextStyle)
                             .copyWith(color: colorScheme.onSurface),
                         maxLines: 1,
-                        overflow: TextOverflow.ellipsis, // CORRECCIÓN AQUÍ: Era TextTema.ellipsis
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                   ],
@@ -265,6 +265,7 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
             ),
             const SizedBox(height: 20),
+            */
             InkWell(
               onTap: () {
                 Navigator.push(

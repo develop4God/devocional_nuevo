@@ -15,7 +15,9 @@ class DevocionalesDrawer extends StatelessWidget {
 
   void _shareApp(BuildContext context) {
     const String message =
-        '¡Mira esta app de Devocionales Cristianos! Descárgala y disfruta de contenido espiritual.';
+        '¡Participa  en el pre-lanzamiento del app devocionales Crisitianos.'
+        'Enlace para inscribirte y edificarte con la palabra de Dios.'
+        'https://forms.gle/HGFNUv9pc8XpG8aa6';
     Share.share(message);
     Navigator.of(context).pop(); // Cerrar drawer tras compartir
   }
@@ -156,7 +158,7 @@ class DevocionalesDrawer extends StatelessWidget {
                       iconColor: colorScheme.primary,
                       label: Text(
                         'Favoritos guardados',
-                        style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface),
+                        style: textTheme.bodyMedium?.copyWith(fontSize: 16,color: colorScheme.onSurface),
                       ),
                       onTap: () {
                         Navigator.of(context).pop();
@@ -172,7 +174,7 @@ class DevocionalesDrawer extends StatelessWidget {
                       iconColor: colorScheme.primary,
                       label: Text(
                         'Luz baja (modo oscuro)',
-                        style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface),
+                        style: textTheme.bodyMedium?.copyWith(fontSize: 16,color: colorScheme.onSurface),
                       ),
                       trailing: Switch(
                         value: themeProvider.currentBrightness == Brightness.dark,
@@ -192,7 +194,7 @@ class DevocionalesDrawer extends StatelessWidget {
                       iconColor: colorScheme.primary,
                       label: Text(
                         'Configuración de notificaciones',
-                        style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface),
+                        style: textTheme.bodyMedium?.copyWith(fontSize: 16,color: colorScheme.onSurface),
                       ),
                       onTap: () {
                         Navigator.of(context).pop();
@@ -208,7 +210,7 @@ class DevocionalesDrawer extends StatelessWidget {
                       iconColor: colorScheme.primary,
                       label: Text(
                         'Compartir esta app',
-                        style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface),
+                        style: textTheme.bodyMedium?.copyWith(fontSize: 16,color: colorScheme.onSurface),
                       ),
                       onTap: () => _shareApp(context),
                     ),
@@ -222,7 +224,7 @@ class DevocionalesDrawer extends StatelessWidget {
                         children: [
                           Text(
                             'Descargar devocionales',
-                        style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface),
+                        style: textTheme.bodyMedium?.copyWith(fontSize: 16,color: colorScheme.onSurface),
                       ),
                           const SizedBox(height: 4),
                           Text(
@@ -258,7 +260,7 @@ class DevocionalesDrawer extends StatelessWidget {
                               Expanded(
                                 child: Text(
                                   'Seleciona color de tema',
-                                  style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface),
+                                  style: textTheme.bodyMedium?.copyWith(fontSize: 16,color: colorScheme.onSurface),
                                 ),
                               ),
                             ],

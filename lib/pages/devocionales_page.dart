@@ -272,7 +272,8 @@ class _DevocionalesPageState extends State<DevocionalesPage> with WidgetsBinding
                   colorScheme.onPrimary),
         ),
         centerTitle: true,
-        actions: [
+        //comentado para el dropdown de versiones
+        /*actions: [
           Consumer<DevocionalProvider>(
             builder: (context, devocionalProvider, child) {
               return Row(
@@ -318,7 +319,7 @@ class _DevocionalesPageState extends State<DevocionalesPage> with WidgetsBinding
               );
             },
           ),
-        ],
+         ],*/
       ),
       body: Consumer<DevocionalProvider>(
         builder: (context, devocionalProvider, child) {
