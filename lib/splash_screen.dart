@@ -1,6 +1,5 @@
-// lib/splash_screen.dart
-
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart'; // Importación agregada
 
 import 'package:devocional_nuevo/app_initializer.dart'; // Importa el nuevo AppInitializer
 
@@ -21,8 +20,7 @@ class _SplashScreenState extends State<SplashScreen>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(
-          milliseconds: 1500), // Duración de la animación del fade
+      duration: const Duration(milliseconds: 1500), // Duración de la animación del fade
     );
 
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
@@ -37,22 +35,16 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Future<void> _navigateToNextScreen() async {
-    // Espera un tiempo mínimo para que la animación del splash se aprecie.
-    // Este tiempo es independiente de la carga de datos.
-    await Future.delayed(
-        const Duration(milliseconds: 5000)); // Usando tu duración de 5 segundos
+    await Future.delayed(const Duration(milliseconds: 5000));
 
     if (mounted) {
-      // Navega al AppInitializer, que se encargará de cargar los datos y luego ir a DevocionalesPage.
       Navigator.pushReplacement(
         context,
         PageRouteBuilder(
-          transitionDuration: const Duration(
-              milliseconds: 600), // Duración de la transición de página
+          transitionDuration: const Duration(milliseconds: 600),
           pageBuilder: (context, animation, secondaryAnimation) =>
-              const AppInitializer(), // ¡Navega a AppInitializer!
+              const AppInitializer(),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            // Animación de deslizamiento de página (tu código existente)
             const begin = Offset(1.0, 0.0);
             const end = Offset.zero;
             const curve = Curves.easeOutCubic;
@@ -94,9 +86,6 @@ class _SplashScreenState extends State<SplashScreen>
               alignment: Alignment.center,
             ),
           ),
-
-          // EL BLOQUE DEL GRADIENTE OSCURO HA SIDO ELIMINADO AQUÍ
-
           // 2. Capa del texto superpuesto
           Center(
             child: FadeTransition(
@@ -106,26 +95,23 @@ class _SplashScreenState extends State<SplashScreen>
                 children: [
                   // SizedBox para empujar el texto hacia abajo
                   const SizedBox(
-                      height:
-                          150), // Puedes ajustar este valor según sea necesario
-
+                    height: 150,
+                  ),
                   Text(
                     'Preparando tu espacio con Dios...',
                     textAlign: TextAlign.center,
-                    // Usa el estilo del tema si existe, de lo contrario, usa el estilo hardcodeado como fallback.
-                    style: splashTextStyle ??
-                        const TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: Color.fromARGB(255, 255, 255, 255),
-                          shadows: [
-                            Shadow(
-                              offset: Offset(2.0, 2.0),
-                              blurRadius: 5.0,
-                              color: Color.fromARGB(200, 0, 0, 0),
-                            ),
-                          ],
+                    style: GoogleFonts.dancingScript(
+                      fontSize: 22, // Igual que tu valor actual
+                      fontWeight: FontWeight.bold,
+                      color: Colors.deepPurple, // Deep purple para contraste
+                      shadows: [
+                        Shadow(
+                          offset: Offset(2.0, 2.0),
+                          blurRadius: 5.0,
+                          color: Colors.black26,
                         ),
+                      ],
+                    ),
                   ),
                 ],
               ),
