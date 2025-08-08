@@ -1,8 +1,4 @@
 import 'package:flutter/material.dart';
-// Removido: import 'package:flutter/cupertino.dart'; // innecesario
-// Removido: import 'package:devocional_nuevo/pages/favorites_page.dart'; // no usado
-// Removido: import 'package:devocional_nuevo/pages/notification_config_page.dart'; // no usado
-import 'package:devocional_nuevo/providers/settings_provider.dart';
 import 'package:provider/provider.dart';
 
 class SettingsPage extends StatelessWidget {
