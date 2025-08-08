@@ -20,14 +20,13 @@ class DevocionalesBloc extends Bloc<DevocionalesEvent, DevocionalesState> {
     Emitter<DevocionalesState> emit,
   ) async {
     emit(DevocionalesLoading());
-    
+
     try {
       // This would normally fetch data from API or local storage
       // For now, emit a simple success state
-      final filteredDevocionales = _allDevocionales
-          .where((d) => d.version == _selectedVersion)
-          .toList();
-      
+      final filteredDevocionales =
+          _allDevocionales.where((d) => d.version == _selectedVersion).toList();
+
       emit(DevocionalesLoaded(
         devocionales: filteredDevocionales,
         selectedVersion: _selectedVersion,
@@ -42,11 +41,10 @@ class DevocionalesBloc extends Bloc<DevocionalesEvent, DevocionalesState> {
     Emitter<DevocionalesState> emit,
   ) {
     _selectedVersion = event.version;
-    
-    final filteredDevocionales = _allDevocionales
-        .where((d) => d.version == _selectedVersion)
-        .toList();
-    
+
+    final filteredDevocionales =
+        _allDevocionales.where((d) => d.version == _selectedVersion).toList();
+
     emit(DevocionalesLoaded(
       devocionales: filteredDevocionales,
       selectedVersion: _selectedVersion,

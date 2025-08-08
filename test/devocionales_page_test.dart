@@ -19,29 +19,39 @@ import 'package:devocional_nuevo/pages/settings_page.dart';
 // --- Mocks y Fakes para el test ---
 
 class MockDevocionalesBloc extends Mock implements DevocionalesBloc {}
+
 class MockScreenshotController extends Mock implements ScreenshotController {}
+
 class FakeDevocionalesEvent extends Fake implements DevocionalesEvent {}
+
 class FakeDevocionalesState extends Fake implements DevocionalesState {}
+
 class MockPathProviderPlatform extends PathProviderPlatform with Mock {
   MockPathProviderPlatform() : super();
   @override
-  Future<String?> getApplicationDocumentsPath() async => '/mock_app_documents_dir';
+  Future<String?> getApplicationDocumentsPath() async =>
+      '/mock_app_documents_dir';
 }
+
 class FakeBuildContext extends Fake implements BuildContext {}
+
 class MockFile extends Mock implements File {
   @override
-  Future<File> create({bool recursive = false, bool exclusive = false}) => super.noSuchMethod(
-    Invocation.method(#create, [], {#recursive: recursive, #exclusive: exclusive}),
-  ) as Future<File>;
+  Future<File> create({bool recursive = false, bool exclusive = false}) =>
+      super.noSuchMethod(
+        Invocation.method(
+            #create, [], {#recursive: recursive, #exclusive: exclusive}),
+      ) as Future<File>;
   @override
-  Future<File> writeAsBytes(List<int> bytes, {FileMode mode = FileMode.write, bool flush = false}) =>
+  Future<File> writeAsBytes(List<int> bytes,
+          {FileMode mode = FileMode.write, bool flush = false}) =>
       super.noSuchMethod(
         Invocation.method(#writeAsBytes, [bytes], {#mode: mode, #flush: flush}),
       ) as Future<File>;
   @override
   String get path => super.noSuchMethod(
-    Invocation.getter(#path),
-  ) as String;
+        Invocation.getter(#path),
+      ) as String;
 }
 
 // --- Datos de prueba simulados ---
@@ -50,7 +60,9 @@ final Devocional mockDevocional1 = Devocional(
   versiculo: 'Juan 3:16 - De tal manera amó Dios al mundo...',
   reflexion: 'Reflexión sobre el amor de Dios...',
   paraMeditar: [
-    ParaMeditar(cita: 'Romanos 5:8', texto: 'Mas Dios muestra su amor para con nosotros...'),
+    ParaMeditar(
+        cita: 'Romanos 5:8',
+        texto: 'Mas Dios muestra su amor para con nosotros...'),
   ],
   oracion: 'Oración por el amor de Dios...',
   date: DateTime(2023, 1, 1),
@@ -64,7 +76,8 @@ final Devocional mockDevocional2 = Devocional(
   versiculo: 'Filipenses 4:13 - Todo lo puedo en Cristo que me fortalece.',
   reflexion: 'Reflexión sobre la fortaleza en Cristo...',
   paraMeditar: [
-    ParaMeditar(cita: 'Isaías 41:10', texto: 'No temas, porque yo estoy contigo...'),
+    ParaMeditar(
+        cita: 'Isaías 41:10', texto: 'No temas, porque yo estoy contigo...'),
   ],
   oracion: 'Oración por fortaleza...',
   date: DateTime(2023, 1, 2),
@@ -109,7 +122,8 @@ void main() {
     mockDevocionalesBloc = MockDevocionalesBloc();
     mockScreenshotController = MockScreenshotController();
 
-    when(() => mockScreenshotController.capture()).thenAnswer((_) async => Uint8List(0));
+    when(() => mockScreenshotController.capture())
+        .thenAnswer((_) async => Uint8List(0));
   });
 
   tearDown(() {
@@ -162,8 +176,9 @@ void main() {
 
     Widget makeTestableWidget(DevocionalesState state) {
       when(() => mockDevocionalesBloc.state).thenReturn(state);
-      when(() => mockDevocionalesBloc.stream).thenAnswer((_) => Stream.value(state));
-      
+      when(() => mockDevocionalesBloc.stream)
+          .thenAnswer((_) => Stream.value(state));
+
       return BlocProvider<DevocionalesBloc>.value(
         value: mockDevocionalesBloc,
         child: MaterialApp(
@@ -173,13 +188,15 @@ void main() {
             '/favorites': (context) => const Text('Favorites Page Mock'),
             '/contact': (context) => const Text('Contact Page Mock'),
             '/about': (context) => const Text('About Page Mock'),
-            '/notifications': (context) => const Text('Notifications Page Mock'),
+            '/notifications': (context) =>
+                const Text('Notifications Page Mock'),
           },
         ),
       );
     }
 
-    testWidgets('When DevocionalesInitial, shows Scaffold and title text "Devocionales"',
+    testWidgets(
+        'When DevocionalesInitial, shows Scaffold and title text "Devocionales"',
         (WidgetTester tester) async {
       await tester.pumpWidget(makeTestableWidget(DevocionalesInitial()));
       await tester.pumpAndSettle();
