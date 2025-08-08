@@ -93,6 +93,7 @@ jobs:
         uses: peter-evans/create-pull-request@v7
         with:
           branch: auto/import-cleanup
+          base: main
           title: 'Limpieza automática de imports no usados'
           body: 'Este PR elimina imports no usados tras detectar errores de importación en el análisis automático de CI.'
           labels: 'limpieza,automático,imports'
