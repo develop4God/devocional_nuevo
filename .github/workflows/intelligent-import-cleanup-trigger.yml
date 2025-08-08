@@ -15,7 +15,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          ref: main    # Asegura que parte desde la rama principal. Cambia 'main' si tu rama base es otra.
+          ref: main
 
       - name: Cache Flutter dependencies
         uses: actions/cache@v4
@@ -106,7 +106,11 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: 'Limpieza automática de imports no usados (detectado y corregido por CI)'
-          # No necesitas el parámetro branch
+
+      - name: Push cleanup branch
+        if: env.CLEANUP_SUCCESS == 'true'
+        run: |
+          git push --set-upstream origin auto/import-cleanup
 
       - name: Create Pull Request
         if: env.CLEANUP_SUCCESS == 'true'
