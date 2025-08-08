@@ -1,3 +1,4 @@
+---
 name: Limpieza inteligente de imports y CI
 on:
   workflow_dispatch: null
