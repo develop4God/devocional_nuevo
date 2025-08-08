@@ -9,11 +9,11 @@ class ThemeSelectorCircleGrid extends StatelessWidget {
   final Brightness brightness;
 
   const ThemeSelectorCircleGrid({
-    Key? key,
+    super.key,
     required this.selectedTheme,
     required this.onThemeChanged,
     this.brightness = Brightness.light,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +27,8 @@ class ThemeSelectorCircleGrid extends StatelessWidget {
       mainAxisSpacing: 16,
       childAspectRatio: 1,
       children: themeFamilies.map((family) {
-        final themeData = appThemeFamilies[family]?[brightness == Brightness.light ? 'light' : 'dark'];
+        final themeData = appThemeFamilies[family]
+            ?[brightness == Brightness.light ? 'light' : 'dark'];
         final primaryColor = themeData?.colorScheme.primary ?? Colors.grey;
 
         final isSelected = family == selectedTheme;
@@ -46,31 +47,31 @@ class ThemeSelectorCircleGrid extends StatelessWidget {
                   shape: BoxShape.circle,
                   border: isSelected
                       ? Border.all(
-                    color: primaryColor,
-                    width: 3,
-                  )
+                          color: primaryColor,
+                          width: 3,
+                        )
                       : Border.all(
-                    color: Colors.transparent,
-                    width: 3,
-                  ),
+                          color: Colors.transparent,
+                          width: 3,
+                        ),
                   boxShadow: isSelected
                       ? [
-                    BoxShadow(
-                      color: primaryColor.withOpacity(0.4),
-                      blurRadius: 10,
-                      spreadRadius: 2,
-                    ),
-                  ]
+                          BoxShadow(
+                            color: primaryColor.withOpacity(0.4),
+                            blurRadius: 10,
+                            spreadRadius: 2,
+                          ),
+                        ]
                       : null,
                 ),
                 child: isSelected
                     ? Center(
-                  child: Icon(
-                    Icons.check,
-                    color: Colors.white,
-                    size: 24,
-                  ),
-                )
+                        child: Icon(
+                          Icons.check,
+                          color: Colors.white,
+                          size: 24,
+                        ),
+                      )
                     : null,
               ),
               const SizedBox(height: 8),
@@ -82,7 +83,10 @@ class ThemeSelectorCircleGrid extends StatelessWidget {
                     fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
                     color: isSelected
                         ? primaryColor
-                        : Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                        : Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withOpacity(0.7),
                   ),
                   textAlign: TextAlign.center,
                   overflow: TextOverflow.ellipsis,

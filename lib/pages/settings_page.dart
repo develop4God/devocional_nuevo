@@ -6,12 +6,10 @@ import 'dart:developer' as developer;
 //import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 
-import 'package:devocional_nuevo/pages/favorites_page.dart';
 import 'package:devocional_nuevo/pages/about_page.dart';
 import 'package:devocional_nuevo/pages/contact_page.dart';
 import 'package:devocional_nuevo/providers/theme_provider.dart';
 import 'package:devocional_nuevo/utils/theme_constants.dart';
-import 'package:devocional_nuevo/pages/notification_config_page.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -35,7 +33,8 @@ class _SettingsPageState extends State<SettingsPage> {
       developer.log('canLaunchUrl devolvió true. Intentando launchUrl.',
           name: 'PayPalLaunch');
       try {
-        final launched = await launchUrl(url, mode: LaunchMode.externalApplication);
+        final launched =
+            await launchUrl(url, mode: LaunchMode.externalApplication);
 
         if (!launched) {
           developer.log('launchUrl devolvió false. No se pudo lanzar.',
@@ -97,7 +96,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     foregroundColor: Colors.black,
                     textStyle: const TextStyle(fontWeight: FontWeight.bold),
                     padding:
-                    const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
+                        const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
                     minimumSize: const Size(100, 30),
                   ),
                   child: const Text(
@@ -131,7 +130,8 @@ class _SettingsPageState extends State<SettingsPage> {
                     if (newValue != null) {
                       setState(() {
                         _selectedLanguage = newValue;
-                        developer.log('Idioma cambiado a: $_selectedLanguage', name: 'SettingsPage');
+                        developer.log('Idioma cambiado a: $_selectedLanguage',
+                            name: 'SettingsPage');
                       });
                     }
                   },

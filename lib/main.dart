@@ -24,17 +24,26 @@ final GlobalKey<NavigatorState> navigatorKey = runner.navigatorKey;
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  developer.log('BackgroundServiceCallback: Manejando mensaje FCM en segundo plano: ${message.messageId}', name: 'BackgroundServiceCallback');
+  developer.log(
+      'BackgroundServiceCallback: Manejando mensaje FCM en segundo plano: ${message.messageId}',
+      name: 'BackgroundServiceCallback');
   await Firebase.initializeApp();
   tzdata.initializeTimeZones();
   try {
     final String currentTimeZone = await FlutterTimezone.getLocalTimezone();
     tz.setLocalLocation(tz.getLocation(currentTimeZone));
-    developer.log('BackgroundServiceCallback: Zona horaria re-inicializada a: $currentTimeZone', name: 'BackgroundServiceCallback');
+    developer.log(
+        'BackgroundServiceCallback: Zona horaria re-inicializada a: $currentTimeZone',
+        name: 'BackgroundServiceCallback');
   } catch (e) {
-    developer.log('BackgroundServiceCallback: Error al re-inicializar la zona horaria en segundo plano: $e', name: 'BackgroundServiceCallback', error: e);
+    developer.log(
+        'BackgroundServiceCallback: Error al re-inicializar la zona horaria en segundo plano: $e',
+        name: 'BackgroundServiceCallback',
+        error: e);
     tz.setLocalLocation(tz.getLocation('UTC'));
-    developer.log('BackgroundServiceCallback: Volviendo a la zona horaria UTC en segundo plano.', name: 'BackgroundServiceCallback');
+    developer.log(
+        'BackgroundServiceCallback: Volviendo a la zona horaria UTC en segundo plano.',
+        name: 'BackgroundServiceCallback');
   }
   final NotificationService notificationService = NotificationService();
   await notificationService.initialize();
@@ -48,11 +57,17 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
       payload: payload,
       id: message.messageId.hashCode,
     );
-    developer.log('BackgroundServiceCallback: Notificación FCM mostrada en segundo plano: $title', name: 'BackgroundServiceCallback');
+    developer.log(
+        'BackgroundServiceCallback: Notificación FCM mostrada en segundo plano: $title',
+        name: 'BackgroundServiceCallback');
   } else {
-    developer.log('BackgroundServiceCallback: Mensaje FCM de segundo plano sin título o cuerpo de notificación.', name: 'BackgroundServiceCallback');
+    developer.log(
+        'BackgroundServiceCallback: Mensaje FCM de segundo plano sin título o cuerpo de notificación.',
+        name: 'BackgroundServiceCallback');
   }
-  developer.log('BackgroundServiceCallback: Manejo de mensaje FCM en segundo plano completado.', name: 'BackgroundServiceCallback');
+  developer.log(
+      'BackgroundServiceCallback: Manejo de mensaje FCM en segundo plano completado.',
+      name: 'BackgroundServiceCallback');
 }
 
 void main() async {
@@ -62,7 +77,8 @@ void main() async {
 
   // Configurar el manejador de mensajes FCM en segundo plano
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-  developer.log('App: Manejador de mensajes FCM en segundo plano registrado.', name: 'MainApp');
+  developer.log('App: Manejador de mensajes FCM en segundo plano registrado.',
+      name: 'MainApp');
 
   // Lanzar runApp lo antes posible (sin inicializaciones bloqueantes)
   runApp(
@@ -112,41 +128,61 @@ class _AppInitializerState extends State<AppInitializer> {
       tzdata.initializeTimeZones();
       await initializeDateFormatting('es', null);
     } catch (e) {
-      developer.log('ERROR en AppInitializer: Error al inicializar zona horaria o date formatting: $e', name: 'MainApp', error: e);
+      developer.log(
+          'ERROR en AppInitializer: Error al inicializar zona horaria o date formatting: $e',
+          name: 'MainApp',
+          error: e);
     }
 
     try {
       final FirebaseAuth auth = FirebaseAuth.instance;
       if (auth.currentUser == null) {
         await auth.signInAnonymously();
-        developer.log('MainApp: Usuario anónimo autenticado: ${auth.currentUser?.uid}', name: 'MainApp');
+        developer.log(
+            'MainApp: Usuario anónimo autenticado: ${auth.currentUser?.uid}',
+            name: 'MainApp');
       } else {
-        developer.log('MainApp: Usuario ya autenticado: ${auth.currentUser?.uid}', name: 'MainApp');
+        developer.log(
+            'MainApp: Usuario ya autenticado: ${auth.currentUser?.uid}',
+            name: 'MainApp');
       }
     } catch (e) {
-      developer.log('ERROR en AppInitializer: Error al inicializar Firebase Auth o autenticar anónimamente: $e', name: 'MainApp', error: e);
+      developer.log(
+          'ERROR en AppInitializer: Error al inicializar Firebase Auth o autenticar anónimamente: $e',
+          name: 'MainApp',
+          error: e);
     }
 
     try {
       await NotificationService().initialize();
-      developer.log('AppInitializer: Servicios de notificación (FCM) registrados correctamente.', name: 'MainApp');
+      developer.log(
+          'AppInitializer: Servicios de notificación (FCM) registrados correctamente.',
+          name: 'MainApp');
 
       // --- Solicita permiso de notificaciones solo si NO es Test Lab/Game Loop ---
-      developer.log('Chequeando acción de intent para TestLab/GameLoop...', name: 'DebugFlow');
+      developer.log('Chequeando acción de intent para TestLab/GameLoop...',
+          name: 'DebugFlow');
       final String? action = await runner.getInitialIntentAction();
       developer.log('Acción obtenida: $action', name: 'DebugFlow');
       final bool isTestLab = action == "com.google.intent.action.TEST_LOOP";
       developer.log('isTestLab = $isTestLab', name: 'DebugFlow');
       if (!isTestLab) {
-        developer.log('Solicitando permiso de notificaciones...', name: 'DebugFlow');
+        developer.log('Solicitando permiso de notificaciones...',
+            name: 'DebugFlow');
         final settings = await FirebaseMessaging.instance.requestPermission();
-        developer.log('Permiso solicitado, estado: ${settings.authorizationStatus}', name: 'DebugFlow');
+        developer.log(
+            'Permiso solicitado, estado: ${settings.authorizationStatus}',
+            name: 'DebugFlow');
       } else {
-        developer.log('NO se solicita permiso de notificaciones por Game Loop', name: 'DebugFlow');
+        developer.log('NO se solicita permiso de notificaciones por Game Loop',
+            name: 'DebugFlow');
       }
     } catch (e) {
       debugPrint('Error al inicializar servicios de notificación: $e');
-      developer.log('ERROR en AppInitializer: Error al inicializar servicios de notificación: $e', name: 'MainApp', error: e);
+      developer.log(
+          'ERROR en AppInitializer: Error al inicializar servicios de notificación: $e',
+          name: 'MainApp',
+          error: e);
     }
   }
 
@@ -204,6 +240,7 @@ class MyApp extends StatelessWidget {
     );
   }
 }
+
 class GameLoopWidget extends StatefulWidget {
   const GameLoopWidget({super.key});
 
@@ -222,9 +259,11 @@ class _GameLoopWidgetState extends State<GameLoopWidget> {
         _started = true;
         try {
           await runner.runAutomatedGameLoop();
-          await runner.reportTestResultAndExit(true, "Game loop test completed successfully.");
+          await runner.reportTestResultAndExit(
+              true, "Game loop test completed successfully.");
         } catch (e) {
-          await runner.reportTestResultAndExit(false, "Game loop test failed: $e");
+          await runner.reportTestResultAndExit(
+              false, "Game loop test failed: $e");
         }
       }
     });

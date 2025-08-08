@@ -13,11 +13,11 @@ import 'package:devocional_nuevo/pages/notification_config_page.dart';
 class DevocionalesDrawer extends StatelessWidget {
   const DevocionalesDrawer({super.key});
 
-    void _shareApp(BuildContext context) {
+  void _shareApp(BuildContext context) {
     const String message =
-      '¡Participa en el pre-lanzamiento del app devocionales Cristianos.\n'
-      'Enlace para inscribirte y edificarte con la palabra de Dios.\n'
-      'https://forms.gle/HGFNUv9pc8XpG8aa6';
+        '¡Participa en el pre-lanzamiento del app devocionales Cristianos.\n'
+        'Enlace para inscribirte y edificarte con la palabra de Dios.\n'
+        'https://forms.gle/HGFNUv9pc8XpG8aa6';
     Share.share(message);
     Navigator.of(context).pop(); // Cerrar drawer tras compartir
   }
@@ -29,7 +29,8 @@ class DevocionalesDrawer extends StatelessWidget {
     VoidCallback? onTap,
     Widget? trailing,
     double iconSize = 28,
-    EdgeInsetsGeometry padding = const EdgeInsets.symmetric(vertical: 5, horizontal: 0),
+    EdgeInsetsGeometry padding =
+        const EdgeInsets.symmetric(vertical: 5, horizontal: 0),
     Color? iconColor,
   }) {
     return InkWell(
@@ -92,7 +93,8 @@ class DevocionalesDrawer extends StatelessWidget {
             ),
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 child: ListView(
                   children: [
                     // --- Sección Versión Bíblica ---
@@ -139,7 +141,8 @@ class DevocionalesDrawer extends StatelessWidget {
                               );
                             }).toList();
                           },
-                          items: versions.map<DropdownMenuItem<String>>((String itemValue) {
+                          items: versions.map<DropdownMenuItem<String>>(
+                              (String itemValue) {
                             return DropdownMenuItem<String>(
                               value: itemValue,
                               child: Text(
@@ -158,12 +161,14 @@ class DevocionalesDrawer extends StatelessWidget {
                       iconColor: colorScheme.primary,
                       label: Text(
                         'Favoritos guardados',
-                        style: textTheme.bodyMedium?.copyWith(fontSize: 16,color: colorScheme.onSurface),
+                        style: textTheme.bodyMedium?.copyWith(
+                            fontSize: 16, color: colorScheme.onSurface),
                       ),
                       onTap: () {
                         Navigator.of(context).pop();
                         Navigator.of(context).push(
-                          MaterialPageRoute(builder: (_) => const FavoritesPage()),
+                          MaterialPageRoute(
+                              builder: (_) => const FavoritesPage()),
                         );
                       },
                     ),
@@ -174,17 +179,22 @@ class DevocionalesDrawer extends StatelessWidget {
                       iconColor: colorScheme.primary,
                       label: Text(
                         'Luz baja (modo oscuro)',
-                        style: textTheme.bodyMedium?.copyWith(fontSize: 16,color: colorScheme.onSurface),
+                        style: textTheme.bodyMedium?.copyWith(
+                            fontSize: 16, color: colorScheme.onSurface),
                       ),
                       trailing: Switch(
-                        value: themeProvider.currentBrightness == Brightness.dark,
+                        value:
+                            themeProvider.currentBrightness == Brightness.dark,
                         onChanged: (bool value) {
-                          themeProvider.setBrightness(value ? Brightness.dark : Brightness.light);
+                          themeProvider.setBrightness(
+                              value ? Brightness.dark : Brightness.light);
                         },
                       ),
                       onTap: () {
-                        final newValue = themeProvider.currentBrightness != Brightness.dark;
-                        themeProvider.setBrightness(newValue ? Brightness.dark : Brightness.light);
+                        final newValue =
+                            themeProvider.currentBrightness != Brightness.dark;
+                        themeProvider.setBrightness(
+                            newValue ? Brightness.dark : Brightness.light);
                       },
                     ),
                     const SizedBox(height: 5),
@@ -194,12 +204,14 @@ class DevocionalesDrawer extends StatelessWidget {
                       iconColor: colorScheme.primary,
                       label: Text(
                         'Configuración de notificaciones',
-                        style: textTheme.bodyMedium?.copyWith(fontSize: 16,color: colorScheme.onSurface),
+                        style: textTheme.bodyMedium?.copyWith(
+                            fontSize: 16, color: colorScheme.onSurface),
                       ),
                       onTap: () {
                         Navigator.of(context).pop();
                         Navigator.of(context).push(
-                          MaterialPageRoute(builder: (_) => const NotificationConfigPage()),
+                          MaterialPageRoute(
+                              builder: (_) => const NotificationConfigPage()),
                         );
                       },
                     ),
@@ -210,7 +222,8 @@ class DevocionalesDrawer extends StatelessWidget {
                       iconColor: colorScheme.primary,
                       label: Text(
                         'Compartir esta app',
-                        style: textTheme.bodyMedium?.copyWith(fontSize: 16,color: colorScheme.onSurface),
+                        style: textTheme.bodyMedium?.copyWith(
+                            fontSize: 16, color: colorScheme.onSurface),
                       ),
                       onTap: () => _shareApp(context),
                     ),
@@ -224,8 +237,9 @@ class DevocionalesDrawer extends StatelessWidget {
                         children: [
                           Text(
                             'Descargar devocionales',
-                        style: textTheme.bodyMedium?.copyWith(fontSize: 16,color: colorScheme.onSurface),
-                      ),
+                            style: textTheme.bodyMedium?.copyWith(
+                                fontSize: 16, color: colorScheme.onSurface),
+                          ),
                           const SizedBox(height: 4),
                           Text(
                             'Próximamente',
@@ -253,14 +267,17 @@ class DevocionalesDrawer extends StatelessWidget {
                                 width: 36,
                                 child: Align(
                                   alignment: Alignment.centerLeft,
-                                  child: Icon(Icons.palette, color: colorScheme.primary, size: 28),
+                                  child: Icon(Icons.palette,
+                                      color: colorScheme.primary, size: 28),
                                 ),
                               ),
                               const SizedBox(width: 12),
                               Expanded(
                                 child: Text(
                                   'Seleciona color de tema',
-                                  style: textTheme.bodyMedium?.copyWith(fontSize: 16,color: colorScheme.onSurface),
+                                  style: textTheme.bodyMedium?.copyWith(
+                                      fontSize: 16,
+                                      color: colorScheme.onSurface),
                                 ),
                               ),
                             ],

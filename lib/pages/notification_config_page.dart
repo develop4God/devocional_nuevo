@@ -36,17 +36,23 @@ class _NotificationConfigPageState extends State<NotificationConfigPage> {
   Future<void> _initializeFirebaseAndLoadSettings() async {
     final user = _auth.currentUser;
     if (user == null) {
-      developer.log('NotificationConfigPage: User not authenticated. Cannot load/save settings.', name: 'NotificationConfigPage');
+      developer.log(
+          'NotificationConfigPage: User not authenticated. Cannot load/save settings.',
+          name: 'NotificationConfigPage');
       if (mounted) {
         final messenger = ScaffoldMessenger.of(context);
         // ACCIÓN: Ajuste del SnackBar para usar colorScheme.secondary y onSecondary
-        final ColorScheme colorScheme = Theme.of(context).colorScheme; // Obtener colorScheme
+        final ColorScheme colorScheme =
+            Theme.of(context).colorScheme; // Obtener colorScheme
         messenger.showSnackBar(
           SnackBar(
-            backgroundColor: colorScheme.secondary, // Fondo del SnackBar usando secondary
+            backgroundColor:
+                colorScheme.secondary, // Fondo del SnackBar usando secondary
             content: Text(
               'Error: Usuario no autenticado. Por favor, reinicia la aplicación.', // TEXTO TRADUCIDO
-              style: TextStyle(color: colorScheme.onSecondary), // Texto del SnackBar usando onSecondary
+              style: TextStyle(
+                  color: colorScheme
+                      .onSecondary), // Texto del SnackBar usando onSecondary
             ),
           ),
         );
@@ -57,7 +63,11 @@ class _NotificationConfigPageState extends State<NotificationConfigPage> {
       return;
     }
     _userId = user.uid;
-    _userNotificationSettingsRef = _firestore.collection('users').doc(_userId).collection('settings').doc('notifications');
+    _userNotificationSettingsRef = _firestore
+        .collection('users')
+        .doc(_userId)
+        .collection('settings')
+        .doc('notifications');
 
     await _loadNotificationSettings();
   }
@@ -68,7 +78,9 @@ class _NotificationConfigPageState extends State<NotificationConfigPage> {
     });
     try {
       if (_userNotificationSettingsRef == null) {
-        developer.log('NotificationConfigPage: _userNotificationSettingsRef is null. Cannot load settings.', name: 'NotificationConfigPage');
+        developer.log(
+            'NotificationConfigPage: _userNotificationSettingsRef is null. Cannot load settings.',
+            name: 'NotificationConfigPage');
         return;
       }
 
@@ -76,7 +88,8 @@ class _NotificationConfigPageState extends State<NotificationConfigPage> {
 
       if (docSnapshot.exists && docSnapshot.data() != null) {
         final data = docSnapshot.data() as Map<String, dynamic>;
-        _notificationsEnabled = data['notificationsEnabled'] ?? true; // Si no existe, por defecto true
+        _notificationsEnabled = data['notificationsEnabled'] ??
+            true; // Si no existe, por defecto true
 
         // INICIO DEL AJUSTE 1: Manejo de timeString
         String timeString;
@@ -90,8 +103,12 @@ class _NotificationConfigPageState extends State<NotificationConfigPage> {
           shouldUpdateFirestore = true; // Marca para actualizar Firestore
         }
 
-        _selectedTime = TimeOfDay(hour: int.parse(timeString.split(':')[0]), minute: int.parse(timeString.split(':')[1]));
-        developer.log('NotificationConfigPage: Settings loaded from Firestore. Enabled: $_notificationsEnabled, Time: $timeString', name: 'NotificationConfigPage');
+        _selectedTime = TimeOfDay(
+            hour: int.parse(timeString.split(':')[0]),
+            minute: int.parse(timeString.split(':')[1]));
+        developer.log(
+            'NotificationConfigPage: Settings loaded from Firestore. Enabled: $_notificationsEnabled, Time: $timeString',
+            name: 'NotificationConfigPage');
 
         // Si se usó un valor por defecto para notificationTime, guárdalo en Firestore
         if (shouldUpdateFirestore) {
@@ -99,30 +116,41 @@ class _NotificationConfigPageState extends State<NotificationConfigPage> {
             'notificationTime': timeString,
             'lastUpdated': FieldValue.serverTimestamp(),
           });
-          developer.log('NotificationConfigPage: notificationTime was missing, updated Firestore with default: $timeString', name: 'NotificationConfigPage');
+          developer.log(
+              'NotificationConfigPage: notificationTime was missing, updated Firestore with default: $timeString',
+              name: 'NotificationConfigPage');
         }
         // FIN DEL AJUSTE 1
-      } else { // INICIO DEL AJUSTE 2: Si el documento de configuración no existe en absoluto, créalo con valores por defecto
-        _notificationsEnabled = true; // Por defecto, activar las notificaciones en la primera instalación si no hay datos.
-        String timeString = await _notificationService.getNotificationTime(); // Obtiene la hora por defecto (ej. 09:00)
+      } else {
+        // INICIO DEL AJUSTE 2: Si el documento de configuración no existe en absoluto, créalo con valores por defecto
+        _notificationsEnabled =
+            true; // Por defecto, activar las notificaciones en la primera instalación si no hay datos.
+        String timeString = await _notificationService
+            .getNotificationTime(); // Obtiene la hora por defecto (ej. 09:00)
         final parts = timeString.split(':');
-        _selectedTime = TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1]));
+        _selectedTime =
+            TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1]));
 
-        await _userNotificationSettingsRef!.set({ // Crea el documento
+        await _userNotificationSettingsRef!.set({
+          // Crea el documento
           'notificationsEnabled': _notificationsEnabled,
           'notificationTime': timeString, // Guarda la hora por defecto aquí
           'lastUpdated': FieldValue.serverTimestamp(),
         });
-        developer.log('NotificationConfigPage: No settings found in Firestore. Defaults applied and saved. Enabled: $_notificationsEnabled, Time: $timeString', name: 'NotificationConfigPage');
+        developer.log(
+            'NotificationConfigPage: No settings found in Firestore. Defaults applied and saved. Enabled: $_notificationsEnabled, Time: $timeString',
+            name: 'NotificationConfigPage');
       } // FIN DEL AJUSTE 2
       // Inicializa _newlySelectedTime con la hora actual al cargar
       _newlySelectedTime = _selectedTime;
     } catch (e) {
-      developer.log('ERROR loading notification settings from Firestore: $e', name: 'NotificationConfigPage', error: e);
+      developer.log('ERROR loading notification settings from Firestore: $e',
+          name: 'NotificationConfigPage', error: e);
       if (mounted) {
         final messenger = ScaffoldMessenger.of(context);
         // ACCIÓN: Ajuste del SnackBar para usar colorScheme.secondary y onSecondary
-        final ColorScheme colorScheme = Theme.of(context).colorScheme; // Obtener colorScheme
+        final ColorScheme colorScheme =
+            Theme.of(context).colorScheme; // Obtener colorScheme
         messenger.showSnackBar(
           SnackBar(
             backgroundColor: colorScheme.secondary,
@@ -148,36 +176,45 @@ class _NotificationConfigPageState extends State<NotificationConfigPage> {
     });
     try {
       if (_userNotificationSettingsRef == null) {
-        developer.log('NotificationConfigPage: _userNotificationSettingsRef is null. Cannot save settings.', name: 'NotificationConfigPage');
+        developer.log(
+            'NotificationConfigPage: _userNotificationSettingsRef is null. Cannot save settings.',
+            name: 'NotificationConfigPage');
         return;
       }
       await _userNotificationSettingsRef!.update({
         'notificationsEnabled': enabled,
         'lastUpdated': FieldValue.serverTimestamp(),
       });
-      developer.log('NotificationConfigPage: Notifications enabled set to $enabled in Firestore.', name: 'NotificationConfigPage');
+      developer.log(
+          'NotificationConfigPage: Notifications enabled set to $enabled in Firestore.',
+          name: 'NotificationConfigPage');
 
       await _notificationService.setNotificationsEnabled(enabled);
 
       if (!mounted) return;
       final messenger = ScaffoldMessenger.of(context);
       // ACCIÓN: Ajuste del SnackBar para usar colorScheme.secondary y onSecondary
-      final ColorScheme colorScheme = Theme.of(context).colorScheme; // Obtener colorScheme
+      final ColorScheme colorScheme =
+          Theme.of(context).colorScheme; // Obtener colorScheme
       messenger.showSnackBar(
         SnackBar(
           backgroundColor: colorScheme.secondary,
           content: Text(
-            _notificationsEnabled ? 'Notificaciones activadas.' : 'Notificaciones desactivadas.', // Usando _notificationsEnabled
+            _notificationsEnabled
+                ? 'Notificaciones activadas.'
+                : 'Notificaciones desactivadas.', // Usando _notificationsEnabled
             style: TextStyle(color: colorScheme.onSecondary),
           ),
         ),
       );
     } catch (e) {
-      developer.log('ERROR toggling notifications in Firestore: $e', name: 'NotificationConfigPage', error: e);
+      developer.log('ERROR toggling notifications in Firestore: $e',
+          name: 'NotificationConfigPage', error: e);
       if (mounted) {
         final messenger = ScaffoldMessenger.of(context);
         // ACCIÓN: Ajuste del SnackBar para usar colorScheme.secondary y onSecondary
-        final ColorScheme colorScheme = Theme.of(context).colorScheme; // Obtener colorScheme
+        final ColorScheme colorScheme =
+            Theme.of(context).colorScheme; // Obtener colorScheme
         messenger.showSnackBar(
           SnackBar(
             backgroundColor: colorScheme.secondary,
@@ -197,7 +234,8 @@ class _NotificationConfigPageState extends State<NotificationConfigPage> {
   Future<void> _selectTime(BuildContext context) async {
     final TimeOfDay? picked = await showTimePicker(
       context: context,
-      initialTime: _newlySelectedTime ?? _selectedTime, // Usa la hora nueva si existe, sino la actual
+      initialTime: _newlySelectedTime ??
+          _selectedTime, // Usa la hora nueva si existe, sino la actual
       builder: (BuildContext context, Widget? child) {
         return MediaQuery(
           data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: false),
@@ -205,7 +243,8 @@ class _NotificationConfigPageState extends State<NotificationConfigPage> {
         );
       },
     );
-    if (picked != null && picked != _newlySelectedTime) { // Compara con _newlySelectedTime
+    if (picked != null && picked != _newlySelectedTime) {
+      // Compara con _newlySelectedTime
       setState(() {
         _newlySelectedTime = picked; // Actualiza la hora temporalmente
       });
@@ -215,17 +254,22 @@ class _NotificationConfigPageState extends State<NotificationConfigPage> {
   // Nuevo método para confirmar y guardar la hora en Firestore
   Future<void> _confirmSelectedTime() async {
     if (_userNotificationSettingsRef == null || _newlySelectedTime == null) {
-      developer.log('NotificationConfigPage: _userNotificationSettingsRef or _newlySelectedTime is null. Cannot save time.', name: 'NotificationConfigPage');
+      developer.log(
+          'NotificationConfigPage: _userNotificationSettingsRef or _newlySelectedTime is null. Cannot save time.',
+          name: 'NotificationConfigPage');
       return;
     }
 
     // No permitir guardar si la hora no ha cambiado
     if (_newlySelectedTime == _selectedTime) {
-      developer.log('NotificationConfigPage: Time not changed, no need to save.', name: 'NotificationConfigPage');
+      developer.log(
+          'NotificationConfigPage: Time not changed, no need to save.',
+          name: 'NotificationConfigPage');
       if (mounted) {
         final messenger = ScaffoldMessenger.of(context);
         // ACCIÓN: Ajuste del SnackBar para usar colorScheme.secondary y onSecondary
-        final ColorScheme colorScheme = Theme.of(context).colorScheme; // Obtener colorScheme
+        final ColorScheme colorScheme =
+            Theme.of(context).colorScheme; // Obtener colorScheme
         messenger.showSnackBar(
           SnackBar(
             backgroundColor: colorScheme.secondary,
@@ -250,7 +294,9 @@ class _NotificationConfigPageState extends State<NotificationConfigPage> {
         'notificationTime': timeString,
         'lastUpdated': FieldValue.serverTimestamp(),
       });
-      developer.log('NotificationConfigPage: Notification time adjusted to $timeString in Firestore.', name: 'NotificationConfigPage');
+      developer.log(
+          'NotificationConfigPage: Notification time adjusted to $timeString in Firestore.',
+          name: 'NotificationConfigPage');
 
       await _notificationService.setNotificationTime(timeString);
 
@@ -261,7 +307,8 @@ class _NotificationConfigPageState extends State<NotificationConfigPage> {
       });
       final messenger = ScaffoldMessenger.of(context);
       // ACCIÓN: Ajuste del SnackBar para usar colorScheme.secondary y onSecondary
-      final ColorScheme colorScheme = Theme.of(context).colorScheme; // Obtener colorScheme
+      final ColorScheme colorScheme =
+          Theme.of(context).colorScheme; // Obtener colorScheme
       messenger.showSnackBar(
         SnackBar(
           backgroundColor: colorScheme.secondary,
@@ -272,11 +319,13 @@ class _NotificationConfigPageState extends State<NotificationConfigPage> {
         ),
       );
     } catch (e) {
-      developer.log('ERROR setting notification time in Firestore: $e', name: 'NotificationConfigPage', error: e);
+      developer.log('ERROR setting notification time in Firestore: $e',
+          name: 'NotificationConfigPage', error: e);
       if (mounted) {
         final messenger = ScaffoldMessenger.of(context);
         // ACCIÓN: Ajuste del SnackBar para usar colorScheme.secondary y onSecondary
-        final ColorScheme colorScheme = Theme.of(context).colorScheme; // Obtener colorScheme
+        final ColorScheme colorScheme =
+            Theme.of(context).colorScheme; // Obtener colorScheme
         messenger.showSnackBar(
           SnackBar(
             backgroundColor: colorScheme.secondary,
@@ -330,12 +379,14 @@ class _NotificationConfigPageState extends State<NotificationConfigPage> {
     final TextTheme textTheme = Theme.of(context).textTheme;
 
     // Determina si el botón de confirmar debe estar habilitado
-    bool isConfirmButtonEnabled = _newlySelectedTime != null && _newlySelectedTime != _selectedTime;
+    bool isConfirmButtonEnabled =
+        _newlySelectedTime != null && _newlySelectedTime != _selectedTime;
 
     if (_isLoading) {
       return Scaffold(
         appBar: AppBar(
-          title: const Text('Configuración Notificaciones', style: TextStyle(color: Colors.white)), // TEXTO TRADUCIDO
+          title: const Text('Configuración Notificaciones',
+              style: TextStyle(color: Colors.white)), // TEXTO TRADUCIDO
         ),
         body: const Center(child: CircularProgressIndicator()),
       );
@@ -343,7 +394,8 @@ class _NotificationConfigPageState extends State<NotificationConfigPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Configuración Notificaciones', style: TextStyle(color: Colors.white)), // TEXTO TRADUCIDO
+        title: const Text('Configuración Notificaciones',
+            style: TextStyle(color: Colors.white)), // TEXTO TRADUCIDO
       ),
       body: Padding(
         padding: const EdgeInsets.all(24.0),
@@ -355,7 +407,8 @@ class _NotificationConfigPageState extends State<NotificationConfigPage> {
               children: [
                 Text(
                   'Activar/Desactivar Notificaciones', // TEXTO TRADUCIDO
-                  style: textTheme.titleMedium?.copyWith(color: colorScheme.onSurface),
+                  style: textTheme.titleMedium
+                      ?.copyWith(color: colorScheme.onSurface),
                 ),
                 Switch(
                   value: _notificationsEnabled,
@@ -371,13 +424,18 @@ class _NotificationConfigPageState extends State<NotificationConfigPage> {
                 padding: const EdgeInsets.symmetric(vertical: 8.0),
                 child: Row(
                   children: [
-                    Icon(Icons.access_time, color: _notificationsEnabled ? colorScheme.primary : colorScheme.onSurface.withAlpha(127)),
+                    Icon(Icons.access_time,
+                        color: _notificationsEnabled
+                            ? colorScheme.primary
+                            : colorScheme.onSurface.withAlpha(127)),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
                         'Hora de la notificación diaria', // TEXTO TRADUCIDO
                         style: textTheme.titleMedium?.copyWith(
-                          color: _notificationsEnabled ? colorScheme.onSurface : colorScheme.onSurface.withAlpha(127),
+                          color: _notificationsEnabled
+                              ? colorScheme.onSurface
+                              : colorScheme.onSurface.withAlpha(127),
                         ),
                       ),
                     ),
@@ -385,10 +443,16 @@ class _NotificationConfigPageState extends State<NotificationConfigPage> {
                     Text(
                       (_newlySelectedTime ?? _selectedTime).format(context),
                       style: textTheme.titleMedium?.copyWith(
-                        color: _notificationsEnabled ? colorScheme.primary : colorScheme.onSurface.withAlpha(127),
+                        color: _notificationsEnabled
+                            ? colorScheme.primary
+                            : colorScheme.onSurface.withAlpha(127),
                       ),
                     ),
-                    Icon(Icons.arrow_forward_ios, size: 16, color: _notificationsEnabled ? colorScheme.onSurface : colorScheme.onSurface.withAlpha(127)),
+                    Icon(Icons.arrow_forward_ios,
+                        size: 16,
+                        color: _notificationsEnabled
+                            ? colorScheme.onSurface
+                            : colorScheme.onSurface.withAlpha(127)),
                   ],
                 ),
               ),
@@ -397,17 +461,28 @@ class _NotificationConfigPageState extends State<NotificationConfigPage> {
             // Botón de Confirmar Hora
             ElevatedButton.icon(
               // Habilitado solo si las notificaciones están activadas Y hay una hora nueva seleccionada diferente a la actual
-              onPressed: (_notificationsEnabled && isConfirmButtonEnabled) ? _confirmSelectedTime : null,
-              icon: Icon(Icons.send, color: (_notificationsEnabled && isConfirmButtonEnabled) ? Colors.white : Colors.white.withAlpha(127)),
+              onPressed: (_notificationsEnabled && isConfirmButtonEnabled)
+                  ? _confirmSelectedTime
+                  : null,
+              icon: Icon(Icons.send,
+                  color: (_notificationsEnabled && isConfirmButtonEnabled)
+                      ? Colors.white
+                      : Colors.white.withAlpha(127)),
               label: Text(
                 'Confirmar hora', // Nuevo texto para el botón
                 style: textTheme.titleMedium?.copyWith(
-                  color: (_notificationsEnabled && isConfirmButtonEnabled) ? Colors.white : Colors.white.withAlpha(127),
+                  color: (_notificationsEnabled && isConfirmButtonEnabled)
+                      ? Colors.white
+                      : Colors.white.withAlpha(127),
                 ),
               ),
               style: ElevatedButton.styleFrom(
-                backgroundColor: (_notificationsEnabled && isConfirmButtonEnabled) ? colorScheme.primary : colorScheme.primary.withAlpha(127),
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                backgroundColor:
+                    (_notificationsEnabled && isConfirmButtonEnabled)
+                        ? colorScheme.primary
+                        : colorScheme.primary.withAlpha(127),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
