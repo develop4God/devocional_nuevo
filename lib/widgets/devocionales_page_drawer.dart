@@ -13,11 +13,11 @@ import 'package:devocional_nuevo/pages/notification_config_page.dart';
 class DevocionalesDrawer extends StatelessWidget {
   const DevocionalesDrawer({super.key});
 
-  void _shareApp(BuildContext context) {
+    void _shareApp(BuildContext context) {
     const String message =
-        '¡Participa  en el pre-lanzamiento del app devocionales Crisitianos.'
-        'Enlace para inscribirte y edificarte con la palabra de Dios.'
-        'https://forms.gle/HGFNUv9pc8XpG8aa6';
+      '¡Participa en el pre-lanzamiento del app devocionales Cristianos.\n'
+      'Enlace para inscribirte y edificarte con la palabra de Dios.\n'
+      'https://forms.gle/HGFNUv9pc8XpG8aa6';
     Share.share(message);
     Navigator.of(context).pop(); // Cerrar drawer tras compartir
   }
