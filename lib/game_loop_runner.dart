@@ -11,22 +11,29 @@ import 'package:devocional_nuevo/pages/favorites_page.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
-const MethodChannel _platform = MethodChannel('com.devocional_nuevo.test_channel');
+const MethodChannel _platform =
+    MethodChannel('com.devocional_nuevo.test_channel');
 
 final List<String> _activityLog = [];
 
 Future<String?> getInitialIntentAction() async {
   try {
-    developer.log("GameLoopRunner: Entrando a getInitialIntentAction", name: "GameLoopRunner");
-    final String? result = await _platform.invokeMethod('getInitialIntentAction');
+    developer.log("GameLoopRunner: Entrando a getInitialIntentAction",
+        name: "GameLoopRunner");
+    final String? result =
+        await _platform.invokeMethod('getInitialIntentAction');
     logStep("Intent detectado: $result");
     return result;
   } on PlatformException catch (e) {
-    developer.log("GameLoopRunner: Error de plataforma al obtener el intent: ${e.message}", name: 'GameLoopRunner', error: e);
+    developer.log(
+        "GameLoopRunner: Error de plataforma al obtener el intent: ${e.message}",
+        name: 'GameLoopRunner',
+        error: e);
     logStep("ERROR detectando intent: ${e.message}");
     return null;
   } catch (e, s) {
-    developer.log("GameLoopRunner: Error inesperado: $e", name: 'GameLoopRunner', error: e, stackTrace: s);
+    developer.log("GameLoopRunner: Error inesperado: $e",
+        name: 'GameLoopRunner', error: e, stackTrace: s);
     logStep("ERROR inesperado en getInitialIntentAction: $e");
     return null;
   }
@@ -36,7 +43,8 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   final intentAction = await getInitialIntentAction();
-  final bool isGameLoop = (intentAction == 'com.google.intent.action.TEST_LOOP');
+  final bool isGameLoop =
+      (intentAction == 'com.google.intent.action.TEST_LOOP');
 
   developer.log("Modo Game Loop: $isGameLoop", name: "GameLoopRunner");
 
@@ -54,7 +62,8 @@ Future<void> requestNotificationPermissionIfNeeded() async {
   // Puedes usar plugins como permission_handler o flutter_local_notifications
 
   // Sólo un placeholder con log:
-  developer.log("Solicitando permiso de notificaciones (solo en modo normal)", name: "GameLoopRunner");
+  developer.log("Solicitando permiso de notificaciones (solo en modo normal)",
+      name: "GameLoopRunner");
   // Aquí agrega tu llamada para pedir el permiso real, por ejemplo:
   // final status = await Permission.notification.request();
   // if (!status.isGranted) throw Exception("Permiso de notificaciones denegado");
@@ -93,7 +102,8 @@ class _GameLoopAppState extends State<GameLoopApp> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       try {
         await runAutomatedGameLoop();
-        await reportTestResultAndExit(true, 'Game Loop completed successfully.');
+        await reportTestResultAndExit(
+            true, 'Game Loop completed successfully.');
       } catch (e, s) {
         developer.log('Error en Game Loop: $e', error: e, stackTrace: s);
         await reportTestResultAndExit(false, 'Error durante Game Loop: $e');
@@ -163,7 +173,8 @@ Future<void> runAutomatedGameLoop() async {
     await Future.delayed(const Duration(seconds: 2));
 
     logStep("Navegando a FavoritesPage");
-    navigatorKey.currentState!.push(MaterialPageRoute(builder: (context) => const FavoritesPage()));
+    navigatorKey.currentState!
+        .push(MaterialPageRoute(builder: (context) => const FavoritesPage()));
     await Future.delayed(const Duration(seconds: 3));
 
     logStep("Regresando de FavoritesPage");
@@ -179,7 +190,8 @@ Future<void> runAutomatedGameLoop() async {
 Future<void> reportTestResultAndExit(bool success, String message) async {
   logStep('Reportando resultado del test y saliendo...');
   final directory = await getApplicationCacheDirectory();
-  final testResultsDir = Directory('${directory.path}/firebase-test-lab-game-loops');
+  final testResultsDir =
+      Directory('${directory.path}/firebase-test-lab-game-loops');
   if (!await testResultsDir.exists()) {
     await testResultsDir.create(recursive: true);
   }
@@ -196,7 +208,8 @@ Future<void> reportTestResultAndExit(bool success, String message) async {
     await outputFile.writeAsString(jsonEncode(results));
     logStep('Resultados escritos en: ${outputFile.path}');
   } catch (e, s) {
-    developer.log('GameLoopRunner: ERROR al escribir los resultados: $e', name: 'GameLoopRunner', error: e, stackTrace: s);
+    developer.log('GameLoopRunner: ERROR al escribir los resultados: $e',
+        name: 'GameLoopRunner', error: e, stackTrace: s);
     logStep("ERROR escribiendo resultados: $e");
   }
 
@@ -204,7 +217,10 @@ Future<void> reportTestResultAndExit(bool success, String message) async {
   try {
     await _platform.invokeMethod('openUrl', 'firebase-game-loop-complete://');
   } catch (e) {
-    developer.log('GameLoopRunner: ERROR llamando a firebase-game-loop-complete:// URL: $e', name: 'GameLoopRunner', error: e);
+    developer.log(
+        'GameLoopRunner: ERROR llamando a firebase-game-loop-complete:// URL: $e',
+        name: 'GameLoopRunner',
+        error: e);
   }
 
   logStep('Aplicación cerrada después del test.');

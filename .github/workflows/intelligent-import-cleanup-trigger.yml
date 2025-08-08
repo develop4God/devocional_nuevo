@@ -1,0 +1,138 @@
+name: Limpieza inteligente de imports y CI
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  analyze_and_cleanup:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Cache Flutter dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pub-cache
+            .dart_tool/package_config.json
+          key: ${{ runner.os }}-flutter-${{ hashFiles('**/pubspec.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-flutter-
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Analyze code (primer intento)
+        id: analyze
+        continue-on-error: true
+        run: |
+          echo "▶️ Ejecutando análisis de código inicial..."
+          flutter analyze > analyze.log || true
+          cat analyze.log
+
+      - name: Check for import errors
+        id: imports
+        run: |
+          echo "▶️ Buscando errores de importación en el análisis..."
+          if grep -E "(error|warning).*import" analyze.log | grep -E "(unused_import|uri_does_not_exist)"; then
+            echo "IMPORT_ERRORS=true" >> $GITHUB_ENV
+            echo "❗ Se detectaron errores de importación."
+          else
+            echo "IMPORT_ERRORS=false" >> $GITHUB_ENV
+            echo "✅ No se detectaron errores de importación."
+          fi
+
+      - name: Cleanup imports if needed
+        if: env.IMPORT_ERRORS == 'true'
+        run: |
+          echo "🧹 Ejecutando limpieza automática de imports y formato..."
+          dart fix --apply
+          dart format .
+          echo "🔄 Mostrando cambios realizados:"
+          git diff --stat || echo "No hubo cambios."
+
+      - name: Re-analyze after cleanup
+        if: env.IMPORT_ERRORS == 'true'
+        continue-on-error: true
+        run: |
+          echo "▶️ Re-analizando código tras la limpieza..."
+          flutter analyze > reanalyze.log || true
+          cat reanalyze.log
+
+      - name: Check if import errors are fixed
+        if: env.IMPORT_ERRORS == 'true'
+        run: |
+          echo "▶️ Comprobando si se resolvieron los errores de importación..."
+          if grep -E "(error|warning).*import" reanalyze.log | grep -E "(unused_import|uri_does_not_exist)"; then
+            echo "ERRORS_REMAIN=true" >> $GITHUB_ENV
+            echo "❌ Los errores de importación persisten tras la limpieza."
+          else
+            echo "ERRORS_REMAIN=false" >> $GITHUB_ENV
+            echo "✅ Los errores de importación fueron resueltos."
+          fi
+
+      - name: Set cleanup success flag
+        if: env.IMPORT_ERRORS == 'true'
+        run: |
+          if [ "${{ env.ERRORS_REMAIN }}" = "false" ]; then
+            echo "CLEANUP_SUCCESS=true" >> $GITHUB_ENV
+          else
+            echo "CLEANUP_SUCCESS=false" >> $GITHUB_ENV
+          fi
+
+      # Cambia/crea la rama de limpieza antes de commitear
+      - name: Create or switch to cleanup branch
+        if: env.CLEANUP_SUCCESS == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -B auto/import-cleanup
+
+      - name: Commit cleanup changes
+        if: env.CLEANUP_SUCCESS == 'true'
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: 'Limpieza automática de imports no usados (detectado y corregido por CI)'
+          skip_push: true
+
+      - name: Push cleanup branch
+        if: env.CLEANUP_SUCCESS == 'true'
+        run: |
+          git push --set-upstream origin auto/import-cleanup
+
+      - name: Create Pull Request
+        if: env.CLEANUP_SUCCESS == 'true'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: auto/import-cleanup
+          base: main
+          title: 'Limpieza automática de imports no usados'
+          body: 'Este PR elimina imports no usados tras detectar errores de importación en el análisis automático de CI.'
+          labels: 'limpieza,automático,imports'
+
+      - name: Run final analysis and tests
+        if: env.IMPORT_ERRORS == 'false'
+        run: |
+          echo "▶️ Ejecutando análisis final y pruebas unitarias..."
+          flutter analyze --fatal-infos
+          flutter test
+
+      - name: Run tests after cleanup
+        if: env.CLEANUP_SUCCESS == 'true'
+        run: |
+          echo "▶️ Ejecutando pruebas tras limpieza exitosa..."
+          flutter analyze --fatal-infos
+          flutter test

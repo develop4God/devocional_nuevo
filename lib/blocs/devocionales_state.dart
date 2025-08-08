@@ -11,7 +11,7 @@ class DevocionalesLoading extends DevocionalesState {}
 class DevocionalesLoaded extends DevocionalesState {
   final List<Devocional> devocionales;
   final String selectedVersion;
-  
+
   DevocionalesLoaded({
     required this.devocionales,
     required this.selectedVersion,
@@ -20,6 +20,6 @@ class DevocionalesLoaded extends DevocionalesState {
 
 class DevocionalesError extends DevocionalesState {
   final String message;
-  
+
   DevocionalesError(this.message);
 }

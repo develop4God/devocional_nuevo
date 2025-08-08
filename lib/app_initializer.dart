@@ -31,7 +31,7 @@ class _AppInitializerState extends State<AppInitializer> {
     if (!mounted) return;
 
     final devocionalProvider =
-    Provider.of<DevocionalProvider>(context, listen: false);
+        Provider.of<DevocionalProvider>(context, listen: false);
     await devocionalProvider.initializeData(); // Carga los datos del devocional
 
     // Una vez que los datos están cargados, navega a la página principal.
@@ -41,14 +41,17 @@ class _AppInitializerState extends State<AppInitializer> {
       Navigator.pushReplacement(
         context,
         PageRouteBuilder(
-          pageBuilder: (context, animation, secondaryAnimation) => const DevocionalesPage(),
+          pageBuilder: (context, animation, secondaryAnimation) =>
+              const DevocionalesPage(),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             return FadeTransition(
               opacity: animation, // Esto hace que la nueva página se desvanezca
               child: child,
             );
           },
-          transitionDuration: const Duration(milliseconds: 700), // La duración del desvanecimiento (puedes ajustar este valor)
+          transitionDuration: const Duration(
+              milliseconds:
+                  700), // La duración del desvanecimiento (puedes ajustar este valor)
         ),
       );
     }

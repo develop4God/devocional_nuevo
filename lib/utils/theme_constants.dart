@@ -15,10 +15,10 @@ final ThemeData _baseLightTheme = ThemeData(
   // Tema por defecto para ElevatedButtons en modo claro (restaurado a su estado original)
   elevatedButtonTheme: ElevatedButtonThemeData(
     style: ElevatedButton.styleFrom(
-      // El foreground color se establecerá por el colorScheme.onPrimary de cada tema específico
-      // o se dejará que derive del tema si no se especifica aquí.
-      // Para este base, lo dejaremos en blanco para que los copyWith lo definan.
-    ),
+        // El foreground color se establecerá por el colorScheme.onPrimary de cada tema específico
+        // o se dejará que derive del tema si no se especifica aquí.
+        // Para este base, lo dejaremos en blanco para que los copyWith lo definan.
+        ),
   ),
   // INICIO: Configuración para los temas de entrada de texto (InputDecorationTheme) para TODOS los temas claros
   inputDecorationTheme: InputDecorationTheme(
@@ -52,7 +52,9 @@ final ThemeData _baseLightTheme = ThemeData(
 
   // INICIO: Configuración CONSTANTE de SwitchThemeData para TODOS los temas claros
   switchTheme: SwitchThemeData(
-    thumbColor: WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) { // MODIFICADO: MaterialState a WidgetState
+    thumbColor:
+        WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
+      // MODIFICADO: MaterialState a WidgetState
       if (!states.contains(WidgetState.selected)) {
         // Cuando el switch está inactivo (apagado), el pulgar es Colors.grey[850]
         return Colors.grey[850];
@@ -61,7 +63,9 @@ final ThemeData _baseLightTheme = ThemeData(
       // del propio widget Switch (en settings_page.dart) tome el control, usando colorScheme.primary.
       return null;
     }),
-    trackColor: WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) { // MODIFICADO: MaterialState a WidgetState
+    trackColor:
+        WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
+      // MODIFICADO: MaterialState a WidgetState
       if (!states.contains(WidgetState.selected)) {
         // Cuando el switch está inactivo (apagado), el riel es Colors.grey[300]
         return Colors.grey[300];
@@ -70,7 +74,9 @@ final ThemeData _baseLightTheme = ThemeData(
       // del propio widget Switch tome el control, usando colorScheme.primary.
       return null;
     }),
-    trackOutlineColor: WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) { // MODIFICADO: MaterialState a WidgetState
+    trackOutlineColor:
+        WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
+      // MODIFICADO: MaterialState a WidgetState
       if (!states.contains(WidgetState.selected)) {
         // Cuando el switch está inactivo (apagado), el borde es Colors.grey
         return Colors.grey;
@@ -83,13 +89,14 @@ final ThemeData _baseLightTheme = ThemeData(
 
 final ThemeData _baseDarkTheme = ThemeData(
   brightness: Brightness.dark,
-  scaffoldBackgroundColor: Colors.black87, // Un gris muy oscuro para el fondo del scaffold
+  scaffoldBackgroundColor:
+      Colors.black87, // Un gris muy oscuro para el fondo del scaffold
   visualDensity: VisualDensity.adaptivePlatformDensity,
   // Tema por defecto para ElevatedButtons en modo oscuro (restaurado a su estado original)
   elevatedButtonTheme: ElevatedButtonThemeData(
     style: ElevatedButton.styleFrom(
-      // El foreground color se establecerá por el colorScheme.onPrimary de cada tema específico
-    ),
+        // El foreground color se establecerá por el colorScheme.onPrimary de cada tema específico
+        ),
   ),
   // INICIO: Configuración para los temas de entrada de texto (InputDecorationTheme) para TODOS los temas oscuros
   inputDecorationTheme: const InputDecorationTheme(
@@ -123,7 +130,9 @@ final ThemeData _baseDarkTheme = ThemeData(
 
   // INICIO: Configuración CONSTANTE de SwitchThemeData para TODOS los temas oscuros
   switchTheme: SwitchThemeData(
-    thumbColor: WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) { // MODIFICADO: MaterialState a WidgetState
+    thumbColor:
+        WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
+      // MODIFICADO: MaterialState a WidgetState
       if (!states.contains(WidgetState.selected)) {
         // Cuando el switch está inactivo (apagado), el pulgar es blanco para visibilidad en fondos oscuros
         return Colors.white;
@@ -132,7 +141,9 @@ final ThemeData _baseDarkTheme = ThemeData(
       // del propio widget Switch tome el control, usando colorScheme.primary.
       return null;
     }),
-    trackColor: WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) { // MODIFICADO: MaterialState a WidgetState
+    trackColor:
+        WidgetStateProperty.resolveWith<Color?>((Set<WidgetState> states) {
+      // MODIFICADO: MaterialState a WidgetState
       if (!states.contains(WidgetState.selected)) {
         // Cuando el switch está inactivo (apagado), el riel es un gris oscuro para visibilidad en fondos oscuros
         return Colors.grey.shade700;
@@ -186,7 +197,8 @@ final Map<String, Map<String, ThemeData>> appThemeFamilies = {
     'dark': _baseDarkTheme.copyWith(
       // Eliminado 'primarySwatch' de aquí para evitar el error "isn't defined"
       appBarTheme: AppBarTheme(
-        backgroundColor: Colors.deepPurple.shade900, // Tono más oscuro para AppBar en modo oscuro
+        backgroundColor: Colors
+            .deepPurple.shade900, // Tono más oscuro para AppBar en modo oscuro
         foregroundColor: Colors.white,
       ),
       colorScheme: ColorScheme.fromSwatch(
@@ -195,7 +207,8 @@ final Map<String, Map<String, ThemeData>> appThemeFamilies = {
       ).copyWith(
         primary: Colors.deepPurple.shade700, // Tono principal para modo oscuro
         secondary: Colors.deepPurpleAccent.shade700,
-        surface: const Color(0xFF121212), // Corregido de 'background' a 'surface'
+        surface:
+            const Color(0xFF121212), // Corregido de 'background' a 'surface'
         onPrimary: Colors.white,
         onSecondary: Colors.white,
         onSurface: Colors.white, // Corregido de 'onBackground' a 'onSurface'
@@ -251,7 +264,8 @@ final Map<String, Map<String, ThemeData>> appThemeFamilies = {
         brightness: Brightness.dark,
       ).copyWith(
         primary: Colors.green.shade700,
-        secondary: Colors.lightGreenAccent.shade700, // Manteniendo este para un acento consistente
+        secondary: Colors.lightGreenAccent
+            .shade700, // Manteniendo este para un acento consistente
         surface: const Color(0xFF121212),
         onPrimary: Colors.white,
         onSecondary: Colors.white,
@@ -269,7 +283,8 @@ final Map<String, Map<String, ThemeData>> appThemeFamilies = {
       // Eliminado switchTheme de aquí, se hereda de _baseDarkTheme
     ),
   },
-  'Pink': { // INICIO: Nuevo tema 'Pink'
+  'Pink': {
+    // INICIO: Nuevo tema 'Pink'
     'light': _baseLightTheme.copyWith(
       // Eliminado 'primarySwatch' de aquí para evitar el error "isn't defined"
       appBarTheme: const AppBarTheme(

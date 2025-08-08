@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:developer' as developer;
+//import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 
 import 'package:devocional_nuevo/pages/about_page.dart';
@@ -32,7 +33,8 @@ class _SettingsPageState extends State<SettingsPage> {
       developer.log('canLaunchUrl devolvió true. Intentando launchUrl.',
           name: 'PayPalLaunch');
       try {
-        final launched = await launchUrl(url, mode: LaunchMode.externalApplication);
+        final launched =
+            await launchUrl(url, mode: LaunchMode.externalApplication);
 
         if (!launched) {
           developer.log('launchUrl devolvió false. No se pudo lanzar.',
@@ -66,10 +68,10 @@ class _SettingsPageState extends State<SettingsPage> {
 
   @override
   Widget build(BuildContext context) {
-    Provider.of<ThemeProvider>(context);
+    final themeProvider = Provider.of<ThemeProvider>(context);
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
     final TextTheme textTheme = Theme.of(context).textTheme;
-    appThemeFamilies.keys.toList();
+    final List<String> themeFamilies = appThemeFamilies.keys.toList();
 
     return Scaffold(
       appBar: AppBar(
@@ -94,7 +96,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     foregroundColor: Colors.black,
                     textStyle: const TextStyle(fontWeight: FontWeight.bold),
                     padding:
-                    const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
+                        const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
                     minimumSize: const Size(100, 30),
                   ),
                   child: const Text(
@@ -128,7 +130,8 @@ class _SettingsPageState extends State<SettingsPage> {
                     if (newValue != null) {
                       setState(() {
                         _selectedLanguage = newValue;
-                        developer.log('Idioma cambiado a: $_selectedLanguage', name: 'SettingsPage');
+                        developer.log('Idioma cambiado a: $_selectedLanguage',
+                            name: 'SettingsPage');
                       });
                     }
                   },

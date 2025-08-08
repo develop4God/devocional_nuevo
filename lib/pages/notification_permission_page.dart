@@ -9,10 +9,12 @@ class NotificationPermissionPage extends StatefulWidget {
   const NotificationPermissionPage({super.key});
 
   @override
-  State<NotificationPermissionPage> createState() => _NotificationPermissionPageState();
+  State<NotificationPermissionPage> createState() =>
+      _NotificationPermissionPageState();
 }
 
-class _NotificationPermissionPageState extends State<NotificationPermissionPage> {
+class _NotificationPermissionPageState
+    extends State<NotificationPermissionPage> {
   bool _isLoading = false;
   final NotificationService _notificationService = NotificationService();
 
@@ -20,7 +22,8 @@ class _NotificationPermissionPageState extends State<NotificationPermissionPage>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Permisos de Notificación', style: TextStyle(color: Colors.white)),
+        title: const Text('Permisos de Notificación',
+            style: TextStyle(color: Colors.white)),
       ),
       body: Padding(
         padding: const EdgeInsets.all(24.0),
@@ -105,11 +108,11 @@ class _NotificationPermissionPageState extends State<NotificationPermissionPage>
 
     try {
       final status = await Permission.notification.request();
-      
+
       if (status.isGranted) {
         // Habilitar notificaciones en la app
         await _notificationService.setNotificationsEnabled(true);
-        
+
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -117,7 +120,7 @@ class _NotificationPermissionPageState extends State<NotificationPermissionPage>
               backgroundColor: Colors.green,
             ),
           );
-          
+
           // Volver a la pantalla anterior con resultado positivo
           Navigator.of(context).pop(true);
         }
@@ -133,14 +136,14 @@ class _NotificationPermissionPageState extends State<NotificationPermissionPage>
               backgroundColor: Colors.red,
             ),
           );
-          
+
           // Volver a la pantalla anterior con resultado negativo
           Navigator.of(context).pop(false);
         }
       }
     } catch (e) {
       debugPrint('Error al solicitar permisos: $e');
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

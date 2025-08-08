@@ -35,7 +35,8 @@ class _ContactPageState extends State<ContactPage> {
     // MODIFICADO: Dispose de controladores de nombre/email eliminados
     // _nameController.dispose();
     // _emailController.dispose();
-    _messageController.dispose(); // Mantener dispose para el controlador de mensaje
+    _messageController
+        .dispose(); // Mantener dispose para el controlador de mensaje
     super.dispose();
   }
 
@@ -62,17 +63,18 @@ class _ContactPageState extends State<ContactPage> {
       return;
     }
 
-    setState(() {
-    });
+    setState(() {});
 
     // Construir el enlace mailto con los datos del formulario de opciones
     final Uri emailUri = Uri(
       scheme: 'mailto',
       path: 'develop4god@gmail.com',
-      query: 'subject=${Uri.encodeComponent("$_selectedContactOption - App Devocionales")}&body=${Uri.encodeComponent(message)}',
+      query:
+          'subject=${Uri.encodeComponent("$_selectedContactOption - App Devocionales")}&body=${Uri.encodeComponent(message)}',
     );
 
-    developer.log('Intentando abrir cliente de correo: $emailUri', name: 'EmailLaunch');
+    developer.log('Intentando abrir cliente de correo: $emailUri',
+        name: 'EmailLaunch');
 
     try {
       if (await canLaunchUrl(emailUri)) {
@@ -92,15 +94,17 @@ class _ContactPageState extends State<ContactPage> {
           });
         }
       } else {
-        _showErrorSnackBar('No se pudo abrir el cliente de correo. Por favor, envía un correo manualmente a develop4god@gmail.com');
+        _showErrorSnackBar(
+            'No se pudo abrir el cliente de correo. Por favor, envía un correo manualmente a develop4god@gmail.com');
       }
     } catch (e) {
-      developer.log('Error al intentar abrir cliente de correo: $e', error: e, name: 'EmailLaunch');
-      _showErrorSnackBar('Error al abrir el cliente de correo: ${e.toString()}');
+      developer.log('Error al intentar abrir cliente de correo: $e',
+          error: e, name: 'EmailLaunch');
+      _showErrorSnackBar(
+          'Error al abrir el cliente de correo: ${e.toString()}');
     } finally {
       if (mounted) {
-        setState(() {
-        });
+        setState(() {});
       }
     }
   }
@@ -127,7 +131,8 @@ class _ContactPageState extends State<ContactPage> {
       appBar: AppBar(
         title: Text(
           'Contacto',
-          style: TextStyle(color: Theme.of(context).appBarTheme.foregroundColor),
+          style:
+              TextStyle(color: Theme.of(context).appBarTheme.foregroundColor),
         ),
         centerTitle: true,
       ),
@@ -149,7 +154,8 @@ class _ContactPageState extends State<ContactPage> {
             // Descripción
             Text(
               'Si tienes alguna pregunta, sugerencia o comentario, no dudes en ponerte en contacto con nosotros. Estaremos encantados de ayudarte.',
-              style: textTheme.bodyLarge?.copyWith(color: colorScheme.onSurface),
+              style:
+                  textTheme.bodyLarge?.copyWith(color: colorScheme.onSurface),
             ),
             const SizedBox(height: 30),
 
@@ -200,12 +206,15 @@ class _ContactPageState extends State<ContactPage> {
             // Botón de enviar
             Center(
               child: ElevatedButton.icon(
-                onPressed: _sendContactEmail, // MODIFICADO: Llama a _sendContactEmail
+                onPressed:
+                    _sendContactEmail, // MODIFICADO: Llama a _sendContactEmail
                 icon: Icon(Icons.send, color: colorScheme.onPrimary),
-                label: Text('Abrir correo', style: TextStyle(color: colorScheme.onPrimary)),
+                label: Text('Abrir correo',
+                    style: TextStyle(color: colorScheme.onPrimary)),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: colorScheme.primary,
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(30.0),
                   ),
@@ -230,7 +239,8 @@ class _ContactPageState extends State<ContactPage> {
             // Email directo
             ListTile(
               leading: Icon(Icons.email, color: colorScheme.primary),
-              title: Text('develop4God@gmail.com', style: TextStyle(color: colorScheme.onSurface)),
+              title: Text('develop4God@gmail.com',
+                  style: TextStyle(color: colorScheme.onSurface)),
               onTap: () async {
                 final Uri emailUri = Uri(
                   scheme: 'mailto',
@@ -247,7 +257,8 @@ class _ContactPageState extends State<ContactPage> {
             // Sitio web
             ListTile(
               leading: Icon(Icons.language, color: colorScheme.primary),
-              title: Text('Visitar nuestro sitio web', style: TextStyle(color: colorScheme.onSurface)),
+              title: Text('Visitar nuestro sitio web',
+                  style: TextStyle(color: colorScheme.onSurface)),
               onTap: () async {
                 final Uri webUri = Uri.parse('https://develop4god.github.io/');
                 if (await canLaunchUrl(webUri)) {

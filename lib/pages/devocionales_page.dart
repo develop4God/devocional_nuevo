@@ -24,7 +24,8 @@ class DevocionalesPage extends StatefulWidget {
   State<DevocionalesPage> createState() => _DevocionalesPageState();
 }
 
-class _DevocionalesPageState extends State<DevocionalesPage> with WidgetsBindingObserver {
+class _DevocionalesPageState extends State<DevocionalesPage>
+    with WidgetsBindingObserver {
   final ScreenshotController screenshotController = ScreenshotController();
   final ScrollController _scrollController = ScrollController();
   int _currentDevocionalIndex = 0;
@@ -35,7 +36,7 @@ class _DevocionalesPageState extends State<DevocionalesPage> with WidgetsBinding
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _loadInitialData();
-    
+
     // Verificar actualizaciones al iniciar
     WidgetsBinding.instance.addPostFrameCallback((_) {
       UpdateService.checkForUpdate();
@@ -55,7 +56,7 @@ class _DevocionalesPageState extends State<DevocionalesPage> with WidgetsBinding
       if (!mounted) return;
 
       final devocionalProvider =
-      Provider.of<DevocionalProvider>(context, listen: false);
+          Provider.of<DevocionalProvider>(context, listen: false);
 
       if (!devocionalProvider.isLoading &&
           devocionalProvider.devocionales.isEmpty) {
@@ -93,7 +94,7 @@ class _DevocionalesPageState extends State<DevocionalesPage> with WidgetsBinding
       if (widget.initialDevocionalId != null &&
           devocionalProvider.devocionales.isNotEmpty) {
         final index = devocionalProvider.devocionales.indexWhere(
-              (d) => d.id == widget.initialDevocionalId,
+          (d) => d.id == widget.initialDevocionalId,
         );
         if (index != -1) {
           if (mounted) {
@@ -110,7 +111,7 @@ class _DevocionalesPageState extends State<DevocionalesPage> with WidgetsBinding
     if (!mounted) return;
 
     final devocionalProvider =
-    Provider.of<DevocionalProvider>(context, listen: false);
+        Provider.of<DevocionalProvider>(context, listen: false);
     final List<Devocional> devocionales = devocionalProvider.devocionales;
 
     if (_currentDevocionalIndex < devocionales.length - 1) {
@@ -158,7 +159,7 @@ class _DevocionalesPageState extends State<DevocionalesPage> with WidgetsBinding
     if (!mounted) return;
 
     final devocionalProvider =
-    Provider.of<DevocionalProvider>(context, listen: false);
+        Provider.of<DevocionalProvider>(context, listen: false);
     bool doNotShowAgainChecked = !devocionalProvider.showInvitationDialog;
 
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
@@ -173,8 +174,8 @@ class _DevocionalesPageState extends State<DevocionalesPage> with WidgetsBinding
           title: Text(
             "¡Oración de fe, para vida eterna!",
             textAlign: TextAlign.center,
-            style: textTheme.titleLarge
-                ?.copyWith(fontWeight: FontWeight.bold, color: colorScheme.onSurface),
+            style: textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold, color: colorScheme.onSurface),
           ),
           content: SingleChildScrollView(
             child: Column(
@@ -184,18 +185,21 @@ class _DevocionalesPageState extends State<DevocionalesPage> with WidgetsBinding
                 Text(
                   "Repite esta oración en voz alta, con fe y creyendo con todo el corazón:\n",
                   textAlign: TextAlign.justify,
-                  style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface),
+                  style: textTheme.bodyMedium
+                      ?.copyWith(color: colorScheme.onSurface),
                 ),
                 Text(
                   "Jesucristo, creo que moriste en la cruz por mi, te pido perdón y me arrepiento de corazón por mis pecados. Te pido seas mi Salvador y el señor de vida. Líbrame de la muerte eterna y escribe mi nombre en el libro de la vida.\nEn el poderoso nombre de Jesús, amén.\n",
                   textAlign: TextAlign.justify,
-                  style: textTheme.bodyMedium
-                      ?.copyWith(fontWeight: FontWeight.bold, color: colorScheme.onSurface),
+                  style: textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.onSurface),
                 ),
                 Text(
                   "Si hiciste esta oración y lo crees:\nSerás salvo tu y tu casa (Hch 16:31)\nVivirás eternamente (Jn 11:25-26)\nNunca más tendrás sed (Jn 4:14)\nEstarás con Cristo en los cielos (Ap 19:9)\nHay gozo en los cielos cuando un pecador se arrepiente (Luc 15:10)\nEscrito está y Dios es fiel (Dt 7:9)\n\nDesde ya tienes salvación y vida nueva en Jesucristo.",
                   textAlign: TextAlign.justify,
-                  style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface),
+                  style: textTheme.bodyMedium
+                      ?.copyWith(color: colorScheme.onSurface),
                 ),
               ],
             ),
@@ -214,14 +218,16 @@ class _DevocionalesPageState extends State<DevocionalesPage> with WidgetsBinding
                 ),
                 Expanded(
                     child: Text('Ya la hice 🙏\nNo mostrar nuevamente',
-                        style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface))),
+                        style: textTheme.bodyMedium
+                            ?.copyWith(color: colorScheme.onSurface))),
               ],
             ),
             Align(
               alignment: Alignment.center,
               child: TextButton(
                 onPressed: () {
-                  devocionalProvider.setInvitationDialogVisibility(!doNotShowAgainChecked);
+                  devocionalProvider
+                      .setInvitationDialogVisibility(!doNotShowAgainChecked);
                   Navigator.of(dialogContext).pop();
                 },
                 child: Text("Continuar",
@@ -360,17 +366,19 @@ class _DevocionalesPageState extends State<DevocionalesPage> with WidgetsBinding
               child: Text(
                 'No hay devocionales disponibles para el idioma/versión seleccionados.',
                 textAlign: TextAlign.center,
-                style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface),
+                style: textTheme.bodyMedium
+                    ?.copyWith(color: colorScheme.onSurface),
               ),
             );
           }
 
-          if (_currentDevocionalIndex >= devocionales.length || _currentDevocionalIndex < 0) {
+          if (_currentDevocionalIndex >= devocionales.length ||
+              _currentDevocionalIndex < 0) {
             _currentDevocionalIndex = 0;
           }
 
           final Devocional currentDevocional =
-          devocionales[_currentDevocionalIndex];
+              devocionales[_currentDevocionalIndex];
 
           return Column(
             children: [
@@ -397,10 +405,12 @@ class _DevocionalesPageState extends State<DevocionalesPage> with WidgetsBinding
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 12, vertical: 6),
                             decoration: BoxDecoration(
-                              color: colorScheme.primary.withAlpha((0.1 * 255).round()),
+                              color: colorScheme.primary
+                                  .withAlpha((0.1 * 255).round()),
                               borderRadius: BorderRadius.circular(10),
                               border: Border.all(
-                                  color: colorScheme.primary.withAlpha((0.3 * 255).round())),
+                                  color: colorScheme.primary
+                                      .withAlpha((0.3 * 255).round())),
                             ),
                             child: AutoSizeText(
                               currentDevocional.versiculo,
@@ -422,7 +432,8 @@ class _DevocionalesPageState extends State<DevocionalesPage> with WidgetsBinding
                           const SizedBox(height: 10),
                           Text(
                             currentDevocional.reflexion,
-                            style: textTheme.bodyMedium?.copyWith(fontSize: 16, color: colorScheme.onSurface),
+                            style: textTheme.bodyMedium?.copyWith(
+                                fontSize: 16, color: colorScheme.onSurface),
                           ),
                           const SizedBox(height: 20),
                           Text(
@@ -435,7 +446,7 @@ class _DevocionalesPageState extends State<DevocionalesPage> with WidgetsBinding
                           ...currentDevocional.paraMeditar.map((item) {
                             return Padding(
                               padding:
-                              const EdgeInsets.symmetric(vertical: 4.0),
+                                  const EdgeInsets.symmetric(vertical: 4.0),
                               child: Text.rich(
                                 TextSpan(
                                   children: [
@@ -449,7 +460,9 @@ class _DevocionalesPageState extends State<DevocionalesPage> with WidgetsBinding
                                     ),
                                     TextSpan(
                                       text: item.texto,
-                                      style: textTheme.bodyMedium?.copyWith(fontSize: 16, color: colorScheme.onSurface),
+                                      style: textTheme.bodyMedium?.copyWith(
+                                          fontSize: 16,
+                                          color: colorScheme.onSurface),
                                     ),
                                   ],
                                 ),
@@ -466,7 +479,8 @@ class _DevocionalesPageState extends State<DevocionalesPage> with WidgetsBinding
                           const SizedBox(height: 10),
                           Text(
                             currentDevocional.oracion,
-                            style: textTheme.bodyMedium?.copyWith(fontSize: 16, color: colorScheme.onSurface),
+                            style: textTheme.bodyMedium?.copyWith(
+                                fontSize: 16, color: colorScheme.onSurface),
                           ),
                           const SizedBox(height: 20),
                           if (currentDevocional.version != null ||
@@ -482,22 +496,33 @@ class _DevocionalesPageState extends State<DevocionalesPage> with WidgetsBinding
                                       color: colorScheme.primary),
                                 ),
                                 const SizedBox(height: 10),
-                                if (currentDevocional.tags != null && // Movido para que Temas vaya primero
+                                if (currentDevocional.tags !=
+                                        null && // Movido para que Temas vaya primero
                                     currentDevocional.tags!.isNotEmpty)
                                   Text(
                                       'Temas: ${currentDevocional.tags!.join(', ')}',
-                                      style: textTheme.bodySmall?.copyWith(fontSize: 14, color: colorScheme.onSurface)),
-                                if (currentDevocional.version != null) // Movido para ir después de Temas
-                                  Text(
-                                      'Versión: ${currentDevocional.version}',
-                                      style: textTheme.bodySmall?.copyWith(fontSize: 14, color: colorScheme.onSurface)),
-                                const SizedBox(height: 10), // Espacio antes de la atribución
+                                      style: textTheme.bodySmall?.copyWith(
+                                          fontSize: 14,
+                                          color: colorScheme.onSurface)),
+                                if (currentDevocional.version !=
+                                    null) // Movido para ir después de Temas
+                                  Text('Versión: ${currentDevocional.version}',
+                                      style: textTheme.bodySmall?.copyWith(
+                                          fontSize: 14,
+                                          color: colorScheme.onSurface)),
+                                const SizedBox(
+                                    height:
+                                        10), // Espacio antes de la atribución
                                 Center(
                                   child: Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 20),
                                     child: Text(
                                       'El texto bíblico Reina-Valera 1960® Sociedades Bíblicas en América Latina, 1960. Derechos renovados 1988, Sociedades Bíblicas Unidas.',
-                                      style: textTheme.bodySmall?.copyWith(fontSize: 12, color: colorScheme.onSurface.withValues(alpha: 0.7)),
+                                      style: textTheme.bodySmall?.copyWith(
+                                          fontSize: 12,
+                                          color: colorScheme.onSurface
+                                              .withValues(alpha: 0.7)),
                                       textAlign: TextAlign.center,
                                     ),
                                   ),
@@ -530,22 +555,24 @@ class _DevocionalesPageState extends State<DevocionalesPage> with WidgetsBinding
                             Icons.arrow_back,
                             color: _currentDevocionalIndex > 0
                                 ? colorScheme.primary
-                                : colorScheme.primary.withAlpha((0.3 * 255).round()),
+                                : colorScheme.primary
+                                    .withAlpha((0.3 * 255).round()),
                             size: 35,
                           ),
                         ),
                         IconButton(
                           tooltip: 'Siguiente devocional',
                           onPressed:
-                          _currentDevocionalIndex < devocionales.length - 1
-                              ? _goToNextDevocional
-                              : null,
+                              _currentDevocionalIndex < devocionales.length - 1
+                                  ? _goToNextDevocional
+                                  : null,
                           icon: Icon(
                             Icons.arrow_forward,
                             color: _currentDevocionalIndex <
-                                devocionales.length - 1
+                                    devocionales.length - 1
                                 ? colorScheme.primary
-                                : colorScheme.primary.withAlpha((0.3 * 255).round()),
+                                : colorScheme.primary
+                                    .withAlpha((0.3 * 255).round()),
                             size: 35,
                           ),
                         ),
@@ -568,8 +595,11 @@ class _DevocionalesPageState extends State<DevocionalesPage> with WidgetsBinding
               ? devocionalProvider.isFavorite(currentDevocional)
               : false;
 
-          final Color appBarForegroundColor = Theme.of(context).appBarTheme.foregroundColor ?? colorScheme.onPrimary;
-          final Color? appBarBackgroundColor = Theme.of(context).appBarTheme.backgroundColor;
+          final Color appBarForegroundColor =
+              Theme.of(context).appBarTheme.foregroundColor ??
+                  colorScheme.onPrimary;
+          final Color? appBarBackgroundColor =
+              Theme.of(context).appBarTheme.backgroundColor;
 
           return BottomAppBar(
             color: appBarBackgroundColor,
@@ -581,8 +611,8 @@ class _DevocionalesPageState extends State<DevocionalesPage> with WidgetsBinding
                       ? 'Quitar de favoritos'
                       : 'Guardar como favorito',
                   onPressed: currentDevocional != null
-                      ? () =>
-                      devocionalProvider.toggleFavorite(currentDevocional, context)
+                      ? () => devocionalProvider.toggleFavorite(
+                          currentDevocional, context)
                       : null,
                   icon: Stack(
                     alignment: Alignment.center,
@@ -605,18 +635,16 @@ class _DevocionalesPageState extends State<DevocionalesPage> with WidgetsBinding
                   onPressed: currentDevocional != null
                       ? () => _shareAsText(currentDevocional)
                       : null,
-                  icon: Icon(Icons.share,
-                      color: appBarForegroundColor,
-                      size: 30),
+                  icon:
+                      Icon(Icons.share, color: appBarForegroundColor, size: 30),
                 ),
                 IconButton(
                   tooltip: 'Compartir como imagen (screenshot)',
                   onPressed: currentDevocional != null
                       ? () => _shareAsImage(currentDevocional)
                       : null,
-                  icon: Icon(Icons.image,
-                      color: appBarForegroundColor,
-                      size: 30),
+                  icon:
+                      Icon(Icons.image, color: appBarForegroundColor, size: 30),
                 ),
                 IconButton(
                   tooltip: 'Configuración',
@@ -628,8 +656,7 @@ class _DevocionalesPageState extends State<DevocionalesPage> with WidgetsBinding
                     );
                   },
                   icon: Icon(CupertinoIcons.text_badge_plus,
-                      color: appBarForegroundColor,
-                      size: 30),
+                      color: appBarForegroundColor, size: 30),
                 ),
               ],
             ),

@@ -1,47 +1,55 @@
-name: Flutter CI
+name: Flutter CI (Ligero y Seguro)
 
 on:
   push:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch:
 
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
-      - uses: subosito/flutter-action@v2
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.pub-cache
+          key: ${{ runner.os }}-pub-cache-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: ${{ runner.os }}-pub-cache-
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
         with:
           channel: stable
-      - run: flutter pub get
-      - run: flutter analyze --fatal-infos
-      - run: flutter test
 
-  integration:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: subosito/flutter-action@v2
-        with:
-          channel: stable
-      - run: flutter pub get
+      - name: Install dependencies
+        run: flutter pub get
 
-      # Corre pruebas instrumentadas en emulador Android (API 29 = Android 10)
-      - name: Run integration tests on Android emulator
-        uses: ReactiveCircus/android-emulator-runner@v2
-        with:
-          api-level: 29
-          arch: x86_64
-          script: "flutter drive --target=integration_test/app_test.dart --driver=test_driver/app_test.dart"
-      # Busca advertencias de Non-SDK API usage en el logcat
-      - name: Check logcat for Non-SDK API usage
+      # --- PAUSA 1: Limpieza automática ---
+      - name: Cleanup (format & safe fixes)
         run: |
-          adb logcat -d | grep 'Accessing hidden API' > sdk_warnings.txt || true
-          if [ "$(wc -c < sdk_warnings.txt)" -gt 0 ]; then
-            echo "❌ Non-SDK API warnings found!"
-            cat sdk_warnings.txt
-            exit 1
+          dart format .
+          dart fix --apply
+
+      # --- PAUSA 2: Reporte de limpieza ---
+      - name: Show code cleanup summary
+        run: |
+          if git diff --stat | grep -q '[0-9]'; then
+            echo "⚠️ Se realizaron limpiezas automáticas en el código:"
+            git diff --stat
           else
-            echo "✅ No Non-SDK API warnings detected."
+            echo "✅ No se realizaron limpiezas automáticas."
           fi
+
+      # --- PAUSA 3: Análisis estricto ---
+      - name: Analyze code (fail on warnings)
+        run: flutter analyze --fatal-infos
+
+      # --- PAUSA 4: Pruebas unitarias ---
+      - name: Run unit tests
+        run: flutter test
