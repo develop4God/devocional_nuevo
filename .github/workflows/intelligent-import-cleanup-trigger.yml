@@ -106,6 +106,7 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: 'Limpieza automática de imports no usados (detectado y corregido por CI)'
+          skip_push: true
 
       - name: Push cleanup branch
         if: env.CLEANUP_SUCCESS == 'true'
