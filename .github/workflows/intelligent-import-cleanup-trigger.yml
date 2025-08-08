@@ -31,7 +31,7 @@ jobs:
         id: imports
         run: |
           echo "▶️ Buscando errores de importación en el análisis..."
-          if grep -i "error" analyze.log | grep -i "import"; then
+          if grep -E "(error|warning).*import" analyze.log | grep -E "(unused_import|uri_does_not_exist)"; then
             echo "IMPORT_ERRORS=true" >> $GITHUB_ENV
             echo "❗ Se detectaron errores de importación."
           else
@@ -60,7 +60,7 @@ jobs:
         if: env.IMPORT_ERRORS == 'true'
         run: |
           echo "▶️ Comprobando si se resolvieron los errores de importación..."
-          if grep -i "error" reanalyze.log | grep -i "import"; then
+          if grep -E "(error|warning).*import" reanalyze.log | grep -E "(unused_import|uri_does_not_exist)"; then
             echo "ERRORS_REMAIN=true" >> $GITHUB_ENV
             echo "❌ Los errores de importación persisten tras la limpieza."
           else
