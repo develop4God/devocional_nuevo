@@ -1,19 +1,24 @@
----
 name: Limpieza inteligente de imports y CI
+
 on:
-  workflow_dispatch: null
+  workflow_dispatch:
+
 jobs:
   analyze_and_cleanup:
     runs-on: ubuntu-latest
+    
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: stable
+          
       - name: Install dependencies
         run: flutter pub get
+        
       - name: Analyze code (primer intento)
         id: analyze
         continue-on-error: true
@@ -21,6 +26,7 @@ jobs:
           echo "▶️ Ejecutando análisis de código inicial..."
           flutter analyze > analyze.log || true
           cat analyze.log
+          
       - name: Check for import errors
         id: imports
         run: |
@@ -32,6 +38,7 @@ jobs:
             echo "IMPORT_ERRORS=false" >> $GITHUB_ENV
             echo "✅ No se detectaron errores de importación."
           fi
+          
       - name: Cleanup imports if needed
         if: env.IMPORT_ERRORS == 'true'
         run: |
@@ -40,6 +47,7 @@ jobs:
           dart format .
           echo "🔄 Mostrando cambios realizados:"
           git diff --stat || echo "No hubo cambios."
+          
       - name: Re-analyze after cleanup
         if: env.IMPORT_ERRORS == 'true'
         continue-on-error: true
@@ -47,6 +55,7 @@ jobs:
           echo "▶️ Re-analizando código tras la limpieza..."
           flutter analyze > reanalyze.log || true
           cat reanalyze.log
+          
       - name: Check if import errors are fixed
         if: env.IMPORT_ERRORS == 'true'
         run: |
@@ -58,6 +67,7 @@ jobs:
             echo "ERRORS_REMAIN=false" >> $GITHUB_ENV
             echo "✅ Los errores de importación fueron resueltos."
           fi
+          
       - name: Set cleanup success flag
         if: env.IMPORT_ERRORS == 'true'
         run: |
@@ -66,28 +76,30 @@ jobs:
           else
             echo "CLEANUP_SUCCESS=false" >> $GITHUB_ENV
           fi
+          
       - name: Commit cleanup changes
         if: env.CLEANUP_SUCCESS == 'true'
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: Limpieza automática de imports no usados (detectado y corregido
-            por CI)
+          commit_message: 'Limpieza automática de imports no usados (detectado y corregido por CI)'
           branch: auto/import-cleanup
+          
       - name: Create Pull Request
         if: env.CLEANUP_SUCCESS == 'true'
-        uses: peter-evans/create-pull-request@v5
+        uses: peter-evans/create-pull-request@v7
         with:
           branch: auto/import-cleanup
-          title: Limpieza automática de imports no usados
-          body: Este PR elimina imports no usados tras detectar errores de importación en
-            el análisis automático de CI.
-          labels: limpieza,automático,imports
+          title: 'Limpieza automática de imports no usados'
+          body: 'Este PR elimina imports no usados tras detectar errores de importación en el análisis automático de CI.'
+          labels: 'limpieza,automático,imports'
+          
       - name: Run final analysis and tests
         if: env.IMPORT_ERRORS == 'false'
         run: |
           echo "▶️ Ejecutando análisis final y pruebas unitarias..."
           flutter analyze --fatal-infos
           flutter test
+          
       - name: Run tests after cleanup
         if: env.CLEANUP_SUCCESS == 'true'
         run: |
