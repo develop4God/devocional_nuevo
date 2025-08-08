@@ -26,6 +26,8 @@ dependencies: # <-- ÚNICA SECCIÓN DEPENDENCIES
   intl: ^0.20.2
   cupertino_icons: ^1.0.8
   in_app_update: ^4.2.3
+  google_fonts: ^latest_version
+  
   flutter_localizations:
 
     sdk: flutter
