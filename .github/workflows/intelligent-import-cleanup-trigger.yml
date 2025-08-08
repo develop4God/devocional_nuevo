@@ -3,6 +3,10 @@ name: Limpieza inteligente de imports y CI
 on:
   workflow_dispatch:
 
+permissions:
+  contents: write
+  pull-requests: write
+
 jobs:
   analyze_and_cleanup:
     runs-on: ubuntu-latest
