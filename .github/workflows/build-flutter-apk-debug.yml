@@ -1,4 +1,4 @@
-name: Build & Cache Flutter APK (Debug) v2.0
+name: Build & Cache Flutter APK (Debug) v1.0
 
 on:
   workflow_dispatch:
