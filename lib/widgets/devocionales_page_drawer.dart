@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:devocional_nuevo/widgets/theme_selector.dart';
+import 'package:devocional_nuevo/widgets/offline_manager_widget.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/providers/theme_provider.dart';
 import 'package:devocional_nuevo/utils/theme_constants.dart';
@@ -20,6 +21,107 @@ class DevocionalesDrawer extends StatelessWidget {
         'https://forms.gle/HGFNUv9pc8XpG8aa6';
     Share.share(message);
     Navigator.of(context).pop(); // Cerrar drawer tras compartir
+  }
+
+  void _showOfflineManagerDialog(BuildContext context) {
+    _showDownloadConfirmationDialog(context);
+  }
+
+  void _showDownloadConfirmationDialog(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Row(
+            children: [
+              Icon(Icons.download, color: colorScheme.primary),
+              const SizedBox(width: 8),
+              const Text('Descarga de Devocionales'),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Proceder con la descarga de Devocionales una sola vez, para uso sin internet (offline)',
+                style: textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onSurface,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Icon(Icons.info_outline, 
+                    color: colorScheme.primary, 
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Se descargarán los devocionales 2025 y 2026',
+                      style: textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                'Cancelar',
+                style: TextStyle(color: colorScheme.onSurface),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _downloadDevocionalesMultipleYears(context);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: colorScheme.primary,
+                foregroundColor: colorScheme.onPrimary,
+              ),
+              child: const Text('Aceptar'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _downloadDevocionalesMultipleYears(BuildContext context) async {
+    final devocionalProvider = Provider.of<DevocionalProvider>(context, listen: false);
+    final colorScheme = Theme.of(context).colorScheme;
+    
+    // Download devotionals for 2025 and 2026
+    final success2025 = await devocionalProvider.downloadDevocionalesForYear(2025);
+    final success2026 = await devocionalProvider.downloadDevocionalesForYear(2026);
+    
+    final bool overallSuccess = success2025 && success2026;
+    
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            overallSuccess
+                ? 'Devocionales descargados exitosamente (2025 y 2026)'
+                : 'Error en la descarga. Verifica tu conexión.',
+          ),
+          backgroundColor: overallSuccess
+              ? colorScheme.primary
+              : colorScheme.error,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    }
   }
 
   // Helper para alinear iconos y textos uniformemente
@@ -229,28 +331,37 @@ class DevocionalesDrawer extends StatelessWidget {
                     ),
                     const SizedBox(height: 5),
                     // --- Descargar devocionales ---
-                    drawerRow(
-                      icon: Icons.download_outlined,
-                      iconColor: colorScheme.primary,
-                      label: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Descargar devocionales',
-                            style: textTheme.bodyMedium?.copyWith(
-                                fontSize: 16, color: colorScheme.onSurface),
+                    FutureBuilder<bool>(
+                      future: devocionalProvider.hasTargetYearsLocalData(),
+                      builder: (context, snapshot) {
+                        final bool hasLocalData = snapshot.data ?? false;
+                        return drawerRow(
+                          icon: hasLocalData ? Icons.check_circle : Icons.download_outlined,
+                          iconColor: hasLocalData ? Colors.green : colorScheme.primary,
+                          label: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                hasLocalData ? 'Devocionales descargados' : 'Descargar devocionales',
+                                style: textTheme.bodyMedium?.copyWith(
+                                    fontSize: 16, color: colorScheme.onSurface),
+                              ),
+                              if (!hasLocalData) ...[
+                                const SizedBox(height: 4),
+                                Text(
+                                  'Toca para gestionar',
+                                  style: textTheme.bodySmall?.copyWith(
+                                    color: colorScheme.onSurface.withAlpha(150),
+                                  ),
+                                ),
+                              ],
+                            ],
                           ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Próximamente',
-                            style: textTheme.bodySmall?.copyWith(
-                              color: colorScheme.onSurface.withAlpha(150),
-                            ),
-                          ),
-                        ],
-                      ),
-                      onTap: () {
-                        Navigator.of(context).pop();
+                          onTap: () {
+                            Navigator.of(context).pop();
+                            _showOfflineManagerDialog(context);
+                          },
+                        );
                       },
                     ),
                     Divider(

@@ -1,5 +1,3 @@
-// Esta página permite al usuario configurar las opciones de la aplicación, incluyendo el tema.
-
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:developer' as developer;
@@ -9,6 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:devocional_nuevo/pages/about_page.dart';
 import 'package:devocional_nuevo/pages/contact_page.dart';
 import 'package:devocional_nuevo/providers/theme_provider.dart';
+import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/utils/theme_constants.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -138,7 +137,193 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
               ],
             ),
+            const SizedBox(height: 30),
+            
+            // Sección de gestión offline - COMENTADA: Funcionalidad movida al Drawer
+            // Para evitar duplicidad, la gestión offline ahora se maneja desde el Drawer
+            /*
+            Divider(color: colorScheme.outline),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Icon(Icons.offline_pin, color: colorScheme.primary),
+                const SizedBox(width: 10),
+                Text(
+                  'Gestión de contenido offline',
+                  style: textTheme.titleMedium
+                      ?.copyWith(color: colorScheme.onSurface, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            const SizedBox(height: 15),
+            
+            Consumer<DevocionalProvider>(
+              builder: (context, devocionalProvider, child) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Estado actual
+                    if (devocionalProvider.isOfflineMode)
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: colorScheme.primaryContainer,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.offline_bolt, color: colorScheme.onPrimaryContainer),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                'Usando contenido offline',
+                                style: textTheme.bodyMedium?.copyWith(
+                                  color: colorScheme.onPrimaryContainer,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    const SizedBox(height: 10),
+                    
+                    // Mostrar estado de descarga si hay uno
+                    if (devocionalProvider.downloadStatus != null)
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: devocionalProvider.isDownloading
+                              ? colorScheme.secondaryContainer
+                              : colorScheme.surfaceContainer,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          children: [
+                            if (devocionalProvider.isDownloading)
+                              SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: colorScheme.onSecondaryContainer,
+                                ),
+                              )
+                            else
+                              Icon(
+                                devocionalProvider.downloadStatus!.contains('Error')
+                                    ? Icons.error
+                                    : Icons.check_circle,
+                                color: devocionalProvider.downloadStatus!.contains('Error')
+                                    ? colorScheme.error
+                                    : colorScheme.primary,
+                                size: 16,
+                              ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                devocionalProvider.downloadStatus!,
+                                style: textTheme.bodySmall?.copyWith(
+                                  color: devocionalProvider.isDownloading
+                                      ? colorScheme.onSecondaryContainer
+                                      : colorScheme.onSurface,
+                                ),
+                              ),
+                            ),
+                            if (!devocionalProvider.isDownloading)
+                              IconButton(
+                                icon: Icon(Icons.close, size: 16),
+                                onPressed: () => devocionalProvider.clearDownloadStatus(),
+                                padding: EdgeInsets.zero,
+                                constraints: BoxConstraints(minWidth: 24, minHeight: 24),
+                              ),
+                          ],
+                        ),
+                      ),
+                    const SizedBox(height: 15),
+                    
+                    // Botones de acción
+                    Row(
+                      children: [
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: devocionalProvider.isDownloading
+                                ? null
+                                : () async {
+                                    final success = await devocionalProvider.downloadCurrentYearDevocionales();
+                                    if (mounted) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            success
+                                                ? 'Descarga completada exitosamente'
+                                                : 'Error en la descarga. Verifica tu conexión.',
+                                          ),
+                                          backgroundColor: success
+                                              ? colorScheme.primary
+                                              : colorScheme.error,
+                                        ),
+                                      );
+                                    }
+                                  },
+                            icon: Icon(Icons.download),
+                            label: Text('Descargar año actual'),
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: devocionalProvider.isDownloading
+                                ? null
+                                : () async {
+                                    await devocionalProvider.forceRefreshFromAPI();
+                                    if (mounted) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text('Contenido actualizado desde el servidor'),
+                                          backgroundColor: colorScheme.primary,
+                                        ),
+                                      );
+                                    }
+                                  },
+                            icon: Icon(Icons.refresh),
+                            label: Text('Actualizar'),
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    
+                    // Información adicional
+                    FutureBuilder<bool>(
+                      future: devocionalProvider.hasCurrentYearLocalData(),
+                      builder: (context, snapshot) {
+                        if (snapshot.hasData) {
+                          return Text(
+                            snapshot.data!
+                                ? 'Tienes contenido offline disponible para el año actual'
+                                : 'No hay contenido offline para el año actual',
+                            style: textTheme.bodySmall?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                              fontStyle: FontStyle.italic,
+                            ),
+                          );
+                        }
+                        return const SizedBox.shrink();
+                      },
+                    ),
+                  ],
+                );
+              },
+            ),
             const SizedBox(height: 20),
+            */
             // Sección para seleccionar la familia de tema
             /*
             Row(
