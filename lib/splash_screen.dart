@@ -1,7 +1,8 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart'; // Importación agregada
+import 'package:google_fonts/google_fonts.dart';
 
-import 'package:devocional_nuevo/app_initializer.dart'; // Importa el nuevo AppInitializer
+import 'package:devocional_nuevo/app_initializer.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -15,13 +16,21 @@ class _SplashScreenState extends State<SplashScreen>
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
 
+  // Partículas luminosas
+  static const int numParticles = 30; // Número de partículas luminosas
+  static const double particleMinSize = 5.0;
+  static const double particleMaxSize = 6.0;
+  static const double particleAreaWidth = 400.0;
+  static const double particleAreaHeight = 100.0;
+
+  late List<_Particle> particles;
+
   @override
   void initState() {
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(
-          milliseconds: 1500), // Duración de la animación del fade
+      duration: const Duration(milliseconds: 1500), // Duración de la animación del fade
     );
 
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
@@ -30,6 +39,20 @@ class _SplashScreenState extends State<SplashScreen>
         curve: Curves.easeIn,
       ),
     );
+
+    // Inicializa las partículas luminosas
+    final rnd = Random();
+    particles = List.generate(numParticles, (i) {
+      return _Particle(
+        x: rnd.nextDouble() * particleAreaWidth,
+        y: rnd.nextDouble() * particleAreaHeight,
+        size: particleMinSize + rnd.nextDouble() * (particleMaxSize - particleMinSize),
+        speed: 0.4 + rnd.nextDouble() * 0.8,
+        opacity: 0.5 + rnd.nextDouble() * 0.5,
+        angle: rnd.nextDouble() * 2 * pi,
+        color: Colors.white,
+      );
+    });
 
     _controller.forward(); // Inicia la animación visual
     _navigateToNextScreen(); // Llama al método para manejar la navegación
@@ -44,14 +67,14 @@ class _SplashScreenState extends State<SplashScreen>
         PageRouteBuilder(
           transitionDuration: const Duration(milliseconds: 600),
           pageBuilder: (context, animation, secondaryAnimation) =>
-              const AppInitializer(),
+          const AppInitializer(),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             const begin = Offset(1.0, 0.0);
             const end = Offset.zero;
             const curve = Curves.easeOutCubic;
 
             var tween =
-                Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+            Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
 
             return SlideTransition(
               position: animation.drive(tween),
@@ -69,50 +92,108 @@ class _SplashScreenState extends State<SplashScreen>
     super.dispose();
   }
 
+  // Actualiza posiciones de partículas para animación
+  List<_Particle> _updateParticles(double time) {
+    final List<_Particle> result = [];
+    for (final p in particles) {
+      double y = p.y - p.speed * sin(time + p.angle) * 1.2;
+      double x = p.x + cos(time / 1.7 + p.angle) * 0.8;
+      double opacity = p.opacity * (0.7 + 0.3 * sin(time + p.angle * 2));
+      result.add(_Particle(
+        x: x,
+        y: y,
+        size: p.size,
+        speed: p.speed,
+        opacity: opacity,
+        angle: p.angle,
+        color: p.color,
+      ));
+    }
+    return result;
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Intenta obtener el estilo del tema definido en main.dart
-    final splashTextStyle = Theme.of(context).textTheme.displaySmall;
 
     return Scaffold(
       body: Stack(
-        fit: StackFit.expand, // Asegura que el Stack ocupe toda la pantalla
+        fit: StackFit.expand,
         children: [
           // 1. Capa de la imagen de fondo
           FadeTransition(
             opacity: _fadeAnimation,
             child: Image.asset(
-              'assets/images/splash_background.png', // Asegúrate de que esta ruta sea correcta
-              fit: BoxFit.cover, // Cubre todo el espacio
+              'assets/images/splash_background.png',
+              fit: BoxFit.cover,
               alignment: Alignment.center,
             ),
           ),
-          // 2. Capa del texto superpuesto
+          // 2. Capa del texto superpuesto con partículas luminosas
           Center(
             child: FadeTransition(
               opacity: _fadeAnimation,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // SizedBox para empujar el texto hacia abajo
-                  const SizedBox(
-                    height: 150,
-                  ),
-                  Text(
-                    'Preparando tu espacio con Dios...',
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.dancingScript(
-                      fontSize: 22, // Igual que tu valor actual
-                      fontWeight: FontWeight.bold,
-                      color: Colors.deepPurple, // Deep purple para contraste
-                      shadows: [
-                        Shadow(
-                          offset: Offset(2.0, 2.0),
-                          blurRadius: 5.0,
-                          color: Colors.black26,
+                  const SizedBox(height: 150),
+                  TweenAnimationBuilder<double>(
+                    tween: Tween(begin: 0, end: 2 * pi),
+                    duration: const Duration(seconds: 5),
+                    curve: Curves.linear,
+                    builder: (context, value, child) {
+                      final updatedParticles = _updateParticles(value * 1.5);
+                      return SizedBox(
+                        width: particleAreaWidth,
+                        height: particleAreaHeight,
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            // Partículas luminosas
+                            ...updatedParticles.map((p) => Positioned(
+                              left: p.x,
+                              top: p.y,
+                              child: Opacity(
+                                opacity: p.opacity,
+                                child: Container(
+                                  width: p.size,
+                                  height: p.size,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: p.color,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.transparent,
+                                        blurRadius: 40,
+                                        spreadRadius: 8,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            )),
+                            // Texto principal centrado en el Stack
+                            Center(
+                              child: Text(
+                                'Preparando tu espacio con Dios...',
+                                textAlign: TextAlign.center,
+                                style: GoogleFonts.dancingScript(
+                                  fontSize: 30,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.deepPurple,
+                                  shadows: [
+                                    Shadow(
+                                      offset: Offset(2.0, 2.0),
+                                      blurRadius: 5.0,
+                                      color: Colors.black26,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
+                      );
+                    },
                   ),
                 ],
               ),
@@ -122,4 +203,25 @@ class _SplashScreenState extends State<SplashScreen>
       ),
     );
   }
+}
+
+// Clase para partículas luminosas
+class _Particle {
+  final double x;
+  final double y;
+  final double size;
+  final double speed;
+  final double opacity;
+  final double angle;
+  final Color color;
+
+  _Particle({
+    required this.x,
+    required this.y,
+    required this.size,
+    required this.speed,
+    required this.opacity,
+    required this.angle,
+    required this.color,
+  });
 }

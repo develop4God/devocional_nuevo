@@ -66,7 +66,7 @@ class DevocionalesDrawer extends StatelessWidget {
     final textTheme = theme.textTheme;
 
     final versions = ['RVR1960'];
-    final themeFamilies = appThemeFamilies.keys.toList();
+    appThemeFamilies.keys.toList();
 
     final drawerBackgroundColor = theme.scaffoldBackgroundColor;
 
@@ -253,7 +253,10 @@ class DevocionalesDrawer extends StatelessWidget {
                         Navigator.of(context).pop();
                       },
                     ),
-                    const Divider(height: 32),
+                    Divider(
+                      height: 32,
+                      color: themeProvider.dividerAdaptiveColor,
+                    ),
                     // --- Selector visual de temas con icono y título a la par, y el grid debajo ---
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 5),
@@ -291,6 +294,7 @@ class DevocionalesDrawer extends StatelessWidget {
                               brightness: themeProvider.currentBrightness,
                               onThemeChanged: (theme) {
                                 themeProvider.setThemeFamily(theme);
+                                Navigator.of(context).pop();
                               },
                             ),
                           ),

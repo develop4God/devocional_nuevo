@@ -1,4 +1,3 @@
-// lib/providers/theme_provider.dart
 // Este archivo maneja la lógica de cambio de temas y notifica a los oyentes sobre los cambios.
 
 import 'package:flutter/material.dart';
@@ -16,7 +15,7 @@ class ThemeProvider extends ChangeNotifier {
       Brightness.light; // Modo de brillo por defecto
   // MODIFICADO: El tema inicial ahora se obtiene del mapa appThemeFamilies
   ThemeData _currentTheme = appThemeFamilies['Deep Purple']![
-      'light']!; // Tema inicial (será actualizado al cargar preferencias)
+  'light']!; // Tema inicial (será actualizado al cargar preferencias)
 
   ThemeProvider() {
     _loadThemePreference(); // Cargar las preferencias de tema al inicializar
@@ -27,10 +26,16 @@ class ThemeProvider extends ChangeNotifier {
   String get currentThemeFamily => _currentThemeFamily;
   Brightness get currentBrightness => _currentBrightness;
 
+  /// NUEVO: Getter para color de línea adaptativo según el modo (light/dark)
+  /// Coloca este getter debajo de los getters existentes, **dentro** de la clase ThemeProvider.
+  Color get dividerAdaptiveColor {
+    return _currentBrightness == Brightness.dark ? Colors.white : Colors.black;
+  }
+
   // Método interno para actualizar el ThemeData basado en la familia y el brillo actuales
   void _updateTheme() {
     final String brightnessKey =
-        _currentBrightness == Brightness.light ? 'light' : 'dark';
+    _currentBrightness == Brightness.light ? 'light' : 'dark';
     // Busca el tema en el mapa appThemeFamilies. Si no lo encuentra, usa el tema Deep Purple Light como fallback.
     _currentTheme = appThemeFamilies[_currentThemeFamily]?[brightnessKey] ??
         appThemeFamilies['Deep Purple']!['light']!;
@@ -39,8 +44,9 @@ class ThemeProvider extends ChangeNotifier {
 
   // Método para establecer la familia de colores del tema
   Future<void> setThemeFamily(String familyName) async {
-    if (_currentThemeFamily == familyName)
+    if (_currentThemeFamily == familyName) {
       return; // No hacer nada si es el mismo
+    }
     _currentThemeFamily = familyName;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(
@@ -50,8 +56,9 @@ class ThemeProvider extends ChangeNotifier {
 
   // Método para establecer el modo de brillo (claro/oscuro)
   Future<void> setBrightness(Brightness brightness) async {
-    if (_currentBrightness == brightness)
+    if (_currentBrightness == brightness) {
       return; // No hacer nada si es el mismo
+    }
     _currentBrightness = brightness;
     final prefs = await SharedPreferences.getInstance();
     // Guarda la preferencia del brillo como string ('light' o 'dark')
@@ -75,7 +82,7 @@ class ThemeProvider extends ChangeNotifier {
     // Si hay un brillo guardado, lo usa
     if (savedBrightnessString != null) {
       _currentBrightness =
-          savedBrightnessString == 'light' ? Brightness.light : Brightness.dark;
+      savedBrightnessString == 'light' ? Brightness.light : Brightness.dark;
     }
 
     _updateTheme(); // Aplica las preferencias cargadas para establecer el tema inicial
