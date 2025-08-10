@@ -50,38 +50,29 @@ jobs:
       - name: Build web for mobile (optimized)
         run: flutter build web --debug --dart2js-optimization O1
 
-      - name: Deploy to GitHub Pages for mobile testing
-        uses: peaceiris/actions-gh-pages@v3
+      - name: Upload web build for download
+        uses: actions/upload-artifact@v4
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./build/web
-          publish_branch: gh-pages-mobile
-          force_orphan: true
+          name: flutter-web-app
+          path: build/web/
 
-      - name: 📱 MOBILE TESTING - URL READY!
+      - name: 📱 DOWNLOAD AND TEST LOCALLY
         run: |
           echo "🎉 =================================="
-          echo "📱 TU APP ESTÁ LISTA PARA TESTING!"
+          echo "📱 WEB BUILD READY FOR DOWNLOAD!"
           echo "🎉 =================================="
           echo ""
-          echo "🌐 URL DIRECTA (copia y pega en tu celular):"
-          echo "👉 https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/"
-          echo ""
-          echo "⏱️  TIEMPO DE ESPERA: 2-3 minutos máximo"
-          echo ""
-          echo "📱 PASOS EN TU CELULAR:"
-          echo "   1️⃣ Copia la URL de arriba"
-          echo "   2️⃣ Pégala en Chrome/Safari móvil"
-          echo "   3️⃣ Si no carga, espera 1 min más y refresh"
+          echo "📥 PASOS PARA TESTING:"
+          echo "   1️⃣ Ve a 'Actions' → este workflow → 'Artifacts'"
+          echo "   2️⃣ Descarga 'flutter-web-app.zip'"
+          echo "   3️⃣ Descomprime el ZIP"
+          echo "   4️⃣ Abre 'index.html' en Chrome móvil"
           echo ""
           echo "🔍 TESTING DE OVERFLOW:"
           echo "   ✅ Rota pantalla (portrait/landscape)"
           echo "   ✅ Scroll vertical y horizontal"
           echo "   ✅ Prueba todos los botones y forms"
           echo "   ✅ Navega entre pantallas"
-          echo ""
-          echo "🔄 PARA NUEVOS CAMBIOS:"
-          echo "   • Edita código → Run workflow → Refresh URL"
           echo ""
           echo "🚀 BRANCH TESTEADO: ${{ github.event.inputs.target_branch || github.ref_name }}"
           echo "🎉 =================================="
