@@ -88,6 +88,12 @@ jobs:
                 sed -i 's/<base href="\/">/<base href="\/${{ github.event.repository.name }}\/">/' build/web/index.html
               fi
               
+              # SIEMPRE verificar y corregir el base href si está mal
+              if grep -q '<base href="/">' build/web/index.html; then
+                echo "🔧 Corrigiendo base href incorrecto de / a /${{ github.event.repository.name }}/"
+                sed -i 's/<base href="\/">/<base href="\/${{ github.event.repository.name }}\/">/' build/web/index.html
+              fi
+              
               # Verificar que se generaron los archivos críticos
               if [[ -f "build/web/index.html" ]]; then
                 echo "✅ index.html generado correctamente"
@@ -185,12 +191,20 @@ jobs:
                 return 1
               fi
               
-              # Check 3: Tiene base href correcto
-              if grep -q 'base href.*/' page_content.html; then
-                echo "✅ Base href configured"
+              # Check 3: Tiene base href correcto específicamente
+              if grep -q 'base href="/Devocional_nuevo/"' page_content.html; then
+                echo "✅ Base href configurado correctamente para GitHub Pages"
                 grep 'base href' page_content.html
+              elif grep -q 'base href="./"' page_content.html; then
+                echo "✅ Base href configurado con ./ (debería funcionar)"
+                grep 'base href' page_content.html
+              elif grep -q 'base href="/"' page_content.html; then
+                echo "❌ Base href configurado como raíz (/), esto causará página en blanco"
+                grep 'base href' page_content.html
+                return 1
               else
-                echo "⚠️  No base href found (might be ok)"
+                echo "⚠️  No base href found"
+                return 1
               fi
               
               # Check 4: No es página de error
