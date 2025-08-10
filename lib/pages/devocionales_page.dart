@@ -169,6 +169,11 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     final List<Devocional> devocionales = devocionalProvider.devocionales;
 
     if (_currentDevocionalIndex < devocionales.length - 1) {
+      // Stop audio if playing
+      if (devocionalProvider.isAudioPlaying) {
+        devocionalProvider.stopAudio();
+      }
+
       // Record that the current devotional was read before moving to the next one
       final currentDevocional = devocionales[_currentDevocionalIndex];
 
@@ -199,6 +204,13 @@ class _DevocionalesPageState extends State<DevocionalesPage>
 
   void _goToPreviousDevocional() {
     if (_currentDevocionalIndex > 0) {
+      // Stop audio if playing
+      final devocionalProvider =
+          Provider.of<DevocionalProvider>(context, listen: false);
+      if (devocionalProvider.isAudioPlaying) {
+        devocionalProvider.stopAudio();
+      }
+
       setState(() {
         _currentDevocionalIndex--;
       });
@@ -576,6 +588,51 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                   ),
                 ),
               ),
+              Consumer<DevocionalProvider>(
+                builder: (context, devocionalProvider, child) {
+                  final List<Devocional> devocionales =
+                      devocionalProvider.devocionales;
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16.0, vertical: 8.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        IconButton(
+                          tooltip: 'Devocional anterior',
+                          onPressed: _currentDevocionalIndex > 0
+                              ? _goToPreviousDevocional
+                              : null,
+                          icon: Icon(
+                            Icons.arrow_back,
+                            color: _currentDevocionalIndex > 0
+                                ? colorScheme.primary
+                                : colorScheme.primary
+                                    .withAlpha((0.3 * 255).round()),
+                            size: 35,
+                          ),
+                        ),
+                        IconButton(
+                          tooltip: 'Siguiente devocional',
+                          onPressed:
+                              _currentDevocionalIndex < devocionales.length - 1
+                                  ? _goToNextDevocional
+                                  : null,
+                          icon: Icon(
+                            Icons.arrow_forward,
+                            color: _currentDevocionalIndex <
+                                    devocionales.length - 1
+                                ? colorScheme.primary
+                                : colorScheme.primary
+                                    .withAlpha((0.3 * 255).round()),
+                            size: 35,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
             ],
           );
         },
@@ -814,6 +871,12 @@ class _DevocionalesPageState extends State<DevocionalesPage>
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _scrollController.dispose();
+
+    // Stop audio and dispose resources
+    final devocionalProvider =
+        Provider.of<DevocionalProvider>(context, listen: false);
+    devocionalProvider.stopAudio();
+
 
     // NUEVA LÍNEA: Limpiar tracking
     _tracking.dispose();
