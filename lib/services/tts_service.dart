@@ -1,5 +1,6 @@
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:developer' as developer;
 
 /// Service to handle Text-to-Speech functionality for devotionals
@@ -20,9 +21,14 @@ class TtsService {
     if (_isInitialized) return;
 
     try {
+      // Load saved preferences
+      final prefs = await SharedPreferences.getInstance();
+      final savedLanguage = prefs.getString('tts_language') ?? 'es-ES';
+      final savedRate = prefs.getDouble('tts_rate') ?? 0.5;
+
       // Set up TTS configuration
-      await _flutterTts.setLanguage("es-ES"); // Spanish language
-      await _flutterTts.setSpeechRate(0.5); // Moderate speech rate
+      await _flutterTts.setLanguage(savedLanguage);
+      await _flutterTts.setSpeechRate(savedRate);
       await _flutterTts.setVolume(1.0); // Full volume
       await _flutterTts.setPitch(1.0); // Normal pitch
 
@@ -184,6 +190,9 @@ class TtsService {
     await initialize();
     try {
       await _flutterTts.setLanguage(language);
+      // Save preference
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('tts_language', language);
     } catch (e) {
       developer.log('Error setting language: $e');
     }
@@ -194,6 +203,9 @@ class TtsService {
     await initialize();
     try {
       await _flutterTts.setSpeechRate(rate);
+      // Save preference
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setDouble('tts_rate', rate);
     } catch (e) {
       developer.log('Error setting speech rate: $e');
     }
