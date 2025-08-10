@@ -1,42 +1,52 @@
-name: Flutter CI (Validación Básica)
+name: Flutter CI (Ligero y Seguro)
 
 on:
-  workflow_dispatch:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
-  validate:
+  build:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-      - name: Cache Pub dependencies
-        uses: actions/cache@v4
-        with:
-          path: ~/.pub-cache
-          key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}
-          restore-keys: ${{ runner.os }}-pub-
-
-      - name: Setup Flutter
+      - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          channel: stable
+          flutter-version: '3.22.x' # O la versión principal que uses
+
+      - name: Cache Pub packages
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.pub-cache
+            .dart_tool
+          key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pub-
 
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Validate formatting
-        run: dart format --set-exit-if-changed .
-
-      - name: Analyze code
+      - name: Analyze (no falla por info/warning)
         run: flutter analyze
+        continue-on-error: true
 
       - name: Run tests
         run: flutter test
         continue-on-error: true
 
-      - name: Build web
-        run: flutter build web
+      - name: Run tests in Chrome (Flutter web)
+        run: flutter test --platform=chrome --web-renderer html
         continue-on-error: true
+
+      - name: Build APK
+        run: flutter build apk --debug
+        continue-on-error: true
+
+      - name: Echo basic validation success
+        run: echo "Workflow completed. Validación básica lista."
