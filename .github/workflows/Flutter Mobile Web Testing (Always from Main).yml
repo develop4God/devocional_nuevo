@@ -98,6 +98,23 @@ jobs:
               if [[ -f "build/web/index.html" ]]; then
                 echo "✅ index.html generado correctamente"
                 
+                # SIEMPRE verificar y corregir el base href ANTES de continuar
+                echo "🔍 Verificando base href en index.html..."
+                if grep -q '<base href="/">' build/web/index.html; then
+                  echo "🔧 Corrigiendo base href incorrecto de / a /${{ github.event.repository.name }}/"
+                  sed -i 's/<base href="\/">/<base href="\/${{ github.event.repository.name }}\/">/' build/web/index.html
+                  echo "✅ Base href corregido"
+                elif grep -q '<base href="/.*/">' build/web/index.html; then
+                  echo "✅ Base href ya está configurado correctamente"
+                else
+                  echo "⚠️  Base href no encontrado, agregándolo..."
+                  sed -i 's/<base href="[^"]*">/<base href="\/${{ github.event.repository.name }}\/">/' build/web/index.html
+                fi
+                
+                # Mostrar el base href final
+                echo "📋 Base href final:"
+                grep 'base href' build/web/index.html || echo "❌ No se pudo encontrar base href"
+                
                 # Verificar si existe main.dart.js o flutter.js
                 if [[ -f "build/web/main.dart.js" || -f "build/web/flutter.js" ]]; then
                   echo "✅ Archivos JavaScript verificados"
