@@ -7,7 +7,8 @@ on:
         description: 'Branch to test (leave empty for current)'
         required: false
         default: ''
-  jobs:
+
+jobs:
   mobile-web-preview:
     runs-on: ubuntu-latest
 
