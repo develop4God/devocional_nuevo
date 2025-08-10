@@ -4,7 +4,12 @@ name: Flutter CI ✅
 
 # Se ejecuta en PRs y pushes a main/develop
 on:
-  workflow_dispatch: 
+  workflow_dispatch:
+    inputs:
+      target_branch:
+        description: 'Branch to test (leave empty for current)'
+        required: false
+        default: '' 
 
 jobs:
   # Job 1: Análisis estático y formateo
