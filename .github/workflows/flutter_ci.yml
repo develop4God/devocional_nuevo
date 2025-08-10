@@ -14,10 +14,11 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.22.x'
+          flutter-version: '3.24.x'
 
       - name: Show Flutter and Dart version
         run: |
+          flutter config --no-analytics
           flutter --version
           dart --version
 
