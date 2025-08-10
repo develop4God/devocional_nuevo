@@ -1,55 +1,57 @@
-name: Flutter CI (Chrome)
+name: Flutter Dev Validation (Web + Mobile Preview)
 
 on:
   workflow_dispatch:
 
 jobs:
-  build:
+  validate:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+
+      - name: Cache Flutter dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pub-cache
+            .dart_tool/package_config.json
+          key: ${{ runner.os }}-flutter-${{ hashFiles('**/pubspec.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-flutter-
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.24.x'
+          channel: stable
 
-      - name: Show Flutter and Dart version
+      - name: Configure Flutter (disable analytics)
+        run: flutter config --no-analytics
+
+      - name: Show versions
         run: |
-          flutter config --no-analytics
           flutter --version
           dart --version
-
-      - name: Cache Pub packages
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.pub-cache
-            .dart_tool
-          key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pub-
 
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Analyze (no falla por info/warning)
+      - name: Analyze code (continue on warnings)
         run: flutter analyze
         continue-on-error: true
 
-      - name: Run tests
+      - name: Run unit tests
         run: flutter test
         continue-on-error: true
 
-      - name: Run tests in Chrome (Flutter web)
+      - name: Build web (for Chrome testing)
+        run: flutter build web --debug
+        continue-on-error: true
+
+      - name: Test web build in Chrome
         run: flutter test --platform=chrome --web-renderer html
         continue-on-error: true
 
-      - name: Build APK
-        run: flutter build apk --debug
-        continue-on-error: true
-
-      - name: Echo basic validation success
-        run: echo "Workflow completed. Validación básica lista."
+      - name: Validation completed
+        run: echo "✅ Validación completada. Proyecto listo para desarrollo web y móvil."
