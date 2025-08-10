@@ -7,12 +7,7 @@ on:
         description: 'Branch to test (leave empty for current)'
         required: false
         default: ''
-  push:
-    branches: [ main, develop, feature/**, fix/** ]
-  pull_request:
-    branches: [ main ]
-
-jobs:
+  jobs:
   mobile-web-preview:
     runs-on: ubuntu-latest
 
