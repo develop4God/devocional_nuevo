@@ -14,7 +14,12 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.22.x' # Esta versión incluye Dart >=3.8.x
+          flutter-version: '3.22.x'
+
+      - name: Show Flutter and Dart version
+        run: |
+          flutter --version
+          dart --version
 
       - name: Cache Pub packages
         uses: actions/cache@v3
