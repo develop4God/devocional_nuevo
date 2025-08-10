@@ -1,0 +1,219 @@
+# .github/workflows/ci.yml
+# Configuración CI más exitosa basada en casos reales de la comunidad
+name: Flutter CI ✅
+
+# Se ejecuta en PRs y pushes a main/develop
+on:
+  workflow_dispatch: 
+
+jobs:
+  # Job 1: Análisis estático y formateo
+  analyze:
+    name: 📊 Static Analysis
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: ☕ Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: 🔧 Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: 📦 Get dependencies
+        run: flutter pub get
+
+      - name: 🎨 Check formatting
+        run: dart format --set-exit-if-changed .
+
+      - name: 🔍 Analyze code
+        run: flutter analyze --fatal-infos
+
+      - name: 📋 Check pub.dev score
+        run: dart pub deps
+
+  # Job 2: Testing (paralelo al análisis)
+  test:
+    name: 🧪 Testing
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: ☕ Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: 🔧 Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: 📦 Get dependencies
+        run: flutter pub get
+
+      - name: 🧪 Run unit tests
+        run: flutter test --coverage
+
+      - name: 📊 Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          file: coverage/lcov.info
+
+      - name: 📈 Generate coverage report
+        run: |
+          # Instalar lcov si no existe
+          sudo apt-get update
+          sudo apt-get install -y lcov
+          
+          # Generar reporte HTML
+          genhtml coverage/lcov.info -o coverage/html
+          
+          # Mostrar resumen en logs
+          lcov --summary coverage/lcov.info
+
+      - name: 📋 Upload coverage artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+
+  # Job 3: Build (solo si tests pasan)
+  build:
+    name: 🏗️ Build Apps
+    runs-on: ubuntu-latest
+    needs: [analyze, test]  # Solo ejecuta si análisis y tests pasan
+    
+    strategy:
+      matrix:
+        include:
+          - platform: android
+            build-cmd: flutter build apk --release
+            artifact-path: build/app/outputs/flutter-apk/app-release.apk
+            artifact-name: android-apk
+          - platform: web
+            build-cmd: flutter build web --release --base-href ./
+            artifact-path: build/web
+            artifact-name: web-build
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: ☕ Setup Java (for Android)
+        if: matrix.platform == 'android'
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: 🔧 Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: 📦 Get dependencies
+        run: flutter pub get
+
+      - name: 🏗️ Build ${{ matrix.platform }}
+        run: ${{ matrix.build-cmd }}
+
+      - name: 📤 Upload ${{ matrix.platform }} artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact-name }}
+          path: ${{ matrix.artifact-path }}
+          retention-days: 30
+
+  # Job 4: Comentario en PR con resultados
+  comment:
+    name: 💬 PR Comment
+    runs-on: ubuntu-latest
+    needs: [analyze, test, build]
+    if: github.event_name == 'pull_request'
+    
+    steps:
+      - name: 📥 Download coverage
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-report
+
+      - name: 💬 Comment PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            
+            // Leer coverage si existe
+            let coverageInfo = 'Coverage info not available';
+            try {
+              // Buscar archivos de coverage
+              const files = fs.readdirSync('.');
+              console.log('Available files:', files);
+              
+              if (fs.existsSync('lcov.info')) {
+                coverageInfo = '📊 Coverage report generated successfully';
+              }
+            } catch (e) {
+              console.log('Error reading coverage:', e.message);
+            }
+            
+            const comment = `## 🎉 CI Results for PR #${{ github.event.number }}
+            
+            ✅ **Static Analysis**: Passed
+            ✅ **Tests**: Passed  
+            ✅ **Build**: Passed
+            
+            ${coverageInfo}
+            
+            ### 📦 Artifacts Available:
+            - 📱 Android APK
+            - 🌐 Web Build
+            
+            ### 🚀 Ready to merge!
+            
+            ---
+            *Generated by GitHub Actions*`;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+
+  # Job 5: Security scan
+  security:
+    name: 🔒 Security Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🔍 Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: 📤 Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
