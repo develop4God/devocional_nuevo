@@ -12,6 +12,10 @@ import 'package:http/http.dart' as http; // Importación correcta para http
 import 'package:path_provider/path_provider.dart'; // Para acceso a directorios del dispositivo
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:devocional_nuevo/models/devocional_model.dart';
+import 'package:devocional_nuevo/utils/constants.dart'; // Importación necesaria para Constants.apiUrl
+import 'package:devocional_nuevo/services/tts_service.dart';
+
 class DevocionalProvider with ChangeNotifier {
   // Lista para almacenar TODOS los devocionales cargados para el idioma actual, de todas las fechas.
   List<Devocional> _allDevocionalesForCurrentLanguage = [];
@@ -28,34 +32,6 @@ class DevocionalProvider with ChangeNotifier {
   List<Devocional> _favoriteDevocionales =
       []; // Lista de devocionales favoritos
   bool _showInvitationDialog = true; // Para el diálogo de invitación
-
-  // Service for tracking spiritual statistics
-  final SpiritualStatsService _statsService = SpiritualStatsService();
-
-  // Propiedades para funcionalidad offline
-  bool _isDownloading = false; // Estado de descarga
-  String? _downloadStatus; // Mensaje de estado de descarga
-  bool _isOfflineMode = false; // Indica si se está usando modo offline
-
-  // ========== NUEVAS PROPIEDADES PARA TRACKING SILENCIOSO ==========
-  // Tracking de tiempo de lectura
-  DateTime? _devocionalStartTime;
-  DateTime? _pausedTime;
-  int _accumulatedReadingSeconds = 0;
-  Timer? _readingTimer;
-
-  // Tracking de scroll
-  double _maxScrollPercentage = 0.0;
-  ScrollController? _currentScrollController;
-
-  // Control de devocional actual
-  String? _currentTrackedDevocionalId;
-
-  // ========== NUEVAS PROPIEDADES PARA PRESERVAR DATOS ==========
-  // Datos del último devocional finalizado (para recordDevocionalRead)
-  String? _lastFinalizedDevocionalId;
-  int _lastFinalizedReadingTime = 0;
-  double _lastFinalizedScrollPercentage = 0.0;
 
   // Lista de idiomas soportados por tu API
   static const List<String> _supportedLanguages = [
@@ -78,6 +54,12 @@ class DevocionalProvider with ChangeNotifier {
 
   bool get showInvitationDialog => _showInvitationDialog;
 
+  // Audio getters
+  bool get isAudioPlaying => _isAudioPlaying;
+  bool get isAudioPaused => _isAudioPaused;
+  String? get currentPlayingDevocionalId => _currentPlayingDevocionalId;
+  bool isDevocionalPlaying(String devocionalId) => _currentPlayingDevocionalId == devocionalId;
+
   // Getters para funcionalidad offline
   bool get isDownloading => _isDownloading;
 
@@ -98,6 +80,16 @@ class DevocionalProvider with ChangeNotifier {
     // initializeData() se llama fuera del constructor, usualmente en AppInitializer
     // usando addPostFrameCallback. Esto asegura que las preferencias se carguen
     // y los datos se obtengan sin conflictos con la fase de construcción.
+
+    // Initialize TTS service and set up state change callback
+    _ttsService.setStateChangedCallback(() {
+      _isAudioPlaying = _ttsService.isPlaying;
+      _isAudioPaused = _ttsService.isPaused;
+      if (!_ttsService.isActive) {
+        _currentPlayingDevocionalId = null;
+      }
+      notifyListeners();
+    });
   }
 
   // ========== MÉTODOS DE TRACKING SILENCIOSO MODIFICADOS ==========
@@ -629,6 +621,86 @@ class DevocionalProvider with ChangeNotifier {
   // Verificar si un idioma está soportado
   bool isLanguageSupported(String language) {
     return _supportedLanguages.contains(language);
+  }
+
+  // --- Audio functionality methods ---
+
+  /// Play audio for a devotional
+  Future<void> playDevotional(Devocional devocional) async {
+    try {
+      // Stop any currently playing audio
+      if (_isAudioPlaying) {
+        await _ttsService.stop();
+      }
+
+      _currentPlayingDevocionalId = devocional.id;
+      await _ttsService.speakDevotional(devocional);
+    } catch (e) {
+      debugPrint('Error playing devotional audio: $e');
+      _currentPlayingDevocionalId = null;
+      notifyListeners();
+    }
+  }
+
+  /// Pause the current audio
+  Future<void> pauseAudio() async {
+    try {
+      await _ttsService.pause();
+    } catch (e) {
+      debugPrint('Error pausing audio: $e');
+    }
+  }
+
+  /// Resume the current audio
+  Future<void> resumeAudio() async {
+    try {
+      await _ttsService.resume();
+    } catch (e) {
+      debugPrint('Error resuming audio: $e');
+    }
+  }
+
+  /// Stop the current audio
+  Future<void> stopAudio() async {
+    try {
+      await _ttsService.stop();
+      _currentPlayingDevocionalId = null;
+    } catch (e) {
+      debugPrint('Error stopping audio: $e');
+    }
+  }
+
+  /// Toggle play/pause for audio
+  Future<void> toggleAudioPlayPause(Devocional devocional) async {
+    if (_currentPlayingDevocionalId == devocional.id) {
+      if (_isAudioPaused) {
+        await resumeAudio();
+      } else if (_isAudioPlaying) {
+        await pauseAudio();
+      }
+    } else {
+      await playDevotional(devocional);
+    }
+  }
+
+  /// Get available TTS languages
+  Future<List<String>> getAvailableLanguages() async {
+    return await _ttsService.getLanguages();
+  }
+
+  /// Set TTS language
+  Future<void> setTtsLanguage(String language) async {
+    await _ttsService.setLanguage(language);
+  }
+
+  /// Set TTS speech rate
+  Future<void> setTtsSpeechRate(double rate) async {
+    await _ttsService.setSpeechRate(rate);
+  }
+
+  /// Dispose audio resources
+  Future<void> disposeAudio() async {
+    await _ttsService.dispose();
   }
 
   // Método auxiliar para procesar datos de devocionales desde cualquier fuente
