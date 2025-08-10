@@ -1,8 +1,12 @@
 import 'dart:developer' as developer;
+//import 'package:flutter/cupertino.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:devocional_nuevo/pages/about_page.dart';
 import 'package:devocional_nuevo/pages/contact_page.dart';
 import 'package:devocional_nuevo/providers/theme_provider.dart';
+import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/utils/theme_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -17,6 +21,43 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage> {
   String _selectedLanguage = 'es'; // Idioma por defecto
+  List<String> _availableTtsLanguages = [];
+  String? _selectedTtsLanguage;
+  double _ttsSpeed = 0.5;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadTtsLanguages();
+  }
+
+  Future<void> _loadTtsLanguages() async {
+    final devocionalProvider = Provider.of<DevocionalProvider>(context, listen: false);
+    try {
+      final languages = await devocionalProvider.getAvailableLanguages();
+      // Load saved preferences
+      final prefs = await SharedPreferences.getInstance();
+      final savedLanguage = prefs.getString('tts_language');
+      final savedRate = prefs.getDouble('tts_rate') ?? 0.5;
+
+      setState(() {
+        _availableTtsLanguages = languages;
+        _ttsSpeed = savedRate;
+        // Use saved language if available, otherwise default to Spanish
+        if (savedLanguage != null && languages.contains(savedLanguage)) {
+          _selectedTtsLanguage = savedLanguage;
+        } else if (languages.contains('es-ES')) {
+          _selectedTtsLanguage = 'es-ES';
+        } else if (languages.contains('es')) {
+          _selectedTtsLanguage = 'es';
+        } else if (languages.isNotEmpty) {
+          _selectedTtsLanguage = languages.first;
+        }
+      });
+    } catch (e) {
+      developer.log('Error loading TTS languages: $e');
+    }
+  }
 
   Future<void> _launchPaypal() async {
     const String baseUrl =
@@ -149,6 +190,158 @@ class _SettingsPageState extends State<SettingsPage> {
                     if (newValue != null) {
                       setState(() {
                         _selectedLanguage = newValue;
+                        developer.log('Idioma cambiado a: $_selectedLanguage',
+                            name: 'SettingsPage');
+                      });
+                    }
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            // Sección para configuración de Audio/TTS
+            Text(
+              'Configuración de Audio',
+              style: textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: colorScheme.primary,
+              ),
+            ),
+            const SizedBox(height: 15),
+            // Velocidad de voz
+            Row(
+              children: [
+                Icon(Icons.speed, color: colorScheme.primary),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'Velocidad de voz:',
+                    style: textTheme.bodyMedium
+                        ?.copyWith(fontSize: 16, color: colorScheme.onSurface),
+                  ),
+                ),
+              ],
+            ),
+            Slider(
+              value: _ttsSpeed,
+              min: 0.1,
+              max: 1.0,
+              divisions: 9,
+              label: '${(_ttsSpeed * 100).round()}%',
+              onChanged: (double value) {
+                setState(() {
+                  _ttsSpeed = value;
+                });
+              },
+              onChangeEnd: (double value) async {
+                // Save the TTS speed
+                final devocionalProvider = Provider.of<DevocionalProvider>(context, listen: false);
+                await devocionalProvider.setTtsSpeechRate(value);
+              },
+            ),
+            const SizedBox(height: 15),
+            // Idioma de voz
+            if (_availableTtsLanguages.isNotEmpty)
+              Row(
+                children: [
+                  Icon(Icons.record_voice_over, color: colorScheme.primary),
+                  const SizedBox(width: 10),
+                  Text(
+                    'Voz:',
+                    style: textTheme.bodyMedium
+                        ?.copyWith(fontSize: 16, color: colorScheme.onSurface),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: DropdownButton<String>(
+                      value: _selectedTtsLanguage,
+                      isExpanded: true,
+                      items: _availableTtsLanguages.map((String language) {
+                        // Format language display name
+                        String displayName = language;
+                        if (language.startsWith('es')) {
+                          displayName = 'Español ($language)';
+                        } else if (language.startsWith('en')) {
+                          displayName = 'English ($language)';
+                        }
+                        return DropdownMenuItem(
+                          value: language,
+                          child: Text(displayName),
+                        );
+                      }).toList(),
+                      onChanged: (String? newValue) async {
+                        if (newValue != null) {
+                          setState(() {
+                            _selectedTtsLanguage = newValue;
+                          });
+                          // Save the TTS language
+                          final devocionalProvider = Provider.of<DevocionalProvider>(context, listen: false);
+                          await devocionalProvider.setTtsLanguage(newValue);
+                        }
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            const SizedBox(height: 20),
+            // Sección para seleccionar la familia de tema
+            /*
+            Row(
+              children: [
+                Icon(Icons.palette, color: colorScheme.primary),
+                const SizedBox(width: 10),
+                Text(
+                  'Seleccionar Tema:',
+                  style: textTheme.bodyMedium
+                      ?.merge(settingsOptionTextStyle)
+                      .copyWith(color: colorScheme.onSurface),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            DropdownButtonFormField<String>(
+              value: themeProvider.currentThemeFamily,
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                labelText: 'Colores',
+                labelStyle: TextStyle(color: Colors.black),
+              ),
+              items: themeFamilies.map((String familyName) {
+                return DropdownMenuItem<String>(
+                  value: familyName,
+                  child: Text(themeDisplayNames[familyName] ?? familyName),
+                );
+              }).toList(),
+              onChanged: (String? newValue) {
+                if (newValue != null) {
+                  themeProvider.setThemeFamily(newValue);
+                }
+              },
+            ),
+            const SizedBox(height: 20),
+            */
+            // Opción para Luz baja (modo oscuro)
+            /*
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.contrast, color: colorScheme.primary),
+                    const SizedBox(width: 10),
+                    Text(
+                      'Luz baja (modo oscuro):',
+                      style: textTheme.bodyMedium
+                          ?.merge(settingsOptionTextStyle)
+                          .copyWith(color: colorScheme.onSurface),
+                    ),
+                  ],
+                ),
+                Switch(
+                  value: themeProvider.currentBrightness == Brightness.dark,
+                  onChanged: (bool value) {
+                    themeProvider.setBrightness(
+                        value ? Brightness.dark : Brightness.light);
                         developer.log(
                           'Idioma cambiado a: $_selectedLanguage',
                           name: 'SettingsPage',
