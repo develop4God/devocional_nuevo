@@ -1,40 +1,53 @@
-name: Flutter Dev Validation (Web + Mobile Preview)
+name: Flutter Mobile Web Testing (Always from Main)
+
 on:
   workflow_dispatch:
+    inputs:
+      target_branch:
+        description: 'Branch to test (leave empty for current)'
+        required: false
+        default: ''
+
 jobs:
-  validate:
+  mobile-web-preview:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout repository
+      - name: Checkout target branch
         uses: actions/checkout@v4
-      - name: Cache Flutter dependencies
+        with:
+          ref: ${{ github.event.inputs.target_branch || github.ref }}
+
+      - name: Show branch info
+        run: |
+          echo "🌿 TESTING BRANCH: ${{ github.event.inputs.target_branch || github.ref_name }}"
+          echo "⚙️  WORKFLOW FROM: main (always)"
+
+      - name: Cache Flutter dependencies (optimized)
         uses: actions/cache@v4
         with:
           path: |
             ~/.pub-cache
-            .dart_tool/package_config.json
-          key: ${{ runner.os }}-flutter-${{ hashFiles('**/pubspec.yaml') }}
+            .dart_tool
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-flutter-all-${{ hashFiles('**/pubspec.yaml', '**/*.gradle*') }}
           restore-keys: |
+            ${{ runner.os }}-flutter-all-
             ${{ runner.os }}-flutter-
+
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: stable
-      - name: Configure Flutter (disable analytics)
+
+      - name: Configure Flutter
         run: flutter config --no-analytics
-      - name: Show versions
-        run: |
-          flutter --version
-          dart --version
-      - name: Install dependencies
-        run: flutter pub get
-      - name: Analyze code (continue on warnings)
-        run: flutter analyze
-        continue-on-error: true
-      - name: Run unit tests
-        run: flutter test
-        continue-on-error: true
-      - name: Smart Web Build for Mobile Testing
+
+      - name: Install dependencies (fast)
+        run: flutter pub get --no-precompile
+
+      - name: Smart Build web for mobile (optimized)
         run: |
           # Array de opciones de build en orden de probabilidad de éxito
           build_options=(
@@ -44,7 +57,6 @@ jobs:
             "flutter build web --release --base-href /${{ github.event.repository.name }}/ --no-tree-shake-icons --no-web-resources-cdn"
             "flutter build web --release --base-href /${{ github.event.repository.name }}/ --no-tree-shake-icons"
             "flutter build web --release --no-tree-shake-icons"
-            "flutter build web --debug --base-href /${{ github.event.repository.name }}/ --no-tree-shake-icons"
           )
           
           # Nombres descriptivos para cada opción
@@ -55,7 +67,6 @@ jobs:
             "No web resources CDN"
             "Standard release with base href"
             "Basic release without base href"
-            "Debug mode fallback"
           )
           
           success=false
@@ -121,18 +132,19 @@ jobs:
           echo "✅ BUILD EXITOSO CON: ${build_names[$i]}"
           echo "🎉 =================================="
           echo "📋 Comando ganador: ${build_options[$i]}"
+
       - name: Deploy to GitHub Pages for mobile testing
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./build/web
           force_orphan: true
-      
+
       - name: Wait for GitHub Pages deployment
         run: |
           echo "⏳ Esperando que GitHub Pages procese el deployment..."
           sleep 60
-      
+
       - name: 🔍 VALIDATE APP ACTUALLY WORKS
         run: |
           APP_URL="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/"
@@ -236,7 +248,8 @@ jobs:
           echo "🎉 =================================="
           echo "✅ La app está funcionando correctamente"
           echo "🌐 URL: $APP_URL"
-      - name: 📱 MOBILE TESTING READY
+
+      - name: 📱 MOBILE TESTING - URL READY!
         run: |
           echo "🎉 =================================="
           echo "📱 TU APP ESTÁ LISTA PARA TESTING!"
@@ -258,6 +271,5 @@ jobs:
           echo "   ✅ Prueba todos los botones y forms"
           echo "   ✅ Navega entre pantallas"
           echo ""
+          echo "🚀 BRANCH TESTEADO: ${{ github.event.inputs.target_branch || github.ref_name }}"
           echo "🎉 =================================="
-      - name: Validation completed
-        run: echo "✅ Validación completada. Proyecto listo para desarrollo web y móvil."
