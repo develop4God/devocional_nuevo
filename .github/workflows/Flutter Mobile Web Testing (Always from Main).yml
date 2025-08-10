@@ -48,8 +48,7 @@ jobs:
         run: flutter pub get --no-precompile
 
       - name: Build web for mobile (optimized)
-        run: flutter build web --debug --dart2js-optimization O1
-
+        run: flutter build web --release --base-href /${{ github.event.repository.name }}/
       - name: Deploy to GitHub Pages for mobile testing
         uses: peaceiris/actions-gh-pages@v3
         with:
