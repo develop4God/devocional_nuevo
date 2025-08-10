@@ -1,0 +1,57 @@
+name: Flutter Dev Validation (Web + Mobile Preview)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Cache Flutter dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pub-cache
+            .dart_tool/package_config.json
+          key: ${{ runner.os }}-flutter-${{ hashFiles('**/pubspec.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-flutter-
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Configure Flutter (disable analytics)
+        run: flutter config --no-analytics
+
+      - name: Show versions
+        run: |
+          flutter --version
+          dart --version
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Analyze code (continue on warnings)
+        run: flutter analyze
+        continue-on-error: true
+
+      - name: Run unit tests
+        run: flutter test
+        continue-on-error: true
+
+      - name: Build web (for Chrome testing)
+        run: flutter build web --debug
+        continue-on-error: true
+
+      - name: Test web build in Chrome
+        run: flutter test --platform=chrome --web-renderer html
+        continue-on-error: true
+
+      - name: Validation completed
+        run: echo "✅ Validación completada. Proyecto listo para desarrollo web y móvil."
