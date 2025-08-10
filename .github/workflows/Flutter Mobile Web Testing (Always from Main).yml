@@ -2,81 +2,60 @@ name: Flutter Mobile Web Testing (Always from Main)
 
 on:
   workflow_dispatch:
-    inputs:
-      target_branch:
-        description: 'Branch to test (leave empty for current)'
-        required: false
-        default: ''
+
 
 jobs:
-  mobile-web-preview:
+  build-and-deploy:
     runs-on: ubuntu-latest
-
+    permissions:
+      contents: write
+    
     steps:
-      - name: Checkout target branch
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.inputs.target_branch || github.ref }}
-
-      - name: Show branch info
-        run: |
-          echo "🌿 TESTING BRANCH: ${{ github.event.inputs.target_branch || github.ref_name }}"
-          echo "⚙️  WORKFLOW FROM: main (always)"
-
-      - name: Cache Flutter dependencies (optimized)
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.pub-cache
-            .dart_tool
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-flutter-all-${{ hashFiles('**/pubspec.yaml', '**/*.gradle*') }}
-          restore-keys: |
-            ${{ runner.os }}-flutter-all-
-            ${{ runner.os }}-flutter-
-
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          channel: stable
-
-      - name: Configure Flutter
-        run: flutter config --no-analytics
-
-      - name: Install dependencies (fast)
-        run: flutter pub get --no-precompile
-
-      - name: Build web for mobile (optimized)
-        run: flutter build web --release --base-href /${{ github.event.repository.name }}/ --no-tree-shake-icons --web-renderer html
-      - name: Deploy to GitHub Pages for mobile testing
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./build/web
-          force_orphan: true
-
-      - name: 📱 MOBILE TESTING - URL READY!
-        run: |
-          echo "🎉 =================================="
-          echo "📱 TU APP ESTÁ LISTA PARA TESTING!"
-          echo "🎉 =================================="
-          echo ""
-          echo "🌐 URL DIRECTA (copia y pega en tu celular):"
-          echo "👉 https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/"
-          echo ""
-          echo "⏱️  TIEMPO DE ESPERA: 2-3 minutos máximo"
-          echo ""
-          echo "📱 PASOS EN TU CELULAR:"
-          echo "   1️⃣ Copia la URL de arriba"
-          echo "   2️⃣ Pégala en Chrome/Safari móvil"
-          echo "   3️⃣ Si no carga, espera 1 min más y refresh"
-          echo ""
-          echo "🔍 TESTING DE OVERFLOW:"
-          echo "   ✅ Rota pantalla (portrait/landscape)"
-          echo "   ✅ Scroll vertical y horizontal"
-          echo "   ✅ Prueba todos los botones y forms"
-          echo "   ✅ Navega entre pantallas"
-          echo ""
-          echo "🚀 BRANCH TESTEADO: ${{ github.event.inputs.target_branch || github.ref_name }}"
-          echo "🎉 =================================="
+    - name: Checkout repository
+      uses: actions/checkout@v3
+      with:
+        ref: ${{ github.ref }}
+    
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.24.0'
+        channel: 'stable'
+    
+    - name: Get dependencies
+      run: flutter pub get
+    
+    - name: Build for web with correct base href
+      run: flutter build web --base-href /Devocional_nuevo/
+    
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./build/web
+        publish_branch: gh-pages
+    
+    - name: Success message
+      run: |
+        echo "🎉 =================================="
+        echo "📱 TU APP ESTÁ LISTA PARA TESTING!"
+        echo "🎉 =================================="
+        echo ""
+        echo "🌐 URL DIRECTA (copia y pega en tu celular):"
+        echo "👉 https://${{ github.repository_owner }}.github.io/Devocional_nuevo/"
+        echo ""
+        echo "⏱️ TIEMPO DE ESPERA: 2-3 minutos máximo"
+        echo ""
+        echo "📱 PASOS EN TU CELULAR:"
+        echo " 1️⃣ Copia la URL de arriba"
+        echo " 2️⃣ Pégala en Chrome/Safari móvil"
+        echo " 3️⃣ Si no carga, espera 1 min más y refresh"
+        echo ""
+        echo "🔍 TESTING DE OVERFLOW:"
+        echo " ✅ Rota pantalla (portrait/landscape)"
+        echo " ✅ Scroll vertical y horizontal"
+        echo " ✅ Prueba todos los botones y forms"
+        echo " ✅ Navega entre pantallas"
+        echo ""
+        echo "🚀 BRANCH TESTEADO: ${{ github.ref_name }}"
+        echo "🎉 =================================="
