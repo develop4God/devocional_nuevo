@@ -1,23 +1,23 @@
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:intl/date_symbol_data_local.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:timezone/data/latest_all.dart' as tzdata;
-import 'package:timezone/timezone.dart' as tz;
 import 'dart:developer' as developer;
-
-import 'package:devocional_nuevo/providers/devocional_provider.dart';
-import 'package:devocional_nuevo/splash_screen.dart';
-import 'package:devocional_nuevo/services/notification_service.dart';
-import 'package:flutter_timezone/flutter_timezone.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:devocional_nuevo/providers/theme_provider.dart';
-import 'package:devocional_nuevo/pages/settings_page.dart';
 
 // Importa tu runner pero solo para helpers, no para el control de la UI
 import 'package:devocional_nuevo/game_loop_runner.dart' as runner;
+import 'package:devocional_nuevo/pages/settings_page.dart';
+import 'package:devocional_nuevo/providers/devocional_provider.dart';
+import 'package:devocional_nuevo/providers/theme_provider.dart';
+import 'package:devocional_nuevo/services/notification_service.dart';
+import 'package:devocional_nuevo/splash_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_timezone/flutter_timezone.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:provider/provider.dart';
+import 'package:timezone/data/latest_all.dart' as tzdata;
+import 'package:timezone/timezone.dart' as tz;
 
 // Usa el mismo navigatorKey global
 final GlobalKey<NavigatorState> navigatorKey = runner.navigatorKey;
@@ -189,7 +189,9 @@ class _AppInitializerState extends State<AppInitializer> {
   Future<void> _checkGameLoop() async {
     final String? action = await runner.getInitialIntentAction();
     setState(() {
-      _isGameLoop = action == "com.google.intent.action.TEST_LOOP";
+      // Solo activa GameLoop si está en debug mode Y el intent lo pide
+      _isGameLoop =
+          kDebugMode && (action == "com.google.intent.action.TEST_LOOP");
     });
     // No se llama aquí a runAutomatedGameLoop ni reportTestResultAndExit
   }
