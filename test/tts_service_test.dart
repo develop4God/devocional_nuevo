@@ -189,7 +189,7 @@ void main() {
       test('should sanitize text content', () {
         final specialCharsDevocional = Devocional(
           id: 'test-special',
-          versiculo: 'Test with special chars: @#$%^&*(){}[]|\\',
+          versiculo: r'Test with special chars: @#$%^&*(){}[]|\',
           reflexion: 'Normal text with numbers 123 and symbols.',
           paraMeditar: [
             ParaMeditar(
