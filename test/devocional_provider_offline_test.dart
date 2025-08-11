@@ -1,10 +1,7 @@
-import 'dart:io';
-import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
-import 'package:devocional_nuevo/models/devocional_model.dart';
 
 // Mock para PathProviderPlatform
 class MockPathProviderPlatform extends PathProviderPlatform with Mock {
@@ -14,7 +11,7 @@ class MockPathProviderPlatform extends PathProviderPlatform with Mock {
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
-  
+
   late DevocionalProvider provider;
   late MockPathProviderPlatform mockPathProvider;
 
@@ -39,7 +36,7 @@ void main() {
       // pero requiere acceso a métodos privados, por lo que usaremos métodos públicos
       const int year = 2024;
       const String language = 'es';
-      
+
       final bool hasFile = await provider.hasLocalFile(year, language);
       expect(hasFile, isFalse); // No debería existir inicialmente
     });
@@ -68,7 +65,7 @@ void main() {
       expect(provider.isDownloading, isA<bool>());
       expect(provider.downloadStatus, isA<String?>());
       expect(provider.isOfflineMode, isA<bool>());
-      
+
       // Verificar estados iniciales
       expect(provider.isDownloading, false);
       expect(provider.downloadStatus, null);

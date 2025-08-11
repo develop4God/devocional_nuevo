@@ -1,14 +1,14 @@
-import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'dart:developer' as developer;
-//import 'package:flutter/cupertino.dart';
-import 'package:provider/provider.dart';
 
 import 'package:devocional_nuevo/pages/about_page.dart';
 import 'package:devocional_nuevo/pages/contact_page.dart';
 import 'package:devocional_nuevo/providers/theme_provider.dart';
-import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/utils/theme_constants.dart';
+import 'package:flutter/material.dart';
+
+//import 'package:flutter/cupertino.dart';
+import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -29,48 +29,64 @@ class _SettingsPageState extends State<SettingsPage> {
     developer.log('Intentando abrir URL: $url', name: 'PayPalLaunch');
 
     if (await canLaunchUrl(url)) {
-      developer.log('canLaunchUrl devolvió true. Intentando launchUrl.',
-          name: 'PayPalLaunch');
+      developer.log(
+        'canLaunchUrl devolvió true. Intentando launchUrl.',
+        name: 'PayPalLaunch',
+      );
       try {
-        final launched =
-            await launchUrl(url, mode: LaunchMode.externalApplication);
+        final launched = await launchUrl(
+          url,
+          mode: LaunchMode.externalApplication,
+        );
 
         if (!launched) {
-          developer.log('launchUrl devolvió false. No se pudo lanzar.',
-              name: 'PayPalLaunch');
+          developer.log(
+            'launchUrl devolvió false. No se pudo lanzar.',
+            name: 'PayPalLaunch',
+          );
           _showErrorSnackBar(
-              'No se pudo abrir PayPal. El sistema no pudo lanzar la URL.');
+            'No se pudo abrir PayPal. El sistema no pudo lanzar la URL.',
+          );
         } else {
           developer.log('PayPal abierto exitosamente.', name: 'PayPalLaunch');
         }
       } catch (e) {
-        developer.log('Error al intentar lanzar PayPal: $e',
-            error: e, name: 'PayPalLaunch');
+        developer.log(
+          'Error al intentar lanzar PayPal: $e',
+          error: e,
+          name: 'PayPalLaunch',
+        );
         _showErrorSnackBar('Error al abrir PayPal: ${e.toString()}');
       }
     } else {
       developer.log(
-          'canLaunchUrl devolvió false. No hay aplicación para manejar esta URL.',
-          name: 'PayPalLaunch');
+        'canLaunchUrl devolvió false. No hay aplicación para manejar esta URL.',
+        name: 'PayPalLaunch',
+      );
       _showErrorSnackBar(
-          'No se pudo abrir PayPal. Asegúrate de tener un navegador web o la app de PayPal instalada.');
+        'No se pudo abrir PayPal. Asegúrate de tener un navegador web o la app de PayPal instalada.',
+      );
     }
   }
 
   void _showErrorSnackBar(String message) {
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final themeProvider = Provider.of<ThemeProvider>(context);
-    final ColorScheme colorScheme = Theme.of(context).colorScheme;
-    final TextTheme textTheme = Theme.of(context).textTheme;
-    final List<String> themeFamilies = appThemeFamilies.keys.toList();
+    Provider.of<ThemeProvider>(context);
+    final ColorScheme colorScheme = Theme
+        .of(context)
+        .colorScheme;
+    final TextTheme textTheme = Theme
+        .of(context)
+        .textTheme;
+    appThemeFamilies.keys.toList();
 
     return Scaffold(
       appBar: AppBar(
@@ -94,14 +110,13 @@ class _SettingsPageState extends State<SettingsPage> {
                     backgroundColor: Colors.yellow[700],
                     foregroundColor: Colors.black,
                     textStyle: const TextStyle(fontWeight: FontWeight.bold),
-                    padding:
-                        const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 8,
+                      horizontal: 10,
+                    ),
                     minimumSize: const Size(100, 30),
                   ),
-                  child: const Text(
-                    'Donar',
-                    style: TextStyle(fontSize: 16),
-                  ),
+                  child: const Text('Donar', style: TextStyle(fontSize: 16)),
                 ),
               ),
             ),
@@ -113,24 +128,25 @@ class _SettingsPageState extends State<SettingsPage> {
                 const SizedBox(width: 10),
                 Text(
                   'Idioma:',
-                  style: textTheme.bodyMedium
-                      ?.copyWith(fontSize: 18, color: colorScheme.onSurface),
+                  style: textTheme.bodyMedium?.copyWith(
+                    fontSize: 18,
+                    color: colorScheme.onSurface,
+                  ),
                 ),
                 const SizedBox(width: 10),
                 DropdownButton<String>(
                   value: _selectedLanguage,
                   items: const [
-                    DropdownMenuItem(
-                      value: 'es',
-                      child: Text('Español'),
-                    ),
+                    DropdownMenuItem(value: 'es', child: Text('Español')),
                   ],
                   onChanged: (String? newValue) {
                     if (newValue != null) {
                       setState(() {
                         _selectedLanguage = newValue;
-                        developer.log('Idioma cambiado a: $_selectedLanguage',
-                            name: 'SettingsPage');
+                        developer.log(
+                          'Idioma cambiado a: $_selectedLanguage',
+                          name: 'SettingsPage',
+                        );
                       });
                     }
                   },
@@ -138,7 +154,7 @@ class _SettingsPageState extends State<SettingsPage> {
               ],
             ),
             const SizedBox(height: 30),
-            
+
             // Sección de gestión offline - COMENTADA: Funcionalidad movida al Drawer
             // Para evitar duplicidad, la gestión offline ahora se maneja desde el Drawer
             /*

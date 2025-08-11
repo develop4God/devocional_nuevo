@@ -3,17 +3,18 @@
 import 'dart:convert';
 import 'dart:io'; // Para manejo de archivos locales
 import 'dart:ui'; // Necesario para PlatformDispatcher para obtener el locale
+
+import 'package:devocional_nuevo/models/devocional_model.dart';
+import 'package:devocional_nuevo/utils/constants.dart'; // Importación necesaria para Constants.apiUrl
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http; // Importación correcta para http
 import 'package:path_provider/path_provider.dart'; // Para acceso a directorios del dispositivo
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:devocional_nuevo/models/devocional_model.dart';
-import 'package:devocional_nuevo/utils/constants.dart'; // Importación necesaria para Constants.apiUrl
-
 class DevocionalProvider with ChangeNotifier {
   // Lista para almacenar TODOS los devocionales cargados para el idioma actual, de todas las fechas.
   List<Devocional> _allDevocionalesForCurrentLanguage = [];
+
   // Lista de devocionales después de filtrar por la versión seleccionada.
   List<Devocional> _filteredDevocionales = [];
   bool _isLoading = false;
@@ -43,15 +44,22 @@ class DevocionalProvider with ChangeNotifier {
   List<Devocional> get devocionales =>
       _filteredDevocionales; // La UI consume esta lista filtrada
   bool get isLoading => _isLoading;
+
   String? get errorMessage => _errorMessage;
+
   String get selectedLanguage => _selectedLanguage;
+
   String get selectedVersion => _selectedVersion;
+
   List<Devocional> get favoriteDevocionales => _favoriteDevocionales;
+
   bool get showInvitationDialog => _showInvitationDialog;
-  
+
   // Getters para funcionalidad offline
   bool get isDownloading => _isDownloading;
+
   String? get downloadStatus => _downloadStatus;
+
   bool get isOfflineMode => _isOfflineMode;
 
   // Constructor: inicializa los datos cuando el provider se crea
@@ -125,10 +133,11 @@ class DevocionalProvider with ChangeNotifier {
 
     try {
       final int currentYear = DateTime.now().year;
-      
+
       // Primero, intentar cargar desde almacenamiento local
-      Map<String, dynamic>? localData = await _loadFromLocalStorage(currentYear, _selectedLanguage);
-      
+      Map<String, dynamic>? localData =
+          await _loadFromLocalStorage(currentYear, _selectedLanguage);
+
       if (localData != null) {
         debugPrint('Cargando devocionales desde almacenamiento local');
         _isOfflineMode = true;
@@ -137,11 +146,14 @@ class DevocionalProvider with ChangeNotifier {
       }
 
       // Si no hay datos locales, cargar desde la API sin guardar automáticamente
-      debugPrint('No se encontraron datos locales, cargando desde API para uso inmediato');
-      final response = await http.get(Uri.parse(Constants.getDevocionalesApiUrl(currentYear)));
+      debugPrint(
+          'No se encontraron datos locales, cargando desde API para uso inmediato');
+      final response = await http
+          .get(Uri.parse(Constants.getDevocionalesApiUrl(currentYear)));
 
       if (response.statusCode != 200) {
-        throw Exception('Failed to load devocionales from API: ${response.statusCode}');
+        throw Exception(
+            'Failed to load devocionales from API: ${response.statusCode}');
       }
 
       final String responseBody = response.body;
@@ -149,7 +161,6 @@ class DevocionalProvider with ChangeNotifier {
 
       // Procesar los datos descargados para uso inmediato (sin guardar)
       await _processDevocionalData(data);
-
     } catch (e) {
       _errorMessage = 'Error al cargar los devocionales: $e';
       _allDevocionalesForCurrentLanguage = [];
@@ -336,15 +347,19 @@ class DevocionalProvider with ChangeNotifier {
   // Método auxiliar para procesar datos de devocionales desde cualquier fuente
   Future<void> _processDevocionalData(Map<String, dynamic> data) async {
     // Acceder a la sección 'data' del JSON y luego al idioma detectado/seleccionado
-    final Map<String, dynamic>? languageRoot = data['data'] as Map<String, dynamic>?;
-    final Map<String, dynamic>? languageData = languageRoot?[_selectedLanguage] as Map<String, dynamic>?;
+    final Map<String, dynamic>? languageRoot =
+        data['data'] as Map<String, dynamic>?;
+    final Map<String, dynamic>? languageData =
+        languageRoot?[_selectedLanguage] as Map<String, dynamic>?;
 
     if (languageData == null) {
       // Si no se encuentra el idioma actual, intentar con el fallback
       if (_selectedLanguage != _fallbackLanguage) {
-        debugPrint('No se encontraron datos para $_selectedLanguage, intentando con fallback $_fallbackLanguage');
+        debugPrint(
+            'No se encontraron datos para $_selectedLanguage, intentando con fallback $_fallbackLanguage');
 
-        final Map<String, dynamic>? fallbackData = languageRoot?[_fallbackLanguage] as Map<String, dynamic>?;
+        final Map<String, dynamic>? fallbackData =
+            languageRoot?[_fallbackLanguage] as Map<String, dynamic>?;
 
         if (fallbackData != null) {
           // Cambiar al idioma de fallback automáticamente
@@ -359,7 +374,8 @@ class DevocionalProvider with ChangeNotifier {
       }
 
       // Si ni el idioma solicitado ni el fallback están disponibles
-      debugPrint('Advertencia: No se encontraron datos para ningún idioma soportado');
+      debugPrint(
+          'Advertencia: No se encontraron datos para ningún idioma soportado');
       _allDevocionalesForCurrentLanguage = [];
       _filteredDevocionales = [];
       _errorMessage = 'No se encontraron datos disponibles en la API.';
@@ -375,13 +391,14 @@ class DevocionalProvider with ChangeNotifier {
   /// Obtiene el directorio donde se almacenarán los archivos JSON localmente
   Future<Directory> _getLocalStorageDirectory() async {
     final Directory appDocumentsDir = await getApplicationDocumentsDirectory();
-    final Directory devocionalesDir = Directory('${appDocumentsDir.path}/devocionales');
-    
+    final Directory devocionalesDir =
+        Directory('${appDocumentsDir.path}/devocionales');
+
     // Crear el directorio si no existe
     if (!await devocionalesDir.exists()) {
       await devocionalesDir.create(recursive: true);
     }
-    
+
     return devocionalesDir;
   }
 
@@ -424,7 +441,7 @@ class DevocionalProvider with ChangeNotifier {
 
       // Validar que el JSON sea válido
       final Map<String, dynamic> jsonData = json.decode(response.body);
-      
+
       // Verificar que tenga la estructura esperada
       if (jsonData['data'] == null) {
         throw Exception('Estructura JSON inválida: falta campo "data"');
@@ -437,7 +454,7 @@ class DevocionalProvider with ChangeNotifier {
 
       _downloadStatus = 'Devocionales del año $year descargados exitosamente';
       debugPrint('Archivo guardado en: $filePath');
-      
+
       return true;
     } catch (e) {
       _downloadStatus = 'Error al descargar devocionales: $e';
@@ -450,11 +467,12 @@ class DevocionalProvider with ChangeNotifier {
   }
 
   /// Carga los devocionales desde el almacenamiento local
-  Future<Map<String, dynamic>?> _loadFromLocalStorage(int year, String language) async {
+  Future<Map<String, dynamic>?> _loadFromLocalStorage(
+      int year, String language) async {
     try {
       final String filePath = await _getLocalFilePath(year, language);
       final File file = File(filePath);
-      
+
       if (!await file.exists()) {
         return null;
       }
@@ -472,14 +490,14 @@ class DevocionalProvider with ChangeNotifier {
     try {
       final Directory storageDir = await _getLocalStorageDirectory();
       final List<FileSystemEntity> files = await storageDir.list().toList();
-      
+
       for (final FileSystemEntity file in files) {
         if (file is File) {
           await file.delete();
           debugPrint('Archivo eliminado: ${file.path}');
         }
       }
-      
+
       _downloadStatus = 'Archivos locales eliminados';
       notifyListeners();
     } catch (e) {
@@ -500,6 +518,30 @@ class DevocionalProvider with ChangeNotifier {
   /// Descarga devocionales para un año específico
   Future<bool> downloadDevocionalesForYear(int year) async {
     return await downloadAndStoreDevocionales(year);
+  }
+
+  /// Descarga devocionales para un año específico **con progreso**
+  Future<bool> downloadDevocionalesWithProgress({
+    required Function(double) onProgress,
+    int startYear = 2025,
+    int endYear = 2026,
+  }) async {
+    final totalYears = endYear - startYear + 1;
+    int doneYears = 0;
+    bool allSuccess = true;
+
+    for (int year = startYear; year <= endYear; year++) {
+      bool success = await downloadAndStoreDevocionales(year);
+      doneYears++;
+      double progress = doneYears / totalYears;
+      onProgress(progress);
+
+      if (!success) {
+        allSuccess = false;
+      }
+    }
+
+    return allSuccess;
   }
 
   /// Verifica si hay datos locales para el año actual

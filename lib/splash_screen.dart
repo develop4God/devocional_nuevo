@@ -1,8 +1,8 @@
 import 'dart:math';
-import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import 'package:devocional_nuevo/app_initializer.dart';
+import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -30,15 +30,15 @@ class _SplashScreenState extends State<SplashScreen>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1500), // Duración de la animación del fade
+      duration: const Duration(
+        milliseconds: 1500,
+      ), // Duración de la animación del fade
     );
 
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: Curves.easeIn,
-      ),
-    );
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeIn));
 
     // Inicializa las partículas luminosas
     final rnd = Random();
@@ -46,7 +46,8 @@ class _SplashScreenState extends State<SplashScreen>
       return _Particle(
         x: rnd.nextDouble() * particleAreaWidth,
         y: rnd.nextDouble() * particleAreaHeight,
-        size: particleMinSize + rnd.nextDouble() * (particleMaxSize - particleMinSize),
+        size: particleMinSize +
+            rnd.nextDouble() * (particleMaxSize - particleMinSize),
         speed: 0.4 + rnd.nextDouble() * 0.8,
         opacity: 0.5 + rnd.nextDouble() * 0.5,
         angle: rnd.nextDouble() * 2 * pi,
@@ -67,14 +68,16 @@ class _SplashScreenState extends State<SplashScreen>
         PageRouteBuilder(
           transitionDuration: const Duration(milliseconds: 600),
           pageBuilder: (context, animation, secondaryAnimation) =>
-          const AppInitializer(),
+              const AppInitializer(),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             const begin = Offset(1.0, 0.0);
             const end = Offset.zero;
             const curve = Curves.easeOutCubic;
 
-            var tween =
-            Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+            var tween = Tween(
+              begin: begin,
+              end: end,
+            ).chain(CurveTween(curve: curve));
 
             return SlideTransition(
               position: animation.drive(tween),
@@ -96,25 +99,26 @@ class _SplashScreenState extends State<SplashScreen>
   List<_Particle> _updateParticles(double time) {
     final List<_Particle> result = [];
     for (final p in particles) {
-      double y = p.y - p.speed * sin(time + p.angle) * 1.2;
-      double x = p.x + cos(time / 1.7 + p.angle) * 0.8;
+      double y = p.y - p.speed * sin(time + p.angle) * 4.8;
+      double x = p.x + cos(time / 1.7 + p.angle) * 3.2;
       double opacity = p.opacity * (0.7 + 0.3 * sin(time + p.angle * 2));
-      result.add(_Particle(
-        x: x,
-        y: y,
-        size: p.size,
-        speed: p.speed,
-        opacity: opacity,
-        angle: p.angle,
-        color: p.color,
-      ));
+      result.add(
+        _Particle(
+          x: x,
+          y: y,
+          size: p.size,
+          speed: p.speed,
+          opacity: opacity,
+          angle: p.angle,
+          color: p.color,
+        ),
+      );
     }
     return result;
   }
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       body: Stack(
         fit: StackFit.expand,
@@ -149,28 +153,30 @@ class _SplashScreenState extends State<SplashScreen>
                           alignment: Alignment.center,
                           children: [
                             // Partículas luminosas
-                            ...updatedParticles.map((p) => Positioned(
-                              left: p.x,
-                              top: p.y,
-                              child: Opacity(
-                                opacity: p.opacity,
-                                child: Container(
-                                  width: p.size,
-                                  height: p.size,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: p.color,
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.transparent,
-                                        blurRadius: 40,
-                                        spreadRadius: 8,
-                                      ),
-                                    ],
+                            ...updatedParticles.map(
+                              (p) => Positioned(
+                                left: p.x,
+                                top: p.y,
+                                child: Opacity(
+                                  opacity: p.opacity,
+                                  child: Container(
+                                    width: p.size,
+                                    height: p.size,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: p.color,
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.transparent,
+                                          blurRadius: 20,
+                                          spreadRadius: 2,
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ),
                               ),
-                            )),
+                            ),
                             // Texto principal centrado en el Stack
                             Center(
                               child: Text(

@@ -5,7 +5,7 @@ import 'package:devocional_nuevo/providers/devocional_provider.dart';
 class OfflineManagerWidget extends StatelessWidget {
   final bool showCompactView;
   final bool showStatusIndicator;
-  
+
   const OfflineManagerWidget({
     super.key,
     this.showCompactView = false,
@@ -32,7 +32,8 @@ class OfflineManagerWidget extends StatelessWidget {
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.offline_bolt, color: colorScheme.onPrimaryContainer),
+                    Icon(Icons.offline_bolt,
+                        color: colorScheme.onPrimaryContainer),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
@@ -46,12 +47,13 @@ class OfflineManagerWidget extends StatelessWidget {
                   ],
                 ),
               ),
-            
+
             if (!showCompactView && devocionalProvider.isOfflineMode)
               const SizedBox(height: 10),
-            
+
             // Mostrar estado de descarga si hay uno
-            if (showStatusIndicator && devocionalProvider.downloadStatus != null)
+            if (showStatusIndicator &&
+                devocionalProvider.downloadStatus != null)
               Container(
                 padding: EdgeInsets.all(showCompactView ? 8 : 12),
                 decoration: BoxDecoration(
@@ -76,16 +78,20 @@ class OfflineManagerWidget extends StatelessWidget {
                         devocionalProvider.downloadStatus!.contains('Error')
                             ? Icons.error
                             : Icons.check_circle,
-                        color: devocionalProvider.downloadStatus!.contains('Error')
-                            ? colorScheme.error
-                            : colorScheme.primary,
+                        color:
+                            devocionalProvider.downloadStatus!.contains('Error')
+                                ? colorScheme.error
+                                : colorScheme.primary,
                         size: 16,
                       ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         devocionalProvider.downloadStatus!,
-                        style: (showCompactView ? textTheme.bodySmall : textTheme.bodySmall)?.copyWith(
+                        style: (showCompactView
+                                ? textTheme.bodySmall
+                                : textTheme.bodySmall)
+                            ?.copyWith(
                           color: devocionalProvider.isDownloading
                               ? colorScheme.onSecondaryContainer
                               : colorScheme.onSurface,
@@ -95,17 +101,21 @@ class OfflineManagerWidget extends StatelessWidget {
                     if (!devocionalProvider.isDownloading)
                       IconButton(
                         icon: Icon(Icons.close, size: 16),
-                        onPressed: () => devocionalProvider.clearDownloadStatus(),
+                        onPressed: () =>
+                            devocionalProvider.clearDownloadStatus(),
                         padding: EdgeInsets.zero,
-                        constraints: BoxConstraints(minWidth: 24, minHeight: 24),
+                        constraints:
+                            BoxConstraints(minWidth: 24, minHeight: 24),
                       ),
                   ],
                 ),
               ),
-            
-            if (showStatusIndicator && devocionalProvider.downloadStatus != null && !showCompactView)
+
+            if (showStatusIndicator &&
+                devocionalProvider.downloadStatus != null &&
+                !showCompactView)
               const SizedBox(height: 15),
-            
+
             // Botones de acción - layout diferente para vista compacta
             if (showCompactView)
               // Vista compacta: solo botón principal
@@ -114,7 +124,8 @@ class OfflineManagerWidget extends StatelessWidget {
                 child: ElevatedButton.icon(
                   onPressed: devocionalProvider.isDownloading
                       ? null
-                      : () => _downloadDevocionales(context, devocionalProvider),
+                      : () =>
+                          _downloadDevocionales(context, devocionalProvider),
                   icon: Icon(Icons.download),
                   label: Text('Descargar año actual'),
                   style: ElevatedButton.styleFrom(
@@ -130,7 +141,8 @@ class OfflineManagerWidget extends StatelessWidget {
                     child: ElevatedButton.icon(
                       onPressed: devocionalProvider.isDownloading
                           ? null
-                          : () => _downloadDevocionales(context, devocionalProvider),
+                          : () => _downloadDevocionales(
+                              context, devocionalProvider),
                       icon: Icon(Icons.download),
                       label: Text('Descargar año actual'),
                       style: ElevatedButton.styleFrom(
@@ -153,10 +165,9 @@ class OfflineManagerWidget extends StatelessWidget {
                   ),
                 ],
               ),
-            
-            if (!showCompactView)
-              const SizedBox(height: 10),
-            
+
+            if (!showCompactView) const SizedBox(height: 10),
+
             // Información adicional - solo en vista completa
             if (!showCompactView)
               FutureBuilder<bool>(
@@ -182,10 +193,11 @@ class OfflineManagerWidget extends StatelessWidget {
     );
   }
 
-  Future<void> _downloadDevocionales(BuildContext context, DevocionalProvider provider) async {
+  Future<void> _downloadDevocionales(
+      BuildContext context, DevocionalProvider provider) async {
     final colorScheme = Theme.of(context).colorScheme;
     final success = await provider.downloadCurrentYearDevocionales();
-    
+
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -194,18 +206,17 @@ class OfflineManagerWidget extends StatelessWidget {
                 ? 'Descarga completada exitosamente'
                 : 'Error en la descarga. Verifica tu conexión.',
           ),
-          backgroundColor: success
-              ? colorScheme.primary
-              : colorScheme.error,
+          backgroundColor: success ? colorScheme.primary : colorScheme.error,
         ),
       );
     }
   }
 
-  Future<void> _refreshFromAPI(BuildContext context, DevocionalProvider provider) async {
+  Future<void> _refreshFromAPI(
+      BuildContext context, DevocionalProvider provider) async {
     final colorScheme = Theme.of(context).colorScheme;
     await provider.forceRefreshFromAPI();
-    
+
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

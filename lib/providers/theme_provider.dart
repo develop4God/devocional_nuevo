@@ -15,7 +15,7 @@ class ThemeProvider extends ChangeNotifier {
       Brightness.light; // Modo de brillo por defecto
   // MODIFICADO: El tema inicial ahora se obtiene del mapa appThemeFamilies
   ThemeData _currentTheme = appThemeFamilies['Deep Purple']![
-  'light']!; // Tema inicial (será actualizado al cargar preferencias)
+      'light']!; // Tema inicial (será actualizado al cargar preferencias)
 
   ThemeProvider() {
     _loadThemePreference(); // Cargar las preferencias de tema al inicializar
@@ -35,7 +35,7 @@ class ThemeProvider extends ChangeNotifier {
   // Método interno para actualizar el ThemeData basado en la familia y el brillo actuales
   void _updateTheme() {
     final String brightnessKey =
-    _currentBrightness == Brightness.light ? 'light' : 'dark';
+        _currentBrightness == Brightness.light ? 'light' : 'dark';
     // Busca el tema en el mapa appThemeFamilies. Si no lo encuentra, usa el tema Deep Purple Light como fallback.
     _currentTheme = appThemeFamilies[_currentThemeFamily]?[brightnessKey] ??
         appThemeFamilies['Deep Purple']!['light']!;
@@ -82,7 +82,7 @@ class ThemeProvider extends ChangeNotifier {
     // Si hay un brillo guardado, lo usa
     if (savedBrightnessString != null) {
       _currentBrightness =
-      savedBrightnessString == 'light' ? Brightness.light : Brightness.dark;
+          savedBrightnessString == 'light' ? Brightness.light : Brightness.dark;
     }
 
     _updateTheme(); // Aplica las preferencias cargadas para establecer el tema inicial
