@@ -47,134 +47,7 @@ jobs:
           echo "📊 Branch statistics:"
           echo "🔢 Total commits in branch: $(git rev-list --count HEAD)"
           echo "📁 Files changed in last 5 commits:"
-          git log --name-only --pretty=format: -5 | sort | uniq | grep -v '^
-
-      - name: ☕ Set up Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-
-      - name: 🔧 Set up Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          channel: stable
-          cache: true
-
-      - name: 📊 Flutter doctor
-        run: flutter doctor -v
-
-      - name: 📦 Install dependencies
-        run: flutter pub get
-
-      - name: 🧹 Clean build
-        run: flutter clean
-
-      - name: 🏗️ Build APK (${{ github.event.inputs.build_type || 'debug' }})
-        run: |
-          if [ "${{ github.event.inputs.build_type || 'debug' }}" = "release" ]; then
-            echo "🚀 Building release APK..."
-            flutter build apk --release
-            APK_PATH="build/app/outputs/flutter-apk/app-release.apk"
-            APK_TYPE="release"
-          else
-            echo "🔧 Building debug APK..."
-            flutter build apk --debug
-            APK_PATH="build/app/outputs/flutter-apk/app-debug.apk"
-            APK_TYPE="debug"
-          fi
-          
-          echo "APK_PATH=$APK_PATH" >> $GITHUB_ENV
-          echo "APK_TYPE=$APK_TYPE" >> $GITHUB_ENV
-
-      - name: 📋 APK Info
-        run: |
-          if [ -f "$APK_PATH" ]; then
-            echo "✅ APK built successfully!"
-            echo "📁 Path: $APK_PATH"
-            echo "📏 Size: $(ls -lh $APK_PATH | awk '{print $5}')"
-            echo "🔍 SHA256: $(sha256sum $APK_PATH | cut -d' ' -f1)"
-          else
-            echo "❌ APK not found at expected path: $APK_PATH"
-            echo "📁 Contents of build directory:"
-            find build -name "*.apk" -type f 2>/dev/null || echo "No APK files found"
-            exit 1
-          fi
-
-      - name: 📤 Upload APK artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: app-${{ env.APK_TYPE }}-${{ github.event.inputs.branch || 'main' }}-${{ github.run_number }}
-          path: ${{ env.APK_PATH }}
-          retention-days: 30
-
-      - name: 📝 Build Summary
-        run: |
-          echo "## 🎉 Build Completed Successfully!" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### 📋 Build Details:" >> $GITHUB_STEP_SUMMARY
-          echo "- **Branch**: \`${{ github.event.inputs.branch || 'main' }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "- **Build Type**: \`${{ env.APK_TYPE }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "- **APK Size**: \`$(ls -lh $APK_PATH | awk '{print $5}')\`" >> $GITHUB_STEP_SUMMARY
-          echo "- **Commit**: \`$(git log -1 --oneline)\`" >> $GITHUB_STEP_SUMMARY
-          echo "- **Build Number**: \`#${{ github.run_number }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### 📦 Artifact:" >> $GITHUB_STEP_SUMMARY
-          echo "The APK is available as an artifact named: \`app-${{ env.APK_TYPE }}-${{ github.event.inputs.branch || 'main' }}-${{ github.run_number }}\`" >> $GITHUB_STEP_SUMMARY
-
-  # Job adicional para verificar diferencias entre ramas
-  branch-info:
-    runs-on: ubuntu-latest
-    if: github.event.inputs.branch != 'main' && github.event.inputs.branch != ''
-    
-    steps:
-      - name: 📥 Checkout target branch
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          ref: ${{ github.event.inputs.branch }}
-
-      - name: 🔍 Branch comparison
-        run: |
-          echo "## 🔍 Branch Information" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          
-          TARGET_BRANCH="${{ github.event.inputs.branch }}"
-          
-          # Información de la rama actual
-          echo "### 📋 Target Branch: \`$TARGET_BRANCH\`" >> $GITHUB_STEP_SUMMARY
-          echo "- **Latest commit**: \`$(git log -1 --oneline)\`" >> $GITHUB_STEP_SUMMARY
-          echo "- **Author**: \`$(git log -1 --pretty=format:'%an')\`" >> $GITHUB_STEP_SUMMARY
-          echo "- **Date**: \`$(git log -1 --pretty=format:'%ad --date=short')\`" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          
-          # Comparación con main si no es main
-          if [ "$TARGET_BRANCH" != "main" ]; then
-            echo "### 🔄 Comparison with main:" >> $GITHUB_STEP_SUMMARY
-            
-            # Obtener main para comparar
-            git fetch origin main:main 2>/dev/null || git fetch origin main 2>/dev/null || echo "Could not fetch main branch"
-            
-            if git show-ref --verify --quiet refs/heads/main || git show-ref --verify --quiet refs/remotes/origin/main; then
-              MAIN_REF=$(git show-ref --verify --quiet refs/heads/main && echo "main" || echo "origin/main")
-              
-              # Commits ahead/behind
-              AHEAD=$(git rev-list --count $MAIN_REF..$TARGET_BRANCH 2>/dev/null || echo "N/A")
-              BEHIND=$(git rev-list --count $TARGET_BRANCH..$MAIN_REF 2>/dev/null || echo "N/A")
-              
-              echo "- **Commits ahead of main**: $AHEAD" >> $GITHUB_STEP_SUMMARY
-              echo "- **Commits behind main**: $BEHIND" >> $GITHUB_STEP_SUMMARY
-              
-              # Últimos commits únicos en esta rama
-              echo "" >> $GITHUB_STEP_SUMMARY
-              echo "### 📝 Recent commits in \`$TARGET_BRANCH\`:" >> $GITHUB_STEP_SUMMARY
-              echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-              git log --oneline $MAIN_REF..$TARGET_BRANCH --max-count=5 2>/dev/null || echo "No unique commits or comparison not possible"
-              echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-            else
-              echo "- ⚠️ Could not compare with main branch" >> $GITHUB_STEP_SUMMARY
-            fi
-          fi | head -10
+          git log --name-only --pretty=format: -5 | sort | uniq | grep -v '^$' | head -10
           echo ""
           echo "🔍 Last 3 commits in this branch:"
           git log --oneline -3
@@ -253,7 +126,7 @@ jobs:
           echo "The APK is available as an artifact named: \`app-${{ env.APK_TYPE }}-${{ github.event.inputs.branch || 'main' }}-${{ github.run_number }}\`" >> $GITHUB_STEP_SUMMARY
 
   # Job adicional para verificar diferencias entre ramas
-  branch-info:
+  branch-comparison:
     runs-on: ubuntu-latest
     if: github.event.inputs.branch != 'main' && github.event.inputs.branch != ''
     
@@ -275,7 +148,7 @@ jobs:
           echo "### 📋 Target Branch: \`$TARGET_BRANCH\`" >> $GITHUB_STEP_SUMMARY
           echo "- **Latest commit**: \`$(git log -1 --oneline)\`" >> $GITHUB_STEP_SUMMARY
           echo "- **Author**: \`$(git log -1 --pretty=format:'%an')\`" >> $GITHUB_STEP_SUMMARY
-          echo "- **Date**: \`$(git log -1 --pretty=format:'%ad --date=short')\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Date**: \`$(git log -1 --pretty=format:'%ad' --date=short)\`" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
           # Comparación con main si no es main
@@ -299,7 +172,7 @@ jobs:
               echo "" >> $GITHUB_STEP_SUMMARY
               echo "### 📝 Recent commits in \`$TARGET_BRANCH\`:" >> $GITHUB_STEP_SUMMARY
               echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-              git log --oneline $MAIN_REF..$TARGET_BRANCH --max-count=5 2>/dev/null || echo "No unique commits or comparison not possible"
+              git log --oneline $MAIN_REF..$TARGET_BRANCH --max-count=5 2>/dev/null >> $GITHUB_STEP_SUMMARY || echo "No unique commits or comparison not possible" >> $GITHUB_STEP_SUMMARY
               echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
             else
               echo "- ⚠️ Could not compare with main branch" >> $GITHUB_STEP_SUMMARY
