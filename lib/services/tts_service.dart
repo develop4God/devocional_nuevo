@@ -193,7 +193,7 @@ class TtsService {
     
     // Remove or replace problematic characters that might cause TTS issues
     final cleaned = sanitized
-        .replaceAll(RegExp(r'[^\w\s\.,!?;:\-\'\"()áéíóúÁÉÍÓÚñÑüÜ]'), ' ')
+        .replaceAll(RegExp(r'[^\w\s\.,!?;:\-\'"()áéíóúÁÉÍÓÚñÑüÜ]'), ' ')
         .replaceAll(RegExp(r'\s+'), ' '); // Normalize whitespace
     
     return cleaned.isEmpty ? null : cleaned;
