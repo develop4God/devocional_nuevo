@@ -18,9 +18,9 @@ class DevocionalesDrawer extends StatelessWidget {
         '¡Participa en el pre-lanzamiento del app devocionales Cristianos.\n'
         'Enlace para inscribirte y edificarte con la palabra de Dios.\n'
         'https://forms.gle/HGFNUv9pc8XpG8aa6';
-    Share.share(message);
-    Navigator.of(context).pop(); // Cerrar drawer tras compartir
-  }
+    SharePlus.instance.share(message as ShareParams);
+      Navigator.of(context).pop(); // Cerrar drawer tras compartir
+    }
 
   // Helper para alinear iconos y textos uniformemente
   Widget drawerRow({
