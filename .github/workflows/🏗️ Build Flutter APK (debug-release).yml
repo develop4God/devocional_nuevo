@@ -1,4 +1,4 @@
-name: 🏗️ Build Flutter APK (Debug)
+name: 🏗️ Build Flutter APK (debug-release)
 
 on:
   workflow_dispatch:
@@ -36,6 +36,15 @@ jobs:
           fetch-depth: 0  # IMPORTANTE: Trae TODO el historial de la rama
           ref: ${{ github.event.inputs.branch || 'main' }}
           # Asegura que tenemos toda la rama completa, no solo el último commit
+
+      - name: 🧹 Sanitize branch name for artifact
+        run: |
+          BRANCH_NAME="${{ github.event.inputs.branch || 'main' }}"
+          # Replace invalid characters with hyphens
+          CLEAN_BRANCH_NAME=$(echo "$BRANCH_NAME" | sed 's/[\/:"<>|*?\\]/-/g')
+          echo "CLEAN_BRANCH_NAME=$CLEAN_BRANCH_NAME" >> $GITHUB_ENV
+          echo "✅ Original branch: $BRANCH_NAME"
+          echo "✅ Sanitized branch: $CLEAN_BRANCH_NAME"
 
       - name: 📋 Verify complete branch content
         run: |
@@ -107,7 +116,7 @@ jobs:
       - name: 📤 Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: app-${{ env.APK_TYPE }}-${{ github.event.inputs.branch || 'main' }}-${{ github.run_number }}
+          name: app-${{ env.APK_TYPE }}-${{ env.CLEAN_BRANCH_NAME }}-${{ github.run_number }}
           path: ${{ env.APK_PATH }}
           retention-days: 30
 
@@ -123,7 +132,7 @@ jobs:
           echo "- **Build Number**: \`#${{ github.run_number }}\`" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### 📦 Artifact:" >> $GITHUB_STEP_SUMMARY
-          echo "The APK is available as an artifact named: \`app-${{ env.APK_TYPE }}-${{ github.event.inputs.branch || 'main' }}-${{ github.run_number }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "The APK is available as an artifact named: \`app-${{ env.APK_TYPE }}-${{ env.CLEAN_BRANCH_NAME }}-${{ github.run_number }}\`" >> $GITHUB_STEP_SUMMARY
 
   # Job adicional para verificar diferencias entre ramas
   branch-comparison:
