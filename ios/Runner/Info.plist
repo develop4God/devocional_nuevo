@@ -52,6 +52,8 @@
 	</array>
 	<key>NSUserNotificationsUsageDescription</key>
 	<string>Necesitamos enviar notificaciones para recordarte leer tu devocional diario y mantenerte informado sobre nuevas características.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Esta aplicación usa síntesis de voz para leer el contenido devocional en voz alta con fines de accesibilidad.</string>
 	<key>FirebaseAppDelegateProxyEnabled</key>
 	<false/>
 </dict>
