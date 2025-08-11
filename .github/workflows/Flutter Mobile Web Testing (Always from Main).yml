@@ -1,0 +1,306 @@
+name: Flutter Mobile Web Testing (Always from Main)
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_branch:
+        description: 'Branch to test (leave empty for current)'
+        required: false
+        default: ''
+
+jobs:
+  mobile-web-preview:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout target branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.target_branch || github.ref }}
+
+      - name: Show branch info
+        run: |
+          echo "🌿 TESTING BRANCH: ${{ github.event.inputs.target_branch || github.ref_name }}"
+          echo "⚙️  WORKFLOW FROM: main (always)"
+
+      - name: Cache Flutter dependencies (optimized)
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pub-cache
+            .dart_tool
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-flutter-all-${{ hashFiles('**/pubspec.yaml', '**/*.gradle*') }}
+          restore-keys: |
+            ${{ runner.os }}-flutter-all-
+            ${{ runner.os }}-flutter-
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Configure Flutter
+        run: flutter config --no-analytics
+
+      - name: Install dependencies (fast)
+        run: flutter pub get --no-precompile
+
+      - name: Smart Build web for mobile (optimized)
+        run: |
+          # Array de opciones de build en orden de probabilidad de éxito
+          build_options=(
+            "flutter build web --release --base-href ./ --no-tree-shake-icons"
+            "flutter build web --release --base-href /${{ github.event.repository.name }}/ --no-tree-shake-icons --dart-define=FLUTTER_WEB_USE_SKIA=false"
+            "flutter build web --release --base-href /${{ github.event.repository.name }}/ --no-tree-shake-icons --dart2js-optimization O4"
+            "flutter build web --release --base-href /${{ github.event.repository.name }}/ --no-tree-shake-icons --no-web-resources-cdn"
+            "flutter build web --release --base-href /${{ github.event.repository.name }}/ --no-tree-shake-icons"
+            "flutter build web --release --no-tree-shake-icons"
+          )
+          
+          # Nombres descriptivos para cada opción
+          build_names=(
+            "Base href ./ (GitHub Pages optimized)"
+            "SKIA disabled for mobile compatibility"
+            "Dart2js O4 optimization"
+            "No web resources CDN"
+            "Standard release with base href"
+            "Basic release without base href"
+          )
+          
+          success=false
+          
+          for i in "${!build_options[@]}"; do
+            echo "🔄 Intentando opción $((i+1)): ${build_names[$i]}"
+            echo "📋 Comando: ${build_options[$i]}"
+            
+            # Limpiar build anterior si existe
+            rm -rf build/web 2>/dev/null || true
+            
+            # Intentar el build
+            if ${build_options[$i]}; then
+              echo "✅ ¡ÉXITO! Opción $((i+1)) funcionó: ${build_names[$i]}"
+              
+              # Si es la opción básica sin base href, agregarlo manualmente
+              if [[ $i -eq 5 ]]; then
+                echo "🔧 Agregando base href manualmente..."
+                sed -i 's/<base href="\/">/<base href="\/${{ github.event.repository.name }}\/">/' build/web/index.html
+              fi
+              
+              # SIEMPRE verificar y corregir el base href si está mal
+              if grep -q '<base href="/">' build/web/index.html; then
+                echo "🔧 Corrigiendo base href incorrecto de / a /${{ github.event.repository.name }}/"
+                sed -i 's/<base href="\/">/<base href="\/${{ github.event.repository.name }}\/">/' build/web/index.html
+              fi
+              
+              # Verificar que se generaron los archivos críticos
+              if [[ -f "build/web/index.html" ]]; then
+                echo "✅ index.html generado correctamente"
+                
+                # SIEMPRE verificar y corregir el base href ANTES de continuar
+                echo "🔍 Verificando base href en index.html..."
+                if grep -q '<base href="/">' build/web/index.html; then
+                  echo "🔧 Corrigiendo base href incorrecto de / a /${{ github.event.repository.name }}/"
+                  sed -i 's/<base href="\/">/<base href="\/${{ github.event.repository.name }}\/">/' build/web/index.html
+                  echo "✅ Base href corregido"
+                elif grep -q '<base href="/.*/">' build/web/index.html; then
+                  echo "✅ Base href ya está configurado correctamente"
+                else
+                  echo "⚠️  Base href no encontrado, agregándolo..."
+                  sed -i 's/<base href="[^"]*">/<base href="\/${{ github.event.repository.name }}\/">/' build/web/index.html
+                fi
+                
+                # Mostrar el base href final
+                echo "📋 Base href final:"
+                grep 'base href' build/web/index.html || echo "❌ No se pudo encontrar base href"
+                
+                # Verificar si existe main.dart.js o flutter.js
+                if [[ -f "build/web/main.dart.js" || -f "build/web/flutter.js" ]]; then
+                  echo "✅ Archivos JavaScript verificados"
+                  echo "📁 Contenido generado:"
+                  ls -la build/web/ | head -10
+                  success=true
+                  break
+                else
+                  echo "⚠️  JavaScript files not found, checking for other patterns..."
+                  find build/web -name "*.js" | head -5
+                  if [[ $(find build/web -name "*.js" | wc -l) -gt 0 ]]; then
+                    echo "✅ Found JavaScript files, continuing..."
+                    success=true
+                    break
+                  fi
+                fi
+              else
+                echo "❌ Build exitoso pero falta index.html"
+              fi
+            else
+              echo "❌ Falló opción $((i+1)): ${build_names[$i]}"
+              echo "⏭️  Probando siguiente opción..."
+              echo ""
+            fi
+          done
+          
+          if [[ "$success" != "true" ]]; then
+            echo "💥 ERROR: Todas las opciones de build fallaron"
+            echo "📋 Opciones probadas:"
+            for j in "${!build_names[@]}"; do
+              echo "  $((j+1)). ${build_names[$j]}"
+            done
+            exit 1
+          fi
+          
+          echo ""
+          echo "🎉 =================================="
+          echo "✅ BUILD EXITOSO CON: ${build_names[$i]}"
+          echo "🎉 =================================="
+          echo "📋 Comando ganador: ${build_options[$i]}"
+
+      - name: Deploy to GitHub Pages for mobile testing
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./build/web
+          force_orphan: true
+
+      - name: Wait for GitHub Pages deployment
+        run: |
+          echo "⏳ Esperando que GitHub Pages procese el deployment..."
+          sleep 60
+
+      - name: 🔍 VALIDATE APP ACTUALLY WORKS
+        run: |
+          APP_URL="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/"
+          echo "🔍 Validando que la app realmente funcione en: $APP_URL"
+          
+          # Función para verificar la app
+          check_app() {
+            local attempt=$1
+            echo "🌐 Intento $attempt: Verificando $APP_URL"
+            
+            # Descargar la página
+            response=$(curl -s -L -w "%{http_code}" "$APP_URL" -o page_content.html)
+            http_code="${response: -3}"
+            
+            echo "📊 HTTP Status: $http_code"
+            
+            if [[ "$http_code" -eq 200 ]]; then
+              echo "✅ Página accesible (HTTP 200)"
+              
+              # Verificar contenido crítico
+              echo "🔍 Verificando contenido de la página..."
+              
+              # Check 1: Tiene HTML válido
+              if grep -q "<html" page_content.html; then
+                echo "✅ HTML structure found"
+              else
+                echo "❌ No HTML structure found"
+                return 1
+              fi
+              
+              # Check 2: Tiene Flutter bootstrap o main.dart.js
+              if grep -q "flutter_bootstrap.js\|main.dart.js\|flutter.js" page_content.html; then
+                echo "✅ Flutter JavaScript files referenced"
+              else
+                echo "❌ No Flutter JavaScript references found"
+                echo "📄 Page content preview:"
+                head -20 page_content.html
+                return 1
+              fi
+              
+              # Check 3: Tiene base href correcto específicamente
+              if grep -q 'base href="/Devocional_nuevo/"' page_content.html; then
+                echo "✅ Base href configurado correctamente para GitHub Pages"
+                grep 'base href' page_content.html
+              elif grep -q 'base href="./"' page_content.html; then
+                echo "✅ Base href configurado con ./ (debería funcionar)"
+                grep 'base href' page_content.html
+              elif grep -q 'base href="/"' page_content.html; then
+                echo "❌ Base href configurado como raíz (/), esto causará página en blanco"
+                grep 'base href' page_content.html
+                return 1
+              else
+                echo "⚠️  No base href found"
+                return 1
+              fi
+              
+              # Check 4: No es página de error
+              if grep -qi "404\|not found\|error" page_content.html; then
+                echo "❌ Error page detected"
+                return 1
+              fi
+              
+              echo "✅ Página parece válida"
+              return 0
+            else
+              echo "❌ HTTP $http_code - Página no accesible"
+              return 1
+            fi
+          }
+          
+          # Intentar validar 3 veces con esperas
+          success=false
+          for attempt in {1..3}; do
+            if check_app $attempt; then
+              success=true
+              break
+            else
+              if [[ $attempt -lt 3 ]]; then
+                echo "⏳ Esperando 30 segundos antes del siguiente intento..."
+                sleep 30
+              fi
+            fi
+          done
+          
+          if [[ "$success" != "true" ]]; then
+            echo ""
+            echo "💥 =================================="
+            echo "❌ VALIDACIÓN FALLÓ"
+            echo "💥 =================================="
+            echo "🚨 La app NO está funcionando correctamente"
+            echo "🌐 URL: $APP_URL"
+            echo "📋 La página está accesible pero el contenido no es válido"
+            echo "🔧 Posibles causas:"
+            echo "   • Base href incorrecto"
+            echo "   • Archivos JavaScript no se cargan"
+            echo "   • Flutter no se inicializa"
+            echo "   • Página completamente en blanco"
+            echo ""
+            echo "📄 Contenido actual de la página:"
+            cat page_content.html
+            echo ""
+            echo "💡 Recomendación: Revisar la configuración del build"
+            exit 1
+          fi
+          
+          echo ""
+          echo "🎉 =================================="
+          echo "✅ VALIDACIÓN EXITOSA"
+          echo "🎉 =================================="
+          echo "✅ La app está funcionando correctamente"
+          echo "🌐 URL: $APP_URL"
+
+      - name: 📱 MOBILE TESTING - URL READY!
+        run: |
+          echo "🎉 =================================="
+          echo "📱 TU APP ESTÁ LISTA PARA TESTING!"
+          echo "🎉 =================================="
+          echo ""
+          echo "🌐 URL DIRECTA (copia y pega en tu celular):"
+          echo "👉 https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/"
+          echo ""
+          echo "⏱️  TIEMPO DE ESPERA: 2-3 minutos máximo"
+          echo ""
+          echo "📱 PASOS EN TU CELULAR:"
+          echo "   1️⃣ Copia la URL de arriba"
+          echo "   2️⃣ Pégala en Chrome/Safari móvil"
+          echo "   3️⃣ Si no carga, espera 1 min más y refresh"
+          echo ""
+          echo "🔍 TESTING DE OVERFLOW:"
+          echo "   ✅ Rota pantalla (portrait/landscape)"
+          echo "   ✅ Scroll vertical y horizontal"
+          echo "   ✅ Prueba todos los botones y forms"
+          echo "   ✅ Navega entre pantallas"
+          echo ""
+          echo "🚀 BRANCH TESTEADO: ${{ github.event.inputs.target_branch || github.ref_name }}"
+          echo "🎉 =================================="

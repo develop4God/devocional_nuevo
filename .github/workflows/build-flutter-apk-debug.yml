@@ -1,7 +1,12 @@
-name: Build & Cache Flutter APK (Debug)
+name: Build Flutter APK (Debug)
 
 on:
   workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to build (default: main)'
+        required: false
+        default: 'main'
 
 jobs:
   build:
@@ -10,26 +15,16 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Cache Flutter dependencies
-        uses: actions/cache@v4
         with:
-          path: |
-            ~/.pub-cache
-            .dart_tool/package_config.json
-          key: ${{ runner.os }}-flutter-${{ hashFiles('**/pubspec.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-flutter-
+          fetch-depth: 1
+          ref: ${{ github.event.inputs.branch }}
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: stable
 
-      - name: Flutter clean
-        run: flutter clean
-
-      - name: Install dependencies (pub get)
+      - name: Install dependencies
         run: flutter pub get
 
       - name: Build APK (debug)
@@ -38,5 +33,5 @@ jobs:
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: app-debug.apk
+          name: app-debug
           path: build/app/outputs/flutter-apk/app-debug.apk
