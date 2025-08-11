@@ -1,7 +1,16 @@
-name: Build & Cache Flutter APK (Debug)
+name: Build Flutter APK (Debug)
 
 on:
   workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to build (default: main)'
+        required: false
+        default: 'main'
+  push:
+    branches:
+      - main
+      - copilot/fix-18  # Puedes agregar aquí más ramas si quieres builds automáticos
 
 jobs:
   build:
@@ -9,44 +18,24 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Cache Gradle dependencies
-        uses: actions/cache@v4
+        uses: actions/checkout@v3
         with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
-
-      - name: Cache Flutter dependencies
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.pub-cache
-            .dart_tool/package_config.json
-          key: ${{ runner.os }}-flutter-${{ hashFiles('**/pubspec.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-flutter-
+          fetch-depth: 1
+          ref: ${{ github.event.inputs.branch || github.ref_name }}
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: stable
 
-      - name: Flutter clean
-        run: flutter clean
-
-      - name: Install dependencies (pub get)
+      - name: Install dependencies
         run: flutter pub get
 
       - name: Build APK (debug)
         run: flutter build apk --debug
 
       - name: Upload APK artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
-          name: app-debug.apk
+          name: app-debug
           path: build/app/outputs/flutter-apk/app-debug.apk
