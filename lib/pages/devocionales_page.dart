@@ -115,6 +115,10 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     final List<Devocional> devocionales = devocionalProvider.devocionales;
 
     if (_currentDevocionalIndex < devocionales.length - 1) {
+      // Record that the current devotional was read before moving to the next one
+      final currentDevocional = devocionales[_currentDevocionalIndex];
+      devocionalProvider.recordDevocionalRead(currentDevocional.id);
+      
       setState(() {
         _currentDevocionalIndex++;
       });

@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:devocional_nuevo/pages/devocionales_page.dart'; // Página principal de devocionales
 import 'package:devocional_nuevo/pages/favorites_page.dart'; // Página de favoritos
+import 'package:devocional_nuevo/pages/progress_page.dart'; // Página de progreso espiritual
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -18,10 +19,7 @@ class _HomePageState extends State<HomePage> {
   static const List<Widget> _widgetOptions = <Widget>[
     DevocionalesPage(), // La página principal de devocionales
     FavoritesPage(), // La página de favoritos
-    Text(
-      'Página de Ajustes (Próximamente)',
-      style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
-    ), // Un placeholder para la página de ajustes
+    ProgressPage(), // La página de progreso espiritual
   ];
 
   void _onItemTapped(int index) {
@@ -48,8 +46,8 @@ class _HomePageState extends State<HomePage> {
             label: 'Favoritos', // Etiqueta para favoritos
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.settings_outlined), // Icono de ajustes outlined
-            label: 'Ajustes', // Etiqueta para ajustes
+            icon: Icon(Icons.trending_up_outlined), // Icono de progreso outlined
+            label: 'Progreso', // Etiqueta para progreso espiritual
           ),
         ],
         currentIndex: _selectedIndex, // Índice actual seleccionado

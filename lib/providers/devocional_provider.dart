@@ -6,6 +6,7 @@ import 'dart:ui'; // Necesario para PlatformDispatcher para obtener el locale
 
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/utils/constants.dart'; // Importación necesaria para Constants.apiUrl
+import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http; // Importación correcta para http
 import 'package:path_provider/path_provider.dart'; // Para acceso a directorios del dispositivo
@@ -28,6 +29,9 @@ class DevocionalProvider with ChangeNotifier {
   List<Devocional> _favoriteDevocionales =
       []; // Lista de devocionales favoritos
   bool _showInvitationDialog = true; // Para el diálogo de invitación
+
+  // Service for tracking spiritual statistics
+  final SpiritualStatsService _statsService = SpiritualStatsService();
 
   // Propiedades para funcionalidad offline
   bool _isDownloading = false; // Estado de descarga
@@ -317,7 +321,30 @@ class DevocionalProvider with ChangeNotifier {
       );
     }
     _saveFavorites();
+    
+    // Update spiritual stats with new favorites count
+    _statsService.updateFavoritesCount(_favoriteDevocionales.length);
+    
     notifyListeners();
+  }
+
+  /// Record that a devotional was read (call this when user completes reading a devotional)
+  /// This should only be called when the user has truly read the content, not just navigated
+  Future<void> recordDevocionalRead(String devocionalId) async {
+    if (devocionalId.isEmpty) {
+      debugPrint('Cannot record devotional read: empty ID');
+      return;
+    }
+    
+    try {
+      await _statsService.recordDevocionalRead(
+        devocionalId: devocionalId,
+        favoritesCount: _favoriteDevocionales.length,
+      );
+      debugPrint('Recorded devotional read: $devocionalId');
+    } catch (e) {
+      debugPrint('Error recording devotional read: $e');
+    }
   }
 
   // --- Lógica del Diálogo de Invitación ---
