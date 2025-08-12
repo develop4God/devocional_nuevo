@@ -13,6 +13,7 @@ import 'package:devocional_nuevo/widgets/devocionales_page_drawer.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/pages/settings_page.dart';
+import 'package:devocional_nuevo/pages/progress_page.dart';
 import 'package:devocional_nuevo/services/update_service.dart';
 
 class DevocionalesPage extends StatefulWidget {
@@ -649,6 +650,18 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                       : null,
                   icon:
                       Icon(Icons.image, color: appBarForegroundColor, size: 30),
+                ),
+                IconButton(
+                  tooltip: 'Ver progreso y logros',
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const ProgressPage(),
+                      ),
+                    );
+                  },
+                  icon: Icon(Icons.emoji_events_outlined, color: appBarForegroundColor, size: 30),
                 ),
                 IconButton(
                   tooltip: 'Configuración',
