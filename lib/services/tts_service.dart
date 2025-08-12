@@ -255,7 +255,94 @@ class TtsService {
     }
   }
 
-  /// Start speaking a devotional
+  /// Generate devotional text divided into smaller chunks for better TTS performance
+  List<String> _generateDevotionalChunks(Devocional devocional) {
+    List<String> chunks = [];
+    
+    try {
+      // Versículo
+      final verse = _validateAndSanitizeText(devocional.versiculo);
+      if (verse != null) {
+        chunks.add('Versículo: $verse');
+      }
+      
+      // Reflexión dividida en párrafos
+      final reflection = _validateAndSanitizeText(devocional.reflexion);
+      if (reflection != null) {
+        chunks.add('Reflexión:');
+        
+        // Dividir reflexión en párrafos por puntos
+        final sentences = reflection.split('. ');
+        String currentParagraph = '';
+        
+        for (String sentence in sentences) {
+          if (sentence.trim().isNotEmpty) {
+            if (currentParagraph.length + sentence.length < 200) {
+              currentParagraph += sentence.trim() + '. ';
+            } else {
+              if (currentParagraph.isNotEmpty) {
+                chunks.add(currentParagraph.trim());
+              }
+              currentParagraph = sentence.trim() + '. ';
+            }
+          }
+        }
+        
+        if (currentParagraph.isNotEmpty) {
+          chunks.add(currentParagraph.trim());
+        }
+      }
+      
+      // Para Meditar
+      if (devocional.paraMeditar.isNotEmpty) {
+        chunks.add('Para Meditar:');
+        for (final item in devocional.paraMeditar) {
+          final citation = _validateAndSanitizeText(item.cita);
+          final text = _validateAndSanitizeText(item.texto);
+          if (citation != null && text != null) {
+            chunks.add('$citation: $text');
+          }
+        }
+      }
+      
+      // Oración dividida
+      final prayer = _validateAndSanitizeText(devocional.oracion);
+      if (prayer != null) {
+        chunks.add('Oración:');
+        
+        // Dividir oración en chunks más pequeños
+        final prayerSentences = prayer.split('. ');
+        String currentChunk = '';
+        
+        for (String sentence in prayerSentences) {
+          if (sentence.trim().isNotEmpty) {
+            if (currentChunk.length + sentence.length < 250) {
+              currentChunk += sentence.trim() + '. ';
+            } else {
+              if (currentChunk.isNotEmpty) {
+                chunks.add(currentChunk.trim());
+              }
+              currentChunk = sentence.trim() + '. ';
+            }
+          }
+        }
+        
+        if (currentChunk.isNotEmpty) {
+          chunks.add(currentChunk.trim());
+        }
+      }
+      
+      return chunks;
+      
+    } catch (e) {
+      throw TtsException(
+        'Failed to generate devotional chunks: $e',
+        originalError: e
+      );
+    }
+  }
+
+  /// Start speaking a devotional (MODIFIED to use chunks)
   Future<void> speakDevotional(Devocional devocional) async {
     return await _mutex.synchronized(() async {
       if (_disposed) {
@@ -271,18 +358,30 @@ class TtsService {
           await _stopInternal();
         }
 
-        _currentText = _generateDevotionalText(devocional);
+        // NUEVO: Dividir el texto en chunks
+        final textChunks = _generateDevotionalChunks(devocional);
         
-        try {
-          await _flutterTts.speak(_currentText!);
-          _trackPerformance('speak', DateTime.now().difference(_lastOperationStart!));
-        } on PlatformException catch (e) {
-          throw TtsException(
-            'Platform-specific speech error: ${e.message}',
-            code: e.code,
-            originalError: e
-          );
+        // Reproducir chunk por chunk
+        for (String chunk in textChunks) {
+          if (_disposed || (!_isPlaying && !_isPaused)) break; // Si se pausó/detuvo, salir
+          
+          _currentText = chunk;
+          
+          try {
+            await _flutterTts.speak(chunk);
+            // Esperar un poco entre chunks
+            await Future.delayed(Duration(milliseconds: 600));
+          } on PlatformException catch (e) {
+            throw TtsException(
+              'Platform-specific speech error: ${e.message}',
+              code: e.code,
+              originalError: e
+            );
+          }
         }
+        
+        _trackPerformance('speak', DateTime.now().difference(_lastOperationStart!));
+        
       } catch (e) {
         if (e is TtsException) {
           rethrow;
