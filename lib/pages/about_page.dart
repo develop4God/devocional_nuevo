@@ -74,7 +74,8 @@ class _AboutPageState extends State<AboutPage> {
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(20.0), // Bordes redondeados
                 child: Image.asset(
-                  'assets/icons/app_icon.png', // Ruta de tu ícono, ¡confirma que exista!
+                  'assets/icons/app_icon.png',
+                  // Ruta de tu ícono, ¡confirma que exista!
                   width: 100,
                   height: 100,
                   fit: BoxFit.cover,
@@ -128,8 +129,8 @@ class _AboutPageState extends State<AboutPage> {
             const SizedBox(height: 10),
             const Column(
               // Añadido 'const' para mejorar el rendimiento
-              crossAxisAlignment: CrossAxisAlignment
-                  .start, // Los ítems de características ya están alineados a la izquierda
+              crossAxisAlignment: CrossAxisAlignment.start,
+              // Los ítems de características ya están alineados a la izquierda
               children: <Widget>[
                 _FeatureItem(text: '• Devocionales Diarios'),
                 _FeatureItem(text: '• Soporte Multi-Versión'),
@@ -147,7 +148,7 @@ class _AboutPageState extends State<AboutPage> {
             Center(
               // Envuelve el texto con Center para centrarlo horizontalmente
               child: Text(
-                'Desarrollado por Develop4God',
+                'Desarrollado con ❤️ por Develop4God',
                 style: textTheme.bodyMedium?.copyWith(
                   color: colorScheme
                       .onSurface, // MODIFICADO: de Colors.grey[700] a colorScheme.onSurface
@@ -163,16 +164,14 @@ class _AboutPageState extends State<AboutPage> {
               // Envuelve el botón en un Center para centrarlo horizontalmente
               child: ElevatedButton.icon(
                 onPressed: () => _launchURL('https://develop4god.github.io/'),
-                icon: Icon(Icons.public,
-                    color: colorScheme
-                        .onPrimary), // MODIFICADO: de Colors.white a colorScheme.onPrimary
+                icon: Icon(Icons.public, color: colorScheme.onPrimary),
+                // MODIFICADO: de Colors.white a colorScheme.onPrimary
                 label: Text('Términos y Condiciones / Copyright',
-                    style: TextStyle(
-                        color: colorScheme
-                            .onPrimary)), // MODIFICADO: de Colors.white a colorScheme.onPrimary
+                    style: TextStyle(color: colorScheme.onPrimary)),
+                // MODIFICADO: de Colors.white a colorScheme.onPrimary
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: colorScheme
-                      .primary, // MODIFICADO: de Colors.deepPurple a colorScheme.primary
+                  backgroundColor: colorScheme.primary,
+                  // MODIFICADO: de Colors.deepPurple a colorScheme.primary
                   padding:
                       const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                   shape: RoundedRectangleBorder(
