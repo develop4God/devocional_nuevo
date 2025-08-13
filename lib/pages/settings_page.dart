@@ -80,18 +80,14 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     Provider.of<ThemeProvider>(context);
-    final ColorScheme colorScheme = Theme
-        .of(context)
-        .colorScheme;
-    final TextTheme textTheme = Theme
-        .of(context)
-        .textTheme;
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+    final TextTheme textTheme = Theme.of(context).textTheme;
     appThemeFamilies.keys.toList();
 
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'Más opciones',
+          'Configuraciones',
           style: TextStyle(color: Colors.white),
         ),
       ),

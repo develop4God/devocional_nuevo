@@ -3,7 +3,7 @@
 name: devocional_nuevo
 description: A new Flutter project.
 publish_to: 'none'
-version: 1.0.37+37
+version: 1.0.38+38
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -51,6 +51,7 @@ dev_dependencies:
   flutter_lints: ^6.0.0
   mocktail: ^1.0.0
   path_provider_platform_interface: any
+  test: ^1.25.15
 
 
 flutter:

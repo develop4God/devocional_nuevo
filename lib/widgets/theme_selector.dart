@@ -28,7 +28,7 @@ class ThemeSelectorCircleGrid extends StatelessWidget {
       childAspectRatio: 1,
       children: themeFamilies.map((family) {
         final themeData = appThemeFamilies[family]
-        ?[brightness == Brightness.light ? 'light' : 'dark'];
+            ?[brightness == Brightness.light ? 'light' : 'dark'];
         final primaryColor = themeData?.colorScheme.primary ?? Colors.grey;
 
         final isSelected = family == selectedTheme;
@@ -50,18 +50,18 @@ class ThemeSelectorCircleGrid extends StatelessWidget {
                       : Border.all(color: Colors.transparent, width: 3),
                   boxShadow: isSelected
                       ? [
-                    BoxShadow(
-                      color: primaryColor.withAlpha((255 * 0.4).round()),
-                      blurRadius: 10,
-                      spreadRadius: 2,
-                    ),
-                  ]
+                          BoxShadow(
+                            color: primaryColor.withAlpha((255 * 0.4).round()),
+                            blurRadius: 10,
+                            spreadRadius: 2,
+                          ),
+                        ]
                       : null,
                 ),
                 child: isSelected
                     ? Center(
-                  child: Icon(Icons.check, color: Colors.white, size: 24),
-                )
+                        child: Icon(Icons.check, color: Colors.white, size: 24),
+                      )
                     : null,
               ),
               const SizedBox(height: 8),
@@ -73,13 +73,9 @@ class ThemeSelectorCircleGrid extends StatelessWidget {
                     fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
                     color: isSelected
                         ? primaryColor
-                        : Theme
-                        .of(context)
-                        .colorScheme
-                        .onSurface
-                        .withAlpha(
-                      (255 * 0.7).round(),
-                    ),
+                        : Theme.of(context).colorScheme.onSurface.withAlpha(
+                              (255 * 0.7).round(),
+                            ),
                   ),
                   textAlign: TextAlign.center,
                   overflow: TextOverflow.ellipsis,

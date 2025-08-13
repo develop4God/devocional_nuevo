@@ -1,20 +1,21 @@
+import 'dart:developer' as developer;
+import 'dart:io' show File;
+
+import 'package:auto_size_text/auto_size_text.dart';
+import 'package:devocional_nuevo/models/devocional_model.dart';
+import 'package:devocional_nuevo/pages/progress_page.dart';
+import 'package:devocional_nuevo/pages/settings_page.dart';
+import 'package:devocional_nuevo/providers/devocional_provider.dart';
+import 'package:devocional_nuevo/services/update_service.dart';
+import 'package:devocional_nuevo/widgets/devocionales_page_drawer.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart'; // Para HapticFeedback
+import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:share_plus/share_plus.dart';
-import 'dart:io' show File;
-import 'package:path_provider/path_provider.dart';
-import 'package:auto_size_text/auto_size_text.dart';
-import 'package:intl/intl.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:developer' as developer;
-import 'package:devocional_nuevo/widgets/devocionales_page_drawer.dart';
-import 'package:devocional_nuevo/models/devocional_model.dart';
-import 'package:devocional_nuevo/providers/devocional_provider.dart';
-import 'package:devocional_nuevo/pages/settings_page.dart';
-import 'package:devocional_nuevo/pages/progress_page.dart';
-import 'package:devocional_nuevo/services/update_service.dart';
 
 class DevocionalesPage extends StatefulWidget {
   final String? initialDevocionalId;
@@ -119,11 +120,15 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       // Record that the current devotional was read before moving to the next one
       final currentDevocional = devocionales[_currentDevocionalIndex];
       devocionalProvider.recordDevocionalRead(currentDevocional.id);
-      
+
       setState(() {
         _currentDevocionalIndex++;
       });
       _scrollToTop();
+
+      // Vibración táctil suave para feedback
+      HapticFeedback.lightImpact();
+
       if (devocionalProvider.showInvitationDialog) {
         if (mounted) {
           _showInvitation(context);
@@ -139,6 +144,9 @@ class _DevocionalesPageState extends State<DevocionalesPage>
         _currentDevocionalIndex--;
       });
       _scrollToTop();
+
+      // Vibración táctil suave para feedback
+      HapticFeedback.lightImpact();
     }
   }
 
@@ -147,8 +155,8 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       if (_scrollController.hasClients && mounted) {
         _scrollController.animateTo(
           0.0,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut,
+          duration: const Duration(milliseconds: 400),
+          curve: Curves.easeOutQuart,
         );
       }
     });
@@ -247,7 +255,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
 
   Future<void> _shareAsText(Devocional devocional) async {
     final text =
-        "Devocional del día:\n\nVersículo: ${devocional.versiculo}\n\nReflexión: ${devocional.reflexion}\n\nPara Meditar:\n${devocional.paraMeditar.map((p) => '${p.cita}: ${p.texto}').join('\n')}\n\nOración: ${devocional.oracion}"; // Líneas de Versión, Idioma, y Fecha eliminadas
+        "Devocional del día:\n\nVersículo: ${devocional.versiculo}\n\nReflexión: ${devocional.reflexion}\n\nPara Meditar:\n${devocional.paraMeditar.map((p) => '${p.cita}: ${p.texto}').join('\n')}\n\nOración: ${devocional.oracion}";
     await SharePlus.instance.share(ShareParams(text: text));
   }
 
@@ -274,7 +282,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     final TextTheme textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
-      drawer: const DevocionalesDrawer(), //nuevo drawer
+      drawer: const DevocionalesDrawer(),
       appBar: AppBar(
         title: Text(
           'Mi espacio íntimo con Dios',
@@ -283,88 +291,10 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                   colorScheme.onPrimary),
         ),
         centerTitle: true,
-        //comentado para el dropdown de versiones
-        /*actions: [
-          Consumer<DevocionalProvider>(
-            builder: (context, devocionalProvider, child) {
-              return Row(
-                children: [
-                  DropdownButtonHideUnderline(
-                    child: DropdownButton<String>(
-                      value: devocionalProvider.selectedVersion,
-                      icon: Icon(
-                        CupertinoIcons.book,
-                        color: Theme.of(context).appBarTheme.foregroundColor ??
-                            colorScheme.onPrimary,
-                      ),
-                      dropdownColor: colorScheme.surface,
-                      selectedItemBuilder: (BuildContext context) {
-                        return <String>[
-                          'RVR1960'
-                        ].map<Widget>((String itemValue) {
-                          return const SizedBox(
-                            width: 40.0,
-                            child: Text(''),
-                          );
-                        }).toList();
-                      },
-                      onChanged: (String? newValue) {
-                        if (newValue != null) {
-                          devocionalProvider.setSelectedVersion(newValue);
-                        }
-                      },
-                      items: const <String>[
-                        'RVR1960'
-                      ].map<DropdownMenuItem<String>>((String itemValue) {
-                        return DropdownMenuItem<String>(
-                          value: itemValue,
-                          child: Text(
-                            itemValue,
-                            style: TextStyle(color: colorScheme.onSurface),
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                  ),
-                ],
-              );
-            },
-          ),
-         ],*/
       ),
       body: Consumer<DevocionalProvider>(
         builder: (context, devocionalProvider, child) {
           final List<Devocional> devocionales = devocionalProvider.devocionales;
-
-          if (devocionalProvider.isLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          if (devocionalProvider.errorMessage != null && devocionales.isEmpty) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.error_outline,
-                        color: Colors.red, size: 50),
-                    const SizedBox(height: 10),
-                    Text(
-                      devocionalProvider.errorMessage!,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(color: Colors.red, fontSize: 16),
-                    ),
-                    const SizedBox(height: 20),
-                    ElevatedButton(
-                      onPressed: () => devocionalProvider.initializeData(),
-                      child: const Text('Reintentar Carga'),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          }
 
           if (devocionales.isEmpty) {
             return Center(
@@ -387,6 +317,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
 
           return Column(
             children: [
+              // Header con fecha (sin indicador de progreso)
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8.0),
                 child: Text(
@@ -395,6 +326,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                       fontWeight: FontWeight.bold, color: colorScheme.primary),
                 ),
               ),
+              // Contenido principal
               Expanded(
                 child: Screenshot(
                   controller: screenshotController,
@@ -501,23 +433,19 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                       color: colorScheme.primary),
                                 ),
                                 const SizedBox(height: 10),
-                                if (currentDevocional.tags !=
-                                        null && // Movido para que Temas vaya primero
+                                if (currentDevocional.tags != null &&
                                     currentDevocional.tags!.isNotEmpty)
                                   Text(
                                       'Temas: ${currentDevocional.tags!.join(', ')}',
                                       style: textTheme.bodySmall?.copyWith(
                                           fontSize: 14,
                                           color: colorScheme.onSurface)),
-                                if (currentDevocional.version !=
-                                    null) // Movido para ir después de Temas
+                                if (currentDevocional.version != null)
                                   Text('Versión: ${currentDevocional.version}',
                                       style: textTheme.bodySmall?.copyWith(
                                           fontSize: 14,
                                           color: colorScheme.onSurface)),
-                                const SizedBox(
-                                    height:
-                                        10), // Espacio antes de la atribución
+                                const SizedBox(height: 10),
                                 Center(
                                   child: Padding(
                                     padding: const EdgeInsets.symmetric(
@@ -541,51 +469,6 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                   ),
                 ),
               ),
-              Consumer<DevocionalProvider>(
-                builder: (context, devocionalProvider, child) {
-                  final List<Devocional> devocionales =
-                      devocionalProvider.devocionales;
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 16.0, vertical: 8.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        IconButton(
-                          tooltip: 'Devocional anterior',
-                          onPressed: _currentDevocionalIndex > 0
-                              ? _goToPreviousDevocional
-                              : null,
-                          icon: Icon(
-                            Icons.arrow_back,
-                            color: _currentDevocionalIndex > 0
-                                ? colorScheme.primary
-                                : colorScheme.primary
-                                    .withAlpha((0.3 * 255).round()),
-                            size: 35,
-                          ),
-                        ),
-                        IconButton(
-                          tooltip: 'Siguiente devocional',
-                          onPressed:
-                              _currentDevocionalIndex < devocionales.length - 1
-                                  ? _goToNextDevocional
-                                  : null,
-                          icon: Icon(
-                            Icons.arrow_forward,
-                            color: _currentDevocionalIndex <
-                                    devocionales.length - 1
-                                ? colorScheme.primary
-                                : colorScheme.primary
-                                    .withAlpha((0.3 * 255).round()),
-                            size: 35,
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
             ],
           );
         },
@@ -606,77 +489,182 @@ class _DevocionalesPageState extends State<DevocionalesPage>
           final Color? appBarBackgroundColor =
               Theme.of(context).appBarTheme.backgroundColor;
 
-          return BottomAppBar(
-            color: appBarBackgroundColor,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                IconButton(
-                  tooltip: isFavorite
-                      ? 'Quitar de favoritos'
-                      : 'Guardar como favorito',
-                  onPressed: currentDevocional != null
-                      ? () => devocionalProvider.toggleFavorite(
-                          currentDevocional, context)
-                      : null,
-                  icon: Stack(
-                    alignment: Alignment.center,
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // BARRA DE NAVEGACIÓN CON BOTONES SEPARADOS
+              Container(
+                height: 65,
+                decoration: BoxDecoration(
+                  color: Colors.transparent,
+                  border: Border(
+                    top: BorderSide(
+                      color: colorScheme.outline.withAlpha((0.2 * 255).round()),
+                      width: 0.5,
+                    ),
+                  ),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 16.0, vertical: 8.0),
+                  child: Row(
                     children: [
-                      Icon(
-                        isFavorite ? Icons.favorite : Icons.favorite_border,
-                        color: isFavorite ? Colors.white : Colors.black,
-                        size: 32,
+                      // Botón Anterior
+                      Expanded(
+                        flex: 2,
+                        child: SizedBox(
+                          height: 45,
+                          child: ElevatedButton.icon(
+                            onPressed: _currentDevocionalIndex > 0
+                                ? _goToPreviousDevocional
+                                : null,
+                            icon: Icon(Icons.arrow_back_ios, size: 16),
+                            label: Text(
+                              'Anterior',
+                              style: TextStyle(
+                                  fontSize: 14, fontWeight: FontWeight.w600),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: _currentDevocionalIndex > 0
+                                  ? colorScheme.primary
+                                  : colorScheme.outline
+                                      .withAlpha((0.3 * 255).round()),
+                              foregroundColor: _currentDevocionalIndex > 0
+                                  ? Colors.white
+                                  : colorScheme.outline,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(22),
+                              ),
+                              elevation: _currentDevocionalIndex > 0 ? 2 : 0,
+                            ),
+                          ),
+                        ),
                       ),
-                      Icon(
-                        isFavorite ? Icons.favorite : Icons.favorite_border,
-                        color: isFavorite ? Colors.red : Colors.white,
-                        size: 30,
+
+                      // ESPACIO LIBRE EN EL CENTRO
+                      Expanded(
+                        flex: 1,
+                        child: SizedBox.shrink(), // Espacio vacío
+                      ),
+
+                      // Botón Siguiente
+                      Expanded(
+                        flex: 2,
+                        child: SizedBox(
+                          height: 45,
+                          child: ElevatedButton.icon(
+                            onPressed: _currentDevocionalIndex <
+                                    devocionales.length - 1
+                                ? _goToNextDevocional
+                                : null,
+                            label: Icon(Icons.arrow_forward_ios, size: 16),
+                            icon: Text(
+                              'Siguiente',
+                              style: TextStyle(
+                                  fontSize: 14, fontWeight: FontWeight.w600),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: _currentDevocionalIndex <
+                                      devocionales.length - 1
+                                  ? colorScheme.primary
+                                  : colorScheme.outline
+                                      .withAlpha((0.3 * 255).round()),
+                              foregroundColor: _currentDevocionalIndex <
+                                      devocionales.length - 1
+                                  ? Colors.white
+                                  : colorScheme.outline,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(22),
+                              ),
+                              elevation: _currentDevocionalIndex <
+                                      devocionales.length - 1
+                                  ? 2
+                                  : 0,
+                            ),
+                          ),
+                        ),
                       ),
                     ],
                   ),
                 ),
-                IconButton(
-                  tooltip: 'Compartir como texto',
-                  onPressed: currentDevocional != null
-                      ? () => _shareAsText(currentDevocional)
-                      : null,
-                  icon:
-                      Icon(Icons.share, color: appBarForegroundColor, size: 30),
-                ),
-                IconButton(
-                  tooltip: 'Compartir como imagen (screenshot)',
-                  onPressed: currentDevocional != null
-                      ? () => _shareAsImage(currentDevocional)
-                      : null,
-                  icon:
-                      Icon(Icons.image, color: appBarForegroundColor, size: 30),
-                ),
-                IconButton(
-                  tooltip: 'Ver progreso y logros',
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const ProgressPage(),
+              ),
+
+              // BARRA DE ACCIONES EXISTENTE (favoritos, compartir, etc.)
+              BottomAppBar(
+                height: 70,
+                color: appBarBackgroundColor,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    IconButton(
+                      tooltip: isFavorite
+                          ? 'Quitar de favoritos'
+                          : 'Guardar como favorito',
+                      onPressed: currentDevocional != null
+                          ? () => devocionalProvider.toggleFavorite(
+                              currentDevocional, context)
+                          : null,
+                      icon: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          Icon(
+                            isFavorite ? Icons.favorite : Icons.favorite_border,
+                            color: isFavorite ? Colors.white : Colors.black,
+                            size: 32,
+                          ),
+                          Icon(
+                            isFavorite ? Icons.favorite : Icons.favorite_border,
+                            color: isFavorite ? Colors.red : Colors.white,
+                            size: 30,
+                          ),
+                        ],
                       ),
-                    );
-                  },
-                  icon: Icon(Icons.emoji_events_outlined, color: appBarForegroundColor, size: 30),
+                    ),
+                    IconButton(
+                      tooltip: 'Compartir como texto',
+                      onPressed: currentDevocional != null
+                          ? () => _shareAsText(currentDevocional)
+                          : null,
+                      icon: Icon(Icons.share,
+                          color: appBarForegroundColor, size: 30),
+                    ),
+                    IconButton(
+                      tooltip: 'Compartir como imagen (screenshot)',
+                      onPressed: currentDevocional != null
+                          ? () => _shareAsImage(currentDevocional)
+                          : null,
+                      icon: Icon(Icons.image,
+                          color: appBarForegroundColor, size: 30),
+                    ),
+                    IconButton(
+                      tooltip: 'Ver progreso y logros',
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const ProgressPage(),
+                          ),
+                        );
+                      },
+                      icon: Icon(Icons.emoji_events_outlined,
+                          color: appBarForegroundColor, size: 30),
+                    ),
+                    IconButton(
+                      tooltip: 'Configuración',
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const SettingsPage()),
+                        );
+                      },
+                      icon: Icon(Icons.app_settings_alt_outlined,
+                          color: appBarForegroundColor, size: 30),
+                    ),
+                  ],
                 ),
-                IconButton(
-                  tooltip: 'Configuración',
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const SettingsPage()),
-                    );
-                  },
-                  icon: Icon(CupertinoIcons.text_badge_plus,
-                      color: appBarForegroundColor, size: 30),
-                ),
-              ],
-            ),
+              ),
+            ],
           );
         },
       ),

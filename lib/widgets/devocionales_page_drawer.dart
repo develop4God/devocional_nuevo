@@ -18,7 +18,8 @@ class DevocionalesDrawer extends StatelessWidget {
         '¡Participa en el pre-lanzamiento del app devocionales Cristianos.\n'
         'Enlace para inscribirte y edificarte con la palabra de Dios.\n'
         'https://forms.gle/HGFNUv9pc8XpG8aa6';
-    SharePlus.instance.share(message as ShareParams);
+
+    SharePlus.instance.share(ShareParams(text: message));
     Navigator.of(context).pop(); // Cerrar drawer tras compartir
   }
 
@@ -337,7 +338,7 @@ class DevocionalesDrawer extends StatelessWidget {
                             ? 'Luz alta(modo claro)'
                             : 'Luz baja(modo oscuro)',
                         style: textTheme.bodyMedium?.copyWith(
-                          fontSize: 15.5,
+                          fontSize: 15,
                           color: colorScheme.onSurface,
                         ),
                       ),
@@ -385,7 +386,7 @@ class DevocionalesDrawer extends StatelessWidget {
                       icon: Icons.share,
                       iconColor: colorScheme.primary,
                       label: Text(
-                        'Compartir esta app',
+                        'Comparte app Devocionales Cristianos',
                         style: textTheme.bodyMedium?.copyWith(
                           fontSize: 16,
                           color: colorScheme.onSurface,
