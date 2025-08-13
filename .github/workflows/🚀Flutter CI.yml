@@ -15,6 +15,9 @@ on:
         default: true
         type: boolean
 
+  pull_request:
+    branches: [ "main","develop"]
+
 jobs:
   # Job 1: Análisis estático, formateo y limpieza de imports
   analyze:
