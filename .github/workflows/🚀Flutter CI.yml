@@ -1,4 +1,3 @@
-# .github/workflows/ci.yml
 # Configuración CI más exitosa basada en casos reales de la comunidad
 name: 🚀Flutter CI 
 
@@ -17,7 +16,7 @@ on:
         type: boolean
 
 jobs:
-  # Job 1: Análisis estático y formateo
+  # Job 1: Análisis estático, formateo y limpieza de imports
   analyze:
     name: 📊 Static Analysis
     runs-on: ubuntu-latest
@@ -43,6 +42,7 @@ jobs:
       - name: 📦 Get dependencies
         run: flutter pub get
 
+      # Formateo automático, igual que tu lógica actual
       - name: 🎨 Check and auto-format code
         run: |
           echo "🎨 Checking Dart code formatting..."
@@ -103,6 +103,33 @@ jobs:
             fi
           else
             echo "✅ All files are already properly formatted!"
+          fi
+
+      # NUEVO: Limpieza automática de imports antes del análisis estático
+      - name: 🧹 Remove unused imports (dart fix)
+        run: |
+          echo "🧹 Eliminando imports no usados y aplicando fixes automáticos..."
+          dart fix --apply
+
+          # Si hubo cambios, commitear y pushear igual que con el formateo
+          if ! git diff --quiet; then
+            git config --local user.email "action@github.com"
+            git config --local user.name "GitHub Action [bot]"
+            git add .
+            git commit -m "🧹 Remove unused imports and auto-fix code [skip ci]"
+            git push
+            echo "✅ Imports limpios y fixes aplicados!"
+            echo "## 🧹 Import Cleanup Summary" >> $GITHUB_STEP_SUMMARY
+            echo "✅ Unused imports and automatic fixes were applied." >> $GITHUB_STEP_SUMMARY
+            echo "📝 Files fixed:" >> $GITHUB_STEP_SUMMARY
+            git diff --name-only HEAD~1 | sed 's/^/- /' >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "🔄 **Action Required**: Pull the latest changes to your local branch:" >> $GITHUB_STEP_SUMMARY
+            echo '```bash' >> $GITHUB_STEP_SUMMARY
+            echo "git pull origin ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          else
+            echo "ℹ️ No unused imports or fixes applied."
           fi
 
       - name: 🔍 Analyze code
