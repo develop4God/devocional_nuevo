@@ -63,7 +63,7 @@ void main() {
 
     test('_saveNotificationSettingsToFirestore() writes complete settings object', () async {
       // Arrange
-      final notificationService = NotificationService();
+      final notificationService = NotificationServiceTestHelper.createTestNotificationService(localNotificationsPlugin: mockLocalNotifications, firebaseMessaging: mockFirebaseMessaging, firestore: mockFirestore, auth: mockFirebaseAuth);
 
       // Since _saveNotificationSettingsToFirestore is private, we test it through public methods
       // that call it, like setNotificationsEnabled
@@ -86,7 +86,7 @@ void main() {
 
     test('_saveNotificationSettingsToFirestore() uses merge:true to preserve other fields', () async {
       // Arrange
-      final notificationService = NotificationService();
+      final notificationService = NotificationServiceTestHelper.createTestNotificationService(localNotificationsPlugin: mockLocalNotifications, firebaseMessaging: mockFirebaseMessaging, firestore: mockFirestore, auth: mockFirebaseAuth);
 
       // Act
       await notificationService.setNotificationsEnabled(false);
@@ -103,7 +103,7 @@ void main() {
 
     test('_saveNotificationSettingsToFirestore() includes serverTimestamp for lastUpdated', () async {
       // Arrange
-      final notificationService = NotificationService();
+      final notificationService = NotificationServiceTestHelper.createTestNotificationService(localNotificationsPlugin: mockLocalNotifications, firebaseMessaging: mockFirebaseMessaging, firestore: mockFirestore, auth: mockFirebaseAuth);
 
       // Act
       await notificationService.setNotificationTime('11:30');
@@ -124,7 +124,7 @@ void main() {
       // Arrange
       when(() => mockNotificationDoc.set(any(), any()))
           .thenThrow(Exception('Network error'));
-      final notificationService = NotificationService();
+      final notificationService = NotificationServiceTestHelper.createTestNotificationService(localNotificationsPlugin: mockLocalNotifications, firebaseMessaging: mockFirebaseMessaging, firestore: mockFirestore, auth: mockFirebaseAuth);
 
       // Act & Assert - should not throw
       await expectLater(
@@ -135,7 +135,7 @@ void main() {
 
     test('settings persistence handles concurrent operations correctly', () async {
       // Arrange
-      final notificationService = NotificationService();
+      final notificationService = NotificationServiceTestHelper.createTestNotificationService(localNotificationsPlugin: mockLocalNotifications, firebaseMessaging: mockFirebaseMessaging, firestore: mockFirestore, auth: mockFirebaseAuth);
 
       // Act - simulate concurrent operations
       final futures = [
@@ -151,7 +151,7 @@ void main() {
 
     test('settings persistence maintains data consistency across operations', () async {
       // Arrange
-      final notificationService = NotificationService();
+      final notificationService = NotificationServiceTestHelper.createTestNotificationService(localNotificationsPlugin: mockLocalNotifications, firebaseMessaging: mockFirebaseMessaging, firestore: mockFirestore, auth: mockFirebaseAuth);
 
       // Act - perform multiple settings operations
       await notificationService.setNotificationsEnabled(true);
@@ -166,7 +166,7 @@ void main() {
       // Arrange
       when(() => mockNotificationDoc.set(any(), any()))
           .thenAnswer((_) => Future.delayed(const Duration(seconds: 30), () => {}));
-      final notificationService = NotificationService();
+      final notificationService = NotificationServiceTestHelper.createTestNotificationService(localNotificationsPlugin: mockLocalNotifications, firebaseMessaging: mockFirebaseMessaging, firestore: mockFirestore, auth: mockFirebaseAuth);
 
       // Act & Assert - should not hang or throw
       await expectLater(
@@ -182,7 +182,7 @@ void main() {
         mockUser,
         isAuthenticated: false,
       );
-      final notificationService = NotificationService();
+      final notificationService = NotificationServiceTestHelper.createTestNotificationService(localNotificationsPlugin: mockLocalNotifications, firebaseMessaging: mockFirebaseMessaging, firestore: mockFirestore, auth: mockFirebaseAuth);
 
       // Act
       await notificationService.setNotificationsEnabled(true);
@@ -201,7 +201,7 @@ void main() {
         // Missing notificationTime and userTimezone
       });
       
-      final notificationService = NotificationService();
+      final notificationService = NotificationServiceTestHelper.createTestNotificationService(localNotificationsPlugin: mockLocalNotifications, firebaseMessaging: mockFirebaseMessaging, firestore: mockFirestore, auth: mockFirebaseAuth);
 
       // Act
       await notificationService.setNotificationTime('14:00');
@@ -227,7 +227,7 @@ void main() {
       when(() => mockDocSnapshot.exists).thenReturn(true);
       when(() => mockDocSnapshot.data()).thenReturn({}); // Empty document
       
-      final notificationService = NotificationService();
+      final notificationService = NotificationServiceTestHelper.createTestNotificationService(localNotificationsPlugin: mockLocalNotifications, firebaseMessaging: mockFirebaseMessaging, firestore: mockFirestore, auth: mockFirebaseAuth);
 
       // Act
       await notificationService.setNotificationsEnabled(false);
@@ -248,7 +248,7 @@ void main() {
 
     test('settings persistence uses correct Firestore collection path', () async {
       // Arrange
-      final notificationService = NotificationService();
+      final notificationService = NotificationServiceTestHelper.createTestNotificationService(localNotificationsPlugin: mockLocalNotifications, firebaseMessaging: mockFirebaseMessaging, firestore: mockFirestore, auth: mockFirebaseAuth);
 
       // Act
       await notificationService.setNotificationsEnabled(true);

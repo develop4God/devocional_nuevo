@@ -157,7 +157,7 @@ void main() {
 
     test('initialize() sets up auth state listener correctly', () async {
       // Arrange
-      final notificationService = NotificationService();
+      final notificationService = NotificationServiceTestHelper.createTestNotificationService(localNotificationsPlugin: mockLocalNotifications, firebaseMessaging: mockFirebaseMessaging, firestore: mockFirestore, auth: mockFirebaseAuth);
 
       // Act
       await notificationService.initialize();
@@ -168,7 +168,7 @@ void main() {
 
     test('initialize() requests permissions on first run', () async {
       // Arrange
-      final notificationService = NotificationService();
+      final notificationService = NotificationServiceTestHelper.createTestNotificationService(localNotificationsPlugin: mockLocalNotifications, firebaseMessaging: mockFirebaseMessaging, firestore: mockFirestore, auth: mockFirebaseAuth);
 
       // Act
       await notificationService.initialize();
@@ -181,7 +181,7 @@ void main() {
       // Arrange
       when(() => Permission.notification.request())
           .thenAnswer((_) async => PermissionStatus.denied);
-      final notificationService = NotificationService();
+      final notificationService = NotificationServiceTestHelper.createTestNotificationService(localNotificationsPlugin: mockLocalNotifications, firebaseMessaging: mockFirebaseMessaging, firestore: mockFirestore, auth: mockFirebaseAuth);
 
       // Act
       await notificationService.initialize();
@@ -194,7 +194,7 @@ void main() {
       // Arrange
       when(() => mockFirebaseAuth.authStateChanges())
           .thenAnswer((_) => Stream.error(Exception('Auth stream error')));
-      final notificationService = NotificationService();
+      final notificationService = NotificationServiceTestHelper.createTestNotificationService(localNotificationsPlugin: mockLocalNotifications, firebaseMessaging: mockFirebaseMessaging, firestore: mockFirestore, auth: mockFirebaseAuth);
 
       // Act & Assert - should not throw
       await expectLater(
@@ -205,7 +205,7 @@ void main() {
 
     test('initialize() processes authenticated user and initializes FCM', () async {
       // Arrange
-      final notificationService = NotificationService();
+      final notificationService = NotificationServiceTestHelper.createTestNotificationService(localNotificationsPlugin: mockLocalNotifications, firebaseMessaging: mockFirebaseMessaging, firestore: mockFirestore, auth: mockFirebaseAuth);
 
       // Act
       await notificationService.initialize();
@@ -234,7 +234,7 @@ void main() {
         mockUser,
         isAuthenticated: false,
       );
-      final notificationService = NotificationService();
+      final notificationService = NotificationServiceTestHelper.createTestNotificationService(localNotificationsPlugin: mockLocalNotifications, firebaseMessaging: mockFirebaseMessaging, firestore: mockFirestore, auth: mockFirebaseAuth);
 
       // Act
       await notificationService.initialize();
@@ -256,7 +256,7 @@ void main() {
 
     test('initialize() saves notification settings to Firestore on authentication', () async {
       // Arrange
-      final notificationService = NotificationService();
+      final notificationService = NotificationServiceTestHelper.createTestNotificationService(localNotificationsPlugin: mockLocalNotifications, firebaseMessaging: mockFirebaseMessaging, firestore: mockFirestore, auth: mockFirebaseAuth);
 
       // Act
       await notificationService.initialize();
@@ -284,7 +284,7 @@ void main() {
       // Arrange
       when(() => mockNotificationDoc.get())
           .thenThrow(Exception('Firestore read error'));
-      final notificationService = NotificationService();
+      final notificationService = NotificationServiceTestHelper.createTestNotificationService(localNotificationsPlugin: mockLocalNotifications, firebaseMessaging: mockFirebaseMessaging, firestore: mockFirestore, auth: mockFirebaseAuth);
 
       // Act & Assert - should not throw
       await expectLater(
@@ -300,7 +300,7 @@ void main() {
         onDidReceiveNotificationResponse: any(named: 'onDidReceiveNotificationResponse'),
         onDidReceiveBackgroundNotificationResponse: any(named: 'onDidReceiveBackgroundNotificationResponse'),
       )).thenThrow(Exception('Local notifications init failed'));
-      final notificationService = NotificationService();
+      final notificationService = NotificationServiceTestHelper.createTestNotificationService(localNotificationsPlugin: mockLocalNotifications, firebaseMessaging: mockFirebaseMessaging, firestore: mockFirestore, auth: mockFirebaseAuth);
 
       // Act & Assert - should not throw, error should be caught and logged
       await expectLater(

@@ -48,7 +48,7 @@ void main() {
       when(() => Permission.ignoreBatteryOptimizations.isDenied)
           .thenAnswer((_) async => false);
       
-      final notificationService = NotificationService();
+      final notificationService = NotificationServiceTestHelper.createTestNotificationService(localNotificationsPlugin: mockLocalNotifications, firebaseMessaging: mockFirebaseMessaging, firestore: mockFirestore, auth: mockFirebaseAuth);
 
       // Act
       await notificationService.initialize();
@@ -63,7 +63,7 @@ void main() {
       // Arrange
       debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
       
-      final notificationService = NotificationService();
+      final notificationService = NotificationServiceTestHelper.createTestNotificationService(localNotificationsPlugin: mockLocalNotifications, firebaseMessaging: mockFirebaseMessaging, firestore: mockFirestore, auth: mockFirebaseAuth);
 
       // Act
       await notificationService.initialize();
@@ -91,7 +91,7 @@ void main() {
       when(() => Permission.ignoreBatteryOptimizations.isDenied)
           .thenAnswer((_) async => false);
       
-      final notificationService = NotificationService();
+      final notificationService = NotificationServiceTestHelper.createTestNotificationService(localNotificationsPlugin: mockLocalNotifications, firebaseMessaging: mockFirebaseMessaging, firestore: mockFirestore, auth: mockFirebaseAuth);
 
       // Act
       await notificationService.initialize();
@@ -109,7 +109,7 @@ void main() {
       when(() => Permission.notification.request())
           .thenThrow(Exception('Permission request failed'));
       
-      final notificationService = NotificationService();
+      final notificationService = NotificationServiceTestHelper.createTestNotificationService(localNotificationsPlugin: mockLocalNotifications, firebaseMessaging: mockFirebaseMessaging, firestore: mockFirestore, auth: mockFirebaseAuth);
 
       // Act & Assert - should not throw
       await expectLater(
@@ -133,7 +133,7 @@ void main() {
       when(() => Permission.ignoreBatteryOptimizations.isDenied)
           .thenAnswer((_) async => false);
       
-      final notificationService = NotificationService();
+      final notificationService = NotificationServiceTestHelper.createTestNotificationService(localNotificationsPlugin: mockLocalNotifications, firebaseMessaging: mockFirebaseMessaging, firestore: mockFirestore, auth: mockFirebaseAuth);
 
       // Act
       await notificationService.initialize();
@@ -158,7 +158,7 @@ void main() {
       when(() => Permission.ignoreBatteryOptimizations.request())
           .thenAnswer((_) async => PermissionStatus.granted);
       
-      final notificationService = NotificationService();
+      final notificationService = NotificationServiceTestHelper.createTestNotificationService(localNotificationsPlugin: mockLocalNotifications, firebaseMessaging: mockFirebaseMessaging, firestore: mockFirestore, auth: mockFirebaseAuth);
 
       // Act
       await notificationService.initialize();
@@ -183,7 +183,7 @@ void main() {
       when(() => Permission.ignoreBatteryOptimizations.isDenied)
           .thenAnswer((_) async => false);
       
-      final notificationService = NotificationService();
+      final notificationService = NotificationServiceTestHelper.createTestNotificationService(localNotificationsPlugin: mockLocalNotifications, firebaseMessaging: mockFirebaseMessaging, firestore: mockFirestore, auth: mockFirebaseAuth);
 
       // Act
       await notificationService.initialize();
@@ -207,7 +207,7 @@ void main() {
       when(() => Permission.ignoreBatteryOptimizations.request())
           .thenAnswer((_) async => PermissionStatus.denied);
       
-      final notificationService = NotificationService();
+      final notificationService = NotificationServiceTestHelper.createTestNotificationService(localNotificationsPlugin: mockLocalNotifications, firebaseMessaging: mockFirebaseMessaging, firestore: mockFirestore, auth: mockFirebaseAuth);
 
       // Act
       await notificationService.initialize();
@@ -228,7 +228,7 @@ void main() {
         sound: true,
       )).thenAnswer((_) async => false);
       
-      final notificationService = NotificationService();
+      final notificationService = NotificationServiceTestHelper.createTestNotificationService(localNotificationsPlugin: mockLocalNotifications, firebaseMessaging: mockFirebaseMessaging, firestore: mockFirestore, auth: mockFirebaseAuth);
 
       // Act
       await notificationService.initialize();
@@ -250,7 +250,7 @@ void main() {
       when(() => mockLocalNotifications.resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>())
           .thenReturn(null);
       
-      final notificationService = NotificationService();
+      final notificationService = NotificationServiceTestHelper.createTestNotificationService(localNotificationsPlugin: mockLocalNotifications, firebaseMessaging: mockFirebaseMessaging, firestore: mockFirestore, auth: mockFirebaseAuth);
 
       // Act & Assert - should not throw
       await expectLater(
@@ -270,7 +270,7 @@ void main() {
       when(() => Permission.scheduleExactAlarm.isDenied)
           .thenThrow(Exception('Permission check failed'));
       
-      final notificationService = NotificationService();
+      final notificationService = NotificationServiceTestHelper.createTestNotificationService(localNotificationsPlugin: mockLocalNotifications, firebaseMessaging: mockFirebaseMessaging, firestore: mockFirestore, auth: mockFirebaseAuth);
 
       // Act & Assert - should not throw
       await expectLater(
@@ -292,7 +292,7 @@ void main() {
       when(() => Permission.ignoreBatteryOptimizations.isDenied)
           .thenAnswer((_) async => false);
       
-      final notificationService = NotificationService();
+      final notificationService = NotificationServiceTestHelper.createTestNotificationService(localNotificationsPlugin: mockLocalNotifications, firebaseMessaging: mockFirebaseMessaging, firestore: mockFirestore, auth: mockFirebaseAuth);
 
       // Act
       await notificationService.initialize();
@@ -314,7 +314,7 @@ void main() {
       when(() => Permission.ignoreBatteryOptimizations.isDenied)
           .thenAnswer((_) async => false);
       
-      final notificationService = NotificationService();
+      final notificationService = NotificationServiceTestHelper.createTestNotificationService(localNotificationsPlugin: mockLocalNotifications, firebaseMessaging: mockFirebaseMessaging, firestore: mockFirestore, auth: mockFirebaseAuth);
 
       // Act
       await notificationService.initialize();
@@ -336,7 +336,7 @@ void main() {
       when(() => Permission.ignoreBatteryOptimizations.isDenied)
           .thenAnswer((_) async => false); // Already granted
       
-      final notificationService = NotificationService();
+      final notificationService = NotificationServiceTestHelper.createTestNotificationService(localNotificationsPlugin: mockLocalNotifications, firebaseMessaging: mockFirebaseMessaging, firestore: mockFirestore, auth: mockFirebaseAuth);
 
       // Act
       await notificationService.initialize();

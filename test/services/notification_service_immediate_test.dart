@@ -33,7 +33,7 @@ void main() {
 
     test('showImmediateNotification() creates notification with correct platform specifics', () async {
       // Arrange
-      final notificationService = NotificationService();
+      final notificationService = NotificationServiceTestHelper.createTestNotificationService(localNotificationsPlugin: mockLocalNotifications, firebaseMessaging: mockFirebaseMessaging, firestore: mockFirestore, auth: mockFirebaseAuth);
 
       // Act
       await notificationService.showImmediateNotification(
@@ -60,7 +60,7 @@ void main() {
 
     test('showImmediateNotification() uses provided id or defaults to 1', () async {
       // Arrange
-      final notificationService = NotificationService();
+      final notificationService = NotificationServiceTestHelper.createTestNotificationService(localNotificationsPlugin: mockLocalNotifications, firebaseMessaging: mockFirebaseMessaging, firestore: mockFirestore, auth: mockFirebaseAuth);
 
       // Act - with custom id
       await notificationService.showImmediateNotification(
@@ -95,7 +95,7 @@ void main() {
 
     test('showImmediateNotification() handles custom payload', () async {
       // Arrange
-      final notificationService = NotificationService();
+      final notificationService = NotificationServiceTestHelper.createTestNotificationService(localNotificationsPlugin: mockLocalNotifications, firebaseMessaging: mockFirebaseMessaging, firestore: mockFirestore, auth: mockFirebaseAuth);
 
       // Act
       await notificationService.showImmediateNotification(
@@ -116,7 +116,7 @@ void main() {
 
     test('showImmediateNotification() uses default payload when none provided', () async {
       // Arrange
-      final notificationService = NotificationService();
+      final notificationService = NotificationServiceTestHelper.createTestNotificationService(localNotificationsPlugin: mockLocalNotifications, firebaseMessaging: mockFirebaseMessaging, firestore: mockFirestore, auth: mockFirebaseAuth);
 
       // Act
       await notificationService.showImmediateNotification(
@@ -138,7 +138,7 @@ void main() {
       // Arrange
       when(() => mockLocalNotifications.show(any(), any(), any(), any(), payload: any(named: 'payload')))
           .thenThrow(Exception('Notification plugin failed'));
-      final notificationService = NotificationService();
+      final notificationService = NotificationServiceTestHelper.createTestNotificationService(localNotificationsPlugin: mockLocalNotifications, firebaseMessaging: mockFirebaseMessaging, firestore: mockFirestore, auth: mockFirebaseAuth);
 
       // Act & Assert - should not throw
       await expectLater(
@@ -150,7 +150,7 @@ void main() {
     test('showImmediateNotification() configures Android notification details correctly', () async {
       // Arrange
       debugDefaultTargetPlatformOverride = TargetPlatform.android;
-      final notificationService = NotificationService();
+      final notificationService = NotificationServiceTestHelper.createTestNotificationService(localNotificationsPlugin: mockLocalNotifications, firebaseMessaging: mockFirebaseMessaging, firestore: mockFirestore, auth: mockFirebaseAuth);
 
       // Act
       await notificationService.showImmediateNotification(
@@ -182,7 +182,7 @@ void main() {
     test('showImmediateNotification() configures iOS notification details correctly', () async {
       // Arrange
       debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
-      final notificationService = NotificationService();
+      final notificationService = NotificationServiceTestHelper.createTestNotificationService(localNotificationsPlugin: mockLocalNotifications, firebaseMessaging: mockFirebaseMessaging, firestore: mockFirestore, auth: mockFirebaseAuth);
 
       // Act
       await notificationService.showImmediateNotification(
@@ -213,7 +213,7 @@ void main() {
 
     test('showImmediateNotification() handles empty title gracefully', () async {
       // Arrange
-      final notificationService = NotificationService();
+      final notificationService = NotificationServiceTestHelper.createTestNotificationService(localNotificationsPlugin: mockLocalNotifications, firebaseMessaging: mockFirebaseMessaging, firestore: mockFirestore, auth: mockFirebaseAuth);
 
       // Act
       await notificationService.showImmediateNotification(
@@ -233,7 +233,7 @@ void main() {
 
     test('showImmediateNotification() handles empty body gracefully', () async {
       // Arrange
-      final notificationService = NotificationService();
+      final notificationService = NotificationServiceTestHelper.createTestNotificationService(localNotificationsPlugin: mockLocalNotifications, firebaseMessaging: mockFirebaseMessaging, firestore: mockFirestore, auth: mockFirebaseAuth);
 
       // Act
       await notificationService.showImmediateNotification(
@@ -255,7 +255,7 @@ void main() {
       // Arrange
       final longTitle = 'A' * 1000; // Very long title
       final longBody = 'B' * 5000; // Very long body
-      final notificationService = NotificationService();
+      final notificationService = NotificationServiceTestHelper.createTestNotificationService(localNotificationsPlugin: mockLocalNotifications, firebaseMessaging: mockFirebaseMessaging, firestore: mockFirestore, auth: mockFirebaseAuth);
 
       // Act
       await notificationService.showImmediateNotification(
@@ -277,7 +277,7 @@ void main() {
       // Arrange
       final specialTitle = 'Title with 特殊字符 and émojis 🎉';
       final specialBody = 'Body with special chars: @#$%^&*()[]{}|;:,.<>?/~`';
-      final notificationService = NotificationService();
+      final notificationService = NotificationServiceTestHelper.createTestNotificationService(localNotificationsPlugin: mockLocalNotifications, firebaseMessaging: mockFirebaseMessaging, firestore: mockFirestore, auth: mockFirebaseAuth);
 
       // Act
       await notificationService.showImmediateNotification(
@@ -297,7 +297,7 @@ void main() {
 
     test('showImmediateNotification() handles multiple rapid notifications', () async {
       // Arrange
-      final notificationService = NotificationService();
+      final notificationService = NotificationServiceTestHelper.createTestNotificationService(localNotificationsPlugin: mockLocalNotifications, firebaseMessaging: mockFirebaseMessaging, firestore: mockFirestore, auth: mockFirebaseAuth);
 
       // Act
       final futures = List.generate(5, (index) => 
@@ -323,7 +323,7 @@ void main() {
 
     test('showImmediateNotification() handles null payload correctly', () async {
       // Arrange
-      final notificationService = NotificationService();
+      final notificationService = NotificationServiceTestHelper.createTestNotificationService(localNotificationsPlugin: mockLocalNotifications, firebaseMessaging: mockFirebaseMessaging, firestore: mockFirestore, auth: mockFirebaseAuth);
 
       // Act
       await notificationService.showImmediateNotification(
@@ -344,7 +344,7 @@ void main() {
 
     test('showImmediateNotification() handles negative id values', () async {
       // Arrange
-      final notificationService = NotificationService();
+      final notificationService = NotificationServiceTestHelper.createTestNotificationService(localNotificationsPlugin: mockLocalNotifications, firebaseMessaging: mockFirebaseMessaging, firestore: mockFirestore, auth: mockFirebaseAuth);
 
       // Act
       await notificationService.showImmediateNotification(
@@ -365,7 +365,7 @@ void main() {
 
     test('showImmediateNotification() handles zero id value', () async {
       // Arrange
-      final notificationService = NotificationService();
+      final notificationService = NotificationServiceTestHelper.createTestNotificationService(localNotificationsPlugin: mockLocalNotifications, firebaseMessaging: mockFirebaseMessaging, firestore: mockFirestore, auth: mockFirebaseAuth);
 
       // Act
       await notificationService.showImmediateNotification(

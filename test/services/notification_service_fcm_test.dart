@@ -88,7 +88,7 @@ void main() {
 
     test('_initializeFCM() requests notification permissions successfully', () async {
       // Arrange
-      final notificationService = NotificationService();
+      final notificationService = NotificationServiceTestHelper.createTestNotificationService(localNotificationsPlugin: mockLocalNotifications, firebaseMessaging: mockFirebaseMessaging, firestore: mockFirestore, auth: mockFirebaseAuth);
 
       // Trigger _initializeFCM through auth state change
       await notificationService.initialize();
@@ -110,7 +110,7 @@ void main() {
 
     test('_saveFcmToken() saves token to Firestore with authenticated user', () async {
       // Arrange
-      final notificationService = NotificationService();
+      final notificationService = NotificationServiceTestHelper.createTestNotificationService(localNotificationsPlugin: mockLocalNotifications, firebaseMessaging: mockFirebaseMessaging, firestore: mockFirestore, auth: mockFirebaseAuth);
 
       // Trigger FCM initialization through auth state change
       await notificationService.initialize();
@@ -132,7 +132,7 @@ void main() {
 
     test('_saveFcmToken() updates lastLogin timestamp in user document', () async {
       // Arrange
-      final notificationService = NotificationService();
+      final notificationService = NotificationServiceTestHelper.createTestNotificationService(localNotificationsPlugin: mockLocalNotifications, firebaseMessaging: mockFirebaseMessaging, firestore: mockFirestore, auth: mockFirebaseAuth);
 
       // Trigger FCM initialization through auth state change
       await notificationService.initialize();
@@ -152,7 +152,7 @@ void main() {
 
     test('_saveFcmToken() saves token to SharedPreferences', () async {
       // Arrange
-      final notificationService = NotificationService();
+      final notificationService = NotificationServiceTestHelper.createTestNotificationService(localNotificationsPlugin: mockLocalNotifications, firebaseMessaging: mockFirebaseMessaging, firestore: mockFirestore, auth: mockFirebaseAuth);
 
       // Trigger FCM initialization through auth state change
       await notificationService.initialize();
@@ -169,7 +169,7 @@ void main() {
         mockUser,
         isAuthenticated: false,
       );
-      final notificationService = NotificationService();
+      final notificationService = NotificationServiceTestHelper.createTestNotificationService(localNotificationsPlugin: mockLocalNotifications, firebaseMessaging: mockFirebaseMessaging, firestore: mockFirestore, auth: mockFirebaseAuth);
 
       // Act
       await notificationService.initialize();
@@ -185,7 +185,7 @@ void main() {
       // Arrange
       when(() => mockUserDoc.set(any(), any()))
           .thenThrow(Exception('Firestore write failed'));
-      final notificationService = NotificationService();
+      final notificationService = NotificationServiceTestHelper.createTestNotificationService(localNotificationsPlugin: mockLocalNotifications, firebaseMessaging: mockFirebaseMessaging, firestore: mockFirestore, auth: mockFirebaseAuth);
 
       // Act & Assert - should not throw
       await expectLater(
@@ -207,7 +207,7 @@ void main() {
       });
       when(() => mockRemoteMessage.messageId).thenReturn('test_message_id');
 
-      final notificationService = NotificationService();
+      final notificationService = NotificationServiceTestHelper.createTestNotificationService(localNotificationsPlugin: mockLocalNotifications, firebaseMessaging: mockFirebaseMessaging, firestore: mockFirestore, auth: mockFirebaseAuth);
 
       // Mock the showImmediateNotification method by triggering _handleMessage indirectly
       // Since _handleMessage is private, we test it through FCM message handling
@@ -227,7 +227,7 @@ void main() {
       when(() => mockRemoteMessage.data).thenReturn({'key': 'value'});
       when(() => mockRemoteMessage.messageId).thenReturn('test_message_id');
 
-      final notificationService = NotificationService();
+      final notificationService = NotificationServiceTestHelper.createTestNotificationService(localNotificationsPlugin: mockLocalNotifications, firebaseMessaging: mockFirebaseMessaging, firestore: mockFirestore, auth: mockFirebaseAuth);
 
       // Act
       await notificationService.initialize();
@@ -239,7 +239,7 @@ void main() {
 
     test('FCM token refresh listener is set up correctly', () async {
       // Arrange
-      final notificationService = NotificationService();
+      final notificationService = NotificationServiceTestHelper.createTestNotificationService(localNotificationsPlugin: mockLocalNotifications, firebaseMessaging: mockFirebaseMessaging, firestore: mockFirestore, auth: mockFirebaseAuth);
 
       // Act
       await notificationService.initialize();
@@ -257,7 +257,7 @@ void main() {
       when(() => mockRemoteMessage.notification).thenReturn(null);
       when(() => mockRemoteMessage.data).thenReturn({'key': 'value'});
 
-      final notificationService = NotificationService();
+      final notificationService = NotificationServiceTestHelper.createTestNotificationService(localNotificationsPlugin: mockLocalNotifications, firebaseMessaging: mockFirebaseMessaging, firestore: mockFirestore, auth: mockFirebaseAuth);
 
       // Act
       await notificationService.initialize();
@@ -271,7 +271,7 @@ void main() {
       // Arrange
       when(() => mockNotificationSettings.authorizationStatus)
           .thenReturn(AuthorizationStatus.denied);
-      final notificationService = NotificationService();
+      final notificationService = NotificationServiceTestHelper.createTestNotificationService(localNotificationsPlugin: mockLocalNotifications, firebaseMessaging: mockFirebaseMessaging, firestore: mockFirestore, auth: mockFirebaseAuth);
 
       // Act
       await notificationService.initialize();
@@ -293,7 +293,7 @@ void main() {
       // Arrange
       when(() => mockFirebaseMessaging.getToken())
           .thenThrow(Exception('Token retrieval failed'));
-      final notificationService = NotificationService();
+      final notificationService = NotificationServiceTestHelper.createTestNotificationService(localNotificationsPlugin: mockLocalNotifications, firebaseMessaging: mockFirebaseMessaging, firestore: mockFirestore, auth: mockFirebaseAuth);
 
       // Act & Assert - should not throw
       await expectLater(
@@ -307,7 +307,7 @@ void main() {
 
     test('FCM message listeners are set up correctly', () async {
       // Arrange
-      final notificationService = NotificationService();
+      final notificationService = NotificationServiceTestHelper.createTestNotificationService(localNotificationsPlugin: mockLocalNotifications, firebaseMessaging: mockFirebaseMessaging, firestore: mockFirestore, auth: mockFirebaseAuth);
 
       // Act
       await notificationService.initialize();
@@ -322,7 +322,7 @@ void main() {
       // Arrange
       when(() => mockFirebaseMessaging.getToken())
           .thenAnswer((_) async => null);
-      final notificationService = NotificationService();
+      final notificationService = NotificationServiceTestHelper.createTestNotificationService(localNotificationsPlugin: mockLocalNotifications, firebaseMessaging: mockFirebaseMessaging, firestore: mockFirestore, auth: mockFirebaseAuth);
 
       // Act
       await notificationService.initialize();
