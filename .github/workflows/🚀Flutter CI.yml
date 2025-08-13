@@ -158,7 +158,16 @@ jobs:
         with:
           channel: stable
           cache: true
-
+          
+      - name: 📦 Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.pub-cache
+            **/pubspec.lock
+          key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.yaml') }}
+          restore-keys: ${{ runner.os }}-pub-
+    
       - name: 📦 Get dependencies
         run: flutter pub get
 
