@@ -1,4 +1,3 @@
-# .github/workflows/setup-basic-tests.yml
 name: Setup Basic NotificationService Tests
 
 on:
@@ -32,7 +31,9 @@ jobs:
       uses: subosito/flutter-action@v2
       with:
         flutter-version: 'stable'
-        channel: 'stable'
+
+    - name: Verify Flutter installation
+      run: flutter --version
 
     - name: Verify project has NotificationService
       run: |
