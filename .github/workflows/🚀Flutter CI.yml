@@ -69,7 +69,7 @@ jobs:
                 
                 # Add and commit the changes
                 git add .
-                git commit -m "🎨 Auto-format code with dart format"    
+                git commit -m "🎨 Auto-format code with dart format [skip ci]" 
                 # Push the changes
                 git push
                 
