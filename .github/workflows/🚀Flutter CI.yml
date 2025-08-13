@@ -173,7 +173,7 @@ jobs:
         include:
           - platform: android
             build-cmd: flutter build apk --debug
-            artifact-path: build/app/outputs/flutter-apk/app-release.apk
+            artifact-path: build/app/outputs/flutter-apk/app-debug.apk
             artifact-name: android-apk
           
     
