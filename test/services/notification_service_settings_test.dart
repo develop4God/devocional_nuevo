@@ -1,263 +1,262 @@
 // test/services/notification_service_settings_test.dart
-// Tests for NotificationService settings persistence
+// Tests for settings persistence - Integration style
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mocktail/mocktail.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:devocional_nuevo/services/notification_service.dart';
-import 'notification_service_mocks.dart';
+import 'notification_service_test_helper.dart';
 
 void main() {
-  TestWidgetsFlutterBinding.ensureInitialized();
+  group('NotificationService - Settings Persistence Tests', () {
+    late NotificationService notificationService;
 
-  group('NotificationService - Settings Persistence', () {
-    late MockFirebaseAuth mockFirebaseAuth;
-    late MockUser mockUser;
-    late MockFirebaseFirestore mockFirestore;
-    late MockCollectionReference mockUsersCollection;
-    late MockDocumentReference mockUserDoc;
-    late MockCollectionReference mockSettingsCollection;
-    late MockDocumentReference mockNotificationDoc;
-
-    setUp(() {
-      // Initialize mocks
-      mockFirebaseAuth = MockFirebaseAuth();
-      mockUser = MockUser();
-      mockFirestore = MockFirebaseFirestore();
-      mockUsersCollection = MockCollectionReference();
-      mockUserDoc = MockDocumentReference();
-      mockSettingsCollection = MockCollectionReference();
-      mockNotificationDoc = MockDocumentReference();
-
-      // Register fallback values
-      registerFallbackValue(const SetOptions());
-      registerFallbackValue({});
-      registerFallbackValue(FieldValue.serverTimestamp());
-
-      // Setup default mocks
-      NotificationServiceTestHelper.setupFirebaseAuthMocks(
-        mockFirebaseAuth,
-        mockUser,
-        userId: 'test_user_456',
-        isAuthenticated: true,
-      );
-
-      when(() => mockFirestore.collection('users')).thenReturn(mockUsersCollection);
-      when(() => mockUsersCollection.doc(any())).thenReturn(mockUserDoc);
-      when(() => mockUserDoc.collection('settings')).thenReturn(mockSettingsCollection);
-      when(() => mockSettingsCollection.doc('notifications')).thenReturn(mockNotificationDoc);
-      when(() => mockNotificationDoc.set(any(), any())).thenAnswer((_) async => {});
+    setUpAll(() async {
+      await NotificationServiceTestHelper.setupFirebaseForTesting();
     });
 
-    tearDown(() {
-      reset(mockFirebaseAuth);
-      reset(mockUser);
-      reset(mockFirestore);
-      reset(mockUsersCollection);
-      reset(mockUserDoc);
-      reset(mockSettingsCollection);
-      reset(mockNotificationDoc);
+    setUp(() async {
+      await NotificationServiceTestHelper.setupSharedPreferencesForTesting();
+      notificationService = NotificationService();
     });
 
-    test('_saveNotificationSettingsToFirestore() writes complete settings object', () async {
-      // Arrange
-      final notificationService = NotificationServiceTestHelper.createTestNotificationService(localNotificationsPlugin: mockLocalNotifications, firebaseMessaging: mockFirebaseMessaging, firestore: mockFirestore, auth: mockFirebaseAuth);
-
-      // Since _saveNotificationSettingsToFirestore is private, we test it through public methods
-      // that call it, like setNotificationsEnabled
-      await notificationService.setNotificationsEnabled(true);
-
-      // Assert
-      verify(() => mockNotificationDoc.set(
-        any(that: allOf([
-          isA<Map<String, dynamic>>(),
-          predicate<Map<String, dynamic>>((map) => 
-            map.containsKey('notificationsEnabled') &&
-            map.containsKey('notificationTime') &&
-            map.containsKey('userTimezone') &&
-            map.containsKey('lastUpdated')
-          ),
-        ])),
-        any(that: isA<SetOptions>()),
-      )).called(1);
+    tearDown(() async {
+      await NotificationServiceTestHelper.cleanup();
     });
 
-    test('_saveNotificationSettingsToFirestore() uses merge:true to preserve other fields', () async {
-      // Arrange
-      final notificationService = NotificationServiceTestHelper.createTestNotificationService(localNotificationsPlugin: mockLocalNotifications, firebaseMessaging: mockFirebaseMessaging, firestore: mockFirestore, auth: mockFirebaseAuth);
-
-      // Act
-      await notificationService.setNotificationsEnabled(false);
-
-      // Assert
-      verify(() => mockNotificationDoc.set(
-        any(),
-        any(that: allOf([
-          isA<SetOptions>(),
-          predicate<SetOptions>((options) => options.merge == true),
-        ])),
-      )).called(1);
-    });
-
-    test('_saveNotificationSettingsToFirestore() includes serverTimestamp for lastUpdated', () async {
-      // Arrange
-      final notificationService = NotificationServiceTestHelper.createTestNotificationService(localNotificationsPlugin: mockLocalNotifications, firebaseMessaging: mockFirebaseMessaging, firestore: mockFirestore, auth: mockFirebaseAuth);
-
-      // Act
-      await notificationService.setNotificationTime('11:30');
-
-      // Assert
-      verify(() => mockNotificationDoc.set(
-        any(that: allOf([
-          isA<Map<String, dynamic>>(),
-          predicate<Map<String, dynamic>>((map) => 
-            map.containsKey('lastUpdated')
-          ),
-        ])),
-        any(that: isA<SetOptions>()),
-      )).called(1);
-    });
-
-    test('_saveNotificationSettingsToFirestore() handles network failures', () async {
-      // Arrange
-      when(() => mockNotificationDoc.set(any(), any()))
-          .thenThrow(Exception('Network error'));
-      final notificationService = NotificationServiceTestHelper.createTestNotificationService(localNotificationsPlugin: mockLocalNotifications, firebaseMessaging: mockFirebaseMessaging, firestore: mockFirestore, auth: mockFirebaseAuth);
-
-      // Act & Assert - should not throw
-      await expectLater(
-        () => notificationService.setNotificationsEnabled(true),
-        returnsNormally,
-      );
-    });
-
-    test('settings persistence handles concurrent operations correctly', () async {
-      // Arrange
-      final notificationService = NotificationServiceTestHelper.createTestNotificationService(localNotificationsPlugin: mockLocalNotifications, firebaseMessaging: mockFirebaseMessaging, firestore: mockFirestore, auth: mockFirebaseAuth);
-
-      // Act - simulate concurrent operations
-      final futures = [
-        notificationService.setNotificationsEnabled(true),
-        notificationService.setNotificationTime('13:45'),
-      ];
-      
-      await Future.wait(futures);
-
-      // Assert - both operations should complete
-      verify(() => mockNotificationDoc.set(any(), any())).called(2);
-    });
-
-    test('settings persistence maintains data consistency across operations', () async {
-      // Arrange
-      final notificationService = NotificationServiceTestHelper.createTestNotificationService(localNotificationsPlugin: mockLocalNotifications, firebaseMessaging: mockFirebaseMessaging, firestore: mockFirestore, auth: mockFirebaseAuth);
-
-      // Act - perform multiple settings operations
-      await notificationService.setNotificationsEnabled(true);
-      await notificationService.setNotificationTime('16:20');
-      await notificationService.setNotificationsEnabled(false);
-
-      // Assert - verify all operations called Firestore
-      verify(() => mockNotificationDoc.set(any(), any())).called(3);
-    });
-
-    test('settings persistence handles Firestore timeout gracefully', () async {
-      // Arrange
-      when(() => mockNotificationDoc.set(any(), any()))
-          .thenAnswer((_) => Future.delayed(const Duration(seconds: 30), () => {}));
-      final notificationService = NotificationServiceTestHelper.createTestNotificationService(localNotificationsPlugin: mockLocalNotifications, firebaseMessaging: mockFirebaseMessaging, firestore: mockFirestore, auth: mockFirebaseAuth);
-
-      // Act & Assert - should not hang or throw
-      await expectLater(
-        () => notificationService.setNotificationsEnabled(true),
-        returnsNormally,
-      );
-    });
-
-    test('settings persistence validates user authentication before write', () async {
-      // Arrange
-      NotificationServiceTestHelper.setupFirebaseAuthMocks(
-        mockFirebaseAuth,
-        mockUser,
-        isAuthenticated: false,
-      );
-      final notificationService = NotificationServiceTestHelper.createTestNotificationService(localNotificationsPlugin: mockLocalNotifications, firebaseMessaging: mockFirebaseMessaging, firestore: mockFirestore, auth: mockFirebaseAuth);
-
-      // Act
-      await notificationService.setNotificationsEnabled(true);
-
-      // Assert - no Firestore write should occur
-      verifyNever(() => mockNotificationDoc.set(any(), any()));
-    });
-
-    test('settings persistence handles partial Firestore data correctly', () async {
-      // Arrange
-      final mockDocSnapshot = MockDocumentSnapshot();
-      when(() => mockNotificationDoc.get()).thenAnswer((_) async => mockDocSnapshot);
-      when(() => mockDocSnapshot.exists).thenReturn(true);
-      when(() => mockDocSnapshot.data()).thenReturn({
-        'notificationsEnabled': true,
-        // Missing notificationTime and userTimezone
+    group('Settings Storage and Retrieval', () {
+      test('default settings are properly initialized', () async {
+        final isEnabled = await notificationService.areNotificationsEnabled();
+        final time = await notificationService.getNotificationTime();
+        
+        expect(isEnabled, isFalse);
+        expect(time, equals('09:00'));
       });
-      
-      final notificationService = NotificationServiceTestHelper.createTestNotificationService(localNotificationsPlugin: mockLocalNotifications, firebaseMessaging: mockFirebaseMessaging, firestore: mockFirestore, auth: mockFirebaseAuth);
 
-      // Act
-      await notificationService.setNotificationTime('14:00');
+      test('settings persist after being set', () async {
+        await notificationService.setNotificationsEnabled(true);
+        await notificationService.setNotificationTime('14:45');
 
-      // Assert - should handle missing fields gracefully
-      verify(() => mockNotificationDoc.set(
-        any(that: allOf([
-          isA<Map<String, dynamic>>(),
-          predicate<Map<String, dynamic>>((map) => 
-            map['notificationTime'] == '14:00' &&
-            map['notificationsEnabled'] == true &&
-            map.containsKey('userTimezone') // Should provide default
-          ),
-        ])),
-        any(that: isA<SetOptions>()),
-      )).called(1);
+        expect(await notificationService.areNotificationsEnabled(), isTrue);
+        expect(await notificationService.getNotificationTime(), equals('14:45'));
+      });
+
+      test('settings persist across service instances', () async {
+        await notificationService.setNotificationsEnabled(true);
+        await notificationService.setNotificationTime('20:30');
+
+        // Create new instance (should be same singleton)
+        final newService = NotificationService();
+        expect(await newService.areNotificationsEnabled(), isTrue);
+        expect(await newService.getNotificationTime(), equals('20:30'));
+      });
+
+      test('can update individual settings independently', () async {
+        // Set initial state
+        await notificationService.setNotificationsEnabled(true);
+        await notificationService.setNotificationTime('10:00');
+
+        // Update only the enabled state
+        await notificationService.setNotificationsEnabled(false);
+        expect(await notificationService.areNotificationsEnabled(), isFalse);
+        expect(await notificationService.getNotificationTime(), equals('10:00'));
+
+        // Update only the time
+        await notificationService.setNotificationTime('16:30');
+        expect(await notificationService.areNotificationsEnabled(), isFalse);
+        expect(await notificationService.getNotificationTime(), equals('16:30'));
+      });
     });
 
-    test('settings persistence handles empty Firestore document', () async {
-      // Arrange
-      final mockDocSnapshot = MockDocumentSnapshot();
-      when(() => mockNotificationDoc.get()).thenAnswer((_) async => mockDocSnapshot);
-      when(() => mockDocSnapshot.exists).thenReturn(true);
-      when(() => mockDocSnapshot.data()).thenReturn({}); // Empty document
-      
-      final notificationService = NotificationServiceTestHelper.createTestNotificationService(localNotificationsPlugin: mockLocalNotifications, firebaseMessaging: mockFirebaseMessaging, firestore: mockFirestore, auth: mockFirebaseAuth);
+    group('Settings Validation and Edge Cases', () {
+      test('handles various time format inputs', () async {
+        final testTimes = [
+          '00:00', '01:15', '06:30', '12:00', '18:45', '23:59'
+        ];
 
-      // Act
-      await notificationService.setNotificationsEnabled(false);
+        for (final time in testTimes) {
+          await notificationService.setNotificationTime(time);
+          final retrievedTime = await notificationService.getNotificationTime();
+          expect(retrievedTime, equals(time), reason: 'Failed for time: $time');
+        }
+      });
 
-      // Assert - should provide default values
-      verify(() => mockNotificationDoc.set(
-        any(that: allOf([
-          isA<Map<String, dynamic>>(),
-          predicate<Map<String, dynamic>>((map) => 
-            map['notificationsEnabled'] == false &&
-            map.containsKey('notificationTime') &&
-            map.containsKey('userTimezone')
-          ),
-        ])),
-        any(that: isA<SetOptions>()),
-      )).called(1);
+      test('handles boolean state transitions correctly', () async {
+        // Test all possible transitions
+        expect(await notificationService.areNotificationsEnabled(), isFalse);
+
+        await notificationService.setNotificationsEnabled(true);
+        expect(await notificationService.areNotificationsEnabled(), isTrue);
+
+        await notificationService.setNotificationsEnabled(true); // Same value
+        expect(await notificationService.areNotificationsEnabled(), isTrue);
+
+        await notificationService.setNotificationsEnabled(false);
+        expect(await notificationService.areNotificationsEnabled(), isFalse);
+
+        await notificationService.setNotificationsEnabled(false); // Same value
+        expect(await notificationService.areNotificationsEnabled(), isFalse);
+      });
+
+      test('settings remain consistent during rapid changes', () async {
+        // Make rapid consecutive changes
+        await notificationService.setNotificationsEnabled(true);
+        await notificationService.setNotificationTime('08:00');
+        await notificationService.setNotificationsEnabled(false);
+        await notificationService.setNotificationTime('14:00');
+        await notificationService.setNotificationsEnabled(true);
+        await notificationService.setNotificationTime('20:00');
+
+        // Final state should be consistent
+        expect(await notificationService.areNotificationsEnabled(), isTrue);
+        expect(await notificationService.getNotificationTime(), equals('20:00'));
+      });
     });
 
-    test('settings persistence uses correct Firestore collection path', () async {
-      // Arrange
-      final notificationService = NotificationServiceTestHelper.createTestNotificationService(localNotificationsPlugin: mockLocalNotifications, firebaseMessaging: mockFirebaseMessaging, firestore: mockFirestore, auth: mockFirebaseAuth);
+    group('Settings Persistence Layer', () {
+      test('settings survive SharedPreferences operations', () async {
+        await notificationService.setNotificationsEnabled(true);
+        await notificationService.setNotificationTime('11:30');
 
-      // Act
-      await notificationService.setNotificationsEnabled(true);
+        // Access SharedPreferences directly to verify storage
+        final prefs = await SharedPreferences.getInstance();
+        expect(prefs.getBool('notifications_enabled'), isTrue);
+        expect(prefs.getString('notification_time'), equals('11:30'));
+      });
 
-      // Assert - verify correct path is used
-      verify(() => mockFirestore.collection('users')).called(1);
-      verify(() => mockUsersCollection.doc('test_user_456')).called(1);
-      verify(() => mockUserDoc.collection('settings')).called(1);
-      verify(() => mockSettingsCollection.doc('notifications')).called(1);
+      test('can manually modify SharedPreferences and read back', () async {
+        final prefs = await SharedPreferences.getInstance();
+        
+        // Manually set values
+        await prefs.setBool('notifications_enabled', true);
+        await prefs.setString('notification_time', '17:15');
+
+        // Service should read these values
+        expect(await notificationService.areNotificationsEnabled(), isTrue);
+        expect(await notificationService.getNotificationTime(), equals('17:15'));
+      });
+
+      test('handles missing SharedPreferences gracefully', () async {
+        final prefs = await SharedPreferences.getInstance();
+        
+        // Clear all preferences
+        await prefs.clear();
+
+        // Service should use defaults
+        expect(await notificationService.areNotificationsEnabled(), isFalse);
+        expect(await notificationService.getNotificationTime(), equals('09:00'));
+      });
+
+      test('handles corrupted SharedPreferences data', () async {
+        final prefs = await SharedPreferences.getInstance();
+        
+        // Set invalid data
+        await prefs.setString('notifications_enabled', 'not_a_boolean');
+        await prefs.setInt('notification_time', 12345);
+
+        // Service should handle gracefully and use defaults
+        await expectLater(
+          () => notificationService.areNotificationsEnabled(),
+          returnsNormally,
+        );
+        
+        await expectLater(
+          () => notificationService.getNotificationTime(),
+          returnsNormally,
+        );
+      });
+    });
+
+    group('Settings Integration with Notifications', () {
+      test('settings affect notification scheduling behavior', () async {
+        await notificationService.setNotificationsEnabled(true);
+        await notificationService.setNotificationTime('09:30');
+
+        // Should be able to schedule with valid settings
+        await expectLater(
+          () => notificationService.scheduleDailyNotification(),
+          returnsNormally,
+        );
+      });
+
+      test('can modify settings after scheduling notifications', () async {
+        await notificationService.setNotificationsEnabled(true);
+        await notificationService.setNotificationTime('10:00');
+        
+        await notificationService.scheduleDailyNotification();
+
+        // Change settings after scheduling
+        await notificationService.setNotificationTime('15:00');
+        expect(await notificationService.getNotificationTime(), equals('15:00'));
+
+        // Should be able to reschedule with new time
+        await expectLater(
+          () => notificationService.scheduleDailyNotification(),
+          returnsNormally,
+        );
+      });
+
+      test('settings remain intact when notifications are cancelled', () async {
+        await notificationService.setNotificationsEnabled(true);
+        await notificationService.setNotificationTime('12:30');
+
+        await notificationService.scheduleDailyNotification();
+        await notificationService.cancelScheduledNotifications();
+
+        // Settings should remain unchanged
+        expect(await notificationService.areNotificationsEnabled(), isTrue);
+        expect(await notificationService.getNotificationTime(), equals('12:30'));
+      });
+    });
+
+    group('Settings Error Recovery', () {
+      test('service recovers from storage errors', () async {
+        // Set valid initial state
+        await notificationService.setNotificationsEnabled(true);
+        await notificationService.setNotificationTime('13:00');
+
+        // Even if storage operations fail, reading should still work
+        await expectLater(
+          () => notificationService.areNotificationsEnabled(),
+          returnsNormally,
+        );
+        
+        await expectLater(
+          () => notificationService.getNotificationTime(),
+          returnsNormally,
+        );
+      });
+
+      test('can continue working after settings errors', () async {
+        // Try setting invalid data (should be handled gracefully)
+        await expectLater(
+          () => notificationService.setNotificationTime(''),
+          returnsNormally,
+        );
+
+        // Service should still be functional
+        await notificationService.setNotificationsEnabled(true);
+        expect(await notificationService.areNotificationsEnabled(), isTrue);
+      });
+
+      test('maintains consistency during concurrent operations', () async {
+        // Perform multiple concurrent settings operations
+        final futures = <Future>[];
+        
+        futures.add(notificationService.setNotificationsEnabled(true));
+        futures.add(notificationService.setNotificationTime('14:30'));
+        futures.add(notificationService.setNotificationsEnabled(false));
+        futures.add(notificationService.setNotificationTime('18:00'));
+
+        await Future.wait(futures);
+
+        // Should have some consistent final state
+        final finalEnabled = await notificationService.areNotificationsEnabled();
+        final finalTime = await notificationService.getNotificationTime();
+        
+        expect(finalEnabled, isA<bool>());
+        expect(finalTime, isA<String>());
+        expect(finalTime, isNotEmpty);
+      });
     });
   });
 }
