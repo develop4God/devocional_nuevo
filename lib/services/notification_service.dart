@@ -44,12 +44,21 @@ class NotificationService {
   factory NotificationService() => _instance;
   NotificationService._internal();
 
-  final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin =
-      FlutterLocalNotificationsPlugin();
+  // Test-friendly constructor for dependency injection
+  NotificationService.forTesting({
+    FlutterLocalNotificationsPlugin? localNotificationsPlugin,
+    FirebaseMessaging? firebaseMessaging,
+    FirebaseFirestore? firestore,
+    FirebaseAuth? auth,
+  }) : _flutterLocalNotificationsPlugin = localNotificationsPlugin ?? FlutterLocalNotificationsPlugin(),
+       _firebaseMessaging = firebaseMessaging ?? FirebaseMessaging.instance,
+       _firestore = firestore ?? FirebaseFirestore.instance,
+       _auth = auth ?? FirebaseAuth.instance;
 
-  final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin;
+  final FirebaseMessaging _firebaseMessaging;
+  final FirebaseFirestore _firestore;
+  final FirebaseAuth _auth;
 
   static const String _notificationsEnabledKey = 'notifications_enabled';
   static const String _notificationTimeKey = 'notification_time';
@@ -88,7 +97,7 @@ class NotificationService {
         // **FIN DE MODIFICACIÓN**
       );
 
-      await _requestPermissions();
+      await requestPermissions();
       developer.log('NotificationService: Initialized',
           name: 'NotificationService');
 
@@ -102,7 +111,7 @@ class NotificationService {
               name: 'NotificationService');
 
           // Ahora, inicializar FCM y gestionar el token solo si hay un usuario
-          await _initializeFCM();
+          await initializeFCM();
 
           // Manejar el mensaje inicial si la app se abrió desde una notificación
           final RemoteMessage? initialMessage =
@@ -111,7 +120,7 @@ class NotificationService {
             developer.log(
                 'NotificationService: Aplicación abierta desde notificación inicial: ${initialMessage.messageId}',
                 name: 'NotificationService');
-            _handleMessage(initialMessage);
+            handleMessage(initialMessage);
           }
 
           // Asegurar que la configuración de notificaciones esté completa en Firestore
@@ -137,7 +146,7 @@ class NotificationService {
               ? (settingsDoc.data()?['userTimezone'] ?? currentDeviceTimezone)
               : currentDeviceTimezone;
 
-          await _saveNotificationSettingsToFirestore(
+          await saveNotificationSettingsToFirestore(
             userId,
             initialNotificationsEnabled,
             initialNotificationTime,
@@ -155,8 +164,8 @@ class NotificationService {
     }
   }
 
-  // Método para inicializar FCM, obtener/guardar token y configurar listeners
-  Future<void> _initializeFCM() async {
+  // Package-private for testing - renamed from _initializeFCM
+  Future<void> initializeFCM() async {
     try {
       // Solicitar permiso para notificaciones (iOS y Android 13+)
       NotificationSettings settings =
@@ -180,14 +189,14 @@ class NotificationService {
           name: 'NotificationService');
       if (token != null) {
         // Asegurarse de que el token no sea nulo antes de pasarlo
-        await _saveFcmToken(token); // Guardar token en Firestore
+        await saveFcmToken(token); // Guardar token en Firestore
       }
 
       // Escuchar cambios en el token
       _firebaseMessaging.onTokenRefresh.listen((newToken) {
         developer.log('NotificationService: Token FCM refrescado: $newToken',
             name: 'NotificationService');
-        _saveFcmToken(newToken); // Actualizar token en Firestore
+        saveFcmToken(newToken); // Actualizar token en Firestore
       });
 
       // NUEVO: Listener para mensajes FCM cuando la app está en primer plano
@@ -195,7 +204,7 @@ class NotificationService {
         developer.log(
             'NotificationService: Mensaje FCM en primer plano: ${message.messageId}',
             name: 'NotificationService');
-        _handleMessage(message);
+        handleMessage(message);
       });
 
       // NUEVO: Listener para cuando el usuario toca una notificación FCM
@@ -203,16 +212,16 @@ class NotificationService {
         developer.log(
             'NotificationService: Aplicación abierta desde notificación: ${message.messageId}',
             name: 'NotificationService');
-        _handleMessage(message);
+        handleMessage(message);
       });
     } catch (e) {
-      developer.log('ERROR en _initializeFCM: $e',
+      developer.log('ERROR en initializeFCM: $e',
           name: 'NotificationService', error: e);
     }
   }
 
-  // NUEVO: Método para manejar mensajes FCM y mostrarlos localmente
-  void _handleMessage(RemoteMessage message) {
+  // Package-private for testing - renamed from _handleMessage
+  void handleMessage(RemoteMessage message) {
     // Solo procesar si el mensaje contiene una sección de notificación o datos relevantes
     if (message.notification != null || message.data.isNotEmpty) {
       developer.log(
@@ -251,8 +260,8 @@ class NotificationService {
     }
   }
 
-  // Método para guardar el token FCM en Firestore
-  Future<void> _saveFcmToken(String token) async {
+  // Package-private for testing - renamed from _saveFcmToken
+  Future<void> saveFcmToken(String token) async {
     try {
       final User? user = _auth.currentUser;
       if (user == null) {
@@ -289,14 +298,13 @@ class NotificationService {
           'NotificationService: Token FCM guardado en SharedPreferences.',
           name: 'NotificationService');
     } catch (e) {
-      developer.log('ERROR en _saveFcmToken: $e',
+      developer.log('ERROR en saveFcmToken: $e',
           name: 'NotificationService', error: e);
     }
   }
 
-  // **INICIO DE MODIFICACIÓN: Método unificado para guardar TODA la configuración de notificaciones**
-  // Este método reemplaza la lógica de _saveUserTimezoneToFirestore y es el punto central para guardar.
-  Future<void> _saveNotificationSettingsToFirestore(
+  // Package-private for testing - renamed from _saveNotificationSettingsToFirestore
+  Future<void> saveNotificationSettingsToFirestore(
       String userId,
       bool notificationsEnabled,
       String notificationTime,
@@ -364,7 +372,8 @@ class NotificationService {
     }
   }
 
-  Future<bool> _requestPermissions() async {
+  // Package-private for testing - renamed from _requestPermissions
+  Future<bool> requestPermissions() async {
     try {
       // **INICIO DE MODIFICACIÓN: Ajuste para reportar permisos con precisión**
       bool allPermissionsGranted =
@@ -405,7 +414,7 @@ class NotificationService {
       return allPermissionsGranted; // Retorna el estado combinado de todos los permisos
       // **FIN DE MODIFICACIÓN**
     } catch (e) {
-      developer.log('ERROR en _requestPermissions: $e',
+      developer.log('ERROR en requestPermissions: $e',
           name: 'NotificationService', error: e);
       return false;
     }
@@ -439,7 +448,7 @@ class NotificationService {
         String currentUserTimezone = settingsDoc.data()?['userTimezone'] ??
             await FlutterTimezone.getLocalTimezone();
 
-        await _saveNotificationSettingsToFirestore(
+        await saveNotificationSettingsToFirestore(
           user.uid,
           enabled, // El nuevo estado de habilitado
           currentNotificationTime, // La hora actual (sin cambios aquí)
@@ -496,7 +505,7 @@ class NotificationService {
         String currentUserTimezone = settingsDoc.data()?['userTimezone'] ??
             await FlutterTimezone.getLocalTimezone();
 
-        await _saveNotificationSettingsToFirestore(
+        await saveNotificationSettingsToFirestore(
           user.uid,
           currentNotificationsEnabled, // El estado de habilitado actual (sin cambios aquí)
           time, // La nueva hora
