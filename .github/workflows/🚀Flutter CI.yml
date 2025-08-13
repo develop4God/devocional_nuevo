@@ -1,6 +1,6 @@
 # .github/workflows/ci.yml
 # Configuración CI más exitosa basada en casos reales de la comunidad
-name: Flutter CI ✅
+name: 🚀Flutter CI 
 
 # Se ejecuta en PRs y pushes a main/develop
 on:
@@ -9,7 +9,12 @@ on:
       target_branch:
         description: 'Branch to test (leave empty for current)'
         required: false
-        default: '' 
+        default: ''
+      auto_format:
+        description: 'Auto-format code if needed'
+        required: false
+        default: true
+        type: boolean
 
 jobs:
   # Job 1: Análisis estático y formateo
@@ -20,6 +25,8 @@ jobs:
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: ☕ Setup Java
         uses: actions/setup-java@v4
@@ -36,8 +43,76 @@ jobs:
       - name: 📦 Get dependencies
         run: flutter pub get
 
-      - name: 🎨 Check formatting
-        run: dart format --set-exit-if-changed .
+      - name: 🎨 Check and auto-format code
+        run: |
+          echo "🎨 Checking Dart code formatting..."
+          
+          # Check if formatting is needed
+          if ! dart format --set-exit-if-changed . 2>/dev/null; then
+            echo "📝 Formatting issues detected!"
+            
+            # Auto-format if enabled via input parameter
+            if [ "${{ github.event.inputs.auto_format }}" = "true" ]; then
+              echo "🔧 Auto-formatting enabled. Applying fixes..."
+              
+              # Format the code
+              dart format .
+              
+              # Configure git
+              git config --local user.email "action@github.com"
+              git config --local user.name "GitHub Action [bot]"
+              
+              # Check if there are changes after formatting
+              if ! git diff --quiet; then
+                echo "📋 Files that were formatted:"
+                git diff --name-only
+                
+                # Add and commit the changes
+                git add .
+                git commit -m "🎨 Auto-format code with dart format
+
+Applied automatic code formatting to ensure consistency.
+
+Files formatted:
+$(git diff --name-only HEAD~1 | sed 's/^/- /')
+
+Triggered by: GitHub Actions workflow
+[skip ci]"
+                
+                # Push the changes
+                git push
+                
+                echo "✅ Code has been automatically formatted and committed!"
+                echo "🔄 Contributors should pull the latest changes."
+                
+                # Add a summary
+                echo "## 🎨 Auto-Format Summary" >> $GITHUB_STEP_SUMMARY
+                echo "✅ Code formatting issues were automatically fixed" >> $GITHUB_STEP_SUMMARY
+                echo "📝 Files formatted:" >> $GITHUB_STEP_SUMMARY
+                git diff --name-only HEAD~1 | sed 's/^/- /' >> $GITHUB_STEP_SUMMARY
+                echo "" >> $GITHUB_STEP_SUMMARY
+                echo "🔄 **Action Required**: Pull the latest changes to your local branch:" >> $GITHUB_STEP_SUMMARY
+                echo '```bash' >> $GITHUB_STEP_SUMMARY
+                echo "git pull origin ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+                echo '```' >> $GITHUB_STEP_SUMMARY
+              else
+                echo "ℹ️ No changes were needed after formatting."
+              fi
+            else
+              echo "❌ Auto-formatting is disabled. Please format manually:"
+              echo ""
+              echo "Files that need formatting:"
+              dart format --show-all .
+              echo ""
+              echo "To fix these issues, run:"
+              echo "  dart format ."
+              echo ""
+              echo "Or trigger this workflow with auto-format enabled."
+              exit 1
+            fi
+          else
+            echo "✅ All files are already properly formatted!"
+          fi
 
       - name: 🔍 Analyze code
         run: flutter analyze --fatal-infos
@@ -76,6 +151,7 @@ jobs:
         uses: codecov/codecov-action@v3
         with:
           file: coverage/lcov.info
+          fail_ci_if_error: false
 
       - name: 📈 Generate coverage report
         run: |
@@ -148,13 +224,14 @@ jobs:
     name: 💬 PR Comment
     runs-on: ubuntu-latest
     needs: [analyze, test, build]
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'pull_request' && always()
     
     steps:
       - name: 📥 Download coverage
         uses: actions/download-artifact@v4
         with:
           name: coverage-report
+        continue-on-error: true
 
       - name: 💬 Comment PR
         uses: actions/github-script@v7
@@ -162,13 +239,25 @@ jobs:
           script: |
             const fs = require('fs');
             
+            // Check job statuses
+            const analyzeStatus = '${{ needs.analyze.result }}';
+            const testStatus = '${{ needs.test.result }}';
+            const buildStatus = '${{ needs.build.result }}';
+            
+            const getStatusEmoji = (status) => {
+              switch (status) {
+                case 'success': return '✅';
+                case 'failure': return '❌';
+                case 'cancelled': return '⏹️';
+                case 'skipped': return '⏭️';
+                default: return '🔄';
+              }
+            };
+            
             // Leer coverage si existe
             let coverageInfo = 'Coverage info not available';
             try {
-              // Buscar archivos de coverage
               const files = fs.readdirSync('.');
-              console.log('Available files:', files);
-              
               if (fs.existsSync('lcov.info')) {
                 coverageInfo = '📊 Coverage report generated successfully';
               }
@@ -176,19 +265,24 @@ jobs:
               console.log('Error reading coverage:', e.message);
             }
             
+            const autoFormatEnabled = '${{ github.event.inputs.auto_format }}' === 'true';
+            const formatNote = autoFormatEnabled ? '🎨 Auto-format: Enabled' : '⚠️ Auto-format: Disabled';
+            
             const comment = `## 🎉 CI Results for PR #${{ github.event.number }}
             
-            ✅ **Static Analysis**: Passed
-            ✅ **Tests**: Passed  
-            ✅ **Build**: Passed
+            ${getStatusEmoji(analyzeStatus)} **Static Analysis**: ${analyzeStatus}
+            ${getStatusEmoji(testStatus)} **Tests**: ${testStatus}  
+            ${getStatusEmoji(buildStatus)} **Build**: ${buildStatus}
             
+            ${formatNote}
             ${coverageInfo}
             
             ### 📦 Artifacts Available:
-            - 📱 Android APK
-            - 🌐 Web Build
+            ${buildStatus === 'success' ? '- 📱 Android APK\n- 🌐 Web Build' : 'No artifacts (build failed)'}
             
-            ### 🚀 Ready to merge!
+            ### ${analyzeStatus === 'success' && testStatus === 'success' && buildStatus === 'success' ? '🚀 Ready to merge!' : '⚠️ Issues found - check the logs'}
+            
+            ${analyzeStatus === 'failure' && !autoFormatEnabled ? '\n💡 **Tip**: Enable auto-format when running the workflow to automatically fix formatting issues!' : ''}
             
             ---
             *Generated by GitHub Actions*`;
