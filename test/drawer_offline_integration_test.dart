@@ -109,7 +109,8 @@ void main() {
       debugFoundTexts(tester);
 
       // Use flexible text matching
-      expect(findTextFlexible('descargar devocionales'), findsAtLeastNWidgets(1));
+      expect(
+          findTextFlexible('descargar devocionales'), findsAtLeastNWidgets(1));
 
       // Look for download-related icons more flexibly
       final downloadIcons = [
@@ -132,7 +133,8 @@ void main() {
       // If no specific icon found, just verify the drawer opened
       if (!foundDownloadIcon) {
         expect(find.byType(DevocionalesDrawer), findsOneWidget);
-        debugPrint('Note: No specific download icon found, but drawer is present');
+        debugPrint(
+            'Note: No specific download icon found, but drawer is present');
       }
     });
 
@@ -153,7 +155,8 @@ void main() {
       debugFoundTexts(tester);
 
       // Use flexible text matching for downloaded status
-      expect(findTextFlexible('devocionales descargados'), findsAtLeastNWidgets(1));
+      expect(findTextFlexible('devocionales descargados'),
+          findsAtLeastNWidgets(1));
 
       // Look for check-related icons more flexibly
       final checkIcons = [
@@ -265,11 +268,13 @@ void main() {
 
       // At minimum, ensure some kind of dialog opened
       if (!foundDialog && !foundTitle && !foundLongText) {
-        fail('Expected a dialog to open when tapping download option, but no dialog elements were found');
+        fail(
+            'Expected a dialog to open when tapping download option, but no dialog elements were found');
       }
-      
+
       // CAMBIO: Se reemplaza print por debugPrint
-      debugPrint('Dialog verification: foundDialog=$foundDialog, foundTitle=$foundTitle, foundLongText=$foundLongText, foundCancel=$foundCancel, foundAccept=$foundAccept');
+      debugPrint(
+          'Dialog verification: foundDialog=$foundDialog, foundTitle=$foundTitle, foundLongText=$foundLongText, foundCancel=$foundCancel, foundAccept=$foundAccept');
     });
 
     testWidgets('should have proper drawer structure',
@@ -312,7 +317,8 @@ void main() {
 
       // Ensure we found at least most of the expected texts
       expect(foundTexts, greaterThanOrEqualTo(3),
-        reason: 'Expected to find at least 3 of the 5 expected drawer sections, but only found $foundTexts');
+          reason:
+              'Expected to find at least 3 of the 5 expected drawer sections, but only found $foundTexts');
 
       // Special handling for dark mode text variations
       final darkModeVariations = [
@@ -335,7 +341,8 @@ void main() {
 
       if (!foundDarkMode) {
         // CAMBIO: Se reemplaza print por debugPrint
-        debugPrint('Note: No dark mode text found, but drawer structure is otherwise valid');
+        debugPrint(
+            'Note: No dark mode text found, but drawer structure is otherwise valid');
       }
     });
   });
