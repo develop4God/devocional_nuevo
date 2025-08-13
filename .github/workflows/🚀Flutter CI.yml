@@ -69,16 +69,7 @@ jobs:
                 
                 # Add and commit the changes
                 git add .
-                git commit -m "🎨 Auto-format code with dart format
-
-Applied automatic code formatting to ensure consistency.
-
-Files formatted:
-$(git diff --name-only HEAD~1 | sed 's/^/- /')
-
-Triggered by: GitHub Actions workflow
-[skip ci]"
-                
+                git commit -m "🎨 Auto-format code with dart format"    
                 # Push the changes
                 git push
                 
