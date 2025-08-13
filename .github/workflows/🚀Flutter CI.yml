@@ -172,13 +172,10 @@ jobs:
       matrix:
         include:
           - platform: android
-            build-cmd: flutter build apk --release
+            build-cmd: flutter build apk --debug
             artifact-path: build/app/outputs/flutter-apk/app-release.apk
             artifact-name: android-apk
-          - platform: web
-            build-cmd: flutter build web --release --base-href ./
-            artifact-path: build/web
-            artifact-name: web-build
+          
     
     steps:
       - name: 📥 Checkout code
