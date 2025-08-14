@@ -2,7 +2,6 @@
 // Comprehensive integration tests for NotificationService - Public API only
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:devocional_nuevo/services/notification_service.dart';
 import 'notification_service_test_helper.dart';
 
