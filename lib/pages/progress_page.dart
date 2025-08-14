@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/spiritual_stats_model.dart';
 import '../pages/favorites_page.dart';
@@ -28,6 +29,7 @@ class _ProgressPageState extends State<ProgressPage>
     super.initState();
     _initAnimations();
     _loadStats();
+    _showAchievementTipIfNeeded();
   }
 
   void _initAnimations() {
@@ -35,6 +37,7 @@ class _ProgressPageState extends State<ProgressPage>
       duration: const Duration(milliseconds: 1500),
       vsync: this,
     );
+
     _streakAnimation = Tween<double>(
       begin: 0.0,
       end: 1.0,
@@ -48,26 +51,119 @@ class _ProgressPageState extends State<ProgressPage>
     setState(() {
       _isLoading = true;
     });
+
     try {
       final devocionalProvider =
           Provider.of<DevocionalProvider>(context, listen: false);
       final favoritesCount = devocionalProvider.favoriteDevocionales.length;
       final stats = await _statsService.updateFavoritesCount(favoritesCount);
+
       setState(() {
         _stats = stats;
         _isLoading = false;
       });
+
       _streakAnimationController.forward();
     } catch (e) {
       setState(() {
         _isLoading = false;
       });
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error al cargar estadísticas: $e')),
         );
       }
     }
+  }
+
+  // 💡 MOSTRAR TIP EDUCATIVO SOBRE LOGROS (SOLO 2 VECES)
+  Future<void> _showAchievementTipIfNeeded() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final tipShownCount = prefs.getInt('achievement_tip_count') ?? 0;
+
+      // Solo mostrar si se ha mostrado menos de 2 veces
+      if (tipShownCount < 2) {
+        // Esperar un poco para que la pantalla cargue completamente
+        await Future.delayed(const Duration(milliseconds: 1500));
+
+        if (mounted) {
+          _showEducationalSnackBar();
+
+          // Incrementar contador
+          await prefs.setInt('achievement_tip_count', tipShownCount + 1);
+        }
+      }
+    } catch (e) {
+      // Si hay error con SharedPreferences, no mostrar el tip
+      debugPrint('Error showing achievement tip: $e');
+    }
+  }
+
+  void _showEducationalSnackBar() {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.lightbulb_outline,
+                size: 20,
+                color: colorScheme.primary,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Consejo útil',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Toca cualquier logro para ver información completa',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: colorScheme.primary,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        margin: const EdgeInsets.all(16),
+        duration: const Duration(seconds: 8),
+        elevation: 6,
+        action: SnackBarAction(
+          label: 'Entendido',
+          textColor: Colors.white,
+          onPressed: () {
+            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          },
+        ),
+      ),
+    );
   }
 
   @override
@@ -279,8 +375,6 @@ class _ProgressPageState extends State<ProgressPage>
   }
 
   Widget _buildStatsCards() {
-    final colorScheme = Theme.of(context).colorScheme;
-
     return Row(
       children: [
         Expanded(
@@ -387,7 +481,6 @@ class _ProgressPageState extends State<ProgressPage>
   Widget _buildAchievementsSection() {
     final allAchievements = PredefinedAchievements.all;
     final unlockedIds = _stats!.unlockedAchievements.map((a) => a.id).toSet();
-    final colorScheme = Theme.of(context).colorScheme;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -446,68 +539,94 @@ class _ProgressPageState extends State<ProgressPage>
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return Card(
-      elevation: isUnlocked ? 4 : 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+    // 🎯 TOOLTIP CON TAP SIMPLE + AUTO-CIERRE
+    return Tooltip(
+      message: '${achievement.title}\n${achievement.description}',
+      triggerMode: TooltipTriggerMode.tap,
+      showDuration: Duration(seconds: 2),
+      textStyle: TextStyle(
+        fontSize: 14,
+        color: Colors.white,
+        fontWeight: FontWeight.w500,
       ),
-      // ✨ SOMBRA TEMÁTICA DIFERENCIADA
-      shadowColor: isUnlocked
-          ? achievement.color.withValues(alpha: 1)
-          : colorScheme.outline.withValues(alpha: 1),
-      child: Opacity(
-        opacity: isUnlocked ? 1.0 : 0.4,
-        child: Container(
-          padding: const EdgeInsets.all(8),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              CircleAvatar(
-                backgroundColor: isUnlocked
-                    ? achievement.color.withValues(alpha: 0.2)
-                    : Colors.grey.withValues(alpha: 0.2),
-                radius: 14,
-                child: Icon(
-                  achievement.icon,
-                  color: isUnlocked ? achievement.color : Colors.grey,
-                  size: 14,
+      decoration: BoxDecoration(
+        color: isUnlocked ? achievement.color : Colors.grey,
+        borderRadius: BorderRadius.circular(8),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black26,
+            blurRadius: 4,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      margin: const EdgeInsets.symmetric(horizontal: 8),
+      preferBelow: false,
+      verticalOffset: 10,
+      child: Card(
+        elevation: isUnlocked ? 4 : 2,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        // ✨ SOMBRA TEMÁTICA DIFERENCIADA
+        shadowColor: isUnlocked
+            ? achievement.color.withValues(alpha: 1)
+            : colorScheme.outline.withValues(alpha: 1),
+        child: Opacity(
+          opacity: isUnlocked ? 1.0 : 0.4,
+          child: Container(
+            padding: const EdgeInsets.all(8),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                CircleAvatar(
+                  backgroundColor: isUnlocked
+                      ? achievement.color.withValues(alpha: 0.2)
+                      : Colors.grey.withValues(alpha: 0.2),
+                  radius: 14,
+                  child: Icon(
+                    achievement.icon,
+                    color: isUnlocked ? achievement.color : Colors.grey,
+                    size: 14,
+                  ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Flexible(
-                      child: Text(
-                        achievement.title,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 10,
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Flexible(
+                        child: Text(
+                          achievement.title,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 10,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                       ),
-                    ),
-                    const SizedBox(height: 1),
-                    Flexible(
-                      child: Text(
-                        achievement.description,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          fontSize: 8,
-                          color: theme.colorScheme.onSurface
-                              .withValues(alpha: 0.6),
+                      const SizedBox(height: 1),
+                      Flexible(
+                        child: Text(
+                          achievement.description,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            fontSize: 8,
+                            color: theme.colorScheme.onSurface
+                                .withValues(alpha: 0.6),
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
