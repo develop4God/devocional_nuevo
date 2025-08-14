@@ -1,8 +1,10 @@
 // lib/services/spiritual_stats_service.dart
 
 import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import '../models/spiritual_stats_model.dart';
 
 class SpiritualStatsService {
@@ -11,14 +13,13 @@ class SpiritualStatsService {
   static const String _lastReadDevocionalKey = 'last_read_devocional';
   static const String _lastReadTimeKey = 'last_read_time';
 
-  // Minimum time in seconds between reads to prevent rapid tapping
-  static const int _minTimeBetweenReads = 10;
+  // Removed anti-spam protection to allow natural user navigation
 
   /// Get current spiritual statistics
   Future<SpiritualStats> getStats() async {
     final prefs = await SharedPreferences.getInstance();
     final String? statsJson = prefs.getString(_statsKey);
-    
+
     if (statsJson != null) {
       try {
         final Map<String, dynamic> data = json.decode(statsJson);
@@ -27,7 +28,7 @@ class SpiritualStatsService {
         debugPrint('Error parsing spiritual stats: $e');
       }
     }
-    
+
     return SpiritualStats();
   }
 
@@ -38,34 +39,28 @@ class SpiritualStatsService {
     await prefs.setString(_statsKey, statsJson);
   }
 
-  /// Record that a devotional was read today - with anti-spam protection
+  /// Record that a devotional was read - with silent validation
   Future<SpiritualStats> recordDevocionalRead({
     required String devocionalId,
     int? favoritesCount,
+    int readingTimeSeconds = 0,
+    double scrollPercentage = 0.0,
   }) async {
     final prefs = await SharedPreferences.getInstance();
     final stats = await getStats();
-    
-    // Anti-spam protection: Check if this is the same devotional and if enough time has passed
-    final lastReadDevocional = prefs.getString(_lastReadDevocionalKey);
-    final lastReadTime = prefs.getInt(_lastReadTimeKey) ?? 0;
-    final currentTime = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-    
-    if (lastReadDevocional == devocionalId && 
-        (currentTime - lastReadTime) < _minTimeBetweenReads) {
-      debugPrint('Devotional read too recently, ignoring to prevent spam');
-      // Just update favorites count if provided and return existing stats
-      if (favoritesCount != null) {
-        final updatedStats = stats.copyWith(favoritesCount: favoritesCount);
-        await saveStats(updatedStats);
-        return updatedStats;
-      }
-      return stats;
-    }
-    
-    // Check if this devotional has already been read
+
+    // Always allow user to mark as read, but validate silently for statistics
+    final bool meetsReadingCriteria =
+        readingTimeSeconds >= 120 && scrollPercentage >= 0.8;
+
+    debugPrint('Devotional read attempt: $devocionalId');
+    debugPrint(
+        'Reading time: ${readingTimeSeconds}s, Scroll: ${(scrollPercentage * 100).toStringAsFixed(1)}%');
+    debugPrint('Meets criteria: $meetsReadingCriteria');
+
+    // Check if this devotional has already been read and counted for statistics
     if (stats.readDevocionalIds.contains(devocionalId)) {
-      debugPrint('Devotional $devocionalId already read, not counting again');
+      debugPrint('Devotional $devocionalId already counted in statistics');
       // Just update favorites count if provided
       if (favoritesCount != null) {
         final updatedStats = stats.copyWith(favoritesCount: favoritesCount);
@@ -74,54 +69,74 @@ class SpiritualStatsService {
       }
       return stats;
     }
-    
+
+    // Only count for statistics if meets reading criteria
+    if (!meetsReadingCriteria) {
+      debugPrint(
+          'Devotional read but not counting for statistics (criteria not met)');
+      // Update tracking info but don't count for statistics
+      await prefs.setString(_lastReadDevocionalKey, devocionalId);
+      await prefs.setInt(
+          _lastReadTimeKey, DateTime.now().millisecondsSinceEpoch ~/ 1000);
+
+      // Just update favorites count if provided
+      if (favoritesCount != null) {
+        final updatedStats = stats.copyWith(favoritesCount: favoritesCount);
+        await saveStats(updatedStats);
+        return updatedStats;
+      }
+      return stats;
+    }
+
     final today = DateTime.now();
     final todayDateOnly = DateTime(today.year, today.month, today.day);
-    
+
     // Get list of read dates
     final readDates = await _getReadDates();
-    
-    // Check if already read something today
+
+    // Check if already read something today for statistics
     final alreadyReadToday = readDates.any((date) =>
         date.year == today.year &&
         date.month == today.month &&
         date.day == today.day);
-    
+
     // Add today to read dates if not already there
     if (!alreadyReadToday) {
       readDates.add(todayDateOnly);
       await _saveReadDates(readDates);
     }
-    
+
     // Update tracking info
     await prefs.setString(_lastReadDevocionalKey, devocionalId);
-    await prefs.setInt(_lastReadTimeKey, currentTime);
-    
+    await prefs.setInt(
+        _lastReadTimeKey, DateTime.now().millisecondsSinceEpoch ~/ 1000);
+
     // Calculate new streak
     final newStreak = _calculateCurrentStreak(readDates);
-    
-    // Add devotional ID to read list
+
+    // Add devotional ID to read list (for statistics)
     final newReadDevocionalIds = List<String>.from(stats.readDevocionalIds);
     newReadDevocionalIds.add(devocionalId);
-    
+
     // Update stats
     final updatedStats = stats.copyWith(
       totalDevocionalesRead: stats.totalDevocionalesRead + 1,
       currentStreak: newStreak,
-      longestStreak: newStreak > stats.longestStreak ? newStreak : stats.longestStreak,
+      longestStreak:
+          newStreak > stats.longestStreak ? newStreak : stats.longestStreak,
       lastActivityDate: today,
       favoritesCount: favoritesCount ?? stats.favoritesCount,
       readDevocionalIds: newReadDevocionalIds,
       unlockedAchievements: _updateAchievements(
-        stats, 
-        newStreak, 
-        stats.totalDevocionalesRead + 1, 
-        favoritesCount ?? stats.favoritesCount
-      ),
+          stats,
+          newStreak,
+          stats.totalDevocionalesRead + 1,
+          favoritesCount ?? stats.favoritesCount),
     );
-    
+
     await saveStats(updatedStats);
-    debugPrint('Recorded devotional read: $devocionalId, total: ${updatedStats.totalDevocionalesRead}');
+    debugPrint(
+        'Recorded devotional for statistics: $devocionalId, total: ${updatedStats.totalDevocionalesRead}');
     return updatedStats;
   }
 
@@ -130,14 +145,10 @@ class SpiritualStatsService {
     final stats = await getStats();
     final updatedStats = stats.copyWith(
       favoritesCount: favoritesCount,
-      unlockedAchievements: _updateAchievements(
-        stats, 
-        stats.currentStreak, 
-        stats.totalDevocionalesRead, 
-        favoritesCount
-      ),
+      unlockedAchievements: _updateAchievements(stats, stats.currentStreak,
+          stats.totalDevocionalesRead, favoritesCount),
     );
-    
+
     await saveStats(updatedStats);
     return updatedStats;
   }
@@ -146,44 +157,48 @@ class SpiritualStatsService {
   Future<List<DateTime>> _getReadDates() async {
     final prefs = await SharedPreferences.getInstance();
     final List<String>? dateStrings = prefs.getStringList(_readDatesKey);
-    
+
     if (dateStrings == null) return [];
-    
-    return dateStrings.map((dateString) {
-      try {
-        return DateTime.parse(dateString);
-      } catch (e) {
-        debugPrint('Error parsing read date: $dateString');
-        return null;
-      }
-    }).where((date) => date != null).cast<DateTime>().toList();
+
+    return dateStrings
+        .map((dateString) {
+          try {
+            return DateTime.parse(dateString);
+          } catch (e) {
+            debugPrint('Error parsing read date: $dateString');
+            return null;
+          }
+        })
+        .where((date) => date != null)
+        .cast<DateTime>()
+        .toList();
   }
 
   /// Save list of read dates
   Future<void> _saveReadDates(List<DateTime> dates) async {
     final prefs = await SharedPreferences.getInstance();
-    final List<String> dateStrings = dates
-        .map((date) => date.toIso8601String().split('T').first)
-        .toList();
+    final List<String> dateStrings =
+        dates.map((date) => date.toIso8601String().split('T').first).toList();
     await prefs.setStringList(_readDatesKey, dateStrings);
   }
 
   /// Calculate current streak from read dates
   int _calculateCurrentStreak(List<DateTime> readDates) {
     if (readDates.isEmpty) return 0;
-    
+
     // Sort dates in descending order
     readDates.sort((a, b) => b.compareTo(a));
-    
+
     final today = DateTime.now();
     final todayDateOnly = DateTime(today.year, today.month, today.day);
-    
+
     int streak = 0;
     DateTime currentDate = todayDateOnly;
-    
+
     for (final readDate in readDates) {
-      final readDateOnly = DateTime(readDate.year, readDate.month, readDate.day);
-      
+      final readDateOnly =
+          DateTime(readDate.year, readDate.month, readDate.day);
+
       if (readDateOnly.isAtSameMomentAs(currentDate)) {
         streak++;
         currentDate = currentDate.subtract(const Duration(days: 1));
@@ -192,26 +207,24 @@ class SpiritualStatsService {
         break;
       }
     }
-    
+
     return streak;
   }
 
   /// Update achievements based on current stats
-  List<Achievement> _updateAchievements(
-    SpiritualStats currentStats, 
-    int newStreak, 
-    int totalRead, 
-    int favoritesCount
-  ) {
+  List<Achievement> _updateAchievements(SpiritualStats currentStats,
+      int newStreak, int totalRead, int favoritesCount) {
     final allAchievements = PredefinedAchievements.all;
-    final unlockedAchievements = List<Achievement>.from(currentStats.unlockedAchievements);
-    
+    final unlockedAchievements =
+        List<Achievement>.from(currentStats.unlockedAchievements);
+
     for (final achievement in allAchievements) {
-      final isAlreadyUnlocked = unlockedAchievements.any((a) => a.id == achievement.id);
-      
+      final isAlreadyUnlocked =
+          unlockedAchievements.any((a) => a.id == achievement.id);
+
       if (!isAlreadyUnlocked) {
         bool shouldUnlock = false;
-        
+
         switch (achievement.type) {
           case AchievementType.reading:
             shouldUnlock = totalRead >= achievement.threshold;
@@ -223,14 +236,14 @@ class SpiritualStatsService {
             shouldUnlock = favoritesCount >= achievement.threshold;
             break;
         }
-        
+
         if (shouldUnlock) {
           unlockedAchievements.add(achievement.copyWith(isUnlocked: true));
           debugPrint('Achievement unlocked: ${achievement.title}');
         }
       }
     }
-    
+
     return unlockedAchievements;
   }
 

@@ -1,12 +1,13 @@
 // lib/pages/progress_page.dart - Fixed overflow issues
 
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+
 import '../models/spiritual_stats_model.dart';
-import '../services/spiritual_stats_service.dart';
-import '../providers/devocional_provider.dart';
 import '../pages/favorites_page.dart';
+import '../providers/devocional_provider.dart';
+import '../services/spiritual_stats_service.dart';
 
 class ProgressPage extends StatefulWidget {
   const ProgressPage({super.key});
@@ -50,16 +51,17 @@ class _ProgressPageState extends State<ProgressPage>
     });
 
     try {
-      final devocionalProvider = Provider.of<DevocionalProvider>(context, listen: false);
+      final devocionalProvider =
+          Provider.of<DevocionalProvider>(context, listen: false);
       final favoritesCount = devocionalProvider.favoriteDevocionales.length;
-      
+
       final stats = await _statsService.updateFavoritesCount(favoritesCount);
-      
+
       setState(() {
         _stats = stats;
         _isLoading = false;
       });
-      
+
       _streakAnimationController.forward();
     } catch (e) {
       setState(() {
@@ -193,7 +195,8 @@ class _ProgressPageState extends State<ProgressPage>
                         size: 28, // Slightly smaller
                       ),
                       const SizedBox(width: 8),
-                      Flexible( // Allow text to wrap if needed
+                      Flexible(
+                        // Allow text to wrap if needed
                         child: Text(
                           'Racha Actual',
                           style: TextStyle(
@@ -219,7 +222,7 @@ class _ProgressPageState extends State<ProgressPage>
                     _stats!.currentStreak == 1 ? 'día' : 'días',
                     style: TextStyle(
                       fontSize: 16,
-                      color: colorScheme.onPrimary.withOpacity(0.8),
+                      color: colorScheme.onPrimary.withValues(alpha: 0.8),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -243,7 +246,7 @@ class _ProgressPageState extends State<ProgressPage>
       children: [
         LinearProgressIndicator(
           value: progress.clamp(0.0, 1.0),
-          backgroundColor: Colors.white.withOpacity(0.3),
+          backgroundColor: Colors.white.withValues(alpha: 0.3),
           valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
           minHeight: 8,
         ),
@@ -254,7 +257,8 @@ class _ProgressPageState extends State<ProgressPage>
               : '¡Meta alcanzada!',
           style: TextStyle(
             fontSize: 12,
-            color: Theme.of(context).colorScheme.onPrimary.withOpacity(0.8),
+            color:
+                Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.8),
           ),
           textAlign: TextAlign.center,
           overflow: TextOverflow.ellipsis,
@@ -304,7 +308,7 @@ class _ProgressPageState extends State<ProgressPage>
     required Color color,
   }) {
     final theme = Theme.of(context);
-    
+
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(
@@ -316,7 +320,7 @@ class _ProgressPageState extends State<ProgressPage>
           mainAxisSize: MainAxisSize.min, // Prevent unnecessary expansion
           children: [
             CircleAvatar(
-              backgroundColor: color.withOpacity(0.1),
+              backgroundColor: color.withValues(alpha: 0.1),
               radius: 20, // Reduced from 24 to 20
               child: Icon(
                 icon,
@@ -338,7 +342,7 @@ class _ProgressPageState extends State<ProgressPage>
             Text(
               title,
               style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurface.withOpacity(0.7),
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
                 fontSize: 12, // Explicit size
               ),
               textAlign: TextAlign.center,
@@ -357,7 +361,7 @@ class _ProgressPageState extends State<ProgressPage>
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min, // Prevent unnecessary expansion
+      mainAxisSize: MainAxisSize.min,
       children: [
         Text(
           'Logros',
@@ -371,7 +375,7 @@ class _ProgressPageState extends State<ProgressPage>
           physics: const NeverScrollableScrollPhysics(),
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,
-            childAspectRatio: 2.8, // Increased from 2.5 to give more height
+            childAspectRatio: 3.2, // Increased from 2.8 to 3.2 for more height
             crossAxisSpacing: 12,
             mainAxisSpacing: 12,
           ),
@@ -388,7 +392,7 @@ class _ProgressPageState extends State<ProgressPage>
 
   Widget _buildAchievementCard(Achievement achievement, bool isUnlocked) {
     final theme = Theme.of(context);
-    
+
     return Card(
       elevation: isUnlocked ? 4 : 2,
       shape: RoundedRectangleBorder(
@@ -397,46 +401,53 @@ class _ProgressPageState extends State<ProgressPage>
       child: Opacity(
         opacity: isUnlocked ? 1.0 : 0.4,
         child: Container(
-          padding: const EdgeInsets.all(10), // Reduced from 12 to 10
+          padding: const EdgeInsets.all(8), // Reduced from 10 to 8
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               CircleAvatar(
                 backgroundColor: isUnlocked
-                    ? achievement.color.withOpacity(0.2)
-                    : Colors.grey.withOpacity(0.2),
-                radius: 16, // Reduced from 20 to 16
+                    ? achievement.color.withValues(alpha: 0.2)
+                    : Colors.grey.withValues(alpha: 0.2),
+                radius: 14, // Reduced from 16 to 14
                 child: Icon(
                   achievement.icon,
                   color: isUnlocked ? achievement.color : Colors.grey,
-                  size: 16, // Reduced from 20 to 16
+                  size: 14, // Reduced from 16 to 14
                 ),
               ),
-              const SizedBox(width: 10), // Reduced from 12 to 10
+              const SizedBox(width: 8), // Reduced from 10 to 8
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min, // Prevent expansion
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(
-                      achievement.title,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 11, // Reduced from 12 to 11
+                    Flexible(
+                      // Wrap title with Flexible
+                      child: Text(
+                        achievement.title,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 10, // Reduced from 11 to 10
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      achievement.description,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        fontSize: 9, // Reduced from 10 to 9
-                        color: theme.colorScheme.onSurface.withOpacity(0.6),
+                    const SizedBox(height: 1), // Reduced from 2 to 1
+                    Flexible(
+                      // Wrap description with Flexible
+                      child: Text(
+                        achievement.description,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          fontSize: 8, // Reduced from 9 to 8
+                          color: theme.colorScheme.onSurface
+                              .withValues(alpha: 0.6),
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
@@ -502,7 +513,7 @@ class _ProgressPageState extends State<ProgressPage>
     required VoidCallback onTap,
   }) {
     final theme = Theme.of(context);
-    
+
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(
@@ -517,7 +528,7 @@ class _ProgressPageState extends State<ProgressPage>
             mainAxisSize: MainAxisSize.min, // Prevent unnecessary expansion
             children: [
               CircleAvatar(
-                backgroundColor: color.withOpacity(0.1),
+                backgroundColor: color.withValues(alpha: 0.1),
                 radius: 20, // Reduced from 24 to 20
                 child: Icon(
                   icon,
@@ -541,7 +552,7 @@ class _ProgressPageState extends State<ProgressPage>
                 Text(
                   subtitle,
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurface.withOpacity(0.7),
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
                     fontSize: 10, // Explicit size
                   ),
                   textAlign: TextAlign.center,
