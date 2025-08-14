@@ -1,12 +1,12 @@
 // lib/providers/devocional_provider.dart
-
+import 'dart:async'; // Para Timer
 import 'dart:convert';
 import 'dart:io'; // Para manejo de archivos locales
 import 'dart:ui'; // Necesario para PlatformDispatcher para obtener el locale
 
 import 'package:devocional_nuevo/models/devocional_model.dart';
-import 'package:devocional_nuevo/utils/constants.dart'; // Importación necesaria para Constants.apiUrl
 import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
+import 'package:devocional_nuevo/utils/constants.dart'; // Importación necesaria para Constants.apiUrl
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http; // Importación correcta para http
 import 'package:path_provider/path_provider.dart'; // Para acceso a directorios del dispositivo
@@ -25,7 +25,6 @@ class DevocionalProvider with ChangeNotifier {
   String _selectedLanguage =
       'es'; // Idioma por defecto (se detectará del dispositivo)
   String _selectedVersion = 'RVR1960'; // Versión por defecto
-
   List<Devocional> _favoriteDevocionales =
       []; // Lista de devocionales favoritos
   bool _showInvitationDialog = true; // Para el diálogo de invitación
@@ -38,9 +37,23 @@ class DevocionalProvider with ChangeNotifier {
   String? _downloadStatus; // Mensaje de estado de descarga
   bool _isOfflineMode = false; // Indica si se está usando modo offline
 
+  // ========== NUEVAS PROPIEDADES PARA TRACKING SILENCIOSO ==========
+  // Tracking de tiempo de lectura
+  DateTime? _devocionalStartTime;
+  DateTime? _pausedTime;
+  int _accumulatedReadingSeconds = 0;
+  Timer? _readingTimer;
+
+  // Tracking de scroll
+  double _maxScrollPercentage = 0.0;
+  ScrollController? _currentScrollController;
+
+  // Control de devocional actual
+  String? _currentTrackedDevocionalId;
+
   // Lista de idiomas soportados por tu API
   static const List<String> _supportedLanguages = [
-    'es'
+    'es',
   ]; // Agrega más cuando los tengas
   static const String _fallbackLanguage = 'es'; // Idioma de fallback
 
@@ -66,6 +79,14 @@ class DevocionalProvider with ChangeNotifier {
 
   bool get isOfflineMode => _isOfflineMode;
 
+  // ========== GETTERS PARA DEBUGGING (OPCIONAL) ==========
+  int get currentReadingSeconds =>
+      _accumulatedReadingSeconds + _getCurrentSessionSeconds();
+
+  double get currentScrollPercentage => _maxScrollPercentage;
+
+  String? get currentTrackedDevocionalId => _currentTrackedDevocionalId;
+
   // Constructor: inicializa los datos cuando el provider se crea
   DevocionalProvider() {
     // initializeData() se llama fuera del constructor, usualmente en AppInitializer
@@ -73,8 +94,172 @@ class DevocionalProvider with ChangeNotifier {
     // y los datos se obtengan sin conflictos con la fase de construcción.
   }
 
-  // --- Métodos de inicialización y carga ---
+  // ========== MÉTODOS DE TRACKING SILENCIOSO ==========
 
+  /// Inicia el tracking para un devocional específico
+  void startDevocionalTracking(
+    String devocionalId, {
+    ScrollController? scrollController,
+  }) {
+    debugPrint('🔄 Starting tracking for devotional: $devocionalId');
+
+    // Si es el mismo devocional, no reiniciar
+    if (_currentTrackedDevocionalId == devocionalId) {
+      debugPrint('📖 Already tracking this devotional, resuming...');
+      _resumeTimer();
+      return;
+    }
+
+    // Finalizar tracking anterior si existe
+    if (_currentTrackedDevocionalId != null) {
+      _finalizeDevocionalTracking();
+    }
+
+    // Inicializar nuevo tracking
+    _currentTrackedDevocionalId = devocionalId;
+    _devocionalStartTime = DateTime.now();
+    _pausedTime = null;
+    _accumulatedReadingSeconds = 0;
+    _maxScrollPercentage = 0.0;
+
+    // Configurar scroll controller
+    _setupScrollController(scrollController);
+
+    // Iniciar timer
+    _startReadingTimer();
+
+    debugPrint('✅ Tracking started for devotional: $devocionalId');
+  }
+
+  /// Configura el listener del scroll controller
+  void _setupScrollController(ScrollController? scrollController) {
+    _currentScrollController = scrollController;
+
+    if (scrollController != null) {
+      scrollController.addListener(_onScrollChanged);
+      debugPrint('📜 Scroll tracking enabled');
+    }
+  }
+
+  /// Listener para cambios en el scroll con debounce
+  void _onScrollChanged() {
+    if (_currentScrollController == null || _currentTrackedDevocionalId == null)
+      return;
+
+    final scrollController = _currentScrollController!;
+
+    if (scrollController.hasClients) {
+      final maxScrollExtent = scrollController.position.maxScrollExtent;
+      final currentScrollPosition = scrollController.position.pixels;
+
+      if (maxScrollExtent > 0) {
+        final scrollPercentage = currentScrollPosition / maxScrollExtent;
+
+        // Solo actualizar si es un nuevo máximo
+        if (scrollPercentage > _maxScrollPercentage) {
+          _maxScrollPercentage = scrollPercentage.clamp(0.0, 1.0);
+
+          // Debug cada 20% de progreso
+          final progressPercent = (_maxScrollPercentage * 100).round();
+          if (progressPercent % 20 == 0 || progressPercent > 80) {
+            debugPrint('📜 Scroll progress: $progressPercent%');
+          }
+        }
+      }
+    }
+  }
+
+  /// Inicia el timer de lectura
+  void _startReadingTimer() {
+    _readingTimer?.cancel();
+    _readingTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      // El timer se encarga de contar automáticamente
+      // Los segundos acumulados se calculan en tiempo real
+    });
+    debugPrint('⏰ Reading timer started');
+  }
+
+  /// Obtiene los segundos de la sesión actual
+  int _getCurrentSessionSeconds() {
+    if (_devocionalStartTime == null) return 0;
+
+    final now = DateTime.now();
+    final sessionStart = _pausedTime ?? _devocionalStartTime!;
+
+    return now.difference(sessionStart).inSeconds;
+  }
+
+  /// Pausa el timer (cuando la app va a background)
+  void pauseTracking() {
+    if (_currentTrackedDevocionalId == null) return;
+
+    _pausedTime = DateTime.now();
+    _accumulatedReadingSeconds += _getCurrentSessionSeconds();
+    _readingTimer?.cancel();
+
+    debugPrint(
+      '⏸️ Tracking paused. Accumulated: ${_accumulatedReadingSeconds}s',
+    );
+  }
+
+  /// Reanuda el timer (cuando la app vuelve a foreground)
+  void resumeTracking() {
+    if (_currentTrackedDevocionalId == null || _pausedTime == null) return;
+
+    _devocionalStartTime = DateTime.now();
+    _pausedTime = null;
+    _startReadingTimer();
+
+    debugPrint(
+      '▶️ Tracking resumed. Total accumulated: ${_accumulatedReadingSeconds}s',
+    );
+  }
+
+  /// Reanuda el timer interno
+  void _resumeTimer() {
+    if (_readingTimer == null || !_readingTimer!.isActive) {
+      _startReadingTimer();
+    }
+  }
+
+  /// Finaliza el tracking del devocional actual
+  void _finalizeDevocionalTracking() {
+    if (_currentTrackedDevocionalId == null) return;
+
+    // Calcular tiempo total
+    _accumulatedReadingSeconds += _getCurrentSessionSeconds();
+
+    final totalTime = _accumulatedReadingSeconds;
+    final scrollProgress = _maxScrollPercentage;
+
+    debugPrint('📊 Finalizing tracking for $_currentTrackedDevocionalId:');
+    debugPrint('   📖 Time: ${totalTime}s');
+    debugPrint('   📜 Scroll: ${(scrollProgress * 100).toStringAsFixed(1)}%');
+
+    // Limpiar referencias
+    _cleanupTracking();
+  }
+
+  /// Limpia todas las referencias de tracking
+  void _cleanupTracking() {
+    _readingTimer?.cancel();
+    _readingTimer = null;
+
+    if (_currentScrollController != null) {
+      _currentScrollController!.removeListener(_onScrollChanged);
+      _currentScrollController = null;
+    }
+
+    _currentTrackedDevocionalId = null;
+    _devocionalStartTime = null;
+    _pausedTime = null;
+    _accumulatedReadingSeconds = 0;
+    _maxScrollPercentage = 0.0;
+
+    debugPrint('🧹 Tracking cleanup completed');
+  }
+
+  // --- Métodos de inicialización y carga ---
   Future<void> initializeData() async {
     // Evitar llamadas múltiples si ya está cargando
     if (_isLoading) return;
@@ -84,29 +269,23 @@ class DevocionalProvider with ChangeNotifier {
 
     try {
       final prefs = await SharedPreferences.getInstance();
-
       // Obtener el idioma del dispositivo
       String deviceLanguage = PlatformDispatcher.instance.locale.languageCode;
-
       // Cargar preferencias guardadas, con fallback inteligente
       String savedLanguage =
           prefs.getString('selectedLanguage') ?? deviceLanguage;
-
       // Aplicar fallback si el idioma no está soportado
       _selectedLanguage = _getSupportedLanguageWithFallback(savedLanguage);
-
       // Si el idioma cambió por el fallback, guardarlo
       if (_selectedLanguage != savedLanguage) {
         await prefs.setString('selectedLanguage', _selectedLanguage);
         debugPrint(
-            'Idioma cambiado a $_selectedLanguage debido a falta de soporte para $savedLanguage');
+          'Idioma cambiado a $_selectedLanguage debido a falta de soporte para $savedLanguage',
+        );
       }
-
       _selectedVersion = prefs.getString('selectedVersion') ?? 'RVR1960';
-
       await _loadFavorites(); // Cargar favoritos guardados
       await _loadInvitationDialogPreference(); // Cargar preferencia del diálogo
-
       await _fetchAllDevocionalesForLanguage(); // Cargar y filtrar los devocionales
     } catch (e) {
       _errorMessage = 'Error al inicializar los datos: $e';
@@ -122,9 +301,9 @@ class DevocionalProvider with ChangeNotifier {
     if (_supportedLanguages.contains(requestedLanguage)) {
       return requestedLanguage;
     }
-
     debugPrint(
-        'Idioma $requestedLanguage no soportado, usando fallback: $_fallbackLanguage');
+      'Idioma $requestedLanguage no soportado, usando fallback: $_fallbackLanguage',
+    );
     return _fallbackLanguage;
   }
 
@@ -137,32 +316,31 @@ class DevocionalProvider with ChangeNotifier {
 
     try {
       final int currentYear = DateTime.now().year;
-
       // Primero, intentar cargar desde almacenamiento local
-      Map<String, dynamic>? localData =
-          await _loadFromLocalStorage(currentYear, _selectedLanguage);
-
+      Map<String, dynamic>? localData = await _loadFromLocalStorage(
+        currentYear,
+        _selectedLanguage,
+      );
       if (localData != null) {
         debugPrint('Cargando devocionales desde almacenamiento local');
         _isOfflineMode = true;
         await _processDevocionalData(localData);
         return;
       }
-
       // Si no hay datos locales, cargar desde la API sin guardar automáticamente
       debugPrint(
-          'No se encontraron datos locales, cargando desde API para uso inmediato');
-      final response = await http
-          .get(Uri.parse(Constants.getDevocionalesApiUrl(currentYear)));
-
+        'No se encontraron datos locales, cargando desde API para uso inmediato',
+      );
+      final response = await http.get(
+        Uri.parse(Constants.getDevocionalesApiUrl(currentYear)),
+      );
       if (response.statusCode != 200) {
         throw Exception(
-            'Failed to load devocionales from API: ${response.statusCode}');
+          'Failed to load devocionales from API: ${response.statusCode}',
+        );
       }
-
       final String responseBody = response.body;
       final Map<String, dynamic> data = json.decode(responseBody);
-
       // Procesar los datos descargados para uso inmediato (sin guardar)
       await _processDevocionalData(data);
     } catch (e) {
@@ -179,14 +357,14 @@ class DevocionalProvider with ChangeNotifier {
   // Método auxiliar para procesar los datos de un idioma
   Future<void> _processLanguageData(Map<String, dynamic> languageData) async {
     final List<Devocional> loadedDevocionales = [];
-
     languageData.forEach((dateKey, dateValue) {
       if (dateValue is List) {
         for (var devocionalJson in dateValue) {
           try {
             // No filtramos por versión aquí; cargamos todos los devocionales del idioma.
             loadedDevocionales.add(
-                Devocional.fromJson(devocionalJson as Map<String, dynamic>));
+              Devocional.fromJson(devocionalJson as Map<String, dynamic>),
+            );
           } catch (e) {
             debugPrint('Error al parsear devocional para $dateKey: $e');
           }
@@ -196,7 +374,6 @@ class DevocionalProvider with ChangeNotifier {
 
     // Ordenar los devocionales por fecha para mantener un orden consistente
     loadedDevocionales.sort((a, b) => a.date.compareTo(b.date));
-
     _allDevocionalesForCurrentLanguage = loadedDevocionales;
     _errorMessage = null; // Limpiar cualquier error previo
     _filterDevocionalesByVersion(); // Ahora sí, aplicamos el filtro de versión
@@ -207,7 +384,6 @@ class DevocionalProvider with ChangeNotifier {
     _filteredDevocionales = _allDevocionalesForCurrentLanguage
         .where((devocional) => devocional.version == _selectedVersion)
         .toList();
-
     if (_filteredDevocionales.isEmpty &&
         _allDevocionalesForCurrentLanguage.isNotEmpty) {
       // Solo mostrar advertencia si hay devocionales en el idioma pero no para la versión
@@ -225,21 +401,17 @@ class DevocionalProvider with ChangeNotifier {
   }
 
   // --- Métodos para cambiar idioma y versión ---
-
   void setSelectedLanguage(String language) async {
     // Aplicar fallback si el idioma no está soportado
     String supportedLanguage = _getSupportedLanguageWithFallback(language);
-
     if (_selectedLanguage != supportedLanguage) {
       _selectedLanguage = supportedLanguage;
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('selectedLanguage', supportedLanguage);
-
       // Mostrar mensaje si se aplicó fallback
       if (language != supportedLanguage) {
         debugPrint('Idioma $language no disponible, usando $supportedLanguage');
       }
-
       // Recargar y refiltrar todos los devocionales para el nuevo idioma
       await _fetchAllDevocionalesForLanguage();
     }
@@ -256,7 +428,6 @@ class DevocionalProvider with ChangeNotifier {
   }
 
   // --- Lógica de favoritos ---
-
   Future<void> _loadFavorites() async {
     final prefs = await SharedPreferences.getInstance();
     final String? favoritesJson = prefs.getString('favorites');
@@ -270,9 +441,9 @@ class DevocionalProvider with ChangeNotifier {
 
   Future<void> _saveFavorites() async {
     final prefs = await SharedPreferences.getInstance();
-    final String favoritesJson = json.encode(_favoriteDevocionales
-        .map((devocional) => devocional.toJson())
-        .toList());
+    final String favoritesJson = json.encode(
+      _favoriteDevocionales.map((devocional) => devocional.toJson()).toList(),
+    );
     await prefs.setString('favorites', favoritesJson);
   }
 
@@ -294,7 +465,6 @@ class DevocionalProvider with ChangeNotifier {
 
     // Obtiene el esquema de colores del tema actual
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
-
     if (isFavorite(devocional)) {
       _favoriteDevocionales.removeWhere((fav) => fav.id == devocional.id);
       ScaffoldMessenger.of(context).showSnackBar(
@@ -321,34 +491,55 @@ class DevocionalProvider with ChangeNotifier {
       );
     }
     _saveFavorites();
-    
     // Update spiritual stats with new favorites count
     _statsService.updateFavoritesCount(_favoriteDevocionales.length);
-    
     notifyListeners();
   }
 
+  /// ========== MÉTODO PRINCIPAL MODIFICADO ==========
   /// Record that a devotional was read (call this when user completes reading a devotional)
   /// This should only be called when the user has truly read the content, not just navigated
+  /// SIEMPRE PERMITE MARCAR COMO LEÍDO - La validación es completamente silenciosa
   Future<void> recordDevocionalRead(String devocionalId) async {
     if (devocionalId.isEmpty) {
       debugPrint('Cannot record devotional read: empty ID');
       return;
     }
-    
+
+    // Finalizar tracking si está activo para este devocional
+    int totalReadingTime = 0;
+    double scrollProgress = 0.0;
+
+    if (_currentTrackedDevocionalId == devocionalId) {
+      // Capturar datos de tracking antes de limpiar
+      totalReadingTime =
+          _accumulatedReadingSeconds + _getCurrentSessionSeconds();
+      scrollProgress = _maxScrollPercentage;
+
+      // Finalizar tracking
+      _finalizeDevocionalTracking();
+    }
+
     try {
+      // SIEMPRE PERMITE AL USUARIO MARCAR COMO LEÍDO
+      // La validación es completamente interna y silenciosa
       await _statsService.recordDevocionalRead(
         devocionalId: devocionalId,
         favoritesCount: _favoriteDevocionales.length,
+        readingTimeSeconds: totalReadingTime,
+        scrollPercentage: scrollProgress,
       );
-      debugPrint('Recorded devotional read: $devocionalId');
+
+      debugPrint('✅ Recorded devotional read: $devocionalId');
+      debugPrint(
+        '   📊 Time: ${totalReadingTime}s, Scroll: ${(scrollProgress * 100).toStringAsFixed(1)}%',
+      );
     } catch (e) {
       debugPrint('Error recording devotional read: $e');
     }
   }
 
   // --- Lógica del Diálogo de Invitación ---
-
   Future<void> _loadInvitationDialogPreference() async {
     final prefs = await SharedPreferences.getInstance();
     _showInvitationDialog = prefs.getBool('showInvitationDialog') ?? true;
@@ -362,7 +553,6 @@ class DevocionalProvider with ChangeNotifier {
   }
 
   // --- Métodos de utilidad ---
-
   // Obtener lista de idiomas soportados (para UI de configuración)
   List<String> get supportedLanguages => List.from(_supportedLanguages);
 
@@ -383,26 +573,24 @@ class DevocionalProvider with ChangeNotifier {
       // Si no se encuentra el idioma actual, intentar con el fallback
       if (_selectedLanguage != _fallbackLanguage) {
         debugPrint(
-            'No se encontraron datos para $_selectedLanguage, intentando con fallback $_fallbackLanguage');
-
+          'No se encontraron datos para $_selectedLanguage, intentando con fallback $_fallbackLanguage',
+        );
         final Map<String, dynamic>? fallbackData =
             languageRoot?[_fallbackLanguage] as Map<String, dynamic>?;
-
         if (fallbackData != null) {
           // Cambiar al idioma de fallback automáticamente
           _selectedLanguage = _fallbackLanguage;
           final prefs = await SharedPreferences.getInstance();
           await prefs.setString('selectedLanguage', _fallbackLanguage);
-
           // Procesar los datos del fallback
           await _processLanguageData(fallbackData);
           return;
         }
       }
-
       // Si ni el idioma solicitado ni el fallback están disponibles
       debugPrint(
-          'Advertencia: No se encontraron datos para ningún idioma soportado');
+        'Advertencia: No se encontraron datos para ningún idioma soportado',
+      );
       _allDevocionalesForCurrentLanguage = [];
       _filteredDevocionales = [];
       _errorMessage = 'No se encontraron datos disponibles en la API.';
@@ -414,18 +602,16 @@ class DevocionalProvider with ChangeNotifier {
   }
 
   // --- Métodos para funcionalidad offline ---
-
   /// Obtiene el directorio donde se almacenarán los archivos JSON localmente
   Future<Directory> _getLocalStorageDirectory() async {
     final Directory appDocumentsDir = await getApplicationDocumentsDirectory();
-    final Directory devocionalesDir =
-        Directory('${appDocumentsDir.path}/devocionales');
-
+    final Directory devocionalesDir = Directory(
+      '${appDocumentsDir.path}/devocionales',
+    );
     // Crear el directorio si no existe
     if (!await devocionalesDir.exists()) {
       await devocionalesDir.create(recursive: true);
     }
-
     return devocionalesDir;
   }
 
@@ -461,27 +647,21 @@ class DevocionalProvider with ChangeNotifier {
     try {
       final String url = Constants.getDevocionalesApiUrl(year);
       final response = await http.get(Uri.parse(url));
-
       if (response.statusCode != 200) {
         throw Exception('Error al descargar: ${response.statusCode}');
       }
-
       // Validar que el JSON sea válido
       final Map<String, dynamic> jsonData = json.decode(response.body);
-
       // Verificar que tenga la estructura esperada
       if (jsonData['data'] == null) {
         throw Exception('Estructura JSON inválida: falta campo "data"');
       }
-
       // Guardar el archivo localmente
       final String filePath = await _getLocalFilePath(year, _selectedLanguage);
       final File file = File(filePath);
       await file.writeAsString(response.body);
-
       _downloadStatus = 'Devocionales del año $year descargados exitosamente';
       debugPrint('Archivo guardado en: $filePath');
-
       return true;
     } catch (e) {
       _downloadStatus = 'Error al descargar devocionales: $e';
@@ -495,15 +675,15 @@ class DevocionalProvider with ChangeNotifier {
 
   /// Carga los devocionales desde el almacenamiento local
   Future<Map<String, dynamic>?> _loadFromLocalStorage(
-      int year, String language) async {
+    int year,
+    String language,
+  ) async {
     try {
       final String filePath = await _getLocalFilePath(year, language);
       final File file = File(filePath);
-
       if (!await file.exists()) {
         return null;
       }
-
       final String content = await file.readAsString();
       return json.decode(content) as Map<String, dynamic>;
     } catch (e) {
@@ -517,14 +697,12 @@ class DevocionalProvider with ChangeNotifier {
     try {
       final Directory storageDir = await _getLocalStorageDirectory();
       final List<FileSystemEntity> files = await storageDir.list().toList();
-
       for (final FileSystemEntity file in files) {
         if (file is File) {
           await file.delete();
           debugPrint('Archivo eliminado: ${file.path}');
         }
       }
-
       _downloadStatus = 'Archivos locales eliminados';
       notifyListeners();
     } catch (e) {
@@ -535,7 +713,6 @@ class DevocionalProvider with ChangeNotifier {
   }
 
   // --- Métodos públicos para la UI ---
-
   /// Descarga manualmente los devocionales para el año actual
   Future<bool> downloadCurrentYearDevocionales() async {
     final int currentYear = DateTime.now().year;
@@ -562,12 +739,10 @@ class DevocionalProvider with ChangeNotifier {
       doneYears++;
       double progress = doneYears / totalYears;
       onProgress(progress);
-
       if (!success) {
         allSuccess = false;
       }
     }
-
     return allSuccess;
   }
 
@@ -594,5 +769,12 @@ class DevocionalProvider with ChangeNotifier {
   void clearDownloadStatus() {
     _downloadStatus = null;
     notifyListeners();
+  }
+
+  // ========== CLEANUP Y DISPOSE ==========
+  @override
+  void dispose() {
+    _cleanupTracking();
+    super.dispose();
   }
 }

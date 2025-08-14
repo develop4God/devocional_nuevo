@@ -1,5 +1,4 @@
-// lib/pages/progress_page.dart - Fixed overflow issues
-
+// lib/pages/progress_page.dart - Fixed themed shadows
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -49,19 +48,15 @@ class _ProgressPageState extends State<ProgressPage>
     setState(() {
       _isLoading = true;
     });
-
     try {
       final devocionalProvider =
           Provider.of<DevocionalProvider>(context, listen: false);
       final favoritesCount = devocionalProvider.favoriteDevocionales.length;
-
       final stats = await _statsService.updateFavoritesCount(favoritesCount);
-
       setState(() {
         _stats = stats;
         _isLoading = false;
       });
-
       _streakAnimationController.forward();
     } catch (e) {
       setState(() {
@@ -88,6 +83,13 @@ class _ProgressPageState extends State<ProgressPage>
 
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: Transform.flip(
+            flipX: true,
+            child: Icon(Icons.exit_to_app),
+          ),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
         title: const Text('Mi Progreso Espiritual'),
         backgroundColor: colorScheme.surface,
         foregroundColor: colorScheme.onSurface,
@@ -144,13 +146,11 @@ class _ProgressPageState extends State<ProgressPage>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildStreakCard(),
-          const SizedBox(height: 20),
+          const SizedBox(height: 18),
           _buildStatsCards(),
-          const SizedBox(height: 20),
+          const SizedBox(height: 1),
           _buildAchievementsSection(),
-          const SizedBox(height: 20),
-          _buildQuickActionsSection(),
-          const SizedBox(height: 20), // Extra bottom padding
+          const SizedBox(height: 18), // Extra bottom padding
         ],
       ),
     );
@@ -170,6 +170,8 @@ class _ProgressPageState extends State<ProgressPage>
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(20),
             ),
+            // ✨ AQUÍ APLICAMOS COLOR DEL TEMA A LA SOMBRA
+            shadowColor: colorScheme.primary.withValues(alpha: 1),
             child: Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(20),
@@ -184,7 +186,7 @@ class _ProgressPageState extends State<ProgressPage>
               ),
               padding: const EdgeInsets.all(24),
               child: Column(
-                mainAxisSize: MainAxisSize.min, // Prevent unnecessary expansion
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -192,11 +194,10 @@ class _ProgressPageState extends State<ProgressPage>
                       Icon(
                         Icons.local_fire_department,
                         color: Colors.orange,
-                        size: 28, // Slightly smaller
+                        size: 28,
                       ),
                       const SizedBox(width: 8),
                       Flexible(
-                        // Allow text to wrap if needed
                         child: Text(
                           'Racha Actual',
                           style: TextStyle(
@@ -213,7 +214,7 @@ class _ProgressPageState extends State<ProgressPage>
                   Text(
                     '${_stats!.currentStreak}',
                     style: TextStyle(
-                      fontSize: 48,
+                      fontSize: 30, //tamaño de caha de racha actual
                       fontWeight: FontWeight.bold,
                       color: colorScheme.onPrimary,
                     ),
@@ -242,7 +243,7 @@ class _ProgressPageState extends State<ProgressPage>
     final progress = nextMilestone > 0 ? currentStreak / nextMilestone : 1.0;
 
     return Column(
-      mainAxisSize: MainAxisSize.min, // Prevent unnecessary expansion
+      mainAxisSize: MainAxisSize.min,
       children: [
         LinearProgressIndicator(
           value: progress.clamp(0.0, 1.0),
@@ -278,23 +279,39 @@ class _ProgressPageState extends State<ProgressPage>
   }
 
   Widget _buildStatsCards() {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Row(
       children: [
         Expanded(
-          child: _buildStatCard(
-            title: 'Devocionales',
-            value: '${_stats!.totalDevocionalesRead}',
-            icon: Icons.auto_stories,
-            color: Colors.blue,
+          child: InkWell(
+            onTap: () {
+              Navigator.of(context).pop(); // Regresa a la página anterior
+            },
+            borderRadius: BorderRadius.circular(16),
+            child: _buildStatCard(
+              title: 'Devocionales',
+              value: '${_stats!.totalDevocionalesRead}',
+              icon: Icons.auto_stories,
+              color: Colors.blue,
+            ),
           ),
         ),
         const SizedBox(width: 12),
         Expanded(
-          child: _buildStatCard(
-            title: 'Favoritos',
-            value: '${_stats!.favoritesCount}',
-            icon: Icons.favorite,
-            color: Colors.pink,
+          child: InkWell(
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (context) => const FavoritesPage()),
+              );
+            },
+            borderRadius: BorderRadius.circular(16),
+            child: _buildStatCard(
+              title: 'Favoritos',
+              value: '${_stats!.favoritesCount}',
+              icon: Icons.favorite,
+              color: Colors.pink,
+            ),
           ),
         ),
       ],
@@ -308,33 +325,45 @@ class _ProgressPageState extends State<ProgressPage>
     required Color color,
   }) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
+      // ✨ SOMBRA TEMÁTICA
+      shadowColor: colorScheme.primary.withValues(alpha: 1),
       child: Padding(
-        padding: const EdgeInsets.all(12), // Reduced from 16 to 12
+        padding: const EdgeInsets.all(12),
         child: Column(
-          mainAxisSize: MainAxisSize.min, // Prevent unnecessary expansion
+          mainAxisSize: MainAxisSize.min,
           children: [
             CircleAvatar(
               backgroundColor: color.withValues(alpha: 0.1),
-              radius: 20, // Reduced from 24 to 20
-              child: Icon(
-                icon,
-                color: color,
-                size: 20, // Reduced from 24 to 20
+              radius: 20,
+              child: TweenAnimationBuilder<double>(
+                tween: Tween(begin: 0.7, end: 1.3),
+                duration: const Duration(milliseconds: 800),
+                builder: (context, scale, child) {
+                  return Transform.scale(
+                    scale: scale,
+                    child: Icon(
+                      icon,
+                      color: color,
+                      size: 20,
+                    ),
+                  );
+                },
               ),
             ),
-            const SizedBox(height: 8), // Reduced from 12 to 8
+            const SizedBox(height: 8),
             Text(
               value,
               style: theme.textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: theme.colorScheme.onSurface,
-                fontSize: 20, // Explicit size to ensure consistency
+                fontSize: 20,
               ),
               textAlign: TextAlign.center,
             ),
@@ -343,7 +372,7 @@ class _ProgressPageState extends State<ProgressPage>
               title,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
-                fontSize: 12, // Explicit size
+                fontSize: 12,
               ),
               textAlign: TextAlign.center,
               overflow: TextOverflow.ellipsis,
@@ -358,6 +387,7 @@ class _ProgressPageState extends State<ProgressPage>
   Widget _buildAchievementsSection() {
     final allAchievements = PredefinedAchievements.all;
     final unlockedIds = _stats!.unlockedAchievements.map((a) => a.id).toSet();
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -369,15 +399,15 @@ class _ProgressPageState extends State<ProgressPage>
                 fontWeight: FontWeight.bold,
               ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 6),
         GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,
-            childAspectRatio: 3.2, // Increased from 2.8 to 3.2 for more height
+            childAspectRatio: 3.2,
             crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
+            mainAxisSpacing: 6,
           ),
           itemCount: allAchievements.length,
           itemBuilder: (context, index) {
@@ -386,22 +416,49 @@ class _ProgressPageState extends State<ProgressPage>
             return _buildAchievementCard(achievement, isUnlocked);
           },
         ),
+        const SizedBox(height: 12),
+        // Última actividad cerca del grid
+        Row(
+          children: [
+            Icon(
+              Icons.schedule,
+              color: Colors.green,
+              size: 16,
+            ),
+            const SizedBox(width: 1),
+            Text(
+              'Última Actividad: ${_stats!.lastActivityDate != null ? DateFormat('dd/MM/yyyy').format(_stats!.lastActivityDate!) : 'Sin actividad'}',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w500,
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withValues(alpha: 0.7),
+                  ),
+            ),
+          ],
+        ),
       ],
     );
   }
 
   Widget _buildAchievementCard(Achievement achievement, bool isUnlocked) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     return Card(
       elevation: isUnlocked ? 4 : 2,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
+      // ✨ SOMBRA TEMÁTICA DIFERENCIADA
+      shadowColor: isUnlocked
+          ? achievement.color.withValues(alpha: 1)
+          : colorScheme.outline.withValues(alpha: 1),
       child: Opacity(
         opacity: isUnlocked ? 1.0 : 0.4,
         child: Container(
-          padding: const EdgeInsets.all(8), // Reduced from 10 to 8
+          padding: const EdgeInsets.all(8),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
@@ -409,14 +466,14 @@ class _ProgressPageState extends State<ProgressPage>
                 backgroundColor: isUnlocked
                     ? achievement.color.withValues(alpha: 0.2)
                     : Colors.grey.withValues(alpha: 0.2),
-                radius: 14, // Reduced from 16 to 14
+                radius: 14,
                 child: Icon(
                   achievement.icon,
                   color: isUnlocked ? achievement.color : Colors.grey,
-                  size: 14, // Reduced from 16 to 14
+                  size: 14,
                 ),
               ),
-              const SizedBox(width: 8), // Reduced from 10 to 8
+              const SizedBox(width: 8),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -424,24 +481,22 @@ class _ProgressPageState extends State<ProgressPage>
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Flexible(
-                      // Wrap title with Flexible
                       child: Text(
                         achievement.title,
                         style: theme.textTheme.bodyMedium?.copyWith(
                           fontWeight: FontWeight.w600,
-                          fontSize: 10, // Reduced from 11 to 10
+                          fontSize: 10,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    const SizedBox(height: 1), // Reduced from 2 to 1
+                    const SizedBox(height: 1),
                     Flexible(
-                      // Wrap description with Flexible
                       child: Text(
                         achievement.description,
                         style: theme.textTheme.bodySmall?.copyWith(
-                          fontSize: 8, // Reduced from 9 to 8
+                          fontSize: 8,
                           color: theme.colorScheme.onSurface
                               .withValues(alpha: 0.6),
                         ),
@@ -452,114 +507,6 @@ class _ProgressPageState extends State<ProgressPage>
                   ],
                 ),
               ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildQuickActionsSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min, // Prevent unnecessary expansion
-      children: [
-        Text(
-          'Acciones Rápidas',
-          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-        ),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(
-              child: _buildQuickActionCard(
-                title: 'Ver Favoritos',
-                icon: Icons.bookmark,
-                color: Colors.indigo,
-                onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => const FavoritesPage(),
-                    ),
-                  );
-                },
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _buildQuickActionCard(
-                title: 'Última Actividad',
-                icon: Icons.schedule,
-                color: Colors.green,
-                subtitle: _stats!.lastActivityDate != null
-                    ? DateFormat('dd/MM/yyyy').format(_stats!.lastActivityDate!)
-                    : 'Sin actividad',
-                onTap: () {},
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildQuickActionCard({
-    required String title,
-    required IconData icon,
-    required Color color,
-    String? subtitle,
-    required VoidCallback onTap,
-  }) {
-    final theme = Theme.of(context);
-
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          padding: const EdgeInsets.all(12), // Reduced from 16 to 12
-          child: Column(
-            mainAxisSize: MainAxisSize.min, // Prevent unnecessary expansion
-            children: [
-              CircleAvatar(
-                backgroundColor: color.withValues(alpha: 0.1),
-                radius: 20, // Reduced from 24 to 20
-                child: Icon(
-                  icon,
-                  color: color,
-                  size: 20, // Reduced from 24 to 20
-                ),
-              ),
-              const SizedBox(height: 8), // Reduced from 12 to 8
-              Text(
-                title,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 12, // Explicit size
-                ),
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-              if (subtitle != null) ...[
-                const SizedBox(height: 4),
-                Text(
-                  subtitle,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
-                    fontSize: 10, // Explicit size
-                  ),
-                  textAlign: TextAlign.center,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
             ],
           ),
         ),

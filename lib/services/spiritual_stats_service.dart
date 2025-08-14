@@ -51,11 +51,12 @@ class SpiritualStatsService {
 
     // Always allow user to mark as read, but validate silently for statistics
     final bool meetsReadingCriteria =
-        readingTimeSeconds >= 120 && scrollPercentage >= 0.8;
+        readingTimeSeconds >= 60 && scrollPercentage >= 0.8;
 
     debugPrint('Devotional read attempt: $devocionalId');
     debugPrint(
-        'Reading time: ${readingTimeSeconds}s, Scroll: ${(scrollPercentage * 100).toStringAsFixed(1)}%');
+      'Reading time: ${readingTimeSeconds}s, Scroll: ${(scrollPercentage * 100).toStringAsFixed(1)}%',
+    );
     debugPrint('Meets criteria: $meetsReadingCriteria');
 
     // Check if this devotional has already been read and counted for statistics
@@ -73,11 +74,14 @@ class SpiritualStatsService {
     // Only count for statistics if meets reading criteria
     if (!meetsReadingCriteria) {
       debugPrint(
-          'Devotional read but not counting for statistics (criteria not met)');
+        'Devotional read but not counting for statistics (criteria not met)',
+      );
       // Update tracking info but don't count for statistics
       await prefs.setString(_lastReadDevocionalKey, devocionalId);
       await prefs.setInt(
-          _lastReadTimeKey, DateTime.now().millisecondsSinceEpoch ~/ 1000);
+        _lastReadTimeKey,
+        DateTime.now().millisecondsSinceEpoch ~/ 1000,
+      );
 
       // Just update favorites count if provided
       if (favoritesCount != null) {
@@ -95,10 +99,12 @@ class SpiritualStatsService {
     final readDates = await _getReadDates();
 
     // Check if already read something today for statistics
-    final alreadyReadToday = readDates.any((date) =>
-        date.year == today.year &&
-        date.month == today.month &&
-        date.day == today.day);
+    final alreadyReadToday = readDates.any(
+      (date) =>
+          date.year == today.year &&
+          date.month == today.month &&
+          date.day == today.day,
+    );
 
     // Add today to read dates if not already there
     if (!alreadyReadToday) {
@@ -109,7 +115,9 @@ class SpiritualStatsService {
     // Update tracking info
     await prefs.setString(_lastReadDevocionalKey, devocionalId);
     await prefs.setInt(
-        _lastReadTimeKey, DateTime.now().millisecondsSinceEpoch ~/ 1000);
+      _lastReadTimeKey,
+      DateTime.now().millisecondsSinceEpoch ~/ 1000,
+    );
 
     // Calculate new streak
     final newStreak = _calculateCurrentStreak(readDates);
@@ -128,15 +136,17 @@ class SpiritualStatsService {
       favoritesCount: favoritesCount ?? stats.favoritesCount,
       readDevocionalIds: newReadDevocionalIds,
       unlockedAchievements: _updateAchievements(
-          stats,
-          newStreak,
-          stats.totalDevocionalesRead + 1,
-          favoritesCount ?? stats.favoritesCount),
+        stats,
+        newStreak,
+        stats.totalDevocionalesRead + 1,
+        favoritesCount ?? stats.favoritesCount,
+      ),
     );
 
     await saveStats(updatedStats);
     debugPrint(
-        'Recorded devotional for statistics: $devocionalId, total: ${updatedStats.totalDevocionalesRead}');
+      'Recorded devotional for statistics: $devocionalId, total: ${updatedStats.totalDevocionalesRead}',
+    );
     return updatedStats;
   }
 
@@ -145,8 +155,12 @@ class SpiritualStatsService {
     final stats = await getStats();
     final updatedStats = stats.copyWith(
       favoritesCount: favoritesCount,
-      unlockedAchievements: _updateAchievements(stats, stats.currentStreak,
-          stats.totalDevocionalesRead, favoritesCount),
+      unlockedAchievements: _updateAchievements(
+        stats,
+        stats.currentStreak,
+        stats.totalDevocionalesRead,
+        favoritesCount,
+      ),
     );
 
     await saveStats(updatedStats);
@@ -196,8 +210,11 @@ class SpiritualStatsService {
     DateTime currentDate = todayDateOnly;
 
     for (final readDate in readDates) {
-      final readDateOnly =
-          DateTime(readDate.year, readDate.month, readDate.day);
+      final readDateOnly = DateTime(
+        readDate.year,
+        readDate.month,
+        readDate.day,
+      );
 
       if (readDateOnly.isAtSameMomentAs(currentDate)) {
         streak++;
@@ -212,15 +229,21 @@ class SpiritualStatsService {
   }
 
   /// Update achievements based on current stats
-  List<Achievement> _updateAchievements(SpiritualStats currentStats,
-      int newStreak, int totalRead, int favoritesCount) {
+  List<Achievement> _updateAchievements(
+    SpiritualStats currentStats,
+    int newStreak,
+    int totalRead,
+    int favoritesCount,
+  ) {
     final allAchievements = PredefinedAchievements.all;
-    final unlockedAchievements =
-        List<Achievement>.from(currentStats.unlockedAchievements);
+    final unlockedAchievements = List<Achievement>.from(
+      currentStats.unlockedAchievements,
+    );
 
     for (final achievement in allAchievements) {
-      final isAlreadyUnlocked =
-          unlockedAchievements.any((a) => a.id == achievement.id);
+      final isAlreadyUnlocked = unlockedAchievements.any(
+        (a) => a.id == achievement.id,
+      );
 
       if (!isAlreadyUnlocked) {
         bool shouldUnlock = false;
