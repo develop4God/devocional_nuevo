@@ -6,6 +6,7 @@ import 'package:devocional_nuevo/pages/settings_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/providers/theme_provider.dart';
 import 'package:devocional_nuevo/services/notification_service.dart';
+import 'package:devocional_nuevo/services/spiritual_stats_service.dart'; // NUEVO
 import 'package:devocional_nuevo/splash_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -183,6 +184,34 @@ class _AppInitializerState extends State<AppInitializer> {
           'ERROR en AppInitializer: Error al inicializar servicios de notificación: $e',
           name: 'MainApp',
           error: e);
+    }
+
+    // NUEVO: Inicializar sistema de backup automático de estadísticas espirituales
+    try {
+      final spiritualStatsService = SpiritualStatsService();
+
+      // Verificar integridad de datos al inicio
+      await spiritualStatsService.getStats();
+
+      // Habilitar auto-backup si no está configurado (primera vez)
+      if (!await spiritualStatsService.isAutoBackupEnabled()) {
+        await spiritualStatsService.setAutoBackupEnabled(true);
+        developer.log(
+            'AppInitializer: Auto-backup de estadísticas espirituales habilitado por defecto.',
+            name: 'MainApp');
+      }
+
+      // Obtener información de backup para logging
+      final backupInfo = await spiritualStatsService.getBackupInfo();
+      developer.log(
+          'AppInitializer: Sistema de backup inicializado. Auto-backups: ${backupInfo['auto_backups_count']}, Último backup: ${backupInfo['last_auto_backup']}',
+          name: 'MainApp');
+    } catch (e) {
+      developer.log(
+          'ERROR en AppInitializer: Error al inicializar sistema de backup de estadísticas: $e',
+          name: 'MainApp',
+          error: e);
+      // No es crítico, la app puede continuar funcionando
     }
   }
 

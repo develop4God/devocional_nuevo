@@ -8,6 +8,7 @@ import 'package:devocional_nuevo/pages/progress_page.dart';
 import 'package:devocional_nuevo/pages/settings_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/services/update_service.dart';
+import 'package:devocional_nuevo/utils/bubble_constants.dart';
 import 'package:devocional_nuevo/widgets/devocionales_page_drawer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart'; // Para HapticFeedback
@@ -739,19 +740,27 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                     ),
                     IconButton(
                       tooltip: 'Ver progreso y logros',
-                      onPressed: () {
+                      onPressed: () async {
+                        // Marcar como visto - badge desaparece
+                        await BubbleUtils.markAsShown(
+                            BubbleUtils.getIconBubbleId(
+                                Icons.emoji_events_outlined, 'new'));
+
+                        // Verificar que el context sigue siendo válido
+                        if (!context.mounted) return;
+
+                        // Navegar
                         Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const ProgressPage(),
-                          ),
-                        );
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const ProgressPage(),
+                            ));
                       },
                       icon: Icon(
                         Icons.emoji_events_outlined,
                         color: appBarForegroundColor,
                         size: 30,
-                      ),
+                      ).newIconBadge,
                     ),
                     IconButton(
                       tooltip: 'Configuración',
