@@ -40,7 +40,7 @@ class NotificationServiceTestHelper {
     SharedPreferences.setMockInitialValues({
       'notifications_enabled': false,
       'notification_time': '09:00',
-      'fcm_token': null,
+      
     });
   }
 
