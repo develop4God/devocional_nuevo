@@ -1,9 +1,10 @@
 // lib/pages/contact_page.dart
 // Esta página permite al usuario contactar con los desarrolladores de la aplicación.
 
+import 'dart:developer' as developer;
+
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'dart:developer' as developer;
 
 class ContactPage extends StatefulWidget {
   const ContactPage({super.key});
@@ -171,7 +172,8 @@ class _ContactPageState extends State<ContactPage> {
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
-                prefixIcon: Icon(Icons.category, color: colorScheme.primary),
+                prefixIcon:
+                    Icon(Icons.topic_outlined, color: colorScheme.primary),
               ),
               items: _contactOptions.map((String option) {
                 return DropdownMenuItem<String>(

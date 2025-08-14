@@ -24,7 +24,7 @@ dependencies: # <-- ÚNICA SECCIÓN DEPENDENCIES
   provider: ^6.0.0
   flutter_bloc: ^9.1.1
   intl: ^0.20.2
-  cupertino_icons: ^1.0.8
+
   in_app_update: ^4.2.3
   google_fonts: ^6.3.0
   
