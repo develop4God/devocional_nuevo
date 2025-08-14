@@ -5,7 +5,6 @@ import 'package:devocional_nuevo/providers/theme_provider.dart';
 import 'package:devocional_nuevo/utils/bubble_constants.dart';
 import 'package:devocional_nuevo/utils/theme_constants.dart';
 import 'package:devocional_nuevo/widgets/theme_selector.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
@@ -259,13 +258,13 @@ class DevocionalesDrawer extends StatelessWidget {
                     ),
                     // --- Icono alineado + dropdown ---
                     drawerRow(
-                      icon: CupertinoIcons.book,
+                      icon: Icons.menu_book_outlined,
                       iconColor: colorScheme.primary,
                       label: DropdownButtonHideUnderline(
                         child: DropdownButton<String>(
                           value: devocionalProvider.selectedVersion,
                           icon: Icon(
-                            CupertinoIcons.chevron_down,
+                            Icons.arrow_drop_down,
                             color: colorScheme.onSurface,
                           ),
                           dropdownColor: colorScheme.surface,
@@ -308,7 +307,7 @@ class DevocionalesDrawer extends StatelessWidget {
                     const SizedBox(height: 5),
                     // --- Favoritos guardados ---
                     drawerRow(
-                      icon: CupertinoIcons.square_favorites_alt,
+                      icon: Icons.book_outlined,
                       iconColor: colorScheme.primary,
                       label: Text(
                         'Favoritos guardados',
