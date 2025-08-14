@@ -26,7 +26,7 @@ void main() {
     test('NotificationService can be instantiated as singleton', () {
       final service1 = NotificationService();
       final service2 = NotificationService();
-      
+
       expect(identical(service1, service2), isTrue);
     });
 
@@ -53,7 +53,9 @@ void main() {
       expect(notificationService.onNotificationTapped, isNull);
     });
 
-    test('NotificationService initialization does not throw without actual Firebase setup', () async {
+    test(
+        'NotificationService initialization does not throw without actual Firebase setup',
+        () async {
       // Note: This tests that the service gracefully handles missing Firebase setup
       // which is expected in test environments
       await expectLater(
@@ -62,7 +64,8 @@ void main() {
       );
     });
 
-    test('NotificationService is accessible after initialization attempt', () async {
+    test('NotificationService is accessible after initialization attempt',
+        () async {
       // Even if initialization fails in test environment, service should remain usable
       try {
         await notificationService.initialize();
@@ -71,7 +74,8 @@ void main() {
       }
 
       // Should still be able to access the service methods
-      expect(() => notificationService.areNotificationsEnabled(), returnsNormally);
+      expect(
+          () => notificationService.areNotificationsEnabled(), returnsNormally);
       expect(() => notificationService.getNotificationTime(), returnsNormally);
     });
 
@@ -99,7 +103,7 @@ void main() {
 
     test('Service handles multiple rapid calls gracefully', () async {
       final futures = <Future>[];
-      
+
       // Make multiple concurrent calls
       futures.add(notificationService.setNotificationsEnabled(true));
       futures.add(notificationService.setNotificationTime('12:00'));

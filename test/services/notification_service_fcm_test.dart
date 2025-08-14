@@ -107,7 +107,10 @@ void main() {
       test('Service handles various message formats', () async {
         final testMessages = [
           {'title': 'Simple Title', 'body': 'Simple Body'},
-          {'title': 'Título con acentos', 'body': 'Mensaje con ñ y símbolos 🔔'},
+          {
+            'title': 'Título con acentos',
+            'body': 'Mensaje con ñ y símbolos 🔔'
+          },
           {'title': '', 'body': 'Empty title test'},
           {'title': 'Empty body test', 'body': ''},
         ];
@@ -128,10 +131,10 @@ void main() {
     group('FCM Token Management Simulation', () {
       test('Service can store FCM token in SharedPreferences', () async {
         final prefs = await SharedPreferences.getInstance();
-        
+
         // Simulate what FCM would do
         await prefs.setString('fcm_token', 'test_fcm_token_123');
-        
+
         final storedToken = prefs.getString('fcm_token');
         expect(storedToken, equals('test_fcm_token_123'));
       });
@@ -149,7 +152,8 @@ void main() {
 
         // Settings should remain intact
         expect(await notificationService.areNotificationsEnabled(), isTrue);
-        expect(await notificationService.getNotificationTime(), equals('15:30'));
+        expect(
+            await notificationService.getNotificationTime(), equals('15:30'));
       });
     });
 
@@ -193,10 +197,12 @@ void main() {
         await notificationService.setNotificationTime('12:00');
 
         expect(await notificationService.areNotificationsEnabled(), isTrue);
-        expect(await notificationService.getNotificationTime(), equals('12:00'));
+        expect(
+            await notificationService.getNotificationTime(), equals('12:00'));
       });
 
-      test('Service handles notification display failures gracefully', () async {
+      test('Service handles notification display failures gracefully',
+          () async {
         // Should not crash even if notification display fails
         await expectLater(
           () => notificationService.showImmediateNotification(
@@ -221,7 +227,8 @@ void main() {
 
         // Both immediate and scheduled should work
         await expectLater(
-          () => notificationService.showImmediateNotification('Immediate', 'Test'),
+          () => notificationService.showImmediateNotification(
+              'Immediate', 'Test'),
           returnsNormally,
         );
 

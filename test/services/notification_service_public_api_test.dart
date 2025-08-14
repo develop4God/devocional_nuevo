@@ -43,7 +43,7 @@ void main() {
 
       test('notification setting persists between calls', () async {
         await notificationService.setNotificationsEnabled(true);
-        
+
         // Create new instance to test persistence
         final anotherService = NotificationService();
         final result = await anotherService.areNotificationsEnabled();
@@ -65,7 +65,7 @@ void main() {
 
       test('notification time persists between calls', () async {
         await notificationService.setNotificationTime('20:15');
-        
+
         // Create new instance to test persistence
         final anotherService = NotificationService();
         final result = await anotherService.getNotificationTime();
@@ -75,11 +75,13 @@ void main() {
       test('setNotificationTime() handles edge cases', () async {
         // Test early morning
         await notificationService.setNotificationTime('00:00');
-        expect(await notificationService.getNotificationTime(), equals('00:00'));
+        expect(
+            await notificationService.getNotificationTime(), equals('00:00'));
 
         // Test late night
         await notificationService.setNotificationTime('23:59');
-        expect(await notificationService.getNotificationTime(), equals('23:59'));
+        expect(
+            await notificationService.getNotificationTime(), equals('23:59'));
       });
     });
 
@@ -94,7 +96,8 @@ void main() {
         );
       });
 
-      test('showImmediateNotification() with payload executes without throwing', () async {
+      test('showImmediateNotification() with payload executes without throwing',
+          () async {
         await expectLater(
           () => notificationService.showImmediateNotification(
             'Test Title',
@@ -131,7 +134,8 @@ void main() {
         );
       });
 
-      test('cancelScheduledNotifications() executes without throwing', () async {
+      test('cancelScheduledNotifications() executes without throwing',
+          () async {
         await expectLater(
           () => notificationService.cancelScheduledNotifications(),
           returnsNormally,
@@ -179,7 +183,7 @@ void main() {
       test('service continues working after errors', () async {
         // Even if one operation fails, others should still work
         await notificationService.setNotificationsEnabled(true);
-        
+
         // This should still work
         final result = await notificationService.areNotificationsEnabled();
         expect(result, isTrue);
@@ -194,7 +198,8 @@ void main() {
 
         // 2. Set notification time
         await notificationService.setNotificationTime('08:30');
-        expect(await notificationService.getNotificationTime(), equals('08:30'));
+        expect(
+            await notificationService.getNotificationTime(), equals('08:30'));
 
         // 3. Schedule daily notification
         await expectLater(
@@ -221,14 +226,15 @@ void main() {
       test('disable notifications workflow', () async {
         // Enable first
         await notificationService.setNotificationsEnabled(true);
-        
+
         // Then disable
         await notificationService.setNotificationsEnabled(false);
         expect(await notificationService.areNotificationsEnabled(), isFalse);
-        
+
         // Should still be able to set time even when disabled
         await notificationService.setNotificationTime('16:45');
-        expect(await notificationService.getNotificationTime(), equals('16:45'));
+        expect(
+            await notificationService.getNotificationTime(), equals('16:45'));
       });
     });
   });

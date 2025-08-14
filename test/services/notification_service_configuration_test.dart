@@ -44,7 +44,7 @@ void main() {
 
       test('notification setting persists between service instances', () async {
         await notificationService.setNotificationsEnabled(true);
-        
+
         // Get another instance (should be same singleton)
         final anotherService = NotificationService();
         final isEnabled = await anotherService.areNotificationsEnabled();
@@ -80,7 +80,7 @@ void main() {
 
       test('notification time persists between service instances', () async {
         await notificationService.setNotificationTime('20:15');
-        
+
         // Get another instance (should be same singleton)
         final anotherService = NotificationService();
         final time = await anotherService.getNotificationTime();
@@ -89,13 +89,16 @@ void main() {
 
       test('can update notification time multiple times', () async {
         await notificationService.setNotificationTime('08:00');
-        expect(await notificationService.getNotificationTime(), equals('08:00'));
+        expect(
+            await notificationService.getNotificationTime(), equals('08:00'));
 
         await notificationService.setNotificationTime('12:30');
-        expect(await notificationService.getNotificationTime(), equals('12:30'));
+        expect(
+            await notificationService.getNotificationTime(), equals('12:30'));
 
         await notificationService.setNotificationTime('18:45');
-        expect(await notificationService.getNotificationTime(), equals('18:45'));
+        expect(
+            await notificationService.getNotificationTime(), equals('18:45'));
       });
 
       test('handles various time formats', () async {
@@ -110,18 +113,21 @@ void main() {
         for (final testTime in testTimes) {
           await notificationService.setNotificationTime(testTime);
           final retrievedTime = await notificationService.getNotificationTime();
-          expect(retrievedTime, equals(testTime), reason: 'Failed for time: $testTime');
+          expect(retrievedTime, equals(testTime),
+              reason: 'Failed for time: $testTime');
         }
       });
 
       test('handles edge case times', () async {
         // Test early morning
         await notificationService.setNotificationTime('00:01');
-        expect(await notificationService.getNotificationTime(), equals('00:01'));
+        expect(
+            await notificationService.getNotificationTime(), equals('00:01'));
 
         // Test late night
         await notificationService.setNotificationTime('23:58');
-        expect(await notificationService.getNotificationTime(), equals('23:58'));
+        expect(
+            await notificationService.getNotificationTime(), equals('23:58'));
       });
     });
 
@@ -133,7 +139,7 @@ void main() {
 
         // Clear in-memory cache (simulating app restart)
         final prefs = await SharedPreferences.getInstance();
-        
+
         // Create new service instance and verify persistence
         final newService = NotificationService();
         expect(await newService.areNotificationsEnabled(), isTrue);
@@ -146,25 +152,28 @@ void main() {
         await notificationService.setNotificationTime('07:15');
 
         expect(await notificationService.areNotificationsEnabled(), isTrue);
-        expect(await notificationService.getNotificationTime(), equals('07:15'));
+        expect(
+            await notificationService.getNotificationTime(), equals('07:15'));
 
         // Disable but keep time
         await notificationService.setNotificationsEnabled(false);
         expect(await notificationService.areNotificationsEnabled(), isFalse);
-        expect(await notificationService.getNotificationTime(), equals('07:15'));
+        expect(
+            await notificationService.getNotificationTime(), equals('07:15'));
       });
 
       test('handles concurrent configuration changes', () async {
         // Make multiple concurrent configuration changes
         final futures = <Future>[];
-        
+
         futures.add(notificationService.setNotificationsEnabled(true));
         futures.add(notificationService.setNotificationTime('11:30'));
-        
+
         await Future.wait(futures);
 
         expect(await notificationService.areNotificationsEnabled(), isTrue);
-        expect(await notificationService.getNotificationTime(), equals('11:30'));
+        expect(
+            await notificationService.getNotificationTime(), equals('11:30'));
       });
     });
 
@@ -174,7 +183,7 @@ void main() {
           () => notificationService.setNotificationTime(''),
           returnsNormally,
         );
-        
+
         // Should either keep previous time or use default
         final time = await notificationService.getNotificationTime();
         expect(time, isNotEmpty);
@@ -225,7 +234,8 @@ void main() {
         );
 
         await expectLater(
-          () => notificationService.showImmediateNotification('Test', 'Message'),
+          () =>
+              notificationService.showImmediateNotification('Test', 'Message'),
           returnsNormally,
         );
       });
@@ -246,7 +256,8 @@ void main() {
 
         // Configuration should remain unchanged
         expect(await notificationService.areNotificationsEnabled(), isTrue);
-        expect(await notificationService.getNotificationTime(), equals('19:00'));
+        expect(
+            await notificationService.getNotificationTime(), equals('19:00'));
       });
     });
   });

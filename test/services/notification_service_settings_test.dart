@@ -27,7 +27,7 @@ void main() {
       test('default settings are properly initialized', () async {
         final isEnabled = await notificationService.areNotificationsEnabled();
         final time = await notificationService.getNotificationTime();
-        
+
         expect(isEnabled, isFalse);
         expect(time, equals('09:00'));
       });
@@ -37,7 +37,8 @@ void main() {
         await notificationService.setNotificationTime('14:45');
 
         expect(await notificationService.areNotificationsEnabled(), isTrue);
-        expect(await notificationService.getNotificationTime(), equals('14:45'));
+        expect(
+            await notificationService.getNotificationTime(), equals('14:45'));
       });
 
       test('settings persist across service instances', () async {
@@ -58,19 +59,26 @@ void main() {
         // Update only the enabled state
         await notificationService.setNotificationsEnabled(false);
         expect(await notificationService.areNotificationsEnabled(), isFalse);
-        expect(await notificationService.getNotificationTime(), equals('10:00'));
+        expect(
+            await notificationService.getNotificationTime(), equals('10:00'));
 
         // Update only the time
         await notificationService.setNotificationTime('16:30');
         expect(await notificationService.areNotificationsEnabled(), isFalse);
-        expect(await notificationService.getNotificationTime(), equals('16:30'));
+        expect(
+            await notificationService.getNotificationTime(), equals('16:30'));
       });
     });
 
     group('Settings Validation and Edge Cases', () {
       test('handles various time format inputs', () async {
         final testTimes = [
-          '00:00', '01:15', '06:30', '12:00', '18:45', '23:59'
+          '00:00',
+          '01:15',
+          '06:30',
+          '12:00',
+          '18:45',
+          '23:59'
         ];
 
         for (final time in testTimes) {
@@ -108,7 +116,8 @@ void main() {
 
         // Final state should be consistent
         expect(await notificationService.areNotificationsEnabled(), isTrue);
-        expect(await notificationService.getNotificationTime(), equals('20:00'));
+        expect(
+            await notificationService.getNotificationTime(), equals('20:00'));
       });
     });
 
@@ -125,30 +134,32 @@ void main() {
 
       test('can manually modify SharedPreferences and read back', () async {
         final prefs = await SharedPreferences.getInstance();
-        
+
         // Manually set values
         await prefs.setBool('notifications_enabled', true);
         await prefs.setString('notification_time', '17:15');
 
         // Service should read these values
         expect(await notificationService.areNotificationsEnabled(), isTrue);
-        expect(await notificationService.getNotificationTime(), equals('17:15'));
+        expect(
+            await notificationService.getNotificationTime(), equals('17:15'));
       });
 
       test('handles missing SharedPreferences gracefully', () async {
         final prefs = await SharedPreferences.getInstance();
-        
+
         // Clear all preferences
         await prefs.clear();
 
         // Service should use defaults
         expect(await notificationService.areNotificationsEnabled(), isFalse);
-        expect(await notificationService.getNotificationTime(), equals('09:00'));
+        expect(
+            await notificationService.getNotificationTime(), equals('09:00'));
       });
 
       test('handles corrupted SharedPreferences data', () async {
         final prefs = await SharedPreferences.getInstance();
-        
+
         // Set invalid data
         await prefs.setString('notifications_enabled', 'not_a_boolean');
         await prefs.setInt('notification_time', 12345);
@@ -158,7 +169,7 @@ void main() {
           () => notificationService.areNotificationsEnabled(),
           returnsNormally,
         );
-        
+
         await expectLater(
           () => notificationService.getNotificationTime(),
           returnsNormally,
@@ -181,12 +192,13 @@ void main() {
       test('can modify settings after scheduling notifications', () async {
         await notificationService.setNotificationsEnabled(true);
         await notificationService.setNotificationTime('10:00');
-        
+
         await notificationService.scheduleDailyNotification();
 
         // Change settings after scheduling
         await notificationService.setNotificationTime('15:00');
-        expect(await notificationService.getNotificationTime(), equals('15:00'));
+        expect(
+            await notificationService.getNotificationTime(), equals('15:00'));
 
         // Should be able to reschedule with new time
         await expectLater(
@@ -204,7 +216,8 @@ void main() {
 
         // Settings should remain unchanged
         expect(await notificationService.areNotificationsEnabled(), isTrue);
-        expect(await notificationService.getNotificationTime(), equals('12:30'));
+        expect(
+            await notificationService.getNotificationTime(), equals('12:30'));
       });
     });
 
@@ -219,7 +232,7 @@ void main() {
           () => notificationService.areNotificationsEnabled(),
           returnsNormally,
         );
-        
+
         await expectLater(
           () => notificationService.getNotificationTime(),
           returnsNormally,
@@ -241,7 +254,7 @@ void main() {
       test('maintains consistency during concurrent operations', () async {
         // Perform multiple concurrent settings operations
         final futures = <Future>[];
-        
+
         futures.add(notificationService.setNotificationsEnabled(true));
         futures.add(notificationService.setNotificationTime('14:30'));
         futures.add(notificationService.setNotificationsEnabled(false));
@@ -250,9 +263,10 @@ void main() {
         await Future.wait(futures);
 
         // Should have some consistent final state
-        final finalEnabled = await notificationService.areNotificationsEnabled();
+        final finalEnabled =
+            await notificationService.areNotificationsEnabled();
         final finalTime = await notificationService.getNotificationTime();
-        
+
         expect(finalEnabled, isA<bool>());
         expect(finalTime, isA<String>());
         expect(finalTime, isNotEmpty);

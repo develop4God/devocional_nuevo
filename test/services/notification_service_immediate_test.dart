@@ -24,7 +24,8 @@ void main() {
     });
 
     group('Basic Immediate Notification Tests', () {
-      test('showImmediateNotification method exists and can be called', () async {
+      test('showImmediateNotification method exists and can be called',
+          () async {
         await expectLater(
           () => notificationService.showImmediateNotification(
             'Test Title',
@@ -70,8 +71,16 @@ void main() {
           {'title': 'Simple Title', 'body': 'Simple Body'},
           {'title': 'Title with emojis 🔔📱', 'body': 'Body with emojis ✨🎉'},
           {'title': 'Título con acentos', 'body': 'Cuerpo con ñ y símbolos'},
-          {'title': 'Very long title that might be truncated by the notification system', 'body': 'Short body'},
-          {'title': 'Short', 'body': 'Very long body that contains a lot of text and might be truncated or wrapped'},
+          {
+            'title':
+                'Very long title that might be truncated by the notification system',
+            'body': 'Short body'
+          },
+          {
+            'title': 'Short',
+            'body':
+                'Very long body that contains a lot of text and might be truncated or wrapped'
+          },
         ];
 
         for (final testCase in testCases) {
@@ -158,7 +167,7 @@ void main() {
     group('Immediate Notification Error Handling', () {
       test('multiple rapid notifications work', () async {
         final futures = <Future>[];
-        
+
         for (int i = 0; i < 5; i++) {
           futures.add(
             notificationService.showImmediateNotification(
