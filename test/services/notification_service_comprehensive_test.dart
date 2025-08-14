@@ -15,7 +15,7 @@ void main() {
 
     setUp(() async {
       await NotificationServiceTestHelper.setupSharedPreferencesForTesting();
-      notificationService = NotificationService.instance;
+      notificationService = NotificationService();
     });
 
     tearDown(() async {
