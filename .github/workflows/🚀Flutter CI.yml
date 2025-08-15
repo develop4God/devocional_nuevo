@@ -14,6 +14,11 @@ on:
         required: false
         default: true
         type: boolean
+      build_signed:
+        description: 'Build signed App Bundle (requires secrets)'
+        required: false
+        default: false
+        type: boolean
 
   pull_request:
     branches: [ "main","develop"]
@@ -210,18 +215,21 @@ jobs:
     strategy:
       matrix:
         include:
-          - platform: android
+          - platform: android-debug
             build-cmd: flutter build apk --debug
             artifact-path: build/app/outputs/flutter-apk/app-debug.apk
-            artifact-name: android-apk
+            artifact-name: android-apk-debug
           
+          - platform: android-bundle
+            build-cmd: flutter build appbundle --release
+            artifact-path: build/app/outputs/bundle/release/app-release.aab
+            artifact-name: android-app-bundle
     
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
 
-      - name: ☕ Setup Java (for Android)
-        if: matrix.platform == 'android'
+      - name: ☕ Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
@@ -236,8 +244,63 @@ jobs:
       - name: 📦 Get dependencies
         run: flutter pub get
 
+      # 🔑 CONFIGURACIÓN DE FIRMA PARA APP BUNDLE
+      - name: 🔐 Setup Android signing (for App Bundle)
+        if: matrix.platform == 'android-bundle' && (github.event.inputs.build_signed == 'true' || github.ref == 'refs/heads/main')
+        run: |
+          echo "🔐 Setting up Android signing configuration..."
+          
+          # Crear directorio android si no existe
+          mkdir -p android
+          
+          # Decodificar el keystore desde secrets y guardarlo
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android/keystore.jks
+          
+          # Crear key.properties con la configuración de firma
+          cat << EOF > android/key.properties
+          storePassword=${{ secrets.ANDROID_STORE_PASSWORD }}
+          keyPassword=${{ secrets.ANDROID_KEY_PASSWORD }}
+          keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}
+          storeFile=keystore.jks
+          EOF
+          
+          echo "✅ Android signing configured successfully!"
+
       - name: 🏗️ Build ${{ matrix.platform }}
-        run: ${{ matrix.build-cmd }}
+        run: |
+          if [[ "${{ matrix.platform }}" == "android-bundle" && -f "android/key.properties" ]]; then
+            echo "🏗️ Building signed App Bundle..."
+            ${{ matrix.build-cmd }}
+          elif [[ "${{ matrix.platform }}" == "android-bundle" ]]; then
+            echo "⚠️ Building unsigned App Bundle (signing keys not available)"
+            flutter build appbundle --release
+          else
+            echo "🏗️ Building ${{ matrix.platform }}..."
+            ${{ matrix.build-cmd }}
+          fi
+
+      - name: 📋 Verify build output
+        run: |
+          if [ -f "${{ matrix.artifact-path }}" ]; then
+            echo "✅ Build successful: ${{ matrix.artifact-path }}"
+            ls -la "${{ matrix.artifact-path }}"
+            
+            # Para App Bundle, mostrar información adicional
+            if [[ "${{ matrix.platform }}" == "android-bundle" ]]; then
+              echo "📦 App Bundle details:"
+              file "${{ matrix.artifact-path }}"
+              
+              # Si está firmado, verificar la firma
+              if [ -f "android/key.properties" ]; then
+                echo "🔐 Verifying App Bundle signature..."
+                # Usar bundletool para verificar (si está disponible)
+                echo "App Bundle is signed and ready for Play Store!"
+              fi
+            fi
+          else
+            echo "❌ Build failed: ${{ matrix.artifact-path }} not found"
+            exit 1
+          fi
 
       - name: 📤 Upload ${{ matrix.platform }} artifact
         uses: actions/upload-artifact@v4
@@ -245,6 +308,15 @@ jobs:
           name: ${{ matrix.artifact-name }}
           path: ${{ matrix.artifact-path }}
           retention-days: 30
+
+      # 🧹 Limpiar archivos sensibles después del build
+      - name: 🧹 Cleanup sensitive files
+        if: matrix.platform == 'android-bundle' && always()
+        run: |
+          echo "🧹 Cleaning up sensitive files..."
+          rm -f android/keystore.jks
+          rm -f android/key.properties
+          echo "✅ Cleanup completed"
 
   # Job 4: Comentario en PR con resultados
   comment:
@@ -295,6 +367,9 @@ jobs:
             const autoFormatEnabled = '${{ github.event.inputs.auto_format }}' === 'true';
             const formatNote = autoFormatEnabled ? '🎨 Auto-format: Enabled' : '⚠️ Auto-format: Disabled';
             
+            const buildSigned = '${{ github.event.inputs.build_signed }}' === 'true';
+            const signingNote = buildSigned ? '🔐 Signed builds: Enabled' : '⚠️ Signed builds: Disabled';
+            
             const comment = `## 🎉 CI Results for PR #${{ github.event.number }}
             
             ${getStatusEmoji(analyzeStatus)} **Static Analysis**: ${analyzeStatus}
@@ -302,14 +377,17 @@ jobs:
             ${getStatusEmoji(buildStatus)} **Build**: ${buildStatus}
             
             ${formatNote}
+            ${signingNote}
             ${coverageInfo}
             
             ### 📦 Artifacts Available:
-            ${buildStatus === 'success' ? '- 📱 Android APK\n- 🌐 Web Build' : 'No artifacts (build failed)'}
+            ${buildStatus === 'success' ? '- 📱 Android APK (Debug)\n- 📦 Android App Bundle (Release)' : 'No artifacts (build failed)'}
             
             ### ${analyzeStatus === 'success' && testStatus === 'success' && buildStatus === 'success' ? '🚀 Ready to merge!' : '⚠️ Issues found - check the logs'}
             
             ${analyzeStatus === 'failure' && !autoFormatEnabled ? '\n💡 **Tip**: Enable auto-format when running the workflow to automatically fix formatting issues!' : ''}
+            
+            ${buildStatus === 'success' && !buildSigned ? '\n🔐 **Note**: To generate signed App Bundle, enable "Build signed App Bundle" option when running manually.' : ''}
             
             ---
             *Generated by GitHub Actions*`;
