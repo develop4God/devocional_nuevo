@@ -31,7 +31,8 @@ class SpiritualStats {
           ? DateTime.parse(json['lastActivityDate'])
           : null,
       unlockedAchievements: (json['unlockedAchievements'] as List<dynamic>?)
-              ?.map((item) => Achievement.fromJson(item as Map<String, dynamic>))
+              ?.map(
+                  (item) => Achievement.fromJson(item as Map<String, dynamic>))
               .toList() ??
           [],
       favoritesCount: json['favoritesCount'] ?? 0,
@@ -105,11 +106,12 @@ class Achievement {
       title: json['title'] ?? '',
       description: json['description'] ?? '',
       icon: _iconFromCodePoint(json['iconCodePoint'] ?? Icons.star.codePoint),
-      color: Color(json['colorValue'] ?? Colors.amber.value),
+      color: Color(json['colorValue'] ?? 0xFFFFC107),
+      // Colors.amber equivalent
       threshold: json['threshold'] ?? 0,
-      type: AchievementType.values
-          .firstWhere((e) => e.toString() == json['type'],
-              orElse: () => AchievementType.reading),
+      type: AchievementType.values.firstWhere(
+          (e) => e.toString() == json['type'],
+          orElse: () => AchievementType.reading),
       isUnlocked: json['isUnlocked'] ?? false,
     );
   }
@@ -120,15 +122,47 @@ class Achievement {
       'title': title,
       'description': description,
       'iconCodePoint': icon.codePoint,
-      'colorValue': color.value,
+      'colorValue': _colorToInt(color),
       'threshold': threshold,
       'type': type.toString(),
       'isUnlocked': isUnlocked,
     };
   }
 
+  // Helper method para convertir Color a int sin warnings
+  static int _colorToInt(Color color) {
+    return (color.a * 255).round() << 24 |
+        (color.r * 255).round() << 16 |
+        (color.g * 255).round() << 8 |
+        (color.b * 255).round();
+  }
+
+  // CÓDIGO CORREGIDO: Map constante con los code points de tus iconos actuales
+  static const Map<int, IconData> _iconMap = {
+    // Code points de los iconos que ya usas en PredefinedAchievements
+    0xe2bd: Icons.auto_stories,
+    // Icons.auto_stories.codePoint
+    0xe8df: Icons.calendar_view_week,
+    // Icons.calendar_view_week.codePoint
+    0xe8b5: Icons.calendar_month,
+    // Icons.calendar_month.codePoint
+    0xe913: Icons.local_fire_department,
+    // Icons.local_fire_department.codePoint
+    0xe87c: Icons.whatshot,
+    // Icons.whatshot.codePoint
+    0xe3b8: Icons.emoji_events,
+    // Icons.emoji_events.codePoint
+    0xe3c9: Icons.favorite,
+    // Icons.favorite.codePoint
+    0xe90a: Icons.bookmark,
+    // Icons.bookmark.codePoint
+    0xe53f: Icons.star,
+    // Icons.star.codePoint (fallback)
+  };
+
   static IconData _iconFromCodePoint(int codePoint) {
-    return IconData(codePoint, fontFamily: 'MaterialIcons');
+    return _iconMap[codePoint] ??
+        Icons.star; // Mantiene Icons.star como fallback
   }
 
   Achievement copyWith({bool? isUnlocked}) {

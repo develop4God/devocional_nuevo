@@ -1,8 +1,8 @@
 // lib/pages/home_page.dart
-import 'package:flutter/material.dart';
 import 'package:devocional_nuevo/pages/devocionales_page.dart'; // Página principal de devocionales
 import 'package:devocional_nuevo/pages/favorites_page.dart'; // Página de favoritos
 import 'package:devocional_nuevo/pages/progress_page.dart'; // Página de progreso espiritual
+import 'package:flutter/material.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -46,16 +46,17 @@ class _HomePageState extends State<HomePage> {
             label: 'Favoritos', // Etiqueta para favoritos
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.trending_up_outlined), // Icono de progreso outlined
+            icon: Icon(Icons.trending_up_outlined),
+            // Icono de progreso outlined
             label: 'Progreso', // Etiqueta para progreso espiritual
           ),
         ],
-        currentIndex: _selectedIndex, // Índice actual seleccionado
-        selectedItemColor: Theme.of(context)
-            .colorScheme
-            .primary, // Color principal del tema para el ítem seleccionado
-        unselectedItemColor:
-            Colors.grey, // Color para los ítems no seleccionados
+        currentIndex: _selectedIndex,
+        // Índice actual seleccionado
+        selectedItemColor: Theme.of(context).colorScheme.primary,
+        // Color principal del tema para el ítem seleccionado
+        unselectedItemColor: Colors.grey,
+        // Color para los ítems no seleccionados
         onTap: _onItemTapped, // Manejador de tap para cambiar de pestaña
       ),
     );

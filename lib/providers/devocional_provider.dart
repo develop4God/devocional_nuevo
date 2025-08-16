@@ -51,6 +51,12 @@ class DevocionalProvider with ChangeNotifier {
   // Control de devocional actual
   String? _currentTrackedDevocionalId;
 
+  // ========== NUEVAS PROPIEDADES PARA PRESERVAR DATOS ==========
+  // Datos del último devocional finalizado (para recordDevocionalRead)
+  String? _lastFinalizedDevocionalId;
+  int _lastFinalizedReadingTime = 0;
+  double _lastFinalizedScrollPercentage = 0.0;
+
   // Lista de idiomas soportados por tu API
   static const List<String> _supportedLanguages = [
     'es',
@@ -94,7 +100,7 @@ class DevocionalProvider with ChangeNotifier {
     // y los datos se obtengan sin conflictos con la fase de construcción.
   }
 
-  // ========== MÉTODOS DE TRACKING SILENCIOSO ==========
+  // ========== MÉTODOS DE TRACKING SILENCIOSO MODIFICADOS ==========
 
   /// Inicia el tracking para un devocional específico
   void startDevocionalTracking(
@@ -112,9 +118,20 @@ class DevocionalProvider with ChangeNotifier {
 
     // Finalizar tracking anterior si existe
     if (_currentTrackedDevocionalId != null) {
+      debugPrint('📊 Finalizing previous devotional before starting new one');
       _finalizeDevocionalTracking();
+      // IMPORTANTE: NO limpiar aún, los datos se preservan para recordDevocionalRead()
     }
 
+    // Inicializar nuevo tracking
+    _initializeNewTracking(devocionalId, scrollController);
+
+    debugPrint('✅ Tracking started for devotional: $devocionalId');
+  }
+
+  /// Método auxiliar para inicializar un nuevo tracking
+  void _initializeNewTracking(
+      String devocionalId, ScrollController? scrollController) {
     // Inicializar nuevo tracking
     _currentTrackedDevocionalId = devocionalId;
     _devocionalStartTime = DateTime.now();
@@ -127,8 +144,6 @@ class DevocionalProvider with ChangeNotifier {
 
     // Iniciar timer
     _startReadingTimer();
-
-    debugPrint('✅ Tracking started for devotional: $devocionalId');
   }
 
   /// Configura el listener del scroll controller
@@ -143,8 +158,10 @@ class DevocionalProvider with ChangeNotifier {
 
   /// Listener para cambios en el scroll con debounce
   void _onScrollChanged() {
-    if (_currentScrollController == null || _currentTrackedDevocionalId == null)
+    if (_currentScrollController == null ||
+        _currentTrackedDevocionalId == null) {
       return;
+    }
 
     final scrollController = _currentScrollController!;
 
@@ -222,12 +239,13 @@ class DevocionalProvider with ChangeNotifier {
     }
   }
 
-  /// Finaliza el tracking del devocional actual
+  /// Finaliza el tracking del devocional actual PRESERVANDO los datos
   void _finalizeDevocionalTracking() {
     if (_currentTrackedDevocionalId == null) return;
 
     // Calcular tiempo total
-    _accumulatedReadingSeconds += _getCurrentSessionSeconds();
+    final sessionSeconds = _getCurrentSessionSeconds();
+    _accumulatedReadingSeconds += sessionSeconds;
 
     final totalTime = _accumulatedReadingSeconds;
     final scrollProgress = _maxScrollPercentage;
@@ -236,12 +254,17 @@ class DevocionalProvider with ChangeNotifier {
     debugPrint('   📖 Time: ${totalTime}s');
     debugPrint('   📜 Scroll: ${(scrollProgress * 100).toStringAsFixed(1)}%');
 
-    // Limpiar referencias
-    _cleanupTracking();
+    // PRESERVAR los datos para recordDevocionalRead()
+    _lastFinalizedDevocionalId = _currentTrackedDevocionalId;
+    _lastFinalizedReadingTime = totalTime;
+    _lastFinalizedScrollPercentage = scrollProgress;
+
+    // Limpiar el tracking actual pero mantener datos finalizados
+    _cleanupCurrentTracking();
   }
 
-  /// Limpia todas las referencias de tracking
-  void _cleanupTracking() {
+  /// Limpia solo el tracking actual sin afectar datos preservados
+  void _cleanupCurrentTracking() {
     _readingTimer?.cancel();
     _readingTimer = null;
 
@@ -256,7 +279,19 @@ class DevocionalProvider with ChangeNotifier {
     _accumulatedReadingSeconds = 0;
     _maxScrollPercentage = 0.0;
 
-    debugPrint('🧹 Tracking cleanup completed');
+    debugPrint('🧹 Current tracking cleanup completed');
+  }
+
+  /// Limpia TODOS los datos de tracking incluyendo datos preservados
+  void _cleanupTracking() {
+    _cleanupCurrentTracking();
+
+    // Limpiar también datos preservados
+    _lastFinalizedDevocionalId = null;
+    _lastFinalizedReadingTime = 0;
+    _lastFinalizedScrollPercentage = 0.0;
+
+    debugPrint('🧹 Full tracking cleanup completed');
   }
 
   // --- Métodos de inicialización y carga ---
@@ -496,7 +531,7 @@ class DevocionalProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  /// ========== MÉTODO PRINCIPAL MODIFICADO ==========
+  /// ========== MÉTODO PRINCIPAL CORREGIDO ==========
   /// Record that a devotional was read (call this when user completes reading a devotional)
   /// This should only be called when the user has truly read the content, not just navigated
   /// SIEMPRE PERMITE MARCAR COMO LEÍDO - La validación es completamente silenciosa
@@ -506,18 +541,48 @@ class DevocionalProvider with ChangeNotifier {
       return;
     }
 
-    // Finalizar tracking si está activo para este devocional
+    // Variables para almacenar datos de tracking
     int totalReadingTime = 0;
     double scrollProgress = 0.0;
 
+    // CASO 1: Es el devocional que se está trackeando actualmente
     if (_currentTrackedDevocionalId == devocionalId) {
       // Capturar datos de tracking antes de limpiar
       totalReadingTime =
           _accumulatedReadingSeconds + _getCurrentSessionSeconds();
       scrollProgress = _maxScrollPercentage;
 
-      // Finalizar tracking
-      _finalizeDevocionalTracking();
+      debugPrint('📊 Recording currently tracked devotional: $devocionalId');
+      debugPrint(
+          '   📖 Time: ${totalReadingTime}s, Scroll: ${(scrollProgress * 100).toStringAsFixed(1)}%');
+
+      // NO finalizar tracking aquí, se hace en startDevocionalTracking
+    }
+    // CASO 2: Es un devocional que fue finalizado recientemente
+    else if (_lastFinalizedDevocionalId == devocionalId) {
+      // Usar datos preservados del último devocional finalizado
+      totalReadingTime = _lastFinalizedReadingTime;
+      scrollProgress = _lastFinalizedScrollPercentage;
+
+      debugPrint('📊 Recording finalized devotional: $devocionalId');
+      debugPrint(
+          '   📖 Time: ${totalReadingTime}s, Scroll: ${(scrollProgress * 100).toStringAsFixed(1)}%');
+
+      // Limpiar datos preservados después de usarlos
+      _lastFinalizedDevocionalId = null;
+      _lastFinalizedReadingTime = 0;
+      _lastFinalizedScrollPercentage = 0.0;
+    }
+    // CASO 3: Es un devocional diferente al que se está trackeando
+    // Esto puede pasar si el usuario navega rápido o usa botones de navegación
+    else {
+      debugPrint('📊 Recording non-tracked devotional: $devocionalId');
+      debugPrint('   ⚠️ No tracking data available (user navigated quickly)');
+
+      // En este caso, no tenemos datos de tracking específicos para este devocional
+      // Pero aún permitimos que se marque como leído
+      totalReadingTime = 0;
+      scrollProgress = 0.0;
     }
 
     try {
@@ -532,10 +597,13 @@ class DevocionalProvider with ChangeNotifier {
 
       debugPrint('✅ Recorded devotional read: $devocionalId');
       debugPrint(
-        '   📊 Time: ${totalReadingTime}s, Scroll: ${(scrollProgress * 100).toStringAsFixed(1)}%',
+        '   📊 Final stats - Time: ${totalReadingTime}s, Scroll: ${(scrollProgress * 100).toStringAsFixed(1)}%',
       );
+
+// AGREGAR ESTA LÍNEA AQUÍ:
+      forceUIUpdate();
     } catch (e) {
-      debugPrint('Error recording devotional read: $e');
+      debugPrint('❌ Error recording devotional read: $e');
     }
   }
 
@@ -555,6 +623,8 @@ class DevocionalProvider with ChangeNotifier {
   // --- Métodos de utilidad ---
   // Obtener lista de idiomas soportados (para UI de configuración)
   List<String> get supportedLanguages => List.from(_supportedLanguages);
+
+  String? get currentTrackingId => _currentTrackedDevocionalId;
 
   // Verificar si un idioma está soportado
   bool isLanguageSupported(String language) {
@@ -769,6 +839,12 @@ class DevocionalProvider with ChangeNotifier {
   void clearDownloadStatus() {
     _downloadStatus = null;
     notifyListeners();
+  }
+
+  /// Notifica a los listeners para actualizar la UI inmediatamente
+  void forceUIUpdate() {
+    notifyListeners();
+    debugPrint('🔄 UI update notification sent to all listeners');
   }
 
   // ========== CLEANUP Y DISPOSE ==========
