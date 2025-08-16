@@ -334,8 +334,8 @@ class DevocionalesDrawer extends StatelessWidget {
                       iconColor: colorScheme.primary,
                       label: Text(
                         themeProvider.currentBrightness == Brightness.dark
-                            ? 'Luz alta(modo claro)'
-                            : 'Luz baja(modo oscuro)',
+                            ? 'Luz alta (modo claro)'
+                            : 'Luz baja (modo oscuro)',
                         style: textTheme.bodyMedium?.copyWith(
                           fontSize: 15,
                           color: colorScheme.onSurface,

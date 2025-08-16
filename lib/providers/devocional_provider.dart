@@ -129,7 +129,7 @@ class DevocionalProvider with ChangeNotifier {
     debugPrint('✅ Tracking started for devotional: $devocionalId');
   }
 
-  /// Método auxiliar para inicializar un nuevo tracking
+  //Metodo auxiliar para inicializar un nuevo tracking
   void _initializeNewTracking(
       String devocionalId, ScrollController? scrollController) {
     // Inicializar nuevo tracking
@@ -531,7 +531,7 @@ class DevocionalProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  /// ========== MÉTODO PRINCIPAL CORREGIDO ==========
+  /// ========== METODO PRINCIPAL CORREGIDO ==========
   /// Record that a devotional was read (call this when user completes reading a devotional)
   /// This should only be called when the user has truly read the content, not just navigated
   /// SIEMPRE PERMITE MARCAR COMO LEÍDO - La validación es completamente silenciosa

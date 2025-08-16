@@ -98,19 +98,31 @@ class _SettingsPageState extends State<SettingsPage> {
             SizedBox(
               child: Align(
                 alignment: Alignment.topRight,
-                child: ElevatedButton(
+                child: OutlinedButton.icon(
+                  // Se cambia a OutlinedButton.icon
                   onPressed: _launchPaypal,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.yellow[700],
-                    foregroundColor: Colors.black,
-                    textStyle: const TextStyle(fontWeight: FontWeight.bold),
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 8,
-                      horizontal: 10,
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: colorScheme.onSurface, // Color del texto
+                    side: BorderSide(
+                      color: colorScheme.primary,
+                      // Color del borde del tema principal
+                      width: 2.0,
                     ),
-                    minimumSize: const Size(100, 30),
+                    shape: RoundedRectangleBorder(
+                      borderRadius:
+                          BorderRadius.circular(20.0), // Bordes redondeados
+                    ),
                   ),
-                  child: const Text('Donar', style: TextStyle(fontSize: 16)),
+                  icon: Icon(Icons.favorite_border, color: colorScheme.primary),
+                  // Icono de corazón
+                  label: Text(
+                    'Donar',
+                    style: textTheme.bodyMedium?.copyWith(
+                      color: colorScheme.onSurface,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
                 ),
               ),
             ),
