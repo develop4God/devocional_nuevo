@@ -7,6 +7,7 @@ import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/pages/progress_page.dart';
 import 'package:devocional_nuevo/pages/settings_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
+import 'package:devocional_nuevo/services/devocionales_tracking.dart'; // NUEVO IMPORT
 import 'package:devocional_nuevo/services/update_service.dart';
 import 'package:devocional_nuevo/utils/bubble_constants.dart';
 import 'package:devocional_nuevo/widgets/devocionales_page_drawer.dart';
@@ -35,11 +36,22 @@ class _DevocionalesPageState extends State<DevocionalesPage>
   int _currentDevocionalIndex = 0;
   static const String _lastDevocionalIndexKey = 'lastDevocionalIndex';
 
+  // NUEVA PROPIEDAD: Servicio de tracking
+  final DevocionalesTracking _tracking = DevocionalesTracking();
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+
+    // NUEVA LÍNEA: Inicializar tracking
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _tracking.initialize(context);
+      _tracking.startCriteriaCheckTimer();
+    });
+
     _loadInitialData();
+
     // Verificar actualizaciones al iniciar
     WidgetsBinding.instance.addPostFrameCallback((_) {
       UpdateService.checkForUpdate();
@@ -48,20 +60,16 @@ class _DevocionalesPageState extends State<DevocionalesPage>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    final devocionalProvider = Provider.of<DevocionalProvider>(
-      context,
-      listen: false,
-    );
-
     if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.inactive) {
-      // App va a background - pausar tracking
-      devocionalProvider.pauseTracking();
-      debugPrint('🔄 App paused - tracking paused');
+      // MODIFICADO: Usar el servicio de tracking
+      _tracking.pauseTracking();
+      debugPrint('🔄 App paused - tracking and criteria timer paused');
     } else if (state == AppLifecycleState.resumed) {
-      // App regresa a foreground - reanudar tracking
-      devocionalProvider.resumeTracking();
-      debugPrint('🔄 App resumed - tracking resumed');
+      // MODIFICADO: Usar el servicio de tracking
+      _tracking.resumeTracking();
+      debugPrint('🔄 App resumed - tracking and criteria timer resumed');
+
       // Verificar actualizaciones cuando la app vuelve del background
       UpdateService.checkForUpdate();
     }
@@ -75,6 +83,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
         context,
         listen: false,
       );
+
       if (!devocionalProvider.isLoading &&
           devocionalProvider.devocionales.isEmpty) {
         await devocionalProvider.initializeData();
@@ -84,6 +93,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       if (devocionalProvider.devocionales.isNotEmpty) {
         final prefs = await SharedPreferences.getInstance();
         final int? savedIndex = prefs.getInt(_lastDevocionalIndexKey);
+
         if (mounted) {
           setState(() {
             if (savedIndex != null) {
@@ -136,20 +146,22 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       context,
       listen: false,
     );
+
     if (devocionalProvider.devocionales.isNotEmpty &&
         _currentDevocionalIndex < devocionalProvider.devocionales.length) {
       final currentDevocional =
           devocionalProvider.devocionales[_currentDevocionalIndex];
-      devocionalProvider.startDevocionalTracking(
-        currentDevocional.id,
-        scrollController: _scrollController,
-      );
-      debugPrint('📖 Started tracking for devotional: ${currentDevocional.id}');
+
+      // MODIFICADO: Usar el servicio de tracking
+      _tracking.clearAutoCompletedExcept(currentDevocional.id);
+      _tracking.startDevocionalTracking(
+          currentDevocional.id, _scrollController);
     }
   }
 
   void _goToNextDevocional() {
     if (!mounted) return;
+
     final devocionalProvider = Provider.of<DevocionalProvider>(
       context,
       listen: false,
@@ -159,12 +171,13 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     if (_currentDevocionalIndex < devocionales.length - 1) {
       // Record that the current devotional was read before moving to the next one
       final currentDevocional = devocionales[_currentDevocionalIndex];
-      devocionalProvider.recordDevocionalRead(currentDevocional.id);
+
+      // MODIFICADO: Usar el servicio de tracking
+      _tracking.recordDevocionalRead(currentDevocional.id);
 
       setState(() {
         _currentDevocionalIndex++;
       });
-
       _scrollToTop();
 
       // INICIAR TRACKING PARA EL NUEVO DEVOCIONAL
@@ -174,6 +187,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
 
       // Vibración táctil suave para feedback
       HapticFeedback.lightImpact();
+
       if (devocionalProvider.showInvitationDialog) {
         if (mounted) {
           _showInvitation(context);
@@ -188,7 +202,6 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       setState(() {
         _currentDevocionalIndex--;
       });
-
       _scrollToTop();
 
       // INICIAR TRACKING PARA EL NUEVO DEVOCIONAL
@@ -221,10 +234,12 @@ class _DevocionalesPageState extends State<DevocionalesPage>
 
   void _showInvitation(BuildContext context) {
     if (!mounted) return;
+
     final devocionalProvider = Provider.of<DevocionalProvider>(
       context,
       listen: false,
     );
+
     bool doNotShowAgainChecked = !devocionalProvider.showInvitationDialog;
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
     final TextTheme textTheme = Theme.of(context).textTheme;
@@ -319,6 +334,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
   Future<void> _shareAsText(Devocional devocional) async {
     final text =
         "Devocional del día:\n\nVersículo: ${devocional.versiculo}\n\nReflexión: ${devocional.reflexion}\n\nPara Meditar:\n${devocional.paraMeditar.map((p) => '${p.cita}: ${p.texto}').join('\n')}\n\nOración: ${devocional.oracion}";
+
     await SharePlus.instance.share(ShareParams(text: text));
   }
 
@@ -328,6 +344,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       final directory = await getApplicationDocumentsDirectory();
       final imagePath = await File('${directory.path}/devocional.png').create();
       await imagePath.writeAsBytes(image);
+
       await SharePlus.instance.share(
         ShareParams(
           files: [XFile(imagePath.path)],
@@ -358,6 +375,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       body: Consumer<DevocionalProvider>(
         builder: (context, devocionalProvider, child) {
           final List<Devocional> devocionales = devocionalProvider.devocionales;
+
           if (devocionales.isEmpty) {
             return Center(
               child: Text(
@@ -391,6 +409,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                   ),
                 ),
               ),
+
               // Contenido principal
               Expanded(
                 child: Screenshot(
@@ -574,9 +593,8 @@ class _DevocionalesPageState extends State<DevocionalesPage>
           final Color appBarForegroundColor =
               Theme.of(context).appBarTheme.foregroundColor ??
                   colorScheme.onPrimary;
-          final Color? appBarBackgroundColor = Theme.of(
-            context,
-          ).appBarTheme.backgroundColor;
+          final Color? appBarBackgroundColor =
+              Theme.of(context).appBarTheme.backgroundColor;
 
           return Column(
             mainAxisSize: MainAxisSize.min,
@@ -634,11 +652,13 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                           ),
                         ),
                       ),
+
                       // ESPACIO LIBRE EN EL CENTRO
                       Expanded(
                         flex: 1,
                         child: SizedBox.shrink(), // Espacio vacío
                       ),
+
                       // Botón Siguiente
                       Expanded(
                         flex: 2,
@@ -683,6 +703,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                   ),
                 ),
               ),
+
               // BARRA DE ACCIONES EXISTENTE (favoritos, compartir, etc.)
               BottomAppBar(
                 height: 70,
@@ -751,10 +772,11 @@ class _DevocionalesPageState extends State<DevocionalesPage>
 
                         // Navegar
                         Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const ProgressPage(),
-                            ));
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const ProgressPage(),
+                          ),
+                        );
                       },
                       icon: Icon(
                         Icons.emoji_events_outlined,
@@ -792,6 +814,10 @@ class _DevocionalesPageState extends State<DevocionalesPage>
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _scrollController.dispose();
+
+    // NUEVA LÍNEA: Limpiar tracking
+    _tracking.dispose();
+
     super.dispose();
   }
 }
