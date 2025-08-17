@@ -9,10 +9,10 @@ import 'package:devocional_nuevo/pages/settings_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/services/devocionales_tracking.dart'; // NUEVO IMPORT
 import 'package:devocional_nuevo/services/update_service.dart';
-import 'package:devocional_nuevo/utils/bubble_constants.dart';
 import 'package:devocional_nuevo/widgets/devocionales_page_drawer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart'; // Para HapticFeedback
+import 'package:flutter_tts/flutter_tts.dart'; // NUEVA IMPORTACIÓN: Biblioteca de TTS
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
@@ -38,6 +38,10 @@ class _DevocionalesPageState extends State<DevocionalesPage>
 
   // NUEVA PROPIEDAD: Servicio de tracking
   final DevocionalesTracking _tracking = DevocionalesTracking();
+
+  // PROPIEDADES DE TEXT-TO-SPEECH
+  final FlutterTts _flutterTts = FlutterTts();
+  bool _isSpeaking = false;
 
   @override
   void initState() {
@@ -73,6 +77,30 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       // Verificar actualizaciones cuando la app vuelve del background
       UpdateService.checkForUpdate();
     }
+  }
+
+  @override
+  void dispose() {
+    _tracking.dispose();
+    _stopSpeaking(); // Detener TTS al salir de la página
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  // NUEVA LÓGICA DE TEXT-TO-SPEECH
+  Future<void> _speak(String text) async {
+    await _flutterTts.stop(); // Detener cualquier reproducción anterior
+    await _flutterTts.speak(text);
+    setState(() {
+      _isSpeaking = true;
+    });
+  }
+
+  Future<void> _stopSpeaking() async {
+    await _flutterTts.stop();
+    setState(() {
+      _isSpeaking = false;
+    });
   }
 
   Future<void> _loadInitialData() async {
@@ -169,10 +197,8 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     final List<Devocional> devocionales = devocionalProvider.devocionales;
 
     if (_currentDevocionalIndex < devocionales.length - 1) {
-      // Stop audio if playing
-      if (devocionalProvider.isAudioPlaying) {
-        devocionalProvider.stopAudio();
-      }
+      // NUEVA LÍNEA: Detener TTS
+      _stopSpeaking();
 
       // Record that the current devotional was read before moving to the next one
       final currentDevocional = devocionales[_currentDevocionalIndex];
@@ -204,12 +230,8 @@ class _DevocionalesPageState extends State<DevocionalesPage>
 
   void _goToPreviousDevocional() {
     if (_currentDevocionalIndex > 0) {
-      // Stop audio if playing
-      final devocionalProvider =
-          Provider.of<DevocionalProvider>(context, listen: false);
-      if (devocionalProvider.isAudioPlaying) {
-        devocionalProvider.stopAudio();
-      }
+      // NUEVA LÍNEA: Detener TTS
+      _stopSpeaking();
 
       setState(() {
         _currentDevocionalIndex--;
@@ -710,10 +732,28 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                         ),
                       ),
 
-                      // ESPACIO LIBRE EN EL CENTRO
+                      // Botón de Text-to-Speech
                       Expanded(
                         flex: 1,
-                        child: SizedBox.shrink(), // Espacio vacío
+                        child: IconButton(
+                          tooltip: _isSpeaking
+                              ? 'Detener audio'
+                              : 'Escuchar devocional',
+                          onPressed: () {
+                            if (_isSpeaking) {
+                              _stopSpeaking();
+                            } else {
+                              _speak(
+                                '${currentDevocional?.versiculo ?? ''} ${currentDevocional?.reflexion ?? ''} ${currentDevocional?.oracion ?? ''}',
+                              );
+                            }
+                          },
+                          icon: Icon(
+                            _isSpeaking ? Icons.stop : Icons.play_arrow,
+                            color: colorScheme.onSurface,
+                            size: 30,
+                          ),
+                        ),
                       ),
 
                       // Botón Siguiente
@@ -789,7 +829,6 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                           Icon(
                             isFavorite ? Icons.favorite : Icons.favorite_border,
                             color: isFavorite ? Colors.red : Colors.white,
-                            size: 30,
                           ),
                         ],
                       ),
@@ -800,34 +839,25 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                           ? () => _shareAsText(currentDevocional)
                           : null,
                       icon: Icon(
-                        Icons.share,
+                        Icons.share_outlined,
                         color: appBarForegroundColor,
                         size: 30,
                       ),
                     ),
                     IconButton(
-                      tooltip: 'Compartir como imagen (screenshot)',
+                      tooltip: 'Compartir como imagen',
                       onPressed: currentDevocional != null
                           ? () => _shareAsImage(currentDevocional)
                           : null,
                       icon: Icon(
-                        Icons.image,
+                        Icons.image_outlined,
                         color: appBarForegroundColor,
                         size: 30,
                       ),
                     ),
                     IconButton(
-                      tooltip: 'Ver progreso y logros',
-                      onPressed: () async {
-                        // Marcar como visto - badge desaparece
-                        await BubbleUtils.markAsShown(
-                            BubbleUtils.getIconBubbleId(
-                                Icons.emoji_events_outlined, 'new'));
-
-                        // Verificar que el context sigue siendo válido
-                        if (!context.mounted) return;
-
-                        // Navegar
+                      tooltip: 'Progreso',
+                      onPressed: () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -836,10 +866,10 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                         );
                       },
                       icon: Icon(
-                        Icons.emoji_events_outlined,
+                        Icons.insights,
                         color: appBarForegroundColor,
                         size: 30,
-                      ).newIconBadge,
+                      ),
                     ),
                     IconButton(
                       tooltip: 'Configuración',
@@ -852,7 +882,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                         );
                       },
                       icon: Icon(
-                        Icons.app_settings_alt_outlined,
+                        Icons.settings,
                         color: appBarForegroundColor,
                         size: 30,
                       ),
@@ -865,22 +895,5 @@ class _DevocionalesPageState extends State<DevocionalesPage>
         },
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    _scrollController.dispose();
-
-    // Stop audio and dispose resources
-    final devocionalProvider =
-        Provider.of<DevocionalProvider>(context, listen: false);
-    devocionalProvider.stopAudio();
-
-
-    // NUEVA LÍNEA: Limpiar tracking
-    _tracking.dispose();
-
-    super.dispose();
   }
 }

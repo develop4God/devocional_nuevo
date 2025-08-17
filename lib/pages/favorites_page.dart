@@ -1,11 +1,12 @@
 // lib/pages/favorites_page.dart
 
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:intl/intl.dart'; // Para formatear la fecha
 import 'package:devocional_nuevo/models/devocional_model.dart'; // Asegúrate de importar tu modelo
-import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/pages/devocionales_page.dart'; // Importar DevocionalesPage
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart'; // Para formatear la fecha
+import 'package:provider/provider.dart';
+
+import '../providers/devocional_provider.dart';
 
 class FavoritesPage extends StatelessWidget {
   const FavoritesPage({super.key});
@@ -100,9 +101,9 @@ class FavoritesPage extends StatelessWidget {
                                   .textTheme
                                   .titleSmall!
                                   .copyWith(
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .primary, // Usa el color primario del tema
+                                      color:
+                                          Theme.of(context).colorScheme.primary,
+                                      // Usa el color primario del tema
                                       fontWeight: FontWeight.bold),
                             ),
                             const SizedBox(height: 8),
@@ -120,8 +121,8 @@ class FavoritesPage extends StatelessWidget {
                         ),
                         // Botón para quitar de favoritos (alineado a la derecha)
                         Align(
-                          alignment: Alignment
-                              .topRight, // Cambiado de bottomRight a topRight para no solapar texto
+                          alignment: Alignment.topRight,
+                          // Cambiado de bottomRight a topRight para no solapar texto
                           child: IconButton(
                             icon: const Icon(
                               Icons.favorite,
