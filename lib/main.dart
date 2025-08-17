@@ -4,6 +4,7 @@ import 'dart:developer' as developer;
 import 'package:devocional_nuevo/game_loop_runner.dart' as runner;
 import 'package:devocional_nuevo/pages/settings_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
+import 'package:devocional_nuevo/providers/prayer_provider.dart';
 import 'package:devocional_nuevo/providers/theme_provider.dart';
 import 'package:devocional_nuevo/services/notification_service.dart';
 import 'package:devocional_nuevo/services/spiritual_stats_service.dart'; // NUEVO
@@ -86,6 +87,7 @@ void main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (context) => DevocionalProvider()),
+        ChangeNotifierProvider(create: (context) => PrayerProvider()),
         ChangeNotifierProvider(create: (context) => ThemeProvider()),
       ],
       child: const AppInitializer(),

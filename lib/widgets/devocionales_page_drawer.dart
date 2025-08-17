@@ -1,5 +1,6 @@
 import 'package:devocional_nuevo/pages/favorites_page.dart';
 import 'package:devocional_nuevo/pages/notification_config_page.dart';
+import 'package:devocional_nuevo/pages/prayers_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/providers/theme_provider.dart';
 import 'package:devocional_nuevo/utils/bubble_constants.dart';
@@ -321,6 +322,27 @@ class DevocionalesDrawer extends StatelessWidget {
                         Navigator.of(context).push(
                           MaterialPageRoute(
                             builder: (_) => const FavoritesPage(),
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 5),
+                    // --- Mis oraciones ---
+                    drawerRow(
+                      icon: Icons.favorite_outline,
+                      iconColor: colorScheme.primary,
+                      label: Text(
+                        'Mis oraciones',
+                        style: textTheme.bodyMedium?.copyWith(
+                          fontSize: 16,
+                          color: colorScheme.onSurface,
+                        ),
+                      ),
+                      onTap: () {
+                        Navigator.of(context).pop();
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const PrayersPage(),
                           ),
                         );
                       },
