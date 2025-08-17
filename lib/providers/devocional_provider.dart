@@ -121,24 +121,41 @@ class DevocionalProvider with ChangeNotifier {
 
   // Constructor: inicializa los datos cuando el provider se crea
   DevocionalProvider() {
+    debugPrint('🏗️ Provider: Constructor iniciado');
+
     // initializeData() se llama fuera del constructor, usualmente en AppInitializer
     // usando addPostFrameCallback. Esto asegura que las preferencias se carguen
     // y los datos se obtengan sin conflictos con la fase de construcción.
 
     // Initialize TTS service and set up state change callback with race condition protection
+    debugPrint('🎤 Provider: Configurando TTS callback');
+
     _ttsService.setStateChangedCallback(() {
+      debugPrint('🔔 Provider: TTS state change callback ejecutado!');
+      debugPrint(
+          '🔔 Provider: TTS isPlaying=${_ttsService.isPlaying}, isPaused=${_ttsService.isPaused}');
+
       // Use a post-frame callback to avoid race conditions during widget building
       WidgetsBinding.instance.addPostFrameCallback((_) {
+        debugPrint('📱 Provider: Post-frame callback ejecutándose');
+
         if (!_ttsService.isDisposed) {
           _isAudioPlaying = _ttsService.isPlaying;
           _isAudioPaused = _ttsService.isPaused;
           if (!_ttsService.isActive) {
             _currentPlayingDevocionalId = null;
           }
+          debugPrint(
+              '🔄 Provider: Estados actualizados - isPlaying=$_isAudioPlaying, isPaused=$_isAudioPaused');
           notifyListeners();
+        } else {
+          debugPrint(
+              '⚠️ Provider: TTS service está disposed, no actualizando estados');
         }
       });
     });
+
+    debugPrint('✅ Provider: Constructor completado con éxito');
   }
 
   // ========== MÉTODOS DE TRACKING SILENCIOSO ==========
@@ -924,20 +941,29 @@ class DevocionalProvider with ChangeNotifier {
   /// Play audio for a devotional with comprehensive error handling
   Future<void> playDevotional(Devocional devocional) async {
     try {
+      debugPrint('🎵 Provider: playDevotional llamado para ${devocional.id}');
+
       // Validate input
       if (devocional.id.isEmpty) {
+        debugPrint('❌ Provider: ID vacío, abortando');
         throw Exception('Cannot play devotional without valid ID');
       }
 
       // Stop any currently playing audio
       if (_isAudioPlaying) {
+        debugPrint('🛑 Provider: Deteniendo audio anterior');
         await _ttsService.stop();
       }
 
+      debugPrint('🚀 Provider: Iniciando TTS para ${devocional.id}');
       _currentPlayingDevocionalId = devocional.id;
+
+      debugPrint('📱 Provider: Llamando a speakDevotional...');
       await _ttsService.speakDevotional(devocional);
+
+      debugPrint('✅ Provider: TTS iniciado exitosamente');
     } on TtsException catch (e) {
-      debugPrint('TTS Error playing devotional: ${e.message}');
+      debugPrint('🔥 Provider: TTS Error: ${e.message}');
       _currentPlayingDevocionalId = null;
 
       // Don't show error to user for expected TTS issues like platform not supported
@@ -945,10 +971,11 @@ class DevocionalProvider with ChangeNotifier {
         rethrow;
       }
     } catch (e) {
-      debugPrint('Error playing devotional audio: $e');
+      debugPrint('❌ Provider: Error en playDevotional: $e');
       _currentPlayingDevocionalId = null;
       rethrow;
     } finally {
+      debugPrint('🔄 Provider: Notificando listeners y finalizando');
       notifyListeners();
     }
   }

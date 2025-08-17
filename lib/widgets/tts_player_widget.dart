@@ -64,7 +64,11 @@ class TtsPlayerWidget extends StatelessWidget {
             color: Colors.transparent,
             child: InkWell(
               borderRadius: BorderRadius.circular(compact ? 20 : 25),
-              onTap: () => _handleTap(context, provider),
+              onTap: () {
+                // Punto de control 1: Confirma que se activa el onTap
+                debugPrint('InkWell fue presionado.');
+                _handleTap(context, provider);
+              },
               child: Container(
                 padding: EdgeInsets.all(compact ? 8 : 12),
                 child: Icon(
@@ -81,6 +85,10 @@ class TtsPlayerWidget extends StatelessWidget {
   }
 
   void _handleTap(BuildContext context, DevocionalProvider provider) async {
+    // Punto de control 2: Verifica que la función _handleTap se esté ejecutando
+    debugPrint('Manejador de tap activado.');
+    // Punto de control 3: Verifica el objeto devocional que se está pasando
+    debugPrint('Se intenta reproducir el devocional con id: ${devocional.id}');
     try {
       await provider.toggleAudioPlayPause(devocional);
     } catch (e) {
