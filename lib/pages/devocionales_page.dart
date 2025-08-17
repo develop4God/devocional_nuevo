@@ -10,9 +10,10 @@ import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/services/devocionales_tracking.dart'; // NUEVO IMPORT
 import 'package:devocional_nuevo/services/update_service.dart';
 import 'package:devocional_nuevo/widgets/devocionales_page_drawer.dart';
+import 'package:devocional_nuevo/widgets/tts_player_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart'; // Para HapticFeedback
-import 'package:flutter_tts/flutter_tts.dart'; // NUEVA IMPORTACIÓN: Biblioteca de TTS
+import 'package:flutter_tts/flutter_tts.dart'; // NUEVA IMPORTCIÓN: Biblioteca de TTS
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
@@ -41,7 +42,6 @@ class _DevocionalesPageState extends State<DevocionalesPage>
 
   // PROPIEDADES DE TEXT-TO-SPEECH
   final FlutterTts _flutterTts = FlutterTts();
-  bool _isSpeaking = false;
 
   @override
   void initState() {
@@ -88,19 +88,10 @@ class _DevocionalesPageState extends State<DevocionalesPage>
   }
 
   // NUEVA LÓGICA DE TEXT-TO-SPEECH
-  Future<void> _speak(String text) async {
-    await _flutterTts.stop(); // Detener cualquier reproducción anterior
-    await _flutterTts.speak(text);
-    setState(() {
-      _isSpeaking = true;
-    });
-  }
 
   Future<void> _stopSpeaking() async {
     await _flutterTts.stop();
-    setState(() {
-      _isSpeaking = false;
-    });
+    setState(() {});
   }
 
   Future<void> _loadInitialData() async {
@@ -680,126 +671,110 @@ class _DevocionalesPageState extends State<DevocionalesPage>
             children: [
               // BARRA DE NAVEGACIÓN CON BOTONES SEPARADOS
               Container(
-                height: 65,
-                decoration: BoxDecoration(
-                  color: Colors.transparent,
-                  border: Border(
-                    top: BorderSide(
-                      color: colorScheme.outline.withAlpha((0.2 * 255).round()),
-                      width: 0.5,
+                  height: 65,
+                  decoration: BoxDecoration(
+                    color: Colors.transparent,
+                    border: Border(
+                      top: BorderSide(
+                        color:
+                            colorScheme.outline.withAlpha((0.2 * 255).round()),
+                        width: 0.5,
+                      ),
                     ),
                   ),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16.0,
-                    vertical: 8.0,
-                  ),
-                  child: Row(
-                    children: [
-                      // Botón Anterior
-                      Expanded(
-                        flex: 2,
-                        child: SizedBox(
-                          height: 45,
-                          child: ElevatedButton.icon(
-                            onPressed: _currentDevocionalIndex > 0
-                                ? _goToPreviousDevocional
-                                : null,
-                            icon: Icon(Icons.arrow_back_ios, size: 16),
-                            label: Text(
-                              'Anterior',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16.0,
+                      vertical: 8.0,
+                    ),
+                    child: Row(
+                      children: [
+                        // Botón Anterior
+                        Expanded(
+                          flex: 2,
+                          child: SizedBox(
+                            height: 45,
+                            child: ElevatedButton.icon(
+                              onPressed: _currentDevocionalIndex > 0
+                                  ? _goToPreviousDevocional
+                                  : null,
+                              icon: Icon(Icons.arrow_back_ios, size: 16),
+                              label: Text(
+                                'Anterior',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
-                            ),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: _currentDevocionalIndex > 0
-                                  ? colorScheme.primary
-                                  : colorScheme.outline.withAlpha(
-                                      (0.3 * 255).round(),
-                                    ),
-                              foregroundColor: _currentDevocionalIndex > 0
-                                  ? Colors.white
-                                  : colorScheme.outline,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(22),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: _currentDevocionalIndex > 0
+                                    ? colorScheme.primary
+                                    : colorScheme.outline
+                                        .withValues(alpha: 0.3),
+                                foregroundColor: _currentDevocionalIndex > 0
+                                    ? Colors.white
+                                    : colorScheme.outline,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(22),
+                                ),
+                                elevation: _currentDevocionalIndex > 0 ? 2 : 0,
                               ),
-                              elevation: _currentDevocionalIndex > 0 ? 2 : 0,
                             ),
                           ),
                         ),
-                      ),
 
-                      // Botón de Text-to-Speech
-                      Expanded(
-                        flex: 1,
-                        child: IconButton(
-                          tooltip: _isSpeaking
-                              ? 'Detener audio'
-                              : 'Escuchar devocional',
-                          onPressed: () {
-                            if (_isSpeaking) {
-                              _stopSpeaking();
-                            } else {
-                              _speak(
-                                '${currentDevocional?.versiculo ?? ''} ${currentDevocional?.reflexion ?? ''} ${currentDevocional?.oracion ?? ''}',
-                              );
-                            }
-                          },
-                          icon: Icon(
-                            _isSpeaking ? Icons.stop : Icons.play_arrow,
-                            color: colorScheme.onSurface,
-                            size: 30,
+                        // Widget TTS (reemplaza el botón anterior)
+                        Expanded(
+                          flex: 1,
+                          child: Center(
+                            child: TtsPlayerWidget(
+                              devocional: currentDevocional!,
+                            ),
                           ),
                         ),
-                      ),
 
-                      // Botón Siguiente
-                      Expanded(
-                        flex: 2,
-                        child: SizedBox(
-                          height: 45,
-                          child: ElevatedButton.icon(
-                            onPressed: _currentDevocionalIndex <
-                                    devocionales.length - 1
-                                ? _goToNextDevocional
-                                : null,
-                            label: Icon(Icons.arrow_forward_ios, size: 16),
-                            icon: Text(
-                              'Siguiente',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
+                        // Botón Siguiente
+                        Expanded(
+                          flex: 2,
+                          child: SizedBox(
+                            height: 45,
+                            child: ElevatedButton.icon(
+                              onPressed: _currentDevocionalIndex <
+                                      devocionales.length - 1
+                                  ? _goToNextDevocional
+                                  : null,
+                              label: Icon(Icons.arrow_forward_ios, size: 16),
+                              icon: Text(
+                                'Siguiente',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
-                            ),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: _currentDevocionalIndex <
-                                      devocionales.length - 1
-                                  ? colorScheme.primary
-                                  : colorScheme.outline.withAlpha(
-                                      (0.3 * 255).round(),
-                                    ),
-                              foregroundColor: _currentDevocionalIndex <
-                                      devocionales.length - 1
-                                  ? Colors.white
-                                  : colorScheme.outline,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(22),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: _currentDevocionalIndex <
+                                        devocionales.length - 1
+                                    ? colorScheme.primary
+                                    : colorScheme.outline
+                                        .withValues(alpha: 0.3),
+                                foregroundColor: _currentDevocionalIndex <
+                                        devocionales.length - 1
+                                    ? Colors.white
+                                    : colorScheme.outline,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(22),
+                                ),
+                                elevation: _currentDevocionalIndex <
+                                        devocionales.length - 1
+                                    ? 2
+                                    : 0,
                               ),
-                              elevation: _currentDevocionalIndex <
-                                      devocionales.length - 1
-                                  ? 2
-                                  : 0,
                             ),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+                      ],
+                    ),
+                  )),
 
               // BARRA DE ACCIONES EXISTENTE (favoritos, compartir, etc.)
               BottomAppBar(
