@@ -787,12 +787,10 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                       tooltip: isFavorite
                           ? 'Quitar de favoritos'
                           : 'Guardar como favorito',
-                      onPressed: currentDevocional != null
-                          ? () => devocionalProvider.toggleFavorite(
-                                currentDevocional,
-                                context,
-                              )
-                          : null,
+                      onPressed: () => devocionalProvider.toggleFavorite(
+                        currentDevocional,
+                        context,
+                      ),
                       icon: Icon(
                         isFavorite ? Icons.favorite : Icons.favorite_border,
                         color: isFavorite ? Colors.red : Colors.white,
@@ -801,9 +799,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                     ),
                     IconButton(
                       tooltip: 'Compartir como texto',
-                      onPressed: currentDevocional != null
-                          ? () => _shareAsText(currentDevocional)
-                          : null,
+                      onPressed: () => _shareAsText(currentDevocional),
                       icon: Icon(
                         Icons.share_outlined,
                         color: appBarForegroundColor,
@@ -812,9 +808,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                     ),
                     IconButton(
                       tooltip: 'Compartir como imagen',
-                      onPressed: currentDevocional != null
-                          ? () => _shareAsImage(currentDevocional)
-                          : null,
+                      onPressed: () => _shareAsImage(currentDevocional),
                       icon: Icon(
                         Icons.image_outlined,
                         color: appBarForegroundColor,
