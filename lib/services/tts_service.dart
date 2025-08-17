@@ -1,4 +1,4 @@
-// lib/services/tts_service.dart - REFACTORED VERSION
+// lib/services/tts_service.dart - VERSIÓN CON DEBUG MEJORADO
 
 import 'dart:async';
 import 'dart:developer' as developer;
@@ -80,8 +80,6 @@ class TtsService {
     }
   }
 
-  Null get isDisposed => null;
-
   /// Initialize TTS (no mutex - called once on first use)
   Future<void> _initialize() async {
     if (_isInitialized || _disposed) return;
@@ -102,10 +100,12 @@ class TtsService {
       final language = prefs.getString('tts_language') ?? 'es-ES';
       final rate = prefs.getDouble('tts_rate') ?? 0.5;
 
+      debugPrint('🔧 TTS: Loading config - Language: $language, Rate: $rate');
+
       // Configure TTS
       await _configureTts(language, rate);
 
-      // Setup event handlers
+      // Setup event handlers - CRÍTICO: debe ir después de la configuración
       _setupEventHandlers();
 
       _isInitialized = true;
@@ -121,77 +121,111 @@ class TtsService {
   /// Configure TTS settings
   Future<void> _configureTts(String language, double rate) async {
     try {
+      debugPrint('🔧 TTS: Setting language to $language');
       await _flutterTts.setLanguage(language);
     } catch (e) {
-      debugPrint('⚠️ TTS: Language $language failed, using en-US');
-      await _flutterTts.setLanguage('en-US');
+      debugPrint('⚠️ TTS: Language $language failed, using es-ES: $e');
+      await _flutterTts.setLanguage('es-ES');
     }
 
+    debugPrint('🔧 TTS: Setting speech rate to $rate');
     await _flutterTts.setSpeechRate(rate.clamp(0.1, 3.0));
     await _flutterTts.setVolume(1.0);
     await _flutterTts.setPitch(1.0);
+
+    // NUEVO: Configuraciones adicionales para Android
+    if (Platform.isAndroid) {
+      await _flutterTts.setQueueMode(0); // Flush queue
+    }
   }
 
   /// Setup TTS event handlers
   void _setupEventHandlers() {
+    debugPrint('🔧 TTS: Setting up event handlers...');
+
     _flutterTts.setStartHandler(() {
-      debugPrint('🎬 TTS: Speech started');
+      debugPrint('🎬 TTS: Speech started (Handler called)');
       if (!_disposed) _updateState(TtsState.playing);
     });
 
     _flutterTts.setCompletionHandler(() {
-      debugPrint('🏁 TTS: Speech completed');
+      debugPrint('🏁 TTS: Speech completed (Handler called)');
       if (!_disposed) _onChunkCompleted();
     });
 
     _flutterTts.setPauseHandler(() {
-      debugPrint('⏸️ TTS: Speech paused');
+      debugPrint('⏸️ TTS: Speech paused (Handler called)');
       if (!_disposed) _updateState(TtsState.paused);
     });
 
     _flutterTts.setContinueHandler(() {
-      debugPrint('▶️ TTS: Speech continued');
+      debugPrint('▶️ TTS: Speech continued (Handler called)');
       if (!_disposed) _updateState(TtsState.playing);
     });
 
     _flutterTts.setErrorHandler((msg) {
-      debugPrint('💥 TTS: Error occurred: $msg');
+      debugPrint('💥 TTS: Error occurred (Handler called): $msg');
       if (!_disposed) {
         _updateState(TtsState.error);
         _resetPlayback();
       }
     });
+
+    debugPrint('✅ TTS: Event handlers configured');
   }
 
   /// Handle chunk completion and continue to next chunk
   void _onChunkCompleted() {
+    debugPrint(
+        '🏁 TTS: Chunk ${_currentChunkIndex + 1}/${_currentChunks.length} completed');
+
     _currentChunkIndex++;
 
     // Update progress
     if (_currentChunks.isNotEmpty) {
       final progress = _currentChunkIndex / _currentChunks.length;
+      debugPrint('📊 TTS: Progress: ${(progress * 100).toInt()}%');
       _progressController.add(progress);
     }
 
     // Check if there are more chunks
     if (_currentChunkIndex < _currentChunks.length) {
-      _speakNextChunk();
+      debugPrint('➡️ TTS: Moving to next chunk...');
+      // CORREGIDO: Pequeña pausa antes del siguiente chunk
+      Future.delayed(const Duration(milliseconds: 100), () {
+        _speakNextChunk();
+      });
     } else {
       // All chunks completed
-      debugPrint('✅ TTS: All chunks completed');
+      debugPrint('✅ TTS: All chunks completed - finishing playback');
       _resetPlayback();
     }
   }
 
   /// Speak next chunk in the queue
   void _speakNextChunk() async {
+    if (_disposed) return;
+
     if (_currentChunkIndex < _currentChunks.length) {
       final chunk = _currentChunks[_currentChunkIndex];
       debugPrint(
           '🔊 TTS: Speaking chunk ${_currentChunkIndex + 1}/${_currentChunks.length}');
+      debugPrint(
+          '📝 TTS: Chunk content: ${chunk.length > 50 ? '${chunk.substring(0, 50)}...' : chunk}');
 
       try {
-        await _flutterTts.speak(chunk);
+        // CORREGIDO: Verificar estado antes de hablar
+        if (_currentState != TtsState.paused) {
+          await _flutterTts.speak(chunk);
+
+          // NUEVO: Fallback si los handlers no funcionan
+          Future.delayed(const Duration(seconds: 1), () {
+            if (_currentState == TtsState.idle) {
+              debugPrint('⚠️ TTS: Handler fallback - assuming speech started');
+              _updateState(TtsState.playing);
+            }
+          });
+        }
       } catch (e) {
         debugPrint('❌ TTS: Failed to speak chunk: $e');
         _updateState(TtsState.error);
@@ -269,6 +303,12 @@ class TtsService {
       }
     }
 
+    debugPrint('📝 TTS: Generated chunks:');
+    for (int i = 0; i < chunks.length; i++) {
+      debugPrint(
+          '   $i: ${chunks[i].length > 50 ? '${chunks[i].substring(0, 50)}...' : chunks[i]}');
+    }
+
     return chunks.where((chunk) => chunk.trim().isNotEmpty).toList();
   }
 
@@ -283,14 +323,16 @@ class TtsService {
   /// Update state and notify listeners
   void _updateState(TtsState newState) {
     if (_currentState != newState) {
+      final oldState = _currentState;
       _currentState = newState;
       _stateController.add(newState);
-      debugPrint('🔄 TTS: State changed to $newState');
+      debugPrint('🔄 TTS: State changed from $oldState to $newState');
     }
   }
 
   /// Reset playback state
   void _resetPlayback() {
+    debugPrint('🔄 TTS: Resetting playback state');
     _currentDevocionalId = null;
     _currentChunks = [];
     _currentChunkIndex = 0;
@@ -310,7 +352,7 @@ class TtsService {
     }
 
     try {
-      // Initialize if needed (no deadlock risk)
+      // Initialize if needed
       if (!_isInitialized) {
         await _initialize();
       }
@@ -330,7 +372,8 @@ class TtsService {
         throw const TtsException('No content to speak');
       }
 
-      debugPrint('📝 TTS: Generated ${_currentChunks.length} chunks');
+      debugPrint(
+          '📝 TTS: Generated ${_currentChunks.length} chunks for ${devocional.id}');
 
       // Start speaking first chunk
       _speakNextChunk();
@@ -343,14 +386,22 @@ class TtsService {
 
   /// Pause current speech
   Future<void> pause() async {
+    debugPrint('⏸️ TTS: Pause requested (current state: $_currentState)');
     if (_currentState == TtsState.playing) {
-      _updateState(TtsState.paused);
       await _flutterTts.pause();
+      // El handler debería actualizar el estado, pero por si acaso...
+      Future.delayed(const Duration(milliseconds: 500), () {
+        if (_currentState == TtsState.playing) {
+          debugPrint('⚠️ TTS: Pause handler fallback');
+          _updateState(TtsState.paused);
+        }
+      });
     }
   }
 
   /// Resume paused speech
   Future<void> resume() async {
+    debugPrint('▶️ TTS: Resume requested (current state: $_currentState)');
     if (_currentState == TtsState.paused) {
       // Resume from current chunk
       _speakNextChunk();
@@ -359,6 +410,7 @@ class TtsService {
 
   /// Stop current speech
   Future<void> stop() async {
+    debugPrint('⏹️ TTS: Stop requested (current state: $_currentState)');
     if (isActive) {
       _updateState(TtsState.stopping);
       await _flutterTts.stop();
@@ -369,7 +421,6 @@ class TtsService {
   /// Set TTS language
   Future<void> setLanguage(String language) async {
     if (!_isInitialized) await _initialize();
-
     await _flutterTts.setLanguage(language);
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('tts_language', language);
@@ -378,7 +429,6 @@ class TtsService {
   /// Set speech rate
   Future<void> setSpeechRate(double rate) async {
     if (!_isInitialized) await _initialize();
-
     final clampedRate = rate.clamp(0.1, 3.0);
     await _flutterTts.setSpeechRate(clampedRate);
     final prefs = await SharedPreferences.getInstance();
@@ -388,7 +438,6 @@ class TtsService {
   /// Get available languages
   Future<List<String>> getLanguages() async {
     if (!_isInitialized) await _initialize();
-
     try {
       final languages = await _flutterTts.getLanguages;
       return List<String>.from(languages ?? []);
