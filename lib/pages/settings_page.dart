@@ -1,15 +1,13 @@
 import 'dart:developer' as developer;
+
+import 'package:devocional_nuevo/providers/devocional_provider.dart';
+import 'package:devocional_nuevo/providers/theme_provider.dart';
+import 'package:devocional_nuevo/utils/theme_constants.dart';
+import 'package:flutter/material.dart';
+
 //import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import 'package:devocional_nuevo/pages/about_page.dart';
-import 'package:devocional_nuevo/pages/contact_page.dart';
-import 'package:devocional_nuevo/providers/theme_provider.dart';
-import 'package:devocional_nuevo/providers/devocional_provider.dart';
-import 'package:devocional_nuevo/utils/theme_constants.dart';
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -32,7 +30,8 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Future<void> _loadTtsLanguages() async {
-    final devocionalProvider = Provider.of<DevocionalProvider>(context, listen: false);
+    final devocionalProvider =
+        Provider.of<DevocionalProvider>(context, listen: false);
     try {
       final languages = await devocionalProvider.getAvailableLanguages();
       // Load saved preferences
@@ -235,7 +234,8 @@ class _SettingsPageState extends State<SettingsPage> {
               },
               onChangeEnd: (double value) async {
                 // Save the TTS speed
-                final devocionalProvider = Provider.of<DevocionalProvider>(context, listen: false);
+                final devocionalProvider =
+                    Provider.of<DevocionalProvider>(context, listen: false);
                 await devocionalProvider.setTtsSpeechRate(value);
               },
             ),
@@ -275,7 +275,9 @@ class _SettingsPageState extends State<SettingsPage> {
                             _selectedTtsLanguage = newValue;
                           });
                           // Save the TTS language
-                          final devocionalProvider = Provider.of<DevocionalProvider>(context, listen: false);
+                          final devocionalProvider =
+                              Provider.of<DevocionalProvider>(context,
+                                  listen: false);
                           await devocionalProvider.setTtsLanguage(newValue);
                         }
                       },
@@ -283,131 +285,8 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
                 ],
               ),
-            const SizedBox(height: 20),
-            // Sección para seleccionar la familia de tema
-            /*
-            Row(
-              children: [
-                Icon(Icons.palette, color: colorScheme.primary),
-                const SizedBox(width: 10),
-                Text(
-                  'Seleccionar Tema:',
-                  style: textTheme.bodyMedium
-                      ?.merge(settingsOptionTextStyle)
-                      .copyWith(color: colorScheme.onSurface),
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            DropdownButtonFormField<String>(
-              value: themeProvider.currentThemeFamily,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                labelText: 'Colores',
-                labelStyle: TextStyle(color: Colors.black),
-              ),
-              items: themeFamilies.map((String familyName) {
-                return DropdownMenuItem<String>(
-                  value: familyName,
-                  child: Text(themeDisplayNames[familyName] ?? familyName),
-                );
-              }).toList(),
-              onChanged: (String? newValue) {
-                if (newValue != null) {
-                  themeProvider.setThemeFamily(newValue);
-                }
-              },
-            ),
-            const SizedBox(height: 20),
-            */
-            // Opción para Luz baja (modo oscuro)
-            /*
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    Icon(Icons.contrast, color: colorScheme.primary),
-                    const SizedBox(width: 10),
-                    Text(
-                      'Luz baja (modo oscuro):',
-                      style: textTheme.bodyMedium
-                          ?.merge(settingsOptionTextStyle)
-                          .copyWith(color: colorScheme.onSurface),
-                    ),
-                  ],
-                ),
-                Switch(
-                  value: themeProvider.currentBrightness == Brightness.dark,
-                  onChanged: (bool value) {
-                    themeProvider.setBrightness(
-                        value ? Brightness.dark : Brightness.light);
-                        developer.log(
-                          'Idioma cambiado a: $_selectedLanguage',
-                          name: 'SettingsPage',
-                        );
-                      });
-                    }
-                  },
-                ),
-              ],
-            ),
-            const SizedBox(height: 30),
-
-            InkWell(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const ContactPage()),
-                );
-              },
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                child: Row(
-                  children: [
-                    Icon(Icons.contact_mail, color: colorScheme.primary),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        'Contáctanos',
-                        style: textTheme.bodyMedium
-                            ?.merge(settingsOptionTextStyle)
-                            .copyWith(color: colorScheme.onSurface),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            InkWell(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const AboutPage()),
-                );
-              },
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                child: Row(
-                  children: [
-                    Icon(Icons.info_outline, color: colorScheme.primary),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        'Acerca de Devocionales Cristianos',
-                        style: textTheme.bodyMedium
-                            ?.merge(settingsOptionTextStyle)
-                            .copyWith(color: colorScheme.onSurface),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+            const SizedBox(
+              height: 20,
             ),
           ],
         ),
