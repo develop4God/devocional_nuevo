@@ -793,19 +793,10 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                 context,
                               )
                           : null,
-                      icon: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          Icon(
-                            isFavorite ? Icons.favorite : Icons.favorite_border,
-                            color: isFavorite ? Colors.white : Colors.black,
-                            size: 32,
-                          ),
-                          Icon(
-                            isFavorite ? Icons.favorite : Icons.favorite_border,
-                            color: isFavorite ? Colors.red : Colors.white,
-                          ),
-                        ],
+                      icon: Icon(
+                        isFavorite ? Icons.favorite : Icons.favorite_border,
+                        color: isFavorite ? Colors.red : Colors.white,
+                        size: 32,
                       ),
                     ),
                     IconButton(
