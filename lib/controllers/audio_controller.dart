@@ -1,4 +1,4 @@
-// lib/controllers/audio_controller.dart - NEW FILE
+// lib/controllers/audio_controller.dart - VERSIÓN CORREGIDA
 
 import 'dart:async';
 
@@ -46,17 +46,15 @@ class AudioController extends ChangeNotifier {
   void initialize() {
     debugPrint('🎵 AudioController: Initializing...');
 
-    // Listen to TTS state changes
+    // Listen to TTS state changes - CORREGIDO: notificación inmediata
     _stateSubscription = _ttsService.stateStream.listen(
       (state) {
         debugPrint('🔄 AudioController: State changed to $state');
         _currentState = state;
         _currentDevocionalId = _ttsService.currentDevocionalId;
 
-        // Use post-frame callback to avoid build conflicts
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          notifyListeners();
-        });
+        // Notificar inmediatamente sin postFrameCallback
+        notifyListeners();
       },
       onError: (error) {
         debugPrint('❌ AudioController: State stream error: $error');
@@ -65,12 +63,13 @@ class AudioController extends ChangeNotifier {
       },
     );
 
-    // Listen to progress changes
+    // Listen to progress changes - CORREGIDO: notificar progreso
     _progressSubscription = _ttsService.progressStream.listen(
       (progress) {
+        debugPrint(
+            '📊 AudioController: Progress: ${(progress * 100).toInt()}%');
         _progress = progress;
-        // Don't notify listeners for every progress update to avoid spam
-        // UI can subscribe directly to progressStream if needed
+        notifyListeners(); // Notificar cambios de progreso
       },
       onError: (error) {
         debugPrint('❌ AudioController: Progress stream error: $error');
@@ -111,11 +110,15 @@ class AudioController extends ChangeNotifier {
   Future<void> pause() async {
     if (isPlaying) {
       try {
+        debugPrint('⏸️ AudioController: Pausing...');
         await _ttsService.pause();
       } catch (e) {
         debugPrint('❌ AudioController: Pause error: $e');
         rethrow;
       }
+    } else {
+      debugPrint(
+          '⚠️ AudioController: Cannot pause - not playing (state: $_currentState)');
     }
   }
 
@@ -123,11 +126,15 @@ class AudioController extends ChangeNotifier {
   Future<void> resume() async {
     if (isPaused) {
       try {
+        debugPrint('▶️ AudioController: Resuming...');
         await _ttsService.resume();
       } catch (e) {
         debugPrint('❌ AudioController: Resume error: $e');
         rethrow;
       }
+    } else {
+      debugPrint(
+          '⚠️ AudioController: Cannot resume - not paused (state: $_currentState)');
     }
   }
 
@@ -135,30 +142,62 @@ class AudioController extends ChangeNotifier {
   Future<void> stop() async {
     if (isActive) {
       try {
+        debugPrint('⏹️ AudioController: Stopping...');
         await _ttsService.stop();
       } catch (e) {
         debugPrint('❌ AudioController: Stop error: $e');
         // Don't rethrow stop errors - they should be robust
       }
+    } else {
+      debugPrint(
+          '⚠️ AudioController: Cannot stop - not active (state: $_currentState)');
     }
   }
 
   /// Toggle play/pause for a devotional
   Future<void> togglePlayPause(Devocional devocional) async {
+    debugPrint(
+        '🔄 AudioController: Toggle for ${devocional.id} (current: $_currentDevocionalId, state: $_currentState)');
+
     if (_currentDevocionalId == devocional.id) {
       // Same devotional - toggle play/pause
       if (isPaused) {
+        debugPrint('▶️ AudioController: Same devotional - resuming');
         await resume();
       } else if (isPlaying) {
+        debugPrint('⏸️ AudioController: Same devotional - pausing');
         await pause();
       } else {
         // Idle or error - start playing
+        debugPrint(
+            '🎵 AudioController: Same devotional - starting (was idle/error)');
         await playDevotional(devocional);
       }
     } else {
       // Different devotional - start new playback
+      debugPrint('🎵 AudioController: Different devotional - starting new');
       await playDevotional(devocional);
     }
+  }
+
+  // ========== DEBUG METHODS ==========
+
+  /// Get current state info for debugging
+  String getDebugInfo() {
+    return '''
+AudioController Debug Info:
+- State: $_currentState
+- Current ID: $_currentDevocionalId
+- Progress: ${(_progress * 100).toInt()}%
+- Is Playing: $isPlaying
+- Is Paused: $isPaused
+- Is Active: $isActive
+''';
+  }
+
+  /// Print debug info
+  void printDebugInfo() {
+    debugPrint(getDebugInfo());
   }
 
   // ========== SETTINGS ==========
