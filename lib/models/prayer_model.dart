@@ -76,14 +76,13 @@ class Prayer {
     DateTime? createdDate,
     PrayerStatus? status,
     DateTime? answeredDate,
-    bool clearAnsweredDate = false,
   }) {
     return Prayer(
       id: id ?? this.id,
       text: text ?? this.text,
       createdDate: createdDate ?? this.createdDate,
       status: status ?? this.status,
-      answeredDate: clearAnsweredDate ? null : (answeredDate ?? this.answeredDate),
+      answeredDate: answeredDate ?? this.answeredDate,
     );
   }
 

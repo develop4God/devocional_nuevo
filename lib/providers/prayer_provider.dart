@@ -180,7 +180,7 @@ class PrayerProvider with ChangeNotifier {
       if (prayerIndex != -1) {
         _prayers[prayerIndex] = _prayers[prayerIndex].copyWith(
           status: PrayerStatus.active,
-          clearAnsweredDate: true,
+          answeredDate: null,
         );
         
         _sortPrayers();
