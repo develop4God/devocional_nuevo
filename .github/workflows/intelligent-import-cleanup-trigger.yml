@@ -23,9 +23,9 @@ jobs:
           path: |
             ~/.pub-cache
             .dart_tool/package_config.json
-          key: ${{ runner.os }}-flutter-${{ hashFiles('**/pubspec.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-flutter-
+          key: ${{ runner.os }}-flutter-${{ hashFiles('**/pubspec.yaml', '**/*.dart') }}
+    restore-keys: |
+      ${{ runner.os }}-flutter-
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
