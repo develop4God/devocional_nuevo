@@ -413,7 +413,7 @@ class _NotificationConfigPageState extends State<NotificationConfigPage> {
                 Switch(
                   value: _notificationsEnabled,
                   onChanged: _toggleNotifications,
-                  activeColor: colorScheme.primary,
+                  activeThumbColor: colorScheme.primary,
                 ),
               ],
             ),
