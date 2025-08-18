@@ -93,6 +93,9 @@ class TtsService {
 
       await _configureTts(language, rate);
 
+      // Forzar espera de completion en el plugin, mejora la sincronización en algunos dispositivos
+      await _flutterTts.awaitSpeakCompletion(true);
+
       _setupEventHandlers();
 
       _isInitialized = true;
@@ -121,8 +124,6 @@ class TtsService {
 
     // Android: Use queuing for chunked playback
     if (Platform.isAndroid) {
-      // 1: QUEUE mode (chunks are queued automatically)
-      // 0: FLUSH mode (interrupts, not desired for chunked)
       await _flutterTts.setQueueMode(1);
       debugPrint('🌀 TTS: Android setQueueMode(QUEUE)');
     }
@@ -216,7 +217,15 @@ class TtsService {
     if (_disposed || !_chunkInProgress) return;
 
     if (_currentChunkIndex < _currentChunks.length) {
-      final chunk = _currentChunks[_currentChunkIndex];
+      // Unión inteligente de encabezados cortos al siguiente chunk para evitar chunks de una palabra
+      String chunk = _currentChunks[_currentChunkIndex];
+      if (chunk.trim().length < 6 &&
+          _currentChunkIndex + 1 < _currentChunks.length) {
+        chunk = '$chunk ${_currentChunks[_currentChunkIndex + 1]}';
+        debugPrint('🔗 TTS: Chunk fusionado con siguiente por ser muy corto.');
+        _currentChunkIndex++;
+      }
+
       debugPrint(
           '🔊 TTS: Speaking chunk ${_currentChunkIndex + 1}/${_currentChunks.length} at ${DateTime.now()}');
       debugPrint(
@@ -228,10 +237,8 @@ class TtsService {
         if (_currentState != TtsState.paused &&
             _currentState != TtsState.error &&
             _currentState != TtsState.stopping) {
-          // Use queuing: chunks are queued, completion handler will advance
           await _flutterTts.speak(chunk);
 
-          // Emergency timer: only if no native completion is detected
           _startEmergencyTimer(chunk);
         }
       } catch (e) {
@@ -284,6 +291,34 @@ class TtsService {
     }
   }
 
+  // --- Normalización avanzada de referencia bíblica ---
+  /// Formatea dinámicamente los libros con ordinal si comienza con 1, 2, 3
+  String formatBibleBook(String reference) {
+    final exp =
+        RegExp(r'^(1|2|3)\s+([A-Za-záéíóúÁÉÍÓÚñÑ]+)', caseSensitive: false);
+    final match = exp.firstMatch(reference.trim());
+    if (match != null) {
+      final number = match.group(1)!;
+      final book = match.group(2)!;
+      String ordinal;
+      switch (number) {
+        case '1':
+          ordinal = 'Primera de';
+          break;
+        case '2':
+          ordinal = 'Segunda de';
+          break;
+        case '3':
+          ordinal = 'Tercera de';
+          break;
+        default:
+          ordinal = '';
+      }
+      return reference.replaceFirst(exp, '$ordinal $book');
+    }
+    return reference;
+  }
+
   String _normalizeTtsText(String text) {
     String normalized = text;
     final bibleVersions = {
@@ -308,6 +343,9 @@ class TtsService {
         normalized = normalized.replaceAll(version, expansion);
       }
     });
+
+    // Formatea solo si la referencia comienza con 1, 2, 3 + libro
+    normalized = formatBibleBook(normalized);
 
     normalized = normalized.replaceAllMapped(
       RegExp(r'\b(19\d{2}|20\d{2})\b'),
@@ -341,31 +379,6 @@ class TtsService {
     );
 
     normalized = normalized.replaceAllMapped(
-      RegExp(r'\b([123])\s+([A-Za-záéíóúÁÉÍÓÚñÑ]+)', caseSensitive: false),
-      (match) {
-        final number = match.group(1)!;
-        final book = match.group(2)!;
-
-        String ordinal;
-        switch (number) {
-          case '1':
-            ordinal = 'Primera de';
-            break;
-          case '2':
-            ordinal = 'Segunda de';
-            break;
-          case '3':
-            ordinal = 'Tercera de';
-            break;
-          default:
-            ordinal = number;
-        }
-
-        return '$ordinal $book';
-      },
-    );
-
-    normalized = normalized.replaceAllMapped(
       RegExp(
           r'(\b(?:\d+\s+)?[A-Za-záéíóúÁÉÍÓÚñÑ]+)\s+(\d+):(\d+)(?:-(\d+))?(?::(\d+))?',
           caseSensitive: false),
@@ -389,6 +402,7 @@ class TtsService {
       },
     );
 
+    // Resto igual
     normalized = normalized.replaceAllMapped(
       RegExp(
           r'\b(\d{1,2}):(\d{2})\s*(am|pm|a\.m\.|p\.m\.|de la mañana|de la tarde|de la noche)\b',
