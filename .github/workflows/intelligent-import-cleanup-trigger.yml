@@ -1,4 +1,4 @@
-name: Limpieza inteligente de imports y CI
+name: 🧹Limpieza inteligente de imports y CI
 
 on:
   workflow_dispatch:
