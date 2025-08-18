@@ -1,106 +1,204 @@
-// lib/widgets/tts_player_widget.dart
-
+import 'package:devocional_nuevo/controllers/audio_controller.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
-import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class TtsPlayerWidget extends StatelessWidget {
   final Devocional devocional;
-  final bool compact;
+  final void Function()?
+      onCompleted; // Callback cuando termina el devocional (opcional)
 
   const TtsPlayerWidget({
     super.key,
     required this.devocional,
-    this.compact = false,
+    this.onCompleted,
   });
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    return Consumer<AudioController>(
+      builder: (context, audioController, child) {
+        final isPlaying = audioController.isDevocionalPlaying(devocional.id);
+        final isPaused = audioController.isPaused;
+        final isLoading = audioController.isLoading;
+        final hasError = audioController.hasError;
+        final progress = audioController.progress;
 
-    return Consumer<DevocionalProvider>(
-      builder: (context, provider, child) {
-        // Estados del TTS
-        provider.isDevocionalPlaying(devocional.id);
-        final isCurrentDevocional =
-            provider.currentPlayingDevocionalId == devocional.id;
-        final isAudioPaused = provider.isAudioPaused && isCurrentDevocional;
+        // Mejora: Exponer chunk actual y total desde el controller
+        final int? currentChunk = audioController.currentChunkIndex;
+        final int? totalChunks = audioController.totalChunks;
 
-        // Determinar icono y estado
-        IconData icon;
-        Color iconColor;
-        Color backgroundColor;
-
-        if (isCurrentDevocional && provider.isAudioPlaying) {
-          // Reproduciendo este devocional
-          icon = Icons.pause;
-          iconColor = Colors.white;
-          backgroundColor = colorScheme.primary;
-        } else if (isCurrentDevocional && isAudioPaused) {
-          // Pausado en este devocional
-          icon = Icons.play_arrow;
-          iconColor = Colors.white;
-          backgroundColor = colorScheme.primary.withValues(alpha: 0.8);
+        // Estado textual
+        String statusLabel;
+        if (isLoading) {
+          statusLabel = "Cargando audio...";
+        } else if (hasError) {
+          statusLabel = "Error al reproducir";
+        } else if (isPlaying) {
+          statusLabel = "Reproduciendo";
+        } else if (isPaused) {
+          statusLabel = "Pausado";
         } else {
-          // Idle - listo para reproducir
-          icon = Icons.play_arrow;
-          iconColor = colorScheme.primary;
-          backgroundColor = colorScheme.primary.withValues(alpha: 0.1);
+          statusLabel = "Listo para reproducir";
         }
 
-        return Container(
-          width: compact ? 50 : 60,
-          height: compact ? 40 : 50,
-          decoration: BoxDecoration(
-            color: backgroundColor,
-            borderRadius: BorderRadius.circular(compact ? 20 : 25),
-            border: Border.all(
-              color: colorScheme.primary.withValues(alpha: 0.3),
-              width: 1,
+        // Iconos y tooltips dinámicos
+        Widget mainIcon;
+        String mainTooltip;
+        if (isLoading) {
+          mainIcon = const SizedBox(
+            width: 34,
+            height: 34,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          );
+          mainTooltip = 'Cargando audio...';
+        } else if (hasError) {
+          mainIcon = const Icon(Icons.error, color: Colors.red, size: 34);
+          mainTooltip = 'Error al reproducir';
+        } else if (isPlaying) {
+          mainIcon = const Icon(Icons.pause_circle_filled,
+              color: Colors.amber, size: 42);
+          mainTooltip = 'Pausar audio';
+        } else if (isPaused) {
+          mainIcon =
+              const Icon(Icons.play_circle_fill, color: Colors.green, size: 42);
+          mainTooltip = 'Continuar audio';
+        } else {
+          mainIcon = const Icon(Icons.volume_up, color: Colors.blue, size: 38);
+          mainTooltip = 'Reproducir devocional';
+        }
+
+        // Función para saltar a chunk específico (solo si la lógica existe)
+
+        // Callback cuando termina el devocional (para estadísticas, etc.)
+        if (progress >= 0.999 && onCompleted != null) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            onCompleted!();
+          });
+        }
+
+        // Colores
+        final Color progressColor = isPlaying
+            ? Colors.lightBlue
+            : isPaused
+                ? Colors.orange
+                : Colors.blueGrey;
+
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Barra de progreso con retroceso/avance
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              child: Column(
+                children: [
+                  LinearProgressIndicator(
+                    value: progress,
+                    minHeight: 5,
+                    color: progressColor,
+                    backgroundColor: Colors.grey[300],
+                  ),
+                  if (currentChunk != null && totalChunks != null)
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          "Chunk ${currentChunk + 1} / $totalChunks",
+                          style: const TextStyle(
+                              fontSize: 11, color: Colors.black54),
+                        ),
+                        Row(
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.fast_rewind, size: 22),
+                              tooltip: 'Retroceder',
+                              onPressed: (currentChunk > 0 &&
+                                      !isLoading &&
+                                      !hasError)
+                                  ? () => audioController.previousChunk?.call()
+                                  : null,
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.fast_forward, size: 22),
+                              tooltip: 'Avanzar',
+                              onPressed: (currentChunk < totalChunks - 1 &&
+                                      !isLoading &&
+                                      !hasError)
+                                  ? () => audioController.nextChunk?.call()
+                                  : null,
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                ],
+              ),
             ),
-          ),
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              borderRadius: BorderRadius.circular(compact ? 20 : 25),
-              onTap: () {
-                // Punto de control 1: Confirma que se activa el onTap
-                debugPrint('InkWell fue presionado.');
-                _handleTap(context, provider);
-              },
-              child: Container(
-                padding: EdgeInsets.all(compact ? 8 : 12),
-                child: Icon(
-                  icon,
-                  size: compact ? 20 : 24,
-                  color: iconColor,
+            // Estado textual
+            Padding(
+              padding: const EdgeInsets.only(top: 2, bottom: 2),
+              child: Text(
+                statusLabel,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: hasError
+                      ? Colors.red
+                      : isLoading
+                          ? Colors.blueGrey
+                          : Colors.black54,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
             ),
-          ),
+            // Botones principales
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Botón play/pause/resume
+                Semantics(
+                  label: mainTooltip,
+                  child: IconButton(
+                    icon: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 250),
+                      child: mainIcon,
+                    ),
+                    tooltip: mainTooltip,
+                    iconSize: 42,
+                    onPressed: (isLoading)
+                        ? null
+                        : () async {
+                            if (hasError) {
+                              await audioController.stop();
+                              return;
+                            }
+                            if (isPlaying) {
+                              await audioController.pause();
+                            } else if (isPaused) {
+                              await audioController.resume();
+                            } else {
+                              await audioController.playDevotional(devocional);
+                            }
+                          },
+                  ),
+                ),
+                // Botón stop (solo visible si está activo)
+                if (audioController.isActive)
+                  Semantics(
+                    label: "Detener audio",
+                    child: IconButton(
+                      icon: const Icon(Icons.stop_circle,
+                          color: Colors.red, size: 32),
+                      tooltip: 'Detener audio',
+                      onPressed: () async {
+                        await audioController.stop();
+                      },
+                    ),
+                  ),
+              ],
+            ),
+          ],
         );
       },
     );
-  }
-
-  void _handleTap(BuildContext context, DevocionalProvider provider) async {
-    // Punto de control 2: Verifica que la función _handleTap se esté ejecutando
-    debugPrint('Manejador de tap activado.');
-    // Punto de control 3: Verifica el objeto devocional que se está pasando
-    debugPrint('Se intenta reproducir el devocional con id: ${devocional.id}');
-    try {
-      await provider.toggleAudioPlayPause(devocional);
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error de audio: ${e.toString()}'),
-            backgroundColor: Theme.of(context).colorScheme.error,
-            duration: const Duration(seconds: 3),
-          ),
-        );
-      }
-    }
   }
 }

@@ -72,6 +72,53 @@ class TtsService {
     }
   }
 
+  // =========================
+  // CHUNK NAVIGATION SUPPORT
+  // =========================
+
+  int get currentChunkIndex => _currentChunkIndex;
+
+  int get totalChunks => _currentChunks.length;
+
+  /// Returns a callback for jumping to the previous chunk if possible.
+  VoidCallback? get previousChunk {
+    if (_currentChunkIndex > 0 && _chunkInProgress) {
+      return () => _jumpToChunk(_currentChunkIndex - 1);
+    }
+    return null;
+  }
+
+  /// Returns a callback for jumping to the next chunk if possible.
+  VoidCallback? get nextChunk {
+    if (_currentChunkIndex < _currentChunks.length - 1 && _chunkInProgress) {
+      return () => _jumpToChunk(_currentChunkIndex + 1);
+    }
+    return null;
+  }
+
+  /// Returns a callback for jumping to a specific chunk index, if possible.
+  Future<void> Function(int index)? get jumpToChunk {
+    if (_currentChunks.isNotEmpty && _chunkInProgress) {
+      return (int index) async => await _jumpToChunk(index);
+    }
+    return null;
+  }
+
+  /// Internal method to jump to a specific chunk index and play it.
+  Future<void> _jumpToChunk(int index) async {
+    if (_chunkInProgress &&
+        index >= 0 &&
+        index < _currentChunks.length &&
+        index != _currentChunkIndex) {
+      _cancelEmergencyTimer();
+      _currentChunkIndex = index;
+      _progressController.add(_currentChunkIndex / _currentChunks.length);
+      _speakNextChunk();
+    }
+  }
+
+  // =========================
+
   Future<void> _initialize() async {
     if (_isInitialized || _disposed) return;
 

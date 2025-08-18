@@ -1,12 +1,10 @@
-// lib/controllers/audio_controller.dart - SIMPLIFICADO PARA USAR TtsService DIRECTAMENTE
-
 import 'dart:async';
 
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/services/tts_service.dart';
 import 'package:flutter/widgets.dart';
 
-/// Simplified audio controller that delegates chunk management to TtsService
+/// AudioController mejorado para soporte de progreso y navegación de chunks
 class AudioController extends ChangeNotifier {
   final TtsService _ttsService = TtsService();
 
@@ -36,16 +34,28 @@ class AudioController extends ChangeNotifier {
 
   bool get isActive => isPlaying || isPaused;
 
-  /// Check if specific devotional is playing
+  /// Devuelve true si el devocional específico está activo
   bool isDevocionalPlaying(String devocionalId) {
     return _currentDevocionalId == devocionalId && isActive;
   }
 
-  /// Initialize controller and setup subscriptions
+  /// Chunk actual y total expuestos para la UI
+  int? get currentChunkIndex => _ttsService.currentChunkIndex;
+
+  int? get totalChunks => _ttsService.totalChunks;
+
+  /// Métodos para avanzar/retroceder chunk (devuelven null si no implementados)
+  VoidCallback? get previousChunk => _ttsService.previousChunk;
+
+  VoidCallback? get nextChunk => _ttsService.nextChunk;
+
+  /// Método para saltar a un chunk específico
+  Future<void> Function(int index)? get jumpToChunk => _ttsService.jumpToChunk;
+
+  /// Inicializa el controller y las suscripciones
   void initialize() {
     debugPrint('🎵 AudioController: Initializing...');
 
-    // Listen to TTS state changes
     _stateSubscription = _ttsService.stateStream.listen(
       (state) {
         debugPrint('🔄 AudioController: State changed to $state');
@@ -60,7 +70,6 @@ class AudioController extends ChangeNotifier {
       },
     );
 
-    // Listen to progress changes
     _progressSubscription = _ttsService.progressStream.listen(
       (progress) {
         debugPrint(
@@ -75,8 +84,6 @@ class AudioController extends ChangeNotifier {
 
     debugPrint('✅ AudioController: Initialized with subscriptions');
   }
-
-  // ========== SIMPLIFIED AUDIO OPERATIONS ==========
 
   /// Play a devotional (delegates to TtsService)
   Future<void> playDevotional(Devocional devocional) async {
@@ -161,9 +168,7 @@ class AudioController extends ChangeNotifier {
     debugPrint('Devotional read attempt: ${devocional.id}');
   }
 
-  // ========== TTS SERVICE WRAPPER METHODS ==========
-
-  /// Get available TTS languages
+  /// TTS wrapper methods
   Future<List<String>> getAvailableLanguages() async {
     try {
       return await _ttsService.getLanguages();
@@ -173,7 +178,6 @@ class AudioController extends ChangeNotifier {
     }
   }
 
-  /// Set TTS language
   Future<void> setLanguage(String language) async {
     try {
       await _ttsService.setLanguage(language);
@@ -183,7 +187,6 @@ class AudioController extends ChangeNotifier {
     }
   }
 
-  /// Set TTS speech rate
   Future<void> setSpeechRate(double rate) async {
     try {
       await _ttsService.setSpeechRate(rate);
@@ -193,9 +196,7 @@ class AudioController extends ChangeNotifier {
     }
   }
 
-  // ========== DEBUG METHODS ==========
-
-  /// Get current state info for debugging
+  /// Debug info
   String getDebugInfo() {
     return '''
 AudioController Debug Info:
@@ -205,27 +206,20 @@ AudioController Debug Info:
 - Is Playing: $isPlaying
 - Is Paused: $isPaused
 - Is Active: $isActive
+- Chunk: ${currentChunkIndex ?? '-'} / ${totalChunks ?? '-'}
 ''';
   }
 
-  /// Print debug info
   void printDebugInfo() {
     debugPrint(getDebugInfo());
   }
 
-  // ========== LIFECYCLE ==========
-
   @override
   void dispose() {
     debugPrint('🧹 AudioController: Disposing...');
-
-    // Cancel subscriptions
     _stateSubscription?.cancel();
     _progressSubscription?.cancel();
-
-    // Dispose TTS service
     _ttsService.dispose();
-
     super.dispose();
     debugPrint('✅ AudioController: Disposed');
   }
