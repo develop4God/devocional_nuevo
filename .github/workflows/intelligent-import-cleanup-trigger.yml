@@ -17,7 +17,12 @@ on:
         required: false
         default: false
         type: boolean
-        
+      build_debug_apk:
+        description: 'Build debug APK for testing'
+        required: false
+        default: false
+        type: boolean
+
 permissions:
   contents: write
   pull-requests: write
@@ -30,7 +35,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          # Usa target_branch si está definido, si no usa la rama del evento
           ref: ${{ github.event.inputs.target_branch != '' && github.event.inputs.target_branch || github.ref_name }}
 
       - name: Cache Flutter dependencies
@@ -109,7 +113,6 @@ jobs:
             echo "CLEANUP_SUCCESS=false" >> $GITHUB_ENV
           fi
 
-      # Cambia/crea la rama de limpieza antes de commitear
       - name: Create or switch to cleanup branch
         if: env.CLEANUP_SUCCESS == 'true'
         run: |
@@ -152,3 +155,20 @@ jobs:
           echo "▶️ Ejecutando pruebas tras limpieza exitosa..."
           flutter analyze --fatal-infos
           flutter test
+
+      # Generar APK de pruebas si el check está activo
+      - name: Build debug APK
+        if: ${{ github.event.inputs.build_debug_apk == 'true' }}
+        run: |
+          echo "▶️ Generando APK debug de pruebas..."
+          flutter build apk --debug
+          ls -lh build/app/outputs/flutter-apk/app-debug.apk
+
+      # Generar App Bundle firmado si el check está activo (requiere configuración de secrets)
+      - name: Build signed App Bundle (AAB)
+        if: ${{ github.event.inputs.build_signed == 'true' }}
+        run: |
+          echo "▶️ Generando App Bundle firmado (AAB)..."
+          # Aquí deberías agregar la configuración y exportación de las variables/secrets necesarias para el keystore
+          flutter build appbundle --release
+          ls -lh build/app/outputs/bundle/release/app-release.aab
