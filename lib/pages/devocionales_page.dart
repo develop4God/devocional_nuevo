@@ -1,4 +1,3 @@
-// lib/pages/devocionales_page.dart
 import 'dart:developer' as developer;
 import 'dart:io' show File;
 
@@ -7,13 +6,13 @@ import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/pages/progress_page.dart';
 import 'package:devocional_nuevo/pages/settings_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
-import 'package:devocional_nuevo/services/devocionales_tracking.dart'; // NUEVO IMPORT
+import 'package:devocional_nuevo/services/devocionales_tracking.dart';
 import 'package:devocional_nuevo/services/update_service.dart';
 import 'package:devocional_nuevo/widgets/devocionales_page_drawer.dart';
 import 'package:devocional_nuevo/widgets/tts_player_widget.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'; // Para HapticFeedback
-import 'package:flutter_tts/flutter_tts.dart'; // NUEVA IMPORTCIÓN: Biblioteca de TTS
+import 'package:flutter/services.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
@@ -21,9 +20,12 @@ import 'package:screenshot/screenshot.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+// Asegura que la clase está correctamente definida:
 class DevocionalesPage extends StatefulWidget {
   final String? initialDevocionalId;
 
+  // El constructor debe ser const SIEMPRE que las propiedades sean finales/const.
+  // Así, otros archivos pueden invocarlo como const DevocionalesPage()
   const DevocionalesPage({super.key, this.initialDevocionalId});
 
   @override
@@ -36,11 +38,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
   final ScrollController _scrollController = ScrollController();
   int _currentDevocionalIndex = 0;
   static const String _lastDevocionalIndexKey = 'lastDevocionalIndex';
-
-  // NUEVA PROPIEDAD: Servicio de tracking
   final DevocionalesTracking _tracking = DevocionalesTracking();
-
-  // PROPIEDADES DE TEXT-TO-SPEECH
   final FlutterTts _flutterTts = FlutterTts();
 
   @override
@@ -48,7 +46,6 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
 
-    // NUEVA LÍNEA: Inicializar tracking
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _tracking.initialize(context);
       _tracking.startCriteriaCheckTimer();
@@ -56,7 +53,6 @@ class _DevocionalesPageState extends State<DevocionalesPage>
 
     _loadInitialData();
 
-    // Verificar actualizaciones al iniciar
     WidgetsBinding.instance.addPostFrameCallback((_) {
       UpdateService.checkForUpdate();
     });
@@ -66,15 +62,11 @@ class _DevocionalesPageState extends State<DevocionalesPage>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.inactive) {
-      // MODIFICADO: Usar el servicio de tracking
       _tracking.pauseTracking();
       debugPrint('🔄 App paused - tracking and criteria timer paused');
     } else if (state == AppLifecycleState.resumed) {
-      // MODIFICADO: Usar el servicio de tracking
       _tracking.resumeTracking();
       debugPrint('🔄 App resumed - tracking and criteria timer resumed');
-
-      // Verificar actualizaciones cuando la app vuelve del background
       UpdateService.checkForUpdate();
     }
   }
@@ -82,13 +74,12 @@ class _DevocionalesPageState extends State<DevocionalesPage>
   @override
   void dispose() {
     _tracking.dispose();
-    _stopSpeaking(); // Detener TTS al salir de la página
+    _stopSpeaking();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 
-  // NUEVA LÓGICA DE TEXT-TO-SPEECH
-
+  // No usar await si no retorna Future, pero en tu definición sí es Future<void>
   Future<void> _stopSpeaking() async {
     await _flutterTts.stop();
     setState(() {});
@@ -119,17 +110,14 @@ class _DevocionalesPageState extends State<DevocionalesPage>
               _currentDevocionalIndex =
                   (savedIndex + 1) % devocionalProvider.devocionales.length;
               developer.log(
-                'Devocional cargado al inicio (índice siguiente): $_currentDevocionalIndex',
-              );
+                  'Devocional cargado al inicio (índice siguiente): $_currentDevocionalIndex');
             } else {
               _currentDevocionalIndex = 0;
               developer.log(
-                'No hay índice guardado. Iniciando en el primer devocional (índice 0).',
-              );
+                  'No hay índice guardado. Iniciando en el primer devocional (índice 0).');
             }
           });
 
-          // INICIAR TRACKING PARA EL DEVOCIONAL INICIAL
           _startTrackingCurrentDevocional();
         }
       } else {
@@ -151,7 +139,6 @@ class _DevocionalesPageState extends State<DevocionalesPage>
             setState(() {
               _currentDevocionalIndex = index;
             });
-            // INICIAR TRACKING PARA EL DEVOCIONAL ESPECÍFICO
             _startTrackingCurrentDevocional();
           }
         }
@@ -159,7 +146,6 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     });
   }
 
-  /// Inicia el tracking para el devocional actual
   void _startTrackingCurrentDevocional() {
     final devocionalProvider = Provider.of<DevocionalProvider>(
       context,
@@ -170,8 +156,6 @@ class _DevocionalesPageState extends State<DevocionalesPage>
         _currentDevocionalIndex < devocionalProvider.devocionales.length) {
       final currentDevocional =
           devocionalProvider.devocionales[_currentDevocionalIndex];
-
-      // MODIFICADO: Usar el servicio de tracking
       _tracking.clearAutoCompletedExcept(currentDevocional.id);
       _tracking.startDevocionalTracking(
           currentDevocional.id, _scrollController);
@@ -188,13 +172,8 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     final List<Devocional> devocionales = devocionalProvider.devocionales;
 
     if (_currentDevocionalIndex < devocionales.length - 1) {
-      // NUEVA LÍNEA: Detener TTS
       _stopSpeaking();
-
-      // Record that the current devotional was read before moving to the next one
       final currentDevocional = devocionales[_currentDevocionalIndex];
-
-      // MODIFICADO: Usar el servicio de tracking
       _tracking.recordDevocionalRead(currentDevocional.id);
 
       setState(() {
@@ -202,12 +181,10 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       });
       _scrollToTop();
 
-      // INICIAR TRACKING PARA EL NUEVO DEVOCIONAL
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _startTrackingCurrentDevocional();
       });
 
-      // Vibración táctil suave para feedback
       HapticFeedback.lightImpact();
 
       if (devocionalProvider.showInvitationDialog) {
@@ -221,7 +198,6 @@ class _DevocionalesPageState extends State<DevocionalesPage>
 
   void _goToPreviousDevocional() {
     if (_currentDevocionalIndex > 0) {
-      // NUEVA LÍNEA: Detener TTS
       _stopSpeaking();
 
       setState(() {
@@ -229,12 +205,10 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       });
       _scrollToTop();
 
-      // INICIAR TRACKING PARA EL NUEVO DEVOCIONAL
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _startTrackingCurrentDevocional();
       });
 
-      // Vibración táctil suave para feedback
       HapticFeedback.lightImpact();
     }
   }
@@ -423,7 +397,6 @@ class _DevocionalesPageState extends State<DevocionalesPage>
 
           return Column(
             children: [
-              // Header con fecha (sin indicador de progreso)
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8.0),
                 child: Text(
@@ -434,8 +407,6 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                   ),
                 ),
               ),
-
-              // Contenido principal
               Expanded(
                 child: Screenshot(
                   controller: screenshotController,
@@ -601,51 +572,6 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                   ),
                 ),
               ),
-              Consumer<DevocionalProvider>(
-                builder: (context, devocionalProvider, child) {
-                  final List<Devocional> devocionales =
-                      devocionalProvider.devocionales;
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 16.0, vertical: 8.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        IconButton(
-                          tooltip: 'Devocional anterior',
-                          onPressed: _currentDevocionalIndex > 0
-                              ? _goToPreviousDevocional
-                              : null,
-                          icon: Icon(
-                            Icons.arrow_back,
-                            color: _currentDevocionalIndex > 0
-                                ? colorScheme.primary
-                                : colorScheme.primary
-                                    .withAlpha((0.3 * 255).round()),
-                            size: 35,
-                          ),
-                        ),
-                        IconButton(
-                          tooltip: 'Siguiente devocional',
-                          onPressed:
-                              _currentDevocionalIndex < devocionales.length - 1
-                                  ? _goToNextDevocional
-                                  : null,
-                          icon: Icon(
-                            Icons.arrow_forward,
-                            color: _currentDevocionalIndex <
-                                    devocionales.length - 1
-                                ? colorScheme.primary
-                                : colorScheme.primary
-                                    .withAlpha((0.3 * 255).round()),
-                            size: 35,
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
             ],
           );
         },
@@ -669,27 +595,51 @@ class _DevocionalesPageState extends State<DevocionalesPage>
           return Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // BARRA DE NAVEGACIÓN CON BOTONES SEPARADOS
               Container(
-                  height: 65,
-                  decoration: BoxDecoration(
-                    color: Colors.transparent,
-                    border: Border(
-                      top: BorderSide(
-                        color:
-                            colorScheme.outline.withAlpha((0.2 * 255).round()),
-                        width: 0.5,
-                      ),
+                decoration: BoxDecoration(
+                  color: Colors.transparent,
+                  border: Border(
+                    top: BorderSide(
+                      color: colorScheme.outline.withAlpha((0.2 * 255).round()),
+                      width: 0.5,
                     ),
                   ),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16.0,
-                      vertical: 8.0,
+                ),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                child: Column(
+                  children: [
+                    Consumer<AudioController>(
+                      builder: (context, audioController, _) {
+                        final progress = audioController.progress;
+                        final chunkIndex = audioController.currentChunkIndex;
+                        final totalChunks = audioController.totalChunks;
+
+                        return Column(
+                          children: [
+                            LinearProgressIndicator(
+                              value: progress,
+                              minHeight: 4,
+                              backgroundColor: Colors.grey[300],
+                              color: colorScheme.primary,
+                            ),
+                            if (chunkIndex != null && totalChunks != null)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 2),
+                                child: Text(
+                                  "Chunk ${chunkIndex + 1} / $totalChunks",
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: colorScheme.primary,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        );
+                      },
                     ),
-                    child: Row(
+                    Row(
                       children: [
-                        // Botón Anterior
                         Expanded(
                           flex: 2,
                           child: SizedBox(
@@ -722,18 +672,14 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                             ),
                           ),
                         ),
-
-                        // Widget TTS (reemplaza el botón anterior)
                         Expanded(
                           flex: 1,
                           child: Center(
-                            child: TtsPlayerWidget(
-                              devocional: currentDevocional!,
-                            ),
+                            child: currentDevocional != null
+                                ? TtsPlayerWidget(devocional: currentDevocional)
+                                : const SizedBox(),
                           ),
                         ),
-
-                        // Botón Siguiente
                         Expanded(
                           flex: 2,
                           child: SizedBox(
@@ -774,9 +720,9 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                         ),
                       ],
                     ),
-                  )),
-
-              // BARRA DE ACCIONES EXISTENTE (favoritos, compartir, etc.)
+                  ],
+                ),
+              ),
               BottomAppBar(
                 height: 70,
                 color: appBarBackgroundColor,
@@ -799,7 +745,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                     ),
                     IconButton(
                       tooltip: 'Compartir como texto',
-                      onPressed: () => _shareAsText(currentDevocional),
+                      onPressed: () => _shareAsText(currentDevocional!),
                       icon: Icon(
                         Icons.share_outlined,
                         color: appBarForegroundColor,
@@ -808,7 +754,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                     ),
                     IconButton(
                       tooltip: 'Compartir como imagen',
-                      onPressed: () => _shareAsImage(currentDevocional),
+                      onPressed: () => _shareAsImage(currentDevocional!),
                       icon: Icon(
                         Icons.image_outlined,
                         color: appBarForegroundColor,
