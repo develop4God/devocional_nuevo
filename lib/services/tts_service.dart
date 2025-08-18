@@ -129,11 +129,10 @@ class TtsService {
     }
   }
 
+  // --- LOGS REFORZADOS EN HANDLERS ---
   void _setupEventHandlers() {
-    debugPrint('🔧 TTS: Setting up event handlers...');
-
     _flutterTts.setStartHandler(() {
-      debugPrint('🎬 TTS: Native START handler at ${DateTime.now()}');
+      debugPrint('🎬 TTS: START handler (nativo) en ${DateTime.now()}');
       if (!_disposed) {
         _lastNativeActivity = DateTime.now();
         _cancelEmergencyTimer();
@@ -142,7 +141,7 @@ class TtsService {
     });
 
     _flutterTts.setCompletionHandler(() {
-      debugPrint('🏁 TTS: Native COMPLETION handler at ${DateTime.now()}');
+      debugPrint('🏁 TTS: COMPLETION handler (nativo) en ${DateTime.now()}');
       if (!_disposed) {
         _lastNativeActivity = DateTime.now();
         _cancelEmergencyTimer();
@@ -186,6 +185,13 @@ class TtsService {
       return;
     }
 
+    if (_currentChunkIndex >= _currentChunks.length - 1) {
+      debugPrint(
+          '✅ TTS: Todos los chunks ya fueron procesados. Playback completo.');
+      _resetPlayback();
+      return;
+    }
+
     debugPrint(
         '🏁 TTS: Processing chunk ${_currentChunkIndex + 1}/${_currentChunks.length} completion at ${DateTime.now()}');
 
@@ -197,24 +203,57 @@ class TtsService {
       _progressController.add(progress);
     }
 
-    if (_currentChunkIndex < _currentChunks.length &&
-        _currentState != TtsState.paused &&
-        _currentState != TtsState.error &&
-        _currentState != TtsState.stopping) {
+    // Forzar avance al siguiente chunk SIEMPRE
+    if (_currentChunkIndex < _currentChunks.length) {
       debugPrint('➡️ TTS: Moving to next chunk...');
-      Future.delayed(const Duration(milliseconds: 250), () {
+      Future.delayed(const Duration(milliseconds: 100), () {
         if (!_disposed && _chunkInProgress) {
           _speakNextChunk();
         }
       });
     } else {
-      debugPrint('✅ TTS: All chunks completed or playback interrupted');
+      debugPrint('✅ TTS: Playback finalizado.');
       _resetPlayback();
     }
   }
 
+  // Emergency timer debe llamar a _onChunkCompleted() SIEMPRE:
+  void _startEmergencyTimer(String chunk) {
+    _cancelEmergencyTimer();
+
+    final wordCount = chunk.trim().split(RegExp(r'\s+')).length;
+    final minTimer = wordCount < 10 ? 2500 : 4000;
+    final maxTimer = 6000;
+    final estimatedTime = (wordCount * 180).clamp(minTimer, maxTimer);
+
+    debugPrint(
+        '🚨 TTS: Emergency timer set for ${estimatedTime}ms ($wordCount words) at ${DateTime.now()}');
+
+    _emergencyTimer = Timer(Duration(milliseconds: estimatedTime), () {
+      final now = DateTime.now();
+      final timeSinceActivity = now.difference(_lastNativeActivity).inSeconds;
+
+      debugPrint(
+          '🚨 TTS: Emergency timer triggered after ${estimatedTime}ms at $now');
+      debugPrint(
+          '🚨 TTS: Time since last native activity: ${timeSinceActivity}s');
+
+      if (!_disposed && _chunkInProgress) {
+        debugPrint('🚨 TTS: Emergency fallback - avanzando chunk');
+        _onChunkCompleted(); // FORZAMOS el avance aquí SIEMPRE
+      }
+    });
+  }
+
   void _speakNextChunk() async {
     if (_disposed || !_chunkInProgress) return;
+
+    // Espera a que el TTS esté idle o playing antes de hablar el siguiente chunk (evita overlap)
+    if (_currentState != TtsState.idle && _currentState != TtsState.playing) {
+      debugPrint('⏳ TTS: Esperando estado idle/playing para avanzar chunk...');
+      Future.delayed(const Duration(milliseconds: 100), _speakNextChunk);
+      return;
+    }
 
     if (_currentChunkIndex < _currentChunks.length) {
       // Unión inteligente de encabezados cortos al siguiente chunk para evitar chunks de una palabra
@@ -238,49 +277,20 @@ class TtsService {
             _currentState != TtsState.error &&
             _currentState != TtsState.stopping) {
           await _flutterTts.speak(chunk);
-
           _startEmergencyTimer(chunk);
+        } else {
+          debugPrint(
+              '🚫 TTS: No se reproduce chunk porque el estado es $_currentState');
         }
       } catch (e) {
         debugPrint('❌ TTS: Failed to speak chunk: $e');
         _updateState(TtsState.error);
         _resetPlayback();
       }
+    } else {
+      debugPrint('✅ TTS: Todos los chunks han sido reproducidos.');
+      _resetPlayback();
     }
-  }
-
-  void _startEmergencyTimer(String chunk) {
-    _cancelEmergencyTimer();
-
-    final wordCount = chunk.trim().split(RegExp(r'\s+')).length;
-    final minExpectedTime =
-        (wordCount * 200).clamp(1000, 5000); // 200ms por palabra, 1-5s
-    final minTimer = 5000; // Mínimo absoluto para chunks cortos: 5s
-    final emergencyTimeout =
-        minExpectedTime > minTimer ? minExpectedTime + 1000 : minTimer + 1000;
-
-    debugPrint(
-        '🚨 TTS: Emergency timer set for ${emergencyTimeout}ms ($wordCount words) at ${DateTime.now()}');
-
-    _emergencyTimer = Timer(Duration(milliseconds: emergencyTimeout), () {
-      final now = DateTime.now();
-      final timeSinceActivity = now.difference(_lastNativeActivity).inSeconds;
-
-      debugPrint(
-          '🚨 TTS: Emergency timer triggered after ${emergencyTimeout}ms at $now');
-      debugPrint(
-          '🚨 TTS: Time since last native activity: ${timeSinceActivity}s');
-
-      // Solo avanzar el chunk si el evento nativo realmente no llegó
-      if (timeSinceActivity > 5 && !_disposed && _chunkInProgress) {
-        debugPrint(
-            '🚨 TTS: Native handlers appear to have failed - emergency completion');
-        _onChunkCompleted();
-      } else {
-        debugPrint(
-            '🚨 TTS: Native handlers still active - ignoring emergency timer');
-      }
-    });
   }
 
   void _cancelEmergencyTimer() {
