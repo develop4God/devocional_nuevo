@@ -7,10 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Enhanced TTS state with more granular control
 enum TtsState { idle, initializing, playing, paused, stopping, error }
 
-/// Custom exception for TTS-related errors
 class TtsException implements Exception {
   final String message;
   final String? code;
@@ -23,7 +21,6 @@ class TtsException implements Exception {
       'TtsException: $message${code != null ? ' (Code: $code)' : ''}';
 }
 
-/// Optimized TTS Service with single timer and native handler priority
 class TtsService {
   static final TtsService _instance = TtsService._internal();
 
@@ -31,38 +28,27 @@ class TtsService {
 
   TtsService._internal();
 
-  // Core TTS components
   final FlutterTts _flutterTts = FlutterTts();
 
-  // State management - simplified
   TtsState _currentState = TtsState.idle;
   String? _currentDevocionalId;
   List<String> _currentChunks = [];
   int _currentChunkIndex = 0;
 
-  // SINGLE global emergency timer - not per chunk
   Timer? _emergencyTimer;
-
-  // Atomic protection - covers full chunk lifecycle
   bool _chunkInProgress = false;
-
-  // Track last activity to detect real failures
   DateTime _lastNativeActivity = DateTime.now();
 
-  // Event streaming for reactive UI updates
   final _stateController = StreamController<TtsState>.broadcast();
   final _progressController = StreamController<double>.broadcast();
 
-  // Configuration
   bool _isInitialized = false;
   bool _disposed = false;
 
-  // Public streams
   Stream<TtsState> get stateStream => _stateController.stream;
 
   Stream<double> get progressStream => _progressController.stream;
 
-  // Public getters
   TtsState get currentState => _currentState;
 
   String? get currentDevocionalId => _currentDevocionalId;
@@ -73,7 +59,6 @@ class TtsService {
 
   bool get isActive => isPlaying || isPaused;
 
-  /// Check if platform supports TTS
   bool get _isPlatformSupported {
     try {
       return Platform.isAndroid ||
@@ -87,7 +72,6 @@ class TtsService {
     }
   }
 
-  /// Initialize TTS
   Future<void> _initialize() async {
     if (_isInitialized || _disposed) return;
 
@@ -95,24 +79,20 @@ class TtsService {
     _updateState(TtsState.initializing);
 
     try {
-      // Platform check
       if (!_isPlatformSupported) {
         throw const TtsException(
             'Text-to-Speech not supported on this platform',
             code: 'PLATFORM_NOT_SUPPORTED');
       }
 
-      // Load preferences
       final prefs = await SharedPreferences.getInstance();
       final language = prefs.getString('tts_language') ?? 'es-ES';
       final rate = prefs.getDouble('tts_rate') ?? 0.5;
 
       debugPrint('🔧 TTS: Loading config - Language: $language, Rate: $rate');
 
-      // Configure TTS
       await _configureTts(language, rate);
 
-      // Setup event handlers - after configuration
       _setupEventHandlers();
 
       _isInitialized = true;
@@ -125,7 +105,6 @@ class TtsService {
     }
   }
 
-  /// Configure TTS settings
   Future<void> _configureTts(String language, double rate) async {
     try {
       debugPrint('🔧 TTS: Setting language to $language');
@@ -140,18 +119,20 @@ class TtsService {
     await _flutterTts.setVolume(1.0);
     await _flutterTts.setPitch(1.0);
 
-    // Android specific settings
+    // Android: Use queuing for chunked playback
     if (Platform.isAndroid) {
-      await _flutterTts.setQueueMode(0); // Flush queue
+      // 1: QUEUE mode (chunks are queued automatically)
+      // 0: FLUSH mode (interrupts, not desired for chunked)
+      await _flutterTts.setQueueMode(1);
+      debugPrint('🌀 TTS: Android setQueueMode(QUEUE)');
     }
   }
 
-  /// Setup TTS event handlers - native handlers are PRIMARY
   void _setupEventHandlers() {
     debugPrint('🔧 TTS: Setting up event handlers...');
 
     _flutterTts.setStartHandler(() {
-      debugPrint('🎬 TTS: Native START handler');
+      debugPrint('🎬 TTS: Native START handler at ${DateTime.now()}');
       if (!_disposed) {
         _lastNativeActivity = DateTime.now();
         _cancelEmergencyTimer();
@@ -160,7 +141,7 @@ class TtsService {
     });
 
     _flutterTts.setCompletionHandler(() {
-      debugPrint('🏁 TTS: Native COMPLETION handler');
+      debugPrint('🏁 TTS: Native COMPLETION handler at ${DateTime.now()}');
       if (!_disposed) {
         _lastNativeActivity = DateTime.now();
         _cancelEmergencyTimer();
@@ -169,7 +150,7 @@ class TtsService {
     });
 
     _flutterTts.setPauseHandler(() {
-      debugPrint('⏸️ TTS: Native PAUSE handler');
+      debugPrint('⏸️ TTS: Native PAUSE handler at ${DateTime.now()}');
       if (!_disposed) {
         _lastNativeActivity = DateTime.now();
         _cancelEmergencyTimer();
@@ -178,7 +159,7 @@ class TtsService {
     });
 
     _flutterTts.setContinueHandler(() {
-      debugPrint('▶️ TTS: Native CONTINUE handler');
+      debugPrint('▶️ TTS: Native CONTINUE handler at ${DateTime.now()}');
       if (!_disposed) {
         _lastNativeActivity = DateTime.now();
         _updateState(TtsState.playing);
@@ -186,7 +167,7 @@ class TtsService {
     });
 
     _flutterTts.setErrorHandler((msg) {
-      debugPrint('💥 TTS: Native ERROR handler: $msg');
+      debugPrint('💥 TTS: Native ERROR handler: $msg at ${DateTime.now()}');
       if (!_disposed) {
         _lastNativeActivity = DateTime.now();
         _cancelEmergencyTimer();
@@ -198,7 +179,6 @@ class TtsService {
     debugPrint('✅ TTS: Native event handlers configured');
   }
 
-  /// Handle chunk completion - ATOMIC protection
   void _onChunkCompleted() {
     if (!_chunkInProgress) {
       debugPrint('⚠️ TTS: No chunk in progress, ignoring completion');
@@ -206,25 +186,22 @@ class TtsService {
     }
 
     debugPrint(
-        '🏁 TTS: Processing chunk ${_currentChunkIndex + 1}/${_currentChunks.length} completion');
+        '🏁 TTS: Processing chunk ${_currentChunkIndex + 1}/${_currentChunks.length} completion at ${DateTime.now()}');
 
     _currentChunkIndex++;
 
-    // Update progress
     if (_currentChunks.isNotEmpty) {
       final progress = _currentChunkIndex / _currentChunks.length;
       debugPrint('📊 TTS: Progress: ${(progress * 100).toInt()}%');
       _progressController.add(progress);
     }
 
-    // Check if there are more chunks
     if (_currentChunkIndex < _currentChunks.length &&
         _currentState != TtsState.paused &&
         _currentState != TtsState.error &&
         _currentState != TtsState.stopping) {
       debugPrint('➡️ TTS: Moving to next chunk...');
-      // Brief pause between chunks for natural flow
-      Future.delayed(const Duration(milliseconds: 200), () {
+      Future.delayed(const Duration(milliseconds: 250), () {
         if (!_disposed && _chunkInProgress) {
           _speakNextChunk();
         }
@@ -235,14 +212,13 @@ class TtsService {
     }
   }
 
-  /// Speak next chunk - PRIMARY reliance on native handlers
   void _speakNextChunk() async {
     if (_disposed || !_chunkInProgress) return;
 
     if (_currentChunkIndex < _currentChunks.length) {
       final chunk = _currentChunks[_currentChunkIndex];
       debugPrint(
-          '🔊 TTS: Speaking chunk ${_currentChunkIndex + 1}/${_currentChunks.length}');
+          '🔊 TTS: Speaking chunk ${_currentChunkIndex + 1}/${_currentChunks.length} at ${DateTime.now()}');
       debugPrint(
           '📝 TTS: Content: ${chunk.length > 50 ? '${chunk.substring(0, 50)}...' : chunk}');
 
@@ -252,9 +228,10 @@ class TtsService {
         if (_currentState != TtsState.paused &&
             _currentState != TtsState.error &&
             _currentState != TtsState.stopping) {
+          // Use queuing: chunks are queued, completion handler will advance
           await _flutterTts.speak(chunk);
 
-          // ONLY emergency timer - not competitive fallback
+          // Emergency timer: only if no native completion is detected
           _startEmergencyTimer(chunk);
         }
       } catch (e) {
@@ -265,33 +242,30 @@ class TtsService {
     }
   }
 
-  /// Emergency timer - ONLY for real native handler failures
   void _startEmergencyTimer(String chunk) {
     _cancelEmergencyTimer();
 
-    // Detect if this is likely a native handler failure
-
-    // Conservative emergency timeout - only for real failures
     final wordCount = chunk.trim().split(RegExp(r'\s+')).length;
     final minExpectedTime =
-        (wordCount * 200).clamp(1000, 5000); // 200ms per word, 1-5s range
+        (wordCount * 200).clamp(1000, 5000); // 200ms por palabra, 1-5s
+    final minTimer = 5000; // Mínimo absoluto para chunks cortos: 5s
     final emergencyTimeout =
-        minExpectedTime + 1000; // +30s buffer for real emergencies
+        minExpectedTime > minTimer ? minExpectedTime + 1000 : minTimer + 1000;
 
     debugPrint(
-        '🚨 TTS: Emergency timer set for ${emergencyTimeout}ms ($wordCount words)');
+        '🚨 TTS: Emergency timer set for ${emergencyTimeout}ms ($wordCount words) at ${DateTime.now()}');
 
     _emergencyTimer = Timer(Duration(milliseconds: emergencyTimeout), () {
       final now = DateTime.now();
       final timeSinceActivity = now.difference(_lastNativeActivity).inSeconds;
 
       debugPrint(
-          '🚨 TTS: Emergency timer triggered after ${emergencyTimeout}ms');
+          '🚨 TTS: Emergency timer triggered after ${emergencyTimeout}ms at $now');
       debugPrint(
           '🚨 TTS: Time since last native activity: ${timeSinceActivity}s');
 
-      // Only act if we haven't heard from native handlers in a while
-      if (timeSinceActivity > 2 && !_disposed && _chunkInProgress) {
+      // Solo avanzar el chunk si el evento nativo realmente no llegó
+      if (timeSinceActivity > 5 && !_disposed && _chunkInProgress) {
         debugPrint(
             '🚨 TTS: Native handlers appear to have failed - emergency completion');
         _onChunkCompleted();
@@ -302,19 +276,16 @@ class TtsService {
     });
   }
 
-  /// Cancel emergency timer
   void _cancelEmergencyTimer() {
     if (_emergencyTimer != null) {
       _emergencyTimer!.cancel();
       _emergencyTimer = null;
+      debugPrint('🔄 TTS: Emergency timer cancelled at ${DateTime.now()}');
     }
   }
 
-  /// Normalize text for better TTS pronunciation
   String _normalizeTtsText(String text) {
     String normalized = text;
-
-    // Bible versions
     final bibleVersions = {
       'RVR1960': 'Reina Valera mil novecientos sesenta',
       'RVR60': 'Reina Valera sesenta',
@@ -338,7 +309,6 @@ class TtsService {
       }
     });
 
-    // Years
     normalized = normalized.replaceAllMapped(
       RegExp(r'\b(19\d{2}|20\d{2})\b'),
       (match) {
@@ -370,7 +340,6 @@ class TtsService {
       },
     );
 
-    // Numbered biblical books
     normalized = normalized.replaceAllMapped(
       RegExp(r'\b([123])\s+([A-Za-záéíóúÁÉÍÓÚñÑ]+)', caseSensitive: false),
       (match) {
@@ -396,7 +365,6 @@ class TtsService {
       },
     );
 
-    // Biblical references
     normalized = normalized.replaceAllMapped(
       RegExp(
           r'(\b(?:\d+\s+)?[A-Za-záéíóúÁÉÍÓÚñÑ]+)\s+(\d+):(\d+)(?:-(\d+))?(?::(\d+))?',
@@ -421,7 +389,6 @@ class TtsService {
       },
     );
 
-    // Time expressions
     normalized = normalized.replaceAllMapped(
       RegExp(
           r'\b(\d{1,2}):(\d{2})\s*(am|pm|a\.m\.|p\.m\.|de la mañana|de la tarde|de la noche)\b',
@@ -442,7 +409,6 @@ class TtsService {
       },
     );
 
-    // Ratios (not biblical or time)
     normalized = normalized.replaceAllMapped(
       RegExp(
           r'\b(\d+):(\d+)\b(?!\s*(am|pm|a\.m\.|p\.m\.|de la|capítulo|versículo))'),
@@ -453,7 +419,6 @@ class TtsService {
       },
     );
 
-    // Common abbreviations
     final abbreviations = {
       'vs.': 'versículo',
       'vv.': 'versículos',
@@ -475,7 +440,6 @@ class TtsService {
       }
     });
 
-    // Ordinal numbers
     normalized = normalized.replaceAllMapped(
       RegExp(r'\b(\d+)(º|°|ª|°)\b'),
       (match) {
@@ -507,23 +471,19 @@ class TtsService {
       },
     );
 
-    // Clean multiple spaces
     normalized = normalized.replaceAll(RegExp(r'\s+'), ' ').trim();
 
     return normalized;
   }
 
-  /// Generate text chunks from devotional
   List<String> _generateChunks(Devocional devocional) {
     List<String> chunks = [];
 
-    // Verse as single chunk
     if (devocional.versiculo.trim().isNotEmpty) {
       final normalizedVerse = _normalizeTtsText(devocional.versiculo);
       chunks.add('Versículo: ${_sanitize(normalizedVerse)}');
     }
 
-    // Reflection divided by paragraphs
     if (devocional.reflexion.trim().isNotEmpty) {
       chunks.add('Reflexión:');
       final reflection = _normalizeTtsText(_sanitize(devocional.reflexion));
@@ -533,7 +493,6 @@ class TtsService {
         final trimmed = paragraph.trim();
         if (trimmed.isNotEmpty) {
           if (trimmed.length > 300) {
-            // Split long paragraphs by sentences
             final sentences = trimmed.split(RegExp(r'(?<=[.!?])\s+'));
             String chunkParagraph = '';
             for (final sentence in sentences) {
@@ -555,7 +514,6 @@ class TtsService {
       }
     }
 
-    // Para Meditar: each item citation + text as independent chunk
     if (devocional.paraMeditar.isNotEmpty) {
       chunks.add('Para Meditar:');
       for (final item in devocional.paraMeditar) {
@@ -567,7 +525,6 @@ class TtsService {
       }
     }
 
-    // Prayer divided similar to reflection
     if (devocional.oracion.trim().isNotEmpty) {
       chunks.add('Oración:');
       final prayer = _normalizeTtsText(_sanitize(devocional.oracion));
@@ -607,7 +564,6 @@ class TtsService {
     return chunks.where((chunk) => chunk.trim().isNotEmpty).toList();
   }
 
-  /// Sanitize text keeping accents and signs for good pronunciation
   String _sanitize(String text) {
     return text
         .trim()
@@ -615,19 +571,18 @@ class TtsService {
         .replaceAll(RegExp(r'\s+'), ' ');
   }
 
-  /// Update state and notify listeners
   void _updateState(TtsState newState) {
     if (_currentState != newState) {
       final oldState = _currentState;
       _currentState = newState;
       _stateController.add(newState);
-      debugPrint('🔄 TTS: State changed from $oldState to $newState');
+      debugPrint(
+          '🔄 TTS: State changed from $oldState to $newState at ${DateTime.now()}');
     }
   }
 
-  /// Reset playback state
   void _resetPlayback() {
-    debugPrint('🔄 TTS: Resetting playback state');
+    debugPrint('🔄 TTS: Resetting playback state at ${DateTime.now()}');
     _cancelEmergencyTimer();
     _chunkInProgress = false;
     _currentDevocionalId = null;
@@ -639,9 +594,9 @@ class TtsService {
 
   // ========== PUBLIC API ==========
 
-  /// Speak a devotional
   Future<void> speakDevotional(Devocional devocional) async {
-    debugPrint('🎤 TTS: Starting devotional ${devocional.id}');
+    debugPrint(
+        '🎤 TTS: Starting devotional ${devocional.id} at ${DateTime.now()}');
 
     if (_disposed) {
       throw const TtsException('TTS service disposed',
@@ -660,7 +615,7 @@ class TtsService {
       _currentDevocionalId = devocional.id;
       _currentChunks = _generateChunks(devocional);
       _currentChunkIndex = 0;
-      _chunkInProgress = true; // ATOMIC START
+      _chunkInProgress = true;
       _progressController.add(0.0);
 
       if (_currentChunks.isEmpty) {
@@ -668,19 +623,18 @@ class TtsService {
       }
 
       debugPrint(
-          '📝 TTS: Generated ${_currentChunks.length} chunks for ${devocional.id}');
+          '📝 TTS: Generated ${_currentChunks.length} chunks for ${devocional.id} at ${DateTime.now()}');
 
       _speakNextChunk();
     } catch (e) {
-      debugPrint('❌ TTS: speakDevotional failed: $e');
+      debugPrint('❌ TTS: speakDevotional failed: $e at ${DateTime.now()}');
       _resetPlayback();
       rethrow;
     }
   }
 
-  /// Speak a single text chunk
   Future<void> speakText(String text) async {
-    debugPrint('🔊 TTS: Speaking single text chunk');
+    debugPrint('🔊 TTS: Speaking single text chunk at ${DateTime.now()}');
 
     if (_disposed) {
       throw const TtsException('TTS service disposed',
@@ -702,67 +656,65 @@ class TtsService {
 
       await _flutterTts.speak(normalizedText);
 
-      // Minimal fallback for single text - trust native handlers
       Timer(const Duration(seconds: 3), () {
         if (_currentState == TtsState.idle && !_disposed) {
-          debugPrint('⚠️ TTS: Start handler fallback for speakText');
+          debugPrint(
+              '⚠️ TTS: Start handler fallback for speakText at ${DateTime.now()}');
           _updateState(TtsState.playing);
         }
       });
     } catch (e) {
-      debugPrint('❌ TTS: speakText failed: $e');
+      debugPrint('❌ TTS: speakText failed: $e at ${DateTime.now()}');
       _updateState(TtsState.error);
       rethrow;
     }
   }
 
-  /// Pause current speech
   Future<void> pause() async {
-    debugPrint('⏸️ TTS: Pause requested (current state: $_currentState)');
+    debugPrint(
+        '⏸️ TTS: Pause requested (current state: $_currentState) at ${DateTime.now()}');
     if (_currentState == TtsState.playing) {
       await _flutterTts.pause();
 
-      // Trust native handler, minimal fallback
       Timer(const Duration(milliseconds: 800), () {
         if (_currentState == TtsState.playing) {
-          debugPrint('⚠️ TTS: Pause handler fallback');
+          debugPrint('⚠️ TTS: Pause handler fallback at ${DateTime.now()}');
           _updateState(TtsState.paused);
         }
       });
     }
   }
 
-  /// Resume paused speech - continue current chunk
   Future<void> resume() async {
-    debugPrint('▶️ TTS: Resume requested (current state: $_currentState)');
+    debugPrint(
+        '▶️ TTS: Resume requested (current state: $_currentState) at ${DateTime.now()}');
     if (_currentState == TtsState.paused) {
-      // Continue with current chunk
       if (_currentChunkIndex < _currentChunks.length && _chunkInProgress) {
         try {
           debugPrint(
-              '▶️ TTS: Resuming current chunk ${_currentChunkIndex + 1}/${_currentChunks.length}');
+              '▶️ TTS: Resuming current chunk ${_currentChunkIndex + 1}/${_currentChunks.length} at ${DateTime.now()}');
 
           _updateState(TtsState.playing);
-          // Re-speak the current chunk
           _speakNextChunk();
         } catch (e) {
-          debugPrint('❌ TTS: Resume failed: $e');
+          debugPrint('❌ TTS: Resume failed: $e at ${DateTime.now()}');
           _updateState(TtsState.error);
           rethrow;
         }
       } else {
-        debugPrint('⚠️ TTS: Cannot resume - no active playback');
+        debugPrint(
+            '⚠️ TTS: Cannot resume - no active playback at ${DateTime.now()}');
         _resetPlayback();
       }
     } else {
       debugPrint(
-          '⚠️ TTS: Cannot resume - not paused (current: $_currentState)');
+          '⚠️ TTS: Cannot resume - not paused (current: $_currentState) at ${DateTime.now()}');
     }
   }
 
-  /// Stop current speech
   Future<void> stop() async {
-    debugPrint('⏹️ TTS: Stop requested (current state: $_currentState)');
+    debugPrint(
+        '⏹️ TTS: Stop requested (current state: $_currentState) at ${DateTime.now()}');
     if (isActive) {
       _updateState(TtsState.stopping);
       await _flutterTts.stop();
@@ -770,7 +722,6 @@ class TtsService {
     }
   }
 
-  /// Set TTS language
   Future<void> setLanguage(String language) async {
     if (!_isInitialized) await _initialize();
     await _flutterTts.setLanguage(language);
@@ -778,7 +729,6 @@ class TtsService {
     await prefs.setString('tts_language', language);
   }
 
-  /// Set speech rate
   Future<void> setSpeechRate(double rate) async {
     if (!_isInitialized) await _initialize();
     final clampedRate = rate.clamp(0.1, 3.0);
@@ -787,19 +737,17 @@ class TtsService {
     await prefs.setDouble('tts_rate', clampedRate);
   }
 
-  /// Get available languages
   Future<List<String>> getLanguages() async {
     if (!_isInitialized) await _initialize();
     try {
       final languages = await _flutterTts.getLanguages;
       return List<String>.from(languages ?? []);
     } catch (e) {
-      debugPrint('Error getting languages: $e');
+      debugPrint('Error getting languages: $e at ${DateTime.now()}');
       return [];
     }
   }
 
-  /// Dispose service
   Future<void> dispose() async {
     if (_disposed) return;
 
@@ -808,6 +756,6 @@ class TtsService {
     await _stateController.close();
     await _progressController.close();
 
-    debugPrint('🧹 TTS: Service disposed');
+    debugPrint('🧹 TTS: Service disposed at ${DateTime.now()}');
   }
 }
