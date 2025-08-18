@@ -103,6 +103,8 @@ class DevocionalProvider with ChangeNotifier {
     debugPrint('✅ Provider: Constructor completado');
   }
 
+  bool? get isSpeaking => null;
+
   /// Handle audio state changes
   void _onAudioStateChanged() {
     // Simply relay the change to our listeners
@@ -612,6 +614,10 @@ class DevocionalProvider with ChangeNotifier {
     super.dispose();
     debugPrint('✅ Provider: Disposed');
   }
+
+  void stop() {}
+
+  void speakDevocional(String s) {}
 }
 
 // ========== READING TRACKER ==========

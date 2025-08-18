@@ -1,4 +1,4 @@
-// lib/controllers/audio_controller.dart - VERSIÓN CORREGIDA
+// lib/controllers/audio_controller.dart - SIMPLIFICADO PARA USAR TtsService DIRECTAMENTE
 
 import 'dart:async';
 
@@ -6,8 +6,7 @@ import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/services/tts_service.dart';
 import 'package:flutter/widgets.dart';
 
-/// Dedicated controller for audio functionality
-/// Separates audio concerns from the main provider
+/// Simplified audio controller that delegates chunk management to TtsService
 class AudioController extends ChangeNotifier {
   final TtsService _ttsService = TtsService();
 
@@ -46,14 +45,12 @@ class AudioController extends ChangeNotifier {
   void initialize() {
     debugPrint('🎵 AudioController: Initializing...');
 
-    // Listen to TTS state changes - CORREGIDO: notificación inmediata
+    // Listen to TTS state changes
     _stateSubscription = _ttsService.stateStream.listen(
       (state) {
         debugPrint('🔄 AudioController: State changed to $state');
         _currentState = state;
         _currentDevocionalId = _ttsService.currentDevocionalId;
-
-        // Notificar inmediatamente sin postFrameCallback
         notifyListeners();
       },
       onError: (error) {
@@ -63,13 +60,13 @@ class AudioController extends ChangeNotifier {
       },
     );
 
-    // Listen to progress changes - CORREGIDO: notificar progreso
+    // Listen to progress changes
     _progressSubscription = _ttsService.progressStream.listen(
       (progress) {
         debugPrint(
             '📊 AudioController: Progress: ${(progress * 100).toInt()}%');
         _progress = progress;
-        notifyListeners(); // Notificar cambios de progreso
+        notifyListeners();
       },
       onError: (error) {
         debugPrint('❌ AudioController: Progress stream error: $error');
@@ -79,29 +76,15 @@ class AudioController extends ChangeNotifier {
     debugPrint('✅ AudioController: Initialized with subscriptions');
   }
 
-  // ========== AUDIO OPERATIONS ==========
+  // ========== SIMPLIFIED AUDIO OPERATIONS ==========
 
-  /// Play a devotional
+  /// Play a devotional (delegates to TtsService)
   Future<void> playDevotional(Devocional devocional) async {
     try {
       debugPrint('🎵 AudioController: Playing ${devocional.id}');
       await _ttsService.speakDevotional(devocional);
-    } on TtsException catch (e) {
-      debugPrint('🔥 AudioController: TTS Error: ${e.message}');
-
-      // Handle specific error cases
-      switch (e.code) {
-        case 'PLATFORM_NOT_SUPPORTED':
-          // Platform doesn't support TTS - fail silently
-          break;
-        case 'SERVICE_DISPOSED':
-          // Service was disposed - reinitialize if needed
-          break;
-        default:
-          rethrow; // Let other errors bubble up
-      }
     } catch (e) {
-      debugPrint('❌ AudioController: Unexpected error: $e');
+      debugPrint('❌ AudioController: Error playing devotional: $e');
       rethrow;
     }
   }
@@ -146,11 +129,7 @@ class AudioController extends ChangeNotifier {
         await _ttsService.stop();
       } catch (e) {
         debugPrint('❌ AudioController: Stop error: $e');
-        // Don't rethrow stop errors - they should be robust
       }
-    } else {
-      debugPrint(
-          '⚠️ AudioController: Cannot stop - not active (state: $_currentState)');
     }
   }
 
@@ -178,29 +157,11 @@ class AudioController extends ChangeNotifier {
       debugPrint('🎵 AudioController: Different devotional - starting new');
       await playDevotional(devocional);
     }
+
+    debugPrint('Devotional read attempt: ${devocional.id}');
   }
 
-  // ========== DEBUG METHODS ==========
-
-  /// Get current state info for debugging
-  String getDebugInfo() {
-    return '''
-AudioController Debug Info:
-- State: $_currentState
-- Current ID: $_currentDevocionalId
-- Progress: ${(_progress * 100).toInt()}%
-- Is Playing: $isPlaying
-- Is Paused: $isPaused
-- Is Active: $isActive
-''';
-  }
-
-  /// Print debug info
-  void printDebugInfo() {
-    debugPrint(getDebugInfo());
-  }
-
-  // ========== SETTINGS ==========
+  // ========== TTS SERVICE WRAPPER METHODS ==========
 
   /// Get available TTS languages
   Future<List<String>> getAvailableLanguages() async {
@@ -230,6 +191,26 @@ AudioController Debug Info:
       debugPrint('❌ AudioController: Error setting speech rate: $e');
       rethrow;
     }
+  }
+
+  // ========== DEBUG METHODS ==========
+
+  /// Get current state info for debugging
+  String getDebugInfo() {
+    return '''
+AudioController Debug Info:
+- State: $_currentState
+- Current ID: $_currentDevocionalId
+- Progress: ${(_progress * 100).toInt()}%
+- Is Playing: $isPlaying
+- Is Paused: $isPaused
+- Is Active: $isActive
+''';
+  }
+
+  /// Print debug info
+  void printDebugInfo() {
+    debugPrint(getDebugInfo());
   }
 
   // ========== LIFECYCLE ==========

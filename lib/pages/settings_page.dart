@@ -4,11 +4,11 @@ import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/providers/theme_provider.dart';
 import 'package:devocional_nuevo/utils/theme_constants.dart';
 import 'package:flutter/material.dart';
-
-//import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
+
+import 'tts_test_page.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -287,6 +287,16 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
             const SizedBox(
               height: 20,
+            ),
+            // 👉 Botón para abrir la página de prueba
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const TTSTestPage()),
+                );
+              },
+              child: const Text("🔊 Probar TTS (isSpeaking)"),
             ),
           ],
         ),
