@@ -30,7 +30,8 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.ref_name }}
+          # Usa target_branch si está definido, si no usa la rama del evento
+          ref: ${{ github.event.inputs.target_branch != '' && github.event.inputs.target_branch || github.ref_name }}
 
       - name: Cache Flutter dependencies
         uses: actions/cache@v4
@@ -41,7 +42,7 @@ jobs:
           key: ${{ runner.os }}-flutter-${{ hashFiles('**/pubspec.yaml', '**/pubspec.lock', '**/.dart_tool/package_config.json') }}
           restore-keys: |
             ${{ runner.os }}-flutter-
-
+            
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
@@ -133,7 +134,7 @@ jobs:
         uses: peter-evans/create-pull-request@v7
         with:
           branch: auto/import-cleanup
-          base: main
+          base: ${{ github.event.inputs.target_branch != '' && github.event.inputs.target_branch || 'main' }}
           title: 'Limpieza automática de imports no usados'
           body: 'Este PR elimina imports no usados tras detectar errores de importación en el análisis automático de CI.'
           labels: 'limpieza,automático,imports'
