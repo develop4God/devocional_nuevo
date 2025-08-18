@@ -1,0 +1,45 @@
+name: "Copilot Setup Steps"
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - .github/workflows/copilot-setup-steps.yml
+  pull_request:
+    paths:
+      - .github/workflows/copilot-setup-steps.yml
+
+jobs:
+  copilot-setup-steps:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Accept Android Licenses
+        run: yes | flutter doctor --android-licenses
+
+      - name: Run flutter doctor
+        run: flutter doctor -v
+
+      - name: Format Dart code
+        run: dart format .
+
+      - name: Analyze Dart & Flutter code
+        run: flutter analyze
+
+      # Ejecuta todos los tests pero NO detiene el ambiente si fallan
+      - name: Run all Flutter tests (do not fail)
+        run: flutter test || true
