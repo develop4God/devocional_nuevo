@@ -1,5 +1,7 @@
 import 'dart:developer' as developer;
 
+import 'package:devocional_nuevo/controllers/audio_controller.dart';
+
 // Importa tu runner pero solo para helpers, no para el control de la UI
 import 'package:devocional_nuevo/game_loop_runner.dart' as runner;
 import 'package:devocional_nuevo/pages/settings_page.dart';
@@ -89,6 +91,7 @@ void main() async {
         ChangeNotifierProvider(create: (context) => DevocionalProvider()),
         ChangeNotifierProvider(create: (context) => PrayerProvider()),
         ChangeNotifierProvider(create: (context) => ThemeProvider()),
+        ChangeNotifierProvider(create: (_) => AudioController()),
       ],
       child: const AppInitializer(),
     ),
