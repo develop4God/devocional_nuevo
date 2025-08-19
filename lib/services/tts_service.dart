@@ -324,6 +324,10 @@ class TtsService {
             _currentState != TtsState.error &&
             _currentState != TtsState.stopping) {
           await _flutterTts.speak(chunk);
+
+          if (_currentState != TtsState.playing) {
+            _updateState(TtsState.playing);
+          }
           _startEmergencyTimer(chunk);
         } else {
           debugPrint(
