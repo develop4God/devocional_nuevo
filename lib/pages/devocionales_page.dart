@@ -20,6 +20,8 @@ import 'package:screenshot/screenshot.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../controllers/audio_controller.dart';
+
 // Asegura que la clase está correctamente definida:
 class DevocionalesPage extends StatefulWidget {
   final String? initialDevocionalId;
@@ -677,7 +679,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                           child: Center(
                             child: currentDevocional != null
                                 ? TtsPlayerWidget(devocional: currentDevocional)
-                                : const SizedBox(),
+                                : const SizedBox(width: 56, height: 56),
                           ),
                         ),
                         Expanded(
@@ -734,7 +736,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                           ? 'Quitar de favoritos'
                           : 'Guardar como favorito',
                       onPressed: () => devocionalProvider.toggleFavorite(
-                        currentDevocional,
+                        currentDevocional!,
                         context,
                       ),
                       icon: Icon(
