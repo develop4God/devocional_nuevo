@@ -36,7 +36,10 @@ class AudioController extends ChangeNotifier {
 
   /// Devuelve true si el devocional específico está activo
   bool isDevocionalPlaying(String devocionalId) {
-    return _currentDevocionalId == devocionalId && isActive;
+    final result = _currentDevocionalId == devocionalId && isActive;
+    debugPrint(
+        '🔍 AudioController: isDevocionalPlaying($devocionalId) = $result (currentId: $_currentDevocionalId, isActive: $isActive)');
+    return result;
   }
 
   /// Chunk actual y total expuestos para la UI
@@ -61,6 +64,8 @@ class AudioController extends ChangeNotifier {
         debugPrint('🔄 AudioController: State changed to $state');
         _currentState = state;
         _currentDevocionalId = _ttsService.currentDevocionalId;
+        debugPrint(
+            '🔍 AudioController: Current ID after state change: $_currentDevocionalId, isActive: $isActive');
         notifyListeners();
       },
       onError: (error) {
@@ -89,6 +94,7 @@ class AudioController extends ChangeNotifier {
   Future<void> playDevotional(Devocional devocional) async {
     try {
       debugPrint('🎵 AudioController: Playing ${devocional.id}');
+      _currentDevocionalId = devocional.id; // ← LÍNEA NUEVA
       await _ttsService.speakDevotional(devocional);
     } catch (e) {
       debugPrint('❌ AudioController: Error playing devotional: $e');
