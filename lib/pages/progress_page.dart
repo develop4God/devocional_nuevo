@@ -174,25 +174,39 @@ class _ProgressPageState extends State<ProgressPage>
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
+    Theme.of(context);
 
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: Transform.flip(
-            flipX: true,
-            child: Icon(Icons.exit_to_app),
+          icon: Transform(
+            alignment: Alignment.center,
+            transform: Matrix4.rotationY(3.14159),
+            // Esto invierte horizontalmente el icono
+            child: const Icon(Icons.exit_to_app),
           ),
           onPressed: () => Navigator.of(context).pop(),
+          tooltip: 'Regresar',
         ),
-        title: const Text('Mi Progreso Espiritual'),
-        backgroundColor: colorScheme.surface,
-        foregroundColor: colorScheme.onSurface,
+        title: Text(
+          'Mi Progreso Espiritual',
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).colorScheme.primary,
+                fontSize: 24,
+              ),
+        ),
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        foregroundColor: Theme.of(context).colorScheme.onSurface,
         elevation: 0,
+        centerTitle: true,
+        // Si quieres centrar igual que otras páginas
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh),
+            icon: Icon(
+              Icons.refresh,
+              color: Theme.of(context).colorScheme.primary,
+            ),
             onPressed: _loadStats,
             tooltip: 'Actualizar',
           ),
@@ -384,7 +398,7 @@ class _ProgressPageState extends State<ProgressPage>
             },
             borderRadius: BorderRadius.circular(16),
             child: _buildStatCard(
-              title: 'Devocionales',
+              title: 'Devocionales completos',
               value: '${_stats!.totalDevocionalesRead}',
               icon: Icons.auto_stories,
               color: Colors.blue,
@@ -401,7 +415,7 @@ class _ProgressPageState extends State<ProgressPage>
             },
             borderRadius: BorderRadius.circular(16),
             child: _buildStatCard(
-              title: 'Favoritos',
+              title: 'Favoritos guardados',
               value: '${_stats!.favoritesCount}',
               icon: Icons.favorite,
               color: Colors.pink,
@@ -488,8 +502,10 @@ class _ProgressPageState extends State<ProgressPage>
       children: [
         Text(
           'Logros',
-          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.bold,
+                color: Theme.of(context).colorScheme.primary,
+                fontSize: 24,
               ),
         ),
         const SizedBox(height: 6),
