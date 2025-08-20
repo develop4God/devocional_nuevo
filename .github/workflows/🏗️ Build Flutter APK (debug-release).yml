@@ -1,4 +1,4 @@
-name: 🏗️ Build Flutter APK (debug-release)
+name: 🏗️ Build Flutter APK/AAB (debug-release)
 
 on:
   workflow_dispatch:
@@ -16,6 +16,7 @@ on:
         options:
           - debug
           - release
+          - aab-release
 
 jobs:
   build:
@@ -24,28 +25,54 @@ jobs:
     steps:
       - name: 📋 Show build info
         run: |
-          echo "🚀 Building Flutter APK"
+          echo "🚀 Building Flutter APK/AAB"
           echo "📦 Branch: ${{ github.event.inputs.branch || 'main' }}"
           echo "🔧 Build Type: ${{ github.event.inputs.build_type || 'debug' }}"
           echo "👤 Triggered by: ${{ github.actor }}"
           echo "📅 Timestamp: $(date)"
-
+      
       - name: 📥 Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # IMPORTANTE: Trae TODO el historial de la rama
+          fetch-depth: 0
           ref: ${{ github.event.inputs.branch || 'main' }}
-          # Asegura que tenemos toda la rama completa, no solo el último commit
+
+      - name: 🔍 Debug build.gradle.kts content
+        run: |
+          echo "🔍 Checking build.gradle.kts content..."
+          echo "📁 Current directory: $(pwd)"
+          echo "📋 Files in android/app/:"
+          ls -la android/app/
+          echo ""
+          echo "📝 Content around line 40 in build.gradle.kts:"
+          echo "=========================================="
+          head -n 45 android/app/build.gradle.kts | tail -n 10
+          echo "=========================================="
+          echo ""
+          echo "🔍 Looking for minSdk or minSdkVersion:"
+          grep -n "minSdk\|minSdkVersion" android/app/build.gradle.kts || echo "No minSdk references found"
+          echo ""
+          echo "📋 SHA256 of build.gradle.kts:"
+          sha256sum android/app/build.gradle.kts
+
+      - name: 🧹 Clear all caches
+        run: |
+          echo "🧹 Clearing Flutter and Gradle caches..."
+          rm -rf ~/.gradle/caches/
+          rm -rf ~/.pub-cache/
+          rm -rf build/
+          rm -rf android/.gradle/
+          rm -rf android/app/build/
+          echo "✅ Caches cleared"
 
       - name: 🧹 Sanitize branch name for artifact
         run: |
           BRANCH_NAME="${{ github.event.inputs.branch || 'main' }}"
-          # Replace invalid characters with hyphens
           CLEAN_BRANCH_NAME=$(echo "$BRANCH_NAME" | sed 's/[\/:"<>|*?\\]/-/g')
           echo "CLEAN_BRANCH_NAME=$CLEAN_BRANCH_NAME" >> $GITHUB_ENV
           echo "✅ Original branch: $BRANCH_NAME"
           echo "✅ Sanitized branch: $CLEAN_BRANCH_NAME"
-
+      
       - name: 📋 Verify complete branch content
         run: |
           echo "✅ Current branch: $(git branch --show-current)"
@@ -60,22 +87,22 @@ jobs:
           echo ""
           echo "🔍 Last 3 commits in this branch:"
           git log --oneline -3
-
+      
       - name: ☕ Set up Java
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
-
+      
       - name: 🔧 Set up Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: stable
           cache: true
-
+      
       - name: 📊 Flutter doctor
         run: flutter doctor -v
-        
+      
       - name: 🛠️ Ensure Flutter properties are available
         run: |
           echo "🔧 Generating local.properties..."
@@ -101,50 +128,68 @@ jobs:
             echo "✅ Manual local.properties created:"
             cat android/local.properties
           fi
+      
       - name: 📦 Install dependencies
         run: flutter pub get
-
+      
       - name: 🧹 Clean build
         run: flutter clean
-
-      - name: 🏗️ Build APK (${{ github.event.inputs.build_type || 'debug' }})
+      
+      - name: 🏗️ Build APK/AAB (${{ github.event.inputs.build_type || 'debug' }})
         run: |
-          if [ "${{ github.event.inputs.build_type || 'debug' }}" = "release" ]; then
+          BUILD_TYPE="${{ github.event.inputs.build_type || 'debug' }}"
+          
+          if [ "$BUILD_TYPE" = "aab-release" ]; then
+            echo "📦 Building release AAB (Android App Bundle) for Google Play Store..."
+            flutter build appbundle --release
+            APK_PATH="build/app/outputs/bundle/release/app-release.aab"
+            APK_TYPE="release-aab"
+            
+          elif [ "$BUILD_TYPE" = "release" ]; then
             echo "🚀 Building release APK..."
             flutter build apk --release
             APK_PATH="build/app/outputs/flutter-apk/app-release.apk"
-            APK_TYPE="release"
+            APK_TYPE="release-apk"
+            
           else
             echo "🔧 Building debug APK..."
             flutter build apk --debug
             APK_PATH="build/app/outputs/flutter-apk/app-debug.apk"
-            APK_TYPE="debug"
+            APK_TYPE="debug-apk"
           fi
           
           echo "APK_PATH=$APK_PATH" >> $GITHUB_ENV
           echo "APK_TYPE=$APK_TYPE" >> $GITHUB_ENV
-
-      - name: 📋 APK Info
+      
+      - name: 📋 APK/AAB Info
         run: |
           if [ -f "$APK_PATH" ]; then
-            echo "✅ APK built successfully!"
+            echo "✅ Build completed successfully!"
             echo "📁 Path: $APK_PATH"
             echo "📏 Size: $(ls -lh $APK_PATH | awk '{print $5}')"
             echo "🔍 SHA256: $(sha256sum $APK_PATH | cut -d' ' -f1)"
+            
+            # Información adicional para AAB
+            if [[ "$APK_PATH" == *.aab ]]; then
+              echo ""
+              echo "📦 AAB Info:"
+              echo "✅ Ready for Google Play Store upload"
+              echo "🔧 This is an Android App Bundle (AAB) file"
+            fi
           else
-            echo "❌ APK not found at expected path: $APK_PATH"
+            echo "❌ Build artifact not found at expected path: $APK_PATH"
             echo "📁 Contents of build directory:"
-            find build -name "*.apk" -type f 2>/dev/null || echo "No APK files found"
+            find build -name "*.apk" -o -name "*.aab" -type f 2>/dev/null || echo "No APK or AAB files found"
             exit 1
           fi
-
-      - name: 📤 Upload APK artifact
+      
+      - name: 📤 Upload build artifact
         uses: actions/upload-artifact@v4
         with:
           name: app-${{ env.APK_TYPE }}-${{ env.CLEAN_BRANCH_NAME }}-${{ github.run_number }}
           path: ${{ env.APK_PATH }}
           retention-days: 30
-
+      
       - name: 📝 Build Summary
         run: |
           echo "## 🎉 Build Completed Successfully!" >> $GITHUB_STEP_SUMMARY
@@ -152,12 +197,20 @@ jobs:
           echo "### 📋 Build Details:" >> $GITHUB_STEP_SUMMARY
           echo "- **Branch**: \`${{ github.event.inputs.branch || 'main' }}\`" >> $GITHUB_STEP_SUMMARY
           echo "- **Build Type**: \`${{ env.APK_TYPE }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "- **APK Size**: \`$(ls -lh $APK_PATH | awk '{print $5}')\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **File Size**: \`$(ls -lh $APK_PATH | awk '{print $5}')\`" >> $GITHUB_STEP_SUMMARY
           echo "- **Commit**: \`$(git log -1 --oneline)\`" >> $GITHUB_STEP_SUMMARY
           echo "- **Build Number**: \`#${{ github.run_number }}\`" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### 📦 Artifact:" >> $GITHUB_STEP_SUMMARY
-          echo "The APK is available as an artifact named: \`app-${{ env.APK_TYPE }}-${{ env.CLEAN_BRANCH_NAME }}-${{ github.run_number }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "The build artifact is available as: \`app-${{ env.APK_TYPE }}-${{ env.CLEAN_BRANCH_NAME }}-${{ github.run_number }}\`" >> $GITHUB_STEP_SUMMARY
+          
+          # Información adicional para AAB
+          if [[ "$APK_PATH" == *.aab ]]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### 🏪 Google Play Store:" >> $GITHUB_STEP_SUMMARY
+            echo "✅ This AAB file is ready to be uploaded to Google Play Store" >> $GITHUB_STEP_SUMMARY
+            echo "📋 Upload this file to: [Google Play Console](https://play.google.com/console)" >> $GITHUB_STEP_SUMMARY
+          fi
 
   # Job adicional para verificar diferencias entre ramas
   branch-comparison:
@@ -170,7 +223,6 @@ jobs:
         with:
           fetch-depth: 0
           ref: ${{ github.event.inputs.branch }}
-
       - name: 🔍 Branch comparison
         run: |
           echo "## 🔍 Branch Information" >> $GITHUB_STEP_SUMMARY
