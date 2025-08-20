@@ -1,5 +1,7 @@
 import 'dart:developer' as developer;
 
+import 'package:devocional_nuevo/pages/about_page.dart';
+import 'package:devocional_nuevo/pages/contact_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/providers/theme_provider.dart';
 import 'package:devocional_nuevo/utils/theme_constants.dart';
@@ -7,8 +9,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
-
-import 'tts_test_page.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -19,9 +19,7 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage> {
   String _selectedLanguage = 'es'; // Idioma por defecto
-  List<String> _availableTtsLanguages = [];
-  String? _selectedTtsLanguage;
-  double _ttsSpeed = 0.5;
+  double _ttsSpeed = 0.5; // Velocidad de TTS por defecto
 
   @override
   void initState() {
@@ -40,18 +38,12 @@ class _SettingsPageState extends State<SettingsPage> {
       final savedRate = prefs.getDouble('tts_rate') ?? 0.5;
 
       setState(() {
-        _availableTtsLanguages = languages;
         _ttsSpeed = savedRate;
         // Use saved language if available, otherwise default to Spanish
         if (savedLanguage != null && languages.contains(savedLanguage)) {
-          _selectedTtsLanguage = savedLanguage;
         } else if (languages.contains('es-ES')) {
-          _selectedTtsLanguage = 'es-ES';
         } else if (languages.contains('es')) {
-          _selectedTtsLanguage = 'es';
-        } else if (languages.isNotEmpty) {
-          _selectedTtsLanguage = languages.first;
-        }
+        } else if (languages.isNotEmpty) {}
       });
     } catch (e) {
       developer.log('Error loading TTS languages: $e');
@@ -175,7 +167,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 Text(
                   'Idioma:',
                   style: textTheme.bodyMedium?.copyWith(
-                    fontSize: 18,
+                    fontSize: 16,
                     color: colorScheme.onSurface,
                   ),
                 ),
@@ -214,7 +206,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    'Velocidad de voz:',
+                    'Velocidad de lectura:',
                     style: textTheme.bodyMedium
                         ?.copyWith(fontSize: 16, color: colorScheme.onSurface),
                   ),
@@ -241,62 +233,62 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
             const SizedBox(height: 15),
             // Idioma de voz
-            if (_availableTtsLanguages.isNotEmpty)
-              Row(
-                children: [
-                  Icon(Icons.record_voice_over, color: colorScheme.primary),
-                  const SizedBox(width: 10),
-                  Text(
-                    'Voz:',
-                    style: textTheme.bodyMedium
-                        ?.copyWith(fontSize: 16, color: colorScheme.onSurface),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: DropdownButton<String>(
-                      value: _selectedTtsLanguage,
-                      isExpanded: true,
-                      items: _availableTtsLanguages.map((String language) {
-                        // Format language display name
-                        String displayName = language;
-                        if (language.startsWith('es')) {
-                          displayName = 'Español ($language)';
-                        } else if (language.startsWith('en')) {
-                          displayName = 'English ($language)';
-                        }
-                        return DropdownMenuItem(
-                          value: language,
-                          child: Text(displayName),
-                        );
-                      }).toList(),
-                      onChanged: (String? newValue) async {
-                        if (newValue != null) {
-                          setState(() {
-                            _selectedTtsLanguage = newValue;
-                          });
-                          // Save the TTS language
-                          final devocionalProvider =
-                              Provider.of<DevocionalProvider>(context,
-                                  listen: false);
-                          await devocionalProvider.setTtsLanguage(newValue);
-                        }
-                      },
-                    ),
-                  ),
-                ],
-              ),
+
             const SizedBox(
               height: 20,
             ),
-            // 👉 Botón para abrir la página de prueba
-            ElevatedButton(
-              onPressed: () {
+            InkWell(
+              onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const TTSTestPage()),
+                  MaterialPageRoute(builder: (context) => const ContactPage()),
                 );
               },
-              child: const Text("🔊 Probar TTS (isSpeaking)"),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: Row(
+                  children: [
+                    Icon(Icons.contact_mail, color: colorScheme.primary),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        'Contáctanos',
+                        style: textTheme.bodyMedium?.copyWith(
+                            fontSize: 16, color: colorScheme.onSurface),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            InkWell(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const AboutPage()),
+                );
+              },
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: Row(
+                  children: [
+                    Icon(Icons.info_outline, color: colorScheme.primary),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        'Acerca de Devocionales Cristianos',
+                        style: textTheme.bodyMedium?.copyWith(
+                            fontSize: 16, color: colorScheme.onSurface),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ],
         ),
