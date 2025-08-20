@@ -7,6 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../services/spiritual_stats_service.dart';
+
 enum TtsState { idle, initializing, playing, paused, stopping, error }
 
 class TtsException implements Exception {
@@ -226,15 +228,31 @@ class TtsService {
     debugPrint('✅ TTS: Native event handlers configured');
   }
 
-  void _onChunkCompleted() {
-    if (!_chunkInProgress) {
-      debugPrint('⚠️ TTS: No chunk in progress, ignoring completion');
+  void _onChunkCompleted() async {
+    if (!_chunkInProgress) return;
+
+    // Evitar avanzar si está pausado
+    if (_currentState == TtsState.paused) {
+      debugPrint(
+          '⏸️ TTS: Chunk completado pero estado pausado, no avanzar chunk');
       return;
+    }
+
+    final progress = (_currentChunkIndex + 1) / _currentChunks.length;
+
+    if (_currentDevocionalId != null && progress >= 0.8) {
+      await SpiritualStatsService().recordDevotionalHeard(
+        devocionalId: _currentDevocionalId!,
+        listenedPercentage: progress,
+      );
+      debugPrint(
+          '📈 TTS: Devocional registrado en estadísticas por escucha con progreso ${progress * 100}%');
     }
 
     if (_currentChunkIndex >= _currentChunks.length - 1) {
       debugPrint(
           '✅ TTS: Todos los chunks ya fueron procesados. Playback completo.');
+
       _resetPlayback();
       return;
     }
@@ -285,9 +303,12 @@ class TtsService {
       debugPrint(
           '🚨 TTS: Time since last native activity: ${timeSinceActivity}s');
 
-      if (!_disposed && _chunkInProgress) {
+      if (!_disposed && _chunkInProgress && _currentState != TtsState.paused) {
         debugPrint('🚨 TTS: Emergency fallback - avanzando chunk');
-        _onChunkCompleted(); // FORZAMOS el avance aquí SIEMPRE
+        _onChunkCompleted();
+      } else {
+        debugPrint(
+            '🚨 TTS: Emergency fallback - detenido por estado pausado o disposed');
       }
     });
   }
