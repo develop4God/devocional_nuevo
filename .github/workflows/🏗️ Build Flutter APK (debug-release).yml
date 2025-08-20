@@ -141,6 +141,9 @@ jobs:
         run: |
           echo "🔑 Configurando keystore para firmado..."
           
+          echo "Debug: tamaño del secreto base64:"
+          echo -n "${{ secrets.KEYSTORE_BASE64 }}" | wc -c
+          
           # Crear directorio para keystore
           mkdir -p android/app/
           
