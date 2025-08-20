@@ -628,13 +628,6 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                             if (chunkIndex != null && totalChunks != null)
                               Padding(
                                 padding: const EdgeInsets.only(top: 2),
-                                child: Text(
-                                  "Chunk ${chunkIndex + 1} / $totalChunks",
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    color: colorScheme.primary,
-                                  ),
-                                ),
                               ),
                           ],
                         );
