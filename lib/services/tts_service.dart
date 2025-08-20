@@ -754,12 +754,21 @@ class TtsService {
   Future<void> pause() async {
     debugPrint(
         '⏸️ TTS: Pause requested (current state: $_currentState) at ${DateTime.now()}');
+
     if (_currentState == TtsState.playing) {
+      // FIX: CANCELAR EMERGENCY TIMER INMEDIATAMENTE
+      _cancelEmergencyTimer();
+
+      // FIX: CAMBIAR ESTADO A PAUSED INMEDIATAMENTE
+      _updateState(TtsState.paused);
+
+      // Luego ejecutar la pausa nativa
       await _flutterTts.pause();
 
-      Timer(const Duration(milliseconds: 800), () {
-        if (_currentState == TtsState.playing) {
-          debugPrint('⚠️ TTS: Pause handler fallback at ${DateTime.now()}');
+      // Reducir el timeout del fallback
+      Timer(const Duration(milliseconds: 300), () {
+        if (_currentState != TtsState.paused && !_disposed) {
+          debugPrint('! TTS: Pause handler fallback at ${DateTime.now()}');
           _updateState(TtsState.paused);
         }
       });

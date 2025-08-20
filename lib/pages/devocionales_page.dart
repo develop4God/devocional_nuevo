@@ -600,12 +600,6 @@ class _DevocionalesPageState extends State<DevocionalesPage>
               Container(
                 decoration: BoxDecoration(
                   color: Colors.transparent,
-                  border: Border(
-                    top: BorderSide(
-                      color: colorScheme.outline.withAlpha((0.2 * 255).round()),
-                      width: 0.5,
-                    ),
-                  ),
                 ),
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
