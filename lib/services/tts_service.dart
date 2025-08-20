@@ -297,6 +297,12 @@ class TtsService {
 
     // Espera a que el TTS esté idle o playing antes de hablar el siguiente chunk (evita overlap)
     if (_currentState != TtsState.idle && _currentState != TtsState.playing) {
+      // Si está pausado, no continuar el bucle - esperar a resume()
+      if (_currentState == TtsState.paused) {
+        debugPrint('⏸️ TTS: Playback pausado, no continuar chunks');
+        return;
+      }
+
       debugPrint('⏳ TTS: Esperando estado idle/playing para avanzar chunk...');
       Future.delayed(const Duration(milliseconds: 100), _speakNextChunk);
       return;
