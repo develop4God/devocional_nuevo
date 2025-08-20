@@ -157,7 +157,7 @@ jobs:
           
           echo "✅ Keystore configurado"
           echo "📋 Verificando archivos de firmado:"
-          ls -la android/key.properties android/app/upload-keystore.jks
+          ls -la android/key.properties android/app/upload-keystore.p12
       
       - name: 🔧 Configure build.gradle for signing
         if: ${{ github.event.inputs.build_type == 'aab-release' || github.event.inputs.build_type == 'release' }}
