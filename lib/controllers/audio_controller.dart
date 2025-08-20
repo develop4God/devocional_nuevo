@@ -39,6 +39,8 @@ class AudioController extends ChangeNotifier {
     final result = _currentDevocionalId == devocionalId && isActive;
     debugPrint(
         '🔍 AudioController: isDevocionalPlaying($devocionalId) = $result (currentId: $_currentDevocionalId, isActive: $isActive, currentState: $_currentState)');
+    debugPrint(
+        '🔍 AudioController: STATE CHECK - isPlaying: $isPlaying, isPaused: $isPaused, isActive: $isActive');
     return result;
   }
 
@@ -70,6 +72,7 @@ class AudioController extends ChangeNotifier {
         debugPrint(
             '🔍 AudioController: Current ID after state change: $_currentDevocionalId, isActive: $isActive');
         notifyListeners();
+        debugPrint('🔄 AudioController: FORCED STATE UPDATE - $_currentState');
       },
     );
 
