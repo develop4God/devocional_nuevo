@@ -1,5 +1,6 @@
 import 'package:devocional_nuevo/controllers/audio_controller.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
+import 'package:devocional_nuevo/services/tts_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -17,18 +18,34 @@ class TtsPlayerWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<AudioController>(
       builder: (context, audioController, child) {
-        final isPlaying = audioController.isDevocionalPlaying(devocional.id);
-        final isPaused = audioController.isPaused;
+        // Verificar si este devocional está activo/seleccionado
+        final isThisDevocional =
+            audioController.currentDevocionalId == devocional.id;
+        final isDevocionalPlaying =
+            audioController.isDevocionalPlaying(devocional.id);
+
+        // Estados del controlador
+        final currentState = audioController.currentState;
         final isLoading = audioController.isLoading;
         final hasError = audioController.hasError;
         final progress = audioController.progress;
 
-        // Iconos y colores más intuitivos
+        // Lógica de estado mejorada para manejar transiciones
         Widget mainIcon;
         String mainTooltip;
         Color mainColor;
+        bool isButtonEnabled = true;
 
-        if (isLoading) {
+        debugPrint(
+            'TtsPlayerWidget(${devocional.id}): isThisDevocional=$isThisDevocional, currentState=$currentState, isLoading=$isLoading, hasError=$hasError, isDevocionalPlaying=$isDevocionalPlaying');
+
+        if (hasError && isThisDevocional) {
+          // Error en este devocional
+          mainIcon = const Icon(Icons.refresh, size: 32);
+          mainTooltip = 'Reintentar';
+          mainColor = Colors.red;
+        } else if (isLoading && isThisDevocional) {
+          // Cargando este devocional
           mainIcon = const SizedBox(
             width: 28,
             height: 28,
@@ -36,19 +53,33 @@ class TtsPlayerWidget extends StatelessWidget {
           );
           mainTooltip = 'Cargando...';
           mainColor = Colors.blue;
-        } else if (hasError) {
-          mainIcon = const Icon(Icons.refresh, size: 32);
-          mainTooltip = 'Reintentar';
-          mainColor = Colors.red;
-        } else if (isPlaying) {
+          isButtonEnabled = false;
+        } else if (isThisDevocional && currentState == TtsState.playing) {
+          // Este devocional está reproduciendo
           mainIcon = const Icon(Icons.pause, size: 32);
           mainTooltip = 'Pausar';
           mainColor = Colors.orange;
-        } else if (isPaused) {
+        } else if (isThisDevocional && currentState == TtsState.paused) {
+          // Este devocional está pausado
           mainIcon = const Icon(Icons.play_arrow, size: 32);
           mainTooltip = 'Continuar';
           mainColor = Colors.green;
+        } else if (isThisDevocional &&
+            (currentState == TtsState.stopping ||
+                currentState == TtsState.initializing)) {
+          // Estados de transición para este devocional
+          mainIcon = const SizedBox(
+            width: 28,
+            height: 28,
+            child: CircularProgressIndicator(strokeWidth: 3),
+          );
+          mainTooltip = currentState == TtsState.stopping
+              ? 'Deteniendo...'
+              : 'Iniciando...';
+          mainColor = Colors.blue;
+          isButtonEnabled = false;
         } else {
+          // Estado idle o devocional diferente
           mainIcon = const Icon(Icons.play_arrow, size: 32);
           mainTooltip = 'Escuchar';
           mainColor = Colors.blue;
@@ -71,7 +102,9 @@ class TtsPlayerWidget extends StatelessWidget {
                   // Botón principal centrado
                   Container(
                     decoration: BoxDecoration(
-                      color: mainColor,
+                      color: isButtonEnabled
+                          ? mainColor
+                          : mainColor.withValues(alpha: 0.6),
                       shape: BoxShape.circle,
                     ),
                     child: IconButton(
@@ -82,27 +115,16 @@ class TtsPlayerWidget extends StatelessWidget {
                       tooltip: mainTooltip,
                       iconSize: 32,
                       color: Colors.white,
-                      onPressed: (isLoading)
-                          ? null
-                          : () async {
-                              if (hasError) {
-                                await audioController.stop();
-                                return;
-                              }
-                              if (isPlaying) {
-                                await audioController.pause();
-                              } else if (isPaused) {
-                                await audioController.resume();
-                              } else {
-                                await audioController
-                                    .playDevotional(devocional);
-                              }
-                            },
+                      onPressed: isButtonEnabled
+                          ? () async {
+                              await _handleButtonPress(audioController);
+                            }
+                          : null,
                     ),
                   ),
 
                   // Stop button si está activo
-                  if (audioController.isActive) ...[
+                  if (isThisDevocional && audioController.isActive) ...[
                     const SizedBox(height: 4),
                     IconButton(
                       icon: const Icon(Icons.stop, size: 24),
@@ -124,7 +146,9 @@ class TtsPlayerWidget extends StatelessWidget {
                   // Botón principal centrado y prominente
                   Container(
                     decoration: BoxDecoration(
-                      color: mainColor,
+                      color: isButtonEnabled
+                          ? mainColor
+                          : mainColor.withValues(alpha: 0.6),
                       shape: BoxShape.circle,
                     ),
                     child: IconButton(
@@ -135,27 +159,16 @@ class TtsPlayerWidget extends StatelessWidget {
                       tooltip: mainTooltip,
                       iconSize: 42,
                       color: Colors.white,
-                      onPressed: (isLoading)
-                          ? null
-                          : () async {
-                              if (hasError) {
-                                await audioController.stop();
-                                return;
-                              }
-                              if (isPlaying) {
-                                await audioController.pause();
-                              } else if (isPaused) {
-                                await audioController.resume();
-                              } else {
-                                await audioController
-                                    .playDevotional(devocional);
-                              }
-                            },
+                      onPressed: isButtonEnabled
+                          ? () async {
+                              await _handleButtonPress(audioController);
+                            }
+                          : null,
                     ),
                   ),
 
                   // Botón stop (solo visible si está activo)
-                  if (audioController.isActive) ...[
+                  if (isThisDevocional && audioController.isActive) ...[
                     const SizedBox(width: 16),
                     IconButton(
                       icon: const Icon(Icons.stop, size: 28),
@@ -173,5 +186,34 @@ class TtsPlayerWidget extends StatelessWidget {
         );
       },
     );
+  }
+
+  Future<void> _handleButtonPress(AudioController audioController) async {
+    final currentState = audioController.currentState;
+    final isThisDevocional =
+        audioController.currentDevocionalId == devocional.id;
+
+    debugPrint(
+        'TtsPlayerWidget: Button pressed - currentState: $currentState, isThisDevocional: $isThisDevocional');
+
+    try {
+      if (audioController.hasError) {
+        // Error - reintentar
+        await audioController.stop();
+        await Future.delayed(const Duration(milliseconds: 300));
+        await audioController.playDevotional(devocional);
+      } else if (isThisDevocional && currentState == TtsState.playing) {
+        // Pausar este devocional
+        await audioController.pause();
+      } else if (isThisDevocional && currentState == TtsState.paused) {
+        // Continuar este devocional
+        await audioController.resume();
+      } else {
+        // Iniciar nuevo devocional o reiniciar
+        await audioController.playDevotional(devocional);
+      }
+    } catch (e) {
+      debugPrint('TtsPlayerWidget: Button press error: $e');
+    }
   }
 }
