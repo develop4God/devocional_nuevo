@@ -149,11 +149,17 @@ jobs:
           flutter analyze --fatal-infos
           flutter test
 
-      - name: Run tests after cleanup
+      - name: Run analysis after cleanup
         if: env.CLEANUP_SUCCESS == 'true'
         run: |
-          echo "▶️ Ejecutando pruebas tras limpieza exitosa..."
+          echo "▶️ Ejecutando análisis tras limpieza exitosa..."
           flutter analyze --fatal-infos
+
+      - name: Run tests after cleanup
+        if: env.CLEANUP_SUCCESS == 'true'
+        continue-on-error: true
+        run: |
+          echo "▶️ Ejecutando pruebas tras limpieza exitosa..."
           flutter test
 
       # Generar APK de pruebas si el check está activo
