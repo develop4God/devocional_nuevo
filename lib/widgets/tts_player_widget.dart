@@ -127,7 +127,7 @@ class TtsPlayerWidget extends StatelessWidget {
                   if (isThisDevocional && audioController.isActive) ...[
                     const SizedBox(height: 4),
                     IconButton(
-                      icon: const Icon(Icons.stop, size: 24),
+                      icon: const Icon(Icons.stop_circle_outlined, size: 40),
                       tooltip: 'Detener',
                       color: Colors.red,
                       onPressed: () async {
