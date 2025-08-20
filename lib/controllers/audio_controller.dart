@@ -38,7 +38,7 @@ class AudioController extends ChangeNotifier {
   bool isDevocionalPlaying(String devocionalId) {
     final result = _currentDevocionalId == devocionalId && isActive;
     debugPrint(
-        '🔍 AudioController: isDevocionalPlaying($devocionalId) = $result (currentId: $_currentDevocionalId, isActive: $isActive)');
+        '🔍 AudioController: isDevocionalPlaying($devocionalId) = $result (currentId: $_currentDevocionalId, isActive: $isActive, currentState: $_currentState)');
     return result;
   }
 
@@ -63,14 +63,12 @@ class AudioController extends ChangeNotifier {
       (state) {
         debugPrint('🔄 AudioController: State changed to $state');
         _currentState = state;
-        _currentDevocionalId = _ttsService.currentDevocionalId;
+        // Solo actualizar currentDevocionalId si el TtsService tiene un valor válido
+        if (_ttsService.currentDevocionalId != null) {
+          _currentDevocionalId = _ttsService.currentDevocionalId;
+        }
         debugPrint(
             '🔍 AudioController: Current ID after state change: $_currentDevocionalId, isActive: $isActive');
-        notifyListeners();
-      },
-      onError: (error) {
-        debugPrint('❌ AudioController: State stream error: $error');
-        _currentState = TtsState.error;
         notifyListeners();
       },
     );
@@ -94,8 +92,20 @@ class AudioController extends ChangeNotifier {
   Future<void> playDevotional(Devocional devocional) async {
     try {
       debugPrint('🎵 AudioController: Playing ${devocional.id}');
-      _currentDevocionalId = devocional.id; // ← LÍNEA NUEVA
+      debugPrint(
+          '🔍 AudioController: BEFORE - currentState: $_currentState, currentId: $_currentDevocionalId, isActive: $isActive');
+
+      _currentDevocionalId = devocional.id;
+      _currentState = TtsState.playing;
+
+      debugPrint(
+          '🔍 AudioController: AFTER setting state - currentState: $_currentState, currentId: $_currentDevocionalId, isActive: $isActive');
+
+      notifyListeners();
+      debugPrint('📢 AudioController: notifyListeners() called');
+
       await _ttsService.speakDevotional(devocional);
+      debugPrint('✅ AudioController: TtsService.speakDevotional() completed');
     } catch (e) {
       debugPrint('❌ AudioController: Error playing devotional: $e');
       rethrow;
