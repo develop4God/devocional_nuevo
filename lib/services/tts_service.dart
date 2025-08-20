@@ -3,11 +3,10 @@ import 'dart:developer' as developer;
 import 'dart:io' show Platform;
 
 import 'package:devocional_nuevo/models/devocional_model.dart';
+import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import '../services/spiritual_stats_service.dart';
 
 enum TtsState { idle, initializing, playing, paused, stopping, error }
 
@@ -247,14 +246,6 @@ class TtsService {
       );
       debugPrint(
           '📈 TTS: Devocional registrado en estadísticas por escucha con progreso ${progress * 100}%');
-    }
-
-    if (_currentChunkIndex >= _currentChunks.length - 1) {
-      debugPrint(
-          '✅ TTS: Todos los chunks ya fueron procesados. Playback completo.');
-
-      _resetPlayback();
-      return;
     }
 
     debugPrint(
