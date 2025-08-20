@@ -19,7 +19,7 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage> {
   String _selectedLanguage = 'es'; // Idioma por defecto
-  double _ttsSpeed = 0.5; // Velocidad de TTS por defecto
+  double _ttsSpeed = 0.4; // Velocidad de TTS por defecto
 
   @override
   void initState() {
@@ -231,11 +231,9 @@ class _SettingsPageState extends State<SettingsPage> {
                 await devocionalProvider.setTtsSpeechRate(value);
               },
             ),
-            const SizedBox(height: 15),
-            // Idioma de voz
-
+            // Información adicional
             const SizedBox(
-              height: 20,
+              height: 10,
             ),
             InkWell(
               onTap: () {
