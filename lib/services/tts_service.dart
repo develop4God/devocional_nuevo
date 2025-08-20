@@ -133,7 +133,7 @@ class TtsService {
       }
 
       final prefs = await SharedPreferences.getInstance();
-      final language = prefs.getString('tts_language') ?? 'es-ES';
+      final language = prefs.getString('tts_language') ?? 'es-US';
       final rate = prefs.getDouble('tts_rate') ?? 0.5;
 
       debugPrint('🔧 TTS: Loading config - Language: $language, Rate: $rate');
@@ -160,8 +160,8 @@ class TtsService {
       debugPrint('🔧 TTS: Setting language to $language');
       await _flutterTts.setLanguage(language);
     } catch (e) {
-      debugPrint('⚠️ TTS: Language $language failed, using es-ES: $e');
-      await _flutterTts.setLanguage('es-ES');
+      debugPrint('⚠️ TTS: Language $language failed, using es-US: $e');
+      await _flutterTts.setLanguage('es-US');
     }
 
     debugPrint('🔧 TTS: Setting speech rate to $rate');
