@@ -75,7 +75,32 @@ jobs:
 
       - name: 📊 Flutter doctor
         run: flutter doctor -v
-
+        
+      - name: 🛠️ Ensure Flutter properties are available
+        run: |
+          echo "🔧 Generating local.properties..."
+          flutter build apk --config-only
+          
+          echo "📋 Verifying local.properties..."
+          if [ -f "android/local.properties" ]; then
+            echo "✅ local.properties generated:"
+            cat android/local.properties
+          else
+            echo "⚠️ Creating local.properties manually..."
+            mkdir -p android
+            cat > android/local.properties << EOF
+          sdk.dir=$ANDROID_HOME
+          flutter.sdk=$FLUTTER_ROOT
+          flutter.buildMode=release
+          flutter.versionName=1.0.0
+          flutter.versionCode=1
+          flutter.minSdkVersion=23
+          flutter.targetSdkVersion=34
+          flutter.compileSdkVersion=34
+          EOF
+            echo "✅ Manual local.properties created:"
+            cat android/local.properties
+          fi
       - name: 📦 Install dependencies
         run: flutter pub get
 
