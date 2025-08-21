@@ -4,7 +4,7 @@ import 'package:devocional_nuevo/services/tts_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class TtsPlayerWidget extends StatelessWidget {
+class TtsPlayerWidget extends StatefulWidget {
   final Devocional devocional;
   final void Function()? onCompleted;
 
@@ -15,20 +15,63 @@ class TtsPlayerWidget extends StatelessWidget {
   });
 
   @override
+  State<TtsPlayerWidget> createState() => _TtsPlayerWidgetState();
+}
+
+class _TtsPlayerWidgetState extends State<TtsPlayerWidget> {
+  // Estado local para manejar transiciones
+  bool _localIsPlaying = false;
+  double _lastProgress = 0.0;
+  bool _completedTriggered = false;
+
+  @override
   Widget build(BuildContext context) {
     return Consumer<AudioController>(
       builder: (context, audioController, child) {
         // Verificar si este devocional está activo/seleccionado
         final isThisDevocional =
-            audioController.currentDevocionalId == devocional.id;
+            audioController.currentDevocionalId == widget.devocional.id;
         final isDevocionalPlaying =
-            audioController.isDevocionalPlaying(devocional.id);
+            audioController.isDevocionalPlaying(widget.devocional.id);
 
         // Estados del controlador
         final currentState = audioController.currentState;
         final isLoading = audioController.isLoading;
         final hasError = audioController.hasError;
         final progress = audioController.progress;
+
+        // FIX: Detectar reset y actualizar estado local
+        if (currentState == TtsState.idle && _localIsPlaying) {
+          debugPrint(
+              'TtsPlayerWidget(${widget.devocional.id}): Detected reset to idle - updating local state');
+          _localIsPlaying = false;
+          _completedTriggered = false;
+
+          // Forzar rebuild en el siguiente frame
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              setState(() {});
+            }
+          });
+        }
+
+        // Actualizar estado local basado en el controlador
+        if (isThisDevocional) {
+          if (currentState == TtsState.playing && !_localIsPlaying) {
+            _localIsPlaying = true;
+          } else if ((currentState == TtsState.idle ||
+                  currentState == TtsState.paused) &&
+              _localIsPlaying) {
+            if (currentState == TtsState.idle) {
+              _localIsPlaying = false;
+            }
+          }
+        }
+
+        // Usar estado híbrido para determinar UI
+        final effectiveIsPlaying = isThisDevocional &&
+            (currentState == TtsState.playing ||
+                (currentState == TtsState.paused && _localIsPlaying));
 
         // Lógica de estado mejorada para manejar transiciones
         Widget mainIcon;
@@ -37,7 +80,10 @@ class TtsPlayerWidget extends StatelessWidget {
         bool isButtonEnabled = true;
 
         debugPrint(
-            'TtsPlayerWidget(${devocional.id}): isThisDevocional=$isThisDevocional, currentState=$currentState, isLoading=$isLoading, hasError=$hasError, isDevocionalPlaying=$isDevocionalPlaying');
+            'TtsPlayerWidget(${widget.devocional.id}): isThisDevocional=$isThisDevocional, '
+            'currentState=$currentState, isLoading=$isLoading, hasError=$hasError, '
+            'isDevocionalPlaying=$isDevocionalPlaying, localIsPlaying=$_localIsPlaying, '
+            'effectiveIsPlaying=$effectiveIsPlaying');
 
         if (hasError && isThisDevocional) {
           // Error en este devocional
@@ -54,7 +100,7 @@ class TtsPlayerWidget extends StatelessWidget {
           mainTooltip = 'Cargando...';
           mainColor = Colors.blue;
           isButtonEnabled = false;
-        } else if (isThisDevocional && currentState == TtsState.playing) {
+        } else if (effectiveIsPlaying && currentState == TtsState.playing) {
           // Este devocional está reproduciendo
           mainIcon = const Icon(Icons.pause, size: 32);
           mainTooltip = 'Pausar';
@@ -86,11 +132,17 @@ class TtsPlayerWidget extends StatelessWidget {
         }
 
         // Callback cuando termina el devocional
-        if (progress >= 0.999 && onCompleted != null) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            onCompleted!();
-          });
+        if (progress >= 0.999 &&
+            progress != _lastProgress &&
+            !_completedTriggered) {
+          _completedTriggered = true;
+          if (widget.onCompleted != null) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              widget.onCompleted!();
+            });
+          }
         }
+        _lastProgress = progress;
 
         return LayoutBuilder(
           builder: (context, constraints) {
@@ -191,7 +243,7 @@ class TtsPlayerWidget extends StatelessWidget {
   Future<void> _handleButtonPress(AudioController audioController) async {
     final currentState = audioController.currentState;
     final isThisDevocional =
-        audioController.currentDevocionalId == devocional.id;
+        audioController.currentDevocionalId == widget.devocional.id;
 
     debugPrint(
         'TtsPlayerWidget: Button pressed - currentState: $currentState, isThisDevocional: $isThisDevocional');
@@ -201,7 +253,7 @@ class TtsPlayerWidget extends StatelessWidget {
         // Error - reintentar
         await audioController.stop();
         await Future.delayed(const Duration(milliseconds: 300));
-        await audioController.playDevotional(devocional);
+        await audioController.playDevotional(widget.devocional);
       } else if (isThisDevocional && currentState == TtsState.playing) {
         // Pausar este devocional
         await audioController.pause();
@@ -210,7 +262,7 @@ class TtsPlayerWidget extends StatelessWidget {
         await audioController.resume();
       } else {
         // Iniciar nuevo devocional o reiniciar
-        await audioController.playDevotional(devocional);
+        await audioController.playDevotional(widget.devocional);
       }
     } catch (e) {
       debugPrint('TtsPlayerWidget: Button press error: $e');
