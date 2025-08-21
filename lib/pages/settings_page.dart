@@ -2,10 +2,12 @@ import 'dart:developer' as developer;
 
 import 'package:devocional_nuevo/pages/about_page.dart';
 import 'package:devocional_nuevo/pages/contact_page.dart';
+import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/providers/theme_provider.dart';
 import 'package:devocional_nuevo/utils/theme_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -17,6 +19,36 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage> {
   String _selectedLanguage = 'es'; // Idioma por defecto
+  double _ttsSpeed = 0.4; // Velocidad de TTS por defecto
+
+  @override
+  void initState() {
+    super.initState();
+    _loadTtsLanguages();
+  }
+
+  Future<void> _loadTtsLanguages() async {
+    final devocionalProvider =
+        Provider.of<DevocionalProvider>(context, listen: false);
+    try {
+      final languages = await devocionalProvider.getAvailableLanguages();
+      // Load saved preferences
+      final prefs = await SharedPreferences.getInstance();
+      final savedLanguage = prefs.getString('tts_language');
+      final savedRate = prefs.getDouble('tts_rate') ?? 0.5;
+
+      setState(() {
+        _ttsSpeed = savedRate;
+        // Use saved language if available, otherwise default to Spanish
+        if (savedLanguage != null && languages.contains(savedLanguage)) {
+        } else if (languages.contains('es-ES')) {
+        } else if (languages.contains('es')) {
+        } else if (languages.isNotEmpty) {}
+      });
+    } catch (e) {
+      developer.log('Error loading TTS languages: $e');
+    }
+  }
 
   Future<void> _launchPaypal() async {
     const String baseUrl =
@@ -135,7 +167,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 Text(
                   'Idioma:',
                   style: textTheme.bodyMedium?.copyWith(
-                    fontSize: 18,
+                    fontSize: 16,
                     color: colorScheme.onSurface,
                   ),
                 ),
@@ -149,18 +181,60 @@ class _SettingsPageState extends State<SettingsPage> {
                     if (newValue != null) {
                       setState(() {
                         _selectedLanguage = newValue;
-                        developer.log(
-                          'Idioma cambiado a: $_selectedLanguage',
-                          name: 'SettingsPage',
-                        );
+                        developer.log('Idioma cambiado a: $_selectedLanguage',
+                            name: 'SettingsPage');
                       });
                     }
                   },
                 ),
               ],
             ),
-            const SizedBox(height: 30),
-
+            const SizedBox(height: 20),
+            // Sección para configuración de Audio/TTS
+            Text(
+              'Configuración de Audio',
+              style: textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: colorScheme.primary,
+              ),
+            ),
+            const SizedBox(height: 15),
+            // Velocidad de voz
+            Row(
+              children: [
+                Icon(Icons.speed, color: colorScheme.primary),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'Velocidad de lectura:',
+                    style: textTheme.bodyMedium
+                        ?.copyWith(fontSize: 16, color: colorScheme.onSurface),
+                  ),
+                ),
+              ],
+            ),
+            Slider(
+              value: _ttsSpeed,
+              min: 0.1,
+              max: 1.0,
+              divisions: 9,
+              label: '${(_ttsSpeed * 100).round()}%',
+              onChanged: (double value) {
+                setState(() {
+                  _ttsSpeed = value;
+                });
+              },
+              onChangeEnd: (double value) async {
+                // Save the TTS speed
+                final devocionalProvider =
+                    Provider.of<DevocionalProvider>(context, listen: false);
+                await devocionalProvider.setTtsSpeechRate(value);
+              },
+            ),
+            // Información adicional
+            const SizedBox(
+              height: 10,
+            ),
             InkWell(
               onTap: () {
                 Navigator.push(
@@ -177,9 +251,8 @@ class _SettingsPageState extends State<SettingsPage> {
                     Expanded(
                       child: Text(
                         'Contáctanos',
-                        style: textTheme.bodyMedium
-                            ?.merge(settingsOptionTextStyle)
-                            .copyWith(color: colorScheme.onSurface),
+                        style: textTheme.bodyMedium?.copyWith(
+                            fontSize: 16, color: colorScheme.onSurface),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -200,14 +273,14 @@ class _SettingsPageState extends State<SettingsPage> {
                 padding: const EdgeInsets.symmetric(vertical: 8.0),
                 child: Row(
                   children: [
-                    Icon(Icons.info_outline, color: colorScheme.primary),
+                    Icon(Icons.perm_device_info_outlined,
+                        color: colorScheme.primary),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
                         'Acerca de Devocionales Cristianos',
-                        style: textTheme.bodyMedium
-                            ?.merge(settingsOptionTextStyle)
-                            .copyWith(color: colorScheme.onSurface),
+                        style: textTheme.bodyMedium?.copyWith(
+                            fontSize: 16, color: colorScheme.onSurface),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),

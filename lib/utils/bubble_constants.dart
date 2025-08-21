@@ -12,7 +12,9 @@ class BubbleConstants {
   static const Duration delayBeforeShow = Duration(milliseconds: 100);
 
   // Colores
-  static const Color newFeatureColor = Color(0xFF4CAF50);
+  //static const Color newFeatureColor = Color(0xFF4CAF50); verde para nuevo
+  static const Color newFeatureColor =
+      Color(0xFFF44336); //rojo temporal para que se vea
   static const Color updatedFeatureColor = Color(0xFF2196F3);
   static const Color notificationColor = Color(0xFFFF5722);
 
@@ -24,7 +26,7 @@ class BubbleConstants {
 
   // Tamaños
   static const double widgetBubbleRadius = 12;
-  static const double iconBadgeSize = 8;
+  static const double iconBadgeSize = 12;
   static const double iconBadgeRadius = 4;
 
   // Estilos de texto

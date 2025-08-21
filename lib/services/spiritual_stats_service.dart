@@ -330,6 +330,75 @@ class SpiritualStatsService {
     return updatedStats;
   }
 
+  Future<SpiritualStats> recordDevotionalHeard({
+    required String devocionalId,
+    required double listenedPercentage, // De 0.0 a 1.0
+    int? favoritesCount,
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+    final stats = await getStats();
+
+    if (listenedPercentage < 0.8) {
+      debugPrint('Escucha menor a 80%, no se cuenta: $listenedPercentage');
+      return stats;
+    }
+
+    if (stats.readDevocionalIds.contains(devocionalId)) {
+      debugPrint('Devocional $devocionalId ya registrado como leído');
+      if (favoritesCount != null) {
+        final updatedStats = stats.copyWith(favoritesCount: favoritesCount);
+        await saveStats(updatedStats);
+        return updatedStats;
+      }
+      return stats;
+    }
+
+    final today = DateTime.now();
+    final todayDateOnly = DateTime(today.year, today.month, today.day);
+    final readDates = await _getReadDates();
+
+    final alreadyReadToday = readDates.any(
+      (date) =>
+          date.year == today.year &&
+          date.month == today.month &&
+          date.day == today.day,
+    );
+
+    if (!alreadyReadToday) {
+      readDates.add(todayDateOnly);
+      await _saveReadDates(readDates);
+    }
+
+    await prefs.setString(_lastReadDevocionalKey, devocionalId);
+    await prefs.setInt(
+        _lastReadTimeKey, DateTime.now().millisecondsSinceEpoch ~/ 1000);
+
+    final newStreak = _calculateCurrentStreak(readDates);
+    final newReadDevocionalIds = List<String>.from(stats.readDevocionalIds);
+    newReadDevocionalIds.add(devocionalId);
+
+    final updatedStats = stats.copyWith(
+      totalDevocionalesRead: stats.totalDevocionalesRead + 1,
+      currentStreak: newStreak,
+      longestStreak:
+          newStreak > stats.longestStreak ? newStreak : stats.longestStreak,
+      lastActivityDate: today,
+      favoritesCount: favoritesCount ?? stats.favoritesCount,
+      readDevocionalIds: newReadDevocionalIds,
+      unlockedAchievements: _updateAchievements(
+        stats,
+        newStreak,
+        stats.totalDevocionalesRead + 1,
+        favoritesCount ?? stats.favoritesCount,
+      ),
+    );
+
+    await saveStats(updatedStats);
+
+    debugPrint('Devocional contado como escuchado: $devocionalId');
+    return updatedStats;
+  }
+
   /// Update favorites count
   Future<SpiritualStats> updateFavoritesCount(int favoritesCount) async {
     final stats = await getStats();
