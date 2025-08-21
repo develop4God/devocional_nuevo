@@ -374,7 +374,7 @@ class TtsService {
   /// Formatea dinámicamente los libros con ordinal si comienza con 1, 2, 3
   String formatBibleBook(String reference) {
     final exp =
-        RegExp(r'^(1|2|3)\s+([A-Za-záéíóúÁÉÍÓÚñÑ]+)', caseSensitive: false);
+        RegExp(r'^([123])\s+([A-Za-záéíóúÁÉÍÓÚñÑ]+)', caseSensitive: false);
     final match = exp.firstMatch(reference.trim());
     if (match != null) {
       final number = match.group(1)!;
@@ -534,7 +534,7 @@ class TtsService {
     });
 
     normalized = normalized.replaceAllMapped(
-      RegExp(r'\b(\d+)(º|°|ª|°)\b'),
+      RegExp(r'\b(\d+)([º°ª])\b'),
       (match) {
         final number = int.tryParse(match.group(1)!) ?? 0;
         String result;
@@ -660,7 +660,7 @@ class TtsService {
   String _sanitize(String text) {
     return text
         .trim()
-        .replaceAll(RegExp(r'[^\w\s\.,!?;:áéíóúÁÉÍÓÚüÜñÑ\-\(\)]'), ' ')
+        .replaceAll(RegExp(r'[^\w\s.,!?;:áéíóúÁÉÍÓÚüÜñÑ\-()]'), ' ')
         .replaceAll(RegExp(r'\s+'), ' ');
   }
 

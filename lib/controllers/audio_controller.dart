@@ -24,6 +24,9 @@ class AudioController extends ChangeNotifier {
   // Timer para timeout de operaciones
   Timer? _operationTimeoutTimer;
 
+  // Variable para verificar si el controller está montado
+  bool mounted = true;
+
   // Getters públicos
   TtsState get currentState => _currentState;
 
@@ -40,20 +43,31 @@ class AudioController extends ChangeNotifier {
 
   bool get hasError => _currentState == TtsState.error;
 
-  // FIX: Mejorar la lógica de isActive para considerar operaciones en progreso
+  // FIX: Lógica de isActive simplificada y más clara
   bool get isActive =>
-      isPlaying ||
-      isPaused ||
-      (_operationInProgress && _currentDevocionalId != null);
+      _currentState == TtsState.playing || _currentState == TtsState.paused;
 
-  /// Verifica si un devocional específico está activo
+  /// FIX: Verifica si un devocional específico está activo - LÓGICA CORREGIDA
   bool isDevocionalPlaying(String devocionalId) {
-    final currentId = _currentDevocionalId;
-    final result = currentId != null &&
-        currentId == devocionalId &&
-        (isActive || _operationInProgress);
+    // CRÍTICO: Si el estado es idle, definitivamente NO está reproduciendo
+    if (_currentState == TtsState.idle) {
+      debugPrint(
+          'AudioController: isDevocionalPlaying($devocionalId) = FALSE - state is IDLE');
+      return false;
+    }
+
+    // Si hay una operación en progreso para este devocional, considerarlo activo
+    if (_operationInProgress && _currentDevocionalId == devocionalId) {
+      debugPrint(
+          'AudioController: isDevocionalPlaying($devocionalId) = TRUE - operation in progress');
+      return true;
+    }
+
+    // Solo está "playing" si el ID coincide Y el estado es playing/paused
+    final result = _currentDevocionalId == devocionalId && isActive;
+
     debugPrint(
-        'AudioController: isDevocionalPlaying($devocionalId) = $result (currentId: $currentId, isActive: $isActive, operationInProgress: $_operationInProgress, currentState: $_currentState)');
+        'AudioController: isDevocionalPlaying($devocionalId) = $result (currentId: $_currentDevocionalId, isActive: $isActive, operationInProgress: $_operationInProgress, currentState: $_currentState)');
     return result;
   }
 
@@ -83,9 +97,22 @@ class AudioController extends ChangeNotifier {
     // Escuchar cambios de progreso
     _progressSubscription = _ttsService.progressStream.listen(
       (progress) {
+        if (_currentState == TtsState.idle) {
+          debugPrint('AudioController: Ignorando progress update en idle');
+          _progress = 0.0; // aseguramos reset
+          return;
+        }
+
         debugPrint(
             'AudioController: Progress updated: ${(progress * 100).toInt()}%');
         _progress = progress;
+
+        // Al llegar al 100%, solo notificar - el state stream manejará el reset
+        if (progress >= 1.0) {
+          debugPrint(
+              'AudioController: 🚨 Progreso 100% - esperando state change a idle');
+        }
+
         notifyListeners();
       },
       onError: (error) {
@@ -105,24 +132,62 @@ class AudioController extends ChangeNotifier {
     });
   }
 
-  /// Actualiza el estado desde el servicio y maneja _operationInProgress
-  void _updateStateFromService(TtsState state) {
+  /// FIX: Actualiza el estado desde el servicio con reset completo en idle
+  void _updateStateFromService(TtsState state, {String? devocionalId}) {
     final oldState = _currentState;
     _currentState = state;
 
-    // Sincronizar ID del devocional desde el servicio
-    final serviceId = _ttsService.currentDevocionalId;
-    if (serviceId != null) {
-      _currentDevocionalId = serviceId;
+    // FIX: Reset completo cuando llega a idle
+    if (state == TtsState.idle) {
+      debugPrint(
+          'AudioController: State changed to idle - executing COMPLETE reset');
+      _currentDevocionalId = null;
+      _progress = 0.0;
+      _operationInProgress = false;
+      _operationTimeoutTimer?.cancel();
+      _operationTimeoutTimer = null;
+
+      // Notificar inmediatamente
+      notifyListeners();
+
+      // FIX: Múltiples callbacks para asegurar propagación
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _currentState == TtsState.idle) {
+          debugPrint(
+              'AudioController: Post-frame callback 1 - ensuring UI reset');
+          notifyListeners();
+        }
+      });
+
+      // Callback adicional con delay
+      Future.delayed(const Duration(milliseconds: 100), () {
+        if (mounted && _currentState == TtsState.idle) {
+          debugPrint('AudioController: Delayed callback - final UI reset');
+          notifyListeners();
+        }
+      });
+
+      return;
     }
 
-    // FIX: Resetear operationInProgress cuando el estado se estabiliza
+    // Para otros estados, manejar operationInProgress
     if (_shouldResetOperationInProgress(state, oldState)) {
       _resetOperationInProgress();
+      return; // ya notifica en _resetOperationInProgress
+    } else {
+      _operationInProgress = false;
+    }
+
+    // Actualizar ID si se proporciona
+    if (devocionalId != null) {
+      _currentDevocionalId = devocionalId;
     }
 
     debugPrint(
-        'AudioController: State synchronized - currentId: $_currentDevocionalId, isActive: $isActive, operationInProgress: $_operationInProgress');
+        'AudioController: State synchronized - currentId: $_currentDevocionalId, '
+        'isActive: $isActive, operationInProgress: $_operationInProgress, '
+        'currentState: $_currentState');
+
     notifyListeners();
   }
 
@@ -131,8 +196,7 @@ class AudioController extends ChangeNotifier {
     // Resetear cuando llegamos a un estado estable
     if (newState == TtsState.playing ||
         newState == TtsState.paused ||
-        newState == TtsState.error ||
-        (newState == TtsState.idle && oldState != TtsState.idle)) {
+        newState == TtsState.error) {
       return _operationInProgress;
     }
     return false;
@@ -169,10 +233,7 @@ class AudioController extends ChangeNotifier {
     }
   }
 
-  // Variable para verificar si el controller está montado
-  bool mounted = true;
-
-  /// Sincroniza forzadamente el estado con el servicio TTS
+  /// FIX: Sincronización mejorada con detección de idle
   void _forceSyncWithService() {
     if (!mounted) return;
 
@@ -183,6 +244,15 @@ class AudioController extends ChangeNotifier {
     if (serviceState != _currentState) {
       debugPrint(
           'AudioController: Force syncing state: $_currentState -> $serviceState');
+
+      // Si el servicio está en idle pero nosotros no, hacer reset completo
+      if (serviceState == TtsState.idle && _currentState != TtsState.idle) {
+        debugPrint(
+            'AudioController: Force sync detected service idle - doing complete reset');
+        _updateStateFromService(serviceState);
+        return; // _updateStateFromService ya maneja la notificación
+      }
+
       final oldState = _currentState;
       _currentState = serviceState;
       needsUpdate = true;
@@ -194,7 +264,9 @@ class AudioController extends ChangeNotifier {
       }
     }
 
-    if (serviceId != null && serviceId != _currentDevocionalId) {
+    if (serviceId != null &&
+        serviceId != _currentDevocionalId &&
+        serviceState != TtsState.idle) {
       debugPrint(
           'AudioController: Force syncing devotional ID: $_currentDevocionalId -> $serviceId');
       _currentDevocionalId = serviceId;
@@ -211,7 +283,9 @@ class AudioController extends ChangeNotifier {
   /// Reproducir devocional - Operación asíncrona pura
   Future<void> playDevotional(Devocional devocional) async {
     try {
-      debugPrint('AudioController: Starting playback for ${devocional.id}');
+      debugPrint('🎵 AudioController: playDevotional(${devocional.id}) called');
+      debugPrint(
+          '🎵 Current state before play: currentId=$_currentDevocionalId, state=$_currentState, isActive=$isActive');
 
       _startOperation('playDevotional');
       _currentDevocionalId = devocional.id;
@@ -332,8 +406,7 @@ class AudioController extends ChangeNotifier {
 
         if (serviceState == TtsState.idle) {
           debugPrint('AudioController: Stop confirmed by service');
-          _currentDevocionalId = null; // Reset ID on stop
-          _updateStateFromService(serviceState);
+          _updateStateFromService(serviceState); // Esto hará el reset completo
           break;
         }
       }
@@ -356,7 +429,9 @@ class AudioController extends ChangeNotifier {
       return;
     }
 
-    if (currentId != null && currentId == devocional.id) {
+    if (currentId != null &&
+        currentId == devocional.id &&
+        _currentState != TtsState.idle) {
       // Mismo devocional - alternar play/pause
       if (isPaused) {
         debugPrint('AudioController: Same devotional - resuming');
@@ -371,8 +446,9 @@ class AudioController extends ChangeNotifier {
         await playDevotional(devocional);
       }
     } else {
-      // Devocional diferente - iniciar nueva reproducción
-      debugPrint('AudioController: Different devotional - starting new');
+      // Devocional diferente o estado idle - iniciar nueva reproducción
+      debugPrint(
+          'AudioController: Different devotional or idle state - starting new');
       await playDevotional(devocional);
     }
 
