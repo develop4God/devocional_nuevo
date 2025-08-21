@@ -293,7 +293,11 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget> {
         // Continuar este devocional
         await audioController.resume();
       } else {
+        // Marcar el badge como visto y notificar el cambio
+        final bubbleId = BubbleUtils.getIconBubbleId(Icons.play_arrow, 'new');
+        await BubbleUtils.markAsShown(bubbleId);
         // Iniciar nuevo devocional o reiniciar
+
         await audioController.playDevotional(widget.devocional);
       }
     } catch (e) {
