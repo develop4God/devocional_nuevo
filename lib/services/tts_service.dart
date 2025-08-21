@@ -681,7 +681,12 @@ class TtsService {
     _currentDevocionalId = null;
     _currentChunks = [];
     _currentChunkIndex = 0;
+
+    // FIX: Enviar progreso 0.0 ANTES de cambiar el estado
     _progressController.add(0.0);
+    debugPrint('📊 TTS: Progress reset to 0%');
+
+    // FIX: Cambiar estado al final para evitar race conditions
     _updateState(TtsState.idle);
   }
 

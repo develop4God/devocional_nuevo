@@ -23,14 +23,16 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget> {
   bool _localIsPlaying = false;
   double _lastProgress = 0.0;
   bool _completedTriggered = false;
+  String? _lastKnownDevocionalId;
+  TtsState _lastKnownState = TtsState.idle;
 
   @override
   Widget build(BuildContext context) {
     return Consumer<AudioController>(
       builder: (context, audioController, child) {
         // Verificar si este devocional está activo/seleccionado
-        final isThisDevocional =
-            audioController.currentDevocionalId == widget.devocional.id;
+        final currentDevocionalId = audioController.currentDevocionalId;
+        final isThisDevocional = currentDevocionalId == widget.devocional.id;
         final isDevocionalPlaying =
             audioController.isDevocionalPlaying(widget.devocional.id);
 
@@ -40,38 +42,16 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget> {
         final hasError = audioController.hasError;
         final progress = audioController.progress;
 
-        // FIX: Detectar reset y actualizar estado local
-        if (currentState == TtsState.idle && _localIsPlaying) {
-          debugPrint(
-              'TtsPlayerWidget(${widget.devocional.id}): Detected reset to idle - updating local state');
-          _localIsPlaying = false;
-          _completedTriggered = false;
+        debugPrint('TtsPlayerWidget(${widget.devocional.id}): BEFORE sync - '
+            'currentState=$currentState, currentDevocionalId=$currentDevocionalId, '
+            'isThisDevocional=$isThisDevocional, _localIsPlaying=$_localIsPlaying, '
+            '_lastKnownState=$_lastKnownState, _lastKnownDevocionalId=$_lastKnownDevocionalId');
 
-          // Forzar rebuild en el siguiente frame
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) {
-              setState(() {});
-            }
-          });
-        }
+        // FIX CRÍTICO: Sincronización inmediata del estado local
+        _syncLocalState(currentState, currentDevocionalId, isThisDevocional);
 
-        // Actualizar estado local basado en el controlador
-        if (isThisDevocional) {
-          if (currentState == TtsState.playing && !_localIsPlaying) {
-            _localIsPlaying = true;
-          } else if ((currentState == TtsState.idle ||
-                  currentState == TtsState.paused) &&
-              _localIsPlaying) {
-            if (currentState == TtsState.idle) {
-              _localIsPlaying = false;
-            }
-          }
-        }
-
-        // Usar estado híbrido para determinar UI
-        final effectiveIsPlaying = isThisDevocional &&
-            (currentState == TtsState.playing ||
-                (currentState == TtsState.paused && _localIsPlaying));
+        // FIX: Calcular effectiveIsPlaying basado SOLO en el AudioController
+        final effectiveIsPlaying = isDevocionalPlaying;
 
         // Lógica de estado mejorada para manejar transiciones
         Widget mainIcon;
@@ -79,9 +59,9 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget> {
         Color mainColor;
         bool isButtonEnabled = true;
 
-        debugPrint(
-            'TtsPlayerWidget(${widget.devocional.id}): isThisDevocional=$isThisDevocional, '
-            'currentState=$currentState, isLoading=$isLoading, hasError=$hasError, '
+        debugPrint('TtsPlayerWidget(${widget.devocional.id}): AFTER sync - '
+            'isThisDevocional=$isThisDevocional, currentState=$currentState, '
+            'isLoading=$isLoading, hasError=$hasError, '
             'isDevocionalPlaying=$isDevocionalPlaying, localIsPlaying=$_localIsPlaying, '
             'effectiveIsPlaying=$effectiveIsPlaying');
 
@@ -176,7 +156,7 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget> {
                   ),
 
                   // Stop button si está activo
-                  if (isThisDevocional && audioController.isActive) ...[
+                  if (isDevocionalPlaying) ...[
                     const SizedBox(height: 4),
                     IconButton(
                       icon: const Icon(Icons.stop_circle_outlined, size: 40),
@@ -238,6 +218,57 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget> {
         );
       },
     );
+  }
+
+  /// FIX: Sincronización mejorada del estado local
+  void _syncLocalState(TtsState currentState, String? currentDevocionalId,
+      bool isThisDevocional) {
+    final stateChanged = currentState != _lastKnownState;
+    final devocionalChanged = currentDevocionalId != _lastKnownDevocionalId;
+
+    if (stateChanged || devocionalChanged) {
+      debugPrint(
+          'TtsPlayerWidget(${widget.devocional.id}): State/devotional changed - '
+          'state: $_lastKnownState -> $currentState, '
+          'devotional: $_lastKnownDevocionalId -> $currentDevocionalId');
+
+      // Actualizar referencias
+      _lastKnownState = currentState;
+      _lastKnownDevocionalId = currentDevocionalId;
+
+      // FIX: Reset completo si el estado es idle O si cambió a un devocional diferente
+      if (currentState == TtsState.idle || !isThisDevocional) {
+        if (_localIsPlaying) {
+          debugPrint(
+              'TtsPlayerWidget(${widget.devocional.id}): Resetting local state to false');
+          _localIsPlaying = false;
+          _completedTriggered = false;
+
+          // Forzar rebuild si es necesario
+          if (mounted) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) setState(() {});
+            });
+          }
+        }
+      }
+      // Actualizar estado local si este es el devocional activo
+      else if (isThisDevocional) {
+        if (currentState == TtsState.playing && !_localIsPlaying) {
+          debugPrint(
+              'TtsPlayerWidget(${widget.devocional.id}): Setting local playing to true');
+          _localIsPlaying = true;
+        } else if (currentState == TtsState.paused ||
+            currentState == TtsState.idle) {
+          if (currentState == TtsState.idle && _localIsPlaying) {
+            debugPrint(
+                'TtsPlayerWidget(${widget.devocional.id}): Setting local playing to false (idle)');
+            _localIsPlaying = false;
+            _completedTriggered = false;
+          }
+        }
+      }
+    }
   }
 
   Future<void> _handleButtonPress(AudioController audioController) async {
