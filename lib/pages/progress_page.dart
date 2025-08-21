@@ -183,7 +183,10 @@ class _ProgressPageState extends State<ProgressPage>
             alignment: Alignment.center,
             transform: Matrix4.rotationY(3.14159),
             // Esto invierte horizontalmente el icono
-            child: const Icon(Icons.exit_to_app),
+            child: Icon(
+              Icons.exit_to_app,
+              color: Theme.of(context).colorScheme.primary, // <--- CAMBIO AQUÍ
+            ),
           ),
           onPressed: () => Navigator.of(context).pop(),
           tooltip: 'Regresar',
@@ -201,16 +204,6 @@ class _ProgressPageState extends State<ProgressPage>
         elevation: 0,
         centerTitle: true,
         // Si quieres centrar igual que otras páginas
-        actions: [
-          IconButton(
-            icon: Icon(
-              Icons.refresh,
-              color: Theme.of(context).colorScheme.primary,
-            ),
-            onPressed: _loadStats,
-            tooltip: 'Actualizar',
-          ),
-        ],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -502,10 +495,11 @@ class _ProgressPageState extends State<ProgressPage>
       children: [
         Text(
           'Logros',
+          textAlign: TextAlign.center, //
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: Theme.of(context).colorScheme.primary,
-                fontSize: 24,
+                fontSize: 20,
               ),
         ),
         const SizedBox(height: 6),
