@@ -537,6 +537,31 @@ class AudioController extends ChangeNotifier {
     }
   }
 
+  // FIX: Método público para forzar parada desde el exterior
+  Future<void> forceStop() async {
+    debugPrint('AudioController: Force stop requested');
+    if (isActive) {
+      await stop();
+    }
+  }
+
+  // FIX: Método para notificar cambio de contexto desde el widget
+  void notifyContextChange(String devocionalId) {
+    debugPrint(
+        'AudioController: Context change notification for $devocionalId');
+
+    if (_currentDevocionalId != null &&
+        _currentDevocionalId != devocionalId &&
+        isActive) {
+      debugPrint('AudioController: Auto-stopping due to context change');
+
+      // Usar microtask para evitar problemas de concurrencia
+      scheduleMicrotask(() async {
+        await stop();
+      });
+    }
+  }
+
   /// Información de debug
   String getDebugInfo() {
     final currentId = _currentDevocionalId;

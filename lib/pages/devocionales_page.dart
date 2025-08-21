@@ -43,12 +43,17 @@ class _DevocionalesPageState extends State<DevocionalesPage>
   final DevocionalesTracking _tracking = DevocionalesTracking();
   final FlutterTts _flutterTts = FlutterTts();
 
+  // FIX: Agregar referencia al AudioController
+  AudioController? _audioController;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      // FIX: Inicializar referencia al AudioController
+      _audioController = Provider.of<AudioController>(context, listen: false);
       _tracking.initialize(context);
       _tracking.startCriteriaCheckTimer();
     });
@@ -164,7 +169,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     }
   }
 
-  void _goToNextDevocional() {
+  void _goToNextDevocional() async {
     if (!mounted) return;
 
     final devocionalProvider = Provider.of<DevocionalProvider>(
@@ -174,9 +179,18 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     final List<Devocional> devocionales = devocionalProvider.devocionales;
 
     if (_currentDevocionalIndex < devocionales.length - 1) {
-      _stopSpeaking();
+      // FIX: Detener el AudioController en lugar de FlutterTts directamente
+      if (_audioController != null && _audioController!.isActive) {
+        debugPrint(
+            'DevocionalesPage: Stopping AudioController before navigation');
+        await _audioController!.stop();
+        await Future.delayed(const Duration(milliseconds: 100));
+      } else {
+        await _stopSpeaking();
+      }
+
       final currentDevocional = devocionales[_currentDevocionalIndex];
-      _tracking.recordDevocionalRead(currentDevocional.id);
+      //_tracking.recordDevocionalRead(currentDevocional.id);error en registro al dar siguiente
 
       setState(() {
         _currentDevocionalIndex++;
