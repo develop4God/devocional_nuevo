@@ -134,7 +134,7 @@ class TtsService {
       }
 
       final prefs = await SharedPreferences.getInstance();
-      final language = prefs.getString('tts_language') ?? 'es-US';
+      final language = prefs.getString('tts_language') ?? 'es-MX';
       final rate = prefs.getDouble('tts_rate') ?? 0.5;
 
       debugPrint('🔧 TTS: Loading config - Language: $language, Rate: $rate');

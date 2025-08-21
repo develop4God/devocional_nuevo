@@ -1,6 +1,7 @@
 import 'package:devocional_nuevo/controllers/audio_controller.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/services/tts_service.dart';
+import 'package:devocional_nuevo/utils/bubble_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -106,7 +107,7 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget> {
           isButtonEnabled = false;
         } else {
           // Estado idle o devocional diferente
-          mainIcon = const Icon(Icons.play_arrow, size: 32);
+          mainIcon = const Icon(Icons.play_arrow, size: 32).newIconBadge;
           mainTooltip = 'Escuchar';
           mainColor = Colors.blue;
         }
