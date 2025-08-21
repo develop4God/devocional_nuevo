@@ -189,9 +189,6 @@ class _DevocionalesPageState extends State<DevocionalesPage>
         await _stopSpeaking();
       }
 
-      final currentDevocional = devocionales[_currentDevocionalIndex];
-      //_tracking.recordDevocionalRead(currentDevocional.id);error en registro al dar siguiente
-
       setState(() {
         _currentDevocionalIndex++;
       });
