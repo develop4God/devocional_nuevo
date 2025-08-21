@@ -212,9 +212,17 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     }
   }
 
-  void _goToPreviousDevocional() {
+  void _goToPreviousDevocional() async {
     if (_currentDevocionalIndex > 0) {
-      _stopSpeaking();
+      // FIX: Detener el AudioController en lugar de FlutterTts directamente
+      if (_audioController != null && _audioController!.isActive) {
+        debugPrint(
+            'DevocionalesPage: Stopping AudioController before navigation');
+        await _audioController!.stop();
+        await Future.delayed(const Duration(milliseconds: 100));
+      } else {
+        await _stopSpeaking();
+      }
 
       setState(() {
         _currentDevocionalIndex--;
