@@ -444,14 +444,17 @@ class AudioController extends ChangeNotifier {
 
       await _ttsService.stop();
 
-      // Esperar confirmación del estado
+// Pequeno delay para asegurar que el estado idle se propague bien
+      await Future.delayed(Duration(milliseconds: 200));
+
+// Esperar confirmación del estado
       for (int i = 0; i < 10; i++) {
         await Future.delayed(const Duration(milliseconds: 100));
         final serviceState = _ttsService.currentState;
 
         if (serviceState == TtsState.idle) {
           debugPrint('AudioController: Stop confirmed by service');
-          _updateStateFromService(serviceState); // Esto hará el reset completo
+          _updateStateFromService(serviceState);
           break;
         }
       }
@@ -491,7 +494,13 @@ class AudioController extends ChangeNotifier {
         await playDevotional(devocional);
       }
     } else {
-      // Devocional diferente o estado idle - iniciar nueva reproducción
+      // Si hay una reproducción activa y el devocional es diferente, detener primero
+      if (currentId != null && currentId != devocional.id && isActive) {
+        debugPrint(
+            'AudioController: Stopping current devotional before starting new');
+        await stop(); // Esperar que se detenga antes de iniciar nuevo
+      }
+      // Luego iniciar la reproducción del nuevo devocional
       debugPrint(
           'AudioController: Different devotional or idle state - starting new');
       await playDevotional(devocional);
