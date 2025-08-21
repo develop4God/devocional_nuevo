@@ -761,7 +761,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                         );
                       },
                       icon: Icon(
-                        Icons.insights,
+                        Icons.emoji_events_outlined,
                         color: appBarForegroundColor,
                         size: 30,
                       ),

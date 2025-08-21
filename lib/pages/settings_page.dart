@@ -273,7 +273,8 @@ class _SettingsPageState extends State<SettingsPage> {
                 padding: const EdgeInsets.symmetric(vertical: 8.0),
                 child: Row(
                   children: [
-                    Icon(Icons.info_outline, color: colorScheme.primary),
+                    Icon(Icons.perm_device_info_outlined,
+                        color: colorScheme.primary),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(

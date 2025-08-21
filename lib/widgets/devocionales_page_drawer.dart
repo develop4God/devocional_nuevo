@@ -361,7 +361,7 @@ class DevocionalesDrawer extends StatelessWidget {
                     const SizedBox(height: 5),
                     // --- Notificaciones ---
                     drawerRow(
-                      icon: Icons.notifications,
+                      icon: Icons.notifications_active_outlined,
                       iconColor: colorScheme.primary,
                       label: Text(
                         'Configuración de notificaciones',
@@ -471,7 +471,7 @@ class DevocionalesDrawer extends StatelessWidget {
                                 child: Align(
                                   alignment: Alignment.centerLeft,
                                   child: Icon(
-                                    Icons.palette,
+                                    Icons.palette_outlined,
                                     color: colorScheme.primary,
                                     size: 28,
                                   ),
