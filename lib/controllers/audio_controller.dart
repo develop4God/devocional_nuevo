@@ -537,7 +537,7 @@ class AudioController extends ChangeNotifier {
     }
   }
 
-  // FIX: Método público para forzar parada desde el exterior
+  // FIX: Metodo público para forzar parada desde el exterior
   Future<void> forceStop() async {
     debugPrint('AudioController: Force stop requested');
     if (isActive) {
@@ -545,7 +545,7 @@ class AudioController extends ChangeNotifier {
     }
   }
 
-  // FIX: Método para notificar cambio de contexto desde el widget
+  // FIX: Metodo para notificar cambio de contexto desde el widget
   void notifyContextChange(String devocionalId) {
     debugPrint(
         'AudioController: Context change notification for $devocionalId');
