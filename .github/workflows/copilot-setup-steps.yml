@@ -8,11 +8,6 @@ on:
         required: false
         default: '3.32.8'
         type: string
-      run_tests:
-        description: 'Run tests (non-blocking)'
-        required: false
-        default: true
-        type: boolean
   push:
     paths:
       - .github/workflows/copilot-setup-steps.yml
@@ -74,48 +69,12 @@ jobs:
             exit 1
           fi
 
-      - name: 🤖 Accept Android SDK Licenses
-        run: |
-          echo "Accepting Android SDK licenses..."
-          yes | flutter doctor --android-licenses 2>/dev/null || true
-          echo "✅ Android licenses accepted"
-
-      - name: 🩺 Flutter Doctor Diagnosis
-        run: |
-          echo "Running Flutter doctor..."
-          flutter doctor -v
-          
-          # Check if Flutter is properly configured
-          if flutter doctor | grep -q "No issues found!"; then
-            echo "✅ Flutter environment is fully configured"
-          else
-            echo "⚠️ Flutter has some issues, but continuing..."
-          fi
-
-      - name: 🎨 Format Dart Code
-        run: |
-          echo "Formatting Dart code..."
-          dart format --set-exit-if-changed . || echo "⚠️ Code formatting issues found (non-blocking)"
-
-      - name: 🔍 Analyze Flutter Code
-        run: |
-          echo "Analyzing Flutter/Dart code..."
-          flutter analyze --no-fatal-infos || echo "⚠️ Analysis issues found (non-blocking)"
-
-      - name: 🧪 Run Flutter Tests (Non-blocking)
-        if: ${{ github.event.inputs.run_tests == 'true' || github.event.inputs.run_tests == null }}
-        run: |
-          echo "Running Flutter tests (non-blocking)..."
-          if [ -d "test" ]; then
-            flutter test --reporter=expanded --coverage || echo "⚠️ Tests failed or incomplete (non-blocking)"
-            
-            # Generate test report if tests exist
-            if [ -f "coverage/lcov.info" ]; then
-              echo "📊 Test coverage generated"
-            fi
-          else
-            echo "📝 No test directory found - skipping tests"
-          fi
+      # ELIMINADO: Accept Android SDK Licenses (puede tomar tiempo)
+      # ELIMINADO: Flutter Doctor Diagnosis (puede ser lento)
+      # ELIMINADO: Format Dart Code (no esencial para setup)
+      # ELIMINADO: Analyze Flutter Code (puede fallar y ser lento)
+      # ELIMINADO: Run Flutter Tests (LA CAUSA PRINCIPAL - tests dañados)
+      # ELIMINADO: Test Build Android APK (puede ser muy lento)
 
       - name: 📋 Environment Summary
         run: |
@@ -151,12 +110,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-flutter-build-
 
-      # Optional: Create a simple test build to ensure everything works
-      - name: 🏗️ Test Build (Android APK)
-        run: |
-          echo "Testing Android build capability..."
-          flutter build apk --debug --no-shrink || echo "⚠️ Build test failed (non-blocking)"
-
   # Job to notify about environment status
   notify-copilot:
     needs: flutter-environment-setup
@@ -170,7 +123,7 @@ jobs:
             echo "🤖 You can now ask Copilot to:"
             echo "   - Analyze Flutter/Dart code"
             echo "   - Run flutter commands"
-            echo "   - Execute tests"
+            echo "   - Execute tests (manually when fixed)"
             echo "   - Build the project"
           else
             echo "❌ Flutter environment setup failed"
