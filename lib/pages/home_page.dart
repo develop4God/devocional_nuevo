@@ -1,7 +1,6 @@
-// lib/pages/home_page.dart
 import 'package:devocional_nuevo/pages/devocionales_page.dart'; // Página principal de devocionales
 import 'package:devocional_nuevo/pages/favorites_page.dart'; // Página de favoritos
-import 'package:devocional_nuevo/pages/prayers_page.dart'; // Página de oraciones
+// import 'package:devocional_nuevo/pages/prayers_page.dart'; // Página de oraciones
 import 'package:devocional_nuevo/pages/progress_page.dart'; // Página de progreso espiritual
 import 'package:flutter/material.dart';
 
@@ -20,7 +19,7 @@ class _HomePageState extends State<HomePage> {
   static const List<Widget> _widgetOptions = <Widget>[
     DevocionalesPage(), // La página principal de devocionales
     FavoritesPage(), // La página de favoritos
-    PrayersPage(), // La página de oraciones
+    // PrayersPage(), // La página de oraciones - Lógica comentada
     ProgressPage(), // La página de progreso espiritual
   ];
 
@@ -38,7 +37,8 @@ class _HomePageState extends State<HomePage> {
             _selectedIndex), // Muestra el widget de la pestaña seleccionada
       ),
       bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed, // Necesario para 4 items
+        type: BottomNavigationBarType.fixed,
+        // Necesario para 4 items
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
             icon: Icon(Icons.menu_book_outlined), // Icono de libro outlined
