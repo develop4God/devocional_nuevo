@@ -798,8 +798,9 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                             builder: (context, prayerProvider, _) {
                               final activeCount =
                                   prayerProvider.activePrayers.length;
-                              if (activeCount == 0)
+                              if (activeCount == 0) {
                                 return const SizedBox.shrink();
+                              }
 
                               return Container(
                                 padding: const EdgeInsets.all(4),
@@ -960,7 +961,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     ).then((_) {
       // Después de navegar, podríamos mostrar el modal de agregar oración
       // Esto requeriría modificar PrayersPage para aceptar un texto inicial
-      // o usar un método diferente de comunicación entre páginas
+      // o usar un metodo diferente de comunicación entre páginas
     });
   }
 }
