@@ -78,8 +78,12 @@ jobs:
                 # Add and commit the changes
                 git add .
                 git commit -m "🎨 Auto-format code with dart format [skip ci]" 
-                # Push the changes
-                git push
+                # Push the changes (ajustado para rama correcta)
+                TARGET_BRANCH="${GITHUB_REF_NAME:-${GITHUB_HEAD_REF}}"
+                if [ -z "$TARGET_BRANCH" ]; then
+                  TARGET_BRANCH="main"
+                fi
+                git push origin HEAD:$TARGET_BRANCH
                 
                 echo "✅ Code has been automatically formatted and committed!"
                 echo "🔄 Contributors should pull the latest changes."
@@ -125,7 +129,12 @@ jobs:
             git config --local user.name "GitHub Action [bot]"
             git add .
             git commit -m "🧹 Remove unused imports and auto-fix code [skip ci]"
-            git push
+            # Push los cambios (ajustado para rama correcta)
+            TARGET_BRANCH="${GITHUB_REF_NAME:-${GITHUB_HEAD_REF}}"
+            if [ -z "$TARGET_BRANCH" ]; then
+              TARGET_BRANCH="main"
+            fi
+            git push origin HEAD:$TARGET_BRANCH
             echo "✅ Imports limpios y fixes aplicados!"
             echo "## 🧹 Import Cleanup Summary" >> $GITHUB_STEP_SUMMARY
             echo "✅ Unused imports and automatic fixes were applied." >> $GITHUB_STEP_SUMMARY
