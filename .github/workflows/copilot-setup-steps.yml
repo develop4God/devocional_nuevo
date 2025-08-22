@@ -35,11 +35,3 @@ jobs:
 
       - name: Run flutter doctor
         run: flutter doctor -v
-
-      - name: Format Dart code
-        run: dart format . --set-exit-if-changed
-
-      - name: Analyze Dart & Flutter code
-        run: flutter analyze --no-fatal-warnings
-
-
