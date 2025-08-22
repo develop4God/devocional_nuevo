@@ -52,12 +52,13 @@ void main() {
     test('Devocional model should serialize and deserialize correctly', () {
       final json = testDevocional.toJson();
       final recreatedDevocional = Devocional.fromJson(json);
-      
+
       expect(recreatedDevocional.id, equals(testDevocional.id));
       expect(recreatedDevocional.versiculo, equals(testDevocional.versiculo));
       expect(recreatedDevocional.reflexion, equals(testDevocional.reflexion));
       expect(recreatedDevocional.oracion, equals(testDevocional.oracion));
-      expect(recreatedDevocional.paraMeditar.length, equals(testDevocional.paraMeditar.length));
+      expect(recreatedDevocional.paraMeditar.length,
+          equals(testDevocional.paraMeditar.length));
     });
 
     group('TTS Error Handling', () {
@@ -94,9 +95,9 @@ void main() {
 
       test('should handle operations on disposed service', () async {
         await ttsService.dispose();
-        
+
         expect(ttsService.isDisposed, isTrue);
-        
+
         expect(
           () => ttsService.speakDevotional(testDevocional),
           throwsA(isA<TtsException>()),
@@ -161,14 +162,14 @@ void main() {
       test('should handle concurrent operations safely', () async {
         // Test multiple concurrent operations
         final futures = <Future>[];
-        
+
         for (int i = 0; i < 5; i++) {
           futures.add(ttsService.initialize());
         }
-        
+
         // Should not throw exceptions due to concurrent access
         await Future.wait(futures);
-        
+
         expect(ttsService.isDisposed, isFalse);
       });
     });

@@ -20,7 +20,7 @@ void main() {
 
       // Look for audio controls (play button)
       final playButtonFinder = find.byIcon(Icons.play_arrow);
-      
+
       // Skip test if no devotional content is loaded yet
       if (playButtonFinder.evaluate().isEmpty) {
         return;
@@ -44,7 +44,8 @@ void main() {
       }
     });
 
-    testWidgets('audio stops when navigating between devotionals', (WidgetTester tester) async {
+    testWidgets('audio stops when navigating between devotionals',
+        (WidgetTester tester) async {
       // Start the app
       app.main();
       await tester.pumpAndSettle();
@@ -53,7 +54,7 @@ void main() {
       await tester.pump(const Duration(seconds: 2));
 
       final playButtonFinder = find.byIcon(Icons.play_arrow);
-      
+
       // Skip test if no devotional content is loaded
       if (playButtonFinder.evaluate().isEmpty) {
         return;
@@ -78,7 +79,8 @@ void main() {
       }
     });
 
-    testWidgets('settings page audio configuration', (WidgetTester tester) async {
+    testWidgets('settings page audio configuration',
+        (WidgetTester tester) async {
       // Start the app
       app.main();
       await tester.pumpAndSettle();
@@ -88,14 +90,14 @@ void main() {
 
       // Look for settings navigation (usually in app bar or drawer)
       final settingsButtonFinder = find.byIcon(Icons.settings);
-      
+
       if (settingsButtonFinder.evaluate().isNotEmpty) {
         await tester.tap(settingsButtonFinder.first);
         await tester.pumpAndSettle();
 
         // Look for audio settings section
         final audioSettingsFinder = find.textContaining('Audio');
-        
+
         if (audioSettingsFinder.evaluate().isNotEmpty) {
           // Test if audio settings are accessible
           expect(audioSettingsFinder, findsWidgets);
@@ -106,7 +108,7 @@ void main() {
             // Test slider interaction
             await tester.drag(sliderFinder.first, const Offset(50, 0));
             await tester.pump();
-            
+
             // Slider should respond to drag
             expect(sliderFinder, findsWidgets);
           }
@@ -117,7 +119,7 @@ void main() {
     testWidgets('TTS service error handling', (WidgetTester tester) async {
       // Test TTS service directly
       final ttsService = TtsService();
-      
+
       // Test initialization
       await ttsService.initialize();
       expect(ttsService.isDisposed, isFalse);
@@ -162,7 +164,8 @@ void main() {
       stopwatch.stop();
 
       final languageTime = stopwatch.elapsedMilliseconds;
-      expect(languageTime, lessThan(1000)); // Should get languages in less than 1s
+      expect(
+          languageTime, lessThan(1000)); // Should get languages in less than 1s
       expect(languages, isA<List<String>>());
 
       await ttsService.dispose();
