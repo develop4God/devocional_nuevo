@@ -167,9 +167,8 @@ class _AddPrayerModalState extends State<AddPrayerModal> {
             children: [
               Expanded(
                 child: OutlinedButton(
-                  onPressed: _isLoading
-                      ? null
-                      : () => Navigator.of(context).pop(),
+                  onPressed:
+                      _isLoading ? null : () => Navigator.of(context).pop(),
                   style: OutlinedButton.styleFrom(
                     side: BorderSide(color: colorScheme.outline),
                     padding: const EdgeInsets.symmetric(vertical: 16),
@@ -217,7 +216,7 @@ class _AddPrayerModalState extends State<AddPrayerModal> {
               ),
             ],
           ),
-          
+
           // Espacio adicional para teclado en pantallas pequeñas
           SizedBox(height: mediaQuery.viewInsets.bottom > 0 ? 0 : 20),
         ],
@@ -227,7 +226,7 @@ class _AddPrayerModalState extends State<AddPrayerModal> {
 
   Future<void> _savePrayer() async {
     final text = _textController.text.trim();
-    
+
     if (text.isEmpty) {
       _showErrorSnackBar('Por favor ingresa el texto de la oración');
       return;
@@ -243,8 +242,9 @@ class _AddPrayerModalState extends State<AddPrayerModal> {
     });
 
     try {
-      final prayerProvider = Provider.of<PrayerProvider>(context, listen: false);
-      
+      final prayerProvider =
+          Provider.of<PrayerProvider>(context, listen: false);
+
       if (_isEditing) {
         await prayerProvider.editPrayer(widget.prayerToEdit!.id, text);
         _showSuccessSnackBar('Oración actualizada exitosamente');
@@ -252,12 +252,13 @@ class _AddPrayerModalState extends State<AddPrayerModal> {
         await prayerProvider.addPrayer(text);
         _showSuccessSnackBar('Oración creada exitosamente');
       }
-      
+
       if (mounted) {
         Navigator.of(context).pop();
       }
     } catch (e) {
-      _showErrorSnackBar('Error al ${_isEditing ? 'actualizar' : 'crear'} la oración');
+      _showErrorSnackBar(
+          'Error al ${_isEditing ? 'actualizar' : 'crear'} la oración');
     } finally {
       if (mounted) {
         setState(() {

@@ -617,7 +617,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   color: Colors.transparent,
                 ),
                 padding:
@@ -639,8 +639,8 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                               color: colorScheme.primary,
                             ),
                             if (chunkIndex != null && totalChunks != null)
-                              Padding(
-                                padding: const EdgeInsets.only(top: 2),
+                              const Padding(
+                                padding: EdgeInsets.only(top: 2),
                               ),
                           ],
                         );
@@ -657,17 +657,17 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                   ? _goToPreviousDevocional
                                   : null,
                               icon: const Icon(Icons.arrow_back_ios, size: 16),
-                            label: const Text(
-                              'Anterior',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
+                              label: const Text(
+                                'Anterior',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
-                            ),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: _currentDevocionalIndex > 0
-                                  ? colorScheme.primary
-                                  : colorScheme.outline
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: _currentDevocionalIndex > 0
+                                    ? colorScheme.primary
+                                    : colorScheme.outline
                                         .withValues(alpha: 0.3),
                                 foregroundColor: _currentDevocionalIndex > 0
                                     ? Colors.white
@@ -680,37 +680,37 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                             ),
                           ),
                         ),
-                        const Expanded(
-                        flex: 1,
-                        child: Center(
+                        Expanded(
+                          flex: 1,
+                          child: Center(
                             child: currentDevocional != null
                                 ? TtsPlayerWidget(devocional: currentDevocional)
                                 : const SizedBox(width: 56, height: 56),
                           ),
                         ),
-                      Expanded(
-                        flex: 2,
-                        child: SizedBox(
-                          height: 45,
-                          child: ElevatedButton.icon(
-                            onPressed: _currentDevocionalIndex <
-                                    devocionales.length - 1
-                                ? _goToNextDevocional
-                                : null,
-                            label:
-                                const Icon(Icons.arrow_forward_ios, size: 16),
-                              icon: const Text(
-                              'Siguiente',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: _currentDevocionalIndex <
+                        Expanded(
+                          flex: 2,
+                          child: SizedBox(
+                            height: 45,
+                            child: ElevatedButton.icon(
+                              onPressed: _currentDevocionalIndex <
                                       devocionales.length - 1
-                                  ? colorScheme.primary
-                                  : colorScheme.outline
+                                  ? _goToNextDevocional
+                                  : null,
+                              label:
+                                  const Icon(Icons.arrow_forward_ios, size: 16),
+                              icon: const Text(
+                                'Siguiente',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: _currentDevocionalIndex <
+                                        devocionales.length - 1
+                                    ? colorScheme.primary
+                                    : colorScheme.outline
                                         .withValues(alpha: 0.3),
                                 foregroundColor: _currentDevocionalIndex <
                                         devocionales.length - 1

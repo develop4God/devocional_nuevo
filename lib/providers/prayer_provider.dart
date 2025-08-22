@@ -16,7 +16,8 @@ class PrayerProvider with ChangeNotifier {
   // Getters públicos
   List<Prayer> get prayers => _prayers;
   List<Prayer> get activePrayers => _prayers.where((p) => p.isActive).toList();
-  List<Prayer> get answeredPrayers => _prayers.where((p) => p.isAnswered).toList();
+  List<Prayer> get answeredPrayers =>
+      _prayers.where((p) => p.isAnswered).toList();
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
@@ -52,13 +53,13 @@ class PrayerProvider with ChangeNotifier {
     try {
       final prefs = await SharedPreferences.getInstance();
       final String? prayersJson = prefs.getString('prayers');
-      
+
       if (prayersJson != null && prayersJson.isNotEmpty) {
         final List<dynamic> decodedList = json.decode(prayersJson);
         _prayers = decodedList
             .map((item) => Prayer.fromJson(item as Map<String, dynamic>))
             .toList();
-        
+
         // Ordenar las oraciones: activas por fecha de creación (más recientes primero),
         // seguidas de las respondidas por fecha de respuesta (más recientes primero)
         _sortPrayers();
@@ -77,7 +78,7 @@ class PrayerProvider with ChangeNotifier {
         _prayers.map((prayer) => prayer.toJson()).toList(),
       );
       await prefs.setString('prayers', prayersJson);
-      
+
       // Backup opcional en archivo JSON
       await _backupPrayersToFile();
     } catch (e) {
@@ -90,11 +91,11 @@ class PrayerProvider with ChangeNotifier {
     try {
       final directory = await getApplicationDocumentsDirectory();
       final file = File('${directory.path}/prayers.json');
-      
+
       final String prayersJson = json.encode(
         _prayers.map((prayer) => prayer.toJson()).toList(),
       );
-      
+
       await file.writeAsString(prayersJson);
     } catch (e) {
       debugPrint('Error backing up prayers to file: $e');
@@ -109,7 +110,7 @@ class PrayerProvider with ChangeNotifier {
       // Primero las activas
       if (a.isActive && !b.isActive) return -1;
       if (!a.isActive && b.isActive) return 1;
-      
+
       // Si ambas tienen el mismo estado
       if (a.isActive && b.isActive) {
         // Ordenar activas por fecha de creación (más recientes primero)
@@ -142,7 +143,7 @@ class PrayerProvider with ChangeNotifier {
       _prayers.add(newPrayer);
       _sortPrayers();
       await _savePrayers();
-      
+
       _errorMessage = null;
       notifyListeners();
     } catch (e) {
@@ -161,7 +162,7 @@ class PrayerProvider with ChangeNotifier {
           status: PrayerStatus.answered,
           answeredDate: DateTime.now(),
         );
-        
+
         _sortPrayers();
         await _savePrayers();
         notifyListeners();
@@ -182,7 +183,7 @@ class PrayerProvider with ChangeNotifier {
           status: PrayerStatus.active,
           answeredDate: null,
         );
-        
+
         _sortPrayers();
         await _savePrayers();
         notifyListeners();
@@ -208,7 +209,7 @@ class PrayerProvider with ChangeNotifier {
         _prayers[prayerIndex] = _prayers[prayerIndex].copyWith(
           text: newText.trim(),
         );
-        
+
         await _savePrayers();
         _errorMessage = null;
         notifyListeners();
@@ -249,7 +250,7 @@ class PrayerProvider with ChangeNotifier {
   Map<String, dynamic> getStats() {
     final now = DateTime.now();
     var oldestActivePrayer = 0;
-    
+
     if (activePrayers.isNotEmpty) {
       oldestActivePrayer = activePrayers
           .map((p) => now.difference(p.createdDate).inDays)

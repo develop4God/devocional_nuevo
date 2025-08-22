@@ -49,7 +49,8 @@ class _HomePageState extends State<HomePage> {
             label: 'Favoritos', // Etiqueta para favoritos
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.favorite_outline), // Icono de corazón para oraciones
+            icon:
+                Icon(Icons.favorite_outline), // Icono de corazón para oraciones
             label: 'Oraciones', // Etiqueta para oraciones
           ),
           BottomNavigationBarItem(

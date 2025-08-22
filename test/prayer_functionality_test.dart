@@ -47,7 +47,8 @@ void main() {
       expect(deserializedPrayer.id, equals(originalPrayer.id));
       expect(deserializedPrayer.text, equals(originalPrayer.text));
       expect(deserializedPrayer.status, equals(originalPrayer.status));
-      expect(deserializedPrayer.createdDate, equals(originalPrayer.createdDate));
+      expect(
+          deserializedPrayer.createdDate, equals(originalPrayer.createdDate));
     });
 
     test('should copy with different values', () {
@@ -73,8 +74,10 @@ void main() {
   group('PrayerStatus Tests', () {
     test('should convert from string correctly', () {
       expect(PrayerStatus.fromString('active'), equals(PrayerStatus.active));
-      expect(PrayerStatus.fromString('answered'), equals(PrayerStatus.answered));
-      expect(PrayerStatus.fromString('invalid'), equals(PrayerStatus.active)); // Default fallback
+      expect(
+          PrayerStatus.fromString('answered'), equals(PrayerStatus.answered));
+      expect(PrayerStatus.fromString('invalid'),
+          equals(PrayerStatus.active)); // Default fallback
     });
 
     test('should convert to string correctly', () {
@@ -95,7 +98,7 @@ void main() {
       // Mock SharedPreferences for testing
       SharedPreferences.setMockInitialValues({});
       prayerProvider = PrayerProvider();
-      
+
       // Wait a bit for initialization
       await Future.delayed(const Duration(milliseconds: 100));
     });
@@ -109,9 +112,9 @@ void main() {
 
     test('should add prayer correctly', () async {
       expect(prayerProvider.prayers, isEmpty);
-      
+
       await prayerProvider.addPrayer('Test prayer');
-      
+
       expect(prayerProvider.prayers, hasLength(1));
       expect(prayerProvider.activePrayers, hasLength(1));
       expect(prayerProvider.answeredPrayers, isEmpty);
@@ -121,7 +124,7 @@ void main() {
 
     test('should not add empty prayer', () async {
       await prayerProvider.addPrayer('   '); // Only whitespace
-      
+
       expect(prayerProvider.prayers, isEmpty);
       expect(prayerProvider.errorMessage, isNotNull);
     });
@@ -129,9 +132,9 @@ void main() {
     test('should mark prayer as answered', () async {
       await prayerProvider.addPrayer('Test prayer');
       final prayerId = prayerProvider.prayers.first.id;
-      
+
       await prayerProvider.markPrayerAsAnswered(prayerId);
-      
+
       expect(prayerProvider.activePrayers, isEmpty);
       expect(prayerProvider.answeredPrayers, hasLength(1));
       expect(prayerProvider.prayers.first.isAnswered, isTrue);
@@ -141,10 +144,10 @@ void main() {
     test('should mark prayer as active again', () async {
       await prayerProvider.addPrayer('Test prayer');
       final prayerId = prayerProvider.prayers.first.id;
-      
+
       await prayerProvider.markPrayerAsAnswered(prayerId);
       await prayerProvider.markPrayerAsActive(prayerId);
-      
+
       expect(prayerProvider.activePrayers, hasLength(1));
       expect(prayerProvider.answeredPrayers, isEmpty);
       expect(prayerProvider.prayers.first.isActive, isTrue);
@@ -154,18 +157,18 @@ void main() {
     test('should edit prayer text', () async {
       await prayerProvider.addPrayer('Original text');
       final prayerId = prayerProvider.prayers.first.id;
-      
+
       await prayerProvider.editPrayer(prayerId, 'Edited text');
-      
+
       expect(prayerProvider.prayers.first.text, equals('Edited text'));
     });
 
     test('should delete prayer', () async {
       await prayerProvider.addPrayer('Prayer to delete');
       final prayerId = prayerProvider.prayers.first.id;
-      
+
       await prayerProvider.deletePrayer(prayerId);
-      
+
       expect(prayerProvider.prayers, isEmpty);
     });
 
@@ -174,9 +177,9 @@ void main() {
       await prayerProvider.addPrayer('Active prayer 2');
       final prayerId = prayerProvider.prayers.first.id;
       await prayerProvider.markPrayerAsAnswered(prayerId);
-      
+
       final stats = prayerProvider.getStats();
-      
+
       expect(stats['total'], equals(2));
       expect(stats['active'], equals(1));
       expect(stats['answered'], equals(1));

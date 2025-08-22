@@ -296,7 +296,8 @@ class _PrayersPageState extends State<PrayersPage>
                         _showEditPrayerModal(context, prayer, prayerProvider);
                         break;
                       case 'delete':
-                        _showDeleteConfirmation(context, prayer, prayerProvider);
+                        _showDeleteConfirmation(
+                            context, prayer, prayerProvider);
                         break;
                     }
                   },
@@ -308,7 +309,8 @@ class _PrayersPageState extends State<PrayersPage>
                           Icon(
                             isActive ? Icons.check_circle : Icons.schedule,
                             size: 20,
-                            color: isActive ? Colors.green : colorScheme.primary,
+                            color:
+                                isActive ? Colors.green : colorScheme.primary,
                           ),
                           const SizedBox(width: 8),
                           Text(isActive
@@ -342,7 +344,7 @@ class _PrayersPageState extends State<PrayersPage>
               ],
             ),
             const SizedBox(height: 12),
-            
+
             // Prayer text
             Text(
               prayer.text,
@@ -352,7 +354,7 @@ class _PrayersPageState extends State<PrayersPage>
               ),
             ),
             const SizedBox(height: 12),
-            
+
             // Footer with dates
             Row(
               children: [
@@ -378,7 +380,7 @@ class _PrayersPageState extends State<PrayersPage>
                 ),
               ],
             ),
-            
+
             if (prayer.answeredDate != null) ...[
               const SizedBox(height: 4),
               Row(

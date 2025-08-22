@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 
 /// Modelo de datos para una oración personal.
 ///
-/// Contiene el ID, texto de la oración, fecha de creación, estado (activa/respondida) 
+/// Contiene el ID, texto de la oración, fecha de creación, estado (activa/respondida)
 /// y fecha de respuesta.
 class Prayer {
   final String id;
