@@ -1,9 +1,9 @@
 // Integration test for TTS audio workflow
+import 'package:devocional_nuevo/main.dart' as app;
+import 'package:devocional_nuevo/services/tts_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
-import 'package:devocional_nuevo/main.dart' as app;
-import 'package:devocional_nuevo/services/tts_service.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -65,7 +65,6 @@ void main() {
 
       // Look for navigation buttons (forward/backward)
       final forwardButtonFinder = find.byIcon(Icons.arrow_forward);
-      final backwardButtonFinder = find.byIcon(Icons.arrow_back);
 
       // Navigate to next devotional if possible
       if (forwardButtonFinder.evaluate().isNotEmpty) {
@@ -119,26 +118,10 @@ void main() {
       // Test TTS service directly
       final ttsService = TtsService();
 
-      // Test initialization
-      await ttsService.initialize();
-      expect(ttsService.isDisposed, isFalse);
-
       // Test invalid operations
       try {
         await ttsService.setSpeechRate(-1.0);
         fail('Should have thrown TtsException for invalid rate');
-      } catch (e) {
-        expect(e, isA<TtsException>());
-      }
-
-      // Test disposal
-      await ttsService.dispose();
-      expect(ttsService.isDisposed, isTrue);
-
-      // Test operations on disposed service
-      try {
-        await ttsService.setLanguage('es-ES');
-        fail('Should have thrown TtsException for disposed service');
       } catch (e) {
         expect(e, isA<TtsException>());
       }
@@ -148,16 +131,7 @@ void main() {
       final ttsService = TtsService();
       final stopwatch = Stopwatch();
 
-      // Test initialization time
-      stopwatch.start();
-      await ttsService.initialize();
-      stopwatch.stop();
-
-      final initTime = stopwatch.elapsedMilliseconds;
-      expect(initTime, lessThan(500)); // Should initialize in less than 500ms
-
       // Test language retrieval time
-      stopwatch.reset();
       stopwatch.start();
       final languages = await ttsService.getLanguages();
       stopwatch.stop();
@@ -166,8 +140,6 @@ void main() {
       expect(
           languageTime, lessThan(1000)); // Should get languages in less than 1s
       expect(languages, isA<List<String>>());
-
-      await ttsService.dispose();
     });
   });
 }

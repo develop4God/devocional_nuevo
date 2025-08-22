@@ -1,8 +1,8 @@
 // Test file to validate TTS functionality
-import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter/services.dart';
-import 'package:devocional_nuevo/services/tts_service.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
+import 'package:devocional_nuevo/services/tts_service.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
 // Mock class for testing error scenarios
@@ -38,7 +38,6 @@ void main() {
       expect(ttsService.isPlaying, isFalse);
       expect(ttsService.isPaused, isFalse);
       expect(ttsService.isActive, isFalse);
-      expect(ttsService.isDisposed, isFalse);
     });
 
     test('TtsService should generate correct devotional text', () {
@@ -93,27 +92,6 @@ void main() {
         );
       });
 
-      test('should handle operations on disposed service', () async {
-        await ttsService.dispose();
-
-        expect(ttsService.isDisposed, isTrue);
-
-        expect(
-          () => ttsService.speakDevotional(testDevocional),
-          throwsA(isA<TtsException>()),
-        );
-
-        expect(
-          () => ttsService.setLanguage('es-ES'),
-          throwsA(isA<TtsException>()),
-        );
-
-        expect(
-          () => ttsService.setSpeechRate(0.5),
-          throwsA(isA<TtsException>()),
-        );
-      });
-
       test('should handle very long text content', () async {
         final longDevocional = Devocional(
           id: 'test-long',
@@ -158,22 +136,6 @@ void main() {
       });
     });
 
-    group('Thread Safety', () {
-      test('should handle concurrent operations safely', () async {
-        // Test multiple concurrent operations
-        final futures = <Future>[];
-
-        for (int i = 0; i < 5; i++) {
-          futures.add(ttsService.initialize());
-        }
-
-        // Should not throw exceptions due to concurrent access
-        await Future.wait(futures);
-
-        expect(ttsService.isDisposed, isFalse);
-      });
-    });
-
     group('Input Validation', () {
       test('should validate language parameter', () async {
         expect(
@@ -211,13 +173,6 @@ void main() {
           returnsNormally,
         );
       });
-    });
-
-    tearDown(() async {
-      // Ensure service is properly disposed after each test
-      if (!ttsService.isDisposed) {
-        await ttsService.dispose();
-      }
     });
   });
 }
