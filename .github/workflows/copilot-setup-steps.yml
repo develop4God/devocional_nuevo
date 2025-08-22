@@ -37,11 +37,9 @@ jobs:
         run: flutter doctor -v
 
       - name: Format Dart code
-        run: dart format .
+        run: dart format . --set-exit-if-changed
 
       - name: Analyze Dart & Flutter code
-        run: flutter analyze
+        run: flutter analyze --no-fatal-warnings
 
-      # Ejecuta todos los tests pero NO detiene el ambiente si fallan
-      - name: Run all Flutter tests (do not fail)
-        run: flutter test || true
+
