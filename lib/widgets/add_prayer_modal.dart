@@ -85,7 +85,7 @@ class _AddPrayerModalState extends State<AddPrayerModal> {
                 onPressed: () => Navigator.of(context).pop(),
                 icon: Icon(
                   Icons.close,
-                  color: colorScheme.onSurface.withOpacity(0.6),
+                  color: colorScheme.onSurface.withValues(alpha: 0.6),
                 ),
               ),
             ],
@@ -96,7 +96,7 @@ class _AddPrayerModalState extends State<AddPrayerModal> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: colorScheme.primary.withOpacity(0.1),
+              color: colorScheme.primary.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
@@ -138,7 +138,7 @@ class _AddPrayerModalState extends State<AddPrayerModal> {
                   ? 'Edita tu oración...'
                   : 'Señor, te pido por...\n\nAyúdame a...\n\nTe agradezco por...',
               hintStyle: textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurface.withOpacity(0.5),
+                color: colorScheme.onSurface.withValues(alpha: 0.5),
                 height: 1.4,
               ),
               border: OutlineInputBorder(
@@ -156,7 +156,7 @@ class _AddPrayerModalState extends State<AddPrayerModal> {
               ),
               contentPadding: const EdgeInsets.all(16),
               counterStyle: textTheme.bodySmall?.copyWith(
-                color: colorScheme.onSurface.withOpacity(0.6),
+                color: colorScheme.onSurface.withValues(alpha: 0.6),
               ),
             ),
           ),
