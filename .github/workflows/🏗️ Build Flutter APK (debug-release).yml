@@ -162,10 +162,10 @@ jobs:
           echo "📋 Verificando archivos de firmado:"
           ls -la android/key.properties android/app/upload-keystore.p12
       - name: 🔍 Debug keystore access
+        if: ${{ github.event.inputs.build_type == 'aab-release' || github.event.inputs.build_type == 'release' }}
         run: |
           echo "Testing keystore access..."
           keytool -list -keystore android/app/upload-keystore.p12 -storetype PKCS12 -storepass "${{ secrets.KEYSTORE_PASSWORD }}"
-          
       - name: 🔧 Configure build.gradle for signing
         if: ${{ github.event.inputs.build_type == 'aab-release' || github.event.inputs.build_type == 'release' }}
         run: |
