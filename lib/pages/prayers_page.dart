@@ -80,72 +80,86 @@ class _PrayersPageState extends State<PrayersPage>
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      appBar: CustomAppBar(
+      appBar: const CustomAppBar(
         titleText: 'Mis Oraciones',
-        bottom: TabBar(
-          controller: _tabController,
-          tabs: const [
-            Tab(
-              icon: Icon(Icons.schedule),
-              text: 'Activas',
-            ),
-            Tab(
-              icon: Icon(Icons.check_circle),
-              text: 'Respondidas',
-            ),
-          ],
-          indicatorColor: colorScheme.onPrimary,
-          labelColor: colorScheme.onPrimary,
-          unselectedLabelColor: colorScheme.onPrimary.withValues(alpha: 0.7),
-        ),
       ),
-      body: Consumer<PrayerProvider>(
-        builder: (context, prayerProvider, child) {
-          if (prayerProvider.isLoading) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
-          }
+      body: Column(
+        children: [
+          // Container para las tabs en la parte blanca
+          Container(
+            color: colorScheme.surface,
+            child: TabBar(
+              controller: _tabController,
+              tabs: const [
+                Tab(
+                  icon: Icon(Icons.schedule),
+                  text: 'Activas',
+                ),
+                Tab(
+                  icon: Icon(Icons.check_circle),
+                  text: 'Respondidas',
+                ),
+              ],
+              // Cambiar colores para fondo blanco
+              indicatorColor: colorScheme.primary,
+              labelColor: colorScheme.primary,
+              unselectedLabelColor:
+                  colorScheme.onSurface.withValues(alpha: 0.6),
+            ),
+          ),
+          // El contenido expandido
+          Expanded(
+            child: Consumer<PrayerProvider>(
+              builder: (context, prayerProvider, child) {
+                if (prayerProvider.isLoading) {
+                  return const Center(
+                    child: CircularProgressIndicator(),
+                  );
+                }
 
-          if (prayerProvider.errorMessage != null) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.error_outline,
-                    size: 64,
-                    color: colorScheme.error,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    prayerProvider.errorMessage!,
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                if (prayerProvider.errorMessage != null) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.error_outline,
+                          size: 64,
                           color: colorScheme.error,
                         ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () {
-                      prayerProvider.clearError();
-                      prayerProvider.refresh();
-                    },
-                    child: const Text('Reintentar'),
-                  ),
-                ],
-              ),
-            );
-          }
+                        const SizedBox(height: 16),
+                        Text(
+                          prayerProvider.errorMessage!,
+                          style:
+                              Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                    color: colorScheme.error,
+                                  ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 16),
+                        ElevatedButton(
+                          onPressed: () {
+                            prayerProvider.clearError();
+                            prayerProvider.refresh();
+                          },
+                          child: const Text('Reintentar'),
+                        ),
+                      ],
+                    ),
+                  );
+                }
 
-          return TabBarView(
-            controller: _tabController,
-            children: [
-              _buildActivePrayersTab(context, prayerProvider),
-              _buildAnsweredPrayersTab(context, prayerProvider),
-            ],
-          );
-        },
+                return TabBarView(
+                  controller: _tabController,
+                  children: [
+                    _buildActivePrayersTab(context, prayerProvider),
+                    _buildAnsweredPrayersTab(context, prayerProvider),
+                  ],
+                );
+              },
+            ),
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showAddPrayerModal(context),
@@ -318,64 +332,76 @@ class _PrayersPageState extends State<PrayersPage>
                   ),
                 ),
                 const Spacer(),
-                PopupMenuButton<String>(
-                  onSelected: (value) {
-                    switch (value) {
-                      case 'toggle_status':
-                        if (isActive) {
-                          prayerProvider.markPrayerAsAnswered(prayer.id);
-                        } else {
-                          prayerProvider.markPrayerAsActive(prayer.id);
-                        }
-                        break;
-                      case 'edit':
-                        _showEditPrayerModal(context, prayer, prayerProvider);
-                        break;
-                      case 'delete':
-                        _showDeleteConfirmation(
-                            context, prayer, prayerProvider);
-                        break;
-                    }
-                  },
-                  itemBuilder: (context) => [
-                    PopupMenuItem(
-                      value: 'toggle_status',
-                      child: Row(
-                        children: [
-                          Icon(
-                            isActive ? Icons.check_circle : Icons.schedule,
-                            size: 20,
-                            color:
-                                isActive ? Colors.green : colorScheme.primary,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(isActive
-                              ? 'Marcar como respondida'
-                              : 'Marcar como activa'),
-                        ],
-                      ),
+                Container(
+                  // Dar más área de toque al botón
+                  padding: const EdgeInsets.all(4),
+                  child: PopupMenuButton<String>(
+                    // Aumentar el área de toque
+                    padding: const EdgeInsets.all(8),
+                    iconSize: 24,
+                    icon: Icon(
+                      Icons.more_vert,
+                      color: colorScheme.onSurface.withValues(alpha: 0.7),
                     ),
-                    const PopupMenuItem(
-                      value: 'edit',
-                      child: Row(
-                        children: [
-                          Icon(Icons.edit, size: 20),
-                          SizedBox(width: 8),
-                          Text('Editar'),
-                        ],
+                    onSelected: (value) {
+                      switch (value) {
+                        case 'toggle_status':
+                          if (isActive) {
+                            prayerProvider.markPrayerAsAnswered(prayer.id);
+                          } else {
+                            prayerProvider.markPrayerAsActive(prayer.id);
+                          }
+                          break;
+                        case 'edit':
+                          _showEditPrayerModal(context, prayer, prayerProvider);
+                          break;
+                        case 'delete':
+                          _showDeleteConfirmation(
+                              context, prayer, prayerProvider);
+                          break;
+                      }
+                    },
+                    itemBuilder: (context) => [
+                      PopupMenuItem(
+                        value: 'toggle_status',
+                        child: Row(
+                          children: [
+                            Icon(
+                              isActive ? Icons.check_circle : Icons.schedule,
+                              size: 20,
+                              color:
+                                  isActive ? Colors.green : colorScheme.primary,
+                            ),
+                            const SizedBox(width: 12), // Más espacio
+                            Text(isActive
+                                ? 'Marcar como respondida'
+                                : 'Marcar como activa'),
+                          ],
+                        ),
                       ),
-                    ),
-                    const PopupMenuItem(
-                      value: 'delete',
-                      child: Row(
-                        children: [
-                          Icon(Icons.delete, size: 20, color: Colors.red),
-                          SizedBox(width: 8),
-                          Text('Eliminar', style: TextStyle(color: Colors.red)),
-                        ],
+                      const PopupMenuItem(
+                        value: 'edit',
+                        child: Row(
+                          children: [
+                            Icon(Icons.edit, size: 20),
+                            SizedBox(width: 12),
+                            Text('Editar'),
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
+                      const PopupMenuItem(
+                        value: 'delete',
+                        child: Row(
+                          children: [
+                            Icon(Icons.delete, size: 20, color: Colors.red),
+                            SizedBox(width: 12),
+                            Text('Eliminar',
+                                style: TextStyle(color: Colors.red)),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),

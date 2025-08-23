@@ -784,16 +784,17 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                         IconButton(
                           tooltip: 'Mis Oraciones',
                           onPressed: _goToPrayers,
-                          icon: Icon(
-                            Icons.favorite_rounded, // Ícono de oración
-                            color: Colors.red.shade300, // Color distintivo
-                            size: 30,
+                          icon: const Icon(
+                            Icons.local_fire_department_outlined,
+                            // Ícono de oración
+                            color: Colors.white, // Color distintivo
+                            size: 35,
                           ),
                         ),
                         // Badge con número de oraciones activas
                         Positioned(
-                          right: 6,
-                          top: 6,
+                          right: 1,
+                          top: 1,
                           child: Consumer<PrayerProvider>(
                             builder: (context, prayerProvider, _) {
                               final activeCount =
@@ -809,14 +810,14 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                   borderRadius: BorderRadius.circular(10),
                                 ),
                                 constraints: const BoxConstraints(
-                                  minWidth: 18,
-                                  minHeight: 18,
+                                  minWidth: 15,
+                                  minHeight: 15,
                                 ),
                                 child: Text(
                                   activeCount.toString(),
                                   style: const TextStyle(
                                     color: Colors.white,
-                                    fontSize: 10,
+                                    fontSize: 7,
                                     fontWeight: FontWeight.bold,
                                   ),
                                   textAlign: TextAlign.center,

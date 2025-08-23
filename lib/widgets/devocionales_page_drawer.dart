@@ -259,7 +259,7 @@ class DevocionalesDrawer extends StatelessWidget {
                     ),
                     // --- Icono alineado + dropdown ---
                     drawerRow(
-                      icon: Icons.menu_book_outlined,
+                      icon: Icons.menu_book_rounded,
                       iconColor: colorScheme.primary,
                       label: DropdownButtonHideUnderline(
                         child: DropdownButton<String>(

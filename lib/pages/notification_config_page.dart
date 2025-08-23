@@ -469,7 +469,8 @@ class _NotificationConfigPageState extends State<NotificationConfigPage> {
               onPressed: (_notificationsEnabled && isConfirmButtonEnabled)
                   ? _confirmSelectedTime
                   : null,
-              icon: Icon(Icons.send,
+              icon: Icon(Icons.schedule_send_outlined,
+                  size: 30, // Agregando la propiedad de tamaño
                   color: (_notificationsEnabled && isConfirmButtonEnabled)
                       ? Colors.white
                       : Colors.white.withAlpha(127)),
