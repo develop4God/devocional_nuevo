@@ -96,7 +96,7 @@ class _PrayersPageState extends State<PrayersPage>
                   text: 'Activas',
                 ),
                 Tab(
-                  icon: Icon(Icons.check_circle),
+                  icon: Icon(Icons.check_circle_outline),
                   text: 'Respondidas',
                 ),
               ],
@@ -316,7 +316,7 @@ class _PrayersPageState extends State<PrayersPage>
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(
-                        isActive ? Icons.schedule : Icons.check_circle,
+                        isActive ? Icons.schedule : Icons.check_circle_outline,
                         size: 16,
                         color: isActive ? colorScheme.primary : Colors.green,
                       ),
@@ -367,7 +367,9 @@ class _PrayersPageState extends State<PrayersPage>
                         child: Row(
                           children: [
                             Icon(
-                              isActive ? Icons.check_circle : Icons.schedule,
+                              isActive
+                                  ? Icons.check_circle_outline
+                                  : Icons.schedule,
                               size: 20,
                               color:
                                   isActive ? Colors.green : colorScheme.primary,
@@ -421,7 +423,7 @@ class _PrayersPageState extends State<PrayersPage>
             Row(
               children: [
                 Icon(
-                  Icons.calendar_today,
+                  Icons.calendar_month_outlined,
                   size: 16,
                   color: colorScheme.onSurface.withValues(alpha: 0.6),
                 ),
@@ -448,7 +450,7 @@ class _PrayersPageState extends State<PrayersPage>
               Row(
                 children: [
                   const Icon(
-                    Icons.check_circle,
+                    Icons.check_circle_outline,
                     size: 16,
                     color: Colors.green,
                   ),

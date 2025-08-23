@@ -7,7 +7,7 @@ import 'package:devocional_nuevo/pages/prayers_page.dart'; // AGREGAR IMPORT
 import 'package:devocional_nuevo/pages/progress_page.dart';
 import 'package:devocional_nuevo/pages/settings_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
-import 'package:devocional_nuevo/providers/prayer_provider.dart'; // AGREGAR IMPORT
+// AGREGAR IMPORT
 import 'package:devocional_nuevo/services/devocionales_tracking.dart';
 import 'package:devocional_nuevo/services/update_service.dart';
 import 'package:devocional_nuevo/widgets/devocionales_page_drawer.dart';
@@ -789,41 +789,6 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                             // Ícono de oración
                             color: Colors.white, // Color distintivo
                             size: 35,
-                          ),
-                        ),
-                        // Badge con número de oraciones activas
-                        Positioned(
-                          right: 1,
-                          top: 1,
-                          child: Consumer<PrayerProvider>(
-                            builder: (context, prayerProvider, _) {
-                              final activeCount =
-                                  prayerProvider.activePrayers.length;
-                              if (activeCount == 0) {
-                                return const SizedBox.shrink();
-                              }
-
-                              return Container(
-                                padding: const EdgeInsets.all(4),
-                                decoration: BoxDecoration(
-                                  color: Colors.red,
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                constraints: const BoxConstraints(
-                                  minWidth: 15,
-                                  minHeight: 15,
-                                ),
-                                child: Text(
-                                  activeCount.toString(),
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 7,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                              );
-                            },
                           ),
                         ),
                       ],
