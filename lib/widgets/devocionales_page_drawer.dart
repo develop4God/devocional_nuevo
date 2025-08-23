@@ -463,7 +463,7 @@ class DevocionalesDrawer extends StatelessWidget {
                               Navigator.of(context).pop(); // Cierra el Drawer
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
-                                  content: Text(
+                                  content: const Text(
                                       'Ya puedes acceder a tu contenido sin internet'),
                                   backgroundColor:
                                       Theme.of(context).colorScheme.primary,

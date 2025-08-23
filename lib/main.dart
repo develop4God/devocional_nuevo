@@ -1,7 +1,6 @@
 import 'dart:developer' as developer;
 
 import 'package:devocional_nuevo/controllers/audio_controller.dart';
-
 // Importa tu runner pero solo para helpers, no para el control de la UI
 import 'package:devocional_nuevo/game_loop_runner.dart' as runner;
 import 'package:devocional_nuevo/pages/settings_page.dart';
@@ -244,7 +243,7 @@ class _AppInitializerState extends State<AppInitializer> {
     }
 
     // App normal
-    return MyApp();
+    return const MyApp();
   }
 }
 

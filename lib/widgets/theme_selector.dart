@@ -59,7 +59,7 @@ class ThemeSelectorCircleGrid extends StatelessWidget {
                       : null,
                 ),
                 child: isSelected
-                    ? Center(
+                    ? const Center(
                         child: Icon(Icons.check, color: Colors.white, size: 24),
                       )
                     : null,
