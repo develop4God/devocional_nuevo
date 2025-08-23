@@ -5,6 +5,53 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
+/// Widget personalizado para el AppBar de la aplicación.
+/// Utiliza los colores y estilos del tema de la app.
+class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
+  final String titleText;
+  final PreferredSizeWidget? bottom;
+
+  const CustomAppBar({
+    super.key,
+    required this.titleText,
+    this.bottom,
+  });
+
+  @override
+  Size get preferredSize {
+    // Calcula la altura total del AppBar con el widget inferior.
+    final double appBarHeight =
+        kToolbarHeight + (bottom?.preferredSize.height ?? 0);
+    return Size.fromHeight(appBarHeight);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Obtiene el tema actual para usar sus colores.
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final textTheme = theme.textTheme;
+
+    return AppBar(
+      title: Text(
+        titleText,
+        style: textTheme.titleLarge?.copyWith(
+          // El color del texto se adapta al color de fondo primario.
+          color: colorScheme.onPrimary,
+        ),
+      ),
+      // El color de fondo del AppBar es el color primario del tema.
+      backgroundColor: colorScheme.primary,
+      iconTheme: IconThemeData(
+        // El color de los iconos se adapta al color del fondo primario.
+        color: colorScheme.onPrimary,
+      ),
+      // Añade el widget inferior (TabBar) si existe.
+      bottom: bottom,
+    );
+  }
+}
+
 class PrayersPage extends StatefulWidget {
   const PrayersPage({super.key});
 
@@ -31,19 +78,10 @@ class _PrayersPageState extends State<PrayersPage>
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Mis Oraciones',
-          style: textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: colorScheme.onSurface,
-          ),
-        ),
-        backgroundColor: colorScheme.surface,
-        elevation: 0,
+      appBar: CustomAppBar(
+        titleText: 'Mis Oraciones',
         bottom: TabBar(
           controller: _tabController,
           tabs: const [
@@ -56,9 +94,9 @@ class _PrayersPageState extends State<PrayersPage>
               text: 'Respondidas',
             ),
           ],
-          indicatorColor: colorScheme.primary,
-          labelColor: colorScheme.primary,
-          unselectedLabelColor: colorScheme.onSurface.withValues(alpha: 0.6),
+          indicatorColor: colorScheme.onPrimary,
+          labelColor: colorScheme.onPrimary,
+          unselectedLabelColor: colorScheme.onPrimary.withValues(alpha: 0.7),
         ),
       ),
       body: Consumer<PrayerProvider>(
@@ -82,9 +120,9 @@ class _PrayersPageState extends State<PrayersPage>
                   const SizedBox(height: 16),
                   Text(
                     prayerProvider.errorMessage!,
-                    style: textTheme.bodyLarge?.copyWith(
-                      color: colorScheme.error,
-                    ),
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          color: colorScheme.error,
+                        ),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 16),
