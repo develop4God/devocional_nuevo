@@ -3,13 +3,13 @@ import 'dart:io' show File;
 
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
-import 'package:devocional_nuevo/pages/prayers_page.dart'; // AGREGAR IMPORT
+import 'package:devocional_nuevo/pages/prayers_page.dart';
 import 'package:devocional_nuevo/pages/progress_page.dart';
 import 'package:devocional_nuevo/pages/settings_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
-// AGREGAR IMPORT
 import 'package:devocional_nuevo/services/devocionales_tracking.dart';
 import 'package:devocional_nuevo/services/update_service.dart';
+import 'package:devocional_nuevo/widgets/add_prayer_modal.dart';
 import 'package:devocional_nuevo/widgets/devocionales_page_drawer.dart';
 import 'package:devocional_nuevo/widgets/tts_player_widget.dart';
 import 'package:flutter/material.dart';
@@ -369,13 +369,21 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     }
   }
 
-  // NUEVA FUNCIÓN: Navegar a PrayersPage
   void _goToPrayers() {
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => const PrayersPage(),
       ),
+    );
+  }
+
+  void _showAddPrayerModal() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => const AddPrayerModal(),
     );
   }
 
@@ -396,6 +404,14 @@ class _DevocionalesPageState extends State<DevocionalesPage>
         ),
         centerTitle: true,
       ),
+      floatingActionButton: FloatingActionButton.small(
+        onPressed: _showAddPrayerModal,
+        backgroundColor: colorScheme.primary,
+        foregroundColor: colorScheme.onPrimary,
+        tooltip: 'Agregar oración',
+        child: const Icon(Icons.add, size: 30),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       body: Consumer<DevocionalProvider>(
         builder: (context, devocionalProvider, child) {
           final List<Devocional> devocionales = devocionalProvider.devocionales;
@@ -536,28 +552,6 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                             style: textTheme.bodyMedium?.copyWith(
                               fontSize: 16,
                               color: colorScheme.onSurface,
-                            ),
-                          ),
-                          // NUEVO: Botón para convertir oración del devocional en oración personal
-                          const SizedBox(height: 15),
-                          Center(
-                            child: OutlinedButton.icon(
-                              onPressed: () {
-                                // Mostrar modal para crear oración basada en el devocional actual
-                                _showCreatePrayerFromDevocional(
-                                    currentDevocional);
-                              },
-                              icon: const Icon(Icons.favorite_border, size: 20),
-                              label:
-                                  const Text('Guardar como oración personal'),
-                              style: OutlinedButton.styleFrom(
-                                foregroundColor: colorScheme.primary,
-                                side: BorderSide(color: colorScheme.primary),
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 20,
-                                  vertical: 10,
-                                ),
-                              ),
                             ),
                           ),
                           const SizedBox(height: 20),
@@ -778,20 +772,14 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                         size: 32,
                       ),
                     ),
-                    // MODIFICADO: Reemplazar el ícono de imagen por oraciones
-                    Stack(
-                      children: [
-                        IconButton(
-                          tooltip: 'Mis Oraciones',
-                          onPressed: _goToPrayers,
-                          icon: const Icon(
-                            Icons.local_fire_department_outlined,
-                            // Ícono de oración
-                            color: Colors.white, // Color distintivo
-                            size: 35,
-                          ),
-                        ),
-                      ],
+                    IconButton(
+                      tooltip: 'Mis Oraciones',
+                      onPressed: _goToPrayers,
+                      icon: const Icon(
+                        Icons.local_fire_department_outlined,
+                        color: Colors.white,
+                        size: 35,
+                      ),
                     ),
                     IconButton(
                       tooltip: 'Compartir como texto',
@@ -851,83 +839,5 @@ class _DevocionalesPageState extends State<DevocionalesPage>
         },
       ),
     );
-  }
-
-  // NUEVA FUNCIÓN: Mostrar modal para crear oración desde devocional
-  void _showCreatePrayerFromDevocional(Devocional devocional) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Crear Oración Personal'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Basado en el devocional de hoy:',
-              style: TextStyle(fontWeight: FontWeight.w500),
-            ),
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Theme.of(context)
-                    .colorScheme
-                    .primary
-                    .withAlpha((0.1 * 255).round()),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: Theme.of(context)
-                      .colorScheme
-                      .primary
-                      .withAlpha((0.3 * 255).round()),
-                ),
-              ),
-              child: Text(
-                devocional.oracion,
-                style: const TextStyle(
-                  fontStyle: FontStyle.italic,
-                  fontSize: 14,
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            const Text(
-              '¿Deseas guardar esta oración en tu lista personal?',
-              style: TextStyle(fontSize: 14),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancelar'),
-          ),
-          ElevatedButton.icon(
-            onPressed: () {
-              Navigator.of(context).pop();
-              // Navegar a PrayersPage y pre-llenar con la oración del devocional
-              _goToPrayersWithPrefilledText(devocional.oracion);
-            },
-            icon: const Icon(Icons.favorite, size: 18),
-            label: const Text('Guardar'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // NUEVA FUNCIÓN: Navegar a PrayersPage con texto prellenado
-  void _goToPrayersWithPrefilledText(String prayerText) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const PrayersPage(),
-      ),
-    ).then((_) {
-      // Después de navegar, podríamos mostrar el modal de agregar oración
-      // Esto requeriría modificar PrayersPage para aceptar un texto inicial
-      // o usar un metodo diferente de comunicación entre páginas
-    });
   }
 }
