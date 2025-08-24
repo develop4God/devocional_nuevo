@@ -18,6 +18,7 @@ class _AddPrayerModalState extends State<AddPrayerModal> {
   final TextEditingController _textController = TextEditingController();
   final FocusNode _focusNode = FocusNode();
   bool _isLoading = false;
+  String? _errorMessage;
 
   @override
   void initState() {
@@ -42,8 +43,12 @@ class _AddPrayerModalState extends State<AddPrayerModal> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme
+        .of(context)
+        .colorScheme;
+    final textTheme = Theme
+        .of(context)
+        .textTheme;
     final mediaQuery = MediaQuery.of(context);
 
     return Container(
@@ -162,13 +167,38 @@ class _AddPrayerModalState extends State<AddPrayerModal> {
           ),
           const SizedBox(height: 24),
 
+          // Widget de error inline
+          if (_errorMessage != null)
+            Container(
+              padding: const EdgeInsets.all(12),
+              margin: const EdgeInsets.only(bottom: 16),
+              decoration: BoxDecoration(
+                color: Colors.red.shade50,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.red.shade200),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.error_outline, color: Colors.red, size: 20),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      _errorMessage!,
+                      style: TextStyle(
+                          color: Colors.red.shade700, fontSize: 14),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
           // Botones de acción
           Row(
             children: [
               Expanded(
                 child: OutlinedButton(
                   onPressed:
-                      _isLoading ? null : () => Navigator.of(context).pop(),
+                  _isLoading ? null : () => Navigator.of(context).pop(),
                   style: OutlinedButton.styleFrom(
                     side: BorderSide(color: colorScheme.outline),
                     padding: const EdgeInsets.symmetric(vertical: 16),
@@ -198,20 +228,20 @@ class _AddPrayerModalState extends State<AddPrayerModal> {
                   ),
                   child: _isLoading
                       ? SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: colorScheme.onPrimary,
-                          ),
-                        )
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: colorScheme.onPrimary,
+                    ),
+                  )
                       : Text(
-                          _isEditing ? 'Guardar' : 'Crear Oración',
-                          style: textTheme.labelLarge?.copyWith(
-                            color: colorScheme.onPrimary,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
+                    _isEditing ? 'Guardar' : 'Crear Oración',
+                    style: textTheme.labelLarge?.copyWith(
+                      color: colorScheme.onPrimary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ),
               ),
             ],
@@ -227,13 +257,22 @@ class _AddPrayerModalState extends State<AddPrayerModal> {
   Future<void> _savePrayer() async {
     final text = _textController.text.trim();
 
+    // Limpiar error previo
+    setState(() {
+      _errorMessage = null;
+    });
+
     if (text.isEmpty) {
-      _showErrorSnackBar('Por favor ingresa el texto de la oración');
+      setState(() {
+        _errorMessage = 'Por favor ingresa el texto de la oración';
+      });
       return;
     }
 
     if (text.length < 10) {
-      _showErrorSnackBar('La oración debe tener al menos 10 caracteres');
+      setState(() {
+        _errorMessage = 'La oración debe tener al menos 10 caracteres';
+      });
       return;
     }
 
@@ -243,7 +282,7 @@ class _AddPrayerModalState extends State<AddPrayerModal> {
 
     try {
       final prayerProvider =
-          Provider.of<PrayerProvider>(context, listen: false);
+      Provider.of<PrayerProvider>(context, listen: false);
 
       if (_isEditing) {
         await prayerProvider.editPrayer(widget.prayerToEdit!.id, text);
@@ -257,8 +296,10 @@ class _AddPrayerModalState extends State<AddPrayerModal> {
         Navigator.of(context).pop();
       }
     } catch (e) {
-      _showErrorSnackBar(
-          'Error al ${_isEditing ? 'actualizar' : 'crear'} la oración');
+      setState(() {
+        _errorMessage =
+        'Error al ${_isEditing ? 'actualizar' : 'crear'} la oración';
+      });
     } finally {
       if (mounted) {
         setState(() {
@@ -268,53 +309,29 @@ class _AddPrayerModalState extends State<AddPrayerModal> {
     }
   }
 
-  void _showErrorSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const Icon(
-              Icons.error_outline,
-              color: Colors.white,
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                message,
-                style: const TextStyle(color: Colors.white),
-              ),
-            ),
-          ],
-        ),
-        backgroundColor: Colors.red,
-        duration: const Duration(seconds: 3),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
-      ),
-    );
-  }
-
   void _showSuccessSnackBar(String message) {
+    final colorScheme = Theme
+        .of(context)
+        .colorScheme;
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
           children: [
-            const Icon(
+            Icon(
               Icons.check_circle_outline,
-              color: Colors.white,
+              color: colorScheme.onSecondary,
             ),
             const SizedBox(width: 8),
             Expanded(
               child: Text(
                 message,
-                style: const TextStyle(color: Colors.white),
+                style: TextStyle(color: colorScheme.onSecondary),
               ),
             ),
           ],
         ),
-        backgroundColor: Colors.green,
+        backgroundColor: colorScheme.secondary,
         duration: const Duration(seconds: 2),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
