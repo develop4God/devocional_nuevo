@@ -3,11 +3,14 @@ import 'dart:io' show File;
 
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
+import 'package:devocional_nuevo/pages/prayers_page.dart';
 import 'package:devocional_nuevo/pages/progress_page.dart';
 import 'package:devocional_nuevo/pages/settings_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/services/devocionales_tracking.dart';
 import 'package:devocional_nuevo/services/update_service.dart';
+import 'package:devocional_nuevo/utils/bubble_constants.dart';
+import 'package:devocional_nuevo/widgets/add_prayer_modal.dart';
 import 'package:devocional_nuevo/widgets/devocionales_page_drawer.dart';
 import 'package:devocional_nuevo/widgets/tts_player_widget.dart';
 import 'package:flutter/material.dart';
@@ -21,8 +24,8 @@ import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../controllers/audio_controller.dart';
+import '../services/spiritual_stats_service.dart';
 
-// Asegura que la clase está correctamente definida:
 class DevocionalesPage extends StatefulWidget {
   final String? initialDevocionalId;
 
@@ -43,7 +46,6 @@ class _DevocionalesPageState extends State<DevocionalesPage>
   final DevocionalesTracking _tracking = DevocionalesTracking();
   final FlutterTts _flutterTts = FlutterTts();
 
-  // FIX: Agregar referencia al AudioController
   AudioController? _audioController;
 
   @override
@@ -52,7 +54,6 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     WidgetsBinding.instance.addObserver(this);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // FIX: Inicializar referencia al AudioController
       _audioController = Provider.of<AudioController>(context, listen: false);
       _tracking.initialize(context);
       _tracking.startCriteriaCheckTimer();
@@ -86,7 +87,6 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     super.dispose();
   }
 
-  // No usar await si no retorna Future, pero en tu definición sí es Future<void>
   Future<void> _stopSpeaking() async {
     await _flutterTts.stop();
     setState(() {});
@@ -108,6 +108,10 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       }
 
       if (devocionalProvider.devocionales.isNotEmpty) {
+        // Registrar visita diaria automática para la racha
+        final spiritualStatsService = SpiritualStatsService();
+        await spiritualStatsService.recordDailyAppVisit();
+
         final prefs = await SharedPreferences.getInstance();
         final int? savedIndex = prefs.getInt(_lastDevocionalIndexKey);
 
@@ -165,7 +169,9 @@ class _DevocionalesPageState extends State<DevocionalesPage>
           devocionalProvider.devocionales[_currentDevocionalIndex];
       _tracking.clearAutoCompletedExcept(currentDevocional.id);
       _tracking.startDevocionalTracking(
-          currentDevocional.id, _scrollController);
+        currentDevocional.id,
+        _scrollController,
+      );
     }
   }
 
@@ -179,10 +185,10 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     final List<Devocional> devocionales = devocionalProvider.devocionales;
 
     if (_currentDevocionalIndex < devocionales.length - 1) {
-      // FIX: Detener el AudioController en lugar de FlutterTts directamente
       if (_audioController != null && _audioController!.isActive) {
         debugPrint(
-            'DevocionalesPage: Stopping AudioController before navigation');
+          'DevocionalesPage: Stopping AudioController before navigation',
+        );
         await _audioController!.stop();
         await Future.delayed(const Duration(milliseconds: 100));
       } else {
@@ -211,10 +217,10 @@ class _DevocionalesPageState extends State<DevocionalesPage>
 
   void _goToPreviousDevocional() async {
     if (_currentDevocionalIndex > 0) {
-      // FIX: Detener el AudioController en lugar de FlutterTts directamente
       if (_audioController != null && _audioController!.isActive) {
         debugPrint(
-            'DevocionalesPage: Stopping AudioController before navigation');
+          'DevocionalesPage: Stopping AudioController before navigation',
+        );
         await _audioController!.stop();
         await Future.delayed(const Duration(milliseconds: 100));
       } else {
@@ -375,6 +381,22 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     }
   }
 
+  void _goToPrayers() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const PrayersPage()),
+    );
+  }
+
+  void _showAddPrayerModal() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => const AddPrayerModal(),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
@@ -392,6 +414,14 @@ class _DevocionalesPageState extends State<DevocionalesPage>
         ),
         centerTitle: true,
       ),
+      floatingActionButton: FloatingActionButton.small(
+        onPressed: _showAddPrayerModal,
+        backgroundColor: colorScheme.primary,
+        foregroundColor: colorScheme.onPrimary,
+        tooltip: 'Agregar oración',
+        child: const Icon(Icons.add, size: 30),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       body: Consumer<DevocionalProvider>(
         builder: (context, devocionalProvider, child) {
           final List<Devocional> devocionales = devocionalProvider.devocionales;
@@ -610,18 +640,19 @@ class _DevocionalesPageState extends State<DevocionalesPage>
           final Color appBarForegroundColor =
               Theme.of(context).appBarTheme.foregroundColor ??
                   colorScheme.onPrimary;
-          final Color? appBarBackgroundColor =
-              Theme.of(context).appBarTheme.backgroundColor;
+          final Color? appBarBackgroundColor = Theme.of(
+            context,
+          ).appBarTheme.backgroundColor;
 
           return Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                decoration: BoxDecoration(
-                  color: Colors.transparent,
+                decoration: const BoxDecoration(color: Colors.transparent),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 4,
                 ),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                 child: Column(
                   children: [
                     Consumer<AudioController>(
@@ -639,9 +670,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                               color: colorScheme.primary,
                             ),
                             if (chunkIndex != null && totalChunks != null)
-                              Padding(
-                                padding: const EdgeInsets.only(top: 2),
-                              ),
+                              const Padding(padding: EdgeInsets.only(top: 2)),
                           ],
                         );
                       },
@@ -656,8 +685,8 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                               onPressed: _currentDevocionalIndex > 0
                                   ? _goToPreviousDevocional
                                   : null,
-                              icon: Icon(Icons.arrow_back_ios, size: 16),
-                              label: Text(
+                              icon: const Icon(Icons.arrow_back_ios, size: 16),
+                              label: const Text(
                                 'Anterior',
                                 style: TextStyle(
                                   fontSize: 14,
@@ -667,8 +696,9 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: _currentDevocionalIndex > 0
                                     ? colorScheme.primary
-                                    : colorScheme.outline
-                                        .withValues(alpha: 0.3),
+                                    : colorScheme.outline.withValues(
+                                        alpha: 0.3,
+                                      ),
                                 foregroundColor: _currentDevocionalIndex > 0
                                     ? Colors.white
                                     : colorScheme.outline,
@@ -697,8 +727,11 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                       devocionales.length - 1
                                   ? _goToNextDevocional
                                   : null,
-                              label: Icon(Icons.arrow_forward_ios, size: 16),
-                              icon: Text(
+                              label: const Icon(
+                                Icons.arrow_forward_ios,
+                                size: 16,
+                              ),
+                              icon: const Text(
                                 'Siguiente',
                                 style: TextStyle(
                                   fontSize: 14,
@@ -709,8 +742,9 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                 backgroundColor: _currentDevocionalIndex <
                                         devocionales.length - 1
                                     ? colorScheme.primary
-                                    : colorScheme.outline
-                                        .withValues(alpha: 0.3),
+                                    : colorScheme.outline.withValues(
+                                        alpha: 0.3,
+                                      ),
                                 foregroundColor: _currentDevocionalIndex <
                                         devocionales.length - 1
                                     ? Colors.white
@@ -750,6 +784,23 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                         color: isFavorite ? Colors.red : Colors.white,
                         size: 32,
                       ),
+                    ),
+                    IconButton(
+                      tooltip: 'Mis Oraciones',
+                      onPressed: () async {
+                        await BubbleUtils.markAsShown(
+                          BubbleUtils.getIconBubbleId(
+                            Icons.local_fire_department_outlined,
+                            'new',
+                          ),
+                        );
+                        _goToPrayers();
+                      },
+                      icon: const Icon(
+                        Icons.local_fire_department_outlined,
+                        color: Colors.white,
+                        size: 35,
+                      ).newIconBadge,
                     ),
                     IconButton(
                       tooltip: 'Compartir como texto',

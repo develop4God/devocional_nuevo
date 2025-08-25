@@ -1,4 +1,6 @@
 // Integration test for TTS audio workflow
+import 'package:devocional_nuevo/main.dart' as app;
+import 'package:devocional_nuevo/services/tts_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';

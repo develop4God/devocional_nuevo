@@ -110,7 +110,7 @@ class _ProgressPageState extends State<ProgressPage>
           children: [
             Container(
               padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: Colors.white,
                 shape: BoxShape.circle,
               ),
@@ -121,7 +121,7 @@ class _ProgressPageState extends State<ProgressPage>
               ),
             ),
             const SizedBox(width: 12),
-            Expanded(
+            const Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
@@ -134,7 +134,7 @@ class _ProgressPageState extends State<ProgressPage>
                       color: Colors.white,
                     ),
                   ),
-                  const SizedBox(height: 2),
+                  SizedBox(height: 2),
                   Text(
                     'Toca cualquier logro para ver información completa',
                     style: TextStyle(
@@ -294,7 +294,7 @@ class _ProgressPageState extends State<ProgressPage>
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.local_fire_department,
                         color: Colors.orange,
                         size: 28,
@@ -523,7 +523,7 @@ class _ProgressPageState extends State<ProgressPage>
         // Última actividad cerca del grid
         Row(
           children: [
-            Icon(
+            const Icon(
               Icons.schedule,
               color: Colors.green,
               size: 16,
@@ -553,8 +553,8 @@ class _ProgressPageState extends State<ProgressPage>
     return Tooltip(
       message: '${achievement.title}\n${achievement.description}',
       triggerMode: TooltipTriggerMode.tap,
-      showDuration: Duration(seconds: 2),
-      textStyle: TextStyle(
+      showDuration: const Duration(seconds: 2),
+      textStyle: const TextStyle(
         fontSize: 14,
         color: Colors.white,
         fontWeight: FontWeight.w500,
@@ -562,7 +562,7 @@ class _ProgressPageState extends State<ProgressPage>
       decoration: BoxDecoration(
         color: isUnlocked ? achievement.color : Colors.grey,
         borderRadius: BorderRadius.circular(8),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
             color: Colors.black26,
             blurRadius: 4,

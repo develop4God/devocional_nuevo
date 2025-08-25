@@ -1,11 +1,13 @@
 // lib/pages/notification_config_page.dart
 
-import 'package:flutter/material.dart';
-import 'package:devocional_nuevo/services/notification_service.dart';
 import 'dart:developer' as developer;
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:devocional_nuevo/services/notification_service.dart';
+
 // NEW IMPORTS for Firebase
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
 
 class NotificationConfigPage extends StatefulWidget {
   const NotificationConfigPage({super.key});
@@ -21,6 +23,7 @@ class _NotificationConfigPageState extends State<NotificationConfigPage> {
 
   bool _notificationsEnabled = false;
   TimeOfDay _selectedTime = const TimeOfDay(hour: 9, minute: 0);
+
   // Nueva variable para la hora seleccionada temporalmente por el usuario
   TimeOfDay? _newlySelectedTime;
   bool _isLoading = true;
@@ -49,7 +52,8 @@ class _NotificationConfigPageState extends State<NotificationConfigPage> {
             backgroundColor:
                 colorScheme.secondary, // Fondo del SnackBar usando secondary
             content: Text(
-              'Error: Usuario no autenticado. Por favor, reinicia la aplicación.', // TEXTO TRADUCIDO
+              'Error: Usuario no autenticado. Por favor, reinicia la aplicación.',
+              // TEXTO TRADUCIDO
               style: TextStyle(
                   color: colorScheme
                       .onSecondary), // Texto del SnackBar usando onSecondary
@@ -155,7 +159,8 @@ class _NotificationConfigPageState extends State<NotificationConfigPage> {
           SnackBar(
             backgroundColor: colorScheme.secondary,
             content: Text(
-              'Error al cargar la configuración: $e', // Corregido el mensaje de error para mostrar 'e'
+              'Error al cargar la configuración: $e',
+              // Corregido el mensaje de error para mostrar 'e'
               style: TextStyle(color: colorScheme.onSecondary),
             ),
           ),
@@ -202,7 +207,8 @@ class _NotificationConfigPageState extends State<NotificationConfigPage> {
           content: Text(
             _notificationsEnabled
                 ? 'Notificaciones activadas.'
-                : 'Notificaciones desactivadas.', // Usando _notificationsEnabled
+                : 'Notificaciones desactivadas.',
+            // Usando _notificationsEnabled
             style: TextStyle(color: colorScheme.onSecondary),
           ),
         ),
@@ -413,7 +419,7 @@ class _NotificationConfigPageState extends State<NotificationConfigPage> {
                 Switch(
                   value: _notificationsEnabled,
                   onChanged: _toggleNotifications,
-                  activeThumbColor: colorScheme.primary,
+                  activeTrackColor: colorScheme.primary,
                 ),
               ],
             ),
@@ -464,7 +470,8 @@ class _NotificationConfigPageState extends State<NotificationConfigPage> {
               onPressed: (_notificationsEnabled && isConfirmButtonEnabled)
                   ? _confirmSelectedTime
                   : null,
-              icon: Icon(Icons.send,
+              icon: Icon(Icons.schedule_send_outlined,
+                  size: 30, // Agregando la propiedad de tamaño
                   color: (_notificationsEnabled && isConfirmButtonEnabled)
                       ? Colors.white
                       : Colors.white.withAlpha(127)),

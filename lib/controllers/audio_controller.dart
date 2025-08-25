@@ -445,7 +445,7 @@ class AudioController extends ChangeNotifier {
       await _ttsService.stop();
 
 // Pequeno delay para asegurar que el estado idle se propague bien
-      await Future.delayed(Duration(milliseconds: 200));
+      await Future.delayed(const Duration(milliseconds: 200));
 
 // Esperar confirmación del estado
       for (int i = 0; i < 10; i++) {

@@ -14,7 +14,7 @@ class BubbleConstants {
   // Colores
   //static const Color newFeatureColor = Color(0xFF4CAF50); verde para nuevo
   static const Color newFeatureColor =
-      Color(0xFFF44336); //rojo temporal para que se vea
+      Color(0xFF4CAF50); //verde neón para nuevo
   static const Color updatedFeatureColor = Color(0xFF2196F3);
   static const Color notificationColor = Color(0xFFFF5722);
 

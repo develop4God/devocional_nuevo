@@ -30,7 +30,7 @@ jobs:
           echo "🔧 Build Type: ${{ github.event.inputs.build_type || 'debug' }}"
           echo "👤 Triggered by: ${{ github.actor }}"
           echo "📅 Timestamp: $(date)"
-      
+
       - name: 📥 Checkout repository
         uses: actions/checkout@v4
         with:
@@ -54,7 +54,7 @@ jobs:
           echo ""
           echo "📋 SHA256 of build.gradle.kts:"
           sha256sum android/app/build.gradle.kts
-      
+
       - name: 🧹 Clear all caches
         run: |
           echo "🧹 Clearing Flutter and Gradle caches..."
@@ -64,7 +64,7 @@ jobs:
           rm -rf android/.gradle/
           rm -rf android/app/build/
           echo "✅ Caches cleared"
-      
+
       - name: 🧹 Sanitize branch name for artifact
         run: |
           BRANCH_NAME="${{ github.event.inputs.branch || 'main' }}"
@@ -72,7 +72,7 @@ jobs:
           echo "CLEAN_BRANCH_NAME=$CLEAN_BRANCH_NAME" >> $GITHUB_ENV
           echo "✅ Original branch: $BRANCH_NAME"
           echo "✅ Sanitized branch: $CLEAN_BRANCH_NAME"
-      
+
       - name: 📋 Verify complete branch content
         run: |
           echo "✅ Current branch: $(git branch --show-current)"
@@ -87,23 +87,23 @@ jobs:
           echo ""
           echo "🔍 Last 3 commits in this branch:"
           git log --oneline -3
-      
+
       - name: ☕ Set up Java
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
-      
+
       - name: 🔧 Set up Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.32.8'  # ← Misma versión que funcionaba hace 1 semana
           channel: stable
           cache: true
-      
+
       - name: 📊 Flutter doctor
         run: flutter doctor -v
-      
+
       - name: 🛠️ Ensure Flutter properties are available
         run: |
           echo "🔧 Generating local.properties..."
@@ -129,10 +129,10 @@ jobs:
             echo "✅ Manual local.properties created:"
             cat android/local.properties
           fi
-      
+
       - name: 📦 Install dependencies
         run: flutter pub get
-      
+
       - name: 🧹 Clean build
         run: flutter clean
 
@@ -180,7 +180,7 @@ jobs:
           else
             echo "✅ Configuración de firmado encontrada en build.gradle.kts"
           fi
-      
+
       - name: 🏗️ Build APK/AAB (${{ github.event.inputs.build_type || 'debug' }})
         run: |
           BUILD_TYPE="${{ github.event.inputs.build_type || 'debug' }}"
@@ -206,7 +206,7 @@ jobs:
           
           echo "APK_PATH=$APK_PATH" >> $GITHUB_ENV
           echo "APK_TYPE=$APK_TYPE" >> $GITHUB_ENV
-      
+
       - name: 🔍 Verify signing (for release builds)
         if: ${{ github.event.inputs.build_type == 'aab-release' || github.event.inputs.build_type == 'release' }}
         run: |
@@ -234,7 +234,7 @@ jobs:
             echo "❌ Archivo no encontrado: $APK_PATH"
             exit 1
           fi
-      
+
       - name: 📋 APK/AAB Info
         run: |
           if [ -f "$APK_PATH" ]; then
@@ -268,14 +268,14 @@ jobs:
           VERSION=$(grep "version:" pubspec.yaml | sed 's/version: //' | tr -d ' ')
           echo "APP_VERSION=$VERSION" >> $GITHUB_ENV
           echo "✅ App version: $VERSION"
-          
+
       - name: 📤 Upload build artifact
         uses: actions/upload-artifact@v4
         with:
           name: app-${{ env.APK_TYPE }}-${{ env.CLEAN_BRANCH_NAME }}-v${{ env.APP_VERSION }}-${{ github.run_number }}
           path: ${{ env.APK_PATH }}
           retention-days: 30
-      
+
       - name: 📝 Build Summary
         run: |
           echo "## 🎉 Build Completed Successfully!" >> $GITHUB_STEP_SUMMARY
@@ -322,7 +322,7 @@ jobs:
         with:
           fetch-depth: 0
           ref: ${{ github.event.inputs.branch }}
-      
+
       - name: 🔍 Branch comparison
         run: |
           echo "## 🔍 Branch Information" >> $GITHUB_STEP_SUMMARY

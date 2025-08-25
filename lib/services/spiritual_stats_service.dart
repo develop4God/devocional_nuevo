@@ -60,6 +60,39 @@ class SpiritualStatsService {
     return prefs.getBool(_jsonBackupEnabledKey) ?? false;
   }
 
+  /// Registrar visita diaria automática al abrir la app
+  Future<void> recordDailyAppVisit() async {
+    final today = DateTime.now();
+    final todayDateOnly = DateTime(today.year, today.month, today.day);
+    final readDates = await _getReadDates();
+
+    final alreadyVisitedToday = readDates.any(
+      (date) =>
+          date.year == today.year &&
+          date.month == today.month &&
+          date.day == today.day,
+    );
+
+    if (!alreadyVisitedToday) {
+      readDates.add(todayDateOnly);
+      await _saveReadDates(readDates);
+
+      // Actualizar racha automáticamente
+      final stats = await getStats();
+      final newStreak = _calculateCurrentStreak(readDates);
+
+      final updatedStats = stats.copyWith(
+        currentStreak: newStreak,
+        longestStreak:
+            newStreak > stats.longestStreak ? newStreak : stats.longestStreak,
+        lastActivityDate: today,
+      );
+
+      await saveStats(updatedStats);
+      debugPrint('Nueva visita diaria registrada. Racha: $newStreak');
+    }
+  }
+
   /// Get current spiritual statistics
   Future<SpiritualStats> getStats() async {
     final prefs = await SharedPreferences.getInstance();
@@ -239,7 +272,7 @@ class SpiritualStatsService {
     }
   }
 
-  /// Record that a devotional was read - con auto-backup inteligente
+  /// Record that a devotional was read - SOLO cuenta devocionales, NO afecta racha
   Future<SpiritualStats> recordDevocionalRead({
     required String devocionalId,
     int? favoritesCount,
@@ -283,41 +316,23 @@ class SpiritualStatsService {
       return stats;
     }
 
-    final today = DateTime.now();
-    final todayDateOnly = DateTime(today.year, today.month, today.day);
-    final readDates = await _getReadDates();
-
-    final alreadyReadToday = readDates.any(
-      (date) =>
-          date.year == today.year &&
-          date.month == today.month &&
-          date.day == today.day,
-    );
-
-    if (!alreadyReadToday) {
-      readDates.add(todayDateOnly);
-      await _saveReadDates(readDates);
-    }
-
+    // Solo registrar último devocional leído (para referencia)
     await prefs.setString(_lastReadDevocionalKey, devocionalId);
     await prefs.setInt(
         _lastReadTimeKey, DateTime.now().millisecondsSinceEpoch ~/ 1000);
 
-    final newStreak = _calculateCurrentStreak(readDates);
     final newReadDevocionalIds = List<String>.from(stats.readDevocionalIds);
     newReadDevocionalIds.add(devocionalId);
 
     final updatedStats = stats.copyWith(
       totalDevocionalesRead: stats.totalDevocionalesRead + 1,
-      currentStreak: newStreak,
-      longestStreak:
-          newStreak > stats.longestStreak ? newStreak : stats.longestStreak,
-      lastActivityDate: today,
+      // NO tocar currentStreak ni longestStreak - se manejan en recordDailyAppVisit
+      lastActivityDate: DateTime.now(),
       favoritesCount: favoritesCount ?? stats.favoritesCount,
       readDevocionalIds: newReadDevocionalIds,
       unlockedAchievements: _updateAchievements(
         stats,
-        newStreak,
+        stats.currentStreak, // Usar racha actual sin modificar
         stats.totalDevocionalesRead + 1,
         favoritesCount ?? stats.favoritesCount,
       ),

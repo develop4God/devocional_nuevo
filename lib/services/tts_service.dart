@@ -134,7 +134,7 @@ class TtsService {
       }
 
       final prefs = await SharedPreferences.getInstance();
-      final language = prefs.getString('tts_language') ?? 'es-MX';
+      final language = prefs.getString('tts_language') ?? 'es-US';
       final rate = prefs.getDouble('tts_rate') ?? 0.5;
 
       debugPrint('🔧 TTS: Loading config - Language: $language, Rate: $rate');
@@ -279,7 +279,7 @@ class TtsService {
 
     final wordCount = chunk.trim().split(RegExp(r'\s+')).length;
     final minTimer = wordCount < 10 ? 2500 : 4000;
-    final maxTimer = 6000;
+    const maxTimer = 6000;
     final estimatedTime = (wordCount * 180).clamp(minTimer, maxTimer);
 
     debugPrint(

@@ -1,4 +1,4 @@
-name: 🚀Flutter CI 
+name: 🚀Flutter CI
 
 on:
   workflow_dispatch:
@@ -183,7 +183,7 @@ jobs:
   build:
     name: 🏗️ Build Apps
     runs-on: ubuntu-latest
-    needs: [analyze, test]  
+    needs: [analyze, test]
     
     strategy:
       matrix:

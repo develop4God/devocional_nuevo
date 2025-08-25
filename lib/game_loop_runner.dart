@@ -77,9 +77,9 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (isGameLoop) {
-      return GameLoopApp();
+      return const GameLoopApp();
     } else {
-      return NormalApp();
+      return const NormalApp();
     }
   }
 }

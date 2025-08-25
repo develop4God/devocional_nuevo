@@ -1,6 +1,6 @@
+import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:devocional_nuevo/providers/devocional_provider.dart';
 
 class OfflineManagerWidget extends StatelessWidget {
   final bool showCompactView;
@@ -100,12 +100,12 @@ class OfflineManagerWidget extends StatelessWidget {
                     ),
                     if (!devocionalProvider.isDownloading)
                       IconButton(
-                        icon: Icon(Icons.close, size: 16),
+                        icon: const Icon(Icons.close, size: 16),
                         onPressed: () =>
                             devocionalProvider.clearDownloadStatus(),
                         padding: EdgeInsets.zero,
                         constraints:
-                            BoxConstraints(minWidth: 24, minHeight: 24),
+                            const BoxConstraints(minWidth: 24, minHeight: 24),
                       ),
                   ],
                 ),
@@ -126,8 +126,8 @@ class OfflineManagerWidget extends StatelessWidget {
                       ? null
                       : () =>
                           _downloadDevocionales(context, devocionalProvider),
-                  icon: Icon(Icons.download),
-                  label: Text('Descargar año actual'),
+                  icon: const Icon(Icons.download),
+                  label: const Text('Descargar año actual'),
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 8),
                   ),
@@ -143,8 +143,8 @@ class OfflineManagerWidget extends StatelessWidget {
                           ? null
                           : () => _downloadDevocionales(
                               context, devocionalProvider),
-                      icon: Icon(Icons.download),
-                      label: Text('Descargar año actual'),
+                      icon: const Icon(Icons.download),
+                      label: const Text('Descargar año actual'),
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 12),
                       ),
@@ -156,8 +156,8 @@ class OfflineManagerWidget extends StatelessWidget {
                       onPressed: devocionalProvider.isDownloading
                           ? null
                           : () => _refreshFromAPI(context, devocionalProvider),
-                      icon: Icon(Icons.refresh),
-                      label: Text('Actualizar'),
+                      icon: const Icon(Icons.refresh),
+                      label: const Text('Actualizar'),
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 12),
                       ),
@@ -220,7 +220,7 @@ class OfflineManagerWidget extends StatelessWidget {
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Contenido actualizado desde el servidor'),
+          content: const Text('Contenido actualizado desde el servidor'),
           backgroundColor: colorScheme.primary,
         ),
       );
