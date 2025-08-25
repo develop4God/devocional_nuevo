@@ -46,6 +46,10 @@ class TtsService {
   bool _isInitialized = false;
   bool _disposed = false;
 
+  // Language context for TTS normalization
+  String _currentLanguage = 'es';
+  String _currentVersion = 'RVR1960';
+
   Stream<TtsState> get stateStream => _stateController.stream;
 
   Stream<double> get progressStream => _progressController.stream;
@@ -59,6 +63,8 @@ class TtsService {
   bool get isPaused => _currentState == TtsState.paused;
 
   bool get isActive => isPlaying || isPaused;
+
+  bool get isDisposed => _disposed;
 
   bool get _isPlatformSupported {
     try {
@@ -398,34 +404,22 @@ class TtsService {
     return reference;
   }
 
-  String _normalizeTtsText(String text) {
+  String _normalizeTtsText(String text, [String? language, String? version]) {
     String normalized = text;
-    final bibleVersions = {
-      'RVR1960': 'Reina Valera mil novecientos sesenta',
-      'RVR60': 'Reina Valera sesenta',
-      'RVR1995': 'Reina Valera mil novecientos noventa y cinco',
-      'RVR09': 'Reina Valera dos mil nueve',
-      'NVI': 'Nueva Versión Internacional',
-      'DHH': 'Dios Habla Hoy',
-      'TLA': 'Traducción en Lenguaje Actual',
-      'NTV': 'Nueva Traducción Viviente',
-      'PDT': 'Palabra de Dios para Todos',
-      'BLP': 'Biblia La Palabra',
-      'CST': 'Castilian',
-      'LBLA': 'La Biblia de las Américas',
-      'NBLH': 'Nueva Biblia Latinoamericana de Hoy',
-      'RVC': 'Reina Valera Contemporánea',
-    };
 
-    bibleVersions.forEach((version, expansion) {
-      if (normalized.contains(version)) {
-        normalized = normalized.replaceAll(version, expansion);
+    // Get Bible version expansions based on language
+    final bibleVersions = _getBibleVersionExpansions(language ?? 'es');
+
+    bibleVersions.forEach((versionKey, expansion) {
+      if (normalized.contains(versionKey)) {
+        normalized = normalized.replaceAll(versionKey, expansion);
       }
     });
 
-    // Formatea solo si la referencia comienza con 1, 2, 3 + libro
-    normalized = formatBibleBook(normalized);
+    // Format ordinals and Bible books
+    normalized = _formatBibleBookForLanguage(normalized, language ?? 'es');
 
+    // Format years (common for all languages)
     normalized = normalized.replaceAllMapped(
       RegExp(r'\b(19\d{2}|20\d{2})\b'),
       (match) {
@@ -569,17 +563,131 @@ class TtsService {
     return normalized;
   }
 
+  // Get Bible version expansions based on language
+  Map<String, String> _getBibleVersionExpansions(String language) {
+    switch (language) {
+      case 'es':
+        return {
+          'RVR1960': 'Reina Valera mil novecientos sesenta',
+          'RVR60': 'Reina Valera sesenta',
+          'RVR1995': 'Reina Valera mil novecientos noventa y cinco',
+          'RVR09': 'Reina Valera dos mil nueve',
+          'NVI': 'Nueva Versión Internacional',
+          'DHH': 'Dios Habla Hoy',
+          'TLA': 'Traducción en Lenguaje Actual',
+          'NTV': 'Nueva Traducción Viviente',
+          'PDT': 'Palabra de Dios para Todos',
+          'BLP': 'Biblia La Palabra',
+          'CST': 'Castilian',
+          'LBLA': 'La Biblia de las Américas',
+          'NBLH': 'Nueva Biblia Latinoamericana de Hoy',
+          'RVC': 'Reina Valera Contemporánea',
+        };
+      case 'en':
+        return {
+          'KJV': 'King James Version',
+          'NIV': 'New International Version',
+        };
+      case 'pt':
+        return {
+          'ARC': 'Almeida Revista e Corrigida',
+          'NVI': 'Nova Versão Internacional',
+        };
+      case 'fr':
+        return {
+          'LSG': 'Louis Segond',
+          'TOB': 'Traduction Oecuménique de la Bible',
+        };
+      default:
+        return {
+          'RVR1960': 'Reina Valera mil novecientos sesenta',
+        };
+    }
+  }
+
+  // Format Bible books with ordinals for different languages
+  String _formatBibleBookForLanguage(String reference, String language) {
+    switch (language) {
+      case 'es':
+        return formatBibleBook(reference);
+      case 'en':
+        return _formatBibleBookEnglish(reference);
+      case 'pt':
+        return _formatBibleBookPortuguese(reference);
+      case 'fr':
+        return _formatBibleBookFrench(reference);
+      default:
+        return formatBibleBook(reference);
+    }
+  }
+
+  String _formatBibleBookEnglish(String reference) {
+    final exp = RegExp(r'^([123])\s+([A-Za-z]+)', caseSensitive: false);
+    final match = exp.firstMatch(reference.trim());
+    if (match != null) {
+      final number = match.group(1)!;
+      final bookName = match.group(2)!;
+
+      final ordinals = {'1': 'First', '2': 'Second', '3': 'Third'};
+      final ordinal = ordinals[number] ?? number;
+
+      return reference.replaceFirst(
+        RegExp('^$number\\s+$bookName', caseSensitive: false),
+        '$ordinal $bookName',
+      );
+    }
+    return reference;
+  }
+
+  String _formatBibleBookPortuguese(String reference) {
+    final exp = RegExp(r'^([123])\s+([A-Za-z]+)', caseSensitive: false);
+    final match = exp.firstMatch(reference.trim());
+    if (match != null) {
+      final number = match.group(1)!;
+      final bookName = match.group(2)!;
+
+      final ordinals = {'1': 'Primeiro', '2': 'Segundo', '3': 'Terceiro'};
+      final ordinal = ordinals[number] ?? number;
+
+      return reference.replaceFirst(
+        RegExp('^$number\\s+$bookName', caseSensitive: false),
+        '$ordinal $bookName',
+      );
+    }
+    return reference;
+  }
+
+  String _formatBibleBookFrench(String reference) {
+    final exp = RegExp(r'^([123])\s+([A-Za-z]+)', caseSensitive: false);
+    final match = exp.firstMatch(reference.trim());
+    if (match != null) {
+      final number = match.group(1)!;
+      final bookName = match.group(2)!;
+
+      final ordinals = {'1': 'Premier', '2': 'Deuxième', '3': 'Troisième'};
+      final ordinal = ordinals[number] ?? number;
+
+      return reference.replaceFirst(
+        RegExp('^$number\\s+$bookName', caseSensitive: false),
+        '$ordinal $bookName',
+      );
+    }
+    return reference;
+  }
+
   List<String> _generateChunks(Devocional devocional) {
     List<String> chunks = [];
 
     if (devocional.versiculo.trim().isNotEmpty) {
-      final normalizedVerse = _normalizeTtsText(devocional.versiculo);
+      final normalizedVerse = _normalizeTtsText(
+          devocional.versiculo, _currentLanguage, _currentVersion);
       chunks.add('Versículo: ${_sanitize(normalizedVerse)}');
     }
 
     if (devocional.reflexion.trim().isNotEmpty) {
       chunks.add('Reflexión:');
-      final reflection = _normalizeTtsText(_sanitize(devocional.reflexion));
+      final reflection = _normalizeTtsText(
+          _sanitize(devocional.reflexion), _currentLanguage, _currentVersion);
       final paragraphs = reflection.split(RegExp(r'\n+'));
 
       for (final paragraph in paragraphs) {
@@ -589,7 +697,8 @@ class TtsService {
             final sentences = trimmed.split(RegExp(r'(?<=[.!?])\s+'));
             String chunkParagraph = '';
             for (final sentence in sentences) {
-              final normalizedSentence = _normalizeTtsText(sentence);
+              final normalizedSentence = _normalizeTtsText(
+                  sentence, _currentLanguage, _currentVersion);
               if (chunkParagraph.length + normalizedSentence.length < 300) {
                 chunkParagraph += '$normalizedSentence ';
               } else {
@@ -601,7 +710,8 @@ class TtsService {
               chunks.add(chunkParagraph.trim());
             }
           } else {
-            chunks.add(_normalizeTtsText(trimmed));
+            chunks.add(
+                _normalizeTtsText(trimmed, _currentLanguage, _currentVersion));
           }
         }
       }
@@ -610,8 +720,10 @@ class TtsService {
     if (devocional.paraMeditar.isNotEmpty) {
       chunks.add('Para Meditar:');
       for (final item in devocional.paraMeditar) {
-        final citation = _normalizeTtsText(_sanitize(item.cita));
-        final text = _normalizeTtsText(_sanitize(item.texto));
+        final citation = _normalizeTtsText(
+            _sanitize(item.cita), _currentLanguage, _currentVersion);
+        final text = _normalizeTtsText(
+            _sanitize(item.texto), _currentLanguage, _currentVersion);
         if (citation.isNotEmpty && text.isNotEmpty) {
           chunks.add('$citation: $text');
         }
@@ -620,7 +732,8 @@ class TtsService {
 
     if (devocional.oracion.trim().isNotEmpty) {
       chunks.add('Oración:');
-      final prayer = _normalizeTtsText(_sanitize(devocional.oracion));
+      final prayer = _normalizeTtsText(
+          _sanitize(devocional.oracion), _currentLanguage, _currentVersion);
       final paragraphs = prayer.split(RegExp(r'\n+'));
 
       for (final paragraph in paragraphs) {
@@ -630,7 +743,8 @@ class TtsService {
             final sentences = trimmed.split(RegExp(r'(?<=[.!?])\s+'));
             String chunkParagraph = '';
             for (final sentence in sentences) {
-              final normalizedSentence = _normalizeTtsText(sentence);
+              final normalizedSentence = _normalizeTtsText(
+                  sentence, _currentLanguage, _currentVersion);
               if (chunkParagraph.length + normalizedSentence.length < 300) {
                 chunkParagraph += '$normalizedSentence ';
               } else {
@@ -642,7 +756,8 @@ class TtsService {
               chunks.add(chunkParagraph.trim());
             }
           } else {
-            chunks.add(_normalizeTtsText(trimmed));
+            chunks.add(
+                _normalizeTtsText(trimmed, _currentLanguage, _currentVersion));
           }
         }
       }
@@ -691,6 +806,10 @@ class TtsService {
   }
 
   // ========== PUBLIC API ==========
+
+  Future<void> initialize() async {
+    await _initialize();
+  }
 
   Future<void> speakDevotional(Devocional devocional) async {
     debugPrint(
@@ -744,7 +863,8 @@ class TtsService {
         await _initialize();
       }
 
-      final normalizedText = _normalizeTtsText(_sanitize(text));
+      final normalizedText =
+          _normalizeTtsText(_sanitize(text), _currentLanguage, _currentVersion);
       if (normalizedText.isEmpty) {
         throw const TtsException('No valid text content to speak');
       }
@@ -842,6 +962,13 @@ class TtsService {
     await _flutterTts.setSpeechRate(clampedRate);
     final prefs = await SharedPreferences.getInstance();
     await prefs.setDouble('tts_rate', clampedRate);
+  }
+
+  // Set language context for TTS normalization
+  void setLanguageContext(String language, String version) {
+    _currentLanguage = language;
+    _currentVersion = version;
+    debugPrint('🌐 TTS: Language context set to $language ($version)');
   }
 
   Future<List<String>> getLanguages() async {

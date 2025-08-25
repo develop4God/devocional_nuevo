@@ -4,7 +4,7 @@ import 'package:devocional_nuevo/pages/prayers_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/providers/theme_provider.dart';
 import 'package:devocional_nuevo/utils/bubble_constants.dart';
-import 'package:devocional_nuevo/utils/theme_constants.dart';
+import 'package:devocional_nuevo/utils/constants.dart';
 import 'package:devocional_nuevo/widgets/theme_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -195,8 +195,8 @@ class DevocionalesDrawer extends StatelessWidget {
     final colorScheme = theme.colorScheme;
     final textTheme = theme.textTheme;
 
-    final versions = ['RVR1960'];
-    appThemeFamilies.keys.toList();
+    // Get available versions for current language
+    final versions = devocionalProvider.availableVersions;
 
     final drawerBackgroundColor = theme.scaffoldBackgroundColor;
 
@@ -246,6 +246,66 @@ class DevocionalesDrawer extends StatelessWidget {
                 ),
                 child: ListView(
                   children: [
+                    // --- Sección Idioma ---
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 5),
+                      child: Text(
+                        'Idioma',
+                        style: textTheme.titleMedium?.copyWith(
+                          color: colorScheme.onSurface,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    // --- Language selection dropdown ---
+                    drawerRow(
+                      icon: Icons.language_outlined,
+                      iconColor: colorScheme.primary,
+                      label: DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          value: devocionalProvider.selectedLanguage,
+                          icon: Icon(
+                            Icons.arrow_drop_down,
+                            color: colorScheme.onSurface,
+                          ),
+                          dropdownColor: colorScheme.surface,
+                          isExpanded: true,
+                          onChanged: (String? newValue) {
+                            if (newValue != null) {
+                              devocionalProvider.setSelectedLanguage(newValue);
+                              Navigator.of(context).pop();
+                            }
+                          },
+                          selectedItemBuilder: (BuildContext context) {
+                            return Constants.supportedLanguages.entries
+                                .map<Widget>((entry) {
+                              return Row(
+                                children: [
+                                  Text(
+                                    entry.value,
+                                    style: TextStyle(
+                                      color: colorScheme.onSurface,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                ],
+                              );
+                            }).toList();
+                          },
+                          items: Constants.supportedLanguages.entries
+                              .map<DropdownMenuItem<String>>((entry) {
+                            return DropdownMenuItem<String>(
+                              value: entry.key,
+                              child: Text(
+                                entry.value,
+                                style: TextStyle(color: colorScheme.onSurface),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 15),
                     // --- Sección Versión Bíblica ---
                     Padding(
                       padding: const EdgeInsets.only(bottom: 5),

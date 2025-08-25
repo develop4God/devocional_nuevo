@@ -43,12 +43,8 @@ class _AddPrayerModalState extends State<AddPrayerModal> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme
-        .of(context)
-        .colorScheme;
-    final textTheme = Theme
-        .of(context)
-        .textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     final mediaQuery = MediaQuery.of(context);
 
     return Container(
@@ -184,8 +180,8 @@ class _AddPrayerModalState extends State<AddPrayerModal> {
                   Expanded(
                     child: Text(
                       _errorMessage!,
-                      style: TextStyle(
-                          color: Colors.red.shade700, fontSize: 14),
+                      style:
+                          TextStyle(color: Colors.red.shade700, fontSize: 14),
                     ),
                   ),
                 ],
@@ -198,7 +194,7 @@ class _AddPrayerModalState extends State<AddPrayerModal> {
               Expanded(
                 child: OutlinedButton(
                   onPressed:
-                  _isLoading ? null : () => Navigator.of(context).pop(),
+                      _isLoading ? null : () => Navigator.of(context).pop(),
                   style: OutlinedButton.styleFrom(
                     side: BorderSide(color: colorScheme.outline),
                     padding: const EdgeInsets.symmetric(vertical: 16),
@@ -228,20 +224,20 @@ class _AddPrayerModalState extends State<AddPrayerModal> {
                   ),
                   child: _isLoading
                       ? SizedBox(
-                    height: 20,
-                    width: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: colorScheme.onPrimary,
-                    ),
-                  )
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: colorScheme.onPrimary,
+                          ),
+                        )
                       : Text(
-                    _isEditing ? 'Guardar' : 'Crear Oración',
-                    style: textTheme.labelLarge?.copyWith(
-                      color: colorScheme.onPrimary,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+                          _isEditing ? 'Guardar' : 'Crear Oración',
+                          style: textTheme.labelLarge?.copyWith(
+                            color: colorScheme.onPrimary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                 ),
               ),
             ],
@@ -282,7 +278,7 @@ class _AddPrayerModalState extends State<AddPrayerModal> {
 
     try {
       final prayerProvider =
-      Provider.of<PrayerProvider>(context, listen: false);
+          Provider.of<PrayerProvider>(context, listen: false);
 
       if (_isEditing) {
         await prayerProvider.editPrayer(widget.prayerToEdit!.id, text);
@@ -298,7 +294,7 @@ class _AddPrayerModalState extends State<AddPrayerModal> {
     } catch (e) {
       setState(() {
         _errorMessage =
-        'Error al ${_isEditing ? 'actualizar' : 'crear'} la oración';
+            'Error al ${_isEditing ? 'actualizar' : 'crear'} la oración';
       });
     } finally {
       if (mounted) {
@@ -310,9 +306,7 @@ class _AddPrayerModalState extends State<AddPrayerModal> {
   }
 
   void _showSuccessSnackBar(String message) {
-    final colorScheme = Theme
-        .of(context)
-        .colorScheme;
+    final colorScheme = Theme.of(context).colorScheme;
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(

@@ -47,6 +47,9 @@ class AudioController extends ChangeNotifier {
   bool get isActive =>
       _currentState == TtsState.playing || _currentState == TtsState.paused;
 
+  // Getter for TTS service to allow language context updates
+  TtsService get ttsService => _ttsService;
+
   /// FIX: Verifica si un devocional específico está activo - LÓGICA CORREGIDA
   bool isDevocionalPlaying(String devocionalId) {
     // FIX CRÍTICO: Leer directamente del servicio para evitar cache stale
