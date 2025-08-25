@@ -30,7 +30,8 @@ class Prayer {
         parsedCreatedDate = DateTime.parse(createdDateString);
       } catch (e) {
         debugPrint(
-            'Error parsing created date: $createdDateString, using DateTime.now(). Error: $e');
+          'Error parsing created date: $createdDateString, using DateTime.now(). Error: $e',
+        );
         parsedCreatedDate = DateTime.now();
       }
     } else {
@@ -44,7 +45,8 @@ class Prayer {
         parsedAnsweredDate = DateTime.parse(answeredDateString);
       } catch (e) {
         debugPrint(
-            'Error parsing answered date: $answeredDateString. Error: $e');
+          'Error parsing answered date: $answeredDateString. Error: $e',
+        );
         parsedAnsweredDate = null;
       }
     }
@@ -58,7 +60,7 @@ class Prayer {
     );
   }
 
-  /// Método toJson para serializar a JSON.
+  /// Metodo toJson para serializar a JSON.
   Map<String, dynamic> toJson() {
     return {
       'id': id,
