@@ -5,25 +5,19 @@
 //notification_service.dart (Ajuste de Permisos)
 
 import 'dart:developer' as developer;
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+// Importaciones para Firebase Cloud Messaging y Firestore
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_timezone/flutter_timezone.dart'; // Used to get local timezone string
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/data/latest_all.dart'
     as tzdata; // Importado con alias tzdata
 import 'package:timezone/timezone.dart' as tz;
-import 'package:flutter_timezone/flutter_timezone.dart'; // Used to get local timezone string
-
-// Importaciones para Firebase Cloud Messaging y Firestore
-import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-
-// Las siguientes importaciones están comentadas porque no se usan en la lógica actual.
-// Si las necesitas para futuros métodos (ej. _downloadAndSaveFile), descomenta.
-// import 'package:http/http.dart' as http;
-// import 'package:path_provider/path_provider.dart';
-// import 'dart:io' as io;
 
 // **INICIO DE MODIFICACIÓN: Nueva función de nivel superior para el background handler**
 // Esta función debe estar fuera de cualquier clase.
@@ -41,7 +35,9 @@ void flutterLocalNotificationsBackgroundHandler(
 
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
+
   factory NotificationService() => _instance;
+
   NotificationService._internal();
 
   final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin =
@@ -329,6 +325,7 @@ class NotificationService {
           error: e);
     }
   }
+
   // **FIN DE MODIFICACIÓN**
 
   // **INICIO DE MODIFICACIÓN: Método _saveUserTimezoneToFirestore comentado**
@@ -498,7 +495,8 @@ class NotificationService {
 
         await _saveNotificationSettingsToFirestore(
           user.uid,
-          currentNotificationsEnabled, // El estado de habilitado actual (sin cambios aquí)
+          currentNotificationsEnabled,
+          // El estado de habilitado actual (sin cambios aquí)
           time, // La nueva hora
           currentUserTimezone, // La zona horaria actual (sin cambios aquí)
         );

@@ -60,6 +60,39 @@ class SpiritualStatsService {
     return prefs.getBool(_jsonBackupEnabledKey) ?? false;
   }
 
+  /// Registrar visita diaria automática al abrir la app
+  Future<void> recordDailyAppVisit() async {
+    final today = DateTime.now();
+    final todayDateOnly = DateTime(today.year, today.month, today.day);
+    final readDates = await _getReadDates();
+
+    final alreadyVisitedToday = readDates.any(
+          (date) =>
+      date.year == today.year &&
+          date.month == today.month &&
+          date.day == today.day,
+    );
+
+    if (!alreadyVisitedToday) {
+      readDates.add(todayDateOnly);
+      await _saveReadDates(readDates);
+
+      // Actualizar racha automáticamente
+      final stats = await getStats();
+      final newStreak = _calculateCurrentStreak(readDates);
+
+      final updatedStats = stats.copyWith(
+        currentStreak: newStreak,
+        longestStreak:
+        newStreak > stats.longestStreak ? newStreak : stats.longestStreak,
+        lastActivityDate: today,
+      );
+
+      await saveStats(updatedStats);
+      debugPrint('Nueva visita diaria registrada. Racha: $newStreak');
+    }
+  }
+
   /// Get current spiritual statistics
   Future<SpiritualStats> getStats() async {
     final prefs = await SharedPreferences.getInstance();
@@ -119,7 +152,9 @@ class SpiritualStatsService {
     try {
       final prefs = await SharedPreferences.getInstance();
       final lastBackupTime = prefs.getInt(_lastBackupTimeKey) ?? 0;
-      final currentTime = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+      final currentTime = DateTime
+          .now()
+          .millisecondsSinceEpoch ~/ 1000;
       final hoursSinceLastBackup = (currentTime - lastBackupTime) / 3600;
 
       // Solo crear backup si han pasado las horas configuradas
@@ -127,7 +162,8 @@ class SpiritualStatsService {
         await _createAutoBackup(stats);
         await prefs.setInt(_lastBackupTimeKey, currentTime);
         debugPrint(
-            'Auto-backup created (${hoursSinceLastBackup.toStringAsFixed(1)} hours since last)');
+            'Auto-backup created (${hoursSinceLastBackup.toStringAsFixed(
+                1)} hours since last)');
       }
     } catch (e) {
       debugPrint('Error in auto-backup check: $e');
@@ -141,7 +177,9 @@ class SpiritualStatsService {
       stats ??= await getStats();
 
       // Crear backup con timestamp
-      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final timestamp = DateTime
+          .now()
+          .millisecondsSinceEpoch;
       final filename = 'spiritual_stats_auto_$timestamp.json';
       final file = File('${directory.path}/$filename');
 
@@ -174,14 +212,14 @@ class SpiritualStatsService {
       final files = directory
           .listSync()
           .where((entity) =>
-              entity is File && entity.path.contains('spiritual_stats_auto_'))
+      entity is File && entity.path.contains('spiritual_stats_auto_'))
           .cast<File>()
           .toList();
 
       if (files.length > _maxBackupFiles) {
         // Ordenar por fecha de modificación (más reciente primero)
         files.sort(
-            (a, b) => b.lastModifiedSync().compareTo(a.lastModifiedSync()));
+                (a, b) => b.lastModifiedSync().compareTo(a.lastModifiedSync()));
 
         // Eliminar los más antiguos
         for (int i = _maxBackupFiles; i < files.length; i++) {
@@ -201,7 +239,7 @@ class SpiritualStatsService {
       final files = directory
           .listSync()
           .where((entity) =>
-              entity is File && entity.path.contains('spiritual_stats_auto_'))
+      entity is File && entity.path.contains('spiritual_stats_auto_'))
           .cast<File>()
           .toList();
 
@@ -239,7 +277,7 @@ class SpiritualStatsService {
     }
   }
 
-  /// Record that a devotional was read - con auto-backup inteligente
+  /// Record that a devotional was read - SOLO cuenta devocionales, NO afecta racha
   Future<SpiritualStats> recordDevocionalRead({
     required String devocionalId,
     int? favoritesCount,
@@ -254,7 +292,8 @@ class SpiritualStatsService {
 
     debugPrint('Devotional read attempt: $devocionalId');
     debugPrint(
-      'Reading time: ${readingTimeSeconds}s, Scroll: ${(scrollPercentage * 100).toStringAsFixed(1)}%',
+      'Reading time: ${readingTimeSeconds}s, Scroll: ${(scrollPercentage * 100)
+          .toStringAsFixed(1)}%',
     );
     debugPrint('Meets criteria: $meetsReadingCriteria');
 
@@ -273,7 +312,9 @@ class SpiritualStatsService {
           'Devotional read but not counting for statistics (criteria not met)');
       await prefs.setString(_lastReadDevocionalKey, devocionalId);
       await prefs.setInt(
-          _lastReadTimeKey, DateTime.now().millisecondsSinceEpoch ~/ 1000);
+          _lastReadTimeKey, DateTime
+          .now()
+          .millisecondsSinceEpoch ~/ 1000);
 
       if (favoritesCount != null) {
         final updatedStats = stats.copyWith(favoritesCount: favoritesCount);
@@ -283,41 +324,25 @@ class SpiritualStatsService {
       return stats;
     }
 
-    final today = DateTime.now();
-    final todayDateOnly = DateTime(today.year, today.month, today.day);
-    final readDates = await _getReadDates();
-
-    final alreadyReadToday = readDates.any(
-      (date) =>
-          date.year == today.year &&
-          date.month == today.month &&
-          date.day == today.day,
-    );
-
-    if (!alreadyReadToday) {
-      readDates.add(todayDateOnly);
-      await _saveReadDates(readDates);
-    }
-
+    // Solo registrar último devocional leído (para referencia)
     await prefs.setString(_lastReadDevocionalKey, devocionalId);
     await prefs.setInt(
-        _lastReadTimeKey, DateTime.now().millisecondsSinceEpoch ~/ 1000);
+        _lastReadTimeKey, DateTime
+        .now()
+        .millisecondsSinceEpoch ~/ 1000);
 
-    final newStreak = _calculateCurrentStreak(readDates);
     final newReadDevocionalIds = List<String>.from(stats.readDevocionalIds);
     newReadDevocionalIds.add(devocionalId);
 
     final updatedStats = stats.copyWith(
       totalDevocionalesRead: stats.totalDevocionalesRead + 1,
-      currentStreak: newStreak,
-      longestStreak:
-          newStreak > stats.longestStreak ? newStreak : stats.longestStreak,
-      lastActivityDate: today,
+      // NO tocar currentStreak ni longestStreak - se manejan en recordDailyAppVisit
+      lastActivityDate: DateTime.now(),
       favoritesCount: favoritesCount ?? stats.favoritesCount,
       readDevocionalIds: newReadDevocionalIds,
       unlockedAchievements: _updateAchievements(
         stats,
-        newStreak,
+        stats.currentStreak, // Usar racha actual sin modificar
         stats.totalDevocionalesRead + 1,
         favoritesCount ?? stats.favoritesCount,
       ),
@@ -326,7 +351,8 @@ class SpiritualStatsService {
     await saveStats(updatedStats);
 
     debugPrint(
-        'Recorded devotional for statistics: $devocionalId, total: ${updatedStats.totalDevocionalesRead}');
+        'Recorded devotional for statistics: $devocionalId, total: ${updatedStats
+            .totalDevocionalesRead}');
     return updatedStats;
   }
 
@@ -353,41 +379,25 @@ class SpiritualStatsService {
       return stats;
     }
 
-    final today = DateTime.now();
-    final todayDateOnly = DateTime(today.year, today.month, today.day);
-    final readDates = await _getReadDates();
-
-    final alreadyReadToday = readDates.any(
-      (date) =>
-          date.year == today.year &&
-          date.month == today.month &&
-          date.day == today.day,
-    );
-
-    if (!alreadyReadToday) {
-      readDates.add(todayDateOnly);
-      await _saveReadDates(readDates);
-    }
-
+    // Solo registrar último devocional escuchado (para referencia)
     await prefs.setString(_lastReadDevocionalKey, devocionalId);
     await prefs.setInt(
-        _lastReadTimeKey, DateTime.now().millisecondsSinceEpoch ~/ 1000);
+        _lastReadTimeKey, DateTime
+        .now()
+        .millisecondsSinceEpoch ~/ 1000);
 
-    final newStreak = _calculateCurrentStreak(readDates);
     final newReadDevocionalIds = List<String>.from(stats.readDevocionalIds);
     newReadDevocionalIds.add(devocionalId);
 
     final updatedStats = stats.copyWith(
       totalDevocionalesRead: stats.totalDevocionalesRead + 1,
-      currentStreak: newStreak,
-      longestStreak:
-          newStreak > stats.longestStreak ? newStreak : stats.longestStreak,
-      lastActivityDate: today,
+      // NO tocar currentStreak ni longestStreak - se manejan en recordDailyAppVisit
+      lastActivityDate: DateTime.now(),
       favoritesCount: favoritesCount ?? stats.favoritesCount,
       readDevocionalIds: newReadDevocionalIds,
       unlockedAchievements: _updateAchievements(
         stats,
-        newStreak,
+        stats.currentStreak, // Usar racha actual sin modificar
         stats.totalDevocionalesRead + 1,
         favoritesCount ?? stats.favoritesCount,
       ),
@@ -485,12 +495,12 @@ class SpiritualStatsService {
       final autoBackups = directory
           .listSync()
           .where((entity) =>
-              entity is File && entity.path.contains('spiritual_stats_auto_'))
+      entity is File && entity.path.contains('spiritual_stats_auto_'))
           .cast<File>()
           .length;
 
       final manualBackupExists =
-          await File('${directory.path}/$_jsonBackupFilename').exists();
+      await File('${directory.path}/$_jsonBackupFilename').exists();
 
       final prefs = await SharedPreferences.getInstance();
       final lastAutoBackup = prefs.getInt(_lastBackupTimeKey);
@@ -504,10 +514,10 @@ class SpiritualStatsService {
             ? DateTime.fromMillisecondsSinceEpoch(lastAutoBackup * 1000)
             : null,
         'next_auto_backup':
-            lastAutoBackup != null && await isAutoBackupEnabled()
-                ? DateTime.fromMillisecondsSinceEpoch(
-                    (lastAutoBackup + _autoBackupIntervalHours * 3600) * 1000)
-                : null,
+        lastAutoBackup != null && await isAutoBackupEnabled()
+            ? DateTime.fromMillisecondsSinceEpoch(
+            (lastAutoBackup + _autoBackupIntervalHours * 3600) * 1000)
+            : null,
       };
     } catch (e) {
       debugPrint('Error getting backup info: $e');
@@ -531,7 +541,11 @@ class SpiritualStatsService {
   Future<List<String>> _getReadDatesAsStrings() async {
     final readDates = await _getReadDates();
     return readDates
-        .map((date) => date.toIso8601String().split('T').first)
+        .map((date) =>
+    date
+        .toIso8601String()
+        .split('T')
+        .first)
         .toList();
   }
 
@@ -546,7 +560,7 @@ class SpiritualStatsService {
   Future<void> _restoreReadDates(List<String> dateStrings) async {
     try {
       final dates =
-          dateStrings.map((dateString) => DateTime.parse(dateString)).toList();
+      dateStrings.map((dateString) => DateTime.parse(dateString)).toList();
       await _saveReadDates(dates);
     } catch (e) {
       debugPrint('Error restoring read dates: $e');
@@ -633,13 +647,13 @@ class SpiritualStatsService {
 
     return dateStrings
         .map((dateString) {
-          try {
-            return DateTime.parse(dateString);
-          } catch (e) {
-            debugPrint('Error parsing read date: $dateString');
-            return null;
-          }
-        })
+      try {
+        return DateTime.parse(dateString);
+      } catch (e) {
+        debugPrint('Error parsing read date: $dateString');
+        return null;
+      }
+    })
         .where((date) => date != null)
         .cast<DateTime>()
         .toList();
@@ -648,7 +662,11 @@ class SpiritualStatsService {
   Future<void> _saveReadDates(List<DateTime> dates) async {
     final prefs = await SharedPreferences.getInstance();
     final List<String> dateStrings =
-        dates.map((date) => date.toIso8601String().split('T').first).toList();
+    dates.map((date) =>
+    date
+        .toIso8601String()
+        .split('T')
+        .first).toList();
     await prefs.setStringList(_readDatesKey, dateStrings);
   }
 
@@ -664,7 +682,7 @@ class SpiritualStatsService {
 
     for (final readDate in readDates) {
       final readDateOnly =
-          DateTime(readDate.year, readDate.month, readDate.day);
+      DateTime(readDate.year, readDate.month, readDate.day);
 
       if (readDateOnly.isAtSameMomentAs(currentDate)) {
         streak++;
@@ -677,19 +695,17 @@ class SpiritualStatsService {
     return streak;
   }
 
-  List<Achievement> _updateAchievements(
-    SpiritualStats currentStats,
-    int newStreak,
-    int totalRead,
-    int favoritesCount,
-  ) {
+  List<Achievement> _updateAchievements(SpiritualStats currentStats,
+      int newStreak,
+      int totalRead,
+      int favoritesCount,) {
     final allAchievements = PredefinedAchievements.all;
     final unlockedAchievements =
-        List<Achievement>.from(currentStats.unlockedAchievements);
+    List<Achievement>.from(currentStats.unlockedAchievements);
 
     for (final achievement in allAchievements) {
       final isAlreadyUnlocked =
-          unlockedAchievements.any((a) => a.id == achievement.id);
+      unlockedAchievements.any((a) => a.id == achievement.id);
 
       if (!isAlreadyUnlocked) {
         bool shouldUnlock = false;
@@ -737,7 +753,7 @@ class SpiritualStatsService {
       final autoBackups = directory
           .listSync()
           .where((entity) =>
-              entity is File && entity.path.contains('spiritual_stats_auto_'))
+      entity is File && entity.path.contains('spiritual_stats_auto_'))
           .cast<File>();
 
       for (final file in autoBackups) {
