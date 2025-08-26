@@ -4,20 +4,20 @@ import 'package:flutter/material.dart';
 class Constants {
   /// FUNCIONES DE GENERACIÓN DE URLS
 
-  // Función unificada que maneja tanto la compatibilidad hacia atrás como los nuevos formatos
-  static String getDevocionalesApiUrl(int year,
-      [String? languageCode, String? versionCode]) {
-    // Si no se especifica idioma o versión, usar el formato original (español)
-    if (languageCode == null || versionCode == null) {
-      return 'https://raw.githubusercontent.com/develop4God/Devocionales-json/refs/heads/main/Devocional_year_$year.json';
-    }
+  // ✅ ORIGINAL METHOD - DO NOT MODIFY (Backward Compatibility)
+  static String getDevocionalesApiUrl(int year) {
+    return 'https://raw.githubusercontent.com/develop4God/Devocionales-json/refs/heads/main/Devocional_year_$year.json';
+  }
 
-    // Compatibilidad hacia atrás para español con RVR1960
+  // ✅ NEW METHOD for multilingual support
+  static String getDevocionalesApiUrlMultilingual(
+      int year, String languageCode, String versionCode) {
+    // Backward compatibility for Spanish RVR1960
     if (languageCode == 'es' && versionCode == 'RVR1960') {
-      return 'https://raw.githubusercontent.com/develop4God/Devocionales-json/refs/heads/main/Devocional_year_$year.json';
+      return getDevocionalesApiUrl(year); // Use original method
     }
 
-    // Nuevo formato para otros idiomas y versiones
+    // New format for other languages/versions
     return 'https://raw.githubusercontent.com/develop4God/Devocionales-json/refs/heads/main/Devocional_year_${year}_${languageCode}_$versionCode.json';
   }
 

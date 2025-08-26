@@ -264,8 +264,9 @@ class DevocionalProvider with ChangeNotifier {
       // Load from API with language and version
       debugPrint(
           'Loading from API for language: $_selectedLanguage, version: $_selectedVersion');
-      final response = await http.get(Uri.parse(Constants.getDevocionalesApiUrl(
-          currentYear, _selectedLanguage, _selectedVersion)));
+      final response = await http.get(Uri.parse(
+          Constants.getDevocionalesApiUrlMultilingual(
+              currentYear, _selectedLanguage, _selectedVersion)));
 
       if (response.statusCode != 200) {
         throw Exception('Failed to load from API: ${response.statusCode}');
@@ -510,7 +511,7 @@ class DevocionalProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      final String url = Constants.getDevocionalesApiUrl(
+      final String url = Constants.getDevocionalesApiUrlMultilingual(
           year, _selectedLanguage, _selectedVersion);
       final response = await http.get(Uri.parse(url));
 

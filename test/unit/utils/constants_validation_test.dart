@@ -56,31 +56,46 @@ void main() {
       }
     });
 
-    test('getDevocionalesApiUrl generates correct URLs', () {
+    test('should maintain backward compatibility - original method unchanged',
+        () {
+      const int testYear = 2025;
+
+      // Test original method for backward compatibility
+      final originalUrl = Constants.getDevocionalesApiUrl(testYear);
+      expect(
+        originalUrl,
+        equals(
+            'https://raw.githubusercontent.com/develop4God/Devocionales-json/refs/heads/main/Devocional_year_$testYear.json'),
+        reason: 'Original method should maintain exact backward compatibility',
+      );
+    });
+
+    test('getDevocionalesApiUrlMultilingual generates correct URLs', () {
       const int testYear = 2025;
 
       // Test Spanish (backward compatibility) - should use original URL format
-      final spanishUrl =
-          Constants.getDevocionalesApiUrl(testYear, 'es', 'RVR1960');
+      final spanishUrl = Constants.getDevocionalesApiUrlMultilingual(
+          testYear, 'es', 'RVR1960');
       expect(
         spanishUrl,
         equals(
             'https://raw.githubusercontent.com/develop4God/Devocionales-json/refs/heads/main/Devocional_year_$testYear.json'),
-        reason: 'Spanish URL should maintain backward compatibility',
+        reason: 'Spanish RVR1960 should maintain backward compatibility',
       );
 
-      // Test Spanish without explicit language/version
-      final defaultUrl = Constants.getDevocionalesApiUrl(testYear);
+      // Test Spanish with NVI - should use new format
+      final spanishNviUrl =
+          Constants.getDevocionalesApiUrlMultilingual(testYear, 'es', 'NVI');
       expect(
-        defaultUrl,
-        equals(spanishUrl),
-        reason:
-            'Default URL should be same as Spanish URL for backward compatibility',
+        spanishNviUrl,
+        equals(
+            'https://raw.githubusercontent.com/develop4God/Devocionales-json/refs/heads/main/Devocional_year_${testYear}_es_NVI.json'),
+        reason: 'Spanish NVI URL should use new format',
       );
 
       // Test English with KJV
       final englishKjvUrl =
-          Constants.getDevocionalesApiUrl(testYear, 'en', 'KJV');
+          Constants.getDevocionalesApiUrlMultilingual(testYear, 'en', 'KJV');
       expect(
         englishKjvUrl,
         equals(
@@ -90,12 +105,32 @@ void main() {
 
       // Test English with NIV
       final englishNivUrl =
-          Constants.getDevocionalesApiUrl(testYear, 'en', 'NIV');
+          Constants.getDevocionalesApiUrlMultilingual(testYear, 'en', 'NIV');
       expect(
         englishNivUrl,
         equals(
             'https://raw.githubusercontent.com/develop4God/Devocionales-json/refs/heads/main/Devocional_year_${testYear}_en_NIV.json'),
         reason: 'English NIV URL should use new format',
+      );
+
+      // Test Portuguese with ARC
+      final portugueseArcUrl =
+          Constants.getDevocionalesApiUrlMultilingual(testYear, 'pt', 'ARC');
+      expect(
+        portugueseArcUrl,
+        equals(
+            'https://raw.githubusercontent.com/develop4God/Devocionales-json/refs/heads/main/Devocional_year_${testYear}_pt_ARC.json'),
+        reason: 'Portuguese ARC URL should use new format',
+      );
+
+      // Test French with LSG
+      final frenchLsgUrl =
+          Constants.getDevocionalesApiUrlMultilingual(testYear, 'fr', 'LSG');
+      expect(
+        frenchLsgUrl,
+        equals(
+            'https://raw.githubusercontent.com/develop4God/Devocionales-json/refs/heads/main/Devocional_year_${testYear}_fr_LSG.json'),
+        reason: 'French LSG URL should use new format',
       );
     });
 
@@ -135,38 +170,28 @@ void main() {
       );
     });
 
-    test('URL generation handles edge cases', () {
+    test('multilingual URL generation handles edge cases', () {
       const int testYear = 2025;
 
-      // Test null language with version
-      final nullLanguageUrl =
-          Constants.getDevocionalesApiUrl(testYear, null, 'NIV');
-      expect(
-        nullLanguageUrl,
-        equals(
-            'https://raw.githubusercontent.com/develop4God/Devocionales-json/refs/heads/main/Devocional_year_$testYear.json'),
-        reason: 'Null language should default to Spanish format',
-      );
-
-      // Test language without version
-      final noVersionUrl = Constants.getDevocionalesApiUrl(testYear, 'en');
-      expect(
-        noVersionUrl,
-        equals(
-            'https://raw.githubusercontent.com/develop4God/Devocionales-json/refs/heads/main/Devocional_year_$testYear.json'),
-        reason:
-            'Missing version should default to backward compatibility format',
-      );
-
-      // Test case sensitivity
+      // Test case sensitivity - language and version codes should be used as-is
       final lowerCaseUrl =
-          Constants.getDevocionalesApiUrl(testYear, 'en', 'kjv');
+          Constants.getDevocionalesApiUrlMultilingual(testYear, 'en', 'kjv');
       expect(
         lowerCaseUrl,
         equals(
             'https://raw.githubusercontent.com/develop4God/Devocionales-json/refs/heads/main/Devocional_year_${testYear}_en_kjv.json'),
         reason:
             'Language and version codes should be used as-is (no case conversion)',
+      );
+
+      // Test different year
+      final differentYearUrl =
+          Constants.getDevocionalesApiUrlMultilingual(2026, 'en', 'NIV');
+      expect(
+        differentYearUrl,
+        equals(
+            'https://raw.githubusercontent.com/develop4God/Devocionales-json/refs/heads/main/Devocional_year_2026_en_NIV.json'),
+        reason: 'URL should work with different years',
       );
     });
 

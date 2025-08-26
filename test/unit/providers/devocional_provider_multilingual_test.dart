@@ -86,18 +86,27 @@ void main() {
       // Test URL generation for different language/version combinations
       const int testYear = 2025;
 
-      // Spanish (backward compatibility) - should use original format
-      final spanishUrl =
-          Constants.getDevocionalesApiUrl(testYear, 'es', 'RVR1960');
+      // Test original method for backward compatibility
+      final originalUrl = Constants.getDevocionalesApiUrl(testYear);
       expect(
-        spanishUrl,
+        originalUrl,
         equals(
             'https://raw.githubusercontent.com/develop4God/Devocionales-json/refs/heads/main/Devocional_year_$testYear.json'),
+        reason: 'Original method should maintain backward compatibility',
+      );
+
+      // Spanish (backward compatibility) - should use original format via multilingual method
+      final spanishUrl = Constants.getDevocionalesApiUrlMultilingual(
+          testYear, 'es', 'RVR1960');
+      expect(
+        spanishUrl,
+        equals(originalUrl),
+        reason: 'Spanish RVR1960 should use backward compatible format',
       );
 
       // Spanish with NVI - should use new format (only RVR1960 gets backward compatibility)
       final spanishNviUrl =
-          Constants.getDevocionalesApiUrl(testYear, 'es', 'NVI');
+          Constants.getDevocionalesApiUrlMultilingual(testYear, 'es', 'NVI');
       expect(
         spanishNviUrl,
         equals(
@@ -106,7 +115,7 @@ void main() {
 
       // English with KJV - should use new format
       final englishKjvUrl =
-          Constants.getDevocionalesApiUrl(testYear, 'en', 'KJV');
+          Constants.getDevocionalesApiUrlMultilingual(testYear, 'en', 'KJV');
       expect(
         englishKjvUrl,
         equals(
@@ -115,7 +124,7 @@ void main() {
 
       // English with NIV - should use new format
       final englishNivUrl =
-          Constants.getDevocionalesApiUrl(testYear, 'en', 'NIV');
+          Constants.getDevocionalesApiUrlMultilingual(testYear, 'en', 'NIV');
       expect(
         englishNivUrl,
         equals(
