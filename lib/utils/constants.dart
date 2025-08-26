@@ -16,7 +16,7 @@ class Constants {
     // Nueva estructura para otros idiomas y versiones
     final String languageCode = language.toUpperCase();
     final String versionCode = version?.toUpperCase() ?? '';
-    return 'https://raw.githubusercontent.com/develop4God/Devocionales-json/refs/heads/main/Devocional_year_$year._${languageCode}_$versionCode.json';
+    return 'https://raw.githubusercontent.com/develop4God/Devocionales-json/refs/heads/main/Devocional_year_$year_${languageCode}_$versionCode.json';
   }
 
   // Idiomas soportados con sus códigos
