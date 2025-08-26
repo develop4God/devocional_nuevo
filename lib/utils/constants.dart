@@ -3,15 +3,22 @@ import 'package:flutter/material.dart';
 /// Clase de constantes globales para devocionales
 class Constants {
   /// FUNCIONES DE GENERACIÓN DE URLS
-  
-  // Lógica vieja: solo año
-  static String getDevocionalesApiUrl(int year) {
-    return 'https://raw.githubusercontent.com/develop4God/Devocionales-json/refs/heads/main/Devocional_year_$year.json';
-  }
 
-  // Nueva lógica: año, idioma y versión (para los nuevos archivos)
-  static String getDevocionalesApiUrlFull(int year, String languageCode, String versionCode) {
-    return 'https://raw.githubusercontent.com/develop4God/Devocionales-json/refs/heads/main/Devocionales_year_${year}_${languageCode}_$versionCode.json';
+  // Función unificada que maneja tanto la compatibilidad hacia atrás como los nuevos formatos
+  static String getDevocionalesApiUrl(int year,
+      [String? languageCode, String? versionCode]) {
+    // Si no se especifica idioma o versión, usar el formato original (español)
+    if (languageCode == null || versionCode == null) {
+      return 'https://raw.githubusercontent.com/develop4God/Devocionales-json/refs/heads/main/Devocional_year_$year.json';
+    }
+
+    // Compatibilidad hacia atrás para español con RVR1960
+    if (languageCode == 'es' && versionCode == 'RVR1960') {
+      return 'https://raw.githubusercontent.com/develop4God/Devocionales-json/refs/heads/main/Devocional_year_$year.json';
+    }
+
+    // Nuevo formato para otros idiomas y versiones
+    return 'https://raw.githubusercontent.com/develop4God/Devocionales-json/refs/heads/main/Devocional_year_${year}_${languageCode}_$versionCode.json';
   }
 
   /// MAPAS DE IDIOMAS Y VERSIONES
@@ -21,20 +28,23 @@ class Constants {
     'es': 'Español',
     'en': 'English',
     'pt': 'Português',
+    'fr': 'Français',
   };
 
   // Versiones de la Biblia disponibles por idioma
   static const Map<String, List<String>> bibleVersionsByLanguage = {
     'es': ['RVR1960', 'NVI'],
     'en': ['KJV', 'NIV'],
-    'pt': ['NVT', 'ARA'],
+    'pt': ['ARC', 'NVI'],
+    'fr': ['LSG', 'TOB'],
   };
 
   // Versión de Biblia por defecto por idioma
   static const Map<String, String> defaultVersionByLanguage = {
     'es': 'RVR1960',
     'en': 'KJV',
-    'pt': 'NVT',
+    'pt': 'ARC',
+    'fr': 'LSG',
   };
 
   /// PREFERENCIAS (SharedPreferences KEYS)

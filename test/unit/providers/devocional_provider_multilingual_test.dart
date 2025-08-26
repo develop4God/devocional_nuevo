@@ -95,13 +95,13 @@ void main() {
             'https://raw.githubusercontent.com/develop4God/Devocionales-json/refs/heads/main/Devocional_year_$testYear.json'),
       );
 
-      // Spanish with NVI - should still use original format
+      // Spanish with NVI - should use new format (only RVR1960 gets backward compatibility)
       final spanishNviUrl =
           Constants.getDevocionalesApiUrl(testYear, 'es', 'NVI');
       expect(
         spanishNviUrl,
         equals(
-            'https://raw.githubusercontent.com/develop4God/Devocionales-json/refs/heads/main/Devocional_year_$testYear.json'),
+            'https://raw.githubusercontent.com/develop4God/Devocionales-json/refs/heads/main/Devocional_year_${testYear}_es_NVI.json'),
       );
 
       // English with KJV - should use new format
@@ -110,7 +110,7 @@ void main() {
       expect(
         englishKjvUrl,
         equals(
-            'https://raw.githubusercontent.com/develop4God/Devocionales-json/refs/heads/main/Devocional_year_$testYear._EN_KJV.json'),
+            'https://raw.githubusercontent.com/develop4God/Devocionales-json/refs/heads/main/Devocional_year_${testYear}_en_KJV.json'),
       );
 
       // English with NIV - should use new format
@@ -119,12 +119,12 @@ void main() {
       expect(
         englishNivUrl,
         equals(
-            'https://raw.githubusercontent.com/develop4God/Devocionales-json/refs/heads/main/Devocional_year_$testYear._EN_NIV.json'),
+            'https://raw.githubusercontent.com/develop4God/Devocionales-json/refs/heads/main/Devocional_year_${testYear}_en_NIV.json'),
       );
 
       // Verify URL format matches expected pattern for non-Spanish languages
-      expect(englishKjvUrl.contains('._EN_KJV.json'), isTrue);
-      expect(englishNivUrl.contains('._EN_NIV.json'), isTrue);
+      expect(englishKjvUrl.contains('_en_KJV.json'), isTrue);
+      expect(englishNivUrl.contains('_en_NIV.json'), isTrue);
     });
 
     test('should return available versions for current language', () {

@@ -84,7 +84,7 @@ void main() {
       expect(
         englishKjvUrl,
         equals(
-            'https://raw.githubusercontent.com/develop4God/Devocionales-json/refs/heads/main/Devocional_year_$testYear._EN_KJV.json'),
+            'https://raw.githubusercontent.com/develop4God/Devocionales-json/refs/heads/main/Devocional_year_${testYear}_en_KJV.json'),
         reason: 'English KJV URL should use new format',
       );
 
@@ -94,7 +94,7 @@ void main() {
       expect(
         englishNivUrl,
         equals(
-            'https://raw.githubusercontent.com/develop4God/Devocionales-json/refs/heads/main/Devocional_year_$testYear._EN_NIV.json'),
+            'https://raw.githubusercontent.com/develop4God/Devocionales-json/refs/heads/main/Devocional_year_${testYear}_en_NIV.json'),
         reason: 'English NIV URL should use new format',
       );
     });
@@ -153,8 +153,9 @@ void main() {
       expect(
         noVersionUrl,
         equals(
-            'https://raw.githubusercontent.com/develop4God/Devocionales-json/refs/heads/main/Devocional_year_$testYear._EN_.json'),
-        reason: 'Missing version should result in empty version code',
+            'https://raw.githubusercontent.com/develop4God/Devocionales-json/refs/heads/main/Devocional_year_$testYear.json'),
+        reason:
+            'Missing version should default to backward compatibility format',
       );
 
       // Test case sensitivity
@@ -163,8 +164,9 @@ void main() {
       expect(
         lowerCaseUrl,
         equals(
-            'https://raw.githubusercontent.com/develop4God/Devocionales-json/refs/heads/main/Devocional_year_$testYear._EN_KJV.json'),
-        reason: 'Language and version codes should be converted to uppercase',
+            'https://raw.githubusercontent.com/develop4God/Devocionales-json/refs/heads/main/Devocional_year_${testYear}_en_kjv.json'),
+        reason:
+            'Language and version codes should be used as-is (no case conversion)',
       );
     });
 
