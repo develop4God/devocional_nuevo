@@ -386,7 +386,7 @@ class _PrayersPageState extends State<PrayersPage>
                           children: [
                             Icon(Icons.edit, size: 20),
                             SizedBox(width: 12),
-                            Text('Editar'),
+                            Text('prayer.edit_prayer'.tr()),
                           ],
                         ),
                       ),
@@ -396,7 +396,7 @@ class _PrayersPageState extends State<PrayersPage>
                           children: [
                             Icon(Icons.delete, size: 20, color: Colors.red),
                             SizedBox(width: 12),
-                            Text('Eliminar',
+                            Text('app.delete'.tr(),
                                 style: TextStyle(color: Colors.red)),
                           ],
                         ),
@@ -501,14 +501,14 @@ class _PrayersPageState extends State<PrayersPage>
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Eliminar oración'),
-        content: const Text(
-          '¿Estás seguro de que quieres eliminar esta oración? Esta acción no se puede deshacer.',
+        title: Text('prayer.delete_prayer'.tr()),
+        content: Text(
+          'prayer.delete_confirmation'.tr(),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancelar'),
+            child: Text('app.cancel'.tr()),
           ),
           TextButton(
             onPressed: () {
@@ -518,7 +518,7 @@ class _PrayersPageState extends State<PrayersPage>
             style: TextButton.styleFrom(
               foregroundColor: Colors.red,
             ),
-            child: const Text('Eliminar'),
+            child: Text('app.delete'.tr()),
           ),
         ],
       ),

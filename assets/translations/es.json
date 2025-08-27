@@ -10,7 +10,8 @@
     "cancel": "Cancelar",
     "ok": "OK",
     "yes": "Sí",
-    "no": "No"
+    "no": "No",
+    "delete": "Eliminar"
   },
   "devotionals": {
     "app_title": "Devocionales Diarios",
@@ -77,7 +78,9 @@
     "edit_prayer_description": "Edita el texto de tu oración personal.",
     "new_prayer_description": "Escribe tu oración o petición personal. Solo tú podrás verla.",
     "edit_placeholder": "Edita tu oración...",
-    "new_placeholder": "Señor, te pido por...\n\nAyúdame a...\n\nTe agradezco por..."
+    "new_placeholder": "Señor, te pido por...\n\nAyúdame a...\n\nTe agradezco por...",
+    "delete_prayer": "Eliminar oración",
+    "delete_confirmation": "¿Estás seguro de que quieres eliminar esta oración? Esta acción no se puede deshacer."
   },
   "settings": {
     "title": "Configuración",
@@ -155,9 +158,8 @@
     "back": "Regresar",
     "error_loading": "Error al cargar las estadísticas",
     "retry": "Reintentar",
-    "current_streak": "Racha Actual"
-  },
-    "title": "Estadísticas Espirituales",
+    "current_streak": "Racha Actual",
+    "stats_title": "Estadísticas Espirituales",
     "devotionals_read": "Devocionales leídos",
     "favorite_count": "Favoritos",
     "reading_streak": "Racha de lectura",
@@ -204,7 +206,11 @@
     "other": "Otros",
     "select_type_error": "Por favor, selecciona un tipo de contacto.",
     "enter_message_error": "Por favor, escribe un mensaje.",
-    "email_subject": "{type} - App Devocionales"
+    "email_subject": "{type} - App Devocionales",
+    "opening_email_client": "Abriendo cliente de correo...",
+    "select_option": "Selecciona una opción",
+    "open_email": "Abrir correo",
+    "visit_website": "Visitar nuestro sitio web"
   },
   "tooltips": {
     "add_prayer": "Agregar oración",
@@ -214,6 +220,7 @@
     "progress": "Progreso",
     "settings": "Configuración"
   },
+  "share": {
     "share_text": "Compartir texto",
     "share_image": "Compartir imagen",
     "share_via": "Compartir a través de",
@@ -247,5 +254,20 @@
     "developed_by": "Desarrollado con ❤️ por Develop4God",
     "terms_copyright": "Términos y Condiciones / Copyright",
     "link_error": "No se pudo abrir el enlace."
+  },
+  "stats": {
+    "title": "Estadísticas Espirituales",
+    "devotionals_read": "Devocionales leídos",
+    "favorite_count": "Favoritos",
+    "reading_streak": "Racha de lectura",
+    "total_reading_time": "Tiempo total de lectura",
+    "achievements": "Logros",
+    "reset_stats": "Reiniciar estadísticas",
+    "reset_confirmation": "¿Estás seguro de que quieres reiniciar todas las estadísticas?",
+    "stats_reset": "Estadísticas reiniciadas",
+    "first_read": "Primera lectura",
+    "first_favorite": "Primer favorito",
+    "dedicated_reader": "Lector dedicado",
+    "achievement_unlocked": "¡Logro desbloqueado!"
   }
 }

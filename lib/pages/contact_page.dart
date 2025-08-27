@@ -87,7 +87,7 @@ class _ContactPageState extends State<ContactPage> {
           // Mostrar mensaje de éxito
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Abriendo cliente de correo...'),
+              content: Text('contact.opening_email_client'.tr()),
               backgroundColor: Colors.green,
             ),
           );
@@ -189,7 +189,7 @@ class _ContactPageState extends State<ContactPage> {
                   _selectedContactOption = newValue;
                 });
               },
-              hint: const Text('Selecciona una opción'),
+              hint: Text('contact.select_option'.tr()),
             ),
             const SizedBox(height: 20),
 
@@ -214,7 +214,7 @@ class _ContactPageState extends State<ContactPage> {
                 onPressed:
                     _sendContactEmail, // MODIFICADO: Llama a _sendContactEmail
                 icon: Icon(Icons.send, color: colorScheme.onPrimary),
-                label: Text('Abrir correo',
+                label: Text('contact.open_email'.tr(),
                     style: TextStyle(color: colorScheme.onPrimary)),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: colorScheme.primary,
@@ -262,7 +262,7 @@ class _ContactPageState extends State<ContactPage> {
             // Sitio web
             ListTile(
               leading: Icon(Icons.language, color: colorScheme.primary),
-              title: Text('Visitar nuestro sitio web',
+              title: Text('contact.visit_website'.tr(),
                   style: TextStyle(color: colorScheme.onSurface)),
               onTap: () async {
                 final Uri webUri = Uri.parse('https://develop4god.github.io/');

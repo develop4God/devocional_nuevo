@@ -1,6 +1,7 @@
 // test/unit/translation_validation_test.dart
 
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -14,20 +15,43 @@ void main() {
     setUpAll(() async {
       TestWidgetsFlutterBinding.ensureInitialized();
 
-      // Load all translation files
-      final spanishJson =
-          await rootBundle.loadString('assets/translations/es.json');
-      final englishJson =
-          await rootBundle.loadString('assets/translations/en.json');
-      final portugueseJson =
-          await rootBundle.loadString('assets/translations/pt.json');
-      final frenchJson =
-          await rootBundle.loadString('assets/translations/fr.json');
+      try {
+        // Load all translation files directly from file system if possible
+        final directory = Directory.current;
+        final spanishFile = File('${directory.path}/assets/translations/es.json');
+        final englishFile = File('${directory.path}/assets/translations/en.json');
+        final portugueseFile = File('${directory.path}/assets/translations/pt.json');
+        final frenchFile = File('${directory.path}/assets/translations/fr.json');
 
-      spanishTranslations = json.decode(spanishJson);
-      englishTranslations = json.decode(englishJson);
-      portugueseTranslations = json.decode(portugueseJson);
-      frenchTranslations = json.decode(frenchJson);
+        if (await spanishFile.exists()) {
+          final spanishJson = await spanishFile.readAsString();
+          final englishJson = await englishFile.readAsString();
+          final portugueseJson = await portugueseFile.readAsString();
+          final frenchJson = await frenchFile.readAsString();
+
+          spanishTranslations = json.decode(spanishJson);
+          englishTranslations = json.decode(englishJson);
+          portugueseTranslations = json.decode(portugueseJson);
+          frenchTranslations = json.decode(frenchJson);
+        } else {
+          throw Exception('Files not found, falling back to rootBundle');
+        }
+      } catch (e) {
+        // Fallback to rootBundle if file system access fails
+        final spanishJson =
+            await rootBundle.loadString('assets/translations/es.json');
+        final englishJson =
+            await rootBundle.loadString('assets/translations/en.json');
+        final portugueseJson =
+            await rootBundle.loadString('assets/translations/pt.json');
+        final frenchJson =
+            await rootBundle.loadString('assets/translations/fr.json');
+
+        spanishTranslations = json.decode(spanishJson);
+        englishTranslations = json.decode(englishJson);
+        portugueseTranslations = json.decode(portugueseJson);
+        frenchTranslations = json.decode(frenchJson);
+      }
     });
 
     test('All translation files should have same key structure', () {
