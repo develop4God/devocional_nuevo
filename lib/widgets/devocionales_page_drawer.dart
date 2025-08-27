@@ -259,7 +259,7 @@ class DevocionalesDrawer extends StatelessWidget {
                     ),
                     // --- Icono alineado + dropdown ---
                     drawerRow(
-                      icon: Icons.menu_book_rounded,
+                      icon: Icons.auto_stories_outlined,
                       iconColor: colorScheme.primary,
                       label: DropdownButtonHideUnderline(
                         child: DropdownButton<String>(
@@ -329,7 +329,7 @@ class DevocionalesDrawer extends StatelessWidget {
                     const SizedBox(height: 5),
                     // --- Mis oraciones ---
                     drawerRow(
-                      icon: Icons.favorite_outline,
+                      icon: Icons.assignment_turned_in_outlined,
                       iconColor: colorScheme.primary,
                       label: Text(
                         'drawer.my_prayers'.tr(),
