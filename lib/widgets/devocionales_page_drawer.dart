@@ -61,7 +61,7 @@ class DevocionalesDrawer extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Esta descarga se realiza una sola vez. Permite acceder a los devocionales y versículos sin conexión a internet/offline.',
+                  'drawer.download_dialog_content'.tr(),
                   style: textTheme.bodyMedium?.copyWith(
                     color: colorScheme.onSurface,
                   ),
@@ -88,7 +88,7 @@ class DevocionalesDrawer extends StatelessWidget {
                         Navigator.of(dialogContext).pop();
                       },
                       child: Text(
-                        'Cancelar',
+                        'drawer.cancel'.tr(),
                         style: TextStyle(color: colorScheme.onSurface),
                       ),
                     ),
@@ -232,7 +232,7 @@ class DevocionalesDrawer extends StatelessWidget {
                       onPressed: () {
                         Navigator.of(context).pop();
                       },
-                      tooltip: 'Cerrar',
+                      tooltip: 'drawer.close'.tr(),
                     ),
                   ),
                 ],
@@ -250,7 +250,7 @@ class DevocionalesDrawer extends StatelessWidget {
                     Padding(
                       padding: const EdgeInsets.only(bottom: 5),
                       child: Text(
-                        'Idioma',
+                        'drawer.language_section'.tr(),
                         style: textTheme.titleMedium?.copyWith(
                           color: colorScheme.onSurface,
                           fontWeight: FontWeight.w600,
@@ -392,7 +392,7 @@ class DevocionalesDrawer extends StatelessWidget {
                       icon: Icons.favorite_outline,
                       iconColor: colorScheme.primary,
                       label: Text(
-                        'Mis oraciones',
+                        'drawer.my_prayers'.tr(),
                         style: textTheme.bodyMedium?.copyWith(
                           fontSize: 16,
                           color: colorScheme.onSurface,
@@ -416,8 +416,8 @@ class DevocionalesDrawer extends StatelessWidget {
                       iconColor: colorScheme.primary,
                       label: Text(
                         themeProvider.currentBrightness == Brightness.dark
-                            ? 'Luz alta (modo claro)'
-                            : 'Luz baja (modo oscuro)',
+                            ? 'drawer.light_mode'.tr()
+                            : 'drawer.dark_mode'.tr(),
                         style: textTheme.bodyMedium?.copyWith(
                           fontSize: 15,
                           color: colorScheme.onSurface,
@@ -446,7 +446,7 @@ class DevocionalesDrawer extends StatelessWidget {
                       icon: Icons.notifications_active_outlined,
                       iconColor: colorScheme.primary,
                       label: Text(
-                        'Configuración de notificaciones',
+                        'drawer.notifications_config'.tr(),
                         style: textTheme.bodyMedium?.copyWith(
                           fontSize: 16,
                           color: colorScheme.onSurface,
@@ -508,8 +508,8 @@ class DevocionalesDrawer extends StatelessWidget {
                               const SizedBox(height: 4),
                               Text(
                                 hasLocalData
-                                    ? 'Disfruta contenido sin internet'
-                                    : 'Para uso sin internet',
+                                    ? 'drawer.offline_content_ready'.tr()
+                                    : 'drawer.for_offline_use'.tr(),
                                 style: textTheme.bodySmall?.copyWith(
                                   color: colorScheme.onSurface.withAlpha(150),
                                 ),
@@ -523,8 +523,8 @@ class DevocionalesDrawer extends StatelessWidget {
                               Navigator.of(context).pop(); // Cierra el Drawer
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
-                                  content: const Text(
-                                      'Ya puedes acceder a tu contenido sin internet'),
+                                  content:
+                                      Text('drawer.offline_access_ready'.tr()),
                                   backgroundColor:
                                       Theme.of(context).colorScheme.primary,
                                   duration: const Duration(seconds: 2),
@@ -562,7 +562,7 @@ class DevocionalesDrawer extends StatelessWidget {
                               const SizedBox(width: 12),
                               Expanded(
                                 child: Text(
-                                  'Seleciona color de tema',
+                                  'drawer.select_theme_color'.tr(),
                                   style: textTheme.bodyMedium?.copyWith(
                                     fontSize: 16,
                                     color: colorScheme.onSurface,

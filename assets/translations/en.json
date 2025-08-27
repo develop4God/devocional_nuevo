@@ -151,5 +151,24 @@
     "retry_download": "Retry download",
     "storage_permission": "Storage permission",
     "storage_permission_message": "Storage permission needed to download files"
+  },
+  "about": {
+    "title": "About your app",
+    "app_name": "Christian Devotionals",
+    "version": "Version",
+    "loading_version": "Loading...",
+    "description": "Christian Devotionals brings daily inspiration directly to your phone. Enjoy updated biblical messages, explore, save your favorites, share the word and customize your reading experience.",
+    "main_features": "Main Features:",
+    "feature_daily": "• Daily Devotionals",
+    "feature_multiversion": "• Multi-Version Support",
+    "feature_favorites": "• Favorites",
+    "feature_sharing": "• Share Content",
+    "feature_language": "• Language Customization",
+    "feature_themes": "• Customizable Themes",
+    "feature_dark_light": "• Dark and Light Themes",
+    "feature_notifications": "• Notification Options",
+    "developed_by": "Developed with ❤️ by Develop4God",
+    "terms_copyright": "Terms and Conditions / Copyright",
+    "link_error": "Could not open the link."
   }
 }

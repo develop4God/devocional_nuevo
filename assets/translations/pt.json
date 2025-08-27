@@ -151,5 +151,24 @@
     "retry_download": "Tentar download novamente",
     "storage_permission": "Permissão de armazenamento",
     "storage_permission_message": "Permissão de armazenamento necessária para baixar arquivos"
+  },
+  "about": {
+    "title": "Sobre o seu app",
+    "app_name": "Devocionais Cristãos",
+    "version": "Versão",
+    "loading_version": "Carregando...",
+    "description": "Devocionais Cristãos traz inspiração diária diretamente ao seu telefone. Desfrute de mensagens bíblicas atualizadas, explore, salve seus favoritos, compartilhe a palavra e personalize sua experiência de leitura.",
+    "main_features": "Principais Recursos:",
+    "feature_daily": "• Devocionais Diários",
+    "feature_multiversion": "• Suporte Multi-Versão",
+    "feature_favorites": "• Favoritos",
+    "feature_sharing": "• Compartilhar Conteúdo",
+    "feature_language": "• Personalização de Idioma",
+    "feature_themes": "• Temas Personalizáveis",
+    "feature_dark_light": "• Temas Escuro e Claro",
+    "feature_notifications": "• Opções de Notificação",
+    "developed_by": "Desenvolvido com ❤️ por Develop4God",
+    "terms_copyright": "Termos e Condições / Copyright",
+    "link_error": "Não foi possível abrir o link."
   }
 }

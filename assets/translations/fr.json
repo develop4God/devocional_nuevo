@@ -151,5 +151,24 @@
     "retry_download": "Réessayer le téléchargement",
     "storage_permission": "Permission de stockage",
     "storage_permission_message": "Permission de stockage nécessaire pour télécharger les fichiers"
+  },
+  "about": {
+    "title": "À propos de votre app",
+    "app_name": "Dévotionnels Chrétiens",
+    "version": "Version",
+    "loading_version": "Chargement...",
+    "description": "Dévotionnels Chrétiens apporte l'inspiration quotidienne directement à votre téléphone. Profitez de messages bibliques mis à jour, explorez, sauvegardez vos favoris, partagez la parole et personnalisez votre expérience de lecture.",
+    "main_features": "Caractéristiques Principales:",
+    "feature_daily": "• Dévotionnels Quotidiens",
+    "feature_multiversion": "• Support Multi-Version",
+    "feature_favorites": "• Favoris",
+    "feature_sharing": "• Partager le Contenu",
+    "feature_language": "• Personnalisation de la Langue",
+    "feature_themes": "• Thèmes Personnalisables",
+    "feature_dark_light": "• Thèmes Sombre et Clair",
+    "feature_notifications": "• Options de Notification",
+    "developed_by": "Développé avec ❤️ par Develop4God",
+    "terms_copyright": "Termes et Conditions / Copyright",
+    "link_error": "Impossible d'ouvrir le lien."
   }
 }

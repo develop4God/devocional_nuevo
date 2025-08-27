@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:devocional_nuevo/extensions/string_extensions.dart';
 
 class AboutPage extends StatefulWidget {
   const AboutPage({super.key});
@@ -12,7 +13,7 @@ class AboutPage extends StatefulWidget {
 }
 
 class _AboutPageState extends State<AboutPage> {
-  String _appVersion = 'Cargando...';
+  String _appVersion = 'about.loading_version'.tr();
 
   @override
   void initState() {
@@ -52,7 +53,7 @@ class _AboutPageState extends State<AboutPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Acerca de tu app',
+          'about.title'.tr(),
           style: TextStyle(
               color: Theme.of(context)
                   .appBarTheme
@@ -86,7 +87,7 @@ class _AboutPageState extends State<AboutPage> {
 
             // Nombre de la Aplicación
             Text(
-              'Devocionales Cristianos',
+              'about.app_name'.tr(),
               style: textTheme.headlineMedium?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: colorScheme.primary, // Usa el color primario de tu tema
@@ -109,7 +110,7 @@ class _AboutPageState extends State<AboutPage> {
 
             // Descripción de la Aplicación
             Text(
-              'Devocionales Cristianos te trae inspiración diaria directamente a tu teléfono. Disfruta de mensajes bíblicos actualizados, explora, guarda tus favoritos, comparte la palabra y personaliza tu experiencia de lectura.',
+              'about.description'.tr(),
               style: textTheme.bodyLarge?.copyWith(
                   color: colorScheme
                       .onSurface), // MODIFICADO: Añadido colorScheme.onSurface
@@ -127,19 +128,19 @@ class _AboutPageState extends State<AboutPage> {
               textAlign: TextAlign.center, // centrado
             ),
             const SizedBox(height: 10),
-            const Column(
+            Column(
               // Añadido 'const' para mejorar el rendimiento
               crossAxisAlignment: CrossAxisAlignment.start,
               // Los ítems de características ya están alineados a la izquierda
               children: <Widget>[
-                _FeatureItem(text: '• Devocionales Diarios'),
-                _FeatureItem(text: '• Soporte Multi-Versión'),
-                _FeatureItem(text: '• Favoritos'),
-                _FeatureItem(text: '• Compartir Contenido'),
-                _FeatureItem(text: '• Personalización de Idioma'),
-                _FeatureItem(text: '• Temas personalizables'),
-                _FeatureItem(text: '• Temas Oscuro y Claro'),
-                _FeatureItem(text: '• Opciones de Notificación'),
+                _FeatureItem(text: 'about.feature_daily'.tr()),
+                _FeatureItem(text: 'about.feature_multiversion'.tr()),
+                _FeatureItem(text: 'about.feature_favorites'.tr()),
+                _FeatureItem(text: 'about.feature_sharing'.tr()),
+                _FeatureItem(text: 'about.feature_language'.tr()),
+                _FeatureItem(text: 'about.feature_themes'.tr()),
+                _FeatureItem(text: 'about.feature_dark_light'.tr()),
+                _FeatureItem(text: 'about.feature_notifications'.tr()),
               ],
             ),
             const SizedBox(height: 30),
@@ -148,7 +149,7 @@ class _AboutPageState extends State<AboutPage> {
             Center(
               // Envuelve el texto con Center para centrarlo horizontalmente
               child: Text(
-                'Desarrollado con ❤️ por Develop4God',
+                'about.developed_by'.tr(),
                 style: textTheme.bodyMedium?.copyWith(
                   color: colorScheme
                       .onSurface, // MODIFICADO: de Colors.grey[700] a colorScheme.onSurface
