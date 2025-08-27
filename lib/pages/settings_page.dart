@@ -1,10 +1,11 @@
 import 'dart:developer' as developer;
 
+import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/pages/about_page.dart';
 import 'package:devocional_nuevo/pages/contact_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
-import 'package:devocional_nuevo/providers/theme_provider.dart';
-import 'package:devocional_nuevo/utils/theme_constants.dart';
+import 'package:devocional_nuevo/providers/localization_provider.dart';
+import 'package:devocional_nuevo/utils/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -18,7 +19,6 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
-  String _selectedLanguage = 'es'; // Idioma por defecto
   double _ttsSpeed = 0.4; // Velocidad de TTS por defecto
 
   @override
@@ -109,16 +109,15 @@ class _SettingsPageState extends State<SettingsPage> {
 
   @override
   Widget build(BuildContext context) {
-    Provider.of<ThemeProvider>(context);
+    final localizationProvider = Provider.of<LocalizationProvider>(context);
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
     final TextTheme textTheme = Theme.of(context).textTheme;
-    appThemeFamilies.keys.toList();
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Configuraciones',
-          style: TextStyle(color: Colors.white),
+        title: Text(
+          'settings.title'.tr(),
+          style: const TextStyle(color: Colors.white),
         ),
       ),
       body: Padding(
@@ -131,24 +130,20 @@ class _SettingsPageState extends State<SettingsPage> {
               child: Align(
                 alignment: Alignment.topRight,
                 child: OutlinedButton.icon(
-                  // Se cambia a OutlinedButton.icon
                   onPressed: _launchPaypal,
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: colorScheme.onSurface, // Color del texto
+                    foregroundColor: colorScheme.onSurface,
                     side: BorderSide(
                       color: colorScheme.primary,
-                      // Color del borde del tema principal
                       width: 2.0,
                     ),
                     shape: RoundedRectangleBorder(
-                      borderRadius:
-                          BorderRadius.circular(20.0), // Bordes redondeados
+                      borderRadius: BorderRadius.circular(20.0),
                     ),
                   ),
                   icon: Icon(Icons.favorite_border, color: colorScheme.primary),
-                  // Icono de corazón
                   label: Text(
-                    'Donar',
+                    'Donar', // Keep as is for now, can be translated later
                     style: textTheme.bodyMedium?.copyWith(
                       color: colorScheme.onSurface,
                       fontWeight: FontWeight.bold,
@@ -159,13 +154,14 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
             ),
             const SizedBox(height: 20),
-            // Sección para seleccionar el idioma
+
+            // Language Selection Section
             Row(
               children: [
                 Icon(Icons.language, color: colorScheme.primary),
                 const SizedBox(width: 10),
                 Text(
-                  'Idioma:',
+                  'settings.language'.tr(),
                   style: textTheme.bodyMedium?.copyWith(
                     fontSize: 16,
                     color: colorScheme.onSurface,
@@ -173,40 +169,121 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
                 const SizedBox(width: 10),
                 DropdownButton<String>(
-                  value: _selectedLanguage,
-                  items: const [
-                    DropdownMenuItem(value: 'es', child: Text('Español')),
-                  ],
-                  onChanged: (String? newValue) {
-                    if (newValue != null) {
-                      setState(() {
-                        _selectedLanguage = newValue;
-                        developer.log('Idioma cambiado a: $_selectedLanguage',
-                            name: 'SettingsPage');
-                      });
+                  value: localizationProvider.currentLocale.languageCode,
+                  items: localizationProvider
+                      .getAvailableLanguages()
+                      .entries
+                      .map((entry) {
+                    return DropdownMenuItem(
+                      value: entry.key,
+                      child: Text(entry.value),
+                    );
+                  }).toList(),
+                  onChanged: (String? newLanguage) async {
+                    if (newLanguage != null) {
+                      await localizationProvider.changeLanguage(newLanguage);
+
+                      // Update DevocionalProvider with new language
+                      final devocionalProvider =
+                          Provider.of<DevocionalProvider>(context,
+                              listen: false);
+                      devocionalProvider.setSelectedLanguage(newLanguage);
+
+                      developer.log('Language changed to: $newLanguage',
+                          name: 'SettingsPage');
+
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('settings.language_changed'.tr()),
+                            duration: const Duration(seconds: 2),
+                          ),
+                        );
+                      }
                     }
                   },
                 ),
               ],
             ),
+
             const SizedBox(height: 20),
-            // Sección para configuración de Audio/TTS
+
+            // Bible Version Selection
+            if (Constants.bibleVersionsByLanguage
+                .containsKey(localizationProvider.currentLocale.languageCode))
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.book, color: colorScheme.primary),
+                      const SizedBox(width: 10),
+                      Text(
+                        'settings.bible_version'.tr(),
+                        style: textTheme.bodyMedium?.copyWith(
+                          fontSize: 16,
+                          color: colorScheme.onSurface,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Consumer<DevocionalProvider>(
+                        builder: (context, devocionalProvider, child) {
+                          final versions = Constants.bibleVersionsByLanguage[
+                                  localizationProvider
+                                      .currentLocale.languageCode] ??
+                              [];
+
+                          return DropdownButton<String>(
+                            value: devocionalProvider.selectedVersion,
+                            items: versions.map((version) {
+                              return DropdownMenuItem(
+                                value: version,
+                                child: Text(version),
+                              );
+                            }).toList(),
+                            onChanged: (String? newVersion) async {
+                              if (newVersion != null) {
+                                devocionalProvider
+                                    .setSelectedVersion(newVersion);
+
+                                if (mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content:
+                                          Text('settings.version_changed'.tr()),
+                                      duration: const Duration(seconds: 2),
+                                    ),
+                                  );
+                                }
+                              }
+                            },
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                ],
+              ),
+
+            // Audio/TTS Configuration Section
             Text(
-              'Configuración de Audio',
+              'settings.audio_settings'.tr(),
               style: textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: colorScheme.primary,
               ),
             ),
             const SizedBox(height: 15),
-            // Velocidad de voz
+
+            // Reading Speed
             Row(
               children: [
                 Icon(Icons.speed, color: colorScheme.primary),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    'Velocidad de lectura:',
+                    'settings.tts_speed'.tr(),
                     style: textTheme.bodyMedium
                         ?.copyWith(fontSize: 16, color: colorScheme.onSurface),
                   ),
@@ -231,10 +308,10 @@ class _SettingsPageState extends State<SettingsPage> {
                 await devocionalProvider.setTtsSpeechRate(value);
               },
             ),
-            // Información adicional
-            const SizedBox(
-              height: 10,
-            ),
+
+            const SizedBox(height: 10),
+
+            // Contact Information
             InkWell(
               onTap: () {
                 Navigator.push(
