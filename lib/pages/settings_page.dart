@@ -177,29 +177,34 @@ class _SettingsPageState extends State<SettingsPage> {
                     );
                   }).toList(),
                   onChanged: (String? newLanguage) async {
-                    if (newLanguage != null) {
+                    if (newLanguage != null && mounted) {
+                      // Capture context before async gap
+                      final currentContext = context;
                       await localizationProvider.changeLanguage(newLanguage);
 
                       // Update DevocionalProvider with new language
-                      final devocionalProvider =
-                          Provider.of<DevocionalProvider>(context,
-                              listen: false);
-                      devocionalProvider.setSelectedLanguage(newLanguage);
-
-                      // Automatically set the default version for the new language
-                      final defaultVersion =
-                          Constants.defaultVersionByLanguage[newLanguage];
-                      if (defaultVersion != null) {
-                        devocionalProvider.setSelectedVersion(defaultVersion);
-                      }
-
-                      developer.log('Language changed to: $newLanguage',
-                          name: 'SettingsPage');
-                      developer.log('Version changed to: $defaultVersion',
-                          name: 'SettingsPage');
-
                       if (mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
+                        // ignore: use_build_context_synchronously
+                        final devocionalProvider =
+                            // ignore: use_build_context_synchronously
+                            Provider.of<DevocionalProvider>(currentContext,
+                                listen: false);
+                        devocionalProvider.setSelectedLanguage(newLanguage);
+
+                        // Automatically set the default version for the new language
+                        final defaultVersion =
+                            Constants.defaultVersionByLanguage[newLanguage];
+                        if (defaultVersion != null) {
+                          devocionalProvider.setSelectedVersion(defaultVersion);
+                        }
+
+                        developer.log('Language changed to: $newLanguage',
+                            name: 'SettingsPage');
+                        developer.log('Version changed to: $defaultVersion',
+                            name: 'SettingsPage');
+
+                        // ignore: use_build_context_synchronously
+                        ScaffoldMessenger.of(currentContext).showSnackBar(
                           SnackBar(
                             content: Text('settings.language_changed'.tr()),
                             duration: const Duration(seconds: 2),
@@ -232,7 +237,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   // Update provider with correct version
                   WidgetsBinding.instance.addPostFrameCallback((_) {
                     if (currentVersion != null) {
-                      devocionalProvider.setSelectedVersion(currentVersion!);
+                      devocionalProvider.setSelectedVersion(currentVersion);
                     }
                   });
                 }

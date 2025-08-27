@@ -10,6 +10,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 void main() {
   group('Progress Page Overflow Tests', () {
     setUp(() {
+      // Initialize Flutter binding for tests
+      TestWidgetsFlutterBinding.ensureInitialized();
       // Initialize SharedPreferences mock for each test
       SharedPreferences.setMockInitialValues({});
     });

@@ -10,15 +10,15 @@ class Constants {
   }
 
   // ✅ NEW METHOD for multilingual support
-  static String getDevocionalesApiUrlMultilingual(int year, String languageCode,
-      String versionCode) {
+  static String getDevocionalesApiUrlMultilingual(
+      int year, String languageCode, String versionCode) {
     // Backward compatibility for Spanish RVR1960
     if (languageCode == 'es' && versionCode == 'RVR1960') {
       return getDevocionalesApiUrl(year); // Use original method
     }
 
     // New format for other languages/versions
-    return 'https://raw.githubusercontent.com/develop4God/Devocionales-json/refs/heads/main/Devocionales_${year}_${languageCode}_$versionCode.json';
+    return 'https://raw.githubusercontent.com/develop4God/Devocionales-json/refs/heads/main/Devocional_year_${year}_${languageCode}_$versionCode.json';
   }
 
   /// MAPAS DE IDIOMAS Y VERSIONES
