@@ -380,7 +380,7 @@ class _PrayersPageState extends State<PrayersPage>
                           ],
                         ),
                       ),
-                      const PopupMenuItem(
+                      PopupMenuItem(
                         value: 'edit',
                         child: Row(
                           children: [
@@ -390,7 +390,7 @@ class _PrayersPageState extends State<PrayersPage>
                           ],
                         ),
                       ),
-                      const PopupMenuItem(
+                      PopupMenuItem(
                         value: 'delete',
                         child: Row(
                           children: [

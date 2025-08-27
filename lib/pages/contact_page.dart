@@ -86,7 +86,7 @@ class _ContactPageState extends State<ContactPage> {
         if (mounted) {
           // Mostrar mensaje de éxito
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
+            SnackBar(
               content: Text('contact.opening_email_client'.tr()),
               backgroundColor: Colors.green,
             ),

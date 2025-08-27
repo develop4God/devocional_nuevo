@@ -18,10 +18,14 @@ void main() {
       try {
         // Load all translation files directly from file system if possible
         final directory = Directory.current;
-        final spanishFile = File('${directory.path}/assets/translations/es.json');
-        final englishFile = File('${directory.path}/assets/translations/en.json');
-        final portugueseFile = File('${directory.path}/assets/translations/pt.json');
-        final frenchFile = File('${directory.path}/assets/translations/fr.json');
+        final spanishFile =
+            File('${directory.path}/assets/translations/es.json');
+        final englishFile =
+            File('${directory.path}/assets/translations/en.json');
+        final portugueseFile =
+            File('${directory.path}/assets/translations/pt.json');
+        final frenchFile =
+            File('${directory.path}/assets/translations/fr.json');
 
         if (await spanishFile.exists()) {
           final spanishJson = await spanishFile.readAsString();
