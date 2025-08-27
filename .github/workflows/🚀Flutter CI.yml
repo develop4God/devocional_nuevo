@@ -19,18 +19,19 @@ on:
         type: boolean
 
   pull_request:
-    branches: [ "main","develop"]
+    branches: [ "main", "develop" ]
 
 jobs:
   analyze:
     name: 📊 Static Analysis
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          ref: ${{ github.event.inputs.target_branch || github.ref_name }}
 
       - name: ☕ Setup Java
         uses: actions/setup-java@v4
@@ -61,20 +62,9 @@ jobs:
                 echo "📋 Files that were formatted:"
                 git diff --name-only
                 git add .
-                git commit -m "🎨 Auto-format code with dart format [skip ci]" 
-                # Detect branch name robustly (handles detached HEAD)
-                CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-                if [ "$CURRENT_BRANCH" = "HEAD" ]; then
-                  if [ -n "${GITHUB_HEAD_REF}" ]; then
-                    CURRENT_BRANCH="${GITHUB_HEAD_REF}"
-                  elif [ -n "${GITHUB_REF_NAME}" ]; then
-                    CURRENT_BRANCH="${GITHUB_REF_NAME}"
-                  else
-                    echo "❌ No branch name detected for push! Aborting push."
-                    exit 1
-                  fi
-                fi
-                git push origin "$CURRENT_BRANCH"
+                git commit -m "🎨 Auto-format code with dart format [skip ci]"
+                BRANCH="${{ github.event.inputs.target_branch || github.ref_name }}"
+                git push origin "$BRANCH"
                 echo "✅ Code has been automatically formatted and committed!"
                 echo "🔄 Contributors should pull the latest changes."
                 echo "## 🎨 Auto-Format Summary" >> $GITHUB_STEP_SUMMARY
@@ -84,7 +74,7 @@ jobs:
                 echo "" >> $GITHUB_STEP_SUMMARY
                 echo "🔄 **Action Required**: Pull the latest changes to your local branch:" >> $GITHUB_STEP_SUMMARY
                 echo '```bash' >> $GITHUB_STEP_SUMMARY
-                echo "git pull origin $CURRENT_BRANCH" >> $GITHUB_STEP_SUMMARY
+                echo "git pull origin $BRANCH" >> $GITHUB_STEP_SUMMARY
                 echo '```' >> $GITHUB_STEP_SUMMARY
               else
                 echo "ℹ️ No changes were needed after formatting."
@@ -104,6 +94,7 @@ jobs:
           else
             echo "✅ All files are already properly formatted!"
           fi
+
       - name: 🧹 Remove unused imports (dart fix)
         run: |
           echo "🧹 Eliminando imports no usados y aplicando fixes automáticos..."
@@ -113,19 +104,8 @@ jobs:
             git config --local user.name "GitHub Action [bot]"
             git add .
             git commit -m "🧹 Remove unused imports and auto-fix code [skip ci]"
-            # Detect branch name robustly (handles detached HEAD)
-            CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-            if [ "$CURRENT_BRANCH" = "HEAD" ]; then
-              if [ -n "${GITHUB_HEAD_REF}" ]; then
-                CURRENT_BRANCH="${GITHUB_HEAD_REF}"
-              elif [ -n "${GITHUB_REF_NAME}" ]; then
-                CURRENT_BRANCH="${GITHUB_REF_NAME}"
-              else
-                echo "❌ No branch name detected for push! Aborting push."
-                exit 1
-              fi
-            fi
-            git push origin "$CURRENT_BRANCH"
+            BRANCH="${{ github.event.inputs.target_branch || github.ref_name }}"
+            git push origin "$BRANCH"
             echo "✅ Imports limpios y fixes aplicados!"
             echo "## 🧹 Import Cleanup Summary" >> $GITHUB_STEP_SUMMARY
             echo "✅ Unused imports and automatic fixes were applied." >> $GITHUB_STEP_SUMMARY
@@ -134,11 +114,12 @@ jobs:
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "🔄 **Action Required**: Pull the latest changes to your local branch:" >> $GITHUB_STEP_SUMMARY
             echo '```bash' >> $GITHUB_STEP_SUMMARY
-            echo "git pull origin $CURRENT_BRANCH" >> $GITHUB_STEP_SUMMARY
+            echo "git pull origin $BRANCH" >> $GITHUB_STEP_SUMMARY
             echo '```' >> $GITHUB_STEP_SUMMARY
           else
             echo "ℹ️ No unused imports or fixes applied."
           fi
+
       - name: 🔍 Analyze code
         run: flutter analyze --fatal-infos
 
@@ -148,7 +129,7 @@ jobs:
   test:
     name: 🧪 Testing
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
@@ -164,7 +145,7 @@ jobs:
         with:
           channel: stable
           cache: true
-          
+
       - name: 📦 Cache dependencies
         uses: actions/cache@v4
         with:
@@ -173,7 +154,7 @@ jobs:
             **/pubspec.lock
           key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.yaml') }}
           restore-keys: ${{ runner.os }}-pub-
-    
+
       - name: 📦 Get dependencies
         run: flutter pub get
 
@@ -192,6 +173,7 @@ jobs:
           sudo apt-get install -y lcov
           genhtml coverage/lcov.info -o coverage/html
           lcov --summary coverage/lcov.info
+
       - name: 📋 Upload coverage artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -202,7 +184,7 @@ jobs:
     name: 🏗️ Build Apps
     runs-on: ubuntu-latest
     needs: [analyze, test]
-    
+
     strategy:
       matrix:
         include:
@@ -210,12 +192,12 @@ jobs:
             build-cmd: flutter build apk --debug
             artifact-path: build/app/outputs/flutter-apk/app-debug.apk
             artifact-name: android-apk-debug
-          
+
           - platform: android-bundle
             build-cmd: flutter build appbundle --release
             artifact-path: build/app/outputs/bundle/release/app-release.aab
             artifact-name: android-app-bundle
-    
+
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
@@ -248,6 +230,7 @@ jobs:
           storeFile=keystore.jks
           EOF
           echo "✅ Android signing configured successfully!"
+
       - name: 🏗️ Build ${{ matrix.platform }}
         run: |
           if [[ "${{ matrix.platform }}" == "android-bundle" && -f "android/key.properties" ]]; then
@@ -260,6 +243,7 @@ jobs:
             echo "🏗️ Building ${{ matrix.platform }}..."
             ${{ matrix.build-cmd }}
           fi
+
       - name: 📋 Verify build output
         run: |
           if [ -f "${{ matrix.artifact-path }}" ]; then
@@ -277,6 +261,7 @@ jobs:
             echo "❌ Build failed: ${{ matrix.artifact-path }} not found"
             exit 1
           fi
+
       - name: 📤 Upload ${{ matrix.platform }} artifact
         uses: actions/upload-artifact@v4
         with:
@@ -291,12 +276,13 @@ jobs:
           rm -f android/keystore.jks
           rm -f android/key.properties
           echo "✅ Cleanup completed"
+
   comment:
     name: 💬 PR Comment
     runs-on: ubuntu-latest
     needs: [analyze, test, build]
     if: github.event_name == 'pull_request' && always()
-    
+
     steps:
       - name: 📥 Download coverage
         uses: actions/download-artifact@v4
@@ -361,10 +347,11 @@ jobs:
               repo: context.repo.repo,
               body: comment
             });
+
   security:
     name: 🔒 Security Scan
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
