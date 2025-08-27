@@ -282,6 +282,12 @@ class SpiritualStatsService {
     final prefs = await SharedPreferences.getInstance();
     final stats = await getStats();
 
+    // Check for empty or invalid devotional ID
+    if (devocionalId.isEmpty) {
+      debugPrint('Empty devotional ID provided, not recording');
+      return stats;
+    }
+
     final bool meetsReadingCriteria =
         readingTimeSeconds >= 60 && scrollPercentage >= 0.8;
 
