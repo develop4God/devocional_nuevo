@@ -15,10 +15,14 @@ void main() {
       TestWidgetsFlutterBinding.ensureInitialized();
 
       // Load all translation files
-      final spanishJson = await rootBundle.loadString('assets/translations/es.json');
-      final englishJson = await rootBundle.loadString('assets/translations/en.json');
-      final portugueseJson = await rootBundle.loadString('assets/translations/pt.json');
-      final frenchJson = await rootBundle.loadString('assets/translations/fr.json');
+      final spanishJson =
+          await rootBundle.loadString('assets/translations/es.json');
+      final englishJson =
+          await rootBundle.loadString('assets/translations/en.json');
+      final portugueseJson =
+          await rootBundle.loadString('assets/translations/pt.json');
+      final frenchJson =
+          await rootBundle.loadString('assets/translations/fr.json');
 
       spanishTranslations = json.decode(spanishJson);
       englishTranslations = json.decode(englishJson);
@@ -33,9 +37,12 @@ void main() {
       final frenchKeys = _getAllKeys(frenchTranslations);
 
       // All languages should have same keys as Spanish (base language)
-      expect(englishKeys, equals(spanishKeys), reason: 'English translations missing or extra keys');
-      expect(portugueseKeys, equals(spanishKeys), reason: 'Portuguese translations missing or extra keys');
-      expect(frenchKeys, equals(spanishKeys), reason: 'French translations missing or extra keys');
+      expect(englishKeys, equals(spanishKeys),
+          reason: 'English translations missing or extra keys');
+      expect(portugueseKeys, equals(spanishKeys),
+          reason: 'Portuguese translations missing or extra keys');
+      expect(frenchKeys, equals(spanishKeys),
+          reason: 'French translations missing or extra keys');
     });
 
     test('Spanish translations should contain all required sections', () {
@@ -57,7 +64,7 @@ void main() {
 
     test('Settings section should have all required keys', () {
       final settings = spanishTranslations['settings'] as Map<String, dynamic>;
-      
+
       expect(settings, contains('title'));
       expect(settings, contains('language'));
       expect(settings, contains('language_changed'));
@@ -72,8 +79,9 @@ void main() {
     });
 
     test('Favorites section should have all required keys', () {
-      final favorites = spanishTranslations['favorites'] as Map<String, dynamic>;
-      
+      final favorites =
+          spanishTranslations['favorites'] as Map<String, dynamic>;
+
       expect(favorites, contains('title'));
       expect(favorites, contains('empty_title'));
       expect(favorites, contains('empty_description'));
@@ -83,7 +91,7 @@ void main() {
 
     test('Contact section should have all required keys', () {
       final contact = spanishTranslations['contact'] as Map<String, dynamic>;
-      
+
       expect(contact, contains('bugs'));
       expect(contact, contains('feedback'));
       expect(contact, contains('improvements'));
@@ -95,7 +103,7 @@ void main() {
 
     test('Prayer section should have all required keys', () {
       final prayer = spanishTranslations['prayer'] as Map<String, dynamic>;
-      
+
       expect(prayer, contains('invitation_title'));
       expect(prayer, contains('invitation_message'));
       expect(prayer, contains('invitation_content'));
@@ -109,7 +117,7 @@ void main() {
 
     test('About section should have all required keys', () {
       final about = spanishTranslations['about'] as Map<String, dynamic>;
-      
+
       expect(about, contains('title'));
       expect(about, contains('app_name'));
       expect(about, contains('version'));
@@ -139,32 +147,39 @@ void main() {
       for (final testCase in testCases) {
         final spanishValue = _getNestedValue(spanishTranslations, testCase);
         final englishValue = _getNestedValue(englishTranslations, testCase);
-        final portugueseValue = _getNestedValue(portugueseTranslations, testCase);
+        final portugueseValue =
+            _getNestedValue(portugueseTranslations, testCase);
         final frenchValue = _getNestedValue(frenchTranslations, testCase);
 
-        expect(spanishValue, contains('{'), reason: 'Spanish $testCase should contain parameter placeholder');
-        expect(englishValue, contains('{'), reason: 'English $testCase should contain parameter placeholder');
-        expect(portugueseValue, contains('{'), reason: 'Portuguese $testCase should contain parameter placeholder');
-        expect(frenchValue, contains('{'), reason: 'French $testCase should contain parameter placeholder');
+        expect(spanishValue, contains('{'),
+            reason: 'Spanish $testCase should contain parameter placeholder');
+        expect(englishValue, contains('{'),
+            reason: 'English $testCase should contain parameter placeholder');
+        expect(portugueseValue, contains('{'),
+            reason:
+                'Portuguese $testCase should contain parameter placeholder');
+        expect(frenchValue, contains('{'),
+            reason: 'French $testCase should contain parameter placeholder');
       }
     });
   });
 }
 
 /// Recursively gets all translation keys as a flattened set
-Set<String> _getAllKeys(Map<String, dynamic> translations, [String prefix = '']) {
+Set<String> _getAllKeys(Map<String, dynamic> translations,
+    [String prefix = '']) {
   final keys = <String>{};
-  
+
   for (final entry in translations.entries) {
     final key = prefix.isEmpty ? entry.key : '$prefix.${entry.key}';
-    
+
     if (entry.value is Map<String, dynamic>) {
       keys.addAll(_getAllKeys(entry.value as Map<String, dynamic>, key));
     } else {
       keys.add(key);
     }
   }
-  
+
   return keys;
 }
 
@@ -172,7 +187,7 @@ Set<String> _getAllKeys(Map<String, dynamic> translations, [String prefix = ''])
 String _getNestedValue(Map<String, dynamic> translations, String key) {
   final parts = key.split('.');
   dynamic current = translations;
-  
+
   for (final part in parts) {
     if (current is Map<String, dynamic> && current.containsKey(part)) {
       current = current[part];
@@ -180,20 +195,25 @@ String _getNestedValue(Map<String, dynamic> translations, String key) {
       throw Exception('Key $key not found in translations');
     }
   }
-  
+
   return current.toString();
 }
 
 /// Validates that all translation values are non-empty strings
-void _validateAllValuesAreNonEmpty(Map<String, dynamic> translations, String languageName, [String prefix = '']) {
+void _validateAllValuesAreNonEmpty(
+    Map<String, dynamic> translations, String languageName,
+    [String prefix = '']) {
   for (final entry in translations.entries) {
     final key = prefix.isEmpty ? entry.key : '$prefix.${entry.key}';
-    
+
     if (entry.value is Map<String, dynamic>) {
-      _validateAllValuesAreNonEmpty(entry.value as Map<String, dynamic>, languageName, key);
+      _validateAllValuesAreNonEmpty(
+          entry.value as Map<String, dynamic>, languageName, key);
     } else {
-      expect(entry.value, isA<String>(), reason: '$languageName translation key $key should be a string');
-      expect(entry.value.toString().trim(), isNotEmpty, reason: '$languageName translation key $key should not be empty');
+      expect(entry.value, isA<String>(),
+          reason: '$languageName translation key $key should be a string');
+      expect(entry.value.toString().trim(), isNotEmpty,
+          reason: '$languageName translation key $key should not be empty');
     }
   }
 }

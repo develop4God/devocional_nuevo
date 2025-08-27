@@ -1,5 +1,6 @@
 // lib/widgets/add_prayer_modal.dart
 
+import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/prayer_model.dart';
 import 'package:devocional_nuevo/providers/prayer_provider.dart';
 import 'package:flutter/material.dart';
@@ -75,7 +76,9 @@ class _AddPrayerModalState extends State<AddPrayerModal> {
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  _isEditing ? 'Editar Oración' : 'Nueva Oración',
+                  _isEditing
+                      ? 'prayer.edit_prayer'.tr()
+                      : 'prayer.new_prayer'.tr(),
                   style: textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: colorScheme.onSurface,
@@ -111,8 +114,8 @@ class _AddPrayerModalState extends State<AddPrayerModal> {
                 Expanded(
                   child: Text(
                     _isEditing
-                        ? 'Edita el texto de tu oración personal.'
-                        : 'Escribe tu oración o petición personal. Solo tú podrás verla.',
+                        ? 'prayer.edit_prayer_description'.tr()
+                        : 'prayer.new_prayer_description'.tr(),
                     style: textTheme.bodySmall?.copyWith(
                       color: colorScheme.primary,
                     ),
@@ -136,8 +139,8 @@ class _AddPrayerModalState extends State<AddPrayerModal> {
             ),
             decoration: InputDecoration(
               hintText: _isEditing
-                  ? 'Edita tu oración...'
-                  : 'Señor, te pido por...\n\nAyúdame a...\n\nTe agradezco por...',
+                  ? 'prayer.edit_placeholder'.tr()
+                  : 'prayer.new_placeholder'.tr(),
               hintStyle: textTheme.bodyMedium?.copyWith(
                 color: colorScheme.onSurface.withValues(alpha: 0.5),
                 height: 1.4,

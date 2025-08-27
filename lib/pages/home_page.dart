@@ -2,6 +2,7 @@ import 'package:devocional_nuevo/pages/devocionales_page.dart'; // Página princ
 import 'package:devocional_nuevo/pages/favorites_page.dart'; // Página de favoritos
 // import 'package:devocional_nuevo/pages/prayers_page.dart'; // Página de oraciones
 import 'package:devocional_nuevo/pages/progress_page.dart'; // Página de progreso espiritual
+import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:flutter/material.dart';
 
 class HomePage extends StatefulWidget {
@@ -39,24 +40,27 @@ class _HomePageState extends State<HomePage> {
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         // Necesario para 4 items
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.menu_book_outlined), // Icono de libro outlined
-            label: 'Devocional', // Etiqueta para devocionales
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.bookmark_outline), // Icono de marcador outlined
-            label: 'Favoritos', // Etiqueta para favoritos
-          ),
+        items: <BottomNavigationBarItem>[
           BottomNavigationBarItem(
             icon:
-                Icon(Icons.favorite_outline), // Icono de corazón para oraciones
-            label: 'Oraciones', // Etiqueta para oraciones
+                const Icon(Icons.menu_book_outlined), // Icono de libro outlined
+            label: 'navigation.devotional'.tr(), // Etiqueta para devocionales
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.trending_up_outlined),
+            icon: const Icon(
+                Icons.bookmark_outline), // Icono de marcador outlined
+            label: 'navigation.favorites'.tr(), // Etiqueta para favoritos
+          ),
+          BottomNavigationBarItem(
+            icon: const Icon(
+                Icons.favorite_outline), // Icono de corazón para oraciones
+            label: 'navigation.prayers'.tr(), // Etiqueta para oraciones
+          ),
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.trending_up_outlined),
             // Icono de progreso outlined
-            label: 'Progreso', // Etiqueta para progreso espiritual
+            label:
+                'navigation.progress'.tr(), // Etiqueta para progreso espiritual
           ),
         ],
         currentIndex: _selectedIndex,

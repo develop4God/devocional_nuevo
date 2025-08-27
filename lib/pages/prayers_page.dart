@@ -1,3 +1,4 @@
+import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/prayer_model.dart';
 import 'package:devocional_nuevo/providers/prayer_provider.dart';
 import 'package:devocional_nuevo/widgets/add_prayer_modal.dart';
@@ -80,8 +81,8 @@ class _PrayersPageState extends State<PrayersPage>
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      appBar: const CustomAppBar(
-        titleText: 'Mis Oraciones',
+      appBar: CustomAppBar(
+        titleText: 'prayer.my_prayers'.tr(),
       ),
       body: Column(
         children: [
@@ -90,14 +91,14 @@ class _PrayersPageState extends State<PrayersPage>
             color: colorScheme.surface,
             child: TabBar(
               controller: _tabController,
-              tabs: const [
+              tabs: [
                 Tab(
-                  icon: Icon(Icons.schedule),
-                  text: 'Activas',
+                  icon: const Icon(Icons.schedule),
+                  text: 'prayer.active'.tr(),
                 ),
                 Tab(
-                  icon: Icon(Icons.check_circle_outline),
-                  text: 'Respondidas',
+                  icon: const Icon(Icons.check_circle_outline),
+                  text: 'prayer.answered'.tr(),
                 ),
               ],
               // Cambiar colores para fondo blanco
@@ -142,7 +143,7 @@ class _PrayersPageState extends State<PrayersPage>
                             prayerProvider.clearError();
                             prayerProvider.refresh();
                           },
-                          child: const Text('Reintentar'),
+                          child: Text('prayer.retry'.tr()),
                         ),
                       ],
                     ),
@@ -179,9 +180,8 @@ class _PrayersPageState extends State<PrayersPage>
       return _buildEmptyState(
         context,
         icon: Icons.schedule,
-        title: 'No hay oraciones activas',
-        message:
-            'Crea tu primera oración tocando el botón "+" para comenzar tu viaje de fe.',
+        title: 'prayer.no_active_prayers_title'.tr(),
+        message: 'prayer.no_active_prayers_description'.tr(),
       );
     }
 
@@ -213,9 +213,8 @@ class _PrayersPageState extends State<PrayersPage>
       return _buildEmptyState(
         context,
         icon: Icons.check_circle_outline,
-        title: 'No hay oraciones respondidas',
-        message:
-            'Cuando una oración sea respondida, aparecerá aquí como testimonio de la fidelidad de Dios.',
+        title: 'prayer.no_answered_prayers_title'.tr(),
+        message: 'prayer.no_answered_prayers_description'.tr(),
       );
     }
 
@@ -376,8 +375,8 @@ class _PrayersPageState extends State<PrayersPage>
                             ),
                             const SizedBox(width: 12), // Más espacio
                             Text(isActive
-                                ? 'Marcar como respondida'
-                                : 'Marcar como activa'),
+                                ? 'prayer.mark_as_answered'.tr()
+                                : 'prayer.mark_as_active'.tr()),
                           ],
                         ),
                       ),

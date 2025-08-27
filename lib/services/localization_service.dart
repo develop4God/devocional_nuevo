@@ -11,6 +11,11 @@ class LocalizationService {
 
   LocalizationService._();
 
+  /// Reset instance for testing purposes
+  static void resetInstance() {
+    _instance = null;
+  }
+
   // Supported locales
   static const List<Locale> supportedLocales = [
     Locale('es', ''), // Spanish

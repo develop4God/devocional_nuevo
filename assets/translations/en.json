@@ -2,6 +2,7 @@
   "app": {
     "title": "Devotionals",
     "loading": "Loading...",
+    "preparing": "Preparing your space with God...",
     "error": "Error",
     "retry": "Retry",
     "close": "Close",

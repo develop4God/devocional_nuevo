@@ -10,8 +10,9 @@ void main() {
   group('LocalizationService Tests', () {
     late LocalizationService localizationService;
 
-    setUp(() {
-      localizationService = LocalizationService.instance;
+    setUp(() async {
+      // Reset singleton instance for clean test state
+      LocalizationService.resetInstance();
 
       // Mock SharedPreferences
       SharedPreferences.setMockInitialValues({});
@@ -26,6 +27,9 @@ void main() {
           },
           "devotionals": {
             "app_title": "Devocionales Diarios"
+          },
+          "messages": {
+            "welcome": "Bienvenido {name}!"
           }
         }
         ''',
@@ -37,6 +41,9 @@ void main() {
           },
           "devotionals": {
             "app_title": "Daily Devotionals"
+          },
+          "messages": {
+            "welcome": "Welcome {name}!"
           }
         }
         ''',
@@ -48,6 +55,9 @@ void main() {
           },
           "devotionals": {
             "app_title": "Devocionais Diários"
+          },
+          "messages": {
+            "welcome": "Bem-vindo {name}!"
           }
         }
         ''',
@@ -59,6 +69,9 @@ void main() {
           },
           "devotionals": {
             "app_title": "Dévotionnels Quotidiens"
+          },
+          "messages": {
+            "welcome": "Bienvenue {name}!"
           }
         }
         '''
@@ -75,6 +88,10 @@ void main() {
           return null;
         },
       );
+
+      // Get fresh instance and initialize
+      localizationService = LocalizationService.instance;
+      await localizationService.initialize();
     });
 
     tearDown(() {
@@ -86,16 +103,13 @@ void main() {
     });
 
     test('should initialize with default locale', () async {
-      await localizationService.initialize();
-      // The service might detect device locale or fall back to default
+      // The service should already be initialized in setUp
       expect(
           ['es', 'en'].contains(localizationService.currentLocale.languageCode),
           isTrue);
     });
 
     test('should load Spanish translations correctly', () async {
-      await localizationService.initialize();
-
       // Force Spanish locale if not already set
       if (localizationService.currentLocale.languageCode != 'es') {
         await localizationService.changeLocale(const Locale('es'));
@@ -110,8 +124,6 @@ void main() {
     });
 
     test('should change locale and load new translations', () async {
-      await localizationService.initialize();
-
       // Change to English
       await localizationService.changeLocale(const Locale('en'));
 
@@ -160,25 +172,7 @@ void main() {
     });
 
     test('should handle parameters in translations', () async {
-      // Mock translation with parameters
-      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(
-        const MethodChannel('flutter/assets'),
-        (MethodCall methodCall) async {
-          if (methodCall.method == 'loadString' &&
-              methodCall.arguments == 'assets/translations/es.json') {
-            return '''
-            {
-              "messages": {
-                "welcome": "Bienvenido {name}!"
-              }
-            }
-            ''';
-          }
-          return null;
-        },
-      );
-
+      // Change to Spanish locale (already includes messages.welcome in setUp)
       await localizationService.changeLocale(const Locale('es'));
 
       final result =

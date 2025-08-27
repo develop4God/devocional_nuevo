@@ -1,4 +1,5 @@
 // lib/pages/progress_page.dart - Fixed themed shadows
+import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -71,7 +72,9 @@ class _ProgressPageState extends State<ProgressPage>
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error al cargar estadísticas: $e')),
+          SnackBar(
+              content: Text(
+                  'progress.error_loading_stats'.tr({'error': e.toString()}))),
         );
       }
     }
@@ -121,23 +124,23 @@ class _ProgressPageState extends State<ProgressPage>
               ),
             ),
             const SizedBox(width: 12),
-            const Expanded(
+            Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    'Consejo útil',
-                    style: TextStyle(
+                    'progress.useful_tip'.tr(),
+                    style: const TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 14,
                       color: Colors.white,
                     ),
                   ),
-                  SizedBox(height: 2),
+                  const SizedBox(height: 2),
                   Text(
-                    'Toca cualquier logro para ver información completa',
-                    style: TextStyle(
+                    'progress.achievement_tip'.tr(),
+                    style: const TextStyle(
                       fontSize: 13,
                       color: Colors.white,
                     ),
@@ -156,7 +159,7 @@ class _ProgressPageState extends State<ProgressPage>
         duration: const Duration(seconds: 8),
         elevation: 6,
         action: SnackBarAction(
-          label: 'Entendido',
+          label: 'progress.understood'.tr(),
           textColor: Colors.white,
           onPressed: () {
             ScaffoldMessenger.of(context).hideCurrentSnackBar();
@@ -189,10 +192,10 @@ class _ProgressPageState extends State<ProgressPage>
             ),
           ),
           onPressed: () => Navigator.of(context).pop(),
-          tooltip: 'Regresar',
+          tooltip: 'progress.back'.tr(),
         ),
         title: Text(
-          'Mi Progreso Espiritual',
+          'progress.title'.tr(),
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: Theme.of(context).colorScheme.primary,
@@ -227,14 +230,14 @@ class _ProgressPageState extends State<ProgressPage>
             color: Theme.of(context).colorScheme.error,
           ),
           const SizedBox(height: 16),
-          const Text(
-            'Error al cargar las estadísticas',
-            style: TextStyle(fontSize: 18),
+          Text(
+            'progress.error_loading'.tr(),
+            style: const TextStyle(fontSize: 18),
           ),
           const SizedBox(height: 16),
           ElevatedButton(
             onPressed: _loadStats,
-            child: const Text('Reintentar'),
+            child: Text('progress.retry'.tr()),
           ),
         ],
       ),
@@ -302,7 +305,7 @@ class _ProgressPageState extends State<ProgressPage>
                       const SizedBox(width: 8),
                       Flexible(
                         child: Text(
-                          'Racha Actual',
+                          'progress.current_streak'.tr(),
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w600,
