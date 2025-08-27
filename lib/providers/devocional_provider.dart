@@ -84,10 +84,7 @@ class DevocionalProvider with ChangeNotifier {
       _readingTracker.currentTrackedDevocionalId;
 
   // Supported languages - Updated to include new languages (pt and fr commented out initially)
-  static const List<String> _supportedLanguages = [
-    'es',
-    'en'
-  ]; // 'pt', 'fr' to be added later
+  static const List<String> _supportedLanguages = ['es', 'en', 'pt', 'fr'];
   static const String _fallbackLanguage = 'es';
 
   List<String> get supportedLanguages => List.from(_supportedLanguages);
@@ -264,9 +261,10 @@ class DevocionalProvider with ChangeNotifier {
       // Load from API with language and version
       debugPrint(
           'Loading from API for language: $_selectedLanguage, version: $_selectedVersion');
-      final response = await http.get(Uri.parse(
-          Constants.getDevocionalesApiUrlMultilingual(
-              currentYear, _selectedLanguage, _selectedVersion)));
+      final String url = Constants.getDevocionalesApiUrlMultilingual(
+          currentYear, _selectedLanguage, _selectedVersion);
+      debugPrint('🔍 Requesting URL: $url');
+      final response = await http.get(Uri.parse(url));
 
       if (response.statusCode != 200) {
         throw Exception('Failed to load from API: ${response.statusCode}');
@@ -513,6 +511,8 @@ class DevocionalProvider with ChangeNotifier {
     try {
       final String url = Constants.getDevocionalesApiUrlMultilingual(
           year, _selectedLanguage, _selectedVersion);
+      debugPrint('🔍 Requesting URL: $url');
+      debugPrint('🔍 Language: $_selectedLanguage, Version: $_selectedVersion');
       final response = await http.get(Uri.parse(url));
 
       if (response.statusCode != 200) {

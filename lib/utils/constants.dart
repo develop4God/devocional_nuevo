@@ -36,7 +36,7 @@ class Constants {
     'es': ['RVR1960', 'NVI'],
     'en': ['KJV', 'NIV'],
     'pt': ['ARC', 'NVI'],
-    'fr': ['LSG', 'TOB'],
+    'fr': ['LSG1910', 'TOB'],
   };
 
   // Versión de Biblia por defecto por idioma
@@ -44,7 +44,7 @@ class Constants {
     'es': 'RVR1960',
     'en': 'KJV',
     'pt': 'ARC',
-    'fr': 'LSG',
+    'fr': 'LSG1910',
   };
 
   /// PREFERENCIAS (SharedPreferences KEYS)
