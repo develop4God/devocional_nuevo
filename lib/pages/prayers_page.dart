@@ -384,8 +384,8 @@ class _PrayersPageState extends State<PrayersPage>
                         value: 'edit',
                         child: Row(
                           children: [
-                            Icon(Icons.edit, size: 20),
-                            SizedBox(width: 12),
+                            const Icon(Icons.edit, size: 20),
+                            const SizedBox(width: 12),
                             Text('prayer.edit_prayer'.tr()),
                           ],
                         ),
@@ -394,10 +394,11 @@ class _PrayersPageState extends State<PrayersPage>
                         value: 'delete',
                         child: Row(
                           children: [
-                            Icon(Icons.delete, size: 20, color: Colors.red),
-                            SizedBox(width: 12),
+                            const Icon(Icons.delete,
+                                size: 20, color: Colors.red),
+                            const SizedBox(width: 12),
                             Text('app.delete'.tr(),
-                                style: TextStyle(color: Colors.red)),
+                                style: const TextStyle(color: Colors.red)),
                           ],
                         ),
                       ),
