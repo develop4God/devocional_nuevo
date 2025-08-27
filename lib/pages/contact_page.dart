@@ -3,6 +3,7 @@
 
 import 'dart:developer' as developer;
 
+import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -22,12 +23,13 @@ class _ContactPageState extends State<ContactPage> {
   // AÑADIDO: Variables para el formulario de contacto con opciones predefinidas
   String? _selectedContactOption;
   final TextEditingController _messageController = TextEditingController();
-  final List<String> _contactOptions = [
-    'Errores/Bugs',
-    'Opinión/Feedback',
-    'Mejoras/Improvements',
-    'Otros'
-  ];
+
+  List<String> get _contactOptions => [
+        'contact.bugs'.tr(),
+        'contact.feedback'.tr(),
+        'contact.improvements'.tr(),
+        'contact.other'.tr()
+      ];
 
 // Mantener para el indicador de envío
 
@@ -45,8 +47,8 @@ class _ContactPageState extends State<ContactPage> {
   Future<void> _sendContactEmail() async {
     if (_selectedContactOption == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Por favor, selecciona un tipo de contacto.'),
+        SnackBar(
+          content: Text('contact.select_type_error'.tr()),
           backgroundColor: Colors.red,
         ),
       );
@@ -56,8 +58,8 @@ class _ContactPageState extends State<ContactPage> {
     final String message = _messageController.text.trim();
     if (message.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Por favor, escribe un mensaje.'),
+        SnackBar(
+          content: Text('contact.enter_message_error'.tr()),
           backgroundColor: Colors.red,
         ),
       );
@@ -70,8 +72,9 @@ class _ContactPageState extends State<ContactPage> {
     final Uri emailUri = Uri(
       scheme: 'mailto',
       path: 'develop4god@gmail.com',
-      query:
-          'subject=${Uri.encodeComponent("$_selectedContactOption - App Devocionales")}&body=${Uri.encodeComponent(message)}',
+      query: 'subject=${Uri.encodeComponent('contact.email_subject'.tr({
+            'type': _selectedContactOption!
+          }))}&body=${Uri.encodeComponent(message)}',
     );
 
     developer.log('Intentando abrir cliente de correo: $emailUri',

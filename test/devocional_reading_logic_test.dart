@@ -1,6 +1,5 @@
 // test/devocional_reading_logic_test.dart
 
-import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -187,7 +186,8 @@ void main() {
 
       stats = await statsService.getStats();
       expect(stats.totalDevocionalesRead, 2);
-      expect(stats.currentStreak, 0); // Still 0, as reading devotionals doesn't affect streak
+      expect(stats.currentStreak,
+          0); // Still 0, as reading devotionals doesn't affect streak
     });
 
     test('Service handles malformed data gracefully', () async {

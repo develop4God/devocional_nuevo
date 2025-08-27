@@ -2,6 +2,7 @@ import 'dart:developer' as developer;
 import 'dart:io' show File;
 
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/pages/prayers_page.dart';
 import 'package:devocional_nuevo/pages/progress_page.dart';
@@ -328,7 +329,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                 ),
                 Expanded(
                   child: Text(
-                    'Ya la hice 🙏\nNo mostrar nuevamente',
+                    'prayer.already_prayed'.tr(),
                     style: textTheme.bodyMedium?.copyWith(
                       color: colorScheme.onSurface,
                     ),

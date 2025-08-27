@@ -41,6 +41,7 @@
     "pray_now": "Orar ahora",
     "maybe_later": "Tal vez más tarde",
     "dont_show_again": "No mostrar de nuevo",
+    "already_prayed": "Ya la hice 🙏\nNo mostrar nuevamente",
     "prayer_time": "Tiempo de oración",
     "praying": "Orando..."
   },
@@ -65,7 +66,13 @@
     "version": "Versión",
     "developer": "Desarrollador",
     "privacy_policy": "Política de privacidad",
-    "terms_of_service": "Términos de servicio"
+    "terms_of_service": "Términos de servicio",
+    "donate": "Donar",
+    "contact_us": "Contáctanos",
+    "about_app": "Acerca de Devocionales Cristianos",
+    "paypal_launch_error": "No se pudo abrir PayPal. El sistema no pudo lanzar la URL.",
+    "paypal_error": "Error al abrir PayPal: {error}",
+    "paypal_no_app_error": "No se pudo abrir PayPal. Asegúrate de tener un navegador web o la app de PayPal instalada."
   },
   "navigation": {
     "home": "Inicio",
@@ -135,6 +142,22 @@
     "have_blessed_day": "¡Que tengas un día bendecido!",
     "peace_be_with_you": "La paz sea contigo",
     "god_bless": "Dios te bendiga"
+  },
+  "favorites": {
+    "title": "Mis favoritos guardados",
+    "empty_title": "Aún no tienes devocionales favoritos.",
+    "empty_description": "Marca el ícono del corazón en un devocional para guardarlo aquí.",
+    "remove_tooltip": "Quitar de favoritos",
+    "removed_message": "\"{verse}\" eliminado de favoritos."
+  },
+  "contact": {
+    "bugs": "Errores/Bugs",
+    "feedback": "Opinión/Feedback", 
+    "improvements": "Mejoras/Improvements",
+    "other": "Otros",
+    "select_type_error": "Por favor, selecciona un tipo de contacto.",
+    "enter_message_error": "Por favor, escribe un mensaje.",
+    "email_subject": "{type} - App Devocionales"
   },
   "sharing": {
     "share_text": "Compartir texto",

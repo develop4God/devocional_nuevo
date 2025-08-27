@@ -101,7 +101,8 @@ void main() {
         scrollPercentage: 0.8,
       );
       expect(updatedStats.totalDevocionalesRead, 1);
-      expect(updatedStats.currentStreak, 0); // Reading devotionals doesn't affect streak
+      expect(updatedStats.currentStreak,
+          0); // Reading devotionals doesn't affect streak
       expect(updatedStats.lastActivityDate, isNotNull);
       expect(updatedStats.readDevocionalIds, contains('devotional_123'));
 
@@ -181,7 +182,8 @@ void main() {
       final stats = await service.getStats();
 
       expect(stats.totalDevocionalesRead, 3);
-      expect(stats.currentStreak, 0); // Reading devotionals doesn't affect streak in this implementation
+      expect(stats.currentStreak,
+          0); // Reading devotionals doesn't affect streak in this implementation
       expect(stats.readDevocionalIds.length, 3);
       expect(stats.readDevocionalIds, contains('devotional_1'));
       expect(stats.readDevocionalIds, contains('devotional_2'));

@@ -75,7 +75,7 @@ class _SettingsPageState extends State<SettingsPage> {
             name: 'PayPalLaunch',
           );
           _showErrorSnackBar(
-            'No se pudo abrir PayPal. El sistema no pudo lanzar la URL.',
+            'settings.paypal_launch_error'.tr(),
           );
         } else {
           developer.log('PayPal abierto exitosamente.', name: 'PayPalLaunch');
@@ -86,7 +86,7 @@ class _SettingsPageState extends State<SettingsPage> {
           error: e,
           name: 'PayPalLaunch',
         );
-        _showErrorSnackBar('Error al abrir PayPal: ${e.toString()}');
+        _showErrorSnackBar('settings.paypal_error'.tr({'error': e.toString()}));
       }
     } else {
       developer.log(
@@ -94,7 +94,7 @@ class _SettingsPageState extends State<SettingsPage> {
         name: 'PayPalLaunch',
       );
       _showErrorSnackBar(
-        'No se pudo abrir PayPal. Asegúrate de tener un navegador web o la app de PayPal instalada.',
+        'settings.paypal_no_app_error'.tr(),
       );
     }
   }
@@ -143,7 +143,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
                   icon: Icon(Icons.favorite_border, color: colorScheme.primary),
                   label: Text(
-                    'Donar', // Keep as is for now, can be translated later
+                    'settings.donate'.tr(),
                     style: textTheme.bodyMedium?.copyWith(
                       color: colorScheme.onSurface,
                       fontWeight: FontWeight.bold,
@@ -359,7 +359,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
-                        'Contáctanos',
+                        'settings.contact_us'.tr(),
                         style: textTheme.bodyMedium?.copyWith(
                             fontSize: 16, color: colorScheme.onSurface),
                         maxLines: 1,
@@ -387,7 +387,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
-                        'Acerca de Devocionales Cristianos',
+                        'settings.about_app'.tr(),
                         style: textTheme.bodyMedium?.copyWith(
                             fontSize: 16, color: colorScheme.onSurface),
                         maxLines: 1,

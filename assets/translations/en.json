@@ -41,6 +41,7 @@
     "pray_now": "Pray now",
     "maybe_later": "Maybe later",
     "dont_show_again": "Don't show again",
+    "already_prayed": "Already did it 🙏\nDon't show again",
     "prayer_time": "Prayer time",
     "praying": "Praying..."
   },
@@ -65,7 +66,13 @@
     "version": "Version",
     "developer": "Developer",
     "privacy_policy": "Privacy policy",
-    "terms_of_service": "Terms of service"
+    "terms_of_service": "Terms of service",
+    "donate": "Donate",
+    "contact_us": "Contact us",
+    "about_app": "About Christian Devotionals",
+    "paypal_launch_error": "Could not open PayPal. The system could not launch the URL.",
+    "paypal_error": "Error opening PayPal: {error}",
+    "paypal_no_app_error": "Could not open PayPal. Make sure you have a web browser or PayPal app installed."
   },
   "navigation": {
     "home": "Home",
@@ -135,6 +142,22 @@
     "have_blessed_day": "Have a blessed day!",
     "peace_be_with_you": "Peace be with you",
     "god_bless": "God bless you"
+  },
+  "favorites": {
+    "title": "My saved favorites",
+    "empty_title": "You don't have any favorite devotionals yet.",
+    "empty_description": "Tap the heart icon on a devotional to save it here.",
+    "remove_tooltip": "Remove from favorites",
+    "removed_message": "\"{verse}\" removed from favorites."
+  },
+  "contact": {
+    "bugs": "Errors/Bugs",
+    "feedback": "Opinion/Feedback",
+    "improvements": "Improvements",
+    "other": "Other",
+    "select_type_error": "Please select a contact type.",
+    "enter_message_error": "Please write a message.",
+    "email_subject": "{type} - Devotionals App"
   },
   "sharing": {
     "share_text": "Share text",
