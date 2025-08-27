@@ -170,10 +170,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 const SizedBox(width: 10),
                 DropdownButton<String>(
                   value: localizationProvider.currentLocale.languageCode,
-                  items: localizationProvider
-                      .getAvailableLanguages()
-                      .entries
-                      .map((entry) {
+                  items: Constants.supportedLanguages.entries.map((entry) {
                     return DropdownMenuItem(
                       value: entry.key,
                       child: Text(entry.value),
@@ -189,7 +186,16 @@ class _SettingsPageState extends State<SettingsPage> {
                               listen: false);
                       devocionalProvider.setSelectedLanguage(newLanguage);
 
+                      // Automatically set the default version for the new language
+                      final defaultVersion =
+                          Constants.defaultVersionByLanguage[newLanguage];
+                      if (defaultVersion != null) {
+                        devocionalProvider.setSelectedVersion(defaultVersion);
+                      }
+
                       developer.log('Language changed to: $newLanguage',
+                          name: 'SettingsPage');
+                      developer.log('Version changed to: $defaultVersion',
                           name: 'SettingsPage');
 
                       if (mounted) {
@@ -209,62 +215,83 @@ class _SettingsPageState extends State<SettingsPage> {
             const SizedBox(height: 20),
 
             // Bible Version Selection
-            if (Constants.bibleVersionsByLanguage
-                .containsKey(localizationProvider.currentLocale.languageCode))
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Icon(Icons.book, color: colorScheme.primary),
-                      const SizedBox(width: 10),
-                      Text(
-                        'settings.bible_version'.tr(),
-                        style: textTheme.bodyMedium?.copyWith(
-                          fontSize: 16,
-                          color: colorScheme.onSurface,
+            Consumer<DevocionalProvider>(
+              builder: (context, devocionalProvider, child) {
+                final currentLanguage =
+                    localizationProvider.currentLocale.languageCode;
+                final versions =
+                    Constants.bibleVersionsByLanguage[currentLanguage] ?? [];
+
+                // Ensure the selected version is available for current language
+                String? currentVersion = devocionalProvider.selectedVersion;
+                if (!versions.contains(currentVersion)) {
+                  // If current version is not available, use default for language
+                  currentVersion =
+                      Constants.defaultVersionByLanguage[currentLanguage];
+
+                  // Update provider with correct version
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (currentVersion != null) {
+                      devocionalProvider.setSelectedVersion(currentVersion!);
+                    }
+                  });
+                }
+
+                // Only show version selector if there are versions available
+                if (versions.isEmpty) return const SizedBox.shrink();
+
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.book, color: colorScheme.primary),
+                        const SizedBox(width: 10),
+                        Text(
+                          'settings.bible_version'.tr(),
+                          style: textTheme.bodyMedium?.copyWith(
+                            fontSize: 16,
+                            color: colorScheme.onSurface,
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 10),
-                      Consumer<DevocionalProvider>(
-                        builder: (context, devocionalProvider, child) {
-                          final versions = Constants.bibleVersionsByLanguage[
-                                  localizationProvider
-                                      .currentLocale.languageCode] ??
-                              [];
+                        const SizedBox(width: 10),
+                        DropdownButton<String>(
+                          value: versions.contains(currentVersion)
+                              ? currentVersion
+                              : versions.first,
+                          items: versions.map((version) {
+                            return DropdownMenuItem(
+                              value: version,
+                              child: Text(version),
+                            );
+                          }).toList(),
+                          onChanged: (String? newVersion) async {
+                            if (newVersion != null) {
+                              devocionalProvider.setSelectedVersion(newVersion);
 
-                          return DropdownButton<String>(
-                            value: devocionalProvider.selectedVersion,
-                            items: versions.map((version) {
-                              return DropdownMenuItem(
-                                value: version,
-                                child: Text(version),
-                              );
-                            }).toList(),
-                            onChanged: (String? newVersion) async {
-                              if (newVersion != null) {
-                                devocionalProvider
-                                    .setSelectedVersion(newVersion);
+                              developer.log(
+                                  'Bible version changed to: $newVersion',
+                                  name: 'SettingsPage');
 
-                                if (mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content:
-                                          Text('settings.version_changed'.tr()),
-                                      duration: const Duration(seconds: 2),
-                                    ),
-                                  );
-                                }
+                              if (mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content:
+                                        Text('settings.version_changed'.tr()),
+                                    duration: const Duration(seconds: 2),
+                                  ),
+                                );
                               }
-                            },
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-                ],
-              ),
+                            }
+                          },
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                  ],
+                );
+              },
+            ),
 
             // Audio/TTS Configuration Section
             Text(
