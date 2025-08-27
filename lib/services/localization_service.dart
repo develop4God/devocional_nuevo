@@ -72,15 +72,14 @@ class LocalizationService {
   /// Load translations from JSON file
   Future<void> _loadTranslations(String languageCode) async {
     try {
-      final jsonString =
-          await rootBundle.loadString('assets/translations/$languageCode.json');
+      final jsonString = await rootBundle.loadString('i18n/$languageCode.json');
       _translations = json.decode(jsonString);
     } catch (e) {
       // If loading fails, try to load default language
       if (languageCode != defaultLocale.languageCode) {
         try {
-          final jsonString = await rootBundle.loadString(
-              'assets/translations/${defaultLocale.languageCode}.json');
+          final jsonString = await rootBundle
+              .loadString('i18n/${defaultLocale.languageCode}.json');
           _translations = json.decode(jsonString);
         } catch (e) {
           // If even default fails, use empty map

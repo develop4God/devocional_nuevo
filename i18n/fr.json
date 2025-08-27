@@ -43,7 +43,28 @@
     "dont_show_again": "Ne plus afficher",
     "already_prayed": "Déjà fait 🙏\nNe plus afficher",
     "prayer_time": "Temps de prière",
-    "praying": "En prière..."
+    "praying": "En prière...",
+    "my_prayers": "Mes Prières",
+    "active": "Actives",
+    "answered": "Exaucées",
+    "retry": "Réessayer",
+    "no_active_prayers_title": "Aucune prière active",
+    "no_active_prayers_description": "Créez votre première prière en touchant le bouton \"+\" pour commencer votre voyage de foi.",
+    "no_answered_prayers_title": "Aucune prière exaucée",
+    "no_answered_prayers_description": "Quand une prière sera exaucée, elle apparaîtra ici comme témoignage de la fidélité de Dieu.",
+    "mark_as_answered": "Marquer comme exaucée",
+    "mark_as_active": "Marquer comme active",
+    "edit_prayer": "Modifier la Prière",
+    "new_prayer": "Nouvelle Prière",
+    "edit_prayer_description": "Modifiez le texte de votre prière personnelle.",
+    "new_prayer_description": "Écrivez votre prière ou demande personnelle. Vous seul pourrez la voir.",
+    "edit_placeholder": "Modifiez votre prière...",
+    "new_placeholder": "Seigneur, je demande...\n\nAide-moi à...\n\nJe te remercie pour...",
+    "delete_prayer": "Supprimer la prière",
+    "delete_confirmation": "Êtes-vous sûr de vouloir supprimer cette prière ? Cette action ne peut pas être annulée.",
+    "enter_prayer_text_error": "Veuillez saisir le texte de la prière",
+    "prayer_min_length_error": "La prière doit contenir au moins 10 caractères",
+    "cancel": "Annuler"
   },
   "settings": {
     "title": "Paramètres",
@@ -193,5 +214,59 @@
     "developed_by": "Développé avec ❤️ par Develop4God",
     "terms_copyright": "Termes et Conditions / Copyright",
     "link_error": "Impossible d'ouvrir le lien."
+  },
+  "stats": {
+    "title": "Statistiques Spirituelles",
+    "devotionals_read": "Dévotionnels lus",
+    "favorite_count": "Favoris",
+    "reading_streak": "Série de lecture",
+    "total_reading_time": "Temps total de lecture",
+    "achievements": "Réalisations",
+    "reset_stats": "Réinitialiser les statistiques",
+    "reset_confirmation": "Êtes-vous sûr de vouloir réinitialiser toutes les statistiques?",
+    "stats_reset": "Statistiques réinitialisées",
+    "first_read": "Première lecture",
+    "first_favorite": "Premier favori",
+    "dedicated_reader": "Lecteur dévoué",
+    "achievement_unlocked": "Réalisation débloquée!"
+  },
+  "progress": {
+    "title": "Progrès",
+    "current_streak": "Série actuelle",
+    "days": "jours",
+    "day": "jour",
+    "next_goal": "Prochain objectif: {goal} jours",
+    "goal_reached": "Objectif atteint!",
+    "devotionals_completed": "Dévotionnels complétés",
+    "favorites_saved": "Favoris sauvegardés",
+    "achievements": "Réalisations",
+    "last_activity": "Dernière Activité: {date}",
+    "no_activity": "Aucune activité",
+    "back": "Retour",
+    "error_loading": "Erreur de chargement",
+    "retry": "Réessayer",
+    "error_loading_stats": "Erreur lors du chargement des statistiques: {error}",
+    "useful_tip": "Conseil utile",
+    "achievement_tip": "Touchez n'importe quelle réalisation pour voir sa description détaillée.",
+    "understood": "Compris"
+  },
+  "prayers": {
+    "created": "Créée: {date}",
+    "answered": "Répondue: {date}",
+    "days_old_single": "({days} jour)",
+    "days_old_plural": "({days} jours)"
+  },
+  "contact_page": {
+    "title": "Contact",
+    "contact_us": "Contactez-nous",
+    "description": "Si vous avez des questions, suggestions ou commentaires, n'hésitez pas à nous contacter. Nous serons heureux de vous aider.",
+    "contact_type_label": "Type de contact",
+    "message_label": "Votre message",
+    "message_hint": "Écrivez votre message ici...",
+    "other_contact_methods": "Autres méthodes de contact"
+  },
+  "devotionals_page": {
+    "added_to_favorites": "Dévotionnel ajouté aux favoris",
+    "removed_from_favorites": "Dévotionnel retiré des favoris"
   }
 }

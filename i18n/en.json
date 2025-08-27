@@ -80,7 +80,10 @@
     "edit_placeholder": "Edit your prayer...",
     "new_placeholder": "Lord, I ask for...\n\nHelp me to...\n\nI thank you for...",
     "delete_prayer": "Delete prayer",
-    "delete_confirmation": "Are you sure you want to delete this prayer? This action cannot be undone."
+    "delete_confirmation": "Are you sure you want to delete this prayer? This action cannot be undone.",
+    "enter_prayer_text_error": "Please enter the prayer text",
+    "prayer_min_length_error": "Prayer must have at least 10 characters",
+    "cancel": "Cancel"
   },
   "settings": {
     "title": "Settings",
@@ -269,6 +272,45 @@
     "first_favorite": "First favorite",
     "dedicated_reader": "Dedicated reader",
     "achievement_unlocked": "Achievement unlocked!"
+  },
+  "progress": {
+    "title": "Progress",
+    "current_streak": "Current streak",
+    "days": "days",
+    "day": "day",
+    "next_goal": "Next goal: {goal} days",
+    "goal_reached": "Goal reached!",
+    "devotionals_completed": "Devotionals completed",
+    "favorites_saved": "Favorites saved",
+    "achievements": "Achievements",
+    "last_activity": "Last Activity: {date}",
+    "no_activity": "No activity",
+    "back": "Back",
+    "error_loading": "Error loading",
+    "retry": "Retry",
+    "error_loading_stats": "Error loading statistics: {error}",
+    "useful_tip": "Useful tip",
+    "achievement_tip": "Tap any achievement to see its detailed description.",
+    "understood": "Understood"
+  },
+  "prayers": {
+    "created": "Created: {date}",
+    "answered": "Answered: {date}",
+    "days_old_single": "({days} day)",
+    "days_old_plural": "({days} days)"
+  },
+  "contact_page": {
+    "title": "Contact",
+    "contact_us": "Contact Us",
+    "description": "If you have any questions, suggestions or comments, please don't hesitate to contact us. We'll be happy to help you.",
+    "contact_type_label": "Contact type",
+    "message_label": "Your message",
+    "message_hint": "Write your message here...",
+    "other_contact_methods": "Other contact methods"
+  },
+  "devotionals_page": {
+    "added_to_favorites": "Devotional added to favorites",
+    "removed_from_favorites": "Devotional removed from favorites"
   },
   "errors": {
     "network_error": "Network error",

@@ -64,3 +64,4 @@ flutter:
     - assets/images/splash_background.png
     - assets/icons/
     - assets/translations/
+    - i18n/

@@ -19,7 +19,7 @@ void main() {
 
       // Mock asset loading
       const Map<String, String> mockTranslations = {
-        'assets/translations/es.json': '''
+        'i18n/es.json': '''
         {
           "app": {
             "title": "Devocionales",
@@ -33,7 +33,7 @@ void main() {
           }
         }
         ''',
-        'assets/translations/en.json': '''
+        'i18n/en.json': '''
         {
           "app": {
             "title": "Devotionals",
@@ -47,7 +47,7 @@ void main() {
           }
         }
         ''',
-        'assets/translations/pt.json': '''
+        'i18n/pt.json': '''
         {
           "app": {
             "title": "Devocionais",
@@ -61,7 +61,7 @@ void main() {
           }
         }
         ''',
-        'assets/translations/fr.json': '''
+        'i18n/fr.json': '''
         {
           "app": {
             "title": "Dévotionnels",

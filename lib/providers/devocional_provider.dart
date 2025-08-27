@@ -6,6 +6,7 @@ import 'dart:io';
 import 'dart:ui';
 
 import 'package:devocional_nuevo/controllers/audio_controller.dart'; // NEW
+import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
 import 'package:devocional_nuevo/utils/constants.dart';
@@ -429,7 +430,7 @@ class DevocionalProvider with ChangeNotifier {
       _favoriteDevocionales.removeWhere((fav) => fav.id == devocional.id);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Devocional removido de favoritos',
+          content: Text('devotionals_page.removed_from_favorites'.tr(),
               style: TextStyle(color: colorScheme.onSecondary)),
           duration: const Duration(seconds: 2),
           backgroundColor: colorScheme.secondary,
@@ -439,7 +440,7 @@ class DevocionalProvider with ChangeNotifier {
       _favoriteDevocionales.add(devocional);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Devocional guardado como favorito',
+          content: Text('devotionals_page.added_to_favorites'.tr(),
               style: TextStyle(color: colorScheme.onSecondary)),
           duration: const Duration(seconds: 2),
           backgroundColor: colorScheme.secondary,

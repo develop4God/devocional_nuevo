@@ -43,7 +43,28 @@
     "dont_show_again": "Não mostrar novamente",
     "already_prayed": "Já fiz 🙏\nNão mostrar novamente",
     "prayer_time": "Tempo de oração",
-    "praying": "Orando..."
+    "praying": "Orando...",
+    "my_prayers": "Minhas Orações",
+    "active": "Ativas",
+    "answered": "Respondidas",
+    "retry": "Tentar novamente",
+    "no_active_prayers_title": "Não há orações ativas",
+    "no_active_prayers_description": "Crie sua primeira oração tocando no botão \"+\" para começar sua jornada de fé.",
+    "no_answered_prayers_title": "Não há orações respondidas",
+    "no_answered_prayers_description": "Quando uma oração for respondida, aparecerá aqui como testemunho da fidelidade de Deus.",
+    "mark_as_answered": "Marcar como respondida",
+    "mark_as_active": "Marcar como ativa",
+    "edit_prayer": "Editar Oração",
+    "new_prayer": "Nova Oração",
+    "edit_prayer_description": "Edite o texto da sua oração pessoal.",
+    "new_prayer_description": "Escreva sua oração ou pedido pessoal. Apenas você poderá vê-la.",
+    "edit_placeholder": "Edite sua oração...",
+    "new_placeholder": "Senhor, peço por...\n\nAjude-me a...\n\nAgradeço por...",
+    "delete_prayer": "Excluir oração",
+    "delete_confirmation": "Tem certeza de que deseja excluir esta oração? Esta ação não pode ser desfeita.",
+    "enter_prayer_text_error": "Por favor, insira o texto da oração",
+    "prayer_min_length_error": "A oração deve ter pelo menos 10 caracteres",
+    "cancel": "Cancelar"
   },
   "settings": {
     "title": "Configurações",
@@ -193,5 +214,59 @@
     "developed_by": "Desenvolvido com ❤️ por Develop4God",
     "terms_copyright": "Termos e Condições / Copyright",
     "link_error": "Não foi possível abrir o link."
+  },
+  "stats": {
+    "title": "Estatísticas Espirituais",
+    "devotionals_read": "Devocionais lidos",
+    "favorite_count": "Favoritos",
+    "reading_streak": "Sequência de leitura",
+    "total_reading_time": "Tempo total de leitura",
+    "achievements": "Conquistas",
+    "reset_stats": "Reiniciar estatísticas",
+    "reset_confirmation": "Tem certeza de que deseja reiniciar todas as estatísticas?",
+    "stats_reset": "Estatísticas reiniciadas",
+    "first_read": "Primeira leitura",
+    "first_favorite": "Primeiro favorito",
+    "dedicated_reader": "Leitor dedicado",
+    "achievement_unlocked": "Conquista desbloqueada!"
+  },
+  "progress": {
+    "title": "Progresso",
+    "current_streak": "Sequência atual",
+    "days": "dias",
+    "day": "dia",
+    "next_goal": "Próxima meta: {goal} dias",
+    "goal_reached": "Meta alcançada!",
+    "devotionals_completed": "Devocionais completos",
+    "favorites_saved": "Favoritos salvos",
+    "achievements": "Conquistas",
+    "last_activity": "Última Atividade: {date}",
+    "no_activity": "Sem atividade",
+    "back": "Voltar",
+    "error_loading": "Erro ao carregar",
+    "retry": "Tentar novamente",
+    "error_loading_stats": "Erro ao carregar estatísticas: {error}",
+    "useful_tip": "Dica útil",
+    "achievement_tip": "Toque em qualquer conquista para ver sua descrição detalhada.",
+    "understood": "Entendido"
+  },
+  "prayers": {
+    "created": "Criada: {date}",
+    "answered": "Respondida: {date}",
+    "days_old_single": "({days} dia)",
+    "days_old_plural": "({days} dias)"
+  },
+  "contact_page": {
+    "title": "Contato",
+    "contact_us": "Entre em Contato",
+    "description": "Se você tiver alguma pergunta, sugestão ou comentário, não hesite em entrar em contato conosco. Ficaremos felizes em ajudá-lo.",
+    "contact_type_label": "Tipo de contato",
+    "message_label": "Sua mensagem",
+    "message_hint": "Escreva sua mensagem aqui...",
+    "other_contact_methods": "Outros métodos de contato"
+  },
+  "devotionals_page": {
+    "added_to_favorites": "Devocional adicionado aos favoritos",
+    "removed_from_favorites": "Devocional removido dos favoritos"
   }
 }

@@ -80,7 +80,10 @@
     "edit_placeholder": "Edita tu oración...",
     "new_placeholder": "Señor, te pido por...\n\nAyúdame a...\n\nTe agradezco por...",
     "delete_prayer": "Eliminar oración",
-    "delete_confirmation": "¿Estás seguro de que quieres eliminar esta oración? Esta acción no se puede deshacer."
+    "delete_confirmation": "¿Estás seguro de que quieres eliminar esta oración? Esta acción no se puede deshacer.",
+    "enter_prayer_text_error": "Por favor ingresa el texto de la oración",
+    "prayer_min_length_error": "La oración debe tener al menos 10 caracteres",
+    "cancel": "Cancelar"
   },
   "settings": {
     "title": "Configuración",
@@ -269,5 +272,44 @@
     "first_favorite": "Primer favorito",
     "dedicated_reader": "Lector dedicado",
     "achievement_unlocked": "¡Logro desbloqueado!"
+  },
+  "progress": {
+    "title": "Progreso",
+    "current_streak": "Racha actual",
+    "days": "días",
+    "day": "día",
+    "next_goal": "Siguiente meta: {goal} días",
+    "goal_reached": "¡Meta alcanzada!",
+    "devotionals_completed": "Devocionales completos",
+    "favorites_saved": "Favoritos guardados",
+    "achievements": "Logros",
+    "last_activity": "Última Actividad: {date}",
+    "no_activity": "Sin actividad",
+    "back": "Atrás",
+    "error_loading": "Error al cargar",
+    "retry": "Reintentar",
+    "error_loading_stats": "Error al cargar estadísticas: {error}",
+    "useful_tip": "Consejo útil",
+    "achievement_tip": "Toca cualquier logro para ver su descripción detallada.",
+    "understood": "Entendido"
+  },
+  "prayers": {
+    "created": "Creada: {date}",
+    "answered": "Respondida: {date}",
+    "days_old_single": "({days} día)",
+    "days_old_plural": "({days} días)"
+  },
+  "contact_page": {
+    "title": "Contacto",
+    "contact_us": "Contáctanos",
+    "description": "Si tienes alguna pregunta, sugerencia o comentario, no dudes en ponerte en contacto con nosotros. Estaremos encantados de ayudarte.",
+    "contact_type_label": "Tipo de contacto",
+    "message_label": "Tu mensaje",
+    "message_hint": "Escribe tu mensaje aquí...",
+    "other_contact_methods": "Otras formas de contacto"
+  },
+  "devotionals_page": {
+    "added_to_favorites": "Devocional agregado a favoritos",
+    "removed_from_favorites": "Devocional removido de favoritos"
   }
 }

@@ -206,7 +206,7 @@ class _AddPrayerModalState extends State<AddPrayerModal> {
                     ),
                   ),
                   child: Text(
-                    'Cancelar',
+                    'prayer.cancel'.tr(),
                     style: textTheme.labelLarge?.copyWith(
                       color: colorScheme.onSurface,
                     ),
@@ -263,14 +263,14 @@ class _AddPrayerModalState extends State<AddPrayerModal> {
 
     if (text.isEmpty) {
       setState(() {
-        _errorMessage = 'Por favor ingresa el texto de la oración';
+        _errorMessage = 'prayer.enter_prayer_text_error'.tr();
       });
       return;
     }
 
     if (text.length < 10) {
       setState(() {
-        _errorMessage = 'La oración debe tener al menos 10 caracteres';
+        _errorMessage = 'prayer.prayer_min_length_error'.tr();
       });
       return;
     }

@@ -326,7 +326,9 @@ class _ProgressPageState extends State<ProgressPage>
                     ),
                   ),
                   Text(
-                    _stats!.currentStreak == 1 ? 'día' : 'días',
+                    _stats!.currentStreak == 1
+                        ? 'progress.day'.tr()
+                        : 'progress.days'.tr(),
                     style: TextStyle(
                       fontSize: 16,
                       color: colorScheme.onPrimary.withValues(alpha: 0.8),
@@ -360,8 +362,8 @@ class _ProgressPageState extends State<ProgressPage>
         const SizedBox(height: 8),
         Text(
           nextMilestone > 0
-              ? 'Siguiente meta: $nextMilestone días'
-              : '¡Meta alcanzada!',
+              ? 'progress.next_goal'.tr({'goal': nextMilestone.toString()})
+              : 'progress.goal_reached'.tr(),
           style: TextStyle(
             fontSize: 12,
             color:
@@ -394,7 +396,7 @@ class _ProgressPageState extends State<ProgressPage>
             },
             borderRadius: BorderRadius.circular(16),
             child: _buildStatCard(
-              title: 'Devocionales completos',
+              title: 'progress.devotionals_completed'.tr(),
               value: '${_stats!.totalDevocionalesRead}',
               icon: Icons.auto_stories,
               color: Colors.blue,
@@ -411,7 +413,7 @@ class _ProgressPageState extends State<ProgressPage>
             },
             borderRadius: BorderRadius.circular(16),
             child: _buildStatCard(
-              title: 'Favoritos guardados',
+              title: 'progress.favorites_saved'.tr(),
               value: '${_stats!.favoritesCount}',
               icon: Icons.favorite,
               color: Colors.pink,
@@ -497,7 +499,7 @@ class _ProgressPageState extends State<ProgressPage>
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
-          'Logros',
+          'progress.achievements'.tr(),
           textAlign: TextAlign.center, //
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.bold,
@@ -533,7 +535,11 @@ class _ProgressPageState extends State<ProgressPage>
             ),
             const SizedBox(width: 1),
             Text(
-              'Última Actividad: ${_stats!.lastActivityDate != null ? DateFormat('dd/MM/yyyy').format(_stats!.lastActivityDate!) : 'Sin actividad'}',
+              'progress.last_activity'.tr({
+                'date': _stats!.lastActivityDate != null
+                    ? DateFormat('dd/MM/yyyy').format(_stats!.lastActivityDate!)
+                    : 'progress.no_activity'.tr()
+              }),
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     fontWeight: FontWeight.w500,
                     color: Theme.of(context)

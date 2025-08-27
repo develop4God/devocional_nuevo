@@ -134,7 +134,7 @@ class _ContactPageState extends State<ContactPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Contacto',
+          'contact_page.title'.tr(),
           style:
               TextStyle(color: Theme.of(context).appBarTheme.foregroundColor),
         ),
@@ -147,7 +147,7 @@ class _ContactPageState extends State<ContactPage> {
           children: [
             // Título de la página
             Text(
-              'Contáctanos',
+              'contact_page.contact_us'.tr(),
               style: textTheme.headlineMedium?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: colorScheme.primary,
@@ -157,7 +157,7 @@ class _ContactPageState extends State<ContactPage> {
 
             // Descripción
             Text(
-              'Si tienes alguna pregunta, sugerencia o comentario, no dudes en ponerte en contacto con nosotros. Estaremos encantados de ayudarte.',
+              'contact_page.description'.tr(),
               style:
                   textTheme.bodyLarge?.copyWith(color: colorScheme.onSurface),
             ),
@@ -171,7 +171,7 @@ class _ContactPageState extends State<ContactPage> {
             DropdownButtonFormField<String>(
               value: _selectedContactOption,
               decoration: InputDecoration(
-                labelText: 'Tipo de contacto',
+                labelText: 'contact_page.contact_type_label'.tr(),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
@@ -197,8 +197,8 @@ class _ContactPageState extends State<ContactPage> {
             TextField(
               controller: _messageController,
               decoration: InputDecoration(
-                labelText: 'Tu mensaje',
-                hintText: 'Escribe tu mensaje aquí...',
+                labelText: 'contact_page.message_label'.tr(),
+                hintText: 'contact_page.message_hint'.tr(),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
@@ -233,7 +233,7 @@ class _ContactPageState extends State<ContactPage> {
 
             // Otras formas de contacto (se mantienen)
             Text(
-              'Otras formas de contacto',
+              'contact_page.other_contact_methods'.tr(),
               style: textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: colorScheme.onSurface,

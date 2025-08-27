@@ -429,14 +429,20 @@ class _PrayersPageState extends State<PrayersPage>
                 ),
                 const SizedBox(width: 4),
                 Text(
-                  'Creada: ${DateFormat('dd/MM/yyyy').format(prayer.createdDate)}',
+                  'prayers.created'.tr({
+                    'date': DateFormat('dd/MM/yyyy').format(prayer.createdDate)
+                  }),
                   style: textTheme.bodySmall?.copyWith(
                     color: colorScheme.onSurface.withValues(alpha: 0.6),
                   ),
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  '(${prayer.daysOld} ${prayer.daysOld == 1 ? 'día' : 'días'})',
+                  prayer.daysOld == 1
+                      ? 'prayers.days_old_single'
+                          .tr({'days': prayer.daysOld.toString()})
+                      : 'prayers.days_old_plural'
+                          .tr({'days': prayer.daysOld.toString()}),
                   style: textTheme.bodySmall?.copyWith(
                     color: colorScheme.primary,
                     fontWeight: FontWeight.w500,
@@ -456,7 +462,10 @@ class _PrayersPageState extends State<PrayersPage>
                   ),
                   const SizedBox(width: 4),
                   Text(
-                    'Respondida: ${DateFormat('dd/MM/yyyy').format(prayer.answeredDate!)}',
+                    'prayers.answered'.tr({
+                      'date':
+                          DateFormat('dd/MM/yyyy').format(prayer.answeredDate!)
+                    }),
                     style: textTheme.bodySmall?.copyWith(
                       color: Colors.green,
                     ),
