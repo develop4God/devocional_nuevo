@@ -62,8 +62,18 @@ jobs:
                 git diff --name-only
                 git add .
                 git commit -m "🎨 Auto-format code with dart format [skip ci]" 
-                # Detect branch name robustly
+                # Detect branch name robustly (handles detached HEAD)
                 CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+                if [ "$CURRENT_BRANCH" = "HEAD" ]; then
+                  if [ -n "${GITHUB_HEAD_REF}" ]; then
+                    CURRENT_BRANCH="${GITHUB_HEAD_REF}"
+                  elif [ -n "${GITHUB_REF_NAME}" ]; then
+                    CURRENT_BRANCH="${GITHUB_REF_NAME}"
+                  else
+                    echo "❌ No branch name detected for push! Aborting push."
+                    exit 1
+                  fi
+                fi
                 git push origin "$CURRENT_BRANCH"
                 echo "✅ Code has been automatically formatted and committed!"
                 echo "🔄 Contributors should pull the latest changes."
@@ -94,7 +104,6 @@ jobs:
           else
             echo "✅ All files are already properly formatted!"
           fi
-
       - name: 🧹 Remove unused imports (dart fix)
         run: |
           echo "🧹 Eliminando imports no usados y aplicando fixes automáticos..."
@@ -104,8 +113,18 @@ jobs:
             git config --local user.name "GitHub Action [bot]"
             git add .
             git commit -m "🧹 Remove unused imports and auto-fix code [skip ci]"
-            # Detect branch name robustly
+            # Detect branch name robustly (handles detached HEAD)
             CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+            if [ "$CURRENT_BRANCH" = "HEAD" ]; then
+              if [ -n "${GITHUB_HEAD_REF}" ]; then
+                CURRENT_BRANCH="${GITHUB_HEAD_REF}"
+              elif [ -n "${GITHUB_REF_NAME}" ]; then
+                CURRENT_BRANCH="${GITHUB_REF_NAME}"
+              else
+                echo "❌ No branch name detected for push! Aborting push."
+                exit 1
+              fi
+            fi
             git push origin "$CURRENT_BRANCH"
             echo "✅ Imports limpios y fixes aplicados!"
             echo "## 🧹 Import Cleanup Summary" >> $GITHUB_STEP_SUMMARY
@@ -120,7 +139,6 @@ jobs:
           else
             echo "ℹ️ No unused imports or fixes applied."
           fi
-
       - name: 🔍 Analyze code
         run: flutter analyze --fatal-infos
 
@@ -273,7 +291,6 @@ jobs:
           rm -f android/keystore.jks
           rm -f android/key.properties
           echo "✅ Cleanup completed"
-
   comment:
     name: 💬 PR Comment
     runs-on: ubuntu-latest
@@ -344,7 +361,6 @@ jobs:
               repo: context.repo.repo,
               body: comment
             });
-
   security:
     name: 🔒 Security Scan
     runs-on: ubuntu-latest
