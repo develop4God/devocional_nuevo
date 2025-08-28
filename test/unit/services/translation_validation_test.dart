@@ -1,8 +1,9 @@
-import 'package:flutter_test/flutter_test.dart';
+import 'dart:ui';
+
 import 'package:devocional_nuevo/services/localization_service.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:ui';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -204,7 +205,7 @@ void main() {
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(
         const MethodChannel('flutter/assets'),
-        (MethodCall methodCall) async {
+            (MethodCall methodCall) async {
           if (methodCall.method == 'loadString') {
             final String key = methodCall.arguments as String;
             return mockTranslations[key];
@@ -230,23 +231,31 @@ void main() {
       test('should translate basic app keys across all languages', () async {
         // Test Spanish
         await localizationService.changeLocale(const Locale('es'));
-        expect(localizationService.translate('app.title'), equals('Devocionales'));
-        expect(localizationService.translate('app.loading'), equals('Cargando...'));
-        
+        expect(
+            localizationService.translate('app.title'), equals('Devocionales'));
+        expect(localizationService.translate('app.loading'),
+            equals('Cargando...'));
+
         // Test English
         await localizationService.changeLocale(const Locale('en'));
-        expect(localizationService.translate('app.title'), equals('Devotionals'));
-        expect(localizationService.translate('app.loading'), equals('Loading...'));
-        
+        expect(
+            localizationService.translate('app.title'), equals('Devotionals'));
+        expect(
+            localizationService.translate('app.loading'), equals('Loading...'));
+
         // Test Portuguese
         await localizationService.changeLocale(const Locale('pt'));
-        expect(localizationService.translate('app.title'), equals('Devocionais'));
-        expect(localizationService.translate('app.loading'), equals('Carregando...'));
-        
+        expect(
+            localizationService.translate('app.title'), equals('Devocionais'));
+        expect(localizationService.translate('app.loading'),
+            equals('Carregando...'));
+
         // Test French
         await localizationService.changeLocale(const Locale('fr'));
-        expect(localizationService.translate('app.title'), equals('Dévotionnels'));
-        expect(localizationService.translate('app.loading'), equals('Chargement...'));
+        expect(
+            localizationService.translate('app.title'), equals('Dévotionnels'));
+        expect(localizationService.translate('app.loading'),
+            equals('Chargement...'));
       });
     });
 
@@ -254,91 +263,110 @@ void main() {
       test('should translate prayer validation errors correctly', () async {
         // Test Spanish
         await localizationService.changeLocale(const Locale('es'));
-        expect(localizationService.translate('prayer.enter_prayer_text_error'), 
-               equals('Por favor ingresa el texto de la oración'));
-        expect(localizationService.translate('prayer.prayer_min_length_error'), 
-               equals('La oración debe tener al menos 10 caracteres'));
-        
+        expect(localizationService.translate('prayer.enter_prayer_text_error'),
+            equals('Por favor ingresa el texto de la oración'));
+        expect(localizationService.translate('prayer.prayer_min_length_error'),
+            equals('La oración debe tener al menos 10 caracteres'));
+
         // Test English
         await localizationService.changeLocale(const Locale('en'));
-        expect(localizationService.translate('prayer.enter_prayer_text_error'), 
-               equals('Please enter the prayer text'));
-        expect(localizationService.translate('prayer.prayer_min_length_error'), 
-               equals('Prayer must have at least 10 characters'));
-        
+        expect(localizationService.translate('prayer.enter_prayer_text_error'),
+            equals('Please enter the prayer text'));
+        expect(localizationService.translate('prayer.prayer_min_length_error'),
+            equals('Prayer must have at least 10 characters'));
+
         // Test Portuguese
         await localizationService.changeLocale(const Locale('pt'));
-        expect(localizationService.translate('prayer.enter_prayer_text_error'), 
-               equals('Por favor, insira o texto da oração'));
-        expect(localizationService.translate('prayer.prayer_min_length_error'), 
-               equals('A oração deve ter pelo menos 10 caracteres'));
-        
+        expect(localizationService.translate('prayer.enter_prayer_text_error'),
+            equals('Por favor, insira o texto da oração'));
+        expect(localizationService.translate('prayer.prayer_min_length_error'),
+            equals('A oração deve ter pelo menos 10 caracteres'));
+
         // Test French
         await localizationService.changeLocale(const Locale('fr'));
-        expect(localizationService.translate('prayer.enter_prayer_text_error'), 
-               equals('Veuillez saisir le texte de la prière'));
-        expect(localizationService.translate('prayer.prayer_min_length_error'), 
-               equals('La prière doit contenir au moins 10 caractères'));
+        expect(localizationService.translate('prayer.enter_prayer_text_error'),
+            equals('Veuillez saisir le texte de la prière'));
+        expect(localizationService.translate('prayer.prayer_min_length_error'),
+            equals('La prière doit contenir au moins 10 caractères'));
       });
 
-      test('should handle parameter interpolation in prayer timestamps', () async {
-        await localizationService.changeLocale(const Locale('es'));
-        expect(localizationService.translate('prayer.created', {'date': '25/12/2024'}), 
-               equals('Creada: 25/12/2024'));
-        expect(localizationService.translate('prayer.days_old_plural', {'days': '5'}), 
-               equals('(5 días)'));
-        
-        await localizationService.changeLocale(const Locale('en'));
-        expect(localizationService.translate('prayer.created', {'date': '25/12/2024'}), 
-               equals('Created: 25/12/2024'));
-        expect(localizationService.translate('prayer.days_old_single', {'days': '1'}), 
-               equals('(1 day)'));
-      });
+      test('should handle parameter interpolation in prayer timestamps',
+              () async {
+            await localizationService.changeLocale(const Locale('es'));
+            expect(
+                localizationService
+                    .translate('prayer.created', {'date': '25/12/2024'}),
+                equals('Creada: 25/12/2024'));
+            expect(
+                localizationService
+                    .translate('prayer.days_old_plural', {'days': '5'}),
+                equals('(5 días)'));
+
+            await localizationService.changeLocale(const Locale('en'));
+            expect(
+                localizationService
+                    .translate('prayer.created', {'date': '25/12/2024'}),
+                equals('Created: 25/12/2024'));
+            expect(
+                localizationService
+                    .translate('prayer.days_old_single', {'days': '1'}),
+                equals('(1 day)'));
+          });
     });
 
     group('Progress Module Translation Validation', () {
       test('should translate progress statistics correctly', () async {
         // Test Spanish
         await localizationService.changeLocale(const Locale('es'));
-        expect(localizationService.translate('progress.title'), equals('Progreso'));
-        expect(localizationService.translate('progress.devotionals_completed'), 
-               equals('Devocionales completos'));
-        expect(localizationService.translate('progress.achievements'), equals('Logros'));
-        
+        expect(localizationService.translate('progress.title'),
+            equals('Progreso'));
+        expect(localizationService.translate('progress.devotionals_completed'),
+            equals('Devocionales completos'));
+        expect(localizationService.translate('progress.achievements'),
+            equals('Logros'));
+
         // Test English
         await localizationService.changeLocale(const Locale('en'));
-        expect(localizationService.translate('progress.title'), equals('Progress'));
-        expect(localizationService.translate('progress.devotionals_completed'), 
-               equals('Devotionals completed'));
-        expect(localizationService.translate('progress.achievements'), equals('Achievements'));
-        
+        expect(localizationService.translate('progress.title'),
+            equals('Progress'));
+        expect(localizationService.translate('progress.devotionals_completed'),
+            equals('Devotionals completed'));
+        expect(localizationService.translate('progress.achievements'),
+            equals('Achievements'));
+
         // Test Portuguese
         await localizationService.changeLocale(const Locale('pt'));
-        expect(localizationService.translate('progress.title'), equals('Progresso'));
-        expect(localizationService.translate('progress.devotionals_completed'), 
-               equals('Devocionais completos'));
-        expect(localizationService.translate('progress.achievements'), equals('Conquistas'));
-        
+        expect(localizationService.translate('progress.title'),
+            equals('Progresso'));
+        expect(localizationService.translate('progress.devotionals_completed'),
+            equals('Devocionais completos'));
+        expect(localizationService.translate('progress.achievements'),
+            equals('Conquistas'));
+
         // Test French
         await localizationService.changeLocale(const Locale('fr'));
-        expect(localizationService.translate('progress.title'), equals('Progrès'));
-        expect(localizationService.translate('progress.devotionals_completed'), 
-               equals('Dévotionnels complétés'));
-        expect(localizationService.translate('progress.achievements'), equals('Réalisations'));
+        expect(
+            localizationService.translate('progress.title'), equals('Progrès'));
+        expect(localizationService.translate('progress.devotionals_completed'),
+            equals('Dévotionnels complétés'));
+        expect(localizationService.translate('progress.achievements'),
+            equals('Réalisations'));
       });
 
       test('should handle goal progress with parameters', () async {
         await localizationService.changeLocale(const Locale('es'));
-        expect(localizationService.translate('progress.next_goal', {'goal': '7'}), 
-               equals('Siguiente meta: 7 días'));
-        expect(localizationService.translate('progress.goal_reached'), 
-               equals('¡Meta alcanzada!'));
-        
+        expect(
+            localizationService.translate('progress.next_goal', {'goal': '7'}),
+            equals('Siguiente meta: 7 días'));
+        expect(localizationService.translate('progress.goal_reached'),
+            equals('¡Meta alcanzada!'));
+
         await localizationService.changeLocale(const Locale('en'));
-        expect(localizationService.translate('progress.next_goal', {'goal': '7'}), 
-               equals('Next goal: 7 days'));
-        expect(localizationService.translate('progress.goal_reached'), 
-               equals('Goal reached!'));
+        expect(
+            localizationService.translate('progress.next_goal', {'goal': '7'}),
+            equals('Next goal: 7 days'));
+        expect(localizationService.translate('progress.goal_reached'),
+            equals('Goal reached!'));
       });
     });
 
@@ -346,102 +374,132 @@ void main() {
       test('should translate contact form elements correctly', () async {
         // Test Spanish
         await localizationService.changeLocale(const Locale('es'));
-        expect(localizationService.translate('contact_page.title'), equals('Contacto'));
-        expect(localizationService.translate('contact_page.contact_us'), equals('Contáctanos'));
-        expect(localizationService.translate('contact_page.contact_type_label'), 
-               equals('Tipo de contacto'));
-        
+        expect(localizationService.translate('contact_page.title'),
+            equals('Contacto'));
+        expect(localizationService.translate('contact_page.contact_us'),
+            equals('Contáctanos'));
+        expect(localizationService.translate('contact_page.contact_type_label'),
+            equals('Tipo de contacto'));
+
         // Test English
         await localizationService.changeLocale(const Locale('en'));
-        expect(localizationService.translate('contact_page.title'), equals('Contact'));
-        expect(localizationService.translate('contact_page.contact_us'), equals('Contact Us'));
-        expect(localizationService.translate('contact_page.contact_type_label'), 
-               equals('Contact type'));
-        
+        expect(localizationService.translate('contact_page.title'),
+            equals('Contact'));
+        expect(localizationService.translate('contact_page.contact_us'),
+            equals('Contact Us'));
+        expect(localizationService.translate('contact_page.contact_type_label'),
+            equals('Contact type'));
+
         // Test Portuguese
         await localizationService.changeLocale(const Locale('pt'));
-        expect(localizationService.translate('contact_page.title'), equals('Contato'));
-        expect(localizationService.translate('contact_page.contact_us'), equals('Entre em Contato'));
-        expect(localizationService.translate('contact_page.contact_type_label'), 
-               equals('Tipo de contato'));
-        
+        expect(localizationService.translate('contact_page.title'),
+            equals('Contato'));
+        expect(localizationService.translate('contact_page.contact_us'),
+            equals('Entre em Contato'));
+        expect(localizationService.translate('contact_page.contact_type_label'),
+            equals('Tipo de contato'));
+
         // Test French
         await localizationService.changeLocale(const Locale('fr'));
-        expect(localizationService.translate('contact_page.title'), equals('Contact'));
-        expect(localizationService.translate('contact_page.contact_us'), equals('Contactez-nous'));
-        expect(localizationService.translate('contact_page.contact_type_label'), 
-               equals('Type de contact'));
+        expect(localizationService.translate('contact_page.title'),
+            equals('Contact'));
+        expect(localizationService.translate('contact_page.contact_us'),
+            equals('Contactez-nous'));
+        expect(localizationService.translate('contact_page.contact_type_label'),
+            equals('Type de contact'));
       });
     });
 
     group('Devotional Actions Translation Validation', () {
-      test('should translate devotional action confirmations correctly', () async {
-        // Test Spanish
-        await localizationService.changeLocale(const Locale('es'));
-        expect(localizationService.translate('devotionals_page.added_to_favorites'), 
-               equals('Devocional agregado a favoritos'));
-        expect(localizationService.translate('devotionals_page.removed_from_favorites'), 
-               equals('Devocional removido de favoritos'));
-        
-        // Test English
-        await localizationService.changeLocale(const Locale('en'));
-        expect(localizationService.translate('devotionals_page.added_to_favorites'), 
-               equals('Devotional added to favorites'));
-        expect(localizationService.translate('devotionals_page.removed_from_favorites'), 
-               equals('Devotional removed from favorites'));
-        
-        // Test Portuguese
-        await localizationService.changeLocale(const Locale('pt'));
-        expect(localizationService.translate('devotionals_page.added_to_favorites'), 
-               equals('Devocional adicionado aos favoritos'));
-        expect(localizationService.translate('devotionals_page.removed_from_favorites'), 
-               equals('Devocional removido dos favoritos'));
-        
-        // Test French
-        await localizationService.changeLocale(const Locale('fr'));
-        expect(localizationService.translate('devotionals_page.added_to_favorites'), 
-               equals('Dévotionnel ajouté aux favoris'));
-        expect(localizationService.translate('devotionals_page.removed_from_favorites'), 
-               equals('Dévotionnel retiré des favoris'));
-      });
+      test('should translate devotional action confirmations correctly',
+              () async {
+            // Test Spanish
+            await localizationService.changeLocale(const Locale('es'));
+            expect(
+                localizationService
+                    .translate('devotionals_page.added_to_favorites'),
+                equals('Devocional agregado a favoritos'));
+            expect(
+                localizationService
+                    .translate('devotionals_page.removed_from_favorites'),
+                equals('Devocional removido de favoritos'));
+
+            // Test English
+            await localizationService.changeLocale(const Locale('en'));
+            expect(
+                localizationService
+                    .translate('devotionals_page.added_to_favorites'),
+                equals('Devotional added to favorites'));
+            expect(
+                localizationService
+                    .translate('devotionals_page.removed_from_favorites'),
+                equals('Devotional removed from favorites'));
+
+            // Test Portuguese
+            await localizationService.changeLocale(const Locale('pt'));
+            expect(
+                localizationService
+                    .translate('devotionals_page.added_to_favorites'),
+                equals('Devocional adicionado aos favoritos'));
+            expect(
+                localizationService
+                    .translate('devotionals_page.removed_from_favorites'),
+                equals('Devocional removido dos favoritos'));
+
+            // Test French
+            await localizationService.changeLocale(const Locale('fr'));
+            expect(
+                localizationService
+                    .translate('devotionals_page.added_to_favorites'),
+                equals('Dévotionnel ajouté aux favoris'));
+            expect(
+                localizationService
+                    .translate('devotionals_page.removed_from_favorites'),
+                equals('Dévotionnel retiré des favoris'));
+          });
     });
 
     group('Translation Coverage and Fallback', () {
       test('should return key when translation not found', () async {
         await localizationService.changeLocale(const Locale('es'));
-        expect(localizationService.translate('non.existent.key'), 
-               equals('non.existent.key'));
+        expect(localizationService.translate('non.existent.key'),
+            equals('non.existent.key'));
       });
 
       test('should handle empty parameters gracefully', () async {
         await localizationService.changeLocale(const Locale('es'));
-        expect(localizationService.translate('prayer.created', {}), 
-               equals('Creada: {date}'));
+        expect(localizationService.translate('prayer.created', {}),
+            equals('Creada: {date}'));
       });
 
       test('should validate all critical UI translation keys exist', () async {
         await localizationService.changeLocale(const Locale('es'));
-        
+
         // Critical app-wide keys
-        expect(localizationService.translate('app.title'), isNot(equals('app.title')));
-        expect(localizationService.translate('app.cancel'), isNot(equals('app.cancel')));
-        expect(localizationService.translate('app.delete'), isNot(equals('app.delete')));
-        
+        expect(localizationService.translate('app.title'),
+            isNot(equals('app.title')));
+        expect(localizationService.translate('app.cancel'),
+            isNot(equals('app.cancel')));
+        expect(localizationService.translate('app.delete'),
+            isNot(equals('app.delete')));
+
         // Prayer management keys
-        expect(localizationService.translate('prayer.cancel'), isNot(equals('prayer.cancel')));
-        expect(localizationService.translate('prayer.enter_prayer_text_error'), 
-               isNot(equals('prayer.enter_prayer_text_error')));
-        
+        expect(localizationService.translate('prayer.cancel'),
+            isNot(equals('prayer.cancel')));
+        expect(localizationService.translate('prayer.enter_prayer_text_error'),
+            isNot(equals('prayer.enter_prayer_text_error')));
+
         // Progress tracking keys
-        expect(localizationService.translate('progress.title'), isNot(equals('progress.title')));
-        expect(localizationService.translate('progress.achievements'), 
-               isNot(equals('progress.achievements')));
-        
+        expect(localizationService.translate('progress.title'),
+            isNot(equals('progress.title')));
+        expect(localizationService.translate('progress.achievements'),
+            isNot(equals('progress.achievements')));
+
         // Contact form keys
-        expect(localizationService.translate('contact_page.title'), 
-               isNot(equals('contact_page.title')));
-        expect(localizationService.translate('contact_page.contact_us'), 
-               isNot(equals('contact_page.contact_us')));
+        expect(localizationService.translate('contact_page.title'),
+            isNot(equals('contact_page.title')));
+        expect(localizationService.translate('contact_page.contact_us'),
+            isNot(equals('contact_page.contact_us')));
       });
     });
   });
