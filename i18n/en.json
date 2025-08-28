@@ -84,7 +84,8 @@
     "delete_confirmation": "Are you sure you want to delete this prayer? This action cannot be undone.",
     "enter_prayer_text_error": "Please enter the prayer text",
     "prayer_min_length_error": "Prayer must have at least 10 characters",
-    "cancel": "Cancel"
+    "cancel": "Cancel", 
+    "Create_prayer": "Create Prayer"
 
   },
   "settings": {
