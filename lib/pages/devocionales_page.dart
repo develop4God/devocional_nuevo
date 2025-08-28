@@ -801,16 +801,16 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                       onPressed: () async {
                         await BubbleUtils.markAsShown(
                           BubbleUtils.getIconBubbleId(
-                            Icons.assignment_turned_in_outlined,
+                            Icons.local_fire_department_outlined,
                             'new',
                           ),
                         );
                         _goToPrayers();
                       },
                       icon: const Icon(
-                        Icons.assignment_turned_in_outlined,
+                        Icons.local_fire_department_outlined,
                         color: Colors.white,
-                        size: 32,
+                        size: 35,
                       ).newIconBadge,
                     ),
                     IconButton(

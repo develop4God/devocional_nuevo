@@ -329,7 +329,7 @@ class DevocionalesDrawer extends StatelessWidget {
                     const SizedBox(height: 5),
                     // --- Mis oraciones ---
                     drawerRow(
-                      icon: Icons.assignment_turned_in_outlined,
+                      icon: Icons.local_fire_department_outlined,
                       iconColor: colorScheme.primary,
                       label: Text(
                         'drawer.my_prayers'.tr(),
