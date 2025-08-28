@@ -80,14 +80,12 @@
     "edit_placeholder": "Edita tu oración...",
     "new_placeholder": "Señor, te pido por...\n\nAyúdame a...\n\nTe agradezco por...",
     "delete_prayer": "Eliminar oración",
-
     "delete_confirmation": "¿Estás seguro de que quieres eliminar esta oración? Esta acción no se puede deshacer.",
     "enter_prayer_text_error": "Por favor ingresa el texto de la oración",
     "prayer_min_length_error": "La oración debe tener al menos 10 caracteres",
-    "cancel": "Cancelar", 
-    "create_prayer" : "Crear Oración",  
-    "update_prayer": "Actualizar"
-
+    "cancel": "Cancelar",
+    "create_prayer": "Crear Oración",
+    "update_prayer": "Actualizar Oración"
   },
   "settings": {
     "title": "Configuración",
@@ -122,7 +120,7 @@
     "home": "Inicio",
     "devotional": "Devocional",
     "favorites": "Favoritos",
-    "prayers": "Oraciones", 
+    "prayers": "Oraciones",
     "progress": "Progreso",
     "stats": "Estadísticas",
     "settings": "Configuración",
@@ -208,7 +206,7 @@
   },
   "contact": {
     "bugs": "Errores/Bugs",
-    "feedback": "Opinión/Feedback", 
+    "feedback": "Opinión/Feedback",
     "improvements": "Mejoras/Improvements",
     "other": "Otros",
     "select_type_error": "Por favor, selecciona un tipo de contacto.",
@@ -276,7 +274,6 @@
     "first_favorite": "Primer favorito",
     "dedicated_reader": "Lector dedicado",
     "achievement_unlocked": "¡Logro desbloqueado!"
-
   },
   "progress": {
     "title": "Progreso",
@@ -316,6 +313,5 @@
   "devotionals_page": {
     "added_to_favorites": "Devocional agregado a favoritos",
     "removed_from_favorites": "Devocional removido de favoritos"
-
   }
 }
