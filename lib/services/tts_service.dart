@@ -1492,6 +1492,12 @@ class TtsService {
   List<String> generateChunksForTesting(Devocional devocional) {
     return _generateChunks(devocional);
   }
+  
+  // Test helper method to expose section headers for testing
+  @visibleForTesting
+  Map<String, String> getSectionHeadersForTesting(String language) {
+    return _getSectionHeaders(language);
+  }
 
   Future<void> dispose() async {
     if (_disposed) return;
