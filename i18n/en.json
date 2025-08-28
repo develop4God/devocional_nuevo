@@ -80,10 +80,12 @@
     "edit_placeholder": "Edit your prayer...",
     "new_placeholder": "Lord, I ask for...\n\nHelp me to...\n\nI thank you for...",
     "delete_prayer": "Delete prayer",
+
     "delete_confirmation": "Are you sure you want to delete this prayer? This action cannot be undone.",
     "enter_prayer_text_error": "Please enter the prayer text",
     "prayer_min_length_error": "Prayer must have at least 10 characters",
     "cancel": "Cancel"
+
   },
   "settings": {
     "title": "Settings",
@@ -273,6 +275,7 @@
     "dedicated_reader": "Dedicated reader",
     "achievement_unlocked": "Achievement unlocked!"
   },
+
   "progress": {
     "title": "Progress",
     "current_streak": "Current streak",
@@ -312,6 +315,7 @@
     "added_to_favorites": "Devotional added to favorites",
     "removed_from_favorites": "Devotional removed from favorites"
   },
+
   "errors": {
     "network_error": "Network error",
     "file_not_found": "File not found",

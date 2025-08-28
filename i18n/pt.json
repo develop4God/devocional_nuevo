@@ -43,6 +43,7 @@
     "dont_show_again": "Não mostrar novamente",
     "already_prayed": "Já fiz 🙏\nNão mostrar novamente",
     "prayer_time": "Tempo de oração",
+
     "praying": "Orando...",
     "my_prayers": "Minhas Orações",
     "active": "Ativas",
@@ -65,6 +66,7 @@
     "enter_prayer_text_error": "Por favor, insira o texto da oração",
     "prayer_min_length_error": "A oração deve ter pelo menos 10 caracteres",
     "cancel": "Cancelar"
+
   },
   "settings": {
     "title": "Configurações",
@@ -214,6 +216,7 @@
     "developed_by": "Desenvolvido com ❤️ por Develop4God",
     "terms_copyright": "Termos e Condições / Copyright",
     "link_error": "Não foi possível abrir o link."
+
   },
   "stats": {
     "title": "Estatísticas Espirituais",
@@ -268,5 +271,6 @@
   "devotionals_page": {
     "added_to_favorites": "Devocional adicionado aos favoritos",
     "removed_from_favorites": "Devocional removido dos favoritos"
+
   }
 }
