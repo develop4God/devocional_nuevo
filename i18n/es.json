@@ -207,14 +207,14 @@
   "favorites": {
     "title": "Mis favoritos guardados",
     "empty_title": "Aún no tienes devocionales favoritos.",
-    "empty_description": "Marca el ícono del corazón en un devocional para guardarlo aquí.",
+    "empty_description": "Toca el ícono del corazón en un devocional para guardarlo aquí.",
     "remove_tooltip": "Quitar de favoritos",
     "removed_message": "\"{verse}\" eliminado de favoritos."
   },
   "contact": {
     "bugs": "Errores/Bugs",
     "feedback": "Opinión/Feedback",
-    "improvements": "Mejoras/Improvements",
+    "improvements": "Mejoras",
     "other": "Otros",
     "select_type_error": "Por favor, selecciona un tipo de contacto.",
     "enter_message_error": "Por favor, escribe un mensaje.",
@@ -246,7 +246,7 @@
     "download_failed": "Descarga falló",
     "retry_download": "Reintentar descarga",
     "storage_permission": "Permiso de almacenamiento",
-    "storage_permission_message": "Se necesita permiso para descargar archivos"
+    "storage_permission_message": "Se necesita permiso de almacenamiento para descargar archivos"
   },
   "about": {
     "title": "Acerca de tu app",
