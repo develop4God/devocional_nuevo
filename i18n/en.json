@@ -85,7 +85,8 @@
     "enter_prayer_text_error": "Please enter the prayer text",
     "prayer_min_length_error": "Prayer must have at least 10 characters",
     "cancel": "Cancel", 
-    "Create_prayer": "Create Prayer"
+    "create_prayer" : "Create Prayer",  
+    "update_prayer": "Update Prayer"
 
   },
   "settings": {
