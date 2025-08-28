@@ -166,6 +166,29 @@ class TtsService {
     try {
       debugPrint('🔧 TTS: Setting language to $language');
       await _flutterTts.setLanguage(language);
+
+      // Load saved voice for current language if available
+      final prefs = await SharedPreferences.getInstance();
+      final savedVoice = prefs.getString('tts_voice_$_currentLanguage');
+      if (savedVoice != null) {
+        try {
+          // Parse saved voice
+          final voiceParts = savedVoice.split(' (');
+          final voiceName = voiceParts[0];
+          final locale = voiceParts.length > 1
+              ? voiceParts[1].replaceAll(')', '')
+              : language;
+
+          await _flutterTts.setVoice({
+            'name': voiceName,
+            'locale': locale,
+          });
+          debugPrint(
+              '🔧 TTS: Loaded saved voice $voiceName for language $_currentLanguage');
+        } catch (e) {
+          debugPrint('⚠️ TTS: Failed to load saved voice: $e');
+        }
+      }
     } catch (e) {
       debugPrint('⚠️ TTS: Language $language failed, using es-US: $e');
       await _flutterTts.setLanguage('es-US');
@@ -1324,13 +1347,16 @@ class TtsService {
     _currentVersion = version;
     debugPrint('🌐 TTS: Language context set to $language ($version)');
 
-    // Update TTS language settings based on context
+    // Update TTS language settings based on context immediately
     _updateTtsLanguageSettings(language);
   }
 
   // Update TTS language settings with proper locale mapping
   Future<void> _updateTtsLanguageSettings(String language) async {
-    if (!_isInitialized) return;
+    if (!_isInitialized) {
+      debugPrint('⚠️ TTS: Cannot update language - service not initialized');
+      return;
+    }
 
     String ttsLocale;
     switch (language) {
@@ -1351,10 +1377,52 @@ class TtsService {
     }
 
     try {
+      debugPrint(
+          '🔧 TTS: Changing voice language to $ttsLocale for context $language');
+
+      // Force language change with verification
       await _flutterTts.setLanguage(ttsLocale);
-      debugPrint('🔧 TTS: Language updated to $ttsLocale for $language');
+
+      // Load saved voice for current language if available
+      final prefs = await SharedPreferences.getInstance();
+      final savedVoice = prefs.getString('tts_voice_$language');
+      if (savedVoice != null) {
+        try {
+          // Parse saved voice
+          final voiceParts = savedVoice.split(' (');
+          final voiceName = voiceParts[0];
+          final locale = voiceParts.length > 1
+              ? voiceParts[1].replaceAll(')', '')
+              : ttsLocale;
+
+          await _flutterTts.setVoice({
+            'name': voiceName,
+            'locale': locale,
+          });
+          debugPrint(
+              '🔧 TTS: Loaded saved voice $voiceName for language context $language');
+        } catch (e) {
+          debugPrint(
+              '⚠️ TTS: Failed to load saved voice for language context: $e');
+        }
+      }
+
+      // Save the TTS language preference
+      await prefs.setString('tts_language', ttsLocale);
+
+      debugPrint('✅ TTS: Voice language successfully updated to $ttsLocale');
     } catch (e) {
-      debugPrint('⚠️ TTS: Failed to set language $ttsLocale: $e');
+      debugPrint('❌ TTS: Failed to set language $ttsLocale: $e');
+
+      // Fallback to Spanish if other language fails
+      if (ttsLocale != 'es-ES') {
+        try {
+          await _flutterTts.setLanguage('es-ES');
+          debugPrint('🔄 TTS: Fallback to Spanish voice successful');
+        } catch (fallbackError) {
+          debugPrint('❌ TTS: Even Spanish fallback failed: $fallbackError');
+        }
+      }
     }
   }
 
@@ -1366,6 +1434,63 @@ class TtsService {
     } catch (e) {
       debugPrint('Error getting languages: $e at ${DateTime.now()}');
       return [];
+    }
+  }
+
+  Future<List<String>> getVoices() async {
+    if (!_isInitialized) await _initialize();
+    try {
+      final voices = await _flutterTts.getVoices;
+      if (voices is List<dynamic>) {
+        return voices.map((voice) {
+          if (voice is Map) {
+            final name = voice['name'] as String? ?? '';
+            final locale = voice['locale'] as String? ?? '';
+            return '$name ($locale)';
+          }
+          return voice.toString();
+        }).toList();
+      }
+      return List<String>.from(voices ?? []);
+    } catch (e) {
+      debugPrint('Error getting voices: $e at ${DateTime.now()}');
+      return [];
+    }
+  }
+
+  Future<List<String>> getVoicesForLanguage(String language) async {
+    final allVoices = await getVoices();
+    final targetLocale = _getLocaleForLanguage(language);
+
+    return allVoices.where((voice) => voice.contains(targetLocale)).toList();
+  }
+
+  String _getLocaleForLanguage(String language) {
+    switch (language) {
+      case 'es':
+        return 'es-ES';
+      case 'en':
+        return 'en-US';
+      case 'pt':
+        return 'pt-BR';
+      case 'fr':
+        return 'fr-FR';
+      default:
+        return 'es-ES';
+    }
+  }
+
+  Future<void> setVoice(Map<String, String> voice) async {
+    if (!_isInitialized) await _initialize();
+    try {
+      await _flutterTts.setVoice(voice);
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(
+          'tts_voice_$_currentLanguage', voice['name'] ?? '');
+      debugPrint(
+          '🔧 TTS: Voice set to ${voice['name']} for language $_currentLanguage');
+    } catch (e) {
+      debugPrint('⚠️ TTS: Failed to set voice: $e');
     }
   }
 

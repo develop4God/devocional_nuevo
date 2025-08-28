@@ -20,33 +20,39 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage> {
   double _ttsSpeed = 0.4; // Velocidad de TTS por defecto
+  List<String> _availableVoices = [];
+  String? _selectedVoice;
 
   @override
   void initState() {
     super.initState();
-    _loadTtsLanguages();
+    _loadTtsSettings();
   }
 
-  Future<void> _loadTtsLanguages() async {
+  Future<void> _loadTtsSettings() async {
     final devocionalProvider =
         Provider.of<DevocionalProvider>(context, listen: false);
+    final localizationProvider =
+        Provider.of<LocalizationProvider>(context, listen: false);
+
     try {
-      final languages = await devocionalProvider.getAvailableLanguages();
+      // Load available voices for current language
+      final currentLanguage = localizationProvider.currentLocale.languageCode;
+      final voices =
+          await devocionalProvider.getVoicesForLanguage(currentLanguage);
+
       // Load saved preferences
       final prefs = await SharedPreferences.getInstance();
-      final savedLanguage = prefs.getString('tts_language');
       final savedRate = prefs.getDouble('tts_rate') ?? 0.5;
+      final savedVoice = prefs.getString('tts_voice_$currentLanguage');
 
       setState(() {
         _ttsSpeed = savedRate;
-        // Use saved language if available, otherwise default to Spanish
-        if (savedLanguage != null && languages.contains(savedLanguage)) {
-        } else if (languages.contains('es-ES')) {
-        } else if (languages.contains('es')) {
-        } else if (languages.isNotEmpty) {}
+        _availableVoices = voices;
+        _selectedVoice = savedVoice;
       });
     } catch (e) {
-      developer.log('Error loading TTS languages: $e');
+      developer.log('Error loading TTS settings: $e');
     }
   }
 
@@ -203,6 +209,9 @@ class _SettingsPageState extends State<SettingsPage> {
                         developer.log('Version changed to: $defaultVersion',
                             name: 'SettingsPage');
 
+                        // Reload TTS settings for new language
+                        await _loadTtsSettings();
+
                         // ignore: use_build_context_synchronously
                         ScaffoldMessenger.of(currentContext).showSnackBar(
                           SnackBar(
@@ -262,7 +271,86 @@ class _SettingsPageState extends State<SettingsPage> {
               },
             ),
 
-            const SizedBox(height: 10),
+            const SizedBox(height: 20),
+
+            // Voice Selection
+            if (_availableVoices.isNotEmpty) ...[
+              Row(
+                children: [
+                  Icon(Icons.record_voice_over, color: colorScheme.primary),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'settings.tts_voice'.tr(),
+                      style: textTheme.bodyMedium?.copyWith(
+                          fontSize: 16, color: colorScheme.onSurface),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              DropdownButton<String>(
+                value: _selectedVoice,
+                isExpanded: true,
+                hint: Text('settings.select_voice'.tr()),
+                items: _availableVoices.map((voice) {
+                  return DropdownMenuItem(
+                    value: voice,
+                    child: Text(
+                      voice,
+                      overflow: TextOverflow.ellipsis,
+                      style: textTheme.bodyMedium?.copyWith(fontSize: 14),
+                    ),
+                  );
+                }).toList(),
+                onChanged: (String? newVoice) async {
+                  if (newVoice != null && mounted) {
+                    setState(() {
+                      _selectedVoice = newVoice;
+                    });
+
+                    // Parse voice name and locale
+                    final voiceParts = newVoice.split(' (');
+                    final voiceName = voiceParts[0];
+                    final locale = voiceParts.length > 1
+                        ? voiceParts[1].replaceAll(')', '')
+                        : '';
+
+                    // Capture context before async operations
+                    final currentContext = context;
+                    final devocionalProvider =
+                        Provider.of<DevocionalProvider>(currentContext, listen: false);
+                    final localizationProvider =
+                        Provider.of<LocalizationProvider>(currentContext,
+                            listen: false);
+                    final currentLanguage =
+                        localizationProvider.currentLocale.languageCode;
+
+                    // Set the voice
+                    await devocionalProvider.setTtsVoice({
+                      'name': voiceName,
+                      'locale': locale,
+                    });
+
+                    // Save preference
+                    final prefs = await SharedPreferences.getInstance();
+                    await prefs.setString(
+                        'tts_voice_$currentLanguage', newVoice);
+
+                    if (mounted) {
+                      // ignore: use_build_context_synchronously
+                      ScaffoldMessenger.of(currentContext).showSnackBar(
+                        SnackBar(
+                          content: Text('settings.voice_changed'.tr()),
+                          duration: const Duration(seconds: 2),
+                        ),
+                      );
+                    }
+                  }
+                },
+              ),
+              const SizedBox(height: 20),
+            ],
 
             // Contact Information
             InkWell(

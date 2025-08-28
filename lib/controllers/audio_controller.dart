@@ -522,11 +522,38 @@ class AudioController extends ChangeNotifier {
     }
   }
 
+  Future<List<String>> getAvailableVoices() async {
+    try {
+      return await _ttsService.getVoices();
+    } catch (e) {
+      debugPrint('AudioController: Error getting voices: $e');
+      return [];
+    }
+  }
+
+  Future<List<String>> getVoicesForLanguage(String language) async {
+    try {
+      return await _ttsService.getVoicesForLanguage(language);
+    } catch (e) {
+      debugPrint('AudioController: Error getting voices for language: $e');
+      return [];
+    }
+  }
+
   Future<void> setLanguage(String language) async {
     try {
       await _ttsService.setLanguage(language);
     } catch (e) {
       debugPrint('AudioController: Error setting language: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> setVoice(Map<String, String> voice) async {
+    try {
+      await _ttsService.setVoice(voice);
+    } catch (e) {
+      debugPrint('AudioController: Error setting voice: $e');
       rethrow;
     }
   }

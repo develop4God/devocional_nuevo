@@ -197,8 +197,20 @@ class DevocionalProvider with ChangeNotifier {
     return await _audioController.getAvailableLanguages();
   }
 
+  Future<List<String>> getAvailableVoices() async {
+    return await _audioController.getAvailableVoices();
+  }
+
+  Future<List<String>> getVoicesForLanguage(String language) async {
+    return await _audioController.getVoicesForLanguage(language);
+  }
+
   Future<void> setTtsLanguage(String language) async {
     await _audioController.setLanguage(language);
+  }
+
+  Future<void> setTtsVoice(Map<String, String> voice) async {
+    await _audioController.setVoice(voice);
   }
 
   Future<void> setTtsSpeechRate(double rate) async {
