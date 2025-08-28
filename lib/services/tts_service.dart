@@ -406,9 +406,10 @@ class TtsService {
 
   String _normalizeTtsText(String text, [String? language, String? version]) {
     String normalized = text;
+    final currentLang = language ?? _currentLanguage;
 
     // Get Bible version expansions based on language
-    final bibleVersions = _getBibleVersionExpansions(language ?? 'es');
+    final bibleVersions = _getBibleVersionExpansions(currentLang);
 
     bibleVersions.forEach((versionKey, expansion) {
       if (normalized.contains(versionKey)) {
@@ -416,42 +417,179 @@ class TtsService {
       }
     });
 
-    // Format ordinals and Bible books
-    normalized = _formatBibleBookForLanguage(normalized, language ?? 'es');
+    // Format ordinals and Bible books for specific language
+    normalized = _formatBibleBookForLanguage(normalized, currentLang);
 
-    // Format years (common for all languages)
-    normalized = normalized.replaceAllMapped(
+    // Apply language-specific text normalizations
+    normalized = _applyLanguageSpecificNormalizations(normalized, currentLang);
+
+    // Format years (common for all languages but with language-specific number words)
+    normalized = _formatYears(normalized, currentLang);
+
+    // Format Bible references (language-specific)
+    normalized = _formatBibleReferences(normalized, currentLang);
+
+    // Format times and ratios
+    normalized = _formatTimesAndRatios(normalized, currentLang);
+
+    // Apply language-specific abbreviations
+    normalized = _applyAbbreviations(normalized, currentLang);
+
+    // Format ordinal numbers
+    normalized = _formatOrdinalNumbers(normalized, currentLang);
+
+    // Clean up whitespace
+    normalized = normalized.replaceAll(RegExp(r'\s+'), ' ').trim();
+
+    return normalized;
+  }
+
+  // Apply language-specific normalizations
+  String _applyLanguageSpecificNormalizations(String text, String language) {
+    switch (language) {
+      case 'en':
+        return text
+            .replaceAll('vs.', 'verse')
+            .replaceAll('vv.', 'verses')
+            .replaceAll('ch.', 'chapter')
+            .replaceAll('chs.', 'chapters');
+      case 'pt':
+        return text
+            .replaceAll('vs.', 'versículo')
+            .replaceAll('vv.', 'versículos')
+            .replaceAll('cap.', 'capítulo')
+            .replaceAll('caps.', 'capítulos');
+      case 'fr':
+        return text
+            .replaceAll('vs.', 'verset')
+            .replaceAll('vv.', 'versets')
+            .replaceAll('ch.', 'chapitre')
+            .replaceAll('chs.', 'chapitres');
+      default: // Spanish
+        return text;
+    }
+  }
+
+  // Format years with language-specific number words
+  String _formatYears(String text, String language) {
+    return text.replaceAllMapped(
       RegExp(r'\b(19\d{2}|20\d{2})\b'),
       (match) {
         final year = match.group(1)!;
         final yearInt = int.parse(year);
-        String result;
 
-        if (yearInt >= 1900 && yearInt < 2000) {
-          final lastTwo = yearInt - 1900;
-          if (lastTwo < 10) {
-            result = 'mil novecientos cero $lastTwo';
-          } else {
-            result = 'mil novecientos $lastTwo';
-          }
-        } else if (yearInt >= 2000 && yearInt < 2100) {
-          final lastTwo = yearInt - 2000;
-          if (lastTwo == 0) {
-            result = 'dos mil';
-          } else if (lastTwo < 10) {
-            result = 'dos mil $lastTwo';
-          } else {
-            result = 'dos mil $lastTwo';
-          }
-        } else {
-          result = year;
+        switch (language) {
+          case 'en':
+            return _formatYearEnglish(yearInt);
+          case 'pt':
+            return _formatYearPortuguese(yearInt);
+          case 'fr':
+            return _formatYearFrench(yearInt);
+          default: // Spanish
+            return _formatYearSpanish(yearInt);
         }
-
-        return result;
       },
     );
+  }
 
-    normalized = normalized.replaceAllMapped(
+  String _formatYearSpanish(int year) {
+    if (year >= 1900 && year < 2000) {
+      final lastTwo = year - 1900;
+      if (lastTwo < 10) {
+        return 'mil novecientos cero $lastTwo';
+      } else {
+        return 'mil novecientos $lastTwo';
+      }
+    } else if (year >= 2000 && year < 2100) {
+      final lastTwo = year - 2000;
+      if (lastTwo == 0) {
+        return 'dos mil';
+      } else if (lastTwo < 10) {
+        return 'dos mil $lastTwo';
+      } else {
+        return 'dos mil $lastTwo';
+      }
+    }
+    return year.toString();
+  }
+
+  String _formatYearEnglish(int year) {
+    if (year >= 1900 && year < 2000) {
+      final lastTwo = year - 1900;
+      if (lastTwo < 10) {
+        return 'nineteen oh $lastTwo';
+      } else {
+        return 'nineteen $lastTwo';
+      }
+    } else if (year >= 2000 && year < 2100) {
+      final lastTwo = year - 2000;
+      if (lastTwo == 0) {
+        return 'two thousand';
+      } else if (lastTwo < 10) {
+        return 'two thousand $lastTwo';
+      } else {
+        return 'two thousand $lastTwo';
+      }
+    }
+    return year.toString();
+  }
+
+  String _formatYearPortuguese(int year) {
+    if (year >= 1900 && year < 2000) {
+      final lastTwo = year - 1900;
+      if (lastTwo < 10) {
+        return 'mil novecentos e $lastTwo';
+      } else {
+        return 'mil novecentos e $lastTwo';
+      }
+    } else if (year >= 2000 && year < 2100) {
+      final lastTwo = year - 2000;
+      if (lastTwo == 0) {
+        return 'dois mil';
+      } else if (lastTwo < 10) {
+        return 'dois mil e $lastTwo';
+      } else {
+        return 'dois mil e $lastTwo';
+      }
+    }
+    return year.toString();
+  }
+
+  String _formatYearFrench(int year) {
+    if (year >= 1900 && year < 2000) {
+      final lastTwo = year - 1900;
+      if (lastTwo < 10) {
+        return 'mille neuf cent $lastTwo';
+      } else {
+        return 'mille neuf cent $lastTwo';
+      }
+    } else if (year >= 2000 && year < 2100) {
+      final lastTwo = year - 2000;
+      if (lastTwo == 0) {
+        return 'deux mille';
+      } else if (lastTwo < 10) {
+        return 'deux mille $lastTwo';
+      } else {
+        return 'deux mille $lastTwo';
+      }
+    }
+    return year.toString();
+  }
+
+  // Format Bible references with language-specific words
+  String _formatBibleReferences(String text, String language) {
+    final Map<String, String> referenceWords = {
+      'es': 'capítulo|versículo',
+      'en': 'chapter|verse',
+      'pt': 'capítulo|versículo',
+      'fr': 'chapitre|verset',
+    };
+
+    final words = referenceWords[language] ?? referenceWords['es']!;
+    final chapterWord = words.split('|')[0];
+    final verseWord = words.split('|')[1];
+
+    return text.replaceAllMapped(
       RegExp(
           r'(\b(?:\d+\s+)?[A-Za-záéíóúÁÉÍÓÚñÑ]+)\s+(\d+):(\d+)(?:-(\d+))?(?::(\d+))?',
           caseSensitive: false),
@@ -462,21 +600,46 @@ class TtsService {
         final verseEnd = match.group(4);
         final secondVerse = match.group(5);
 
-        String result = '$book capítulo $chapter versículo $verseStart';
+        String result = '$book $chapterWord $chapter $verseWord $verseStart';
 
         if (verseEnd != null) {
-          result += ' al $verseEnd';
+          final toWord = language == 'en'
+              ? 'to'
+              : language == 'pt'
+                  ? 'ao'
+                  : language == 'fr'
+                      ? 'au'
+                      : 'al';
+          result += ' $toWord $verseEnd';
         }
         if (secondVerse != null) {
-          result += ' versículo $secondVerse';
+          result += ' $verseWord $secondVerse';
         }
 
         return result;
       },
     );
+  }
 
-    // Resto igual
-    normalized = normalized.replaceAllMapped(
+  // Format times and ratios with language-specific words
+  String _formatTimesAndRatios(String text, String language) {
+    // Time formatting
+    final timeWords = {
+      'es': ['de la mañana', 'de la tarde', 'de la noche', 'en punto', 'y'],
+      'en': [
+        'in the morning',
+        'in the afternoon',
+        'at night',
+        "o'clock",
+        'and'
+      ],
+      'pt': ['da manhã', 'da tarde', 'da noite', 'em ponto', 'e'],
+      'fr': ['du matin', 'de l\'après-midi', 'du soir', 'heures', 'et'],
+    };
+
+    final words = timeWords[language] ?? timeWords['es']!;
+
+    text = text.replaceAllMapped(
       RegExp(
           r'\b(\d{1,2}):(\d{2})\s*(am|pm|a\.m\.|p\.m\.|de la mañana|de la tarde|de la noche)\b',
           caseSensitive: false),
@@ -487,80 +650,231 @@ class TtsService {
 
         String result;
         if (minute == '00') {
-          result = '$hour en punto $period';
+          result = '$hour ${words[3]} ${_mapTimePeriod(period, language)}';
         } else {
-          result = '$hour y $minute $period';
+          result =
+              '$hour ${words[4]} $minute ${_mapTimePeriod(period, language)}';
         }
 
         return result;
       },
     );
 
-    normalized = normalized.replaceAllMapped(
+    // Ratio formatting (e.g., 3:2 -> "3 to 2")
+    final ratioWord = language == 'en'
+        ? 'to'
+        : language == 'pt'
+            ? 'para'
+            : language == 'fr'
+                ? 'à'
+                : 'a';
+
+    text = text.replaceAllMapped(
       RegExp(
-          r'\b(\d+):(\d+)\b(?!\s*(am|pm|a\.m\.|p\.m\.|de la|capítulo|versículo))'),
+          r'\b(\d+):(\d+)\b(?!\s*(am|pm|a\.m\.|p\.m\.|de la|capítulo|versículo|chapter|verse|chapitre|verset))'),
       (match) {
         final first = match.group(1)!;
         final second = match.group(2)!;
-        return '$first a $second';
+        return '$first $ratioWord $second';
       },
     );
 
-    final abbreviations = {
-      'vs.': 'versículo',
-      'vv.': 'versículos',
-      'cap.': 'capítulo',
-      'caps.': 'capítulos',
-      'cf.': 'compárese',
-      'etc.': 'etcétera',
-      'p.ej.': 'por ejemplo',
-      'i.e.': 'es decir',
-      'a.C.': 'antes de Cristo',
-      'd.C.': 'después de Cristo',
-      'a.m.': 'de la mañana',
-      'p.m.': 'de la tarde',
+    return text;
+  }
+
+  String _mapTimePeriod(String period, String language) {
+    final periodMap = {
+      'es': {
+        'am': 'de la mañana',
+        'pm': 'de la tarde',
+        'a.m.': 'de la mañana',
+        'p.m.': 'de la tarde',
+      },
+      'en': {
+        'am': 'AM',
+        'pm': 'PM',
+        'a.m.': 'AM',
+        'p.m.': 'PM',
+      },
+      'pt': {
+        'am': 'da manhã',
+        'pm': 'da tarde',
+        'a.m.': 'da manhã',
+        'p.m.': 'da tarde',
+      },
+      'fr': {
+        'am': 'du matin',
+        'pm': 'de l\'après-midi',
+        'a.m.': 'du matin',
+        'p.m.': 'de l\'après-midi',
+      },
     };
 
+    return periodMap[language]?[period.toLowerCase()] ?? period;
+  }
+
+  // Apply language-specific abbreviations
+  String _applyAbbreviations(String text, String language) {
+    Map<String, String> abbreviations;
+
+    switch (language) {
+      case 'en':
+        abbreviations = {
+          'vs.': 'verse',
+          'vv.': 'verses',
+          'ch.': 'chapter',
+          'chs.': 'chapters',
+          'cf.': 'compare',
+          'etc.': 'etcetera',
+          'e.g.': 'for example',
+          'i.e.': 'that is',
+          'B.C.': 'before Christ',
+          'A.D.': 'anno domini',
+          'a.m.': 'ante meridiem',
+          'p.m.': 'post meridiem',
+        };
+        break;
+      case 'pt':
+        abbreviations = {
+          'vs.': 'versículo',
+          'vv.': 'versículos',
+          'cap.': 'capítulo',
+          'caps.': 'capítulos',
+          'cf.': 'confira',
+          'etc.': 'etcétera',
+          'p.ex.': 'por exemplo',
+          'ou seja': 'isto é',
+          'a.C.': 'antes de Cristo',
+          'd.C.': 'depois de Cristo',
+        };
+        break;
+      case 'fr':
+        abbreviations = {
+          'vs.': 'verset',
+          'vv.': 'versets',
+          'ch.': 'chapitre',
+          'chs.': 'chapitres',
+          'cf.': 'comparez',
+          'etc.': 'et cetera',
+          'p.ex.': 'par exemple',
+          'c.-à-d.': 'c\'est-à-dire',
+          'av. J.-C.': 'avant Jésus-Christ',
+          'ap. J.-C.': 'après Jésus-Christ',
+        };
+        break;
+      default: // Spanish
+        abbreviations = {
+          'vs.': 'versículo',
+          'vv.': 'versículos',
+          'cap.': 'capítulo',
+          'caps.': 'capítulos',
+          'cf.': 'compárese',
+          'etc.': 'etcétera',
+          'p.ej.': 'por ejemplo',
+          'i.e.': 'es decir',
+          'a.C.': 'antes de Cristo',
+          'd.C.': 'después de Cristo',
+          'a.m.': 'de la mañana',
+          'p.m.': 'de la tarde',
+        };
+    }
+
     abbreviations.forEach((abbrev, expansion) {
-      if (normalized.contains(abbrev)) {
-        normalized = normalized.replaceAll(abbrev, expansion);
+      if (text.contains(abbrev)) {
+        text = text.replaceAll(abbrev, expansion);
       }
     });
 
-    normalized = normalized.replaceAllMapped(
+    return text;
+  }
+
+  // Format ordinal numbers with language-specific words
+  String _formatOrdinalNumbers(String text, String language) {
+    return text.replaceAllMapped(
       RegExp(r'\b(\d+)([º°ª])\b'),
       (match) {
         final number = int.tryParse(match.group(1)!) ?? 0;
-        String result;
 
-        switch (number) {
-          case 1:
-            result = 'primero';
-            break;
-          case 2:
-            result = 'segundo';
-            break;
-          case 3:
-            result = 'tercero';
-            break;
-          case 4:
-            result = 'cuarto';
-            break;
-          case 5:
-            result = 'quinto';
-            break;
-          default:
-            result = 'número $number';
-            break;
+        switch (language) {
+          case 'en':
+            return _getEnglishOrdinal(number);
+          case 'pt':
+            return _getPortugueseOrdinal(number);
+          case 'fr':
+            return _getFrenchOrdinal(number);
+          default: // Spanish
+            return _getSpanishOrdinal(number);
         }
-
-        return result;
       },
     );
+  }
 
-    normalized = normalized.replaceAll(RegExp(r'\s+'), ' ').trim();
+  String _getSpanishOrdinal(int number) {
+    switch (number) {
+      case 1:
+        return 'primero';
+      case 2:
+        return 'segundo';
+      case 3:
+        return 'tercero';
+      case 4:
+        return 'cuarto';
+      case 5:
+        return 'quinto';
+      default:
+        return 'número $number';
+    }
+  }
 
-    return normalized;
+  String _getEnglishOrdinal(int number) {
+    switch (number) {
+      case 1:
+        return 'first';
+      case 2:
+        return 'second';
+      case 3:
+        return 'third';
+      case 4:
+        return 'fourth';
+      case 5:
+        return 'fifth';
+      default:
+        return 'number $number';
+    }
+  }
+
+  String _getPortugueseOrdinal(int number) {
+    switch (number) {
+      case 1:
+        return 'primeiro';
+      case 2:
+        return 'segundo';
+      case 3:
+        return 'terceiro';
+      case 4:
+        return 'quarto';
+      case 5:
+        return 'quinto';
+      default:
+        return 'número $number';
+    }
+  }
+
+  String _getFrenchOrdinal(int number) {
+    switch (number) {
+      case 1:
+        return 'premier';
+      case 2:
+        return 'deuxième';
+      case 3:
+        return 'troisième';
+      case 4:
+        return 'quatrième';
+      case 5:
+        return 'cinquième';
+      default:
+        return 'numéro $number';
+    }
   }
 
   // Get Bible version expansions based on language
@@ -595,6 +909,7 @@ class TtsService {
         };
       case 'fr':
         return {
+          'LSG1910': 'Louis Segond mil nove cento e dez',
           'LSG': 'Louis Segond',
           'TOB': 'Traduction Oecuménique de la Bible',
         };
@@ -677,17 +992,21 @@ class TtsService {
 
   List<String> _generateChunks(Devocional devocional) {
     List<String> chunks = [];
+    final currentLang = _currentLanguage;
+
+    // Get language-specific section headers
+    final sectionHeaders = _getSectionHeaders(currentLang);
 
     if (devocional.versiculo.trim().isNotEmpty) {
-      final normalizedVerse = _normalizeTtsText(
-          devocional.versiculo, _currentLanguage, _currentVersion);
-      chunks.add('Versículo: ${_sanitize(normalizedVerse)}');
+      final normalizedVerse =
+          _normalizeTtsText(devocional.versiculo, currentLang, _currentVersion);
+      chunks.add('${sectionHeaders['verse']}: ${_sanitize(normalizedVerse)}');
     }
 
     if (devocional.reflexion.trim().isNotEmpty) {
-      chunks.add('Reflexión:');
+      chunks.add('${sectionHeaders['reflection']}:');
       final reflection = _normalizeTtsText(
-          _sanitize(devocional.reflexion), _currentLanguage, _currentVersion);
+          _sanitize(devocional.reflexion), currentLang, _currentVersion);
       final paragraphs = reflection.split(RegExp(r'\n+'));
 
       for (final paragraph in paragraphs) {
@@ -697,8 +1016,8 @@ class TtsService {
             final sentences = trimmed.split(RegExp(r'(?<=[.!?])\s+'));
             String chunkParagraph = '';
             for (final sentence in sentences) {
-              final normalizedSentence = _normalizeTtsText(
-                  sentence, _currentLanguage, _currentVersion);
+              final normalizedSentence =
+                  _normalizeTtsText(sentence, currentLang, _currentVersion);
               if (chunkParagraph.length + normalizedSentence.length < 300) {
                 chunkParagraph += '$normalizedSentence ';
               } else {
@@ -710,20 +1029,20 @@ class TtsService {
               chunks.add(chunkParagraph.trim());
             }
           } else {
-            chunks.add(
-                _normalizeTtsText(trimmed, _currentLanguage, _currentVersion));
+            chunks
+                .add(_normalizeTtsText(trimmed, currentLang, _currentVersion));
           }
         }
       }
     }
 
     if (devocional.paraMeditar.isNotEmpty) {
-      chunks.add('Para Meditar:');
+      chunks.add('${sectionHeaders['meditate']}:');
       for (final item in devocional.paraMeditar) {
         final citation = _normalizeTtsText(
-            _sanitize(item.cita), _currentLanguage, _currentVersion);
+            _sanitize(item.cita), currentLang, _currentVersion);
         final text = _normalizeTtsText(
-            _sanitize(item.texto), _currentLanguage, _currentVersion);
+            _sanitize(item.texto), currentLang, _currentVersion);
         if (citation.isNotEmpty && text.isNotEmpty) {
           chunks.add('$citation: $text');
         }
@@ -731,9 +1050,9 @@ class TtsService {
     }
 
     if (devocional.oracion.trim().isNotEmpty) {
-      chunks.add('Oración:');
+      chunks.add('${sectionHeaders['prayer']}:');
       final prayer = _normalizeTtsText(
-          _sanitize(devocional.oracion), _currentLanguage, _currentVersion);
+          _sanitize(devocional.oracion), currentLang, _currentVersion);
       final paragraphs = prayer.split(RegExp(r'\n+'));
 
       for (final paragraph in paragraphs) {
@@ -743,8 +1062,8 @@ class TtsService {
             final sentences = trimmed.split(RegExp(r'(?<=[.!?])\s+'));
             String chunkParagraph = '';
             for (final sentence in sentences) {
-              final normalizedSentence = _normalizeTtsText(
-                  sentence, _currentLanguage, _currentVersion);
+              final normalizedSentence =
+                  _normalizeTtsText(sentence, currentLang, _currentVersion);
               if (chunkParagraph.length + normalizedSentence.length < 300) {
                 chunkParagraph += '$normalizedSentence ';
               } else {
@@ -756,20 +1075,55 @@ class TtsService {
               chunks.add(chunkParagraph.trim());
             }
           } else {
-            chunks.add(
-                _normalizeTtsText(trimmed, _currentLanguage, _currentVersion));
+            chunks
+                .add(_normalizeTtsText(trimmed, currentLang, _currentVersion));
           }
         }
       }
     }
 
-    debugPrint('📝 TTS: Generated ${chunks.length} chunks');
+    debugPrint(
+        '📝 TTS: Generated ${chunks.length} chunks for language $currentLang');
     for (int i = 0; i < chunks.length; i++) {
       debugPrint(
           '   $i: ${chunks[i].length > 50 ? '${chunks[i].substring(0, 50)}...' : chunks[i]}');
     }
 
     return chunks.where((chunk) => chunk.trim().isNotEmpty).toList();
+  }
+
+  // Get section headers for different languages
+  Map<String, String> _getSectionHeaders(String language) {
+    switch (language) {
+      case 'en':
+        return {
+          'verse': 'Verse',
+          'reflection': 'Reflection',
+          'meditate': 'To Meditate',
+          'prayer': 'Prayer',
+        };
+      case 'pt':
+        return {
+          'verse': 'Versículo',
+          'reflection': 'Reflexão',
+          'meditate': 'Para Meditar',
+          'prayer': 'Oração',
+        };
+      case 'fr':
+        return {
+          'verse': 'Verset',
+          'reflection': 'Réflexion',
+          'meditate': 'À Méditer',
+          'prayer': 'Prière',
+        };
+      default: // Spanish
+        return {
+          'verse': 'Versículo',
+          'reflection': 'Reflexión',
+          'meditate': 'Para Meditar',
+          'prayer': 'Oración',
+        };
+    }
   }
 
   String _sanitize(String text) {
@@ -969,6 +1323,39 @@ class TtsService {
     _currentLanguage = language;
     _currentVersion = version;
     debugPrint('🌐 TTS: Language context set to $language ($version)');
+
+    // Update TTS language settings based on context
+    _updateTtsLanguageSettings(language);
+  }
+
+  // Update TTS language settings with proper locale mapping
+  Future<void> _updateTtsLanguageSettings(String language) async {
+    if (!_isInitialized) return;
+
+    String ttsLocale;
+    switch (language) {
+      case 'es':
+        ttsLocale = 'es-ES';
+        break;
+      case 'en':
+        ttsLocale = 'en-US';
+        break;
+      case 'pt':
+        ttsLocale = 'pt-BR';
+        break;
+      case 'fr':
+        ttsLocale = 'fr-FR';
+        break;
+      default:
+        ttsLocale = 'es-ES';
+    }
+
+    try {
+      await _flutterTts.setLanguage(ttsLocale);
+      debugPrint('🔧 TTS: Language updated to $ttsLocale for $language');
+    } catch (e) {
+      debugPrint('⚠️ TTS: Failed to set language $ttsLocale: $e');
+    }
   }
 
   Future<List<String>> getLanguages() async {

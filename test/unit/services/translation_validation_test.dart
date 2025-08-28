@@ -205,7 +205,7 @@ void main() {
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(
         const MethodChannel('flutter/assets'),
-            (MethodCall methodCall) async {
+        (MethodCall methodCall) async {
           if (methodCall.method == 'loadString') {
             final String key = methodCall.arguments as String;
             return mockTranslations[key];
@@ -291,27 +291,27 @@ void main() {
       });
 
       test('should handle parameter interpolation in prayer timestamps',
-              () async {
-            await localizationService.changeLocale(const Locale('es'));
-            expect(
-                localizationService
-                    .translate('prayer.created', {'date': '25/12/2024'}),
-                equals('Creada: 25/12/2024'));
-            expect(
-                localizationService
-                    .translate('prayer.days_old_plural', {'days': '5'}),
-                equals('(5 días)'));
+          () async {
+        await localizationService.changeLocale(const Locale('es'));
+        expect(
+            localizationService
+                .translate('prayer.created', {'date': '25/12/2024'}),
+            equals('Creada: 25/12/2024'));
+        expect(
+            localizationService
+                .translate('prayer.days_old_plural', {'days': '5'}),
+            equals('(5 días)'));
 
-            await localizationService.changeLocale(const Locale('en'));
-            expect(
-                localizationService
-                    .translate('prayer.created', {'date': '25/12/2024'}),
-                equals('Created: 25/12/2024'));
-            expect(
-                localizationService
-                    .translate('prayer.days_old_single', {'days': '1'}),
-                equals('(1 day)'));
-          });
+        await localizationService.changeLocale(const Locale('en'));
+        expect(
+            localizationService
+                .translate('prayer.created', {'date': '25/12/2024'}),
+            equals('Created: 25/12/2024'));
+        expect(
+            localizationService
+                .translate('prayer.days_old_single', {'days': '1'}),
+            equals('(1 day)'));
+      });
     });
 
     group('Progress Module Translation Validation', () {
@@ -412,51 +412,51 @@ void main() {
 
     group('Devotional Actions Translation Validation', () {
       test('should translate devotional action confirmations correctly',
-              () async {
-            // Test Spanish
-            await localizationService.changeLocale(const Locale('es'));
-            expect(
-                localizationService
-                    .translate('devotionals_page.added_to_favorites'),
-                equals('Devocional agregado a favoritos'));
-            expect(
-                localizationService
-                    .translate('devotionals_page.removed_from_favorites'),
-                equals('Devocional removido de favoritos'));
+          () async {
+        // Test Spanish
+        await localizationService.changeLocale(const Locale('es'));
+        expect(
+            localizationService
+                .translate('devotionals_page.added_to_favorites'),
+            equals('Devocional agregado a favoritos'));
+        expect(
+            localizationService
+                .translate('devotionals_page.removed_from_favorites'),
+            equals('Devocional removido de favoritos'));
 
-            // Test English
-            await localizationService.changeLocale(const Locale('en'));
-            expect(
-                localizationService
-                    .translate('devotionals_page.added_to_favorites'),
-                equals('Devotional added to favorites'));
-            expect(
-                localizationService
-                    .translate('devotionals_page.removed_from_favorites'),
-                equals('Devotional removed from favorites'));
+        // Test English
+        await localizationService.changeLocale(const Locale('en'));
+        expect(
+            localizationService
+                .translate('devotionals_page.added_to_favorites'),
+            equals('Devotional added to favorites'));
+        expect(
+            localizationService
+                .translate('devotionals_page.removed_from_favorites'),
+            equals('Devotional removed from favorites'));
 
-            // Test Portuguese
-            await localizationService.changeLocale(const Locale('pt'));
-            expect(
-                localizationService
-                    .translate('devotionals_page.added_to_favorites'),
-                equals('Devocional adicionado aos favoritos'));
-            expect(
-                localizationService
-                    .translate('devotionals_page.removed_from_favorites'),
-                equals('Devocional removido dos favoritos'));
+        // Test Portuguese
+        await localizationService.changeLocale(const Locale('pt'));
+        expect(
+            localizationService
+                .translate('devotionals_page.added_to_favorites'),
+            equals('Devocional adicionado aos favoritos'));
+        expect(
+            localizationService
+                .translate('devotionals_page.removed_from_favorites'),
+            equals('Devocional removido dos favoritos'));
 
-            // Test French
-            await localizationService.changeLocale(const Locale('fr'));
-            expect(
-                localizationService
-                    .translate('devotionals_page.added_to_favorites'),
-                equals('Dévotionnel ajouté aux favoris'));
-            expect(
-                localizationService
-                    .translate('devotionals_page.removed_from_favorites'),
-                equals('Dévotionnel retiré des favoris'));
-          });
+        // Test French
+        await localizationService.changeLocale(const Locale('fr'));
+        expect(
+            localizationService
+                .translate('devotionals_page.added_to_favorites'),
+            equals('Dévotionnel ajouté aux favoris'));
+        expect(
+            localizationService
+                .translate('devotionals_page.removed_from_favorites'),
+            equals('Dévotionnel retiré des favoris'));
+      });
     });
 
     group('Translation Coverage and Fallback', () {

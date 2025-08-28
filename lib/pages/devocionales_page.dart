@@ -11,6 +11,7 @@ import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/services/devocionales_tracking.dart';
 import 'package:devocional_nuevo/services/update_service.dart';
 import 'package:devocional_nuevo/utils/bubble_constants.dart';
+import 'package:devocional_nuevo/utils/copyright_utils.dart';
 import 'package:devocional_nuevo/widgets/add_prayer_modal.dart';
 import 'package:devocional_nuevo/widgets/devocionales_page_drawer.dart';
 import 'package:devocional_nuevo/widgets/tts_player_widget.dart';
@@ -613,15 +614,23 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                     padding: const EdgeInsets.symmetric(
                                       horizontal: 20,
                                     ),
-                                    child: Text(
-                                      'devotionals.copyright_text'.tr(),
-                                      style: textTheme.bodySmall?.copyWith(
-                                        fontSize: 12,
-                                        color: colorScheme.onSurface.withValues(
-                                          alpha: 0.7,
-                                        ),
-                                      ),
-                                      textAlign: TextAlign.center,
+                                    child: Consumer<DevocionalProvider>(
+                                      builder: (context, provider, child) {
+                                        return Text(
+                                          CopyrightUtils.getCopyrightText(
+                                            provider.selectedLanguage,
+                                            provider.selectedVersion,
+                                          ),
+                                          style: textTheme.bodySmall?.copyWith(
+                                            fontSize: 12,
+                                            color: colorScheme.onSurface
+                                                .withValues(
+                                              alpha: 0.7,
+                                            ),
+                                          ),
+                                          textAlign: TextAlign.center,
+                                        );
+                                      },
                                     ),
                                   ),
                                 ),
