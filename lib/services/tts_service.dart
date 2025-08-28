@@ -4,6 +4,8 @@ import 'dart:io' show Platform;
 
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
+import 'package:devocional_nuevo/services/tts_text_normalizer_service.dart';
+import 'package:devocional_nuevo/services/tts_localization_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -30,6 +32,8 @@ class TtsService {
   TtsService._internal();
 
   final FlutterTts _flutterTts = FlutterTts();
+  final TtsTextNormalizerService _textNormalizer = TtsTextNormalizerService();
+  final TtsLocalizationService _localization = TtsLocalizationService();
 
   TtsState _currentState = TtsState.idle;
   String? _currentDevocionalId;
@@ -370,216 +374,34 @@ class TtsService {
     }
   }
 
+  /// Get current TTS language
+  Future<String> getCurrentLanguage() async {
+    return await _localization.getCurrentLanguage();
+  }
+
   // --- Normalización avanzada de referencia bíblica ---
   /// Formatea dinámicamente los libros con ordinal si comienza con 1, 2, 3
-  String formatBibleBook(String reference) {
-    final exp =
-        RegExp(r'^([123])\s+([A-Za-záéíóúÁÉÍÓÚñÑ]+)', caseSensitive: false);
-    final match = exp.firstMatch(reference.trim());
-    if (match != null) {
-      final number = match.group(1)!;
-      final book = match.group(2)!;
-      String ordinal;
-      switch (number) {
-        case '1':
-          ordinal = 'Primera de';
-          break;
-        case '2':
-          ordinal = 'Segunda de';
-          break;
-        case '3':
-          ordinal = 'Tercera de';
-          break;
-        default:
-          ordinal = '';
-      }
-      return reference.replaceFirst(exp, '$ordinal $book');
-    }
-    return reference;
+  Future<String> formatBibleBook(String reference) async {
+    final currentLanguage = await _localization.getCurrentLanguage();
+    final languageCode = _localization.getLanguageCode(currentLanguage);
+    return _textNormalizer.formatBibleBook(reference, languageCode);
   }
 
-  String _normalizeTtsText(String text) {
-    String normalized = text;
-    final bibleVersions = {
-      'RVR1960': 'Reina Valera mil novecientos sesenta',
-      'RVR60': 'Reina Valera sesenta',
-      'RVR1995': 'Reina Valera mil novecientos noventa y cinco',
-      'RVR09': 'Reina Valera dos mil nueve',
-      'NVI': 'Nueva Versión Internacional',
-      'DHH': 'Dios Habla Hoy',
-      'TLA': 'Traducción en Lenguaje Actual',
-      'NTV': 'Nueva Traducción Viviente',
-      'PDT': 'Palabra de Dios para Todos',
-      'BLP': 'Biblia La Palabra',
-      'CST': 'Castilian',
-      'LBLA': 'La Biblia de las Américas',
-      'NBLH': 'Nueva Biblia Latinoamericana de Hoy',
-      'RVC': 'Reina Valera Contemporánea',
-    };
-
-    bibleVersions.forEach((version, expansion) {
-      if (normalized.contains(version)) {
-        normalized = normalized.replaceAll(version, expansion);
-      }
-    });
-
-    // Formatea solo si la referencia comienza con 1, 2, 3 + libro
-    normalized = formatBibleBook(normalized);
-
-    normalized = normalized.replaceAllMapped(
-      RegExp(r'\b(19\d{2}|20\d{2})\b'),
-      (match) {
-        final year = match.group(1)!;
-        final yearInt = int.parse(year);
-        String result;
-
-        if (yearInt >= 1900 && yearInt < 2000) {
-          final lastTwo = yearInt - 1900;
-          if (lastTwo < 10) {
-            result = 'mil novecientos cero $lastTwo';
-          } else {
-            result = 'mil novecientos $lastTwo';
-          }
-        } else if (yearInt >= 2000 && yearInt < 2100) {
-          final lastTwo = yearInt - 2000;
-          if (lastTwo == 0) {
-            result = 'dos mil';
-          } else if (lastTwo < 10) {
-            result = 'dos mil $lastTwo';
-          } else {
-            result = 'dos mil $lastTwo';
-          }
-        } else {
-          result = year;
-        }
-
-        return result;
-      },
-    );
-
-    normalized = normalized.replaceAllMapped(
-      RegExp(
-          r'(\b(?:\d+\s+)?[A-Za-záéíóúÁÉÍÓÚñÑ]+)\s+(\d+):(\d+)(?:-(\d+))?(?::(\d+))?',
-          caseSensitive: false),
-      (match) {
-        final book = match.group(1)!;
-        final chapter = match.group(2)!;
-        final verseStart = match.group(3)!;
-        final verseEnd = match.group(4);
-        final secondVerse = match.group(5);
-
-        String result = '$book capítulo $chapter versículo $verseStart';
-
-        if (verseEnd != null) {
-          result += ' al $verseEnd';
-        }
-        if (secondVerse != null) {
-          result += ' versículo $secondVerse';
-        }
-
-        return result;
-      },
-    );
-
-    // Resto igual
-    normalized = normalized.replaceAllMapped(
-      RegExp(
-          r'\b(\d{1,2}):(\d{2})\s*(am|pm|a\.m\.|p\.m\.|de la mañana|de la tarde|de la noche)\b',
-          caseSensitive: false),
-      (match) {
-        final hour = match.group(1)!;
-        final minute = match.group(2)!;
-        final period = match.group(3)!;
-
-        String result;
-        if (minute == '00') {
-          result = '$hour en punto $period';
-        } else {
-          result = '$hour y $minute $period';
-        }
-
-        return result;
-      },
-    );
-
-    normalized = normalized.replaceAllMapped(
-      RegExp(
-          r'\b(\d+):(\d+)\b(?!\s*(am|pm|a\.m\.|p\.m\.|de la|capítulo|versículo))'),
-      (match) {
-        final first = match.group(1)!;
-        final second = match.group(2)!;
-        return '$first a $second';
-      },
-    );
-
-    final abbreviations = {
-      'vs.': 'versículo',
-      'vv.': 'versículos',
-      'cap.': 'capítulo',
-      'caps.': 'capítulos',
-      'cf.': 'compárese',
-      'etc.': 'etcétera',
-      'p.ej.': 'por ejemplo',
-      'i.e.': 'es decir',
-      'a.C.': 'antes de Cristo',
-      'd.C.': 'después de Cristo',
-      'a.m.': 'de la mañana',
-      'p.m.': 'de la tarde',
-    };
-
-    abbreviations.forEach((abbrev, expansion) {
-      if (normalized.contains(abbrev)) {
-        normalized = normalized.replaceAll(abbrev, expansion);
-      }
-    });
-
-    normalized = normalized.replaceAllMapped(
-      RegExp(r'\b(\d+)([º°ª])\b'),
-      (match) {
-        final number = int.tryParse(match.group(1)!) ?? 0;
-        String result;
-
-        switch (number) {
-          case 1:
-            result = 'primero';
-            break;
-          case 2:
-            result = 'segundo';
-            break;
-          case 3:
-            result = 'tercero';
-            break;
-          case 4:
-            result = 'cuarto';
-            break;
-          case 5:
-            result = 'quinto';
-            break;
-          default:
-            result = 'número $number';
-            break;
-        }
-
-        return result;
-      },
-    );
-
-    normalized = normalized.replaceAll(RegExp(r'\s+'), ' ').trim();
-
-    return normalized;
+  Future<String> _normalizeTtsText(String text) async {
+    return await _textNormalizer.normalizeTtsText(text);
   }
 
-  List<String> _generateChunks(Devocional devocional) {
+  Future<List<String>> _generateChunks(Devocional devocional) async {
     List<String> chunks = [];
 
     if (devocional.versiculo.trim().isNotEmpty) {
-      final normalizedVerse = _normalizeTtsText(devocional.versiculo);
+      final normalizedVerse = await _normalizeTtsText(devocional.versiculo);
       chunks.add('Versículo: ${_sanitize(normalizedVerse)}');
     }
 
     if (devocional.reflexion.trim().isNotEmpty) {
       chunks.add('Reflexión:');
-      final reflection = _normalizeTtsText(_sanitize(devocional.reflexion));
+      final reflection = await _normalizeTtsText(_sanitize(devocional.reflexion));
       final paragraphs = reflection.split(RegExp(r'\n+'));
 
       for (final paragraph in paragraphs) {
@@ -589,7 +411,7 @@ class TtsService {
             final sentences = trimmed.split(RegExp(r'(?<=[.!?])\s+'));
             String chunkParagraph = '';
             for (final sentence in sentences) {
-              final normalizedSentence = _normalizeTtsText(sentence);
+              final normalizedSentence = await _normalizeTtsText(sentence);
               if (chunkParagraph.length + normalizedSentence.length < 300) {
                 chunkParagraph += '$normalizedSentence ';
               } else {
@@ -601,7 +423,7 @@ class TtsService {
               chunks.add(chunkParagraph.trim());
             }
           } else {
-            chunks.add(_normalizeTtsText(trimmed));
+            chunks.add(await _normalizeTtsText(trimmed));
           }
         }
       }
@@ -610,8 +432,8 @@ class TtsService {
     if (devocional.paraMeditar.isNotEmpty) {
       chunks.add('Para Meditar:');
       for (final item in devocional.paraMeditar) {
-        final citation = _normalizeTtsText(_sanitize(item.cita));
-        final text = _normalizeTtsText(_sanitize(item.texto));
+        final citation = await _normalizeTtsText(_sanitize(item.cita));
+        final text = await _normalizeTtsText(_sanitize(item.texto));
         if (citation.isNotEmpty && text.isNotEmpty) {
           chunks.add('$citation: $text');
         }
@@ -620,7 +442,7 @@ class TtsService {
 
     if (devocional.oracion.trim().isNotEmpty) {
       chunks.add('Oración:');
-      final prayer = _normalizeTtsText(_sanitize(devocional.oracion));
+      final prayer = await _normalizeTtsText(_sanitize(devocional.oracion));
       final paragraphs = prayer.split(RegExp(r'\n+'));
 
       for (final paragraph in paragraphs) {
@@ -630,7 +452,7 @@ class TtsService {
             final sentences = trimmed.split(RegExp(r'(?<=[.!?])\s+'));
             String chunkParagraph = '';
             for (final sentence in sentences) {
-              final normalizedSentence = _normalizeTtsText(sentence);
+              final normalizedSentence = await _normalizeTtsText(sentence);
               if (chunkParagraph.length + normalizedSentence.length < 300) {
                 chunkParagraph += '$normalizedSentence ';
               } else {
@@ -642,7 +464,7 @@ class TtsService {
               chunks.add(chunkParagraph.trim());
             }
           } else {
-            chunks.add(_normalizeTtsText(trimmed));
+            chunks.add(await _normalizeTtsText(trimmed));
           }
         }
       }
@@ -711,7 +533,7 @@ class TtsService {
       }
 
       _currentDevocionalId = devocional.id;
-      _currentChunks = _generateChunks(devocional);
+      _currentChunks = await _generateChunks(devocional);
       _currentChunkIndex = 0;
       _chunkInProgress = true;
       _progressController.add(0.0);
@@ -744,7 +566,7 @@ class TtsService {
         await _initialize();
       }
 
-      final normalizedText = _normalizeTtsText(_sanitize(text));
+      final normalizedText = await _normalizeTtsText(_sanitize(text));
       if (normalizedText.isEmpty) {
         throw const TtsException('No valid text content to speak');
       }
