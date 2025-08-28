@@ -107,7 +107,7 @@ jobs:
               echo "❌ Auto-formatting is disabled. Please format manually:"
               echo ""
               echo "Files that need formatting:"
-              dart format --show-all .
+              echo "Run 'dart format .' to see which files need formatting"
               echo ""
               echo "To fix these issues, run:"
               echo "  dart format ."
