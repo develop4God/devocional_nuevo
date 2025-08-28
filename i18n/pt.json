@@ -1,7 +1,8 @@
 {
   "app": {
-    "title": "Devocionais",
+    "title": "Devocionais Cristãos",
     "loading": "Carregando...",
+    "preparing": "Preparando seu espaço com Deus...",
     "error": "Erro",
     "retry": "Tentar novamente",
     "close": "Fechar",
@@ -9,7 +10,8 @@
     "cancel": "Cancelar",
     "ok": "OK",
     "yes": "Sim",
-    "no": "Não"
+    "no": "Não",
+    "delete": "Excluir"
   },
   "devotionals": {
     "app_title": "Devocionais Diários",
@@ -233,24 +235,35 @@
     "achievement_unlocked": "Conquista desbloqueada!"
   },
   "progress": {
-    "title": "Progresso",
+    "title": "Meu Progresso Espiritual",
+    "stats_title": "Estatísticas Espirituais",
     "current_streak": "Sequência atual",
     "days": "dias",
     "day": "dia",
+    "reading_streak": "Sequência de leitura",
+    "total_reading_time": "Tempo total de leitura",
     "next_goal": "Próxima meta: {goal} dias",
     "goal_reached": "Meta alcançada!",
-    "devotionals_completed": "Devocionais completos",
+    "devotionals_completed": "Devocionais concluídos",
     "favorites_saved": "Favoritos salvos",
+    "favorite_count": "Favoritos",
     "achievements": "Conquistas",
     "last_activity": "Última Atividade: {date}",
     "no_activity": "Sem atividade",
+    "achievement_unlocked": "Conquista desbloqueada!",
+    "first_read": "Primeira leitura",
+    "first_favorite": "Primeiro favorito",
+    "dedicated_reader": "Leitor dedicado",
     "back": "Voltar",
-    "error_loading": "Erro ao carregar",
+    "error_loading": "Erro ao carregar estatísticas",
     "retry": "Tentar novamente",
     "error_loading_stats": "Erro ao carregar estatísticas: {error}",
     "useful_tip": "Dica útil",
     "achievement_tip": "Toque em qualquer conquista para ver sua descrição detalhada.",
-    "understood": "Entendido"
+    "understood": "Entendido",
+    "reset_stats": "Redefinir estatísticas",
+    "reset_confirmation": "Tem certeza de que deseja redefinir todas as estatísticas?",
+    "stats_reset": "Estatísticas redefinidas"
   },
   "prayers": {
     "created": "Criada: {date}",

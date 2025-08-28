@@ -1,6 +1,6 @@
 {
   "app": {
-    "title": "Devotionals",
+    "title": "Christian Devotionals",
     "loading": "Loading...",
     "preparing": "Preparing your space with God...",
     "error": "Error",
@@ -16,7 +16,7 @@
   "devotionals": {
     "app_title": "Daily Devotionals",
     "my_intimate_space_with_god": "My intimate space with God",
-    "devotional_of_the_day": "Devotional of the day", 
+    "devotional_of_the_day": "Devotional of the day",
     "no_devotionals_available": "No devotionals available for the selected language/version.",
     "reflection": "Reflection:",
     "to_meditate": "To Meditate:",
@@ -80,14 +80,12 @@
     "edit_placeholder": "Edit your prayer...",
     "new_placeholder": "Lord, I ask for...\n\nHelp me to...\n\nI thank you for...",
     "delete_prayer": "Delete prayer",
-
     "delete_confirmation": "Are you sure you want to delete this prayer? This action cannot be undone.",
     "enter_prayer_text_error": "Please enter the prayer text",
     "prayer_min_length_error": "Prayer must have at least 10 characters",
-    "cancel": "Cancel", 
-    "create_prayer" : "Create Prayer",  
+    "cancel": "Cancel",
+    "create_prayer": "Create Prayer",
     "update_prayer": "Update Prayer"
-
   },
   "settings": {
     "title": "Settings",
@@ -158,27 +156,34 @@
   },
   "progress": {
     "title": "My Spiritual Progress",
-    "error_loading_stats": "Error loading statistics: {error}",
-    "useful_tip": "Useful tip",
-    "achievement_tip": "Tap any achievement to see complete information",
-    "understood": "Understood",
-    "back": "Back",
-    "error_loading": "Error loading statistics",
-    "retry": "Retry",
+    "stats_title": "Spiritual Stats",
     "current_streak": "Current Streak",
-    "stats_title": "Spiritual Statistics",
-    "devotionals_read": "Devotionals read",
+    "days": "days",
+    "day": "day",
+    "reading_streak": "Reading Streak",
+    "total_reading_time": "Total Reading Time",
+    "next_goal": "Next goal: {goal} days",
+    "goal_reached": "Goal Reached!",
+    "devotionals_completed": "Devotionals Completed",
+    "favorites_saved": "Favorites Saved",
     "favorite_count": "Favorites",
-    "reading_streak": "Reading streak",
-    "total_reading_time": "Total reading time",
     "achievements": "Achievements",
-    "reset_stats": "Reset statistics",
-    "reset_confirmation": "Are you sure you want to reset all statistics?",
-    "stats_reset": "Statistics reset",
-    "first_read": "First reading",
+    "last_activity": "Last Activity: {date}",
+    "no_activity": "No activity",
+    "achievement_unlocked": "Achievement unlocked!",
+    "first_read": "First read",
     "first_favorite": "First favorite",
     "dedicated_reader": "Dedicated reader",
-    "achievement_unlocked": "Achievement unlocked!"
+    "back": "Go Back",
+    "error_loading": "Error loading stats",
+    "retry": "Retry",
+    "error_loading_stats": "Error loading stats: {error}",
+    "useful_tip": "Useful Tip",
+    "achievement_tip": "Tap any achievement to see its detailed description.",
+    "understood": "Understood",
+    "reset_stats": "Reset Stats",
+    "reset_confirmation": "Are you sure you want to reset all stats?",
+    "stats_reset": "Stats reset"
   },
   "errors": {
     "network_error": "Connection error",
@@ -277,27 +282,6 @@
     "dedicated_reader": "Dedicated reader",
     "achievement_unlocked": "Achievement unlocked!"
   },
-
-  "progress": {
-    "title": "Progress",
-    "current_streak": "Current streak",
-    "days": "days",
-    "day": "day",
-    "next_goal": "Next goal: {goal} days",
-    "goal_reached": "Goal reached!",
-    "devotionals_completed": "Devotionals completed",
-    "favorites_saved": "Favorites saved",
-    "achievements": "Achievements",
-    "last_activity": "Last Activity: {date}",
-    "no_activity": "No activity",
-    "back": "Back",
-    "error_loading": "Error loading",
-    "retry": "Retry",
-    "error_loading_stats": "Error loading statistics: {error}",
-    "useful_tip": "Useful tip",
-    "achievement_tip": "Tap any achievement to see its detailed description.",
-    "understood": "Understood"
-  },
   "prayers": {
     "created": "Created: {date}",
     "answered": "Answered: {date}",
@@ -317,7 +301,6 @@
     "added_to_favorites": "Devotional added to favorites",
     "removed_from_favorites": "Devotional removed from favorites"
   },
-
   "errors": {
     "network_error": "Network error",
     "file_not_found": "File not found",
@@ -385,7 +368,7 @@
     "feature_dark_light": "• Dark and Light Themes",
     "feature_notifications": "• Notification Options",
     "developed_by": "Developed with ❤️ by Develop4God",
-    "terms_copyright": "Terms and Conditions / Copyright", 
+    "terms_copyright": "Terms and Conditions / Copyright",
     "link_error": "Could not open the link."
   },
   "stats": {

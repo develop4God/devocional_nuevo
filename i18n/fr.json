@@ -1,7 +1,8 @@
 {
   "app": {
-    "title": "Dévotionnels",
+    "title": "Dévotionnels Chrétiens",
     "loading": "Chargement...",
+    "preparing": "Préparation de votre espace avec Dieu...",
     "error": "Erreur",
     "retry": "Réessayer",
     "close": "Fermer",
@@ -9,7 +10,8 @@
     "cancel": "Annuler",
     "ok": "OK",
     "yes": "Oui",
-    "no": "Non"
+    "no": "Non",
+    "delete": "Supprimer"
   },
   "devotionals": {
     "app_title": "Dévotionnels Quotidiens",
@@ -233,24 +235,35 @@
     "achievement_unlocked": "Réalisation débloquée!"
   },
   "progress": {
-    "title": "Progrès",
+    "title": "Mon Progrès Spirituel",
+    "stats_title": "Statistiques Spirituelles",
     "current_streak": "Série actuelle",
     "days": "jours",
     "day": "jour",
-    "next_goal": "Prochain objectif: {goal} jours",
-    "goal_reached": "Objectif atteint!",
-    "devotionals_completed": "Dévotionnels complétés",
+    "reading_streak": "Série de lecture",
+    "total_reading_time": "Temps total de lecture",
+    "next_goal": "Prochain objectif : {goal} jours",
+    "goal_reached": "Objectif atteint !",
+    "devotionals_completed": "Dévotionnels terminés",
     "favorites_saved": "Favoris sauvegardés",
-    "achievements": "Réalisations",
-    "last_activity": "Dernière Activité: {date}",
+    "favorite_count": "Favoris",
+    "achievements": "Réussites",
+    "last_activity": "Dernière activité : {date}",
     "no_activity": "Aucune activité",
-    "back": "Retour",
-    "error_loading": "Erreur de chargement",
+    "achievement_unlocked": "Réussite débloquée !",
+    "first_read": "Première lecture",
+    "first_favorite": "Premier favori",
+    "dedicated_reader": "Lecteur dévoué",
+    "back": "Retourner",
+    "error_loading": "Erreur lors du chargement des statistiques",
     "retry": "Réessayer",
-    "error_loading_stats": "Erreur lors du chargement des statistiques: {error}",
+    "error_loading_stats": "Erreur lors du chargement des statistiques : {error}",
     "useful_tip": "Conseil utile",
-    "achievement_tip": "Touchez n'importe quelle réalisation pour voir sa description détaillée.",
-    "understood": "Compris"
+    "achievement_tip": "Touchez n'importe quelle réussite pour voir sa description détaillée.",
+    "understood": "Compris",
+    "reset_stats": "Réinitialiser les statistiques",
+    "reset_confirmation": "Êtes-vous sûr de vouloir réinitialiser toutes les statistiques ?",
+    "stats_reset": "Statistiques réinitialisées"
   },
   "prayers": {
     "created": "Créée: {date}",
