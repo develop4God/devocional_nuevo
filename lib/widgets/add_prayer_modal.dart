@@ -235,7 +235,7 @@ class _AddPrayerModalState extends State<AddPrayerModal> {
                           ),
                         )
                       : Text(
-                          _isEditing ? 'Guardar' : 'Crear Oración',
+                          _isEditing ? 'prayer.update_prayer'.tr() : 'prayer.create_prayer'.tr(),
                           style: textTheme.labelLarge?.copyWith(
                             color: colorScheme.onPrimary,
                             fontWeight: FontWeight.w600,
