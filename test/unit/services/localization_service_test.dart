@@ -29,31 +29,31 @@ void main() {
     test('should load translations correctly for each language', () async {
       // Test Spanish
       await localizationService.changeLocale(const Locale('es'));
-      expect(
-          localizationService.translate('app.title'), equals('Devocionales Cristianos'));
+      expect(localizationService.translate('app.title'),
+          equals('Devocionales Cristianos'));
       expect(
           localizationService.translate('app.loading'), equals('Cargando...'));
 
       // Test English
       await localizationService.changeLocale(const Locale('en'));
-      expect(
-          localizationService.translate('app.title'), equals('Christian Devotionals'));
+      expect(localizationService.translate('app.title'),
+          equals('Christian Devotionals'));
       expect(
           localizationService.translate('app.loading'), equals('Loading...'));
 
       // Test Portuguese
       await localizationService.changeLocale(const Locale('pt'));
-      expect(
-          localizationService.translate('app.title'), equals('Devocionais Cristãos'));
-      expect(
-          localizationService.translate('app.loading'), equals('Carregando...'));
+      expect(localizationService.translate('app.title'),
+          equals('Devocionais Cristãos'));
+      expect(localizationService.translate('app.loading'),
+          equals('Carregando...'));
 
       // Test French
       await localizationService.changeLocale(const Locale('fr'));
-      expect(
-          localizationService.translate('app.title'), equals('Dévotionnels Chrétiens'));
-      expect(
-          localizationService.translate('app.loading'), equals('Chargement...'));
+      expect(localizationService.translate('app.title'),
+          equals('Dévotionnels Chrétiens'));
+      expect(localizationService.translate('app.loading'),
+          equals('Chargement...'));
     });
 
     test('should return correct TTS locale mappings', () async {

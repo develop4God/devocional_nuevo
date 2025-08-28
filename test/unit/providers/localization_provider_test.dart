@@ -11,10 +11,10 @@ void main() {
     setUp(() async {
       // Reset singleton instance for clean test state
       LocalizationService.resetInstance();
-      
+
       // Mock SharedPreferences
       SharedPreferences.setMockInitialValues({});
-      
+
       localizationProvider = LocalizationProvider();
     });
 
@@ -22,8 +22,8 @@ void main() {
       await localizationProvider.initialize();
 
       // Should initialize to some supported locale
-      expect(LocalizationService.supportedLocales.map((l) => l.languageCode), 
-             contains(localizationProvider.currentLocale.languageCode));
+      expect(LocalizationService.supportedLocales.map((l) => l.languageCode),
+          contains(localizationProvider.currentLocale.languageCode));
       expect(localizationProvider.supportedLocales.length, equals(4));
     });
 
@@ -50,8 +50,8 @@ void main() {
       expect(initialTitle, isNot(equals('app.title')));
 
       await localizationProvider.changeLanguage('en');
-      expect(
-          localizationProvider.translate('app.title'), equals('Christian Devotionals'));
+      expect(localizationProvider.translate('app.title'),
+          equals('Christian Devotionals'));
     });
 
     test('should return correct TTS locale', () async {
@@ -96,8 +96,8 @@ void main() {
 
       for (final locale in LocalizationService.supportedLocales) {
         await localizationProvider.changeLanguage(locale.languageCode);
-        expect(localizationProvider.currentLocale.languageCode, 
-               equals(locale.languageCode));
+        expect(localizationProvider.currentLocale.languageCode,
+            equals(locale.languageCode));
       }
     });
   });

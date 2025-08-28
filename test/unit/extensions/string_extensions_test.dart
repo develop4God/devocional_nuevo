@@ -34,7 +34,8 @@ void main() {
       await localizationService.changeLocale(const Locale('es'));
 
       // Test with a key that has parameters in the real translations
-      final result = 'navigation.switch_to_language'.tr({'language': 'English'});
+      final result =
+          'navigation.switch_to_language'.tr({'language': 'English'});
       expect(result, isNotEmpty);
     });
 
