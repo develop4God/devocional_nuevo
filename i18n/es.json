@@ -84,7 +84,8 @@
     "delete_confirmation": "¿Estás seguro de que quieres eliminar esta oración? Esta acción no se puede deshacer.",
     "enter_prayer_text_error": "Por favor ingresa el texto de la oración",
     "prayer_min_length_error": "La oración debe tener al menos 10 caracteres",
-    "cancel": "Cancelar"
+    "cancel": "Cancelar", 
+    "Create_prayer" : "Crear Oración"
 
   },
   "settings": {
