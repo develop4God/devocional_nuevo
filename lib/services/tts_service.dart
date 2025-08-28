@@ -401,7 +401,8 @@ class TtsService {
 
     if (devocional.reflexion.trim().isNotEmpty) {
       chunks.add('Reflexión:');
-      final reflection = await _normalizeTtsText(_sanitize(devocional.reflexion));
+      final reflection =
+          await _normalizeTtsText(_sanitize(devocional.reflexion));
       final paragraphs = reflection.split(RegExp(r'\n+'));
 
       for (final paragraph in paragraphs) {

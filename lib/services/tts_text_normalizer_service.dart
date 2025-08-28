@@ -2,10 +2,11 @@ import 'tts_localization_service.dart';
 
 /// Service for normalizing text for TTS across multiple languages
 class TtsTextNormalizerService {
-  static final TtsTextNormalizerService _instance = TtsTextNormalizerService._internal();
-  
+  static final TtsTextNormalizerService _instance =
+      TtsTextNormalizerService._internal();
+
   factory TtsTextNormalizerService() => _instance;
-  
+
   TtsTextNormalizerService._internal();
 
   final TtsLocalizationService _localizationService = TtsLocalizationService();
@@ -13,13 +14,15 @@ class TtsTextNormalizerService {
   /// Main text normalization method that handles all language-specific transformations
   Future<String> normalizeTtsText(String text) async {
     String normalized = text;
-    
+
     final currentLanguage = await _localizationService.getCurrentLanguage();
     final languageCode = _localizationService.getLanguageCode(currentLanguage);
 
     // Get language-specific maps
-    final bibleVersions = _localizationService.getBibleVersionsMap(languageCode);
-    final abbreviations = _localizationService.getAbbreviationsMap(languageCode);
+    final bibleVersions =
+        _localizationService.getBibleVersionsMap(languageCode);
+    final abbreviations =
+        _localizationService.getAbbreviationsMap(languageCode);
     final ordinals = _localizationService.getOrdinalsMap(languageCode);
 
     // Apply Bible version expansions
@@ -50,7 +53,8 @@ class TtsTextNormalizerService {
       if (abbrev == 'am' || abbrev == 'pm') {
         // Only match am/pm when they're standalone or with common punctuation
         normalized = normalized.replaceAllMapped(
-          RegExp(r'\b' + RegExp.escape(abbrev) + r'\b(?=\s|$|[.,;!?])', caseSensitive: false),
+          RegExp(r'\b' + RegExp.escape(abbrev) + r'\b(?=\s|$|[.,;!?])',
+              caseSensitive: false),
           (match) => expansion,
         );
       } else {
@@ -62,7 +66,7 @@ class TtsTextNormalizerService {
 
     // Handle ordinal number replacement
     normalized = normalized.replaceAllMapped(
-      RegExp(r'\b(\d+)([º°ª])\b'),
+      RegExp(r'(\d+)([º°ª])'),
       (match) {
         final number = int.tryParse(match.group(1)!) ?? 0;
         return ordinals[number] ?? 'número $number';
@@ -77,16 +81,18 @@ class TtsTextNormalizerService {
 
   /// Format Bible book references with language-specific ordinals
   String formatBibleBook(String reference, String languageCode) {
-    final exp = RegExp(r'^([123])\s+([A-Za-záéíóúÁÉÍÓÚñÑ]+)', caseSensitive: false);
+    final exp =
+        RegExp(r'^([123])\s+([A-Za-záéíóúÁÉÍÓÚñÑ]+)', caseSensitive: false);
     final match = exp.firstMatch(reference.trim());
-    
+
     if (match != null) {
       final number = match.group(1)!;
       final book = match.group(2)!;
-      
-      final bookOrdinals = _localizationService.getBookOrdinalsMap(languageCode);
+
+      final bookOrdinals =
+          _localizationService.getBookOrdinalsMap(languageCode);
       final ordinal = bookOrdinals[number] ?? '';
-      
+
       if (ordinal.isNotEmpty) {
         return reference.replaceFirst(exp, '$ordinal $book');
       }
@@ -150,7 +156,8 @@ class TtsTextNormalizerService {
         final verseEnd = match.group(4);
         final secondVerse = match.group(5);
 
-        String result = '$book ${bibleWords['chapter']} $chapter ${bibleWords['verse']} $verseStart';
+        String result =
+            '$book ${bibleWords['chapter']} $chapter ${bibleWords['verse']} $verseStart';
 
         if (verseEnd != null) {
           result += ' ${bibleWords['to']} $verseEnd';

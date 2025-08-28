@@ -16,7 +16,8 @@ void main() {
     });
 
     group('TtsLocalizationService', () {
-      test('should get correct language code from full language identifier', () {
+      test('should get correct language code from full language identifier',
+          () {
         expect(localizationService.getLanguageCode('es-US'), equals('es'));
         expect(localizationService.getLanguageCode('en-US'), equals('en'));
         expect(localizationService.getLanguageCode('fr-FR'), equals('fr'));
@@ -67,7 +68,8 @@ void main() {
 
       test('should return correct Bible versions for Spanish', () {
         final bibleVersions = localizationService.getBibleVersionsMap('es');
-        expect(bibleVersions['RVR1960'], equals('Reina Valera mil novecientos sesenta'));
+        expect(bibleVersions['RVR1960'],
+            equals('Reina Valera mil novecientos sesenta'));
         expect(bibleVersions['NVI'], equals('Nueva Versión Internacional'));
       });
 
@@ -112,14 +114,16 @@ void main() {
       });
 
       test('should not modify books without ordinals', () {
-        expect(textNormalizerService.formatBibleBook('Genesis', 'en'), equals('Genesis'));
-        expect(textNormalizerService.formatBibleBook('Génesis', 'es'), equals('Génesis'));
+        expect(textNormalizerService.formatBibleBook('Genesis', 'en'),
+            equals('Genesis'));
+        expect(textNormalizerService.formatBibleBook('Génesis', 'es'),
+            equals('Génesis'));
       });
 
       test('should preserve Spanish functionality', () async {
         // Test that Spanish normalization still works as before
         SharedPreferences.setMockInitialValues({'tts_language': 'es-US'});
-        
+
         final result = await textNormalizerService.normalizeTtsText('1º 2º 3º');
         expect(result, contains('primero'));
         expect(result, contains('segundo'));
@@ -128,7 +132,7 @@ void main() {
 
       test('should handle English ordinals', () async {
         SharedPreferences.setMockInitialValues({'tts_language': 'en-US'});
-        
+
         final result = await textNormalizerService.normalizeTtsText('1º 2º 3º');
         expect(result, contains('first'));
         expect(result, contains('second'));
@@ -137,37 +141,44 @@ void main() {
     });
 
     group('Integration Tests', () {
-      test('should preserve existing Spanish functionality completely', () async {
+      test('should preserve existing Spanish functionality completely',
+          () async {
         SharedPreferences.setMockInitialValues({'tts_language': 'es-US'});
-        
+
         // Test Bible versions expansion
-        final result1 = await textNormalizerService.normalizeTtsText('RVR1960 y NVI');
+        final result1 =
+            await textNormalizerService.normalizeTtsText('RVR1960 y NVI');
         expect(result1, contains('Reina Valera mil novecientos sesenta'));
         expect(result1, contains('Nueva Versión Internacional'));
 
         // Test ordinals
-        final result2 = await textNormalizerService.normalizeTtsText('1º lugar');
+        final result2 =
+            await textNormalizerService.normalizeTtsText('1º lugar');
         expect(result2, contains('primero lugar'));
-        
+
         // Test Bible book formatting
-        final result3 = textNormalizerService.formatBibleBook('1 Corintios', 'es');
+        final result3 =
+            textNormalizerService.formatBibleBook('1 Corintios', 'es');
         expect(result3, equals('Primera de Corintios'));
       });
 
       test('should work correctly for English language', () async {
         SharedPreferences.setMockInitialValues({'tts_language': 'en-US'});
-        
+
         // Test Bible versions expansion
-        final result1 = await textNormalizerService.normalizeTtsText('KJV and NIV');
+        final result1 =
+            await textNormalizerService.normalizeTtsText('KJV and NIV');
         expect(result1, contains('King James Version'));
         expect(result1, contains('New International Version'));
 
         // Test ordinals
-        final result2 = await textNormalizerService.normalizeTtsText('1º place');
+        final result2 =
+            await textNormalizerService.normalizeTtsText('1º place');
         expect(result2, contains('first place'));
-        
+
         // Test Bible book formatting
-        final result3 = textNormalizerService.formatBibleBook('1 Corinthians', 'en');
+        final result3 =
+            textNormalizerService.formatBibleBook('1 Corinthians', 'en');
         expect(result3, equals('First Corinthians'));
       });
     });

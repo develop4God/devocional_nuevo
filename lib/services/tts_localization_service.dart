@@ -2,10 +2,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 /// Service for handling TTS localization across multiple languages
 class TtsLocalizationService {
-  static final TtsLocalizationService _instance = TtsLocalizationService._internal();
-  
+  static final TtsLocalizationService _instance =
+      TtsLocalizationService._internal();
+
   factory TtsLocalizationService() => _instance;
-  
+
   TtsLocalizationService._internal();
 
   /// Get current TTS language from preferences
@@ -25,7 +26,7 @@ class TtsLocalizationService {
       case 'en':
         return {
           1: 'first',
-          2: 'second', 
+          2: 'second',
           3: 'third',
           4: 'fourth',
           5: 'fifth',
@@ -39,7 +40,7 @@ class TtsLocalizationService {
         return {
           1: 'premier',
           2: 'deuxième',
-          3: 'troisième', 
+          3: 'troisième',
           4: 'quatrième',
           5: 'cinquième',
           6: 'sixième',
@@ -90,7 +91,7 @@ class TtsLocalizationService {
       case 'fr':
         return {
           '1': 'Premier',
-          '2': 'Deuxième', 
+          '2': 'Deuxième',
           '3': 'Troisième',
         };
       case 'pt':
@@ -168,7 +169,7 @@ class TtsLocalizationService {
           'vs.': 'verse',
           'vv.': 'verses',
           'ch.': 'chapter',
-          'chs.': 'chapters', 
+          'chs.': 'chapters',
           'cf.': 'compare',
           'etc.': 'etcetera',
           'e.g.': 'for example',
@@ -196,7 +197,7 @@ class TtsLocalizationService {
       case 'pt':
         return {
           'vs.': 'versículo',
-          'vv.': 'versículos', 
+          'vv.': 'versículos',
           'cap.': 'capítulo',
           'caps.': 'capítulos',
           'cf.': 'compare',
