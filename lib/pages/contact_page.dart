@@ -169,7 +169,7 @@ class _ContactPageState extends State<ContactPage> {
 
             // Dropdown para seleccionar tipo de contacto
             DropdownButtonFormField<String>(
-              initialValue: _selectedContactOption,
+              value: _selectedContactOption,
               decoration: InputDecoration(
                 labelText: 'contact_page.contact_type_label'.tr(),
                 border: OutlineInputBorder(
