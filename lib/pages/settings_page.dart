@@ -318,8 +318,9 @@ class _SettingsPageState extends State<SettingsPage> {
 
                     // Capture context before async operations
                     final currentContext = context;
-                    final devocionalProvider =
-                        Provider.of<DevocionalProvider>(currentContext, listen: false);
+                    final devocionalProvider = Provider.of<DevocionalProvider>(
+                        currentContext,
+                        listen: false);
                     final localizationProvider =
                         Provider.of<LocalizationProvider>(currentContext,
                             listen: false);

@@ -1485,8 +1485,7 @@ class TtsService {
     try {
       await _flutterTts.setVoice(voice);
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(
-          'tts_voice_$_currentLanguage', voice['name'] ?? '');
+      await prefs.setString('tts_voice_$_currentLanguage', voice['name'] ?? '');
       debugPrint(
           '🔧 TTS: Voice set to ${voice['name']} for language $_currentLanguage');
     } catch (e) {

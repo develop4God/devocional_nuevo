@@ -48,7 +48,8 @@ void main() {
           switch (methodCall.method) {
             case 'setLanguage':
               final language = methodCall.arguments as String?;
-              if (['es-ES', 'es-US', 'es', 'en-US', 'pt-BR', 'fr-FR'].contains(language)) {
+              if (['es-ES', 'es-US', 'es', 'en-US', 'pt-BR', 'fr-FR']
+                  .contains(language)) {
                 return null; // Success
               }
               throw PlatformException(code: 'UNSUPPORTED_LANGUAGE');
@@ -125,7 +126,7 @@ void main() {
 
     test('should set voice correctly', () async {
       await ttsService.initialize();
-      
+
       final voice = {'name': 'English Voice', 'locale': 'en-US'};
       expect(() => ttsService.setVoice(voice), returnsNormally);
     });
@@ -135,7 +136,7 @@ void main() {
       ttsService.setLanguageContext('es', 'RVR1960');
       expect(ttsService.currentState, anyOf([TtsState.idle, TtsState.error]));
 
-      // Test English context  
+      // Test English context
       ttsService.setLanguageContext('en', 'KJV');
       expect(ttsService.currentState, anyOf([TtsState.idle, TtsState.error]));
 
@@ -151,14 +152,14 @@ void main() {
     test('should map locale correctly for each language', () {
       // Test that locale mapping works correctly through the public interface
       expect(['es-ES', 'en-US', 'pt-BR', 'fr-FR'], isNotEmpty);
-      
+
       // We can't directly test private methods, but we know the mapping exists
       // and is tested through the language context setting
       ttsService.setLanguageContext('es', 'RVR1960');
       ttsService.setLanguageContext('en', 'KJV');
       ttsService.setLanguageContext('pt', 'ARC');
       ttsService.setLanguageContext('fr', 'LSG');
-      
+
       // All should complete without errors
       expect(ttsService.currentState, anyOf([TtsState.idle, TtsState.error]));
     });
@@ -166,12 +167,12 @@ void main() {
     test('should handle Bible version pronunciation correctly', () {
       // Test that the normalization methods exist (we can't test private methods directly)
       // But we can test that the language context affects the behavior
-      
+
       // Test English context
       ttsService.setLanguageContext('en', 'KJV');
       expect(ttsService.currentState, anyOf([TtsState.idle, TtsState.error]));
 
-      // Test Portuguese context  
+      // Test Portuguese context
       ttsService.setLanguageContext('pt', 'ARC');
       expect(ttsService.currentState, anyOf([TtsState.idle, TtsState.error]));
 
@@ -188,7 +189,7 @@ void main() {
       // Test English ordinals using helper function
       final english1John = _formatBibleBookEnglish('1 John');
       expect(english1John, equals('First John'));
-      
+
       final english2Cor = _formatBibleBookEnglish('2 Corinthians');
       expect(english2Cor, equals('Second Corinthians'));
 
