@@ -381,6 +381,10 @@ class DevocionalProvider with ChangeNotifier {
       _selectedVersion = defaultVersion;
       await prefs.setString('selectedVersion', defaultVersion);
 
+      // Update TTS language context immediately
+      _audioController.ttsService
+          .setLanguageContext(_selectedLanguage, _selectedVersion);
+
       if (language != supportedLanguage) {
         debugPrint(
             'Language $language not available, using $supportedLanguage');
@@ -395,6 +399,11 @@ class DevocionalProvider with ChangeNotifier {
       _selectedVersion = version;
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('selectedVersion', version);
+
+      // Update TTS language context immediately
+      _audioController.ttsService
+          .setLanguageContext(_selectedLanguage, _selectedVersion);
+
       // Refetch data for new version
       await _fetchAllDevocionalesForLanguage();
     }

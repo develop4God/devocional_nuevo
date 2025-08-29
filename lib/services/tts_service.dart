@@ -4,6 +4,8 @@ import 'dart:io' show Platform;
 
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
+import 'package:devocional_nuevo/services/localization_service.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -30,6 +32,7 @@ class TtsService {
   TtsService._internal();
 
   final FlutterTts _flutterTts = FlutterTts();
+  final LocalizationService _localizationService = LocalizationService.instance;
 
   TtsState _currentState = TtsState.idle;
   String? _currentDevocionalId;
@@ -1120,38 +1123,21 @@ class TtsService {
     return chunks.where((chunk) => chunk.trim().isNotEmpty).toList();
   }
 
-  // Get section headers for different languages
+  // Get section headers for different languages using localization service
   Map<String, String> _getSectionHeaders(String language) {
-    switch (language) {
-      case 'en':
-        return {
-          'verse': 'Verse',
-          'reflection': 'Reflection',
-          'meditate': 'To Meditate',
-          'prayer': 'Prayer',
-        };
-      case 'pt':
-        return {
-          'verse': 'Versículo',
-          'reflection': 'Reflexão',
-          'meditate': 'Para Meditar',
-          'prayer': 'Oração',
-        };
-      case 'fr':
-        return {
-          'verse': 'Verset',
-          'reflection': 'Réflexion',
-          'meditate': 'À Méditer',
-          'prayer': 'Prière',
-        };
-      default: // Spanish
-        return {
-          'verse': 'Versículo',
-          'reflection': 'Reflexión',
-          'meditate': 'Para Meditar',
-          'prayer': 'Oración',
-        };
+    // Ensure localization service is using the correct language context
+    if (_localizationService.currentLocale.languageCode != language) {
+      // This is a fallback - ideally the localization service should already be in sync
+      debugPrint(
+          '⚠️ TTS: Language mismatch between localization service (${_localizationService.currentLocale.languageCode}) and TTS context ($language)');
     }
+
+    return {
+      'verse': _localizationService.translate('devotionals.verse'),
+      'reflection': _localizationService.translate('devotionals.reflection'),
+      'meditate': _localizationService.translate('devotionals.to_meditate'),
+      'prayer': _localizationService.translate('devotionals.prayer'),
+    };
   }
 
   String _sanitize(String text) {
@@ -1352,6 +1338,14 @@ class TtsService {
     _currentVersion = version;
     debugPrint('🌐 TTS: Language context set to $language ($version)');
 
+    // Sync with localization service if needed
+    if (_localizationService.currentLocale.languageCode != language) {
+      debugPrint(
+          '🔄 TTS: Syncing localization service to language context $language');
+      // Note: We don't change the app language here, just log the mismatch
+      // The app language should be controlled by the LocalizationProvider
+    }
+
     // Update TTS language settings based on context immediately
     _updateTtsLanguageSettings(language);
   }
@@ -1496,6 +1490,18 @@ class TtsService {
     } catch (e) {
       debugPrint('⚠️ TTS: Failed to set voice: $e');
     }
+  }
+
+  // Test helper method to expose chunk generation for testing
+  @visibleForTesting
+  List<String> generateChunksForTesting(Devocional devocional) {
+    return _generateChunks(devocional);
+  }
+  
+  // Test helper method to expose section headers for testing
+  @visibleForTesting
+  Map<String, String> getSectionHeadersForTesting(String language) {
+    return _getSectionHeaders(language);
   }
 
   Future<void> dispose() async {
