@@ -537,7 +537,9 @@ class DevocionalProvider with ChangeNotifier {
       debugPrint('🔍 Language: $_selectedLanguage, Version: $_selectedVersion');
       final response = await http.get(Uri.parse(url));
 
-      if (response.statusCode != 200) {
+      if (response.statusCode == 404) {
+        throw Exception('Archivo no disponible para $_selectedLanguage $_selectedVersion año $year');
+      } else if (response.statusCode != 200) {
         throw Exception('Error al descargar: ${response.statusCode}');
       }
 
@@ -609,7 +611,17 @@ class DevocionalProvider with ChangeNotifier {
 
   Future<bool> downloadCurrentYearDevocionales() async {
     final int currentYear = DateTime.now().year;
-    return await downloadAndStoreDevocionales(currentYear);
+    
+    // Try current year first
+    bool success = await downloadAndStoreDevocionales(currentYear);
+    
+    // If current year fails, try next year (common case when current year files aren't ready)
+    if (!success && currentYear < 2026) {
+      debugPrint('Current year $currentYear failed, trying ${currentYear + 1}');
+      success = await downloadAndStoreDevocionales(currentYear + 1);
+    }
+    
+    return success;
   }
 
   Future<bool> downloadDevocionalesForYear(int year) async {

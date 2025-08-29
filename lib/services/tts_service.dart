@@ -1464,8 +1464,20 @@ class TtsService {
         return filteredRawVoices.map((voice) {
           final name = voice['name'] as String? ?? '';
           final locale = voice['locale'] as String? ?? '';
-          return '$name ($locale)';
-        }).toList();
+          final cleanName = _cleanVoiceName(name);
+          return '$cleanName ($locale)';
+        }).toList()
+          ..sort((a, b) {
+            // Prioritize US voices by putting them at the top
+            final aIsUS = a.contains('-US') || a.contains('_US');
+            final bIsUS = b.contains('-US') || b.contains('_US');
+            
+            if (aIsUS && !bIsUS) return -1;
+            if (!aIsUS && bIsUS) return 1;
+            
+            // Secondary sort by name for consistent ordering
+            return a.compareTo(b);
+          });
       }
 
       return [];
@@ -1488,6 +1500,38 @@ class TtsService {
       default:
         return 'es-ES';
     }
+  }
+
+  String _cleanVoiceName(String voiceName) {
+    // Remove common prefixes and suffixes to make names more user-friendly
+    String cleanName = voiceName;
+    
+    // Remove platform-specific prefixes
+    cleanName = cleanName.replaceAll(RegExp(r'^com\.apple\.ttsbundle\.'), '');
+    cleanName = cleanName.replaceAll(RegExp(r'^com\.apple\.speech\.synthesis\.voice\.'), '');
+    cleanName = cleanName.replaceAll(RegExp(r'^microsoft-'), '');
+    cleanName = cleanName.replaceAll(RegExp(r'^google-'), '');
+    
+    // Replace underscores and dashes with spaces for readability
+    cleanName = cleanName.replaceAll('_', ' ');
+    cleanName = cleanName.replaceAll('-', ' ');
+    
+    // Capitalize first letter of each word
+    cleanName = cleanName.split(' ').map((word) {
+      if (word.isEmpty) return word;
+      return word[0].toUpperCase() + word.substring(1).toLowerCase();
+    }).join(' ');
+    
+    // Handle common voice name patterns
+    cleanName = cleanName.replaceAll(RegExp(r'\bVoice\b'), '');
+    cleanName = cleanName.replaceAll(RegExp(r'\bTts\b'), '');
+    cleanName = cleanName.replaceAll(RegExp(r'\bSpeech\b'), '');
+    
+    // Remove extra spaces
+    cleanName = cleanName.replaceAll(RegExp(r'\s+'), ' ').trim();
+    
+    // If the name is empty after cleaning, return the original
+    return cleanName.isEmpty ? voiceName : cleanName;
   }
 
   Future<void> setVoice(Map<String, String> voice) async {

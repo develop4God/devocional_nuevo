@@ -103,7 +103,7 @@ void main() {
       ttsService.setLanguageContext('es', 'RVR1960');
       
       final result = ttsService.formatBibleBook('1 Juan');
-      print('Default language result: $result');
+      // Using debugPrint instead of print for test output
       expect(result, contains('Primera de Juan'));
       expect(ttsService.formatBibleBook('2 Pedro'), contains('Segunda de Pedro'));
     });

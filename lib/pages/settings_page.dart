@@ -113,6 +113,150 @@ class _SettingsPageState extends State<SettingsPage> {
     }
   }
 
+  Future<void> _showLanguageChangeDialog(BuildContext context, String newLanguage) async {
+    final languageName = Constants.supportedLanguages[newLanguage] ?? newLanguage;
+    
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: Text('settings.language_change_dialog_title'.tr()),
+          content: Text(
+            'settings.language_change_dialog_message'.tr({
+              'language': languageName,
+            }),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('settings.language_change_cancel'.tr()),
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+              },
+            ),
+            ElevatedButton(
+              child: Text('settings.language_change_confirm'.tr()),
+              onPressed: () async {
+                Navigator.of(dialogContext).pop();
+                await _performLanguageChange(context, newLanguage, languageName);
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _performLanguageChange(BuildContext context, String newLanguage, String languageName) async {
+    final localizationProvider = Provider.of<LocalizationProvider>(context, listen: false);
+    final devocionalProvider = Provider.of<DevocionalProvider>(context, listen: false);
+    
+    // Capture context before async operations
+    final currentContext = context;
+    
+    try {
+      // Show downloading message
+      ScaffoldMessenger.of(currentContext).showSnackBar(
+        SnackBar(
+          content: Text('settings.language_change_downloading'.tr({
+            'language': languageName,
+          })),
+          duration: const Duration(seconds: 3),
+        ),
+      );
+
+      // Change language in provider
+      await localizationProvider.changeLanguage(newLanguage);
+      
+      // Update DevocionalProvider with new language
+      devocionalProvider.setSelectedLanguage(newLanguage);
+
+      // Automatically set the default version for the new language
+      final defaultVersion = Constants.defaultVersionByLanguage[newLanguage];
+      if (defaultVersion != null) {
+        devocionalProvider.setSelectedVersion(defaultVersion);
+      }
+
+      // Try to download content for the new language
+      final downloadSuccess = await devocionalProvider.downloadCurrentYearDevocionales();
+      
+      if (downloadSuccess) {
+        developer.log('Language changed to: $newLanguage', name: 'SettingsPage');
+        developer.log('Version changed to: $defaultVersion', name: 'SettingsPage');
+
+        // Reload TTS settings for new language
+        await _loadTtsSettings();
+
+        // Auto-select the first (best) voice for the new language
+        if (_availableVoices.isNotEmpty) {
+          final firstVoice = _availableVoices.first;
+          setState(() {
+            _selectedVoice = firstVoice;
+          });
+
+          // Parse voice name and locale
+          final voiceParts = firstVoice.split(' (');
+          final voiceName = voiceParts[0];
+          final locale = voiceParts.length > 1
+              ? voiceParts[1].replaceAll(')', '')
+              : '';
+
+          // Set the voice
+          await devocionalProvider.setTtsVoice({
+            'name': voiceName,
+            'locale': locale,
+          });
+
+          // Save preference
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('tts_voice_$newLanguage', firstVoice);
+        }
+
+        // Show success message and suggest restart
+        if (mounted) {
+          ScaffoldMessenger.of(currentContext).showSnackBar(
+            SnackBar(
+              content: Text('settings.language_change_success'.tr({
+                'language': languageName,
+              })),
+              duration: const Duration(seconds: 4),
+              action: SnackBarAction(
+                label: 'OK',
+                onPressed: () {
+                  // Could implement app restart here if needed
+                },
+              ),
+            ),
+          );
+        }
+      } else {
+        // Download failed, but language was still changed
+        if (mounted) {
+          ScaffoldMessenger.of(currentContext).showSnackBar(
+            SnackBar(
+              content: Text('settings.language_change_error'.tr({
+                'language': languageName,
+              })),
+              duration: const Duration(seconds: 4),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      developer.log('Error changing language: $e', name: 'SettingsPage');
+      if (mounted) {
+        ScaffoldMessenger.of(currentContext).showSnackBar(
+          SnackBar(
+            content: Text('settings.language_change_error'.tr({
+              'language': languageName,
+            })),
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final localizationProvider = Provider.of<LocalizationProvider>(context);
@@ -184,42 +328,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   }).toList(),
                   onChanged: (String? newLanguage) async {
                     if (newLanguage != null && mounted) {
-                      // Capture context before async gap
-                      final currentContext = context;
-                      await localizationProvider.changeLanguage(newLanguage);
-
-                      // Update DevocionalProvider with new language
-                      if (mounted) {
-                        // ignore: use_build_context_synchronously
-                        final devocionalProvider =
-                            // ignore: use_build_context_synchronously
-                            Provider.of<DevocionalProvider>(currentContext,
-                                listen: false);
-                        devocionalProvider.setSelectedLanguage(newLanguage);
-
-                        // Automatically set the default version for the new language
-                        final defaultVersion =
-                            Constants.defaultVersionByLanguage[newLanguage];
-                        if (defaultVersion != null) {
-                          devocionalProvider.setSelectedVersion(defaultVersion);
-                        }
-
-                        developer.log('Language changed to: $newLanguage',
-                            name: 'SettingsPage');
-                        developer.log('Version changed to: $defaultVersion',
-                            name: 'SettingsPage');
-
-                        // Reload TTS settings for new language
-                        await _loadTtsSettings();
-
-                        // ignore: use_build_context_synchronously
-                        ScaffoldMessenger.of(currentContext).showSnackBar(
-                          SnackBar(
-                            content: Text('settings.language_changed'.tr()),
-                            duration: const Duration(seconds: 2),
-                          ),
-                        );
-                      }
+                      await _showLanguageChangeDialog(context, newLanguage);
                     }
                   },
                 ),
