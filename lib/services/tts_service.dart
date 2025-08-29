@@ -1465,7 +1465,9 @@ class TtsService {
           final name = voice['name'] as String? ?? '';
           final locale = voice['locale'] as String? ?? '';
           final cleanName = _cleanVoiceName(name);
-          return '$cleanName ($locale)';
+          final genderInfo = _getVoiceGenderInfo(name);
+          final displayName = genderInfo.isNotEmpty ? '$cleanName ($genderInfo)' : cleanName;
+          return '$displayName ($locale)';
         }).toList()
           ..sort((a, b) {
             // Prioritize US voices by putting them at the top
@@ -1475,7 +1477,18 @@ class TtsService {
             if (aIsUS && !bIsUS) return -1;
             if (!aIsUS && bIsUS) return 1;
             
-            // Secondary sort by name for consistent ordering
+            // Secondary sort: prioritize female voices, then male voices
+            final aIsFemale = a.contains('♀') || a.contains('Female');
+            final bIsFemale = b.contains('♀') || b.contains('Female');
+            final aIsMale = a.contains('♂') || a.contains('Male');
+            final bIsMale = b.contains('♂') || b.contains('Male');
+            
+            if (aIsFemale && !bIsFemale) return -1;
+            if (!aIsFemale && bIsFemale) return 1;
+            if (aIsMale && !bIsMale) return -1;
+            if (!aIsMale && bIsMale) return 1;
+            
+            // Tertiary sort by name for consistent ordering
             return a.compareTo(b);
           });
       }
@@ -1485,6 +1498,58 @@ class TtsService {
       debugPrint('Error getting voices for $language: $e');
       return [];
     }
+  }
+
+  String _getVoiceGenderInfo(String voiceName) {
+    final name = voiceName.toLowerCase();
+    
+    // Common female voice names across platforms
+    const femaleNames = [
+      'samantha', 'anna', 'karen', 'moira', 'tessa', 'veena', 'zuzana',
+      'carolina', 'silvia', 'monica', 'lucia', 'sofia', 'paloma',
+      'maria', 'carmen', 'elena', 'isabel', 'fernanda', 'ines',
+      'alice', 'amelie', 'marie', 'celine', 'claudia', 'audrey',
+      'susan', 'victoria', 'kate', 'zira', 'hazel', 'heather',
+      'cortana', 'aria', 'eva', 'joanna', 'kimberly', 'salli',
+      'nicole', 'emma', 'amy', 'elly', 'chloe', 'olivia',
+      'bianca', 'carla', 'vitoria', 'female'
+    ];
+    
+    // Common male voice names across platforms
+    const maleNames = [
+      'alex', 'daniel', 'diego', 'carlos', 'jorge', 'juan',
+      'thomas', 'ricky', 'fred', 'david', 'mark', 'richard',
+      'aaron', 'albert', 'brad', 'bruce', 'ralph', 'kevin',
+      'lee', 'paul', 'reed', 'alan', 'gordon', 'henry',
+      'james', 'john', 'malcolm', 'michael', 'nathan', 'oliver',
+      'ryan', 'sean', 'william', 'antonio', 'francisco',
+      'ricardo', 'miguel', 'pedro', 'jose', 'felipe',
+      'sebastiao', 'male'
+    ];
+    
+    // Check for explicit gender indicators first
+    if (name.contains('female') || name.contains('woman')) {
+      return '♀ Female';
+    }
+    if (name.contains('male') || name.contains('man')) {
+      return '♂ Male';
+    }
+    
+    // Check against known names
+    for (final femaleName in femaleNames) {
+      if (name.contains(femaleName)) {
+        return '♀ Female';
+      }
+    }
+    
+    for (final maleName in maleNames) {
+      if (name.contains(maleName)) {
+        return '♂ Male';
+      }
+    }
+    
+    // Return empty string if gender cannot be determined
+    return '';
   }
 
   String _getLocaleForLanguage(String language) {

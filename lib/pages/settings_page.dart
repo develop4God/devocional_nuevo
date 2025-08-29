@@ -2,6 +2,7 @@ import 'dart:developer' as developer;
 
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/pages/about_page.dart';
+import 'package:devocional_nuevo/pages/application_language_page.dart';
 import 'package:devocional_nuevo/pages/contact_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/providers/localization_provider.dart';
@@ -113,150 +114,6 @@ class _SettingsPageState extends State<SettingsPage> {
     }
   }
 
-  Future<void> _showLanguageChangeDialog(BuildContext context, String newLanguage) async {
-    final languageName = Constants.supportedLanguages[newLanguage] ?? newLanguage;
-    
-    return showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext dialogContext) {
-        return AlertDialog(
-          title: Text('settings.language_change_dialog_title'.tr()),
-          content: Text(
-            'settings.language_change_dialog_message'.tr({
-              'language': languageName,
-            }),
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: Text('settings.language_change_cancel'.tr()),
-              onPressed: () {
-                Navigator.of(dialogContext).pop();
-              },
-            ),
-            ElevatedButton(
-              child: Text('settings.language_change_confirm'.tr()),
-              onPressed: () async {
-                Navigator.of(dialogContext).pop();
-                await _performLanguageChange(context, newLanguage, languageName);
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Future<void> _performLanguageChange(BuildContext context, String newLanguage, String languageName) async {
-    final localizationProvider = Provider.of<LocalizationProvider>(context, listen: false);
-    final devocionalProvider = Provider.of<DevocionalProvider>(context, listen: false);
-    
-    // Capture context before async operations
-    final currentContext = context;
-    
-    try {
-      // Show downloading message
-      ScaffoldMessenger.of(currentContext).showSnackBar(
-        SnackBar(
-          content: Text('settings.language_change_downloading'.tr({
-            'language': languageName,
-          })),
-          duration: const Duration(seconds: 3),
-        ),
-      );
-
-      // Change language in provider
-      await localizationProvider.changeLanguage(newLanguage);
-      
-      // Update DevocionalProvider with new language
-      devocionalProvider.setSelectedLanguage(newLanguage);
-
-      // Automatically set the default version for the new language
-      final defaultVersion = Constants.defaultVersionByLanguage[newLanguage];
-      if (defaultVersion != null) {
-        devocionalProvider.setSelectedVersion(defaultVersion);
-      }
-
-      // Try to download content for the new language
-      final downloadSuccess = await devocionalProvider.downloadCurrentYearDevocionales();
-      
-      if (downloadSuccess) {
-        developer.log('Language changed to: $newLanguage', name: 'SettingsPage');
-        developer.log('Version changed to: $defaultVersion', name: 'SettingsPage');
-
-        // Reload TTS settings for new language
-        await _loadTtsSettings();
-
-        // Auto-select the first (best) voice for the new language
-        if (_availableVoices.isNotEmpty) {
-          final firstVoice = _availableVoices.first;
-          setState(() {
-            _selectedVoice = firstVoice;
-          });
-
-          // Parse voice name and locale
-          final voiceParts = firstVoice.split(' (');
-          final voiceName = voiceParts[0];
-          final locale = voiceParts.length > 1
-              ? voiceParts[1].replaceAll(')', '')
-              : '';
-
-          // Set the voice
-          await devocionalProvider.setTtsVoice({
-            'name': voiceName,
-            'locale': locale,
-          });
-
-          // Save preference
-          final prefs = await SharedPreferences.getInstance();
-          await prefs.setString('tts_voice_$newLanguage', firstVoice);
-        }
-
-        // Show success message and suggest restart
-        if (mounted) {
-          ScaffoldMessenger.of(currentContext).showSnackBar(
-            SnackBar(
-              content: Text('settings.language_change_success'.tr({
-                'language': languageName,
-              })),
-              duration: const Duration(seconds: 4),
-              action: SnackBarAction(
-                label: 'OK',
-                onPressed: () {
-                  // Could implement app restart here if needed
-                },
-              ),
-            ),
-          );
-        }
-      } else {
-        // Download failed, but language was still changed
-        if (mounted) {
-          ScaffoldMessenger.of(currentContext).showSnackBar(
-            SnackBar(
-              content: Text('settings.language_change_error'.tr({
-                'language': languageName,
-              })),
-              duration: const Duration(seconds: 4),
-            ),
-          );
-        }
-      }
-    } catch (e) {
-      developer.log('Error changing language: $e', name: 'SettingsPage');
-      if (mounted) {
-        ScaffoldMessenger.of(currentContext).showSnackBar(
-          SnackBar(
-            content: Text('settings.language_change_error'.tr({
-              'language': languageName,
-            })),
-            duration: const Duration(seconds: 4),
-          ),
-        );
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final localizationProvider = Provider.of<LocalizationProvider>(context);
@@ -306,33 +163,48 @@ class _SettingsPageState extends State<SettingsPage> {
             const SizedBox(height: 20),
 
             // Language Selection Section
-            Row(
-              children: [
-                Icon(Icons.language, color: colorScheme.primary),
-                const SizedBox(width: 10),
-                Text(
-                  'settings.language'.tr(),
-                  style: textTheme.bodyMedium?.copyWith(
-                    fontSize: 16,
-                    color: colorScheme.onSurface,
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const ApplicationLanguagePage(),
                   ),
+                );
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
+                child: Row(
+                  children: [
+                    Icon(Icons.language, color: colorScheme.primary),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'settings.language'.tr(),
+                            style: textTheme.bodyMedium?.copyWith(
+                              fontSize: 16,
+                              color: colorScheme.onSurface,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            Constants.supportedLanguages[localizationProvider.currentLocale.languageCode] ?? 
+                                localizationProvider.currentLocale.languageCode,
+                            style: textTheme.bodySmall?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Icon(Icons.chevron_right, color: colorScheme.onSurfaceVariant),
+                  ],
                 ),
-                const SizedBox(width: 10),
-                DropdownButton<String>(
-                  value: localizationProvider.currentLocale.languageCode,
-                  items: Constants.supportedLanguages.entries.map((entry) {
-                    return DropdownMenuItem(
-                      value: entry.key,
-                      child: Text(entry.value),
-                    );
-                  }).toList(),
-                  onChanged: (String? newLanguage) async {
-                    if (newLanguage != null && mounted) {
-                      await _showLanguageChangeDialog(context, newLanguage);
-                    }
-                  },
-                ),
-              ],
+              ),
             ),
 
             const SizedBox(height: 20),

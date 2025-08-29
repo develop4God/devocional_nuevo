@@ -129,6 +129,14 @@
     "paypal_error": "Error al abrir PayPal: {error}",
     "paypal_no_app_error": "No se pudo abrir PayPal. Asegúrate de tener un navegador web o la app de PayPal instalada."
   },
+  "application_language": {
+    "title": "Idioma de la Aplicación",
+    "description": "Selecciona y descarga el idioma que deseas usar para la aplicación. Cada idioma incluye contenido devocional para el año.",
+    "current_language": "Idioma actual",
+    "download_failed": "Error al descargar el contenido del idioma. Por favor, inténtalo de nuevo.",
+    "downloading": "Descargando...",
+    "downloaded": "Descargado"
+  },
   "navigation": {
     "home": "Inicio",
     "devotional": "Devocional",

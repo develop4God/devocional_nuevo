@@ -615,13 +615,44 @@ class DevocionalProvider with ChangeNotifier {
     // Try current year first
     bool success = await downloadAndStoreDevocionales(currentYear);
     
-    // If current year fails, try next year (common case when current year files aren't ready)
-    if (!success && currentYear < 2026) {
-      debugPrint('Current year $currentYear failed, trying ${currentYear + 1}');
-      success = await downloadAndStoreDevocionales(currentYear + 1);
+    // If current year fails, try fallback logic for missing versions
+    if (!success) {
+      success = await _tryVersionFallback(currentYear);
     }
     
     return success;
+  }
+
+  Future<bool> _tryVersionFallback(int year) async {
+    debugPrint('🔄 Trying version fallback for $_selectedLanguage $_selectedVersion');
+    
+    // Get available versions for the language
+    final availableVersions = Constants.bibleVersionsByLanguage[_selectedLanguage] ?? [];
+    
+    // Try other versions for the same language
+    for (final version in availableVersions) {
+      if (version != _selectedVersion) {
+        debugPrint('🔄 Trying fallback version: $version');
+        final originalVersion = _selectedVersion;
+        _selectedVersion = version;
+        
+        final success = await downloadAndStoreDevocionales(year);
+        if (success) {
+          debugPrint('✅ Fallback successful with version: $version');
+          // Update stored version preference
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('selected_version_$_selectedLanguage', version);
+          notifyListeners();
+          return true;
+        }
+        
+        // Restore original version if fallback failed
+        _selectedVersion = originalVersion;
+      }
+    }
+    
+    debugPrint('❌ All version fallbacks failed for $_selectedLanguage');
+    return false;
   }
 
   Future<bool> downloadDevocionalesForYear(int year) async {
