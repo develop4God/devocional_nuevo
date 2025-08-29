@@ -1421,6 +1421,7 @@ class TtsService {
     if (!_isInitialized) await _initialize();
     try {
       final voices = await _flutterTts.getVoices;
+
       if (voices is List<dynamic>) {
         return voices.map((voice) {
           if (voice is Map) {
@@ -1439,10 +1440,39 @@ class TtsService {
   }
 
   Future<List<String>> getVoicesForLanguage(String language) async {
-    final allVoices = await getVoices();
-    final targetLocale = _getLocaleForLanguage(language);
+    if (!_isInitialized) await _initialize();
 
-    return allVoices.where((voice) => voice.contains(targetLocale)).toList();
+    final targetLocale = _getLocaleForLanguage(language);
+    debugPrint('🎯 Looking for voices with locale: $targetLocale');
+
+    try {
+      final rawVoices = await _flutterTts.getVoices;
+
+      if (rawVoices is List<dynamic>) {
+        final filteredRawVoices = rawVoices.where((voice) {
+          if (voice is Map) {
+            final locale = voice['locale'] as String? ?? '';
+            return locale.contains(targetLocale);
+          }
+          return false;
+        }).toList();
+
+        debugPrint(
+            '🔍 Found ${filteredRawVoices.length} voices for $targetLocale');
+        debugPrint('🎤 FINAL VOICES LIST: $filteredRawVoices');
+
+        return filteredRawVoices.map((voice) {
+          final name = voice['name'] as String? ?? '';
+          final locale = voice['locale'] as String? ?? '';
+          return '$name ($locale)';
+        }).toList();
+      }
+
+      return [];
+    } catch (e) {
+      debugPrint('Error getting voices for $language: $e');
+      return [];
+    }
   }
 
   String _getLocaleForLanguage(String language) {

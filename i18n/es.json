@@ -104,7 +104,7 @@
     "audio_settings": "Configuración de Audio",
     "enable_tts": "Habilitar texto a voz",
     "tts_speed": "Velocidad de lectura",
-    "tts_voice": "Voz del asistente",
+    "tts_voice": "Seleccione voz",
     "select_voice": "Seleccionar voz",
     "voice_changed": "Voz cambiada exitosamente",
     "notifications": "Notificaciones",
