@@ -27,26 +27,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: 📋 Show execution context
-        run: |
-          echo "🚀 Flutter CI Execution Info"
-          echo "📦 Target Branch: ${{ github.event.inputs.target_branch || github.head_ref || github.ref_name }}"
-          echo "🔧 Event: ${{ github.event_name }}"
-          echo "👤 Actor: ${{ github.actor }}"
-          echo "📅 Timestamp: $(date)"
-          
       - name: 📥 Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
-          ref: ${{ github.event.inputs.target_branch || github.head_ref || github.ref_name }}
-
-      - name: 📋 Verify branch checkout
-        run: |
-          echo "✅ Current branch: $(git branch --show-current)"
-          echo "📝 Latest commit: $(git log -1 --oneline)"
-          echo "👤 Commit author: $(git log -1 --pretty=format:'%an <%ae>')"
-          echo "📅 Commit date: $(git log -1 --pretty=format:'%ad')"
+          token: ${{ secrets.GITHUB_TOKEN }}
+          ref: ${{ github.event.inputs.target_branch || github.ref_name }}
 
       - name: ☕ Setup Java
         uses: actions/setup-java@v4
@@ -77,19 +62,10 @@ jobs:
                 echo "📋 Files that were formatted:"
                 git diff --name-only
                 git add .
-                
-                # Determinar la rama correcta para el push
-                TARGET_BRANCH="${{ github.event.inputs.target_branch || github.head_ref || github.ref_name }}"
                 git commit -m "🎨 Auto-format code with dart format [skip ci]"
-                
-                # Push con manejo de errores
-                if git push origin "$TARGET_BRANCH" 2>/dev/null; then
-                  echo "✅ Code has been automatically formatted and committed!"
-                else
-                  echo "⚠️ Could not push formatting changes. This may be normal for PR branches."
-                  echo "📝 Formatting applied locally for this run."
-                fi
-                
+                BRANCH="${{ github.event.inputs.target_branch || github.ref_name }}"
+                git push origin "$BRANCH"
+                echo "✅ Code has been automatically formatted and committed!"
                 echo "🔄 Contributors should pull the latest changes."
                 echo "## 🎨 Auto-Format Summary" >> $GITHUB_STEP_SUMMARY
                 echo "✅ Code formatting issues were automatically fixed" >> $GITHUB_STEP_SUMMARY
@@ -98,7 +74,7 @@ jobs:
                 echo "" >> $GITHUB_STEP_SUMMARY
                 echo "🔄 **Action Required**: Pull the latest changes to your local branch:" >> $GITHUB_STEP_SUMMARY
                 echo '```bash' >> $GITHUB_STEP_SUMMARY
-                echo "git pull origin $TARGET_BRANCH" >> $GITHUB_STEP_SUMMARY
+                echo "git pull origin $BRANCH" >> $GITHUB_STEP_SUMMARY
                 echo '```' >> $GITHUB_STEP_SUMMARY
               else
                 echo "ℹ️ No changes were needed after formatting."
@@ -107,7 +83,7 @@ jobs:
               echo "❌ Auto-formatting is disabled. Please format manually:"
               echo ""
               echo "Files that need formatting:"
-              echo "Run 'dart format .' to see which files need formatting"
+              dart format --show-all .
               echo ""
               echo "To fix these issues, run:"
               echo "  dart format ."
@@ -127,19 +103,10 @@ jobs:
             git config --local user.email "action@github.com"
             git config --local user.name "GitHub Action [bot]"
             git add .
-            
-            # Determinar la rama correcta para el push
-            TARGET_BRANCH="${{ github.event.inputs.target_branch || github.head_ref || github.ref_name }}"
             git commit -m "🧹 Remove unused imports and auto-fix code [skip ci]"
-            
-            # Push con manejo de errores
-            if git push origin "$TARGET_BRANCH" 2>/dev/null; then
-              echo "✅ Imports limpios y fixes aplicados!"
-            else
-              echo "⚠️ Could not push import cleanup. This may be normal for PR branches."
-              echo "📝 Import cleanup applied locally for this run."
-            fi
-            
+            BRANCH="${{ github.event.inputs.target_branch || github.ref_name }}"
+            git push origin "$BRANCH"
+            echo "✅ Imports limpios y fixes aplicados!"
             echo "## 🧹 Import Cleanup Summary" >> $GITHUB_STEP_SUMMARY
             echo "✅ Unused imports and automatic fixes were applied." >> $GITHUB_STEP_SUMMARY
             echo "📝 Files fixed:" >> $GITHUB_STEP_SUMMARY
@@ -147,7 +114,7 @@ jobs:
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "🔄 **Action Required**: Pull the latest changes to your local branch:" >> $GITHUB_STEP_SUMMARY
             echo '```bash' >> $GITHUB_STEP_SUMMARY
-            echo "git pull origin $TARGET_BRANCH" >> $GITHUB_STEP_SUMMARY
+            echo "git pull origin $BRANCH" >> $GITHUB_STEP_SUMMARY
             echo '```' >> $GITHUB_STEP_SUMMARY
           else
             echo "ℹ️ No unused imports or fixes applied."
@@ -166,9 +133,6 @@ jobs:
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          ref: ${{ github.event.inputs.target_branch || github.head_ref || github.ref_name }}
 
       - name: ☕ Setup Java
         uses: actions/setup-java@v4
@@ -237,15 +201,6 @@ jobs:
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          ref: ${{ github.event.inputs.target_branch || github.head_ref || github.ref_name }}
-
-      - name: 📋 Verify build branch
-        run: |
-          echo "🏗️ Building from branch: $(git branch --show-current)"
-          echo "📝 Building commit: $(git log -1 --oneline)"
-          echo "📅 Commit date: $(git log -1 --pretty=format:'%ad')"
 
       - name: ☕ Setup Java
         uses: actions/setup-java@v4
@@ -307,18 +262,10 @@ jobs:
             exit 1
           fi
 
-      - name: 🧹 Sanitize branch name for artifact
-        run: |
-          BRANCH_NAME="${{ github.event.inputs.target_branch || github.head_ref || github.ref_name }}"
-          CLEAN_BRANCH_NAME=$(echo "$BRANCH_NAME" | sed 's/[\/:"<>|*?\\]/-/g')
-          echo "CLEAN_BRANCH_NAME=$CLEAN_BRANCH_NAME" >> $GITHUB_ENV
-          echo "✅ Original branch: $BRANCH_NAME"
-          echo "✅ Sanitized branch: $CLEAN_BRANCH_NAME"
-
       - name: 📤 Upload ${{ matrix.platform }} artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.artifact-name }}-${{ env.CLEAN_BRANCH_NAME }}-${{ github.run_number }}
+          name: ${{ matrix.artifact-name }}
           path: ${{ matrix.artifact-path }}
           retention-days: 30
 
@@ -351,8 +298,6 @@ jobs:
             const analyzeStatus = '${{ needs.analyze.result }}';
             const testStatus = '${{ needs.test.result }}';
             const buildStatus = '${{ needs.build.result }}';
-            const targetBranch = '${{ github.event.inputs.target_branch || github.head_ref || github.ref_name }}';
-            
             const getStatusEmoji = (status) => {
               switch (status) {
                 case 'success': return '✅';
@@ -362,7 +307,6 @@ jobs:
                 default: return '🔄';
               }
             };
-            
             let coverageInfo = 'Coverage info not available';
             try {
               const files = fs.readdirSync('.');
@@ -372,15 +316,11 @@ jobs:
             } catch (e) {
               console.log('Error reading coverage:', e.message);
             }
-            
             const autoFormatEnabled = '${{ github.event.inputs.auto_format }}' === 'true';
             const formatNote = autoFormatEnabled ? '🎨 Auto-format: Enabled' : '⚠️ Auto-format: Disabled';
             const buildSigned = '${{ github.event.inputs.build_signed }}' === 'true';
             const signingNote = buildSigned ? '🔐 Signed builds: Enabled' : '⚠️ Signed builds: Disabled';
-            
             const comment = `## 🎉 CI Results for PR #${{ github.event.number }}
-            
-            **📦 Tested Branch**: \`${targetBranch}\`
             
             ${getStatusEmoji(analyzeStatus)} **Static Analysis**: ${analyzeStatus}
             ${getStatusEmoji(testStatus)} **Tests**: ${testStatus}  
@@ -400,8 +340,7 @@ jobs:
             ${buildStatus === 'success' && !buildSigned ? '\n🔐 **Note**: To generate signed App Bundle, enable "Build signed App Bundle" option when running manually.' : ''}
             
             ---
-            *Generated by GitHub Actions - Build #${{ github.run_number }}*`;
-            
+            *Generated by GitHub Actions*`;
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
@@ -416,9 +355,6 @@ jobs:
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          ref: ${{ github.event.inputs.target_branch || github.head_ref || github.ref_name }}
 
       - name: 🔍 Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
@@ -433,59 +369,3 @@ jobs:
         if: always()
         with:
           sarif_file: 'trivy-results.sarif'
-
-  # Job adicional para información de rama (cuando es workflow_dispatch)
-  branch-info:
-    name: 📋 Branch Information
-    runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch' && github.event.inputs.target_branch != ''
-
-    steps:
-      - name: 📥 Checkout target branch
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          ref: ${{ github.event.inputs.target_branch }}
-
-      - name: 🔍 Branch analysis
-        run: |
-          echo "## 🔍 Branch Analysis" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          
-          TARGET_BRANCH="${{ github.event.inputs.target_branch }}"
-          
-          # Información de la rama actual
-          echo "### 📋 Target Branch: \`$TARGET_BRANCH\`" >> $GITHUB_STEP_SUMMARY
-          echo "- **Latest commit**: \`$(git log -1 --oneline)\`" >> $GITHUB_STEP_SUMMARY
-          echo "- **Author**: \`$(git log -1 --pretty=format:'%an')\`" >> $GITHUB_STEP_SUMMARY
-          echo "- **Date**: \`$(git log -1 --pretty=format:'%ad' --date=short)\`" >> $GITHUB_STEP_SUMMARY
-          echo "- **Total commits**: \`$(git rev-list --count HEAD)\`" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          
-          # Comparación con main si no es main
-          if [ "$TARGET_BRANCH" != "main" ]; then
-            echo "### 🔄 Comparison with main:" >> $GITHUB_STEP_SUMMARY
-            
-            # Obtener main para comparar
-            git fetch origin main:refs/remotes/origin/main 2>/dev/null || echo "Could not fetch main"
-            
-            if git show-ref --verify --quiet refs/remotes/origin/main; then              
-              # Commits ahead/behind
-              AHEAD=$(git rev-list --count origin/main..$TARGET_BRANCH 2>/dev/null || echo "N/A")
-              BEHIND=$(git rev-list --count $TARGET_BRANCH..origin/main 2>/dev/null || echo "N/A")
-              
-              echo "- **Commits ahead of main**: $AHEAD" >> $GITHUB_STEP_SUMMARY
-              echo "- **Commits behind main**: $BEHIND" >> $GITHUB_STEP_SUMMARY
-              
-              # Últimos commits únicos en esta rama
-              if [ "$AHEAD" != "N/A" ] && [ "$AHEAD" -gt "0" ]; then
-                echo "" >> $GITHUB_STEP_SUMMARY
-                echo "### 📝 Recent commits in \`$TARGET_BRANCH\`:" >> $GITHUB_STEP_SUMMARY
-                echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-                git log --oneline origin/main..$TARGET_BRANCH --max-count=5 2>/dev/null >> $GITHUB_STEP_SUMMARY || echo "No unique commits found" >> $GITHUB_STEP_SUMMARY
-                echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-              fi
-            else
-              echo "- ⚠️ Could not compare with main branch" >> $GITHUB_STEP_SUMMARY
-            fi
-          fi
