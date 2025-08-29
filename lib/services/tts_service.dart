@@ -6,8 +6,6 @@ import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/services/localization_service.dart';
 import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
 import 'package:devocional_nuevo/services/tts/bible_text_formatter.dart';
-import 'package:devocional_nuevo/services/tts/language_text_normalizer.dart';
-import 'package:devocional_nuevo/services/tts/specialized_text_normalizer.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
