@@ -5,6 +5,9 @@ import 'dart:io' show Platform;
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/services/localization_service.dart';
 import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
+import 'package:devocional_nuevo/services/tts/bible_text_formatter.dart';
+import 'package:devocional_nuevo/services/tts/language_text_normalizer.dart';
+import 'package:devocional_nuevo/services/tts/specialized_text_normalizer.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
@@ -404,30 +407,9 @@ class TtsService {
 
   // --- Normalización avanzada de referencia bíblica ---
   /// Formatea dinámicamente los libros con ordinal si comienza con 1, 2, 3
+  /// Usa el contexto de idioma actual para formatear apropiadamente
   String formatBibleBook(String reference) {
-    final exp =
-        RegExp(r'^([123])\s+([A-Za-záéíóúÁÉÍÓÚñÑ]+)', caseSensitive: false);
-    final match = exp.firstMatch(reference.trim());
-    if (match != null) {
-      final number = match.group(1)!;
-      final book = match.group(2)!;
-      String ordinal;
-      switch (number) {
-        case '1':
-          ordinal = 'Primera de';
-          break;
-        case '2':
-          ordinal = 'Segunda de';
-          break;
-        case '3':
-          ordinal = 'Tercera de';
-          break;
-        default:
-          ordinal = '';
-      }
-      return reference.replaceFirst(exp, '$ordinal $book');
-    }
-    return reference;
+    return BibleTextFormatter.formatBibleBook(reference, _currentLanguage);
   }
 
   String _normalizeTtsText(String text, [String? language, String? version]) {
