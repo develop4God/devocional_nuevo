@@ -1,5 +1,6 @@
 // lib/widgets/add_prayer_modal.dart
 
+import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/prayer_model.dart';
 import 'package:devocional_nuevo/providers/prayer_provider.dart';
 import 'package:flutter/material.dart';
@@ -43,12 +44,8 @@ class _AddPrayerModalState extends State<AddPrayerModal> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme
-        .of(context)
-        .colorScheme;
-    final textTheme = Theme
-        .of(context)
-        .textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     final mediaQuery = MediaQuery.of(context);
 
     return Container(
@@ -79,7 +76,9 @@ class _AddPrayerModalState extends State<AddPrayerModal> {
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  _isEditing ? 'Editar Oración' : 'Nueva Oración',
+                  _isEditing
+                      ? 'prayer.edit_prayer'.tr()
+                      : 'prayer.new_prayer'.tr(),
                   style: textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: colorScheme.onSurface,
@@ -115,8 +114,8 @@ class _AddPrayerModalState extends State<AddPrayerModal> {
                 Expanded(
                   child: Text(
                     _isEditing
-                        ? 'Edita el texto de tu oración personal.'
-                        : 'Escribe tu oración o petición personal. Solo tú podrás verla.',
+                        ? 'prayer.edit_prayer_description'.tr()
+                        : 'prayer.new_prayer_description'.tr(),
                     style: textTheme.bodySmall?.copyWith(
                       color: colorScheme.primary,
                     ),
@@ -140,8 +139,8 @@ class _AddPrayerModalState extends State<AddPrayerModal> {
             ),
             decoration: InputDecoration(
               hintText: _isEditing
-                  ? 'Edita tu oración...'
-                  : 'Señor, te pido por...\n\nAyúdame a...\n\nTe agradezco por...',
+                  ? 'prayer.edit_placeholder'.tr()
+                  : 'prayer.new_placeholder'.tr(),
               hintStyle: textTheme.bodyMedium?.copyWith(
                 color: colorScheme.onSurface.withValues(alpha: 0.5),
                 height: 1.4,
@@ -184,8 +183,8 @@ class _AddPrayerModalState extends State<AddPrayerModal> {
                   Expanded(
                     child: Text(
                       _errorMessage!,
-                      style: TextStyle(
-                          color: Colors.red.shade700, fontSize: 14),
+                      style:
+                          TextStyle(color: Colors.red.shade700, fontSize: 14),
                     ),
                   ),
                 ],
@@ -198,7 +197,7 @@ class _AddPrayerModalState extends State<AddPrayerModal> {
               Expanded(
                 child: OutlinedButton(
                   onPressed:
-                  _isLoading ? null : () => Navigator.of(context).pop(),
+                      _isLoading ? null : () => Navigator.of(context).pop(),
                   style: OutlinedButton.styleFrom(
                     side: BorderSide(color: colorScheme.outline),
                     padding: const EdgeInsets.symmetric(vertical: 16),
@@ -207,7 +206,7 @@ class _AddPrayerModalState extends State<AddPrayerModal> {
                     ),
                   ),
                   child: Text(
-                    'Cancelar',
+                    'prayer.cancel'.tr(),
                     style: textTheme.labelLarge?.copyWith(
                       color: colorScheme.onSurface,
                     ),
@@ -228,20 +227,22 @@ class _AddPrayerModalState extends State<AddPrayerModal> {
                   ),
                   child: _isLoading
                       ? SizedBox(
-                    height: 20,
-                    width: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: colorScheme.onPrimary,
-                    ),
-                  )
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: colorScheme.onPrimary,
+                          ),
+                        )
                       : Text(
-                    _isEditing ? 'Guardar' : 'Crear Oración',
-                    style: textTheme.labelLarge?.copyWith(
-                      color: colorScheme.onPrimary,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+                          _isEditing
+                              ? 'prayer.update_prayer'.tr()
+                              : 'prayer.create_prayer'.tr(),
+                          style: textTheme.labelLarge?.copyWith(
+                            color: colorScheme.onPrimary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                 ),
               ),
             ],
@@ -264,14 +265,14 @@ class _AddPrayerModalState extends State<AddPrayerModal> {
 
     if (text.isEmpty) {
       setState(() {
-        _errorMessage = 'Por favor ingresa el texto de la oración';
+        _errorMessage = 'prayer.enter_prayer_text_error'.tr();
       });
       return;
     }
 
     if (text.length < 10) {
       setState(() {
-        _errorMessage = 'La oración debe tener al menos 10 caracteres';
+        _errorMessage = 'prayer.prayer_min_length_error'.tr();
       });
       return;
     }
@@ -282,7 +283,7 @@ class _AddPrayerModalState extends State<AddPrayerModal> {
 
     try {
       final prayerProvider =
-      Provider.of<PrayerProvider>(context, listen: false);
+          Provider.of<PrayerProvider>(context, listen: false);
 
       if (_isEditing) {
         await prayerProvider.editPrayer(widget.prayerToEdit!.id, text);
@@ -298,7 +299,7 @@ class _AddPrayerModalState extends State<AddPrayerModal> {
     } catch (e) {
       setState(() {
         _errorMessage =
-        'Error al ${_isEditing ? 'actualizar' : 'crear'} la oración';
+            'Error al ${_isEditing ? 'actualizar' : 'crear'} la oración';
       });
     } finally {
       if (mounted) {
@@ -310,9 +311,7 @@ class _AddPrayerModalState extends State<AddPrayerModal> {
   }
 
   void _showSuccessSnackBar(String message) {
-    final colorScheme = Theme
-        .of(context)
-        .colorScheme;
+    final colorScheme = Theme.of(context).colorScheme;
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(

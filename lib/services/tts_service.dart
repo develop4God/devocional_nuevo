@@ -6,6 +6,8 @@ import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
 import 'package:devocional_nuevo/services/tts_text_normalizer_service.dart';
 import 'package:devocional_nuevo/services/tts_localization_service.dart';
+import 'package:devocional_nuevo/services/localization_service.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -34,6 +36,7 @@ class TtsService {
   final FlutterTts _flutterTts = FlutterTts();
   final TtsTextNormalizerService _textNormalizer = TtsTextNormalizerService();
   final TtsLocalizationService _localization = TtsLocalizationService();
+  final LocalizationService _localizationService = LocalizationService.instance;
 
   TtsState _currentState = TtsState.idle;
   String? _currentDevocionalId;
@@ -50,6 +53,10 @@ class TtsService {
   bool _isInitialized = false;
   bool _disposed = false;
 
+  // Language context for TTS normalization
+  String _currentLanguage = 'es';
+  String _currentVersion = 'RVR1960';
+
   Stream<TtsState> get stateStream => _stateController.stream;
 
   Stream<double> get progressStream => _progressController.stream;
@@ -63,6 +70,8 @@ class TtsService {
   bool get isPaused => _currentState == TtsState.paused;
 
   bool get isActive => isPlaying || isPaused;
+
+  bool get isDisposed => _disposed;
 
   bool get _isPlatformSupported {
     try {
@@ -164,6 +173,160 @@ class TtsService {
     try {
       debugPrint('🔧 TTS: Setting language to $language');
       await _flutterTts.setLanguage(language);
+
+      // Load saved voice for current language if available
+      final prefs = await SharedPreferences.getInstance();
+      final savedVoice = prefs.getString('tts_voice_$language');
+      if (savedVoice != null) {
+        try {
+          // Parse saved voice
+          final voiceParts = savedVoice.split(' (');
+          final voiceName = voiceParts[0];
+          final locale = voiceParts.length > 1
+              ? voiceParts[1].replaceAll(')', '')
+              : ttsLocale;
+
+          await _flutterTts.setVoice({
+            'name': voiceName,
+            'locale': locale,
+          });
+          debugPrint(
+              '🔧 TTS: Loaded saved voice $voiceName for language context $language');
+        } catch (e) {
+          debugPrint(
+              '⚠️ TTS: Failed to load saved voice for language context: $e');
+        }
+      }
+
+      // Save the TTS language preference
+      await prefs.setString('tts_language', ttsLocale);
+
+      debugPrint('✅ TTS: Voice language successfully updated to $ttsLocale');
+    } catch (e) {
+      debugPrint('❌ TTS: Failed to set language $ttsLocale: $e');
+
+      // Fallback to Spanish if other language fails
+      if (ttsLocale != 'es-ES') {
+        try {
+          await _flutterTts.setLanguage('es-ES');
+          debugPrint('🔄 TTS: Fallback to Spanish voice successful');
+        } catch (fallbackError) {
+          debugPrint('❌ TTS: Even Spanish fallback failed: $fallbackError');
+        }
+      }
+    }
+  }
+
+  Future<List<String>> getLanguages() async {
+    if (!_isInitialized) await _initialize();
+    try {
+      final languages = await _flutterTts.getLanguages;
+      return List<String>.from(languages ?? []);
+    } catch (e) {
+      debugPrint('Error getting languages: $e at ${DateTime.now()}');
+      return [];
+    }
+  }
+
+  Future<List<String>> getVoices() async {
+    if (!_isInitialized) await _initialize();
+    try {
+      final voices = await _flutterTts.getVoices;
+      if (voices is List<dynamic>) {
+        return voices.map((voice) {
+          if (voice is Map) {
+            final name = voice['name'] as String? ?? '';
+            final locale = voice['locale'] as String? ?? '';
+            return '$name ($locale)';
+          }
+          return voice.toString();
+        }).toList();
+      }
+      return List<String>.from(voices ?? []);
+    } catch (e) {
+      debugPrint('Error getting voices: $e at ${DateTime.now()}');
+      return [];
+    }
+  }
+
+  Future<List<String>> getVoicesForLanguage(String language) async {
+    final allVoices = await getVoices();
+    final targetLocale = _getLocaleForLanguage(language);
+
+    return allVoices.where((voice) => voice.contains(targetLocale)).toList();
+  }
+
+  String _getLocaleForLanguage(String language) {
+    switch (language) {
+      case 'es':
+        return 'es-ES';
+      case 'en':
+        return 'en-US';
+      case 'pt':
+        return 'pt-BR';
+      case 'fr':
+        return 'fr-FR';
+      default:
+        return 'es-ES';
+    }
+  }
+
+  Future<void> setVoice(Map<String, String> voice) async {
+    if (!_isInitialized) await _initialize();
+    try {
+      await _flutterTts.setVoice(voice);
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('tts_voice_$_currentLanguage', voice['name'] ?? '');
+      debugPrint(
+          '🔧 TTS: Voice set to ${voice['name']} for language $_currentLanguage');
+    } catch (e) {
+      debugPrint('⚠️ TTS: Failed to set voice: $e');
+    }
+  }
+
+  // Test helper method to expose chunk generation for testing
+  @visibleForTesting
+  Future<List<String>> generateChunksForTesting(Devocional devocional) {
+    return _generateChunks(devocional);
+  }
+  
+  // Test helper method to expose section headers for testing
+  @visibleForTesting
+  Map<String, String> getSectionHeadersForTesting(String language) {
+    return _getSectionHeaders(language);
+  }
+
+  Future<void> dispose() async {
+    if (_disposed) return;
+
+    _disposed = true;
+    await stop();
+    await _stateController.close();
+    await _progressController.close();
+
+    debugPrint('🧹 TTS: Service disposed at ${DateTime.now()}');
+  }
+}
+      final savedVoice = prefs.getString('tts_voice_$_currentLanguage');
+      if (savedVoice != null) {
+        try {
+          // Parse saved voice
+          final voiceParts = savedVoice.split(' (');
+          final voiceName = voiceParts[0];
+          final locale = voiceParts.length > 1
+              ? voiceParts[1].replaceAll(')', '')
+              : language;
+
+          await _flutterTts.setVoice({
+            'name': voiceName,
+            'locale': locale,
+          });
+          debugPrint(
+              '🔧 TTS: Loaded saved voice $voiceName for language $_currentLanguage');
+        } catch (e) {
+          debugPrint('⚠️ TTS: Failed to load saved voice: $e');
+        }
+      }
     } catch (e) {
       debugPrint('⚠️ TTS: Language $language failed, using es-US: $e');
       await _flutterTts.setLanguage('es-US');
@@ -379,7 +542,6 @@ class TtsService {
     return await _localization.getCurrentLanguage();
   }
 
-  // --- Normalización avanzada de referencia bíblica ---
   /// Formatea dinámicamente los libros con ordinal si comienza con 1, 2, 3
   Future<String> formatBibleBook(String reference) async {
     final currentLanguage = await _localization.getCurrentLanguage();
@@ -393,16 +555,19 @@ class TtsService {
 
   Future<List<String>> _generateChunks(Devocional devocional) async {
     List<String> chunks = [];
+    final currentLang = _currentLanguage;
+
+    // Get language-specific section headers
+    final sectionHeaders = _getSectionHeaders(currentLang);
 
     if (devocional.versiculo.trim().isNotEmpty) {
       final normalizedVerse = await _normalizeTtsText(devocional.versiculo);
-      chunks.add('Versículo: ${_sanitize(normalizedVerse)}');
+      chunks.add('${sectionHeaders['verse']}: ${_sanitize(normalizedVerse)}');
     }
 
     if (devocional.reflexion.trim().isNotEmpty) {
-      chunks.add('Reflexión:');
-      final reflection =
-          await _normalizeTtsText(_sanitize(devocional.reflexion));
+      chunks.add('${sectionHeaders['reflection']}:');
+      final reflection = await _normalizeTtsText(_sanitize(devocional.reflexion));
       final paragraphs = reflection.split(RegExp(r'\n+'));
 
       for (final paragraph in paragraphs) {
@@ -431,7 +596,7 @@ class TtsService {
     }
 
     if (devocional.paraMeditar.isNotEmpty) {
-      chunks.add('Para Meditar:');
+      chunks.add('${sectionHeaders['meditate']}:');
       for (final item in devocional.paraMeditar) {
         final citation = await _normalizeTtsText(_sanitize(item.cita));
         final text = await _normalizeTtsText(_sanitize(item.texto));
@@ -442,7 +607,7 @@ class TtsService {
     }
 
     if (devocional.oracion.trim().isNotEmpty) {
-      chunks.add('Oración:');
+      chunks.add('${sectionHeaders['prayer']}:');
       final prayer = await _normalizeTtsText(_sanitize(devocional.oracion));
       final paragraphs = prayer.split(RegExp(r'\n+'));
 
@@ -471,13 +636,31 @@ class TtsService {
       }
     }
 
-    debugPrint('📝 TTS: Generated ${chunks.length} chunks');
+    debugPrint(
+        '📝 TTS: Generated ${chunks.length} chunks for language $currentLang');
     for (int i = 0; i < chunks.length; i++) {
       debugPrint(
           '   $i: ${chunks[i].length > 50 ? '${chunks[i].substring(0, 50)}...' : chunks[i]}');
     }
 
     return chunks.where((chunk) => chunk.trim().isNotEmpty).toList();
+  }
+
+  // Get section headers for different languages using localization service
+  Map<String, String> _getSectionHeaders(String language) {
+    // Ensure localization service is using the correct language context
+    if (_localizationService.currentLocale.languageCode != language) {
+      // This is a fallback - ideally the localization service should already be in sync
+      debugPrint(
+          '⚠️ TTS: Language mismatch between localization service (${_localizationService.currentLocale.languageCode}) and TTS context ($language)');
+    }
+
+    return {
+      'verse': _localizationService.translate('devotionals.verse'),
+      'reflection': _localizationService.translate('devotionals.reflection'),
+      'meditate': _localizationService.translate('devotionals.to_meditate'),
+      'prayer': _localizationService.translate('devotionals.prayer'),
+    };
   }
 
   String _sanitize(String text) {
@@ -514,6 +697,10 @@ class TtsService {
   }
 
   // ========== PUBLIC API ==========
+
+  Future<void> initialize() async {
+    await _initialize();
+  }
 
   Future<void> speakDevotional(Devocional devocional) async {
     debugPrint(
@@ -633,7 +820,7 @@ class TtsService {
         }
       } else {
         debugPrint(
-            '⚠️ TTS: Cannot resume - no active playback at ${DateTime.now()}');
+            '⚠️ TTS: Cannot resume - no active playbook at ${DateTime.now()}');
         _resetPlayback();
       }
     } else {
@@ -667,25 +854,55 @@ class TtsService {
     await prefs.setDouble('tts_rate', clampedRate);
   }
 
-  Future<List<String>> getLanguages() async {
-    if (!_isInitialized) await _initialize();
-    try {
-      final languages = await _flutterTts.getLanguages;
-      return List<String>.from(languages ?? []);
-    } catch (e) {
-      debugPrint('Error getting languages: $e at ${DateTime.now()}');
-      return [];
+  // Set language context for TTS normalization
+  void setLanguageContext(String language, String version) {
+    _currentLanguage = language;
+    _currentVersion = version;
+    debugPrint('🌐 TTS: Language context set to $language ($version)');
+
+    // Sync with localization service if needed
+    if (_localizationService.currentLocale.languageCode != language) {
+      debugPrint(
+          '🔄 TTS: Syncing localization service to language context $language');
+      // Note: We don't change the app language here, just log the mismatch
+      // The app language should be controlled by the LocalizationProvider
     }
+
+    // Update TTS language settings based on context immediately
+    _updateTtsLanguageSettings(language);
   }
 
-  Future<void> dispose() async {
-    if (_disposed) return;
+  // Update TTS language settings with proper locale mapping
+  Future<void> _updateTtsLanguageSettings(String language) async {
+    if (!_isInitialized) {
+      debugPrint('⚠️ TTS: Cannot update language - service not initialized');
+      return;
+    }
 
-    _disposed = true;
-    await stop();
-    await _stateController.close();
-    await _progressController.close();
+    String ttsLocale;
+    switch (language) {
+      case 'es':
+        ttsLocale = 'es-ES';
+        break;
+      case 'en':
+        ttsLocale = 'en-US';
+        break;
+      case 'pt':
+        ttsLocale = 'pt-BR';
+        break;
+      case 'fr':
+        ttsLocale = 'fr-FR';
+        break;
+      default:
+        ttsLocale = 'es-ES';
+    }
 
-    debugPrint('🧹 TTS: Service disposed at ${DateTime.now()}');
-  }
-}
+    try {
+      debugPrint(
+          '🔧 TTS: Changing voice language to $ttsLocale for context $language');
+
+      // Force language change with verification
+      await _flutterTts.setLanguage(ttsLocale);
+
+      // Load saved voice for current language if available
+      final prefs = await SharedPreferences.getInstance();

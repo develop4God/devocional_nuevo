@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:devocional_nuevo/app_initializer.dart';
+import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -180,7 +181,7 @@ class _SplashScreenState extends State<SplashScreen>
                             // Texto principal centrado en el Stack
                             Center(
                               child: Text(
-                                'Preparando tu espacio con Dios...',
+                                'app.preparing'.tr(),
                                 textAlign: TextAlign.center,
                                 style: GoogleFonts.dancingScript(
                                   fontSize: 30,

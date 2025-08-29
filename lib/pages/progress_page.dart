@@ -1,4 +1,5 @@
 // lib/pages/progress_page.dart - Fixed themed shadows
+import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -71,7 +72,9 @@ class _ProgressPageState extends State<ProgressPage>
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error al cargar estadísticas: $e')),
+          SnackBar(
+              content: Text(
+                  'progress.error_loading_stats'.tr({'error': e.toString()}))),
         );
       }
     }
@@ -121,23 +124,23 @@ class _ProgressPageState extends State<ProgressPage>
               ),
             ),
             const SizedBox(width: 12),
-            const Expanded(
+            Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    'Consejo útil',
-                    style: TextStyle(
+                    'progress.useful_tip'.tr(),
+                    style: const TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 14,
                       color: Colors.white,
                     ),
                   ),
-                  SizedBox(height: 2),
+                  const SizedBox(height: 2),
                   Text(
-                    'Toca cualquier logro para ver información completa',
-                    style: TextStyle(
+                    'progress.achievement_tip'.tr(),
+                    style: const TextStyle(
                       fontSize: 13,
                       color: Colors.white,
                     ),
@@ -156,7 +159,7 @@ class _ProgressPageState extends State<ProgressPage>
         duration: const Duration(seconds: 8),
         elevation: 6,
         action: SnackBarAction(
-          label: 'Entendido',
+          label: 'progress.understood'.tr(),
           textColor: Colors.white,
           onPressed: () {
             ScaffoldMessenger.of(context).hideCurrentSnackBar();
@@ -189,10 +192,10 @@ class _ProgressPageState extends State<ProgressPage>
             ),
           ),
           onPressed: () => Navigator.of(context).pop(),
-          tooltip: 'Regresar',
+          tooltip: 'progress.back'.tr(),
         ),
         title: Text(
-          'Mi Progreso Espiritual',
+          'progress.title'.tr(),
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: Theme.of(context).colorScheme.primary,
@@ -227,14 +230,14 @@ class _ProgressPageState extends State<ProgressPage>
             color: Theme.of(context).colorScheme.error,
           ),
           const SizedBox(height: 16),
-          const Text(
-            'Error al cargar las estadísticas',
-            style: TextStyle(fontSize: 18),
+          Text(
+            'progress.error_loading'.tr(),
+            style: const TextStyle(fontSize: 18),
           ),
           const SizedBox(height: 16),
           ElevatedButton(
             onPressed: _loadStats,
-            child: const Text('Reintentar'),
+            child: Text('progress.retry'.tr()),
           ),
         ],
       ),
@@ -302,7 +305,7 @@ class _ProgressPageState extends State<ProgressPage>
                       const SizedBox(width: 8),
                       Flexible(
                         child: Text(
-                          'Racha Actual',
+                          'progress.current_streak'.tr(),
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w600,
@@ -323,7 +326,9 @@ class _ProgressPageState extends State<ProgressPage>
                     ),
                   ),
                   Text(
-                    _stats!.currentStreak == 1 ? 'día' : 'días',
+                    _stats!.currentStreak == 1
+                        ? 'progress.day'.tr()
+                        : 'progress.days'.tr(),
                     style: TextStyle(
                       fontSize: 16,
                       color: colorScheme.onPrimary.withValues(alpha: 0.8),
@@ -357,8 +362,8 @@ class _ProgressPageState extends State<ProgressPage>
         const SizedBox(height: 8),
         Text(
           nextMilestone > 0
-              ? 'Siguiente meta: $nextMilestone días'
-              : '¡Meta alcanzada!',
+              ? 'progress.next_goal'.tr({'goal': nextMilestone.toString()})
+              : 'progress.goal_reached'.tr(),
           style: TextStyle(
             fontSize: 12,
             color:
@@ -391,7 +396,7 @@ class _ProgressPageState extends State<ProgressPage>
             },
             borderRadius: BorderRadius.circular(16),
             child: _buildStatCard(
-              title: 'Devocionales completos',
+              title: 'progress.devotionals_completed'.tr(),
               value: '${_stats!.totalDevocionalesRead}',
               icon: Icons.auto_stories,
               color: Colors.blue,
@@ -408,7 +413,7 @@ class _ProgressPageState extends State<ProgressPage>
             },
             borderRadius: BorderRadius.circular(16),
             child: _buildStatCard(
-              title: 'Favoritos guardados',
+              title: 'progress.favorites_saved'.tr(),
               value: '${_stats!.favoritesCount}',
               icon: Icons.favorite,
               color: Colors.pink,
@@ -494,7 +499,7 @@ class _ProgressPageState extends State<ProgressPage>
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
-          'Logros',
+          'progress.achievements'.tr(),
           textAlign: TextAlign.center, //
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.bold,
@@ -530,7 +535,11 @@ class _ProgressPageState extends State<ProgressPage>
             ),
             const SizedBox(width: 1),
             Text(
-              'Última Actividad: ${_stats!.lastActivityDate != null ? DateFormat('dd/MM/yyyy').format(_stats!.lastActivityDate!) : 'Sin actividad'}',
+              'progress.last_activity'.tr({
+                'date': _stats!.lastActivityDate != null
+                    ? DateFormat('dd/MM/yyyy').format(_stats!.lastActivityDate!)
+                    : 'progress.no_activity'.tr()
+              }),
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     fontWeight: FontWeight.w500,
                     color: Theme.of(context)

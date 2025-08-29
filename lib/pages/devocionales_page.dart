@@ -2,6 +2,7 @@ import 'dart:developer' as developer;
 import 'dart:io' show File;
 
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/pages/prayers_page.dart';
 import 'package:devocional_nuevo/pages/progress_page.dart';
@@ -10,6 +11,7 @@ import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/services/devocionales_tracking.dart';
 import 'package:devocional_nuevo/services/update_service.dart';
 import 'package:devocional_nuevo/utils/bubble_constants.dart';
+import 'package:devocional_nuevo/utils/copyright_utils.dart';
 import 'package:devocional_nuevo/widgets/add_prayer_modal.dart';
 import 'package:devocional_nuevo/widgets/devocionales_page_drawer.dart';
 import 'package:devocional_nuevo/widgets/tts_player_widget.dart';
@@ -290,14 +292,14 @@ class _DevocionalesPageState extends State<DevocionalesPage>
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  "Repite esta oración en voz alta, con fe y creyendo con todo el corazón:\n",
+                  "devotionals.salvation_prayer_intro".tr(),
                   textAlign: TextAlign.justify,
                   style: textTheme.bodyMedium?.copyWith(
                     color: colorScheme.onSurface,
                   ),
                 ),
                 Text(
-                  "Jesucristo, creo que moriste en la cruz por mi, te pido perdón y me arrepiento de corazón por mis pecados. Te pido seas mi Salvador y el señor de vida. Líbrame de la muerte eterna y escribe mi nombre en el libro de la vida.\nEn el poderoso nombre de Jesús, amén.\n",
+                  "devotionals.salvation_prayer".tr(),
                   textAlign: TextAlign.justify,
                   style: textTheme.bodyMedium?.copyWith(
                     fontWeight: FontWeight.bold,
@@ -305,7 +307,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                   ),
                 ),
                 Text(
-                  "Si hiciste esta oración y lo crees:\nSerás salvo tu y tu casa (Hch 16:31)\nVivirás eternamente (Jn 11:25-26)\nNunca más tendrás sed (Jn 4:14)\nEstarás con Cristo en los cielos (Ap 19:9)\nHay gozo en los cielos cuando un pecador se arrepiente (Luc 15:10)\nEscrito está y Dios es fiel (Dt 7:9)\n\nDesde ya tienes salvación y vida nueva en Jesucristo.",
+                  "devotionals.salvation_promise".tr(),
                   textAlign: TextAlign.justify,
                   style: textTheme.bodyMedium?.copyWith(
                     color: colorScheme.onSurface,
@@ -328,7 +330,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                 ),
                 Expanded(
                   child: Text(
-                    'Ya la hice 🙏\nNo mostrar nuevamente',
+                    'prayer.already_prayed'.tr(),
                     style: textTheme.bodyMedium?.copyWith(
                       color: colorScheme.onSurface,
                     ),
@@ -346,7 +348,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                   Navigator.of(dialogContext).pop();
                 },
                 child: Text(
-                  "Continuar",
+                  "devotionals.continue".tr(),
                   style: TextStyle(color: colorScheme.primary),
                 ),
               ),
@@ -358,8 +360,14 @@ class _DevocionalesPageState extends State<DevocionalesPage>
   }
 
   Future<void> _shareAsText(Devocional devocional) async {
-    final text =
-        "Devocional del día:\n\nVersículo: ${devocional.versiculo}\n\nReflexión: ${devocional.reflexion}\n\nPara Meditar:\n${devocional.paraMeditar.map((p) => '${p.cita}: ${p.texto}').join('\n')}\n\nOración: ${devocional.oracion}";
+    final meditationsText =
+        devocional.paraMeditar.map((p) => '${p.cita}: ${p.texto}').join('\n');
+    final text = "devotionals.share_text_format".tr({
+      'verse': devocional.versiculo,
+      'reflection': devocional.reflexion,
+      'meditations': meditationsText,
+      'prayer': devocional.oracion,
+    });
 
     await SharePlus.instance.share(ShareParams(text: text));
   }
@@ -374,8 +382,8 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       await SharePlus.instance.share(
         ShareParams(
           files: [XFile(imagePath.path)],
-          text: 'Devocional del día',
-          subject: 'Devocional',
+          text: 'devotionals.devotional_of_the_day'.tr(),
+          subject: 'devotionals.app_title'.tr(),
         ),
       );
     }
@@ -406,7 +414,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       drawer: const DevocionalesDrawer(),
       appBar: AppBar(
         title: Text(
-          'Mi espacio íntimo con Dios',
+          'devotionals.my_intimate_space_with_god'.tr(),
           style: TextStyle(
             color: Theme.of(context).appBarTheme.foregroundColor ??
                 colorScheme.onPrimary,
@@ -418,7 +426,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
         onPressed: _showAddPrayerModal,
         backgroundColor: colorScheme.primary,
         foregroundColor: colorScheme.onPrimary,
-        tooltip: 'Agregar oración',
+        tooltip: 'tooltips.add_prayer'.tr(),
         child: const Icon(Icons.add, size: 30),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
@@ -429,7 +437,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
           if (devocionales.isEmpty) {
             return Center(
               child: Text(
-                'No hay devocionales disponibles para el idioma/versión seleccionados.',
+                'devotionals.no_devotionals_available'.tr(),
                 textAlign: TextAlign.center,
                 style: textTheme.bodyMedium?.copyWith(
                   color: colorScheme.onSurface,
@@ -497,7 +505,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                           ),
                           const SizedBox(height: 20),
                           Text(
-                            'Reflexión:',
+                            'devotionals.reflection'.tr(),
                             style: textTheme.titleLarge?.copyWith(
                               fontWeight: FontWeight.bold,
                               color: colorScheme.primary,
@@ -513,7 +521,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                           ),
                           const SizedBox(height: 20),
                           Text(
-                            'Para Meditar:',
+                            'devotionals.to_meditate'.tr(),
                             style: textTheme.titleLarge?.copyWith(
                               fontWeight: FontWeight.bold,
                               color: colorScheme.primary,
@@ -550,7 +558,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                           }),
                           const SizedBox(height: 20),
                           Text(
-                            'Oración:',
+                            'devotionals.prayer'.tr(),
                             style: textTheme.titleLarge?.copyWith(
                               fontWeight: FontWeight.bold,
                               color: colorScheme.primary,
@@ -572,7 +580,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'Detalles:',
+                                  'devotionals.details'.tr(),
                                   style: textTheme.titleLarge?.copyWith(
                                     fontWeight: FontWeight.bold,
                                     color: colorScheme.primary,
@@ -582,7 +590,10 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                 if (currentDevocional.tags != null &&
                                     currentDevocional.tags!.isNotEmpty)
                                   Text(
-                                    'Temas: ${currentDevocional.tags!.join(', ')}',
+                                    'devotionals.topics'.tr({
+                                      'topics':
+                                          currentDevocional.tags!.join(', ')
+                                    }),
                                     style: textTheme.bodySmall?.copyWith(
                                       fontSize: 14,
                                       color: colorScheme.onSurface,
@@ -590,7 +601,8 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                   ),
                                 if (currentDevocional.version != null)
                                   Text(
-                                    'Versión: ${currentDevocional.version}',
+                                    'devotionals.version'.tr(
+                                        {'version': currentDevocional.version}),
                                     style: textTheme.bodySmall?.copyWith(
                                       fontSize: 14,
                                       color: colorScheme.onSurface,
@@ -602,15 +614,23 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                     padding: const EdgeInsets.symmetric(
                                       horizontal: 20,
                                     ),
-                                    child: Text(
-                                      'El texto bíblico Reina-Valera 1960® Sociedades Bíblicas en América Latina, 1960. Derechos renovados 1988, Sociedades Bíblicas Unidas.',
-                                      style: textTheme.bodySmall?.copyWith(
-                                        fontSize: 12,
-                                        color: colorScheme.onSurface.withValues(
-                                          alpha: 0.7,
-                                        ),
-                                      ),
-                                      textAlign: TextAlign.center,
+                                    child: Consumer<DevocionalProvider>(
+                                      builder: (context, provider, child) {
+                                        return Text(
+                                          CopyrightUtils.getCopyrightText(
+                                            provider.selectedLanguage,
+                                            provider.selectedVersion,
+                                          ),
+                                          style: textTheme.bodySmall?.copyWith(
+                                            fontSize: 12,
+                                            color: colorScheme.onSurface
+                                                .withValues(
+                                              alpha: 0.7,
+                                            ),
+                                          ),
+                                          textAlign: TextAlign.center,
+                                        );
+                                      },
                                     ),
                                   ),
                                 ),
@@ -686,9 +706,9 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                   ? _goToPreviousDevocional
                                   : null,
                               icon: const Icon(Icons.arrow_back_ios, size: 16),
-                              label: const Text(
-                                'Anterior',
-                                style: TextStyle(
+                              label: Text(
+                                'devotionals.previous'.tr(),
+                                style: const TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w600,
                                 ),
@@ -731,9 +751,9 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                 Icons.arrow_forward_ios,
                                 size: 16,
                               ),
-                              icon: const Text(
-                                'Siguiente',
-                                style: TextStyle(
+                              icon: Text(
+                                'devotionals.next'.tr(),
+                                style: const TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w600,
                                 ),
@@ -773,8 +793,8 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                   children: [
                     IconButton(
                       tooltip: isFavorite
-                          ? 'Quitar de favoritos'
-                          : 'Guardar como favorito',
+                          ? 'devotionals.remove_from_favorites_short'.tr()
+                          : 'devotionals.save_as_favorite'.tr(),
                       onPressed: () => devocionalProvider.toggleFavorite(
                         currentDevocional!,
                         context,
@@ -786,7 +806,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                       ),
                     ),
                     IconButton(
-                      tooltip: 'Mis Oraciones',
+                      tooltip: 'tooltips.my_prayers'.tr(),
                       onPressed: () async {
                         await BubbleUtils.markAsShown(
                           BubbleUtils.getIconBubbleId(
@@ -803,7 +823,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                       ).newIconBadge,
                     ),
                     IconButton(
-                      tooltip: 'Compartir como texto',
+                      tooltip: 'tooltips.share_as_text'.tr(),
                       onPressed: () => _shareAsText(currentDevocional!),
                       icon: Icon(
                         Icons.share_outlined,
@@ -812,7 +832,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                       ),
                     ),
                     IconButton(
-                      tooltip: 'Compartir como imagen',
+                      tooltip: 'tooltips.share_as_image'.tr(),
                       onPressed: () => _shareAsImage(currentDevocional!),
                       icon: Icon(
                         Icons.image_outlined,
@@ -821,7 +841,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                       ),
                     ),
                     IconButton(
-                      tooltip: 'Progreso',
+                      tooltip: 'tooltips.progress'.tr(),
                       onPressed: () {
                         Navigator.push(
                           context,
@@ -837,7 +857,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                       ),
                     ),
                     IconButton(
-                      tooltip: 'Configuración',
+                      tooltip: 'tooltips.settings'.tr(),
                       onPressed: () {
                         Navigator.push(
                           context,

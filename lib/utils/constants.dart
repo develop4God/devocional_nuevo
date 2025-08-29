@@ -1,31 +1,64 @@
-// lib/utils/constants.dart
+import 'package:flutter/material.dart';
 
-import 'package:flutter/material.dart'; // ¡Importante! Necesario para GlobalKey y NavigatorState
-
-// --- Constantes ---
-// Es una buena práctica definir URLs y claves de SharedPreferences como constantes dentro de una clase.
+/// Clase de constantes globales para devocionales
 class Constants {
-  // AHORA: Función para generar la URL del JSON de devocionales por año.
+  /// FUNCIONES DE GENERACIÓN DE URLS
+
+  // ✅ ORIGINAL METHOD - DO NOT MODIFY (Backward Compatibility)
   static String getDevocionalesApiUrl(int year) {
     return 'https://raw.githubusercontent.com/develop4God/Devocionales-json/refs/heads/main/Devocional_year_$year.json';
   }
 
-  // Las siguientes constantes no son necesarias en el nuevo modelo basado en fechas y objetos
-  // pero las mantengo aquí si las usas en otras partes de tu código por ahora.
-  // En el nuevo DevocionalProvider, 'seenIndices' y 'currentIndex' ya no se usan.
-  // Y 'favorites' se gestiona directamente con la lista de Devocional objetos.
-  static const String prefSeenIndices =
-      'seenIndices'; // Esto ya no se usa en el nuevo Provider
-  static const String prefFavorites =
-      'favorites'; // Esto ya no se usa directamente en el nuevo Provider (usa 'favorites' clave)
+  // ✅ NEW METHOD for multilingual support
+  static String getDevocionalesApiUrlMultilingual(
+      int year, String languageCode, String versionCode) {
+    // Backward compatibility for Spanish RVR1960
+    if (languageCode == 'es' && versionCode == 'RVR1960') {
+      return getDevocionalesApiUrl(year); // Use original method
+    }
+
+    // New format for other languages/versions
+    return 'https://raw.githubusercontent.com/develop4God/Devocionales-json/refs/heads/main/Devocional_year_${year}_${languageCode}_$versionCode.json';
+  }
+
+  /// MAPAS DE IDIOMAS Y VERSIONES
+
+  // Idiomas soportados y su nombre legible
+  static const Map<String, String> supportedLanguages = {
+    'es': 'Español',
+    'en': 'English',
+    'pt': 'Português',
+    'fr': 'Français',
+  };
+
+  // Versiones de la Biblia disponibles por idioma
+  static const Map<String, List<String>> bibleVersionsByLanguage = {
+    'es': ['RVR1960', 'NVI'],
+    'en': ['KJV', 'NIV'],
+    'pt': ['ARC', 'NVI'],
+    'fr': ['LSG1910', 'TOB'],
+  };
+
+  // Versión de Biblia por defecto por idioma
+  static const Map<String, String> defaultVersionByLanguage = {
+    'es': 'RVR1960',
+    'en': 'KJV',
+    'pt': 'ARC',
+    'fr': 'LSG1910',
+  };
+
+  /// PREFERENCIAS (SharedPreferences KEYS)
+  static const String prefSeenIndices = 'seenIndices';
+  static const String prefFavorites = 'favorites';
   static const String prefDontShowInvitation = 'dontShowInvitation';
-  static const String prefCurrentIndex =
-      'currentIndex'; // Esto ya no se usa en el nuevo Provider
+  static const String prefCurrentIndex = 'currentIndex';
   static const String prefLastNotificationDate = 'lastNotificationDate';
+
+  /// Compatibilidad con lógica de mostrar/no mostrar diálogos de invitación (usada en el provider)
+  static const String prefShowInvitationDialog = 'showInvitationDialog';
 }
 
-// Clase de utilidad para obtener el contexto del Navigator.
-// Asegúrate de que NavigationService.navigatorKey se asigne a tu MaterialApp en main.dart.
+// Servicio de navegación global
 class NavigationService {
   static GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 }

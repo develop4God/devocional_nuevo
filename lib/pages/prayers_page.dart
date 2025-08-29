@@ -1,3 +1,4 @@
+import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/prayer_model.dart';
 import 'package:devocional_nuevo/providers/prayer_provider.dart';
 import 'package:devocional_nuevo/widgets/add_prayer_modal.dart';
@@ -80,8 +81,8 @@ class _PrayersPageState extends State<PrayersPage>
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      appBar: const CustomAppBar(
-        titleText: 'Mis Oraciones',
+      appBar: CustomAppBar(
+        titleText: 'prayer.my_prayers'.tr(),
       ),
       body: Column(
         children: [
@@ -90,14 +91,14 @@ class _PrayersPageState extends State<PrayersPage>
             color: colorScheme.surface,
             child: TabBar(
               controller: _tabController,
-              tabs: const [
+              tabs: [
                 Tab(
-                  icon: Icon(Icons.schedule),
-                  text: 'Activas',
+                  icon: const Icon(Icons.schedule),
+                  text: 'prayer.active'.tr(),
                 ),
                 Tab(
-                  icon: Icon(Icons.check_circle_outline),
-                  text: 'Respondidas',
+                  icon: const Icon(Icons.check_circle_outline),
+                  text: 'prayer.answered'.tr(),
                 ),
               ],
               // Cambiar colores para fondo blanco
@@ -142,7 +143,7 @@ class _PrayersPageState extends State<PrayersPage>
                             prayerProvider.clearError();
                             prayerProvider.refresh();
                           },
-                          child: const Text('Reintentar'),
+                          child: Text('prayer.retry'.tr()),
                         ),
                       ],
                     ),
@@ -179,9 +180,8 @@ class _PrayersPageState extends State<PrayersPage>
       return _buildEmptyState(
         context,
         icon: Icons.schedule,
-        title: 'No hay oraciones activas',
-        message:
-            'Crea tu primera oración tocando el botón "+" para comenzar tu viaje de fe.',
+        title: 'prayer.no_active_prayers_title'.tr(),
+        message: 'prayer.no_active_prayers_description'.tr(),
       );
     }
 
@@ -213,9 +213,8 @@ class _PrayersPageState extends State<PrayersPage>
       return _buildEmptyState(
         context,
         icon: Icons.check_circle_outline,
-        title: 'No hay oraciones respondidas',
-        message:
-            'Cuando una oración sea respondida, aparecerá aquí como testimonio de la fidelidad de Dios.',
+        title: 'prayer.no_answered_prayers_title'.tr(),
+        message: 'prayer.no_answered_prayers_description'.tr(),
       );
     }
 
@@ -376,29 +375,30 @@ class _PrayersPageState extends State<PrayersPage>
                             ),
                             const SizedBox(width: 12), // Más espacio
                             Text(isActive
-                                ? 'Marcar como respondida'
-                                : 'Marcar como activa'),
+                                ? 'prayer.mark_as_answered'.tr()
+                                : 'prayer.mark_as_active'.tr()),
                           ],
                         ),
                       ),
-                      const PopupMenuItem(
+                      PopupMenuItem(
                         value: 'edit',
                         child: Row(
                           children: [
-                            Icon(Icons.edit, size: 20),
-                            SizedBox(width: 12),
-                            Text('Editar'),
+                            const Icon(Icons.edit, size: 20),
+                            const SizedBox(width: 12),
+                            Text('prayer.edit_prayer'.tr()),
                           ],
                         ),
                       ),
-                      const PopupMenuItem(
+                      PopupMenuItem(
                         value: 'delete',
                         child: Row(
                           children: [
-                            Icon(Icons.delete, size: 20, color: Colors.red),
-                            SizedBox(width: 12),
-                            Text('Eliminar',
-                                style: TextStyle(color: Colors.red)),
+                            const Icon(Icons.delete,
+                                size: 20, color: Colors.red),
+                            const SizedBox(width: 12),
+                            Text('app.delete'.tr(),
+                                style: const TextStyle(color: Colors.red)),
                           ],
                         ),
                       ),
@@ -429,14 +429,20 @@ class _PrayersPageState extends State<PrayersPage>
                 ),
                 const SizedBox(width: 4),
                 Text(
-                  'Creada: ${DateFormat('dd/MM/yyyy').format(prayer.createdDate)}',
+                  'prayers.created'.tr({
+                    'date': DateFormat('dd/MM/yyyy').format(prayer.createdDate)
+                  }),
                   style: textTheme.bodySmall?.copyWith(
                     color: colorScheme.onSurface.withValues(alpha: 0.6),
                   ),
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  '(${prayer.daysOld} ${prayer.daysOld == 1 ? 'día' : 'días'})',
+                  prayer.daysOld == 1
+                      ? 'prayers.days_old_single'
+                          .tr({'days': prayer.daysOld.toString()})
+                      : 'prayers.days_old_plural'
+                          .tr({'days': prayer.daysOld.toString()}),
                   style: textTheme.bodySmall?.copyWith(
                     color: colorScheme.primary,
                     fontWeight: FontWeight.w500,
@@ -456,7 +462,10 @@ class _PrayersPageState extends State<PrayersPage>
                   ),
                   const SizedBox(width: 4),
                   Text(
-                    'Respondida: ${DateFormat('dd/MM/yyyy').format(prayer.answeredDate!)}',
+                    'prayers.answered'.tr({
+                      'date':
+                          DateFormat('dd/MM/yyyy').format(prayer.answeredDate!)
+                    }),
                     style: textTheme.bodySmall?.copyWith(
                       color: Colors.green,
                     ),
@@ -502,14 +511,14 @@ class _PrayersPageState extends State<PrayersPage>
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Eliminar oración'),
-        content: const Text(
-          '¿Estás seguro de que quieres eliminar esta oración? Esta acción no se puede deshacer.',
+        title: Text('prayer.delete_prayer'.tr()),
+        content: Text(
+          'prayer.delete_confirmation'.tr(),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancelar'),
+            child: Text('app.cancel'.tr()),
           ),
           TextButton(
             onPressed: () {
@@ -519,7 +528,7 @@ class _PrayersPageState extends State<PrayersPage>
             style: TextButton.styleFrom(
               foregroundColor: Colors.red,
             ),
-            child: const Text('Eliminar'),
+            child: Text('app.delete'.tr()),
           ),
         ],
       ),

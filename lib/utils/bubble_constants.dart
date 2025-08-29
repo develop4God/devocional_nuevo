@@ -20,7 +20,7 @@ class BubbleConstants {
 
   // Posiciones para diferentes tipos de widgets
   static const double widgetBubbleTop = -2;
-  static const double widgetBubbleRight = -60;
+  static const double widgetBubbleRight = -37;
   static const double iconBadgeTop = -4;
   static const double iconBadgeRight = -4;
 

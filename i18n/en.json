@@ -1,6 +1,6 @@
 {
   "app": {
-    "title": "Devotionals",
+    "title": "Christian Devotionals",
     "loading": "Loading...",
     "preparing": "Preparing your space with God...",
     "error": "Error",
@@ -16,8 +16,9 @@
   "devotionals": {
     "app_title": "Daily Devotionals",
     "my_intimate_space_with_god": "My intimate space with God",
-    "devotional_of_the_day": "Devotional of the day", 
+    "devotional_of_the_day": "Devotional of the day",
     "no_devotionals_available": "No devotionals available for the selected language/version.",
+    "verse": "Verse:",
     "reflection": "Reflection:",
     "to_meditate": "To Meditate:",
     "prayer": "Prayer:",
@@ -25,6 +26,8 @@
     "topics": "Topics: {topics}",
     "version": "Version: {version}",
     "copyright_text": "The biblical text King James Version® Public Domain.",
+    "copyright_kjv": "The biblical text King James Version® Public Domain.",
+    "copyright_niv": "The biblical text New International Version® © 2011 Biblica, Inc. All rights reserved.",
     "salvation_prayer_intro": "Repeat this prayer aloud, with faith and believing with all your heart:",
     "salvation_prayer": "Jesus Christ, I believe that you died on the cross for me, I ask for forgiveness and I repent from my heart for my sins. I ask you to be my Savior and the lord of my life. Free me from eternal death and write my name in the book of life.\nIn the mighty name of Jesus, amen.",
     "salvation_promise": "If you prayed this prayer and believe it:\nYou and your house will be saved (Acts 16:31)\nYou will live eternally (Jn 11:25-26)\nYou will never thirst again (Jn 4:14)\nYou will be with Christ in heaven (Rev 19:9)\nThere is joy in heaven when a sinner repents (Luke 15:10)\nIt is written and God is faithful (Dt 7:9)\n\nFrom now on you have salvation and new life in Jesus Christ.",
@@ -65,7 +68,6 @@
     "praying": "Praying...",
     "my_prayers": "My Prayers",
     "active": "Active",
-    "answered": "Answered",
     "retry": "Retry",
     "no_active_prayers_title": "No active prayers",
     "no_active_prayers_description": "Create your first prayer by tapping the \"+\" button to begin your faith journey.",
@@ -80,7 +82,16 @@
     "edit_placeholder": "Edit your prayer...",
     "new_placeholder": "Lord, I ask for...\n\nHelp me to...\n\nI thank you for...",
     "delete_prayer": "Delete prayer",
-    "delete_confirmation": "Are you sure you want to delete this prayer? This action cannot be undone."
+    "delete_confirmation": "Are you sure you want to delete this prayer? This action cannot be undone.",
+    "enter_prayer_text_error": "Please enter the prayer text",
+    "prayer_min_length_error": "Prayer must have at least 10 characters",
+    "cancel": "Cancel",
+    "create_prayer": "Create Prayer",
+    "update_prayer": "Update Prayer",
+    "created": "Created: {date}",
+    "answered": "Answered: {date}",
+    "days_old_single": "({days} day)",
+    "days_old_plural": "({days} days)"
   },
   "settings": {
     "title": "Settings",
@@ -96,6 +107,9 @@
     "audio_settings": "Audio settings",
     "enable_tts": "Enable text to speech",
     "tts_speed": "Reading speed",
+    "tts_voice": "Voice assistant",
+    "select_voice": "Select voice",
+    "voice_changed": "Voice changed successfully",
     "notifications": "Notifications",
     "enable_notifications": "Enable notifications",
     "notification_time": "Notification time",
@@ -151,27 +165,34 @@
   },
   "progress": {
     "title": "My Spiritual Progress",
-    "error_loading_stats": "Error loading statistics: {error}",
-    "useful_tip": "Useful tip",
-    "achievement_tip": "Tap any achievement to see complete information",
-    "understood": "Understood",
-    "back": "Back",
-    "error_loading": "Error loading statistics",
-    "retry": "Retry",
+    "stats_title": "Spiritual Stats",
     "current_streak": "Current Streak",
-    "stats_title": "Spiritual Statistics",
-    "devotionals_read": "Devotionals read",
+    "days": "days",
+    "day": "day",
+    "reading_streak": "Reading Streak",
+    "total_reading_time": "Total Reading Time",
+    "next_goal": "Next goal: {goal} days",
+    "goal_reached": "Goal Reached!",
+    "devotionals_completed": "Devotionals Completed",
+    "favorites_saved": "Favorites Saved",
     "favorite_count": "Favorites",
-    "reading_streak": "Reading streak",
-    "total_reading_time": "Total reading time",
     "achievements": "Achievements",
-    "reset_stats": "Reset statistics",
-    "reset_confirmation": "Are you sure you want to reset all statistics?",
-    "stats_reset": "Statistics reset",
-    "first_read": "First reading",
+    "last_activity": "Last Activity: {date}",
+    "no_activity": "No activity",
+    "achievement_unlocked": "Achievement unlocked!",
+    "first_read": "First read",
     "first_favorite": "First favorite",
     "dedicated_reader": "Dedicated reader",
-    "achievement_unlocked": "Achievement unlocked!"
+    "back": "Go Back",
+    "error_loading": "Error loading stats",
+    "retry": "Retry",
+    "error_loading_stats": "Error loading stats: {error}",
+    "useful_tip": "Useful Tip",
+    "achievement_tip": "Tap any achievement to see its detailed description.",
+    "understood": "Understood",
+    "reset_stats": "Reset Stats",
+    "reset_confirmation": "Are you sure you want to reset all stats?",
+    "stats_reset": "Stats reset"
   },
   "errors": {
     "network_error": "Connection error",
@@ -200,8 +221,8 @@
     "removed_message": "\"{verse}\" removed from favorites."
   },
   "contact": {
-    "bugs": "Bugs",
-    "feedback": "Feedback",
+    "bugs": "Errors/Bugs",
+    "feedback": "Opinion/Feedback",
     "improvements": "Improvements",
     "other": "Other",
     "select_type_error": "Please select a contact type.",
@@ -219,91 +240,6 @@
     "share_as_image": "Share as image",
     "progress": "Progress",
     "settings": "Settings"
-  },
-  "navigation": {
-    "home": "Home",
-    "favorites": "Favorites",
-    "stats": "Statistics",
-    "settings": "Settings",
-    "about": "About",
-    "drawer_title": "Devotionals",
-    "close_drawer": "Close menu"
-  },
-  "drawer": {
-    "title": "Your Bible, your style",
-    "close": "Close",
-    "language_section": "Language",
-    "bible_version_section": "Bible Version",
-    "saved_favorites": "Saved favorites",
-    "my_prayers": "My prayers",
-    "light_mode": "Light mode (bright)",
-    "dark_mode": "Dark mode (dim)",
-    "notifications_config": "Notification settings",
-    "share_app": "Share Christian Devotionals app",
-    "download_devotionals": "Download devotionals",
-    "downloaded_devotionals": "Devotionals downloaded",
-    "for_offline_use": "For offline use",
-    "offline_content_ready": "Enjoy content without internet",
-    "select_theme_color": "Select theme color",
-    "download_dialog_title": "Confirm download",
-    "download_dialog_downloading": "Downloading...",
-    "download_dialog_content": "This download is done once. It allows access to devotionals and verses without internet connection/offline.",
-    "cancel": "Cancel",
-    "accept": "Accept",
-    "download_success": "Devotionals downloaded successfully",
-    "download_error": "Download error. Check your connection and try again.",
-    "offline_access_ready": "You can now access your content without internet",
-    "share_message": "Join the pre-launch of the Christian Devotionals app.\nLink to sign up and build yourself up with the word of God.\nhttps://forms.gle/HGFNUv9pc8XpG8aa6"
-  },
-  "stats": {
-    "title": "Spiritual Statistics",
-    "devotionals_read": "Devotionals read",
-    "favorite_count": "Favorites",
-    "reading_streak": "Reading streak",
-    "total_reading_time": "Total reading time",
-    "achievements": "Achievements",
-    "reset_stats": "Reset statistics",
-    "reset_confirmation": "Are you sure you want to reset all statistics?",
-    "stats_reset": "Statistics reset",
-    "first_read": "First reading",
-    "first_favorite": "First favorite",
-    "dedicated_reader": "Dedicated reader",
-    "achievement_unlocked": "Achievement unlocked!"
-  },
-  "errors": {
-    "network_error": "Network error",
-    "file_not_found": "File not found",
-    "permission_denied": "Permission denied",
-    "unknown_error": "Unknown error",
-    "retry_message": "Please try again",
-    "no_internet": "No internet connection",
-    "server_error": "Server error",
-    "timeout_error": "Request timeout"
-  },
-  "messages": {
-    "welcome": "Welcome!",
-    "good_morning": "Good morning!",
-    "good_afternoon": "Good afternoon!",
-    "good_evening": "Good evening!",
-    "have_blessed_day": "Have a blessed day!",
-    "peace_be_with_you": "Peace be with you",
-    "god_bless": "God bless you"
-  },
-  "favorites": {
-    "title": "My saved favorites",
-    "empty_title": "You don't have any favorite devotionals yet.",
-    "empty_description": "Tap the heart icon on a devotional to save it here.",
-    "remove_tooltip": "Remove from favorites",
-    "removed_message": "\"{verse}\" removed from favorites."
-  },
-  "contact": {
-    "bugs": "Errors/Bugs",
-    "feedback": "Opinion/Feedback",
-    "improvements": "Improvements",
-    "other": "Other",
-    "select_type_error": "Please select a contact type.",
-    "enter_message_error": "Please write a message.",
-    "email_subject": "{type} - Devotionals App"
   },
   "share": {
     "share_text": "Share text",
@@ -337,7 +273,7 @@
     "feature_dark_light": "• Dark and Light Themes",
     "feature_notifications": "• Notification Options",
     "developed_by": "Developed with ❤️ by Develop4God",
-    "terms_copyright": "Terms and Conditions / Copyright", 
+    "terms_copyright": "Terms and Conditions / Copyright",
     "link_error": "Could not open the link."
   },
   "stats": {
@@ -354,5 +290,24 @@
     "first_favorite": "First favorite",
     "dedicated_reader": "Dedicated reader",
     "achievement_unlocked": "Achievement unlocked!"
+  },
+  "prayers": {
+    "created": "Created: {date}",
+    "answered": "Answered: {date}",
+    "days_old_single": "({days} day)",
+    "days_old_plural": "({days} days)"
+  },
+  "contact_page": {
+    "title": "Contact",
+    "contact_us": "Contact Us",
+    "description": "If you have any questions, suggestions or comments, please don't hesitate to contact us. We'll be happy to help you.",
+    "contact_type_label": "Contact type",
+    "message_label": "Your message",
+    "message_hint": "Write your message here...",
+    "other_contact_methods": "Other contact methods"
+  },
+  "devotionals_page": {
+    "added_to_favorites": "Devotional added to favorites",
+    "removed_from_favorites": "Devotional removed from favorites"
   }
 }

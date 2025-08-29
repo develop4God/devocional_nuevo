@@ -3,6 +3,7 @@
 
 import 'dart:developer' as developer;
 
+import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -22,12 +23,13 @@ class _ContactPageState extends State<ContactPage> {
   // AÑADIDO: Variables para el formulario de contacto con opciones predefinidas
   String? _selectedContactOption;
   final TextEditingController _messageController = TextEditingController();
-  final List<String> _contactOptions = [
-    'Errores/Bugs',
-    'Opinión/Feedback',
-    'Mejoras/Improvements',
-    'Otros'
-  ];
+
+  List<String> get _contactOptions => [
+        'contact.bugs'.tr(),
+        'contact.feedback'.tr(),
+        'contact.improvements'.tr(),
+        'contact.other'.tr()
+      ];
 
 // Mantener para el indicador de envío
 
@@ -45,8 +47,8 @@ class _ContactPageState extends State<ContactPage> {
   Future<void> _sendContactEmail() async {
     if (_selectedContactOption == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Por favor, selecciona un tipo de contacto.'),
+        SnackBar(
+          content: Text('contact.select_type_error'.tr()),
           backgroundColor: Colors.red,
         ),
       );
@@ -56,8 +58,8 @@ class _ContactPageState extends State<ContactPage> {
     final String message = _messageController.text.trim();
     if (message.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Por favor, escribe un mensaje.'),
+        SnackBar(
+          content: Text('contact.enter_message_error'.tr()),
           backgroundColor: Colors.red,
         ),
       );
@@ -70,8 +72,9 @@ class _ContactPageState extends State<ContactPage> {
     final Uri emailUri = Uri(
       scheme: 'mailto',
       path: 'develop4god@gmail.com',
-      query:
-          'subject=${Uri.encodeComponent("$_selectedContactOption - App Devocionales")}&body=${Uri.encodeComponent(message)}',
+      query: 'subject=${Uri.encodeComponent('contact.email_subject'.tr({
+            'type': _selectedContactOption!
+          }))}&body=${Uri.encodeComponent(message)}',
     );
 
     developer.log('Intentando abrir cliente de correo: $emailUri',
@@ -83,8 +86,8 @@ class _ContactPageState extends State<ContactPage> {
         if (mounted) {
           // Mostrar mensaje de éxito
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Abriendo cliente de correo...'),
+            SnackBar(
+              content: Text('contact.opening_email_client'.tr()),
               backgroundColor: Colors.green,
             ),
           );
@@ -131,7 +134,7 @@ class _ContactPageState extends State<ContactPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Contacto',
+          'contact_page.title'.tr(),
           style:
               TextStyle(color: Theme.of(context).appBarTheme.foregroundColor),
         ),
@@ -144,7 +147,7 @@ class _ContactPageState extends State<ContactPage> {
           children: [
             // Título de la página
             Text(
-              'Contáctanos',
+              'contact_page.contact_us'.tr(),
               style: textTheme.headlineMedium?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: colorScheme.primary,
@@ -154,7 +157,7 @@ class _ContactPageState extends State<ContactPage> {
 
             // Descripción
             Text(
-              'Si tienes alguna pregunta, sugerencia o comentario, no dudes en ponerte en contacto con nosotros. Estaremos encantados de ayudarte.',
+              'contact_page.description'.tr(),
               style:
                   textTheme.bodyLarge?.copyWith(color: colorScheme.onSurface),
             ),
@@ -168,7 +171,7 @@ class _ContactPageState extends State<ContactPage> {
             DropdownButtonFormField<String>(
               value: _selectedContactOption,
               decoration: InputDecoration(
-                labelText: 'Tipo de contacto',
+                labelText: 'contact_page.contact_type_label'.tr(),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
@@ -186,7 +189,7 @@ class _ContactPageState extends State<ContactPage> {
                   _selectedContactOption = newValue;
                 });
               },
-              hint: const Text('Selecciona una opción'),
+              hint: Text('contact.select_option'.tr()),
             ),
             const SizedBox(height: 20),
 
@@ -194,8 +197,8 @@ class _ContactPageState extends State<ContactPage> {
             TextField(
               controller: _messageController,
               decoration: InputDecoration(
-                labelText: 'Tu mensaje',
-                hintText: 'Escribe tu mensaje aquí...',
+                labelText: 'contact_page.message_label'.tr(),
+                hintText: 'contact_page.message_hint'.tr(),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
@@ -211,7 +214,7 @@ class _ContactPageState extends State<ContactPage> {
                 onPressed:
                     _sendContactEmail, // MODIFICADO: Llama a _sendContactEmail
                 icon: Icon(Icons.send, color: colorScheme.onPrimary),
-                label: Text('Abrir correo',
+                label: Text('contact.open_email'.tr(),
                     style: TextStyle(color: colorScheme.onPrimary)),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: colorScheme.primary,
@@ -230,7 +233,7 @@ class _ContactPageState extends State<ContactPage> {
 
             // Otras formas de contacto (se mantienen)
             Text(
-              'Otras formas de contacto',
+              'contact_page.other_contact_methods'.tr(),
               style: textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: colorScheme.onSurface,
@@ -259,7 +262,7 @@ class _ContactPageState extends State<ContactPage> {
             // Sitio web
             ListTile(
               leading: Icon(Icons.language, color: colorScheme.primary),
-              title: Text('Visitar nuestro sitio web',
+              title: Text('contact.visit_website'.tr(),
                   style: TextStyle(color: colorScheme.onSurface)),
               onTap: () async {
                 final Uri webUri = Uri.parse('https://develop4god.github.io/');

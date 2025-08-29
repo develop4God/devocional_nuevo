@@ -1,10 +1,11 @@
 import 'dart:developer' as developer;
 
+import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/pages/about_page.dart';
 import 'package:devocional_nuevo/pages/contact_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
-import 'package:devocional_nuevo/providers/theme_provider.dart';
-import 'package:devocional_nuevo/utils/theme_constants.dart';
+import 'package:devocional_nuevo/providers/localization_provider.dart';
+import 'package:devocional_nuevo/utils/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -18,35 +19,40 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
-  String _selectedLanguage = 'es'; // Idioma por defecto
   double _ttsSpeed = 0.4; // Velocidad de TTS por defecto
+  List<String> _availableVoices = [];
+  String? _selectedVoice;
 
   @override
   void initState() {
     super.initState();
-    _loadTtsLanguages();
+    _loadTtsSettings();
   }
 
-  Future<void> _loadTtsLanguages() async {
+  Future<void> _loadTtsSettings() async {
     final devocionalProvider =
         Provider.of<DevocionalProvider>(context, listen: false);
+    final localizationProvider =
+        Provider.of<LocalizationProvider>(context, listen: false);
+
     try {
-      final languages = await devocionalProvider.getAvailableLanguages();
+      // Load available voices for current language
+      final currentLanguage = localizationProvider.currentLocale.languageCode;
+      final voices =
+          await devocionalProvider.getVoicesForLanguage(currentLanguage);
+
       // Load saved preferences
       final prefs = await SharedPreferences.getInstance();
-      final savedLanguage = prefs.getString('tts_language');
       final savedRate = prefs.getDouble('tts_rate') ?? 0.5;
+      final savedVoice = prefs.getString('tts_voice_$currentLanguage');
 
       setState(() {
         _ttsSpeed = savedRate;
-        // Use saved language if available, otherwise default to Spanish
-        if (savedLanguage != null && languages.contains(savedLanguage)) {
-        } else if (languages.contains('es-ES')) {
-        } else if (languages.contains('es')) {
-        } else if (languages.isNotEmpty) {}
+        _availableVoices = voices;
+        _selectedVoice = savedVoice;
       });
     } catch (e) {
-      developer.log('Error loading TTS languages: $e');
+      developer.log('Error loading TTS settings: $e');
     }
   }
 
@@ -75,7 +81,7 @@ class _SettingsPageState extends State<SettingsPage> {
             name: 'PayPalLaunch',
           );
           _showErrorSnackBar(
-            'No se pudo abrir PayPal. El sistema no pudo lanzar la URL.',
+            'settings.paypal_launch_error'.tr(),
           );
         } else {
           developer.log('PayPal abierto exitosamente.', name: 'PayPalLaunch');
@@ -86,7 +92,7 @@ class _SettingsPageState extends State<SettingsPage> {
           error: e,
           name: 'PayPalLaunch',
         );
-        _showErrorSnackBar('Error al abrir PayPal: ${e.toString()}');
+        _showErrorSnackBar('settings.paypal_error'.tr({'error': e.toString()}));
       }
     } else {
       developer.log(
@@ -94,7 +100,7 @@ class _SettingsPageState extends State<SettingsPage> {
         name: 'PayPalLaunch',
       );
       _showErrorSnackBar(
-        'No se pudo abrir PayPal. Asegúrate de tener un navegador web o la app de PayPal instalada.',
+        'settings.paypal_no_app_error'.tr(),
       );
     }
   }
@@ -109,16 +115,15 @@ class _SettingsPageState extends State<SettingsPage> {
 
   @override
   Widget build(BuildContext context) {
-    Provider.of<ThemeProvider>(context);
+    final localizationProvider = Provider.of<LocalizationProvider>(context);
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
     final TextTheme textTheme = Theme.of(context).textTheme;
-    appThemeFamilies.keys.toList();
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Configuraciones',
-          style: TextStyle(color: Colors.white),
+        title: Text(
+          'settings.title'.tr(),
+          style: const TextStyle(color: Colors.white),
         ),
       ),
       body: Padding(
@@ -131,24 +136,20 @@ class _SettingsPageState extends State<SettingsPage> {
               child: Align(
                 alignment: Alignment.topRight,
                 child: OutlinedButton.icon(
-                  // Se cambia a OutlinedButton.icon
                   onPressed: _launchPaypal,
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: colorScheme.onSurface, // Color del texto
+                    foregroundColor: colorScheme.onSurface,
                     side: BorderSide(
                       color: colorScheme.primary,
-                      // Color del borde del tema principal
                       width: 2.0,
                     ),
                     shape: RoundedRectangleBorder(
-                      borderRadius:
-                          BorderRadius.circular(20.0), // Bordes redondeados
+                      borderRadius: BorderRadius.circular(20.0),
                     ),
                   ),
                   icon: Icon(Icons.favorite_border, color: colorScheme.primary),
-                  // Icono de corazón
                   label: Text(
-                    'Donar',
+                    'settings.donate'.tr(),
                     style: textTheme.bodyMedium?.copyWith(
                       color: colorScheme.onSurface,
                       fontWeight: FontWeight.bold,
@@ -159,13 +160,14 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
             ),
             const SizedBox(height: 20),
-            // Sección para seleccionar el idioma
+
+            // Language Selection Section
             Row(
               children: [
                 Icon(Icons.language, color: colorScheme.primary),
                 const SizedBox(width: 10),
                 Text(
-                  'Idioma:',
+                  'settings.language'.tr(),
                   style: textTheme.bodyMedium?.copyWith(
                     fontSize: 16,
                     color: colorScheme.onSurface,
@@ -173,40 +175,77 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
                 const SizedBox(width: 10),
                 DropdownButton<String>(
-                  value: _selectedLanguage,
-                  items: const [
-                    DropdownMenuItem(value: 'es', child: Text('Español')),
-                  ],
-                  onChanged: (String? newValue) {
-                    if (newValue != null) {
-                      setState(() {
-                        _selectedLanguage = newValue;
-                        developer.log('Idioma cambiado a: $_selectedLanguage',
+                  value: localizationProvider.currentLocale.languageCode,
+                  items: Constants.supportedLanguages.entries.map((entry) {
+                    return DropdownMenuItem(
+                      value: entry.key,
+                      child: Text(entry.value),
+                    );
+                  }).toList(),
+                  onChanged: (String? newLanguage) async {
+                    if (newLanguage != null && mounted) {
+                      // Capture context before async gap
+                      final currentContext = context;
+                      await localizationProvider.changeLanguage(newLanguage);
+
+                      // Update DevocionalProvider with new language
+                      if (mounted) {
+                        // ignore: use_build_context_synchronously
+                        final devocionalProvider =
+                            // ignore: use_build_context_synchronously
+                            Provider.of<DevocionalProvider>(currentContext,
+                                listen: false);
+                        devocionalProvider.setSelectedLanguage(newLanguage);
+
+                        // Automatically set the default version for the new language
+                        final defaultVersion =
+                            Constants.defaultVersionByLanguage[newLanguage];
+                        if (defaultVersion != null) {
+                          devocionalProvider.setSelectedVersion(defaultVersion);
+                        }
+
+                        developer.log('Language changed to: $newLanguage',
                             name: 'SettingsPage');
-                      });
+                        developer.log('Version changed to: $defaultVersion',
+                            name: 'SettingsPage');
+
+                        // Reload TTS settings for new language
+                        await _loadTtsSettings();
+
+                        // ignore: use_build_context_synchronously
+                        ScaffoldMessenger.of(currentContext).showSnackBar(
+                          SnackBar(
+                            content: Text('settings.language_changed'.tr()),
+                            duration: const Duration(seconds: 2),
+                          ),
+                        );
+                      }
                     }
                   },
                 ),
               ],
             ),
+
             const SizedBox(height: 20),
-            // Sección para configuración de Audio/TTS
+
+            // Audio/TTS Configuration Section
             Text(
-              'Configuración de Audio',
+              'settings.audio_settings'.tr(),
               style: textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: colorScheme.primary,
               ),
             ),
             const SizedBox(height: 15),
-            // Velocidad de voz
+
+            // Reading Speed
             Row(
               children: [
                 Icon(Icons.speed, color: colorScheme.primary),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    'Velocidad de lectura:',
+                    'settings.tts_speed'.tr(),
                     style: textTheme.bodyMedium
                         ?.copyWith(fontSize: 16, color: colorScheme.onSurface),
                   ),
@@ -231,10 +270,90 @@ class _SettingsPageState extends State<SettingsPage> {
                 await devocionalProvider.setTtsSpeechRate(value);
               },
             ),
-            // Información adicional
-            const SizedBox(
-              height: 10,
-            ),
+
+            const SizedBox(height: 20),
+
+            // Voice Selection
+            if (_availableVoices.isNotEmpty) ...[
+              Row(
+                children: [
+                  Icon(Icons.record_voice_over, color: colorScheme.primary),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'settings.tts_voice'.tr(),
+                      style: textTheme.bodyMedium?.copyWith(
+                          fontSize: 16, color: colorScheme.onSurface),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              DropdownButton<String>(
+                value: _selectedVoice,
+                isExpanded: true,
+                hint: Text('settings.select_voice'.tr()),
+                items: _availableVoices.map((voice) {
+                  return DropdownMenuItem(
+                    value: voice,
+                    child: Text(
+                      voice,
+                      overflow: TextOverflow.ellipsis,
+                      style: textTheme.bodyMedium?.copyWith(fontSize: 14),
+                    ),
+                  );
+                }).toList(),
+                onChanged: (String? newVoice) async {
+                  if (newVoice != null && mounted) {
+                    setState(() {
+                      _selectedVoice = newVoice;
+                    });
+
+                    // Parse voice name and locale
+                    final voiceParts = newVoice.split(' (');
+                    final voiceName = voiceParts[0];
+                    final locale = voiceParts.length > 1
+                        ? voiceParts[1].replaceAll(')', '')
+                        : '';
+
+                    // Capture context before async operations
+                    final currentContext = context;
+                    final devocionalProvider = Provider.of<DevocionalProvider>(
+                        currentContext,
+                        listen: false);
+                    final localizationProvider =
+                        Provider.of<LocalizationProvider>(currentContext,
+                            listen: false);
+                    final currentLanguage =
+                        localizationProvider.currentLocale.languageCode;
+
+                    // Set the voice
+                    await devocionalProvider.setTtsVoice({
+                      'name': voiceName,
+                      'locale': locale,
+                    });
+
+                    // Save preference
+                    final prefs = await SharedPreferences.getInstance();
+                    await prefs.setString(
+                        'tts_voice_$currentLanguage', newVoice);
+
+                    if (mounted) {
+                      // ignore: use_build_context_synchronously
+                      ScaffoldMessenger.of(currentContext).showSnackBar(
+                        SnackBar(
+                          content: Text('settings.voice_changed'.tr()),
+                          duration: const Duration(seconds: 2),
+                        ),
+                      );
+                    }
+                  }
+                },
+              ),
+              const SizedBox(height: 20),
+            ],
+
+            // Contact Information
             InkWell(
               onTap: () {
                 Navigator.push(
@@ -250,7 +369,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
-                        'Contáctanos',
+                        'settings.contact_us'.tr(),
                         style: textTheme.bodyMedium?.copyWith(
                             fontSize: 16, color: colorScheme.onSurface),
                         maxLines: 1,
@@ -278,7 +397,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
-                        'Acerca de Devocionales Cristianos',
+                        'settings.about_app'.tr(),
                         style: textTheme.bodyMedium?.copyWith(
                             fontSize: 16, color: colorScheme.onSurface),
                         maxLines: 1,

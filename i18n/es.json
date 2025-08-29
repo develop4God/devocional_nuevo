@@ -1,6 +1,6 @@
 {
   "app": {
-    "title": "Devocionales",
+    "title": "Devocionales Cristianos",
     "loading": "Cargando...",
     "preparing": "Preparando tu espacio con Dios...",
     "error": "Error",
@@ -18,6 +18,7 @@
     "my_intimate_space_with_god": "Mi espacio íntimo con Dios",
     "devotional_of_the_day": "Devocional del día",
     "no_devotionals_available": "No hay devocionales disponibles para el idioma/versión seleccionados.",
+    "verse": "Versículo:",
     "reflection": "Reflexión:",
     "to_meditate": "Para Meditar:",
     "prayer": "Oración:",
@@ -25,6 +26,8 @@
     "topics": "Temas: {topics}",
     "version": "Versión: {version}",
     "copyright_text": "El texto bíblico Reina-Valera 1960® Sociedades Bíblicas en América Latina, 1960. Derechos renovados 1988, Sociedades Bíblicas Unidas.",
+    "copyright_rvr1960": "El texto bíblico Reina-Valera 1960® Sociedades Bíblicas en América Latina, 1960. Derechos renovados 1988, Sociedades Bíblicas Unidas.",
+    "copyright_nvi": "El texto bíblico Nueva Versión Internacional® © 1999 Biblica, Inc. Todos los derechos reservados.",
     "salvation_prayer_intro": "Repite esta oración en voz alta, con fe y creyendo con todo el corazón:",
     "salvation_prayer": "Jesucristo, creo que moriste en la cruz por mi, te pido perdón y me arrepiento de corazón por mis pecados. Te pido seas mi Salvador y el señor de vida. Líbrame de la muerte eterna y escribe mi nombre en el libro de la vida.\nEn el poderoso nombre de Jesús, amén.",
     "salvation_promise": "Si hiciste esta oración y lo crees:\nSerás salvo tu y tu casa (Hch 16:31)\nVivirás eternamente (Jn 11:25-26)\nNunca más tendrás sed (Jn 4:14)\nEstarás con Cristo en los cielos (Ap 19:9)\nHay gozo en los cielos cuando un pecador se arrepiente (Luc 15:10)\nEscrito está y Dios es fiel (Dt 7:9)\n\nDesde ya tienes salvación y vida nueva en Jesucristo.",
@@ -80,7 +83,12 @@
     "edit_placeholder": "Edita tu oración...",
     "new_placeholder": "Señor, te pido por...\n\nAyúdame a...\n\nTe agradezco por...",
     "delete_prayer": "Eliminar oración",
-    "delete_confirmation": "¿Estás seguro de que quieres eliminar esta oración? Esta acción no se puede deshacer."
+    "delete_confirmation": "¿Estás seguro de que quieres eliminar esta oración? Esta acción no se puede deshacer.",
+    "enter_prayer_text_error": "Por favor ingresa el texto de la oración",
+    "prayer_min_length_error": "La oración debe tener al menos 10 caracteres",
+    "cancel": "Cancelar",
+    "create_prayer": "Crear Oración",
+    "update_prayer": "Actualizar Oración"
   },
   "settings": {
     "title": "Configuración",
@@ -96,6 +104,9 @@
     "audio_settings": "Configuración de Audio",
     "enable_tts": "Habilitar texto a voz",
     "tts_speed": "Velocidad de lectura",
+    "tts_voice": "Voz del asistente",
+    "select_voice": "Seleccionar voz",
+    "voice_changed": "Voz cambiada exitosamente",
     "notifications": "Notificaciones",
     "enable_notifications": "Habilitar notificaciones",
     "notification_time": "Hora de notificación",
@@ -115,7 +126,7 @@
     "home": "Inicio",
     "devotional": "Devocional",
     "favorites": "Favoritos",
-    "prayers": "Oraciones", 
+    "prayers": "Oraciones",
     "progress": "Progreso",
     "stats": "Estadísticas",
     "settings": "Configuración",
@@ -151,27 +162,34 @@
   },
   "progress": {
     "title": "Mi Progreso Espiritual",
-    "error_loading_stats": "Error al cargar estadísticas: {error}",
-    "useful_tip": "Consejo útil",
-    "achievement_tip": "Toca cualquier logro para ver información completa",
-    "understood": "Entendido",
-    "back": "Regresar",
-    "error_loading": "Error al cargar las estadísticas",
-    "retry": "Reintentar",
-    "current_streak": "Racha Actual",
     "stats_title": "Estadísticas Espirituales",
-    "devotionals_read": "Devocionales leídos",
-    "favorite_count": "Favoritos",
-    "reading_streak": "Racha de lectura",
+    "current_streak": "Racha Actual",
+    "days": "días",
+    "day": "día",
+    "reading_streak": "Racha de Lectura",
     "total_reading_time": "Tiempo total de lectura",
+    "next_goal": "Siguiente meta: {goal} días",
+    "goal_reached": "¡Meta alcanzada!",
+    "devotionals_completed": "Devocionales Completos",
+    "favorites_saved": "Favoritos Guardados",
+    "favorite_count": "Favoritos",
     "achievements": "Logros",
-    "reset_stats": "Reiniciar estadísticas",
-    "reset_confirmation": "¿Estás seguro de que quieres reiniciar todas las estadísticas?",
-    "stats_reset": "Estadísticas reiniciadas",
+    "last_activity": "Última Actividad: {date}",
+    "no_activity": "Sin actividad",
+    "achievement_unlocked": "¡Logro desbloqueado!",
     "first_read": "Primera lectura",
     "first_favorite": "Primer favorito",
     "dedicated_reader": "Lector dedicado",
-    "achievement_unlocked": "¡Logro desbloqueado!"
+    "back": "Regresar",
+    "error_loading": "Error al cargar las estadísticas",
+    "retry": "Reintentar",
+    "error_loading_stats": "Error al cargar estadísticas: {error}",
+    "useful_tip": "Consejo útil",
+    "achievement_tip": "Toca cualquier logro para ver su descripción detallada.",
+    "understood": "Entendido",
+    "reset_stats": "Reiniciar estadísticas",
+    "reset_confirmation": "¿Estás seguro de que quieres reiniciar todas las estadísticas?",
+    "stats_reset": "Estadísticas reiniciadas"
   },
   "errors": {
     "network_error": "Error de conexión",
@@ -195,14 +213,14 @@
   "favorites": {
     "title": "Mis favoritos guardados",
     "empty_title": "Aún no tienes devocionales favoritos.",
-    "empty_description": "Marca el ícono del corazón en un devocional para guardarlo aquí.",
+    "empty_description": "Toca el ícono del corazón en un devocional para guardarlo aquí.",
     "remove_tooltip": "Quitar de favoritos",
     "removed_message": "\"{verse}\" eliminado de favoritos."
   },
   "contact": {
     "bugs": "Errores/Bugs",
-    "feedback": "Opinión/Feedback", 
-    "improvements": "Mejoras/Improvements",
+    "feedback": "Opinión/Feedback",
+    "improvements": "Mejoras",
     "other": "Otros",
     "select_type_error": "Por favor, selecciona un tipo de contacto.",
     "enter_message_error": "Por favor, escribe un mensaje.",
@@ -234,7 +252,7 @@
     "download_failed": "Descarga falló",
     "retry_download": "Reintentar descarga",
     "storage_permission": "Permiso de almacenamiento",
-    "storage_permission_message": "Se necesita permiso para descargar archivos"
+    "storage_permission_message": "Se necesita permiso de almacenamiento para descargar archivos"
   },
   "about": {
     "title": "Acerca de tu app",
@@ -269,5 +287,24 @@
     "first_favorite": "Primer favorito",
     "dedicated_reader": "Lector dedicado",
     "achievement_unlocked": "¡Logro desbloqueado!"
+  },
+  "prayers": {
+    "created": "Creada: {date}",
+    "answered": "Respondida: {date}",
+    "days_old_single": "({days} día)",
+    "days_old_plural": "({days} días)"
+  },
+  "contact_page": {
+    "title": "Contacto",
+    "contact_us": "Contáctanos",
+    "description": "Si tienes alguna pregunta, sugerencia o comentario, no dudes en ponerte en contacto con nosotros. Estaremos encantados de ayudarte.",
+    "contact_type_label": "Tipo de contacto",
+    "message_label": "Tu mensaje",
+    "message_hint": "Escribe tu mensaje aquí...",
+    "other_contact_methods": "Otras formas de contacto"
+  },
+  "devotionals_page": {
+    "added_to_favorites": "Devocional agregado a favoritos",
+    "removed_from_favorites": "Devocional removido de favoritos"
   }
 }

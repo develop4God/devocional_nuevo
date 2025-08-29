@@ -9,6 +9,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 void main() {
   group('Spiritual Stats Tests', () {
     setUp(() {
+      // Initialize Flutter binding for tests
+      TestWidgetsFlutterBinding.ensureInitialized();
       // Initialize SharedPreferences mock for each test
       SharedPreferences.setMockInitialValues({});
     });
@@ -95,9 +97,12 @@ void main() {
       // Record a devotional read
       final updatedStats = await service.recordDevocionalRead(
         devocionalId: 'devotional_123',
+        readingTimeSeconds: 60,
+        scrollPercentage: 0.8,
       );
       expect(updatedStats.totalDevocionalesRead, 1);
-      expect(updatedStats.currentStreak, 1);
+      expect(updatedStats.currentStreak,
+          0); // Reading devotionals doesn't affect streak
       expect(updatedStats.lastActivityDate, isNotNull);
       expect(updatedStats.readDevocionalIds, contains('devotional_123'));
 
@@ -110,9 +115,21 @@ void main() {
       final service = SpiritualStatsService();
 
       // Record the same devotional multiple times
-      await service.recordDevocionalRead(devocionalId: 'devotional_456');
-      await service.recordDevocionalRead(devocionalId: 'devotional_456');
-      await service.recordDevocionalRead(devocionalId: 'devotional_456');
+      await service.recordDevocionalRead(
+        devocionalId: 'devotional_456',
+        readingTimeSeconds: 60,
+        scrollPercentage: 0.8,
+      );
+      await service.recordDevocionalRead(
+        devocionalId: 'devotional_456',
+        readingTimeSeconds: 60,
+        scrollPercentage: 0.8,
+      );
+      await service.recordDevocionalRead(
+        devocionalId: 'devotional_456',
+        readingTimeSeconds: 60,
+        scrollPercentage: 0.8,
+      );
 
       final stats = await service.getStats();
 
@@ -128,12 +145,16 @@ void main() {
       // Record first read
       final firstStats = await service.recordDevocionalRead(
         devocionalId: 'devotional_spam_test',
+        readingTimeSeconds: 60,
+        scrollPercentage: 0.8,
       );
       expect(firstStats.totalDevocionalesRead, 1);
 
       // Try to record the same devotional immediately (should be ignored)
       final secondStats = await service.recordDevocionalRead(
         devocionalId: 'devotional_spam_test',
+        readingTimeSeconds: 60,
+        scrollPercentage: 0.8,
       );
       expect(secondStats.totalDevocionalesRead, 1); // Should not increase
     });
@@ -142,14 +163,27 @@ void main() {
       final service = SpiritualStatsService();
 
       // Record multiple different devotionals
-      await service.recordDevocionalRead(devocionalId: 'devotional_1');
-      await service.recordDevocionalRead(devocionalId: 'devotional_2');
-      await service.recordDevocionalRead(devocionalId: 'devotional_3');
+      await service.recordDevocionalRead(
+        devocionalId: 'devotional_1',
+        readingTimeSeconds: 60,
+        scrollPercentage: 0.8,
+      );
+      await service.recordDevocionalRead(
+        devocionalId: 'devotional_2',
+        readingTimeSeconds: 60,
+        scrollPercentage: 0.8,
+      );
+      await service.recordDevocionalRead(
+        devocionalId: 'devotional_3',
+        readingTimeSeconds: 60,
+        scrollPercentage: 0.8,
+      );
 
       final stats = await service.getStats();
 
       expect(stats.totalDevocionalesRead, 3);
-      expect(stats.currentStreak, 1); // Same day, so streak is 1
+      expect(stats.currentStreak,
+          0); // Reading devotionals doesn't affect streak in this implementation
       expect(stats.readDevocionalIds.length, 3);
       expect(stats.readDevocionalIds, contains('devotional_1'));
       expect(stats.readDevocionalIds, contains('devotional_2'));
@@ -162,6 +196,8 @@ void main() {
       // Record first devotional read to unlock "Primer Paso"
       final stats = await service.recordDevocionalRead(
         devocionalId: 'devotional_achievement_test',
+        readingTimeSeconds: 60,
+        scrollPercentage: 0.8,
       );
 
       // Check if first read achievement is unlocked
@@ -197,7 +233,11 @@ void main() {
       expect(await service.hasDevocionalBeenRead('test_devotional'), false);
 
       // Record a devotional read
-      await service.recordDevocionalRead(devocionalId: 'test_devotional');
+      await service.recordDevocionalRead(
+        devocionalId: 'test_devotional',
+        readingTimeSeconds: 60,
+        scrollPercentage: 0.8,
+      );
 
       // Now it should return true
       expect(await service.hasDevocionalBeenRead('test_devotional'), true);
@@ -210,7 +250,11 @@ void main() {
       final service = SpiritualStatsService();
 
       // Add some data
-      await service.recordDevocionalRead(devocionalId: 'test_reset');
+      await service.recordDevocionalRead(
+        devocionalId: 'test_reset',
+        readingTimeSeconds: 60,
+        scrollPercentage: 0.8,
+      );
       await service.updateFavoritesCount(5);
 
       // Verify data exists

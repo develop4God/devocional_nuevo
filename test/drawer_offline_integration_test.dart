@@ -18,6 +18,9 @@ void main() {
   late MockThemeProvider mockThemeProvider;
 
   setUp(() {
+    // Initialize Flutter binding for tests
+    TestWidgetsFlutterBinding.ensureInitialized();
+    // Initialize SharedPreferences mock for each test
     // Inicializa SharedPreferences en modo mock
     SharedPreferences.setMockInitialValues({});
 

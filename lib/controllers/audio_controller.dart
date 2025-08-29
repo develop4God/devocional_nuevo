@@ -47,6 +47,9 @@ class AudioController extends ChangeNotifier {
   bool get isActive =>
       _currentState == TtsState.playing || _currentState == TtsState.paused;
 
+  // Getter for TTS service to allow language context updates
+  TtsService get ttsService => _ttsService;
+
   /// FIX: Verifica si un devocional específico está activo - LÓGICA CORREGIDA
   bool isDevocionalPlaying(String devocionalId) {
     // FIX CRÍTICO: Leer directamente del servicio para evitar cache stale
@@ -519,11 +522,38 @@ class AudioController extends ChangeNotifier {
     }
   }
 
+  Future<List<String>> getAvailableVoices() async {
+    try {
+      return await _ttsService.getVoices();
+    } catch (e) {
+      debugPrint('AudioController: Error getting voices: $e');
+      return [];
+    }
+  }
+
+  Future<List<String>> getVoicesForLanguage(String language) async {
+    try {
+      return await _ttsService.getVoicesForLanguage(language);
+    } catch (e) {
+      debugPrint('AudioController: Error getting voices for language: $e');
+      return [];
+    }
+  }
+
   Future<void> setLanguage(String language) async {
     try {
       await _ttsService.setLanguage(language);
     } catch (e) {
       debugPrint('AudioController: Error setting language: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> setVoice(Map<String, String> voice) async {
+    try {
+      await _ttsService.setVoice(voice);
+    } catch (e) {
+      debugPrint('AudioController: Error setting voice: $e');
       rethrow;
     }
   }

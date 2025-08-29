@@ -11,6 +11,8 @@ void main() {
   late MockDevocionalProvider mockProvider;
 
   setUp(() {
+    // Initialize Flutter binding for tests
+    TestWidgetsFlutterBinding.ensureInitialized();
     mockProvider = MockDevocionalProvider();
     when(() => mockProvider.isDownloading).thenReturn(false);
     when(() => mockProvider.downloadStatus).thenReturn(null);

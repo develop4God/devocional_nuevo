@@ -81,7 +81,6 @@ class TtsService {
   Future<void> initialize() async => await _initialize();
   // =======================================================================
 
-
   // =========================
   // CHUNK NAVIGATION SUPPORT
   // =========================
@@ -383,7 +382,7 @@ class TtsService {
   /// Formatea dinámicamente los libros con ordinal si comienza con 1, 2, 3
   String formatBibleBook(String reference) {
     final exp =
-    RegExp(r'^([123])\s+([A-Za-záéíóúÁÉÍÓÚñÑ]+)', caseSensitive: false);
+        RegExp(r'^([123])\s+([A-Za-záéíóúÁÉÍÓÚñÑ]+)', caseSensitive: false);
     final match = exp.firstMatch(reference.trim());
     if (match != null) {
       final number = match.group(1)!;
@@ -437,7 +436,7 @@ class TtsService {
 
     normalized = normalized.replaceAllMapped(
       RegExp(r'\b(19\d{2}|20\d{2})\b'),
-          (match) {
+      (match) {
         final year = match.group(1)!;
         final yearInt = int.parse(year);
         String result;
@@ -470,7 +469,7 @@ class TtsService {
       RegExp(
           r'(\b(?:\d+\s+)?[A-Za-záéíóúÁÉÍÓÚñÑ]+)\s+(\d+):(\d+)(?:-(\d+))?(?::(\d+))?',
           caseSensitive: false),
-          (match) {
+      (match) {
         final book = match.group(1)!;
         final chapter = match.group(2)!;
         final verseStart = match.group(3)!;
@@ -495,7 +494,7 @@ class TtsService {
       RegExp(
           r'\b(\d{1,2}):(\d{2})\s*(am|pm|a\.m\.|p\.m\.|de la mañana|de la tarde|de la noche)\b',
           caseSensitive: false),
-          (match) {
+      (match) {
         final hour = match.group(1)!;
         final minute = match.group(2)!;
         final period = match.group(3)!;
@@ -514,7 +513,7 @@ class TtsService {
     normalized = normalized.replaceAllMapped(
       RegExp(
           r'\b(\d+):(\d+)\b(?!\s*(am|pm|a\.m\.|p\.m\.|de la|capítulo|versículo))'),
-          (match) {
+      (match) {
         final first = match.group(1)!;
         final second = match.group(2)!;
         return '$first a $second';
@@ -544,7 +543,7 @@ class TtsService {
 
     normalized = normalized.replaceAllMapped(
       RegExp(r'\b(\d+)([º°ª])\b'),
-          (match) {
+      (match) {
         final number = int.tryParse(match.group(1)!) ?? 0;
         String result;
 
