@@ -472,6 +472,10 @@ class TtsService {
     switch (language) {
       case 'en':
         return text
+            .replaceAll('versiculo:', 'Verse:')
+            .replaceAll('reflexion:', 'Reflection:')
+            .replaceAll('para_meditar:', 'To Meditate:')
+            .replaceAll('Oracion:', 'Prayer:')
             .replaceAll('vs.', 'verse')
             .replaceAll('vv.', 'verses')
             .replaceAll('ch.', 'chapter')
@@ -1013,11 +1017,12 @@ class TtsService {
     return reference;
   }
 
-  List<String> _generateChunks(Devocional devocional) {
+  List<String> _generateChunks(Devocional devocional,
+      [String? targetLanguage]) {
     List<String> chunks = [];
-    final currentLang = _currentLanguage;
+    final currentLang = targetLanguage ?? _currentLanguage;
 
-    // Get language-specific section headers
+    // Get language-specific section headers usando el idioma objetivo
     final sectionHeaders = _getSectionHeaders(currentLang);
 
     if (devocional.versiculo.trim().isNotEmpty) {
