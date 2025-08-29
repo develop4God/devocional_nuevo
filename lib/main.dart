@@ -1,8 +1,6 @@
 import 'dart:developer' as developer;
 
 import 'package:devocional_nuevo/controllers/audio_controller.dart';
-// Importa tu runner pero solo para helpers, no para el control de la UI
-import 'package:devocional_nuevo/game_loop_runner.dart' as runner;
 import 'package:devocional_nuevo/pages/settings_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/providers/localization_provider.dart';
@@ -23,8 +21,8 @@ import 'package:provider/provider.dart';
 import 'package:timezone/data/latest_all.dart' as tzdata;
 import 'package:timezone/timezone.dart' as tz;
 
-// Usa el mismo navigatorKey global
-final GlobalKey<NavigatorState> navigatorKey = runner.navigatorKey;
+// Global navigator key for app navigation
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -183,22 +181,15 @@ class _AppInitializerState extends State<AppInitializer> {
           'AppInitializer: Servicios de notificación (FCM) registrados correctamente.',
           name: 'MainApp');
 
-      // --- Solicita permiso de notificaciones solo si NO es Test Lab/Game Loop ---
-      developer.log('Chequeando acción de intent para TestLab/GameLoop...',
-          name: 'DebugFlow');
-      final String? action = await runner.getInitialIntentAction();
-      developer.log('Acción obtenida: $action', name: 'DebugFlow');
-      final bool isTestLab = action == "com.google.intent.action.TEST_LOOP";
-      developer.log('isTestLab = $isTestLab', name: 'DebugFlow');
-      if (!isTestLab) {
-        developer.log('Solicitando permiso de notificaciones...',
-            name: 'DebugFlow');
+      // Request notification permissions if not in debug mode
+      if (!kDebugMode) {
+        developer.log('Solicitando permiso de notificaciones...', name: 'DebugFlow');
         final settings = await FirebaseMessaging.instance.requestPermission();
         developer.log(
             'Permiso solicitado, estado: ${settings.authorizationStatus}',
             name: 'DebugFlow');
       } else {
-        developer.log('NO se solicita permiso de notificaciones por Game Loop',
+        developer.log('NO se solicita permiso de notificaciones en modo debug',
             name: 'DebugFlow');
       }
     } catch (e) {
@@ -239,13 +230,10 @@ class _AppInitializerState extends State<AppInitializer> {
   }
 
   Future<void> _checkGameLoop() async {
-    final String? action = await runner.getInitialIntentAction();
+    // No longer needed - removed game loop functionality
     setState(() {
-      // Solo activa GameLoop si está en debug mode Y el intent lo pide
-      _isGameLoop =
-          kDebugMode && (action == "com.google.intent.action.TEST_LOOP");
+      _isGameLoop = false;
     });
-    // No se llama aquí a runAutomatedGameLoop ni reportTestResultAndExit
   }
 
   @override
@@ -257,11 +245,8 @@ class _AppInitializerState extends State<AppInitializer> {
         debugShowCheckedModeBanner: false,
       );
     }
-    if (_isGameLoop == true) {
-      return const GameLoopWidget();
-    }
 
-    // App normal
+    // App normal (game loop functionality removed)
     return const MyApp();
   }
 }
@@ -284,48 +269,6 @@ class MyApp extends StatelessWidget {
       supportedLocales: localizationProvider.supportedLocales,
       locale: localizationProvider.currentLocale,
       home: const SplashScreen(),
-      routes: {
-        '/settings': (context) => const SettingsPage(),
-      },
-    );
-  }
-}
-
-class GameLoopWidget extends StatefulWidget {
-  const GameLoopWidget({super.key});
-
-  @override
-  State<GameLoopWidget> createState() => _GameLoopWidgetState();
-}
-
-class _GameLoopWidgetState extends State<GameLoopWidget> {
-  bool _started = false;
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      if (!_started) {
-        _started = true;
-        try {
-          await runner.runAutomatedGameLoop();
-          await runner.reportTestResultAndExit(
-              true, "Game loop test completed successfully.");
-        } catch (e) {
-          await runner.reportTestResultAndExit(
-              false, "Game loop test failed: $e");
-        }
-      }
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      navigatorKey: navigatorKey,
-      debugShowCheckedModeBanner: false,
-      title: 'Devocionales',
-      home: runner.testHomeWidget(),
       routes: {
         '/settings': (context) => const SettingsPage(),
       },
