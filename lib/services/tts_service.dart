@@ -3,8 +3,8 @@ import 'dart:developer' as developer;
 import 'dart:io' show Platform;
 
 import 'package:devocional_nuevo/models/devocional_model.dart';
-import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
 import 'package:devocional_nuevo/services/localization_service.dart';
+import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
@@ -477,6 +477,7 @@ class TtsService {
         return text
             .replaceAll('versiculo:', 'Verse:')
             .replaceAll('reflexion:', 'Reflection:')
+            .replaceAll('capitulo:', 'chapter:')
             .replaceAll('para_meditar:', 'To Meditate:')
             .replaceAll('Oracion:', 'Prayer:')
             .replaceAll('vs.', 'verse')
@@ -1497,7 +1498,7 @@ class TtsService {
   List<String> generateChunksForTesting(Devocional devocional) {
     return _generateChunks(devocional);
   }
-  
+
   // Test helper method to expose section headers for testing
   @visibleForTesting
   Map<String, String> getSectionHeadersForTesting(String language) {
