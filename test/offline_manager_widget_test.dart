@@ -22,6 +22,11 @@ void main() {
         .thenAnswer((_) async => false);
     // Mock para clearDownloadStatus si se usa
     when(() => mockProvider.clearDownloadStatus()).thenReturn(null);
+    // Mock download methods
+    when(() => mockProvider.downloadCurrentYearDevocionales())
+        .thenAnswer((_) async => true);
+    when(() => mockProvider.forceRefreshFromAPI())
+        .thenAnswer((_) async => {});
   });
 
   Widget createWidgetUnderTest({
@@ -32,9 +37,11 @@ void main() {
       home: ChangeNotifierProvider<DevocionalProvider>.value(
         value: mockProvider,
         child: Scaffold(
-          body: OfflineManagerWidget(
-            showCompactView: showCompactView,
-            showStatusIndicator: showStatusIndicator,
+          body: Builder(
+            builder: (context) => OfflineManagerWidget(
+              showCompactView: showCompactView,
+              showStatusIndicator: showStatusIndicator,
+            ),
           ),
         ),
       ),
@@ -42,6 +49,20 @@ void main() {
   }
 
   group('OfflineManagerWidget', () {
+    setUp(() {
+      // Reset all mocks before each test
+      reset(mockProvider);
+      when(() => mockProvider.isDownloading).thenReturn(false);
+      when(() => mockProvider.downloadStatus).thenReturn(null);
+      when(() => mockProvider.isOfflineMode).thenReturn(false);
+      when(() => mockProvider.hasCurrentYearLocalData())
+          .thenAnswer((_) async => false);
+      when(() => mockProvider.clearDownloadStatus()).thenReturn(null);
+      when(() => mockProvider.downloadCurrentYearDevocionales())
+          .thenAnswer((_) async => true);
+      when(() => mockProvider.forceRefreshFromAPI())
+          .thenAnswer((_) async => {});
+    });
     testWidgets('should render in compact view', (WidgetTester tester) async {
       // Simula que NO hay datos locales
       when(() => mockProvider.hasCurrentYearLocalData())
@@ -51,27 +72,21 @@ void main() {
       await tester.pump(); // Primer render
       await tester.pump(); // Permitir que se complete el Future
 
-      // Debug: Imprimir el árbol de widgets si no encuentra nada
-      if (find.byType(ElevatedButton).evaluate().isEmpty) {
-        debugPrint('No ElevatedButton found, widget tree:');
-        debugPrint(tester.binding.rootElement?.toStringDeep());
-      }
-
-      // Buscar cualquier tipo de botón presionable
-      final buttonFinder = find.byWidgetPredicate((widget) =>
-          widget is ElevatedButton ||
-          widget is TextButton ||
-          widget is OutlinedButton ||
-          widget is IconButton ||
-          widget is InkWell ||
-          widget is GestureDetector);
-
-      if (buttonFinder.evaluate().isNotEmpty) {
-        expect(buttonFinder, findsAtLeastNWidgets(1));
-      }
-
-      // Buscar texto específico independientemente del tipo de widget
-      expect(find.textContaining('Descargar'), findsWidgets);
+      // Verificar que el widget se renderiza
+      expect(find.byType(OfflineManagerWidget), findsOneWidget);
+      
+      // Verificar que el texto del botón está presente
+      expect(find.text('Descargar año actual'), findsOneWidget);
+      
+      // Verificar que hay un widget clickeable con el texto de descarga
+      final downloadButton = find.ancestor(
+        of: find.text('Descargar año actual'),
+        matching: find.byWidgetPredicate((widget) => 
+          widget is ElevatedButton || 
+          widget is TextButton || 
+          widget is OutlinedButton),
+      );
+      expect(downloadButton, findsOneWidget);
     });
 
     testWidgets('should render in full view with both buttons',
@@ -84,27 +99,28 @@ void main() {
       await tester.pump(); // Primer render
       await tester.pump(); // Permitir que se complete el Future
 
-      // Buscar cualquier widget presionable
-      find.byWidgetPredicate((widget) =>
-          widget is ElevatedButton ||
-          widget is TextButton ||
-          widget is OutlinedButton ||
-          widget is InkWell ||
-          widget is GestureDetector);
-
-      // Si no hay botones, al menos verificar que el widget se renderiza
-      expect(find.byType(OfflineManagerWidget), findsOneWidget);
-
-      // Buscar textos relacionados con descarga
-      final downloadText = find.textContaining('Descargar');
-      final updateText = find.textContaining('Actualizar');
-
-      if (downloadText.evaluate().isNotEmpty) {
-        expect(downloadText, findsWidgets);
-      }
-      if (updateText.evaluate().isNotEmpty) {
-        expect(updateText, findsWidgets);
-      }
+      // Verificar textos de los botones
+      expect(find.text('Descargar año actual'), findsOneWidget);
+      expect(find.text('Actualizar'), findsOneWidget);
+      
+      // Verificar que hay botones clickeables para cada texto
+      final downloadButton = find.ancestor(
+        of: find.text('Descargar año actual'),
+        matching: find.byWidgetPredicate((widget) => 
+          widget is ElevatedButton || 
+          widget is TextButton || 
+          widget is OutlinedButton),
+      );
+      expect(downloadButton, findsOneWidget);
+      
+      final updateButton = find.ancestor(
+        of: find.text('Actualizar'),
+        matching: find.byWidgetPredicate((widget) => 
+          widget is ElevatedButton || 
+          widget is TextButton || 
+          widget is OutlinedButton),
+      );
+      expect(updateButton, findsOneWidget);
     });
 
     testWidgets('should show offline mode indicator when in offline mode',
