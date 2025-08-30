@@ -1,0 +1,96 @@
+[
+  {
+    "type": "wait",
+    "delay": 8000
+  },
+  {
+    "type": "click",
+    "resourceName": "com.develop4god.devocional_nuevo:id/drawer_button",
+    "delay": 2000
+  },
+  {
+    "type": "click",
+    "text": "Configuración",
+    "delay": 2000
+  },
+  {
+    "type": "click",
+    "text": "Idioma de la aplicación",
+    "delay": 2000
+  },
+  {
+    "type": "click",
+    "text": "English",
+    "delay": 3000
+  },
+  {
+    "type": "wait",
+    "delay": 15000
+  },
+  {
+    "type": "click",
+    "resourceName": "com.develop4god.devocional_nuevo:id/back_button",
+    "delay": 2000
+  },
+  {
+    "type": "click",
+    "resourceName": "com.develop4god.devocional_nuevo:id/back_button",
+    "delay": 2000
+  },
+  {
+    "type": "wait",
+    "delay": 3000
+  },
+  {
+    "type": "swipe",
+    "resourceName": "com.develop4god.devocional_nuevo:id/page_view",
+    "direction": "left",
+    "delay": 2000
+  },
+  {
+    "type": "scrollTo",
+    "resourceName": "com.develop4god.devocional_nuevo:id/content_scroll",
+    "direction": "down",
+    "delay": 2000
+  },
+  {
+    "type": "scrollTo",
+    "resourceName": "com.develop4god.devocional_nuevo:id/content_scroll",
+    "direction": "up",
+    "delay": 2000
+  },
+  {
+    "type": "click",
+    "resourceName": "com.develop4god.devocional_nuevo:id/favorite_button",
+    "delay": 2000
+  },
+  {
+    "type": "click",
+    "resourceName": "com.develop4god.devocional_nuevo:id/tts_play_button",
+    "delay": 5000
+  },
+  {
+    "type": "click",
+    "resourceName": "com.develop4god.devocional_nuevo:id/tts_stop_button",
+    "delay": 2000
+  },
+  {
+    "type": "click",
+    "resourceName": "com.develop4god.devocional_nuevo:id/drawer_button",
+    "delay": 2000
+  },
+  {
+    "type": "click",
+    "text": "Favorites",
+    "delay": 2000
+  },
+  {
+    "type": "wait",
+    "delay": 3000
+  },
+  {
+    "type": "click",
+    "resourceName": "com.develop4god.devocional_nuevo:id/back_button",
+    "delay": 2000
+  }
+]

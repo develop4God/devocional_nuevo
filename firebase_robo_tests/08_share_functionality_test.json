@@ -1,0 +1,87 @@
+[
+  {
+    "type": "wait",
+    "delay": 8000
+  },
+  {
+    "type": "click",
+    "text": "Preparando tu experiencia espiritual...",
+    "delay": 3000
+  },
+  {
+    "type": "click",
+    "resourceName": "com.develop4god.devocional_nuevo:id/share_button",
+    "delay": 3000
+  },
+  {
+    "type": "click",
+    "text": "Copiar al portapapeles",
+    "delay": 2000
+  },
+  {
+    "type": "click",
+    "resourceName": "com.develop4god.devocional_nuevo:id/share_button",
+    "delay": 3000
+  },
+  {
+    "type": "click",
+    "text": "Más opciones",
+    "delay": 2000
+  },
+  {
+    "type": "click",
+    "text": "Cancelar",
+    "delay": 2000
+  },
+  {
+    "type": "swipe",
+    "resourceName": "com.develop4god.devocional_nuevo:id/page_view",
+    "direction": "left",
+    "delay": 2000
+  },
+  {
+    "type": "click",
+    "resourceName": "com.develop4god.devocional_nuevo:id/share_image_button",
+    "delay": 5000
+  },
+  {
+    "type": "click",
+    "text": "Cancelar",
+    "delay": 2000
+  },
+  {
+    "type": "longClick",
+    "text": "Versículo",
+    "delay": 2000
+  },
+  {
+    "type": "click",
+    "text": "Copiar",
+    "delay": 1000
+  },
+  {
+    "type": "longClick",
+    "text": "Reflexión",
+    "delay": 2000
+  },
+  {
+    "type": "click",
+    "text": "Seleccionar todo",
+    "delay": 1000
+  },
+  {
+    "type": "click",
+    "text": "Copiar",
+    "delay": 1000
+  },
+  {
+    "type": "click",
+    "resourceName": "com.develop4god.devocional_nuevo:id/calendar_button",
+    "delay": 2000
+  },
+  {
+    "type": "click",
+    "text": "Hoy",
+    "delay": 2000
+  }
+]

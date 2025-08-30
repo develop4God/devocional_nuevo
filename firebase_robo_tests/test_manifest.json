@@ -1,0 +1,291 @@
+{
+  "test_suite": {
+    "name": "Devocionales Cristianos - Firebase Robo Test Suite",
+    "version": "1.0.0",
+    "app_package": "com.develop4god.devocional_nuevo",
+    "main_activity": ".MainActivity",
+    "description": "Comprehensive automated testing suite for the Christian devotional app covering all major functionality including multilingual content download, TTS, prayers, favorites, and offline functionality.",
+    "total_tests": 15,
+    "estimated_runtime": "60-90 minutes",
+    "coverage": {
+      "ui_navigation": 100,
+      "core_features": 100,
+      "multilingual": 100,
+      "offline_functionality": 90,
+      "edge_cases": 85
+    }
+  },
+  "test_files": [
+    {
+      "id": 1,
+      "filename": "01_basic_app_navigation.json",
+      "name": "Basic App Navigation",
+      "description": "Tests fundamental navigation through all main app screens",
+      "duration_minutes": 3,
+      "priority": "critical",
+      "features_tested": [
+        "splash_screen",
+        "navigation_drawer", 
+        "settings_page",
+        "about_page",
+        "contact_page",
+        "favorites_page",
+        "prayers_page"
+      ]
+    },
+    {
+      "id": 2,
+      "filename": "02_language_download_test.json",
+      "name": "Language Download Test",
+      "description": "Tests downloading devotional content in all 4 supported languages",
+      "duration_minutes": 5,
+      "priority": "critical",
+      "features_tested": [
+        "language_selection",
+        "content_download",
+        "progress_indicators",
+        "fallback_logic",
+        "ui_translation"
+      ]
+    },
+    {
+      "id": 3,
+      "filename": "03_devotional_reading_test.json", 
+      "name": "Devotional Reading Test",
+      "description": "Tests core devotional reading functionality and navigation",
+      "duration_minutes": 4,
+      "priority": "critical",
+      "features_tested": [
+        "page_navigation",
+        "favorites_toggle",
+        "calendar_picker",
+        "share_functionality",
+        "content_scrolling"
+      ]
+    },
+    {
+      "id": 4,
+      "filename": "04_tts_functionality_test.json",
+      "name": "TTS Functionality Test", 
+      "description": "Tests text-to-speech system including voice selection and playback controls",
+      "duration_minutes": 4,
+      "priority": "high",
+      "features_tested": [
+        "voice_selection",
+        "tts_playback",
+        "speed_control",
+        "play_pause_stop",
+        "language_specific_voices"
+      ]
+    },
+    {
+      "id": 5,
+      "filename": "05_prayer_management_test.json",
+      "name": "Prayer Management Test",
+      "description": "Tests CRUD operations for personal prayers",
+      "duration_minutes": 4,
+      "priority": "high",
+      "features_tested": [
+        "add_prayer",
+        "edit_prayer", 
+        "delete_prayer",
+        "prayer_persistence",
+        "modal_forms"
+      ]
+    },
+    {
+      "id": 6,
+      "filename": "06_settings_configuration_test.json",
+      "name": "Settings Configuration Test",
+      "description": "Tests various app settings and configuration options",
+      "duration_minutes": 4,
+      "priority": "medium",
+      "features_tested": [
+        "notification_settings",
+        "theme_switching",
+        "font_size",
+        "paypal_integration",
+        "settings_persistence"
+      ]
+    },
+    {
+      "id": 7,
+      "filename": "07_favorites_management_test.json",
+      "name": "Favorites Management Test",
+      "description": "Tests adding, viewing, and removing favorite devotionals",
+      "duration_minutes": 4,
+      "priority": "high",
+      "features_tested": [
+        "add_favorites",
+        "view_favorites", 
+        "remove_favorites",
+        "favorites_navigation",
+        "favorites_persistence"
+      ]
+    },
+    {
+      "id": 8,
+      "filename": "08_share_functionality_test.json",
+      "name": "Share Functionality Test", 
+      "description": "Tests sharing devotionals via various methods",
+      "duration_minutes": 3,
+      "priority": "medium",
+      "features_tested": [
+        "text_sharing",
+        "image_sharing",
+        "clipboard_copy",
+        "share_sheet",
+        "text_selection"
+      ]
+    },
+    {
+      "id": 9,
+      "filename": "09_progress_tracking_test.json",
+      "name": "Progress Tracking Test",
+      "description": "Tests spiritual progress tracking and statistics",
+      "duration_minutes": 3,
+      "priority": "medium", 
+      "features_tested": [
+        "progress_visualization",
+        "statistics_display",
+        "time_period_selection",
+        "progress_persistence"
+      ]
+    },
+    {
+      "id": 10,
+      "filename": "10_multilingual_functionality_test.json",
+      "name": "Multilingual Functionality Test",
+      "description": "Tests complete multilingual experience with language switching",
+      "duration_minutes": 5,
+      "priority": "critical",
+      "features_tested": [
+        "language_switching",
+        "ui_translation",
+        "content_translation",
+        "tts_language_adaptation",
+        "multilingual_navigation"
+      ]
+    },
+    {
+      "id": 11,
+      "filename": "11_date_navigation_test.json",
+      "name": "Date Navigation Test",
+      "description": "Tests navigation between different dates and devotionals",
+      "duration_minutes": 4,
+      "priority": "high",
+      "features_tested": [
+        "calendar_navigation",
+        "date_selection",
+        "page_swiping",
+        "today_button",
+        "date_persistence"
+      ]
+    },
+    {
+      "id": 12,
+      "filename": "12_notification_settings_test.json",
+      "name": "Notification Settings Test",
+      "description": "Tests notification configuration and permissions",
+      "duration_minutes": 3,
+      "priority": "medium",
+      "features_tested": [
+        "notification_permissions",
+        "time_configuration",
+        "sound_selection",
+        "frequency_settings",
+        "test_notifications"
+      ]
+    },
+    {
+      "id": 13,
+      "filename": "13_comprehensive_workflow_test.json",
+      "name": "Comprehensive Workflow Test",
+      "description": "Simulates real user workflow with multiple feature interactions",
+      "duration_minutes": 6,
+      "priority": "critical",
+      "features_tested": [
+        "end_to_end_workflow",
+        "feature_integration",
+        "user_journey_simulation",
+        "cross_feature_interactions"
+      ]
+    },
+    {
+      "id": 14,
+      "filename": "14_offline_functionality_test.json",
+      "name": "Offline Functionality Test",
+      "description": "Tests app functionality without internet connection",
+      "duration_minutes": 4,
+      "priority": "high",
+      "features_tested": [
+        "offline_navigation",
+        "cached_content",
+        "offline_tts",
+        "offline_favorites",
+        "airplane_mode_testing"
+      ]
+    },
+    {
+      "id": 15,
+      "filename": "15_critical_download_validation.json",
+      "name": "Critical Download Validation",
+      "description": "Focused test on critical download functionality with extended timeouts",
+      "duration_minutes": 7,
+      "priority": "critical",
+      "features_tested": [
+        "download_reliability",
+        "fallback_mechanisms",
+        "progress_tracking",
+        "error_handling",
+        "download_completion"
+      ]
+    }
+  ],
+  "supported_devices": [
+    {
+      "model": "Pixel2",
+      "api_level": 28,
+      "android_version": "9.0"
+    },
+    {
+      "model": "Pixel3", 
+      "api_level": 29,
+      "android_version": "10.0"
+    },
+    {
+      "model": "walleye",
+      "api_level": 30,
+      "android_version": "11.0"
+    }
+  ],
+  "supported_locales": [
+    "es",
+    "en", 
+    "pt",
+    "fr"
+  ],
+  "test_requirements": {
+    "internet_connection": true,
+    "storage_space_mb": 500,
+    "ram_mb": 2048,
+    "permissions_required": [
+      "INTERNET",
+      "WRITE_EXTERNAL_STORAGE",
+      "POST_NOTIFICATIONS",
+      "WAKE_LOCK"
+    ]
+  },
+  "execution_instructions": {
+    "setup": [
+      "Ensure device has internet connection",
+      "Clear app data before testing", 
+      "Grant all required permissions",
+      "Verify sufficient storage space"
+    ],
+    "batch_execution": "Use run_all_tests.sh script for automated execution",
+    "individual_execution": "Use gcloud firebase test android robo commands",
+    "timeout_minutes": 15,
+    "results_bucket": "gs://{project-id}_test_results"
+  }
+}

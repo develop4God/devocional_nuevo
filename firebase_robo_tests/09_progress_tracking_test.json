@@ -1,0 +1,88 @@
+[
+  {
+    "type": "wait",
+    "delay": 8000
+  },
+  {
+    "type": "click",
+    "resourceName": "com.develop4god.devocional_nuevo:id/drawer_button",
+    "delay": 2000
+  },
+  {
+    "type": "click",
+    "text": "Progreso",
+    "delay": 2000
+  },
+  {
+    "type": "wait",
+    "delay": 3000
+  },
+  {
+    "type": "scrollTo",
+    "direction": "down",
+    "delay": 2000
+  },
+  {
+    "type": "scrollTo",
+    "direction": "up",
+    "delay": 2000
+  },
+  {
+    "type": "click",
+    "resourceName": "com.develop4god.devocional_nuevo:id/back_button",
+    "delay": 2000
+  },
+  {
+    "type": "swipe",
+    "resourceName": "com.develop4god.devocional_nuevo:id/page_view",
+    "direction": "left",
+    "delay": 2000
+  },
+  {
+    "type": "swipe",
+    "resourceName": "com.develop4god.devocional_nuevo:id/page_view",
+    "direction": "left",
+    "delay": 2000
+  },
+  {
+    "type": "swipe",
+    "resourceName": "com.develop4god.devocional_nuevo:id/page_view",
+    "direction": "left",
+    "delay": 2000
+  },
+  {
+    "type": "swipe",
+    "resourceName": "com.develop4god.devocional_nuevo:id/page_view",
+    "direction": "left",
+    "delay": 2000
+  },
+  {
+    "type": "click",
+    "resourceName": "com.develop4god.devocional_nuevo:id/drawer_button",
+    "delay": 2000
+  },
+  {
+    "type": "click",
+    "text": "Progreso",
+    "delay": 2000
+  },
+  {
+    "type": "wait",
+    "delay": 5000
+  },
+  {
+    "type": "click",
+    "resourceName": "com.develop4god.devocional_nuevo:id/progress_week_view",
+    "delay": 2000
+  },
+  {
+    "type": "click",
+    "resourceName": "com.develop4god.devocional_nuevo:id/progress_month_view",
+    "delay": 2000
+  },
+  {
+    "type": "click",
+    "resourceName": "com.develop4god.devocional_nuevo:id/progress_year_view",
+    "delay": 2000
+  }
+]

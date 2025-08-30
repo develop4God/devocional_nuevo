@@ -1,0 +1,92 @@
+[
+  {
+    "type": "wait",
+    "delay": 8000
+  },
+  {
+    "type": "click",
+    "resourceName": "com.develop4god.devocional_nuevo:id/drawer_button",
+    "delay": 2000
+  },
+  {
+    "type": "click",
+    "text": "Configuración",
+    "delay": 2000
+  },
+  {
+    "type": "scrollTo",
+    "direction": "down",
+    "delay": 1500
+  },
+  {
+    "type": "click",
+    "resourceName": "com.develop4god.devocional_nuevo:id/tts_voice_dropdown",
+    "delay": 2000
+  },
+  {
+    "type": "click",
+    "text": "es-ES",
+    "delay": 2000
+  },
+  {
+    "type": "click",
+    "resourceName": "com.develop4god.devocional_nuevo:id/tts_speed_slider",
+    "delay": 1500
+  },
+  {
+    "type": "click",
+    "resourceName": "com.develop4god.devocional_nuevo:id/back_button",
+    "delay": 2000
+  },
+  {
+    "type": "click",
+    "resourceName": "com.develop4god.devocional_nuevo:id/tts_play_button",
+    "delay": 5000
+  },
+  {
+    "type": "click",
+    "resourceName": "com.develop4god.devocional_nuevo:id/tts_pause_button",
+    "delay": 2000
+  },
+  {
+    "type": "click",
+    "resourceName": "com.develop4god.devocional_nuevo:id/tts_stop_button",
+    "delay": 2000
+  },
+  {
+    "type": "swipe",
+    "resourceName": "com.develop4god.devocional_nuevo:id/page_view",
+    "direction": "left",
+    "delay": 2000
+  },
+  {
+    "type": "click",
+    "resourceName": "com.develop4god.devocional_nuevo:id/tts_play_button",
+    "delay": 5000
+  },
+  {
+    "type": "click",
+    "resourceName": "com.develop4god.devocional_nuevo:id/tts_stop_button",
+    "delay": 2000
+  },
+  {
+    "type": "click",
+    "resourceName": "com.develop4god.devocional_nuevo:id/drawer_button",
+    "delay": 2000
+  },
+  {
+    "type": "click",
+    "text": "Configuración",
+    "delay": 2000
+  },
+  {
+    "type": "click",
+    "resourceName": "com.develop4god.devocional_nuevo:id/tts_voice_dropdown",
+    "delay": 2000
+  },
+  {
+    "type": "click",
+    "text": "es-US",
+    "delay": 2000
+  }
+]
