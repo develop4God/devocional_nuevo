@@ -6,6 +6,8 @@ import 'package:devocional_nuevo/pages/application_language_page.dart';
 import 'package:devocional_nuevo/pages/contact_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/providers/localization_provider.dart';
+// Importar el nuevo servicio para voz
+import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 import 'package:devocional_nuevo/utils/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -23,6 +25,9 @@ class _SettingsPageState extends State<SettingsPage> {
   double _ttsSpeed = 0.4; // Velocidad de TTS por defecto
   List<String> _availableVoices = [];
   String? _selectedVoice;
+  bool _isLoadingVoices = false;
+
+  final VoiceSettingsService _voiceSettingsService = VoiceSettingsService();
 
   @override
   void initState() {
@@ -31,29 +36,103 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Future<void> _loadTtsSettings() async {
-    final devocionalProvider =
-        Provider.of<DevocionalProvider>(context, listen: false);
+    setState(() {
+      _isLoadingVoices = true;
+    });
+
     final localizationProvider =
         Provider.of<LocalizationProvider>(context, listen: false);
 
     try {
-      // Load available voices for current language
       final currentLanguage = localizationProvider.currentLocale.languageCode;
-      final voices =
-          await devocionalProvider.getVoicesForLanguage(currentLanguage);
 
-      // Load saved preferences
+      // Cargar velocidad desde SharedPreferences
       final prefs = await SharedPreferences.getInstance();
       final savedRate = prefs.getDouble('tts_rate') ?? 0.5;
-      final savedVoice = prefs.getString('tts_voice_$currentLanguage');
 
-      setState(() {
-        _ttsSpeed = savedRate;
-        _availableVoices = voices;
-        _selectedVoice = savedVoice;
-      });
+      // Cargar voces usando el servicio unificado
+      final voices =
+          await _voiceSettingsService.getVoicesForLanguage(currentLanguage);
+
+      // Cargar voz guardada usando el servicio unificado
+      final savedVoice =
+          await _voiceSettingsService.loadSavedVoice(currentLanguage);
+
+      if (mounted) {
+        setState(() {
+          _ttsSpeed = savedRate;
+          _availableVoices = voices
+              .where((voice) => voice.isNotEmpty)
+              .toSet() // Elimina duplicados
+              .toList();
+
+          // Establecer la voz seleccionada si existe y está disponible
+          _selectedVoice = (savedVoice != null &&
+                  _availableVoices.contains(savedVoice))
+              ? savedVoice
+              : (_availableVoices.isNotEmpty ? _availableVoices.first : null);
+
+          _isLoadingVoices = false;
+        });
+      }
     } catch (e) {
       developer.log('Error loading TTS settings: $e');
+      if (mounted) {
+        setState(() {
+          _isLoadingVoices = false;
+        });
+        _showErrorSnackBar('Error loading voice settings: $e');
+      }
+    }
+  }
+
+  Future<void> _onVoiceChanged(String? newVoice) async {
+    if (newVoice == null || !mounted) return;
+
+    setState(() {
+      _selectedVoice = newVoice;
+    });
+
+    try {
+      final voiceParts = newVoice.split(' (');
+      final voiceName = voiceParts[0].replaceAll(
+          RegExp(r' \([^)]*\)$'), ''); // Remover info de género si existe
+      final locale =
+          voiceParts.length > 1 ? voiceParts[1].replaceAll(')', '') : '';
+
+      final localizationProvider =
+          Provider.of<LocalizationProvider>(context, listen: false);
+      final currentLanguage = localizationProvider.currentLocale.languageCode;
+
+      // Guardar voz con el servicio unificado
+      await _voiceSettingsService.saveVoice(currentLanguage, voiceName, locale);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('settings.voice_changed'.tr()),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      developer.log('Error saving voice: $e');
+      if (mounted) {
+        _showErrorSnackBar('Error saving voice: $e');
+      }
+    }
+  }
+
+  Future<void> _onSpeedChanged(double value) async {
+    try {
+      final devocionalProvider =
+          Provider.of<DevocionalProvider>(context, listen: false);
+      await devocionalProvider.setTtsSpeechRate(value);
+    } catch (e) {
+      developer.log('Error setting TTS speed: $e');
+      if (mounted) {
+        _showErrorSnackBar('Error setting speech rate: $e');
+      }
     }
   }
 
@@ -108,9 +187,12 @@ class _SettingsPageState extends State<SettingsPage> {
 
   void _showErrorSnackBar(String message) {
     if (mounted) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(message)));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
     }
   }
 
@@ -173,7 +255,8 @@ class _SettingsPageState extends State<SettingsPage> {
                 );
               },
               child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
+                padding:
+                    const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
                 child: Row(
                   children: [
                     Icon(Icons.language, color: colorScheme.primary),
@@ -191,7 +274,8 @@ class _SettingsPageState extends State<SettingsPage> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            Constants.supportedLanguages[localizationProvider.currentLocale.languageCode] ?? 
+                            Constants.supportedLanguages[localizationProvider
+                                    .currentLocale.languageCode] ??
                                 localizationProvider.currentLocale.languageCode,
                             style: textTheme.bodySmall?.copyWith(
                               color: colorScheme.onSurfaceVariant,
@@ -201,7 +285,8 @@ class _SettingsPageState extends State<SettingsPage> {
                         ],
                       ),
                     ),
-                    Icon(Icons.chevron_right, color: colorScheme.onSurfaceVariant),
+                    Icon(Icons.chevron_right,
+                        color: colorScheme.onSurfaceVariant),
                   ],
                 ),
               ),
@@ -244,32 +329,60 @@ class _SettingsPageState extends State<SettingsPage> {
                   _ttsSpeed = value;
                 });
               },
-              onChangeEnd: (double value) async {
-                // Save the TTS speed
-                final devocionalProvider =
-                    Provider.of<DevocionalProvider>(context, listen: false);
-                await devocionalProvider.setTtsSpeechRate(value);
-              },
+              onChangeEnd: _onSpeedChanged,
             ),
 
             const SizedBox(height: 20),
 
             // Voice Selection
-            if (_availableVoices.isNotEmpty) ...[
-              Row(
-                children: [
-                  Icon(Icons.record_voice_over, color: colorScheme.primary),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      'settings.tts_voice'.tr(),
-                      style: textTheme.bodyMedium?.copyWith(
-                          fontSize: 16, color: colorScheme.onSurface),
-                    ),
+            Row(
+              children: [
+                Icon(Icons.record_voice_over, color: colorScheme.primary),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'settings.tts_voice'.tr(),
+                    style: textTheme.bodyMedium
+                        ?.copyWith(fontSize: 16, color: colorScheme.onSurface),
                   ),
-                ],
-              ),
-              const SizedBox(height: 10),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+
+            // Voice dropdown con loading state
+            if (_isLoadingVoices)
+              const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: CircularProgressIndicator(),
+                ),
+              )
+            else if (_availableVoices.isEmpty)
+              Container(
+                padding: const EdgeInsets.all(16.0),
+                decoration: BoxDecoration(
+                  color: colorScheme.surfaceContainerHighest
+                      .withAlpha((255 * 0.5).round()),
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.info_outline,
+                        color: colorScheme.onSurfaceVariant),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        'settings.no_voices_available'.tr(),
+                        style: textTheme.bodyMedium?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            else
               DropdownButton<String>(
                 value: _selectedVoice,
                 isExpanded: true,
@@ -284,57 +397,12 @@ class _SettingsPageState extends State<SettingsPage> {
                     ),
                   );
                 }).toList(),
-                onChanged: (String? newVoice) async {
-                  if (newVoice != null && mounted) {
-                    setState(() {
-                      _selectedVoice = newVoice;
-                    });
-
-                    // Parse voice name and locale
-                    final voiceParts = newVoice.split(' (');
-                    final voiceName = voiceParts[0];
-                    final locale = voiceParts.length > 1
-                        ? voiceParts[1].replaceAll(')', '')
-                        : '';
-
-                    // Capture context before async operations
-                    final currentContext = context;
-                    final devocionalProvider = Provider.of<DevocionalProvider>(
-                        currentContext,
-                        listen: false);
-                    final localizationProvider =
-                        Provider.of<LocalizationProvider>(currentContext,
-                            listen: false);
-                    final currentLanguage =
-                        localizationProvider.currentLocale.languageCode;
-
-                    // Set the voice
-                    await devocionalProvider.setTtsVoice({
-                      'name': voiceName,
-                      'locale': locale,
-                    });
-
-                    // Save preference
-                    final prefs = await SharedPreferences.getInstance();
-                    await prefs.setString(
-                        'tts_voice_$currentLanguage', newVoice);
-
-                    if (mounted) {
-                      // ignore: use_build_context_synchronously
-                      ScaffoldMessenger.of(currentContext).showSnackBar(
-                        SnackBar(
-                          content: Text('settings.voice_changed'.tr()),
-                          duration: const Duration(seconds: 2),
-                        ),
-                      );
-                    }
-                  }
-                },
+                onChanged: _onVoiceChanged,
               ),
-              const SizedBox(height: 20),
-            ],
 
-            // Contact Information
+            const SizedBox(height: 20),
+
+            // Contact and About Sections
             InkWell(
               onTap: () {
                 Navigator.push(

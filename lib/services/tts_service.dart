@@ -6,6 +6,9 @@ import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/services/localization_service.dart';
 import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
 import 'package:devocional_nuevo/services/tts/bible_text_formatter.dart';
+// ✅ AGREGADO: Import de SpecializedTextNormalizer
+import 'package:devocional_nuevo/services/tts/specialized_text_normalizer.dart';
+import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
@@ -34,19 +37,17 @@ class TtsService {
 
   final FlutterTts _flutterTts = FlutterTts();
   final LocalizationService _localizationService = LocalizationService.instance;
+  final VoiceSettingsService _voiceSettingsService = VoiceSettingsService();
 
   TtsState _currentState = TtsState.idle;
   String? _currentDevocionalId;
   List<String> _currentChunks = [];
   int _currentChunkIndex = 0;
-
   Timer? _emergencyTimer;
   bool _chunkInProgress = false;
   DateTime _lastNativeActivity = DateTime.now();
-
   final _stateController = StreamController<TtsState>.broadcast();
   final _progressController = StreamController<double>.broadcast();
-
   bool _isInitialized = false;
   bool _disposed = false;
 
@@ -86,7 +87,6 @@ class TtsService {
   // =========================
   // CHUNK NAVIGATION SUPPORT
   // =========================
-
   int get currentChunkIndex => _currentChunkIndex;
 
   int get totalChunks => _currentChunks.length;
@@ -158,6 +158,7 @@ class TtsService {
 
       _isInitialized = true;
       _updateState(TtsState.idle);
+
       debugPrint('✅ TTS: Service initialized successfully');
     } catch (e) {
       debugPrint('❌ TTS: Initialization failed: $e');
@@ -171,27 +172,11 @@ class TtsService {
       debugPrint('🔧 TTS: Setting language to $language');
       await _flutterTts.setLanguage(language);
 
-      // Load saved voice for current language if available
-      final prefs = await SharedPreferences.getInstance();
-      final savedVoice = prefs.getString('tts_voice_$_currentLanguage');
+      // REFACTORIZADO: Usar VoiceSettingsService para cargar voz guardada
+      final savedVoice =
+          await _voiceSettingsService.loadSavedVoice(_currentLanguage);
       if (savedVoice != null) {
-        try {
-          // Parse saved voice
-          final voiceParts = savedVoice.split(' (');
-          final voiceName = voiceParts[0];
-          final locale = voiceParts.length > 1
-              ? voiceParts[1].replaceAll(')', '')
-              : language;
-
-          await _flutterTts.setVoice({
-            'name': voiceName,
-            'locale': locale,
-          });
-          debugPrint(
-              '🔧 TTS: Loaded saved voice $voiceName for language $_currentLanguage');
-        } catch (e) {
-          debugPrint('⚠️ TTS: Failed to load saved voice: $e');
-        }
+        debugPrint('🔧 TTS: Voice loaded by VoiceSettingsService: $savedVoice');
       }
     } catch (e) {
       debugPrint('⚠️ TTS: Language $language failed, using es-US: $e');
@@ -271,7 +256,6 @@ class TtsService {
     }
 
     final progress = (_currentChunkIndex + 1) / _currentChunks.length;
-
     if (_currentDevocionalId != null && progress >= 0.8) {
       await SpiritualStatsService().recordDevotionalHeard(
         devocionalId: _currentDevocionalId!,
@@ -309,7 +293,6 @@ class TtsService {
   // Emergency timer debe llamar a _onChunkCompleted() SIEMPRE:
   void _startEmergencyTimer(String chunk) {
     _cancelEmergencyTimer();
-
     final wordCount = chunk.trim().split(RegExp(r'\s+')).length;
     final minTimer = wordCount < 10 ? 2500 : 4000;
     const maxTimer = 6000;
@@ -347,7 +330,6 @@ class TtsService {
         debugPrint('⏸️ TTS: Playback pausado, no continuar chunks');
         return;
       }
-
       debugPrint('⏳ TTS: Esperando estado idle/playing para avanzar chunk...');
       Future.delayed(const Duration(milliseconds: 100), _speakNextChunk);
       return;
@@ -370,12 +352,10 @@ class TtsService {
 
       try {
         _cancelEmergencyTimer();
-
         if (_currentState != TtsState.paused &&
             _currentState != TtsState.error &&
             _currentState != TtsState.stopping) {
           await _flutterTts.speak(chunk);
-
           if (_currentState != TtsState.playing) {
             _updateState(TtsState.playing);
           }
@@ -410,13 +390,13 @@ class TtsService {
     return BibleTextFormatter.formatBibleBook(reference, _currentLanguage);
   }
 
+  // ✅ MÉTODO PRINCIPAL DE NORMALIZACIÓN - RESTAURADO CON SpecializedTextNormalizer
   String _normalizeTtsText(String text, [String? language, String? version]) {
     String normalized = text;
     final currentLang = language ?? _currentLanguage;
 
     // Get Bible version expansions based on language
     final bibleVersions = _getBibleVersionExpansions(currentLang);
-
     bibleVersions.forEach((versionKey, expansion) {
       if (normalized.contains(versionKey)) {
         normalized = normalized.replaceAll(versionKey, expansion);
@@ -429,14 +409,16 @@ class TtsService {
     // Apply language-specific text normalizations
     normalized = _applyLanguageSpecificNormalizations(normalized, currentLang);
 
-    // Format years (common for all languages but with language-specific number words)
-    normalized = _formatYears(normalized, currentLang);
+    // ✅ USAR SpecializedTextNormalizer para formatear años
+    normalized = SpecializedTextNormalizer.formatYears(normalized, currentLang);
 
-    // Format Bible references (language-specific)
-    normalized = _formatBibleReferences(normalized, currentLang);
+    // ✅ USAR SpecializedTextNormalizer para formatear referencias bíblicas
+    normalized = SpecializedTextNormalizer.formatBibleReferences(
+        normalized, currentLang);
 
-    // Format times and ratios
-    normalized = _formatTimesAndRatios(normalized, currentLang);
+    // ✅ USAR SpecializedTextNormalizer para formatear tiempos y ratios
+    normalized =
+        SpecializedTextNormalizer.formatTimesAndRatios(normalized, currentLang);
 
     // Apply language-specific abbreviations
     normalized = _applyAbbreviations(normalized, currentLang);
@@ -449,6 +431,8 @@ class TtsService {
 
     return normalized;
   }
+
+  // ✅ MÉTODOS AUXILIARES IMPLEMENTADOS CORRECTAMENTE
 
   // Apply language-specific normalizations
   String _applyLanguageSpecificNormalizations(String text, String language) {
@@ -481,524 +465,346 @@ class TtsService {
     }
   }
 
-  // Format years with language-specific number words
-  String _formatYears(String text, String language) {
-    return text.replaceAllMapped(
-      RegExp(r'\b(19\d{2}|20\d{2})\b'),
-      (match) {
-        final year = match.group(1)!;
-        final yearInt = int.parse(year);
-
-        switch (language) {
-          case 'en':
-            return _formatYearEnglish(yearInt);
-          case 'pt':
-            return _formatYearPortuguese(yearInt);
-          case 'fr':
-            return _formatYearFrench(yearInt);
-          default: // Spanish
-            return _formatYearSpanish(yearInt);
-        }
-      },
-    );
-  }
-
-  String _formatYearSpanish(int year) {
-    if (year >= 1900 && year < 2000) {
-      final lastTwo = year - 1900;
-      if (lastTwo < 10) {
-        return 'mil novecientos cero $lastTwo';
-      } else {
-        return 'mil novecientos $lastTwo';
-      }
-    } else if (year >= 2000 && year < 2100) {
-      final lastTwo = year - 2000;
-      if (lastTwo == 0) {
-        return 'dos mil';
-      } else if (lastTwo < 10) {
-        return 'dos mil $lastTwo';
-      } else {
-        return 'dos mil $lastTwo';
-      }
-    }
-    return year.toString();
-  }
-
-  String _formatYearEnglish(int year) {
-    if (year >= 1900 && year < 2000) {
-      final lastTwo = year - 1900;
-      if (lastTwo < 10) {
-        return 'nineteen oh $lastTwo';
-      } else {
-        return 'nineteen $lastTwo';
-      }
-    } else if (year >= 2000 && year < 2100) {
-      final lastTwo = year - 2000;
-      if (lastTwo == 0) {
-        return 'two thousand';
-      } else if (lastTwo < 10) {
-        return 'two thousand $lastTwo';
-      } else {
-        return 'two thousand $lastTwo';
-      }
-    }
-    return year.toString();
-  }
-
-  String _formatYearPortuguese(int year) {
-    if (year >= 1900 && year < 2000) {
-      final lastTwo = year - 1900;
-      if (lastTwo < 10) {
-        return 'mil novecentos e $lastTwo';
-      } else {
-        return 'mil novecentos e $lastTwo';
-      }
-    } else if (year >= 2000 && year < 2100) {
-      final lastTwo = year - 2000;
-      if (lastTwo == 0) {
-        return 'dois mil';
-      } else if (lastTwo < 10) {
-        return 'dois mil e $lastTwo';
-      } else {
-        return 'dois mil e $lastTwo';
-      }
-    }
-    return year.toString();
-  }
-
-  String _formatYearFrench(int year) {
-    if (year >= 1900 && year < 2000) {
-      final lastTwo = year - 1900;
-      if (lastTwo < 10) {
-        return 'mille neuf cent $lastTwo';
-      } else {
-        return 'mille neuf cent $lastTwo';
-      }
-    } else if (year >= 2000 && year < 2100) {
-      final lastTwo = year - 2000;
-      if (lastTwo == 0) {
-        return 'deux mille';
-      } else if (lastTwo < 10) {
-        return 'deux mille $lastTwo';
-      } else {
-        return 'deux mille $lastTwo';
-      }
-    }
-    return year.toString();
-  }
-
-  // Format Bible references with language-specific words
-  String _formatBibleReferences(String text, String language) {
-    final Map<String, String> referenceWords = {
-      'es': 'capítulo|versículo',
-      'en': 'chapter|verse',
-      'pt': 'capítulo|versículo',
-      'fr': 'chapitre|verset',
-    };
-
-    final words = referenceWords[language] ?? referenceWords['es']!;
-    final chapterWord = words.split('|')[0];
-    final verseWord = words.split('|')[1];
-
-    return text.replaceAllMapped(
-      RegExp(
-          r'(\b(?:\d+\s+)?[A-Za-záéíóúÁÉÍÓÚñÑ]+)\s+(\d+):(\d+)(?:-(\d+))?(?::(\d+))?',
-          caseSensitive: false),
-      (match) {
-        final book = match.group(1)!;
-        final chapter = match.group(2)!;
-        final verseStart = match.group(3)!;
-        final verseEnd = match.group(4);
-        final secondVerse = match.group(5);
-
-        String result = '$book $chapterWord $chapter $verseWord $verseStart';
-
-        if (verseEnd != null) {
-          final toWord = language == 'en'
-              ? 'to'
-              : language == 'pt'
-                  ? 'ao'
-                  : language == 'fr'
-                      ? 'au'
-                      : 'al';
-          result += ' $toWord $verseEnd';
-        }
-        if (secondVerse != null) {
-          result += ' $verseWord $secondVerse';
-        }
-
-        return result;
-      },
-    );
-  }
-
-  // Format times and ratios with language-specific words
-  String _formatTimesAndRatios(String text, String language) {
-    // Time formatting
-    final timeWords = {
-      'es': ['de la mañana', 'de la tarde', 'de la noche', 'en punto', 'y'],
-      'en': [
-        'in the morning',
-        'in the afternoon',
-        'at night',
-        "o'clock",
-        'and'
-      ],
-      'pt': ['da manhã', 'da tarde', 'da noite', 'em ponto', 'e'],
-      'fr': ['du matin', 'de l\'après-midi', 'du soir', 'heures', 'et'],
-    };
-
-    final words = timeWords[language] ?? timeWords['es']!;
-
-    text = text.replaceAllMapped(
-      RegExp(
-          r'\b(\d{1,2}):(\d{2})\s*(am|pm|a\.m\.|p\.m\.|de la mañana|de la tarde|de la noche)\b',
-          caseSensitive: false),
-      (match) {
-        final hour = match.group(1)!;
-        final minute = match.group(2)!;
-        final period = match.group(3)!;
-
-        String result;
-        if (minute == '00') {
-          result = '$hour ${words[3]} ${_mapTimePeriod(period, language)}';
-        } else {
-          result =
-              '$hour ${words[4]} $minute ${_mapTimePeriod(period, language)}';
-        }
-
-        return result;
-      },
-    );
-
-    // Ratio formatting (e.g., 3:2 -> "3 to 2")
-    final ratioWord = language == 'en'
-        ? 'to'
-        : language == 'pt'
-            ? 'para'
-            : language == 'fr'
-                ? 'à'
-                : 'a';
-
-    text = text.replaceAllMapped(
-      RegExp(
-          r'\b(\d+):(\d+)\b(?!\s*(am|pm|a\.m\.|p\.m\.|de la|capítulo|versículo|chapter|verse|chapitre|verset))'),
-      (match) {
-        final first = match.group(1)!;
-        final second = match.group(2)!;
-        return '$first $ratioWord $second';
-      },
-    );
-
-    return text;
-  }
-
-  String _mapTimePeriod(String period, String language) {
-    final periodMap = {
-      'es': {
-        'am': 'de la mañana',
-        'pm': 'de la tarde',
-        'a.m.': 'de la mañana',
-        'p.m.': 'de la tarde',
-      },
-      'en': {
-        'am': 'AM',
-        'pm': 'PM',
-        'a.m.': 'AM',
-        'p.m.': 'PM',
-      },
-      'pt': {
-        'am': 'da manhã',
-        'pm': 'da tarde',
-        'a.m.': 'da manhã',
-        'p.m.': 'da tarde',
-      },
-      'fr': {
-        'am': 'du matin',
-        'pm': 'de l\'après-midi',
-        'a.m.': 'du matin',
-        'p.m.': 'de l\'après-midi',
-      },
-    };
-
-    return periodMap[language]?[period.toLowerCase()] ?? period;
-  }
-
-  // Apply language-specific abbreviations
   String _applyAbbreviations(String text, String language) {
-    Map<String, String> abbreviations;
-
     switch (language) {
       case 'en':
-        abbreviations = {
-          'vs.': 'verse',
-          'vv.': 'verses',
-          'ch.': 'chapter',
-          'chs.': 'chapters',
-          'cf.': 'compare',
-          'etc.': 'etcetera',
-          'e.g.': 'for example',
-          'i.e.': 'that is',
-          'B.C.': 'before Christ',
-          'A.D.': 'anno domini',
-          'a.m.': 'ante meridiem',
-          'p.m.': 'post meridiem',
-        };
-        break;
+        return text
+            .replaceAll(RegExp(r'\bDr\.'), 'Doctor')
+            .replaceAll(RegExp(r'\bMr\.'), 'Mister')
+            .replaceAll(RegExp(r'\bMrs\.'), 'Missus')
+            .replaceAll(RegExp(r'\bMs\.'), 'Miss')
+            .replaceAll(RegExp(r'\betc\.'), 'etcetera')
+            .replaceAll(RegExp(r'\bi\.e\.'), 'that is')
+            .replaceAll(RegExp(r'\be\.g\.'), 'for example');
       case 'pt':
-        abbreviations = {
-          'vs.': 'versículo',
-          'vv.': 'versículos',
-          'cap.': 'capítulo',
-          'caps.': 'capítulos',
-          'cf.': 'confira',
-          'etc.': 'etcétera',
-          'p.ex.': 'por exemplo',
-          'ou seja': 'isto é',
-          'a.C.': 'antes de Cristo',
-          'd.C.': 'depois de Cristo',
-        };
-        break;
+        return text
+            .replaceAll(RegExp(r'\bDr\.'), 'Doutor')
+            .replaceAll(RegExp(r'\bDra\.'), 'Doutora')
+            .replaceAll(RegExp(r'\bSr\.'), 'Senhor')
+            .replaceAll(RegExp(r'\bSra\.'), 'Senhora')
+            .replaceAll(RegExp(r'\betc\.'), 'etcetera');
       case 'fr':
-        abbreviations = {
-          'vs.': 'verset',
-          'vv.': 'versets',
-          'ch.': 'chapitre',
-          'chs.': 'chapitres',
-          'cf.': 'comparez',
-          'etc.': 'et cetera',
-          'p.ex.': 'par exemple',
-          'c.-à-d.': 'c\'est-à-dire',
-          'av. J.-C.': 'avant Jésus-Christ',
-          'ap. J.-C.': 'après Jésus-Christ',
-        };
-        break;
+        return text
+            .replaceAll(RegExp(r'\bDr\.'), 'Docteur')
+            .replaceAll(RegExp(r'\bM\.'), 'Monsieur')
+            .replaceAll(RegExp(r'\bMme\.'), 'Madame')
+            .replaceAll(RegExp(r'\bMlle\.'), 'Mademoiselle')
+            .replaceAll(RegExp(r'\betc\.'), 'et cetera');
       default: // Spanish
-        abbreviations = {
-          'vs.': 'versículo',
-          'vv.': 'versículos',
-          'cap.': 'capítulo',
-          'caps.': 'capítulos',
-          'cf.': 'compárese',
-          'etc.': 'etcétera',
-          'p.ej.': 'por ejemplo',
-          'i.e.': 'es decir',
-          'a.C.': 'antes de Cristo',
-          'd.C.': 'después de Cristo',
-          'a.m.': 'de la mañana',
-          'p.m.': 'de la tarde',
-        };
+        return text
+            .replaceAll(RegExp(r'\bDr\.'), 'Doctor')
+            .replaceAll(RegExp(r'\bDra\.'), 'Doctora')
+            .replaceAll(RegExp(r'\bSr\.'), 'Señor')
+            .replaceAll(RegExp(r'\bSra\.'), 'Señora')
+            .replaceAll(RegExp(r'\bSrta\.'), 'Señorita')
+            .replaceAll(RegExp(r'\betc\.'), 'etcétera');
     }
-
-    abbreviations.forEach((abbrev, expansion) {
-      if (text.contains(abbrev)) {
-        text = text.replaceAll(abbrev, expansion);
-      }
-    });
-
-    return text;
   }
 
-  // Format ordinal numbers with language-specific words
   String _formatOrdinalNumbers(String text, String language) {
-    return text.replaceAllMapped(
-      RegExp(r'\b(\d+)([º°ª])\b'),
-      (match) {
-        final number = int.tryParse(match.group(1)!) ?? 0;
-
-        switch (language) {
-          case 'en':
-            return _getEnglishOrdinal(number);
-          case 'pt':
-            return _getPortugueseOrdinal(number);
-          case 'fr':
-            return _getFrenchOrdinal(number);
-          default: // Spanish
-            return _getSpanishOrdinal(number);
-        }
-      },
-    );
-  }
-
-  String _getSpanishOrdinal(int number) {
-    switch (number) {
-      case 1:
-        return 'primero';
-      case 2:
-        return 'segundo';
-      case 3:
-        return 'tercero';
-      case 4:
-        return 'cuarto';
-      case 5:
-        return 'quinto';
-      default:
-        return 'número $number';
+    switch (language) {
+      case 'en':
+        return text.replaceAllMapped(
+          RegExp(r'\b(\d+)(st|nd|rd|th)\b'),
+          (match) {
+            final number = match.group(1)!;
+            final suffix = match.group(2)!;
+            return _numberToWordsEnglish(int.parse(number)) +
+                (suffix == 'st'
+                    ? ' first'
+                    : suffix == 'nd'
+                        ? ' second'
+                        : suffix == 'rd'
+                            ? ' third'
+                            : ' th');
+          },
+        );
+      case 'pt':
+        return text.replaceAllMapped(
+          RegExp(r'\b(\d+)[ºª]\b'),
+          (match) {
+            final number = int.parse(match.group(1)!);
+            return '${_numberToWordsPortuguese(number)}º';
+          },
+        );
+      case 'fr':
+        return text.replaceAllMapped(
+          RegExp(r'\b(\d+)(er|ème)\b'),
+          (match) {
+            final number = int.parse(match.group(1)!);
+            final suffix = match.group(2)!;
+            return _numberToWordsFrench(number) +
+                (suffix == 'er' ? ' premier' : ' ième');
+          },
+        );
+      default: // Spanish
+        return text.replaceAllMapped(
+          RegExp(r'\b(\d+)[ºª]\b'),
+          (match) {
+            final number = int.parse(match.group(1)!);
+            return '${_numberToWordsSpanish(number)}º';
+          },
+        );
     }
   }
 
-  String _getEnglishOrdinal(int number) {
-    switch (number) {
-      case 1:
-        return 'first';
-      case 2:
-        return 'second';
-      case 3:
-        return 'third';
-      case 4:
-        return 'fourth';
-      case 5:
-        return 'fifth';
-      default:
-        return 'number $number';
+  // Helper methods for number to words conversion
+  String _numberToWordsEnglish(int number) {
+    const ones = [
+      '',
+      'one',
+      'two',
+      'three',
+      'four',
+      'five',
+      'six',
+      'seven',
+      'eight',
+      'nine'
+    ];
+    const teens = [
+      'ten',
+      'eleven',
+      'twelve',
+      'thirteen',
+      'fourteen',
+      'fifteen',
+      'sixteen',
+      'seventeen',
+      'eighteen',
+      'nineteen'
+    ];
+    const tens = [
+      '',
+      '',
+      'twenty',
+      'thirty',
+      'forty',
+      'fifty',
+      'sixty',
+      'seventy',
+      'eighty',
+      'ninety'
+    ];
+
+    if (number < 10) return ones[number];
+    if (number < 20) return teens[number - 10];
+    if (number < 100) {
+      return '${tens[number ~/ 10]} ${ones[number % 10]}'.trim();
     }
+    return number.toString();
   }
 
-  String _getPortugueseOrdinal(int number) {
-    switch (number) {
-      case 1:
-        return 'primeiro';
-      case 2:
-        return 'segundo';
-      case 3:
-        return 'terceiro';
-      case 4:
-        return 'quarto';
-      case 5:
-        return 'quinto';
-      default:
-        return 'número $number';
+  String _numberToWordsSpanish(int number) {
+    const ones = [
+      '',
+      'uno',
+      'dos',
+      'tres',
+      'cuatro',
+      'cinco',
+      'seis',
+      'siete',
+      'ocho',
+      'nueve'
+    ];
+    const teens = [
+      'diez',
+      'once',
+      'doce',
+      'trece',
+      'catorce',
+      'quince',
+      'dieciséis',
+      'diecisiete',
+      'dieciocho',
+      'diecinueve'
+    ];
+    const tens = [
+      '',
+      '',
+      'veinte',
+      'treinta',
+      'cuarenta',
+      'cincuenta',
+      'sesenta',
+      'setenta',
+      'ochenta',
+      'noventa'
+    ];
+
+    if (number < 10) return ones[number];
+    if (number < 20) return teens[number - 10];
+    if (number < 100) {
+      return '${tens[number ~/ 10]} ${ones[number % 10]}'.trim();
     }
+    return number.toString();
   }
 
-  String _getFrenchOrdinal(int number) {
-    switch (number) {
-      case 1:
-        return 'premier';
-      case 2:
-        return 'deuxième';
-      case 3:
-        return 'troisième';
-      case 4:
-        return 'quatrième';
-      case 5:
-        return 'cinquième';
-      default:
-        return 'numéro $number';
+  String _numberToWordsPortuguese(int number) {
+    const ones = [
+      '',
+      'um',
+      'dois',
+      'três',
+      'quatro',
+      'cinco',
+      'seis',
+      'sete',
+      'oito',
+      'nove'
+    ];
+    const teens = [
+      'dez',
+      'onze',
+      'doze',
+      'treze',
+      'quatorze',
+      'quinze',
+      'dezesseis',
+      'dezessete',
+      'dezoito',
+      'dezenove'
+    ];
+    const tens = [
+      '',
+      '',
+      'vinte',
+      'trinta',
+      'quarenta',
+      'cinquenta',
+      'sessenta',
+      'setenta',
+      'oitenta',
+      'noventa'
+    ];
+
+    if (number < 10) return ones[number];
+    if (number < 20) return teens[number - 10];
+    if (number < 100) {
+      return '${tens[number ~/ 10]} ${ones[number % 10]}'.trim();
     }
+    return number.toString();
   }
 
-  // Get Bible version expansions based on language
+  String _numberToWordsFrench(int number) {
+    const ones = [
+      '',
+      'un',
+      'deux',
+      'trois',
+      'quatre',
+      'cinq',
+      'six',
+      'sept',
+      'huit',
+      'neuf'
+    ];
+    const teens = [
+      'dix',
+      'onze',
+      'douze',
+      'treize',
+      'quatorze',
+      'quinze',
+      'seize',
+      'dix-sept',
+      'dix-huit',
+      'dix-neuf'
+    ];
+    const tens = [
+      '',
+      '',
+      'vingt',
+      'trente',
+      'quarante',
+      'cinquante',
+      'soixante',
+      'soixante-dix',
+      'quatre-vingts',
+      'quatre-vingt-dix'
+    ];
+
+    if (number < 10) return ones[number];
+    if (number < 20) return teens[number - 10];
+    if (number < 100) {
+      return '${tens[number ~/ 10]} ${ones[number % 10]}'.trim();
+    }
+    return number.toString();
+  }
+
   Map<String, String> _getBibleVersionExpansions(String language) {
     switch (language) {
-      case 'es':
+      case 'en':
+        return {
+          'NIV': 'New International Version',
+          'KJV': 'King James Version',
+          'ESV': 'English Standard Version',
+          'NLT': 'New Living Translation',
+          'NASB': 'New American Standard Bible',
+        };
+      case 'pt':
+        return {
+          'ARA': 'Almeida Revista e Atualizada',
+          'NVI': 'Nova Versão Internacional',
+          'ARC': 'Almeida Revista e Corrigida',
+        };
+      case 'fr':
+        return {
+          'LSG': 'Louis Segond',
+          'NEG': 'Nouvelle Edition de Genève',
+          'BFC': 'Bible en Français Courant',
+        };
+      default: // Spanish
         return {
           'RVR1960': 'Reina Valera mil novecientos sesenta',
-          'RVR60': 'Reina Valera sesenta',
-          'RVR1995': 'Reina Valera mil novecientos noventa y cinco',
-          'RVR09': 'Reina Valera dos mil nueve',
           'NVI': 'Nueva Versión Internacional',
-          'DHH': 'Dios Habla Hoy',
-          'TLA': 'Traducción en Lenguaje Actual',
-          'NTV': 'Nueva Traducción Viviente',
-          'PDT': 'Palabra de Dios para Todos',
-          'BLP': 'Biblia La Palabra',
-          'CST': 'Castilian',
           'LBLA': 'La Biblia de las Américas',
-          'NBLH': 'Nueva Biblia Latinoamericana de Hoy',
           'RVC': 'Reina Valera Contemporánea',
         };
-      case 'en':
-        return {
-          'KJV': 'King James Version',
-          'NIV': 'New International Version',
-        };
-      case 'pt':
-        return {
-          'ARC': 'Almeida Revista e Corrigida',
-          'NVI': 'Nova Versão Internacional',
-        };
-      case 'fr':
-        return {
-          'LSG1910': 'Louis Segond mil nove cento e dez',
-          'LSG': 'Louis Segond',
-          'TOB': 'Traduction Oecuménique de la Bible',
-        };
-      default:
-        return {
-          'RVR1960': 'Reina Valera mil novecientos sesenta',
-        };
     }
   }
 
-  // Format Bible books with ordinals for different languages
-  String _formatBibleBookForLanguage(String reference, String language) {
-    switch (language) {
-      case 'es':
-        return formatBibleBook(reference);
-      case 'en':
-        return _formatBibleBookEnglish(reference);
-      case 'pt':
-        return _formatBibleBookPortuguese(reference);
-      case 'fr':
-        return _formatBibleBookFrench(reference);
-      default:
-        return formatBibleBook(reference);
-    }
-  }
+  String _formatBibleBookForLanguage(String text, String language) {
+    // Format numbered books (1 Juan, 2 Pedro, etc.)
+    return text.replaceAllMapped(
+      RegExp(r'\b([123])\s+([A-Za-záéíóúÁÉÍÓÚñÑ]+)\b'),
+      (match) {
+        final number = match.group(1)!;
+        final book = match.group(2)!;
 
-  String _formatBibleBookEnglish(String reference) {
-    final exp = RegExp(r'^([123])\s+([A-Za-z]+)', caseSensitive: false);
-    final match = exp.firstMatch(reference.trim());
-    if (match != null) {
-      final number = match.group(1)!;
-      final bookName = match.group(2)!;
-
-      final ordinals = {'1': 'First', '2': 'Second', '3': 'Third'};
-      final ordinal = ordinals[number] ?? number;
-
-      return reference.replaceFirst(
-        RegExp('^$number\\s+$bookName', caseSensitive: false),
-        '$ordinal $bookName',
-      );
-    }
-    return reference;
-  }
-
-  String _formatBibleBookPortuguese(String reference) {
-    final exp = RegExp(r'^([123])\s+([A-Za-z]+)', caseSensitive: false);
-    final match = exp.firstMatch(reference.trim());
-    if (match != null) {
-      final number = match.group(1)!;
-      final bookName = match.group(2)!;
-
-      final ordinals = {'1': 'Primeiro', '2': 'Segundo', '3': 'Terceiro'};
-      final ordinal = ordinals[number] ?? number;
-
-      return reference.replaceFirst(
-        RegExp('^$number\\s+$bookName', caseSensitive: false),
-        '$ordinal $bookName',
-      );
-    }
-    return reference;
-  }
-
-  String _formatBibleBookFrench(String reference) {
-    final exp = RegExp(r'^([123])\s+([A-Za-z]+)', caseSensitive: false);
-    final match = exp.firstMatch(reference.trim());
-    if (match != null) {
-      final number = match.group(1)!;
-      final bookName = match.group(2)!;
-
-      final ordinals = {'1': 'Premier', '2': 'Deuxième', '3': 'Troisième'};
-      final ordinal = ordinals[number] ?? number;
-
-      return reference.replaceFirst(
-        RegExp('^$number\\s+$bookName', caseSensitive: false),
-        '$ordinal $bookName',
-      );
-    }
-    return reference;
+        switch (language) {
+          case 'en':
+            final ordinal = number == '1'
+                ? 'First'
+                : number == '2'
+                    ? 'Second'
+                    : 'Third';
+            return '$ordinal $book';
+          case 'pt':
+            final ordinal = number == '1'
+                ? 'Primeiro'
+                : number == '2'
+                    ? 'Segundo'
+                    : 'Terceiro';
+            return '$ordinal $book';
+          case 'fr':
+            final ordinal = number == '1'
+                ? 'Premier'
+                : number == '2'
+                    ? 'Deuxième'
+                    : 'Troisième';
+            return '$ordinal $book';
+          default: // Spanish
+            final ordinal = number == '1'
+                ? 'Primer'
+                : number == '2'
+                    ? 'Segundo'
+                    : 'Tercer';
+            return '$ordinal $book';
+        }
+      },
+    );
   }
 
   List<String> _generateChunks(Devocional devocional,
@@ -1020,7 +826,6 @@ class TtsService {
       final reflection = _normalizeTtsText(
           _sanitize(devocional.reflexion), currentLang, _currentVersion);
       final paragraphs = reflection.split(RegExp(r'\n+'));
-
       for (final paragraph in paragraphs) {
         final trimmed = paragraph.trim();
         if (trimmed.isNotEmpty) {
@@ -1066,7 +871,6 @@ class TtsService {
       final prayer = _normalizeTtsText(
           _sanitize(devocional.oracion), currentLang, _currentVersion);
       final paragraphs = prayer.split(RegExp(r'\n+'));
-
       for (final paragraph in paragraphs) {
         final trimmed = paragraph.trim();
         if (trimmed.isNotEmpty) {
@@ -1098,7 +902,7 @@ class TtsService {
         '📝 TTS: Generated ${chunks.length} chunks for language $currentLang');
     for (int i = 0; i < chunks.length; i++) {
       debugPrint(
-          '   $i: ${chunks[i].length > 50 ? '${chunks[i].substring(0, 50)}...' : chunks[i]}');
+          ' $i: ${chunks[i].length > 50 ? '${chunks[i].substring(0, 50)}...' : chunks[i]}');
     }
 
     return chunks.where((chunk) => chunk.trim().isNotEmpty).toList();
@@ -1108,7 +912,6 @@ class TtsService {
   Map<String, String> _getSectionHeaders(String language) {
     // Ensure localization service is using the correct language context
     if (_localizationService.currentLocale.languageCode != language) {
-      // This is a fallback - ideally the localization service should already be in sync
       debugPrint(
           '⚠️ TTS: Language mismatch between localization service (${_localizationService.currentLocale.languageCode}) and TTS context ($language)');
     }
@@ -1145,11 +948,9 @@ class TtsService {
     _currentDevocionalId = null;
     _currentChunks = [];
     _currentChunkIndex = 0;
-
     // FIX: Enviar progreso 0.0 ANTES de cambiar el estado
     _progressController.add(0.0);
     debugPrint('📊 TTS: Progress reset to 0%');
-
     // FIX: Cambiar estado al final para evitar race conditions
     _updateState(TtsState.idle);
   }
@@ -1214,6 +1015,7 @@ class TtsService {
 
       final normalizedText =
           _normalizeTtsText(_sanitize(text), _currentLanguage, _currentVersion);
+
       if (normalizedText.isEmpty) {
         throw const TtsException('No valid text content to speak');
       }
@@ -1244,10 +1046,8 @@ class TtsService {
     if (_currentState == TtsState.playing) {
       // FIX: CANCELAR EMERGENCY TIMER INMEDIATAMENTE
       _cancelEmergencyTimer();
-
       // FIX: CAMBIAR ESTADO A PAUSED INMEDIATAMENTE
       _updateState(TtsState.paused);
-
       // Luego ejecutar la pausa nativa
       await _flutterTts.pause();
 
@@ -1264,12 +1064,12 @@ class TtsService {
   Future<void> resume() async {
     debugPrint(
         '▶️ TTS: Resume requested (current state: $_currentState) at ${DateTime.now()}');
+
     if (_currentState == TtsState.paused) {
       if (_currentChunkIndex < _currentChunks.length && _chunkInProgress) {
         try {
           debugPrint(
               '▶️ TTS: Resuming current chunk ${_currentChunkIndex + 1}/${_currentChunks.length} at ${DateTime.now()}');
-
           _updateState(TtsState.playing);
           _speakNextChunk();
         } catch (e) {
@@ -1291,6 +1091,7 @@ class TtsService {
   Future<void> stop() async {
     debugPrint(
         '⏹️ TTS: Stop requested (current state: $_currentState) at ${DateTime.now()}');
+
     if (isActive) {
       _updateState(TtsState.stopping);
       await _flutterTts.stop();
@@ -1298,15 +1099,22 @@ class TtsService {
     }
   }
 
+  // REFACTORIZADO: Simplificar usando VoiceSettingsService
   Future<void> setLanguage(String language) async {
     if (!_isInitialized) await _initialize();
+
     await _flutterTts.setLanguage(language);
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('tts_language', language);
+
+    // Auto-cargar voz guardada para el nuevo idioma
+    final languageCode = language.split('-')[0]; // es-ES -> es
+    await _voiceSettingsService.loadSavedVoice(languageCode);
   }
 
   Future<void> setSpeechRate(double rate) async {
     if (!_isInitialized) await _initialize();
+
     final clampedRate = rate.clamp(0.1, 3.0);
     await _flutterTts.setSpeechRate(clampedRate);
     final prefs = await SharedPreferences.getInstance();
@@ -1323,8 +1131,6 @@ class TtsService {
     if (_localizationService.currentLocale.languageCode != language) {
       debugPrint(
           '🔄 TTS: Syncing localization service to language context $language');
-      // Note: We don't change the app language here, just log the mismatch
-      // The app language should be controlled by the LocalizationProvider
     }
 
     // Update TTS language settings based on context immediately
@@ -1359,41 +1165,19 @@ class TtsService {
     try {
       debugPrint(
           '🔧 TTS: Changing voice language to $ttsLocale for context $language');
-
       // Force language change with verification
       await _flutterTts.setLanguage(ttsLocale);
 
-      // Load saved voice for current language if available
-      final prefs = await SharedPreferences.getInstance();
-      final savedVoice = prefs.getString('tts_voice_$language');
-      if (savedVoice != null) {
-        try {
-          // Parse saved voice
-          final voiceParts = savedVoice.split(' (');
-          final voiceName = voiceParts[0];
-          final locale = voiceParts.length > 1
-              ? voiceParts[1].replaceAll(')', '')
-              : ttsLocale;
-
-          await _flutterTts.setVoice({
-            'name': voiceName,
-            'locale': locale,
-          });
-          debugPrint(
-              '🔧 TTS: Loaded saved voice $voiceName for language context $language');
-        } catch (e) {
-          debugPrint(
-              '⚠️ TTS: Failed to load saved voice for language context: $e');
-        }
-      }
+      // REFACTORIZADO: Usar VoiceSettingsService para cargar voz
+      await _voiceSettingsService.loadSavedVoice(language);
 
       // Save the TTS language preference
+      final prefs = await SharedPreferences.getInstance();
       await prefs.setString('tts_language', ttsLocale);
 
       debugPrint('✅ TTS: Voice language successfully updated to $ttsLocale');
     } catch (e) {
       debugPrint('❌ TTS: Failed to set language $ttsLocale: $e');
-
       // Fallback to Spanish if other language fails
       if (ttsLocale != 'es-ES') {
         try {
@@ -1406,6 +1190,7 @@ class TtsService {
     }
   }
 
+  // REFACTORIZADO: Usar VoiceSettingsService para todos los métodos de voz
   Future<List<String>> getLanguages() async {
     if (!_isInitialized) await _initialize();
     try {
@@ -1417,199 +1202,23 @@ class TtsService {
     }
   }
 
+  // DELEGADO: Usar VoiceSettingsService
   Future<List<String>> getVoices() async {
-    if (!_isInitialized) await _initialize();
-    try {
-      final voices = await _flutterTts.getVoices;
-
-      if (voices is List<dynamic>) {
-        return voices.map((voice) {
-          if (voice is Map) {
-            final name = voice['name'] as String? ?? '';
-            final locale = voice['locale'] as String? ?? '';
-            return '$name ($locale)';
-          }
-          return voice.toString();
-        }).toList();
-      }
-      return List<String>.from(voices ?? []);
-    } catch (e) {
-      debugPrint('Error getting voices: $e at ${DateTime.now()}');
-      return [];
-    }
+    return await _voiceSettingsService.getAvailableVoices();
   }
 
+  // DELEGADO: Usar VoiceSettingsService
   Future<List<String>> getVoicesForLanguage(String language) async {
-    if (!_isInitialized) await _initialize();
-
-    final targetLocale = _getLocaleForLanguage(language);
-    debugPrint('🎯 Looking for voices with locale: $targetLocale');
-
-    try {
-      final rawVoices = await _flutterTts.getVoices;
-
-      if (rawVoices is List<dynamic>) {
-        final filteredRawVoices = rawVoices.where((voice) {
-          if (voice is Map) {
-            final locale = voice['locale'] as String? ?? '';
-            return locale.contains(targetLocale);
-          }
-          return false;
-        }).toList();
-
-        debugPrint(
-            '🔍 Found ${filteredRawVoices.length} voices for $targetLocale');
-        debugPrint('🎤 FINAL VOICES LIST: $filteredRawVoices');
-
-        return filteredRawVoices.map((voice) {
-          final name = voice['name'] as String? ?? '';
-          final locale = voice['locale'] as String? ?? '';
-          final cleanName = _cleanVoiceName(name);
-          final genderInfo = _getVoiceGenderInfo(name);
-          final displayName = genderInfo.isNotEmpty ? '$cleanName ($genderInfo)' : cleanName;
-          return '$displayName ($locale)';
-        }).toList()
-          ..sort((a, b) {
-            // Prioritize US voices by putting them at the top
-            final aIsUS = a.contains('-US') || a.contains('_US');
-            final bIsUS = b.contains('-US') || b.contains('_US');
-            
-            if (aIsUS && !bIsUS) return -1;
-            if (!aIsUS && bIsUS) return 1;
-            
-            // Secondary sort: prioritize female voices, then male voices
-            final aIsFemale = a.contains('♀') || a.contains('Female');
-            final bIsFemale = b.contains('♀') || b.contains('Female');
-            final aIsMale = a.contains('♂') || a.contains('Male');
-            final bIsMale = b.contains('♂') || b.contains('Male');
-            
-            if (aIsFemale && !bIsFemale) return -1;
-            if (!aIsFemale && bIsFemale) return 1;
-            if (aIsMale && !bIsMale) return -1;
-            if (!aIsMale && bIsMale) return 1;
-            
-            // Tertiary sort by name for consistent ordering
-            return a.compareTo(b);
-          });
-      }
-
-      return [];
-    } catch (e) {
-      debugPrint('Error getting voices for $language: $e');
-      return [];
-    }
+    return await _voiceSettingsService.getVoicesForLanguage(language);
   }
 
-  String _getVoiceGenderInfo(String voiceName) {
-    final name = voiceName.toLowerCase();
-    
-    // Common female voice names across platforms
-    const femaleNames = [
-      'samantha', 'anna', 'karen', 'moira', 'tessa', 'veena', 'zuzana',
-      'carolina', 'silvia', 'monica', 'lucia', 'sofia', 'paloma',
-      'maria', 'carmen', 'elena', 'isabel', 'fernanda', 'ines',
-      'alice', 'amelie', 'marie', 'celine', 'claudia', 'audrey',
-      'susan', 'victoria', 'kate', 'zira', 'hazel', 'heather',
-      'cortana', 'aria', 'eva', 'joanna', 'kimberly', 'salli',
-      'nicole', 'emma', 'amy', 'elly', 'chloe', 'olivia',
-      'bianca', 'carla', 'vitoria', 'female'
-    ];
-    
-    // Common male voice names across platforms
-    const maleNames = [
-      'alex', 'daniel', 'diego', 'carlos', 'jorge', 'juan',
-      'thomas', 'ricky', 'fred', 'david', 'mark', 'richard',
-      'aaron', 'albert', 'brad', 'bruce', 'ralph', 'kevin',
-      'lee', 'paul', 'reed', 'alan', 'gordon', 'henry',
-      'james', 'john', 'malcolm', 'michael', 'nathan', 'oliver',
-      'ryan', 'sean', 'william', 'antonio', 'francisco',
-      'ricardo', 'miguel', 'pedro', 'jose', 'felipe',
-      'sebastiao', 'male'
-    ];
-    
-    // Check for explicit gender indicators first
-    if (name.contains('female') || name.contains('woman')) {
-      return '♀ Female';
-    }
-    if (name.contains('male') || name.contains('man')) {
-      return '♂ Male';
-    }
-    
-    // Check against known names
-    for (final femaleName in femaleNames) {
-      if (name.contains(femaleName)) {
-        return '♀ Female';
-      }
-    }
-    
-    for (final maleName in maleNames) {
-      if (name.contains(maleName)) {
-        return '♂ Male';
-      }
-    }
-    
-    // Return empty string if gender cannot be determined
-    return '';
-  }
-
-  String _getLocaleForLanguage(String language) {
-    switch (language) {
-      case 'es':
-        return 'es-ES';
-      case 'en':
-        return 'en-US';
-      case 'pt':
-        return 'pt-BR';
-      case 'fr':
-        return 'fr-FR';
-      default:
-        return 'es-ES';
-    }
-  }
-
-  String _cleanVoiceName(String voiceName) {
-    // Remove common prefixes and suffixes to make names more user-friendly
-    String cleanName = voiceName;
-    
-    // Remove platform-specific prefixes
-    cleanName = cleanName.replaceAll(RegExp(r'^com\.apple\.ttsbundle\.'), '');
-    cleanName = cleanName.replaceAll(RegExp(r'^com\.apple\.speech\.synthesis\.voice\.'), '');
-    cleanName = cleanName.replaceAll(RegExp(r'^microsoft-'), '');
-    cleanName = cleanName.replaceAll(RegExp(r'^google-'), '');
-    
-    // Replace underscores and dashes with spaces for readability
-    cleanName = cleanName.replaceAll('_', ' ');
-    cleanName = cleanName.replaceAll('-', ' ');
-    
-    // Capitalize first letter of each word
-    cleanName = cleanName.split(' ').map((word) {
-      if (word.isEmpty) return word;
-      return word[0].toUpperCase() + word.substring(1).toLowerCase();
-    }).join(' ');
-    
-    // Handle common voice name patterns
-    cleanName = cleanName.replaceAll(RegExp(r'\bVoice\b'), '');
-    cleanName = cleanName.replaceAll(RegExp(r'\bTts\b'), '');
-    cleanName = cleanName.replaceAll(RegExp(r'\bSpeech\b'), '');
-    
-    // Remove extra spaces
-    cleanName = cleanName.replaceAll(RegExp(r'\s+'), ' ').trim();
-    
-    // If the name is empty after cleaning, return the original
-    return cleanName.isEmpty ? voiceName : cleanName;
-  }
-
+  // DELEGADO: Usar VoiceSettingsService
   Future<void> setVoice(Map<String, String> voice) async {
     if (!_isInitialized) await _initialize();
-    try {
-      await _flutterTts.setVoice(voice);
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('tts_voice_$_currentLanguage', voice['name'] ?? '');
-      debugPrint(
-          '🔧 TTS: Voice set to ${voice['name']} for language $_currentLanguage');
-    } catch (e) {
-      debugPrint('⚠️ TTS: Failed to set voice: $e');
-    }
+
+    final voiceName = voice['name'] ?? '';
+    final locale = voice['locale'] ?? '';
+    await _voiceSettingsService.saveVoice(_currentLanguage, voiceName, locale);
   }
 
   // Test helper method to expose chunk generation for testing
