@@ -45,6 +45,8 @@ class _SettingsPageState extends State<SettingsPage> {
 
     try {
       final currentLanguage = localizationProvider.currentLocale.languageCode;
+      // Asignar voz por defecto automáticamente si no hay una guardada
+      await _voiceSettingsService.autoAssignDefaultVoice(currentLanguage);
 
       // Cargar velocidad desde SharedPreferences
       final prefs = await SharedPreferences.getInstance();

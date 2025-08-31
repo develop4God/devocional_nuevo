@@ -12,6 +12,59 @@ class VoiceSettingsService {
 
   final FlutterTts _flutterTts = FlutterTts();
 
+  /// Asigna automáticamente una voz válida por defecto para un idioma si no hay ninguna guardada o la guardada es inválida
+  Future<void> autoAssignDefaultVoice(String language) async {
+    final hasVoice = await hasSavedVoice(language);
+    debugPrint(
+        '🎵 [autoAssignDefaultVoice] ¿Ya hay voz guardada para "$language"? $hasVoice');
+    if (hasVoice) return;
+
+    // Define los locales preferidos para cada idioma
+    final Map<String, List<String>> preferredLocales = {
+      'es': ['es-ES', 'es-US', 'es-MX'],
+      'en': ['en-US', 'en-GB', 'en-AU'],
+      'pt': ['pt-BR', 'pt-PT'],
+      'fr': ['fr-FR', 'fr-CA'],
+    };
+    final locales = preferredLocales[language] ?? [language];
+
+    final voices = await _flutterTts.getVoices;
+    if (voices is List) {
+      debugPrint(
+          '🎵 [autoAssignDefaultVoice] Voces filtradas para $language (${locales.join(", ")}):');
+      final filtered = voices
+          .cast<Map>()
+          .where((voice) =>
+              locales.any((loc) =>
+                  (voice['locale'] as String?)?.toLowerCase() ==
+                  loc.toLowerCase()) &&
+              (voice['name'] as String?) != null &&
+              (voice['name'] as String).trim().isNotEmpty)
+          .toList();
+
+      for (final v in filtered) {
+        debugPrint('    - name: "${v['name']}", locale: "${v['locale']}"');
+      }
+
+      if (filtered.isEmpty) {
+        debugPrint(
+            '⚠️ [autoAssignDefaultVoice] ¡No se encontró voz válida para $language!');
+        return;
+      }
+
+      final selected = filtered.first;
+      final name = selected['name'] as String? ?? '';
+      final locale = selected['locale'] as String? ?? '';
+      debugPrint(
+          '🎵 [autoAssignDefaultVoice] → Asignada: name="$name", locale="$locale" para $language');
+      if (name.isNotEmpty && locale.isNotEmpty) {
+        await saveVoice(language, name, locale);
+      }
+    } else {
+      debugPrint('⚠️ [autoAssignDefaultVoice] No se obtuvo lista de voces');
+    }
+  }
+
   // ✅ MAPEO DE NOMBRES TÉCNICOS A NOMBRES AMIGABLES
   static const Map<String, String> _voiceNameMappings = {
     // Apple iOS/macOS voces
