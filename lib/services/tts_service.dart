@@ -390,7 +390,7 @@ class TtsService {
     return BibleTextFormatter.formatBibleBook(reference, _currentLanguage);
   }
 
-  // ✅ MÉTODO PRINCIPAL DE NORMALIZACIÓN - RESTAURADO CON SpecializedTextNormalizer
+  // ✅ METODO PRINCIPAL DE NORMALIZACIÓN - RESTAURADO CON SpecializedTextNormalizer
   String _normalizeTtsText(String text, [String? language, String? version]) {
     String normalized = text;
     final currentLang = language ?? _currentLanguage;
