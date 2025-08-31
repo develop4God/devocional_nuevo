@@ -15,6 +15,7 @@
     "delay": 5000,
     "description": "Wait for main app to load"
   },
+  
   {
     "type": "click",
     "resourceName": "com.develop4god.devocional_nuevo:id/drawer_button",
@@ -62,6 +63,7 @@
     "delay": 2000,
     "description": "Go back to settings"
   },
+  
   {
     "type": "click",
     "text": "Text-to-Speech Settings",
@@ -86,12 +88,14 @@
     "delay": 2000,
     "description": "Go back to settings"
   },
+  
   {
     "type": "click",
     "resourceName": "com.develop4god.devocional_nuevo:id/back_button",
     "delay": 2000,
     "description": "Return to main screen"
   },
+  
   {
     "type": "click",
     "resourceName": "com.develop4god.devocional_nuevo:id/play_button",
@@ -104,6 +108,7 @@
     "delay": 2000,
     "description": "Pause TTS playback"
   },
+  
   {
     "type": "click",
     "resourceName": "com.develop4god.devocional_nuevo:id/favorite_button",
@@ -115,6 +120,7 @@
     "delay": 2000,
     "description": "Wait for favorite confirmation"
   },
+  
   {
     "type": "click",
     "resourceName": "com.develop4god.devocional_nuevo:id/share_button",
@@ -127,6 +133,7 @@
     "delay": 1000,
     "description": "Cancel share dialog"
   },
+  
   {
     "type": "click",
     "resourceName": "com.develop4god.devocional_nuevo:id/drawer_button",
@@ -165,6 +172,7 @@
     "delay": 2000,
     "description": "Save prayer"
   },
+  
   {
     "type": "click",
     "resourceName": "com.develop4god.devocional_nuevo:id/drawer_button",
@@ -188,6 +196,7 @@
     "delay": 2000,
     "description": "Open favorite devotional"
   },
+  
   {
     "type": "click",
     "resourceName": "com.develop4god.devocional_nuevo:id/drawer_button",
@@ -211,6 +220,7 @@
     "delay": 2000,
     "description": "Scroll through progress"
   },
+  
   {
     "type": "click",
     "resourceName": "com.develop4god.devocional_nuevo:id/drawer_button",
@@ -223,6 +233,27 @@
     "delay": 3000,
     "description": "Return to main devotionals"
   },
+
+  // --- INSERT HERE: Simulate next devotional (advance) ---
+  {
+    "type": "click",
+    "text": "Next",
+    "delay": 1000,
+    "description": "Advance to the next devotional"
+  },
+  {
+    "type": "click",
+    "text": "I already did it",
+    "delay": 1000,
+    "description": "Check the salvation prayer checkbox"
+  },
+  {
+    "type": "click",
+    "text": "Continue",
+    "delay": 1000,
+    "description": "Close the salvation prayer dialog"
+  },
+
   {
     "type": "click",
     "resourceName": "com.develop4god.devocional_nuevo:id/calendar_button",
@@ -241,11 +272,13 @@
     "delay": 2000,
     "description": "Confirm date selection"
   },
+  
   {
     "type": "wait",
     "delay": 3000,
     "description": "Wait for new devotional to load"
   },
+  
   {
     "type": "click",
     "resourceName": "com.develop4god.devocional_nuevo:id/drawer_button",
@@ -275,6 +308,7 @@
     "delay": 15000,
     "description": "Wait for Portuguese download"
   },
+  
   {
     "type": "click",
     "resourceName": "com.develop4god.devocional_nuevo:id/back_button",
@@ -298,6 +332,7 @@
     "delay": 15000,
     "description": "Wait for French download"
   },
+  
   {
     "type": "click",
     "resourceName": "com.develop4god.devocional_nuevo:id/back_button",
@@ -321,12 +356,14 @@
     "delay": 5000,
     "description": "Wait for Spanish to load"
   },
+  
   {
     "type": "click",
     "resourceName": "com.develop4god.devocional_nuevo:id/back_button",
     "delay": 2000,
     "description": "Return to main"
   },
+  
   {
     "type": "scrollTo",
     "direction": "down",
@@ -334,11 +371,12 @@
     "description": "Test offline functionality by scrolling"
   },
   {
-    "type": "scrollTo",
+    "type": "scrollTo", 
     "direction": "up",
     "delay": 2000,
     "description": "Scroll back up"
   },
+  
   {
     "type": "click",
     "resourceName": "com.develop4god.devocional_nuevo:id/drawer_button",
@@ -362,23 +400,10 @@
     "delay": 2000,
     "description": "Return to main"
   },
+  
   {
     "type": "wait",
     "delay": 5000,
     "description": "Final wait to ensure all operations complete"
-  },
-
-  // --- AJUSTE PARA INTERACCIÓN CON ORACIÓN DE FE ---
-  {
-    "type": "click",
-    "text": "Ya la hice",
-    "delay": 1000,
-    "description": "Marca el checkbox de oración de fe"
-  },
-  {
-    "type": "click",
-    "text": "Continuar",
-    "delay": 1000,
-    "description": "Presiona el botón para cerrar la ventana de oración de fe"
   }
 ]
