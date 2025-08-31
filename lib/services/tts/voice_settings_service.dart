@@ -13,6 +13,7 @@ class VoiceSettingsService {
   final FlutterTts _flutterTts = FlutterTts();
 
   /// Asigna automáticamente una voz válida por defecto para un idioma si no hay ninguna guardada o la guardada es inválida
+  /// Asigna automáticamente una voz válida por defecto para un idioma si no hay ninguna guardada o la guardada es inválida
   Future<void> autoAssignDefaultVoice(String language) async {
     final hasVoice = await hasSavedVoice(language);
     debugPrint(
@@ -43,7 +44,9 @@ class VoiceSettingsService {
           .toList();
 
       for (final v in filtered) {
-        debugPrint('    - name: "${v['name']}", locale: "${v['locale']}"');
+        final n = v['name'] as String? ?? '';
+        final l = v['locale'] as String? ?? '';
+        debugPrint('    - name: "$n", locale: "$l"');
       }
 
       if (filtered.isEmpty) {
