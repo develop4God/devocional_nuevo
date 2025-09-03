@@ -385,7 +385,7 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
         );
       } else {
         return Icon(
-          Icons.check_box_outline_blank_rounded,
+          Icons.file_download_done_rounded,
           color: theme.colorScheme.primary,
         );
       }
