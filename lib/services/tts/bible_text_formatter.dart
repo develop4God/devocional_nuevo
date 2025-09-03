@@ -107,19 +107,7 @@ class BibleTextFormatter {
       case 'es':
         return {
           'RVR1960': 'Reina Valera mil novecientos sesenta',
-          'RVR60': 'Reina Valera sesenta',
-          'RVR1995': 'Reina Valera mil novecientos noventa y cinco',
-          'RVR09': 'Reina Valera dos mil nueve',
           'NVI': 'Nueva Versión Internacional',
-          'DHH': 'Dios Habla Hoy',
-          'TLA': 'Traducción en Lenguaje Actual',
-          'NTV': 'Nueva Traducción Viviente',
-          'PDT': 'Palabra de Dios para Todos',
-          'BLP': 'Biblia La Palabra',
-          'CST': 'Castilian',
-          'LBLA': 'La Biblia de las Américas',
-          'NBLH': 'Nueva Biblia Latinoamericana de Hoy',
-          'RVC': 'Reina Valera Contemporánea',
         };
       case 'en':
         return {
@@ -134,7 +122,6 @@ class BibleTextFormatter {
       case 'fr':
         return {
           'LSG1910': 'Louis Segond mil nove cento e dez',
-          'LSG': 'Louis Segond',
           'TOB': 'Traduction Oecuménique de la Bible',
         };
       default:

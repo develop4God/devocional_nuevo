@@ -23,9 +23,6 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage> {
   double _ttsSpeed = 0.4; // Velocidad de TTS por defecto
-  List<String> _availableVoices = [];
-  String? _selectedVoice;
-  bool _isLoadingVoices = false;
 
   final VoiceSettingsService _voiceSettingsService = VoiceSettingsService();
 
@@ -36,9 +33,7 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Future<void> _loadTtsSettings() async {
-    setState(() {
-      _isLoadingVoices = true;
-    });
+    setState(() {});
 
     final localizationProvider =
         Provider.of<LocalizationProvider>(context, listen: false);
@@ -53,74 +48,21 @@ class _SettingsPageState extends State<SettingsPage> {
       final savedRate = prefs.getDouble('tts_rate') ?? 0.5;
 
       // Cargar voces usando el servicio unificado
-      final voices =
-          await _voiceSettingsService.getVoicesForLanguage(currentLanguage);
 
       // Cargar voz guardada usando el servicio unificado
-      final savedVoice =
-          await _voiceSettingsService.loadSavedVoice(currentLanguage);
 
       if (mounted) {
         setState(() {
           _ttsSpeed = savedRate;
-          _availableVoices = voices
-              .where((voice) => voice.isNotEmpty)
-              .toSet() // Elimina duplicados
-              .toList();
 
           // Establecer la voz seleccionada si existe y está disponible
-          _selectedVoice = (savedVoice != null &&
-                  _availableVoices.contains(savedVoice))
-              ? savedVoice
-              : (_availableVoices.isNotEmpty ? _availableVoices.first : null);
-
-          _isLoadingVoices = false;
         });
       }
     } catch (e) {
       developer.log('Error loading TTS settings: $e');
       if (mounted) {
-        setState(() {
-          _isLoadingVoices = false;
-        });
+        setState(() {});
         _showErrorSnackBar('Error loading voice settings: $e');
-      }
-    }
-  }
-
-  Future<void> _onVoiceChanged(String? newVoice) async {
-    if (newVoice == null || !mounted) return;
-
-    setState(() {
-      _selectedVoice = newVoice;
-    });
-
-    try {
-      final voiceParts = newVoice.split(' (');
-      final voiceName = voiceParts[0].replaceAll(
-          RegExp(r' \([^)]*\)$'), ''); // Remover info de género si existe
-      final locale =
-          voiceParts.length > 1 ? voiceParts[1].replaceAll(')', '') : '';
-
-      final localizationProvider =
-          Provider.of<LocalizationProvider>(context, listen: false);
-      final currentLanguage = localizationProvider.currentLocale.languageCode;
-
-      // Guardar voz con el servicio unificado
-      await _voiceSettingsService.saveVoice(currentLanguage, voiceName, locale);
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('settings.voice_changed'.tr()),
-            duration: const Duration(seconds: 2),
-          ),
-        );
-      }
-    } catch (e) {
-      developer.log('Error saving voice: $e');
-      if (mounted) {
-        _showErrorSnackBar('Error saving voice: $e');
       }
     }
   }
@@ -247,7 +189,7 @@ class _SettingsPageState extends State<SettingsPage> {
             const SizedBox(height: 20),
 
             // Language Selection Section
-            GestureDetector(
+            InkWell(
               onTap: () {
                 Navigator.push(
                   context,
@@ -256,6 +198,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
                 );
               },
+              borderRadius: BorderRadius.circular(8.0),
               child: Container(
                 padding:
                     const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
@@ -336,7 +279,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
             const SizedBox(height: 20),
 
-            // Voice Selection
+            /*// Voice Selection comentado para una posterior implementacion
             Row(
               children: [
                 Icon(Icons.record_voice_over, color: colorScheme.primary),
@@ -402,7 +345,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 onChanged: _onVoiceChanged,
               ),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: 20),*/
 
             // Contact and About Sections
             InkWell(

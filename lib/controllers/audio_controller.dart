@@ -370,7 +370,7 @@ class AudioController extends ChangeNotifier {
     }
   }
 
-  /// Pausar reproducción
+  /// FIX: Pausar reproducción con reset inmediato
   Future<void> pause() async {
     if (!isPlaying) {
       debugPrint(
@@ -379,26 +379,38 @@ class AudioController extends ChangeNotifier {
     }
 
     try {
-      debugPrint('AudioController: Requesting pause...');
-      _startOperation('pause');
+      debugPrint('AudioController: Applying IMMEDIATE pause...');
 
-      await _ttsService.pause();
+      // FIX: Reset inmediato del estado local (como en stop)
+      _currentState = TtsState.paused;
+      _operationInProgress = false;
+      _operationTimeoutTimer?.cancel();
+      _operationTimeoutTimer = null;
 
-      // Esperar confirmación del estado
-      for (int i = 0; i < 10; i++) {
-        await Future.delayed(const Duration(milliseconds: 100));
-        final serviceState = _ttsService.currentState;
+      // FIX: Notificar INMEDIATAMENTE a los listeners
+      notifyListeners();
 
-        if (serviceState == TtsState.paused) {
-          debugPrint('AudioController: Pause confirmed by service');
-          _updateStateFromService(serviceState);
-          break;
+      debugPrint(
+          'AudioController: Immediate pause applied - calling service async');
+
+      // FIX: Llamar al servicio SIN esperar confirmación (fire and forget)
+      _ttsService.pause().then((_) {
+        debugPrint('AudioController: Service pause completed asynchronously');
+        // Verificar sincronización final
+        if (_ttsService.currentState == TtsState.paused) {
+          debugPrint('AudioController: Service pause confirmed');
         }
-      }
+      }).catchError((e) {
+        debugPrint('AudioController: Service pause error (ignored): $e');
+      });
+
+      debugPrint('AudioController: Immediate pause completed');
     } catch (e) {
       debugPrint('AudioController: Pause error: $e');
-      _resetOperationInProgress();
-      rethrow;
+      // Mantener el pause aunque haya error
+      _currentState = TtsState.paused;
+      _operationInProgress = false;
+      notifyListeners();
     }
   }
 
@@ -411,30 +423,38 @@ class AudioController extends ChangeNotifier {
     }
 
     try {
-      debugPrint('AudioController: Requesting resume...');
-      _startOperation('resume');
+      debugPrint('AudioController: Applying IMMEDIATE resume...');
 
-      await _ttsService.resume();
+      // FIX: Reset inmediato del estado local
+      _currentState = TtsState.playing;
+      _operationInProgress = false;
+      _operationTimeoutTimer?.cancel();
+      _operationTimeoutTimer = null;
 
-      // Esperar confirmación del estado
-      for (int i = 0; i < 10; i++) {
-        await Future.delayed(const Duration(milliseconds: 100));
-        final serviceState = _ttsService.currentState;
+      // FIX: Notificar INMEDIATAMENTE
+      notifyListeners();
 
-        if (serviceState == TtsState.playing) {
-          debugPrint('AudioController: Resume confirmed by service');
-          _updateStateFromService(serviceState);
-          break;
-        }
-      }
+      debugPrint(
+          'AudioController: Immediate resume applied - calling service async');
+
+      // FIX: Llamar al servicio SIN esperar confirmación
+      _ttsService.resume().then((_) {
+        debugPrint('AudioController: Service resume completed asynchronously');
+      }).catchError((e) {
+        debugPrint('AudioController: Service resume error (ignored): $e');
+      });
+
+      debugPrint('AudioController: Immediate resume completed');
     } catch (e) {
       debugPrint('AudioController: Resume error: $e');
-      _resetOperationInProgress();
-      rethrow;
+      // Mantener el resume aunque haya error
+      _currentState = TtsState.playing;
+      _operationInProgress = false;
+      notifyListeners();
     }
   }
 
-  /// Detener reproducción
+  /// FIX: Detener reproducción con reset inmediato
   Future<void> stop() async {
     if (!isActive) {
       debugPrint('AudioController: Nothing to stop (state: $_currentState)');
@@ -442,28 +462,38 @@ class AudioController extends ChangeNotifier {
     }
 
     try {
-      debugPrint('AudioController: Requesting stop...');
-      _startOperation('stop');
+      debugPrint('AudioController: Applying IMMEDIATE stop...');
 
-      await _ttsService.stop();
+      // FIX: Reset inmediato del estado local (como en el cambio de devocional)
+      _currentState = TtsState.idle;
+      _currentDevocionalId = null;
+      _progress = 0.0;
+      _operationInProgress = false;
+      _operationTimeoutTimer?.cancel();
+      _operationTimeoutTimer = null;
 
-// Pequeno delay para asegurar que el estado idle se propague bien
-      await Future.delayed(const Duration(milliseconds: 200));
+      // FIX: Notificar INMEDIATAMENTE a los listeners
+      notifyListeners();
 
-// Esperar confirmación del estado
-      for (int i = 0; i < 10; i++) {
-        await Future.delayed(const Duration(milliseconds: 100));
-        final serviceState = _ttsService.currentState;
+      debugPrint(
+          'AudioController: Immediate stop applied - calling service async');
 
-        if (serviceState == TtsState.idle) {
-          debugPrint('AudioController: Stop confirmed by service');
-          _updateStateFromService(serviceState);
-          break;
-        }
-      }
+      // FIX: Llamar al servicio SIN esperar confirmación (fire and forget)
+      _ttsService.stop().then((_) {
+        debugPrint('AudioController: Service stop completed asynchronously');
+      }).catchError((e) {
+        debugPrint('AudioController: Service stop error (ignored): $e');
+      });
+
+      debugPrint('AudioController: Immediate stop completed');
     } catch (e) {
       debugPrint('AudioController: Stop error: $e');
-      _resetOperationInProgress();
+      // Mantener el reset aunque haya error
+      _currentState = TtsState.idle;
+      _currentDevocionalId = null;
+      _progress = 0.0;
+      _operationInProgress = false;
+      notifyListeners();
     }
   }
 

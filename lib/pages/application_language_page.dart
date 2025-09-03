@@ -10,7 +10,8 @@ class ApplicationLanguagePage extends StatefulWidget {
   const ApplicationLanguagePage({super.key});
 
   @override
-  State<ApplicationLanguagePage> createState() => _ApplicationLanguagePageState();
+  State<ApplicationLanguagePage> createState() =>
+      _ApplicationLanguagePageState();
 }
 
 class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
@@ -27,12 +28,13 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
 
   Future<void> _loadDownloadStatus() async {
     final prefs = await SharedPreferences.getInstance();
-    
+
     if (!mounted) return;
-    
-    final localizationProvider = Provider.of<LocalizationProvider>(context, listen: false);
+
+    final localizationProvider =
+        Provider.of<LocalizationProvider>(context, listen: false);
     _currentLanguage = localizationProvider.currentLocale.languageCode;
-    
+
     setState(() {
       for (final languageCode in Constants.supportedLanguages.keys) {
         // Check if language is downloaded by checking for local files
@@ -42,9 +44,10 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
           isDownloaded = true;
         } else {
           // For other languages, check if we have actual local files
-          isDownloaded = prefs.getBool('language_downloaded_$languageCode') ?? false;
+          isDownloaded =
+              prefs.getBool('language_downloaded_$languageCode') ?? false;
         }
-        
+
         _downloadStatus[languageCode] = isDownloaded;
         _downloadProgress[languageCode] = 0.0;
         _isDownloading[languageCode] = false;
@@ -54,21 +57,24 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
 
   Future<void> _downloadLanguage(String languageCode) async {
     if (_isDownloading[languageCode] == true) return;
-    
+
     // If language is already downloaded and it's the current language, just navigate back
-    if (_downloadStatus[languageCode] == true && languageCode == _currentLanguage) {
+    if (_downloadStatus[languageCode] == true &&
+        languageCode == _currentLanguage) {
       Navigator.pop(context);
       return;
     }
-    
+
     setState(() {
       _isDownloading[languageCode] = true;
       _downloadProgress[languageCode] = 0.0;
     });
 
-    final devocionalProvider = Provider.of<DevocionalProvider>(context, listen: false);
-    final localizationProvider = Provider.of<LocalizationProvider>(context, listen: false);
-    
+    final devocionalProvider =
+        Provider.of<DevocionalProvider>(context, listen: false);
+    final localizationProvider =
+        Provider.of<LocalizationProvider>(context, listen: false);
+
     try {
       // Simulate progress updates
       for (double progress = 0.1; progress <= 0.9; progress += 0.1) {
@@ -82,7 +88,7 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
 
       // Change language in provider
       await localizationProvider.changeLanguage(languageCode);
-      
+
       // Update DevocionalProvider with new language
       devocionalProvider.setSelectedLanguage(languageCode);
 
@@ -95,13 +101,14 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
       // Download devotional content (only if not already downloaded or if it's not Spanish)
       bool downloadSuccess = true;
       if (!(_downloadStatus[languageCode] == true) || languageCode == 'es') {
-        downloadSuccess = await devocionalProvider.downloadCurrentYearDevocionales();
+        downloadSuccess =
+            await devocionalProvider.downloadCurrentYearDevocionales();
       }
-      
+
       if (downloadSuccess) {
         // Auto-assign best voice for the language
         await _assignBestVoiceForLanguage(languageCode, devocionalProvider);
-        
+
         setState(() {
           _downloadProgress[languageCode] = 1.0;
           _downloadStatus[languageCode] = true;
@@ -138,20 +145,21 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
     }
   }
 
-  Future<void> _assignBestVoiceForLanguage(String languageCode, DevocionalProvider provider) async {
+  Future<void> _assignBestVoiceForLanguage(
+      String languageCode, DevocionalProvider provider) async {
     try {
       debugPrint('🎵 Auto-assigning best voice for language: $languageCode');
-      
+
       // Get available voices for this language
       final voices = await provider.getVoicesForLanguage(languageCode);
       debugPrint('🎵 Available voices for $languageCode: ${voices.length}');
-      
+
       if (voices.isNotEmpty) {
         // Find the best voice: prioritize US locales, then female voices
         String? bestVoice;
         String? bestVoiceName;
         String? bestVoiceLocale;
-        
+
         // Look for US voices first
         for (final voice in voices) {
           if (voice.contains('-US') || voice.contains('(en-US)')) {
@@ -159,22 +167,23 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
             break;
           }
         }
-        
+
         // If no US voice found, look for female voices
         if (bestVoice == null) {
           for (final voice in voices) {
             final lowerVoice = voice.toLowerCase();
-            if (lowerVoice.contains('female') || lowerVoice.contains('♀') ||
+            if (lowerVoice.contains('female') ||
+                lowerVoice.contains('♀') ||
                 _isLikelyFemaleVoice(lowerVoice)) {
               bestVoice = voice;
               break;
             }
           }
         }
-        
+
         // If still no voice found, just use the first one
         bestVoice ??= voices.first;
-        
+
         // Parse voice name and locale
         if (bestVoice.contains(' (') && bestVoice.contains(')')) {
           final parts = bestVoice.split(' (');
@@ -182,42 +191,65 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
           final localeWithGender = parts[1].replaceAll(')', '');
           // Extract locale (remove gender info)
           final localeParts = localeWithGender.split(' ');
-          bestVoiceLocale = localeParts.last; // Get the last part which should be locale
+          bestVoiceLocale =
+              localeParts.last; // Get the last part which should be locale
         } else {
           bestVoiceName = bestVoice;
           bestVoiceLocale = _getDefaultLocaleForLanguage(languageCode);
         }
-        
-        debugPrint('🎵 Selected best voice: $bestVoiceName with locale: $bestVoiceLocale');
-        
+
+        debugPrint(
+            '🎵 Selected best voice: $bestVoiceName with locale: $bestVoiceLocale');
+
         // Set the voice
-        final voiceName = bestVoiceName ?? bestVoice;
-        final voiceLocale = bestVoiceLocale ?? _getDefaultLocaleForLanguage(languageCode);
-        
+        final voiceName = bestVoiceName;
+        final voiceLocale = bestVoiceLocale;
+
         await provider.setTtsVoice({
           'name': voiceName,
           'locale': voiceLocale,
         });
-        
+
         // Save the voice preference
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('tts_voice_$languageCode', bestVoice);
-        
-        debugPrint('✅ Auto-assigned voice: $bestVoice for language $languageCode');
+
+        debugPrint(
+            '✅ Auto-assigned voice: $bestVoice for language $languageCode');
       }
     } catch (e) {
       debugPrint('⚠️ Error auto-assigning voice for $languageCode: $e');
       // Don't throw - voice assignment failure shouldn't block language change
     }
   }
-  
+
   bool _isLikelyFemaleVoice(String voiceName) {
     final femaleNames = [
-      'samantha', 'karen', 'moira', 'tessa', 'fiona', 'anna', 'maria', 'lucia',
-      'sophia', 'isabella', 'helena', 'alice', 'emma', 'olivia', 'susan',
-      'victoria', 'catherine', 'audrey', 'zoe', 'ava', 'kate', 'sara', 'laura'
+      'samantha',
+      'karen',
+      'moira',
+      'tessa',
+      'fiona',
+      'anna',
+      'maria',
+      'lucia',
+      'sophia',
+      'isabella',
+      'helena',
+      'alice',
+      'emma',
+      'olivia',
+      'susan',
+      'victoria',
+      'catherine',
+      'audrey',
+      'zoe',
+      'ava',
+      'kate',
+      'sara',
+      'laura'
     ];
-    
+
     for (final name in femaleNames) {
       if (voiceName.contains(name)) {
         return true;
@@ -225,7 +257,7 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
     }
     return false;
   }
-  
+
   String _getDefaultLocaleForLanguage(String languageCode) {
     switch (languageCode) {
       case 'es':
@@ -270,14 +302,14 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor: isCurrentLanguage 
-            ? theme.colorScheme.primary
-            : theme.colorScheme.surfaceContainerHighest,
+          backgroundColor: isCurrentLanguage
+              ? theme.colorScheme.primary
+              : theme.colorScheme.surfaceContainerHighest,
           child: Icon(
             Icons.language,
-            color: isCurrentLanguage 
-              ? theme.colorScheme.onPrimary
-              : theme.colorScheme.onSurfaceVariant,
+            color: isCurrentLanguage
+                ? theme.colorScheme.onPrimary
+                : theme.colorScheme.onSurfaceVariant,
           ),
         ),
         title: Text(
@@ -286,16 +318,19 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
             fontWeight: isCurrentLanguage ? FontWeight.bold : FontWeight.normal,
           ),
         ),
-        subtitle: _buildLanguageSubtitle(languageCode, isCurrentLanguage, isDownloaded, theme),
-        trailing: _buildTrailingWidget(languageCode, isDownloaded, isDownloading, progress, theme),
-        onTap: (isDownloading || (isDownloaded && isCurrentLanguage)) 
-          ? null 
-          : () => _downloadLanguage(languageCode),
+        subtitle: _buildLanguageSubtitle(
+            languageCode, isCurrentLanguage, isDownloaded, theme),
+        trailing: _buildTrailingWidget(
+            languageCode, isDownloaded, isDownloading, progress, theme),
+        onTap: (isDownloading || (isDownloaded && isCurrentLanguage))
+            ? null
+            : () => _downloadLanguage(languageCode),
       ),
     );
   }
 
-  Widget? _buildLanguageSubtitle(String languageCode, bool isCurrentLanguage, bool isDownloaded, ThemeData theme) {
+  Widget? _buildLanguageSubtitle(String languageCode, bool isCurrentLanguage,
+      bool isDownloaded, ThemeData theme) {
     if (isCurrentLanguage) {
       return Text(
         'application_language.current_language'.tr(),
@@ -314,7 +349,8 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
     return null;
   }
 
-  Widget _buildTrailingWidget(String languageCode, bool isDownloaded, bool isDownloading, double progress, ThemeData theme) {
+  Widget _buildTrailingWidget(String languageCode, bool isDownloaded,
+      bool isDownloading, double progress, ThemeData theme) {
     if (isDownloading) {
       return SizedBox(
         width: 60,
@@ -344,19 +380,19 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
       // If it's the current language, show check mark, otherwise show switch icon
       if (languageCode == _currentLanguage) {
         return Icon(
-          Icons.check_circle,
+          Icons.file_download_done_rounded,
           color: theme.colorScheme.primary,
         );
       } else {
         return Icon(
-          Icons.switch_account,
+          Icons.check_box_outline_blank_rounded,
           color: theme.colorScheme.primary,
         );
       }
     }
 
     return Icon(
-      Icons.download,
+      Icons.file_download_outlined,
       color: theme.colorScheme.primary,
     );
   }
@@ -364,16 +400,13 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Scaffold(
       appBar: AppBar(
+        // El AppBar ahora hereda la configuración de tu tema.
+        // No es necesario especificar backgroundColor, foregroundColor,
+        // elevation ni iconTheme aquí, ya que se toman del tema principal.
         title: Text('application_language.title'.tr()),
-        backgroundColor: theme.appBarTheme.backgroundColor ?? theme.colorScheme.surface,
-        foregroundColor: theme.appBarTheme.foregroundColor ?? theme.colorScheme.onSurface,
-        elevation: theme.appBarTheme.elevation ?? 0,
-        iconTheme: theme.appBarTheme.iconTheme ?? IconThemeData(
-          color: theme.colorScheme.onSurface,
-        ),
       ),
       backgroundColor: theme.colorScheme.surface,
       body: ListView(
