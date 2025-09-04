@@ -1,5 +1,6 @@
 // lib/models/prayer_model.dart
 
+import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:flutter/material.dart';
 
 /// Modelo de datos para una oración personal.
@@ -129,13 +130,13 @@ enum PrayerStatus {
     }
   }
 
-  /// Obtiene el texto localizado para mostrar en la UI.
+  /// Gets the localized text for display in the UI.
   String get displayName {
     switch (this) {
       case PrayerStatus.active:
-        return 'Activa';
+        return "prayer.active".tr();
       case PrayerStatus.answered:
-        return 'Respondida';
+        return "prayer.answered".tr();
     }
   }
 }

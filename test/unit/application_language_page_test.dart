@@ -5,13 +5,28 @@ import 'package:devocional_nuevo/utils/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
+import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+// Mock del PathProvider para simular el acceso al sistema de archivos
+class MockPathProviderPlatform extends PathProviderPlatform {
+  Future<String?> getApplicationDocumentsDirectory() async {
+    return '/'; // Retorna una ruta simulada
+  }
+}
+
 class MockDevocionalProvider extends Mock implements DevocionalProvider {}
+
 class MockLocalizationProvider extends Mock implements LocalizationProvider {}
 
 void main() {
+  // Configurar el mock para PathProvider antes de todas las pruebas
+  // Esto evita el error MissingPluginException
+  setUpAll(() {
+    PathProviderPlatform.instance = MockPathProviderPlatform();
+  });
+
   group('Application Language Page Tests', () {
     late MockDevocionalProvider mockDevocionalProvider;
     late MockLocalizationProvider mockLocalizationProvider;
@@ -20,9 +35,10 @@ void main() {
       SharedPreferences.setMockInitialValues({});
       mockDevocionalProvider = MockDevocionalProvider();
       mockLocalizationProvider = MockLocalizationProvider();
-      
+
       // Setup default behavior
-      when(mockLocalizationProvider.currentLocale).thenReturn(const Locale('es'));
+      when(mockLocalizationProvider.currentLocale)
+          .thenReturn(const Locale('es'));
       when(mockDevocionalProvider.downloadCurrentYearDevocionales())
           .thenAnswer((_) async => true);
     });
@@ -43,7 +59,8 @@ void main() {
       );
     }
 
-    testWidgets('should display all supported languages', (WidgetTester tester) async {
+    testWidgets('should display all supported languages',
+        (WidgetTester tester) async {
       await tester.pumpWidget(createTestWidget());
       await tester.pumpAndSettle();
 
@@ -53,15 +70,18 @@ void main() {
       }
     });
 
-    testWidgets('should show current language as selected', (WidgetTester tester) async {
+    testWidgets('should show current language as selected',
+        (WidgetTester tester) async {
       await tester.pumpWidget(createTestWidget());
       await tester.pumpAndSettle();
 
       // Check that current language is marked
-      expect(find.text('application_language.current_language'), findsOneWidget);
+      expect(
+          find.text('application_language.current_language'), findsOneWidget);
     });
 
-    testWidgets('should show download icons for non-downloaded languages', (WidgetTester tester) async {
+    testWidgets('should show download icons for non-downloaded languages',
+        (WidgetTester tester) async {
       await tester.pumpWidget(createTestWidget());
       await tester.pumpAndSettle();
 
@@ -69,7 +89,8 @@ void main() {
       expect(find.byIcon(Icons.download), findsAtLeastNWidgets(1));
     });
 
-    testWidgets('should show progress indicator during download', (WidgetTester tester) async {
+    testWidgets('should show progress indicator during download',
+        (WidgetTester tester) async {
       // Setup a delayed download to simulate progress
       when(mockDevocionalProvider.downloadCurrentYearDevocionales())
           .thenAnswer((_) async {
@@ -89,7 +110,8 @@ void main() {
       expect(find.byType(CircularProgressIndicator), findsAtLeastNWidgets(1));
     });
 
-    testWidgets('should handle download failure gracefully', (WidgetTester tester) async {
+    testWidgets('should handle download failure gracefully',
+        (WidgetTester tester) async {
       // Setup download to fail
       when(mockDevocionalProvider.downloadCurrentYearDevocionales())
           .thenAnswer((_) async => false);
@@ -106,10 +128,11 @@ void main() {
       expect(find.text('application_language.download_failed'), findsOneWidget);
     });
 
-    testWidgets('should navigate back after successful download', (WidgetTester tester) async {
+    testWidgets('should navigate back after successful download',
+        (WidgetTester tester) async {
       // Create a more complex navigation test
       final navigatorKey = GlobalKey<NavigatorState>();
-      
+
       final testApp = MaterialApp(
         navigatorKey: navigatorKey,
         home: Scaffold(
@@ -160,7 +183,8 @@ void main() {
     test('should track download status correctly', () {
       // Test the internal state management logic
       expect(Constants.supportedLanguages.length, 4);
-      expect(Constants.supportedLanguages.keys, containsAll(['es', 'en', 'pt', 'fr']));
+      expect(Constants.supportedLanguages.keys,
+          containsAll(['es', 'en', 'pt', 'fr']));
     });
 
     test('should handle progress updates correctly', () {
