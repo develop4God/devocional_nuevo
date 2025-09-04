@@ -359,7 +359,16 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     );
   }
 
-  // AGREGAR AQUÍ LA FUNCIÓN HELPER
+  // Helper para obtener el devocional actual de forma segura
+  Devocional? getCurrentDevocional(List<Devocional> devocionales) {
+    if (devocionales.isNotEmpty &&
+        _currentDevocionalIndex >= 0 &&
+        _currentDevocionalIndex < devocionales.length) {
+      return devocionales[_currentDevocionalIndex];
+    }
+    return null;
+  }
+
   DateFormat _getLocalizedDateFormat(BuildContext context) {
     final locale = Localizations.localeOf(context).languageCode;
     switch (locale) {
@@ -464,6 +473,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
             );
           }
 
+          // Protección para el índice
           if (_currentDevocionalIndex >= devocionales.length ||
               _currentDevocionalIndex < 0) {
             _currentDevocionalIndex = 0;
@@ -668,9 +678,8 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       bottomNavigationBar: Consumer<DevocionalProvider>(
         builder: (context, devocionalProvider, child) {
           final List<Devocional> devocionales = devocionalProvider.devocionales;
-          final Devocional? currentDevocional = devocionales.isNotEmpty
-              ? devocionales[_currentDevocionalIndex]
-              : null;
+          final Devocional? currentDevocional =
+              getCurrentDevocional(devocionales);
           final bool isFavorite = currentDevocional != null
               ? devocionalProvider.isFavorite(currentDevocional)
               : false;
@@ -813,10 +822,12 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                       tooltip: isFavorite
                           ? 'devotionals.remove_from_favorites_short'.tr()
                           : 'devotionals.save_as_favorite'.tr(),
-                      onPressed: () => devocionalProvider.toggleFavorite(
-                        currentDevocional!,
-                        context,
-                      ),
+                      onPressed: currentDevocional != null
+                          ? () => devocionalProvider.toggleFavorite(
+                                currentDevocional,
+                                context,
+                              )
+                          : null,
                       icon: Icon(
                         isFavorite ? Icons.favorite : Icons.favorite_border,
                         color: isFavorite ? Colors.red : Colors.white,
@@ -842,7 +853,9 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                     ),
                     IconButton(
                       tooltip: 'tooltips.share_as_text'.tr(),
-                      onPressed: () => _shareAsText(currentDevocional!),
+                      onPressed: currentDevocional != null
+                          ? () => _shareAsText(currentDevocional)
+                          : null,
                       icon: Icon(
                         Icons.share_outlined,
                         color: appBarForegroundColor,
@@ -851,7 +864,9 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                     ),
                     IconButton(
                       tooltip: 'tooltips.share_as_image'.tr(),
-                      onPressed: () => _shareAsImage(currentDevocional!),
+                      onPressed: currentDevocional != null
+                          ? () => _shareAsImage(currentDevocional)
+                          : null,
                       icon: Icon(
                         Icons.image_outlined,
                         color: appBarForegroundColor,

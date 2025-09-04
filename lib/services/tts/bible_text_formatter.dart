@@ -1,8 +1,12 @@
+import 'package:flutter/foundation.dart';
+
 /// Bible text formatting utilities for TTS
 /// Handles ordinal formatting and Bible version expansions across multiple languages
 class BibleTextFormatter {
   /// Formats Bible book names with ordinals based on the specified language
   static String formatBibleBook(String reference, String language) {
+    debugPrint(
+        '[BibleTextFormatter] formatBibleBook called with reference="$reference", language="$language"');
     switch (language) {
       case 'es':
         return _formatBibleBookSpanish(reference);
@@ -13,6 +17,8 @@ class BibleTextFormatter {
       case 'fr':
         return _formatBibleBookFrench(reference);
       default:
+        debugPrint(
+            '[BibleTextFormatter] Idioma desconocido "$language", usando español por defecto');
         return _formatBibleBookSpanish(reference);
     }
   }
