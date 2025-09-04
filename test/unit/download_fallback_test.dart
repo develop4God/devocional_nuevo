@@ -4,20 +4,27 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-
-// Mock classes
-class MockHttpClient extends Mock implements http.Client {}
+import '../mocks.mocks.dart';
+import '../test_setup.dart';
 
 void main() {
+  setUpAll(() {
+    TestSetup.setupCommonMocks();
+  });
+
+  tearDownAll(() {
+    TestSetup.cleanupMocks();
+  });
+
   group('DevocionalProvider Download Fallback Tests', () {
     late DevocionalProvider provider;
-    late MockHttpClient mockHttpClient;
+    late MockClient mockHttpClient;
 
     setUp(() {
       // Initialize shared preferences
       SharedPreferences.setMockInitialValues({});
       provider = DevocionalProvider();
-      mockHttpClient = MockHttpClient();
+      mockHttpClient = MockClient();
     });
 
     test('should fall back to available version when selected version is missing', () async {
@@ -64,9 +71,8 @@ void main() {
       provider.setSelectedLanguage('pt');
       provider.setSelectedVersion('NVI'); // This doesn't exist
       
-      // Mock all possible responses to fail
-      when(mockHttpClient.get(any))
-          .thenAnswer((_) async => http.Response('Not Found', 404));
+      // Mock all possible responses to fail - fix the any() issue
+      when(mockHttpClient.get(any)).thenAnswer((_) async => http.Response('Not Found', 404));
 
       // Act
       final result = await provider.downloadCurrentYearDevocionales();

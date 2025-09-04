@@ -4,9 +4,17 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:devocional_nuevo/models/prayer_model.dart';
 import 'package:devocional_nuevo/providers/prayer_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'test_setup.dart';
 
 void main() {
-  TestWidgetsFlutterBinding.ensureInitialized();
+  setUpAll(() {
+    TestSetup.setupCommonMocks();
+  });
+
+  tearDownAll(() {
+    TestSetup.cleanupMocks();
+  });
+
   group('Prayer Model Tests', () {
     test('should create prayer with all required fields', () {
       final prayer = Prayer(

@@ -9,6 +9,8 @@ import 'package:path_provider_platform_interface/path_provider_platform_interfac
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../mocks.mocks.dart';
+
 // Mock del PathProvider para simular el acceso al sistema de archivos
 class MockPathProviderPlatform extends PathProviderPlatform {
   Future<String?> getApplicationDocumentsDirectory() async {
@@ -19,6 +21,7 @@ class MockPathProviderPlatform extends PathProviderPlatform {
 class MockDevocionalProvider extends Mock implements DevocionalProvider {}
 
 class MockLocalizationProvider extends Mock implements LocalizationProvider {}
+
 
 void main() {
   // Configurar el mock para PathProvider antes de todas las pruebas
@@ -36,11 +39,30 @@ void main() {
       mockDevocionalProvider = MockDevocionalProvider();
       mockLocalizationProvider = MockLocalizationProvider();
 
-      // Setup default behavior
-      when(mockLocalizationProvider.currentLocale)
-          .thenReturn(const Locale('es'));
+      
+      // Setup default behavior - fix the null/Locale issue
+      when(mockLocalizationProvider.currentLocale).thenReturn(const Locale('es'));
+
+
       when(mockDevocionalProvider.downloadCurrentYearDevocionales())
           .thenAnswer((_) async => true);
+      
+      // Add other necessary stub methods
+      when(mockDevocionalProvider.selectedLanguage).thenReturn('es');
+      when(mockDevocionalProvider.selectedVersion).thenReturn('RVR1960');
+      when(mockDevocionalProvider.supportedLanguages).thenReturn(['es', 'en', 'pt', 'fr']);
+      when(mockDevocionalProvider.isDownloading).thenReturn(false);
+      when(mockDevocionalProvider.downloadStatus).thenReturn(null);
+      
+      when(mockLocalizationProvider.supportedLocales).thenReturn([
+        const Locale('es'),
+        const Locale('en'),
+        const Locale('pt'), 
+        const Locale('fr'),
+      ]);
+      when(mockLocalizationProvider.getLanguageName(any)).thenReturn('Language');
+      when(mockLocalizationProvider.translate(any)).thenReturn('Translated');
+      when(mockLocalizationProvider.changeLanguage(any)).thenAnswer((_) async {});
     });
 
     Widget createTestWidget() {
