@@ -7,9 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-class MockDevocionalProvider extends Mock implements DevocionalProvider {}
-class MockLocalizationProvider extends Mock implements LocalizationProvider {}
+import '../mocks.mocks.dart';
 
 void main() {
   group('Application Language Page Tests', () {
@@ -21,10 +19,27 @@ void main() {
       mockDevocionalProvider = MockDevocionalProvider();
       mockLocalizationProvider = MockLocalizationProvider();
       
-      // Setup default behavior
+      // Setup default behavior - fix the null/Locale issue
       when(mockLocalizationProvider.currentLocale).thenReturn(const Locale('es'));
       when(mockDevocionalProvider.downloadCurrentYearDevocionales())
           .thenAnswer((_) async => true);
+      
+      // Add other necessary stub methods
+      when(mockDevocionalProvider.selectedLanguage).thenReturn('es');
+      when(mockDevocionalProvider.selectedVersion).thenReturn('RVR1960');
+      when(mockDevocionalProvider.supportedLanguages).thenReturn(['es', 'en', 'pt', 'fr']);
+      when(mockDevocionalProvider.isDownloading).thenReturn(false);
+      when(mockDevocionalProvider.downloadStatus).thenReturn(null);
+      
+      when(mockLocalizationProvider.supportedLocales).thenReturn([
+        const Locale('es'),
+        const Locale('en'),
+        const Locale('pt'), 
+        const Locale('fr'),
+      ]);
+      when(mockLocalizationProvider.getLanguageName(any)).thenReturn('Language');
+      when(mockLocalizationProvider.translate(any)).thenReturn('Translated');
+      when(mockLocalizationProvider.changeLanguage(any)).thenAnswer((_) async {});
     });
 
     Widget createTestWidget() {
