@@ -1,0 +1,7 @@
+# Test Configuration for Devocional Nuevo
+
+# This file sets test timeout configurations to prevent tests from running too long
+# Individual tests should complete within 30 seconds, entire test suite within 5 minutes
+
+timeout: 30s
+chain-timeout: 300s

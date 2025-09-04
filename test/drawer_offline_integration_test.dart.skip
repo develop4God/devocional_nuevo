@@ -29,6 +29,10 @@ void main() {
 
     // Stubs para los getters requeridos
     when(() => mockDevocionalProvider.selectedVersion).thenReturn('RVR1960');
+    when(() => mockDevocionalProvider.availableVersions).thenReturn(['RVR1960', 'NVI', 'KJV']);
+    when(() => mockDevocionalProvider.isOfflineMode).thenReturn(false);
+    when(() => mockDevocionalProvider.downloadStatus).thenReturn(null);
+    
     when(() => mockThemeProvider.currentBrightness)
         .thenReturn(Brightness.light);
     when(() => mockThemeProvider.currentThemeFamily).thenReturn('default');
