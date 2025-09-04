@@ -188,16 +188,16 @@ void main() {
       provider.dispose();
     });
 
-    test('should handle invitation dialog state', () {
+    test('should handle invitation dialog state', () async {
       SharedPreferences.setMockInitialValues({});
       final provider = DevocionalProvider();
 
       expect(provider.showInvitationDialog, isA<bool>());
 
-      provider.setInvitationDialogVisibility(true);
+      await provider.setInvitationDialogVisibility(true);
       expect(provider.showInvitationDialog, isTrue);
 
-      provider.setInvitationDialogVisibility(false);
+      await provider.setInvitationDialogVisibility(false);
       expect(provider.showInvitationDialog, isFalse);
 
       provider.dispose();
