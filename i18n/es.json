@@ -139,7 +139,7 @@
   },
   "application_language": {
     "title": "Idioma de la Aplicación",
-    "description": "Selecciona y descarga el idioma que deseas usar para la aplicación. Cada idioma incluye contenido devocional para el año.",
+    "description": "Selecciona y descarga el idioma que deseas usar para la aplicación. Cada idioma incluye interfaz, devocionales, versículos y audio lector.",
     "current_language": "Idioma actual",
     "download_failed": "Error al descargar el contenido del idioma. Por favor, inténtalo de nuevo.",
     "downloading": "Descargando...",
