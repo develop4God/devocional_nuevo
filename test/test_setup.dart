@@ -114,6 +114,21 @@ class TestSetup {
     );
   }
 
+    // Mock other commonly used channels
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+      const MethodChannel('plugins.flutter.io/package_info_plus'),
+      (MethodCall methodCall) async {
+        return {
+          'appName': 'Test App',
+          'packageName': 'com.test.app',
+          'version': '1.0.0',
+          'buildNumber': '1',
+        };
+      },
+    );
+  }
+
   /// Cleans up plugin mocks after tests
   static void cleanupMocks() {
     // Clean up method channel mocks
