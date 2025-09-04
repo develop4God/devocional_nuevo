@@ -330,5 +330,9 @@
   "devotionals_page": {
     "added_to_favorites": "Dévotionnel ajouté aux favoris",
     "removed_from_favorites": "Dévotionnel retiré des favoris"
+  },
+  "bubble_constants": {
+    "new_feature": "Nouveau",
+    "updated_feature": "Mise à jour"
   }
 }

@@ -1,4 +1,5 @@
 // bubble_constants.dart
+import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -19,8 +20,8 @@ class BubbleConstants {
   static const Color notificationColor = Color(0xFFFF5722);
 
   // Posiciones para diferentes tipos de widgets
-  static const double widgetBubbleTop = -2;
-  static const double widgetBubbleRight = -37;
+  static const double widgetBubbleTop = -6;
+  static const double widgetBubbleRight = -63;
   static const double iconBadgeTop = -4;
   static const double iconBadgeRight = -4;
 
@@ -348,7 +349,7 @@ extension BubbleExtensions on Widget {
     final bubbleId = 'new_${runtimeType.toString()}_$hashCode';
     return _BubbleOverlay(
       bubbleId: bubbleId,
-      text: 'Nuevo',
+      text: "bubble_constants.new_feature".tr(),
       bubbleColor: BubbleConstants.newFeatureColor,
       child: this,
     );
@@ -359,7 +360,7 @@ extension BubbleExtensions on Widget {
     final bubbleId = 'updated_${runtimeType.toString()}_$hashCode';
     return _BubbleOverlay(
       bubbleId: bubbleId,
-      text: 'Actualizado',
+      text: "bubble_constants.updated_feature".tr(),
       bubbleColor: BubbleConstants.updatedFeatureColor,
       child: this,
     );

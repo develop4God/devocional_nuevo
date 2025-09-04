@@ -429,31 +429,29 @@ class DevocionalesDrawer extends StatelessWidget {
                           label: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                              Text(
+                                'drawer.download_devotionals'.tr(),
+                                style: textTheme.bodyMedium?.copyWith(
+                                  fontSize: 16,
+                                  color: colorScheme.onSurface,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
                               hasLocalData
                                   ? Text(
-                                      'drawer.downloaded_devotionals'.tr(),
-                                      style: textTheme.bodyMedium?.copyWith(
-                                        fontSize: 16,
-                                        color: colorScheme.onSurface,
+                                      'drawer.offline_content_ready'.tr(),
+                                      style: textTheme.bodySmall?.copyWith(
+                                        color: colorScheme.onSurface
+                                            .withAlpha(150),
                                       ),
                                     )
                                   : Text(
-                                      'drawer.download_devotionals'.tr(),
-                                      style: textTheme.bodyMedium?.copyWith(
-                                        fontSize: 16,
-                                        color: colorScheme.onSurface,
+                                      'drawer.for_offline_use'.tr(),
+                                      style: textTheme.bodySmall?.copyWith(
+                                        color: colorScheme.onSurface
+                                            .withAlpha(150),
                                       ),
                                     ).newBubble,
-                              // <--- Burbuja solo en "Descargar devocionales"
-                              const SizedBox(height: 4),
-                              Text(
-                                hasLocalData
-                                    ? 'drawer.offline_content_ready'.tr()
-                                    : 'drawer.for_offline_use'.tr(),
-                                style: textTheme.bodySmall?.copyWith(
-                                  color: colorScheme.onSurface.withAlpha(150),
-                                ),
-                              ),
                             ],
                           ),
                           onTap: () {

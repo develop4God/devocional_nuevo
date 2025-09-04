@@ -1,8 +1,8 @@
 // lib/pages/favorites_page.dart
 
+import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart'; // Asegúrate de importar tu modelo
 import 'package:devocional_nuevo/pages/devocionales_page.dart'; // Importar DevocionalesPage
-import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/services/localization_service.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart'; // Para formatear la fecha
@@ -140,8 +140,27 @@ class FavoritesPage extends StatelessWidget {
                                   devocional, context);
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
-                                    content: Text('favorites.removed_message'
-                                        .tr({'verse': devocional.versiculo}))),
+                                  backgroundColor: Theme.of(context)
+                                          .appBarTheme
+                                          .backgroundColor ??
+                                      Theme.of(context).colorScheme.primary,
+                                  // Usa el color que quieras
+                                  content: Text(
+                                    'favorites.removed_message'
+                                        .tr({'verse': devocional.versiculo}),
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      // Contrasta con fondo oscuro
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  behavior: SnackBarBehavior.floating,
+                                  // Opcional para no tapar el BottomAppBar
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius:
+                                        BorderRadius.circular(12), // Opcional
+                                  ),
+                                ),
                               );
                             },
                           ),
