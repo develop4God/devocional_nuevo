@@ -59,7 +59,8 @@ void main() {
       ]);
       when(() => mockLocalizationProvider.getLanguageName(any()))
           .thenReturn('Language');
-      when(() => mockLocalizationProvider.translate(any())).thenReturn('Translated');
+      when(() => mockLocalizationProvider.translate(any()))
+          .thenReturn('Translated');
       when(() => mockLocalizationProvider.changeLanguage(any()))
           .thenAnswer((_) async {});
     });

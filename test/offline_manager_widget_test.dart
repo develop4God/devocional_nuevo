@@ -248,15 +248,16 @@ void main() {
       // For this test, we'll just verify the widget can be built without crashing
       // and that the status message is displayed
       try {
-        await tester.pumpWidget(createWidgetUnderTest(showStatusIndicator: true));
+        await tester
+            .pumpWidget(createWidgetUnderTest(showStatusIndicator: true));
         await tester.pump();
 
         // Verify the error message is displayed
         expect(find.textContaining('Error'), findsWidgets);
-        
+
         // Try to find the close button, but don't tap it due to shader issues
         final closeButton = find.byIcon(Icons.close);
-        
+
         // If close button exists, just verify it's there - don't tap it
         if (closeButton.evaluate().isNotEmpty) {
           expect(closeButton, findsWidgets);
@@ -266,7 +267,8 @@ void main() {
       } catch (e) {
         if (e.toString().contains('ink_sparkle.frag')) {
           // If shader error occurs, skip the visual test and just verify mock setup
-          expect(mockProvider.downloadStatus, equals('Error al descargar devocionales'));
+          expect(mockProvider.downloadStatus,
+              equals('Error al descargar devocionales'));
           expect(mockProvider.isDownloading, isFalse);
         } else {
           rethrow;

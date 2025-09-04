@@ -21,7 +21,7 @@ void main() {
 
       // Get fresh instance
       localizationService = LocalizationService.instance;
-      
+
       // Try to initialize with assets, but handle gracefully if they fail
       try {
         await localizationService.initialize();
@@ -35,42 +35,52 @@ void main() {
       test('should translate basic app keys across all languages', () async {
         // Since asset loading may fail in tests, let's test the basic structure
         // and check if translations are working when assets are available
-        
+
         bool hasWorkingTranslations = false;
-        
+
         try {
           // Test Spanish
           await localizationService.changeLocale(const Locale('es'));
           final spanishTitle = localizationService.translate('app.title');
-          
+
           if (spanishTitle != 'app.title') {
             hasWorkingTranslations = true;
             expect(spanishTitle, equals('Devocionales Cristianos'));
-            expect(localizationService.translate('app.loading'), equals('Cargando...'));
+            expect(localizationService.translate('app.loading'),
+                equals('Cargando...'));
 
             // Test English
             await localizationService.changeLocale(const Locale('en'));
-            expect(localizationService.translate('app.title'), equals('Christian Devotionals'));
-            expect(localizationService.translate('app.loading'), equals('Loading...'));
+            expect(localizationService.translate('app.title'),
+                equals('Christian Devotionals'));
+            expect(localizationService.translate('app.loading'),
+                equals('Loading...'));
 
             // Test Portuguese
             await localizationService.changeLocale(const Locale('pt'));
-            expect(localizationService.translate('app.title'), equals('Devocionais Cristãos'));
-            expect(localizationService.translate('app.loading'), equals('Carregando...'));
+            expect(localizationService.translate('app.title'),
+                equals('Devocionais Cristãos'));
+            expect(localizationService.translate('app.loading'),
+                equals('Carregando...'));
 
             // Test French
             await localizationService.changeLocale(const Locale('fr'));
-            expect(localizationService.translate('app.title'), equals('Dévotionnels Chrétiens'));
-            expect(localizationService.translate('app.loading'), equals('Chargement...'));
+            expect(localizationService.translate('app.title'),
+                equals('Dévotionnels Chrétiens'));
+            expect(localizationService.translate('app.loading'),
+                equals('Chargement...'));
           } else {
             // If assets aren't loading, just verify the service can handle missing assets gracefully
-            expect(spanishTitle, equals('app.title')); // Should return key when translation missing
+            expect(
+                spanishTitle,
+                equals(
+                    'app.title')); // Should return key when translation missing
           }
         } catch (e) {
           // If there are asset loading issues, we'll just verify basic functionality
           hasWorkingTranslations = false;
         }
-        
+
         // Test should pass either way - either with working translations or graceful fallback
         expect(localizationService.currentLocale, isNotNull);
       });
@@ -85,7 +95,7 @@ void main() {
         final title = localizationService.translate('app.title');
         final loading = localizationService.translate('app.loading');
         final preparing = localizationService.translate('app.preparing');
-        
+
         expect(title, isNotEmpty);
         expect(loading, isNotEmpty);
         expect(preparing, isNotEmpty);
@@ -115,7 +125,7 @@ void main() {
           // Verify translation service responds
           final title = localizationService.translate('app.title');
           expect(title, isNotEmpty);
-          
+
           // The result might be the actual translation OR the key itself if assets failed to load
           // Both are acceptable behaviors in test environment
         }

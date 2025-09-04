@@ -29,46 +29,54 @@ void main() {
     test('should load translations correctly for each language', () async {
       // Since asset loading may fail in test environment, let's test graceful handling
       bool translationsWorking = false;
-      
+
       // Test Spanish
       await localizationService.changeLocale(const Locale('es'));
       final spanishTitle = localizationService.translate('app.title');
-      
+
       if (spanishTitle != 'app.title') {
         // If translations are loaded, test expected values
         translationsWorking = true;
         expect(spanishTitle, equals('Devocionales Cristianos'));
-        expect(localizationService.translate('app.loading'), equals('Cargando...'));
+        expect(localizationService.translate('app.loading'),
+            equals('Cargando...'));
 
         // Test English
         await localizationService.changeLocale(const Locale('en'));
-        expect(localizationService.translate('app.title'), equals('Christian Devotionals'));
-        expect(localizationService.translate('app.loading'), equals('Loading...'));
+        expect(localizationService.translate('app.title'),
+            equals('Christian Devotionals'));
+        expect(
+            localizationService.translate('app.loading'), equals('Loading...'));
 
         // Test Portuguese
         await localizationService.changeLocale(const Locale('pt'));
-        expect(localizationService.translate('app.title'), equals('Devocionais Cristãos'));
-        expect(localizationService.translate('app.loading'), equals('Carregando...'));
+        expect(localizationService.translate('app.title'),
+            equals('Devocionais Cristãos'));
+        expect(localizationService.translate('app.loading'),
+            equals('Carregando...'));
 
         // Test French
         await localizationService.changeLocale(const Locale('fr'));
-        expect(localizationService.translate('app.title'), equals('Dévotionnels Chrétiens'));
-        expect(localizationService.translate('app.loading'), equals('Chargement...'));
+        expect(localizationService.translate('app.title'),
+            equals('Dévotionnels Chrétiens'));
+        expect(localizationService.translate('app.loading'),
+            equals('Chargement...'));
       } else {
         // If assets aren't loaded, verify graceful fallback
-        expect(spanishTitle, equals('app.title')); // Returns key when translation missing
-        
+        expect(spanishTitle,
+            equals('app.title')); // Returns key when translation missing
+
         // Test other languages also fallback gracefully
         await localizationService.changeLocale(const Locale('en'));
         expect(localizationService.translate('app.title'), equals('app.title'));
-        
+
         await localizationService.changeLocale(const Locale('pt'));
         expect(localizationService.translate('app.title'), equals('app.title'));
-        
+
         await localizationService.changeLocale(const Locale('fr'));
         expect(localizationService.translate('app.title'), equals('app.title'));
       }
-      
+
       // Test passes in both scenarios - with working translations or graceful fallback
       expect(localizationService.currentLocale, isNotNull);
     });
