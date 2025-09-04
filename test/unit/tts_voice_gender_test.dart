@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   // Initialize Flutter binding for tests
   TestWidgetsFlutterBinding.ensureInitialized();
-  
+
   group('TTS Voice Gender Detection Tests', () {
     late TtsService ttsService;
 
@@ -12,7 +12,8 @@ void main() {
       ttsService = TtsService();
     });
 
-    test('placeholder test - voice gender functionality not yet implemented', () {
+    test('placeholder test - voice gender functionality not yet implemented',
+        () {
       // This test is a placeholder for future voice gender detection functionality
       // The _getVoiceGenderInfo method doesn't exist yet in TtsService
       expect(ttsService, isNotNull);
@@ -77,7 +78,7 @@ void main() {
     test('should have TTS service instance', () {
       final ttsService = TtsService();
       expect(ttsService, isNotNull);
-      
+
       // TODO: Add tests when voice prioritization functionality is implemented
     });
   });
