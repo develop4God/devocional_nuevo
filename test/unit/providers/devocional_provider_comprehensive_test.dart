@@ -34,18 +34,22 @@ void main() {
       expect(provider.errorMessage, isNull);
     });
 
-    test('should handle language switching', () {
+    test('should handle language switching', () async {
       // Test valid language switches
       provider.setSelectedLanguage('en');
+      // Wait a moment for async operations to complete
+      await Future.delayed(const Duration(milliseconds: 100));
       expect(provider.selectedLanguage, equals('en'));
       expect(
           provider.selectedVersion, equals('KJV')); // Should reset to default
 
       provider.setSelectedLanguage('pt');
+      await Future.delayed(const Duration(milliseconds: 100));
       expect(provider.selectedLanguage, equals('pt'));
       expect(provider.selectedVersion, equals('ARC'));
 
       provider.setSelectedLanguage('fr');
+      await Future.delayed(const Duration(milliseconds: 100));
       expect(provider.selectedLanguage, equals('fr'));
       expect(provider.selectedVersion, equals('LSG1910'));
     });
