@@ -287,10 +287,10 @@ class _AddPrayerModalState extends State<AddPrayerModal> {
 
       if (_isEditing) {
         await prayerProvider.editPrayer(widget.prayerToEdit!.id, text);
-        _showSuccessSnackBar('Oración actualizada exitosamente');
+        _showSuccessSnackBar('prayers.prayer_updated'.tr());
       } else {
         await prayerProvider.addPrayer(text);
-        _showSuccessSnackBar('Oración creada exitosamente');
+        _showSuccessSnackBar('prayers.prayer_created'.tr());
       }
 
       if (mounted) {
