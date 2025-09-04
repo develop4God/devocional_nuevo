@@ -1,7 +1,6 @@
 {
   "app": {
     "title": "Devocionais Cristãos",
-    "date": "{date}",
     "loading": "Carregando...",
     "preparing": "Preparando seu espaço com Deus...",
     "error": "Erro",

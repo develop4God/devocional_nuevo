@@ -359,6 +359,24 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     );
   }
 
+  // AGREGAR AQUÍ LA FUNCIÓN HELPER
+  DateFormat _getLocalizedDateFormat(BuildContext context) {
+    final locale = Localizations.localeOf(context).languageCode;
+    switch (locale) {
+      case 'es':
+        return DateFormat('EEEE, d \'de\' MMMM', 'es');
+      case 'en':
+        return DateFormat('EEEE, MMMM d', 'en');
+      case 'fr':
+        return DateFormat(
+            'EEEE d MMMM', 'fr'); // Sin coma (formato nativo francés)
+      case 'pt':
+        return DateFormat('EEEE, d \'de\' MMMM', 'pt');
+      default:
+        return DateFormat('EEEE, MMMM d', 'en'); // Fallback a inglés
+    }
+  }
+
   Future<void> _shareAsText(Devocional devocional) async {
     final meditationsText =
         devocional.paraMeditar.map((p) => '${p.cita}: ${p.texto}').join('\n');
@@ -459,7 +477,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8.0),
                 child: Text(
-                  DateFormat('EEEE, d MMMM', 'es').format(DateTime.now()),
+                  _getLocalizedDateFormat(context).format(DateTime.now()),
                   style: textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: colorScheme.primary,

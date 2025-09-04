@@ -1,7 +1,6 @@
 {
   "app": {
     "title": "Christian Devotionals",
-    "date": "{date}",
     "loading": "Loading...",
     "preparing": "Preparing your space with God...",
     "error": "Error",
