@@ -198,9 +198,11 @@ void main() {
     });
 
     test('should handle malformed locale', () async {
-      // Should handle malformed locale gracefully
-      await localizationService.changeLocale(const Locale(''));
+      // Should handle unsupported locale gracefully by falling back to default
+      await localizationService.changeLocale(const Locale('xx')); // Non-existent language
       expect(localizationService.currentLocale, isNotNull);
+      // Should either stay on current locale or fallback to default
+      expect(LocalizationService.supportedLocales, contains(localizationService.currentLocale));
     });
 
     test('should handle stress testing', () async {

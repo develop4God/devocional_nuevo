@@ -4,7 +4,7 @@ import 'package:devocional_nuevo/providers/localization_provider.dart';
 import 'package:devocional_nuevo/utils/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mockito/mockito.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -37,30 +37,31 @@ void main() {
       mockLocalizationProvider = MockLocalizationProvider();
 
       // Setup default behavior - fix the null/Locale issue
-      when(mockLocalizationProvider.currentLocale)
+      when(() => mockLocalizationProvider.currentLocale)
           .thenReturn(const Locale('es'));
 
-      when(mockDevocionalProvider.downloadCurrentYearDevocionales())
+      when(() => mockDevocionalProvider.downloadCurrentYearDevocionales())
           .thenAnswer((_) async => true);
 
       // Add other necessary stub methods
-      when(mockDevocionalProvider.selectedLanguage).thenReturn('es');
-      when(mockDevocionalProvider.selectedVersion).thenReturn('RVR1960');
-      when(mockDevocionalProvider.supportedLanguages)
+      when(() => mockDevocionalProvider.selectedLanguage).thenReturn('es');
+      when(() => mockDevocionalProvider.selectedVersion).thenReturn('RVR1960');
+      when(() => mockDevocionalProvider.supportedLanguages)
           .thenReturn(['es', 'en', 'pt', 'fr']);
-      when(mockDevocionalProvider.isDownloading).thenReturn(false);
-      when(mockDevocionalProvider.downloadStatus).thenReturn(null);
+      when(() => mockDevocionalProvider.isDownloading).thenReturn(false);
+      when(() => mockDevocionalProvider.downloadStatus).thenReturn(null);
 
-      when(mockLocalizationProvider.supportedLocales).thenReturn([
+      when(() => mockLocalizationProvider.supportedLocales).thenReturn([
         const Locale('es'),
         const Locale('en'),
         const Locale('pt'),
         const Locale('fr'),
       ]);
-      when(mockLocalizationProvider.getLanguageName(any))
+      when(() => mockLocalizationProvider.getLanguageName(any()))
           .thenReturn('Language');
-      when(mockLocalizationProvider.translate(any)).thenReturn('Translated');
-      when(mockLocalizationProvider.changeLanguage(any))
+      when(() => mockLocalizationProvider.translate(any()))
+          .thenReturn('Translated');
+      when(() => mockLocalizationProvider.changeLanguage(any()))
           .thenAnswer((_) async {});
     });
 
@@ -113,7 +114,7 @@ void main() {
     testWidgets('should show progress indicator during download',
         (WidgetTester tester) async {
       // Setup a delayed download to simulate progress
-      when(mockDevocionalProvider.downloadCurrentYearDevocionales())
+      when(() => mockDevocionalProvider.downloadCurrentYearDevocionales())
           .thenAnswer((_) async {
         await Future.delayed(const Duration(milliseconds: 500));
         return true;
@@ -134,7 +135,7 @@ void main() {
     testWidgets('should handle download failure gracefully',
         (WidgetTester tester) async {
       // Setup download to fail
-      when(mockDevocionalProvider.downloadCurrentYearDevocionales())
+      when(() => mockDevocionalProvider.downloadCurrentYearDevocionales())
           .thenAnswer((_) async => false);
 
       await tester.pumpWidget(createTestWidget());
