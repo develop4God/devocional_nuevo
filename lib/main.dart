@@ -97,7 +97,7 @@ void main() async {
   );
 }
 
-// Widget raíz que decide si corre Game Loop o la app normal
+// Widget raíz que inicializa la app
 class AppInitializer extends StatefulWidget {
   const AppInitializer({super.key});
 
@@ -106,13 +106,12 @@ class AppInitializer extends StatefulWidget {
 }
 
 class _AppInitializerState extends State<AppInitializer> {
-  bool? _isGameLoop;
   bool _appInitialized = false;
 
   @override
   void initState() {
     super.initState();
-    // Ejecutar la detección del Game Loop y la inicialización de la app después del primer frame
+    // Ejecutar la inicialización de la app después del primer frame
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _initializeApp();
     });
@@ -121,7 +120,6 @@ class _AppInitializerState extends State<AppInitializer> {
   Future<void> _initializeApp() async {
     // Inicialización ligera (no bloquea el primer frame)
     await _initServices();
-    await _checkGameLoop();
     setState(() {
       _appInitialized = true;
     });
@@ -183,7 +181,8 @@ class _AppInitializerState extends State<AppInitializer> {
 
       // Request notification permissions if not in debug mode
       if (!kDebugMode) {
-        developer.log('Solicitando permiso de notificaciones...', name: 'DebugFlow');
+        developer.log('Solicitando permiso de notificaciones...',
+            name: 'DebugFlow');
         final settings = await FirebaseMessaging.instance.requestPermission();
         developer.log(
             'Permiso solicitado, estado: ${settings.authorizationStatus}',
@@ -229,16 +228,9 @@ class _AppInitializerState extends State<AppInitializer> {
     }
   }
 
-  Future<void> _checkGameLoop() async {
-    // No longer needed - removed game loop functionality
-    setState(() {
-      _isGameLoop = false;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
-    if (!_appInitialized || _isGameLoop == null) {
+    if (!_appInitialized) {
       // Muestra el SplashScreen de Flutter mientras inicializas
       return const MaterialApp(
         home: SplashScreen(),
@@ -246,7 +238,7 @@ class _AppInitializerState extends State<AppInitializer> {
       );
     }
 
-    // App normal (game loop functionality removed)
+    // App normal
     return const MyApp();
   }
 }

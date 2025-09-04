@@ -279,7 +279,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
         builder: (context, setDialogState) => AlertDialog(
           backgroundColor: colorScheme.surface,
           title: Text(
-            "¡Oración de fe, para vida eterna!",
+            "devotionals.salvation_prayer_title".tr(),
             textAlign: TextAlign.center,
             style: textTheme.titleLarge?.copyWith(
               fontWeight: FontWeight.bold,
