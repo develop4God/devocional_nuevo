@@ -1,7 +1,8 @@
-import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter/material.dart';
 import 'package:devocional_nuevo/services/localization_service.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import '../../test_setup.dart';
 
 void main() {
@@ -32,9 +33,10 @@ void main() {
     test('should support multiple languages', () {
       final supportedLocales = LocalizationService.supportedLocales;
       expect(supportedLocales.length, greaterThanOrEqualTo(4));
-      
+
       // Check for expected languages
-      final languageCodes = supportedLocales.map((l) => l.languageCode).toList();
+      final languageCodes =
+          supportedLocales.map((l) => l.languageCode).toList();
       expect(languageCodes, contains('es'));
       expect(languageCodes, contains('en'));
       expect(languageCodes, contains('pt'));
@@ -43,19 +45,19 @@ void main() {
 
     test('should change locale successfully', () async {
       final originalLocale = localizationService.currentLocale;
-      
+
       // Change to English
       await localizationService.changeLocale(const Locale('en'));
       expect(localizationService.currentLocale.languageCode, equals('en'));
-      
+
       // Change to Portuguese
       await localizationService.changeLocale(const Locale('pt'));
       expect(localizationService.currentLocale.languageCode, equals('pt'));
-      
+
       // Change to French
       await localizationService.changeLocale(const Locale('fr'));
       expect(localizationService.currentLocale.languageCode, equals('fr'));
-      
+
       // Change back to Spanish
       await localizationService.changeLocale(const Locale('es'));
       expect(localizationService.currentLocale.languageCode, equals('es'));
@@ -66,17 +68,17 @@ void main() {
       await localizationService.changeLocale(const Locale('es'));
       expect(localizationService.translate('app.title'), isNotEmpty);
       expect(localizationService.translate('app.loading'), isNotEmpty);
-      
+
       // Test English translations
       await localizationService.changeLocale(const Locale('en'));
       expect(localizationService.translate('app.title'), isNotEmpty);
       expect(localizationService.translate('app.loading'), isNotEmpty);
-      
+
       // Test Portuguese translations
       await localizationService.changeLocale(const Locale('pt'));
       expect(localizationService.translate('app.title'), isNotEmpty);
       expect(localizationService.translate('app.loading'), isNotEmpty);
-      
+
       // Test French translations
       await localizationService.changeLocale(const Locale('fr'));
       expect(localizationService.translate('app.title'), isNotEmpty);
@@ -85,10 +87,11 @@ void main() {
 
     test('should handle missing translation keys gracefully', () async {
       await localizationService.changeLocale(const Locale('es'));
-      
+
       // Non-existent key should return the key itself
       const nonExistentKey = 'non.existent.key.that.does.not.exist';
-      expect(localizationService.translate(nonExistentKey), equals(nonExistentKey));
+      expect(localizationService.translate(nonExistentKey),
+          equals(nonExistentKey));
     });
 
     test('should handle empty or null keys', () {
@@ -99,12 +102,12 @@ void main() {
       // Change locale
       await localizationService.changeLocale(const Locale('en'));
       expect(localizationService.currentLocale.languageCode, equals('en'));
-      
+
       // Create new instance (simulating app restart)
       LocalizationService.resetInstance();
       final newService = LocalizationService.instance;
       await newService.initialize();
-      
+
       // Should remember the last set locale (or fallback to default)
       expect(newService.currentLocale, isNotNull);
     });
@@ -116,38 +119,37 @@ void main() {
         const Locale('pt'),
         const Locale('fr'),
       ];
-      
+
       for (int i = 0; i < 3; i++) {
         for (final locale in locales) {
           await localizationService.changeLocale(locale);
-          expect(localizationService.currentLocale.languageCode, 
-                 equals(locale.languageCode));
+          expect(localizationService.currentLocale.languageCode,
+              equals(locale.languageCode));
         }
       }
     });
 
     test('should handle unsupported locale gracefully', () async {
       final originalLocale = localizationService.currentLocale;
-      
+
       // Try to set unsupported locale
       await localizationService.changeLocale(const Locale('de')); // German
-      
+
       // Should fallback to supported locale or maintain current
       expect(localizationService.currentLocale, isNotNull);
-      expect(LocalizationService.supportedLocales
-             .map((l) => l.languageCode)
-             .contains(localizationService.currentLocale.languageCode), 
-             isTrue);
+      expect(
+          LocalizationService.supportedLocales
+              .map((l) => l.languageCode)
+              .contains(localizationService.currentLocale.languageCode),
+          isTrue);
     });
 
     test('should provide translation with parameters', () async {
       await localizationService.changeLocale(const Locale('es'));
-      
+
       // Test parameter substitution if supported
-      final result = localizationService.translate(
-        'app.title', 
-        {'param': 'test'}
-      );
+      final result =
+          localizationService.translate('app.title', {'param': 'test'});
       expect(result, isNotNull);
       expect(result, isNotEmpty);
     });
@@ -155,12 +157,12 @@ void main() {
     test('should handle concurrent operations', () async {
       // Multiple operations running concurrently should not cause issues
       final futures = <Future>[];
-      
+
       for (int i = 0; i < 5; i++) {
         futures.add(localizationService.changeLocale(const Locale('en')));
         futures.add(localizationService.changeLocale(const Locale('es')));
       }
-      
+
       await Future.wait(futures);
       expect(localizationService.currentLocale, isNotNull);
     });
@@ -168,7 +170,7 @@ void main() {
     test('should maintain singleton behavior', () {
       final instance1 = LocalizationService.instance;
       final instance2 = LocalizationService.instance;
-      
+
       expect(identical(instance1, instance2), isTrue);
     });
   });
@@ -211,19 +213,19 @@ void main() {
           await localizationService.changeLocale(const Locale('es'));
         }
       }
-      
+
       expect(localizationService.currentLocale, isNotNull);
     });
 
     test('should handle memory constraints', () {
       // Create multiple translation requests
       final translations = <String>[];
-      
+
       for (int i = 0; i < 50; i++) {
         translations.add(localizationService.translate('app.title'));
         translations.add(localizationService.translate('app.loading'));
       }
-      
+
       // All translations should be valid
       for (final translation in translations) {
         expect(translation, isNotNull);
@@ -233,10 +235,10 @@ void main() {
 
     test('should handle service reset', () {
       final originalService = LocalizationService.instance;
-      
+
       LocalizationService.resetInstance();
       final newService = LocalizationService.instance;
-      
+
       expect(identical(originalService, newService), isFalse);
       expect(newService, isNotNull);
     });
@@ -247,16 +249,16 @@ void main() {
       LocalizationService.resetInstance();
       final service = LocalizationService.instance;
       await service.initialize();
-      
+
       final stopwatch = Stopwatch()..start();
-      
+
       // Perform many translations
       for (int i = 0; i < 1000; i++) {
         service.translate('app.title');
       }
-      
+
       stopwatch.stop();
-      
+
       // Should complete quickly (less than 1 second for 1000 translations)
       expect(stopwatch.elapsedMilliseconds, lessThan(1000));
     });
@@ -265,17 +267,17 @@ void main() {
       LocalizationService.resetInstance();
       final service = LocalizationService.instance;
       await service.initialize();
-      
+
       final stopwatch = Stopwatch()..start();
-      
+
       // Perform locale changes
       for (int i = 0; i < 10; i++) {
         await service.changeLocale(const Locale('en'));
         await service.changeLocale(const Locale('es'));
       }
-      
+
       stopwatch.stop();
-      
+
       // Should complete in reasonable time
       expect(stopwatch.elapsedMilliseconds, lessThan(5000));
     });

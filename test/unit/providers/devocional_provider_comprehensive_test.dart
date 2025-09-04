@@ -1,7 +1,8 @@
-import 'package:flutter_test/flutter_test.dart';
-import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
+import 'package:devocional_nuevo/providers/devocional_provider.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import '../../test_setup.dart';
 
 void main() {
@@ -37,7 +38,8 @@ void main() {
       // Test valid language switches
       provider.setSelectedLanguage('en');
       expect(provider.selectedLanguage, equals('en'));
-      expect(provider.selectedVersion, equals('KJV')); // Should reset to default
+      expect(
+          provider.selectedVersion, equals('KJV')); // Should reset to default
 
       provider.setSelectedLanguage('pt');
       expect(provider.selectedLanguage, equals('pt'));
@@ -94,7 +96,8 @@ void main() {
 
     test('should handle unsupported language gracefully', () {
       provider.setSelectedLanguage('de'); // German - not supported
-      expect(provider.selectedLanguage, equals('es')); // Should fallback to Spanish
+      expect(provider.selectedLanguage,
+          equals('es')); // Should fallback to Spanish
       expect(provider.selectedVersion, equals('RVR1960'));
     });
 
@@ -125,7 +128,7 @@ void main() {
     test('should handle download status management', () {
       // Should start with no download status
       expect(provider.downloadStatus, isNull);
-      
+
       // Should be able to clear download status
       provider.clearDownloadStatus();
       expect(provider.downloadStatus, isNull);
@@ -178,10 +181,11 @@ void main() {
       // Should handle reading seconds tracking
       expect(provider.currentReadingSeconds, equals(0));
       expect(provider.currentScrollPercentage, equals(0.0));
-      
+
       // Should be able to start tracking
-      expect(() => provider.startDevocionalTracking('test_id'), returnsNormally);
-      
+      expect(
+          () => provider.startDevocionalTracking('test_id'), returnsNormally);
+
       // Should be able to pause and resume tracking
       expect(() => provider.pauseTracking(), returnsNormally);
       expect(() => provider.resumeTracking(), returnsNormally);
@@ -189,10 +193,10 @@ void main() {
 
     test('should handle invitation dialog state', () {
       expect(provider.showInvitationDialog, isFalse);
-      
+
       provider.setInvitationDialogVisibility(true);
       expect(provider.showInvitationDialog, isTrue);
-      
+
       provider.setInvitationDialogVisibility(false);
       expect(provider.showInvitationDialog, isFalse);
     });
@@ -232,7 +236,7 @@ void main() {
     test('should dispose properly', () {
       // Should be able to dispose without errors
       expect(() => provider.dispose(), returnsNormally);
-      
+
       // Should handle multiple disposals gracefully
       expect(() => provider.dispose(), returnsNormally);
     });
@@ -275,7 +279,7 @@ void main() {
   group('DevocionalProvider Performance Tests', () {
     test('should handle rapid language switches', () {
       final provider = DevocionalProvider();
-      
+
       // Rapid language switching should not cause issues
       for (int i = 0; i < 10; i++) {
         provider.setSelectedLanguage('es');
@@ -283,25 +287,25 @@ void main() {
         provider.setSelectedLanguage('pt');
         provider.setSelectedLanguage('fr');
       }
-      
+
       expect(provider.selectedLanguage, isNotNull);
       provider.dispose();
     });
 
     test('should handle multiple provider instances', () {
       final providers = <DevocionalProvider>[];
-      
+
       // Create multiple providers
       for (int i = 0; i < 5; i++) {
         providers.add(DevocionalProvider());
       }
-      
+
       // All should be valid
       for (final provider in providers) {
         expect(provider.selectedLanguage, isNotNull);
         expect(provider.selectedVersion, isNotNull);
       }
-      
+
       // Clean up
       for (final provider in providers) {
         provider.dispose();

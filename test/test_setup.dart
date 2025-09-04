@@ -1,14 +1,15 @@
+import 'dart:io';
+
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:io';
 
 /// Common test setup utilities for mocking Flutter plugins
 class TestSetup {
   /// Sets up common plugin mocks required by most tests
   static void setupCommonMocks() {
     TestWidgetsFlutterBinding.ensureInitialized();
-    
+
     // Mock SharedPreferences
     SharedPreferences.setMockInitialValues({});
 

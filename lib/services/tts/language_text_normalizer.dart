@@ -91,14 +91,14 @@ class LanguageTextNormalizer {
   static String formatOrdinalNumbers(String text, String language) {
     // Replace ordinal indicators after numbers
     String result = text;
-    
+
     // Look for patterns like "1º", "2ª", "3°" etc.
     final regex = RegExp(r'(\d+)([º°ª])');
     result = result.replaceAllMapped(regex, (match) {
       final number = int.tryParse(match.group(1)!) ?? 0;
       return getOrdinal(number, language);
     });
-    
+
     return result;
   }
 

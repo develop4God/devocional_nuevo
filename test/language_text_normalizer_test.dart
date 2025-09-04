@@ -1,5 +1,5 @@
-import 'package:flutter_test/flutter_test.dart';
 import 'package:devocional_nuevo/services/tts/language_text_normalizer.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('Language Text Normalizer Tests', () {
@@ -40,10 +40,17 @@ void main() {
     });
 
     test('should format ordinal numbers in text', () {
-      expect(LanguageTextNormalizer.formatOrdinalNumbers('El 1º capítulo', 'es'), equals('El primero capítulo'));
-      expect(LanguageTextNormalizer.formatOrdinalNumbers('The 1° chapter', 'en'), equals('The first chapter'));
-      expect(LanguageTextNormalizer.formatOrdinalNumbers('O 1ª capítulo', 'pt'), equals('O primeiro capítulo'));
-      expect(LanguageTextNormalizer.formatOrdinalNumbers('Le 1° chapitre', 'fr'), equals('Le premier chapitre'));
+      expect(
+          LanguageTextNormalizer.formatOrdinalNumbers('El 1º capítulo', 'es'),
+          equals('El primero capítulo'));
+      expect(
+          LanguageTextNormalizer.formatOrdinalNumbers('The 1° chapter', 'en'),
+          equals('The first chapter'));
+      expect(LanguageTextNormalizer.formatOrdinalNumbers('O 1ª capítulo', 'pt'),
+          equals('O primeiro capítulo'));
+      expect(
+          LanguageTextNormalizer.formatOrdinalNumbers('Le 1° chapitre', 'fr'),
+          equals('Le premier chapitre'));
     });
 
     test('should apply language-specific normalizations for English', () {
@@ -96,9 +103,11 @@ void main() {
     });
 
     test('should default to Spanish for unknown languages', () {
-      expect(LanguageTextNormalizer.getOrdinal(1, 'unknown'), equals('primero'));
-      
-      final result = LanguageTextNormalizer.applyAbbreviations('etc. p.ej.', 'unknown');
+      expect(
+          LanguageTextNormalizer.getOrdinal(1, 'unknown'), equals('primero'));
+
+      final result =
+          LanguageTextNormalizer.applyAbbreviations('etc. p.ej.', 'unknown');
       expect(result, contains('etcétera'));
       expect(result, contains('por ejemplo'));
     });

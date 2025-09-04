@@ -86,7 +86,8 @@ class Prayer {
       text: text ?? this.text,
       createdDate: createdDate ?? this.createdDate,
       status: status ?? this.status,
-      answeredDate: clearAnsweredDate ? null : (answeredDate ?? this.answeredDate),
+      answeredDate:
+          clearAnsweredDate ? null : (answeredDate ?? this.answeredDate),
     );
   }
 

@@ -25,8 +25,7 @@ void main() {
     // Mock download methods
     when(() => mockProvider.downloadCurrentYearDevocionales())
         .thenAnswer((_) async => true);
-    when(() => mockProvider.forceRefreshFromAPI())
-        .thenAnswer((_) async => {});
+    when(() => mockProvider.forceRefreshFromAPI()).thenAnswer((_) async => {});
   });
 
   Widget createWidgetUnderTest({
@@ -74,17 +73,17 @@ void main() {
 
       // Verificar que el widget se renderiza
       expect(find.byType(OfflineManagerWidget), findsOneWidget);
-      
+
       // Verificar que el texto del botón está presente
       expect(find.text('Descargar año actual'), findsOneWidget);
-      
+
       // Verificar que hay un widget clickeable con el texto de descarga
       final downloadButton = find.ancestor(
         of: find.text('Descargar año actual'),
-        matching: find.byWidgetPredicate((widget) => 
-          widget is ElevatedButton || 
-          widget is TextButton || 
-          widget is OutlinedButton),
+        matching: find.byWidgetPredicate((widget) =>
+            widget is ElevatedButton ||
+            widget is TextButton ||
+            widget is OutlinedButton),
       );
       expect(downloadButton, findsOneWidget);
     });
@@ -102,23 +101,23 @@ void main() {
       // Verificar textos de los botones
       expect(find.text('Descargar año actual'), findsOneWidget);
       expect(find.text('Actualizar'), findsOneWidget);
-      
+
       // Verificar que hay botones clickeables para cada texto
       final downloadButton = find.ancestor(
         of: find.text('Descargar año actual'),
-        matching: find.byWidgetPredicate((widget) => 
-          widget is ElevatedButton || 
-          widget is TextButton || 
-          widget is OutlinedButton),
+        matching: find.byWidgetPredicate((widget) =>
+            widget is ElevatedButton ||
+            widget is TextButton ||
+            widget is OutlinedButton),
       );
       expect(downloadButton, findsOneWidget);
-      
+
       final updateButton = find.ancestor(
         of: find.text('Actualizar'),
-        matching: find.byWidgetPredicate((widget) => 
-          widget is ElevatedButton || 
-          widget is TextButton || 
-          widget is OutlinedButton),
+        matching: find.byWidgetPredicate((widget) =>
+            widget is ElevatedButton ||
+            widget is TextButton ||
+            widget is OutlinedButton),
       );
       expect(updateButton, findsOneWidget);
     });
