@@ -3,8 +3,8 @@
 import 'dart:developer' as developer;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/services/notification_service.dart';
-
 // NEW IMPORTS for Firebase
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -319,7 +319,7 @@ class _NotificationConfigPageState extends State<NotificationConfigPage> {
         SnackBar(
           backgroundColor: colorScheme.secondary,
           content: Text(
-            'Hora de notificación ajustada a $timeString', // TEXTO TRADUCIDO
+            '${'notifications_config_page.notification_set'.tr()} $timeString',
             style: TextStyle(color: colorScheme.onSecondary),
           ),
         ),
@@ -391,8 +391,8 @@ class _NotificationConfigPageState extends State<NotificationConfigPage> {
     if (_isLoading) {
       return Scaffold(
         appBar: AppBar(
-          title: const Text('Configuración Notificaciones',
-              style: TextStyle(color: Colors.white)), // TEXTO TRADUCIDO
+          title: Text("notifications_config_page.notifications_config".tr(),
+              style: const TextStyle(color: Colors.white)), // TEXTO TRADUCIDO
         ),
         body: const Center(child: CircularProgressIndicator()),
       );
@@ -400,8 +400,8 @@ class _NotificationConfigPageState extends State<NotificationConfigPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Configuración Notificaciones',
-            style: TextStyle(color: Colors.white)), // TEXTO TRADUCIDO
+        title: Text("notifications_config_page.notifications_config".tr(),
+            style: const TextStyle(color: Colors.white)), // TEXTO TRADUCIDO
       ),
       body: Padding(
         padding: const EdgeInsets.all(24.0),
@@ -412,7 +412,7 @@ class _NotificationConfigPageState extends State<NotificationConfigPage> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Activar/Desactivar Notificaciones', // TEXTO TRADUCIDO
+                  'notifications_config_page.enable_notifications'.tr(),
                   style: textTheme.titleMedium
                       ?.copyWith(color: colorScheme.onSurface),
                 ),
@@ -437,7 +437,7 @@ class _NotificationConfigPageState extends State<NotificationConfigPage> {
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
-                        'Hora de la notificación diaria', // TEXTO TRADUCIDO
+                        'notifications_config_page.notification_time'.tr(),
                         style: textTheme.titleMedium?.copyWith(
                           color: _notificationsEnabled
                               ? colorScheme.onSurface
@@ -476,7 +476,7 @@ class _NotificationConfigPageState extends State<NotificationConfigPage> {
                       ? Colors.white
                       : Colors.white.withAlpha(127)),
               label: Text(
-                'Confirmar hora', // Nuevo texto para el botón
+                'notifications_config_page.notification_confirm'.tr(),
                 style: textTheme.titleMedium?.copyWith(
                   color: (_notificationsEnabled && isConfirmButtonEnabled)
                       ? Colors.white

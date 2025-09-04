@@ -130,6 +130,13 @@
     "paypal_error": "Error al abrir PayPal: {error}",
     "paypal_no_app_error": "No se pudo abrir PayPal. Asegúrate de tener un navegador web o la app de PayPal instalada."
   },
+  "notifications_config_page": {
+    "notifications_config": "Configuración de notificaciones",
+    "enable_notifications": "Activar/Desactivar notificaciones",
+    "notification_time": "Hora de notificación diaria",
+    "notification_confirm": "Confirmar la hora",
+    "notification_set": "Hora de confirmación ajustada a"
+  },
   "application_language": {
     "title": "Idioma de la Aplicación",
     "description": "Selecciona y descarga el idioma que deseas usar para la aplicación. Cada idioma incluye contenido devocional para el año.",

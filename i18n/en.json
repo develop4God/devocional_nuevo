@@ -118,9 +118,6 @@
     "language_change_downloading": "Downloading {language} content...",
     "language_change_error": "Error downloading content for {language}. Please try again later.",
     "language_change_success": "Language changed to {language}. App will restart to apply changes.",
-    "notifications": "Notifications",
-    "enable_notifications": "Enable notifications",
-    "notification_time": "Notification time",
     "about": "About",
     "version": "Version",
     "developer": "Developer",
@@ -132,6 +129,13 @@
     "paypal_launch_error": "Could not open PayPal. The system could not launch the URL.",
     "paypal_error": "Error opening PayPal: {error}",
     "paypal_no_app_error": "Could not open PayPal. Make sure you have a web browser or PayPal app installed."
+  },
+  "notifications_config_page": {
+    "notifications_config": "Notifications Config",
+    "enable_notifications": "Enable/Disable notifications",
+    "notification_time": "Daily notification time",
+    "notification_confirm": "Confirm the time",
+    "notification_set": "Confirmation time adjusted to"
   },
   "application_language": {
     "title": "Application Language",
