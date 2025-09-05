@@ -108,7 +108,8 @@ void main() {
       await tester.pumpAndSettle();
 
       // Should have download icons (file_download_outlined for non-downloaded languages)
-      expect(find.byIcon(Icons.file_download_outlined), findsAtLeastNWidgets(1));
+      expect(
+          find.byIcon(Icons.file_download_outlined), findsAtLeastNWidgets(1));
     });
 
     testWidgets('should show progress indicator during download',
@@ -117,7 +118,7 @@ void main() {
       bool isDownloading = false;
       when(() => mockDevocionalProvider.downloadCurrentYearDevocionales())
           .thenAnswer((_) async {
-        isDownloading = true; 
+        isDownloading = true;
         await Future.delayed(const Duration(milliseconds: 100));
         isDownloading = false;
         return true;
@@ -128,7 +129,8 @@ void main() {
 
       // The page should have proper download indicators based on actual implementation
       // Look for file_download_outlined icons instead
-      expect(find.byIcon(Icons.file_download_outlined), findsAtLeastNWidgets(1));
+      expect(
+          find.byIcon(Icons.file_download_outlined), findsAtLeastNWidgets(1));
     });
 
     testWidgets('should handle download failure gracefully',
