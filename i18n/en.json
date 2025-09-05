@@ -311,6 +311,24 @@
     "dedicated_reader": "Dedicated reader",
     "achievement_unlocked": "Achievement unlocked!"
   },
+  "achievements": {
+    "first_read_title": "First Step",
+    "first_read_description": "Read your first devotional",
+    "week_reader_title": "Weekly Reader",
+    "week_reader_description": "Read devotionals for 7 days",
+    "month_reader_title": "Monthly Reader",
+    "month_reader_description": "Read devotionals for 30 days",
+    "streak_3_title": "Consistency",
+    "streak_3_description": "Maintain a 3-day streak",
+    "streak_7_title": "Spiritual Week",
+    "streak_7_description": "Maintain a 7-day streak",
+    "streak_30_title": "Spiritual Warrior",
+    "streak_30_description": "Maintain a 30-day streak",
+    "first_favorite_title": "First Favorite",
+    "first_favorite_description": "Save your first favorite devotional",
+    "collector_title": "Collector",
+    "collector_description": "Save 10 favorite devotionals"
+  },
   "prayers": {
     "created": "Created: {date}",
     "answered": "Answered: {date}",

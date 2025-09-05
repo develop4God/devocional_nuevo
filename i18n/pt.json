@@ -311,6 +311,24 @@
     "dedicated_reader": "Leitor dedicado",
     "achievement_unlocked": "Conquista desbloqueada!"
   },
+  "achievements": {
+    "first_read_title": "Primeiro Passo",
+    "first_read_description": "Leia seu primeiro devocional",
+    "week_reader_title": "Leitor Semanal",
+    "week_reader_description": "Leia devocionais por 7 dias",
+    "month_reader_title": "Leitor Mensal",
+    "month_reader_description": "Leia devocionais por 30 dias",
+    "streak_3_title": "Constância",
+    "streak_3_description": "Mantenha uma sequência de 3 dias",
+    "streak_7_title": "Semana Espiritual",
+    "streak_7_description": "Mantenha uma sequência de 7 dias",
+    "streak_30_title": "Guerreiro Espiritual",
+    "streak_30_description": "Mantenha uma sequência de 30 dias",
+    "first_favorite_title": "Primeiro Favorito",
+    "first_favorite_description": "Salve seu primeiro devocional favorito",
+    "collector_title": "Colecionador",
+    "collector_description": "Salve 10 devocionais favoritos"
+  },
   "prayers": {
     "created": "Criada: {date}",
     "answered": "Respondida: {date}",
