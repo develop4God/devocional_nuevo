@@ -127,7 +127,7 @@ class BibleTextFormatter {
         };
       case 'fr':
         return {
-          'LSG1910': 'Louis Segond mil nove cento e dez',
+          'LSG1910': 'Louis Segond mille neuf cent dix',
           'TOB': 'Traduction Oecuménique de la Bible',
         };
       default:

@@ -395,8 +395,12 @@ class TtsService {
     String normalized = text;
     final currentLang = language ?? _currentLanguage;
 
-    // Get Bible version expansions based on language
-    final bibleVersions = _getBibleVersionExpansions(currentLang);
+    // PRIMERO: Format ordinals and Bible books for specific language
+    normalized = _formatBibleBookForLanguage(normalized, currentLang);
+
+    // DESPUÉS: Get Bible version expansions based on language
+    final bibleVersions =
+        BibleTextFormatter.getBibleVersionExpansions(currentLang);
     bibleVersions.forEach((versionKey, expansion) {
       if (normalized.contains(versionKey)) {
         normalized = normalized.replaceAll(versionKey, expansion);
@@ -731,38 +735,6 @@ class TtsService {
       return '${tens[number ~/ 10]} ${ones[number % 10]}'.trim();
     }
     return number.toString();
-  }
-
-  Map<String, String> _getBibleVersionExpansions(String language) {
-    switch (language) {
-      case 'en':
-        return {
-          'NIV': 'New International Version',
-          'KJV': 'King James Version',
-          'ESV': 'English Standard Version',
-          'NLT': 'New Living Translation',
-          'NASB': 'New American Standard Bible',
-        };
-      case 'pt':
-        return {
-          'ARA': 'Almeida Revista e Atualizada',
-          'NVI': 'Nova Versão Internacional',
-          'ARC': 'Almeida Revista e Corrigida',
-        };
-      case 'fr':
-        return {
-          'LSG': 'Louis Segond',
-          'NEG': 'Nouvelle Edition de Genève',
-          'BFC': 'Bible en Français Courant',
-        };
-      default: // Spanish
-        return {
-          'RVR1960': 'Reina Valera mil novecientos sesenta',
-          'NVI': 'Nueva Versión Internacional',
-          'LBLA': 'La Biblia de las Américas',
-          'RVC': 'Reina Valera Contemporánea',
-        };
-    }
   }
 
   String _formatBibleBookForLanguage(String text, String language) {
