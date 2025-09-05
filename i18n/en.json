@@ -222,7 +222,8 @@
     "retry_message": "Please try again",
     "no_internet": "No internet connection",
     "server_error": "Server error",
-    "timeout_error": "Request timeout"
+    "timeout_error": "Request timeout",
+    "prayer_loading_error": "Error loading prayers"
   },
   "messages": {
     "welcome": "Welcome!",

@@ -222,7 +222,8 @@
     "retry_message": "Por favor, tente novamente",
     "no_internet": "Sem conexão com a internet",
     "server_error": "Erro do servidor",
-    "timeout_error": "Tempo limite esgotado"
+    "timeout_error": "Tempo limite esgotado",
+    "prayer_loading_error": "Erro ao carregar orações"
   },
   "messages": {
     "welcome": "Bem-vindo!",

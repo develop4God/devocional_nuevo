@@ -79,7 +79,8 @@ void main() {
           'streak_30_title': 'Guerreiro Espiritual',
           'streak_30_description': 'Mantenha uma sequência de 30 dias',
           'first_favorite_title': 'Primeiro Favorito',
-          'first_favorite_description': 'Salve seu primeiro devocional favorito',
+          'first_favorite_description':
+              'Salve seu primeiro devocional favorito',
           'collector_title': 'Colecionador',
           'collector_description': 'Salve 10 devocionais favoritos',
         }
@@ -103,7 +104,8 @@ void main() {
           'streak_30_title': 'Guerrier Spirituel',
           'streak_30_description': 'Maintenez une série de 30 jours',
           'first_favorite_title': 'Premier Favori',
-          'first_favorite_description': 'Sauvegardez votre premier dévotionnel favori',
+          'first_favorite_description':
+              'Sauvegardez votre premier dévotionnel favori',
           'collector_title': 'Collectionneur',
           'collector_description': 'Sauvegardez 10 dévotionnels favoris',
         }
@@ -193,10 +195,14 @@ void main() {
 
     test('Achievement translations should be different across languages', () {
       // Verify that achievement titles are properly translated
-      final firstReadTitleSpanish = _getValue(spanishTranslations, 'achievements.first_read_title');
-      final firstReadTitleEnglish = _getValue(englishTranslations, 'achievements.first_read_title');
-      final firstReadTitlePortuguese = _getValue(portugueseTranslations, 'achievements.first_read_title');
-      final firstReadTitleFrench = _getValue(frenchTranslations, 'achievements.first_read_title');
+      final firstReadTitleSpanish =
+          _getValue(spanishTranslations, 'achievements.first_read_title');
+      final firstReadTitleEnglish =
+          _getValue(englishTranslations, 'achievements.first_read_title');
+      final firstReadTitlePortuguese =
+          _getValue(portugueseTranslations, 'achievements.first_read_title');
+      final firstReadTitleFrench =
+          _getValue(frenchTranslations, 'achievements.first_read_title');
 
       expect(firstReadTitleSpanish, isNot(equals(firstReadTitleEnglish)));
       expect(firstReadTitleSpanish, isNot(equals(firstReadTitlePortuguese)));

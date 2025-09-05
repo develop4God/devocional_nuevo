@@ -192,8 +192,10 @@ class PredefinedAchievements {
   static List<Achievement> get all => [
         Achievement(
           id: 'first_read',
-          title: LocalizationService.instance.translate('achievements.first_read_title'),
-          description: LocalizationService.instance.translate('achievements.first_read_description'),
+          title: LocalizationService.instance
+              .translate('achievements.first_read_title'),
+          description: LocalizationService.instance
+              .translate('achievements.first_read_description'),
           icon: Icons.auto_stories,
           color: Colors.green,
           threshold: 1,
@@ -201,8 +203,10 @@ class PredefinedAchievements {
         ),
         Achievement(
           id: 'week_reader',
-          title: LocalizationService.instance.translate('achievements.week_reader_title'),
-          description: LocalizationService.instance.translate('achievements.week_reader_description'),
+          title: LocalizationService.instance
+              .translate('achievements.week_reader_title'),
+          description: LocalizationService.instance
+              .translate('achievements.week_reader_description'),
           icon: Icons.calendar_view_week,
           color: Colors.blue,
           threshold: 7,
@@ -210,8 +214,10 @@ class PredefinedAchievements {
         ),
         Achievement(
           id: 'month_reader',
-          title: LocalizationService.instance.translate('achievements.month_reader_title'),
-          description: LocalizationService.instance.translate('achievements.month_reader_description'),
+          title: LocalizationService.instance
+              .translate('achievements.month_reader_title'),
+          description: LocalizationService.instance
+              .translate('achievements.month_reader_description'),
           icon: Icons.calendar_month,
           color: Colors.purple,
           threshold: 30,
@@ -219,8 +225,10 @@ class PredefinedAchievements {
         ),
         Achievement(
           id: 'streak_3',
-          title: LocalizationService.instance.translate('achievements.streak_3_title'),
-          description: LocalizationService.instance.translate('achievements.streak_3_description'),
+          title: LocalizationService.instance
+              .translate('achievements.streak_3_title'),
+          description: LocalizationService.instance
+              .translate('achievements.streak_3_description'),
           icon: Icons.local_fire_department,
           color: Colors.orange,
           threshold: 3,
@@ -228,8 +236,10 @@ class PredefinedAchievements {
         ),
         Achievement(
           id: 'streak_7',
-          title: LocalizationService.instance.translate('achievements.streak_7_title'),
-          description: LocalizationService.instance.translate('achievements.streak_7_description'),
+          title: LocalizationService.instance
+              .translate('achievements.streak_7_title'),
+          description: LocalizationService.instance
+              .translate('achievements.streak_7_description'),
           icon: Icons.whatshot,
           color: Colors.red,
           threshold: 7,
@@ -237,8 +247,10 @@ class PredefinedAchievements {
         ),
         Achievement(
           id: 'streak_30',
-          title: LocalizationService.instance.translate('achievements.streak_30_title'),
-          description: LocalizationService.instance.translate('achievements.streak_30_description'),
+          title: LocalizationService.instance
+              .translate('achievements.streak_30_title'),
+          description: LocalizationService.instance
+              .translate('achievements.streak_30_description'),
           icon: Icons.emoji_events,
           color: Colors.amber,
           threshold: 30,
@@ -246,8 +258,10 @@ class PredefinedAchievements {
         ),
         Achievement(
           id: 'first_favorite',
-          title: LocalizationService.instance.translate('achievements.first_favorite_title'),
-          description: LocalizationService.instance.translate('achievements.first_favorite_description'),
+          title: LocalizationService.instance
+              .translate('achievements.first_favorite_title'),
+          description: LocalizationService.instance
+              .translate('achievements.first_favorite_description'),
           icon: Icons.favorite,
           color: Colors.pink,
           threshold: 1,
@@ -255,8 +269,10 @@ class PredefinedAchievements {
         ),
         Achievement(
           id: 'collector',
-          title: LocalizationService.instance.translate('achievements.collector_title'),
-          description: LocalizationService.instance.translate('achievements.collector_description'),
+          title: LocalizationService.instance
+              .translate('achievements.collector_title'),
+          description: LocalizationService.instance
+              .translate('achievements.collector_description'),
           icon: Icons.bookmark,
           color: Colors.indigo,
           threshold: 10,

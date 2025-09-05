@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:devocional_nuevo/models/prayer_model.dart';
+import 'package:devocional_nuevo/services/localization_service.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -40,7 +41,8 @@ class PrayerProvider with ChangeNotifier {
 
       await _loadPrayers();
     } catch (e) {
-      _errorMessage = 'Error al cargar las oraciones: $e';
+      _errorMessage =
+          LocalizationService.instance.translate('errors.prayer_loading_error');
       debugPrint('Error initializing prayer data: $e');
     } finally {
       _isLoading = false;

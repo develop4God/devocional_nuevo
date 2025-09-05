@@ -222,7 +222,8 @@
     "retry_message": "Por favor, inténtalo de nuevo",
     "no_internet": "Sin conexión a internet",
     "server_error": "Error del servidor",
-    "timeout_error": "Tiempo de espera agotado"
+    "timeout_error": "Tiempo de espera agotado",
+    "prayer_loading_error": "Error al cargar las oraciones"
   },
   "messages": {
     "welcome": "¡Bienvenido!",

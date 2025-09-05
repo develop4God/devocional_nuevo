@@ -223,7 +223,8 @@
     "retry_message": "Veuillez réessayer",
     "no_internet": "Pas de connexion Internet",
     "server_error": "Erreur serveur",
-    "timeout_error": "Délai d'attente dépassé"
+    "timeout_error": "Délai d'attente dépassé",
+    "prayer_loading_error": "Erreur lors du chargement des prières"
   },
   "messages": {
     "welcome": "Bienvenue !",
@@ -296,6 +297,7 @@
     "developed_by": "Développé avec ❤️ par Develop4God",
     "terms_copyright": "Termes et Conditions / Copyright",
     "link_error": "Impossible d'ouvrir le lien."
+  },
   "stats": {
     "title": "Statistiques Spirituelles",
     "devotionals_read": "Dévotionnels lus",

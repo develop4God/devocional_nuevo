@@ -14,7 +14,7 @@ void main() {
       TestWidgetsFlutterBinding.ensureInitialized();
       // Initialize SharedPreferences mock for each test
       SharedPreferences.setMockInitialValues({});
-      
+
       // Initialize localization service
       LocalizationService.resetInstance();
       try {
@@ -91,11 +91,13 @@ void main() {
       );
 
       // In test environment, translation might not be loaded, so we accept either the translation key or actual translation
-      expect(firstReadAchievement.title, anyOf(
-        equals('Primer Paso'), // Spanish translation
-        equals('First Step'), // English translation
-        equals('achievements.first_read_title'), // Translation key fallback
-      ));
+      expect(
+          firstReadAchievement.title,
+          anyOf(
+            equals('Primer Paso'), // Spanish translation
+            equals('First Step'), // English translation
+            equals('achievements.first_read_title'), // Translation key fallback
+          ));
       expect(firstReadAchievement.threshold, 1);
       expect(firstReadAchievement.type, AchievementType.reading);
     });
