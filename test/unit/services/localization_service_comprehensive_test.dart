@@ -31,7 +31,7 @@ void main() {
     });
 
     test('should support multiple languages', () {
-      final supportedLocales = LocalizationService.supportedLocales;
+      const supportedLocales = LocalizationService.supportedLocales;
       expect(supportedLocales.length, greaterThanOrEqualTo(4));
 
       // Check for expected languages
