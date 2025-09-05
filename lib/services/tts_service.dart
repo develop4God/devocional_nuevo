@@ -6,8 +6,6 @@ import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/services/localization_service.dart';
 import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
 import 'package:devocional_nuevo/services/tts/bible_text_formatter.dart';
-// ✅ AGREGADO: Import de SpecializedTextNormalizer
-import 'package:devocional_nuevo/services/tts/specialized_text_normalizer.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -91,7 +89,6 @@ class TtsService {
 
   int get totalChunks => _currentChunks.length;
 
-  /// Returns a callback for jumping to the previous chunk if possible.
   VoidCallback? get previousChunk {
     if (_currentChunkIndex > 0 && _chunkInProgress) {
       return () => _jumpToChunk(_currentChunkIndex - 1);
@@ -99,7 +96,6 @@ class TtsService {
     return null;
   }
 
-  /// Returns a callback for jumping to the next chunk if possible.
   VoidCallback? get nextChunk {
     if (_currentChunkIndex < _currentChunks.length - 1 && _chunkInProgress) {
       return () => _jumpToChunk(_currentChunkIndex + 1);
@@ -107,7 +103,6 @@ class TtsService {
     return null;
   }
 
-  /// Returns a callback for jumping to a specific chunk index, if possible.
   Future<void> Function(int index)? get jumpToChunk {
     if (_currentChunks.isNotEmpty && _chunkInProgress) {
       return (int index) async => await _jumpToChunk(index);
@@ -115,7 +110,6 @@ class TtsService {
     return null;
   }
 
-  /// Internal method to jump to a specific chunk index and play it.
   Future<void> _jumpToChunk(int index) async {
     if (_chunkInProgress &&
         index >= 0 &&
@@ -128,6 +122,8 @@ class TtsService {
     }
   }
 
+  // =========================
+  // INITIALIZATION & CONFIG
   // =========================
 
   Future<void> _initialize() async {
@@ -150,10 +146,7 @@ class TtsService {
       debugPrint('🔧 TTS: Loading config - Language: $language, Rate: $rate');
 
       await _configureTts(language, rate);
-
-      // Forzar espera de completion en el plugin, mejora la sincronización en algunos dispositivos
       await _flutterTts.awaitSpeakCompletion(true);
-
       _setupEventHandlers();
 
       _isInitialized = true;
@@ -172,7 +165,6 @@ class TtsService {
       debugPrint('🔧 TTS: Setting language to $language');
       await _flutterTts.setLanguage(language);
 
-      // REFACTORIZADO: Usar VoiceSettingsService para cargar voz guardada
       final savedVoice =
           await _voiceSettingsService.loadSavedVoice(_currentLanguage);
       if (savedVoice != null) {
@@ -188,14 +180,12 @@ class TtsService {
     await _flutterTts.setVolume(1.0);
     await _flutterTts.setPitch(1.0);
 
-    // Android: Use queuing for chunked playback
     if (Platform.isAndroid) {
       await _flutterTts.setQueueMode(1);
       debugPrint('🌀 TTS: Android setQueueMode(QUEUE)');
     }
   }
 
-  // --- LOGS REFORZADOS EN HANDLERS ---
   void _setupEventHandlers() {
     _flutterTts.setStartHandler(() {
       debugPrint('🎬 TTS: START handler (nativo) en ${DateTime.now()}');
@@ -245,10 +235,13 @@ class TtsService {
     debugPrint('✅ TTS: Native event handlers configured');
   }
 
+  // =========================
+  // PLAYBACK MANAGEMENT
+  // =========================
+
   void _onChunkCompleted() async {
     if (!_chunkInProgress) return;
 
-    // Evitar avanzar si está pausado
     if (_currentState == TtsState.paused) {
       debugPrint(
           '⏸️ TTS: Chunk completado pero estado pausado, no avanzar chunk');
@@ -276,7 +269,6 @@ class TtsService {
       _progressController.add(progress);
     }
 
-    // Forzar avance al siguiente chunk SIEMPRE
     if (_currentChunkIndex < _currentChunks.length) {
       debugPrint('➡️ TTS: Moving to next chunk...');
       Future.delayed(const Duration(milliseconds: 100), () {
@@ -290,7 +282,6 @@ class TtsService {
     }
   }
 
-  // Emergency timer debe llamar a _onChunkCompleted() SIEMPRE:
   void _startEmergencyTimer(String chunk) {
     _cancelEmergencyTimer();
     final wordCount = chunk.trim().split(RegExp(r'\s+')).length;
@@ -323,9 +314,7 @@ class TtsService {
   void _speakNextChunk() async {
     if (_disposed || !_chunkInProgress) return;
 
-    // Espera a que el TTS esté idle o playing antes de hablar el siguiente chunk (evita overlap)
     if (_currentState != TtsState.idle && _currentState != TtsState.playing) {
-      // Si está pausado, no continuar el bucle - esperar a resume()
       if (_currentState == TtsState.paused) {
         debugPrint('⏸️ TTS: Playback pausado, no continuar chunks');
         return;
@@ -336,7 +325,6 @@ class TtsService {
     }
 
     if (_currentChunkIndex < _currentChunks.length) {
-      // Unión inteligente de encabezados cortos al siguiente chunk para evitar chunks de una palabra
       String chunk = _currentChunks[_currentChunkIndex];
       if (chunk.trim().length < 6 &&
           _currentChunkIndex + 1 < _currentChunks.length) {
@@ -383,22 +371,18 @@ class TtsService {
     }
   }
 
-  // --- Normalización avanzada de referencia bíblica ---
-  /// Formatea dinámicamente los libros con ordinal si comienza con 1, 2, 3
-  /// Usa el contexto de idioma actual para formatear apropiadamente
-  String formatBibleBook(String reference) {
-    return BibleTextFormatter.formatBibleBook(reference, _currentLanguage);
-  }
+  // =========================
+  // TEXT NORMALIZATION - OPTIMIZED
+  // =========================
 
-  // ✅ METODO PRINCIPAL DE NORMALIZACIÓN - RESTAURADO CON SpecializedTextNormalizer
   String _normalizeTtsText(String text, [String? language, String? version]) {
     String normalized = text;
     final currentLang = language ?? _currentLanguage;
 
-    // PRIMERO: Format ordinals and Bible books for specific language
-    normalized = _formatBibleBookForLanguage(normalized, currentLang);
+    // 1. Formatear libros bíblicos PRIMERO (con RegExp corregido)
+    normalized = BibleTextFormatter.formatBibleBook(normalized, currentLang);
 
-    // DESPUÉS: Get Bible version expansions based on language
+    // 2. Expandir versiones bíblicas
     final bibleVersions =
         BibleTextFormatter.getBibleVersionExpansions(currentLang);
     bibleVersions.forEach((versionKey, expansion) {
@@ -407,384 +391,60 @@ class TtsService {
       }
     });
 
-    // Format ordinals and Bible books for specific language
-    normalized = _formatBibleBookForLanguage(normalized, currentLang);
-
-    // Apply language-specific text normalizations
-    normalized = _applyLanguageSpecificNormalizations(normalized, currentLang);
-
-    // ✅ USAR SpecializedTextNormalizer para formatear años
-    normalized = SpecializedTextNormalizer.formatYears(normalized, currentLang);
-
-    // ✅ USAR SpecializedTextNormalizer para formatear referencias bíblicas
-    normalized = SpecializedTextNormalizer.formatBibleReferences(
-        normalized, currentLang);
-
-    // ✅ USAR SpecializedTextNormalizer para formatear tiempos y ratios
-    normalized =
-        SpecializedTextNormalizer.formatTimesAndRatios(normalized, currentLang);
-
-    // Apply language-specific abbreviations
-    normalized = _applyAbbreviations(normalized, currentLang);
-
-    // Format ordinal numbers
-    normalized = _formatOrdinalNumbers(normalized, currentLang);
+    // 3. Formatear referencias bíblicas básicas (capítulo:versículo)
+    normalized = _formatBibleReferences(normalized, currentLang);
 
     // Clean up whitespace
-    normalized = normalized.replaceAll(RegExp(r'\s+'), ' ').trim();
-
-    return normalized;
+    return normalized.replaceAll(RegExp(r'\s+'), ' ').trim();
   }
 
-  // ✅ MÉTODOS AUXILIARES IMPLEMENTADOS CORRECTAMENTE
+  String _formatBibleReferences(String text, String language) {
+    final Map<String, String> referenceWords = {
+      'es': 'capítulo|versículo',
+      'en': 'chapter|verse',
+      'pt': 'capítulo|versículo',
+      'fr': 'chapitre|verset',
+    };
 
-  // Apply language-specific normalizations
-  String _applyLanguageSpecificNormalizations(String text, String language) {
-    switch (language) {
-      case 'en':
-        return text
-            .replaceAll('versiculo:', 'Verse:')
-            .replaceAll('reflexion:', 'Reflection:')
-            .replaceAll('capitulo:', 'chapter:')
-            .replaceAll('para_meditar:', 'To Meditate:')
-            .replaceAll('Oracion:', 'Prayer:')
-            .replaceAll('vs.', 'verse')
-            .replaceAll('vv.', 'verses')
-            .replaceAll('ch.', 'chapter')
-            .replaceAll('chs.', 'chapters');
-      case 'pt':
-        return text
-            .replaceAll('vs.', 'versículo')
-            .replaceAll('vv.', 'versículos')
-            .replaceAll('cap.', 'capítulo')
-            .replaceAll('caps.', 'capítulos');
-      case 'fr':
-        return text
-            .replaceAll('vs.', 'verset')
-            .replaceAll('vv.', 'versets')
-            .replaceAll('ch.', 'chapitre')
-            .replaceAll('chs.', 'chapitres');
-      default: // Spanish
-        return text;
-    }
-  }
+    final words = referenceWords[language] ?? referenceWords['es']!;
+    final chapterWord = words.split('|')[0];
+    final verseWord = words.split('|')[1];
 
-  String _applyAbbreviations(String text, String language) {
-    switch (language) {
-      case 'en':
-        return text
-            .replaceAll(RegExp(r'\bDr\.'), 'Doctor')
-            .replaceAll(RegExp(r'\bMr\.'), 'Mister')
-            .replaceAll(RegExp(r'\bMrs\.'), 'Missus')
-            .replaceAll(RegExp(r'\bMs\.'), 'Miss')
-            .replaceAll(RegExp(r'\betc\.'), 'etcetera')
-            .replaceAll(RegExp(r'\bi\.e\.'), 'that is')
-            .replaceAll(RegExp(r'\be\.g\.'), 'for example');
-      case 'pt':
-        return text
-            .replaceAll(RegExp(r'\bDr\.'), 'Doutor')
-            .replaceAll(RegExp(r'\bDra\.'), 'Doutora')
-            .replaceAll(RegExp(r'\bSr\.'), 'Senhor')
-            .replaceAll(RegExp(r'\bSra\.'), 'Senhora')
-            .replaceAll(RegExp(r'\betc\.'), 'etcetera');
-      case 'fr':
-        return text
-            .replaceAll(RegExp(r'\bDr\.'), 'Docteur')
-            .replaceAll(RegExp(r'\bM\.'), 'Monsieur')
-            .replaceAll(RegExp(r'\bMme\.'), 'Madame')
-            .replaceAll(RegExp(r'\bMlle\.'), 'Mademoiselle')
-            .replaceAll(RegExp(r'\betc\.'), 'et cetera');
-      default: // Spanish
-        return text
-            .replaceAll(RegExp(r'\bDr\.'), 'Doctor')
-            .replaceAll(RegExp(r'\bDra\.'), 'Doctora')
-            .replaceAll(RegExp(r'\bSr\.'), 'Señor')
-            .replaceAll(RegExp(r'\bSra\.'), 'Señora')
-            .replaceAll(RegExp(r'\bSrta\.'), 'Señorita')
-            .replaceAll(RegExp(r'\betc\.'), 'etcétera');
-    }
-  }
-
-  String _formatOrdinalNumbers(String text, String language) {
-    switch (language) {
-      case 'en':
-        return text.replaceAllMapped(
-          RegExp(r'\b(\d+)(st|nd|rd|th)\b'),
-          (match) {
-            final number = match.group(1)!;
-            final suffix = match.group(2)!;
-            return _numberToWordsEnglish(int.parse(number)) +
-                (suffix == 'st'
-                    ? ' first'
-                    : suffix == 'nd'
-                        ? ' second'
-                        : suffix == 'rd'
-                            ? ' third'
-                            : ' th');
-          },
-        );
-      case 'pt':
-        return text.replaceAllMapped(
-          RegExp(r'\b(\d+)[ºª]\b'),
-          (match) {
-            final number = int.parse(match.group(1)!);
-            return '${_numberToWordsPortuguese(number)}º';
-          },
-        );
-      case 'fr':
-        return text.replaceAllMapped(
-          RegExp(r'\b(\d+)(er|ème)\b'),
-          (match) {
-            final number = int.parse(match.group(1)!);
-            final suffix = match.group(2)!;
-            return _numberToWordsFrench(number) +
-                (suffix == 'er' ? ' premier' : ' ième');
-          },
-        );
-      default: // Spanish
-        return text.replaceAllMapped(
-          RegExp(r'\b(\d+)[ºª]\b'),
-          (match) {
-            final number = int.parse(match.group(1)!);
-            return '${_numberToWordsSpanish(number)}º';
-          },
-        );
-    }
-  }
-
-  // Helper methods for number to words conversion
-  String _numberToWordsEnglish(int number) {
-    const ones = [
-      '',
-      'one',
-      'two',
-      'three',
-      'four',
-      'five',
-      'six',
-      'seven',
-      'eight',
-      'nine'
-    ];
-    const teens = [
-      'ten',
-      'eleven',
-      'twelve',
-      'thirteen',
-      'fourteen',
-      'fifteen',
-      'sixteen',
-      'seventeen',
-      'eighteen',
-      'nineteen'
-    ];
-    const tens = [
-      '',
-      '',
-      'twenty',
-      'thirty',
-      'forty',
-      'fifty',
-      'sixty',
-      'seventy',
-      'eighty',
-      'ninety'
-    ];
-
-    if (number < 10) return ones[number];
-    if (number < 20) return teens[number - 10];
-    if (number < 100) {
-      return '${tens[number ~/ 10]} ${ones[number % 10]}'.trim();
-    }
-    return number.toString();
-  }
-
-  String _numberToWordsSpanish(int number) {
-    const ones = [
-      '',
-      'uno',
-      'dos',
-      'tres',
-      'cuatro',
-      'cinco',
-      'seis',
-      'siete',
-      'ocho',
-      'nueve'
-    ];
-    const teens = [
-      'diez',
-      'once',
-      'doce',
-      'trece',
-      'catorce',
-      'quince',
-      'dieciséis',
-      'diecisiete',
-      'dieciocho',
-      'diecinueve'
-    ];
-    const tens = [
-      '',
-      '',
-      'veinte',
-      'treinta',
-      'cuarenta',
-      'cincuenta',
-      'sesenta',
-      'setenta',
-      'ochenta',
-      'noventa'
-    ];
-
-    if (number < 10) return ones[number];
-    if (number < 20) return teens[number - 10];
-    if (number < 100) {
-      return '${tens[number ~/ 10]} ${ones[number % 10]}'.trim();
-    }
-    return number.toString();
-  }
-
-  String _numberToWordsPortuguese(int number) {
-    const ones = [
-      '',
-      'um',
-      'dois',
-      'três',
-      'quatro',
-      'cinco',
-      'seis',
-      'sete',
-      'oito',
-      'nove'
-    ];
-    const teens = [
-      'dez',
-      'onze',
-      'doze',
-      'treze',
-      'quatorze',
-      'quinze',
-      'dezesseis',
-      'dezessete',
-      'dezoito',
-      'dezenove'
-    ];
-    const tens = [
-      '',
-      '',
-      'vinte',
-      'trinta',
-      'quarenta',
-      'cinquenta',
-      'sessenta',
-      'setenta',
-      'oitenta',
-      'noventa'
-    ];
-
-    if (number < 10) return ones[number];
-    if (number < 20) return teens[number - 10];
-    if (number < 100) {
-      return '${tens[number ~/ 10]} ${ones[number % 10]}'.trim();
-    }
-    return number.toString();
-  }
-
-  String _numberToWordsFrench(int number) {
-    const ones = [
-      '',
-      'un',
-      'deux',
-      'trois',
-      'quatre',
-      'cinq',
-      'six',
-      'sept',
-      'huit',
-      'neuf'
-    ];
-    const teens = [
-      'dix',
-      'onze',
-      'douze',
-      'treize',
-      'quatorze',
-      'quinze',
-      'seize',
-      'dix-sept',
-      'dix-huit',
-      'dix-neuf'
-    ];
-    const tens = [
-      '',
-      '',
-      'vingt',
-      'trente',
-      'quarante',
-      'cinquante',
-      'soixante',
-      'soixante-dix',
-      'quatre-vingts',
-      'quatre-vingt-dix'
-    ];
-
-    if (number < 10) return ones[number];
-    if (number < 20) return teens[number - 10];
-    if (number < 100) {
-      return '${tens[number ~/ 10]} ${ones[number % 10]}'.trim();
-    }
-    return number.toString();
-  }
-
-  String _formatBibleBookForLanguage(String text, String language) {
-    // Format numbered books (1 Juan, 2 Pedro, etc.)
     return text.replaceAllMapped(
-      RegExp(r'\b([123])\s+([A-Za-záéíóúÁÉÍÓÚñÑ]+)\b'),
+      RegExp(r'(\b(?:\d+\s+)?[A-Za-záéíóúÁÉÍÓÚñÑ]+)\s+(\d+):(\d+)(?:-(\d+))?',
+          caseSensitive: false),
       (match) {
-        final number = match.group(1)!;
-        final book = match.group(2)!;
+        final book = match.group(1)!;
+        final chapter = match.group(2)!;
+        final verseStart = match.group(3)!;
+        final verseEnd = match.group(4);
 
-        switch (language) {
-          case 'en':
-            final ordinal = number == '1'
-                ? 'First'
-                : number == '2'
-                    ? 'Second'
-                    : 'Third';
-            return '$ordinal $book';
-          case 'pt':
-            final ordinal = number == '1'
-                ? 'Primeiro'
-                : number == '2'
-                    ? 'Segundo'
-                    : 'Terceiro';
-            return '$ordinal $book';
-          case 'fr':
-            final ordinal = number == '1'
-                ? 'Premier'
-                : number == '2'
-                    ? 'Deuxième'
-                    : 'Troisième';
-            return '$ordinal $book';
-          default: // Spanish
-            final ordinal = number == '1'
-                ? 'Primer'
-                : number == '2'
-                    ? 'Segundo'
-                    : 'Tercer';
-            return '$ordinal $book';
+        String result = '$book $chapterWord $chapter $verseWord $verseStart';
+
+        if (verseEnd != null) {
+          final toWord = language == 'en'
+              ? 'to'
+              : language == 'pt'
+                  ? 'ao'
+                  : language == 'fr'
+                      ? 'au'
+                      : 'al';
+          result += ' $toWord $verseEnd';
         }
+
+        return result;
       },
     );
   }
+
+  // =========================
+  // CHUNK GENERATION
+  // =========================
 
   List<String> _generateChunks(Devocional devocional,
       [String? targetLanguage]) {
     List<String> chunks = [];
     final currentLang = targetLanguage ?? _currentLanguage;
-
-    // Get language-specific section headers usando el idioma objetivo
     final sectionHeaders = _getSectionHeaders(currentLang);
 
     if (devocional.versiculo.trim().isNotEmpty) {
@@ -798,25 +458,12 @@ class TtsService {
       final reflection = _normalizeTtsText(
           _sanitize(devocional.reflexion), currentLang, _currentVersion);
       final paragraphs = reflection.split(RegExp(r'\n+'));
+
       for (final paragraph in paragraphs) {
         final trimmed = paragraph.trim();
         if (trimmed.isNotEmpty) {
           if (trimmed.length > 300) {
-            final sentences = trimmed.split(RegExp(r'(?<=[.!?])\s+'));
-            String chunkParagraph = '';
-            for (final sentence in sentences) {
-              final normalizedSentence =
-                  _normalizeTtsText(sentence, currentLang, _currentVersion);
-              if (chunkParagraph.length + normalizedSentence.length < 300) {
-                chunkParagraph += '$normalizedSentence ';
-              } else {
-                chunks.add(chunkParagraph.trim());
-                chunkParagraph = '$normalizedSentence ';
-              }
-            }
-            if (chunkParagraph.trim().isNotEmpty) {
-              chunks.add(chunkParagraph.trim());
-            }
+            _splitLongParagraph(trimmed, chunks, currentLang);
           } else {
             chunks
                 .add(_normalizeTtsText(trimmed, currentLang, _currentVersion));
@@ -843,25 +490,12 @@ class TtsService {
       final prayer = _normalizeTtsText(
           _sanitize(devocional.oracion), currentLang, _currentVersion);
       final paragraphs = prayer.split(RegExp(r'\n+'));
+
       for (final paragraph in paragraphs) {
         final trimmed = paragraph.trim();
         if (trimmed.isNotEmpty) {
           if (trimmed.length > 300) {
-            final sentences = trimmed.split(RegExp(r'(?<=[.!?])\s+'));
-            String chunkParagraph = '';
-            for (final sentence in sentences) {
-              final normalizedSentence =
-                  _normalizeTtsText(sentence, currentLang, _currentVersion);
-              if (chunkParagraph.length + normalizedSentence.length < 300) {
-                chunkParagraph += '$normalizedSentence ';
-              } else {
-                chunks.add(chunkParagraph.trim());
-                chunkParagraph = '$normalizedSentence ';
-              }
-            }
-            if (chunkParagraph.trim().isNotEmpty) {
-              chunks.add(chunkParagraph.trim());
-            }
+            _splitLongParagraph(trimmed, chunks, currentLang);
           } else {
             chunks
                 .add(_normalizeTtsText(trimmed, currentLang, _currentVersion));
@@ -880,9 +514,30 @@ class TtsService {
     return chunks.where((chunk) => chunk.trim().isNotEmpty).toList();
   }
 
-  // Get section headers for different languages using localization service
+  void _splitLongParagraph(
+      String paragraph, List<String> chunks, String currentLang) {
+    final sentences = paragraph.split(RegExp(r'(?<=[.!?])\s+'));
+    String chunkParagraph = '';
+
+    for (final sentence in sentences) {
+      final normalizedSentence =
+          _normalizeTtsText(sentence, currentLang, _currentVersion);
+      if (chunkParagraph.length + normalizedSentence.length < 300) {
+        chunkParagraph += '$normalizedSentence ';
+      } else {
+        if (chunkParagraph.trim().isNotEmpty) {
+          chunks.add(chunkParagraph.trim());
+        }
+        chunkParagraph = '$normalizedSentence ';
+      }
+    }
+
+    if (chunkParagraph.trim().isNotEmpty) {
+      chunks.add(chunkParagraph.trim());
+    }
+  }
+
   Map<String, String> _getSectionHeaders(String language) {
-    // Ensure localization service is using the correct language context
     if (_localizationService.currentLocale.languageCode != language) {
       debugPrint(
           '⚠️ TTS: Language mismatch between localization service (${_localizationService.currentLocale.languageCode}) and TTS context ($language)');
@@ -920,14 +575,14 @@ class TtsService {
     _currentDevocionalId = null;
     _currentChunks = [];
     _currentChunkIndex = 0;
-    // FIX: Enviar progreso 0.0 ANTES de cambiar el estado
     _progressController.add(0.0);
     debugPrint('📊 TTS: Progress reset to 0%');
-    // FIX: Cambiar estado al final para evitar race conditions
     _updateState(TtsState.idle);
   }
 
-  // ========== PUBLIC API ==========
+  // =========================
+  // PUBLIC API
+  // =========================
 
   Future<void> initialize() async {
     await _initialize();
@@ -963,7 +618,6 @@ class TtsService {
 
       debugPrint(
           '📝 TTS: Generated ${_currentChunks.length} chunks for ${devocional.id} at ${DateTime.now()}');
-
       _speakNextChunk();
     } catch (e) {
       debugPrint('❌ TTS: speakDevotional failed: $e at ${DateTime.now()}');
@@ -987,7 +641,6 @@ class TtsService {
 
       final normalizedText =
           _normalizeTtsText(_sanitize(text), _currentLanguage, _currentVersion);
-
       if (normalizedText.isEmpty) {
         throw const TtsException('No valid text content to speak');
       }
@@ -1016,14 +669,10 @@ class TtsService {
         '⏸️ TTS: Pause requested (current state: $_currentState) at ${DateTime.now()}');
 
     if (_currentState == TtsState.playing) {
-      // FIX: CANCELAR EMERGENCY TIMER INMEDIATAMENTE
       _cancelEmergencyTimer();
-      // FIX: CAMBIAR ESTADO A PAUSED INMEDIATAMENTE
       _updateState(TtsState.paused);
-      // Luego ejecutar la pausa nativa
       await _flutterTts.pause();
 
-      // Reducir el timeout del fallback
       Timer(const Duration(milliseconds: 300), () {
         if (_currentState != TtsState.paused && !_disposed) {
           debugPrint('! TTS: Pause handler fallback at ${DateTime.now()}');
@@ -1071,7 +720,6 @@ class TtsService {
     }
   }
 
-  // REFACTORIZADO: Simplificar usando VoiceSettingsService
   Future<void> setLanguage(String language) async {
     if (!_isInitialized) await _initialize();
 
@@ -1079,8 +727,7 @@ class TtsService {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('tts_language', language);
 
-    // Auto-cargar voz guardada para el nuevo idioma
-    final languageCode = language.split('-')[0]; // es-ES -> es
+    final languageCode = language.split('-')[0];
     await _voiceSettingsService.loadSavedVoice(languageCode);
   }
 
@@ -1093,23 +740,19 @@ class TtsService {
     await prefs.setDouble('tts_rate', clampedRate);
   }
 
-  // Set language context for TTS normalization
   void setLanguageContext(String language, String version) {
     _currentLanguage = language;
     _currentVersion = version;
     debugPrint('🌐 TTS: Language context set to $language ($version)');
 
-    // Sync with localization service if needed
     if (_localizationService.currentLocale.languageCode != language) {
       debugPrint(
           '🔄 TTS: Syncing localization service to language context $language');
     }
 
-    // Update TTS language settings based on context immediately
     _updateTtsLanguageSettings(language);
   }
 
-  // Update TTS language settings with proper locale mapping
   Future<void> _updateTtsLanguageSettings(String language) async {
     if (!_isInitialized) {
       debugPrint('⚠️ TTS: Cannot update language - service not initialized');
@@ -1137,20 +780,15 @@ class TtsService {
     try {
       debugPrint(
           '🔧 TTS: Changing voice language to $ttsLocale for context $language');
-      // Force language change with verification
       await _flutterTts.setLanguage(ttsLocale);
-
-      // REFACTORIZADO: Usar VoiceSettingsService para cargar voz
       await _voiceSettingsService.loadSavedVoice(language);
 
-      // Save the TTS language preference
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('tts_language', ttsLocale);
 
       debugPrint('✅ TTS: Voice language successfully updated to $ttsLocale');
     } catch (e) {
       debugPrint('❌ TTS: Failed to set language $ttsLocale: $e');
-      // Fallback to Spanish if other language fails
       if (ttsLocale != 'es-ES') {
         try {
           await _flutterTts.setLanguage('es-ES');
@@ -1162,7 +800,6 @@ class TtsService {
     }
   }
 
-  // REFACTORIZADO: Usar VoiceSettingsService para todos los métodos de voz
   Future<List<String>> getLanguages() async {
     if (!_isInitialized) await _initialize();
     try {
@@ -1174,17 +811,14 @@ class TtsService {
     }
   }
 
-  // DELEGADO: Usar VoiceSettingsService
   Future<List<String>> getVoices() async {
     return await _voiceSettingsService.getAvailableVoices();
   }
 
-  // DELEGADO: Usar VoiceSettingsService
   Future<List<String>> getVoicesForLanguage(String language) async {
     return await _voiceSettingsService.getVoicesForLanguage(language);
   }
 
-  // DELEGADO: Usar VoiceSettingsService
   Future<void> setVoice(Map<String, String> voice) async {
     if (!_isInitialized) await _initialize();
 
@@ -1193,13 +827,11 @@ class TtsService {
     await _voiceSettingsService.saveVoice(_currentLanguage, voiceName, locale);
   }
 
-  // Test helper method to expose chunk generation for testing
   @visibleForTesting
   List<String> generateChunksForTesting(Devocional devocional) {
     return _generateChunks(devocional);
   }
 
-  // Test helper method to expose section headers for testing
   @visibleForTesting
   Map<String, String> getSectionHeadersForTesting(String language) {
     return _getSectionHeaders(language);

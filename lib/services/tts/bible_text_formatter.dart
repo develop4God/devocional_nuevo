@@ -25,6 +25,7 @@ class BibleTextFormatter {
 
   /// Formats Spanish Bible book ordinals (Primera de, Segunda de, Tercera de)
   static String _formatBibleBookSpanish(String reference) {
+    // CAMBIO QUIRÚRGICO: \b -> ^
     final exp =
         RegExp(r'^([123])\s+([A-Za-záéíóúÁÉÍÓÚñÑ]+)', caseSensitive: false);
     final match = exp.firstMatch(reference.trim());

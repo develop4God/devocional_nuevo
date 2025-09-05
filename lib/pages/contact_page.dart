@@ -113,7 +113,7 @@ class _ContactPageState extends State<ContactPage> {
     }
   }
 
-  // Método alternativo para contactar a través de WhatsApp (se mantiene)
+  // Metodo alternativo para contactar a través de WhatsApp (se mantiene)
 
   void _showErrorSnackBar(String message) {
     if (mounted) {
@@ -169,7 +169,7 @@ class _ContactPageState extends State<ContactPage> {
 
             // Dropdown para seleccionar tipo de contacto
             DropdownButtonFormField<String>(
-              initialValue: _selectedContactOption,
+              value: _selectedContactOption,
               decoration: InputDecoration(
                 labelText: 'contact_page.contact_type_label'.tr(),
                 border: OutlineInputBorder(
