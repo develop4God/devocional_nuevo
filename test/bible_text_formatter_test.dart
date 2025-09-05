@@ -68,8 +68,7 @@ void main() {
 
     test('should return French Bible version expansions', () {
       final expansions = BibleTextFormatter.getBibleVersionExpansions('fr');
-      expect(
-          expansions['LSG1910'], equals('Louis Segond mil nove cento e dez'));
+      expect(expansions['LSG1910'], equals('Louis Segond mille neuf cent dix'));
       expect(expansions['TOB'], equals('Traduction Oecuménique de la Bible'));
     });
 

@@ -1,6 +1,7 @@
 // lib/models/spiritual_stats_model.dart
 
 import 'package:flutter/material.dart';
+import '../services/localization_service.dart';
 
 /// Model to track user's spiritual progress and achievements
 class SpiritualStats {
@@ -191,8 +192,10 @@ class PredefinedAchievements {
   static List<Achievement> get all => [
         Achievement(
           id: 'first_read',
-          title: 'Primer Paso',
-          description: 'Lee tu primer devocional',
+          title: LocalizationService.instance
+              .translate('achievements.first_read_title'),
+          description: LocalizationService.instance
+              .translate('achievements.first_read_description'),
           icon: Icons.auto_stories,
           color: Colors.green,
           threshold: 1,
@@ -200,8 +203,10 @@ class PredefinedAchievements {
         ),
         Achievement(
           id: 'week_reader',
-          title: 'Lector Semanal',
-          description: 'Lee devocionales por 7 días',
+          title: LocalizationService.instance
+              .translate('achievements.week_reader_title'),
+          description: LocalizationService.instance
+              .translate('achievements.week_reader_description'),
           icon: Icons.calendar_view_week,
           color: Colors.blue,
           threshold: 7,
@@ -209,8 +214,10 @@ class PredefinedAchievements {
         ),
         Achievement(
           id: 'month_reader',
-          title: 'Lector Mensual',
-          description: 'Lee devocionales por 30 días',
+          title: LocalizationService.instance
+              .translate('achievements.month_reader_title'),
+          description: LocalizationService.instance
+              .translate('achievements.month_reader_description'),
           icon: Icons.calendar_month,
           color: Colors.purple,
           threshold: 30,
@@ -218,8 +225,10 @@ class PredefinedAchievements {
         ),
         Achievement(
           id: 'streak_3',
-          title: 'Constancia',
-          description: "Mantén una racha de 3 días",
+          title: LocalizationService.instance
+              .translate('achievements.streak_3_title'),
+          description: LocalizationService.instance
+              .translate('achievements.streak_3_description'),
           icon: Icons.local_fire_department,
           color: Colors.orange,
           threshold: 3,
@@ -227,8 +236,10 @@ class PredefinedAchievements {
         ),
         Achievement(
           id: 'streak_7',
-          title: 'Semana Espiritual',
-          description: "Mantén una racha de 7 días",
+          title: LocalizationService.instance
+              .translate('achievements.streak_7_title'),
+          description: LocalizationService.instance
+              .translate('achievements.streak_7_description'),
           icon: Icons.whatshot,
           color: Colors.red,
           threshold: 7,
@@ -236,8 +247,10 @@ class PredefinedAchievements {
         ),
         Achievement(
           id: 'streak_30',
-          title: 'Guerrero Espiritual',
-          description: "Mantén una racha de 30 días",
+          title: LocalizationService.instance
+              .translate('achievements.streak_30_title'),
+          description: LocalizationService.instance
+              .translate('achievements.streak_30_description'),
           icon: Icons.emoji_events,
           color: Colors.amber,
           threshold: 30,
@@ -245,8 +258,10 @@ class PredefinedAchievements {
         ),
         Achievement(
           id: 'first_favorite',
-          title: 'Primer Favorito',
-          description: 'Guarda tu primer devocional favorito',
+          title: LocalizationService.instance
+              .translate('achievements.first_favorite_title'),
+          description: LocalizationService.instance
+              .translate('achievements.first_favorite_description'),
           icon: Icons.favorite,
           color: Colors.pink,
           threshold: 1,
@@ -254,8 +269,10 @@ class PredefinedAchievements {
         ),
         Achievement(
           id: 'collector',
-          title: 'Coleccionista',
-          description: 'Guarda 10 devocionales favoritos',
+          title: LocalizationService.instance
+              .translate('achievements.collector_title'),
+          description: LocalizationService.instance
+              .translate('achievements.collector_description'),
           icon: Icons.bookmark,
           color: Colors.indigo,
           threshold: 10,

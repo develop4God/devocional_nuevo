@@ -18,7 +18,7 @@ class BibleTextFormatter {
         return _formatBibleBookFrench(reference);
       default:
         debugPrint(
-            '[BibleTextFormatter] Idioma desconocido "$language", usando español por defecto');
+            '[BibleTextFormatter] Unknown language "$language", using Spanish as default');
         return _formatBibleBookSpanish(reference);
     }
   }

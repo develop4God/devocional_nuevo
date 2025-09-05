@@ -222,7 +222,8 @@
     "retry_message": "Por favor, inténtalo de nuevo",
     "no_internet": "Sin conexión a internet",
     "server_error": "Error del servidor",
-    "timeout_error": "Tiempo de espera agotado"
+    "timeout_error": "Tiempo de espera agotado",
+    "prayer_loading_error": "Error al cargar las oraciones"
   },
   "messages": {
     "welcome": "¡Bienvenido!",
@@ -310,6 +311,24 @@
     "first_favorite": "Primer favorito",
     "dedicated_reader": "Lector dedicado",
     "achievement_unlocked": "¡Logro desbloqueado!"
+  },
+  "achievements": {
+    "first_read_title": "Primer Paso",
+    "first_read_description": "Lee tu primer devocional",
+    "week_reader_title": "Lector Semanal",
+    "week_reader_description": "Lee devocionales por 7 días",
+    "month_reader_title": "Lector Mensual",
+    "month_reader_description": "Lee devocionales por 30 días",
+    "streak_3_title": "Constancia",
+    "streak_3_description": "Mantén una racha de 3 días",
+    "streak_7_title": "Semana Espiritual",
+    "streak_7_description": "Mantén una racha de 7 días",
+    "streak_30_title": "Guerrero Espiritual",
+    "streak_30_description": "Mantén una racha de 30 días",
+    "first_favorite_title": "Primer Favorito",
+    "first_favorite_description": "Guarda tu primer devocional favorito",
+    "collector_title": "Coleccionista",
+    "collector_description": "Guarda 10 devocionales favoritos"
   },
   "prayers": {
     "created": "Creada: {date}",

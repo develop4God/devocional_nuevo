@@ -223,7 +223,8 @@
     "retry_message": "Veuillez réessayer",
     "no_internet": "Pas de connexion Internet",
     "server_error": "Erreur serveur",
-    "timeout_error": "Délai d'attente dépassé"
+    "timeout_error": "Délai d'attente dépassé",
+    "prayer_loading_error": "Erreur lors du chargement des prières"
   },
   "messages": {
     "welcome": "Bienvenue !",
@@ -311,6 +312,24 @@
     "first_favorite": "Premier favori",
     "dedicated_reader": "Lecteur dévoué",
     "achievement_unlocked": "Réalisation débloquée !"
+  },
+  "achievements": {
+    "first_read_title": "Premier Pas",
+    "first_read_description": "Lisez votre premier dévotionnel",
+    "week_reader_title": "Lecteur Hebdomadaire",
+    "week_reader_description": "Lisez des dévotionnels pendant 7 jours",
+    "month_reader_title": "Lecteur Mensuel",
+    "month_reader_description": "Lisez des dévotionnels pendant 30 jours",
+    "streak_3_title": "Constance",
+    "streak_3_description": "Maintenez une série de 3 jours",
+    "streak_7_title": "Semaine Spirituelle",
+    "streak_7_description": "Maintenez une série de 7 jours",
+    "streak_30_title": "Guerrier Spirituel",
+    "streak_30_description": "Maintenez une série de 30 jours",
+    "first_favorite_title": "Premier Favori",
+    "first_favorite_description": "Sauvegardez votre premier dévotionnel favori",
+    "collector_title": "Collectionneur",
+    "collector_description": "Sauvegardez 10 dévotionnels favoris"
   },
   "prayers": {
     "created": "Créée : {date}",
