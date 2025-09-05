@@ -23,13 +23,11 @@ void main() {
       provider = DevocionalProvider();
     });
 
-    test(
-        'should maintain language and version state correctly',
-        () async {
+    test('should maintain language and version state correctly', () async {
       // Test the state management behavior
       provider.setSelectedLanguage('en');
       provider.setSelectedVersion('NIV');
-      
+
       expect(provider.selectedLanguage, equals('en'));
       expect(provider.selectedVersion, equals('NIV'));
     });
@@ -101,10 +99,10 @@ void main() {
 
     test('should handle language switching gracefully', () {
       final initialLanguage = provider.selectedLanguage;
-      
+
       provider.setSelectedLanguage('fr');
       expect(provider.selectedLanguage, equals('fr'));
-      
+
       provider.setSelectedLanguage(initialLanguage);
       expect(provider.selectedLanguage, equals(initialLanguage));
     });

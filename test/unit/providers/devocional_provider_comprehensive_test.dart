@@ -38,7 +38,7 @@ void main() {
       // Test that the provider accepts language changes
       // Just test the getter/setter without triggering complex async operations
       expect(provider.selectedLanguage, equals('es'));
-      
+
       // Test language validation without setting
       final supportedLanguages = provider.supportedLanguages;
       expect(supportedLanguages, contains('es'));
@@ -51,7 +51,7 @@ void main() {
       // Just test the state without triggering async operations
       expect(provider.selectedLanguage, equals('es'));
       expect(provider.selectedVersion, equals('RVR1960'));
-      
+
       // Test that versions are available for the language
       final versions = provider.getVersionsForLanguage('es');
       expect(versions, contains('RVR1960'));
@@ -89,7 +89,8 @@ void main() {
 
     test('should handle unsupported language gracefully', () {
       // Test language support validation without setting
-      expect(provider.isLanguageSupported('de'), isFalse); // German - not supported
+      expect(provider.isLanguageSupported('de'),
+          isFalse); // German - not supported
       expect(provider.isLanguageSupported('es'), isTrue); // Spanish - supported
       expect(provider.selectedLanguage, equals('es')); // Should remain default
       expect(provider.selectedVersion, equals('RVR1960'));
@@ -110,7 +111,7 @@ void main() {
       expect(spanishVersions, isNotEmpty);
       expect(spanishVersions, contains('RVR1960'));
       expect(spanishVersions, contains('NVI'));
-      
+
       // Test current version is valid
       expect(spanishVersions, contains(provider.selectedVersion));
     });
@@ -141,7 +142,7 @@ void main() {
       // Test TTS language properties without triggering async operations that continue after disposal
       expect(provider.isAudioPlaying, isFalse);
       expect(provider.isAudioPaused, isFalse);
-      
+
       // Avoid setTtsLanguage calls as they trigger async operations that continue after disposal
       // Just test that the methods exist and the provider is properly initialized
       expect(provider, isNotNull);
@@ -287,7 +288,7 @@ void main() {
 
       // Test language switching capability without triggering async operations
       expect(provider.selectedLanguage, equals('es'));
-      
+
       // Verify provider can handle language validation
       final supportedLanguages = provider.supportedLanguages;
       expect(supportedLanguages.length, greaterThanOrEqualTo(4));

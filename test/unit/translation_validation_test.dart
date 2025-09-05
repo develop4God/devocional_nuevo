@@ -18,19 +18,19 @@ void main() {
         'common': {'loading': 'Cargando...', 'error': 'Error'},
         'devotionals': {'title': 'Devocionales'}
       };
-      
+
       englishTranslations = {
         'app': {'title': 'Devotional'},
         'common': {'loading': 'Loading...', 'error': 'Error'},
         'devotionals': {'title': 'Devotionals'}
       };
-      
+
       portugueseTranslations = {
         'app': {'title': 'Devocional'},
         'common': {'loading': 'Carregando...', 'error': 'Erro'},
         'devotionals': {'title': 'Devocionais'}
       };
-      
+
       frenchTranslations = {
         'app': {'title': 'Dévotion'},
         'common': {'loading': 'Chargement...', 'error': 'Erreur'},
@@ -62,7 +62,7 @@ void main() {
 
     test('All languages should have required keys', () {
       final requiredKeys = ['app.title', 'common.loading', 'common.error'];
-      
+
       for (final key in requiredKeys) {
         expect(_hasKey(spanishTranslations, key), isTrue,
             reason: 'Spanish missing required key: $key');
@@ -88,26 +88,29 @@ void main() {
   });
 }
 
-Set<String> _getAllKeys(Map<String, dynamic> translations, [String prefix = '']) {
+Set<String> _getAllKeys(Map<String, dynamic> translations,
+    [String prefix = '']) {
   final Set<String> keys = {};
-  
+
   translations.forEach((key, value) {
     final fullKey = prefix.isEmpty ? key : '$prefix.$key';
-    
+
     if (value is Map<String, dynamic>) {
       keys.addAll(_getAllKeys(value, fullKey));
     } else {
       keys.add(fullKey);
     }
   });
-  
+
   return keys;
 }
 
-void _validateNoEmptyTranslations(Map<String, dynamic> translations, String language, [String prefix = '']) {
+void _validateNoEmptyTranslations(
+    Map<String, dynamic> translations, String language,
+    [String prefix = '']) {
   translations.forEach((key, value) {
     final fullKey = prefix.isEmpty ? key : '$prefix.$key';
-    
+
     if (value is Map<String, dynamic>) {
       _validateNoEmptyTranslations(value, language, fullKey);
     } else if (value is String && value.trim().isEmpty) {
@@ -119,7 +122,7 @@ void _validateNoEmptyTranslations(Map<String, dynamic> translations, String lang
 bool _hasKey(Map<String, dynamic> translations, String key) {
   final keys = key.split('.');
   dynamic current = translations;
-  
+
   for (final k in keys) {
     if (current is Map<String, dynamic> && current.containsKey(k)) {
       current = current[k];
@@ -127,14 +130,14 @@ bool _hasKey(Map<String, dynamic> translations, String key) {
       return false;
     }
   }
-  
+
   return true;
 }
 
 dynamic _getValue(Map<String, dynamic> translations, String key) {
   final keys = key.split('.');
   dynamic current = translations;
-  
+
   for (final k in keys) {
     if (current is Map<String, dynamic> && current.containsKey(k)) {
       current = current[k];
@@ -142,6 +145,6 @@ dynamic _getValue(Map<String, dynamic> translations, String key) {
       return null;
     }
   }
-  
+
   return current;
 }
