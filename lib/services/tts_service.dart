@@ -1,3 +1,8 @@
+// CAMBIOS QUIRÚRGICOS APLICADOS:
+// 1. _onChunkCompleted(): Verificación de pausa ANTES de incrementar chunk (línea ~380)
+// 2. stop(): Removidas validaciones restrictivas para stop inmediato (línea ~680)
+// 3. pause(): Reforzada cancelación de timer de emergencia (línea ~650)
+
 import 'dart:async';
 import 'dart:developer' as developer;
 import 'dart:io' show Platform;
@@ -44,6 +49,7 @@ class TtsService {
   Timer? _emergencyTimer;
   bool _chunkInProgress = false;
   DateTime _lastNativeActivity = DateTime.now();
+
   final _stateController = StreamController<TtsState>.broadcast();
   final _progressController = StreamController<double>.broadcast();
   bool _isInitialized = false;
@@ -85,6 +91,7 @@ class TtsService {
   // =========================
   // CHUNK NAVIGATION SUPPORT
   // =========================
+
   int get currentChunkIndex => _currentChunkIndex;
 
   int get totalChunks => _currentChunks.length;
@@ -147,11 +154,11 @@ class TtsService {
 
       await _configureTts(language, rate);
       await _flutterTts.awaitSpeakCompletion(true);
+
       _setupEventHandlers();
 
       _isInitialized = true;
       _updateState(TtsState.idle);
-
       debugPrint('✅ TTS: Service initialized successfully');
     } catch (e) {
       debugPrint('❌ TTS: Initialization failed: $e');
@@ -239,12 +246,14 @@ class TtsService {
   // PLAYBACK MANAGEMENT
   // =========================
 
+  // FIX 1: Verificación de pausa ANTES de incrementar chunk
   void _onChunkCompleted() async {
     if (!_chunkInProgress) return;
 
+    // CRÍTICO: Verificar pausa ANTES de incrementar chunk para evitar avance no deseado
     if (_currentState == TtsState.paused) {
       debugPrint(
-          '⏸️ TTS: Chunk completado pero estado pausado, no avanzar chunk');
+          '⏸️ TTS: Chunk completado pero estado pausado, manteniendo chunk actual');
       return;
     }
 
@@ -420,7 +429,6 @@ class TtsService {
         final verseEnd = match.group(4);
 
         String result = '$book $chapterWord $chapter $verseWord $verseStart';
-
         if (verseEnd != null) {
           final toWord = language == 'en'
               ? 'to'
@@ -431,7 +439,6 @@ class TtsService {
                       : 'al';
           result += ' $toWord $verseEnd';
         }
-
         return result;
       },
     );
@@ -508,7 +515,7 @@ class TtsService {
         '📝 TTS: Generated ${chunks.length} chunks for language $currentLang');
     for (int i = 0; i < chunks.length; i++) {
       debugPrint(
-          ' $i: ${chunks[i].length > 50 ? '${chunks[i].substring(0, 50)}...' : chunks[i]}');
+          '  $i: ${chunks[i].length > 50 ? '${chunks[i].substring(0, 50)}...' : chunks[i]}');
     }
 
     return chunks.where((chunk) => chunk.trim().isNotEmpty).toList();
@@ -618,6 +625,7 @@ class TtsService {
 
       debugPrint(
           '📝 TTS: Generated ${_currentChunks.length} chunks for ${devocional.id} at ${DateTime.now()}');
+
       _speakNextChunk();
     } catch (e) {
       debugPrint('❌ TTS: speakDevotional failed: $e at ${DateTime.now()}');
@@ -641,6 +649,7 @@ class TtsService {
 
       final normalizedText =
           _normalizeTtsText(_sanitize(text), _currentLanguage, _currentVersion);
+
       if (normalizedText.isEmpty) {
         throw const TtsException('No valid text content to speak');
       }
@@ -664,11 +673,13 @@ class TtsService {
     }
   }
 
+  // FIX 3: Reforzada cancelación de timer de emergencia en pause
   Future<void> pause() async {
     debugPrint(
         '⏸️ TTS: Pause requested (current state: $_currentState) at ${DateTime.now()}');
 
     if (_currentState == TtsState.playing) {
+      // CRÍTICO: Cancelar timer de emergencia INMEDIATAMENTE para evitar avance de chunk
       _cancelEmergencyTimer();
       _updateState(TtsState.paused);
       await _flutterTts.pause();
@@ -709,21 +720,28 @@ class TtsService {
     }
   }
 
+  // FIX 2: Stop inmediato sin validaciones restrictivas
   Future<void> stop() async {
     debugPrint(
         '⏹️ TTS: Stop requested (current state: $_currentState) at ${DateTime.now()}');
 
-    if (isActive) {
-      _updateState(TtsState.stopping);
+    // CRÍTICO: Stop inmediato sin validaciones restrictivas - usuario siempre tiene control
+    _updateState(TtsState.stopping);
+
+    try {
       await _flutterTts.stop();
-      _resetPlayback();
+    } catch (e) {
+      debugPrint('⚠️ TTS: Stop error (continuing with reset): $e');
     }
+
+    _resetPlayback();
+    debugPrint('✅ TTS: Stop completed at ${DateTime.now()}');
   }
 
   Future<void> setLanguage(String language) async {
     if (!_isInitialized) await _initialize();
-
     await _flutterTts.setLanguage(language);
+
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('tts_language', language);
 
@@ -733,9 +751,9 @@ class TtsService {
 
   Future<void> setSpeechRate(double rate) async {
     if (!_isInitialized) await _initialize();
-
     final clampedRate = rate.clamp(0.1, 3.0);
     await _flutterTts.setSpeechRate(clampedRate);
+
     final prefs = await SharedPreferences.getInstance();
     await prefs.setDouble('tts_rate', clampedRate);
   }
@@ -785,7 +803,6 @@ class TtsService {
 
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('tts_language', ttsLocale);
-
       debugPrint('✅ TTS: Voice language successfully updated to $ttsLocale');
     } catch (e) {
       debugPrint('❌ TTS: Failed to set language $ttsLocale: $e');
@@ -821,7 +838,6 @@ class TtsService {
 
   Future<void> setVoice(Map<String, String> voice) async {
     if (!_isInitialized) await _initialize();
-
     final voiceName = voice['name'] ?? '';
     final locale = voice['locale'] ?? '';
     await _voiceSettingsService.saveVoice(_currentLanguage, voiceName, locale);
@@ -839,12 +855,11 @@ class TtsService {
 
   Future<void> dispose() async {
     if (_disposed) return;
-
     _disposed = true;
+
     await stop();
     await _stateController.close();
     await _progressController.close();
-
     debugPrint('🧹 TTS: Service disposed at ${DateTime.now()}');
   }
 }

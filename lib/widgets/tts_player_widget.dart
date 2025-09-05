@@ -201,7 +201,7 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget> {
                   ),
 
                   // Botón stop (solo visible si está activo)
-                  if (isThisDevocional && audioController.isActive) ...[
+                  if (isDevocionalPlaying) ...[
                     const SizedBox(width: 16),
                     IconButton(
                       icon: const Icon(Icons.stop, size: 28),

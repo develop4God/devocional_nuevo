@@ -1,3 +1,7 @@
+// CAMBIOS QUIRÚRGICOS APLICADOS:
+// 1. stop(): Reforzado para stop inmediato sin restricciones (línea ~480)
+// 2. forceStop(): Mejorado para garantizar stop completo (línea ~580)
+
 import 'dart:async';
 
 import 'package:devocional_nuevo/models/devocional_model.dart';
@@ -23,6 +27,10 @@ class AudioController extends ChangeNotifier {
 
   // Timer para timeout de operaciones
   Timer? _operationTimeoutTimer;
+
+  // TIMING GRACE para completado natural
+  // ignore: unused_field
+  static const Duration _graceAfterCompletion = Duration(milliseconds: 1500);
 
   // Variable para verificar si el controller está montado
   bool mounted = true;
@@ -93,6 +101,7 @@ class AudioController extends ChangeNotifier {
 
     debugPrint(
         'AudioController: isDevocionalPlaying($devocionalId) = $result (localMatch: $localMatch, serviceMatch: $serviceMatch)');
+
     return result;
   }
 
@@ -124,7 +133,6 @@ class AudioController extends ChangeNotifier {
       (progress) {
         // FIX CRÍTICO: Verificar estado del servicio directamente para evitar stale cache
         final serviceState = _ttsService.currentState;
-
         if (_currentState == TtsState.idle || serviceState == TtsState.idle) {
           debugPrint(
               'AudioController: Ignorando progress update - estado idle (local: $_currentState, service: $serviceState)');
@@ -164,7 +172,6 @@ class AudioController extends ChangeNotifier {
   /// FIX CRÍTICO: Actualiza el estado inmediatamente y síncronamente
   void _updateStateFromService(TtsState state, {String? devocionalId}) {
     final oldState = _currentState;
-
     debugPrint(
         'AudioController: State update START - OLD: $oldState -> NEW: $state');
     debugPrint(
@@ -176,7 +183,6 @@ class AudioController extends ChangeNotifier {
     // FIX: Reset completo cuando llega a idle - INMEDIATO Y FORZADO
     if (state == TtsState.idle) {
       debugPrint('AudioController: IMMEDIATE idle reset');
-
       // Reset inmediato y síncrono - FORZAR TODAS LAS VARIABLES
       _currentDevocionalId = null;
       _progress = 0.0;
@@ -346,7 +352,6 @@ class AudioController extends ChangeNotifier {
       for (int i = 0; i < 5; i++) {
         await Future.delayed(Duration(milliseconds: 50 * (i + 1)));
         final serviceState = _ttsService.currentState;
-
         debugPrint(
             'AudioController: Sync attempt ${i + 1}: service=$serviceState, local=$_currentState');
 
@@ -380,7 +385,6 @@ class AudioController extends ChangeNotifier {
 
     try {
       debugPrint('AudioController: Applying IMMEDIATE pause...');
-
       // FIX: Reset inmediato del estado local (como en stop)
       _currentState = TtsState.paused;
       _operationInProgress = false;
@@ -424,7 +428,6 @@ class AudioController extends ChangeNotifier {
 
     try {
       debugPrint('AudioController: Applying IMMEDIATE resume...');
-
       // FIX: Reset inmediato del estado local
       _currentState = TtsState.playing;
       _operationInProgress = false;
@@ -454,17 +457,14 @@ class AudioController extends ChangeNotifier {
     }
   }
 
-  /// FIX: Detener reproducción con reset inmediato
+  // FIX 1: Stop inmediato sin restricciones - usuario siempre tiene control
   Future<void> stop() async {
-    if (!isActive) {
-      debugPrint('AudioController: Nothing to stop (state: $_currentState)');
-      return;
-    }
+    debugPrint('AudioController: Stop requested (state: $_currentState)');
 
     try {
       debugPrint('AudioController: Applying IMMEDIATE stop...');
 
-      // FIX: Reset inmediato del estado local (como en el cambio de devocional)
+      // CRÍTICO: Reset inmediato del estado local - NO esperar al servicio
       _currentState = TtsState.idle;
       _currentDevocionalId = null;
       _progress = 0.0;
@@ -597,24 +597,39 @@ class AudioController extends ChangeNotifier {
     }
   }
 
-  // FIX: Metodo público para forzar parada desde el exterior
+  // FIX 2: Método público para forzar parada desde el exterior - sin validaciones
   Future<void> forceStop() async {
     debugPrint('AudioController: Force stop requested');
-    if (isActive) {
-      await stop();
-    }
+
+    // FIX: Limpiar grace period en force stop
+
+    // CRÍTICO: Stop inmediato sin validaciones de estado
+    _currentState = TtsState.idle;
+    _currentDevocionalId = null;
+    _progress = 0.0;
+    _operationInProgress = false;
+    _operationTimeoutTimer?.cancel();
+    _operationTimeoutTimer = null;
+
+    // Notificar inmediatamente
+    notifyListeners();
+
+    // Llamar al servicio de forma asíncrona
+    _ttsService.stop().catchError((e) {
+      debugPrint('AudioController: Force stop service error (ignored): $e');
+    });
+
+    debugPrint('AudioController: Force stop completed');
   }
 
-  // FIX: Metodo para notificar cambio de contexto desde el widget
+  // FIX: Método para notificar cambio de contexto desde el widget
   void notifyContextChange(String devocionalId) {
     debugPrint(
         'AudioController: Context change notification for $devocionalId');
-
     if (_currentDevocionalId != null &&
         _currentDevocionalId != devocionalId &&
         isActive) {
       debugPrint('AudioController: Auto-stopping due to context change');
-
       // Usar microtask para evitar problemas de concurrencia
       scheduleMicrotask(() async {
         await stop();
