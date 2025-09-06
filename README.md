@@ -26,8 +26,8 @@ Aplicación móvil multilingüe para leer devocionales diarios con funcionalidad
 ### 🎯 Idiomas y Versiones Bíblicas
 - **Español**: RVR1960, NVI
 - **Inglés**: KJV, NIV  
-- **Portugués**: ARC
-- **Francés**: LSG1910
+- **Portugués**: ARC,NVI
+- **Francés**: LSG1910,TOB
 
 ## 🛠️ Tecnologías
 
@@ -50,9 +50,6 @@ La aplicación cuenta con un sistema completo de notificaciones push que incluye
 - **Gestión de permisos**: Solicitud y verificación de permisos de notificaciones
 - **Tareas en segundo plano**: Actualización de contenido incluso cuando la app está cerrada
 
-### Configuración de Firebase
-
-Para completar la configuración de Firebase Cloud Messaging, consulta el archivo [FIREBASE_SETUP.md](FIREBASE_SETUP.md).
 
 ## Requisitos
 
@@ -79,33 +76,12 @@ flutter test --coverage
 
 ### Estructura de Tests
 ```
-test/
-├── unit/                    # Tests unitarios
-│   ├── services/           # Tests de servicios
-│   ├── providers/          # Tests de providers
-│   ├── controllers/        # Tests de controladores
-│   └── models/            # Tests de modelos
-├── integration_test/       # Tests de integración
-├── mocks.dart             # Generación de mocks
-├── test_setup.dart        # Configuración común
-└── *.dart                 # Tests específicos
-```
-
-### Coverage por Componente
-| Componente | Tests | Cobertura |
-|------------|-------|-----------|
-| PrayerProvider | 15 | 95%+ |
-| TtsService | 13 | 95%+ |
-| LocalizationService | 4 | 95%+ |
-| DevocionalProvider | 15 | 90%+ |
-| AudioController | 11 | 75%+ |
 
 ## Instalación
 
 1. Clona este repositorio
 2. Ejecuta `flutter pub get` para instalar las dependencias
-3. Configura Firebase siguiendo las instrucciones en [FIREBASE_SETUP.md](FIREBASE_SETUP.md)
-4. Ejecuta `flutter run` para iniciar la aplicación
+3. Ejecuta `flutter run` para iniciar la aplicación
 
 ## Estructura del Proyecto
 
