@@ -284,7 +284,9 @@ class _AddPrayerModalState extends State<AddPrayerModal> {
 
     try {
       if (_isEditing) {
-        context.read<PrayerBloc>().add(EditPrayer(widget.prayerToEdit!.id, text));
+        context
+            .read<PrayerBloc>()
+            .add(EditPrayer(widget.prayerToEdit!.id, text));
         _showSuccessSnackBar('prayers.prayer_updated'.tr());
       } else {
         context.read<PrayerBloc>().add(AddPrayer(text));

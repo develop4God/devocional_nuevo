@@ -70,7 +70,7 @@ class _PrayersPageState extends State<PrayersPage>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    
+
     // Trigger initial loading of prayers
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<PrayerBloc>().add(LoadPrayers());
@@ -362,9 +362,13 @@ class _PrayersPageState extends State<PrayersPage>
                       switch (value) {
                         case 'toggle_status':
                           if (isActive) {
-                            context.read<PrayerBloc>().add(MarkPrayerAsAnswered(prayer.id));
+                            context
+                                .read<PrayerBloc>()
+                                .add(MarkPrayerAsAnswered(prayer.id));
                           } else {
-                            context.read<PrayerBloc>().add(MarkPrayerAsActive(prayer.id));
+                            context
+                                .read<PrayerBloc>()
+                                .add(MarkPrayerAsActive(prayer.id));
                           }
                           break;
                         case 'edit':

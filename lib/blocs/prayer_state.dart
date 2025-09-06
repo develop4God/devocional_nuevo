@@ -24,7 +24,8 @@ class PrayerLoaded extends PrayerState {
   List<Prayer> get activePrayers => prayers.where((p) => p.isActive).toList();
 
   /// Get only answered prayers
-  List<Prayer> get answeredPrayers => prayers.where((p) => p.isAnswered).toList();
+  List<Prayer> get answeredPrayers =>
+      prayers.where((p) => p.isAnswered).toList();
 
   /// Get total count of prayers
   int get totalPrayers => prayers.length;

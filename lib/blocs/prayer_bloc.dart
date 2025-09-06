@@ -36,7 +36,8 @@ class PrayerBloc extends Bloc<PrayerEvent, PrayerState> {
       final prayers = await _loadPrayersFromStorage();
       emit(PrayerLoaded(prayers: prayers));
     } catch (e) {
-      final errorMessage = LocalizationService.instance.translate('errors.prayer_loading_error');
+      final errorMessage =
+          LocalizationService.instance.translate('errors.prayer_loading_error');
       debugPrint('Error loading prayers: $e');
       emit(PrayerError(errorMessage));
     }
@@ -50,7 +51,8 @@ class PrayerBloc extends Bloc<PrayerEvent, PrayerState> {
     if (event.text.trim().isEmpty) {
       final currentState = state;
       if (currentState is PrayerLoaded) {
-        emit(currentState.copyWith(errorMessage: 'El texto de la oración no puede estar vacío'));
+        emit(currentState.copyWith(
+            errorMessage: 'El texto de la oración no puede estar vacío'));
       }
       return;
     }
@@ -58,7 +60,7 @@ class PrayerBloc extends Bloc<PrayerEvent, PrayerState> {
     try {
       final currentState = state;
       List<Prayer> currentPrayers = [];
-      
+
       if (currentState is PrayerLoaded) {
         currentPrayers = currentState.prayers;
       }
@@ -72,13 +74,14 @@ class PrayerBloc extends Bloc<PrayerEvent, PrayerState> {
 
       final updatedPrayers = [...currentPrayers, newPrayer];
       _sortPrayers(updatedPrayers);
-      
+
       await _savePrayersToStorage(updatedPrayers);
       emit(PrayerLoaded(prayers: updatedPrayers));
     } catch (e) {
       final currentState = state;
       if (currentState is PrayerLoaded) {
-        emit(currentState.copyWith(errorMessage: 'Error al añadir la oración: $e'));
+        emit(currentState.copyWith(
+            errorMessage: 'Error al añadir la oración: $e'));
       }
       debugPrint('Error adding prayer: $e');
     }
@@ -92,7 +95,8 @@ class PrayerBloc extends Bloc<PrayerEvent, PrayerState> {
     if (event.newText.trim().isEmpty) {
       final currentState = state;
       if (currentState is PrayerLoaded) {
-        emit(currentState.copyWith(errorMessage: 'El texto de la oración no puede estar vacío'));
+        emit(currentState.copyWith(
+            errorMessage: 'El texto de la oración no puede estar vacío'));
       }
       return;
     }
@@ -113,7 +117,8 @@ class PrayerBloc extends Bloc<PrayerEvent, PrayerState> {
     } catch (e) {
       final currentState = state;
       if (currentState is PrayerLoaded) {
-        emit(currentState.copyWith(errorMessage: 'Error al editar la oración: $e'));
+        emit(currentState.copyWith(
+            errorMessage: 'Error al editar la oración: $e'));
       }
       debugPrint('Error editing prayer: $e');
     }
@@ -137,7 +142,8 @@ class PrayerBloc extends Bloc<PrayerEvent, PrayerState> {
     } catch (e) {
       final currentState = state;
       if (currentState is PrayerLoaded) {
-        emit(currentState.copyWith(errorMessage: 'Error al eliminar la oración: $e'));
+        emit(currentState.copyWith(
+            errorMessage: 'Error al eliminar la oración: $e'));
       }
       debugPrint('Error deleting prayer: $e');
     }
@@ -168,7 +174,8 @@ class PrayerBloc extends Bloc<PrayerEvent, PrayerState> {
     } catch (e) {
       final currentState = state;
       if (currentState is PrayerLoaded) {
-        emit(currentState.copyWith(errorMessage: 'Error al marcar la oración como respondida: $e'));
+        emit(currentState.copyWith(
+            errorMessage: 'Error al marcar la oración como respondida: $e'));
       }
       debugPrint('Error marking prayer as answered: $e');
     }
@@ -199,7 +206,8 @@ class PrayerBloc extends Bloc<PrayerEvent, PrayerState> {
     } catch (e) {
       final currentState = state;
       if (currentState is PrayerLoaded) {
-        emit(currentState.copyWith(errorMessage: 'Error al marcar la oración como activa: $e'));
+        emit(currentState.copyWith(
+            errorMessage: 'Error al marcar la oración como activa: $e'));
       }
       debugPrint('Error marking prayer as active: $e');
     }
@@ -289,7 +297,7 @@ class PrayerBloc extends Bloc<PrayerEvent, PrayerState> {
     }
   }
 
-  /// Sorts prayers: active first by creation date (newest first), 
+  /// Sorts prayers: active first by creation date (newest first),
   /// then answered by answer date (newest first)
   void _sortPrayers(List<Prayer> prayers) {
     prayers.sort((a, b) {
