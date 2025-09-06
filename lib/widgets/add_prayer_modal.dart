@@ -2,9 +2,10 @@
 
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/prayer_model.dart';
-import 'package:devocional_nuevo/providers/prayer_provider.dart';
+import 'package:devocional_nuevo/blocs/prayer_bloc.dart';
+import 'package:devocional_nuevo/blocs/prayer_event.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class AddPrayerModal extends StatefulWidget {
   final Prayer? prayerToEdit;
@@ -282,14 +283,11 @@ class _AddPrayerModalState extends State<AddPrayerModal> {
     });
 
     try {
-      final prayerProvider =
-          Provider.of<PrayerProvider>(context, listen: false);
-
       if (_isEditing) {
-        await prayerProvider.editPrayer(widget.prayerToEdit!.id, text);
+        context.read<PrayerBloc>().add(EditPrayer(widget.prayerToEdit!.id, text));
         _showSuccessSnackBar('prayers.prayer_updated'.tr());
       } else {
-        await prayerProvider.addPrayer(text);
+        context.read<PrayerBloc>().add(AddPrayer(text));
         _showSuccessSnackBar('prayers.prayer_created'.tr());
       }
 
