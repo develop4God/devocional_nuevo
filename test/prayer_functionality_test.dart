@@ -2,8 +2,12 @@
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:devocional_nuevo/models/prayer_model.dart';
-import 'package:devocional_nuevo/providers/prayer_provider.dart';
+import 'package:devocional_nuevo/blocs/prayer_bloc.dart';
+import 'package:devocional_nuevo/blocs/prayer_event.dart';
+import 'package:devocional_nuevo/blocs/prayer_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:bloc_test/bloc_test.dart';
+import 'dart:convert';
 import 'test_setup.dart';
 
 void main() {
@@ -100,98 +104,214 @@ void main() {
     });
   });
 
-  group('PrayerProvider Tests', () {
-    late PrayerProvider prayerProvider;
+  group('PrayerBloc Tests', () {
+    blocTest<PrayerBloc, PrayerState>(
+      'should start with PrayerInitial',
+      build: () => PrayerBloc(),
+      expect: () => [],
+    );
 
-    setUp(() async {
-      // Mock SharedPreferences for testing
-      SharedPreferences.setMockInitialValues({});
-      prayerProvider = PrayerProvider();
+    blocTest<PrayerBloc, PrayerState>(
+      'should load empty prayers when LoadPrayers event is triggered',
+      build: () => PrayerBloc(),
+      setUp: () {
+        SharedPreferences.setMockInitialValues({});
+      },
+      act: (bloc) => bloc.add(LoadPrayers()),
+      expect: () => [
+        PrayerLoading(),
+        isA<PrayerLoaded>().having((state) => state.prayers, 'prayers', isEmpty),
+      ],
+    );
 
-      // Wait a bit for initialization
-      await Future.delayed(const Duration(milliseconds: 100));
-    });
+    blocTest<PrayerBloc, PrayerState>(
+      'should add prayer correctly',
+      build: () => PrayerBloc(),
+      setUp: () {
+        SharedPreferences.setMockInitialValues({});
+      },
+      act: (bloc) => bloc
+        ..add(LoadPrayers())
+        ..add(AddPrayer('Test prayer')),
+      expect: () => [
+        PrayerLoading(),
+        isA<PrayerLoaded>().having((state) => state.prayers, 'prayers', isEmpty),
+        isA<PrayerLoaded>()
+            .having((state) => state.prayers.length, 'prayers length', 1)
+            .having((state) => state.prayers.first.text, 'prayer text', 'Test prayer')
+            .having((state) => state.prayers.first.isActive, 'is active', true),
+      ],
+    );
 
-    test('should start with empty prayers list', () {
-      expect(prayerProvider.prayers, isEmpty);
-      expect(prayerProvider.activePrayers, isEmpty);
-      expect(prayerProvider.answeredPrayers, isEmpty);
-      expect(prayerProvider.totalPrayers, equals(0));
-    });
+    blocTest<PrayerBloc, PrayerState>(
+      'should not add empty prayer',
+      build: () => PrayerBloc(),
+      setUp: () {
+        SharedPreferences.setMockInitialValues({});
+      },
+      act: (bloc) => bloc
+        ..add(LoadPrayers())
+        ..add(AddPrayer('   ')), // Only whitespace
+      expect: () => [
+        PrayerLoading(),
+        isA<PrayerLoaded>().having((state) => state.prayers, 'prayers', isEmpty),
+        isA<PrayerLoaded>()
+            .having((state) => state.prayers, 'prayers', isEmpty)
+            .having((state) => state.errorMessage, 'error message', isNotNull),
+      ],
+    );
 
-    test('should add prayer correctly', () async {
-      expect(prayerProvider.prayers, isEmpty);
+    blocTest<PrayerBloc, PrayerState>(
+      'should mark prayer as answered',
+      build: () => PrayerBloc(),
+      setUp: () {
+        final prayer = Prayer(
+          id: '1',
+          text: 'Test prayer',
+          createdDate: DateTime.now(),
+          status: PrayerStatus.active,
+        );
+        SharedPreferences.setMockInitialValues({
+          "prayers": json.encode([prayer.toJson()])
+        });
+      },
+      act: (bloc) => bloc
+        ..add(LoadPrayers())
+        ..add(MarkPrayerAsAnswered('1')),
+      expect: () => [
+        PrayerLoading(),
+        isA<PrayerLoaded>()
+            .having((state) => state.activePrayers.length, 'active prayers length', 1),
+        isA<PrayerLoaded>()
+            .having((state) => state.activePrayers, 'active prayers', isEmpty)
+            .having((state) => state.answeredPrayers.length, 'answered prayers length', 1)
+            .having((state) => state.prayers.first.isAnswered, 'is answered', true)
+            .having((state) => state.prayers.first.answeredDate, 'answered date', isNotNull),
+      ],
+    );
 
-      await prayerProvider.addPrayer('Test prayer');
+    blocTest<PrayerBloc, PrayerState>(
+      'should mark prayer as active again',
+      build: () => PrayerBloc(),
+      setUp: () {
+        final prayer = Prayer(
+          id: '1',
+          text: 'Test prayer',
+          createdDate: DateTime.now(),
+          status: PrayerStatus.answered,
+          answeredDate: DateTime.now(),
+        );
+        SharedPreferences.setMockInitialValues({
+          "prayers": json.encode([prayer.toJson()])
+        });
+      },
+      act: (bloc) => bloc
+        ..add(LoadPrayers())
+        ..add(MarkPrayerAsActive('1')),
+      expect: () => [
+        PrayerLoading(),
+        isA<PrayerLoaded>()
+            .having((state) => state.answeredPrayers.length, 'answered prayers length', 1),
+        isA<PrayerLoaded>()
+            .having((state) => state.activePrayers.length, 'active prayers length', 1)
+            .having((state) => state.answeredPrayers, 'answered prayers', isEmpty)
+            .having((state) => state.prayers.first.isActive, 'is active', true)
+            .having((state) => state.prayers.first.answeredDate, 'answered date', isNull),
+      ],
+    );
 
-      expect(prayerProvider.prayers, hasLength(1));
-      expect(prayerProvider.activePrayers, hasLength(1));
-      expect(prayerProvider.answeredPrayers, isEmpty);
-      expect(prayerProvider.prayers.first.text, equals('Test prayer'));
-      expect(prayerProvider.prayers.first.isActive, isTrue);
-    });
+    blocTest<PrayerBloc, PrayerState>(
+      'should edit prayer text',
+      build: () => PrayerBloc(),
+      setUp: () {
+        final prayer = Prayer(
+          id: '1',
+          text: 'Original text',
+          createdDate: DateTime.now(),
+          status: PrayerStatus.active,
+        );
+        SharedPreferences.setMockInitialValues({
+          "prayers": json.encode([prayer.toJson()])
+        });
+      },
+      act: (bloc) => bloc
+        ..add(LoadPrayers())
+        ..add(EditPrayer('1', 'Edited text')),
+      expect: () => [
+        PrayerLoading(),
+        isA<PrayerLoaded>()
+            .having((state) => state.prayers.first.text, 'prayer text', 'Original text'),
+        isA<PrayerLoaded>()
+            .having((state) => state.prayers.first.text, 'prayer text', 'Edited text'),
+      ],
+    );
 
-    test('should not add empty prayer', () async {
-      await prayerProvider.addPrayer('   '); // Only whitespace
+    blocTest<PrayerBloc, PrayerState>(
+      'should delete prayer',
+      build: () => PrayerBloc(),
+      setUp: () {
+        final prayer = Prayer(
+          id: '1',
+          text: 'Prayer to delete',
+          createdDate: DateTime.now(),
+          status: PrayerStatus.active,
+        );
+        SharedPreferences.setMockInitialValues({
+          "prayers": json.encode([prayer.toJson()])
+        });
+      },
+      act: (bloc) => bloc
+        ..add(LoadPrayers())
+        ..add(DeletePrayer('1')),
+      expect: () => [
+        PrayerLoading(),
+        isA<PrayerLoaded>()
+            .having((state) => state.prayers.length, 'prayers length', 1),
+        isA<PrayerLoaded>()
+            .having((state) => state.prayers, 'prayers', isEmpty),
+      ],
+    );
 
-      expect(prayerProvider.prayers, isEmpty);
-      expect(prayerProvider.errorMessage, isNotNull);
-    });
+    blocTest<PrayerBloc, PrayerState>(
+      'should get correct stats',
+      build: () => PrayerBloc(),
+      setUp: () {
+        final activePrayer = Prayer(
+          id: '1',
+          text: 'Active prayer 1',
+          createdDate: DateTime.now(),
+          status: PrayerStatus.active,
+        );
+        final answeredPrayer = Prayer(
+          id: '2',
+          text: 'Answered prayer',
+          createdDate: DateTime.now(),
+          status: PrayerStatus.answered,
+          answeredDate: DateTime.now(),
+        );
+        SharedPreferences.setMockInitialValues({
+          "prayers": json.encode([activePrayer.toJson(), answeredPrayer.toJson()])
+        });
+      },
+      act: (bloc) => bloc.add(LoadPrayers()),
+      verify: (bloc) {
+        final state = bloc.state as PrayerLoaded;
+        final stats = state.getStats();
+        expect(stats['total'], equals(2));
+        expect(stats['active'], equals(1));
+        expect(stats['answered'], equals(1));
+      },
+    );
 
-    test('should mark prayer as answered', () async {
-      await prayerProvider.addPrayer('Test prayer');
-      final prayerId = prayerProvider.prayers.first.id;
-
-      await prayerProvider.markPrayerAsAnswered(prayerId);
-
-      expect(prayerProvider.activePrayers, isEmpty);
-      expect(prayerProvider.answeredPrayers, hasLength(1));
-      expect(prayerProvider.prayers.first.isAnswered, isTrue);
-      expect(prayerProvider.prayers.first.answeredDate, isNotNull);
-    });
-
-    test('should mark prayer as active again', () async {
-      await prayerProvider.addPrayer('Test prayer');
-      final prayerId = prayerProvider.prayers.first.id;
-
-      await prayerProvider.markPrayerAsAnswered(prayerId);
-      await prayerProvider.markPrayerAsActive(prayerId);
-
-      expect(prayerProvider.activePrayers, hasLength(1));
-      expect(prayerProvider.answeredPrayers, isEmpty);
-      expect(prayerProvider.prayers.first.isActive, isTrue);
-      expect(prayerProvider.prayers.first.answeredDate, isNull);
-    });
-
-    test('should edit prayer text', () async {
-      await prayerProvider.addPrayer('Original text');
-      final prayerId = prayerProvider.prayers.first.id;
-
-      await prayerProvider.editPrayer(prayerId, 'Edited text');
-
-      expect(prayerProvider.prayers.first.text, equals('Edited text'));
-    });
-
-    test('should delete prayer', () async {
-      await prayerProvider.addPrayer('Prayer to delete');
-      final prayerId = prayerProvider.prayers.first.id;
-
-      await prayerProvider.deletePrayer(prayerId);
-
-      expect(prayerProvider.prayers, isEmpty);
-    });
-
-    test('should get correct stats', () async {
-      await prayerProvider.addPrayer('Active prayer 1');
-      await prayerProvider.addPrayer('Active prayer 2');
-      final prayerId = prayerProvider.prayers.first.id;
-      await prayerProvider.markPrayerAsAnswered(prayerId);
-
-      final stats = prayerProvider.getStats();
-
-      expect(stats['total'], equals(2));
-      expect(stats['active'], equals(1));
-      expect(stats['answered'], equals(1));
-    });
+    blocTest<PrayerBloc, PrayerState>(
+      'should clear error message',
+      build: () => PrayerBloc(),
+      seed: () => PrayerLoaded(prayers: [], errorMessage: 'Some error'),
+      act: (bloc) => bloc.add(ClearPrayerError()),
+      expect: () => [
+        isA<PrayerLoaded>()
+            .having((state) => state.errorMessage, 'error message', isNull),
+      ],
+    );
   });
 }

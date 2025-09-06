@@ -4,7 +4,8 @@ import 'package:devocional_nuevo/controllers/audio_controller.dart';
 import 'package:devocional_nuevo/pages/settings_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/providers/localization_provider.dart';
-import 'package:devocional_nuevo/providers/prayer_provider.dart';
+import 'package:devocional_nuevo/blocs/prayer_bloc.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:devocional_nuevo/providers/theme_provider.dart';
 import 'package:devocional_nuevo/services/notification_service.dart';
 import 'package:devocional_nuevo/services/spiritual_stats_service.dart'; // NUEVO
@@ -88,7 +89,7 @@ void main() async {
       providers: [
         ChangeNotifierProvider(create: (context) => LocalizationProvider()),
         ChangeNotifierProvider(create: (context) => DevocionalProvider()),
-        ChangeNotifierProvider(create: (context) => PrayerProvider()),
+        BlocProvider(create: (context) => PrayerBloc()),
         ChangeNotifierProvider(create: (context) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => AudioController()),
       ],

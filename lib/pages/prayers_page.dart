@@ -1,10 +1,12 @@
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/prayer_model.dart';
-import 'package:devocional_nuevo/providers/prayer_provider.dart';
+import 'package:devocional_nuevo/blocs/prayer_bloc.dart';
+import 'package:devocional_nuevo/blocs/prayer_event.dart';
+import 'package:devocional_nuevo/blocs/prayer_state.dart';
 import 'package:devocional_nuevo/widgets/add_prayer_modal.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
-import 'package:provider/provider.dart';
 
 /// Widget personalizado para el AppBar de la aplicación.
 /// Utiliza los colores y estilos del tema de la app.
@@ -68,6 +70,11 @@ class _PrayersPageState extends State<PrayersPage>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+
+    // Trigger initial loading of prayers
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<PrayerBloc>().add(LoadPrayers());
+    });
   }
 
   @override
@@ -110,15 +117,15 @@ class _PrayersPageState extends State<PrayersPage>
           ),
           // El contenido expandido
           Expanded(
-            child: Consumer<PrayerProvider>(
-              builder: (context, prayerProvider, child) {
-                if (prayerProvider.isLoading) {
+            child: BlocBuilder<PrayerBloc, PrayerState>(
+              builder: (context, state) {
+                if (state is PrayerLoading) {
                   return const Center(
                     child: CircularProgressIndicator(),
                   );
                 }
 
-                if (prayerProvider.errorMessage != null) {
+                if (state is PrayerError) {
                   return Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -130,7 +137,7 @@ class _PrayersPageState extends State<PrayersPage>
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          prayerProvider.errorMessage!,
+                          state.message,
                           style:
                               Theme.of(context).textTheme.bodyLarge?.copyWith(
                                     color: colorScheme.error,
@@ -140,8 +147,7 @@ class _PrayersPageState extends State<PrayersPage>
                         const SizedBox(height: 16),
                         ElevatedButton(
                           onPressed: () {
-                            prayerProvider.clearError();
-                            prayerProvider.refresh();
+                            context.read<PrayerBloc>().add(RefreshPrayers());
                           },
                           child: Text('prayer.retry'.tr()),
                         ),
@@ -150,12 +156,18 @@ class _PrayersPageState extends State<PrayersPage>
                   );
                 }
 
-                return TabBarView(
-                  controller: _tabController,
-                  children: [
-                    _buildActivePrayersTab(context, prayerProvider),
-                    _buildAnsweredPrayersTab(context, prayerProvider),
-                  ],
+                if (state is PrayerLoaded) {
+                  return TabBarView(
+                    controller: _tabController,
+                    children: [
+                      _buildActivePrayersTab(context, state),
+                      _buildAnsweredPrayersTab(context, state),
+                    ],
+                  );
+                }
+
+                return const Center(
+                  child: CircularProgressIndicator(),
                 );
               },
             ),
@@ -172,9 +184,9 @@ class _PrayersPageState extends State<PrayersPage>
 
   Widget _buildActivePrayersTab(
     BuildContext context,
-    PrayerProvider prayerProvider,
+    PrayerLoaded state,
   ) {
-    final activePrayers = prayerProvider.activePrayers;
+    final activePrayers = state.activePrayers;
 
     if (activePrayers.isEmpty) {
       return _buildEmptyState(
@@ -186,7 +198,9 @@ class _PrayersPageState extends State<PrayersPage>
     }
 
     return RefreshIndicator(
-      onRefresh: () => prayerProvider.refresh(),
+      onRefresh: () async {
+        context.read<PrayerBloc>().add(RefreshPrayers());
+      },
       child: ListView.builder(
         padding: const EdgeInsets.all(16),
         itemCount: activePrayers.length,
@@ -195,7 +209,7 @@ class _PrayersPageState extends State<PrayersPage>
           return _buildPrayerCard(
             context,
             prayer,
-            prayerProvider,
+            state,
             isActive: true,
           );
         },
@@ -205,9 +219,9 @@ class _PrayersPageState extends State<PrayersPage>
 
   Widget _buildAnsweredPrayersTab(
     BuildContext context,
-    PrayerProvider prayerProvider,
+    PrayerLoaded state,
   ) {
-    final answeredPrayers = prayerProvider.answeredPrayers;
+    final answeredPrayers = state.answeredPrayers;
 
     if (answeredPrayers.isEmpty) {
       return _buildEmptyState(
@@ -219,7 +233,9 @@ class _PrayersPageState extends State<PrayersPage>
     }
 
     return RefreshIndicator(
-      onRefresh: () => prayerProvider.refresh(),
+      onRefresh: () async {
+        context.read<PrayerBloc>().add(RefreshPrayers());
+      },
       child: ListView.builder(
         padding: const EdgeInsets.all(16),
         itemCount: answeredPrayers.length,
@@ -228,7 +244,7 @@ class _PrayersPageState extends State<PrayersPage>
           return _buildPrayerCard(
             context,
             prayer,
-            prayerProvider,
+            state,
             isActive: false,
           );
         },
@@ -282,7 +298,7 @@ class _PrayersPageState extends State<PrayersPage>
   Widget _buildPrayerCard(
     BuildContext context,
     Prayer prayer,
-    PrayerProvider prayerProvider, {
+    PrayerLoaded state, {
     required bool isActive,
   }) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -346,17 +362,20 @@ class _PrayersPageState extends State<PrayersPage>
                       switch (value) {
                         case 'toggle_status':
                           if (isActive) {
-                            prayerProvider.markPrayerAsAnswered(prayer.id);
+                            context
+                                .read<PrayerBloc>()
+                                .add(MarkPrayerAsAnswered(prayer.id));
                           } else {
-                            prayerProvider.markPrayerAsActive(prayer.id);
+                            context
+                                .read<PrayerBloc>()
+                                .add(MarkPrayerAsActive(prayer.id));
                           }
                           break;
                         case 'edit':
-                          _showEditPrayerModal(context, prayer, prayerProvider);
+                          _showEditPrayerModal(context, prayer);
                           break;
                         case 'delete':
-                          _showDeleteConfirmation(
-                              context, prayer, prayerProvider);
+                          _showDeleteConfirmation(context, prayer);
                           break;
                       }
                     },
@@ -491,7 +510,6 @@ class _PrayersPageState extends State<PrayersPage>
   void _showEditPrayerModal(
     BuildContext context,
     Prayer prayer,
-    PrayerProvider prayerProvider,
   ) {
     showModalBottomSheet(
       context: context,
@@ -506,7 +524,6 @@ class _PrayersPageState extends State<PrayersPage>
   void _showDeleteConfirmation(
     BuildContext context,
     Prayer prayer,
-    PrayerProvider prayerProvider,
   ) {
     showDialog(
       context: context,
@@ -523,7 +540,7 @@ class _PrayersPageState extends State<PrayersPage>
           TextButton(
             onPressed: () {
               Navigator.of(context).pop();
-              prayerProvider.deletePrayer(prayer.id);
+              context.read<PrayerBloc>().add(DeletePrayer(prayer.id));
             },
             style: TextButton.styleFrom(
               foregroundColor: Colors.red,
