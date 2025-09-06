@@ -70,6 +70,11 @@ class _PrayersPageState extends State<PrayersPage>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    
+    // Trigger initial loading of prayers
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<PrayerBloc>().add(LoadPrayers());
+    });
   }
 
   @override

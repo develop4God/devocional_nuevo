@@ -23,9 +23,6 @@ class PrayerBloc extends Bloc<PrayerEvent, PrayerState> {
     on<MarkPrayerAsActive>(_onMarkPrayerAsActive);
     on<RefreshPrayers>(_onRefreshPrayers);
     on<ClearPrayerError>(_onClearPrayerError);
-
-    // Initialize data when bloc is created
-    add(LoadPrayers());
   }
 
   /// Handles loading prayers from storage
