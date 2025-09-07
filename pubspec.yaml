@@ -26,6 +26,7 @@ dependencies:
   intl: 0.20.2
 
   in_app_update: ^4.2.3
+  in_app_review: ^2.0.8
   google_fonts: ^6.3.0
   
   flutter_localizations:

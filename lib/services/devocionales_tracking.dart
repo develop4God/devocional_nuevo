@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
+import 'package:devocional_nuevo/services/in_app_review_service.dart';
+import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -183,7 +185,7 @@ class DevocionalesTracking {
   }
 
   /// Registra manualmente la lectura de un devocional
-  void recordDevocionalRead(String devocionalId) {
+  void recordDevocionalRead(String devocionalId) async {
     if (_context == null) return;
 
     final devocionalProvider = Provider.of<DevocionalProvider>(
@@ -191,8 +193,20 @@ class DevocionalesTracking {
       listen: false,
     );
 
+    // Registrar la lectura inmediatamente
     devocionalProvider.recordDevocionalRead(devocionalId);
     debugPrint('📊 Manual reading recorded for: $devocionalId');
+    
+    // Check for in-app review opportunity
+    try {
+      final stats = await SpiritualStatsService().getStats();
+      if (_context?.mounted == true) {
+        await InAppReviewService.checkAndShow(stats, _context!);
+      }
+    } catch (e) {
+      debugPrint('❌ Error checking in-app review: $e');
+      // Fail silently - review errors should not affect devotional recording
+    }
   }
 
   /// Verifica si un devocional fue auto-completado
