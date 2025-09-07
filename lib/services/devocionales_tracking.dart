@@ -114,7 +114,7 @@ class DevocionalesTracking {
   }
 
   /// Actualiza estadísticas inmediatamente cuando se cumplen los criterios
-  void _updateReadingStats(String devocionalId) {
+  void _updateReadingStats(String devocionalId) async {
     if (_context == null || !_context!.mounted) return;
 
     final devocionalProvider = Provider.of<DevocionalProvider>(
@@ -133,6 +133,23 @@ class DevocionalesTracking {
 
     debugPrint('📊 Stats updated automatically for: $devocionalId');
     debugPrint('🔄 UI update forced via provider notification');
+
+    // Check for in-app review opportunity - AUTOMATIC COMPLETION PATH
+    try {
+      // Add small delay to ensure stats are persisted before checking
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      final stats = await SpiritualStatsService().getStats();
+      debugPrint(
+          '🎯 Auto-completion review check: ${stats.totalDevocionalesRead} devotionals');
+
+      if (_context?.mounted == true) {
+        await InAppReviewService.checkAndShow(stats, _context!);
+      }
+    } catch (e) {
+      debugPrint('❌ Error checking in-app review (auto-completion): $e');
+      // Fail silently - review errors should not affect devotional recording
+    }
   }
 
   /// Limpia el set de auto-completados para permitir nueva evaluación
@@ -196,15 +213,21 @@ class DevocionalesTracking {
     // Registrar la lectura inmediatamente
     devocionalProvider.recordDevocionalRead(devocionalId);
     debugPrint('📊 Manual reading recorded for: $devocionalId');
-    
-    // Check for in-app review opportunity
+
+    // Check for in-app review opportunity - MANUAL COMPLETION PATH
     try {
+      // Add delay to ensure stats are persisted before checking
+      await Future.delayed(const Duration(milliseconds: 100));
+
       final stats = await SpiritualStatsService().getStats();
+      debugPrint(
+          '🎯 Manual completion review check: ${stats.totalDevocionalesRead} devotionals');
+
       if (_context?.mounted == true) {
         await InAppReviewService.checkAndShow(stats, _context!);
       }
     } catch (e) {
-      debugPrint('❌ Error checking in-app review: $e');
+      debugPrint('❌ Error checking in-app review (manual completion): $e');
       // Fail silently - review errors should not affect devotional recording
     }
   }
