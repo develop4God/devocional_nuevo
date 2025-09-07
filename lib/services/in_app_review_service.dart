@@ -85,7 +85,8 @@ class InAppReviewService {
             DateTime.now().difference(lastRequestDate).inDays;
 
         if (daysSinceLastRequest < _globalCooldownDays) {
-          debugPrint('Global cooldown active ($daysSinceLastRequest/$_globalCooldownDays days)');
+          debugPrint(
+              'Global cooldown active ($daysSinceLastRequest/$_globalCooldownDays days)');
           return false;
         }
       }
@@ -99,7 +100,8 @@ class InAppReviewService {
             DateTime.now().difference(remindLaterDate).inDays;
 
         if (daysSinceRemindLater < _remindLaterDays) {
-          debugPrint('Remind later cooldown active ($daysSinceRemindLater/$_remindLaterDays days)');
+          debugPrint(
+              'Remind later cooldown active ($daysSinceRemindLater/$_remindLaterDays days)');
           return false;
         }
       }
