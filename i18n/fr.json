@@ -182,7 +182,7 @@
     "download_success": "Dévotionnels téléchargés avec succès",
     "download_error": "Erreur de téléchargement. Vérifiez votre connexion et réessayez.",
     "offline_access_ready": "Vous pouvez maintenant accéder à votre contenu sans internet",
-    "share_message": "Si vous cherchez un moment de paix et d'édification quotidienne dans votre vie, je vous recommande l'application Dévotionnels Chrétiens. Elle m'a aidé à me connecter avec la Parole de Dieu. \nC'est un outil puissant pour la croissance spirituelle et il est entièrement gratuit. Vous pouvez la télécharger ici :\nhttps://play.google.com/store/apps/details?id=com.develop4god.devocional_nuevo"
+    "share_message": "Si vous cherchez un moment de paix quotidienne dans votre vie, je vous recommande Devocionales Cristianos.\n\nLa Parole de Dieu pour la croissance spirituelle et entièrement gratuite. Vous pouvez la télécharger ici :\nhttps://play.google.com/store/apps/details?id=com.develop4god.devocional_nuevo"
   },
   "progress": {
     "title": "Mon Progrès Spirituel",
@@ -358,7 +358,7 @@
   },
   "review": {
     "title": "Merci pour votre constance 🙏",
-    "message": "Votre fidélité dans la lecture quotidienne nous émeut. Si Dieu œuvre dans votre vie à travers ces dévotionnels, pourriez-vous nous aider en partageant votre expérience avec d'autres?\n\nVotre témoignage pourrait être la bénédiction dont quelqu'un d'autre a besoin pour commencer son propre parcours spirituel.",
+    "message": "Si Dieu vous parle à travers ces dévotionnels, partager votre témoignage pourrait être exactement ce que quelqu'un d'autre a besoin d'entendre pour se rapprocher de Lui.",
     "button_share": "Oui, je veux partager",
     "button_already_rated": "Déjà évalué",
     "button_not_now": "Pas maintenant",

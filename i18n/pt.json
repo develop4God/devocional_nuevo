@@ -181,7 +181,7 @@
     "download_success": "Devocionais baixados com sucesso",
     "download_error": "Erro no download. Verifique sua conexão e tente novamente.",
     "offline_access_ready": "Agora você pode acessar seu conteúdo sem internet",
-    "share_message": "Se você procura um momento de paz e edificação diária em sua vida, recomendo o aplicativo Devocionais Cristãos. Ele me ajudou a me conectar com a Palavra de Deus. \nÉ uma ferramenta poderosa para o crescimento espiritual e totalmente gratuita. Você pode baixá-lo aqui:\nhttps://play.google.com/store/apps/details?id=com.develop4god.devocional_nuevo"
+    "share_message": "Se você busca um momento de paz diária em sua vida, recomendo o Devocionais Cristãos.\n\nPalavra de Deus para o crescimento espiritual e totalmente gratuito. Você pode baixá-lo aqui:\nhttps://play.google.com/store/apps/details?id=com.develop4god.devocional_nuevo"
   },
   "progress": {
     "title": "Meu Progresso Espiritual",
@@ -357,7 +357,7 @@
   },
   "review": {
     "title": "Obrigado pela sua constância 🙏",
-    "message": "Sua fidelidade na leitura diária nos emociona. Se Deus está trabalhando em sua vida através destes devocionais, você nos ajudaria compartilhando sua experiência com outros?\n\nSeu testemunho pode ser a bênção que alguém mais precisa para começar sua própria jornada espiritual.",
+    "message": "Se Deus está falando com você através destes devocionais, compartilhar seu testemunho pode ser exatamente o que alguém precisa ouvir para se aproximar d'Ele.",
     "button_share": "Sim, quero compartilhar",
     "button_already_rated": "Já avaliei",
     "button_not_now": "Agora não",
