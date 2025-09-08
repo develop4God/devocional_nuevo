@@ -15,58 +15,42 @@ class ContactPage extends StatefulWidget {
 }
 
 class _ContactPageState extends State<ContactPage> {
-  // MODIFICADO: Variables para el formulario de nombre/email eliminadas
-  // final _formKey = GlobalKey<FormState>();
-  // final _nameController = TextEditingController();
-  // final _emailController = TextEditingController();
-
-  // AÑADIDO: Variables para el formulario de contacto con opciones predefinidas
   String? _selectedContactOption;
   final TextEditingController _messageController = TextEditingController();
 
-  List<String> get _contactOptions => [
-        'contact.bugs'.tr(),
-        'contact.feedback'.tr(),
-        'contact.improvements'.tr(),
-        'contact.other'.tr()
-      ];
+  // Mover las opciones a una variable de instancia para evitar recrearlas
+  late final List<String> _contactOptions;
 
-// Mantener para el indicador de envío
+  @override
+  void initState() {
+    super.initState();
+    // Inicializar las opciones una sola vez
+    _contactOptions = [
+      'contact.bugs'.tr(),
+      'contact.feedback'.tr(),
+      'contact.improvements'.tr(),
+      'contact.other'.tr()
+    ];
+  }
 
   @override
   void dispose() {
-    // MODIFICADO: Dispose de controladores de nombre/email eliminados
-    // _nameController.dispose();
-    // _emailController.dispose();
-    _messageController
-        .dispose(); // Mantener dispose para el controlador de mensaje
+    _messageController.dispose();
     super.dispose();
   }
 
-  // MODIFICADO: Método _sendEmail renombrado y adaptado a _sendContactEmail
   Future<void> _sendContactEmail() async {
+    // Validación con mejor UX
     if (_selectedContactOption == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('contact.select_type_error'.tr()),
-          backgroundColor: Colors.red,
-        ),
-      );
+      _showValidationError('contact.select_type_error'.tr());
       return;
     }
 
     final String message = _messageController.text.trim();
     if (message.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('contact.enter_message_error'.tr()),
-          backgroundColor: Colors.red,
-        ),
-      );
+      _showValidationError('contact.enter_message_error'.tr());
       return;
     }
-
-    setState(() {});
 
     // Construir el enlace mailto con los datos del formulario de opciones
     final Uri emailUri = Uri(
@@ -106,14 +90,18 @@ class _ContactPageState extends State<ContactPage> {
           error: e, name: 'EmailLaunch');
       _showErrorSnackBar(
           'Error al abrir el cliente de correo: ${e.toString()}');
-    } finally {
-      if (mounted) {
-        setState(() {});
-      }
     }
   }
 
-  // Metodo alternativo para contactar a través de WhatsApp (se mantiene)
+  void _showValidationError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
 
   void _showErrorSnackBar(String message) {
     if (mounted) {
@@ -163,37 +151,77 @@ class _ContactPageState extends State<ContactPage> {
             ),
             const SizedBox(height: 30),
 
-            // MODIFICADO: Formulario de contacto con opciones predefinidas
-            // Eliminado: Form(key: _formKey, child: Column(...))
-            // Eliminado: TextFormField para Nombre y Email
-
-            // Dropdown para seleccionar tipo de contacto
-            DropdownButtonFormField<String>(
-              initialValue: _selectedContactOption,
-              decoration: InputDecoration(
-                labelText: 'contact_page.contact_type_label'.tr(),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                prefixIcon:
-                    Icon(Icons.topic_outlined, color: colorScheme.primary),
+            // SOLUCIÓN: Cambio a Container con DropdownButton para eliminar inconsistencias
+            Container(
+              decoration: BoxDecoration(
+                border: Border.all(color: colorScheme.outline),
+                borderRadius: BorderRadius.circular(10),
               ),
-              items: _contactOptions.map((String option) {
-                return DropdownMenuItem<String>(
-                  value: option,
-                  child: Text(option),
-                );
-              }).toList(),
-              onChanged: (String? newValue) {
-                setState(() {
-                  _selectedContactOption = newValue;
-                });
-              },
-              hint: Text('contact.select_option'.tr()),
+              child: DropdownButton<String>(
+                value: _selectedContactOption,
+                hint: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                  child: Row(
+                    children: [
+                      Icon(Icons.topic_outlined, color: colorScheme.primary),
+                      const SizedBox(width: 12),
+                      Text(
+                        'contact.select_option'.tr(),
+                        style: TextStyle(color: colorScheme.onSurfaceVariant),
+                      ),
+                    ],
+                  ),
+                ),
+                isExpanded: true,
+                underline: const SizedBox(),
+                // Remover la línea por defecto
+                items: _contactOptions.map((String option) {
+                  return DropdownMenuItem<String>(
+                    value: option,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                      child: Row(
+                        children: [
+                          Icon(Icons.topic_outlined,
+                              color: colorScheme.primary, size: 20),
+                          const SizedBox(width: 12),
+                          Expanded(child: Text(option)),
+                        ],
+                      ),
+                    ),
+                  );
+                }).toList(),
+                onChanged: (String? newValue) {
+                  setState(() {
+                    _selectedContactOption = newValue;
+                  });
+                },
+                // Estilizado personalizado
+                selectedItemBuilder: (BuildContext context) {
+                  return _contactOptions.map((String option) {
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                      child: Row(
+                        children: [
+                          Icon(Icons.topic_outlined,
+                              color: colorScheme.primary),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              option,
+                              style: TextStyle(color: colorScheme.onSurface),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }).toList();
+                },
+              ),
             ),
             const SizedBox(height: 20),
 
-            // Campo de texto para el mensaje
+            // Campo de texto para el mensaje (sin cambios)
             TextField(
               controller: _messageController,
               decoration: InputDecoration(
@@ -211,8 +239,7 @@ class _ContactPageState extends State<ContactPage> {
             // Botón de enviar
             Center(
               child: ElevatedButton.icon(
-                onPressed:
-                    _sendContactEmail, // MODIFICADO: Llama a _sendContactEmail
+                onPressed: _sendContactEmail,
                 icon: Icon(Icons.send, color: colorScheme.onPrimary),
                 label: Text('contact.open_email'.tr(),
                     style: TextStyle(color: colorScheme.onPrimary)),
@@ -231,7 +258,7 @@ class _ContactPageState extends State<ContactPage> {
             const Divider(),
             const SizedBox(height: 20),
 
-            // Otras formas de contacto (se mantienen)
+            // Otras formas de contacto (sin cambios)
             Text(
               'contact_page.other_contact_methods'.tr(),
               style: textTheme.titleLarge?.copyWith(
