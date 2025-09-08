@@ -1,20 +1,21 @@
 import 'dart:developer' as developer;
 
+import 'package:devocional_nuevo/blocs/prayer_bloc.dart';
 import 'package:devocional_nuevo/controllers/audio_controller.dart';
+import 'package:devocional_nuevo/pages/devocionales_page.dart';
 import 'package:devocional_nuevo/pages/settings_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/providers/localization_provider.dart';
-import 'package:devocional_nuevo/blocs/prayer_bloc.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:devocional_nuevo/providers/theme_provider.dart';
 import 'package:devocional_nuevo/services/notification_service.dart';
-import 'package:devocional_nuevo/services/spiritual_stats_service.dart'; // NUEVO
+import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
 import 'package:devocional_nuevo/splash_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -93,12 +94,39 @@ void main() async {
         ChangeNotifierProvider(create: (context) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => AudioController()),
       ],
-      child: const AppInitializer(),
+      child: const MyApp(),
     ),
   );
 }
 
-// Widget raíz que inicializa la app
+// App principal - Siempre muestra SplashScreen primero
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final localizationProvider = Provider.of<LocalizationProvider>(context);
+
+    return MaterialApp(
+      title: 'Devocionales',
+      debugShowCheckedModeBanner: false,
+      theme: themeProvider.currentTheme,
+      navigatorKey: navigatorKey,
+      localizationsDelegates: GlobalMaterialLocalizations.delegates,
+      supportedLocales: localizationProvider.supportedLocales,
+      locale: localizationProvider.currentLocale,
+      // SIEMPRE inicia con SplashScreen
+      home: const AppInitializer(),
+      routes: {
+        '/settings': (context) => const SettingsPage(),
+        '/devocionales': (context) => const DevocionalesPage(),
+      },
+    );
+  }
+}
+
+// Widget que maneja la inicialización mientras muestra SplashScreen
 class AppInitializer extends StatefulWidget {
   const AppInitializer({super.key});
 
@@ -107,23 +135,23 @@ class AppInitializer extends StatefulWidget {
 }
 
 class _AppInitializerState extends State<AppInitializer> {
-  bool _appInitialized = false;
-
   @override
   void initState() {
     super.initState();
-    // Ejecutar la inicialización de la app después del primer frame
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _initializeApp();
-    });
+    // Inicializar servicios en background mientras se muestra SplashScreen
+    _initializeInBackground();
   }
 
-  Future<void> _initializeApp() async {
-    // Inicialización ligera (no bloquea el primer frame)
+  Future<void> _initializeInBackground() async {
+    // Dar tiempo para que el SplashScreen se muestre
+    await Future.delayed(const Duration(milliseconds: 500));
+
+    // Inicialización completa: servicios + datos
     await _initServices();
-    setState(() {
-      _appInitialized = true;
-    });
+    await _initAppData();
+
+    developer.log('AppInitializer: Inicialización completa terminada.',
+        name: 'MainApp');
   }
 
   Future<void> _initServices() async {
@@ -131,10 +159,13 @@ class _AppInitializerState extends State<AppInitializer> {
     final localizationProvider =
         Provider.of<LocalizationProvider>(context, listen: false);
 
-    // Mueve aquí la inicialización global que bloqueaba el arranque
+    // Inicialización global
     try {
       tzdata.initializeTimeZones();
       await initializeDateFormatting('es', null);
+      developer.log(
+          'AppInitializer: Zona horaria y formateo de fechas inicializados.',
+          name: 'MainApp');
     } catch (e) {
       developer.log(
           'ERROR en AppInitializer: Error al inicializar zona horaria o date formatting: $e',
@@ -155,6 +186,7 @@ class _AppInitializerState extends State<AppInitializer> {
           error: e);
     }
 
+    // Firebase Auth
     try {
       final FirebaseAuth auth = FirebaseAuth.instance;
       if (auth.currentUser == null) {
@@ -174,6 +206,7 @@ class _AppInitializerState extends State<AppInitializer> {
           error: e);
     }
 
+    // Notification services
     try {
       await NotificationService().initialize();
       developer.log(
@@ -200,7 +233,7 @@ class _AppInitializerState extends State<AppInitializer> {
           error: e);
     }
 
-    // NUEVO: Inicializar sistema de backup automático de estadísticas espirituales
+    // Spiritual stats service
     try {
       final spiritualStatsService = SpiritualStatsService();
 
@@ -229,42 +262,29 @@ class _AppInitializerState extends State<AppInitializer> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    if (!_appInitialized) {
-      // Muestra el SplashScreen de Flutter mientras inicializas
-      return const MaterialApp(
-        home: SplashScreen(),
-        debugShowCheckedModeBanner: false,
-      );
+  // Inicializar datos de la aplicación
+  Future<void> _initAppData() async {
+    if (!mounted) return;
+
+    try {
+      final devocionalProvider =
+          Provider.of<DevocionalProvider>(context, listen: false);
+      await devocionalProvider.initializeData();
+      developer.log(
+          'AppInitializer: Datos del DevocionalProvider cargados correctamente.',
+          name: 'MainApp');
+    } catch (e) {
+      developer.log(
+          'ERROR en AppInitializer: Error al cargar datos del DevocionalProvider: $e',
+          name: 'MainApp',
+          error: e);
     }
-
-    // App normal
-    return const MyApp();
   }
-}
-
-// Mantén tu MyApp como antes
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final themeProvider = Provider.of<ThemeProvider>(context);
-    final localizationProvider = Provider.of<LocalizationProvider>(context);
-
-    return MaterialApp(
-      title: 'Devocionales',
-      debugShowCheckedModeBanner: false,
-      theme: themeProvider.currentTheme,
-      navigatorKey: navigatorKey,
-      localizationsDelegates: GlobalMaterialLocalizations.delegates,
-      supportedLocales: localizationProvider.supportedLocales,
-      locale: localizationProvider.currentLocale,
-      home: const SplashScreen(),
-      routes: {
-        '/settings': (context) => const SettingsPage(),
-      },
-    );
+    // SIEMPRE muestra el SplashScreen con tus efectos
+    // La inicialización ocurre en background
+    return const SplashScreen();
   }
 }

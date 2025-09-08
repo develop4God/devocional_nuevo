@@ -1,7 +1,7 @@
 import 'dart:math';
 
-import 'package:devocional_nuevo/app_initializer.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
+import 'package:devocional_nuevo/pages/devocionales_page.dart'; // CAMBIADO: Importar página principal
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -69,7 +69,8 @@ class _SplashScreenState extends State<SplashScreen>
         PageRouteBuilder(
           transitionDuration: const Duration(milliseconds: 600),
           pageBuilder: (context, animation, secondaryAnimation) =>
-              const AppInitializer(),
+          const DevocionalesPage(),
+          // CAMBIADO: Navegar directamente a DevocionalesPage
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             const begin = Offset(1.0, 0.0);
             const end = Offset.zero;
@@ -155,28 +156,29 @@ class _SplashScreenState extends State<SplashScreen>
                           children: [
                             // Partículas luminosas
                             ...updatedParticles.map(
-                              (p) => Positioned(
-                                left: p.x,
-                                top: p.y,
-                                child: Opacity(
-                                  opacity: p.opacity,
-                                  child: Container(
-                                    width: p.size,
-                                    height: p.size,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: p.color,
-                                      boxShadow: const [
-                                        BoxShadow(
-                                          color: Colors.transparent,
-                                          blurRadius: 20,
-                                          spreadRadius: 2,
+                                  (p) =>
+                                  Positioned(
+                                    left: p.x,
+                                    top: p.y,
+                                    child: Opacity(
+                                      opacity: p.opacity,
+                                      child: Container(
+                                        width: p.size,
+                                        height: p.size,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: p.color,
+                                          boxShadow: const [
+                                            BoxShadow(
+                                              color: Colors.transparent,
+                                              blurRadius: 20,
+                                              spreadRadius: 2,
+                                            ),
+                                          ],
                                         ),
-                                      ],
+                                      ),
                                     ),
                                   ),
-                                ),
-                              ),
                             ),
                             // Texto principal centrado en el Stack
                             Center(
