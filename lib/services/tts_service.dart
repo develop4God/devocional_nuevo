@@ -265,6 +265,25 @@ class TtsService {
       );
       debugPrint(
           '📈 TTS: Devocional registrado en estadísticas por escucha con progreso ${progress * 100}%');
+
+      // Check for in-app review opportunity - AUDIO COMPLETION PATH
+      try {
+        // Add delay to ensure stats are persisted before checking
+        await Future.delayed(const Duration(milliseconds: 100));
+
+        final stats = await SpiritualStatsService().getStats();
+        debugPrint(
+            '🎯 Audio completion review check: ${stats.totalDevocionalesRead} devotionals');
+
+        // Note: We cannot show dialog from TTS service without context
+        // This will be handled via callback mechanism if needed
+        // For now, just log the attempt
+        debugPrint(
+            '🔔 TTS: Review milestone check completed - context needed for dialog');
+      } catch (e) {
+        debugPrint('❌ Error checking in-app review (audio completion): $e');
+        // Fail silently - review errors should not affect devotional recording
+      }
     }
 
     debugPrint(

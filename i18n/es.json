@@ -354,5 +354,16 @@
   "bubble_constants": {
     "new_feature": "Nuevo",
     "updated_feature": "Actualizado"
+  },
+  "review": {
+    "title": "Gracias por tu constancia 🙏",
+    "message": "Tu fidelidad en la lectura diaria nos emociona. Si Dios está obrando en tu vida a través de estos devocionales, ¿nos ayudarías compartiendo tu experiencia con otros?\n\nTu testimonio puede ser la bendición que alguien más necesita para comenzar su propia jornada espiritual.",
+    "button_share": "Sí, quiero compartir",
+    "button_already_rated": "Ya la califiqué",
+    "button_not_now": "Ahora no",
+    "fallback_title": "Ir a Google Play",
+    "fallback_message": "¿Te gustaría ir a Google Play para calificar la aplicación?",
+    "fallback_go": "Ir a Play Store",
+    "fallback_cancel": "Cancelar"
   }
 }

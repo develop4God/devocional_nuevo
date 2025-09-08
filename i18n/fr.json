@@ -355,5 +355,16 @@
   "bubble_constants": {
     "new_feature": "Nouveau",
     "updated_feature": "Mise à jour"
+  },
+  "review": {
+    "title": "Merci pour votre constance 🙏",
+    "message": "Votre fidélité dans la lecture quotidienne nous émeut. Si Dieu œuvre dans votre vie à travers ces dévotionnels, pourriez-vous nous aider en partageant votre expérience avec d'autres?\n\nVotre témoignage pourrait être la bénédiction dont quelqu'un d'autre a besoin pour commencer son propre parcours spirituel.",
+    "button_share": "Oui, je veux partager",
+    "button_already_rated": "Déjà évalué",
+    "button_not_now": "Pas maintenant",
+    "fallback_title": "Aller à Google Play",
+    "fallback_message": "Souhaitez-vous aller sur Google Play pour évaluer l'application?",
+    "fallback_go": "Aller au Play Store",
+    "fallback_cancel": "Annuler"
   }
 }

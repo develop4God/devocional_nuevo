@@ -120,7 +120,8 @@ void main() {
       act: (bloc) => bloc.add(LoadPrayers()),
       expect: () => [
         PrayerLoading(),
-        isA<PrayerLoaded>().having((state) => state.prayers, 'prayers', isEmpty),
+        isA<PrayerLoaded>()
+            .having((state) => state.prayers, 'prayers', isEmpty),
       ],
     );
 
@@ -135,10 +136,12 @@ void main() {
         ..add(AddPrayer('Test prayer')),
       expect: () => [
         PrayerLoading(),
-        isA<PrayerLoaded>().having((state) => state.prayers, 'prayers', isEmpty),
+        isA<PrayerLoaded>()
+            .having((state) => state.prayers, 'prayers', isEmpty),
         isA<PrayerLoaded>()
             .having((state) => state.prayers.length, 'prayers length', 1)
-            .having((state) => state.prayers.first.text, 'prayer text', 'Test prayer')
+            .having((state) => state.prayers.first.text, 'prayer text',
+                'Test prayer')
             .having((state) => state.prayers.first.isActive, 'is active', true),
       ],
     );
@@ -154,7 +157,8 @@ void main() {
         ..add(AddPrayer('   ')), // Only whitespace
       expect: () => [
         PrayerLoading(),
-        isA<PrayerLoaded>().having((state) => state.prayers, 'prayers', isEmpty),
+        isA<PrayerLoaded>()
+            .having((state) => state.prayers, 'prayers', isEmpty),
         isA<PrayerLoaded>()
             .having((state) => state.prayers, 'prayers', isEmpty)
             .having((state) => state.errorMessage, 'error message', isNotNull),
@@ -180,13 +184,16 @@ void main() {
         ..add(MarkPrayerAsAnswered('1')),
       expect: () => [
         PrayerLoading(),
-        isA<PrayerLoaded>()
-            .having((state) => state.activePrayers.length, 'active prayers length', 1),
+        isA<PrayerLoaded>().having(
+            (state) => state.activePrayers.length, 'active prayers length', 1),
         isA<PrayerLoaded>()
             .having((state) => state.activePrayers, 'active prayers', isEmpty)
-            .having((state) => state.answeredPrayers.length, 'answered prayers length', 1)
-            .having((state) => state.prayers.first.isAnswered, 'is answered', true)
-            .having((state) => state.prayers.first.answeredDate, 'answered date', isNotNull),
+            .having((state) => state.answeredPrayers.length,
+                'answered prayers length', 1)
+            .having(
+                (state) => state.prayers.first.isAnswered, 'is answered', true)
+            .having((state) => state.prayers.first.answeredDate,
+                'answered date', isNotNull),
       ],
     );
 
@@ -210,13 +217,16 @@ void main() {
         ..add(MarkPrayerAsActive('1')),
       expect: () => [
         PrayerLoading(),
+        isA<PrayerLoaded>().having((state) => state.answeredPrayers.length,
+            'answered prayers length', 1),
         isA<PrayerLoaded>()
-            .having((state) => state.answeredPrayers.length, 'answered prayers length', 1),
-        isA<PrayerLoaded>()
-            .having((state) => state.activePrayers.length, 'active prayers length', 1)
-            .having((state) => state.answeredPrayers, 'answered prayers', isEmpty)
+            .having((state) => state.activePrayers.length,
+                'active prayers length', 1)
+            .having(
+                (state) => state.answeredPrayers, 'answered prayers', isEmpty)
             .having((state) => state.prayers.first.isActive, 'is active', true)
-            .having((state) => state.prayers.first.answeredDate, 'answered date', isNull),
+            .having((state) => state.prayers.first.answeredDate,
+                'answered date', isNull),
       ],
     );
 
@@ -239,10 +249,10 @@ void main() {
         ..add(EditPrayer('1', 'Edited text')),
       expect: () => [
         PrayerLoading(),
-        isA<PrayerLoaded>()
-            .having((state) => state.prayers.first.text, 'prayer text', 'Original text'),
-        isA<PrayerLoaded>()
-            .having((state) => state.prayers.first.text, 'prayer text', 'Edited text'),
+        isA<PrayerLoaded>().having((state) => state.prayers.first.text,
+            'prayer text', 'Original text'),
+        isA<PrayerLoaded>().having(
+            (state) => state.prayers.first.text, 'prayer text', 'Edited text'),
       ],
     );
 
@@ -290,7 +300,8 @@ void main() {
           answeredDate: DateTime.now(),
         );
         SharedPreferences.setMockInitialValues({
-          "prayers": json.encode([activePrayer.toJson(), answeredPrayer.toJson()])
+          "prayers":
+              json.encode([activePrayer.toJson(), answeredPrayer.toJson()])
         });
       },
       act: (bloc) => bloc.add(LoadPrayers()),
