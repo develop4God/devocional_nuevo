@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:in_app_review/in_app_review.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -15,6 +16,7 @@ class InAppReviewService {
   static const String _remindLaterDateKey = 'review_remind_later_date';
   static const String _reviewRequestCountKey = 'review_request_count';
   static const String _lastReviewRequestKey = 'last_review_request_date';
+  static const String _firstTimeCheckKey = 'review_first_time_check_done';
 
   // Constants
   static const List<int> _milestones = [5, 25, 50, 100, 200];
@@ -67,6 +69,23 @@ class InAppReviewService {
         return false;
       }
 
+      // Check for first-time users with existing devotionals (5+)
+      final firstTimeCheckDone = prefs.getBool(_firstTimeCheckKey) ?? false;
+      if (!firstTimeCheckDone && totalDevocionalesRead >= 5) {
+        debugPrint(
+            '🆕 InAppReview: First time check - user has $totalDevocionalesRead devotionals');
+
+        // Mark first time check as done
+        await prefs.setBool(_firstTimeCheckKey, true);
+
+        // Check cooldown periods before showing
+        if (await _checkCooldownPeriods(prefs)) {
+          debugPrint(
+              '✅ InAppReview: First time user with 5+ devotionals, showing review');
+          return true;
+        }
+      }
+
       // Check if we've reached a milestone
       final isMilestone = _milestones.contains(totalDevocionalesRead);
       if (!isMilestone) {
@@ -76,42 +95,52 @@ class InAppReviewService {
 
       debugPrint('🎯 InAppReview: Milestone reached! ($totalDevocionalesRead)');
 
-      // Check global cooldown (90+ days since last request)
-      final lastRequestTimestamp = prefs.getInt(_lastReviewRequestKey) ?? 0;
-      if (lastRequestTimestamp > 0) {
-        final lastRequestDate =
-            DateTime.fromMillisecondsSinceEpoch(lastRequestTimestamp * 1000);
-        final daysSinceLastRequest =
-            DateTime.now().difference(lastRequestDate).inDays;
-
-        if (daysSinceLastRequest < _globalCooldownDays) {
-          debugPrint(
-              'Global cooldown active ($daysSinceLastRequest/$_globalCooldownDays days)');
-          return false;
-        }
+      // Check cooldown periods
+      if (await _checkCooldownPeriods(prefs)) {
+        debugPrint('✅ InAppReview: All conditions met, should show review');
+        return true;
       }
 
-      // Check "remind later" cooldown (30+ days)
-      final remindLaterTimestamp = prefs.getInt(_remindLaterDateKey) ?? 0;
-      if (remindLaterTimestamp > 0) {
-        final remindLaterDate =
-            DateTime.fromMillisecondsSinceEpoch(remindLaterTimestamp * 1000);
-        final daysSinceRemindLater =
-            DateTime.now().difference(remindLaterDate).inDays;
-
-        if (daysSinceRemindLater < _remindLaterDays) {
-          debugPrint(
-              'Remind later cooldown active ($daysSinceRemindLater/$_remindLaterDays days)');
-          return false;
-        }
-      }
-
-      debugPrint('✅ InAppReview: All conditions met, should show review');
-      return true;
+      return false;
     } catch (e) {
       debugPrint('❌ InAppReview shouldShow error: $e');
       return false;
     }
+  }
+
+  /// Helper method to check cooldown periods
+  static Future<bool> _checkCooldownPeriods(SharedPreferences prefs) async {
+    // Check global cooldown (90+ days since last request)
+    final lastRequestTimestamp = prefs.getInt(_lastReviewRequestKey) ?? 0;
+    if (lastRequestTimestamp > 0) {
+      final lastRequestDate =
+          DateTime.fromMillisecondsSinceEpoch(lastRequestTimestamp * 1000);
+      final daysSinceLastRequest =
+          DateTime.now().difference(lastRequestDate).inDays;
+
+      if (daysSinceLastRequest < _globalCooldownDays) {
+        debugPrint(
+            'Global cooldown active ($daysSinceLastRequest/$_globalCooldownDays days)');
+        return false;
+      }
+    }
+
+    // Check "remind later" cooldown (30+ days)
+    final remindLaterTimestamp = prefs.getInt(_remindLaterDateKey) ?? 0;
+    if (remindLaterTimestamp > 0) {
+      final remindLaterDate =
+          DateTime.fromMillisecondsSinceEpoch(remindLaterTimestamp * 1000);
+      final daysSinceRemindLater =
+          DateTime.now().difference(remindLaterDate).inDays;
+
+      if (daysSinceRemindLater < _remindLaterDays) {
+        debugPrint(
+            'Remind later cooldown active ($daysSinceRemindLater/$_remindLaterDays days)');
+        return false;
+      }
+    }
+
+    return true;
   }
 
   /// Shows the custom review dialog with three options
@@ -209,9 +238,25 @@ class InAppReviewService {
     try {
       final InAppReview inAppReview = InAppReview.instance;
 
+      // In debug mode, always use fallback for reliable testing
+      if (kDebugMode) {
+        debugPrint('🐛 InAppReview: Debug mode - using Play Store fallback');
+        if (context.mounted) {
+          await _showPlayStoreFallback(context);
+        }
+        return;
+      }
+
       if (await inAppReview.isAvailable()) {
         debugPrint('📱 InAppReview: Requesting native in-app review');
         await inAppReview.requestReview();
+
+        // Add a small delay to check if native review appeared
+        await Future.delayed(const Duration(milliseconds: 500));
+
+        // Note: We can't reliably detect if the native review actually appeared,
+        // but we provide fallback option in case user dismisses quickly
+        debugPrint('📱 InAppReview: Native review request completed');
       } else {
         debugPrint(
             '🌐 InAppReview: Native not available, showing fallback dialog');
@@ -351,6 +396,7 @@ class InAppReviewService {
       await prefs.remove(_remindLaterDateKey);
       await prefs.remove(_reviewRequestCountKey);
       await prefs.remove(_lastReviewRequestKey);
+      await prefs.remove(_firstTimeCheckKey);
       debugPrint('🧹 InAppReview: All preferences cleared');
     } catch (e) {
       debugPrint('❌ InAppReview clear error: $e');

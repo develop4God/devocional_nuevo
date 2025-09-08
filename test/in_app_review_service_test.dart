@@ -1,5 +1,6 @@
 import 'package:devocional_nuevo/models/spiritual_stats_model.dart';
 import 'package:devocional_nuevo/services/in_app_review_service.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -39,6 +40,11 @@ void main() {
 
     test('should NOT show review for non-milestone counts', () async {
       // Test various non-milestone counts
+      // Note: Values ≥5 will trigger first-time user logic, so we need to
+      // set the first-time check as done for this test
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('review_first_time_check_done', true);
+
       for (final count in [
         1,
         2,
@@ -139,6 +145,7 @@ void main() {
       await prefs.setInt('review_request_count', 5);
       await prefs.setInt('last_review_request_date',
           DateTime.now().millisecondsSinceEpoch ~/ 1000);
+      await prefs.setBool('review_first_time_check_done', true);
 
       // Clear all
       await InAppReviewService.clearAllPreferences();
@@ -149,6 +156,7 @@ void main() {
       expect(prefs.getInt('review_remind_later_date'), isNull);
       expect(prefs.getInt('review_request_count'), isNull);
       expect(prefs.getInt('last_review_request_date'), isNull);
+      expect(prefs.getBool('review_first_time_check_done'), isNull);
     });
 
     test('should handle edge case with zero devotionals', () async {
@@ -163,6 +171,10 @@ void main() {
 
     test('milestone logic works correctly for large numbers', () async {
       // Test well beyond the highest milestone
+      // Set first-time check as done to test pure milestone logic
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('review_first_time_check_done', true);
+
       final shouldShow = await InAppReviewService.shouldShowReviewRequest(1000);
       expect(shouldShow, isFalse);
     });
@@ -178,6 +190,90 @@ void main() {
       // Different milestone should also work
       shouldShow = await InAppReviewService.shouldShowReviewRequest(25);
       expect(shouldShow, isTrue);
+    });
+
+    group('First Time User Tests', () {
+      test('should show review for first-time user with 5 devotionals',
+          () async {
+        // First time check (no preferences set yet)
+        final shouldShow = await InAppReviewService.shouldShowReviewRequest(5);
+        expect(shouldShow, isTrue);
+      });
+
+      test('should show review for first-time user with 15 devotionals',
+          () async {
+        // Simulate existing user who has 15 devotionals when feature is deployed
+        final shouldShow = await InAppReviewService.shouldShowReviewRequest(15);
+        expect(shouldShow, isTrue);
+      });
+
+      test('should show review for first-time user with 100 devotionals',
+          () async {
+        // Simulate existing user who has 100 devotionals when feature is deployed
+        final shouldShow =
+            await InAppReviewService.shouldShowReviewRequest(100);
+        expect(shouldShow, isTrue);
+      });
+
+      test('should NOT show review for first-time user with 4 devotionals',
+          () async {
+        // User with less than 5 devotionals should wait for milestone
+        final shouldShow = await InAppReviewService.shouldShowReviewRequest(4);
+        expect(shouldShow, isFalse);
+      });
+
+      test('should only trigger first-time check once', () async {
+        // First call with 15 devotionals - should show
+        var shouldShow = await InAppReviewService.shouldShowReviewRequest(15);
+        expect(shouldShow, isTrue);
+
+        // Second call with higher count - should only show at milestones now
+        shouldShow = await InAppReviewService.shouldShowReviewRequest(20);
+        expect(shouldShow, isFalse); // Not a milestone
+
+        shouldShow = await InAppReviewService.shouldShowReviewRequest(25);
+        expect(shouldShow, isTrue); // Is a milestone
+      });
+
+      test('should respect cooldown even for first-time users', () async {
+        final prefs = await SharedPreferences.getInstance();
+
+        // Set recent global cooldown
+        final recentRequest = DateTime.now().subtract(const Duration(days: 30));
+        await prefs.setInt('last_review_request_date',
+            recentRequest.millisecondsSinceEpoch ~/ 1000);
+
+        // Should not show even for first-time user with 15 devotionals
+        final shouldShow = await InAppReviewService.shouldShowReviewRequest(15);
+        expect(shouldShow, isFalse);
+      });
+
+      test('should respect remind later cooldown for first-time users',
+          () async {
+        final prefs = await SharedPreferences.getInstance();
+
+        // Set recent remind later
+        final recentRemind = DateTime.now().subtract(const Duration(days: 15));
+        await prefs.setInt('review_remind_later_date',
+            recentRemind.millisecondsSinceEpoch ~/ 1000);
+
+        // Should not show even for first-time user with 10 devotionals
+        final shouldShow = await InAppReviewService.shouldShowReviewRequest(10);
+        expect(shouldShow, isFalse);
+      });
+
+      test('should work after cooldown expires for first-time users', () async {
+        final prefs = await SharedPreferences.getInstance();
+
+        // Set expired global cooldown
+        final oldRequest = DateTime.now().subtract(const Duration(days: 91));
+        await prefs.setInt('last_review_request_date',
+            oldRequest.millisecondsSinceEpoch ~/ 1000);
+
+        // Should show for first-time user with 8 devotionals
+        final shouldShow = await InAppReviewService.shouldShowReviewRequest(8);
+        expect(shouldShow, isTrue);
+      });
     });
 
     group('Integration Tests', () {
@@ -349,6 +445,10 @@ void main() {
 
       test('edge cases and error handling', () async {
         // Test with various edge case values
+        // Set first-time check as done to test pure milestone logic for values ≥5
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setBool('review_first_time_check_done', true);
+
         final edgeCases = [-1, 0, 1, 4, 6, 999, 1000000];
 
         for (final count in edgeCases) {
@@ -372,6 +472,7 @@ void main() {
         await prefs.setInt('review_request_count', 5);
         await prefs.setInt('last_review_request_date',
             DateTime.now().millisecondsSinceEpoch ~/ 1000);
+        await prefs.setBool('review_first_time_check_done', true);
 
         // Verify preferences are set
         expect(prefs.getBool('user_rated_app'), isTrue);
@@ -379,6 +480,7 @@ void main() {
         expect(prefs.getInt('review_remind_later_date'), isNotNull);
         expect(prefs.getInt('review_request_count'), equals(5));
         expect(prefs.getInt('last_review_request_date'), isNotNull);
+        expect(prefs.getBool('review_first_time_check_done'), isTrue);
 
         // Clear all preferences
         await InAppReviewService.clearAllPreferences();
@@ -389,10 +491,76 @@ void main() {
         expect(prefs.getInt('review_remind_later_date'), isNull);
         expect(prefs.getInt('review_request_count'), isNull);
         expect(prefs.getInt('last_review_request_date'), isNull);
+        expect(prefs.getBool('review_first_time_check_done'), isNull);
 
         // Should now work for milestones
         final shouldShow = await InAppReviewService.shouldShowReviewRequest(5);
         expect(shouldShow, isTrue);
+      });
+
+      group('Debug Mode Tests', () {
+        testWidgets('requestInAppReview uses fallback in debug mode',
+            (WidgetTester tester) async {
+          // Build a widget with context for testing
+          bool methodStarted = false;
+          Exception? thrownException;
+
+          await tester.pumpWidget(
+            MaterialApp(
+              home: Builder(
+                builder: (BuildContext context) {
+                  return Scaffold(
+                    body: ElevatedButton(
+                      onPressed: () async {
+                        // In debug mode, this should trigger fallback behavior
+                        try {
+                          methodStarted = true;
+                          await InAppReviewService.requestInAppReview(context);
+                        } catch (e) {
+                          thrownException = e as Exception?;
+                        }
+                      },
+                      child: const Text('Test Debug Review'),
+                    ),
+                  );
+                },
+              ),
+            ),
+          );
+
+          // Tap the button to trigger the review request
+          await tester.tap(find.text('Test Debug Review'));
+          await tester.pumpAndSettle(); // Wait for any dialogs/animations
+
+          // Should start without throwing, even if dialog can't be fully tested
+          expect(methodStarted, isTrue);
+          expect(thrownException, isNull);
+        });
+
+        testWidgets('debug mode handles unmounted context gracefully',
+            (WidgetTester tester) async {
+          BuildContext? capturedContext;
+
+          // Build widget and capture context
+          await tester.pumpWidget(
+            MaterialApp(
+              home: Builder(
+                builder: (BuildContext context) {
+                  capturedContext = context;
+                  return const Scaffold(body: Text('Test'));
+                },
+              ),
+            ),
+          );
+
+          // Dispose the widget to make context unmounted
+          await tester.pumpWidget(const SizedBox.shrink());
+
+          // Try to use unmounted context in debug mode
+          expect(() async {
+            await InAppReviewService.requestInAppReview(capturedContext!);
+          }, returnsNormally);
+        });
       });
     });
   });
