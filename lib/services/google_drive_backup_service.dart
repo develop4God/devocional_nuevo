@@ -260,13 +260,13 @@ class GoogleDriveBackupService {
           return false;
         }
         
-        final map = item as Map<String, dynamic>;
-        if (!map.containsKey('id') || !map.containsKey('title')) {
+        final favoriteMap = item;
+        if (!favoriteMap.containsKey('id') || !favoriteMap.containsKey('title')) {
           debugPrint('Invalid favorite item: missing required fields');
           return false;
         }
         
-        if (map['id'] is! String || map['title'] is! String) {
+        if (favoriteMap['id'] is! String || favoriteMap['title'] is! String) {
           debugPrint('Invalid favorite item: invalid field types');
           return false;
         }
