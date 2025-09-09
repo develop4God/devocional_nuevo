@@ -49,6 +49,14 @@ dependencies:
   flutter_tts: ^4.1.0
   synchronized: ^3.1.0+1  # For thread safety and mutex protection
 
+  # Google Drive Backup dependencies
+  googleapis: ^13.2.0
+  googleapis_auth: ^1.6.0
+  google_sign_in: ^6.2.1
+  connectivity_plus: ^6.0.5
+  archive: ^3.6.1
+  workmanager: ^0.5.2
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

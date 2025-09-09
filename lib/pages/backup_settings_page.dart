@@ -8,7 +8,10 @@ import '../blocs/backup_event.dart';
 import '../blocs/backup_state.dart';
 import '../extensions/string_extensions.dart';
 import '../providers/devocional_provider.dart';
+import '../services/connectivity_service.dart';
+import '../services/google_drive_auth_service.dart';
 import '../services/google_drive_backup_service.dart';
+import '../services/spiritual_stats_service.dart';
 
 /// BackupSettingsPage with WhatsApp-style UI and BLoC architecture
 class BackupSettingsPage extends StatelessWidget {
@@ -16,9 +19,20 @@ class BackupSettingsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Create services with dependencies
+    final authService = GoogleDriveAuthService();
+    final connectivityService = ConnectivityService();
+    final statsService = SpiritualStatsService();
+    
+    final backupService = GoogleDriveBackupService(
+      authService: authService,
+      connectivityService: connectivityService,
+      statsService: statsService,
+    );
+
     return BlocProvider(
       create: (context) => BackupBloc(
-        backupService: GoogleDriveBackupService(),
+        backupService: backupService,
         devocionalProvider: Provider.of<DevocionalProvider>(context, listen: false),
       )..add(const LoadBackupSettings()),
       child: const _BackupSettingsView(),
