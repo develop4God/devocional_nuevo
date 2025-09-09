@@ -26,8 +26,8 @@ class GoogleDriveBackupService {
 
   // Backup frequency options
   static const String frequencyDaily = 'daily';
-  static const String frequencyWeekly = 'weekly';
-  static const String frequencyMonthly = 'monthly';
+  static const String frequencyManual = 'manual';
+  static const String frequencyDeactivated = 'deactivated';
 
   // Backup file names
   static const String _backupFileName = 'devocional_backup.json';
@@ -61,7 +61,7 @@ class GoogleDriveBackupService {
   /// Get backup frequency
   Future<String> getBackupFrequency() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_backupFrequencyKey) ?? frequencyDaily;
+    return prefs.getString(_backupFrequencyKey) ?? frequencyManual;
   }
 
   /// Set backup frequency
@@ -143,20 +143,24 @@ class GoogleDriveBackupService {
   /// Calculate next backup time based on frequency
   Future<DateTime?> getNextBackupTime() async {
     final lastBackup = await getLastBackupTime();
+    final frequency = await getBackupFrequency();
+    
+    // Handle deactivated and manual frequencies
+    if (frequency == frequencyDeactivated || frequency == frequencyManual) {
+      return null;
+    }
+    
     if (lastBackup == null || !await isAutoBackupEnabled()) {
       return null;
     }
 
-    final frequency = await getBackupFrequency();
     switch (frequency) {
       case frequencyDaily:
-        return lastBackup.add(const Duration(days: 1));
-      case frequencyWeekly:
-        return lastBackup.add(const Duration(days: 7));
-      case frequencyMonthly:
-        return lastBackup.add(const Duration(days: 30));
+        // Schedule for 2:00 AM next day
+        final nextDay = lastBackup.add(const Duration(days: 1));
+        return DateTime(nextDay.year, nextDay.month, nextDay.day, 2, 0);
       default:
-        return lastBackup.add(const Duration(days: 1));
+        return null; // Only daily is supported now
     }
   }
 

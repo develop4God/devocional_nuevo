@@ -29,6 +29,8 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
     on<RestoreFromBackup>(_onRestoreFromBackup);
     on<LoadStorageInfo>(_onLoadStorageInfo);
     on<RefreshBackupStatus>(_onRefreshBackupStatus);
+    on<SignInToGoogleDrive>(_onSignInToGoogleDrive);
+    on<SignOutFromGoogleDrive>(_onSignOutFromGoogleDrive);
   }
 
   /// Set the devotional provider (for dependency injection)
@@ -55,6 +57,8 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
         _backupService.getNextBackupTime(),
         _backupService.getEstimatedBackupSize(_devocionalProvider),
         _backupService.getStorageInfo(),
+        _backupService.isAuthenticated(),
+        _backupService.getUserEmail(),
       ]);
 
       emit(BackupLoaded(
@@ -67,6 +71,8 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
         nextBackupTime: results[6] as DateTime?,
         estimatedSize: results[7] as int,
         storageInfo: results[8] as Map<String, dynamic>,
+        isAuthenticated: results[9] as bool,
+        userEmail: results[10] as String?,
       ));
     } catch (e) {
       debugPrint('Error loading backup settings: $e');
@@ -109,16 +115,27 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
   ) async {
     try {
       await _backupService.setBackupFrequency(event.frequency);
+      
+      // Handle deactivation - sign out and keep backup info for reference
+      if (event.frequency == GoogleDriveBackupService.frequencyDeactivated) {
+        await _backupService.signOut();
+      }
 
       if (state is BackupLoaded) {
         final currentState = state as BackupLoaded;
 
         // Recalculate next backup time
         final nextBackupTime = await _backupService.getNextBackupTime();
+        
+        // Update authentication status if deactivated
+        final isAuthenticated = event.frequency == GoogleDriveBackupService.frequencyDeactivated 
+            ? false 
+            : currentState.isAuthenticated;
 
         emit(currentState.copyWith(
           backupFrequency: event.frequency,
           nextBackupTime: nextBackupTime,
+          isAuthenticated: isAuthenticated,
         ));
       } else {
         add(const LoadBackupSettings());
@@ -273,5 +290,43 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
   ) async {
     // Simply reload all settings
     add(const LoadBackupSettings());
+  }
+
+  /// Sign in to Google Drive
+  Future<void> _onSignInToGoogleDrive(
+    SignInToGoogleDrive event,
+    Emitter<BackupState> emit,
+  ) async {
+    try {
+      emit(const BackupLoading());
+      
+      final success = await _backupService.signIn();
+      
+      if (success) {
+        // Reload settings to get updated authentication status
+        add(const LoadBackupSettings());
+      } else {
+        emit(const BackupError('backup.sign_in_failed'));
+      }
+    } catch (e) {
+      debugPrint('Error signing in to Google Drive: $e');
+      emit(BackupError('backup.sign_in_failed'));
+    }
+  }
+
+  /// Sign out from Google Drive
+  Future<void> _onSignOutFromGoogleDrive(
+    SignOutFromGoogleDrive event,
+    Emitter<BackupState> emit,
+  ) async {
+    try {
+      await _backupService.signOut();
+      
+      // Reload settings to get updated authentication status
+      add(const LoadBackupSettings());
+    } catch (e) {
+      debugPrint('Error signing out from Google Drive: $e');
+      emit(BackupError('Error signing out: ${e.toString()}'));
+    }
   }
 }

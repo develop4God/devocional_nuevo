@@ -83,3 +83,13 @@ class LoadStorageInfo extends BackupEvent {
 class RefreshBackupStatus extends BackupEvent {
   const RefreshBackupStatus();
 }
+
+/// Sign in to Google Drive
+class SignInToGoogleDrive extends BackupEvent {
+  const SignInToGoogleDrive();
+}
+
+/// Sign out from Google Drive  
+class SignOutFromGoogleDrive extends BackupEvent {
+  const SignOutFromGoogleDrive();
+}

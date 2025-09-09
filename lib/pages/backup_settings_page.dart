@@ -1,4 +1,6 @@
 // lib/pages/backup_settings_page.dart
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
@@ -163,10 +165,6 @@ class _BackupSettingsContent extends StatelessWidget {
           _buildManualBackupSection(context),
           const SizedBox(height: 24),
 
-          // Storage info
-          _buildStorageSection(context),
-          const SizedBox(height: 24),
-
           // Create backup button
           _buildCreateBackupButton(context),
           const SizedBox(height: 24),
@@ -188,17 +186,12 @@ class _BackupSettingsContent extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Icon(Icons.cloud_upload, color: colorScheme.primary),
-                const SizedBox(width: 12),
-                Text(
-                  'backup.description_title'.tr(),
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
+            // Plain text without icon as requested
+            Text(
+              'backup.description_title'.tr(),
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
             ),
             const SizedBox(height: 12),
             Text(
@@ -217,59 +210,90 @@ class _BackupSettingsContent extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.cloud_done, color: colorScheme.primary),
-                const SizedBox(width: 12),
+    return InkWell(
+      onTap: () {
+        // Handle Google Drive login
+        context.read<BackupBloc>().add(const SignInToGoogleDrive());
+      },
+      borderRadius: BorderRadius.circular(12),
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  // Google Drive icon
+                  Icon(Icons.cloud, color: colorScheme.primary),
+                  const SizedBox(width: 12),
+                  Text(
+                    'backup.google_drive_connection'.tr(),
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const Spacer(),
+                  // Login indicator
+                  if (state.isAuthenticated) 
+                    Icon(Icons.check_circle, color: Colors.green)
+                  else
+                    Icon(Icons.login, color: colorScheme.primary),
+                ],
+              ),
+              const SizedBox(height: 12),
+
+              // Authentication status and last backup info
+              if (state.isAuthenticated) ...[
+                if (state.lastBackupTime != null) ...[
+                  _buildInfoRow(
+                    context,
+                    Icons.schedule,
+                    'backup.last_backup'.tr(),
+                    _formatLastBackupTime(context, state.lastBackupTime!),
+                  ),
+                  const SizedBox(height: 8),
+                  _buildInfoRow(
+                    context,
+                    Icons.data_usage,
+                    'backup.size'.tr(),
+                    _formatSize(state.estimatedSize),
+                  ),
+                  if (state.nextBackupTime != null) ...[
+                    const SizedBox(height: 8),
+                    _buildInfoRow(
+                      context,
+                      Icons.schedule_send,
+                      'backup.next_backup'.tr(),
+                      _formatNextBackupTime(context, state.nextBackupTime!),
+                    ),
+                  ],
+                ] else ...[
+                  Text(
+                    'backup.no_backup_yet'.tr(),
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ] else ...[
                 Text(
-                  'backup.google_drive_connection'.tr(),
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
+                  'backup.not_connected'.tr(),
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'backup.tap_to_connect'.tr(),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colorScheme.primary,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ],
-            ),
-            const SizedBox(height: 12),
-
-            // Last backup info
-            if (state.lastBackupTime != null) ...[
-              _buildInfoRow(
-                context,
-                Icons.schedule,
-                'backup.last_backup'.tr(),
-                _formatLastBackupTime(context, state.lastBackupTime!),
-              ),
-              const SizedBox(height: 8),
-              _buildInfoRow(
-                context,
-                Icons.data_usage,
-                'backup.size'.tr(),
-                _formatSize(state.estimatedSize),
-              ),
-              if (state.nextBackupTime != null) ...[
-                const SizedBox(height: 8),
-                _buildInfoRow(
-                  context,
-                  Icons.schedule_send,
-                  'backup.next_backup'.tr(),
-                  _formatNextBackupTime(context, state.nextBackupTime!),
-                ),
-              ],
-            ] else ...[
-              Text(
-                'backup.no_backup_yet'.tr(),
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                ),
-              ),
             ],
-          ],
+          ),
         ),
       ),
     );
@@ -372,15 +396,15 @@ class _BackupSettingsContent extends StatelessWidget {
               items: [
                 DropdownMenuItem(
                   value: GoogleDriveBackupService.frequencyDaily,
-                  child: Text('backup.frequency_daily'.tr()),
+                  child: Text('backup.frequency_daily_2am'.tr()),
                 ),
                 DropdownMenuItem(
-                  value: GoogleDriveBackupService.frequencyWeekly,
-                  child: Text('backup.frequency_weekly'.tr()),
+                  value: GoogleDriveBackupService.frequencyManual,
+                  child: Text('backup.frequency_manual_only'.tr()),
                 ),
                 DropdownMenuItem(
-                  value: GoogleDriveBackupService.frequencyMonthly,
-                  child: Text('backup.frequency_monthly'.tr()),
+                  value: GoogleDriveBackupService.frequencyDeactivated,
+                  child: Text('backup.frequency_deactivated'.tr()),
                 ),
               ],
               onChanged: (value) {
@@ -419,28 +443,42 @@ class _BackupSettingsContent extends StatelessWidget {
             ),
             const SizedBox(height: 16),
 
-            // Backup options with size estimates
-            _buildBackupOptionTile(
-              context,
-              'backup.spiritual_stats'.tr(),
-              'backup.spiritual_stats_size'.tr(),
-              state.backupOptions['spiritual_stats'] ?? true,
-              (value) => _updateBackupOption(context, 'spiritual_stats', value),
-            ),
-            _buildBackupOptionTile(
-              context,
-              'backup.favorite_devotionals'.tr(),
-              'backup.favorite_devotionals_size'.tr(),
-              state.backupOptions['favorite_devotionals'] ?? true,
-              (value) =>
-                  _updateBackupOption(context, 'favorite_devotionals', value),
-            ),
-            _buildBackupOptionTile(
-              context,
-              'backup.saved_prayers'.tr(),
-              'backup.saved_prayers_size'.tr(),
-              state.backupOptions['saved_prayers'] ?? true,
-              (value) => _updateBackupOption(context, 'saved_prayers', value),
+            // Backup options with dynamic size estimates
+            FutureBuilder<Map<String, dynamic>>(
+              future: _getDynamicBackupOptions(context),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                
+                final backupData = snapshot.data ?? {};
+                return Column(
+                  children: [
+                    _buildBackupOptionTile(
+                      context,
+                      'backup.spiritual_stats'.tr(),
+                      _formatBackupOptionSize(backupData['spiritual_stats']),
+                      state.backupOptions['spiritual_stats'] ?? true,
+                      (value) => _updateBackupOption(context, 'spiritual_stats', value),
+                    ),
+                    _buildBackupOptionTile(
+                      context,
+                      'backup.favorite_devotionals'.tr(),
+                      _formatBackupOptionSize(backupData['favorite_devotionals']),
+                      state.backupOptions['favorite_devotionals'] ?? true,
+                      (value) =>
+                          _updateBackupOption(context, 'favorite_devotionals', value),
+                    ),
+                    _buildBackupOptionTile(
+                      context,
+                      'backup.saved_prayers'.tr(),
+                      _formatBackupOptionSize(backupData['saved_prayers']),
+                      state.backupOptions['saved_prayers'] ?? true,
+                      (value) => _updateBackupOption(context, 'saved_prayers', value),
+                    ),
+                  ],
+                );
+              },
             ),
           ],
         ),
@@ -448,54 +486,79 @@ class _BackupSettingsContent extends StatelessWidget {
     );
   }
 
-  Widget _buildStorageSection(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
+  /// Get dynamic backup options with actual file sizes
+  Future<Map<String, dynamic>> _getDynamicBackupOptions(BuildContext context) async {
+    try {
+      // Get actual data from services
+      final statsService = SpiritualStatsService();
+      final devocionalProvider = Provider.of<DevocionalProvider>(context, listen: false);
+      
+      // Get spiritual stats data
+      final statsData = await statsService.getAllStats();
+      final statsSize = _calculateJsonSize(statsData);
+      
+      // Get favorite devotionals count and size
+      final favoriteCount = devocionalProvider.favoriteDevocionales.length;
+      final favoritesSize = _calculateJsonSize(devocionalProvider.favoriteDevocionales);
+      
+      // Get saved prayers data (mock for now since prayers service might not exist)
+      final prayersCount = 0; // TODO: Replace with actual prayers count when prayers service exists
+      final prayersSize = 0;
+      
+      return {
+        'spiritual_stats': {
+          'count': 1, // Always 1 stats file
+          'size': statsSize,
+          'description': '~${_formatSize(statsSize)}',
+        },
+        'favorite_devotionals': {
+          'count': favoriteCount,
+          'size': favoritesSize,
+          'description': '$favoriteCount ${favoriteCount == 1 ? 'elemento' : 'elementos'}, ~${_formatSize(favoritesSize)}',
+        },
+        'saved_prayers': {
+          'count': prayersCount,
+          'size': prayersSize,
+          'description': '$prayersCount ${prayersCount == 1 ? 'elemento' : 'elementos'}, ~${_formatSize(prayersSize)}',
+        },
+      };
+    } catch (e) {
+      debugPrint('Error getting dynamic backup options: $e');
+      // Return empty/zero values as fallback
+      return {
+        'spiritual_stats': {
+          'count': 0,
+          'size': 0,
+          'description': '0 KB',
+        },
+        'favorite_devotionals': {
+          'count': 0,
+          'size': 0,
+          'description': '0 elementos, 0 KB',
+        },
+        'saved_prayers': {
+          'count': 0,
+          'size': 0,
+          'description': '0 elementos, 0 KB',
+        },
+      };
+    }
+  }
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.cloud_queue, color: colorScheme.primary),
-                const SizedBox(width: 12),
-                Text(
-                  'backup.storage_management'.tr(),
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
+  /// Calculate the JSON size of data
+  int _calculateJsonSize(dynamic data) {
+    try {
+      final jsonString = jsonEncode(data);
+      return utf8.encode(jsonString).length;
+    } catch (e) {
+      return 0;
+    }
+  }
 
-            // Storage usage
-            Text(
-              'backup.google_drive_storage'.tr(),
-              style: theme.textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              '${state.storageInfo['used_gb']?.toStringAsFixed(1) ?? '0.0'} GB de ${state.storageInfo['total_gb']?.toStringAsFixed(0) ?? '100'} GB utilizados',
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: 8),
-            LinearProgressIndicator(
-              value: (state.storageInfo['percentage'] ?? 0.0) / 100.0,
-              backgroundColor: colorScheme.surfaceContainerHighest,
-              valueColor: AlwaysStoppedAnimation<Color>(colorScheme.primary),
-            ),
-          ],
-        ),
-      ),
-    );
+  /// Format backup option size description
+  String _formatBackupOptionSize(Map<String, dynamic>? optionData) {
+    if (optionData == null) return '0 KB';
+    return optionData['description'] ?? '0 KB';
   }
 
   Widget _buildCreateBackupButton(BuildContext context) {
@@ -574,33 +637,40 @@ class _BackupSettingsContent extends StatelessWidget {
   }) {
     final theme = Theme.of(context);
 
-    return Row(
-      children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: theme.textTheme.bodyLarge,
-              ),
-              if (subtitle != null) ...[
-                const SizedBox(height: 4),
-                Text(
-                  subtitle,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
+    return InkWell(
+      onTap: () => onChanged(!value),
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: theme.textTheme.bodyLarge,
                   ),
-                ),
-              ],
-            ],
-          ),
+                  if (subtitle != null) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      subtitle,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            Switch(
+              value: value,
+              onChanged: onChanged,
+            ),
+          ],
         ),
-        Switch(
-          value: value,
-          onChanged: onChanged,
-        ),
-      ],
+      ),
     );
   }
 
@@ -613,33 +683,37 @@ class _BackupSettingsContent extends StatelessWidget {
   ) {
     final theme = Theme.of(context);
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        children: [
-          Checkbox(
-            value: value,
-            onChanged: (newValue) => onChanged(newValue ?? false),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: theme.textTheme.bodyLarge,
-                ),
-                Text(
-                  subtitle,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
+    return InkWell(
+      onTap: () => onChanged(!value),
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
+        child: Row(
+          children: [
+            Checkbox(
+              value: value,
+              onChanged: (newValue) => onChanged(newValue ?? false),
             ),
-          ),
-        ],
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: theme.textTheme.bodyLarge,
+                  ),
+                  Text(
+                    subtitle,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

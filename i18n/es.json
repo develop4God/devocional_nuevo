@@ -364,6 +364,9 @@
     "enable_auto_backup": "Habilitar backup automático",
     "frequency": "Frecuencia",
     "frequency_daily": "Diariamente",
+    "frequency_daily_2am": "Diariamente (2:00 AM)",
+    "frequency_manual_only": "Solo cuando seleccione 'Crear copia'",
+    "frequency_deactivated": "Desactivar",
     "frequency_weekly": "Semanalmente", 
     "frequency_monthly": "Mensualmente",
     "wifi_only": "Solo con WiFi",
@@ -394,7 +397,12 @@
     "yesterday": "Ayer",
     "tomorrow": "Mañana",
     "days_ago": "Hace {days} días",
-    "in_days": "En {days} días"
+    "in_days": "En {days} días",
+    "not_connected": "No conectado a Google Drive",
+    "tap_to_connect": "Toca para conectar",
+    "sign_in_success": "Conectado exitosamente",
+    "sign_in_failed": "Error al conectar con Google Drive",
+    "sign_out_success": "Desconectado de Google Drive"
   },
   "review": {
     "title": "Gracias por tu constancia 🙏",

@@ -30,6 +30,8 @@ class BackupLoaded extends BackupState {
   final DateTime? nextBackupTime;
   final int estimatedSize;
   final Map<String, dynamic> storageInfo;
+  final bool isAuthenticated;
+  final String? userEmail;
 
   const BackupLoaded({
     required this.autoBackupEnabled,
@@ -41,6 +43,8 @@ class BackupLoaded extends BackupState {
     this.nextBackupTime,
     required this.estimatedSize,
     required this.storageInfo,
+    required this.isAuthenticated,
+    this.userEmail,
   });
 
   @override
@@ -54,6 +58,8 @@ class BackupLoaded extends BackupState {
         nextBackupTime,
         estimatedSize,
         storageInfo,
+        isAuthenticated,
+        userEmail,
       ];
 
   /// Create a copy with updated values
@@ -67,6 +73,8 @@ class BackupLoaded extends BackupState {
     DateTime? nextBackupTime,
     int? estimatedSize,
     Map<String, dynamic>? storageInfo,
+    bool? isAuthenticated,
+    String? userEmail,
   }) {
     return BackupLoaded(
       autoBackupEnabled: autoBackupEnabled ?? this.autoBackupEnabled,
@@ -78,6 +86,8 @@ class BackupLoaded extends BackupState {
       nextBackupTime: nextBackupTime ?? this.nextBackupTime,
       estimatedSize: estimatedSize ?? this.estimatedSize,
       storageInfo: storageInfo ?? this.storageInfo,
+      isAuthenticated: isAuthenticated ?? this.isAuthenticated,
+      userEmail: userEmail ?? this.userEmail,
     );
   }
 }
