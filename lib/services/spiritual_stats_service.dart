@@ -779,4 +779,52 @@ class SpiritualStatsService {
     final stats = await getStats();
     return stats.readDevocionalIds.contains(devocionalId);
   }
+
+  /// Get all stats as a map for backup purposes
+  Future<Map<String, dynamic>> getAllStats() async {
+    try {
+      final stats = await getStats();
+      final readDates = await _getReadDates();
+
+      return {
+        'stats': stats.toJson(),
+        'read_dates': readDates.map((date) => date.toIso8601String()).toList(),
+        'backup_timestamp': DateTime.now().toIso8601String(),
+      };
+    } catch (e) {
+      debugPrint('Error getting all stats for backup: $e');
+      return {};
+    }
+  }
+
+  /// Restore stats from backup data
+  Future<void> restoreStats(Map<String, dynamic> backupData) async {
+    try {
+      if (backupData.containsKey('stats')) {
+        final statsData = backupData['stats'] as Map<String, dynamic>;
+        final stats = SpiritualStats.fromJson(statsData);
+
+        // Save the restored stats
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString(_statsKey, json.encode(stats.toJson()));
+
+        debugPrint('Restored spiritual stats from backup');
+      }
+
+      if (backupData.containsKey('read_dates')) {
+        final readDatesData = backupData['read_dates'] as List<dynamic>;
+        final readDates = readDatesData
+            .map((dateStr) => DateTime.parse(dateStr as String))
+            .toList();
+
+        // Save the restored read dates
+        await _saveReadDates(readDates);
+
+        debugPrint('Restored ${readDates.length} read dates from backup');
+      }
+    } catch (e) {
+      debugPrint('Error restoring stats from backup: $e');
+      rethrow;
+    }
+  }
 }

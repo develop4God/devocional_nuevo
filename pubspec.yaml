@@ -23,6 +23,7 @@ dependencies:
   path_provider: ^2.1.5
   provider: ^6.0.0
   flutter_bloc: ^9.1.1
+  equatable: ^2.0.5
   intl: 0.20.2
 
   in_app_update: ^4.2.3
@@ -47,6 +48,14 @@ dependencies:
   # Audio dependencies
   flutter_tts: ^4.1.0
   synchronized: ^3.1.0+1  # For thread safety and mutex protection
+
+  # Google Drive Backup dependencies
+  googleapis: ^13.2.0
+  googleapis_auth: ^1.6.0
+  google_sign_in: ^6.2.1
+  connectivity_plus: ^6.0.5
+  archive: ^3.6.1
+  workmanager: ^0.5.2
 
 dev_dependencies:
   flutter_test:

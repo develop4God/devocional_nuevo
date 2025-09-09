@@ -3,6 +3,7 @@ import 'dart:developer' as developer;
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/pages/about_page.dart';
 import 'package:devocional_nuevo/pages/application_language_page.dart';
+import 'package:devocional_nuevo/pages/backup_settings_page.dart';
 import 'package:devocional_nuevo/pages/contact_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/providers/localization_provider.dart';
@@ -346,6 +347,38 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
 
             const SizedBox(height: 20),*/
+
+            // Google Drive Backup Settings
+            InkWell(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const BackupSettingsPage()),
+                );
+              },
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: Row(
+                  children: [
+                    Icon(Icons.cloud_upload, color: colorScheme.primary),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        'backup.title'.tr(),
+                        style: textTheme.bodyMedium?.copyWith(
+                            fontSize: 16, color: colorScheme.onSurface),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    Icon(Icons.chevron_right,
+                        color: colorScheme.onSurfaceVariant),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
 
             // Contact and About Sections
             InkWell(
