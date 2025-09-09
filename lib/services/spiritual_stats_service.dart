@@ -785,7 +785,7 @@ class SpiritualStatsService {
     try {
       final stats = await getStats();
       final readDates = await _getReadDates();
-      
+
       return {
         'stats': stats.toJson(),
         'read_dates': readDates.map((date) => date.toIso8601String()).toList(),
@@ -803,11 +803,11 @@ class SpiritualStatsService {
       if (backupData.containsKey('stats')) {
         final statsData = backupData['stats'] as Map<String, dynamic>;
         final stats = SpiritualStats.fromJson(statsData);
-        
+
         // Save the restored stats
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString(_statsKey, json.encode(stats.toJson()));
-        
+
         debugPrint('Restored spiritual stats from backup');
       }
 
@@ -816,10 +816,10 @@ class SpiritualStatsService {
         final readDates = readDatesData
             .map((dateStr) => DateTime.parse(dateStr as String))
             .toList();
-        
+
         // Save the restored read dates
         await _saveReadDates(readDates);
-        
+
         debugPrint('Restored ${readDates.length} read dates from backup');
       }
     } catch (e) {

@@ -7,7 +7,8 @@ import 'package:devocional_nuevo/services/google_drive_backup_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
-class MockGoogleDriveBackupService extends Mock implements GoogleDriveBackupService {}
+class MockGoogleDriveBackupService extends Mock
+    implements GoogleDriveBackupService {}
 
 void main() {
   group('BackupBloc', () {
@@ -49,17 +50,20 @@ void main() {
               .thenAnswer((_) async => 5120);
           when(() => mockBackupService.getStorageInfo())
               .thenAnswer((_) async => {'used_gb': 1.4, 'total_gb': 100.0});
-          
+
           return backupBloc;
         },
         act: (bloc) => bloc.add(const LoadBackupSettings()),
         expect: () => [
           const BackupLoading(),
           isA<BackupLoaded>()
-              .having((state) => state.autoBackupEnabled, 'autoBackupEnabled', false)
-              .having((state) => state.backupFrequency, 'backupFrequency', GoogleDriveBackupService.frequencyDaily)
+              .having((state) => state.autoBackupEnabled, 'autoBackupEnabled',
+                  false)
+              .having((state) => state.backupFrequency, 'backupFrequency',
+                  GoogleDriveBackupService.frequencyDaily)
               .having((state) => state.wifiOnlyEnabled, 'wifiOnlyEnabled', true)
-              .having((state) => state.compressionEnabled, 'compressionEnabled', true)
+              .having((state) => state.compressionEnabled, 'compressionEnabled',
+                  true)
               .having((state) => state.estimatedSize, 'estimatedSize', 5120),
         ],
         verify: (_) {
@@ -70,7 +74,8 @@ void main() {
           verify(() => mockBackupService.getBackupOptions()).called(1);
           verify(() => mockBackupService.getLastBackupTime()).called(1);
           verify(() => mockBackupService.getNextBackupTime()).called(1);
-          verify(() => mockBackupService.getEstimatedBackupSize(any())).called(1);
+          verify(() => mockBackupService.getEstimatedBackupSize(any()))
+              .called(1);
           verify(() => mockBackupService.getStorageInfo()).called(1);
         },
       );
@@ -80,14 +85,14 @@ void main() {
         build: () {
           when(() => mockBackupService.isAutoBackupEnabled())
               .thenThrow(Exception('Network error'));
-          
+
           return backupBloc;
         },
         act: (bloc) => bloc.add(const LoadBackupSettings()),
         expect: () => [
           const BackupLoading(),
-          isA<BackupError>()
-              .having((state) => state.message, 'message', contains('Network error')),
+          isA<BackupError>().having(
+              (state) => state.message, 'message', contains('Network error')),
         ],
       );
     });
@@ -100,7 +105,7 @@ void main() {
               .thenAnswer((_) async {});
           when(() => mockBackupService.getNextBackupTime())
               .thenAnswer((_) async => null);
-          
+
           return backupBloc;
         },
         seed: () => const BackupLoaded(
@@ -145,7 +150,7 @@ void main() {
               .thenAnswer((_) async => 5120);
           when(() => mockBackupService.getStorageInfo())
               .thenAnswer((_) async => {'used_gb': 1.4, 'total_gb': 100.0});
-          
+
           return backupBloc;
         },
         act: (bloc) => bloc.add(const CreateManualBackup()),
@@ -165,7 +170,7 @@ void main() {
         build: () {
           when(() => mockBackupService.createBackup(any()))
               .thenAnswer((_) async => false);
-          
+
           return backupBloc;
         },
         act: (bloc) => bloc.add(const CreateManualBackup()),

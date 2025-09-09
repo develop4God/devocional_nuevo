@@ -12,15 +12,16 @@ class CompressionService {
     try {
       // Convert to JSON string
       final jsonString = json.encode(data);
-      
+
       // Convert to bytes
       final bytes = utf8.encode(jsonString);
-      
+
       // Compress using GZip
       final compressed = GZipEncoder().encode(bytes);
-      
-      debugPrint('Compression: ${bytes.length} bytes -> ${compressed?.length ?? 0} bytes');
-      
+
+      debugPrint(
+          'Compression: ${bytes.length} bytes -> ${compressed?.length ?? 0} bytes');
+
       return Uint8List.fromList(compressed ?? bytes);
     } catch (e) {
       debugPrint('Error compressing data: $e');
@@ -34,19 +35,20 @@ class CompressionService {
     try {
       // Try to decompress
       final decompressed = GZipDecoder().decodeBytes(compressedData);
-      
+
       // Convert to string
       final jsonString = utf8.decode(decompressed);
-      
+
       // Parse JSON
       final data = json.decode(jsonString) as Map<String, dynamic>;
-      
-      debugPrint('Decompression: ${compressedData.length} bytes -> ${decompressed.length} bytes');
-      
+
+      debugPrint(
+          'Decompression: ${compressedData.length} bytes -> ${decompressed.length} bytes');
+
       return data;
     } catch (e) {
       debugPrint('Error decompressing data, trying as uncompressed: $e');
-      
+
       // Try to parse as uncompressed JSON
       try {
         final jsonString = utf8.decode(compressedData);
@@ -84,15 +86,16 @@ class CompressionService {
       files.forEach((filename, data) {
         final jsonString = json.encode(data);
         final bytes = utf8.encode(jsonString);
-        
+
         final file = ArchiveFile(filename, bytes.length, bytes);
         archive.addFile(file);
       });
 
       final zipData = ZipEncoder().encode(archive);
-      
-      debugPrint('Archive created with ${files.length} files, size: ${zipData?.length ?? 0} bytes');
-      
+
+      debugPrint(
+          'Archive created with ${files.length} files, size: ${zipData?.length ?? 0} bytes');
+
       return Uint8List.fromList(zipData ?? []);
     } catch (e) {
       debugPrint('Error creating archive: $e');
@@ -116,7 +119,7 @@ class CompressionService {
       }
 
       debugPrint('Archive extracted with ${extractedFiles.length} files');
-      
+
       return extractedFiles;
     } catch (e) {
       debugPrint('Error extracting archive: $e');

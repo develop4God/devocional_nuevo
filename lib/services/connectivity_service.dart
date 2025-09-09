@@ -8,14 +8,16 @@ import 'package:flutter/material.dart';
 class ConnectivityService {
   final Connectivity _connectivity = Connectivity();
   StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
-  final StreamController<bool> _wifiStatusController = StreamController<bool>.broadcast();
+  final StreamController<bool> _wifiStatusController =
+      StreamController<bool>.broadcast();
 
   /// Stream of WiFi connection status
   Stream<bool> get wifiStatusStream => _wifiStatusController.stream;
 
   /// Initialize connectivity monitoring
   void initialize() {
-    _connectivitySubscription = _connectivity.onConnectivityChanged.listen((results) {
+    _connectivitySubscription =
+        _connectivity.onConnectivityChanged.listen((results) {
       final isWifi = results.contains(ConnectivityResult.wifi);
       _wifiStatusController.add(isWifi);
       debugPrint('Connectivity changed: WiFi=$isWifi');
@@ -52,7 +54,8 @@ class ConnectivityService {
   Future<bool> isConnected() async {
     try {
       final results = await _connectivity.checkConnectivity();
-      final isConnected = results.isNotEmpty && !results.contains(ConnectivityResult.none);
+      final isConnected =
+          results.isNotEmpty && !results.contains(ConnectivityResult.none);
       debugPrint('Current connectivity status: $isConnected');
       return isConnected;
     } catch (e) {
@@ -67,7 +70,7 @@ class ConnectivityService {
       // WiFi-only is disabled, so any connection is fine
       return await isConnected();
     }
-    
+
     // WiFi-only is enabled, so we need WiFi connection
     return await isConnectedToWifi();
   }

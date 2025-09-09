@@ -16,7 +16,8 @@ import 'google_drive_auth_service.dart';
 /// Integrates with real Google Drive API for cloud storage
 class GoogleDriveBackupService {
   static const String _lastBackupTimeKey = 'last_google_drive_backup_time';
-  static const String _autoBackupEnabledKey = 'google_drive_auto_backup_enabled';
+  static const String _autoBackupEnabledKey =
+      'google_drive_auto_backup_enabled';
   static const String _backupFrequencyKey = 'google_drive_backup_frequency';
   static const String _wifiOnlyKey = 'google_drive_wifi_only';
   static const String _compressDataKey = 'google_drive_compress_data';
@@ -73,20 +74,23 @@ class GoogleDriveBackupService {
   /// Check if WiFi-only backup is enabled
   Future<bool> isWifiOnlyEnabled() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getBool(_wifiOnlyKey) ?? true; // Default to WiFi-only for data saving
+    return prefs.getBool(_wifiOnlyKey) ??
+        true; // Default to WiFi-only for data saving
   }
 
   /// Enable/disable WiFi-only backup
   Future<void> setWifiOnlyEnabled(bool enabled) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_wifiOnlyKey, enabled);
-    debugPrint('Google Drive WiFi-only backup ${enabled ? "enabled" : "disabled"}');
+    debugPrint(
+        'Google Drive WiFi-only backup ${enabled ? "enabled" : "disabled"}');
   }
 
   /// Check if data compression is enabled
   Future<bool> isCompressionEnabled() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getBool(_compressDataKey) ?? true; // Default to enabled for smaller backups
+    return prefs.getBool(_compressDataKey) ??
+        true; // Default to enabled for smaller backups
   }
 
   /// Enable/disable data compression
@@ -100,12 +104,12 @@ class GoogleDriveBackupService {
   Future<Map<String, bool>> getBackupOptions() async {
     final prefs = await SharedPreferences.getInstance();
     final optionsJson = prefs.getString(_backupOptionsKey);
-    
+
     if (optionsJson != null) {
       final Map<String, dynamic> decoded = json.decode(optionsJson);
       return decoded.map((key, value) => MapEntry(key, value as bool));
     }
-    
+
     // Default options - all enabled
     return {
       'spiritual_stats': true,
@@ -125,7 +129,9 @@ class GoogleDriveBackupService {
   Future<DateTime?> getLastBackupTime() async {
     final prefs = await SharedPreferences.getInstance();
     final timestamp = prefs.getInt(_lastBackupTimeKey);
-    return timestamp != null ? DateTime.fromMillisecondsSinceEpoch(timestamp) : null;
+    return timestamp != null
+        ? DateTime.fromMillisecondsSinceEpoch(timestamp)
+        : null;
   }
 
   /// Set last backup timestamp
@@ -195,9 +201,11 @@ class GoogleDriveBackupService {
 
         final usedGB = usedBytes / (1024 * 1024 * 1024);
         final totalGB = totalBytes / (1024 * 1024 * 1024);
-        final percentage = totalBytes > 0 ? (usedBytes / totalBytes) * 100 : 0.0;
+        final percentage =
+            totalBytes > 0 ? (usedBytes / totalBytes) * 100 : 0.0;
 
-        debugPrint('Google Drive storage: ${usedGB.toStringAsFixed(2)} GB / ${totalGB.toStringAsFixed(2)} GB');
+        debugPrint(
+            'Google Drive storage: ${usedGB.toStringAsFixed(2)} GB / ${totalGB.toStringAsFixed(2)} GB');
 
         return {
           'used_gb': double.parse(usedGB.toStringAsFixed(2)),
@@ -218,7 +226,7 @@ class GoogleDriveBackupService {
       };
     } catch (e) {
       debugPrint('Error getting Google Drive storage info: $e');
-      
+
       // Return default values on error
       return {
         'used_gb': 0.0,
@@ -243,7 +251,8 @@ class GoogleDriveBackupService {
 
       // Check connectivity if WiFi-only is enabled
       final wifiOnlyEnabled = await isWifiOnlyEnabled();
-      if (!await _connectivityService.shouldProceedWithBackup(wifiOnlyEnabled)) {
+      if (!await _connectivityService
+          .shouldProceedWithBackup(wifiOnlyEnabled)) {
         throw Exception('Network connectivity requirements not met');
       }
 
@@ -254,14 +263,15 @@ class GoogleDriveBackupService {
 
       // Prepare backup data
       final backupData = await _prepareBackupData(provider);
-      
+
       // Convert to bytes
       Uint8List fileBytes;
       final compressionEnabled = await isCompressionEnabled();
-      
+
       if (compressionEnabled) {
         fileBytes = CompressionService.compressJson(backupData);
-        debugPrint('Backup compressed: ${json.encode(backupData).length} -> ${fileBytes.length} bytes');
+        debugPrint(
+            'Backup compressed: ${json.encode(backupData).length} -> ${fileBytes.length} bytes');
       } else {
         fileBytes = Uint8List.fromList(utf8.encode(json.encode(backupData)));
         debugPrint('Backup uncompressed: ${fileBytes.length} bytes');
@@ -269,26 +279,27 @@ class GoogleDriveBackupService {
 
       // Get or create backup folder
       final folderId = await _getOrCreateBackupFolder(driveApi);
-      
+
       // Create file metadata
       final file = drive.File()
         ..name = _backupFileName
         ..parents = [folderId]
-        ..description = 'Devocional backup created on ${DateTime.now().toIso8601String()}'
+        ..description =
+            'Devocional backup created on ${DateTime.now().toIso8601String()}'
         ..mimeType = 'application/json';
 
       // Check if backup file already exists
       final existingFile = await _findBackupFile(driveApi, folderId);
-      
+
       if (existingFile != null) {
         // Update existing file
         debugPrint('Updating existing backup file: ${existingFile.id}');
-        
+
         final media = drive.Media(
           Stream.fromIterable([fileBytes]),
           fileBytes.length,
         );
-        
+
         await driveApi.files.update(
           file,
           existingFile.id!,
@@ -297,12 +308,12 @@ class GoogleDriveBackupService {
       } else {
         // Create new file
         debugPrint('Creating new backup file');
-        
+
         final media = drive.Media(
           Stream.fromIterable([fileBytes]),
           fileBytes.length,
         );
-        
+
         await driveApi.files.create(
           file,
           uploadMedia: media,
@@ -319,7 +330,8 @@ class GoogleDriveBackupService {
   }
 
   /// Prepare backup data
-  Future<Map<String, dynamic>> _prepareBackupData(DevocionalProvider? provider) async {
+  Future<Map<String, dynamic>> _prepareBackupData(
+      DevocionalProvider? provider) async {
     final options = await getBackupOptions();
     final backupData = <String, dynamic>{
       'timestamp': DateTime.now().toIso8601String(),
@@ -343,10 +355,10 @@ class GoogleDriveBackupService {
     // Include favorite devotionals if enabled
     if (options['favorite_devotionals'] == true && provider != null) {
       try {
-        backupData['favorite_devotionals'] = provider.favoriteDevocionales
-            .map((dev) => dev.toJson())
-            .toList();
-        debugPrint('Included ${provider.favoriteDevocionales.length} favorite devotionals in backup');
+        backupData['favorite_devotionals'] =
+            provider.favoriteDevocionales.map((dev) => dev.toJson()).toList();
+        debugPrint(
+            'Included ${provider.favoriteDevocionales.length} favorite devotionals in backup');
       } catch (e) {
         debugPrint('Error getting favorite devotionals: $e');
         backupData['favorite_devotionals'] = [];
@@ -416,10 +428,10 @@ class GoogleDriveBackupService {
 
       // Parse backup data
       Map<String, dynamic>? backupData;
-      
+
       // Try to decompress first
       backupData = CompressionService.decompressJson(fileBytes);
-      
+
       if (backupData == null) {
         // Try as uncompressed JSON
         try {
@@ -473,19 +485,20 @@ class GoogleDriveBackupService {
           debugPrint('Invalid favorite item format: not a map');
           return false;
         }
-        
+
         final favoriteMap = item;
-        if (!favoriteMap.containsKey('id') || !favoriteMap.containsKey('title')) {
+        if (!favoriteMap.containsKey('id') ||
+            !favoriteMap.containsKey('title')) {
           debugPrint('Invalid favorite item: missing required fields');
           return false;
         }
-        
+
         if (favoriteMap['id'] is! String || favoriteMap['title'] is! String) {
           debugPrint('Invalid favorite item: invalid field types');
           return false;
         }
       }
-      
+
       debugPrint('Favorites data validation passed');
       return true;
     } catch (e) {
@@ -510,7 +523,8 @@ class GoogleDriveBackupService {
       }
 
       // Search for existing backup folder
-      final query = "name='$_backupFolderName' and mimeType='application/vnd.google-apps.folder' and trashed=false";
+      final query =
+          "name='$_backupFolderName' and mimeType='application/vnd.google-apps.folder' and trashed=false";
       final fileList = await driveApi.files.list(q: query);
 
       if (fileList.files != null && fileList.files!.isNotEmpty) {
@@ -528,7 +542,7 @@ class GoogleDriveBackupService {
 
       final createdFolder = await driveApi.files.create(folder);
       final folderId = createdFolder.id!;
-      
+
       await _setBackupFolderId(folderId);
       debugPrint('Created new backup folder: $folderId');
       return folderId;
@@ -539,9 +553,11 @@ class GoogleDriveBackupService {
   }
 
   /// Find backup file in the specified folder
-  Future<drive.File?> _findBackupFile(drive.DriveApi driveApi, String folderId) async {
+  Future<drive.File?> _findBackupFile(
+      drive.DriveApi driveApi, String folderId) async {
     try {
-      final query = "name='$_backupFileName' and '$folderId' in parents and trashed=false";
+      final query =
+          "name='$_backupFileName' and '$folderId' in parents and trashed=false";
       final fileList = await driveApi.files.list(q: query);
 
       if (fileList.files != null && fileList.files!.isNotEmpty) {
@@ -639,7 +655,7 @@ class GoogleDriveBackupService {
   /// Sign out from Google Drive
   Future<void> signOut() async {
     await _authService.signOut();
-    
+
     // Clear backup folder cache
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_backupFolderIdKey);

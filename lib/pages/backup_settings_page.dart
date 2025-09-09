@@ -23,7 +23,7 @@ class BackupSettingsPage extends StatelessWidget {
     final authService = GoogleDriveAuthService();
     final connectivityService = ConnectivityService();
     final statsService = SpiritualStatsService();
-    
+
     final backupService = GoogleDriveBackupService(
       authService: authService,
       connectivityService: connectivityService,
@@ -33,7 +33,8 @@ class BackupSettingsPage extends StatelessWidget {
     return BlocProvider(
       create: (context) => BackupBloc(
         backupService: backupService,
-        devocionalProvider: Provider.of<DevocionalProvider>(context, listen: false),
+        devocionalProvider:
+            Provider.of<DevocionalProvider>(context, listen: false),
       )..add(const LoadBackupSettings()),
       child: const _BackupSettingsView(),
     );
@@ -47,7 +48,7 @@ class _BackupSettingsView extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    
+
     return Scaffold(
       appBar: AppBar(
         title: Text('backup.title'.tr()),
@@ -84,11 +85,11 @@ class _BackupSettingsView extends StatelessWidget {
             if (state is BackupLoading) {
               return const Center(child: CircularProgressIndicator());
             }
-            
+
             if (state is BackupLoaded) {
               return _BackupSettingsContent(state: state);
             }
-            
+
             if (state is BackupError) {
               return Center(
                 child: Column(
@@ -115,7 +116,9 @@ class _BackupSettingsView extends StatelessWidget {
                     const SizedBox(height: 16),
                     ElevatedButton(
                       onPressed: () {
-                        context.read<BackupBloc>().add(const LoadBackupSettings());
+                        context
+                            .read<BackupBloc>()
+                            .add(const LoadBackupSettings());
                       },
                       child: Text('backup.retry'.tr()),
                     ),
@@ -123,7 +126,7 @@ class _BackupSettingsView extends StatelessWidget {
                 ),
               );
             }
-            
+
             return const Center(child: CircularProgressIndicator());
           },
         ),
@@ -134,7 +137,7 @@ class _BackupSettingsView extends StatelessWidget {
 
 class _BackupSettingsContent extends StatelessWidget {
   final BackupLoaded state;
-  
+
   const _BackupSettingsContent({required this.state});
 
   @override
@@ -147,27 +150,27 @@ class _BackupSettingsContent extends StatelessWidget {
           // Description card
           _buildDescriptionCard(context),
           const SizedBox(height: 24),
-          
+
           // Google Drive connection + last backup info
           _buildConnectionCard(context),
           const SizedBox(height: 24),
-          
+
           // Automatic backup settings (NEW - MAIN FEATURE)
           _buildAutomaticBackupSection(context),
           const SizedBox(height: 24),
-          
+
           // Manual backup options with size estimates
           _buildManualBackupSection(context),
           const SizedBox(height: 24),
-          
+
           // Storage info
           _buildStorageSection(context),
           const SizedBox(height: 24),
-          
+
           // Create backup button
           _buildCreateBackupButton(context),
           const SizedBox(height: 24),
-          
+
           // Security info
           _buildSecurityCard(context),
         ],
@@ -178,7 +181,7 @@ class _BackupSettingsContent extends StatelessWidget {
   Widget _buildDescriptionCard(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -213,7 +216,7 @@ class _BackupSettingsContent extends StatelessWidget {
   Widget _buildConnectionCard(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -233,7 +236,7 @@ class _BackupSettingsContent extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 12),
-            
+
             // Last backup info
             if (state.lastBackupTime != null) ...[
               _buildInfoRow(
@@ -275,7 +278,7 @@ class _BackupSettingsContent extends StatelessWidget {
   Widget _buildAutomaticBackupSection(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -295,7 +298,7 @@ class _BackupSettingsContent extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 16),
-            
+
             // Auto backup toggle
             _buildSwitchTile(
               context,
@@ -305,14 +308,14 @@ class _BackupSettingsContent extends StatelessWidget {
                 context.read<BackupBloc>().add(ToggleAutoBackup(value));
               },
             ),
-            
+
             if (state.autoBackupEnabled) ...[
               const SizedBox(height: 16),
-              
+
               // Frequency selector
               _buildFrequencySelector(context),
               const SizedBox(height: 16),
-              
+
               // WiFi only toggle
               _buildSwitchTile(
                 context,
@@ -324,7 +327,7 @@ class _BackupSettingsContent extends StatelessWidget {
                 subtitle: 'backup.wifi_only_subtitle'.tr(),
               ),
               const SizedBox(height: 8),
-              
+
               // Compression toggle
               _buildSwitchTile(
                 context,
@@ -345,7 +348,7 @@ class _BackupSettingsContent extends StatelessWidget {
   Widget _buildFrequencySelector(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -395,7 +398,7 @@ class _BackupSettingsContent extends StatelessWidget {
   Widget _buildManualBackupSection(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -415,7 +418,7 @@ class _BackupSettingsContent extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 16),
-            
+
             // Backup options with size estimates
             _buildBackupOptionTile(
               context,
@@ -429,7 +432,8 @@ class _BackupSettingsContent extends StatelessWidget {
               'backup.favorite_devotionals'.tr(),
               'backup.favorite_devotionals_size'.tr(),
               state.backupOptions['favorite_devotionals'] ?? true,
-              (value) => _updateBackupOption(context, 'favorite_devotionals', value),
+              (value) =>
+                  _updateBackupOption(context, 'favorite_devotionals', value),
             ),
             _buildBackupOptionTile(
               context,
@@ -447,7 +451,7 @@ class _BackupSettingsContent extends StatelessWidget {
   Widget _buildStorageSection(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -467,7 +471,7 @@ class _BackupSettingsContent extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 16),
-            
+
             // Storage usage
             Text(
               'backup.google_drive_storage'.tr(),
@@ -498,13 +502,15 @@ class _BackupSettingsContent extends StatelessWidget {
     return BlocBuilder<BackupBloc, BackupState>(
       builder: (context, state) {
         final isCreating = state is BackupCreating;
-        
+
         return SizedBox(
           width: double.infinity,
           child: ElevatedButton(
-            onPressed: isCreating ? null : () {
-              context.read<BackupBloc>().add(const CreateManualBackup());
-            },
+            onPressed: isCreating
+                ? null
+                : () {
+                    context.read<BackupBloc>().add(const CreateManualBackup());
+                  },
             style: ElevatedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 16),
             ),
@@ -527,7 +533,7 @@ class _BackupSettingsContent extends StatelessWidget {
   Widget _buildSecurityCard(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -567,7 +573,7 @@ class _BackupSettingsContent extends StatelessWidget {
     String? subtitle,
   }) {
     final theme = Theme.of(context);
-    
+
     return Row(
       children: [
         Expanded(
@@ -606,7 +612,7 @@ class _BackupSettingsContent extends StatelessWidget {
     ValueChanged<bool> onChanged,
   ) {
     final theme = Theme.of(context);
-    
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
@@ -638,9 +644,10 @@ class _BackupSettingsContent extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoRow(BuildContext context, IconData icon, String label, String value) {
+  Widget _buildInfoRow(
+      BuildContext context, IconData icon, String label, String value) {
     final theme = Theme.of(context);
-    
+
     return Row(
       children: [
         Icon(icon, size: 16, color: theme.colorScheme.onSurfaceVariant),
@@ -672,26 +679,30 @@ class _BackupSettingsContent extends StatelessWidget {
   String _formatLastBackupTime(BuildContext context, DateTime time) {
     final now = DateTime.now();
     final difference = now.difference(time);
-    
+
     if (difference.inDays == 0) {
       return 'backup.today'.tr();
     } else if (difference.inDays == 1) {
       return 'backup.yesterday'.tr();
     } else {
-      return 'backup.days_ago'.tr().replaceAll('{days}', difference.inDays.toString());
+      return 'backup.days_ago'
+          .tr()
+          .replaceAll('{days}', difference.inDays.toString());
     }
   }
 
   String _formatNextBackupTime(BuildContext context, DateTime time) {
     final now = DateTime.now();
     final difference = time.difference(now);
-    
+
     if (difference.inDays == 0) {
       return 'backup.today'.tr();
     } else if (difference.inDays == 1) {
       return 'backup.tomorrow'.tr();
     } else {
-      return 'backup.in_days'.tr().replaceAll('{days}', difference.inDays.toString());
+      return 'backup.in_days'
+          .tr()
+          .replaceAll('{days}', difference.inDays.toString());
     }
   }
 

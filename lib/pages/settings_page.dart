@@ -353,7 +353,8 @@ class _SettingsPageState extends State<SettingsPage> {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const BackupSettingsPage()),
+                  MaterialPageRoute(
+                      builder: (context) => const BackupSettingsPage()),
                 );
               },
               child: Padding(

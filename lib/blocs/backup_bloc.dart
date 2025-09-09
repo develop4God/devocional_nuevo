@@ -18,7 +18,6 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
   })  : _backupService = backupService,
         _devocionalProvider = devocionalProvider,
         super(const BackupInitial()) {
-    
     // Register event handlers
     on<LoadBackupSettings>(_onLoadBackupSettings);
     on<ToggleAutoBackup>(_onToggleAutoBackup);
@@ -82,13 +81,13 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
   ) async {
     try {
       await _backupService.setAutoBackupEnabled(event.enabled);
-      
+
       if (state is BackupLoaded) {
         final currentState = state as BackupLoaded;
-        
+
         // Recalculate next backup time
         final nextBackupTime = await _backupService.getNextBackupTime();
-        
+
         emit(currentState.copyWith(
           autoBackupEnabled: event.enabled,
           nextBackupTime: nextBackupTime,
@@ -110,13 +109,13 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
   ) async {
     try {
       await _backupService.setBackupFrequency(event.frequency);
-      
+
       if (state is BackupLoaded) {
         final currentState = state as BackupLoaded;
-        
+
         // Recalculate next backup time
         final nextBackupTime = await _backupService.getNextBackupTime();
-        
+
         emit(currentState.copyWith(
           backupFrequency: event.frequency,
           nextBackupTime: nextBackupTime,
@@ -137,7 +136,7 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
   ) async {
     try {
       await _backupService.setWifiOnlyEnabled(event.enabled);
-      
+
       if (state is BackupLoaded) {
         final currentState = state as BackupLoaded;
         emit(currentState.copyWith(wifiOnlyEnabled: event.enabled));
@@ -157,7 +156,7 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
   ) async {
     try {
       await _backupService.setCompressionEnabled(event.enabled);
-      
+
       if (state is BackupLoaded) {
         final currentState = state as BackupLoaded;
         emit(currentState.copyWith(compressionEnabled: event.enabled));
@@ -177,13 +176,14 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
   ) async {
     try {
       await _backupService.setBackupOptions(event.options);
-      
+
       if (state is BackupLoaded) {
         final currentState = state as BackupLoaded;
-        
+
         // Recalculate estimated size
-        final estimatedSize = await _backupService.getEstimatedBackupSize(_devocionalProvider);
-        
+        final estimatedSize =
+            await _backupService.getEstimatedBackupSize(_devocionalProvider);
+
         emit(currentState.copyWith(
           backupOptions: event.options,
           estimatedSize: estimatedSize,
@@ -204,13 +204,13 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
   ) async {
     try {
       emit(const BackupCreating());
-      
+
       final success = await _backupService.createBackup(_devocionalProvider);
-      
+
       if (success) {
         final timestamp = DateTime.now();
         emit(BackupCreated(timestamp));
-        
+
         // Reload settings to update last backup time and next backup time
         add(const LoadBackupSettings());
       } else {
@@ -229,12 +229,12 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
   ) async {
     try {
       emit(const BackupRestoring());
-      
+
       final success = await _backupService.restoreBackup();
-      
+
       if (success) {
         emit(const BackupRestored());
-        
+
         // Reload settings
         add(const LoadBackupSettings());
       } else {
@@ -253,7 +253,7 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
   ) async {
     try {
       final storageInfo = await _backupService.getStorageInfo();
-      
+
       if (state is BackupLoaded) {
         final currentState = state as BackupLoaded;
         emit(currentState.copyWith(storageInfo: storageInfo));

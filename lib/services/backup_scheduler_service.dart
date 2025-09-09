@@ -126,7 +126,8 @@ class BackupSchedulerService {
 
       // Check connectivity requirements
       final wifiOnlyEnabled = await _backupService.isWifiOnlyEnabled();
-      if (!await _connectivityService.shouldProceedWithBackup(wifiOnlyEnabled)) {
+      if (!await _connectivityService
+          .shouldProceedWithBackup(wifiOnlyEnabled)) {
         debugPrint('Connectivity requirements not met');
         return false;
       }
@@ -142,19 +143,18 @@ class BackupSchedulerService {
   static Future<void> executeBackgroundBackup() async {
     try {
       debugPrint('Executing background backup...');
-      
+
       // Note: In a real implementation, you would need to initialize
       // all required services here since this runs in an isolate
-      
+
       // For now, just log that the task was triggered
       debugPrint('Background backup task triggered');
-      
+
       // In practice, you would:
       // 1. Initialize services
       // 2. Check connectivity
       // 3. Perform backup
       // 4. Handle errors
-      
     } catch (e) {
       debugPrint('Error executing background backup: $e');
     }
@@ -167,7 +167,7 @@ void callbackDispatcher() {
   Workmanager().executeTask((task, inputData) async {
     try {
       debugPrint('Background task executed: $task');
-      
+
       switch (task) {
         case BackupSchedulerService._taskName:
           await BackupSchedulerService.executeBackgroundBackup();
@@ -176,7 +176,7 @@ void callbackDispatcher() {
           debugPrint('Unknown background task: $task');
           return false;
       }
-      
+
       return true;
     } catch (e) {
       debugPrint('Background task error: $e');

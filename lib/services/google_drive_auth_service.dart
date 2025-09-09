@@ -30,7 +30,7 @@ class GoogleDriveAuthService {
   Future<bool> isSignedIn() async {
     final prefs = await SharedPreferences.getInstance();
     final isSignedIn = prefs.getBool(_isSignedInKey) ?? false;
-    
+
     if (isSignedIn && _googleSignIn != null) {
       // Try to sign in silently
       try {
@@ -42,7 +42,7 @@ class GoogleDriveAuthService {
         return false;
       }
     }
-    
+
     return false;
   }
 
@@ -54,7 +54,7 @@ class GoogleDriveAuthService {
       }
 
       _currentUser = await _googleSignIn!.signIn();
-      
+
       if (_currentUser != null) {
         final auth = await _currentUser!.authentication;
         _authClient = authenticatedClient(
@@ -78,7 +78,7 @@ class GoogleDriveAuthService {
         debugPrint('Google Drive sign-in successful: ${_currentUser!.email}');
         return true;
       }
-      
+
       return false;
     } catch (e) {
       debugPrint('Google Drive sign-in error: $e');
@@ -93,13 +93,13 @@ class GoogleDriveAuthService {
       if (_googleSignIn != null) {
         await _googleSignIn!.signOut();
       }
-      
+
       _currentUser = null;
       _authClient?.close();
       _authClient = null;
-      
+
       await _clearSignInState();
-      
+
       debugPrint('Google Drive sign-out successful');
     } catch (e) {
       debugPrint('Google Drive sign-out error: $e');
@@ -111,7 +111,7 @@ class GoogleDriveAuthService {
     if (_currentUser != null) {
       return _currentUser!.email;
     }
-    
+
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(_userEmailKey);
   }
