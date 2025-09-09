@@ -144,12 +144,12 @@ class GoogleDriveBackupService {
   Future<DateTime?> getNextBackupTime() async {
     final lastBackup = await getLastBackupTime();
     final frequency = await getBackupFrequency();
-    
+
     // Handle deactivated and manual frequencies
     if (frequency == frequencyDeactivated || frequency == frequencyManual) {
       return null;
     }
-    
+
     if (lastBackup == null || !await isAutoBackupEnabled()) {
       return null;
     }
@@ -679,7 +679,8 @@ class GoogleDriveBackupService {
       }
 
       // Search for existing backup folder
-      final folderQuery = "name='$_backupFolderName' and mimeType='application/vnd.google-apps.folder' and trashed=false";
+      final folderQuery =
+          "name='$_backupFolderName' and mimeType='application/vnd.google-apps.folder' and trashed=false";
       final folderResults = await driveApi.files.list(q: folderQuery);
 
       if (folderResults.files == null || folderResults.files!.isEmpty) {
@@ -689,7 +690,8 @@ class GoogleDriveBackupService {
       final folderId = folderResults.files!.first.id!;
 
       // Search for backup file in the folder
-      final fileQuery = "name='$_backupFileName' and parents in '$folderId' and trashed=false";
+      final fileQuery =
+          "name='$_backupFileName' and parents in '$folderId' and trashed=false";
       final fileResults = await driveApi.files.list(q: fileQuery);
 
       if (fileResults.files == null || fileResults.files!.isEmpty) {
@@ -697,7 +699,7 @@ class GoogleDriveBackupService {
       }
 
       final backupFile = fileResults.files!.first;
-      
+
       // Get backup file metadata
       return {
         'found': true,
@@ -722,7 +724,8 @@ class GoogleDriveBackupService {
       }
 
       // Download the backup file
-      final media = await driveApi.files.get(fileId, downloadOptions: drive.DownloadOptions.fullMedia) as drive.Media;
+      final media = await driveApi.files.get(fileId,
+          downloadOptions: drive.DownloadOptions.fullMedia) as drive.Media;
       final backupData = <int>[];
       await for (final chunk in media.stream) {
         backupData.addAll(chunk);
@@ -737,7 +740,8 @@ class GoogleDriveBackupService {
 
       // Update last backup time
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(_lastBackupTimeKey, DateTime.now().toIso8601String());
+      await prefs.setString(
+          _lastBackupTimeKey, DateTime.now().toIso8601String());
 
       debugPrint('Existing backup restored successfully');
       return true;

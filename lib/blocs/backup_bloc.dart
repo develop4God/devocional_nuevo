@@ -117,7 +117,7 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
   ) async {
     try {
       await _backupService.setBackupFrequency(event.frequency);
-      
+
       // Handle deactivation - sign out and keep backup info for reference
       if (event.frequency == GoogleDriveBackupService.frequencyDeactivated) {
         await _backupService.signOut();
@@ -128,11 +128,12 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
 
         // Recalculate next backup time
         final nextBackupTime = await _backupService.getNextBackupTime();
-        
+
         // Update authentication status if deactivated
-        final isAuthenticated = event.frequency == GoogleDriveBackupService.frequencyDeactivated 
-            ? false 
-            : currentState.isAuthenticated;
+        final isAuthenticated =
+            event.frequency == GoogleDriveBackupService.frequencyDeactivated
+                ? false
+                : currentState.isAuthenticated;
 
         emit(currentState.copyWith(
           backupFrequency: event.frequency,
@@ -301,13 +302,13 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
   ) async {
     try {
       emit(const BackupLoading());
-      
+
       final success = await _backupService.signIn();
-      
+
       if (success) {
         // Check for existing backups
         final existingBackup = await _backupService.checkForExistingBackup();
-        
+
         if (existingBackup != null && existingBackup['found'] == true) {
           // Show dialog or emit special state to ask user about restoring
           emit(BackupExistingFound(existingBackup));
@@ -331,7 +332,7 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
   ) async {
     try {
       await _backupService.signOut();
-      
+
       // Reload settings to get updated authentication status
       add(const LoadBackupSettings());
     } catch (e) {
@@ -347,9 +348,9 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
   ) async {
     try {
       emit(const BackupRestoring());
-      
+
       final success = await _backupService.restoreExistingBackup(event.fileId);
-      
+
       if (success) {
         emit(const BackupRestored());
         // Reload settings to get updated data

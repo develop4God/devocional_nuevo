@@ -139,9 +139,10 @@ class _BackupSettingsView extends StatelessWidget {
   }
 
   /// Show dialog when existing backup is found
-  void _showExistingBackupDialog(BuildContext context, Map<String, dynamic> backupInfo) {
+  void _showExistingBackupDialog(
+      BuildContext context, Map<String, dynamic> backupInfo) {
     final theme = Theme.of(context);
-    
+
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -180,7 +181,9 @@ class _BackupSettingsView extends StatelessWidget {
             ElevatedButton(
               onPressed: () {
                 Navigator.of(dialogContext).pop();
-                context.read<BackupBloc>().add(RestoreExistingBackup(backupInfo['fileId']));
+                context
+                    .read<BackupBloc>()
+                    .add(RestoreExistingBackup(backupInfo['fileId']));
               },
               child: Text('backup.restore_backup'.tr()),
             ),
@@ -202,7 +205,9 @@ class _BackupSettingsView extends StatelessWidget {
       } else if (difference.inDays == 1) {
         return 'backup.yesterday'.tr();
       } else if (difference.inDays < 7) {
-        return 'backup.days_ago'.tr().replaceAll('{days}', difference.inDays.toString());
+        return 'backup.days_ago'
+            .tr()
+            .replaceAll('{days}', difference.inDays.toString());
       } else {
         return '${date.day}/${date.month}/${date.year}';
       }
@@ -321,7 +326,7 @@ class _BackupSettingsContent extends StatelessWidget {
                   ),
                   const Spacer(),
                   // Login indicator
-                  if (state.isAuthenticated) 
+                  if (state.isAuthenticated)
                     Icon(Icons.check_circle, color: Colors.green)
                   else
                     Icon(Icons.login, color: colorScheme.primary),
@@ -536,7 +541,7 @@ class _BackupSettingsContent extends StatelessWidget {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
                 }
-                
+
                 final backupData = snapshot.data ?? {};
                 return Column(
                   children: [
@@ -545,22 +550,25 @@ class _BackupSettingsContent extends StatelessWidget {
                       'backup.spiritual_stats'.tr(),
                       _formatBackupOptionSize(backupData['spiritual_stats']),
                       state.backupOptions['spiritual_stats'] ?? true,
-                      (value) => _updateBackupOption(context, 'spiritual_stats', value),
+                      (value) => _updateBackupOption(
+                          context, 'spiritual_stats', value),
                     ),
                     _buildBackupOptionTile(
                       context,
                       'backup.favorite_devotionals'.tr(),
-                      _formatBackupOptionSize(backupData['favorite_devotionals']),
+                      _formatBackupOptionSize(
+                          backupData['favorite_devotionals']),
                       state.backupOptions['favorite_devotionals'] ?? true,
-                      (value) =>
-                          _updateBackupOption(context, 'favorite_devotionals', value),
+                      (value) => _updateBackupOption(
+                          context, 'favorite_devotionals', value),
                     ),
                     _buildBackupOptionTile(
                       context,
                       'backup.saved_prayers'.tr(),
                       _formatBackupOptionSize(backupData['saved_prayers']),
                       state.backupOptions['saved_prayers'] ?? true,
-                      (value) => _updateBackupOption(context, 'saved_prayers', value),
+                      (value) =>
+                          _updateBackupOption(context, 'saved_prayers', value),
                     ),
                   ],
                 );
@@ -573,24 +581,28 @@ class _BackupSettingsContent extends StatelessWidget {
   }
 
   /// Get dynamic backup options with actual file sizes
-  Future<Map<String, dynamic>> _getDynamicBackupOptions(BuildContext context) async {
+  Future<Map<String, dynamic>> _getDynamicBackupOptions(
+      BuildContext context) async {
     try {
       // Get actual data from services
       final statsService = SpiritualStatsService();
-      final devocionalProvider = Provider.of<DevocionalProvider>(context, listen: false);
-      
+      final devocionalProvider =
+          Provider.of<DevocionalProvider>(context, listen: false);
+
       // Get spiritual stats data
       final statsData = await statsService.getAllStats();
       final statsSize = _calculateJsonSize(statsData);
-      
+
       // Get favorite devotionals count and size
       final favoriteCount = devocionalProvider.favoriteDevocionales.length;
-      final favoritesSize = _calculateJsonSize(devocionalProvider.favoriteDevocionales);
-      
+      final favoritesSize =
+          _calculateJsonSize(devocionalProvider.favoriteDevocionales);
+
       // Get saved prayers data (mock for now since prayers service might not exist)
-      final prayersCount = 0; // TODO: Replace with actual prayers count when prayers service exists
+      final prayersCount =
+          0; // TODO: Replace with actual prayers count when prayers service exists
       final prayersSize = 0;
-      
+
       return {
         'spiritual_stats': {
           'count': 1, // Always 1 stats file
@@ -600,12 +612,14 @@ class _BackupSettingsContent extends StatelessWidget {
         'favorite_devotionals': {
           'count': favoriteCount,
           'size': favoritesSize,
-          'description': '$favoriteCount ${favoriteCount == 1 ? 'elemento' : 'elementos'}, ~${_formatSize(favoritesSize)}',
+          'description':
+              '$favoriteCount ${favoriteCount == 1 ? 'elemento' : 'elementos'}, ~${_formatSize(favoritesSize)}',
         },
         'saved_prayers': {
           'count': prayersCount,
           'size': prayersSize,
-          'description': '$prayersCount ${prayersCount == 1 ? 'elemento' : 'elementos'}, ~${_formatSize(prayersSize)}',
+          'description':
+              '$prayersCount ${prayersCount == 1 ? 'elemento' : 'elementos'}, ~${_formatSize(prayersSize)}',
         },
       };
     } catch (e) {

@@ -51,14 +51,6 @@ class BackupSchedulerService {
           initialDelay = const Duration(hours: 24);
           frequency_ = const Duration(hours: 24);
           break;
-        case GoogleDriveBackupService.frequencyWeekly:
-          initialDelay = const Duration(days: 7);
-          frequency_ = const Duration(days: 7);
-          break;
-        case GoogleDriveBackupService.frequencyMonthly:
-          initialDelay = const Duration(days: 30);
-          frequency_ = const Duration(days: 30);
-          break;
         default:
           initialDelay = const Duration(hours: 24);
           frequency_ = const Duration(hours: 24);

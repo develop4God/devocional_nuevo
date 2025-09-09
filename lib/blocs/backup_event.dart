@@ -89,7 +89,7 @@ class SignInToGoogleDrive extends BackupEvent {
   const SignInToGoogleDrive();
 }
 
-/// Sign out from Google Drive  
+/// Sign out from Google Drive
 class SignOutFromGoogleDrive extends BackupEvent {
   const SignOutFromGoogleDrive();
 }
