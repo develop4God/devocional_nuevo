@@ -31,6 +31,8 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
     on<RefreshBackupStatus>(_onRefreshBackupStatus);
     on<SignInToGoogleDrive>(_onSignInToGoogleDrive);
     on<SignOutFromGoogleDrive>(_onSignOutFromGoogleDrive);
+    on<RestoreExistingBackup>(_onRestoreExistingBackup);
+    on<SkipExistingBackup>(_onSkipExistingBackup);
   }
 
   /// Set the devotional provider (for dependency injection)
@@ -303,8 +305,16 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
       final success = await _backupService.signIn();
       
       if (success) {
-        // Reload settings to get updated authentication status
-        add(const LoadBackupSettings());
+        // Check for existing backups
+        final existingBackup = await _backupService.checkForExistingBackup();
+        
+        if (existingBackup != null && existingBackup['found'] == true) {
+          // Show dialog or emit special state to ask user about restoring
+          emit(BackupExistingFound(existingBackup));
+        } else {
+          // Reload settings to get updated authentication status
+          add(const LoadBackupSettings());
+        }
       } else {
         emit(const BackupError('backup.sign_in_failed'));
       }
@@ -328,5 +338,37 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
       debugPrint('Error signing out from Google Drive: $e');
       emit(BackupError('Error signing out: ${e.toString()}'));
     }
+  }
+
+  /// Restore existing backup from Google Drive
+  Future<void> _onRestoreExistingBackup(
+    RestoreExistingBackup event,
+    Emitter<BackupState> emit,
+  ) async {
+    try {
+      emit(const BackupRestoring());
+      
+      final success = await _backupService.restoreExistingBackup(event.fileId);
+      
+      if (success) {
+        emit(const BackupRestored());
+        // Reload settings to get updated data
+        add(const LoadBackupSettings());
+      } else {
+        emit(const BackupError('backup.restore_failed'));
+      }
+    } catch (e) {
+      debugPrint('Error restoring existing backup: $e');
+      emit(BackupError('backup.restore_failed'));
+    }
+  }
+
+  /// Skip restoring existing backup
+  Future<void> _onSkipExistingBackup(
+    SkipExistingBackup event,
+    Emitter<BackupState> emit,
+  ) async {
+    // Just reload settings without restoring
+    add(const LoadBackupSettings());
   }
 }

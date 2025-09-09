@@ -93,3 +93,18 @@ class SignInToGoogleDrive extends BackupEvent {
 class SignOutFromGoogleDrive extends BackupEvent {
   const SignOutFromGoogleDrive();
 }
+
+/// Restore existing backup found on Google Drive
+class RestoreExistingBackup extends BackupEvent {
+  final String fileId;
+
+  const RestoreExistingBackup(this.fileId);
+
+  @override
+  List<Object?> get props => [fileId];
+}
+
+/// Skip restoring existing backup
+class SkipExistingBackup extends BackupEvent {
+  const SkipExistingBackup();
+}

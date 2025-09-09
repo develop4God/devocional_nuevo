@@ -131,3 +131,13 @@ class BackupError extends BackupState {
 class BackupSettingsUpdated extends BackupState {
   const BackupSettingsUpdated();
 }
+
+/// Existing backup found on Google Drive
+class BackupExistingFound extends BackupState {
+  final Map<String, dynamic> backupInfo;
+
+  const BackupExistingFound(this.backupInfo);
+
+  @override
+  List<Object?> get props => [backupInfo];
+}

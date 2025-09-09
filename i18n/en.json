@@ -402,7 +402,13 @@
     "tap_to_connect": "Tap to connect",
     "sign_in_success": "Successfully connected",
     "sign_in_failed": "Failed to connect to Google Drive",
-    "sign_out_success": "Disconnected from Google Drive"
+    "sign_out_success": "Disconnected from Google Drive",
+    "existing_backup_found": "Backup Found",
+    "existing_backup_message": "A backup was found in your Google Drive. Would you like to restore your data?",
+    "backup_date": "Date",
+    "skip_restore": "Skip",
+    "restore_backup": "Restore",
+    "restore_failed": "Failed to restore backup"
   },
   "review": {
     "title": "Thank you for your consistency 🙏",

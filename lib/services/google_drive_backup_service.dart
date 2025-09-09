@@ -669,4 +669,81 @@ class GoogleDriveBackupService {
   Future<String?> getUserEmail() async {
     return await _authService.getUserEmail();
   }
+
+  /// Check for existing backups on Google Drive when user signs in
+  Future<Map<String, dynamic>?> checkForExistingBackup() async {
+    try {
+      final driveApi = await _authService.getDriveApi();
+      if (driveApi == null) {
+        return null;
+      }
+
+      // Search for existing backup folder
+      final folderQuery = "name='$_backupFolderName' and mimeType='application/vnd.google-apps.folder' and trashed=false";
+      final folderResults = await driveApi.files.list(q: folderQuery);
+
+      if (folderResults.files == null || folderResults.files!.isEmpty) {
+        return null; // No backup folder found
+      }
+
+      final folderId = folderResults.files!.first.id!;
+
+      // Search for backup file in the folder
+      final fileQuery = "name='$_backupFileName' and parents in '$folderId' and trashed=false";
+      final fileResults = await driveApi.files.list(q: fileQuery);
+
+      if (fileResults.files == null || fileResults.files!.isEmpty) {
+        return null; // No backup file found
+      }
+
+      final backupFile = fileResults.files!.first;
+      
+      // Get backup file metadata
+      return {
+        'found': true,
+        'fileName': backupFile.name,
+        'modifiedTime': backupFile.modifiedTime?.toIso8601String(),
+        'size': backupFile.size,
+        'fileId': backupFile.id,
+        'folderId': folderId,
+      };
+    } catch (e) {
+      debugPrint('Error checking for existing backup: $e');
+      return null;
+    }
+  }
+
+  /// Restore backup from existing file on Google Drive
+  Future<bool> restoreExistingBackup(String fileId) async {
+    try {
+      final driveApi = await _authService.getDriveApi();
+      if (driveApi == null) {
+        return false;
+      }
+
+      // Download the backup file
+      final media = await driveApi.files.get(fileId, downloadOptions: drive.DownloadOptions.fullMedia) as drive.Media;
+      final backupData = <int>[];
+      await for (final chunk in media.stream) {
+        backupData.addAll(chunk);
+      }
+
+      // Parse JSON data
+      final jsonString = String.fromCharCodes(backupData);
+      final backupJson = jsonDecode(jsonString) as Map<String, dynamic>;
+
+      // Restore the backup data using existing restore method
+      await _restoreBackupData(backupJson);
+
+      // Update last backup time
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_lastBackupTimeKey, DateTime.now().toIso8601String());
+
+      debugPrint('Existing backup restored successfully');
+      return true;
+    } catch (e) {
+      debugPrint('Error restoring existing backup: $e');
+      return false;
+    }
+  }
 }

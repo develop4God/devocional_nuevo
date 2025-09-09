@@ -62,7 +62,7 @@ class _BackupSettingsView extends StatelessWidget {
           if (state is BackupError) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text(state.message),
+                content: Text(state.message.tr()),
                 backgroundColor: colorScheme.error,
               ),
             );
@@ -80,6 +80,8 @@ class _BackupSettingsView extends StatelessWidget {
                 backgroundColor: colorScheme.primary,
               ),
             );
+          } else if (state is BackupExistingFound) {
+            _showExistingBackupDialog(context, state.backupInfo);
           }
         },
         child: BlocBuilder<BackupBloc, BackupState>(
@@ -134,6 +136,90 @@ class _BackupSettingsView extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  /// Show dialog when existing backup is found
+  void _showExistingBackupDialog(BuildContext context, Map<String, dynamic> backupInfo) {
+    final theme = Theme.of(context);
+    
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: Text('backup.existing_backup_found'.tr()),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('backup.existing_backup_message'.tr()),
+              const SizedBox(height: 16),
+              if (backupInfo['modifiedTime'] != null) ...[
+                Text(
+                  '${'backup.backup_date'.tr()}: ${_formatBackupDate(backupInfo['modifiedTime'])}',
+                  style: theme.textTheme.bodySmall,
+                ),
+              ],
+              if (backupInfo['size'] != null) ...[
+                const SizedBox(height: 4),
+                Text(
+                  '${'backup.size'.tr()}: ${_formatSize(int.tryParse(backupInfo['size'].toString()) ?? 0)}',
+                  style: theme.textTheme.bodySmall,
+                ),
+              ],
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+                context.read<BackupBloc>().add(const SkipExistingBackup());
+              },
+              child: Text('backup.skip_restore'.tr()),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+                context.read<BackupBloc>().add(RestoreExistingBackup(backupInfo['fileId']));
+              },
+              child: Text('backup.restore_backup'.tr()),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  /// Format backup date for display
+  String _formatBackupDate(String isoDateString) {
+    try {
+      final date = DateTime.parse(isoDateString);
+      final now = DateTime.now();
+      final difference = now.difference(date);
+
+      if (difference.inDays == 0) {
+        return 'backup.today'.tr();
+      } else if (difference.inDays == 1) {
+        return 'backup.yesterday'.tr();
+      } else if (difference.inDays < 7) {
+        return 'backup.days_ago'.tr().replaceAll('{days}', difference.inDays.toString());
+      } else {
+        return '${date.day}/${date.month}/${date.year}';
+      }
+    } catch (e) {
+      return isoDateString;
+    }
+  }
+
+  /// Format size in bytes to human readable format
+  String _formatSize(int bytes) {
+    if (bytes < 1024) {
+      return '$bytes B';
+    } else if (bytes < 1024 * 1024) {
+      return '${(bytes / 1024).toStringAsFixed(1)} KB';
+    } else {
+      return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+    }
   }
 }
 
