@@ -69,7 +69,7 @@ class _SplashScreenState extends State<SplashScreen>
         PageRouteBuilder(
           transitionDuration: const Duration(milliseconds: 600),
           pageBuilder: (context, animation, secondaryAnimation) =>
-              const DevocionalesPage(),
+          const DevocionalesPage(),
           // CAMBIADO: Navegar directamente a DevocionalesPage
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             const begin = Offset(1.0, 0.0);
@@ -156,28 +156,29 @@ class _SplashScreenState extends State<SplashScreen>
                           children: [
                             // Partículas luminosas
                             ...updatedParticles.map(
-                              (p) => Positioned(
-                                left: p.x,
-                                top: p.y,
-                                child: Opacity(
-                                  opacity: p.opacity,
-                                  child: Container(
-                                    width: p.size,
-                                    height: p.size,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: p.color,
-                                      boxShadow: const [
-                                        BoxShadow(
-                                          color: Colors.transparent,
-                                          blurRadius: 20,
-                                          spreadRadius: 2,
+                                  (p) =>
+                                  Positioned(
+                                    left: p.x,
+                                    top: p.y,
+                                    child: Opacity(
+                                      opacity: p.opacity,
+                                      child: Container(
+                                        width: p.size,
+                                        height: p.size,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: p.color,
+                                          boxShadow: const [
+                                            BoxShadow(
+                                              color: Colors.transparent,
+                                              blurRadius: 20,
+                                              spreadRadius: 2,
+                                            ),
+                                          ],
                                         ),
-                                      ],
+                                      ),
                                     ),
                                   ),
-                                ),
-                              ),
                             ),
                             // Texto principal centrado en el Stack
                             Center(
