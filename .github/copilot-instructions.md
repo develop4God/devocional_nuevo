@@ -1,3 +1,5 @@
+- **copilot allways validate and confirm reading this file on each copilot coding agent session:**
+
 # Copilot Instructions for this Flutter/Dart Repository
 
 This repository is a Flutter project, focused on devotional applications and related tools.
