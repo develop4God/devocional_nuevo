@@ -17,20 +17,26 @@ void main() {
           'reading_streak': 30,
           'total_reading_time': 3600,
         },
-        'favorite_devotionals': List.generate(20, (index) => {
-          'id': 'devotional_$index',
-          'title': 'Devotional Title $index',
-          'content': 'This is a sample devotional content that contains meaningful text about faith, hope, and spiritual growth. It includes verses, reflections, and prayers that help believers in their daily walk with God.',
-          'date': '2025-01-${(index % 30) + 1}',
-          'tags': ['faith', 'prayer', 'growth'],
-        }),
-        'saved_prayers': List.generate(10, (index) => {
-          'id': 'prayer_$index',
-          'title': 'Prayer Title $index',
-          'content': 'Dear Heavenly Father, we come before you with grateful hearts. We ask for your guidance, wisdom, and protection. Help us to grow in faith and to serve others with love and compassion.',
-          'category': 'personal',
-          'date_created': '2025-01-${(index % 30) + 1}',
-        }),
+        'favorite_devotionals': List.generate(
+            20,
+            (index) => {
+                  'id': 'devotional_$index',
+                  'title': 'Devotional Title $index',
+                  'content':
+                      'This is a sample devotional content that contains meaningful text about faith, hope, and spiritual growth. It includes verses, reflections, and prayers that help believers in their daily walk with God.',
+                  'date': '2025-01-${(index % 30) + 1}',
+                  'tags': ['faith', 'prayer', 'growth'],
+                }),
+        'saved_prayers': List.generate(
+            10,
+            (index) => {
+                  'id': 'prayer_$index',
+                  'title': 'Prayer Title $index',
+                  'content':
+                      'Dear Heavenly Father, we come before you with grateful hearts. We ask for your guidance, wisdom, and protection. Help us to grow in faith and to serve others with love and compassion.',
+                  'category': 'personal',
+                  'date_created': '2025-01-${(index % 30) + 1}',
+                }),
       };
 
       final jsonString = jsonEncode(sampleData);
@@ -50,21 +56,27 @@ void main() {
       print('Space saved: ${compressionPercentage.toStringAsFixed(1)}%');
 
       // Assertions
-      expect(compressedSize, lessThan(originalSize), reason: 'Compressed data should be smaller than original');
-      expect(compressionPercentage, greaterThan(10), reason: 'Should achieve at least 10% compression for JSON data');
+      expect(compressedSize, lessThan(originalSize),
+          reason: 'Compressed data should be smaller than original');
+      expect(compressionPercentage, greaterThan(10),
+          reason: 'Should achieve at least 10% compression for JSON data');
 
       // Test decompression to ensure data integrity
-      final decompressedData = CompressionService.decompressJson(compressedData);
+      final decompressedData =
+          CompressionService.decompressJson(compressedData);
 
-      expect(decompressedData, isNotNull, reason: 'Decompression should succeed');
-      expect(decompressedData, equals(sampleData), reason: 'Decompressed data should match original');
+      expect(decompressedData, isNotNull,
+          reason: 'Decompression should succeed');
+      expect(decompressedData, equals(sampleData),
+          reason: 'Decompressed data should match original');
     });
 
     test('should handle small data efficiently', () {
       final smallData = {'message': 'Hello World'};
 
       final compressedData = CompressionService.compressJson(smallData);
-      final decompressedData = CompressionService.decompressJson(compressedData);
+      final decompressedData =
+          CompressionService.decompressJson(compressedData);
 
       expect(decompressedData, isNotNull);
       expect(decompressedData, equals(smallData));
@@ -74,7 +86,8 @@ void main() {
       final emptyData = <String, dynamic>{};
 
       final compressedData = CompressionService.compressJson(emptyData);
-      final decompressedData = CompressionService.decompressJson(compressedData);
+      final decompressedData =
+          CompressionService.decompressJson(compressedData);
 
       expect(decompressedData, isNotNull);
       expect(decompressedData, equals(emptyData));
@@ -83,16 +96,18 @@ void main() {
     test('should demonstrate compression effectiveness on repetitive data', () {
       // Create highly repetitive data that should compress very well
       final repetitiveData = {
-        'users': List.generate(100, (index) => {
-          'name': 'User Name',
-          'email': 'user@example.com',
-          'status': 'active',
-          'preferences': {
-            'theme': 'dark',
-            'language': 'spanish',
-            'notifications': true,
-          },
-        }),
+        'users': List.generate(
+            100,
+            (index) => {
+                  'name': 'User Name',
+                  'email': 'user@example.com',
+                  'status': 'active',
+                  'preferences': {
+                    'theme': 'dark',
+                    'language': 'spanish',
+                    'notifications': true,
+                  },
+                }),
       };
 
       final jsonString = jsonEncode(repetitiveData);
@@ -103,10 +118,12 @@ void main() {
 
       final compressionPercentage = (1 - (compressedSize / originalSize)) * 100;
 
-      print('Repetitive data compression: ${compressionPercentage.toStringAsFixed(1)}%');
+      print(
+          'Repetitive data compression: ${compressionPercentage.toStringAsFixed(1)}%');
 
       // Repetitive data should compress well (>30%)
-      expect(compressionPercentage, greaterThan(30), reason: 'Repetitive data should achieve good compression ratio');
+      expect(compressionPercentage, greaterThan(30),
+          reason: 'Repetitive data should achieve good compression ratio');
     });
   });
 
@@ -117,20 +134,31 @@ void main() {
         {'string': 'Hello, World!'},
         {'number': 42},
         {'boolean': true},
-        {'array': [1, 2, 3, 'test']},
-        {'nested': {'level1': {'level2': {'level3': 'deep'}}}},
+        {
+          'array': [1, 2, 3, 'test']
+        },
+        {
+          'nested': {
+            'level1': {
+              'level2': {'level3': 'deep'}
+            }
+          }
+        },
         {'unicode': 'Hola, ¿cómo estás? 🙏'},
-        {'special_chars': 'Test with "quotes", \'apostrophes\', and /slashes\\'},
+        {
+          'special_chars': 'Test with "quotes", \'apostrophes\', and /slashes\\'
+        },
       ];
 
       for (final testData in testCases) {
         // Compress and decompress
         final compressedData = CompressionService.compressJson(testData);
-        final decompressedData = CompressionService.decompressJson(compressedData);
+        final decompressedData =
+            CompressionService.decompressJson(compressedData);
 
         expect(decompressedData, isNotNull);
-        expect(decompressedData, equals(testData), 
-               reason: 'Data integrity must be preserved for: $testData');
+        expect(decompressedData, equals(testData),
+            reason: 'Data integrity must be preserved for: $testData');
       }
     });
 
@@ -146,11 +174,12 @@ void main() {
       };
 
       final compressedData = CompressionService.compressJson(complexData);
-      final decompressedData = CompressionService.decompressJson(compressedData);
+      final decompressedData =
+          CompressionService.decompressJson(compressedData);
 
       expect(decompressedData, isNotNull);
-      expect(decompressedData, equals(complexData), 
-             reason: 'Complex data integrity must be preserved');
+      expect(decompressedData, equals(complexData),
+          reason: 'Complex data integrity must be preserved');
     });
 
     test('should fail gracefully with corrupted data', () {
@@ -161,8 +190,8 @@ void main() {
 
       // Should return null or handle gracefully (based on implementation)
       // The service has fallback handling for corrupted data
-      expect(result, anyOf([isNull, isA<Map<String, dynamic>>()]), 
-             reason: 'Should handle corrupted data gracefully');
+      expect(result, anyOf([isNull, isA<Map<String, dynamic>>()]),
+          reason: 'Should handle corrupted data gracefully');
     });
   });
 }

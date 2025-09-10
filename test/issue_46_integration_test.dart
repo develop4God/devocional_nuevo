@@ -40,7 +40,8 @@ void main() {
           .setMockMethodCallHandler(const MethodChannel('flutter_tts'), null);
     });
 
-    testWidgets('should handle multilingual ordinals correctly', (WidgetTester tester) async {
+    testWidgets('should handle multilingual ordinals correctly',
+        (WidgetTester tester) async {
       // Test implementation would go here
       // This is a placeholder test to fix the compilation error
       expect(ttsService, isNotNull);

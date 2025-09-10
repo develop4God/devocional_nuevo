@@ -1,4 +1,4 @@
-// E2E Backup Test 
+// E2E Backup Test
 // Tests the End-to-End backup functionality as requested in the comment
 import 'package:devocional_nuevo/blocs/backup_bloc.dart';
 import 'package:devocional_nuevo/blocs/backup_event.dart';
@@ -12,7 +12,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:provider/provider.dart';
 
-class MockGoogleDriveBackupService extends Mock implements GoogleDriveBackupService {}
+class MockGoogleDriveBackupService extends Mock
+    implements GoogleDriveBackupService {}
+
 class MockDevocionalProvider extends Mock implements DevocionalProvider {}
 
 void main() {
@@ -23,35 +25,48 @@ void main() {
     setUp(() {
       mockBackupService = MockGoogleDriveBackupService();
       mockDevocionalProvider = MockDevocionalProvider();
-      
+
       // Set up default mocks for DevocionalProvider
       when(() => mockDevocionalProvider.favoriteDevocionales).thenReturn([]);
     });
 
     group('Scenario 1: First-time use (no existing backup)', () {
-      testWidgets('should display correct UI elements for first-time use', (WidgetTester tester) async {
+      testWidgets('should display correct UI elements for first-time use',
+          (WidgetTester tester) async {
         // Mock first-time use scenario
-        when(() => mockBackupService.isAuthenticated()).thenAnswer((_) async => false);
-        when(() => mockBackupService.getUserEmail()).thenAnswer((_) async => null);
-        when(() => mockBackupService.isAutoBackupEnabled()).thenAnswer((_) async => false);
-        when(() => mockBackupService.getBackupFrequency()).thenAnswer((_) async => GoogleDriveBackupService.frequencyManual);
-        when(() => mockBackupService.isWifiOnlyEnabled()).thenAnswer((_) async => true);
-        when(() => mockBackupService.isCompressionEnabled()).thenAnswer((_) async => true);
-        when(() => mockBackupService.getBackupOptions()).thenAnswer((_) async => {
-          'spiritual_stats': true,
-          'favorite_devotionals': true,
-          'saved_prayers': true,
-        });
-        when(() => mockBackupService.getLastBackupTime()).thenAnswer((_) async => null);
-        when(() => mockBackupService.getNextBackupTime()).thenAnswer((_) async => null);
-        when(() => mockBackupService.getEstimatedBackupSize(any())).thenAnswer((_) async => 0);
-        when(() => mockBackupService.getStorageInfo()).thenAnswer((_) async => {'used_gb': 0.0, 'total_gb': 15.0});
+        when(() => mockBackupService.isAuthenticated())
+            .thenAnswer((_) async => false);
+        when(() => mockBackupService.getUserEmail())
+            .thenAnswer((_) async => null);
+        when(() => mockBackupService.isAutoBackupEnabled())
+            .thenAnswer((_) async => false);
+        when(() => mockBackupService.getBackupFrequency())
+            .thenAnswer((_) async => GoogleDriveBackupService.frequencyManual);
+        when(() => mockBackupService.isWifiOnlyEnabled())
+            .thenAnswer((_) async => true);
+        when(() => mockBackupService.isCompressionEnabled())
+            .thenAnswer((_) async => true);
+        when(() => mockBackupService.getBackupOptions())
+            .thenAnswer((_) async => {
+                  'spiritual_stats': true,
+                  'favorite_devotionals': true,
+                  'saved_prayers': true,
+                });
+        when(() => mockBackupService.getLastBackupTime())
+            .thenAnswer((_) async => null);
+        when(() => mockBackupService.getNextBackupTime())
+            .thenAnswer((_) async => null);
+        when(() => mockBackupService.getEstimatedBackupSize(any()))
+            .thenAnswer((_) async => 0);
+        when(() => mockBackupService.getStorageInfo())
+            .thenAnswer((_) async => {'used_gb': 0.0, 'total_gb': 15.0});
 
         await tester.pumpWidget(
           MaterialApp(
             home: MultiProvider(
               providers: [
-                ChangeNotifierProvider<DevocionalProvider>.value(value: mockDevocionalProvider),
+                ChangeNotifierProvider<DevocionalProvider>.value(
+                    value: mockDevocionalProvider),
               ],
               child: BlocProvider(
                 create: (context) => BackupBloc(
@@ -72,7 +87,8 @@ void main() {
         expect(find.text('Copia de Seguridad'), findsWidgets);
 
         // Verify description text is shown as plain text (no icon container)
-        expect(find.textContaining('Protege tu progreso espiritual'), findsOneWidget);
+        expect(find.textContaining('Protege tu progreso espiritual'),
+            findsOneWidget);
 
         // Verify Google Drive connection section shows icon and not connected state
         expect(find.byIcon(Icons.cloud), findsOneWidget);
@@ -85,29 +101,41 @@ void main() {
         // Verify "Última copia de seguridad: no hay" is displayed
         expect(find.textContaining('no hay'), findsOneWidget);
 
-        // Verify security section is visible 
+        // Verify security section is visible
         expect(find.byIcon(Icons.security), findsOneWidget);
         expect(find.textContaining('Seguridad'), findsOneWidget);
       });
 
-      testWidgets('should handle Google Drive login tap', (WidgetTester tester) async {
+      testWidgets('should handle Google Drive login tap',
+          (WidgetTester tester) async {
         // Set up mocks for login flow
-        when(() => mockBackupService.isAuthenticated()).thenAnswer((_) async => false);
-        when(() => mockBackupService.getUserEmail()).thenAnswer((_) async => null);
-        when(() => mockBackupService.isAutoBackupEnabled()).thenAnswer((_) async => false);
-        when(() => mockBackupService.getBackupFrequency()).thenAnswer((_) async => GoogleDriveBackupService.frequencyManual);
-        when(() => mockBackupService.isWifiOnlyEnabled()).thenAnswer((_) async => true);
-        when(() => mockBackupService.isCompressionEnabled()).thenAnswer((_) async => true);
-        when(() => mockBackupService.getBackupOptions()).thenAnswer((_) async => {
-          'spiritual_stats': true,
-          'favorite_devotionals': true,
-          'saved_prayers': true,
-        });
-        when(() => mockBackupService.getLastBackupTime()).thenAnswer((_) async => null);
-        when(() => mockBackupService.getNextBackupTime()).thenAnswer((_) async => null);
-        when(() => mockBackupService.getEstimatedBackupSize(any())).thenAnswer((_) async => 0);
-        when(() => mockBackupService.getStorageInfo()).thenAnswer((_) async => {'used_gb': 0.0, 'total_gb': 15.0});
-        
+        when(() => mockBackupService.isAuthenticated())
+            .thenAnswer((_) async => false);
+        when(() => mockBackupService.getUserEmail())
+            .thenAnswer((_) async => null);
+        when(() => mockBackupService.isAutoBackupEnabled())
+            .thenAnswer((_) async => false);
+        when(() => mockBackupService.getBackupFrequency())
+            .thenAnswer((_) async => GoogleDriveBackupService.frequencyManual);
+        when(() => mockBackupService.isWifiOnlyEnabled())
+            .thenAnswer((_) async => true);
+        when(() => mockBackupService.isCompressionEnabled())
+            .thenAnswer((_) async => true);
+        when(() => mockBackupService.getBackupOptions())
+            .thenAnswer((_) async => {
+                  'spiritual_stats': true,
+                  'favorite_devotionals': true,
+                  'saved_prayers': true,
+                });
+        when(() => mockBackupService.getLastBackupTime())
+            .thenAnswer((_) async => null);
+        when(() => mockBackupService.getNextBackupTime())
+            .thenAnswer((_) async => null);
+        when(() => mockBackupService.getEstimatedBackupSize(any()))
+            .thenAnswer((_) async => 0);
+        when(() => mockBackupService.getStorageInfo())
+            .thenAnswer((_) async => {'used_gb': 0.0, 'total_gb': 15.0});
+
         // Mock successful login
         when(() => mockBackupService.signIn()).thenAnswer((_) async => true);
 
@@ -115,7 +143,8 @@ void main() {
           MaterialApp(
             home: MultiProvider(
               providers: [
-                ChangeNotifierProvider<DevocionalProvider>.value(value: mockDevocionalProvider),
+                ChangeNotifierProvider<DevocionalProvider>.value(
+                    value: mockDevocionalProvider),
               ],
               child: BlocProvider(
                 create: (context) => BackupBloc(
@@ -139,32 +168,46 @@ void main() {
         verify(() => mockBackupService.signIn()).called(1);
       });
 
-      testWidgets('should create manual backup successfully', (WidgetTester tester) async {
+      testWidgets('should create manual backup successfully',
+          (WidgetTester tester) async {
         // Mock authenticated state with successful backup creation
-        when(() => mockBackupService.isAuthenticated()).thenAnswer((_) async => true);
-        when(() => mockBackupService.getUserEmail()).thenAnswer((_) async => 'test@gmail.com');
-        when(() => mockBackupService.isAutoBackupEnabled()).thenAnswer((_) async => false);
-        when(() => mockBackupService.getBackupFrequency()).thenAnswer((_) async => GoogleDriveBackupService.frequencyManual);
-        when(() => mockBackupService.isWifiOnlyEnabled()).thenAnswer((_) async => true);
-        when(() => mockBackupService.isCompressionEnabled()).thenAnswer((_) async => true);
-        when(() => mockBackupService.getBackupOptions()).thenAnswer((_) async => {
-          'spiritual_stats': true,
-          'favorite_devotionals': true,
-          'saved_prayers': true,
-        });
-        when(() => mockBackupService.getLastBackupTime()).thenAnswer((_) async => null);
-        when(() => mockBackupService.getNextBackupTime()).thenAnswer((_) async => null);
-        when(() => mockBackupService.getEstimatedBackupSize(any())).thenAnswer((_) async => 1024);
-        when(() => mockBackupService.getStorageInfo()).thenAnswer((_) async => {'used_gb': 0.1, 'total_gb': 15.0});
-        
+        when(() => mockBackupService.isAuthenticated())
+            .thenAnswer((_) async => true);
+        when(() => mockBackupService.getUserEmail())
+            .thenAnswer((_) async => 'test@gmail.com');
+        when(() => mockBackupService.isAutoBackupEnabled())
+            .thenAnswer((_) async => false);
+        when(() => mockBackupService.getBackupFrequency())
+            .thenAnswer((_) async => GoogleDriveBackupService.frequencyManual);
+        when(() => mockBackupService.isWifiOnlyEnabled())
+            .thenAnswer((_) async => true);
+        when(() => mockBackupService.isCompressionEnabled())
+            .thenAnswer((_) async => true);
+        when(() => mockBackupService.getBackupOptions())
+            .thenAnswer((_) async => {
+                  'spiritual_stats': true,
+                  'favorite_devotionals': true,
+                  'saved_prayers': true,
+                });
+        when(() => mockBackupService.getLastBackupTime())
+            .thenAnswer((_) async => null);
+        when(() => mockBackupService.getNextBackupTime())
+            .thenAnswer((_) async => null);
+        when(() => mockBackupService.getEstimatedBackupSize(any()))
+            .thenAnswer((_) async => 1024);
+        when(() => mockBackupService.getStorageInfo())
+            .thenAnswer((_) async => {'used_gb': 0.1, 'total_gb': 15.0});
+
         // Mock successful backup creation
-        when(() => mockBackupService.createBackup(any())).thenAnswer((_) async => true);
+        when(() => mockBackupService.createBackup(any()))
+            .thenAnswer((_) async => true);
 
         await tester.pumpWidget(
           MaterialApp(
             home: MultiProvider(
               providers: [
-                ChangeNotifierProvider<DevocionalProvider>.value(value: mockDevocionalProvider),
+                ChangeNotifierProvider<DevocionalProvider>.value(
+                    value: mockDevocionalProvider),
               ],
               child: BlocProvider(
                 create: (context) => BackupBloc(
@@ -182,7 +225,7 @@ void main() {
         // Find and tap the "Create backup" button
         final createBackupButton = find.text('Crear copia de seguridad');
         expect(createBackupButton, findsOneWidget);
-        
+
         await tester.tap(createBackupButton);
         await tester.pump();
 
@@ -192,31 +235,44 @@ void main() {
     });
 
     group('Scenario 2: Existing backup', () {
-      testWidgets('should display existing backup information correctly', (WidgetTester tester) async {
+      testWidgets('should display existing backup information correctly',
+          (WidgetTester tester) async {
         final lastBackupTime = DateTime.now().subtract(const Duration(days: 1));
-        
+
         // Mock existing backup scenario
-        when(() => mockBackupService.isAuthenticated()).thenAnswer((_) async => true);
-        when(() => mockBackupService.getUserEmail()).thenAnswer((_) async => 'user@gmail.com');
-        when(() => mockBackupService.isAutoBackupEnabled()).thenAnswer((_) async => true);
-        when(() => mockBackupService.getBackupFrequency()).thenAnswer((_) async => GoogleDriveBackupService.frequencyDaily);
-        when(() => mockBackupService.isWifiOnlyEnabled()).thenAnswer((_) async => true);
-        when(() => mockBackupService.isCompressionEnabled()).thenAnswer((_) async => true);
-        when(() => mockBackupService.getBackupOptions()).thenAnswer((_) async => {
-          'spiritual_stats': true,
-          'favorite_devotionals': true,
-          'saved_prayers': true,
-        });
-        when(() => mockBackupService.getLastBackupTime()).thenAnswer((_) async => lastBackupTime);
-        when(() => mockBackupService.getNextBackupTime()).thenAnswer((_) async => DateTime.now().add(const Duration(hours: 12)));
-        when(() => mockBackupService.getEstimatedBackupSize(any())).thenAnswer((_) async => 5120);
-        when(() => mockBackupService.getStorageInfo()).thenAnswer((_) async => {'used_gb': 1.2, 'total_gb': 15.0});
+        when(() => mockBackupService.isAuthenticated())
+            .thenAnswer((_) async => true);
+        when(() => mockBackupService.getUserEmail())
+            .thenAnswer((_) async => 'user@gmail.com');
+        when(() => mockBackupService.isAutoBackupEnabled())
+            .thenAnswer((_) async => true);
+        when(() => mockBackupService.getBackupFrequency())
+            .thenAnswer((_) async => GoogleDriveBackupService.frequencyDaily);
+        when(() => mockBackupService.isWifiOnlyEnabled())
+            .thenAnswer((_) async => true);
+        when(() => mockBackupService.isCompressionEnabled())
+            .thenAnswer((_) async => true);
+        when(() => mockBackupService.getBackupOptions())
+            .thenAnswer((_) async => {
+                  'spiritual_stats': true,
+                  'favorite_devotionals': true,
+                  'saved_prayers': true,
+                });
+        when(() => mockBackupService.getLastBackupTime())
+            .thenAnswer((_) async => lastBackupTime);
+        when(() => mockBackupService.getNextBackupTime()).thenAnswer(
+            (_) async => DateTime.now().add(const Duration(hours: 12)));
+        when(() => mockBackupService.getEstimatedBackupSize(any()))
+            .thenAnswer((_) async => 5120);
+        when(() => mockBackupService.getStorageInfo())
+            .thenAnswer((_) async => {'used_gb': 1.2, 'total_gb': 15.0});
 
         await tester.pumpWidget(
           MaterialApp(
             home: MultiProvider(
               providers: [
-                ChangeNotifierProvider<DevocionalProvider>.value(value: mockDevocionalProvider),
+                ChangeNotifierProvider<DevocionalProvider>.value(
+                    value: mockDevocionalProvider),
               ],
               child: BlocProvider(
                 create: (context) => BackupBloc(
@@ -233,45 +289,59 @@ void main() {
 
         // Verify last backup time is displayed
         expect(find.textContaining('Ayer'), findsOneWidget);
-        
+
         // Verify next backup time is shown for automatic backups
         expect(find.textContaining('Próxima copia'), findsOneWidget);
-        
+
         // Verify backup size is displayed
         expect(find.textContaining('5.0 KB'), findsOneWidget);
-        
+
         // Verify authenticated state shows check mark
         expect(find.byIcon(Icons.check_circle), findsOneWidget);
       });
     });
 
     group('Scenario 3: Scheduled backup frequencies', () {
-      testWidgets('should handle Daily backup frequency correctly', (WidgetTester tester) async {
+      testWidgets('should handle Daily backup frequency correctly',
+          (WidgetTester tester) async {
         // Mock authenticated state with daily backup
-        when(() => mockBackupService.isAuthenticated()).thenAnswer((_) async => true);
-        when(() => mockBackupService.getUserEmail()).thenAnswer((_) async => 'test@gmail.com');
-        when(() => mockBackupService.isAutoBackupEnabled()).thenAnswer((_) async => true);
-        when(() => mockBackupService.getBackupFrequency()).thenAnswer((_) async => GoogleDriveBackupService.frequencyDaily);
-        when(() => mockBackupService.isWifiOnlyEnabled()).thenAnswer((_) async => true);
-        when(() => mockBackupService.isCompressionEnabled()).thenAnswer((_) async => true);
-        when(() => mockBackupService.getBackupOptions()).thenAnswer((_) async => {
-          'spiritual_stats': true,
-          'favorite_devotionals': true,
-          'saved_prayers': true,
-        });
-        when(() => mockBackupService.getLastBackupTime()).thenAnswer((_) async => null);
-        when(() => mockBackupService.getNextBackupTime()).thenAnswer((_) async => DateTime.now().add(const Duration(hours: 12)));
-        when(() => mockBackupService.getEstimatedBackupSize(any())).thenAnswer((_) async => 1024);
-        when(() => mockBackupService.getStorageInfo()).thenAnswer((_) async => {'used_gb': 0.1, 'total_gb': 15.0});
-        
+        when(() => mockBackupService.isAuthenticated())
+            .thenAnswer((_) async => true);
+        when(() => mockBackupService.getUserEmail())
+            .thenAnswer((_) async => 'test@gmail.com');
+        when(() => mockBackupService.isAutoBackupEnabled())
+            .thenAnswer((_) async => true);
+        when(() => mockBackupService.getBackupFrequency())
+            .thenAnswer((_) async => GoogleDriveBackupService.frequencyDaily);
+        when(() => mockBackupService.isWifiOnlyEnabled())
+            .thenAnswer((_) async => true);
+        when(() => mockBackupService.isCompressionEnabled())
+            .thenAnswer((_) async => true);
+        when(() => mockBackupService.getBackupOptions())
+            .thenAnswer((_) async => {
+                  'spiritual_stats': true,
+                  'favorite_devotionals': true,
+                  'saved_prayers': true,
+                });
+        when(() => mockBackupService.getLastBackupTime())
+            .thenAnswer((_) async => null);
+        when(() => mockBackupService.getNextBackupTime()).thenAnswer(
+            (_) async => DateTime.now().add(const Duration(hours: 12)));
+        when(() => mockBackupService.getEstimatedBackupSize(any()))
+            .thenAnswer((_) async => 1024);
+        when(() => mockBackupService.getStorageInfo())
+            .thenAnswer((_) async => {'used_gb': 0.1, 'total_gb': 15.0});
+
         // Mock frequency change
-        when(() => mockBackupService.setBackupFrequency(any())).thenAnswer((_) async {});
+        when(() => mockBackupService.setBackupFrequency(any()))
+            .thenAnswer((_) async {});
 
         await tester.pumpWidget(
           MaterialApp(
             home: MultiProvider(
               providers: [
-                ChangeNotifierProvider<DevocionalProvider>.value(value: mockDevocionalProvider),
+                ChangeNotifierProvider<DevocionalProvider>.value(
+                    value: mockDevocionalProvider),
               ],
               child: BlocProvider(
                 create: (context) => BackupBloc(
@@ -288,48 +358,64 @@ void main() {
 
         // Verify Daily option is selected in dropdown
         expect(find.text('Diariamente (2:00 AM)'), findsOneWidget);
-        
+
         // Verify auto backup is enabled
         expect(find.byType(Switch), findsWidgets);
-        
+
         // Test frequency change to Manual only
         final dropdown = find.byType(DropdownButton<String>);
         await tester.tap(dropdown);
         await tester.pump(const Duration(milliseconds: 500));
-        
-        await tester.tap(find.text('Solo cuando seleccione \'Crear copia\'').last);
+
+        await tester
+            .tap(find.text('Solo cuando seleccione \'Crear copia\'').last);
         await tester.pump(const Duration(milliseconds: 500));
-        
-        verify(() => mockBackupService.setBackupFrequency(GoogleDriveBackupService.frequencyManual)).called(1);
+
+        verify(() => mockBackupService.setBackupFrequency(
+            GoogleDriveBackupService.frequencyManual)).called(1);
       });
 
-      testWidgets('should handle Deactivate option correctly', (WidgetTester tester) async {
+      testWidgets('should handle Deactivate option correctly',
+          (WidgetTester tester) async {
         // Mock authenticated state
-        when(() => mockBackupService.isAuthenticated()).thenAnswer((_) async => true);
-        when(() => mockBackupService.getUserEmail()).thenAnswer((_) async => 'test@gmail.com');
-        when(() => mockBackupService.isAutoBackupEnabled()).thenAnswer((_) async => true);
-        when(() => mockBackupService.getBackupFrequency()).thenAnswer((_) async => GoogleDriveBackupService.frequencyDaily);
-        when(() => mockBackupService.isWifiOnlyEnabled()).thenAnswer((_) async => true);
-        when(() => mockBackupService.isCompressionEnabled()).thenAnswer((_) async => true);
-        when(() => mockBackupService.getBackupOptions()).thenAnswer((_) async => {
-          'spiritual_stats': true,
-          'favorite_devotionals': true,
-          'saved_prayers': true,
-        });
-        when(() => mockBackupService.getLastBackupTime()).thenAnswer((_) async => DateTime.now().subtract(const Duration(days: 1)));
-        when(() => mockBackupService.getNextBackupTime()).thenAnswer((_) async => null);
-        when(() => mockBackupService.getEstimatedBackupSize(any())).thenAnswer((_) async => 1024);
-        when(() => mockBackupService.getStorageInfo()).thenAnswer((_) async => {'used_gb': 0.1, 'total_gb': 15.0});
-        
+        when(() => mockBackupService.isAuthenticated())
+            .thenAnswer((_) async => true);
+        when(() => mockBackupService.getUserEmail())
+            .thenAnswer((_) async => 'test@gmail.com');
+        when(() => mockBackupService.isAutoBackupEnabled())
+            .thenAnswer((_) async => true);
+        when(() => mockBackupService.getBackupFrequency())
+            .thenAnswer((_) async => GoogleDriveBackupService.frequencyDaily);
+        when(() => mockBackupService.isWifiOnlyEnabled())
+            .thenAnswer((_) async => true);
+        when(() => mockBackupService.isCompressionEnabled())
+            .thenAnswer((_) async => true);
+        when(() => mockBackupService.getBackupOptions())
+            .thenAnswer((_) async => {
+                  'spiritual_stats': true,
+                  'favorite_devotionals': true,
+                  'saved_prayers': true,
+                });
+        when(() => mockBackupService.getLastBackupTime()).thenAnswer(
+            (_) async => DateTime.now().subtract(const Duration(days: 1)));
+        when(() => mockBackupService.getNextBackupTime())
+            .thenAnswer((_) async => null);
+        when(() => mockBackupService.getEstimatedBackupSize(any()))
+            .thenAnswer((_) async => 1024);
+        when(() => mockBackupService.getStorageInfo())
+            .thenAnswer((_) async => {'used_gb': 0.1, 'total_gb': 15.0});
+
         // Mock deactivation
-        when(() => mockBackupService.setBackupFrequency(any())).thenAnswer((_) async {});
+        when(() => mockBackupService.setBackupFrequency(any()))
+            .thenAnswer((_) async {});
         when(() => mockBackupService.signOut()).thenAnswer((_) async {});
 
         await tester.pumpWidget(
           MaterialApp(
             home: MultiProvider(
               providers: [
-                ChangeNotifierProvider<DevocionalProvider>.value(value: mockDevocionalProvider),
+                ChangeNotifierProvider<DevocionalProvider>.value(
+                    value: mockDevocionalProvider),
               ],
               child: BlocProvider(
                 create: (context) => BackupBloc(
@@ -348,39 +434,53 @@ void main() {
         final dropdown = find.byType(DropdownButton<String>);
         await tester.tap(dropdown);
         await tester.pump(const Duration(milliseconds: 500));
-        
+
         await tester.tap(find.text('Desactivar').last);
         await tester.pump(const Duration(milliseconds: 500));
-        
+
         // Verify deactivation calls are made
-        verify(() => mockBackupService.setBackupFrequency(GoogleDriveBackupService.frequencyDeactivated)).called(1);
+        verify(() => mockBackupService.setBackupFrequency(
+            GoogleDriveBackupService.frequencyDeactivated)).called(1);
       });
     });
 
     group('Interaction Tests', () {
-      testWidgets('should have InkWell ripple effects on interactive elements', (WidgetTester tester) async {
+      testWidgets('should have InkWell ripple effects on interactive elements',
+          (WidgetTester tester) async {
         // Mock basic loaded state
-        when(() => mockBackupService.isAuthenticated()).thenAnswer((_) async => true);
-        when(() => mockBackupService.getUserEmail()).thenAnswer((_) async => 'test@gmail.com');
-        when(() => mockBackupService.isAutoBackupEnabled()).thenAnswer((_) async => false);
-        when(() => mockBackupService.getBackupFrequency()).thenAnswer((_) async => GoogleDriveBackupService.frequencyManual);
-        when(() => mockBackupService.isWifiOnlyEnabled()).thenAnswer((_) async => true);
-        when(() => mockBackupService.isCompressionEnabled()).thenAnswer((_) async => true);
-        when(() => mockBackupService.getBackupOptions()).thenAnswer((_) async => {
-          'spiritual_stats': true,
-          'favorite_devotionals': true,
-          'saved_prayers': true,
-        });
-        when(() => mockBackupService.getLastBackupTime()).thenAnswer((_) async => null);
-        when(() => mockBackupService.getNextBackupTime()).thenAnswer((_) async => null);
-        when(() => mockBackupService.getEstimatedBackupSize(any())).thenAnswer((_) async => 1024);
-        when(() => mockBackupService.getStorageInfo()).thenAnswer((_) async => {'used_gb': 0.1, 'total_gb': 15.0});
+        when(() => mockBackupService.isAuthenticated())
+            .thenAnswer((_) async => true);
+        when(() => mockBackupService.getUserEmail())
+            .thenAnswer((_) async => 'test@gmail.com');
+        when(() => mockBackupService.isAutoBackupEnabled())
+            .thenAnswer((_) async => false);
+        when(() => mockBackupService.getBackupFrequency())
+            .thenAnswer((_) async => GoogleDriveBackupService.frequencyManual);
+        when(() => mockBackupService.isWifiOnlyEnabled())
+            .thenAnswer((_) async => true);
+        when(() => mockBackupService.isCompressionEnabled())
+            .thenAnswer((_) async => true);
+        when(() => mockBackupService.getBackupOptions())
+            .thenAnswer((_) async => {
+                  'spiritual_stats': true,
+                  'favorite_devotionals': true,
+                  'saved_prayers': true,
+                });
+        when(() => mockBackupService.getLastBackupTime())
+            .thenAnswer((_) async => null);
+        when(() => mockBackupService.getNextBackupTime())
+            .thenAnswer((_) async => null);
+        when(() => mockBackupService.getEstimatedBackupSize(any()))
+            .thenAnswer((_) async => 1024);
+        when(() => mockBackupService.getStorageInfo())
+            .thenAnswer((_) async => {'used_gb': 0.1, 'total_gb': 15.0});
 
         await tester.pumpWidget(
           MaterialApp(
             home: MultiProvider(
               providers: [
-                ChangeNotifierProvider<DevocionalProvider>.value(value: mockDevocionalProvider),
+                ChangeNotifierProvider<DevocionalProvider>.value(
+                    value: mockDevocionalProvider),
               ],
               child: BlocProvider(
                 create: (context) => BackupBloc(
@@ -397,7 +497,7 @@ void main() {
 
         // Verify multiple InkWell widgets exist for interactive elements
         expect(find.byType(InkWell), findsWidgets);
-        
+
         // Verify specific interactive elements have InkWell
         // Connection card, switch tiles, backup option tiles should all be tappable
         final inkWells = find.byType(InkWell);
