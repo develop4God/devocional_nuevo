@@ -65,7 +65,7 @@ void main() {
         );
 
         // Wait for the state to load
-        await tester.pumpAndSettle();
+        await tester.pump(const Duration(seconds: 2));
 
         // Verify App bar is visible and has correct title
         expect(find.byType(AppBar), findsOneWidget);
@@ -128,12 +128,12 @@ void main() {
           ),
         );
 
-        await tester.pumpAndSettle();
+        await tester.pump(const Duration(seconds: 2));
 
         // Find and tap the Google Drive connection card
         final connectionCard = find.byType(InkWell).first;
         await tester.tap(connectionCard);
-        await tester.pumpAndSettle();
+        await tester.pump(const Duration(seconds: 2));
 
         // Verify that SignInToGoogleDrive event was triggered
         verify(() => mockBackupService.signIn()).called(1);
@@ -177,7 +177,7 @@ void main() {
           ),
         );
 
-        await tester.pumpAndSettle();
+        await tester.pump(const Duration(seconds: 2));
 
         // Find and tap the "Create backup" button
         final createBackupButton = find.text('Crear copia de seguridad');
@@ -229,7 +229,7 @@ void main() {
           ),
         );
 
-        await tester.pumpAndSettle();
+        await tester.pump(const Duration(seconds: 2));
 
         // Verify last backup time is displayed
         expect(find.textContaining('Ayer'), findsOneWidget);
@@ -284,7 +284,7 @@ void main() {
           ),
         );
 
-        await tester.pumpAndSettle();
+        await tester.pump(const Duration(seconds: 2));
 
         // Verify Daily option is selected in dropdown
         expect(find.text('Diariamente (2:00 AM)'), findsOneWidget);
@@ -295,10 +295,10 @@ void main() {
         // Test frequency change to Manual only
         final dropdown = find.byType(DropdownButton<String>);
         await tester.tap(dropdown);
-        await tester.pumpAndSettle();
+        await tester.pump(const Duration(milliseconds: 500));
         
         await tester.tap(find.text('Solo cuando seleccione \'Crear copia\'').last);
-        await tester.pumpAndSettle();
+        await tester.pump(const Duration(milliseconds: 500));
         
         verify(() => mockBackupService.setBackupFrequency(GoogleDriveBackupService.frequencyManual)).called(1);
       });
@@ -342,15 +342,15 @@ void main() {
           ),
         );
 
-        await tester.pumpAndSettle();
+        await tester.pump(const Duration(seconds: 2));
 
         // Test frequency change to Deactivate
         final dropdown = find.byType(DropdownButton<String>);
         await tester.tap(dropdown);
-        await tester.pumpAndSettle();
+        await tester.pump(const Duration(milliseconds: 500));
         
         await tester.tap(find.text('Desactivar').last);
-        await tester.pumpAndSettle();
+        await tester.pump(const Duration(milliseconds: 500));
         
         // Verify deactivation calls are made
         verify(() => mockBackupService.setBackupFrequency(GoogleDriveBackupService.frequencyDeactivated)).called(1);
@@ -393,7 +393,7 @@ void main() {
           ),
         );
 
-        await tester.pumpAndSettle();
+        await tester.pump(const Duration(seconds: 2));
 
         // Verify multiple InkWell widgets exist for interactive elements
         expect(find.byType(InkWell), findsWidgets);

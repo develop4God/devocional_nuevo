@@ -236,7 +236,7 @@ class _BackupSettingsContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16).copyWith(bottom: 100), // Add extra bottom padding for Android navigation buttons
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -262,6 +262,9 @@ class _BackupSettingsContent extends StatelessWidget {
 
           // Security info
           _buildSecurityCard(context),
+          
+          // Extra spacing to ensure security section is fully visible
+          const SizedBox(height: 60),
         ],
       ),
     );
@@ -271,28 +274,26 @@ class _BackupSettingsContent extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Plain text without icon as requested
-            Text(
-              'backup.description_title'.tr(),
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+    // Changed to plain text without container/card as requested
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'backup.description_title'.tr(),
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
             ),
-            const SizedBox(height: 12),
-            Text(
-              'backup.description_text'.tr(),
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'backup.description_text'.tr(),
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: colorScheme.onSurfaceVariant,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -463,6 +464,7 @@ class _BackupSettingsContent extends StatelessWidget {
   Widget _buildFrequencySelector(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final isAuthenticated = state.isAuthenticated;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -471,38 +473,42 @@ class _BackupSettingsContent extends StatelessWidget {
           'backup.frequency'.tr(),
           style: theme.textTheme.titleSmall?.copyWith(
             fontWeight: FontWeight.w500,
+            color: isAuthenticated ? null : theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
           ),
         ),
         const SizedBox(height: 8),
-        Container(
-          decoration: BoxDecoration(
-            border: Border.all(color: colorScheme.outline),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<String>(
-              value: state.backupFrequency,
-              isExpanded: true,
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              items: [
-                DropdownMenuItem(
-                  value: GoogleDriveBackupService.frequencyDaily,
-                  child: Text('backup.frequency_daily_2am'.tr()),
-                ),
-                DropdownMenuItem(
-                  value: GoogleDriveBackupService.frequencyManual,
-                  child: Text('backup.frequency_manual_only'.tr()),
-                ),
-                DropdownMenuItem(
-                  value: GoogleDriveBackupService.frequencyDeactivated,
-                  child: Text('backup.frequency_deactivated'.tr()),
-                ),
-              ],
-              onChanged: (value) {
-                if (value != null) {
-                  context.read<BackupBloc>().add(ChangeBackupFrequency(value));
-                }
-              },
+        Opacity(
+          opacity: isAuthenticated ? 1.0 : 0.5,
+          child: Container(
+            decoration: BoxDecoration(
+              border: Border.all(color: colorScheme.outline),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<String>(
+                value: state.backupFrequency,
+                isExpanded: true,
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                items: [
+                  DropdownMenuItem(
+                    value: GoogleDriveBackupService.frequencyDaily,
+                    child: Text('backup.frequency_daily_2am'.tr()),
+                  ),
+                  DropdownMenuItem(
+                    value: GoogleDriveBackupService.frequencyManual,
+                    child: Text('backup.frequency_manual_only'.tr()),
+                  ),
+                  DropdownMenuItem(
+                    value: GoogleDriveBackupService.frequencyDeactivated,
+                    child: Text('backup.frequency_deactivated'.tr()),
+                  ),
+                ],
+                onChanged: isAuthenticated ? (value) {
+                  if (value != null) {
+                    context.read<BackupBloc>().add(ChangeBackupFrequency(value));
+                  }
+                } : null, // Disable until authentication
+              ),
             ),
           ),
         ),
@@ -665,11 +671,12 @@ class _BackupSettingsContent extends StatelessWidget {
     return BlocBuilder<BackupBloc, BackupState>(
       builder: (context, state) {
         final isCreating = state is BackupCreating;
+        final isAuthenticated = state is BackupLoaded && state.isAuthenticated;
 
         return SizedBox(
           width: double.infinity,
           child: ElevatedButton(
-            onPressed: isCreating
+            onPressed: (isCreating || !isAuthenticated) // Disable until authentication is successful
                 ? null
                 : () {
                     context.read<BackupBloc>().add(const CreateManualBackup());
@@ -697,33 +704,32 @@ class _BackupSettingsContent extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.security, color: colorScheme.primary),
-                const SizedBox(width: 12),
-                Text(
-                  'backup.security_title'.tr(),
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+    // Changed to plain text without container/card as requested
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.security, color: colorScheme.primary),
+              const SizedBox(width: 12),
+              Text(
+                'backup.security_title'.tr(),
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
                 ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'backup.security_text'.tr(),
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurfaceVariant,
               ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'backup.security_text'.tr(),
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: colorScheme.onSurfaceVariant,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -736,39 +742,45 @@ class _BackupSettingsContent extends StatelessWidget {
     String? subtitle,
   }) {
     final theme = Theme.of(context);
+    final isAuthenticated = state.isAuthenticated;
 
     return InkWell(
-      onTap: () => onChanged(!value),
+      onTap: isAuthenticated ? () => onChanged(!value) : null, // Disable until authentication
       borderRadius: BorderRadius.circular(8),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: theme.textTheme.bodyLarge,
-                  ),
-                  if (subtitle != null) ...[
-                    const SizedBox(height: 4),
+      child: Opacity(
+        opacity: isAuthenticated ? 1.0 : 0.5, // Gray out when disabled
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                     Text(
-                      subtitle,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
+                      title,
+                      style: theme.textTheme.bodyLarge?.copyWith(
+                        color: isAuthenticated ? null : theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
                       ),
                     ),
+                    if (subtitle != null) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        subtitle,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant.withValues(alpha: isAuthenticated ? 0.8 : 0.4),
+                        ),
+                      ),
+                    ],
                   ],
-                ],
+                ),
               ),
-            ),
-            Switch(
-              value: value,
-              onChanged: onChanged,
-            ),
-          ],
+              Switch(
+                value: value,
+                onChanged: isAuthenticated ? onChanged : null, // Disable until authentication
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -782,37 +794,43 @@ class _BackupSettingsContent extends StatelessWidget {
     ValueChanged<bool> onChanged,
   ) {
     final theme = Theme.of(context);
+    final isAuthenticated = state.isAuthenticated;
 
     return InkWell(
-      onTap: () => onChanged(!value),
+      onTap: isAuthenticated ? () => onChanged(!value) : null, // Disable until authentication
       borderRadius: BorderRadius.circular(8),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
-        child: Row(
-          children: [
-            Checkbox(
-              value: value,
-              onChanged: (newValue) => onChanged(newValue ?? false),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: theme.textTheme.bodyLarge,
-                  ),
-                  Text(
-                    subtitle,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
+      child: Opacity(
+        opacity: isAuthenticated ? 1.0 : 0.5, // Gray out when disabled
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
+          child: Row(
+            children: [
+              Checkbox(
+                value: value,
+                onChanged: isAuthenticated ? (newValue) => onChanged(newValue ?? false) : null, // Disable until authentication
               ),
-            ),
-          ],
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: theme.textTheme.bodyLarge?.copyWith(
+                        color: isAuthenticated ? null : theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+                      ),
+                    ),
+                    Text(
+                      subtitle,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant.withValues(alpha: isAuthenticated ? 0.8 : 0.4),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

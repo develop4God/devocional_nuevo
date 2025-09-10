@@ -61,7 +61,7 @@ class GoogleDriveBackupService {
   /// Get backup frequency
   Future<String> getBackupFrequency() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_backupFrequencyKey) ?? frequencyManual;
+    return prefs.getString(_backupFrequencyKey) ?? frequencyDaily; // Default to Daily (2:00 AM) as requested
   }
 
   /// Set backup frequency
