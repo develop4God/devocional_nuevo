@@ -1,5 +1,4 @@
 // Unit tests for the 8 specific issues mentioned in the comment
-import 'package:devocional_nuevo/pages/backup_settings_page.dart';
 import 'package:devocional_nuevo/splash_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
