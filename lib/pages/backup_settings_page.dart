@@ -17,11 +17,21 @@ import '../services/spiritual_stats_service.dart';
 
 /// BackupSettingsPage with WhatsApp-style UI and BLoC architecture
 class BackupSettingsPage extends StatelessWidget {
-  const BackupSettingsPage({super.key});
+  final BackupBloc? bloc; // Optional bloc for testing
+
+  const BackupSettingsPage({super.key, this.bloc});
 
   @override
   Widget build(BuildContext context) {
-    // Create services with dependencies
+    // If bloc is provided (e.g., in tests), use it directly
+    if (bloc != null) {
+      return BlocProvider.value(
+        value: bloc!,
+        child: const _BackupSettingsView(),
+      );
+    }
+
+    // Otherwise, create services with dependencies (production)
     final authService = GoogleDriveAuthService();
     final connectivityService = ConnectivityService();
     final statsService = SpiritualStatsService();

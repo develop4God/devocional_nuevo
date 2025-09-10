@@ -29,6 +29,52 @@ void main() {
       when(() => mockDevocionalProvider.favoriteDevocionales).thenReturn([]);
     });
 
+    /// Helper function to create a properly mocked BackupSettingsPage
+    Widget createBackupPageWithMocks() {
+      // Set up comprehensive mocks
+      when(() => mockBackupService.isAuthenticated())
+          .thenAnswer((_) async => false);
+      when(() => mockBackupService.getUserEmail())
+          .thenAnswer((_) async => null);
+      when(() => mockBackupService.isAutoBackupEnabled())
+          .thenAnswer((_) async => false);
+      when(() => mockBackupService.getBackupFrequency())
+          .thenAnswer((_) async => GoogleDriveBackupService.frequencyDaily);
+      when(() => mockBackupService.isWifiOnlyEnabled())
+          .thenAnswer((_) async => true);
+      when(() => mockBackupService.isCompressionEnabled())
+          .thenAnswer((_) async => true);
+      when(() => mockBackupService.getBackupOptions())
+          .thenAnswer((_) async => {
+                'spiritual_stats': true,
+                'favorite_devotionals': true,
+                'saved_prayers': true,
+              });
+      when(() => mockBackupService.getLastBackupTime())
+          .thenAnswer((_) async => null);
+      when(() => mockBackupService.getNextBackupTime())
+          .thenAnswer((_) async => null);
+      when(() => mockBackupService.getEstimatedBackupSize(any()))
+          .thenAnswer((_) async => 0);
+      when(() => mockBackupService.getStorageInfo())
+          .thenAnswer((_) async => {'used_gb': 0.0, 'total_gb': 15.0});
+
+      final bloc = BackupBloc(
+        backupService: mockBackupService,
+        devocionalProvider: mockDevocionalProvider,
+      );
+
+      return MaterialApp(
+        home: MultiProvider(
+          providers: [
+            ChangeNotifierProvider<DevocionalProvider>.value(
+                value: mockDevocionalProvider),
+          ],
+          child: BackupSettingsPage(bloc: bloc),
+        ),
+      );
+    }
+
     group('Scenario 1: First-time use (no existing backup)', () {
       testWidgets('should display correct UI elements for first-time use',
           (WidgetTester tester) async {
@@ -107,61 +153,23 @@ void main() {
 
       testWidgets('should handle Google Drive login tap',
           (WidgetTester tester) async {
-        // Set up mocks for login flow
-        when(() => mockBackupService.isAuthenticated())
-            .thenAnswer((_) async => false);
-        when(() => mockBackupService.getUserEmail())
-            .thenAnswer((_) async => null);
-        when(() => mockBackupService.isAutoBackupEnabled())
-            .thenAnswer((_) async => false);
-        when(() => mockBackupService.getBackupFrequency())
-            .thenAnswer((_) async => GoogleDriveBackupService.frequencyManual);
-        when(() => mockBackupService.isWifiOnlyEnabled())
-            .thenAnswer((_) async => true);
-        when(() => mockBackupService.isCompressionEnabled())
-            .thenAnswer((_) async => true);
-        when(() => mockBackupService.getBackupOptions())
-            .thenAnswer((_) async => {
-                  'spiritual_stats': true,
-                  'favorite_devotionals': true,
-                  'saved_prayers': true,
-                });
-        when(() => mockBackupService.getLastBackupTime())
-            .thenAnswer((_) async => null);
-        when(() => mockBackupService.getNextBackupTime())
-            .thenAnswer((_) async => null);
-        when(() => mockBackupService.getEstimatedBackupSize(any()))
-            .thenAnswer((_) async => 0);
-        when(() => mockBackupService.getStorageInfo())
-            .thenAnswer((_) async => {'used_gb': 0.0, 'total_gb': 15.0});
-
         // Mock successful login
         when(() => mockBackupService.signIn()).thenAnswer((_) async => true);
 
-        await tester.pumpWidget(
-          MaterialApp(
-            home: MultiProvider(
-              providers: [
-                ChangeNotifierProvider<DevocionalProvider>.value(
-                    value: mockDevocionalProvider),
-              ],
-              child: BlocProvider(
-                create: (context) => BackupBloc(
-                  backupService: mockBackupService,
-                  devocionalProvider: mockDevocionalProvider,
-                )..add(const LoadBackupSettings()),
-                child: const BackupSettingsPage(),
-              ),
-            ),
-          ),
-        );
+        await tester.pumpWidget(createBackupPageWithMocks());
 
-        await tester.pump(const Duration(seconds: 2));
+        // Add the LoadBackupSettings event and wait for the page to load
+        final bloc = tester.widget<BackupSettingsPage>(find.byType(BackupSettingsPage)).bloc!;
+        bloc.add(const LoadBackupSettings());
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 100));
 
-        // Find and tap the Google Drive connection card
+        // Find and tap the Google Drive connection card (first InkWell)
         final connectionCard = find.byType(InkWell).first;
+        expect(connectionCard, findsOneWidget);
+        
         await tester.tap(connectionCard);
-        await tester.pump(const Duration(seconds: 2));
+        await tester.pump();
 
         // Verify that SignInToGoogleDrive event was triggered
         verify(() => mockBackupService.signIn()).called(1);
@@ -446,53 +454,19 @@ void main() {
     group('Interaction Tests', () {
       testWidgets('should have InkWell ripple effects on interactive elements',
           (WidgetTester tester) async {
-        // Mock basic loaded state
+        // Override authentication to true for this test
         when(() => mockBackupService.isAuthenticated())
             .thenAnswer((_) async => true);
         when(() => mockBackupService.getUserEmail())
             .thenAnswer((_) async => 'test@gmail.com');
-        when(() => mockBackupService.isAutoBackupEnabled())
-            .thenAnswer((_) async => false);
-        when(() => mockBackupService.getBackupFrequency())
-            .thenAnswer((_) async => GoogleDriveBackupService.frequencyManual);
-        when(() => mockBackupService.isWifiOnlyEnabled())
-            .thenAnswer((_) async => true);
-        when(() => mockBackupService.isCompressionEnabled())
-            .thenAnswer((_) async => true);
-        when(() => mockBackupService.getBackupOptions())
-            .thenAnswer((_) async => {
-                  'spiritual_stats': true,
-                  'favorite_devotionals': true,
-                  'saved_prayers': true,
-                });
-        when(() => mockBackupService.getLastBackupTime())
-            .thenAnswer((_) async => null);
-        when(() => mockBackupService.getNextBackupTime())
-            .thenAnswer((_) async => null);
-        when(() => mockBackupService.getEstimatedBackupSize(any()))
-            .thenAnswer((_) async => 1024);
-        when(() => mockBackupService.getStorageInfo())
-            .thenAnswer((_) async => {'used_gb': 0.1, 'total_gb': 15.0});
 
-        await tester.pumpWidget(
-          MaterialApp(
-            home: MultiProvider(
-              providers: [
-                ChangeNotifierProvider<DevocionalProvider>.value(
-                    value: mockDevocionalProvider),
-              ],
-              child: BlocProvider(
-                create: (context) => BackupBloc(
-                  backupService: mockBackupService,
-                  devocionalProvider: mockDevocionalProvider,
-                )..add(const LoadBackupSettings()),
-                child: const BackupSettingsPage(),
-              ),
-            ),
-          ),
-        );
+        await tester.pumpWidget(createBackupPageWithMocks());
 
-        await tester.pump(const Duration(seconds: 2));
+        // Add the LoadBackupSettings event and wait for the page to load
+        final bloc = tester.widget<BackupSettingsPage>(find.byType(BackupSettingsPage)).bloc!;
+        bloc.add(const LoadBackupSettings());
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 100));
 
         // Verify multiple InkWell widgets exist for interactive elements
         expect(find.byType(InkWell), findsWidgets);
