@@ -57,13 +57,15 @@ class GoogleDriveAuthService {
 
       if (_currentUser != null) {
         final auth = await _currentUser!.authentication;
-        
+
         // Check if we have valid tokens
         if (auth.accessToken == null) {
-          debugPrint('Google Sign-In error: No access token received. Check OAuth configuration.');
-          throw Exception('OAuth not configured. Please check google-services.json has OAuth clients.');
+          debugPrint(
+              'Google Sign-In error: No access token received. Check OAuth configuration.');
+          throw Exception(
+              'OAuth not configured. Please check google-services.json has OAuth clients.');
         }
-        
+
         _authClient = authenticatedClient(
           http.Client(),
           AccessCredentials(
@@ -90,14 +92,15 @@ class GoogleDriveAuthService {
       return false;
     } catch (e) {
       debugPrint('Google Drive sign-in error: $e');
-      
+
       // Provide more specific error context
-      if (e.toString().contains('OAuth') || 
+      if (e.toString().contains('OAuth') ||
           e.toString().contains('client') ||
           e.toString().contains('CONFIGURATION_NOT_FOUND')) {
-        debugPrint('OAuth Configuration Issue: Ensure google-services.json contains OAuth clients for Google Sign-In');
+        debugPrint(
+            'OAuth Configuration Issue: Ensure google-services.json contains OAuth clients for Google Sign-In');
       }
-      
+
       await _clearSignInState();
       return false;
     }
