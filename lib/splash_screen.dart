@@ -33,7 +33,7 @@ class _SplashScreenState extends State<SplashScreen>
       vsync: this,
       duration: const Duration(
         milliseconds: 1500,
-      ), // Duración de la animación del fade
+      ), // Duracion de la animación del fade
     );
 
     _fadeAnimation = Tween<double>(

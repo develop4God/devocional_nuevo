@@ -64,8 +64,6 @@ class _BackupSettingsView extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('backup.title'.tr()),
-        backgroundColor: colorScheme.surface,
-        elevation: 0,
       ),
       body: BlocListener<BackupBloc, BackupState>(
         listener: (context, state) {
