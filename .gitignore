@@ -57,6 +57,7 @@ Thumbs.db # Windows
 # Archivos de entorno y configuración sensible
 .env # Si usas archivos .env para variables de entorno
 key.properties # ¡Importante! El archivo de clave de firma de Android
+google-services.json
 
 # IDE specific files
 *.iml # IntelliJ/Android Studio project files
