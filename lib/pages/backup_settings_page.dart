@@ -14,6 +14,7 @@ import '../services/connectivity_service.dart';
 import '../services/google_drive_auth_service.dart';
 import '../services/google_drive_backup_service.dart';
 import '../services/spiritual_stats_service.dart';
+import 'test_google_signin.dart';
 
 /// BackupSettingsPage with WhatsApp-style UI and BLoC architecture
 class BackupSettingsPage extends StatelessWidget {
@@ -327,14 +328,7 @@ class _BackupSettingsContent extends StatelessWidget {
 
     return InkWell(
       onTap: () {
-        // Handle Google Drive login
-        context.read<BackupBloc>().add(const SignInToGoogleDrive());
-        debugPrint(
-            '🔄 [DEBUG] Usuario tapeó Google Drive connection - iniciando SignIn');
-        debugPrint(
-            '🔄 [DEBUG] Estado actual isAuthenticated: ${state.isAuthenticated}');
-        context.read<BackupBloc>().add(const SignInToGoogleDrive());
-        debugPrint('🔄 [DEBUG] Evento SignInToGoogleDrive enviado al Bloc');
+        SimpleGoogleTest.runAllTests(); // En lugar de tu código actual
       },
       borderRadius: BorderRadius.circular(12),
       child: Card(
