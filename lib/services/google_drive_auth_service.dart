@@ -32,29 +32,12 @@ class GoogleDriveAuthService {
   /// Check if user is currently signed in to Google Drive
   Future<bool> isSignedIn() async {
     debugPrint('🔍 [DEBUG] Verificando si usuario está signed in...');
-
     final prefs = await SharedPreferences.getInstance();
     final isSignedIn = prefs.getBool(_isSignedInKey) ?? false;
     debugPrint('🔍 [DEBUG] Estado guardado en SharedPreferences: $isSignedIn');
 
-    if (isSignedIn && _googleSignIn != null) {
-      debugPrint('🔍 [DEBUG] Intentando sign in silencioso...');
-      // Try to sign in silently
-      try {
-        _currentUser = await _googleSignIn!.signInSilently();
-        debugPrint(
-            '🔍 [DEBUG] Sign in silencioso resultado: ${_currentUser?.email}');
-        return _currentUser != null;
-      } catch (e) {
-        debugPrint('❌ [DEBUG] Silent sign-in falló: $e');
-        debugPrint('❌ [DEBUG] Tipo de error: ${e.runtimeType}');
-        await _clearSignInState();
-        return false;
-      }
-    }
-
-    debugPrint('🔍 [DEBUG] isSignedIn resultado final: false');
-    return false;
+    debugPrint('🔍 [DEBUG] isSignedIn resultado final: $isSignedIn');
+    return isSignedIn;
   }
 
   /// Sign in to Google Drive
