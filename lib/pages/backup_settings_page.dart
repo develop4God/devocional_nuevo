@@ -23,6 +23,7 @@ class BackupSettingsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    debugPrint('🏗️ [DEBUG] BackupSettingsPage build iniciado');
     // If bloc is provided (e.g., in tests), use it directly
     if (bloc != null) {
       return BlocProvider.value(
@@ -33,14 +34,20 @@ class BackupSettingsPage extends StatelessWidget {
 
     // Otherwise, create services with dependencies (production)
     final authService = GoogleDriveAuthService();
+    debugPrint('🔧 [DEBUG] GoogleDriveAuthService creado');
+
     final connectivityService = ConnectivityService();
+    debugPrint('🔧 [DEBUG] ConnectivityService creado');
+
     final statsService = SpiritualStatsService();
+    debugPrint('🔧 [DEBUG] SpiritualStatsService creado');
 
     final backupService = GoogleDriveBackupService(
       authService: authService,
       connectivityService: connectivityService,
       statsService: statsService,
     );
+    debugPrint('🔧 [DEBUG] GoogleDriveBackupService creado con dependencias');
 
     return BlocProvider(
       create: (context) => BackupBloc(
@@ -67,7 +74,10 @@ class _BackupSettingsView extends StatelessWidget {
       ),
       body: BlocListener<BackupBloc, BackupState>(
         listener: (context, state) {
+          debugPrint(
+              '🔄 [DEBUG] BlocListener recibió estado: ${state.runtimeType}');
           if (state is BackupError) {
+            debugPrint('❌ [DEBUG] BackupError recibido: ${state.message}');
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(state.message.tr()),
@@ -75,6 +85,7 @@ class _BackupSettingsView extends StatelessWidget {
               ),
             );
           } else if (state is BackupCreated) {
+            debugPrint('✅ [DEBUG] BackupCreated recibido');
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text('backup.created_successfully'.tr()),
@@ -82,6 +93,7 @@ class _BackupSettingsView extends StatelessWidget {
               ),
             );
           } else if (state is BackupRestored) {
+            debugPrint('✅ [DEBUG] BackupRestored recibido');
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text('backup.restored_successfully'.tr()),
@@ -89,6 +101,7 @@ class _BackupSettingsView extends StatelessWidget {
               ),
             );
           } else if (state is BackupExistingFound) {
+            debugPrint('📋 [DEBUG] BackupExistingFound recibido');
             _showExistingBackupDialog(context, state.backupInfo);
           }
         },
@@ -316,6 +329,12 @@ class _BackupSettingsContent extends StatelessWidget {
       onTap: () {
         // Handle Google Drive login
         context.read<BackupBloc>().add(const SignInToGoogleDrive());
+        debugPrint(
+            '🔄 [DEBUG] Usuario tapeó Google Drive connection - iniciando SignIn');
+        debugPrint(
+            '🔄 [DEBUG] Estado actual isAuthenticated: ${state.isAuthenticated}');
+        context.read<BackupBloc>().add(const SignInToGoogleDrive());
+        debugPrint('🔄 [DEBUG] Evento SignInToGoogleDrive enviado al Bloc');
       },
       borderRadius: BorderRadius.circular(12),
       child: Card(
@@ -606,10 +625,12 @@ class _BackupSettingsContent extends StatelessWidget {
   Future<Map<String, dynamic>> _getDynamicBackupOptions(
       BuildContext context) async {
     try {
+      debugPrint('📊 [DEBUG] Obteniendo opciones dinámicas de backup...');
       // Get actual data from services
       final statsService = SpiritualStatsService();
       final devocionalProvider =
           Provider.of<DevocionalProvider>(context, listen: false);
+      debugPrint('📊 [DEBUG] Servicios obtenidos para calcular tamaños');
 
       // Get spiritual stats data
       final statsData = await statsService.getAllStats();
@@ -645,6 +666,8 @@ class _BackupSettingsContent extends StatelessWidget {
         },
       };
     } catch (e) {
+      debugPrint('❌ [DEBUG] Error getting dynamic backup options: $e');
+      debugPrint('❌ [DEBUG] Stack trace: ${StackTrace.current}');
       debugPrint('Error getting dynamic backup options: $e');
       // Return empty/zero values as fallback
       return {
