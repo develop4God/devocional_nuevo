@@ -35,7 +35,6 @@ class GoogleDriveAuthService {
     final prefs = await SharedPreferences.getInstance();
     final isSignedIn = prefs.getBool(_isSignedInKey) ?? false;
     debugPrint('🔍 [DEBUG] Estado guardado en SharedPreferences: $isSignedIn');
-
     debugPrint('🔍 [DEBUG] isSignedIn resultado final: $isSignedIn');
     return isSignedIn;
   }
@@ -44,7 +43,6 @@ class GoogleDriveAuthService {
   Future<bool> signIn() async {
     debugPrint('🔑 [DEBUG] ===== INICIANDO SIGN IN =====');
     debugPrint('🔑 [DEBUG] GoogleSignIn es null: ${_googleSignIn == null}');
-
     try {
       if (_googleSignIn == null) {
         debugPrint('❌ [DEBUG] GoogleSignIn no inicializado');
@@ -144,7 +142,6 @@ class GoogleDriveAuthService {
   /// Sign out from Google Drive
   Future<void> signOut() async {
     debugPrint('🔓 [DEBUG] Iniciando sign out...');
-
     try {
       if (_googleSignIn != null) {
         debugPrint('🔓 [DEBUG] Llamando _googleSignIn.signOut()...');
@@ -158,7 +155,6 @@ class GoogleDriveAuthService {
 
       debugPrint('🔓 [DEBUG] Limpiando estado...');
       await _clearSignInState();
-
       debugPrint('✅ [DEBUG] Google Drive sign-out successful');
     } catch (e) {
       debugPrint('❌ [DEBUG] Google Drive sign-out error: $e');
@@ -168,7 +164,6 @@ class GoogleDriveAuthService {
   /// Get current user email
   Future<String?> getUserEmail() async {
     debugPrint('👤 [DEBUG] Obteniendo user email...');
-
     if (_currentUser != null) {
       debugPrint('👤 [DEBUG] Email desde _currentUser: ${_currentUser!.email}');
       return _currentUser!.email;
@@ -191,11 +186,58 @@ class GoogleDriveAuthService {
 
     debugPrint(
         '🔐 [DEBUG] AuthClient no existe, verificando si está signed in...');
-    // Try to refresh authentication
+
+    // If user is signed in but _authClient is null, try to recreate it
     if (await isSignedIn()) {
       debugPrint(
-          '🔐 [DEBUG] Usuario signed in, devolviendo _authClient: ${_authClient != null}');
-      return _authClient;
+          '🔄 [DEBUG] Usuario signed in pero AuthClient es null, intentando recrear...');
+
+      try {
+        // Try to sign in silently to recreate the auth client
+        if (_googleSignIn == null) {
+          debugPrint('❌ [DEBUG] GoogleSignIn no inicializado para recreación');
+          await _clearSignInState();
+          return null;
+        }
+
+        final GoogleSignInAccount? googleUser =
+            await _googleSignIn!.signInSilently();
+
+        if (googleUser != null) {
+          debugPrint('🔄 [DEBUG] signInSilently exitoso: ${googleUser.email}');
+          _currentUser = googleUser;
+
+          final GoogleSignInAuthentication googleAuth =
+              await googleUser.authentication;
+
+          if (googleAuth.accessToken != null) {
+            debugPrint(
+                '🔄 [DEBUG] Access token obtenido, recreando AuthClient...');
+
+            final credentials = AccessCredentials(
+              AccessToken('Bearer', googleAuth.accessToken!,
+                  DateTime.now().toUtc().add(const Duration(hours: 1))),
+              googleAuth.idToken,
+              _scopes,
+            );
+
+            _authClient = authenticatedClient(http.Client(), credentials);
+            debugPrint('✅ [DEBUG] AuthClient recreado exitosamente');
+            return _authClient;
+          } else {
+            debugPrint('❌ [DEBUG] No access token en recreación');
+          }
+        } else {
+          debugPrint('❌ [DEBUG] signInSilently falló - usuario no disponible');
+        }
+      } catch (e) {
+        debugPrint('❌ [DEBUG] Error recreando AuthClient: $e');
+      }
+
+      // If recreation failed, clear inconsistent state
+      debugPrint('🧹 [DEBUG] Recreación falló, limpiando estado inconsistente');
+      await _clearSignInState();
+      return null;
     }
 
     debugPrint('🔐 [DEBUG] Usuario no signed in, devolviendo null');
@@ -214,7 +256,6 @@ class GoogleDriveAuthService {
   /// Get Drive API instance
   Future<drive.DriveApi?> getDriveApi() async {
     debugPrint('📁 [DEBUG] Obteniendo Drive API...');
-
     final authClient = await getAuthClient();
     if (authClient != null) {
       debugPrint('📁 [DEBUG] AuthClient obtenido, creando DriveApi...');
@@ -222,7 +263,6 @@ class GoogleDriveAuthService {
       debugPrint('📁 [DEBUG] DriveApi creado exitosamente');
       return driveApi;
     }
-
     debugPrint('📁 [DEBUG] AuthClient es null, devolviendo null');
     return null;
   }
