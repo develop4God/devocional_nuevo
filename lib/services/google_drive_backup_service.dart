@@ -231,7 +231,6 @@ class GoogleDriveBackupService {
       };
     } catch (e) {
       debugPrint('Error getting Google Drive storage info: $e');
-
       // Return default values on error
       return {
         'used_gb': 0.0,
@@ -272,7 +271,6 @@ class GoogleDriveBackupService {
       // Convert to bytes
       Uint8List fileBytes;
       final compressionEnabled = await isCompressionEnabled();
-
       if (compressionEnabled) {
         fileBytes = CompressionService.compressJson(backupData);
         debugPrint(
@@ -285,20 +283,18 @@ class GoogleDriveBackupService {
       // Get or create backup folder
       final folderId = await _getOrCreateBackupFolder(driveApi);
 
-      // Create file metadata
-      final file = drive.File()
-        ..name = _backupFileName
-        ..parents = [folderId]
-        ..description =
-            'Devocional backup created on ${DateTime.now().toIso8601String()}'
-        ..mimeType = 'application/json';
-
       // Check if backup file already exists
       final existingFile = await _findBackupFile(driveApi, folderId);
 
       if (existingFile != null) {
-        // Update existing file
+        // Update existing file - NO parents field
         debugPrint('Updating existing backup file: ${existingFile.id}');
+        final updateFile = drive.File()
+          ..name = _backupFileName
+          ..description =
+              'Devocional backup updated on ${DateTime.now().toIso8601String()}'
+          ..mimeType = 'application/json';
+        // Importante: NO incluir parents field en updates
 
         final media = drive.Media(
           Stream.fromIterable([fileBytes]),
@@ -306,13 +302,19 @@ class GoogleDriveBackupService {
         );
 
         await driveApi.files.update(
-          file,
+          updateFile,
           existingFile.id!,
           uploadMedia: media,
         );
       } else {
-        // Create new file
+        // Create new file - SÍ parents field
         debugPrint('Creating new backup file');
+        final createFile = drive.File()
+          ..name = _backupFileName
+          ..parents = [folderId] // Solo en creación
+          ..description =
+              'Devocional backup created on ${DateTime.now().toIso8601String()}'
+          ..mimeType = 'application/json';
 
         final media = drive.Media(
           Stream.fromIterable([fileBytes]),
@@ -320,7 +322,7 @@ class GoogleDriveBackupService {
         );
 
         await driveApi.files.create(
-          file,
+          createFile,
           uploadMedia: media,
         );
       }
@@ -436,7 +438,6 @@ class GoogleDriveBackupService {
 
       // Try to decompress first
       backupData = CompressionService.decompressJson(fileBytes);
-
       if (backupData == null) {
         // Try as uncompressed JSON
         try {
@@ -547,7 +548,6 @@ class GoogleDriveBackupService {
 
       final createdFolder = await driveApi.files.create(folder);
       final folderId = createdFolder.id!;
-
       await _setBackupFolderId(folderId);
       debugPrint('Created new backup folder: $folderId');
       return folderId;
@@ -568,7 +568,6 @@ class GoogleDriveBackupService {
       if (fileList.files != null && fileList.files!.isNotEmpty) {
         return fileList.files!.first;
       }
-
       return null;
     } catch (e) {
       debugPrint('Error finding backup file: $e');
@@ -660,7 +659,6 @@ class GoogleDriveBackupService {
   /// Sign out from Google Drive
   Future<void> signOut() async {
     await _authService.signOut();
-
     // Clear backup folder cache
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_backupFolderIdKey);
@@ -727,22 +725,43 @@ class GoogleDriveBackupService {
       // Download the backup file
       final media = await driveApi.files.get(fileId,
           downloadOptions: drive.DownloadOptions.fullMedia) as drive.Media;
+
       final backupData = <int>[];
       await for (final chunk in media.stream) {
         backupData.addAll(chunk);
       }
 
-      // Parse JSON data
-      final jsonString = String.fromCharCodes(backupData);
-      final backupJson = jsonDecode(jsonString) as Map<String, dynamic>;
+      final fileBytes = Uint8List.fromList(backupData);
+      debugPrint('Downloaded existing backup file: ${fileBytes.length} bytes');
+
+      // Parse backup data (same logic as restoreBackup)
+      Map<String, dynamic>? backupJson;
+
+      // Try to decompress first
+      backupJson = CompressionService.decompressJson(fileBytes);
+      if (backupJson == null) {
+        // Try as uncompressed JSON
+        try {
+          final jsonString = utf8.decode(fileBytes);
+          backupJson = json.decode(jsonString) as Map<String, dynamic>;
+          debugPrint('Backup file is uncompressed JSON');
+        } catch (e) {
+          throw Exception('Could not parse backup file: $e');
+        }
+      } else {
+        debugPrint('Backup file was compressed, decompressed successfully');
+      }
+
+      // Validate backup data
+      if (!_validateBackupData(backupJson)) {
+        throw Exception('Invalid backup data format');
+      }
 
       // Restore the backup data using existing restore method
       await _restoreBackupData(backupJson);
 
       // Update last backup time
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(
-          _lastBackupTimeKey, DateTime.now().toIso8601String());
+      await _setLastBackupTime(DateTime.now());
 
       debugPrint('Existing backup restored successfully');
       return true;
