@@ -87,7 +87,7 @@ class GoogleDriveAuthService {
             AccessToken(
               'Bearer',
               auth.accessToken!,
-              DateTime.now().add(const Duration(hours: 1)),
+              DateTime.now().toUtc().add(const Duration(hours: 1)),
             ),
             auth.idToken,
             _scopes,
