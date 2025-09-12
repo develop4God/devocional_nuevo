@@ -1,5 +1,6 @@
 // INICIO DE LOS IMPORTS AÑADIDOS/CORREGIDOS
 import java.util.Properties
+
 // FIN DE LOS IMPORTS (eliminado FileInputStream no usado)
 
 plugins {
@@ -45,15 +46,21 @@ android {
     }
 
     signingConfigs {
+
+
         if (
             System.getenv("KEYSTORE_PATH") != null ||
             keystoreProperties.getProperty("storeFile") != null
         ) {
             create("release") {
-                storeFile = file(System.getenv("KEYSTORE_PATH") ?: keystoreProperties.getProperty("storeFile"))
-                storePassword = System.getenv("KEYSTORE_PASSWORD") ?: keystoreProperties.getProperty("storePassword")
+                storeFile = file(
+                    System.getenv("KEYSTORE_PATH") ?: keystoreProperties.getProperty("storeFile")
+                )
+                storePassword = System.getenv("KEYSTORE_PASSWORD")
+                    ?: keystoreProperties.getProperty("storePassword")
                 keyAlias = System.getenv("KEY_ALIAS") ?: keystoreProperties.getProperty("keyAlias")
-                keyPassword = System.getenv("KEY_PASSWORD") ?: keystoreProperties.getProperty("keyPassword")
+                keyPassword =
+                    System.getenv("KEY_PASSWORD") ?: keystoreProperties.getProperty("keyPassword")
             }
         }
     }
@@ -89,17 +96,19 @@ android {
     // ✅ CORRECCIÓN: Usar packaging en lugar de packagingOptions
     packaging {
         resources {
-            excludes.addAll(listOf(
-                "META-INF/DEPENDENCIES",
-                "META-INF/LICENSE",
-                "META-INF/LICENSE.txt",
-                "META-INF/license.txt",
-                "META-INF/NOTICE",
-                "META-INF/NOTICE.txt",
-                "META-INF/notice.txt",
-                "META-INF/ASL2.0",
-                "META-INF/*.kotlin_module"
-            ))
+            excludes.addAll(
+                listOf(
+                    "META-INF/DEPENDENCIES",
+                    "META-INF/LICENSE",
+                    "META-INF/LICENSE.txt",
+                    "META-INF/license.txt",
+                    "META-INF/NOTICE",
+                    "META-INF/NOTICE.txt",
+                    "META-INF/notice.txt",
+                    "META-INF/ASL2.0",
+                    "META-INF/*.kotlin_module"
+                )
+            )
         }
     }
 }
