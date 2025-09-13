@@ -37,6 +37,10 @@ jobs:
           fetch-depth: 0
           ref: ${{ github.event.inputs.branch || 'main' }}
 
+      - name: Create google-services.json
+        run: |
+          echo "${{ secrets.GOOGLE_SERVICES_JSON_B64 }}" | base64 -d > android/app/google-services.json
+
       - name: 🔍 Debug build.gradle.kts content
         run: |
           echo "🔍 Checking build.gradle.kts content..."
