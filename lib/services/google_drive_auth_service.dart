@@ -40,7 +40,7 @@ class GoogleDriveAuthService {
   }
 
   /// Sign in to Google Drive
-  Future<bool> signIn() async {
+  Future<bool?> signIn() async {
     debugPrint('🔑 [DEBUG] ===== INICIANDO SIGN IN =====');
     debugPrint('🔑 [DEBUG] GoogleSignIn es null: ${_googleSignIn == null}');
     try {
@@ -107,7 +107,7 @@ class GoogleDriveAuthService {
 
       debugPrint('❌ [DEBUG] _currentUser es null - usuario canceló el sign in');
       debugPrint('Google Sign-In cancelled by user');
-      return false;
+      return null;
     } catch (e, stackTrace) {
       debugPrint('❌ [DEBUG] ===== ERROR EN SIGN IN =====');
       debugPrint('❌ [DEBUG] Error: $e');

@@ -652,8 +652,9 @@ class GoogleDriveBackupService {
   }
 
   /// Sign in to Google Drive
-  Future<bool> signIn() async {
-    return await _authService.signIn();
+  Future<bool?> signIn() async {
+    // Era: Future<bool> signIn() async {
+    return await _authService.signIn(); // El metodo ya queda simple
   }
 
   /// Sign out from Google Drive

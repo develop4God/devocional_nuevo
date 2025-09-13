@@ -48,10 +48,10 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
     try {
       emit(const BackupLoading());
 
-      // Primero verificar autenticación
+      // CAMBIO: Primero verificar autenticación
       final isAuthenticated = await _backupService.isAuthenticated();
 
-      // Solo obtener storageInfo SI está autenticado
+      // CAMBIO: Solo obtener storageInfo SI está autenticado (evita error de log)
       Map<String, dynamic> storageInfo = {};
       if (isAuthenticated) {
         storageInfo = await _backupService.getStorageInfo();
@@ -313,6 +313,15 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
 
       final success = await _backupService.signIn();
 
+      // CAMBIO: Manejar cancelación de usuario (null)
+      if (success == null) {
+        debugPrint(
+            '🔄 [DEBUG] Usuario canceló el sign-in - volviendo al estado anterior');
+        // Simplemente recargar el estado anterior sin mostrar error
+        add(const LoadBackupSettings());
+        return;
+      }
+
       if (success) {
         // Check for existing backups
         final existingBackup = await _backupService.checkForExistingBackup();
@@ -325,6 +334,7 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
           add(const LoadBackupSettings());
         }
       } else {
+        // Fallo real de autenticación (no cancelación)
         emit(const BackupError('backup.sign_in_failed'));
       }
     } catch (e) {
