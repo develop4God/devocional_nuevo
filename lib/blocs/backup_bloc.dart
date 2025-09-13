@@ -48,7 +48,16 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
     try {
       emit(const BackupLoading());
 
-      // Load all settings in parallel
+      // Primero verificar autenticación
+      final isAuthenticated = await _backupService.isAuthenticated();
+
+      // Solo obtener storageInfo SI está autenticado
+      Map<String, dynamic> storageInfo = {};
+      if (isAuthenticated) {
+        storageInfo = await _backupService.getStorageInfo();
+      }
+
+      // Cargar el resto de configuraciones en paralelo
       final results = await Future.wait([
         _backupService.isAutoBackupEnabled(),
         _backupService.getBackupFrequency(),
@@ -58,8 +67,6 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
         _backupService.getLastBackupTime(),
         _backupService.getNextBackupTime(),
         _backupService.getEstimatedBackupSize(_devocionalProvider),
-        _backupService.getStorageInfo(),
-        _backupService.isAuthenticated(),
         _backupService.getUserEmail(),
       ]);
 
@@ -72,9 +79,10 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
         lastBackupTime: results[5] as DateTime?,
         nextBackupTime: results[6] as DateTime?,
         estimatedSize: results[7] as int,
-        storageInfo: results[8] as Map<String, dynamic>,
-        isAuthenticated: results[9] as bool,
-        userEmail: results[10] as String?,
+        storageInfo: storageInfo,
+        // Usar el storageInfo condicional
+        isAuthenticated: isAuthenticated,
+        userEmail: results[8] as String?,
       ));
     } catch (e) {
       debugPrint('Error loading backup settings: $e');

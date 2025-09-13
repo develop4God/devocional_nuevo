@@ -349,8 +349,11 @@ class _BackupSettingsContent extends StatelessWidget {
                   // Google Drive icon
                   Icon(Icons.cloud, color: colorScheme.primary),
                   const SizedBox(width: 12),
+                  // CAMBIO: Título condicional
                   Text(
-                    'backup.google_drive_connection'.tr(),
+                    state.isAuthenticated
+                        ? 'backup.connected_to_google_drive'.tr()
+                        : 'backup.connect_to_google_drive'.tr(),
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -406,8 +409,9 @@ class _BackupSettingsContent extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 8),
+                // CAMBIO: Mensaje cuando no conectado
                 Text(
-                  'backup.tap_to_connect'.tr(),
+                  'backup.tap_to_connect_protect'.tr(),
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: colorScheme.primary,
                     fontWeight: FontWeight.w500,
