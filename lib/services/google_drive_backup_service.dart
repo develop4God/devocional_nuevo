@@ -624,20 +624,44 @@ class GoogleDriveBackupService {
   /// Restore backup data to local storage
   Future<void> _restoreBackupData(Map<String, dynamic> data) async {
     try {
-      // Restore spiritual stats
+      // Restore spiritual stats (YA EXISTE)
       if (data.containsKey('spiritual_stats')) {
         try {
           final stats = data['spiritual_stats'] as Map<String, dynamic>;
           await _statsService.restoreStats(stats);
-          debugPrint('Restored spiritual stats');
+          debugPrint('Restored spiritual stats from backup');
         } catch (e) {
           debugPrint('Error restoring spiritual stats: $e');
         }
       }
 
-      // Note: Favorite devotionals and prayers would need to be restored
-      // through their respective providers/services
-      // This would require additional methods in those services
+      // NUEVO: Restore favorite devotionals
+      if (data.containsKey('favorite_devotionals')) {
+        try {
+          final favoritesList = data['favorite_devotionals'] as List<dynamic>;
+          final prefs = await SharedPreferences.getInstance();
+          final String favoritesJson = json.encode(favoritesList);
+          await prefs.setString('favorites', favoritesJson);
+          debugPrint(
+              'Restored ${favoritesList.length} favorite devotionals from backup');
+        } catch (e) {
+          debugPrint('Error restoring favorite devotionals: $e');
+        }
+      }
+
+      // NUEVO: Restore saved prayers
+      if (data.containsKey('saved_prayers')) {
+        try {
+          final prayersList = data['saved_prayers'] as List<dynamic>;
+          final prefs = await SharedPreferences.getInstance();
+          final String prayersJson = json.encode(prayersList);
+          await prefs.setString('prayers', prayersJson);
+          debugPrint(
+              'Restored ${prayersList.length} saved prayers from backup');
+        } catch (e) {
+          debugPrint('Error restoring saved prayers: $e');
+        }
+      }
 
       debugPrint('Backup data restoration completed');
     } catch (e) {
