@@ -347,7 +347,12 @@ class _BackupSettingsContent extends StatelessWidget {
               Row(
                 children: [
                   // Google Drive icon
-                  Icon(Icons.cloud, color: colorScheme.primary),
+                  Icon(
+                    state.isAuthenticated
+                        ? Icons.backup_outlined
+                        : Icons.add_to_drive_outlined,
+                    color: colorScheme.primary,
+                  ),
                   const SizedBox(width: 12),
                   // CAMBIO: Título condicional
                   Text(
@@ -361,9 +366,9 @@ class _BackupSettingsContent extends StatelessWidget {
                   const Spacer(),
                   // Login indicator
                   if (state.isAuthenticated)
-                    Icon(Icons.check_circle, color: Colors.green)
+                    Icon(Icons.cloud_done_outlined, color: colorScheme.primary)
                   else
-                    Icon(Icons.login, color: colorScheme.primary),
+                    Icon(Icons.cloud_off_outlined, color: colorScheme.primary),
                 ],
               ),
               const SizedBox(height: 12),
