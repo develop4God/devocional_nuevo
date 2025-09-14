@@ -644,8 +644,7 @@ class GoogleDriveBackupService {
         try {
           final favorites = data['favorite_devotionals'] as List<dynamic>;
           final prefs = await SharedPreferences.getInstance();
-          await prefs.setString(
-              'favorite_devocionales', json.encode(favorites));
+          await prefs.setString('favorites', json.encode(favorites));
           debugPrint(
               'Restored ${favorites.length} favorite devotionals from backup');
         } catch (e) {

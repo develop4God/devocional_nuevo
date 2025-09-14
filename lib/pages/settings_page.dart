@@ -361,7 +361,8 @@ class _SettingsPageState extends State<SettingsPage> {
                 padding: const EdgeInsets.symmetric(vertical: 8.0),
                 child: Row(
                   children: [
-                    Icon(Icons.cloud_upload, color: colorScheme.primary),
+                    Icon(Icons.add_to_drive_outlined,
+                        color: colorScheme.primary),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
