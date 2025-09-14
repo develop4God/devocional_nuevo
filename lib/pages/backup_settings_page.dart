@@ -4,10 +4,12 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../blocs/backup_bloc.dart';
 import '../blocs/backup_event.dart';
 import '../blocs/backup_state.dart';
+import '../blocs/prayer_bloc.dart';
 import '../extensions/string_extensions.dart';
 import '../providers/devocional_provider.dart';
 import '../services/connectivity_service.dart';
@@ -54,6 +56,7 @@ class BackupSettingsPage extends StatelessWidget {
         backupService: backupService,
         devocionalProvider:
             Provider.of<DevocionalProvider>(context, listen: false),
+        prayerBloc: context.read<PrayerBloc>(),
       )..add(const LoadBackupSettings()),
       child: const _BackupSettingsView(),
     );
@@ -651,10 +654,12 @@ class _BackupSettingsContent extends StatelessWidget {
       final favoritesSize =
           _calculateJsonSize(devocionalProvider.favoriteDevocionales);
 
-      // Get saved prayers data (mock for now since prayers service might not exist)
-      final prayersCount =
-          0; // TODO: Replace with actual prayers count when prayers service exists
-      final prayersSize = 0;
+      // Get saved prayers data from SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      final prayersJson = prefs.getString('prayers') ?? '[]';
+      final prayersList = json.decode(prayersJson) as List<dynamic>;
+      final prayersCount = prayersList.length;
+      final prayersSize = _calculateJsonSize(prayersList);
 
       return {
         'spiritual_stats': {
