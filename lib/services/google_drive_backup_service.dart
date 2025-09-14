@@ -377,9 +377,11 @@ class GoogleDriveBackupService {
     // Include saved prayers if enabled
     if (options['saved_prayers'] == true) {
       try {
-        // TODO: Get from prayers service when implemented
-        backupData['saved_prayers'] = [];
-        debugPrint('Included saved prayers in backup');
+        final prefs = await SharedPreferences.getInstance();
+        final prayersJson = prefs.getString('prayers') ?? '[]';
+        final prayersList = json.decode(prayersJson) as List<dynamic>;
+        backupData['saved_prayers'] = prayersList;
+        debugPrint('Included ${prayersList.length} saved prayers in backup');
       } catch (e) {
         debugPrint('Error getting saved prayers: $e');
         backupData['saved_prayers'] = [];
@@ -624,13 +626,9 @@ class GoogleDriveBackupService {
   }
 
   /// Restore backup data to local storage
-  Future<void> _restoreBackupData(
-    Map<String, dynamic> data, {
-    DevocionalProvider? devocionalProvider,
-    PrayerBloc? prayerBloc,
-  }) async {
+  Future<void> _restoreBackupData(Map<String, dynamic> data) async {
     try {
-      // Restore spiritual stats (YA EXISTE)
+      // Restore spiritual stats
       if (data.containsKey('spiritual_stats')) {
         try {
           final stats = data['spiritual_stats'] as Map<String, dynamic>;
@@ -644,18 +642,12 @@ class GoogleDriveBackupService {
       // Restore favorite devotionals
       if (data.containsKey('favorite_devotionals')) {
         try {
-          final favoritesList = data['favorite_devotionals'] as List<dynamic>;
+          final favorites = data['favorite_devotionals'] as List<dynamic>;
           final prefs = await SharedPreferences.getInstance();
-          final String favoritesJson = json.encode(favoritesList);
-          await prefs.setString('favorites', favoritesJson);
+          await prefs.setString(
+              'favorite_devocionales', json.encode(favorites));
           debugPrint(
-              'Restored ${favoritesList.length} favorite devotionals from backup');
-
-          // ⭐ NUEVO: Notificar al provider que recargue
-          if (devocionalProvider != null) {
-            await devocionalProvider.reloadFavoritesFromStorage();
-            debugPrint('✅ DevocionalProvider notified and reloaded');
-          }
+              'Restored ${favorites.length} favorite devotionals from backup');
         } catch (e) {
           debugPrint('Error restoring favorite devotionals: $e');
         }
@@ -664,18 +656,10 @@ class GoogleDriveBackupService {
       // Restore saved prayers
       if (data.containsKey('saved_prayers')) {
         try {
-          final prayersList = data['saved_prayers'] as List<dynamic>;
+          final prayers = data['saved_prayers'] as List<dynamic>;
           final prefs = await SharedPreferences.getInstance();
-          final String prayersJson = json.encode(prayersList);
-          await prefs.setString('prayers', prayersJson);
-          debugPrint(
-              'Restored ${prayersList.length} saved prayers from backup');
-
-          // ⭐ NUEVO: Notificar al BLoC que recargue
-          if (prayerBloc != null) {
-            prayerBloc.add(RefreshPrayers());
-            debugPrint('✅ PrayerBloc notified to refresh');
-          }
+          await prefs.setString('prayers', json.encode(prayers));
+          debugPrint('Restored ${prayers.length} saved prayers from backup');
         } catch (e) {
           debugPrint('Error restoring saved prayers: $e');
         }
@@ -806,6 +790,16 @@ class GoogleDriveBackupService {
 
       // Restore the backup data using existing restore method
       await _restoreBackupData(backupJson);
+      // Notify providers if available (add this section)
+      if (devocionalProvider != null) {
+        await devocionalProvider.reloadFavoritesFromStorage();
+        debugPrint('✅ DevocionalProvider notified and reloaded');
+      }
+
+      if (prayerBloc != null) {
+        prayerBloc.add(RefreshPrayers());
+        debugPrint('✅ PrayerBloc notified to refresh');
+      }
 
       // Update last backup time
       await _setLastBackupTime(DateTime.now());
