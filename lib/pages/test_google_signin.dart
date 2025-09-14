@@ -6,12 +6,12 @@ import 'package:google_sign_in/google_sign_in.dart';
 
 class SimpleGoogleTest {
   // ⚡ TEST 1: Solo email (más básico posible)
-  static GoogleSignIn _googleSignInBasic = GoogleSignIn(
+  static final GoogleSignIn _googleSignInBasic = GoogleSignIn(
     scopes: ['email'], // Solo email, sin Drive
   );
 
   // ⚡ TEST 2: Con Drive scopes (tu configuración actual)
-  static GoogleSignIn _googleSignInDrive = GoogleSignIn(
+  static final GoogleSignIn _googleSignInDrive = GoogleSignIn(
     scopes: [
       'https://www.googleapis.com/auth/drive.file',
       'https://www.googleapis.com/auth/drive'
@@ -88,6 +88,8 @@ class SimpleGoogleTest {
 
 // Widget para botón de test
 class QuickTestWidget extends StatelessWidget {
+  const QuickTestWidget({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
