@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:googleapis/drive/v3.dart' as drive;
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../blocs/prayer_bloc.dart';
+import '../blocs/prayer_event.dart';
 import '../providers/devocional_provider.dart';
 import '../services/spiritual_stats_service.dart';
 import 'compression_service.dart';
@@ -622,7 +624,11 @@ class GoogleDriveBackupService {
   }
 
   /// Restore backup data to local storage
-  Future<void> _restoreBackupData(Map<String, dynamic> data) async {
+  Future<void> _restoreBackupData(
+    Map<String, dynamic> data, {
+    DevocionalProvider? devocionalProvider,
+    PrayerBloc? prayerBloc,
+  }) async {
     try {
       // Restore spiritual stats (YA EXISTE)
       if (data.containsKey('spiritual_stats')) {
@@ -635,7 +641,7 @@ class GoogleDriveBackupService {
         }
       }
 
-      // NUEVO: Restore favorite devotionals
+      // Restore favorite devotionals
       if (data.containsKey('favorite_devotionals')) {
         try {
           final favoritesList = data['favorite_devotionals'] as List<dynamic>;
@@ -644,12 +650,18 @@ class GoogleDriveBackupService {
           await prefs.setString('favorites', favoritesJson);
           debugPrint(
               'Restored ${favoritesList.length} favorite devotionals from backup');
+
+          // ⭐ NUEVO: Notificar al provider que recargue
+          if (devocionalProvider != null) {
+            await devocionalProvider.reloadFavoritesFromStorage();
+            debugPrint('✅ DevocionalProvider notified and reloaded');
+          }
         } catch (e) {
           debugPrint('Error restoring favorite devotionals: $e');
         }
       }
 
-      // NUEVO: Restore saved prayers
+      // Restore saved prayers
       if (data.containsKey('saved_prayers')) {
         try {
           final prayersList = data['saved_prayers'] as List<dynamic>;
@@ -658,6 +670,12 @@ class GoogleDriveBackupService {
           await prefs.setString('prayers', prayersJson);
           debugPrint(
               'Restored ${prayersList.length} saved prayers from backup');
+
+          // ⭐ NUEVO: Notificar al BLoC que recargue
+          if (prayerBloc != null) {
+            prayerBloc.add(RefreshPrayers());
+            debugPrint('✅ PrayerBloc notified to refresh');
+          }
         } catch (e) {
           debugPrint('Error restoring saved prayers: $e');
         }

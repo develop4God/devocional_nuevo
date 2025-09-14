@@ -474,6 +474,19 @@ class DevocionalProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  /// Reload favorites from SharedPreferences after restore
+  /// This method is called after backup restoration to sync the provider
+  /// state with the updated SharedPreferences data
+  Future<void> reloadFavoritesFromStorage() async {
+    try {
+      await _loadFavorites();
+      notifyListeners(); // Notifica a todos los Consumers (FavoritesPage)
+      debugPrint('✅ Provider: Favorites reloaded from storage after restore');
+    } catch (e) {
+      debugPrint('❌ Error reloading favorites from storage: $e');
+    }
+  }
+
   // ========== INVITATION DIALOG ==========
   Future<void> _loadInvitationDialogPreference() async {
     final prefs = await SharedPreferences.getInstance();
