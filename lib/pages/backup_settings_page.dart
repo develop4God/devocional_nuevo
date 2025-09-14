@@ -576,7 +576,7 @@ class _BackupSettingsContent extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(Icons.backup, color: colorScheme.primary),
+                Icon(Icons.file_upload_outlined, color: colorScheme.primary),
                 const SizedBox(width: 12),
                 Text(
                   'backup.manual_backup_options'.tr(),
