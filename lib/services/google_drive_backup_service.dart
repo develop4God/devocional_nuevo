@@ -159,12 +159,19 @@ class GoogleDriveBackupService {
 
     switch (frequency) {
       case frequencyDaily:
-        // Schedule for 2:00 AM next day
-        final nextDay = lastBackup.add(const Duration(days: 1));
-        return DateTime(nextDay.year, nextDay.month, nextDay.day, 2, 0);
-      default:
-        return null; // Only daily is supported now
+        final now = DateTime.now();
+        final today2AM = DateTime(now.year, now.month, now.day, 2, 0);
+
+        if (now.isBefore(today2AM)) {
+          // Si aún no son las 2:00 AM de hoy, el próximo es HOY a las 2:00 AM
+          return today2AM;
+        } else {
+          // Si ya pasaron las 2:00 AM, el próximo es MAÑANA a las 2:00 AM
+          final tomorrow = now.add(const Duration(days: 1));
+          return DateTime(tomorrow.year, tomorrow.month, tomorrow.day, 2, 0);
+        }
     }
+    return null;
   }
 
   /// Get estimated backup size in bytes
