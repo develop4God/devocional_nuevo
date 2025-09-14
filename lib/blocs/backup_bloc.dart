@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../blocs/prayer_bloc.dart';
 import '../providers/devocional_provider.dart';
 import '../services/google_drive_backup_service.dart';
 import 'backup_event.dart';
@@ -10,13 +11,16 @@ import 'backup_state.dart';
 /// BLoC for managing Google Drive backup functionality
 class BackupBloc extends Bloc<BackupEvent, BackupState> {
   final GoogleDriveBackupService _backupService;
-  DevocionalProvider? _devocionalProvider;
+  final DevocionalProvider? _devocionalProvider; // ← CAMBIO: Agregado 'final'
+  final PrayerBloc? _prayerBloc;
 
   BackupBloc({
     required GoogleDriveBackupService backupService,
     DevocionalProvider? devocionalProvider,
+    PrayerBloc? prayerBloc,
   })  : _backupService = backupService,
         _devocionalProvider = devocionalProvider,
+        _prayerBloc = prayerBloc,
         super(const BackupInitial()) {
     // Register event handlers
     on<LoadBackupSettings>(_onLoadBackupSettings);
@@ -37,7 +41,9 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
 
   /// Set the devotional provider (for dependency injection)
   void setDevocionalProvider(DevocionalProvider provider) {
-    _devocionalProvider = provider;
+    // NOTA: Este método ya no es necesario porque _devocionalProvider es final
+    // pero se mantiene para compatibilidad. En el futuro se puede eliminar.
+    // _devocionalProvider = provider; // ← Esta línea causará error ahora
   }
 
   /// Load all backup settings and status
@@ -367,11 +373,15 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
     try {
       emit(const BackupRestoring());
 
-      final success = await _backupService.restoreExistingBackup(event.fileId);
+      // ✅ CAMBIAR ESTA LÍNEA:
+      final success = await _backupService.restoreExistingBackup(
+        event.fileId,
+        devocionalProvider: _devocionalProvider,
+        prayerBloc: _prayerBloc,
+      );
 
       if (success) {
         emit(const BackupRestored());
-        // Reload settings to get updated data
         add(const LoadBackupSettings());
       } else {
         emit(const BackupError('backup.restore_failed'));

@@ -758,7 +758,11 @@ class GoogleDriveBackupService {
   }
 
   /// Restore backup from existing file on Google Drive
-  Future<bool> restoreExistingBackup(String fileId) async {
+  Future<bool> restoreExistingBackup(
+    String fileId, {
+    DevocionalProvider? devocionalProvider,
+    PrayerBloc? prayerBloc,
+  }) async {
     try {
       final driveApi = await _authService.getDriveApi();
       if (driveApi == null) {
