@@ -298,6 +298,7 @@ class NotificationService {
       String notificationTime,
       String userTimezone) async {
     try {
+      String currentLanguage = await _getCurrentAppLanguage();
       final docRef = _firestore
           .collection('users')
           .doc(userId)
@@ -310,13 +311,14 @@ class NotificationService {
           'notificationTime': notificationTime,
           'userTimezone': userTimezone,
           'lastUpdated': FieldValue.serverTimestamp(),
+          'preferredLanguage': currentLanguage, //nueva opcion lenguaje
         },
         // Usar merge:true para no sobrescribir otros campos si ya existen
         SetOptions(merge: true),
       );
       developer.log(
           'NotificationService: Configuración de notificaciones guardada para $userId: '
-          'Enabled: $notificationsEnabled, Time: $notificationTime, Timezone: $userTimezone',
+          'Enabled: $notificationsEnabled, Time: $notificationTime, Timezone: $userTimezone, Language: $currentLanguage',
           name: 'NotificationService');
     } catch (e) {
       developer.log(
@@ -710,5 +712,17 @@ class NotificationService {
     developer.log(
         'NotificationService: Todas las notificaciones programadas canceladas',
         name: 'NotificationService');
+  }
+
+  // Metodo para obtener el idioma actual de la aplicación desde SharedPreferences
+  Future<String> _getCurrentAppLanguage() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      return prefs.getString('locale') ?? 'es';
+    } catch (e) {
+      developer.log('Error obteniendo idioma actual: $e',
+          name: 'NotificationService');
+      return 'es'; // Valor por defecto en caso de error
+    }
   }
 }
