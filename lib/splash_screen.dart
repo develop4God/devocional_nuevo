@@ -57,11 +57,12 @@ class _SplashScreenState extends State<SplashScreen>
     });
 
     _controller.forward(); // Inicia la animación visual
-    _navigateToNextScreen(); // Llama al método para manejar la navegación
+    _navigateToNextScreen(); // Llama al metodo para manejar la navegación
   }
 
+  // Maneja la navegacion a la siguiente pantalla después de un retraso
   Future<void> _navigateToNextScreen() async {
-    await Future.delayed(const Duration(milliseconds: 5000));
+    await Future.delayed(const Duration(milliseconds: 7000));
 
     if (mounted) {
       Navigator.pushReplacement(
