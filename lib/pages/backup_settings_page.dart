@@ -400,7 +400,7 @@ class _BackupSettingsContent extends StatelessWidget {
                 _buildInfoRow(
                   context,
                   Icons.person_outline,
-                  'backup_email'.tr(),
+                  'backup.backup_email'.tr(),
                   state.userEmail!,
                 ),
                 const SizedBox(height: 8),
@@ -469,21 +469,21 @@ class _BackupSettingsContent extends StatelessWidget {
       context: context,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          title: Text('backup.logout_confirmation_title'.tr()),
-          content: Text('backup.logout_confirmation_message'.tr()),
+          title: Text('backup.backup_logout_confirmation_title'.tr()),
+          content: Text('backup.backup_logout_confirmation_message'.tr()),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.of(dialogContext).pop();
               },
-              child: Text('backup.cancel'.tr()),
+              child: Text('backup.backup_cancel'.tr()),
             ),
             ElevatedButton(
               onPressed: () {
                 Navigator.of(dialogContext).pop();
                 context.read<BackupBloc>().add(const SignOutFromGoogleDrive());
               },
-              child: Text('backup.confirm'.tr()),
+              child: Text('backup.backup_confirm'.tr()),
             ),
           ],
         );
