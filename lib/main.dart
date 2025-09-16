@@ -7,6 +7,7 @@ import 'package:devocional_nuevo/pages/settings_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/providers/localization_provider.dart';
 import 'package:devocional_nuevo/providers/theme_provider.dart';
+import 'package:devocional_nuevo/services/backup_scheduler_service.dart';
 import 'package:devocional_nuevo/services/notification_service.dart';
 import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
 import 'package:devocional_nuevo/splash_screen.dart';
@@ -78,7 +79,16 @@ void main() async {
   developer.log('App: Función main() iniciada.', name: 'MainApp');
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-
+// ➕ INICIALIZAR BACKUP SCHEDULER
+  try {
+    await BackupSchedulerService.initialize();
+    developer.log(
+        'AppInitializer: BackupSchedulerService inicializado correctamente.',
+        name: 'MainApp');
+  } catch (e) {
+    developer.log('ERROR: Error inicializando BackupSchedulerService: $e',
+        name: 'MainApp', error: e);
+  }
   // Configurar el manejador de mensajes FCM en segundo plano
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   developer.log('App: Manejador de mensajes FCM en segundo plano registrado.',
@@ -144,7 +154,7 @@ class _AppInitializerState extends State<AppInitializer> {
 
   Future<void> _initializeInBackground() async {
     // Dar tiempo para que el SplashScreen se muestre
-    await Future.delayed(const Duration(milliseconds: 500));
+    await Future.delayed(const Duration(milliseconds: 600));
 
     // Inicialización completa: servicios + datos
     await _initServices();

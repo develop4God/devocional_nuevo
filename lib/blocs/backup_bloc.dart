@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../providers/devocional_provider.dart';
-import '../services/backup_scheduler_service.dart'; // 🆕 AGREGADO
+import '../services/backup_scheduler_service.dart';
 import '../services/google_drive_backup_service.dart';
 import 'backup_event.dart';
 import 'backup_state.dart';
@@ -11,19 +11,16 @@ import 'backup_state.dart';
 /// BLoC for managing Google Drive backup functionality
 class BackupBloc extends Bloc<BackupEvent, BackupState> {
   final GoogleDriveBackupService _backupService;
-  final BackupSchedulerService?
-      _schedulerService; // 🆕 AGREGADO (opcional para compatibilidad)
+  final BackupSchedulerService? _schedulerService; //backup scheduler service
   DevocionalProvider? _devocionalProvider;
 
   BackupBloc({
     required GoogleDriveBackupService backupService,
-    BackupSchedulerService? schedulerService, // 🆕 AGREGADO (opcional)
+    BackupSchedulerService? schedulerService,
     DevocionalProvider? devocionalProvider,
-    dynamic
-        prayerBloc, // 🆕 AGREGADO: El parámetro que faltaba (pero no se almacena)
+    dynamic prayerBloc, // Este parámetro se acepta pero no se usa
   })  : _backupService = backupService,
         _schedulerService = schedulerService,
-        // 🆕 AGREGADO
         _devocionalProvider = devocionalProvider,
         super(const BackupInitial()) {
     // Register event handlers

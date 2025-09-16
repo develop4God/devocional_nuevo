@@ -1,4 +1,6 @@
 // lib/services/backup_scheduler_service.dart
+import 'package:devocional_nuevo/services/google_drive_auth_service.dart';
+import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
 import 'package:flutter/material.dart';
 import 'package:workmanager/workmanager.dart';
 
@@ -224,31 +226,45 @@ class BackupSchedulerService {
         '🚀 [BACKGROUND] Timestamp: ${DateTime.now().toIso8601String()}');
 
     try {
-      // NOTA: Este código se ejecuta en un isolate separado
-      // Por eso necesitamos reinicializar los servicios aquí
+      // Crear servicios en el isolate separado (necesario para background tasks)
+      final authService = GoogleDriveAuthService();
+      final connectivityService = ConnectivityService();
+      final statsService = SpiritualStatsService();
+
+      final backupService = GoogleDriveBackupService(
+        authService: authService,
+        connectivityService: connectivityService,
+        statsService: statsService,
+      );
+
+      final schedulerService = BackupSchedulerService(
+        backupService: backupService,
+        connectivityService: connectivityService,
+      );
 
       debugPrint(
-          '⚠️ [BACKGROUND] ADVERTENCIA: Ejecutándose en isolate separado');
-      debugPrint('⚠️ [BACKGROUND] Servicios deben ser reinicializados aquí');
+          '🔧 [BACKGROUND] Servicios inicializados en background isolate');
 
-      // TODO: En una implementacion real, aqui deberias:
-      // 1. Inicializar GoogleDriveBackupService
-      // 2. Inicializar ConnectivityService
-      // 3. Verificar condiciones con shouldRunBackup()
-      // 4. Ejecutar createBackup()
-      // 5. Actualizar nextBackupTime
-      // 6. Manejar errores y notificaciones
+      // Verificar si debe ejecutarse el backup
+      final shouldRun = await schedulerService.shouldRunBackup();
+      debugPrint('🔍 [BACKGROUND] ¿Debe ejecutarse backup? $shouldRun');
 
-      debugPrint('📝 [BACKGROUND] TODO: Implementar lógica de backup completa');
-      debugPrint(
-          '📝 [BACKGROUND] Por ahora solo registramos que la tarea se ejecutó');
+      if (shouldRun) {
+        debugPrint('✅ [BACKGROUND] Ejecutando backup automático...');
+        final success = await backupService.createBackup(null);
 
-      // Simular trabajo
-      await Future.delayed(Duration(seconds: 2));
-
-      debugPrint('✅ [BACKGROUND] Tarea de background completada (simulada)');
+        if (success) {
+          debugPrint(
+              '🎉 [BACKGROUND] Backup automático completado exitosamente');
+        } else {
+          debugPrint('❌ [BACKGROUND] Error en backup automático');
+        }
+      } else {
+        debugPrint('⚠️ [BACKGROUND] Condiciones no cumplidas, backup omitido');
+      }
     } catch (e) {
       debugPrint('❌ [BACKGROUND] Error ejecutando backup en background: $e');
+      debugPrint('❌ [BACKGROUND] Stack trace: ${StackTrace.current}');
     }
 
     debugPrint('🏁 [BACKGROUND] === FIN executeBackgroundBackup() ===');
