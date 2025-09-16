@@ -968,16 +968,20 @@ class _BackupSettingsContent extends StatelessWidget {
 
   String _formatNextBackupTime(BuildContext context, DateTime time) {
     final now = DateTime.now();
-    final difference = time.difference(now);
 
-    if (difference.inDays == 0) {
+    // Comparar solo las fechas (sin horas)
+    final nowDate = DateTime(now.year, now.month, now.day);
+    final timeDate = DateTime(time.year, time.month, time.day);
+    final daysDifference = timeDate.difference(nowDate).inDays;
+
+    if (daysDifference == 0) {
       return 'backup.today'.tr();
-    } else if (difference.inDays == 1) {
+    } else if (daysDifference == 1) {
       return 'backup.tomorrow'.tr();
     } else {
       return 'backup.in_days'
           .tr()
-          .replaceAll('{days}', difference.inDays.toString());
+          .replaceAll('{days}', daysDifference.toString());
     }
   }
 
