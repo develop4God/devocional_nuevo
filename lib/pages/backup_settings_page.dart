@@ -272,37 +272,35 @@ class _BackupSettingsContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16).copyWith(
-          bottom:
-              100), // Add extra bottom padding for Android navigation buttons
+      padding: const EdgeInsets.all(12).copyWith(bottom: 80), // Reduced padding
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Description card
           _buildDescriptionCard(context),
-          const SizedBox(height: 24),
+          const SizedBox(height: 12), // Reduced from 24
 
           // Google Drive connection + last backup info
           _buildConnectionCard(context),
-          const SizedBox(height: 24),
+          const SizedBox(height: 12), // Reduced from 24
 
           // Automatic backup settings (NEW - MAIN FEATURE)
           _buildAutomaticBackupSection(context),
-          const SizedBox(height: 24),
+          const SizedBox(height: 12), // Reduced from 24
 
           // Manual backup options with size estimates
           _buildManualBackupSection(context),
-          const SizedBox(height: 24),
+          const SizedBox(height: 12), // Reduced from 24
 
           // Create backup button
           _buildCreateBackupButton(context),
-          const SizedBox(height: 24),
+          const SizedBox(height: 12), // Reduced from 24
 
           // Security info
           _buildSecurityCard(context),
 
           // Extra spacing to ensure security section is fully visible
-          const SizedBox(height: 60),
+          const SizedBox(height: 40), // Reduced from 60
         ],
       ),
     );
@@ -314,7 +312,7 @@ class _BackupSettingsContent extends StatelessWidget {
 
     // Changed to plain text without container/card as requested
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(12), // Reduced from 16
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -324,7 +322,7 @@ class _BackupSettingsContent extends StatelessWidget {
               fontWeight: FontWeight.bold,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8), // Reduced from 12
           Text(
             'backup.description_text'.tr(),
             style: theme.textTheme.bodyMedium?.copyWith(
@@ -358,7 +356,7 @@ class _BackupSettingsContent extends StatelessWidget {
       borderRadius: BorderRadius.circular(12),
       child: Card(
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(12), // Reduced from 16
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -393,17 +391,17 @@ class _BackupSettingsContent extends StatelessWidget {
                     Icon(Icons.cloud_off_outlined, color: colorScheme.primary),
                 ],
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 8), // Reduced from 12
 
               // Email del usuario conectado
               if (state.isAuthenticated && state.userEmail != null) ...[
                 _buildInfoRow(
                   context,
                   Icons.person_outline,
-                  'backup.backup_email'.tr(),
+                  'backup_email'.tr(),
                   state.userEmail!,
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 6), // Reduced from 8
               ],
 
               // Authentication status and last backup info
@@ -415,7 +413,7 @@ class _BackupSettingsContent extends StatelessWidget {
                     'backup.last_backup'.tr(),
                     _formatLastBackupTime(context, state.lastBackupTime!),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 6), // Reduced from 8
                   _buildInfoRow(
                     context,
                     Icons.data_usage,
@@ -423,7 +421,7 @@ class _BackupSettingsContent extends StatelessWidget {
                     _formatSize(state.estimatedSize),
                   ),
                   if (state.nextBackupTime != null) ...[
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 6), // Reduced from 8
                     _buildInfoRow(
                       context,
                       Icons.schedule_send,
@@ -446,7 +444,7 @@ class _BackupSettingsContent extends StatelessWidget {
                     color: colorScheme.onSurfaceVariant,
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 6), // Reduced from 8
                 // CAMBIO: Mensaje cuando no conectado
                 Text(
                   'backup.tap_to_connect_protect'.tr(),
@@ -497,7 +495,7 @@ class _BackupSettingsContent extends StatelessWidget {
 
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(12), // Reduced from 16
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -513,7 +511,7 @@ class _BackupSettingsContent extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12), // Reduced from 16
 
             // Auto backup toggle
             _buildSwitchTile(
@@ -526,11 +524,11 @@ class _BackupSettingsContent extends StatelessWidget {
             ),
 
             if (state.autoBackupEnabled) ...[
-              const SizedBox(height: 16),
+              const SizedBox(height: 12), // Reduced from 16
 
               // Frequency selector
               _buildFrequencySelector(context),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12), // Reduced from 16
 
               // WiFi only toggle
               _buildSwitchTile(
@@ -542,7 +540,7 @@ class _BackupSettingsContent extends StatelessWidget {
                 },
                 subtitle: 'backup.wifi_only_subtitle'.tr(),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 6), // Reduced from 8
 
               // Compression toggle
               _buildSwitchTile(
@@ -620,7 +618,7 @@ class _BackupSettingsContent extends StatelessWidget {
 
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(12), // Reduced from 16
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -636,7 +634,7 @@ class _BackupSettingsContent extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12), // Reduced from 16
 
             // Backup options with dynamic size estimates
             FutureBuilder<Map<String, dynamic>>(
@@ -811,7 +809,7 @@ class _BackupSettingsContent extends StatelessWidget {
 
     // Changed to plain text without container/card as requested
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(12), // Reduced from 16
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -827,7 +825,7 @@ class _BackupSettingsContent extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8), // Reduced from 12
           Text(
             'backup.security_text'.tr(),
             style: theme.textTheme.bodyMedium?.copyWith(
