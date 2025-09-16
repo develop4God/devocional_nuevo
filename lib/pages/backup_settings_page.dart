@@ -381,7 +381,7 @@ class _BackupSettingsContent extends StatelessWidget {
                   const Spacer(),
                   // Login indicator
                   if (state.isAuthenticated)
-                    Icon(Icons.cloud_done_outlined, color: colorScheme.primary)
+                    Icon(Icons.logout_outlined, color: colorScheme.primary)
                   else
                     Icon(Icons.cloud_off_outlined, color: colorScheme.primary),
                 ],

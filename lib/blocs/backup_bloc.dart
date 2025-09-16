@@ -431,18 +431,25 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
       }
 
       if (success) {
-        debugPrint(
-            '✅ [BLOC] Sign-in exitoso, verificando backup existente...'); // 🆕 DEBUG
+        // ➕ ACTIVAR AUTO-BACKUP POR DEFECTO AL LOGUEAR
+        final isAutoEnabled = await _backupService.isAutoBackupEnabled();
+        if (!isAutoEnabled) {
+          await _backupService.setAutoBackupEnabled(true);
+          debugPrint('✅ [BLOC] Auto-backup activado automáticamente al login');
+
+          // ➕ PROGRAMAR INMEDIATAMENTE
+          if (_schedulerService != null) {
+            await _schedulerService!.scheduleAutomaticBackup();
+            debugPrint('✅ [BLOC] Backup automático programado tras login');
+          }
+        }
 
         // Check for existing backups
         final existingBackup = await _backupService.checkForExistingBackup();
 
         if (existingBackup != null && existingBackup['found'] == true) {
-          debugPrint('📋 [BLOC] Backup existente encontrado'); // 🆕 DEBUG
-          // Show dialog or emit special state to ask user about restoring
           emit(BackupExistingFound(existingBackup));
         } else {
-          debugPrint('ℹ️ [BLOC] No hay backup existente'); // 🆕 DEBUG
           // Reload settings to get updated authentication status
           add(const LoadBackupSettings());
         }
