@@ -398,7 +398,7 @@ class _BackupSettingsContent extends StatelessWidget {
                 _buildInfoRow(
                   context,
                   Icons.person_outline,
-                  'backup_email'.tr(),
+                  'backup.backup_email'.tr(),
                   state.userEmail!,
                 ),
                 const SizedBox(height: 6), // Reduced from 8
