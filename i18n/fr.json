@@ -412,7 +412,12 @@
     "backup_date": "Date",
     "skip_restore": "Ignorer",
     "restore_backup": "Restaurer",
-    "restore_failed": "Échec de la restauration de sauvegarde"
+    "restore_failed": "Échec de la restauration de sauvegarde",
+    "backup_email": "E-mail",
+    "backup_logout_confirmation_title": "Se déconnecter?",
+    "backup_logout_confirmation_message": "Voulez-vous vous déconnecter de Google Drive et désactiver la sauvegarde de vos statistiques?",
+    "backup_cancel": "Annuler",
+    "backup_confirm": "Confirmer"
   },
   "review": {
     "title": "Merci pour votre constance 🙏",

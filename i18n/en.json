@@ -411,7 +411,12 @@
     "backup_date": "Date",
     "skip_restore": "Skip",
     "restore_backup": "Restore",
-    "restore_failed": "Failed to restore backup"
+    "restore_failed": "Failed to restore backup",
+    "backup_email": "Email",
+    "backup_logout_confirmation_title": "Log out?",
+    "backup_logout_confirmation_message": "Do you want to log out of Google Drive and disable the backup of your statistics?",
+    "backup_cancel": "Cancel",
+    "backup_confirm": "Confirm"
   },
   "review": {
     "title": "Thank you for your consistency 🙏",

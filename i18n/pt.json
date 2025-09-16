@@ -411,7 +411,12 @@
     "backup_date": "Data",
     "skip_restore": "Pular",
     "restore_backup": "Restaurar",
-    "restore_failed": "Falha ao restaurar backup"
+    "restore_failed": "Falha ao restaurar backup",
+    "backup_email": "E-mail",
+    "backup_logout_confirmation_title": "Sair?",
+    "backup_logout_confirmation_message": "Deseja sair do Google Drive e desativar o backup de suas estatísticas?",
+    "backup_cancel": "Cancelar",
+    "backup_confirm": "Confirmar"
   },
   "review": {
     "title": "Obrigado pela sua constância 🙏",

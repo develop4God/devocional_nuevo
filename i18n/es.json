@@ -411,7 +411,12 @@
     "backup_date": "Fecha",
     "skip_restore": "Omitir",
     "restore_backup": "Restaurar",
-    "restore_failed": "Error al restaurar la copia de seguridad"
+    "restore_failed": "Error al restaurar la copia de seguridad",
+    "backup_email": "Email",
+    "backup_logout_confirmation_title": "¿Cerrar sesión?'",
+    "backup_logout_confirmation_message": "¿Desea cerrar sesión de Google Drive y desactivar el respaldo de sus estadísticas?",
+    "backup_cancel": "Cancelar",
+    "backup_confirm": "Confirmar"
   },
   "review": {
     "title": "Gracias por tu constancia 🙏",

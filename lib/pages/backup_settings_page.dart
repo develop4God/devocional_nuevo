@@ -341,17 +341,20 @@ class _BackupSettingsContent extends StatelessWidget {
     final colorScheme = theme.colorScheme;
 
     return InkWell(
-      onTap: () {
-        debugPrint(
-            '🔄 [DEBUG] Usuario tapeó Google Drive connection - iniciando SignIn');
-        debugPrint(
-            '🔄 [DEBUG] Estado actual isAuthenticated: ${state.isAuthenticated}');
+      onTap: state.isAuthenticated
+          ? null
+          : () {
+              debugPrint(
+                  '🔄 [DEBUG] Usuario tapeó Google Drive connection - iniciando SignIn');
+              debugPrint(
+                  '🔄 [DEBUG] Estado actual isAuthenticated: ${state.isAuthenticated}');
 
-        // ✅ SOLO UNA llamada al evento
-        context.read<BackupBloc>().add(const SignInToGoogleDrive());
+              // ✅ SOLO UNA llamada al evento
+              context.read<BackupBloc>().add(const SignInToGoogleDrive());
 
-        debugPrint('🔄 [DEBUG] Evento SignInToGoogleDrive enviado al Bloc');
-      },
+              debugPrint(
+                  '🔄 [DEBUG] Evento SignInToGoogleDrive enviado al Bloc');
+            },
       borderRadius: BorderRadius.circular(12),
       child: Card(
         child: Padding(
@@ -381,12 +384,27 @@ class _BackupSettingsContent extends StatelessWidget {
                   const Spacer(),
                   // Login indicator
                   if (state.isAuthenticated)
-                    Icon(Icons.logout_outlined, color: colorScheme.primary)
+                    GestureDetector(
+                      onTap: () => _showLogoutDialog(context),
+                      child: Icon(Icons.logout_outlined,
+                          color: colorScheme.primary),
+                    )
                   else
                     Icon(Icons.cloud_off_outlined, color: colorScheme.primary),
                 ],
               ),
               const SizedBox(height: 12),
+
+              // Email del usuario conectado
+              if (state.isAuthenticated && state.userEmail != null) ...[
+                _buildInfoRow(
+                  context,
+                  Icons.person_outline,
+                  'backup_email'.tr(),
+                  state.userEmail!,
+                ),
+                const SizedBox(height: 8),
+              ],
 
               // Authentication status and last backup info
               if (state.isAuthenticated) ...[
@@ -442,6 +460,34 @@ class _BackupSettingsContent extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+
+  /// Show logout confirmation dialog
+  void _showLogoutDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: Text('backup.logout_confirmation_title'.tr()),
+          content: Text('backup.logout_confirmation_message'.tr()),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+              },
+              child: Text('backup.cancel'.tr()),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+                context.read<BackupBloc>().add(const SignOutFromGoogleDrive());
+              },
+              child: Text('backup.confirm'.tr()),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -549,14 +595,6 @@ class _BackupSettingsContent extends StatelessWidget {
                   DropdownMenuItem(
                     value: GoogleDriveBackupService.frequencyDaily,
                     child: Text('backup.frequency_daily_2am'.tr()),
-                  ),
-                  DropdownMenuItem(
-                    value: GoogleDriveBackupService.frequencyManual,
-                    child: Text('backup.frequency_manual_only'.tr()),
-                  ),
-                  DropdownMenuItem(
-                    value: GoogleDriveBackupService.frequencyDeactivated,
-                    child: Text('backup.frequency_deactivated'.tr()),
                   ),
                 ],
                 onChanged: isAuthenticated

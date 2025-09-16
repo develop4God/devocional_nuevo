@@ -120,6 +120,23 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
     try {
       await _backupService.setAutoBackupEnabled(event.enabled);
 
+      // 🆕 NUEVO COMPORTAMIENTO: Si se activa auto-backup y frecuencia es "deactivated",
+      // cambiar automáticamente a "daily" (diariamente a las 2:00 AM)
+      if (event.enabled) {
+        final currentFrequency = await _backupService.getBackupFrequency();
+        debugPrint(
+            '🔍 [BLOC] Frecuencia actual: $currentFrequency'); // 🆕 DEBUG
+
+        if (currentFrequency == GoogleDriveBackupService.frequencyDeactivated) {
+          debugPrint(
+              '🔧 [BLOC] Auto-backup activado con frecuencia "deactivated", cambiando a "daily"'); // 🆕 DEBUG
+          await _backupService
+              .setBackupFrequency(GoogleDriveBackupService.frequencyDaily);
+          debugPrint(
+              '✅ [BLOC] Frecuencia cambiada automáticamente a "daily"'); // 🆕 DEBUG
+        }
+      }
+
       // 🆕 ARREGLO: Actualizar scheduler cuando se habilita/deshabilita auto backup
       if (_schedulerService != null) {
         debugPrint(
@@ -134,6 +151,9 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
       if (state is BackupLoaded) {
         final currentState = state as BackupLoaded;
 
+        // 🆕 CAMBIO: Obtener la frecuencia actualizada (por si cambió arriba)
+        final updatedFrequency = await _backupService.getBackupFrequency();
+
         // Recalculate next backup time
         final nextBackupTime = await _backupService.getNextBackupTime();
         debugPrint(
@@ -141,6 +161,8 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
 
         emit(currentState.copyWith(
           autoBackupEnabled: event.enabled,
+          backupFrequency: updatedFrequency,
+          // 🆕 Usar la frecuencia actualizada
           nextBackupTime: nextBackupTime,
         ));
       } else {
