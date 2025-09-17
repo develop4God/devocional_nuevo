@@ -523,39 +523,58 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
     RestoreExistingBackup event,
     Emitter<BackupState> emit,
   ) async {
-    debugPrint('📥 [BLOC] === INICIANDO RestoreExistingBackup ==='); // 🆕 DEBUG
-
+    debugPrint('📥 [BLOC] === INICIANDO RestoreExistingBackup ===');
     try {
       emit(const BackupRestoring());
 
-      final success = await _backupService.restoreExistingBackup(event.fileId);
-      debugPrint('📥 [BLOC] Resultado restore existente: $success'); // 🆕 DEBUG
+      // Debug de parámetros que se van a pasar
+      debugPrint(
+          '🔧 [BLOC] DevocionalProvider disponible: ${_devocionalProvider != null}');
+      debugPrint('📋 [BLOC] FileId para restore: ${event.fileId}');
+
+      // CAMBIO PRINCIPAL: Pasar los parámetros necesarios
+      final success = await _backupService.restoreExistingBackup(
+        event.fileId,
+        devocionalProvider: _devocionalProvider,
+        prayerBloc: null,
+      );
+
+      debugPrint('📥 [BLOC] Resultado restore existente: $success');
 
       if (success) {
-        debugPrint('✅ [BLOC] Restore existente exitoso'); // 🆕 DEBUG
+        debugPrint('✅ [BLOC] Restore existente exitoso');
 
-        // 🆕 ARREGLO: Reprogramar scheduler después de restore existente exitoso
+        // Verificar si los providers fueron notificados correctamente
+        if (_devocionalProvider != null) {
+          debugPrint(
+              '✅ [BLOC] DevocionalProvider fue pasado correctamente al restore');
+        } else {
+          debugPrint(
+              '⚠️ [BLOC] ADVERTENCIA: DevocionalProvider es null - favoritos no se refrescarán automáticamente');
+        }
+
+        // ARREGLO: Reprogramar scheduler después de restore existente exitoso
         if (_schedulerService != null) {
           debugPrint(
-              '🔧 [BLOC] Restore existente exitoso, reprogramando scheduler...'); // 🆕 DEBUG
+              '🔧 [BLOC] Restore existente exitoso, reprogramando scheduler...');
           await _schedulerService!.scheduleAutomaticBackup();
           debugPrint(
-              '✅ [BLOC] Scheduler reprogramado después de restore existente'); // 🆕 DEBUG
+              '✅ [BLOC] Scheduler reprogramado después de restore existente');
         }
 
         emit(const BackupRestored());
+
         // Reload settings to get updated data
         add(const LoadBackupSettings());
       } else {
-        debugPrint('❌ [BLOC] Restore existente falló'); // 🆕 DEBUG
+        debugPrint('❌ [BLOC] Restore existente falló');
         emit(const BackupError('backup.restore_failed'));
       }
     } catch (e) {
       debugPrint('❌ [BLOC] Error restoring existing backup: $e');
       emit(BackupError('backup.restore_failed'));
     }
-
-    debugPrint('🏁 [BLOC] === FIN RestoreExistingBackup ==='); // 🆕 DEBUG
+    debugPrint('🏁 [BLOC] === FIN RestoreExistingBackup ===');
   }
 
   /// Skip restoring existing backup

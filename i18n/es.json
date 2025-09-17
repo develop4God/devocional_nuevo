@@ -368,7 +368,7 @@
     "frequency": "Frecuencia",
     "frequency_daily": "Diariamente",
     "frequency_daily_2am": "Diariamente (2:00 AM)",
-    "frequency_manual_only": "Solo cuando seleccione 'Crear copia'",
+    "frequency_manual_only": "Solo cuando seleccione 'Crear copia",
     "frequency_deactivated": "Desactivar",
     "frequency_weekly": "Semanalmente",
     "frequency_monthly": "Mensualmente",
@@ -413,7 +413,7 @@
     "restore_backup": "Restaurar",
     "restore_failed": "Error al restaurar la copia de seguridad",
     "backup_email": "Email",
-    "backup_logout_confirmation_title": "¿Cerrar sesión?'",
+    "backup_logout_confirmation_title": "¿Cerrar sesión?",
     "backup_logout_confirmation_message": "¿Desea cerrar sesión de Google Drive y desactivar el respaldo de sus estadísticas?",
     "backup_cancel": "Cancelar",
     "backup_confirm": "Confirmar"
