@@ -174,7 +174,6 @@ class _SettingsPageState extends State<SettingsPage> {
                       borderRadius: BorderRadius.circular(20.0),
                     ),
                   ),
-                  icon: Icon(Icons.favorite_border, color: colorScheme.primary),
                   label: Text(
                     'settings.donate'.tr(),
                     style: textTheme.bodyMedium?.copyWith(
