@@ -359,7 +359,7 @@
     "title": "Copia de Seguridad",
     "connected_to_google_drive": "Conectado a Google Drive",
     "connect_to_google_drive": "Conéctate a Google Drive",
-    "tap_to_connect_protect": "Toca para conectar y proteger tu progreso espiritual",
+    "tap_to_connect_protect": "Protege tu progreso espiritual",
     "description_title": "Protege tu progreso espiritual",
     "description_text": "Guarda automáticamente tus devocionales favoritos, estadísticas espirituales y oraciones en Google Drive para nunca perder tu progreso.",
     "google_drive_connection": "Conexión a Google Drive",
@@ -416,7 +416,14 @@
     "backup_logout_confirmation_title": "¿Cerrar sesión?",
     "backup_logout_confirmation_message": "¿Desea cerrar sesión de Google Drive y desactivar el respaldo de sus estadísticas?",
     "backup_cancel": "Cancelar",
-    "backup_confirm": "Confirmar"
+    "backup_confirm": "Confirmar",
+    "automatic_protection_enabled": "Protección Automática Habilitada",
+    "activate_automatic": "Activar Protección Automática",
+    "prefer_manual": "Prefiero backup manual",
+    "manual_backup_active": "Backup Manual Activo",
+    "manual_backup_description": "Crea copias de seguridad cuando lo necesites",
+    "protection_active": "Protección Activa",
+    "configuration": "Configuración"
   },
   "review": {
     "title": "Gracias por tu constancia 🙏",

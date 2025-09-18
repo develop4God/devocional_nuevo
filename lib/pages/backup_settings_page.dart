@@ -6,8 +6,10 @@ import 'package:provider/provider.dart';
 import '../blocs/backup_bloc.dart';
 import '../blocs/backup_event.dart';
 import '../blocs/backup_state.dart';
+import '../blocs/prayer_bloc.dart';
 import '../extensions/string_extensions.dart';
 import '../providers/devocional_provider.dart';
+import '../services/backup_scheduler_service.dart';
 import '../services/connectivity_service.dart';
 import '../services/google_drive_auth_service.dart';
 import '../services/google_drive_backup_service.dart';
@@ -34,13 +36,10 @@ class BackupSettingsPage extends StatelessWidget {
     // Otherwise, create services with dependencies (production)
     final authService = GoogleDriveAuthService();
     debugPrint('🔧 [DEBUG] GoogleDriveAuthService creado');
-
     final connectivityService = ConnectivityService();
     debugPrint('🔧 [DEBUG] ConnectivityService creado');
-
     final statsService = SpiritualStatsService();
     debugPrint('🔧 [DEBUG] SpiritualStatsService creado');
-
     final backupService = GoogleDriveBackupService(
       authService: authService,
       connectivityService: connectivityService,
@@ -50,10 +49,18 @@ class BackupSettingsPage extends StatelessWidget {
 
     return BlocProvider(
       create: (context) {
+        // 🔧 CRÍTICO: Restaurar BackupSchedulerService
+        final schedulerService = BackupSchedulerService(
+          backupService: backupService,
+          connectivityService: connectivityService,
+        );
+
         final bloc = BackupBloc(
           backupService: backupService,
+          schedulerService: schedulerService, // 🔧 RESTAURADO
           devocionalProvider:
               Provider.of<DevocionalProvider>(context, listen: false),
+          prayerBloc: context.read<PrayerBloc>(), // 🔧 RESTAURADO
         );
         bloc.add(const LoadBackupSettings());
         return bloc;
@@ -80,7 +87,6 @@ class _BackupSettingsView extends StatelessWidget {
         listener: (context, state) {
           debugPrint(
               '🔄 [DEBUG] BlocListener recibió estado: ${state.runtimeType}');
-
           if (state is BackupError) {
             debugPrint('❌ [DEBUG] BackupError recibido: ${state.message}');
             ScaffoldMessenger.of(context).showSnackBar(
@@ -115,11 +121,9 @@ class _BackupSettingsView extends StatelessWidget {
             if (state is BackupLoading) {
               return const Center(child: CircularProgressIndicator());
             }
-
             if (state is BackupLoaded) {
               return _BackupSettingsContent(state: state);
             }
-
             if (state is BackupError) {
               return Center(
                 child: Column(
@@ -156,7 +160,6 @@ class _BackupSettingsView extends StatelessWidget {
                 ),
               );
             }
-
             return const Center(child: CircularProgressIndicator());
           },
         ),
@@ -327,7 +330,7 @@ class _BackupSettingsContent extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  'backup.protect_progress'.tr(),
+                  'backup.description_title'.tr(),
                   style: theme.textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: colorScheme.onSurface,
@@ -395,7 +398,7 @@ class _BackupSettingsContent extends StatelessWidget {
                     context.read<BackupBloc>().add(const SignInToGoogleDrive());
                   },
                   icon: const Icon(Icons.account_circle),
-                  label: Text('backup.connect_and_protect'.tr()),
+                  label: Text('backup.connect_to_google_drive'.tr()),
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
                   ),
@@ -443,7 +446,7 @@ class _BackupSettingsContent extends StatelessWidget {
               const SizedBox(height: 8),
               if (state.userEmail != null) ...[
                 Text(
-                  state.userEmail!,
+                  '${'backup.backup_email'.tr()}: ${state.userEmail!}',
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: colorScheme.onSurfaceVariant,
                   ),
@@ -469,8 +472,7 @@ class _BackupSettingsContent extends StatelessWidget {
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        'backup.enable_auto_backup'.tr(),
-                        // "Habilitar backup automático"
+                        'backup.automatic_protection_enabled'.tr(),
                         style: theme.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
@@ -554,6 +556,16 @@ class _BackupSettingsContent extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 4),
+                      // 🔧 AGREGAR EMAIL DEL USUARIO
+                      if (state.userEmail != null) ...[
+                        Text(
+                          '${'backup.backup_email'.tr()}: ${state.userEmail!}',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                      ],
                       if (state.lastBackupTime != null) ...[
                         Text(
                           '${'backup.last_backup'.tr()}: ${_formatLastBackupTime(context, state.lastBackupTime!)}',
@@ -580,6 +592,19 @@ class _BackupSettingsContent extends StatelessWidget {
                     context.read<BackupBloc>().add(ToggleAutoBackup(value));
                   },
                 ),
+                const SizedBox(width: 8),
+                // 🔧 AGREGAR LOGOUT BUTTON
+                GestureDetector(
+                  onTap: () => _showLogoutDialog(context),
+                  child: Padding(
+                    padding: const EdgeInsets.all(8),
+                    child: Icon(
+                      Icons.logout_outlined,
+                      color: colorScheme.primary,
+                      size: 20,
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
@@ -594,7 +619,7 @@ class _BackupSettingsContent extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Configuración', // Temporal
+                  'backup.configuration'.tr(),
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -631,8 +656,7 @@ class _BackupSettingsContent extends StatelessWidget {
               context.read<BackupBloc>().add(const CreateManualBackup());
             },
             icon: const Icon(Icons.backup),
-            label:
-                Text('Respaldar Ahora'), // Temporal o usar backup.create_backup
+            label: Text('backup.create_backup'.tr()),
           ),
         ),
       ],
@@ -671,7 +695,17 @@ class _BackupSettingsContent extends StatelessWidget {
                   ),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 8),
+                // 🔧 MOSTRAR EMAIL TAMBIÉN EN MANUAL
+                if (state.userEmail != null) ...[
+                  Text(
+                    '${'backup.backup_email'.tr()}: ${state.userEmail!}',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                ],
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton.icon(
@@ -682,7 +716,6 @@ class _BackupSettingsContent extends StatelessWidget {
                     },
                     icon: const Icon(Icons.backup),
                     label: Text('backup.create_backup'.tr()),
-                    // "Crear copia de seguridad"
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16),
                     ),
@@ -695,8 +728,18 @@ class _BackupSettingsContent extends StatelessWidget {
                         .read<BackupBloc>()
                         .add(const ToggleAutoBackup(true));
                   },
-                  child: Text('backup.enable_auto_backup'
-                      .tr()), // "Habilitar backup automático"
+                  child: Text('backup.enable_auto_backup'.tr()),
+                ),
+                const SizedBox(height: 8),
+                // 🔧 AGREGAR LOGOUT OPTION EN MANUAL
+                TextButton.icon(
+                  onPressed: () => _showLogoutDialog(context),
+                  icon: Icon(
+                    Icons.logout_outlined,
+                    size: 16,
+                    color: theme.colorScheme.primary,
+                  ),
+                  label: Text('backup.backup_logout_confirmation_title'.tr()),
                 ),
               ],
             ),
@@ -821,6 +864,34 @@ class _BackupSettingsContent extends StatelessWidget {
     );
   }
 
+  /// Show logout confirmation dialog
+  void _showLogoutDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: Text('backup.backup_logout_confirmation_title'.tr()),
+          content: Text('backup.backup_logout_confirmation_message'.tr()),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+              },
+              child: Text('backup.backup_cancel'.tr()),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+                context.read<BackupBloc>().add(const SignOutFromGoogleDrive());
+              },
+              child: Text('backup.backup_confirm'.tr()),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   String _formatLastBackupTime(BuildContext context, DateTime time) {
     final now = DateTime.now();
     final difference = now.difference(time);
@@ -842,14 +913,34 @@ class _BackupSettingsContent extends StatelessWidget {
     final timeDate = DateTime(time.year, time.month, time.day);
     final daysDifference = timeDate.difference(nowDate).inDays;
 
-    if (daysDifference == 0) {
-      return 'backup.today'.tr();
-    } else if (daysDifference == 1) {
-      return 'backup.tomorrow'.tr();
+    // Formatear la hora exacta del backup programado
+    final hour = time.hour;
+    final minute = time.minute;
+    String timeString;
+
+    if (hour == 0 && minute == 0) {
+      timeString = '12:00 AM';
+    } else if (hour < 12) {
+      timeString =
+          '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')} AM';
+    } else if (hour == 12) {
+      timeString = '12:${minute.toString().padLeft(2, '0')} PM';
     } else {
-      return 'backup.in_days'
-          .tr()
-          .replaceAll('{days}', daysDifference.toString());
+      timeString =
+          '${(hour - 12).toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')} PM';
+    }
+
+    // Casos especiales para 2:00 AM (más legible)
+    if (hour == 2 && minute == 0) {
+      timeString = '2:00 AM';
+    }
+
+    if (daysDifference == 0) {
+      return '${'backup.today'.tr()} $timeString'; // "Hoy 2:00 AM"
+    } else if (daysDifference == 1) {
+      return '${'backup.tomorrow'.tr()} $timeString'; // "Mañana 2:00 AM"
+    } else {
+      return '${'backup.in_days'.tr().replaceAll('{days}', daysDifference.toString())} $timeString'; // "En 2 días 2:00 AM"
     }
   }
 }
