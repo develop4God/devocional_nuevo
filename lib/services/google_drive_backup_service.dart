@@ -360,6 +360,7 @@ class GoogleDriveBackupService {
     if (options['spiritual_stats'] == true) {
       try {
         final stats = await _statsService.getAllStats();
+        debugPrint('🔍 BACKUP STATS: ${json.encode(stats)}');
         backupData['spiritual_stats'] = stats;
         debugPrint('Included spiritual stats in backup');
       } catch (e) {
