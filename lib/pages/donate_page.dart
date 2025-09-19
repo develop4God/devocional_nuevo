@@ -1,8 +1,11 @@
-// lib/pages/donate_page.dart
+// lib/pages/donate_page.dart (ACTUALIZADO)
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/services/donation_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
+import '../models/badge_model.dart' as badge_model;
+import '../widgets/badge_image_widget.dart';
 
 class DonatePage extends StatefulWidget {
   const DonatePage({super.key});
@@ -16,12 +19,12 @@ class _DonatePageState extends State<DonatePage> with TickerProviderStateMixin {
   final TextEditingController _customAmountController = TextEditingController();
 
   String? _selectedAmount;
-  String? _selectedBadge;
+  badge_model.Badge? _selectedBadge;
   bool _isProcessing = false;
   bool _showPaymentSuccess = false;
-  String? _unlockedBadge;
+  badge_model.Badge? _unlockedBadge;
 
-  List<String> _availableBadges = [];
+  List<badge_model.Badge> _availableBadges = [];
 
   late AnimationController _successAnimationController;
   late Animation<double> _scaleAnimation;
@@ -93,13 +96,8 @@ class _DonatePageState extends State<DonatePage> with TickerProviderStateMixin {
       return null;
     }
 
-    final double? amount = double.tryParse(value);
-    if (amount == null) {
+    if (!_donationService.validateDonationAmount(value)) {
       return 'donate.invalid_amount_error'.tr();
-    }
-
-    if (amount < 1.0) {
-      return 'donate.minimum_amount_error'.tr();
     }
 
     return null;
@@ -128,7 +126,7 @@ class _DonatePageState extends State<DonatePage> with TickerProviderStateMixin {
     }
   }
 
-  void _selectBadge(String badge) {
+  void _selectBadge(badge_model.Badge badge) {
     setState(() {
       _selectedBadge = badge;
     });
@@ -139,7 +137,7 @@ class _DonatePageState extends State<DonatePage> with TickerProviderStateMixin {
 
   Future<void> _processDonation() async {
     if (_selectedAmount == null || _selectedBadge == null) {
-      _showErrorSnackBar('Please select an amount and badge');
+      _showErrorSnackBar('donate.select_amount_and_badge'.tr());
       return;
     }
 
@@ -165,7 +163,7 @@ class _DonatePageState extends State<DonatePage> with TickerProviderStateMixin {
 
       final bool success = await _donationService.purchaseProduct(
         productId,
-        selectedBadge: _selectedBadge,
+        selectedBadgeId: _selectedBadge!.id,
       );
 
       if (success) {
@@ -278,8 +276,8 @@ class _DonatePageState extends State<DonatePage> with TickerProviderStateMixin {
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                colorScheme.primary.withOpacity(0.1),
-                colorScheme.secondary.withOpacity(0.1),
+                colorScheme.primary.withValues(alpha: 0.1),
+                colorScheme.secondary.withValues(alpha: 0.1),
               ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -306,7 +304,7 @@ class _DonatePageState extends State<DonatePage> with TickerProviderStateMixin {
               Text(
                 'donate.description'.tr(),
                 style: textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.onSurface.withOpacity(0.8),
+                  color: colorScheme.onSurface.withValues(alpha: 0.8),
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -440,7 +438,7 @@ class _DonatePageState extends State<DonatePage> with TickerProviderStateMixin {
         Text(
           'donate.select_badge_message'.tr(),
           style: textTheme.bodyMedium?.copyWith(
-            color: colorScheme.onSurface.withOpacity(0.7),
+            color: colorScheme.onSurface.withValues(alpha: 0.7),
           ),
         ),
         const SizedBox(height: 16),
@@ -458,80 +456,15 @@ class _DonatePageState extends State<DonatePage> with TickerProviderStateMixin {
           itemCount: _availableBadges.length,
           itemBuilder: (context, index) {
             final badge = _availableBadges[index];
-            return _buildBadgeItem(badge, colorScheme);
+            return BadgeImageWidget(
+              badge: badge,
+              size: 80,
+              isSelected: _selectedBadge?.id == badge.id,
+              onTap: () => _selectBadge(badge),
+            );
           },
         ),
       ],
-    );
-  }
-
-  Widget _buildBadgeItem(String badgePath, ColorScheme colorScheme) {
-    final bool isSelected = _selectedBadge == badgePath;
-
-    return InkWell(
-      onTap: () => _selectBadge(badgePath),
-      child: Container(
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          border: Border.all(
-            color: isSelected ? colorScheme.primary : colorScheme.outline,
-            width: isSelected ? 3 : 1,
-          ),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: colorScheme.primary.withOpacity(0.3),
-                    blurRadius: 8,
-                    spreadRadius: 2,
-                  ),
-                ]
-              : null,
-        ),
-        child: ClipOval(
-          child: _buildBadgeImage(badgePath, colorScheme),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildBadgeImage(String badgePath, ColorScheme colorScheme) {
-    // For demonstration, create colored circles since we don't have actual images
-    final colors = [
-      Colors.amber,
-      Colors.blue,
-      Colors.green,
-      Colors.purple,
-      Colors.red,
-    ];
-
-    final icons = [
-      Icons.star,
-      Icons.favorite,
-      Icons.church,
-      Icons.auto_awesome,
-      Icons.local_fire_department,
-    ];
-
-    final index = _availableBadges.indexOf(badgePath) % colors.length;
-
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            colors[index],
-            colors[index].withOpacity(0.7),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-      ),
-      child: Center(
-        child: Icon(
-          icons[index],
-          color: Colors.white,
-          size: 32,
-        ),
-      ),
     );
   }
 
@@ -588,8 +521,8 @@ class _DonatePageState extends State<DonatePage> with TickerProviderStateMixin {
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              colorScheme.primary.withOpacity(0.1),
-              colorScheme.secondary.withOpacity(0.1),
+              colorScheme.primary.withValues(alpha: 0.1),
+              colorScheme.secondary.withValues(alpha: 0.1),
             ],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
@@ -614,8 +547,8 @@ class _DonatePageState extends State<DonatePage> with TickerProviderStateMixin {
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
-                              color: colorScheme.primary.withOpacity(
-                                0.3 * _glowAnimation.value,
+                              color: colorScheme.primary.withValues(
+                                alpha: 0.3 * _glowAnimation.value,
                               ),
                               blurRadius: 20 * _glowAnimation.value,
                               spreadRadius: 5 * _glowAnimation.value,
@@ -623,7 +556,11 @@ class _DonatePageState extends State<DonatePage> with TickerProviderStateMixin {
                           ],
                         ),
                         child: _unlockedBadge != null
-                            ? _buildBadgeImage(_unlockedBadge!, colorScheme)
+                            ? BadgeImageWidget(
+                                badge: _unlockedBadge!,
+                                size: 120,
+                                isUnlocked: true,
+                              )
                             : Container(
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
@@ -654,21 +591,52 @@ class _DonatePageState extends State<DonatePage> with TickerProviderStateMixin {
 
                 const SizedBox(height: 16),
 
-                Text(
-                  'donate.gratitude_title'.tr(),
-                  style: textTheme.titleLarge?.copyWith(
-                    color: colorScheme.onSurface,
-                    fontWeight: FontWeight.w600,
+                if (_unlockedBadge != null) ...[
+                  Text(
+                    _unlockedBadge!.name,
+                    style: textTheme.titleLarge?.copyWith(
+                      color: colorScheme.onSurface,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    textAlign: TextAlign.center,
                   ),
-                  textAlign: TextAlign.center,
-                ),
-
-                const SizedBox(height: 12),
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: colorScheme.surfaceContainerHighest
+                          .withValues(alpha: 0.3),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Column(
+                      children: [
+                        Text(
+                          '"${_unlockedBadge!.verse}"',
+                          style: textTheme.bodyLarge?.copyWith(
+                            color: colorScheme.onSurface.withValues(alpha: 0.9),
+                            fontStyle: FontStyle.italic,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          '- ${_unlockedBadge!.reference}',
+                          style: textTheme.bodyMedium?.copyWith(
+                            color: colorScheme.onSurface.withValues(alpha: 0.7),
+                            fontWeight: FontWeight.w600,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                ],
 
                 Text(
                   'donate.thank_you_message'.tr(),
                   style: textTheme.bodyLarge?.copyWith(
-                    color: colorScheme.onSurface.withOpacity(0.8),
+                    color: colorScheme.onSurface.withValues(alpha: 0.8),
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -708,8 +676,7 @@ class _DonatePageState extends State<DonatePage> with TickerProviderStateMixin {
                       height: 56,
                       child: OutlinedButton.icon(
                         onPressed: () {
-                          // TODO: Implement badge sharing
-                          _showSuccessSnackBar('Coming soon!');
+                          Navigator.pushReplacementNamed(context, '/donate');
                         },
                         style: OutlinedButton.styleFrom(
                           foregroundColor: colorScheme.primary,
@@ -718,9 +685,9 @@ class _DonatePageState extends State<DonatePage> with TickerProviderStateMixin {
                             borderRadius: BorderRadius.circular(16),
                           ),
                         ),
-                        icon: const Icon(Icons.share),
+                        icon: const Icon(Icons.favorite),
                         label: Text(
-                          'donate.share_badge'.tr(),
+                          'donate.support_again'.tr(),
                           style: textTheme.labelLarge?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),

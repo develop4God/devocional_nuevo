@@ -1,8 +1,11 @@
-// lib/pages/my_badges_page.dart
+// lib/pages/my_badges_page.dart (ACTUALIZADA)
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/services/donation_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
+import '../models/badge_model.dart' as badge_model;
+import '../widgets/badge_image_widget.dart';
 
 class MyBadgesPage extends StatefulWidget {
   const MyBadgesPage({super.key});
@@ -14,8 +17,8 @@ class MyBadgesPage extends StatefulWidget {
 class _MyBadgesPageState extends State<MyBadgesPage> {
   final DonationService _donationService = DonationService();
 
-  List<String> _unlockedBadges = [];
-  List<String> _allBadges = [];
+  List<badge_model.Badge> _unlockedBadges = [];
+  List<badge_model.Badge> _allBadges = [];
   bool _isLoading = true;
 
   @override
@@ -50,26 +53,32 @@ class _MyBadgesPageState extends State<MyBadgesPage> {
     }
   }
 
-  void _showBadgeDetails(String badgePath, bool isUnlocked) {
+  void _showBadgeDetails(badge_model.Badge badge, bool isUnlocked) {
     HapticFeedback.lightImpact();
 
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return _BadgeDetailDialog(
-          badgePath: badgePath,
+          badge: badge,
           isUnlocked: isUnlocked,
-          onShare: () => _shareBadge(badgePath),
+          onShare: () => _shareBadge(badge),
+          onNavigateToSupport: () {
+            Navigator.pop(context); // Close dialog
+            Navigator.pushNamed(context, '/donate');
+          },
         );
       },
     );
   }
 
-  void _shareBadge(String badgePath) {
+  void _shareBadge(badge_model.Badge badge) {
     // TODO: Implement badge sharing functionality
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('donate.share_badge'.tr()),
+        content: Text('donate.share_badge_message'
+            .tr()
+            .replaceAll('{badge}', badge.name)),
         backgroundColor: Colors.green,
         duration: const Duration(seconds: 2),
       ),
@@ -87,6 +96,13 @@ class _MyBadgesPageState extends State<MyBadgesPage> {
         backgroundColor: colorScheme.surface,
         foregroundColor: colorScheme.onSurface,
         elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: _loadBadges,
+            tooltip: 'app.refresh'.tr(),
+          ),
+        ],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -120,13 +136,16 @@ class _MyBadgesPageState extends State<MyBadgesPage> {
               ),
               itemCount: _allBadges.length,
               itemBuilder: (context, index) {
-                final badgePath = _allBadges[index];
-                final isUnlocked = _unlockedBadges.contains(badgePath);
+                final badge = _allBadges[index];
+                final isUnlocked = _unlockedBadges
+                    .any((unlockedBadge) => unlockedBadge.id == badge.id);
 
-                return _buildBadgeItem(
-                  badgePath,
-                  isUnlocked,
-                  colorScheme,
+                return BadgeImageWidget(
+                  badge: badge,
+                  size: 80,
+                  isUnlocked: isUnlocked,
+                  showLock: !isUnlocked,
+                  onTap: () => _showBadgeDetails(badge, isUnlocked),
                 );
               },
             ),
@@ -146,8 +165,8 @@ class _MyBadgesPageState extends State<MyBadgesPage> {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            colorScheme.primary.withOpacity(0.1),
-            colorScheme.secondary.withOpacity(0.1),
+            colorScheme.primary.withValues(alpha: 0.1),
+            colorScheme.secondary.withValues(alpha: 0.1),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -177,9 +196,12 @@ class _MyBadgesPageState extends State<MyBadgesPage> {
                       ),
                     ),
                     Text(
-                      '${_unlockedBadges.length} of ${_allBadges.length} badges unlocked',
+                      'donate.badges_progress'
+                          .tr()
+                          .replaceAll('{unlocked}', '${_unlockedBadges.length}')
+                          .replaceAll('{total}', '${_allBadges.length}'),
                       style: textTheme.bodyMedium?.copyWith(
-                        color: colorScheme.onSurface.withOpacity(0.7),
+                        color: colorScheme.onSurface.withValues(alpha: 0.7),
                       ),
                     ),
                   ],
@@ -213,98 +235,18 @@ class _MyBadgesPageState extends State<MyBadgesPage> {
               ),
             ),
           ),
+
+          const SizedBox(height: 8),
+
+          // Progress text
+          Text(
+            '${(progress * 100).toInt()}% ${'donate.completed'.tr()}',
+            style: textTheme.bodySmall?.copyWith(
+              color: colorScheme.onSurface.withValues(alpha: 0.6),
+              fontWeight: FontWeight.w500,
+            ),
+          ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildBadgeItem(
-      String badgePath, bool isUnlocked, ColorScheme colorScheme) {
-    return InkWell(
-      onTap: () => _showBadgeDetails(badgePath, isUnlocked),
-      child: Container(
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          border: Border.all(
-            color: isUnlocked
-                ? colorScheme.primary
-                : colorScheme.outline.withOpacity(0.3),
-            width: isUnlocked ? 2 : 1,
-          ),
-          boxShadow: isUnlocked
-              ? [
-                  BoxShadow(
-                    color: colorScheme.primary.withOpacity(0.2),
-                    blurRadius: 8,
-                    spreadRadius: 1,
-                  ),
-                ]
-              : null,
-        ),
-        child: ClipOval(
-          child: Stack(
-            children: [
-              _buildBadgeImage(badgePath, colorScheme, isUnlocked),
-
-              // Lock overlay for locked badges
-              if (!isUnlocked)
-                Container(
-                  color: Colors.black.withOpacity(0.6),
-                  child: Center(
-                    child: Icon(
-                      Icons.lock,
-                      color: Colors.white.withOpacity(0.8),
-                      size: 32,
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildBadgeImage(
-      String badgePath, ColorScheme colorScheme, bool isUnlocked) {
-    // For demonstration, create colored circles since we don't have actual images
-    final colors = [
-      Colors.amber,
-      Colors.blue,
-      Colors.green,
-      Colors.purple,
-      Colors.red,
-    ];
-
-    final icons = [
-      Icons.star,
-      Icons.favorite,
-      Icons.church,
-      Icons.auto_awesome,
-      Icons.local_fire_department,
-    ];
-
-    final index = _allBadges.indexOf(badgePath) % colors.length;
-
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            isUnlocked ? colors[index] : Colors.grey,
-            isUnlocked
-                ? colors[index].withOpacity(0.7)
-                : Colors.grey.withOpacity(0.7),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-      ),
-      child: Center(
-        child: Icon(
-          icons[index],
-          color: isUnlocked ? Colors.white : Colors.white.withOpacity(0.5),
-          size: 32,
-        ),
       ),
     );
   }
@@ -319,21 +261,28 @@ class _MyBadgesPageState extends State<MyBadgesPage> {
             Icon(
               Icons.military_tech_outlined,
               size: 80,
-              color: colorScheme.primary.withOpacity(0.5),
+              color: colorScheme.primary.withValues(alpha: 0.5),
             ),
             const SizedBox(height: 24),
             Text(
-              'donate.no_badges'.tr(),
-              style: textTheme.titleMedium?.copyWith(
-                color: colorScheme.onSurface.withOpacity(0.7),
+              'donate.no_badges_title'.tr(),
+              style: textTheme.titleLarge?.copyWith(
+                color: colorScheme.onSurface,
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'donate.no_badges_message'.tr(),
+              style: textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurface.withValues(alpha: 0.7),
               ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 32),
             ElevatedButton.icon(
               onPressed: () {
-                Navigator.pop(context);
-                // Navigate to donate page
                 Navigator.pushNamed(context, '/donate');
               },
               style: ElevatedButton.styleFrom(
@@ -358,14 +307,16 @@ class _MyBadgesPageState extends State<MyBadgesPage> {
 }
 
 class _BadgeDetailDialog extends StatelessWidget {
-  final String badgePath;
+  final badge_model.Badge badge;
   final bool isUnlocked;
   final VoidCallback onShare;
+  final VoidCallback onNavigateToSupport;
 
   const _BadgeDetailDialog({
-    required this.badgePath,
+    required this.badge,
     required this.isUnlocked,
     required this.onShare,
+    required this.onNavigateToSupport,
   });
 
   @override
@@ -377,85 +328,188 @@ class _BadgeDetailDialog extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Large badge preview
-            Container(
-              width: 120,
-              height: 120,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: isUnlocked ? colorScheme.primary : colorScheme.outline,
-                  width: 3,
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          gradient: LinearGradient(
+            colors: [
+              colorScheme.surface,
+              colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+            ],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Large badge preview
+              Container(
+                width: 120,
+                height: 120,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: isUnlocked
+                        ? colorScheme.primary
+                        : colorScheme.outline.withValues(alpha: 0.5),
+                    width: 3,
+                  ),
+                  boxShadow: isUnlocked
+                      ? [
+                          BoxShadow(
+                            color: colorScheme.primary.withValues(alpha: 0.3),
+                            blurRadius: 12,
+                            spreadRadius: 2,
+                          ),
+                        ]
+                      : null,
                 ),
-                boxShadow: isUnlocked
-                    ? [
-                        BoxShadow(
-                          color: colorScheme.primary.withOpacity(0.3),
-                          blurRadius: 12,
-                          spreadRadius: 2,
-                        ),
-                      ]
-                    : null,
+                child: ClipOval(
+                  child: BadgeImageWidget(
+                    badge: badge,
+                    size: 120,
+                    isUnlocked: isUnlocked,
+                    showLock: !isUnlocked,
+                  ),
+                ),
               ),
-              child: ClipOval(
-                child: Stack(
-                  children: [
-                    _buildBadgeImage(badgePath, colorScheme, isUnlocked),
-                    if (!isUnlocked)
+
+              const SizedBox(height: 24),
+
+              // Badge name/title
+              Text(
+                badge.name,
+                style: textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: isUnlocked
+                      ? colorScheme.primary
+                      : colorScheme.onSurface.withValues(alpha: 0.7),
+                ),
+                textAlign: TextAlign.center,
+              ),
+
+              const SizedBox(height: 12),
+
+              // Badge description
+              Text(
+                badge.description,
+                style: textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onSurface.withValues(alpha: 0.8),
+                ),
+                textAlign: TextAlign.center,
+              ),
+
+              if (isUnlocked) ...[
+                const SizedBox(height: 20),
+
+                // Bible verse section
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: colorScheme.primaryContainer.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: colorScheme.primary.withValues(alpha: 0.2),
+                      width: 1,
+                    ),
+                  ),
+                  child: Column(
+                    children: [
+                      Icon(
+                        Icons.format_quote,
+                        color: colorScheme.primary,
+                        size: 28,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        '"${badge.verse}"',
+                        style: textTheme.bodyLarge?.copyWith(
+                          color: colorScheme.onSurface,
+                          fontStyle: FontStyle.italic,
+                          height: 1.4,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 12),
                       Container(
-                        color: Colors.black.withOpacity(0.6),
-                        child: Center(
-                          child: Icon(
-                            Icons.lock,
-                            color: Colors.white.withOpacity(0.8),
-                            size: 40,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: colorScheme.primary.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          badge.reference,
+                          style: textTheme.bodySmall?.copyWith(
+                            color: colorScheme.primary,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
+                    ],
+                  ),
+                ),
+              ] else ...[
+                const SizedBox(height: 16),
+                Text(
+                  'donate.unlock_badge_message'.tr(),
+                  style: textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurface.withValues(alpha: 0.6),
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+
+              const SizedBox(height: 24),
+
+              // Action buttons
+              if (isUnlocked) ...[
+                // Buttons for unlocked badges
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.pop(context),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: colorScheme.onSurface,
+                          side: BorderSide(color: colorScheme.outline),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: Text('app.close'.tr()),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          onShare();
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: colorScheme.primary,
+                          foregroundColor: colorScheme.onPrimary,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        icon: const Icon(Icons.share, size: 16),
+                        label: Text('donate.share'.tr()),
+                      ),
+                    ),
                   ],
                 ),
-              ),
-            ),
-
-            const SizedBox(height: 24),
-
-            // Badge name/title
-            Text(
-              isUnlocked ? 'Badge Unlocked!' : 'Badge Locked',
-              style: textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: isUnlocked
-                    ? colorScheme.primary
-                    : colorScheme.onSurface.withOpacity(0.7),
-              ),
-              textAlign: TextAlign.center,
-            ),
-
-            const SizedBox(height: 12),
-
-            Text(
-              isUnlocked
-                  ? 'Thank you for your generous support!'
-                  : 'Support our ministry to unlock this badge',
-              style: textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurface.withOpacity(0.8),
-              ),
-              textAlign: TextAlign.center,
-            ),
-
-            const SizedBox(height: 24),
-
-            // Action buttons
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () => Navigator.pop(context),
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: onNavigateToSupport,
                     style: OutlinedButton.styleFrom(
                       foregroundColor: colorScheme.primary,
                       side: BorderSide(color: colorScheme.primary),
@@ -463,76 +517,48 @@ class _BadgeDetailDialog extends StatelessWidget {
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    child: Text('app.close'.tr()),
+                    icon: const Icon(Icons.favorite, size: 16),
+                    label: Text('donate.support_again'.tr()),
                   ),
                 ),
-                if (isUnlocked) ...[
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: () {
-                        Navigator.pop(context);
-                        onShare();
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: colorScheme.primary,
-                        foregroundColor: colorScheme.onPrimary,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+              ] else ...[
+                // Buttons for locked badges
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.pop(context),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: colorScheme.onSurface,
+                          side: BorderSide(color: colorScheme.outline),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                         ),
+                        child: Text('app.close'.tr()),
                       ),
-                      icon: const Icon(Icons.share, size: 16),
-                      label: Text('donate.share_badge'.tr()),
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 12),
+                    Expanded(
+                      flex: 2,
+                      child: ElevatedButton.icon(
+                        onPressed: onNavigateToSupport,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: colorScheme.primary,
+                          foregroundColor: colorScheme.onPrimary,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        icon: const Icon(Icons.lock_open, size: 16),
+                        label: Text('donate.unlock_badge'.tr()),
+                      ),
+                    ),
+                  ],
+                ),
               ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildBadgeImage(
-      String badgePath, ColorScheme colorScheme, bool isUnlocked) {
-    // For demonstration, create colored circles since we don't have actual images
-    final colors = [
-      Colors.amber,
-      Colors.blue,
-      Colors.green,
-      Colors.purple,
-      Colors.red,
-    ];
-
-    final icons = [
-      Icons.star,
-      Icons.favorite,
-      Icons.church,
-      Icons.auto_awesome,
-      Icons.local_fire_department,
-    ];
-
-    final index = badgePath.hashCode % colors.length;
-
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            isUnlocked ? colors[index] : Colors.grey,
-            isUnlocked
-                ? colors[index].withOpacity(0.7)
-                : Colors.grey.withOpacity(0.7),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-      ),
-      child: Center(
-        child: Icon(
-          icons[index],
-          color: isUnlocked ? Colors.white : Colors.white.withOpacity(0.5),
-          size: 48,
+            ],
+          ),
         ),
       ),
     );

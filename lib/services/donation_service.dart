@@ -1,10 +1,13 @@
-// lib/services/donation_service.dart
+// lib/services/donation_service.dart (ACTUALIZADO)
 import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import '../models/badge_model.dart' as badge_model;
+import 'remote_badge_service.dart';
 
 /// Service for handling Google Play Billing donations and badge management
 class DonationService {
@@ -20,12 +23,15 @@ class DonationService {
   ];
 
   final InAppPurchase _inAppPurchase = InAppPurchase.instance;
+  final RemoteBadgeService _badgeService = RemoteBadgeService();
   late StreamSubscription<List<PurchaseDetails>> _subscription;
 
   // Private constructor for singleton
   DonationService._privateConstructor();
+
   static final DonationService _instance =
       DonationService._privateConstructor();
+
   factory DonationService() => _instance;
 
   /// Initialize the donation service
@@ -78,9 +84,22 @@ class DonationService {
     }
   }
 
+  /// Get available badges from remote service
+  Future<List<badge_model.Badge>> getAvailableBadges() async {
+    try {
+      debugPrint('🏅 Fetching available badges from remote...');
+      final badges = await _badgeService.getAvailableBadges();
+      debugPrint('✅ Found ${badges.length} available badges');
+      return badges;
+    } catch (e) {
+      debugPrint('❌ Error fetching badges: $e');
+      return [];
+    }
+  }
+
   /// Purchase a donation product
   Future<bool> purchaseProduct(String productId,
-      {String? selectedBadge}) async {
+      {String? selectedBadgeId}) async {
     try {
       debugPrint('🛒 Initiating purchase for product: $productId');
 
@@ -97,11 +116,11 @@ class DonationService {
       }
 
       // Store selected badge for when purchase completes
-      if (selectedBadge != null) {
+      if (selectedBadgeId != null) {
         final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('pending_badge_$productId', selectedBadge);
+        await prefs.setString('pending_badge_$productId', selectedBadgeId);
         debugPrint(
-            '💾 Stored pending badge: $selectedBadge for product: $productId');
+            '💾 Stored pending badge: $selectedBadgeId for product: $productId');
       }
 
       final PurchaseParam purchaseParam = PurchaseParam(
@@ -166,13 +185,13 @@ class DonationService {
 
       // Unlock the selected badge
       final prefs = await SharedPreferences.getInstance();
-      final String? pendingBadge =
+      final String? pendingBadgeId =
           prefs.getString('pending_badge_${purchaseDetails.productID}');
 
-      if (pendingBadge != null) {
-        await unlockBadge(pendingBadge);
+      if (pendingBadgeId != null) {
+        await unlockBadge(pendingBadgeId);
         await prefs.remove('pending_badge_${purchaseDetails.productID}');
-        debugPrint('🏅 Badge unlocked: $pendingBadge');
+        debugPrint('🏅 Badge unlocked: $pendingBadgeId');
       } else {
         debugPrint(
             '⚠️ No pending badge found for purchase: ${purchaseDetails.productID}');
@@ -217,29 +236,8 @@ class DonationService {
     }
   }
 
-  /// Get available badge images from assets
-  Future<List<String>> getAvailableBadges() async {
-    try {
-      // For now, return a list of known badge assets
-      // This could be enhanced to dynamically scan the assets directory
-      const List<String> badges = [
-        'assets/badges/badge_1.png',
-        'assets/badges/badge_2.png',
-        'assets/badges/badge_3.png',
-        'assets/badges/badge_4.png',
-        'assets/badges/badge_5.png',
-      ];
-
-      debugPrint('🏅 Available badges: ${badges.length}');
-      return badges;
-    } catch (e) {
-      debugPrint('❌ Error getting available badges: $e');
-      return [];
-    }
-  }
-
   /// Unlock a badge for the user
-  Future<void> unlockBadge(String badgePath) async {
+  Future<void> unlockBadge(String badgeId) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final String? unlockedJson = prefs.getString(_unlockedBadgesKey);
@@ -249,33 +247,52 @@ class DonationService {
         unlockedBadges = List<String>.from(json.decode(unlockedJson));
       }
 
-      if (!unlockedBadges.contains(badgePath)) {
-        unlockedBadges.add(badgePath);
+      if (!unlockedBadges.contains(badgeId)) {
+        unlockedBadges.add(badgeId);
         await prefs.setString(_unlockedBadgesKey, json.encode(unlockedBadges));
-        debugPrint('🏅 Badge unlocked and saved: $badgePath');
+        debugPrint('🏅 Badge unlocked and saved: $badgeId');
       } else {
-        debugPrint('⚠️ Badge already unlocked: $badgePath');
+        debugPrint('⚠️ Badge already unlocked: $badgeId');
       }
     } catch (e) {
       debugPrint('❌ Error unlocking badge: $e');
     }
   }
 
-  /// Get user's unlocked badges
-  Future<List<String>> getUnlockedBadges() async {
+  /// Get user's unlocked badge IDs
+  Future<List<String>> getUnlockedBadgeIds() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final String? unlockedJson = prefs.getString(_unlockedBadgesKey);
 
       if (unlockedJson != null) {
-        final List<String> badges =
+        final List<String> badgeIds =
             List<String>.from(json.decode(unlockedJson));
-        debugPrint('🏅 User has ${badges.length} unlocked badges');
-        return badges;
+        debugPrint('🏅 User has ${badgeIds.length} unlocked badges');
+        return badgeIds;
       }
 
       debugPrint('📭 No unlocked badges found');
       return [];
+    } catch (e) {
+      debugPrint('❌ Error getting unlocked badge IDs: $e');
+      return [];
+    }
+  }
+
+  /// Get user's unlocked badges with full data
+  Future<List<badge_model.Badge>> getUnlockedBadges() async {
+    try {
+      final unlockedIds = await getUnlockedBadgeIds();
+      if (unlockedIds.isEmpty) return [];
+
+      final allBadges = await getAvailableBadges();
+      final unlockedBadges =
+          allBadges.where((badge) => unlockedIds.contains(badge.id)).toList();
+
+      debugPrint(
+          '🏅 Returning ${unlockedBadges.length} unlocked badges with data');
+      return unlockedBadges;
     } catch (e) {
       debugPrint('❌ Error getting unlocked badges: $e');
       return [];
@@ -283,10 +300,10 @@ class DonationService {
   }
 
   /// Check if a specific badge is unlocked
-  Future<bool> isBadgeUnlocked(String badgePath) async {
+  Future<bool> isBadgeUnlocked(String badgeId) async {
     try {
-      final unlockedBadges = await getUnlockedBadges();
-      return unlockedBadges.contains(badgePath);
+      final unlockedIds = await getUnlockedBadgeIds();
+      return unlockedIds.contains(badgeId);
     } catch (e) {
       debugPrint('❌ Error checking badge unlock status: $e');
       return false;
@@ -322,6 +339,16 @@ class DonationService {
     } catch (e) {
       debugPrint('❌ Error getting total donations: $e');
       return 0;
+    }
+  }
+
+  /// Validate donation amount (minimum $1)
+  bool validateDonationAmount(String amount) {
+    try {
+      final double? parsedAmount = double.tryParse(amount);
+      return parsedAmount != null && parsedAmount >= 1.0;
+    } catch (e) {
+      return false;
     }
   }
 }
