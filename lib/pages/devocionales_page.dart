@@ -4,6 +4,7 @@ import 'dart:io' show File;
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
+import 'package:devocional_nuevo/pages/my_badges_page.dart';
 import 'package:devocional_nuevo/pages/prayers_page.dart';
 import 'package:devocional_nuevo/pages/progress_page.dart';
 import 'package:devocional_nuevo/pages/settings_page.dart';
@@ -414,6 +415,111 @@ class _DevocionalesPageState extends State<DevocionalesPage>
         ),
       );
     }
+  }
+
+  void _showShareOptions(Devocional devocional) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (BuildContext context) {
+        return Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                'devotionals.share_devotional'.tr(),
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  Expanded(
+                    child: InkWell(
+                      onTap: () {
+                        Navigator.pop(context);
+                        _shareAsText(devocional);
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: Theme.of(context).colorScheme.outline,
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Column(
+                          children: [
+                            Icon(
+                              Icons.text_fields,
+                              size: 32,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Share as Text',
+                              style: Theme.of(context).textTheme.bodyMedium,
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: InkWell(
+                      onTap: () {
+                        Navigator.pop(context);
+                        _shareAsImage(devocional);
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: Theme.of(context).colorScheme.outline,
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Column(
+                          children: [
+                            Icon(
+                              Icons.image,
+                              size: 32,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'devotionals.share_image'.tr(),
+                              style: Theme.of(context).textTheme.bodyMedium,
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   void _goToPrayers() {
@@ -852,9 +958,9 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                       ).newIconBadge,
                     ),
                     IconButton(
-                      tooltip: 'tooltips.share_as_text'.tr(),
+                      tooltip: 'devotionals.share_devotional'.tr(),
                       onPressed: currentDevocional != null
-                          ? () => _shareAsText(currentDevocional)
+                          ? () => _showShareOptions(currentDevocional)
                           : null,
                       icon: Icon(
                         Icons.share_outlined,
@@ -863,12 +969,17 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                       ),
                     ),
                     IconButton(
-                      tooltip: 'tooltips.share_as_image'.tr(),
-                      onPressed: currentDevocional != null
-                          ? () => _shareAsImage(currentDevocional)
-                          : null,
+                      tooltip: 'donate.my_badges'.tr(),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const MyBadgesPage(),
+                          ),
+                        );
+                      },
                       icon: Icon(
-                        Icons.image_outlined,
+                        Icons.military_tech_outlined,
                         color: appBarForegroundColor,
                         size: 30,
                       ),

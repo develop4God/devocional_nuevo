@@ -5,6 +5,7 @@ import 'package:devocional_nuevo/pages/about_page.dart';
 import 'package:devocional_nuevo/pages/application_language_page.dart';
 import 'package:devocional_nuevo/pages/backup_settings_page.dart';
 import 'package:devocional_nuevo/pages/contact_page.dart';
+import 'package:devocional_nuevo/pages/donate_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/providers/localization_provider.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
@@ -12,7 +13,6 @@ import 'package:devocional_nuevo/utils/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -80,52 +80,25 @@ class _SettingsPageState extends State<SettingsPage> {
     }
   }
 
-  Future<void> _launchPaypal() async {
-    const String baseUrl =
-        'https://www.paypal.com/donate/?hosted_button_id=CGQNBA4YPUG7A';
-    const String paypalUrlWithLocale = '$baseUrl&locale.x=es_ES';
-    final Uri url = Uri.parse(paypalUrlWithLocale);
+  Future<void> _navigateToDonatePage() async {
+    try {
+      developer.log('Navigating to donate page', name: 'DonateNavigation');
 
-    developer.log('Intentando abrir URL: $url', name: 'PayPalLaunch');
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const DonatePage(),
+        ),
+      );
 
-    if (await canLaunchUrl(url)) {
+      developer.log('Returned from donate page', name: 'DonateNavigation');
+    } catch (e) {
       developer.log(
-        'canLaunchUrl devolvió true. Intentando launchUrl.',
-        name: 'PayPalLaunch',
+        'Error navigating to donate page: $e',
+        error: e,
+        name: 'DonateNavigation',
       );
-      try {
-        final launched = await launchUrl(
-          url,
-          mode: LaunchMode.externalApplication,
-        );
-
-        if (!launched) {
-          developer.log(
-            'launchUrl devolvió false. No se pudo lanzar.',
-            name: 'PayPalLaunch',
-          );
-          _showErrorSnackBar(
-            'settings.paypal_launch_error'.tr(),
-          );
-        } else {
-          developer.log('PayPal abierto exitosamente.', name: 'PayPalLaunch');
-        }
-      } catch (e) {
-        developer.log(
-          'Error al intentar lanzar PayPal: $e',
-          error: e,
-          name: 'PayPalLaunch',
-        );
-        _showErrorSnackBar('settings.paypal_error'.tr({'error': e.toString()}));
-      }
-    } else {
-      developer.log(
-        'canLaunchUrl devolvió false. No hay aplicación para manejar esta URL.',
-        name: 'PayPalLaunch',
-      );
-      _showErrorSnackBar(
-        'settings.paypal_no_app_error'.tr(),
-      );
+      _showErrorSnackBar('Error opening support page: $e');
     }
   }
 
@@ -158,12 +131,12 @@ class _SettingsPageState extends State<SettingsPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Botón de donación
+            // Support/Donation Button
             SizedBox(
               child: Align(
                 alignment: Alignment.topRight,
                 child: OutlinedButton.icon(
-                  onPressed: _launchPaypal,
+                  onPressed: _navigateToDonatePage,
                   style: OutlinedButton.styleFrom(
                     foregroundColor: colorScheme.onSurface,
                     side: BorderSide(
@@ -174,8 +147,12 @@ class _SettingsPageState extends State<SettingsPage> {
                       borderRadius: BorderRadius.circular(20.0),
                     ),
                   ),
+                  icon: Icon(
+                    Icons.favorite,
+                    color: colorScheme.primary,
+                  ),
                   label: Text(
-                    'settings.donate'.tr(),
+                    'donate.support_button'.tr(),
                     style: textTheme.bodyMedium?.copyWith(
                       color: colorScheme.onSurface,
                       fontWeight: FontWeight.bold,
