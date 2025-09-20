@@ -1,4 +1,4 @@
-// lib/pages/donate/donate_success_page.dart
+// lib/pages/donate/donate_success_page.dart - REFACTORIZADA
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:flutter/material.dart';
 
@@ -12,12 +12,18 @@ class DonateSuccessPage extends StatelessWidget {
   final Animation<double> glowAnimation;
   final Function(String) showSuccessSnackBar;
 
+  // NUEVO: Callbacks específicos para cada acción
+  final VoidCallback onDonateAgain;
+  final VoidCallback onSaveBadge;
+
   const DonateSuccessPage({
     required this.unlockedBadge,
     required this.successAnimationController,
     required this.scaleAnimation,
     required this.glowAnimation,
     required this.showSuccessSnackBar,
+    required this.onDonateAgain,
+    required this.onSaveBadge,
     super.key,
   });
 
@@ -186,20 +192,20 @@ class DonateSuccessPage extends StatelessWidget {
   ) {
     return Column(
       children: [
-        // Save badge button - CON DEBUG LOGS
+        // Save badge button - ACTUALIZADO CON NUEVO CALLBACK
         SizedBox(
           width: double.infinity,
           height: 56,
           child: ElevatedButton.icon(
             onPressed: () {
-              debugPrint('🐛 [DonateSuccessPage] "Save badge" button pressed');
+              debugPrint('✅ [DonateSuccessPage] "Save badge" button pressed');
               showSuccessSnackBar('donate.badge_saved'.tr());
 
+              // CAMBIO: Usar callback en lugar de Navigator.pop()
+              onSaveBadge();
+
               debugPrint(
-                  '🐛 [DonateSuccessPage] About to call Navigator.pop() from Save button');
-              Navigator.pop(context);
-              debugPrint(
-                  '🐛 [DonateSuccessPage] Navigator.pop() completed from Save button');
+                  '✅ [DonateSuccessPage] Badge saved and returned to selection');
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: colorScheme.primary,
@@ -219,34 +225,20 @@ class DonateSuccessPage extends StatelessWidget {
         ),
         const SizedBox(height: 16),
 
-        // Support again button - CON DEBUG LOGS
+        // Support again button - ACTUALIZADO CON NUEVO CALLBACK
         SizedBox(
           width: double.infinity,
           height: 56,
           child: OutlinedButton.icon(
             onPressed: () {
               debugPrint(
-                  '🐛 [DonateSuccessPage] "Donar de nuevo" button pressed');
+                  '🔄 [DonateSuccessPage] "Donar de nuevo" button pressed');
 
-              // Debug: Mostrar el stack actual de navegación
-              Navigator.popUntil(context, (route) {
-                debugPrint(
-                    '🐛 [Navigation Stack] Route: ${route.settings.name}');
-                debugPrint(
-                    '🐛 [Navigation Stack] Arguments: ${route.settings.arguments}');
-                debugPrint('🐛 [Navigation Stack] Route toString: $route');
-                debugPrint('🐛 [Navigation Stack] Is first: ${route.isFirst}');
-                debugPrint('---');
-                return true; // No hacer pop aún, solo mostrar el stack
-              });
+              // CAMBIO PRINCIPAL: Usar callback de reset completo
+              onDonateAgain();
 
               debugPrint(
-                  '🐛 [DonateSuccessPage] About to call Navigator.pop()');
-
-              // Hacer el pop simple
-              Navigator.pop(context);
-
-              debugPrint('🐛 [DonateSuccessPage] Navigator.pop() completed');
+                  '✅ [DonateSuccessPage] Complete state reset initiated');
             },
             style: OutlinedButton.styleFrom(
               foregroundColor: colorScheme.primary,

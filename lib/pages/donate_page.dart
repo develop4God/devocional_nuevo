@@ -1,4 +1,4 @@
-// lib/pages/donate_page.dart - VERSIÓN REFACTORIZADA (~300 líneas vs 1000+)
+// lib/pages/donate_page.dart - REFACTORIZADA con gestión de estado mejorada
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/services/donation_service.dart';
 import 'package:flutter/foundation.dart';
@@ -13,6 +13,13 @@ import '../widgets/donate/donate_badge_grid.dart';
 import '../widgets/donate/donate_success_page.dart';
 import '../widgets/donate/floating_continue_button.dart';
 
+// Estados del flujo de donación
+enum DonationFlowState {
+  selecting, // Usuario seleccionando monto y badge
+  processing, // Procesando el pago
+  success, // Mostrando éxito y badge desbloqueado
+}
+
 class DonatePage extends StatefulWidget {
   const DonatePage({super.key});
 
@@ -26,17 +33,26 @@ class _DonatePageState extends State<DonatePage> with TickerProviderStateMixin {
   final TextEditingController _customAmountController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
 
-  // State variables
+  // Estado principal del flujo
+  DonationFlowState _currentState = DonationFlowState.selecting;
+
+  // State variables - Selección
   String? _selectedAmount;
   badge_model.Badge? _selectedBadge;
-  bool _isProcessing = false;
-  bool _showPaymentSuccess = false;
+
+  // State variables - Éxito
   badge_model.Badge? _unlockedBadge;
+
+  // State variables - Carga
   bool _isLoadingBadges = true;
   List<badge_model.Badge> _availableBadges = [];
 
   // Configuration
   bool get _isTestMode => kDebugMode;
+
+  bool get _isProcessing => _currentState == DonationFlowState.processing;
+
+  bool get _showPaymentSuccess => _currentState == DonationFlowState.success;
 
   // Animation controllers
   late AnimationController _successAnimationController;
@@ -84,6 +100,43 @@ class _DonatePageState extends State<DonatePage> with TickerProviderStateMixin {
     _buttonSlideAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
         CurvedAnimation(
             parent: _buttonAnimationController, curve: Curves.easeOutCubic));
+  }
+
+  // ============================================================================
+  // NUEVO: Método para resetear completamente el estado de donación
+  // ============================================================================
+  void _resetDonationState() {
+    debugPrint('🔄 [DonatePage] Resetting donation state - fresh start');
+
+    setState(() {
+      // Resetear estado del flujo
+      _currentState = DonationFlowState.selecting;
+
+      // Limpiar selecciones
+      _selectedAmount = null;
+      _selectedBadge = null;
+
+      // Limpiar datos de éxito
+      _unlockedBadge = null;
+    });
+
+    // Resetear controllers
+    _customAmountController.clear();
+
+    // Resetear animaciones
+    _successAnimationController.reset();
+    _buttonAnimationController.reset();
+
+    // Scroll al inicio
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+        0,
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeOutCubic,
+      );
+    }
+
+    debugPrint('✅ [DonatePage] State reset completed');
   }
 
   Future<void> _loadBadges() async {
@@ -176,7 +229,7 @@ class _DonatePageState extends State<DonatePage> with TickerProviderStateMixin {
       return;
     }
 
-    setState(() => _isProcessing = true);
+    setState(() => _currentState = DonationFlowState.processing);
 
     try {
       bool success = false;
@@ -203,19 +256,19 @@ class _DonatePageState extends State<DonatePage> with TickerProviderStateMixin {
       if (success) {
         await _showSuccessMessage();
       } else {
+        setState(() => _currentState = DonationFlowState.selecting);
         _showErrorSnackBar('donate.payment_failed'.tr());
       }
     } catch (e) {
       debugPrint('Error processing donation: $e');
+      setState(() => _currentState = DonationFlowState.selecting);
       _showErrorSnackBar('donate.payment_failed'.tr());
-    } finally {
-      if (mounted) setState(() => _isProcessing = false);
     }
   }
 
   Future<void> _showSuccessMessage() async {
     setState(() {
-      _showPaymentSuccess = true;
+      _currentState = DonationFlowState.success;
       _unlockedBadge = _selectedBadge;
     });
     _successAnimationController.forward();
@@ -251,6 +304,9 @@ class _DonatePageState extends State<DonatePage> with TickerProviderStateMixin {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
     final TextTheme textTheme = Theme.of(context).textTheme;
 
+    // =========================================================================
+    // CAMBIO PRINCIPAL: DonateSuccessPage ahora recibe callback de reset
+    // =========================================================================
     if (_showPaymentSuccess) {
       return DonateSuccessPage(
         unlockedBadge: _unlockedBadge,
@@ -258,6 +314,12 @@ class _DonatePageState extends State<DonatePage> with TickerProviderStateMixin {
         scaleAnimation: _scaleAnimation,
         glowAnimation: _glowAnimation,
         showSuccessSnackBar: _showSuccessSnackBar,
+        // NUEVO: Callback para resetear el estado completo
+        onDonateAgain: _resetDonationState,
+        // NUEVO: Callback para simplemente volver al estado inicial
+        onSaveBadge: () {
+          setState(() => _currentState = DonationFlowState.selecting);
+        },
       );
     }
 
@@ -280,7 +342,7 @@ class _DonatePageState extends State<DonatePage> with TickerProviderStateMixin {
 
                 const SizedBox(height: 32),
 
-                // Description text moved here from header
+                // Description text
                 Text(
                   'donate.description'.tr(),
                   style: textTheme.bodyMedium?.copyWith(
