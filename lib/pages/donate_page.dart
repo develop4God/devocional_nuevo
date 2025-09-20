@@ -458,7 +458,7 @@ class _DonatePageState extends State<DonatePage> with TickerProviderStateMixin {
             final badge = _availableBadges[index];
             return BadgeImageWidget(
               badge: badge,
-              size: 80,
+              size: 130,
               isSelected: _selectedBadge?.id == badge.id,
               onTap: () => _selectBadge(badge),
             );
