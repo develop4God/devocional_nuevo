@@ -1,4 +1,4 @@
-// lib/widgets/animated_donation_header.dart - VERSIÓN OPTIMIZADA
+// lib/widgets/animated_donation_header.dart
 import 'dart:math';
 
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
@@ -39,22 +39,23 @@ class _AnimatedDonationHeaderState extends State<AnimatedDonationHeader>
   void _initializeAnimations() {
     // Ondas de fondo - más lentas para mejor rendimiento
     _waveController = AnimationController(
-      duration: const Duration(seconds: 6),
+      duration: const Duration(seconds: 6), // Era 4, ahora 6
       vsync: this,
     )..repeat();
 
     // Partículas flotantes - reducidas y más lentas
     _particleController = AnimationController(
-      duration: const Duration(seconds: 12),
+      duration: const Duration(seconds: 12), // Era 8, ahora 12
       vsync: this,
     )..repeat();
 
     // Pulso del ícono - más lento y suave
     _pulseController = AnimationController(
-      duration: const Duration(seconds: 3),
+      duration: const Duration(seconds: 3), // Era 2, ahora 3
       vsync: this,
     )..repeat(reverse: true);
 
+    // Crear animaciones
     _waveAnimation = Tween<double>(
       begin: 0.0,
       end: 1.0,
@@ -90,17 +91,9 @@ class _AnimatedDonationHeaderState extends State<AnimatedDonationHeader>
 
   @override
   Widget build(BuildContext context) {
-    final screenSize = MediaQuery.of(context).size;
-
-    // 🔥 CORRECCIÓN PRINCIPAL: Altura adaptativa para prevenir overflow
-    final adaptiveHeight = widget.height.clamp(
-      120.0, // Mínimo
-      screenSize.height * 0.3, // Máximo 30% de la pantalla
-    );
-
     return Container(
-      height: adaptiveHeight, // ← CAMBIO PRINCIPAL
-      width: double.infinity, // ← AGREGADO: Evita overflow horizontal
+      height:
+          widget.height.clamp(120.0, MediaQuery.of(context).size.height * 0.3),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
         gradient: LinearGradient(
@@ -125,42 +118,44 @@ class _AnimatedDonationHeaderState extends State<AnimatedDonationHeader>
       child: ClipRRect(
         borderRadius: BorderRadius.circular(20),
         child: Stack(
-          clipBehavior: Clip.hardEdge, // ← AGREGADO: Fuerza el clipping
+          clipBehavior: Clip.hardEdge,
           children: [
             // Ondas animadas de fondo
-            ..._buildAnimatedWaves(screenSize.width),
+            ..._buildAnimatedWaves(),
 
             // Partículas flotantes
-            ..._buildFloatingParticles(screenSize.width, adaptiveHeight),
+            ..._buildFloatingParticles(),
 
             // Contenido principal
-            _buildMainContent(adaptiveHeight),
+            _buildMainContent(),
           ],
         ),
       ),
     );
   }
 
-  List<Widget> _buildAnimatedWaves(double screenWidth) {
+  List<Widget> _buildAnimatedWaves() {
+    // Solo 2 ondas en lugar de 3
     return List.generate(
       2,
       (index) => AnimatedBuilder(
         animation: _waveAnimation,
         builder: (context, child) {
-          final offset = (index * 0.5) % 1.0;
+          final offset = (index * 0.5) % 1.0; // Más espaciadas
           final animValue = (_waveAnimation.value + offset) % 1.0;
 
           return Positioned(
             top: 60.0 + (index * 40),
-            // 🔥 CORRECCIÓN: Usar ancho de pantalla para cálculo
-            left: -80 + ((screenWidth + 160) * animValue) - (index * 40),
+            left: -80 + (360 * animValue) - (index * 40),
             child: Transform.rotate(
               angle: sin(_waveAnimation.value * pi + index) * 0.05,
+              // Menos rotación
               child: Container(
-                width: 250,
+                width: 250, // Más pequeñas
                 height: 60,
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.08 - (index * 0.02)),
+                  color: Colors.white.withValues(
+                      alpha: 0.08 - (index * 0.02)), // Menos opacidad
                   borderRadius: BorderRadius.circular(30),
                 ),
               ),
@@ -171,37 +166,37 @@ class _AnimatedDonationHeaderState extends State<AnimatedDonationHeader>
     );
   }
 
-  List<Widget> _buildFloatingParticles(
-      double screenWidth, double containerHeight) {
+  List<Widget> _buildFloatingParticles() {
+    // Reducidas de 12 a 8 partículas para mejor rendimiento
     return List.generate(
       8,
       (index) => AnimatedBuilder(
         animation: _particleAnimation,
         builder: (context, child) {
-          final offset = (index * 0.25) % 1.0;
+          final offset = (index * 0.25) % 1.0; // Más espaciadas
           final animValue = (_particleAnimation.value + offset) % 1.0;
-          final yOffset = sin(_particleAnimation.value * pi + index) * 15;
-
-          // 🔥 CORRECCIÓN: Asegurar que las partículas estén dentro del contenedor
-          final topPosition =
-              (40 + (index * 22.0) + yOffset).clamp(0.0, containerHeight - 10);
+          final yOffset = sin(_particleAnimation.value * pi + index) *
+              15; // Menos movimiento vertical
 
           return Positioned(
-            top: topPosition,
-            // 🔥 CORRECCIÓN: Usar ancho de pantalla para cálculo
-            left: -10 + ((screenWidth + 20) * animValue),
+            top: 40 + (index * 22.0) + yOffset,
+            left: -10 + (380 * animValue),
             child: Container(
-              width: 2 + (index % 3) * 1.0,
+              width: 2 + (index % 3) * 1.0, // Más pequeñas
               height: 2 + (index % 3) * 1.0,
               decoration: BoxDecoration(
                 color: Colors.white.withValues(
                     alpha: 0.3 +
-                        (sin(_particleAnimation.value * 2 * pi + index) * 0.2)),
+                        (sin(_particleAnimation.value * 2 * pi + index) *
+                            0.2) // Menos intensidad
+                    ),
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
                     color: Colors.white.withValues(alpha: 0.2),
+                    // Menos glow
                     blurRadius: 2,
+                    // Menos blur
                     spreadRadius: 0.5,
                   ),
                 ],
@@ -213,30 +208,29 @@ class _AnimatedDonationHeaderState extends State<AnimatedDonationHeader>
     );
   }
 
-  Widget _buildMainContent(double containerHeight) {
-    // 🔥 NUEVO: Contenido adaptativo según altura disponible
-    final isCompact = containerHeight < 180;
-
+  Widget _buildMainContent() {
     return Padding(
-      padding: EdgeInsets.all(isCompact ? 16 : 24), // ← Padding adaptativo
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+      // ← Reducido padding vertical de 24 a 16
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          // Ícono con pulso y halo
+          // Espacio reducido desde arriba
+          const SizedBox(height: 4), // ← Reducido de 10 a 4
+
+          // Ícono con pulso y halo (más pequeño)
           AnimatedBuilder(
             animation: _pulseAnimation,
             builder: (context, child) {
-              // 🔥 NUEVO: Tamaño adaptativo del ícono
-              final iconSize = isCompact ? 50.0 : 70.0;
-              final haloSize = isCompact ? 80.0 : 100.0;
-
               return Stack(
                 alignment: Alignment.center,
                 children: [
-                  // Halo exterior
+                  // Halo exterior (reducido)
                   Container(
-                    width: haloSize + (15 * _pulseAnimation.value),
-                    height: haloSize + (15 * _pulseAnimation.value),
+                    width: 60 + (12 * _pulseAnimation.value),
+                    // ← Reducido de 70+15 a 60+12
+                    height: 60 + (12 * _pulseAnimation.value),
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       gradient: RadialGradient(
@@ -248,12 +242,13 @@ class _AnimatedDonationHeaderState extends State<AnimatedDonationHeader>
                       ),
                     ),
                   ),
-                  // Contenedor del ícono
+                  // Contenedor del ícono (más pequeño)
                   Transform.scale(
-                    scale: 1.0 + (0.1 * _pulseAnimation.value),
+                    scale: 1.0 + (0.08 * _pulseAnimation.value),
+                    // ← Reducido el scale de 0.1 a 0.08
                     child: Container(
-                      width: iconSize,
-                      height: iconSize,
+                      width: 60, // ← Reducido de 70 a 60
+                      height: 60,
                       decoration: BoxDecoration(
                         color: Colors.white.withValues(alpha: 0.2),
                         shape: BoxShape.circle,
@@ -269,9 +264,9 @@ class _AnimatedDonationHeaderState extends State<AnimatedDonationHeader>
                           ),
                         ],
                       ),
-                      child: Icon(
+                      child: const Icon(
                         Icons.favorite,
-                        size: isCompact ? 24 : 32, // ← Tamaño adaptativo
+                        size: 28, // ← Reducido de 32 a 28
                         color: Colors.white,
                       ),
                     ),
@@ -281,56 +276,24 @@ class _AnimatedDonationHeaderState extends State<AnimatedDonationHeader>
             },
           ),
 
-          SizedBox(height: isCompact ? 16 : 24), // ← Espaciado adaptativo
+          const SizedBox(height: 6), // ← Reducido de 8 a 6
 
           // Título
-          Flexible(
-            // ← AGREGADO: Previene overflow de texto
-            child: Text(
-              'donate.gratitude_title'.tr(),
-              style: widget.textTheme.headlineSmall?.copyWith(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 0.5,
-                fontSize: isCompact ? 18 : null,
-                // ← Tamaño adaptativo
-                shadows: [
-                  Shadow(
-                    color: Colors.black.withValues(alpha: 0.3),
-                    offset: const Offset(0, 2),
-                    blurRadius: 4,
-                  ),
-                ],
-              ),
-              textAlign: TextAlign.center,
-              maxLines: 2, // ← AGREGADO: Limita líneas
-              overflow: TextOverflow.ellipsis, // ← AGREGADO: Maneja overflow
+          Text(
+            'donate.gratitude_title'.tr(),
+            style: widget.textTheme.headlineSmall?.copyWith(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 0.5,
+              shadows: [
+                Shadow(
+                  color: Colors.black.withValues(alpha: 0.3),
+                  offset: const Offset(0, 2),
+                  blurRadius: 4,
+                ),
+              ],
             ),
-          ),
-
-          SizedBox(height: isCompact ? 8 : 12), // ← Espaciado adaptativo
-
-          // Descripción
-          Flexible(
-            // ← AGREGADO: Previene overflow de texto
-            child: Text(
-              'donate.description'.tr(),
-              style: widget.textTheme.bodyMedium?.copyWith(
-                color: Colors.white.withValues(alpha: 0.9),
-                height: 1.4,
-                fontSize: isCompact ? 13 : null, // ← Tamaño adaptativo
-                shadows: [
-                  Shadow(
-                    color: Colors.black.withValues(alpha: 0.2),
-                    offset: const Offset(0, 1),
-                    blurRadius: 2,
-                  ),
-                ],
-              ),
-              textAlign: TextAlign.center,
-              maxLines: isCompact ? 2 : 3, // ← AGREGADO: Líneas adaptativas
-              overflow: TextOverflow.ellipsis, // ← AGREGADO: Maneja overflow
-            ),
+            textAlign: TextAlign.center,
           ),
         ],
       ),

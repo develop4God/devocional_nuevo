@@ -248,6 +248,9 @@ class _DonatePageState extends State<DonatePage> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+    final TextTheme textTheme = Theme.of(context).textTheme;
+
     if (_showPaymentSuccess) {
       return DonateSuccessPage(
         unlockedBadge: _unlockedBadge,
@@ -264,18 +267,30 @@ class _DonatePageState extends State<DonatePage> with TickerProviderStateMixin {
         children: [
           SingleChildScrollView(
             controller: _scrollController,
-            padding: const EdgeInsets.all(16.0).copyWith(bottom: 140),
+            padding: const EdgeInsets.all(16.0).copyWith(bottom: 160),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 // Header Section
                 AnimatedDonationHeader(
                   height: 200,
-                  textTheme: Theme.of(context).textTheme,
-                  colorScheme: Theme.of(context).colorScheme,
+                  textTheme: textTheme,
+                  colorScheme: colorScheme,
                 ),
 
                 const SizedBox(height: 32),
+
+                // Description text moved here from header
+                Text(
+                  'donate.description'.tr(),
+                  style: textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurface.withValues(alpha: 0.7),
+                    height: 1.4,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+
+                const SizedBox(height: 24),
 
                 // Amount Selection Widget
                 DonateAmountSelector(
@@ -295,6 +310,7 @@ class _DonatePageState extends State<DonatePage> with TickerProviderStateMixin {
                   onBadgeSelected: _selectBadge,
                   isLoading: _isLoadingBadges,
                 ),
+                const SizedBox(height: 12),
               ],
             ),
           ),
