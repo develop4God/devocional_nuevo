@@ -1,4 +1,4 @@
-// lib/pages/donate_page.dart - REFACTORIZADA con gestión de estado mejorada
+// lib/pages/donate_page.dart - AJUSTADO con feedback
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/services/donation_service.dart';
 import 'package:flutter/foundation.dart';
@@ -8,16 +8,14 @@ import 'package:flutter/services.dart';
 import '../models/badge_model.dart' as badge_model;
 import '../widgets/donate/animated_donation_header.dart';
 import '../widgets/donate/badge_preview_dialog.dart';
-import '../widgets/donate/donate_amount_selector.dart';
-import '../widgets/donate/donate_badge_grid.dart';
 import '../widgets/donate/donate_success_page.dart';
-import '../widgets/donate/floating_continue_button.dart';
 
-// Estados del flujo de donación
+// Estados del flujo discovery
 enum DonationFlowState {
-  selecting, // Usuario seleccionando monto y badge
-  processing, // Procesando el pago
-  success, // Mostrando éxito y badge desbloqueado
+  selecting, // Usuario seleccionando
+  ready, // Listo para procesar
+  processing, // Procesando pago
+  success, // Éxito mostrado
 }
 
 class DonatePage extends StatefulWidget {
@@ -36,16 +34,15 @@ class _DonatePageState extends State<DonatePage> with TickerProviderStateMixin {
   // Estado principal del flujo
   DonationFlowState _currentState = DonationFlowState.selecting;
 
-  // State variables - Selección
+  // State variables
   String? _selectedAmount;
   badge_model.Badge? _selectedBadge;
-
-  // State variables - Éxito
   badge_model.Badge? _unlockedBadge;
-
-  // State variables - Carga
   bool _isLoadingBadges = true;
   List<badge_model.Badge> _availableBadges = [];
+
+  // Montos predefinidos
+  final List<String> _predefinedAmounts = ['5', '10', '15', '25', '50'];
 
   // Configuration
   bool get _isTestMode => kDebugMode;
@@ -53,6 +50,8 @@ class _DonatePageState extends State<DonatePage> with TickerProviderStateMixin {
   bool get _isProcessing => _currentState == DonationFlowState.processing;
 
   bool get _showPaymentSuccess => _currentState == DonationFlowState.success;
+
+  bool get _canProceed => _selectedAmount != null && _selectedBadge != null;
 
   // Animation controllers
   late AnimationController _successAnimationController;
@@ -85,7 +84,7 @@ class _DonatePageState extends State<DonatePage> with TickerProviderStateMixin {
     );
 
     _buttonAnimationController = AnimationController(
-      duration: const Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 400),
       vsync: this,
     );
 
@@ -99,41 +98,27 @@ class _DonatePageState extends State<DonatePage> with TickerProviderStateMixin {
 
     _buttonSlideAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
         CurvedAnimation(
-            parent: _buttonAnimationController, curve: Curves.easeOutCubic));
+            parent: _buttonAnimationController, curve: Curves.easeOutBack));
   }
 
-  // ============================================================================
-  // NUEVO: Método para resetear completamente el estado de donación
-  // ============================================================================
   void _resetDonationState() {
     debugPrint('🔄 [DonatePage] Resetting donation state - fresh start');
 
     setState(() {
-      // Resetear estado del flujo
       _currentState = DonationFlowState.selecting;
-
-      // Limpiar selecciones
       _selectedAmount = null;
       _selectedBadge = null;
-
-      // Limpiar datos de éxito
       _unlockedBadge = null;
     });
 
-    // Resetear controllers
     _customAmountController.clear();
-
-    // Resetear animaciones
     _successAnimationController.reset();
     _buttonAnimationController.reset();
 
-    // Scroll al inicio
     if (_scrollController.hasClients) {
-      _scrollController.animateTo(
-        0,
-        duration: const Duration(milliseconds: 500),
-        curve: Curves.easeOutCubic,
-      );
+      _scrollController.animateTo(0,
+          duration: const Duration(milliseconds: 500),
+          curve: Curves.easeOutCubic);
     }
 
     debugPrint('✅ [DonatePage] State reset completed');
@@ -165,21 +150,16 @@ class _DonatePageState extends State<DonatePage> with TickerProviderStateMixin {
     }
   }
 
-  String? _validateCustomAmount(String? value) {
-    if (value == null || value.isEmpty) return null;
-    if (!_donationService.validateDonationAmount(value)) {
-      return 'donate.invalid_amount_error'.tr();
-    }
-    return null;
-  }
-
   void _selectAmount(String amount) {
     setState(() {
       _selectedAmount = amount;
       _customAmountController.clear();
     });
+
     _checkAndShowButton();
     HapticFeedback.lightImpact();
+
+    debugPrint('💰 Amount selected: $amount');
   }
 
   void _selectCustomAmount() {
@@ -189,6 +169,8 @@ class _DonatePageState extends State<DonatePage> with TickerProviderStateMixin {
       setState(() => _selectedAmount = customAmount);
       _checkAndShowButton();
       HapticFeedback.lightImpact();
+
+      debugPrint('💰 Custom amount selected: $customAmount');
     }
   }
 
@@ -197,14 +179,24 @@ class _DonatePageState extends State<DonatePage> with TickerProviderStateMixin {
     _checkAndShowButton();
     HapticFeedback.selectionClick();
     _showBadgeDetails(badge);
+
+    debugPrint('🏆 Badge selected: ${badge.name}');
   }
 
   void _checkAndShowButton() {
-    if (_selectedAmount != null && _selectedBadge != null) {
+    if (_canProceed) {
       _buttonAnimationController.forward();
     } else {
       _buttonAnimationController.reverse();
     }
+  }
+
+  String? _validateCustomAmount(String? value) {
+    if (value == null || value.isEmpty) return null;
+    if (!_donationService.validateDonationAmount(value)) {
+      return 'donate.invalid_amount_error'.tr();
+    }
+    return null;
   }
 
   void _showBadgeDetails(badge_model.Badge badge) {
@@ -225,7 +217,7 @@ class _DonatePageState extends State<DonatePage> with TickerProviderStateMixin {
 
   Future<void> _processDonation() async {
     if (_selectedAmount == null || _selectedBadge == null) {
-      _showErrorSnackBar('Por favor selecciona un monto y una insignia');
+      _showErrorSnackBar('Por favor completa la selección');
       return;
     }
 
@@ -247,21 +239,19 @@ class _DonatePageState extends State<DonatePage> with TickerProviderStateMixin {
                 ? 'donation_10_usd'
                 : 'donation_20_usd';
 
-        success = await _donationService.purchaseProduct(
-          productId,
-          selectedBadgeId: _selectedBadge!.id,
-        );
+        success = await _donationService.purchaseProduct(productId,
+            selectedBadgeId: _selectedBadge!.id);
       }
 
       if (success) {
         await _showSuccessMessage();
       } else {
-        setState(() => _currentState = DonationFlowState.selecting);
+        setState(() => _currentState = DonationFlowState.ready);
         _showErrorSnackBar('donate.payment_failed'.tr());
       }
     } catch (e) {
       debugPrint('Error processing donation: $e');
-      setState(() => _currentState = DonationFlowState.selecting);
+      setState(() => _currentState = DonationFlowState.ready);
       _showErrorSnackBar('donate.payment_failed'.tr());
     }
   }
@@ -304,9 +294,6 @@ class _DonatePageState extends State<DonatePage> with TickerProviderStateMixin {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
     final TextTheme textTheme = Theme.of(context).textTheme;
 
-    // =========================================================================
-    // CAMBIO PRINCIPAL: DonateSuccessPage ahora recibe callback de reset
-    // =========================================================================
     if (_showPaymentSuccess) {
       return DonateSuccessPage(
         unlockedBadge: _unlockedBadge,
@@ -314,12 +301,9 @@ class _DonatePageState extends State<DonatePage> with TickerProviderStateMixin {
         scaleAnimation: _scaleAnimation,
         glowAnimation: _glowAnimation,
         showSuccessSnackBar: _showSuccessSnackBar,
-        // NUEVO: Callback para resetear el estado completo
         onDonateAgain: _resetDonationState,
-        // NUEVO: Callback para simplemente volver al estado inicial
-        onSaveBadge: () {
-          setState(() => _currentState = DonationFlowState.selecting);
-        },
+        onSaveBadge: () =>
+            setState(() => _currentState = DonationFlowState.selecting),
       );
     }
 
@@ -329,11 +313,12 @@ class _DonatePageState extends State<DonatePage> with TickerProviderStateMixin {
         children: [
           SingleChildScrollView(
             controller: _scrollController,
-            padding: const EdgeInsets.all(16.0).copyWith(bottom: 160),
+            padding: const EdgeInsets.all(20.0).copyWith(
+              bottom: _canProceed ? 140 : 20, // Espacio dinámico para el botón
+            ),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Header Section
+                // Header hermoso existente
                 AnimatedDonationHeader(
                   height: 200,
                   textTheme: textTheme,
@@ -342,51 +327,362 @@ class _DonatePageState extends State<DonatePage> with TickerProviderStateMixin {
 
                 const SizedBox(height: 32),
 
-                // Description text
+                // TEXTO RESTAURADO: Descripción del propósito espiritual
                 Text(
                   'donate.description'.tr(),
-                  style: textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.onSurface.withValues(alpha: 0.7),
-                    height: 1.4,
+                  style: textTheme.bodyLarge?.copyWith(
+                    color: colorScheme.onSurface.withValues(alpha: 0.8),
+                    height: 1.5,
                   ),
                   textAlign: TextAlign.center,
                 ),
 
-                const SizedBox(height: 24),
+                const SizedBox(height: 16),
 
-                // Amount Selection Widget
-                DonateAmountSelector(
-                  selectedAmount: _selectedAmount,
-                  customAmountController: _customAmountController,
-                  onAmountSelected: _selectAmount,
-                  onCustomAmountSelected: _selectCustomAmount,
-                  validator: _validateCustomAmount,
+                // NUEVO: Texto sobre las insignias como agradecimiento
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  margin: const EdgeInsets.symmetric(horizontal: 20),
+                  decoration: BoxDecoration(
+                    color: colorScheme.surfaceContainerHighest
+                        .withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: colorScheme.outline.withValues(alpha: 0.2),
+                      width: 1,
+                    ),
+                  ),
+                  child: Text(
+                    '✨ Las insignias son nuestro agradecimiento por tu generosidad y apoyo al ministerio. Cada una representa una virtud espiritual para tu colección.',
+                    style: textTheme.bodyMedium?.copyWith(
+                      color: colorScheme.primary.withValues(alpha: 0.9),
+                      height: 1.4,
+                      fontStyle: FontStyle.italic,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
                 ),
 
-                const SizedBox(height: 32),
+                const SizedBox(height: 40),
 
-                // Badge Selection Widget
-                DonateBadgeGrid(
-                  availableBadges: _availableBadges,
-                  selectedBadge: _selectedBadge,
-                  onBadgeSelected: _selectBadge,
-                  isLoading: _isLoadingBadges,
-                ),
-                const SizedBox(height: 12),
+                // Selección de Monto - CENTRADO
+                _buildAmountSelectionSection(colorScheme, textTheme),
+
+                const SizedBox(height: 40),
+
+                // Grid completo de Badges - SIEMPRE VISIBLE
+                _buildBadgeGridSection(colorScheme, textTheme),
               ],
             ),
           ),
 
-          // Floating Continue Button Widget
-          FloatingContinueButton(
-            animationController: _buttonAnimationController,
-            buttonSlideAnimation: _buttonSlideAnimation,
-            isProcessing: _isProcessing,
-            isTestMode: _isTestMode,
-            onPressed: _processDonation,
-          ),
+          // Botón que NO interfiere - solo aparece cuando está listo
+          if (_canProceed) _buildNonIntrusiveButton(colorScheme, textTheme),
         ],
       ),
+    );
+  }
+
+  Widget _buildAmountSelectionSection(
+      ColorScheme colorScheme, TextTheme textTheme) {
+    return Column(
+      children: [
+        // Título centrado
+        Text(
+          'Selecciona el monto de tu donación',
+          style: textTheme.titleLarge?.copyWith(
+            color: colorScheme.primary,
+            fontWeight: FontWeight.w600,
+          ),
+          textAlign: TextAlign.center,
+        ),
+
+        const SizedBox(height: 24),
+
+        // Grid de círculos CENTRADO
+        Center(
+          child: Wrap(
+            spacing: 16,
+            runSpacing: 16,
+            alignment: WrapAlignment.center,
+            children: _predefinedAmounts.map((amount) {
+              final isSelected = _selectedAmount == amount;
+              return GestureDetector(
+                onTap: () => _selectAmount(amount),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color:
+                        isSelected ? colorScheme.primary : colorScheme.surface,
+                    border: Border.all(
+                      color: isSelected
+                          ? colorScheme.primary
+                          : colorScheme.outline.withValues(alpha: 0.3),
+                      width: isSelected ? 3 : 1.5,
+                    ),
+                    boxShadow: isSelected
+                        ? [
+                            BoxShadow(
+                              color: colorScheme.primary.withValues(alpha: 0.3),
+                              blurRadius: 12,
+                              spreadRadius: 2,
+                            )
+                          ]
+                        : [
+                            BoxShadow(
+                              color: colorScheme.shadow.withValues(alpha: 0.1),
+                              blurRadius: 8,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                  ),
+                  child: Center(
+                    child: Text(
+                      '\$$amount',
+                      style: textTheme.titleMedium?.copyWith(
+                        color: isSelected
+                            ? colorScheme.onPrimary
+                            : colorScheme.onSurface,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ),
+
+        const SizedBox(height: 24),
+
+        // Monto personalizado CENTRADO
+        Center(
+          child: Container(
+            width: 200,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(30),
+              color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+              border: Border.all(
+                color: colorScheme.outline.withValues(alpha: 0.2),
+                width: 1,
+              ),
+            ),
+            child: Column(
+              children: [
+                Text(
+                  'Monto personalizado',
+                  style: textTheme.labelMedium?.copyWith(
+                    color: colorScheme.onSurface.withValues(alpha: 0.7),
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                TextFormField(
+                  controller: _customAmountController,
+                  decoration: InputDecoration(
+                    prefixText: '\$ ',
+                    hintText: '0.00',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(20),
+                      borderSide: BorderSide(
+                        color: colorScheme.outline.withValues(alpha: 0.3),
+                      ),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    filled: true,
+                    fillColor: colorScheme.surface.withValues(alpha: 0.8),
+                  ),
+                  keyboardType: TextInputType.number,
+                  validator: _validateCustomAmount,
+                  onFieldSubmitted: (_) => _selectCustomAmount(),
+                  textAlign: TextAlign.center,
+                  style: textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBadgeGridSection(ColorScheme colorScheme, TextTheme textTheme) {
+    return Column(
+      children: [
+        // Título centrado
+        Text(
+          'Elige tu insignia espiritual',
+          style: textTheme.titleLarge?.copyWith(
+            color: colorScheme.secondary,
+            fontWeight: FontWeight.w600,
+          ),
+          textAlign: TextAlign.center,
+        ),
+
+        const SizedBox(height: 24),
+
+        // Grid completo - SIEMPRE HABILITADO
+        if (_isLoadingBadges)
+          const Center(child: CircularProgressIndicator())
+        else
+          Center(
+            child: Wrap(
+              spacing: 16,
+              runSpacing: 16,
+              alignment: WrapAlignment.center,
+              children: _availableBadges.map((badge) {
+                final isSelected = _selectedBadge?.id == badge.id;
+                return GestureDetector(
+                  onTap: () => _selectBadge(badge),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    width: 120,
+                    height: 140,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(16),
+                      color: isSelected
+                          ? colorScheme.primary.withValues(alpha: 0.1)
+                          : colorScheme.surface,
+                      border: Border.all(
+                        color: isSelected
+                            ? colorScheme.primary
+                            : colorScheme.outline.withValues(alpha: 0.2),
+                        width: isSelected ? 2 : 1,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: isSelected
+                              ? colorScheme.primary.withValues(alpha: 0.2)
+                              : colorScheme.shadow.withValues(alpha: 0.1),
+                          blurRadius: isSelected ? 12 : 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        // Badge real con tu widget existente
+                        Container(
+                          width: 60,
+                          height: 60,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: LinearGradient(
+                              colors: [
+                                colorScheme.secondary.withValues(alpha: 0.8),
+                                colorScheme.primary.withValues(alpha: 0.6),
+                              ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                          ),
+                          child: Icon(
+                            Icons.military_tech,
+                            color: Colors.white,
+                            size: 30,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          badge.name,
+                          style: textTheme.labelMedium?.copyWith(
+                            color: colorScheme.onSurface,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          textAlign: TextAlign.center,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildNonIntrusiveButton(
+      ColorScheme colorScheme, TextTheme textTheme) {
+    return AnimatedBuilder(
+      animation: _buttonSlideAnimation,
+      builder: (context, child) {
+        return Positioned(
+          bottom: 20,
+          left: 20,
+          right: 20,
+          child: Container(
+            height: 60,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(30),
+              gradient: LinearGradient(
+                colors: [colorScheme.primary, colorScheme.secondary],
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: colorScheme.primary.withValues(alpha: 0.4),
+                  blurRadius: 20,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+            ),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(30),
+                onTap: _isProcessing ? null : _processDonation,
+                child: Container(
+                  alignment: Alignment.center,
+                  child: _isProcessing
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor:
+                                AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
+                        )
+                      : Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.favorite,
+                              color: Colors.white,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              _isTestMode
+                                  ? 'Donar (PRUEBA)'
+                                  : 'Continuar donación',
+                              style: textTheme.titleMedium?.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -401,10 +697,10 @@ class _DonatePageState extends State<DonatePage> with TickerProviderStateMixin {
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
               decoration: BoxDecoration(
                 color: Colors.orange,
-                borderRadius: BorderRadius.circular(4),
+                borderRadius: BorderRadius.circular(12),
               ),
               child: const Text(
-                'TEST',
+                'PRUEBA',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 10,
