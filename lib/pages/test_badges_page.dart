@@ -62,7 +62,7 @@ class _TestBadgesPageState extends State<TestBadgesPage> {
           children: [
             BadgeImageWidget(
               badge: badge,
-              size: 100,
+              size: 120,
               isUnlocked: true,
             ),
             const SizedBox(height: 16),
@@ -243,7 +243,7 @@ class _TestBadgesPageState extends State<TestBadgesPage> {
                   onTap: () => _showBadgeDetails(badge),
                   child: BadgeImageWidget(
                     badge: badge,
-                    size: 80,
+                    size: 120,
                     isUnlocked: true,
                   ),
                 );
