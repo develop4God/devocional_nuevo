@@ -142,7 +142,7 @@ class _MyBadgesPageState extends State<MyBadgesPage> {
 
                 return BadgeImageWidget(
                   badge: badge,
-                  size: 80,
+                  size: 120,
                   isUnlocked: isUnlocked,
                   showLock: !isUnlocked,
                   onTap: () => _showBadgeDetails(badge, isUnlocked),
