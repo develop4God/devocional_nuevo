@@ -46,7 +46,6 @@ class DonateSuccessPage extends StatelessWidget {
               children: [
                 // Success Animation Badge
                 _buildAnimatedBadge(colorScheme),
-
                 const SizedBox(height: 32),
 
                 // Success Text
@@ -58,7 +57,6 @@ class DonateSuccessPage extends StatelessWidget {
                   ),
                   textAlign: TextAlign.center,
                 ),
-
                 const SizedBox(height: 16),
 
                 // Badge Details
@@ -75,7 +73,6 @@ class DonateSuccessPage extends StatelessWidget {
                   ),
                   textAlign: TextAlign.center,
                 ),
-
                 const SizedBox(height: 48),
 
                 // Action Buttons
@@ -146,7 +143,6 @@ class DonateSuccessPage extends StatelessWidget {
           ),
           textAlign: TextAlign.center,
         ),
-
         const SizedBox(height: 12),
 
         // Bible verse section
@@ -190,14 +186,20 @@ class DonateSuccessPage extends StatelessWidget {
   ) {
     return Column(
       children: [
-        // Save badge button
+        // Save badge button - CON DEBUG LOGS
         SizedBox(
           width: double.infinity,
           height: 56,
           child: ElevatedButton.icon(
             onPressed: () {
+              debugPrint('🐛 [DonateSuccessPage] "Save badge" button pressed');
               showSuccessSnackBar('donate.badge_saved'.tr());
+
+              debugPrint(
+                  '🐛 [DonateSuccessPage] About to call Navigator.pop() from Save button');
               Navigator.pop(context);
+              debugPrint(
+                  '🐛 [DonateSuccessPage] Navigator.pop() completed from Save button');
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: colorScheme.primary,
@@ -215,16 +217,36 @@ class DonateSuccessPage extends StatelessWidget {
             ),
           ),
         ),
-
         const SizedBox(height: 16),
 
-        // Support again button
+        // Support again button - CON DEBUG LOGS
         SizedBox(
           width: double.infinity,
           height: 56,
           child: OutlinedButton.icon(
             onPressed: () {
-              Navigator.pushReplacementNamed(context, '/donate');
+              debugPrint(
+                  '🐛 [DonateSuccessPage] "Donar de nuevo" button pressed');
+
+              // Debug: Mostrar el stack actual de navegación
+              Navigator.popUntil(context, (route) {
+                debugPrint(
+                    '🐛 [Navigation Stack] Route: ${route.settings.name}');
+                debugPrint(
+                    '🐛 [Navigation Stack] Arguments: ${route.settings.arguments}');
+                debugPrint('🐛 [Navigation Stack] Route toString: $route');
+                debugPrint('🐛 [Navigation Stack] Is first: ${route.isFirst}');
+                debugPrint('---');
+                return true; // No hacer pop aún, solo mostrar el stack
+              });
+
+              debugPrint(
+                  '🐛 [DonateSuccessPage] About to call Navigator.pop()');
+
+              // Hacer el pop simple
+              Navigator.pop(context);
+
+              debugPrint('🐛 [DonateSuccessPage] Navigator.pop() completed');
             },
             style: OutlinedButton.styleFrom(
               foregroundColor: colorScheme.primary,

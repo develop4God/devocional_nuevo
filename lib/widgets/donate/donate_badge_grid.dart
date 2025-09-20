@@ -98,7 +98,8 @@ class DonateBadgeGrid extends StatelessWidget {
         crossAxisCount: 3,
         crossAxisSpacing: 16,
         mainAxisSpacing: 16,
-        childAspectRatio: 0.8,
+        childAspectRatio:
+            1.2, // ← Cambiado de 0.8 a 1.0 para mantener forma cuadrada
       ),
       itemCount: availableBadges.length,
       itemBuilder: (context, index) {
@@ -113,8 +114,13 @@ class DonateBadgeGrid extends StatelessWidget {
   Widget _buildBadgeItem(badge_model.Badge badge, bool isSelected,
       ColorScheme colorScheme, TextTheme textTheme) {
     return Column(
+      mainAxisSize: MainAxisSize.min,
+      // ← Agregado para mejor control de espacio
       children: [
-        Expanded(
+        // Contenedor cuadrado que mantiene la forma circular del badge
+        SizedBox(
+          width: 80, // ← Tamaño fijo para asegurar círculo perfecto
+          height: 80, // ← Tamaño fijo para asegurar círculo perfecto
           child: BadgeImageWidget(
             badge: badge,
             size: 80,
@@ -123,17 +129,20 @@ class DonateBadgeGrid extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 8),
-        Text(
-          badge.name,
-          style: textTheme.bodySmall?.copyWith(
-            color: isSelected
-                ? colorScheme.primary
-                : colorScheme.onSurface.withValues(alpha: 0.7),
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+        // Texto con altura flexible
+        Flexible(
+          child: Text(
+            badge.name,
+            style: textTheme.bodySmall?.copyWith(
+              color: isSelected
+                  ? colorScheme.primary
+                  : colorScheme.onSurface.withValues(alpha: 0.7),
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            ),
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
           ),
-          textAlign: TextAlign.center,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
         ),
       ],
     );
