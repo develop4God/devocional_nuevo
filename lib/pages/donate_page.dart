@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../models/badge_model.dart' as badge_model;
+import '../widgets/badge_image_widget.dart';
 import '../widgets/donate/animated_donation_header.dart';
 import '../widgets/donate/badge_preview_dialog.dart';
 import '../widgets/donate/donate_success_page.dart';
@@ -325,23 +326,23 @@ class _DonatePageState extends State<DonatePage> with TickerProviderStateMixin {
                   colorScheme: colorScheme,
                 ),
 
-                const SizedBox(height: 32),
+                const SizedBox(height: 20),
 
                 // TEXTO RESTAURADO: Descripción del propósito espiritual
                 Text(
                   'donate.description'.tr(),
                   style: textTheme.bodyLarge?.copyWith(
                     color: colorScheme.onSurface.withValues(alpha: 0.8),
-                    height: 1.5,
+                    height: 1.4,
                   ),
                   textAlign: TextAlign.center,
                 ),
 
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
 
                 // NUEVO: Texto sobre las insignias como agradecimiento
                 Container(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(12),
                   margin: const EdgeInsets.symmetric(horizontal: 20),
                   decoration: BoxDecoration(
                     color: colorScheme.surfaceContainerHighest
@@ -354,21 +355,21 @@ class _DonatePageState extends State<DonatePage> with TickerProviderStateMixin {
                   ),
                   child: Text(
                     '✨ Las insignias son nuestro agradecimiento por tu generosidad y apoyo al ministerio. Cada una representa una virtud espiritual para tu colección.',
-                    style: textTheme.bodyMedium?.copyWith(
+                    style: textTheme.bodySmall?.copyWith(
                       color: colorScheme.primary.withValues(alpha: 0.9),
-                      height: 1.4,
+                      height: 1.3,
                       fontStyle: FontStyle.italic,
                     ),
                     textAlign: TextAlign.center,
                   ),
                 ),
 
-                const SizedBox(height: 40),
+                const SizedBox(height: 16),
 
                 // Selección de Monto - CENTRADO
                 _buildAmountSelectionSection(colorScheme, textTheme),
 
-                const SizedBox(height: 40),
+                const SizedBox(height: 20),
 
                 // Grid completo de Badges - SIEMPRE VISIBLE
                 _buildBadgeGridSection(colorScheme, textTheme),
@@ -397,7 +398,7 @@ class _DonatePageState extends State<DonatePage> with TickerProviderStateMixin {
           textAlign: TextAlign.center,
         ),
 
-        const SizedBox(height: 24),
+        const SizedBox(height: 16),
 
         // Grid de círculos CENTRADO
         Center(
@@ -456,7 +457,7 @@ class _DonatePageState extends State<DonatePage> with TickerProviderStateMixin {
           ),
         ),
 
-        const SizedBox(height: 24),
+        const SizedBox(height: 16),
 
         // Monto personalizado CENTRADO
         Center(
@@ -572,26 +573,11 @@ class _DonatePageState extends State<DonatePage> with TickerProviderStateMixin {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        // Badge real con tu widget existente
-                        Container(
-                          width: 60,
-                          height: 60,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            gradient: LinearGradient(
-                              colors: [
-                                colorScheme.secondary.withValues(alpha: 0.8),
-                                colorScheme.primary.withValues(alpha: 0.6),
-                              ],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
-                          ),
-                          child: Icon(
-                            Icons.military_tech,
-                            color: Colors.white,
-                            size: 30,
-                          ),
+                        // Badge real usando tu BadgeImageWidget
+                        BadgeImageWidget(
+                          badge: badge,
+                          size: 60,
+                          isUnlocked: true,
                         ),
                         const SizedBox(height: 8),
                         Text(
