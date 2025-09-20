@@ -465,7 +465,10 @@
     "give_button": "Dar",
     "badge_saved": "¡Insignia guardada en tu colección!",
     "badge_unlocked": "¡Insignia Desbloqueada!",
-    "thank_you_message": "Tu apoyo nos ayuda a llegar a más corazones con el amor de Dios."
+    "thank_you_message": "Tu apoyo nos ayuda a llegar a más corazones con el amor de Dios.",
+    "select_amount_and_badge": "Por favor selecciona un monto y una insignia",
+    "badge_selected": "Seleccionada",
+    "select_badge": "Seleccionar"
   },
   "badges": {
     "title": "Mis Insignias",

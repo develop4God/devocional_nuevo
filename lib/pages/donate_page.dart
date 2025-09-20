@@ -881,6 +881,11 @@ class _BadgePreviewDialog extends StatelessWidget {
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: Container(
+        // AGREGADO: Altura máxima para evitar overflow
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.8,
+          maxWidth: MediaQuery.of(context).size.width * 0.9,
+        ),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
           gradient: LinearGradient(
@@ -894,136 +899,337 @@ class _BadgePreviewDialog extends StatelessWidget {
         ),
         child: Padding(
           padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Badge preview
-              BadgeImageWidget(
-                badge: badge,
-                size: 100,
-                isUnlocked: true,
-                isSelected: isSelected,
-              ),
-
-              const SizedBox(height: 16),
-
-              // Badge name
-              Text(
-                badge.name,
-                style: textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: colorScheme.primary,
+          child: SingleChildScrollView(
+            // AGREGADO: Hacer scrolleable
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Badge preview - REDUCIDO el tamaño
+                BadgeImageWidget(
+                  badge: badge,
+                  size: 80, // Reducido de 100 a 80
+                  isUnlocked: true,
+                  isSelected: isSelected,
                 ),
-                textAlign: TextAlign.center,
-              ),
 
-              const SizedBox(height: 8),
+                const SizedBox(height: 12), // Reducido de 16 a 12
 
-              // Badge description
-              Text(
-                badge.description,
-                style: textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.onSurface.withValues(alpha: 0.8),
+                // Badge name
+                Text(
+                  badge.name,
+                  style: textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: colorScheme.primary,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
-                textAlign: TextAlign.center,
-              ),
 
-              const SizedBox(height: 16),
+                const SizedBox(height: 6), // Reducido de 8 a 6
 
-              // Bible verse section
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: colorScheme.primaryContainer.withValues(alpha: 0.3),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: colorScheme.primary.withValues(alpha: 0.2),
-                    width: 1,
+                // Badge description
+                Text(
+                  badge.description,
+                  style: textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurface.withValues(alpha: 0.8),
+                  ),
+                  textAlign: TextAlign.center,
+                  maxLines: 2, // AGREGADO: Límite de líneas
+                  overflow: TextOverflow.ellipsis,
+                ),
+
+                const SizedBox(height: 12), // Reducido de 16 a 12
+
+                // Bible verse section - COMPACTADO
+                Container(
+                  padding: const EdgeInsets.all(12), // Reducido de 16 a 12
+                  decoration: BoxDecoration(
+                    color: colorScheme.primaryContainer.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: colorScheme.primary.withValues(alpha: 0.2),
+                      width: 1,
+                    ),
+                  ),
+                  child: Column(
+                    children: [
+                      Icon(
+                        Icons.format_quote,
+                        color: colorScheme.primary,
+                        size: 24, // Reducido de 28 a 24
+                      ),
+                      const SizedBox(height: 6), // Reducido de 8 a 6
+                      Text(
+                        '"${badge.verse}"',
+                        style: textTheme.bodyMedium?.copyWith(
+                          // Cambiado de bodyLarge
+                          color: colorScheme.onSurface,
+                          fontStyle: FontStyle.italic,
+                          height: 1.3, // Reducido de 1.4 a 1.3
+                        ),
+                        textAlign: TextAlign.center,
+                        maxLines: 3, // AGREGADO: Límite de líneas
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 8), // Reducido de 12 a 8
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10, // Reducido de 12 a 10
+                          vertical: 4, // Reducido de 6 a 4
+                        ),
+                        decoration: BoxDecoration(
+                          color: colorScheme.primary.withValues(alpha: 0.1),
+                          borderRadius:
+                              BorderRadius.circular(6), // Reducido de 8 a 6
+                        ),
+                        child: Text(
+                          badge.reference,
+                          style: textTheme.bodySmall?.copyWith(
+                            color: colorScheme.primary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                child: Column(
+
+                const SizedBox(height: 20), // Reducido de 24 a 20
+
+                // Action buttons
+                Row(
                   children: [
-                    Icon(
-                      Icons.format_quote,
-                      color: colorScheme.primary,
-                      size: 28,
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.pop(context),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: colorScheme.onSurface,
+                          side: BorderSide(color: colorScheme.outline),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: Text('app.close'.tr()),
+                      ),
                     ),
-                    const SizedBox(height: 8),
-                    Text(
-                      '"${badge.verse}"',
-                      style: textTheme.bodyLarge?.copyWith(
-                        color: colorScheme.onSurface,
-                        fontStyle: FontStyle.italic,
-                        height: 1.4,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 12),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: colorScheme.primary.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        badge.reference,
-                        style: textTheme.bodySmall?.copyWith(
-                          color: colorScheme.primary,
-                          fontWeight: FontWeight.bold,
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: onSelect,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: isSelected
+                              ? colorScheme.secondary
+                              : colorScheme.primary,
+                          foregroundColor: colorScheme.onPrimary,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        icon: Icon(
+                          isSelected ? Icons.check : Icons.add,
+                          size: 16,
+                        ),
+                        label: Text(
+                          isSelected ? 'Seleccionada' : 'Seleccionar',
+                          style: textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ),
                   ],
                 ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// SOLUCIÓN 2: Versión alternativa con Flexible y mejor gestión de espacio
+class _BadgePreviewDialogAlternative extends StatelessWidget {
+  final badge_model.Badge badge;
+  final bool isSelected;
+  final VoidCallback onSelect;
+
+  const _BadgePreviewDialogAlternative({
+    required this.badge,
+    required this.isSelected,
+    required this.onSelect,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+    final TextTheme textTheme = Theme.of(context).textTheme;
+    final screenHeight = MediaQuery.of(context).size.height;
+
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxHeight: screenHeight * 0.75, // 75% de la altura de pantalla
+          maxWidth: 350,
+        ),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            gradient: LinearGradient(
+              colors: [
+                colorScheme.surface,
+                colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+              ],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Header fijo
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 24, 24, 12),
+                child: Column(
+                  children: [
+                    BadgeImageWidget(
+                      badge: badge,
+                      size: 80,
+                      isUnlocked: true,
+                      isSelected: isSelected,
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      badge.name,
+                      style: textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.primary,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
               ),
 
-              const SizedBox(height: 24),
-
-              // Action buttons
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () => Navigator.pop(context),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: colorScheme.onSurface,
-                        side: BorderSide(color: colorScheme.outline),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: Text('app.close'.tr()),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: onSelect,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: isSelected
-                            ? colorScheme.secondary
-                            : colorScheme.primary,
-                        foregroundColor: colorScheme.onPrimary,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      icon: Icon(
-                        isSelected ? Icons.check : Icons.add,
-                        size: 16,
-                      ),
-                      label: Text(
-                        isSelected ? 'Seleccionada' : 'Seleccionar',
+              // Contenido scrolleable
+              Flexible(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Column(
+                    children: [
+                      // Badge description
+                      Text(
+                        badge.description,
                         style: textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
+                          color: colorScheme.onSurface.withValues(alpha: 0.8),
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      // Bible verse section
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: colorScheme.primaryContainer
+                              .withValues(alpha: 0.3),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: colorScheme.primary.withValues(alpha: 0.2),
+                            width: 1,
+                          ),
+                        ),
+                        child: Column(
+                          children: [
+                            Icon(
+                              Icons.format_quote,
+                              color: colorScheme.primary,
+                              size: 24,
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              '"${badge.verse}"',
+                              style: textTheme.bodyMedium?.copyWith(
+                                color: colorScheme.onSurface,
+                                fontStyle: FontStyle.italic,
+                                height: 1.4,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 12),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color:
+                                    colorScheme.primary.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                badge.reference,
+                                style: textTheme.bodySmall?.copyWith(
+                                  color: colorScheme.primary,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              // Botones fijos en la parte inferior
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.pop(context),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: colorScheme.onSurface,
+                          side: BorderSide(color: colorScheme.outline),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: Text('app.close'.tr()),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: onSelect,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: isSelected
+                              ? colorScheme.secondary
+                              : colorScheme.primary,
+                          foregroundColor: colorScheme.onPrimary,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        icon: Icon(
+                          isSelected ? Icons.check : Icons.add,
+                          size: 16,
+                        ),
+                        label: Text(
+                          isSelected ? 'Seleccionada' : 'Seleccionar',
+                          style: textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ],
           ),
