@@ -442,7 +442,7 @@
     "description": "Ayúdanos a continuar difundiendo la palabra de Dios a través de devocionales",
     "amount_selection": "Elige el Monto de Apoyo",
     "amount_5": "$5",
-    "amount_10": "$10", 
+    "amount_10": "$10",
     "amount_20": "$20",
     "custom_amount": "Monto Personalizado",
     "custom_amount_hint": "Ingresa el monto (mínimo $1)",
@@ -466,5 +466,27 @@
     "badge_saved": "¡Insignia guardada en tu colección!",
     "badge_unlocked": "¡Insignia Desbloqueada!",
     "thank_you_message": "Tu apoyo nos ayuda a llegar a más corazones con el amor de Dios."
+  },
+  "badges": {
+    "title": "Mis Insignias",
+    "collection_title": "Colección de Insignias",
+    "no_badges_title": "Sin Insignias",
+    "no_badges_message": "Aún no tienes insignias. ¡Apoya nuestro ministerio para obtener tu primera insignia!",
+    "badge_details": "Detalles de Insignia",
+    "verse": "Versículo",
+    "earned_date": "Obtenida el",
+    "support_again": "Apoyar Nuevamente",
+    "close": "Cerrar",
+    "go_to_support": "Ir a Apoyo",
+    "loading_badges": "Cargando insignias...",
+    "error_loading": "Error al cargar insignias",
+    "test_badges": "Probar Insignias",
+    "remote_system": "Sistema Remoto",
+    "test_connection": "Probar Conexión"
+  },
+  "test": {
+    "badges_page_title": "Prueba de Sistema de Insignias",
+    "testing_remote_badges": "Probando insignias remotas",
+    "badge_system_test": "Prueba del Sistema de Badges"
   }
 }
