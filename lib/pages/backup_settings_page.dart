@@ -332,10 +332,12 @@ class _BackupSettingsContent extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center, // MODIFICADO
+        crossAxisAlignment: CrossAxisAlignment.start,
+        // Mantener el título a la izquierda
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.center, // MODIFICADO
+            mainAxisAlignment: MainAxisAlignment.start,
+            // Asegurar que el Row esté a la izquierda
             children: [
               Icon(
                 Icons.shield_outlined,
@@ -350,19 +352,22 @@ class _BackupSettingsContent extends StatelessWidget {
                     fontWeight: FontWeight.bold,
                     color: colorScheme.onSurface,
                   ),
-                  textAlign: TextAlign.center, // MODIFICADO
                 ),
               ),
             ],
           ),
           const SizedBox(height: 12),
-          Text(
-            'backup.description_text'.tr(),
-            style: theme.textTheme.bodyLarge?.copyWith(
-              color: colorScheme.onSurfaceVariant,
-              height: 1.4,
+          Align(
+            // Envuelve el subtítulo en un widget Align
+            alignment: Alignment.center,
+            child: Text(
+              'backup.description_text'.tr(),
+              style: theme.textTheme.bodyLarge?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+                height: 1.4,
+              ),
+              textAlign: TextAlign.center, // Centrar el texto
             ),
-            textAlign: TextAlign.center, // MODIFICADO
           ),
         ],
       ),
