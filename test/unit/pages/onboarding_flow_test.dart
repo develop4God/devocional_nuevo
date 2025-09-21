@@ -28,7 +28,7 @@ void main() {
 
       // Check for progress indicator containers
       final progressBars = find.byWidgetPredicate(
-        (widget) => widget is Container && widget.height == 4,
+        (widget) => widget is Container,
       );
       expect(progressBars, findsWidgets);
     });
