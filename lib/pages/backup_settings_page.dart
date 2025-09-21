@@ -332,9 +332,10 @@ class _BackupSettingsContent extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center, // MODIFICADO
         children: [
           Row(
+            mainAxisAlignment: MainAxisAlignment.center, // MODIFICADO
             children: [
               Icon(
                 Icons.shield_outlined,
@@ -349,6 +350,7 @@ class _BackupSettingsContent extends StatelessWidget {
                     fontWeight: FontWeight.bold,
                     color: colorScheme.onSurface,
                   ),
+                  textAlign: TextAlign.center, // MODIFICADO
                 ),
               ),
             ],
@@ -360,6 +362,7 @@ class _BackupSettingsContent extends StatelessWidget {
               color: colorScheme.onSurfaceVariant,
               height: 1.4,
             ),
+            textAlign: TextAlign.center, // MODIFICADO
           ),
         ],
       ),
