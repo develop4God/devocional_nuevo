@@ -1,3 +1,4 @@
+// lib/pages/settings_page.dart - SENIOR SIMPLE APPROACH
 import 'dart:developer' as developer;
 
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
@@ -11,10 +12,12 @@ import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/providers/localization_provider.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 import 'package:devocional_nuevo/utils/constants.dart';
+import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -24,47 +27,105 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
-  double _ttsSpeed = 0.4; // Velocidad de TTS por defecto
-
+  double _ttsSpeed = 0.4;
   final VoiceSettingsService _voiceSettingsService = VoiceSettingsService();
+
+  // Feature flag state - simple and direct
+  String _donationMode = 'paypal'; // Default fallback
+  bool _showBadgesTab = false;
 
   @override
   void initState() {
     super.initState();
     _loadTtsSettings();
+    _loadFeatureFlags();
   }
 
   Future<void> _loadTtsSettings() async {
-    setState(() {});
-
     final localizationProvider =
         Provider.of<LocalizationProvider>(context, listen: false);
 
     try {
       final currentLanguage = localizationProvider.currentLocale.languageCode;
-      // Asignar voz por defecto automáticamente si no hay una guardada
       await _voiceSettingsService.autoAssignDefaultVoice(currentLanguage);
 
-      // Cargar velocidad desde SharedPreferences
       final prefs = await SharedPreferences.getInstance();
       final savedRate = prefs.getDouble('tts_rate') ?? 0.5;
-
-      // Cargar voces usando el servicio unificado
-
-      // Cargar voz guardada usando el servicio unificado
 
       if (mounted) {
         setState(() {
           _ttsSpeed = savedRate;
-
-          // Establecer la voz seleccionada si existe y está disponible
         });
       }
     } catch (e) {
       developer.log('Error loading TTS settings: $e');
       if (mounted) {
-        setState(() {});
         _showErrorSnackBar('Error loading voice settings: $e');
+      }
+    }
+  }
+
+  Future<void> _loadFeatureFlags() async {
+    try {
+      final remoteConfig = FirebaseRemoteConfig.instance;
+
+      // Configure with minimal settings
+      await remoteConfig.setConfigSettings(RemoteConfigSettings(
+        fetchTimeout: const Duration(seconds: 10),
+        minimumFetchInterval: kDebugMode
+            ? const Duration(seconds: 0)
+            : const Duration(minutes: 5),
+      ));
+
+      // Set defaults matching your Firebase config
+      await remoteConfig.setDefaults({
+        'donation_mode': 'paypal',
+        'show_badges_tab': false,
+      });
+
+      await remoteConfig.fetchAndActivate();
+
+      if (mounted) {
+        setState(() {
+          _donationMode = remoteConfig.getString('donation_mode');
+          _showBadgesTab = remoteConfig.getBool('show_badges_tab');
+        });
+      }
+
+      developer.log(
+          'Feature flags loaded: donation_mode=$_donationMode, badges=$_showBadgesTab');
+    } catch (e) {
+      developer.log('Feature flags failed to load: $e, using defaults');
+      // Keep default values - app continues working
+    }
+  }
+
+  Future<void> _refreshFeatureFlags() async {
+    try {
+      final remoteConfig = FirebaseRemoteConfig.instance;
+      await remoteConfig.fetchAndActivate();
+
+      if (mounted) {
+        setState(() {
+          _donationMode = remoteConfig.getString('donation_mode');
+          _showBadgesTab = remoteConfig.getBool('show_badges_tab');
+        });
+      }
+
+      developer.log('Feature flags refreshed: donation_mode=$_donationMode');
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Configuration updated from server'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      developer.log('Failed to refresh feature flags: $e');
+      if (mounted) {
+        _showErrorSnackBar('Failed to update configuration');
       }
     }
   }
@@ -82,9 +143,42 @@ class _SettingsPageState extends State<SettingsPage> {
     }
   }
 
+  // Original PayPal method - preserved exactly
+  Future<void> _launchPaypal() async {
+    const String baseUrl =
+        'https://www.paypal.com/donate/?hosted_button_id=CGQNBA4YPUG7A';
+    const String paypalUrlWithLocale = '$baseUrl&locale.x=es_ES';
+    final Uri url = Uri.parse(paypalUrlWithLocale);
+
+    developer.log('Launching PayPal URL: $url', name: 'PayPalLaunch');
+
+    try {
+      if (await canLaunchUrl(url)) {
+        final launched = await launchUrl(
+          url,
+          mode: LaunchMode.externalApplication,
+        );
+
+        if (!launched) {
+          developer.log('launchUrl returned false', name: 'PayPalLaunch');
+          _showErrorSnackBar('settings.paypal_launch_error'.tr());
+        } else {
+          developer.log('PayPal opened successfully', name: 'PayPalLaunch');
+        }
+      } else {
+        developer.log('canLaunchUrl returned false', name: 'PayPalLaunch');
+        _showErrorSnackBar('settings.paypal_no_app_error'.tr());
+      }
+    } catch (e) {
+      developer.log('Error launching PayPal: $e', name: 'PayPalLaunch');
+      _showErrorSnackBar('settings.paypal_error'.tr({'error': e.toString()}));
+    }
+  }
+
   Future<void> _navigateToDonatePage() async {
     try {
-      developer.log('Navigating to donate page', name: 'DonateNavigation');
+      developer.log('Navigating to advanced donate page',
+          name: 'DonateNavigation');
 
       await Navigator.push(
         context,
@@ -92,15 +186,22 @@ class _SettingsPageState extends State<SettingsPage> {
           builder: (context) => const DonatePage(),
         ),
       );
-
-      developer.log('Returned from donate page', name: 'DonateNavigation');
     } catch (e) {
-      developer.log(
-        'Error navigating to donate page: $e',
-        error: e,
-        name: 'DonateNavigation',
-      );
-      _showErrorSnackBar('Error opening support page: $e');
+      developer.log('Error navigating to donate page: $e',
+          name: 'DonateNavigation');
+      _showErrorSnackBar('Error opening donation page: $e');
+    }
+  }
+
+  // Simple decision method - senior approach
+  Future<void> _handleDonateAction() async {
+    developer.log('Donate action triggered with mode: $_donationMode');
+
+    if (_donationMode == 'google') {
+      await _navigateToDonatePage();
+    } else {
+      // Default to PayPal - safe fallback
+      await _launchPaypal();
     }
   }
 
@@ -110,6 +211,7 @@ class _SettingsPageState extends State<SettingsPage> {
         SnackBar(
           content: Text(message),
           backgroundColor: Theme.of(context).colorScheme.error,
+          duration: const Duration(seconds: 3),
         ),
       );
     }
@@ -138,7 +240,7 @@ class _SettingsPageState extends State<SettingsPage> {
               child: Align(
                 alignment: Alignment.topRight,
                 child: OutlinedButton.icon(
-                  onPressed: _navigateToDonatePage,
+                  onPressed: _handleDonateAction, // Simple decision here
                   style: OutlinedButton.styleFrom(
                     foregroundColor: colorScheme.onSurface,
                     side: BorderSide(
@@ -154,7 +256,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     color: colorScheme.primary,
                   ),
                   label: Text(
-                    'donate.support_button'.tr(),
+                    'Apoyar',
                     style: textTheme.bodyMedium?.copyWith(
                       color: colorScheme.onSurface,
                       fontWeight: FontWeight.bold,
@@ -166,7 +268,7 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
             const SizedBox(height: 20),
 
-            // Language Selection Section
+            // Language Selection
             InkWell(
               onTap: () {
                 Navigator.push(
@@ -215,7 +317,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
             const SizedBox(height: 20),
 
-            // Audio/TTS Configuration Section
+            // Audio Settings
             Text(
               'settings.audio_settings'.tr(),
               style: textTheme.titleMedium?.copyWith(
@@ -225,7 +327,6 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
             const SizedBox(height: 15),
 
-            // Reading Speed
             Row(
               children: [
                 Icon(Icons.speed, color: colorScheme.primary),
@@ -255,75 +356,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
             const SizedBox(height: 20),
 
-            /*// Voice Selection comentado para una posterior implementacion
-            Row(
-              children: [
-                Icon(Icons.record_voice_over, color: colorScheme.primary),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    'settings.tts_voice'.tr(),
-                    style: textTheme.bodyMedium
-                        ?.copyWith(fontSize: 16, color: colorScheme.onSurface),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-
-            // Voice dropdown con loading state
-            if (_isLoadingVoices)
-              const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(16.0),
-                  child: CircularProgressIndicator(),
-                ),
-              )
-            else if (_availableVoices.isEmpty)
-              Container(
-                padding: const EdgeInsets.all(16.0),
-                decoration: BoxDecoration(
-                  color: colorScheme.surfaceContainerHighest
-                      .withAlpha((255 * 0.5).round()),
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.info_outline,
-                        color: colorScheme.onSurfaceVariant),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        'settings.no_voices_available'.tr(),
-                        style: textTheme.bodyMedium?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              )
-            else
-              DropdownButton<String>(
-                value: _selectedVoice,
-                isExpanded: true,
-                hint: Text('settings.select_voice'.tr()),
-                items: _availableVoices.map((voice) {
-                  return DropdownMenuItem(
-                    value: voice,
-                    child: Text(
-                      voice,
-                      overflow: TextOverflow.ellipsis,
-                      style: textTheme.bodyMedium?.copyWith(fontSize: 14),
-                    ),
-                  );
-                }).toList(),
-                onChanged: _onVoiceChanged,
-              ),
-
-            const SizedBox(height: 20),*/
-
-            // Google Drive Backup Settings
+            // Backup Settings
             InkWell(
               onTap: () {
                 Navigator.push(
@@ -354,7 +387,7 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
             const SizedBox(height: 20),
 
-            // Contact and About Sections
+            // Contact
             InkWell(
               onTap: () {
                 Navigator.push(
@@ -382,6 +415,8 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
             ),
             const SizedBox(height: 20),
+
+            // About
             InkWell(
               onTap: () {
                 Navigator.push(
@@ -409,9 +444,12 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
               ),
             ),
-            // Test Badges - Solo para desarrollo
+
+            // Debug Section - only in debug mode
             if (kDebugMode) ...[
               const SizedBox(height: 20),
+
+              // Test Badges
               InkWell(
                 onTap: () {
                   Navigator.push(
@@ -439,6 +477,39 @@ class _SettingsPageState extends State<SettingsPage> {
                     ],
                   ),
                 ),
+              ),
+
+              const SizedBox(height: 10),
+
+              // Feature Flags Debug
+              ExpansionTile(
+                leading: Icon(Icons.flag, color: colorScheme.primary),
+                title: const Text('Feature Flags (Debug)'),
+                subtitle: Text(
+                  'Mode: $_donationMode | Badges: $_showBadgesTab',
+                  style: textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                children: [
+                  ListTile(
+                    title: Text('Current: $_donationMode'),
+                    subtitle: Text(_donationMode == 'paypal'
+                        ? 'PayPal Direct (Active)'
+                        : 'Google Pay Flow (Active)'),
+                    leading: Icon(
+                      _donationMode == 'paypal'
+                          ? Icons.payment
+                          : Icons.account_balance_wallet,
+                      color: colorScheme.primary,
+                    ),
+                  ),
+                  ListTile(
+                    title: const Text('Refresh from Firebase'),
+                    leading: const Icon(Icons.cloud_sync),
+                    onTap: _refreshFeatureFlags,
+                  ),
+                ],
               ),
             ],
           ],
