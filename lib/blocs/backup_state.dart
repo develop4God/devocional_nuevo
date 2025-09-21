@@ -127,6 +127,16 @@ class BackupError extends BackupState {
   List<Object?> get props => [message];
 }
 
+/// Authentication success state
+class BackupAuthenticated extends BackupState {
+  final String userEmail;
+
+  const BackupAuthenticated(this.userEmail);
+
+  @override
+  List<Object?> get props => [userEmail];
+}
+
 /// Settings updated successfully
 class BackupSettingsUpdated extends BackupState {
   const BackupSettingsUpdated();

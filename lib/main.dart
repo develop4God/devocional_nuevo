@@ -10,6 +10,8 @@ import 'package:devocional_nuevo/providers/theme_provider.dart';
 import 'package:devocional_nuevo/services/backup_scheduler_service.dart';
 import 'package:devocional_nuevo/services/notification_service.dart';
 import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
+import 'package:devocional_nuevo/services/onboarding_service.dart';
+import 'package:devocional_nuevo/pages/onboarding/onboarding_flow.dart';
 import 'package:devocional_nuevo/splash_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -112,6 +114,40 @@ void main() async {
 // App principal - Siempre muestra SplashScreen primero
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    // Check onboarding status and show appropriate flow
+    return FutureBuilder<bool>(
+      future: OnboardingService.instance.shouldShowOnboarding(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const SplashScreen();
+        }
+
+        if (snapshot.hasData && snapshot.data == true) {
+          // Show onboarding flow
+          return OnboardingFlow(
+            onComplete: () {
+              // Navigate to main app after onboarding completion
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(
+                  builder: (context) => const MainApp(),
+                ),
+              );
+            },
+          );
+        }
+
+        // Show main app directly
+        return const MainApp();
+      },
+    );
+  }
+}
+
+class MainApp extends StatelessWidget {
+  const MainApp({super.key});
 
   @override
   Widget build(BuildContext context) {
