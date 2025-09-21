@@ -33,6 +33,7 @@ class _SettingsPageState extends State<SettingsPage> {
   // Feature flag state - simple and direct
   String _donationMode = 'paypal'; // Default fallback
   bool _showBadgesTab = false;
+  bool _showBackupSection = false;
 
   @override
   void initState() {
@@ -81,6 +82,7 @@ class _SettingsPageState extends State<SettingsPage> {
       await remoteConfig.setDefaults({
         'donation_mode': 'paypal',
         'show_badges_tab': false,
+        'show_backup_section': false,
       });
 
       await remoteConfig.fetchAndActivate();
@@ -89,6 +91,7 @@ class _SettingsPageState extends State<SettingsPage> {
         setState(() {
           _donationMode = remoteConfig.getString('donation_mode');
           _showBadgesTab = remoteConfig.getBool('show_badges_tab');
+          _showBackupSection = remoteConfig.getBool('show_backup_section');
         });
       }
 
@@ -109,6 +112,7 @@ class _SettingsPageState extends State<SettingsPage> {
         setState(() {
           _donationMode = remoteConfig.getString('donation_mode');
           _showBadgesTab = remoteConfig.getBool('show_badges_tab');
+          _showBackupSection = remoteConfig.getBool('show_backup_section');
         });
       }
 
@@ -356,36 +360,38 @@ class _SettingsPageState extends State<SettingsPage> {
 
             const SizedBox(height: 20),
 
-            // Backup Settings
-            InkWell(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => const BackupSettingsPage()),
-                );
-              },
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                child: Row(
-                  children: [
-                    Icon(Icons.add_to_drive_outlined,
-                        color: colorScheme.primary),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        'backup.title'.tr(),
-                        style: textTheme.bodyMedium?.copyWith(
-                            fontSize: 16, color: colorScheme.onSurface),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+            // Backup Settings - conditional display
+            if (_showBackupSection) ...[
+              InkWell(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const BackupSettingsPage()),
+                  );
+                },
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: Row(
+                    children: [
+                      Icon(Icons.add_to_drive_outlined,
+                          color: colorScheme.primary),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          'backup.title'.tr(),
+                          style: textTheme.bodyMedium?.copyWith(
+                              fontSize: 16, color: colorScheme.onSurface),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 20),
+              const SizedBox(height: 20),
+            ],
 
             // Contact
             InkWell(
