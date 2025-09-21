@@ -435,7 +435,7 @@
     "description": "Ajude-nos a continuar espalhando a palavra de Deus através de devocionais",
     "amount_selection": "Escolha o Valor do Apoio",
     "amount_5": "$5",
-    "amount_10": "$10", 
+    "amount_10": "$10",
     "amount_20": "$20",
     "custom_amount": "Valor Personalizado",
     "custom_amount_hint": "Digite o valor (mínimo $1)",

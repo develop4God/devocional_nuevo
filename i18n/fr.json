@@ -436,7 +436,7 @@
     "description": "Aidez-nous à continuer de répandre la parole de Dieu à travers les dévotions",
     "amount_selection": "Choisissez le Montant de Soutien",
     "amount_5": "$5",
-    "amount_10": "$10", 
+    "amount_10": "$10",
     "amount_20": "$20",
     "custom_amount": "Montant Personnalisé",
     "custom_amount_hint": "Entrez le montant (minimum $1)",

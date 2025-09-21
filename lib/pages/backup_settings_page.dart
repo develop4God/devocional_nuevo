@@ -583,12 +583,6 @@ class _BackupSettingsContent extends StatelessWidget {
                         'backup.enable_auto_backup'.tr(),
                         style: theme.textTheme.bodyLarge,
                       ),
-                      Text(
-                        'backup.auto_backup_subtitle'.tr(),
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                      ),
                     ],
                   ),
                 ),
