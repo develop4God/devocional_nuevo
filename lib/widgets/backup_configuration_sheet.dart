@@ -1,4 +1,4 @@
-// lib/widgets/backup_configuration_sheet_optimized.dart
+// lib/widgets/backup_configuration_sheet.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -7,7 +7,7 @@ import '../blocs/backup_event.dart';
 import '../blocs/backup_state.dart';
 import '../extensions/string_extensions.dart';
 
-/// Modal de configuración de backup optimizado - Funcionalidad migrada
+/// Modal de configuración de backup optimizado con mejoras UX
 class BackupConfigurationSheet extends StatelessWidget {
   final BackupLoaded state;
   final BackupBloc backupBloc;
@@ -113,13 +113,15 @@ class BackupConfigurationSheet extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Sección principal de backup automático (MIGRADA)
-                          _buildAutoBackupSection(context, displayState),
+                          // 🆕 PUNTO #4A: REMOVIDO - Era sección redundante de backup automático
 
-                          const SizedBox(height: 16),
-
-                          // Opciones de optimización
+                          // 🆕 PUNTO #8: Opciones de optimización con consistencia visual
                           _buildOptimizationSection(context, displayState),
+
+                          const SizedBox(height: 20),
+
+                          // 🆕 PUNTO #5: Nueva sección de gestión de cuenta
+                          _buildAccountSection(context),
 
                           const SizedBox(height: 20),
                         ],
@@ -135,118 +137,7 @@ class BackupConfigurationSheet extends StatelessWidget {
     );
   }
 
-  // Sección principal de backup automático (MIGRADA del card)
-  Widget _buildAutoBackupSection(
-      BuildContext context, BackupLoaded displayState) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'backup.automatic_backups'.tr(),
-          style: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-            height: 1.2,
-          ),
-        ),
-        const SizedBox(height: 8),
-
-        // Switch principal de backup automático (MIGRADO)
-        Container(
-          decoration: BoxDecoration(
-            color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: InkWell(
-            onTap: () {
-              backupBloc.add(ToggleAutoBackup(!displayState.autoBackupEnabled));
-            },
-            borderRadius: BorderRadius.circular(12),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.autorenew,
-                        size: 20,
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'backup.enable_auto_backup'.tr(),
-                              style: theme.textTheme.bodyLarge?.copyWith(
-                                fontWeight: FontWeight.w500,
-                                height: 1.2,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              'Protege automáticamente tu progreso espiritual',
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: colorScheme.onSurfaceVariant,
-                                height: 1.2,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      _buildLargerSwitch(
-                          context, displayState.autoBackupEnabled, (value) {
-                        backupBloc.add(ToggleAutoBackup(value));
-                      }),
-                    ],
-                  ),
-
-                  // Información de frecuencia (solo cuando está habilitado)
-                  if (displayState.autoBackupEnabled) ...[
-                    const SizedBox(height: 12),
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color:
-                            colorScheme.primaryContainer.withValues(alpha: 0.3),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.schedule,
-                            size: 16,
-                            color: colorScheme.primary,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            'backup.frequency_daily_2am'.tr(),
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: colorScheme.primary,
-                              fontWeight: FontWeight.w500,
-                              height: 1.2,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  // Sección de optimización
+  // 🆕 PUNTO #8: Sección de optimización con consistencia visual del drawer
   Widget _buildOptimizationSection(
       BuildContext context, BackupLoaded displayState) {
     final theme = Theme.of(context);
@@ -254,28 +145,36 @@ class BackupConfigurationSheet extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Optimización',
-          style: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-            height: 1.2,
+        // 🆕 PUNTO #8: Header consistent con drawer
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 5),
+          child: Text(
+            'Optimización',
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: theme.colorScheme.onSurface,
+            ),
           ),
         ),
         const SizedBox(height: 8),
-        _buildCompactToggle(
+
+        // 🆕 PUNTO #4B + #8: Switches nativos consistent con drawer
+        _buildDrawerStyleToggle(
           context,
           icon: Icons.wifi,
-          title: 'backup.wifi_only'.tr(),
-          subtitle: 'backup.wifi_only_subtitle'.tr(),
+          labelKey: 'backup.wifi_only',
+          subtitleKey: 'backup.wifi_only_subtitle',
           value: displayState.wifiOnlyEnabled,
           onChanged: (value) => backupBloc.add(ToggleWifiOnly(value)),
         ),
-        const SizedBox(height: 8),
-        _buildCompactToggle(
+
+        const SizedBox(height: 5), // 🆕 PUNTO #8: Spacing consistent con drawer
+
+        _buildDrawerStyleToggle(
           context,
           icon: Icons.compress,
-          title: 'backup.compress_data'.tr(),
-          subtitle: 'backup.compress_data_subtitle'.tr(),
+          labelKey: 'backup.compress_data',
+          subtitleKey: 'backup.compress_data_subtitle',
           value: displayState.compressionEnabled,
           onChanged: (value) => backupBloc.add(ToggleCompression(value)),
         ),
@@ -283,98 +182,157 @@ class BackupConfigurationSheet extends StatelessWidget {
     );
   }
 
-  Widget _buildCompactToggle(
+  // 🆕 PUNTO #5: Nueva sección de gestión de cuenta con logout
+  Widget _buildAccountSection(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Header
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 5),
+          child: Text(
+            'Gestión de Cuenta',
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: colorScheme.onSurface,
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+
+        // 🆕 PUNTO #5: Botón de logout con confirmación
+        SizedBox(
+          width: double.infinity,
+          child: OutlinedButton.icon(
+            key: const Key('logout_button'),
+            // 🆕 PUNTO #9: Testing key
+            onPressed: () => _showLogoutConfirmation(context),
+            icon: Icon(
+              Icons.logout,
+              color: colorScheme.error,
+              size: 20,
+            ),
+            label: Text(
+              'Cerrar Sesión de Google Drive',
+              style: TextStyle(color: colorScheme.error),
+            ),
+            style: OutlinedButton.styleFrom(
+              side: BorderSide(color: colorScheme.error),
+              padding: const EdgeInsets.symmetric(vertical: 12),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // 🆕 PUNTO #8 + #4B: Toggle style consistent con drawer usando switches nativos
+  Widget _buildDrawerStyleToggle(
     BuildContext context, {
     required IconData icon,
-    required String title,
-    required String subtitle,
+    required String labelKey,
+    required String subtitleKey,
     required bool value,
     required ValueChanged<bool> onChanged,
   }) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return Container(
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: InkWell(
-        onTap: () => onChanged(!value),
-        borderRadius: BorderRadius.circular(8),
+    // 🆕 PUNTO #8: Helper function exactly like drawerRow in devocionales_page_drawer.dart
+    return InkWell(
+      borderRadius: BorderRadius.circular(8),
+      onTap: () => onChanged(!value),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 0),
+        // 🆕 PUNTO #8: Consistent padding
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Icon(icon, size: 16, color: colorScheme.onSurfaceVariant),
-            const SizedBox(width: 8),
+            SizedBox(
+              width: 36, // 🆕 PUNTO #8: Fixed width like drawer
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Icon(
+                  icon,
+                  color: colorScheme.primary,
+                  // 🆕 PUNTO #8: Same primary color as drawer
+                  size: 28, // 🆕 PUNTO #8: Same icon size as drawer
+                ),
+              ),
+            ),
+            const SizedBox(width: 12), // 🆕 PUNTO #8: Same spacing as drawer
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    title,
+                    labelKey.tr(),
                     style: theme.textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w500,
-                      height: 1.2,
+                      fontSize: 16, // 🆕 PUNTO #8: Same font size as drawer
+                      color: colorScheme.onSurface,
                     ),
                   ),
+                  const SizedBox(height: 4),
                   Text(
-                    subtitle,
+                    subtitleKey.tr(),
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                      height: 1.1,
+                      color: colorScheme.onSurface.withValues(alpha: 0.7),
                     ),
                   ),
                 ],
               ),
             ),
-            const SizedBox(width: 8),
-            _buildLargerSwitch(context, value, onChanged),
+            // 🆕 PUNTO #4B + #8: Native switch exactly like drawer
+            Semantics(
+              // 🆕 PUNTO #9: Accessibility
+              label: labelKey.tr(),
+              child: Switch(
+                value: value,
+                onChanged: onChanged,
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 
-  // Switch más grande y cómodo
-  Widget _buildLargerSwitch(
-    BuildContext context,
-    bool value,
-    ValueChanged<bool> onChanged,
-  ) {
-    final colorScheme = Theme.of(context).colorScheme;
+  // 🆕 PUNTO #5: Confirmación de logout usando claves i18n existentes
+  void _showLogoutConfirmation(BuildContext context) {
+    final theme = Theme.of(context);
 
-    return GestureDetector(
-      onTap: () => onChanged(!value),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        width: 50,
-        height: 28,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(14),
-          color: value ? colorScheme.primary : colorScheme.outline,
-        ),
-        child: AnimatedAlign(
-          duration: const Duration(milliseconds: 200),
-          alignment: value ? Alignment.centerRight : Alignment.centerLeft,
-          child: Container(
-            width: 24,
-            height: 24,
-            margin: const EdgeInsets.all(2),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.15),
-                  blurRadius: 3,
-                  offset: const Offset(0, 1),
-                ),
-              ],
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: Text('backup.backup_logout_confirmation_title'.tr()),
+          content: Text('backup.backup_logout_confirmation_message'.tr()),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: Text(
+                'backup.backup_cancel'.tr(),
+                style: TextStyle(color: theme.colorScheme.onSurface),
+              ),
             ),
-          ),
-        ),
-      ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop(); // Close dialog
+                Navigator.of(context).pop(); // Close modal
+                backupBloc.add(const SignOutFromGoogleDrive());
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: theme.colorScheme.error,
+                foregroundColor: theme.colorScheme.onError,
+              ),
+              child: Text('backup.backup_confirm'.tr()),
+            ),
+          ],
+        );
+      },
     );
   }
 }

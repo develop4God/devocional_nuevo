@@ -53,7 +53,6 @@ class BackupSettingsPage extends StatelessWidget {
 
     return BlocProvider(
       create: (context) {
-        // 🔧 CRÍTICO: Restaurar BackupSchedulerService
         final schedulerService = BackupSchedulerService(
           backupService: backupService,
           connectivityService: connectivityService,
@@ -61,10 +60,10 @@ class BackupSettingsPage extends StatelessWidget {
 
         final bloc = BackupBloc(
           backupService: backupService,
-          schedulerService: schedulerService, // 🔧 RESTAURADO
+          schedulerService: schedulerService,
           devocionalProvider:
               Provider.of<DevocionalProvider>(context, listen: false),
-          prayerBloc: context.read<PrayerBloc>(), // 🔧 RESTAURADO
+          prayerBloc: context.read<PrayerBloc>(),
         );
 
         bloc.add(const LoadBackupSettings());
@@ -95,9 +94,28 @@ class _BackupSettingsView extends StatelessWidget {
 
           if (state is BackupError) {
             debugPrint('❌ [DEBUG] BackupError recibido: ${state.message}');
+
+            // 🆕 PUNTO #7: Errores más específicos
+            String errorMessage;
+            if (state.message.contains('network') ||
+                state.message.contains('connection')) {
+              errorMessage = 'backup.error_network'.tr();
+            } else if (state.message.contains('auth') ||
+                state.message.contains('sign')) {
+              errorMessage = 'backup.error_auth_failed'.tr();
+            } else if (state.message.contains('storage') ||
+                state.message.contains('quota')) {
+              errorMessage = 'backup.error_storage_full'.tr();
+            } else if (state.message.contains('internet') ||
+                state.message.contains('connectivity')) {
+              errorMessage = 'backup.error_no_internet'.tr();
+            } else {
+              errorMessage = 'backup.error_generic'.tr();
+            }
+
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text(state.message.tr()),
+                content: Text(errorMessage),
                 backgroundColor: colorScheme.error,
               ),
             );
@@ -149,7 +167,7 @@ class _BackupSettingsView extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      state.message,
+                      'backup.error_generic'.tr(),
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: colorScheme.onSurfaceVariant,
                       ),
@@ -536,7 +554,7 @@ class _BackupSettingsContent extends StatelessWidget {
     );
   }
 
-  // 🎯 NEW: Protection title outside the card (only when authenticated and auto backup active)
+  // 🆕 PUNTO #1: Protection title outside the card (only when authenticated and auto backup active)
   Widget _buildProtectionTitle(BuildContext context) {
     final theme = Theme.of(context);
 
@@ -558,128 +576,68 @@ class _BackupSettingsContent extends StatelessWidget {
     );
   }
 
-  // 🎯 SIMPLIFIED: Auto backup active state with clean card
+  // 🆕 PUNTOS #1,2,3: Simplified auto backup active state with improvements
   Widget _buildAutoBackupActiveState(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
     return Card(
+      key: const Key('auto_backup_active_card'), // 🆕 PUNTO #9: Testing key
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // User email
+            // 🆕 PUNTO #2: Three dots moved to top right corner
             Row(
+              mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                Icon(Icons.person_outline,
-                    size: 16, color: colorScheme.onSurfaceVariant),
-                const SizedBox(width: 8),
-                Text(
-                  '${'backup.backup_email'.tr()}: ',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                Expanded(
-                  child: Text(
-                    state.userEmail ?? 'backup.no_email'.tr(),
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
+                IconButton(
+                  key: const Key('backup_settings_button'),
+                  // 🆕 PUNTO #9: Testing key
+                  onPressed: () =>
+                      BackupConfigurationSheet.show(context, state),
+                  icon: Icon(Icons.more_vert, color: colorScheme.primary),
+                  tooltip:
+                      'backup.configuration'.tr(), // 🆕 PUNTO #9: Accessibility
                 ),
               ],
             ),
+
+            // 🆕 PUNTO #1: Connected status with icon
+            const _ConnectedStatusRow(),
+            const SizedBox(height: 12),
+
+            // User email info
+            _BackupInfoRow(
+              icon: Icons.person_outline,
+              labelKey: 'backup.backup_email',
+              value: state.userEmail ?? 'backup.no_email'.tr(),
+            ),
             const SizedBox(height: 8),
 
-            // Last backup
+            // Last backup info
             if (state.lastBackupTime != null) ...[
-              Row(
-                children: [
-                  Icon(Icons.schedule,
-                      size: 16, color: colorScheme.onSurfaceVariant),
-                  const SizedBox(width: 8),
-                  Text(
-                    '${'backup.last_backup'.tr()}: ',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  Expanded(
-                    child: Text(
-                      _formatLastBackupTime(context, state.lastBackupTime!),
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ),
-                ],
+              _BackupInfoRow(
+                icon: Icons.schedule,
+                labelKey: 'backup.last_backup',
+                value: _formatLastBackupTime(context, state.lastBackupTime!),
               ),
               const SizedBox(height: 8),
             ],
 
-            // Next backup
+            // Next backup info
             if (state.nextBackupTime != null) ...[
-              Row(
-                children: [
-                  Icon(Icons.schedule_send,
-                      size: 16, color: colorScheme.onSurfaceVariant),
-                  const SizedBox(width: 8),
-                  Text(
-                    '${'backup.next_backup'.tr()}: ',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  Expanded(
-                    child: Text(
-                      _formatNextBackupTime(context, state.nextBackupTime!),
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ),
-                ],
+              _BackupInfoRow(
+                icon: Icons.schedule_send,
+                labelKey: 'backup.next_backup',
+                value: _formatNextBackupTime(context, state.nextBackupTime!),
               ),
               const SizedBox(height: 16),
             ],
 
-            // Switch and settings row
-            Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'backup.enable_auto_backup'.tr(),
-                        style: theme.textTheme.bodyLarge,
-                      ),
-                      Text(
-                        'backup.auto_backup_subtitle'.tr(),
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Switch(
-                  value: state.autoBackupEnabled,
-                  onChanged: (value) {
-                    context.read<BackupBloc>().add(ToggleAutoBackup(value));
-                  },
-                ),
-                const SizedBox(width: 8),
-                IconButton(
-                  onPressed: () =>
-                      BackupConfigurationSheet.show(context, state),
-                  icon: Icon(Icons.more_vert, color: colorScheme.primary),
-                  tooltip: 'backup.more_options'.tr(),
-                ),
-              ],
-            ),
+            // 🆕 PUNTO #2,3: Switch row with proper layout, no subtitle
+            const _BackupToggleRow(),
           ],
         ),
       ),
@@ -764,7 +722,7 @@ class _BackupSettingsContent extends StatelessWidget {
                     size: 16,
                     color: theme.colorScheme.primary,
                   ),
-                  label: Text('backup.more_options'.tr()),
+                  label: Text('backup.configuration'.tr()),
                 ),
               ],
             ),
@@ -895,5 +853,116 @@ class _BackupSettingsContent extends StatelessWidget {
     } else {
       return '${'backup.in_days'.tr().replaceAll('{days}', daysDifference.toString())} $timeString';
     }
+  }
+}
+
+// 🆕 PUNTO #10: Optimized extracted widgets for performance
+
+/// 🆕 PUNTO #1: Connected status row widget
+class _ConnectedStatusRow extends StatelessWidget {
+  const _ConnectedStatusRow();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Row(
+      children: [
+        Icon(
+          Icons.cloud_done,
+          size: 20,
+          color: colorScheme.primary,
+        ),
+        const SizedBox(width: 8),
+        Text(
+          'backup.connected_to_google_drive'.tr(),
+          style: theme.textTheme.bodyLarge?.copyWith(
+            fontWeight: FontWeight.w600,
+            color: colorScheme.primary,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// 🆕 PUNTO #10: Reusable info row widget
+class _BackupInfoRow extends StatelessWidget {
+  final IconData icon;
+  final String labelKey;
+  final String value;
+
+  const _BackupInfoRow({
+    required this.icon,
+    required this.labelKey,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Row(
+      children: [
+        Icon(icon, size: 16, color: colorScheme.onSurfaceVariant),
+        const SizedBox(width: 8),
+        Text(
+          '${labelKey.tr()}: ',
+          style: theme.textTheme.bodySmall?.copyWith(
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        Expanded(
+          child: Text(
+            value,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// 🆕 PUNTO #2,3: Toggle row widget with proper layout
+class _BackupToggleRow extends StatelessWidget {
+  const _BackupToggleRow();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return BlocBuilder<BackupBloc, BackupState>(
+      builder: (context, state) {
+        if (state is! BackupLoaded) return const SizedBox.shrink();
+
+        return Row(
+          children: [
+            Expanded(
+              child: Text(
+                'backup.enable_auto_backup'.tr(),
+                style: theme.textTheme.bodyLarge,
+              ),
+            ),
+            // 🆕 PUNTO #2: Switch properly aligned to the right
+            Semantics(
+              // 🆕 PUNTO #9: Accessibility
+              label: 'backup.enable_auto_backup'.tr(),
+              child: Switch(
+                key: const Key('auto_backup_switch'),
+                // 🆕 PUNTO #9: Testing key
+                value: state.autoBackupEnabled,
+                onChanged: (value) {
+                  context.read<BackupBloc>().add(ToggleAutoBackup(value));
+                },
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 }

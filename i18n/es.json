@@ -389,12 +389,18 @@
     "size": "Tamaño",
     "next_backup": "Próxima copia",
     "no_backup_yet": "Aún no hay copias de seguridad",
+    "no_email": "Sin email",
     "create_backup": "Crear copia de seguridad",
     "security_title": "Seguridad",
-    "security_text": "Tus datos están protegidos con encriptación de extremo a extremo y solo tú tienes acceso a ellos.",
+    "security_text": "Tus datos se almacenan de forma segura en tu Google Drive personal y solo tú tienes acceso a ellos.",
     "created_successfully": "Copia de seguridad creada exitosamente",
     "restored_successfully": "Datos restaurados exitosamente",
     "error_loading": "Error al cargar configuración",
+    "error_no_internet": "Sin conexión a internet",
+    "error_auth_failed": "Error de autenticación con Google Drive",
+    "error_storage_full": "Almacenamiento de Google Drive lleno",
+    "error_network": "Error de red. Verifica tu conexión",
+    "error_generic": "Error inesperado. Intenta nuevamente",
     "retry": "Reintentar",
     "today": "Hoy",
     "yesterday": "Ayer",
@@ -486,10 +492,5 @@
     "test_badges": "Probar Insignias",
     "remote_system": "Sistema Remoto",
     "test_connection": "Probar Conexión"
-  },
-  "test": {
-    "badges_page_title": "Prueba de Sistema de Insignias",
-    "testing_remote_badges": "Probando insignias remotas",
-    "badge_system_test": "Prueba del Sistema de Badges"
   }
 }
