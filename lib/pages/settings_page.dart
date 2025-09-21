@@ -1,13 +1,16 @@
 // lib/pages/settings_page.dart - SENIOR SIMPLE APPROACH
 import 'dart:developer' as developer;
 
+// Import condicional - solo carga debug widget en debug builds
+import 'package:devocional_nuevo/debug/debug_settings_section.dart'
+    if (dart.library.js) 'package:devocional_nuevo/debug/debug_settings_section_stub.dart'
+    if (kReleaseMode) 'package:devocional_nuevo/debug/debug_settings_section_stub.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/pages/about_page.dart';
 import 'package:devocional_nuevo/pages/application_language_page.dart';
 import 'package:devocional_nuevo/pages/backup_settings_page.dart';
 import 'package:devocional_nuevo/pages/contact_page.dart';
 import 'package:devocional_nuevo/pages/donate_page.dart';
-import 'package:devocional_nuevo/pages/test_badges_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/providers/localization_provider.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
@@ -453,69 +456,11 @@ class _SettingsPageState extends State<SettingsPage> {
 
             // Debug Section - only in debug mode
             if (kDebugMode) ...[
-              const SizedBox(height: 20),
-
-              // Test Badges
-              InkWell(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const TestBadgesPage(),
-                    ),
-                  );
-                },
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8.0),
-                  child: Row(
-                    children: [
-                      Icon(Icons.bug_report, color: colorScheme.primary),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Text(
-                          'Test Badges System',
-                          style: textTheme.bodyMedium?.copyWith(
-                              fontSize: 16, color: colorScheme.onSurface),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 10),
-
-              // Feature Flags Debug
-              ExpansionTile(
-                leading: Icon(Icons.flag, color: colorScheme.primary),
-                title: const Text('Feature Flags (Debug)'),
-                subtitle: Text(
-                  'Mode: $_donationMode | Badges: $_showBadgesTab',
-                  style: textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                ),
-                children: [
-                  ListTile(
-                    title: Text('Current: $_donationMode'),
-                    subtitle: Text(_donationMode == 'paypal'
-                        ? 'PayPal Direct (Active)'
-                        : 'Google Pay Flow (Active)'),
-                    leading: Icon(
-                      _donationMode == 'paypal'
-                          ? Icons.payment
-                          : Icons.account_balance_wallet,
-                      color: colorScheme.primary,
-                    ),
-                  ),
-                  ListTile(
-                    title: const Text('Refresh from Firebase'),
-                    leading: const Icon(Icons.cloud_sync),
-                    onTap: _refreshFeatureFlags,
-                  ),
-                ],
+              DebugSettingsSection(
+                donationMode: _donationMode,
+                showBadgesTab: _showBadgesTab,
+                showBackupSection: _showBackupSection,
+                onRefreshFlags: _refreshFeatureFlags,
               ),
             ],
           ],
