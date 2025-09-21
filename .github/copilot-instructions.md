@@ -2,8 +2,6 @@
 
 # Copilot Instructions for this Flutter/Dart Repository
 
-This repository is a Flutter project, focused on devotional applications and related tools.
-
 ## Code Standards
 
 - **Always validate code after changes:**
@@ -45,4 +43,4 @@ This repository is a Flutter project, focused on devotional applications and rel
 ---
 
 **Note for Copilot:**  
-Follow these instructions to maintain quality, consistency, and reliability in this repository. Refer to the README.md or ask in Copilot Chat if you need clarification about workflow or standards.
+Follow these instructions to maintain quality, consistency, and reliability in this repository.
