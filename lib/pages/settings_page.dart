@@ -258,12 +258,8 @@ class _SettingsPageState extends State<SettingsPage> {
                       borderRadius: BorderRadius.circular(20.0),
                     ),
                   ),
-                  icon: Icon(
-                    Icons.favorite,
-                    color: colorScheme.primary,
-                  ),
                   label: Text(
-                    'Apoyar',
+                    'settings.donate'.tr(),
                     style: textTheme.bodyMedium?.copyWith(
                       color: colorScheme.onSurface,
                       fontWeight: FontWeight.bold,
