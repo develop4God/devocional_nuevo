@@ -378,7 +378,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
-                          'backup.title'.tr(),
+                          'settings.backup_option'.tr(),
                           style: textTheme.bodyMedium?.copyWith(
                               fontSize: 16, color: colorScheme.onSurface),
                           maxLines: 1,

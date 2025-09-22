@@ -128,7 +128,8 @@
     "about_app": "Acerca de Devocionales Cristianos",
     "paypal_launch_error": "No se pudo abrir PayPal. El sistema no pudo lanzar la URL.",
     "paypal_error": "Error al abrir PayPal: {error}",
-    "paypal_no_app_error": "No se pudo abrir PayPal. Asegúrate de tener un navegador web o la app de PayPal instalada."
+    "paypal_no_app_error": "No se pudo abrir PayPal. Asegúrate de tener un navegador web o la app de PayPal instalada.",
+    "backup_option": "Copia de seguridad"
   },
   "notifications_config_page": {
     "notifications_config": "Configuración de notificaciones",
@@ -371,15 +372,15 @@
     "updated_feature": "Actualizado"
   },
   "backup": {
-    "title": "Copia de Seguridad",
+    "title": "Sincronización y protección",
     "connected_to_google_drive": "Conectado a Google Drive",
-    "connect_to_google_drive": "Conéctate a Google Drive",
-    "tap_to_connect_protect": "Genera copia de seguridad",
-    "description_title": "Protege tu progreso espiritual",
-    "description_text": "Guarda automáticamente tus devocionales favoritos, estadísticas espirituales y oraciones en Google Drive para nunca perder tu progreso.",
-    "google_drive_connection": "Conexión a Google Drive",
+    "connect_to_google_drive": "Activar respaldo automático",
+    "tap_to_connect_protect": "Crea copia de seguridad",
+    "description_title": "Nunca pierdas tu progreso espiritual",
+    "description_text": "Aunque cambies de celular o reinstales la aplicación.",
+    "google_drive_connection": "Conectar a Google Drive",
     "automatic_backups": "Copias de seguridad automáticas",
-    "enable_auto_backup": "Habilitar backup automático (recomendado)",
+    "enable_auto_backup": "Respaldo automático (recomendado)",
     "frequency": "Frecuencia",
     "frequency_daily": "Diariamente",
     "frequency_daily_2am": "Diariamente (2:00 AM)",

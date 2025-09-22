@@ -345,7 +345,7 @@ class _BackupSettingsContent extends StatelessWidget {
                     context.read<BackupBloc>().add(const SignInToGoogleDrive());
                   },
                   icon: const Icon(Icons.account_circle),
-                  label: Text('backup.connect_to_google_drive'.tr()),
+                  label: Text('backup.google_drive_connection'.tr()),
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
                   ),
