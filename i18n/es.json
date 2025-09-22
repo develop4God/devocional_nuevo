@@ -293,26 +293,6 @@
     "support_badge_unlock": "¡Insignia Desbloqueada!",
     "support_badge_share": "Compartir Insignia"
   },
-  "onboarding": {
-    "onboarding_welcome_title": "Bienvenido a tu espacio espiritual",
-    "onboarding_welcome_subtitle": "Comienza tu jornada de fe y devoción con características personalizadas diseñadas para mejorar tu crecimiento espiritual.",
-    "onboarding_theme_title": "Elige tu tema",
-    "onboarding_theme_subtitle": "Selecciona un tema de color que refleje tu estado espiritual y mejore tu experiencia de lectura.",
-    "onboarding_backup_title": "Protege tu progreso espiritual",
-    "onboarding_backup_subtitle": "Mantén tu jornada devocional segura conectándote a Google Drive. Tu progreso de lectura, favoritos y logros estarán respaldados de forma segura.",
-    "onboarding_connect_google_drive": "Conectar Google Drive",
-    "onboarding_recommended": "Recomendado",
-    "onboarding_skip_for_now": "Omitir por ahora",
-    "onboarding_configure_later": "Configurar más tarde",
-    "onboarding_backup_security_info": "Tus datos están encriptados y almacenados de forma segura en tu Google Drive personal.",
-    "onboarding_complete_title": "¡Todo está listo!",
-    "onboarding_complete_subtitle": "Tu espacio espiritual ha sido configurado. Comienza tu jornada devocional con confianza.",
-    "onboarding_your_setup": "Tu Configuración",
-    "onboarding_back": "Atrás",
-    "onboarding_skip": "Omitir",
-    "onboarding_next": "Siguiente",
-    "onboarding_start_app": "Comenzar Tu Jornada"
-  },
   "about": {
     "title": "Acerca de tu app",
     "app_name": "Devocionales Cristianos",
@@ -525,5 +505,22 @@
     "test_badges": "Probar Insignias",
     "remote_system": "Sistema Remoto",
     "test_connection": "Probar Conexión"
+  },
+  "onboarding": {
+    "onboarding_skip": "Omitir",
+    "onboarding_back": "Atrás",
+    "onboarding_next": "Siguiente",
+    "onboarding_skip_for_now": "Omitir por ahora",
+    "onboarding_configure_later": "Configurar más tarde",
+    "onboarding_welcome_title": "Bienvenido a Devocionales",
+    "onboarding_welcome_subtitle": "Tu espacio íntimo con Dios cada día. Comencemos configurando tu experiencia personalizada.",
+    "onboarding_theme_title": "Elige tu Ambiente",
+    "onboarding_theme_subtitle": "Selecciona el tema que más te inspire para tu tiempo devocional.",
+    "onboarding_backup_title": "Protege tu Progreso",
+    "onboarding_backup_subtitle": "Conecta con Google Drive para mantener seguros tus devocionales favoritos, oraciones y progreso espiritual.",
+    "onboarding_complete_title": "¡Todo Listo!",
+    "onboarding_complete_subtitle": "Tu espacio devocional está configurado. Es hora de comenzar tu jornada espiritual diaria.",
+    "onboarding_your_setup": "Tu Configuración",
+    "onboarding_start_app": "Comenzar Mi Jornada"
   }
 }
