@@ -132,13 +132,6 @@ class _OnboardingBackupConfigurationPageState
                             // Auto-configure cuando se conecta exitosamente
                             _autoConfigureBackup(context);
                             widget.onNext();
-                          } else if (state is BackupExistingFound) {
-                            setState(() {
-                              _isConnecting = false;
-                            });
-                            // Mostrar diálogo para restaurar backup existente
-                            _showExistingBackupDialog(
-                                context, state.backupInfo);
                           } else if (state is BackupError) {
                             setState(() {
                               _isConnecting = false;
@@ -304,46 +297,6 @@ class _OnboardingBackupConfigurationPageState
         backgroundColor: Colors.green,
         duration: Duration(seconds: 2),
       ),
-    );
-  }
-
-  void _showExistingBackupDialog(
-      BuildContext context, Map<String, dynamic> backupInfo) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Backup encontrado'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text('Se encontró un backup existente en tu Google Drive.'),
-              const SizedBox(height: 16),
-              Text('Fecha: ${backupInfo['modifiedTime'] ?? 'Desconocida'}'),
-              Text('Tamaño: ${backupInfo['size'] ?? 'Desconocido'} bytes'),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                context.read<BackupBloc>().add(const SkipExistingBackup());
-                widget.onNext();
-              },
-              child: const Text('Omitir'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                context.read<BackupBloc>().add(
-                      RestoreExistingBackup(backupInfo['fileId']),
-                    );
-              },
-              child: const Text('Restaurar'),
-            ),
-          ],
-        );
-      },
     );
   }
 }

@@ -127,27 +127,18 @@ class BackupError extends BackupState {
   List<Object?> get props => [message];
 }
 
-/// Authentication success state
-class BackupAuthenticated extends BackupState {
-  final String userEmail;
-
-  const BackupAuthenticated(this.userEmail);
-
-  @override
-  List<Object?> get props => [userEmail];
-}
-
 /// Settings updated successfully
 class BackupSettingsUpdated extends BackupState {
   const BackupSettingsUpdated();
 }
 
-/// Existing backup found on Google Drive
-class BackupExistingFound extends BackupState {
-  final Map<String, dynamic> backupInfo;
+/// Success state for UX feedback
+class BackupSuccess extends BackupState {
+  final String title;
+  final String message;
 
-  const BackupExistingFound(this.backupInfo);
+  const BackupSuccess(this.title, this.message);
 
   @override
-  List<Object?> get props => [backupInfo];
+  List<Object?> get props => [title, message];
 }

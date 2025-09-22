@@ -79,16 +79,6 @@ class LoadStorageInfo extends BackupEvent {
   const LoadStorageInfo();
 }
 
-/// Sign in to Google Drive
-class SignInRequested extends BackupEvent {
-  const SignInRequested();
-}
-
-/// Sign out from Google Drive
-class SignOutRequested extends BackupEvent {
-  const SignOutRequested();
-}
-
 /// Refresh backup status
 class RefreshBackupStatus extends BackupEvent {
   const RefreshBackupStatus();
@@ -102,19 +92,4 @@ class SignInToGoogleDrive extends BackupEvent {
 /// Sign out from Google Drive
 class SignOutFromGoogleDrive extends BackupEvent {
   const SignOutFromGoogleDrive();
-}
-
-/// Restore existing backup found on Google Drive
-class RestoreExistingBackup extends BackupEvent {
-  final String fileId;
-
-  const RestoreExistingBackup(this.fileId);
-
-  @override
-  List<Object?> get props => [fileId];
-}
-
-/// Skip restoring existing backup
-class SkipExistingBackup extends BackupEvent {
-  const SkipExistingBackup();
 }
