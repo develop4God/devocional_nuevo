@@ -376,12 +376,6 @@ class _BackupSettingsContent extends StatelessWidget {
           ),
           child: Column(
             children: [
-              Icon(
-                Icons.check_circle_outline,
-                size: 48,
-                color: colorScheme.primary,
-              ),
-              const SizedBox(height: 12),
               Text(
                 'backup.sign_in_success'.tr(),
                 style: theme.textTheme.titleLarge?.copyWith(
@@ -535,7 +529,21 @@ class _BackupSettingsContent extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 16),
-
+            //Google drive signing
+            Row(
+              children: [
+                Icon(Icons.cloud_done,
+                    size: 16, color: colorScheme.onSurfaceVariant),
+                const SizedBox(width: 8),
+                Text(
+                  'backup.connected_to_google_drive'.tr(),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 8),
+              ],
+            ),
             // User email
             Row(
               children: [
@@ -650,13 +658,44 @@ class _BackupSettingsContent extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
 
-                // Show email in manual state too
-                if (state.userEmail != null) ...[
-                  Text(
-                    '${'backup.backup_email'.tr()}: ${state.userEmail!}',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
+                // Google Drive connection status (ARRIBA del email)
+                Row(
+                  children: [
+                    Icon(Icons.cloud_done,
+                        size: 16, color: theme.colorScheme.onSurfaceVariant),
+                    const SizedBox(width: 8),
+                    Text(
+                      'backup.connected_to_google_drive'.tr(),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+
+// User email (ABAJO del Google Drive)
+                if (state.userEmail != null) ...[
+                  Row(
+                    children: [
+                      Icon(Icons.person_outline,
+                          size: 16, color: theme.colorScheme.onSurfaceVariant),
+                      const SizedBox(width: 8),
+                      Text(
+                        '${'backup.backup_email'.tr()}: ',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      Expanded(
+                        child: Text(
+                          state.userEmail!,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 12),
                 ],
