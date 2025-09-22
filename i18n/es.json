@@ -441,7 +441,7 @@
     "activate_automatic": "Activar Protección Automática",
     "prefer_manual": "Prefiero backup manual",
     "manual_backup_active": "Respaldo manual",
-    "manual_backup_description": "Crea la copia de seguridad al presionar crear copia de seguridad.",
+    "manual_backup_description": "Solamente se guardará respaldo al presionar el botón.",
     "protection_active": "Protección de datos y progreso activados",
     "configuration": "Configuración"
   },
