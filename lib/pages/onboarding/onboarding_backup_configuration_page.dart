@@ -1,9 +1,9 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:devocional_nuevo/blocs/backup_bloc.dart';
 import 'package:devocional_nuevo/blocs/backup_event.dart';
 import 'package:devocional_nuevo/blocs/backup_state.dart';
 import 'package:devocional_nuevo/utils/localization_extension.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class OnboardingBackupConfigurationPage extends StatefulWidget {
   final VoidCallback onNext;
@@ -35,7 +35,7 @@ class _OnboardingBackupConfigurationPageState
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Theme.of(context).colorScheme.primary.withOpacity(0.1),
+              Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
               Theme.of(context).colorScheme.surface,
             ],
           ),
@@ -77,7 +77,7 @@ class _OnboardingBackupConfigurationPageState
                           borderRadius: BorderRadius.circular(20),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.blue.withOpacity(0.3),
+                              color: Colors.blue.withValues(alpha: 0.3),
                               blurRadius: 12,
                               offset: const Offset(0, 4),
                             ),
@@ -114,7 +114,7 @@ class _OnboardingBackupConfigurationPageState
                               color: Theme.of(context)
                                   .colorScheme
                                   .onSurface
-                                  .withOpacity(0.7),
+                                  .withValues(alpha: 0.7),
                               height: 1.5,
                             ),
                         textAlign: TextAlign.center,
@@ -125,13 +125,20 @@ class _OnboardingBackupConfigurationPageState
                       // Connect Google Drive button
                       BlocConsumer<BackupBloc, BackupState>(
                         listener: (context, state) {
-                          if (state is BackupAuthenticated) {
+                          if (state is BackupLoaded && state.isAuthenticated) {
                             setState(() {
                               _isConnecting = false;
                             });
-                            // Auto-configure optimal settings when connected
+                            // Auto-configure cuando se conecta exitosamente
                             _autoConfigureBackup(context);
                             widget.onNext();
+                          } else if (state is BackupExistingFound) {
+                            setState(() {
+                              _isConnecting = false;
+                            });
+                            // Mostrar diálogo para restaurar backup existente
+                            _showExistingBackupDialog(
+                                context, state.backupInfo);
                           } else if (state is BackupError) {
                             setState(() {
                               _isConnecting = false;
@@ -184,10 +191,10 @@ class _OnboardingBackupConfigurationPageState
                         padding: const EdgeInsets.symmetric(
                             horizontal: 16, vertical: 8),
                         decoration: BoxDecoration(
-                          color: Colors.green.withOpacity(0.1),
+                          color: Colors.green.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(20),
-                          border:
-                              Border.all(color: Colors.green.withOpacity(0.3)),
+                          border: Border.all(
+                              color: Colors.green.withValues(alpha: 0.3)),
                         ),
                         child: Text(
                           'onboarding_recommended'.tr(),
@@ -211,7 +218,7 @@ class _OnboardingBackupConfigurationPageState
                             color: Theme.of(context)
                                 .colorScheme
                                 .outline
-                                .withOpacity(0.2),
+                                .withValues(alpha: 0.2),
                           ),
                         ),
                         child: Row(
@@ -232,7 +239,7 @@ class _OnboardingBackupConfigurationPageState
                                       color: Theme.of(context)
                                           .colorScheme
                                           .onSurface
-                                          .withOpacity(0.8),
+                                          .withValues(alpha: 0.8),
                                     ),
                               ),
                             ),
@@ -258,7 +265,7 @@ class _OnboardingBackupConfigurationPageState
                         color: Theme.of(context)
                             .colorScheme
                             .onSurface
-                            .withOpacity(0.7),
+                            .withValues(alpha: 0.7),
                       ),
                     ),
                   ),
@@ -276,19 +283,67 @@ class _OnboardingBackupConfigurationPageState
       _isConnecting = true;
     });
 
-    context.read<BackupBloc>().add(SignInRequested());
+    context.read<BackupBloc>().add(const SignInToGoogleDrive());
   }
 
   void _autoConfigureBackup(BuildContext context) {
-    // Auto-configure optimal backup settings
-    // This would integrate with your backup settings service
-    // For now, we'll just show a success message
+    // Configurar backup automático con configuración óptima
+    context.read<BackupBloc>().add(const ToggleAutoBackup(true));
+    context.read<BackupBloc>().add(const ChangeBackupFrequency('daily'));
+    context.read<BackupBloc>().add(const ToggleWifiOnly(true));
+    context.read<BackupBloc>().add(const ToggleCompression(true));
+    context.read<BackupBloc>().add(const UpdateBackupOptions({
+          'spiritual_stats': true,
+          'favorite_devotionals': true,
+          'saved_prayers': true,
+        }));
+
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
+      const SnackBar(
         content: Text('Google Drive conectado y configurado automáticamente'),
         backgroundColor: Colors.green,
-        duration: const Duration(seconds: 2),
+        duration: Duration(seconds: 2),
       ),
+    );
+  }
+
+  void _showExistingBackupDialog(
+      BuildContext context, Map<String, dynamic> backupInfo) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Backup encontrado'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('Se encontró un backup existente en tu Google Drive.'),
+              const SizedBox(height: 16),
+              Text('Fecha: ${backupInfo['modifiedTime'] ?? 'Desconocida'}'),
+              Text('Tamaño: ${backupInfo['size'] ?? 'Desconocido'} bytes'),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                context.read<BackupBloc>().add(const SkipExistingBackup());
+                widget.onNext();
+              },
+              child: const Text('Omitir'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                context.read<BackupBloc>().add(
+                      RestoreExistingBackup(backupInfo['fileId']),
+                    );
+              },
+              child: const Text('Restaurar'),
+            ),
+          ],
+        );
+      },
     );
   }
 }

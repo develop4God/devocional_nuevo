@@ -1,17 +1,21 @@
 import 'dart:developer' as developer;
 
+import 'package:devocional_nuevo/blocs/backup_bloc.dart';
 import 'package:devocional_nuevo/blocs/prayer_bloc.dart';
 import 'package:devocional_nuevo/controllers/audio_controller.dart';
 import 'package:devocional_nuevo/pages/devocionales_page.dart';
+import 'package:devocional_nuevo/pages/onboarding/onboarding_flow.dart';
 import 'package:devocional_nuevo/pages/settings_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/providers/localization_provider.dart';
 import 'package:devocional_nuevo/providers/theme_provider.dart';
 import 'package:devocional_nuevo/services/backup_scheduler_service.dart';
+import 'package:devocional_nuevo/services/connectivity_service.dart';
+import 'package:devocional_nuevo/services/google_drive_auth_service.dart';
+import 'package:devocional_nuevo/services/google_drive_backup_service.dart';
 import 'package:devocional_nuevo/services/notification_service.dart';
-import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
 import 'package:devocional_nuevo/services/onboarding_service.dart';
-import 'package:devocional_nuevo/pages/onboarding/onboarding_flow.dart';
+import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
 import 'package:devocional_nuevo/splash_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -105,6 +109,18 @@ void main() async {
         BlocProvider(create: (context) => PrayerBloc()),
         ChangeNotifierProvider(create: (context) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => AudioController()),
+        // Agregar BackupBloc
+        BlocProvider(
+          create: (context) => BackupBloc(
+            backupService: GoogleDriveBackupService(
+              authService: GoogleDriveAuthService(),
+              connectivityService: ConnectivityService(),
+              statsService: SpiritualStatsService(),
+            ),
+            schedulerService: null, // ✅ El BLoC maneja null correctamente
+            devocionalProvider: context.read<DevocionalProvider>(),
+          ),
+        ),
       ],
       child: const MyApp(),
     ),
@@ -112,42 +128,23 @@ void main() async {
 }
 
 // App principal - Siempre muestra SplashScreen primero
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
+  // ← Cambiar aquí
   const MyApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    // Check onboarding status and show appropriate flow
-    return FutureBuilder<bool>(
-      future: OnboardingService.instance.shouldShowOnboarding(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const SplashScreen();
-        }
-
-        if (snapshot.hasData && snapshot.data == true) {
-          // Show onboarding flow
-          return OnboardingFlow(
-            onComplete: () {
-              // Navigate to main app after onboarding completion
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(
-                  builder: (context) => const MainApp(),
-                ),
-              );
-            },
-          );
-        }
-
-        // Show main app directly
-        return const MainApp();
-      },
-    );
-  }
+  State<MyApp> createState() => _MyAppState();
 }
 
-class MainApp extends StatelessWidget {
-  const MainApp({super.key});
+class _MyAppState extends State<MyApp> {
+  late Future<bool> _onboardingFuture; // ← Guardar Future
+
+  @override
+  void initState() {
+    super.initState();
+    _onboardingFuture =
+        OnboardingService.instance.shouldShowOnboarding(); // ← Una vez
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -162,8 +159,29 @@ class MainApp extends StatelessWidget {
       localizationsDelegates: GlobalMaterialLocalizations.delegates,
       supportedLocales: localizationProvider.supportedLocales,
       locale: localizationProvider.currentLocale,
-      // SIEMPRE inicia con SplashScreen
-      home: const AppInitializer(),
+      home: FutureBuilder<bool>(
+        future: _onboardingFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const SplashScreen();
+          }
+
+          if (snapshot.hasData && snapshot.data == true) {
+            return OnboardingFlow(
+              // ← DENTRO de MaterialApp
+              onComplete: () {
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(
+                    builder: (context) => const AppInitializer(),
+                  ),
+                );
+              },
+            );
+          }
+
+          return const AppInitializer();
+        },
+      ),
       routes: {
         '/settings': (context) => const SettingsPage(),
         '/devocionales': (context) => const DevocionalesPage(),
