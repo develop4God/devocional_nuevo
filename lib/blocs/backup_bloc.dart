@@ -440,16 +440,25 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
 
           if (restored) {
             debugPrint('✅ [BLOC] Datos restaurados automáticamente');
+
+            // 🔧 ARREGLO: Programar scheduler después de restauración automática
+            if (_schedulerService != null) {
+              debugPrint(
+                  '🔧 [BLOC] Restauración exitosa, programando scheduler...');
+              await _schedulerService!.scheduleAutomaticBackup();
+              debugPrint(
+                  '✅ [BLOC] Scheduler programado después de restauración automática');
+            } else {
+              debugPrint(
+                  '⚠️ [BLOC] Scheduler service no disponible después de restore');
+            }
+
             emit(const BackupSuccess(
                 'backup.sign_in_success', 'backup.restored_successfully'));
           } else {
             debugPrint('❌ [BLOC] Error en restauración automática');
             emit(const BackupError('backup.restore_failed'));
           }
-        } else {
-          debugPrint('✅ [BLOC] No hay backup existente, conexión exitosa');
-          emit(const BackupSuccess(
-              'backup.sign_in_success', 'backup.automatic_protection_enabled'));
         }
 
         // Recargar configuración después de 2 segundos
