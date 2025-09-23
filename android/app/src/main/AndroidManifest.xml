@@ -7,10 +7,9 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
-    <uses-permission android:name="com.google.android.gms.permission.AD_ID"/>
+    <uses-permission android:name="com.google.android.gms.permission.AD_ID" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
-
 
     <!-- Declaraciones de consulta para abrir enlaces web y otras apps -->
     <queries>
@@ -35,40 +34,50 @@
     </queries>
 
     <application
-        android:label="Devocionales Cristianos"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:label="Devocionales Cristianos">
 
         <!-- Actividad principal -->
         <activity
             android:name=".MainActivity"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
             android:exported="true"
+            android:hardwareAccelerated="true"
             android:launchMode="singleTop"
             android:taskAffinity=""
             android:theme="@style/LaunchTheme"
-            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
-            android:hardwareAccelerated="true"
             android:windowSoftInputMode="adjustResize">
+
             <meta-data
                 android:name="io.flutter.embedding.android.NormalTheme"
                 android:resource="@style/NormalTheme" />
+
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
             <intent-filter>
                 <action android:name="FLUTTER_NOTIFICATION_CLICK" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
+
             <!-- INICIO: Filtro para bucle de juego de Firebase Test Lab -->
             <intent-filter>
-                <action android:name="com.google.intent.action.TEST_LOOP"/>
-                <category android:name="android.intent.category.DEFAULT"/>
-                <data android:mimeType="application/javascript"/> <!-- ¡Esta línea es la que faltaba! -->
+                <action android:name="com.google.intent.action.TEST_LOOP" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="application/javascript" />
             </intent-filter>
             <!-- FIN: Filtro para bucle de juego -->
-
         </activity>
+
+        <!-- ✅ ACTIVIDAD REQUERIDA PARA GOOGLE SIGN-IN EN PRODUCCIÓN -->
+        <activity
+            android:name="com.google.android.gms.auth.api.signin.internal.SignInHubActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
 
         <!-- Meta-data para Flutter -->
         <meta-data
@@ -79,6 +88,7 @@
         <receiver
             android:name="com.dexterous.flutterlocalnotifications.ActionBroadcastReceiver"
             android:exported="false" />
+
         <receiver
             android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver"
             android:exported="true">
@@ -87,8 +97,6 @@
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
             </intent-filter>
         </receiver>
-
-
 
     </application>
 </manifest>

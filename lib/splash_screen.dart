@@ -33,7 +33,7 @@ class _SplashScreenState extends State<SplashScreen>
       vsync: this,
       duration: const Duration(
         milliseconds: 1500,
-      ), // Duración de la animación del fade
+      ), // Duracion de la animación del fade
     );
 
     _fadeAnimation = Tween<double>(
@@ -57,32 +57,25 @@ class _SplashScreenState extends State<SplashScreen>
     });
 
     _controller.forward(); // Inicia la animación visual
-    _navigateToNextScreen(); // Llama al método para manejar la navegación
+    _navigateToNextScreen(); // Llama al metodo para manejar la navegación
   }
 
+  // Maneja la navegacion a la siguiente pantalla después de un retraso
   Future<void> _navigateToNextScreen() async {
-    await Future.delayed(const Duration(milliseconds: 5000));
+    await Future.delayed(const Duration(milliseconds: 7000));
 
     if (mounted) {
       Navigator.pushReplacement(
         context,
         PageRouteBuilder(
-          transitionDuration: const Duration(milliseconds: 600),
+          transitionDuration: const Duration(milliseconds: 800),
           pageBuilder: (context, animation, secondaryAnimation) =>
               const DevocionalesPage(),
-          // CAMBIADO: Navegar directamente a DevocionalesPage
+          // Added fade transition as requested
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            const begin = Offset(1.0, 0.0);
-            const end = Offset.zero;
-            const curve = Curves.easeOutCubic;
-
-            var tween = Tween(
-              begin: begin,
-              end: end,
-            ).chain(CurveTween(curve: curve));
-
-            return SlideTransition(
-              position: animation.drive(tween),
+            // Fade transition from splash to devotionals
+            return FadeTransition(
+              opacity: animation,
               child: child,
             );
           },

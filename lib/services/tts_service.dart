@@ -872,6 +872,13 @@ class TtsService {
     return _getSectionHeaders(language);
   }
 
+  @visibleForTesting
+
+  /// Formats Bible book references with appropriate ordinals based on current language context
+  String formatBibleBook(String reference) {
+    return BibleTextFormatter.formatBibleBook(reference, _currentLanguage);
+  }
+
   Future<void> dispose() async {
     if (_disposed) return;
     _disposed = true;

@@ -1,13 +1,20 @@
 import 'dart:developer' as developer;
 
+import 'package:devocional_nuevo/blocs/backup_bloc.dart';
 import 'package:devocional_nuevo/blocs/prayer_bloc.dart';
 import 'package:devocional_nuevo/controllers/audio_controller.dart';
 import 'package:devocional_nuevo/pages/devocionales_page.dart';
+import 'package:devocional_nuevo/pages/onboarding/onboarding_flow.dart';
 import 'package:devocional_nuevo/pages/settings_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/providers/localization_provider.dart';
 import 'package:devocional_nuevo/providers/theme_provider.dart';
+import 'package:devocional_nuevo/services/backup_scheduler_service.dart';
+import 'package:devocional_nuevo/services/connectivity_service.dart';
+import 'package:devocional_nuevo/services/google_drive_auth_service.dart';
+import 'package:devocional_nuevo/services/google_drive_backup_service.dart';
 import 'package:devocional_nuevo/services/notification_service.dart';
+import 'package:devocional_nuevo/services/onboarding_service.dart';
 import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
 import 'package:devocional_nuevo/splash_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -29,25 +36,29 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   developer.log(
-      'BackgroundServiceCallback: Manejando mensaje FCM en segundo plano: ${message.messageId}',
-      name: 'BackgroundServiceCallback');
+    'BackgroundServiceCallback: Manejando mensaje FCM en segundo plano: ${message.messageId}',
+    name: 'BackgroundServiceCallback',
+  );
   await Firebase.initializeApp();
   tzdata.initializeTimeZones();
   try {
     final String currentTimeZone = await FlutterTimezone.getLocalTimezone();
     tz.setLocalLocation(tz.getLocation(currentTimeZone));
     developer.log(
-        'BackgroundServiceCallback: Zona horaria re-inicializada a: $currentTimeZone',
-        name: 'BackgroundServiceCallback');
+      'BackgroundServiceCallback: Zona horaria re-inicializada a: $currentTimeZone',
+      name: 'BackgroundServiceCallback',
+    );
   } catch (e) {
     developer.log(
-        'BackgroundServiceCallback: Error al re-inicializar la zona horaria en segundo plano: $e',
-        name: 'BackgroundServiceCallback',
-        error: e);
+      'BackgroundServiceCallback: Error al re-inicializar la zona horaria en segundo plano: $e',
+      name: 'BackgroundServiceCallback',
+      error: e,
+    );
     tz.setLocalLocation(tz.getLocation('UTC'));
     developer.log(
-        'BackgroundServiceCallback: Volviendo a la zona horaria UTC en segundo plano.',
-        name: 'BackgroundServiceCallback');
+      'BackgroundServiceCallback: Volviendo a la zona horaria UTC en segundo plano.',
+      name: 'BackgroundServiceCallback',
+    );
   }
   final NotificationService notificationService = NotificationService();
   await notificationService.initialize();
@@ -62,27 +73,45 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
       id: message.messageId.hashCode,
     );
     developer.log(
-        'BackgroundServiceCallback: Notificación FCM mostrada en segundo plano: $title',
-        name: 'BackgroundServiceCallback');
+      'BackgroundServiceCallback: Notificación FCM mostrada en segundo plano: $title',
+      name: 'BackgroundServiceCallback',
+    );
   } else {
     developer.log(
-        'BackgroundServiceCallback: Mensaje FCM de segundo plano sin título o cuerpo de notificación.',
-        name: 'BackgroundServiceCallback');
+      'BackgroundServiceCallback: Mensaje FCM de segundo plano sin título o cuerpo de notificación.',
+      name: 'BackgroundServiceCallback',
+    );
   }
   developer.log(
-      'BackgroundServiceCallback: Manejo de mensaje FCM en segundo plano completado.',
-      name: 'BackgroundServiceCallback');
+    'BackgroundServiceCallback: Manejo de mensaje FCM en segundo plano completado.',
+    name: 'BackgroundServiceCallback',
+  );
 }
 
 void main() async {
   developer.log('App: Función main() iniciada.', name: 'MainApp');
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-
+  // ➕ INICIALIZAR BACKUP SCHEDULER
+  try {
+    await BackupSchedulerService.initialize();
+    developer.log(
+      'AppInitializer: BackupSchedulerService inicializado correctamente.',
+      name: 'MainApp',
+    );
+  } catch (e) {
+    developer.log(
+      'ERROR: Error inicializando BackupSchedulerService: $e',
+      name: 'MainApp',
+      error: e,
+    );
+  }
   // Configurar el manejador de mensajes FCM en segundo plano
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-  developer.log('App: Manejador de mensajes FCM en segundo plano registrado.',
-      name: 'MainApp');
+  developer.log(
+    'App: Manejador de mensajes FCM en segundo plano registrado.',
+    name: 'MainApp',
+  );
 
   // Lanzar runApp lo antes posible (sin inicializaciones bloqueantes)
   runApp(
@@ -93,6 +122,18 @@ void main() async {
         BlocProvider(create: (context) => PrayerBloc()),
         ChangeNotifierProvider(create: (context) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => AudioController()),
+        // Agregar BackupBloc
+        BlocProvider(
+          create: (context) => BackupBloc(
+            backupService: GoogleDriveBackupService(
+              authService: GoogleDriveAuthService(),
+              connectivityService: ConnectivityService(),
+              statsService: SpiritualStatsService(),
+            ),
+            schedulerService: null, // ✅ El BLoC maneja null correctamente
+            devocionalProvider: context.read<DevocionalProvider>(),
+          ),
+        ),
       ],
       child: const MyApp(),
     ),
@@ -100,8 +141,23 @@ void main() async {
 }
 
 // App principal - Siempre muestra SplashScreen primero
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
+  // ← Cambiar aquí
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  late Future<bool> _onboardingFuture; // ← Guardar Future
+
+  @override
+  void initState() {
+    super.initState();
+    _onboardingFuture = OnboardingService.instance
+        .shouldShowOnboarding(); // ← Una vez
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -116,8 +172,29 @@ class MyApp extends StatelessWidget {
       localizationsDelegates: GlobalMaterialLocalizations.delegates,
       supportedLocales: localizationProvider.supportedLocales,
       locale: localizationProvider.currentLocale,
-      // SIEMPRE inicia con SplashScreen
-      home: const AppInitializer(),
+      home: FutureBuilder<bool>(
+        future: _onboardingFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const SplashScreen();
+          }
+
+          if (snapshot.hasData && snapshot.data == true) {
+            return OnboardingFlow(
+              // ← DENTRO de MaterialApp
+              onComplete: () {
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(
+                    builder: (context) => const AppInitializer(),
+                  ),
+                );
+              },
+            );
+          }
+
+          return const AppInitializer();
+        },
+      ),
       routes: {
         '/settings': (context) => const SettingsPage(),
         '/devocionales': (context) => const DevocionalesPage(),
@@ -144,46 +221,54 @@ class _AppInitializerState extends State<AppInitializer> {
 
   Future<void> _initializeInBackground() async {
     // Dar tiempo para que el SplashScreen se muestre
-    await Future.delayed(const Duration(milliseconds: 500));
+    await Future.delayed(const Duration(milliseconds: 600));
 
     // Inicialización completa: servicios + datos
     await _initServices();
     await _initAppData();
 
-    developer.log('AppInitializer: Inicialización completa terminada.',
-        name: 'MainApp');
+    developer.log(
+      'AppInitializer: Inicialización completa terminada.',
+      name: 'MainApp',
+    );
   }
 
   Future<void> _initServices() async {
     // Get providers before any async operations
-    final localizationProvider =
-        Provider.of<LocalizationProvider>(context, listen: false);
+    final localizationProvider = Provider.of<LocalizationProvider>(
+      context,
+      listen: false,
+    );
 
     // Inicialización global
     try {
       tzdata.initializeTimeZones();
       await initializeDateFormatting('es', null);
       developer.log(
-          'AppInitializer: Zona horaria y formateo de fechas inicializados.',
-          name: 'MainApp');
+        'AppInitializer: Zona horaria y formateo de fechas inicializados.',
+        name: 'MainApp',
+      );
     } catch (e) {
       developer.log(
-          'ERROR en AppInitializer: Error al inicializar zona horaria o date formatting: $e',
-          name: 'MainApp',
-          error: e);
+        'ERROR en AppInitializer: Error al inicializar zona horaria o date formatting: $e',
+        name: 'MainApp',
+        error: e,
+      );
     }
 
     // Initialize localization service
     try {
       await localizationProvider.initialize();
       developer.log(
-          'AppInitializer: Localization service initialized successfully.',
-          name: 'MainApp');
+        'AppInitializer: Localization service initialized successfully.',
+        name: 'MainApp',
+      );
     } catch (e) {
       developer.log(
-          'ERROR en AppInitializer: Error al inicializar localization service: $e',
-          name: 'MainApp',
-          error: e);
+        'ERROR en AppInitializer: Error al inicializar localization service: $e',
+        name: 'MainApp',
+        error: e,
+      );
     }
 
     // Firebase Auth
@@ -192,45 +277,55 @@ class _AppInitializerState extends State<AppInitializer> {
       if (auth.currentUser == null) {
         await auth.signInAnonymously();
         developer.log(
-            'MainApp: Usuario anónimo autenticado: ${auth.currentUser?.uid}',
-            name: 'MainApp');
+          'MainApp: Usuario anónimo autenticado: ${auth.currentUser?.uid}',
+          name: 'MainApp',
+        );
       } else {
         developer.log(
-            'MainApp: Usuario ya autenticado: ${auth.currentUser?.uid}',
-            name: 'MainApp');
+          'MainApp: Usuario ya autenticado: ${auth.currentUser?.uid}',
+          name: 'MainApp',
+        );
       }
     } catch (e) {
       developer.log(
-          'ERROR en AppInitializer: Error al inicializar Firebase Auth o autenticar anónimamente: $e',
-          name: 'MainApp',
-          error: e);
+        'ERROR en AppInitializer: Error al inicializar Firebase Auth o autenticar anónimamente: $e',
+        name: 'MainApp',
+        error: e,
+      );
     }
 
     // Notification services
     try {
       await NotificationService().initialize();
       developer.log(
-          'AppInitializer: Servicios de notificación (FCM) registrados correctamente.',
-          name: 'MainApp');
+        'AppInitializer: Servicios de notificación (FCM) registrados correctamente.',
+        name: 'MainApp',
+      );
 
       // Request notification permissions if not in debug mode
       if (!kDebugMode) {
-        developer.log('Solicitando permiso de notificaciones...',
-            name: 'DebugFlow');
+        developer.log(
+          'Solicitando permiso de notificaciones...',
+          name: 'DebugFlow',
+        );
         final settings = await FirebaseMessaging.instance.requestPermission();
         developer.log(
-            'Permiso solicitado, estado: ${settings.authorizationStatus}',
-            name: 'DebugFlow');
+          'Permiso solicitado, estado: ${settings.authorizationStatus}',
+          name: 'DebugFlow',
+        );
       } else {
-        developer.log('NO se solicita permiso de notificaciones en modo debug',
-            name: 'DebugFlow');
+        developer.log(
+          'NO se solicita permiso de notificaciones en modo debug',
+          name: 'DebugFlow',
+        );
       }
     } catch (e) {
       debugPrint('Error al inicializar servicios de notificación: $e');
       developer.log(
-          'ERROR en AppInitializer: Error al inicializar servicios de notificación: $e',
-          name: 'MainApp',
-          error: e);
+        'ERROR en AppInitializer: Error al inicializar servicios de notificación: $e',
+        name: 'MainApp',
+        error: e,
+      );
     }
 
     // Spiritual stats service
@@ -244,20 +339,23 @@ class _AppInitializerState extends State<AppInitializer> {
       if (!await spiritualStatsService.isAutoBackupEnabled()) {
         await spiritualStatsService.setAutoBackupEnabled(true);
         developer.log(
-            'AppInitializer: Auto-backup de estadísticas espirituales habilitado por defecto.',
-            name: 'MainApp');
+          'AppInitializer: Auto-backup de estadísticas espirituales habilitado por defecto.',
+          name: 'MainApp',
+        );
       }
 
       // Obtener información de backup para logging
       final backupInfo = await spiritualStatsService.getBackupInfo();
       developer.log(
-          'AppInitializer: Sistema de backup inicializado. Auto-backups: ${backupInfo['auto_backups_count']}, Último backup: ${backupInfo['last_auto_backup']}',
-          name: 'MainApp');
+        'AppInitializer: Sistema de backup inicializado. Auto-backups: ${backupInfo['auto_backups_count']}, Último backup: ${backupInfo['last_auto_backup']}',
+        name: 'MainApp',
+      );
     } catch (e) {
       developer.log(
-          'ERROR en AppInitializer: Error al inicializar sistema de backup de estadísticas: $e',
-          name: 'MainApp',
-          error: e);
+        'ERROR en AppInitializer: Error al inicializar sistema de backup de estadísticas: $e',
+        name: 'MainApp',
+        error: e,
+      );
       // No es crítico, la app puede continuar funcionando
     }
   }
@@ -267,17 +365,21 @@ class _AppInitializerState extends State<AppInitializer> {
     if (!mounted) return;
 
     try {
-      final devocionalProvider =
-          Provider.of<DevocionalProvider>(context, listen: false);
+      final devocionalProvider = Provider.of<DevocionalProvider>(
+        context,
+        listen: false,
+      );
       await devocionalProvider.initializeData();
       developer.log(
-          'AppInitializer: Datos del DevocionalProvider cargados correctamente.',
-          name: 'MainApp');
+        'AppInitializer: Datos del DevocionalProvider cargados correctamente.',
+        name: 'MainApp',
+      );
     } catch (e) {
       developer.log(
-          'ERROR en AppInitializer: Error al cargar datos del DevocionalProvider: $e',
-          name: 'MainApp',
-          error: e);
+        'ERROR en AppInitializer: Error al cargar datos del DevocionalProvider: $e',
+        name: 'MainApp',
+        error: e,
+      );
     }
   }
 

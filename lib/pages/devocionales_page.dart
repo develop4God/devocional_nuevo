@@ -4,6 +4,7 @@ import 'dart:io' show File;
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
+import 'package:devocional_nuevo/pages/my_badges_page.dart';
 import 'package:devocional_nuevo/pages/prayers_page.dart';
 import 'package:devocional_nuevo/pages/progress_page.dart';
 import 'package:devocional_nuevo/pages/settings_page.dart';
@@ -15,6 +16,8 @@ import 'package:devocional_nuevo/utils/copyright_utils.dart';
 import 'package:devocional_nuevo/widgets/add_prayer_modal.dart';
 import 'package:devocional_nuevo/widgets/devocionales_page_drawer.dart';
 import 'package:devocional_nuevo/widgets/tts_player_widget.dart';
+import 'package:firebase_remote_config/firebase_remote_config.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_tts/flutter_tts.dart';
@@ -49,6 +52,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
   final FlutterTts _flutterTts = FlutterTts();
 
   AudioController? _audioController;
+  bool _showBadgesTab = false;
 
   @override
   void initState() {
@@ -62,6 +66,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     });
 
     _loadInitialData();
+    _loadFeatureFlags();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       UpdateService.checkForUpdate();
@@ -123,11 +128,13 @@ class _DevocionalesPageState extends State<DevocionalesPage>
               _currentDevocionalIndex =
                   (savedIndex + 1) % devocionalProvider.devocionales.length;
               developer.log(
-                  'Devocional cargado al inicio (índice siguiente): $_currentDevocionalIndex');
+                'Devocional cargado al inicio (índice siguiente): $_currentDevocionalIndex',
+              );
             } else {
               _currentDevocionalIndex = 0;
               developer.log(
-                  'No hay índice guardado. Iniciando en el primer devocional (índice 0).');
+                'No hay índice guardado. Iniciando en el primer devocional (índice 0).',
+              );
             }
           });
 
@@ -157,6 +164,35 @@ class _DevocionalesPageState extends State<DevocionalesPage>
         }
       }
     });
+  }
+
+  Future<void> _loadFeatureFlags() async {
+    try {
+      final remoteConfig = FirebaseRemoteConfig.instance;
+
+      await remoteConfig.setConfigSettings(
+        RemoteConfigSettings(
+          fetchTimeout: const Duration(seconds: 10),
+          minimumFetchInterval: kDebugMode
+              ? const Duration(seconds: 0)
+              : const Duration(minutes: 5),
+        ),
+      );
+
+      await remoteConfig.setDefaults({'show_badges_tab': false});
+
+      await remoteConfig.fetchAndActivate();
+
+      if (mounted) {
+        setState(() {
+          _showBadgesTab = remoteConfig.getBool('show_badges_tab');
+        });
+      }
+
+      developer.log('Badges tab flag loaded: $_showBadgesTab');
+    } catch (e) {
+      developer.log('Failed to load badges flag: $e, keeping default false');
+    }
   }
 
   void _startTrackingCurrentDevocional() {
@@ -378,7 +414,9 @@ class _DevocionalesPageState extends State<DevocionalesPage>
         return DateFormat('EEEE, MMMM d', 'en');
       case 'fr':
         return DateFormat(
-            'EEEE d MMMM', 'fr'); // Sin coma (formato nativo francés)
+          'EEEE d MMMM',
+          'fr',
+        ); // Sin coma (formato nativo francés)
       case 'pt':
         return DateFormat('EEEE, d \'de\' MMMM', 'pt');
       default:
@@ -387,8 +425,9 @@ class _DevocionalesPageState extends State<DevocionalesPage>
   }
 
   Future<void> _shareAsText(Devocional devocional) async {
-    final meditationsText =
-        devocional.paraMeditar.map((p) => '${p.cita}: ${p.texto}').join('\n');
+    final meditationsText = devocional.paraMeditar
+        .map((p) => '${p.cita}: ${p.texto}')
+        .join('\n');
     final text = "devotionals.share_text_format".tr({
       'verse': devocional.versiculo,
       'reflection': devocional.reflexion,
@@ -414,6 +453,111 @@ class _DevocionalesPageState extends State<DevocionalesPage>
         ),
       );
     }
+  }
+
+  void _showShareOptions(Devocional devocional) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (BuildContext context) {
+        return Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                'devotionals.share_devotional'.tr(),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  Expanded(
+                    child: InkWell(
+                      onTap: () {
+                        Navigator.pop(context);
+                        _shareAsText(devocional);
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: Theme.of(context).colorScheme.outline,
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Column(
+                          children: [
+                            Icon(
+                              Icons.text_fields,
+                              size: 32,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Share as Text',
+                              style: Theme.of(context).textTheme.bodyMedium,
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: InkWell(
+                      onTap: () {
+                        Navigator.pop(context);
+                        _shareAsImage(devocional);
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: Theme.of(context).colorScheme.outline,
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Column(
+                          children: [
+                            Icon(
+                              Icons.image,
+                              size: 32,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'devotionals.share_image'.tr(),
+                              style: Theme.of(context).textTheme.bodyMedium,
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   void _goToPrayers() {
@@ -443,7 +587,8 @@ class _DevocionalesPageState extends State<DevocionalesPage>
         title: Text(
           'devotionals.my_intimate_space_with_god'.tr(),
           style: TextStyle(
-            color: Theme.of(context).appBarTheme.foregroundColor ??
+            color:
+                Theme.of(context).appBarTheme.foregroundColor ??
                 colorScheme.onPrimary,
           ),
         ),
@@ -619,8 +764,9 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                     currentDevocional.tags!.isNotEmpty)
                                   Text(
                                     'devotionals.topics'.tr({
-                                      'topics':
-                                          currentDevocional.tags!.join(', ')
+                                      'topics': currentDevocional.tags!.join(
+                                        ', ',
+                                      ),
                                     }),
                                     style: textTheme.bodySmall?.copyWith(
                                       fontSize: 14,
@@ -629,8 +775,9 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                   ),
                                 if (currentDevocional.version != null)
                                   Text(
-                                    'devotionals.version'.tr(
-                                        {'version': currentDevocional.version}),
+                                    'devotionals.version'.tr({
+                                      'version': currentDevocional.version,
+                                    }),
                                     style: textTheme.bodySmall?.copyWith(
                                       fontSize: 14,
                                       color: colorScheme.onSurface,
@@ -652,9 +799,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                           style: textTheme.bodySmall?.copyWith(
                                             fontSize: 12,
                                             color: colorScheme.onSurface
-                                                .withValues(
-                                              alpha: 0.7,
-                                            ),
+                                                .withValues(alpha: 0.7),
                                           ),
                                           textAlign: TextAlign.center,
                                         );
@@ -678,15 +823,16 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       bottomNavigationBar: Consumer<DevocionalProvider>(
         builder: (context, devocionalProvider, child) {
           final List<Devocional> devocionales = devocionalProvider.devocionales;
-          final Devocional? currentDevocional =
-              getCurrentDevocional(devocionales);
+          final Devocional? currentDevocional = getCurrentDevocional(
+            devocionales,
+          );
           final bool isFavorite = currentDevocional != null
               ? devocionalProvider.isFavorite(currentDevocional)
               : false;
 
           final Color appBarForegroundColor =
               Theme.of(context).appBarTheme.foregroundColor ??
-                  colorScheme.onPrimary;
+              colorScheme.onPrimary;
           final Color? appBarBackgroundColor = Theme.of(
             context,
           ).appBarTheme.backgroundColor;
@@ -770,7 +916,8 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                           child: SizedBox(
                             height: 45,
                             child: ElevatedButton.icon(
-                              onPressed: _currentDevocionalIndex <
+                              onPressed:
+                                  _currentDevocionalIndex <
                                       devocionales.length - 1
                                   ? _goToNextDevocional
                                   : null,
@@ -786,20 +933,23 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                 ),
                               ),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: _currentDevocionalIndex <
+                                backgroundColor:
+                                    _currentDevocionalIndex <
                                         devocionales.length - 1
                                     ? colorScheme.primary
                                     : colorScheme.outline.withValues(
                                         alpha: 0.3,
                                       ),
-                                foregroundColor: _currentDevocionalIndex <
+                                foregroundColor:
+                                    _currentDevocionalIndex <
                                         devocionales.length - 1
                                     ? Colors.white
                                     : colorScheme.outline,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(22),
                                 ),
-                                elevation: _currentDevocionalIndex <
+                                elevation:
+                                    _currentDevocionalIndex <
                                         devocionales.length - 1
                                     ? 2
                                     : 0,
@@ -824,9 +974,9 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                           : 'devotionals.save_as_favorite'.tr(),
                       onPressed: currentDevocional != null
                           ? () => devocionalProvider.toggleFavorite(
-                                currentDevocional,
-                                context,
-                              )
+                              currentDevocional,
+                              context,
+                            )
                           : null,
                       icon: Icon(
                         isFavorite ? Icons.favorite : Icons.favorite_border,
@@ -852,9 +1002,9 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                       ).newIconBadge,
                     ),
                     IconButton(
-                      tooltip: 'tooltips.share_as_text'.tr(),
+                      tooltip: 'devotionals.share_devotional'.tr(),
                       onPressed: currentDevocional != null
-                          ? () => _shareAsText(currentDevocional)
+                          ? () => _showShareOptions(currentDevocional)
                           : null,
                       icon: Icon(
                         Icons.share_outlined,
@@ -862,17 +1012,23 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                         size: 30,
                       ),
                     ),
-                    IconButton(
-                      tooltip: 'tooltips.share_as_image'.tr(),
-                      onPressed: currentDevocional != null
-                          ? () => _shareAsImage(currentDevocional)
-                          : null,
-                      icon: Icon(
-                        Icons.image_outlined,
-                        color: appBarForegroundColor,
-                        size: 30,
+                    if (_showBadgesTab)
+                      IconButton(
+                        tooltip: 'donate.my_badges'.tr(),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const MyBadgesPage(),
+                            ),
+                          );
+                        },
+                        icon: Icon(
+                          Icons.military_tech_outlined,
+                          color: appBarForegroundColor,
+                          size: 30,
+                        ),
                       ),
-                    ),
                     IconButton(
                       tooltip: 'tooltips.progress'.tr(),
                       onPressed: () {

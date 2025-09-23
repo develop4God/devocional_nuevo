@@ -46,6 +46,8 @@ android {
     }
 
     signingConfigs {
+
+
         if (
             System.getenv("KEYSTORE_PATH") != null ||
             keystoreProperties.getProperty("storeFile") != null
@@ -85,6 +87,7 @@ android {
             }
         }
         debug {
+            signingConfig = signingConfigs.getByName("debug")
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro")
         }

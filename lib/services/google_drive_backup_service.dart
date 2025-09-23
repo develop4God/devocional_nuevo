@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:googleapis/drive/v3.dart' as drive;
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../blocs/prayer_bloc.dart';
+import '../blocs/prayer_event.dart';
 import '../providers/devocional_provider.dart';
 import '../services/spiritual_stats_service.dart';
 import 'compression_service.dart';
@@ -26,8 +28,8 @@ class GoogleDriveBackupService {
 
   // Backup frequency options
   static const String frequencyDaily = 'daily';
-  static const String frequencyWeekly = 'weekly';
-  static const String frequencyMonthly = 'monthly';
+  static const String frequencyManual = 'manual';
+  static const String frequencyDeactivated = 'deactivated';
 
   // Backup file names
   static const String _backupFileName = 'devocional_backup.json';
@@ -41,9 +43,9 @@ class GoogleDriveBackupService {
     required GoogleDriveAuthService authService,
     required ConnectivityService connectivityService,
     required SpiritualStatsService statsService,
-  })  : _authService = authService,
-        _connectivityService = connectivityService,
-        _statsService = statsService;
+  }) : _authService = authService,
+       _connectivityService = connectivityService,
+       _statsService = statsService;
 
   /// Check if Google Drive backup is enabled
   Future<bool> isAutoBackupEnabled() async {
@@ -61,7 +63,8 @@ class GoogleDriveBackupService {
   /// Get backup frequency
   Future<String> getBackupFrequency() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_backupFrequencyKey) ?? frequencyDaily;
+    return prefs.getString(_backupFrequencyKey) ??
+        frequencyDaily; // Default to Daily (2:00 AM) as requested
   }
 
   /// Set backup frequency
@@ -83,7 +86,8 @@ class GoogleDriveBackupService {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_wifiOnlyKey, enabled);
     debugPrint(
-        'Google Drive WiFi-only backup ${enabled ? "enabled" : "disabled"}');
+      'Google Drive WiFi-only backup ${enabled ? "enabled" : "disabled"}',
+    );
   }
 
   /// Check if data compression is enabled
@@ -143,21 +147,32 @@ class GoogleDriveBackupService {
   /// Calculate next backup time based on frequency
   Future<DateTime?> getNextBackupTime() async {
     final lastBackup = await getLastBackupTime();
+    final frequency = await getBackupFrequency();
+
+    // Handle deactivated and manual frequencies
+    if (frequency == frequencyDeactivated || frequency == frequencyManual) {
+      return null;
+    }
+
     if (lastBackup == null || !await isAutoBackupEnabled()) {
       return null;
     }
 
-    final frequency = await getBackupFrequency();
     switch (frequency) {
       case frequencyDaily:
-        return lastBackup.add(const Duration(days: 1));
-      case frequencyWeekly:
-        return lastBackup.add(const Duration(days: 7));
-      case frequencyMonthly:
-        return lastBackup.add(const Duration(days: 30));
-      default:
-        return lastBackup.add(const Duration(days: 1));
+        final now = DateTime.now();
+        final today2AM = DateTime(now.year, now.month, now.day, 2, 0);
+
+        if (now.isBefore(today2AM)) {
+          // Si aún no son las 2:00 AM de hoy, el próximo es HOY a las 2:00 AM
+          return today2AM;
+        } else {
+          // Si ya pasaron las 2:00 AM, el próximo es MAÑANA a las 2:00 AM
+          final tomorrow = now.add(const Duration(days: 1));
+          return DateTime(tomorrow.year, tomorrow.month, tomorrow.day, 2, 0);
+        }
     }
+    return null;
   }
 
   /// Get estimated backup size in bytes
@@ -201,11 +216,13 @@ class GoogleDriveBackupService {
 
         final usedGB = usedBytes / (1024 * 1024 * 1024);
         final totalGB = totalBytes / (1024 * 1024 * 1024);
-        final percentage =
-            totalBytes > 0 ? (usedBytes / totalBytes) * 100 : 0.0;
+        final percentage = totalBytes > 0
+            ? (usedBytes / totalBytes) * 100
+            : 0.0;
 
         debugPrint(
-            'Google Drive storage: ${usedGB.toStringAsFixed(2)} GB / ${totalGB.toStringAsFixed(2)} GB');
+          'Google Drive storage: ${usedGB.toStringAsFixed(2)} GB / ${totalGB.toStringAsFixed(2)} GB',
+        );
 
         return {
           'used_gb': double.parse(usedGB.toStringAsFixed(2)),
@@ -226,7 +243,6 @@ class GoogleDriveBackupService {
       };
     } catch (e) {
       debugPrint('Error getting Google Drive storage info: $e');
-
       // Return default values on error
       return {
         'used_gb': 0.0,
@@ -251,8 +267,9 @@ class GoogleDriveBackupService {
 
       // Check connectivity if WiFi-only is enabled
       final wifiOnlyEnabled = await isWifiOnlyEnabled();
-      if (!await _connectivityService
-          .shouldProceedWithBackup(wifiOnlyEnabled)) {
+      if (!await _connectivityService.shouldProceedWithBackup(
+        wifiOnlyEnabled,
+      )) {
         throw Exception('Network connectivity requirements not met');
       }
 
@@ -267,11 +284,11 @@ class GoogleDriveBackupService {
       // Convert to bytes
       Uint8List fileBytes;
       final compressionEnabled = await isCompressionEnabled();
-
       if (compressionEnabled) {
         fileBytes = CompressionService.compressJson(backupData);
         debugPrint(
-            'Backup compressed: ${json.encode(backupData).length} -> ${fileBytes.length} bytes');
+          'Backup compressed: ${json.encode(backupData).length} -> ${fileBytes.length} bytes',
+        );
       } else {
         fileBytes = Uint8List.fromList(utf8.encode(json.encode(backupData)));
         debugPrint('Backup uncompressed: ${fileBytes.length} bytes');
@@ -280,20 +297,18 @@ class GoogleDriveBackupService {
       // Get or create backup folder
       final folderId = await _getOrCreateBackupFolder(driveApi);
 
-      // Create file metadata
-      final file = drive.File()
-        ..name = _backupFileName
-        ..parents = [folderId]
-        ..description =
-            'Devocional backup created on ${DateTime.now().toIso8601String()}'
-        ..mimeType = 'application/json';
-
       // Check if backup file already exists
       final existingFile = await _findBackupFile(driveApi, folderId);
 
       if (existingFile != null) {
-        // Update existing file
+        // Update existing file - NO parents field
         debugPrint('Updating existing backup file: ${existingFile.id}');
+        final updateFile = drive.File()
+          ..name = _backupFileName
+          ..description =
+              'Devocional backup updated on ${DateTime.now().toIso8601String()}'
+          ..mimeType = 'application/json';
+        // Importante: NO incluir parents field en updates
 
         final media = drive.Media(
           Stream.fromIterable([fileBytes]),
@@ -301,23 +316,27 @@ class GoogleDriveBackupService {
         );
 
         await driveApi.files.update(
-          file,
+          updateFile,
           existingFile.id!,
           uploadMedia: media,
         );
       } else {
-        // Create new file
+        // Create new file - SÍ parents field
         debugPrint('Creating new backup file');
+        final createFile = drive.File()
+          ..name = _backupFileName
+          ..parents =
+              [folderId] // Solo en creación
+          ..description =
+              'Devocional backup created on ${DateTime.now().toIso8601String()}'
+          ..mimeType = 'application/json';
 
         final media = drive.Media(
           Stream.fromIterable([fileBytes]),
           fileBytes.length,
         );
 
-        await driveApi.files.create(
-          file,
-          uploadMedia: media,
-        );
+        await driveApi.files.create(createFile, uploadMedia: media);
       }
 
       await _setLastBackupTime(DateTime.now());
@@ -331,7 +350,8 @@ class GoogleDriveBackupService {
 
   /// Prepare backup data
   Future<Map<String, dynamic>> _prepareBackupData(
-      DevocionalProvider? provider) async {
+    DevocionalProvider? provider,
+  ) async {
     final options = await getBackupOptions();
     final backupData = <String, dynamic>{
       'timestamp': DateTime.now().toIso8601String(),
@@ -344,6 +364,7 @@ class GoogleDriveBackupService {
     if (options['spiritual_stats'] == true) {
       try {
         final stats = await _statsService.getAllStats();
+        debugPrint('🔍 BACKUP STATS: ${json.encode(stats)}');
         backupData['spiritual_stats'] = stats;
         debugPrint('Included spiritual stats in backup');
       } catch (e) {
@@ -355,10 +376,12 @@ class GoogleDriveBackupService {
     // Include favorite devotionals if enabled
     if (options['favorite_devotionals'] == true && provider != null) {
       try {
-        backupData['favorite_devotionals'] =
-            provider.favoriteDevocionales.map((dev) => dev.toJson()).toList();
+        backupData['favorite_devotionals'] = provider.favoriteDevocionales
+            .map((dev) => dev.toJson())
+            .toList();
         debugPrint(
-            'Included ${provider.favoriteDevocionales.length} favorite devotionals in backup');
+          'Included ${provider.favoriteDevocionales.length} favorite devotionals in backup',
+        );
       } catch (e) {
         debugPrint('Error getting favorite devotionals: $e');
         backupData['favorite_devotionals'] = [];
@@ -368,9 +391,11 @@ class GoogleDriveBackupService {
     // Include saved prayers if enabled
     if (options['saved_prayers'] == true) {
       try {
-        // TODO: Get from prayers service when implemented
-        backupData['saved_prayers'] = [];
-        debugPrint('Included saved prayers in backup');
+        final prefs = await SharedPreferences.getInstance();
+        final prayersJson = prefs.getString('prayers') ?? '[]';
+        final prayersList = json.decode(prayersJson) as List<dynamic>;
+        backupData['saved_prayers'] = prayersList;
+        debugPrint('Included ${prayersList.length} saved prayers in backup');
       } catch (e) {
         debugPrint('Error getting saved prayers: $e');
         backupData['saved_prayers'] = [];
@@ -431,7 +456,6 @@ class GoogleDriveBackupService {
 
       // Try to decompress first
       backupData = CompressionService.decompressJson(fileBytes);
-
       if (backupData == null) {
         // Try as uncompressed JSON
         try {
@@ -542,7 +566,6 @@ class GoogleDriveBackupService {
 
       final createdFolder = await driveApi.files.create(folder);
       final folderId = createdFolder.id!;
-
       await _setBackupFolderId(folderId);
       debugPrint('Created new backup folder: $folderId');
       return folderId;
@@ -554,7 +577,9 @@ class GoogleDriveBackupService {
 
   /// Find backup file in the specified folder
   Future<drive.File?> _findBackupFile(
-      drive.DriveApi driveApi, String folderId) async {
+    drive.DriveApi driveApi,
+    String folderId,
+  ) async {
     try {
       final query =
           "name='$_backupFileName' and '$folderId' in parents and trashed=false";
@@ -563,7 +588,6 @@ class GoogleDriveBackupService {
       if (fileList.files != null && fileList.files!.isNotEmpty) {
         return fileList.files!.first;
       }
-
       return null;
     } catch (e) {
       debugPrint('Error finding backup file: $e');
@@ -625,15 +649,37 @@ class GoogleDriveBackupService {
         try {
           final stats = data['spiritual_stats'] as Map<String, dynamic>;
           await _statsService.restoreStats(stats);
-          debugPrint('Restored spiritual stats');
+          debugPrint('Restored spiritual stats from backup');
         } catch (e) {
           debugPrint('Error restoring spiritual stats: $e');
         }
       }
 
-      // Note: Favorite devotionals and prayers would need to be restored
-      // through their respective providers/services
-      // This would require additional methods in those services
+      // Restore favorite devotionals
+      if (data.containsKey('favorite_devotionals')) {
+        try {
+          final favorites = data['favorite_devotionals'] as List<dynamic>;
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('favorites', json.encode(favorites));
+          debugPrint(
+            'Restored ${favorites.length} favorite devotionals from backup',
+          );
+        } catch (e) {
+          debugPrint('Error restoring favorite devotionals: $e');
+        }
+      }
+
+      // Restore saved prayers
+      if (data.containsKey('saved_prayers')) {
+        try {
+          final prayers = data['saved_prayers'] as List<dynamic>;
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('prayers', json.encode(prayers));
+          debugPrint('Restored ${prayers.length} saved prayers from backup');
+        } catch (e) {
+          debugPrint('Error restoring saved prayers: $e');
+        }
+      }
 
       debugPrint('Backup data restoration completed');
     } catch (e) {
@@ -648,14 +694,14 @@ class GoogleDriveBackupService {
   }
 
   /// Sign in to Google Drive
-  Future<bool> signIn() async {
-    return await _authService.signIn();
+  Future<bool?> signIn() async {
+    // Era: Future<bool> signIn() async {
+    return await _authService.signIn(); // El metodo ya queda simple
   }
 
   /// Sign out from Google Drive
   Future<void> signOut() async {
     await _authService.signOut();
-
     // Clear backup folder cache
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_backupFolderIdKey);
@@ -664,5 +710,125 @@ class GoogleDriveBackupService {
   /// Get current user email
   Future<String?> getUserEmail() async {
     return await _authService.getUserEmail();
+  }
+
+  /// Check for existing backups on Google Drive when user signs in
+  Future<Map<String, dynamic>?> checkForExistingBackup() async {
+    try {
+      final driveApi = await _authService.getDriveApi();
+      if (driveApi == null) {
+        return null;
+      }
+
+      // Search for existing backup folder
+      final folderQuery =
+          "name='$_backupFolderName' and mimeType='application/vnd.google-apps.folder' and trashed=false";
+      final folderResults = await driveApi.files.list(q: folderQuery);
+
+      if (folderResults.files == null || folderResults.files!.isEmpty) {
+        return null; // No backup folder found
+      }
+
+      final folderId = folderResults.files!.first.id!;
+
+      // Search for backup file in the folder
+      final fileQuery =
+          "name='$_backupFileName' and parents in '$folderId' and trashed=false";
+      final fileResults = await driveApi.files.list(q: fileQuery);
+
+      if (fileResults.files == null || fileResults.files!.isEmpty) {
+        return null; // No backup file found
+      }
+
+      final backupFile = fileResults.files!.first;
+
+      // Get backup file metadata
+      return {
+        'found': true,
+        'fileName': backupFile.name,
+        'modifiedTime': backupFile.modifiedTime?.toIso8601String(),
+        'size': backupFile.size,
+        'fileId': backupFile.id,
+        'folderId': folderId,
+      };
+    } catch (e) {
+      debugPrint('Error checking for existing backup: $e');
+      return null;
+    }
+  }
+
+  /// Restore backup from existing file on Google Drive
+  Future<bool> restoreExistingBackup(
+    String fileId, {
+    DevocionalProvider? devocionalProvider,
+    PrayerBloc? prayerBloc,
+  }) async {
+    try {
+      final driveApi = await _authService.getDriveApi();
+      if (driveApi == null) {
+        return false;
+      }
+
+      // Download the backup file
+      final media =
+          await driveApi.files.get(
+                fileId,
+                downloadOptions: drive.DownloadOptions.fullMedia,
+              )
+              as drive.Media;
+
+      final backupData = <int>[];
+      await for (final chunk in media.stream) {
+        backupData.addAll(chunk);
+      }
+
+      final fileBytes = Uint8List.fromList(backupData);
+      debugPrint('Downloaded existing backup file: ${fileBytes.length} bytes');
+
+      // Parse backup data (same logic as restoreBackup)
+      Map<String, dynamic>? backupJson;
+
+      // Try to decompress first
+      backupJson = CompressionService.decompressJson(fileBytes);
+      if (backupJson == null) {
+        // Try as uncompressed JSON
+        try {
+          final jsonString = utf8.decode(fileBytes);
+          backupJson = json.decode(jsonString) as Map<String, dynamic>;
+          debugPrint('Backup file is uncompressed JSON');
+        } catch (e) {
+          throw Exception('Could not parse backup file: $e');
+        }
+      } else {
+        debugPrint('Backup file was compressed, decompressed successfully');
+      }
+
+      // Validate backup data
+      if (!_validateBackupData(backupJson)) {
+        throw Exception('Invalid backup data format');
+      }
+
+      // Restore the backup data using existing restore method
+      await _restoreBackupData(backupJson);
+      // Notify providers if available (add this section)
+      if (devocionalProvider != null) {
+        await devocionalProvider.reloadFavoritesFromStorage();
+        debugPrint('✅ DevocionalProvider notified and reloaded');
+      }
+
+      if (prayerBloc != null) {
+        prayerBloc.add(RefreshPrayers());
+        debugPrint('✅ PrayerBloc notified to refresh');
+      }
+
+      // Update last backup time
+      await _setLastBackupTime(DateTime.now());
+
+      debugPrint('Existing backup restored successfully');
+      return true;
+    } catch (e) {
+      debugPrint('Error restoring existing backup: $e');
+      return false;
+    }
   }
 }

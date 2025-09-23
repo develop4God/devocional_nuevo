@@ -161,6 +161,30 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "8.12.0"
+  cached_network_image:
+    dependency: "direct main"
+    description:
+      name: cached_network_image
+      sha256: "7c1183e361e5c8b0a0f21a28401eecdbde252441106a9816400dd4c2b2424916"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.4.1"
+  cached_network_image_platform_interface:
+    dependency: transitive
+    description:
+      name: cached_network_image_platform_interface
+      sha256: "35814b016e37fbdc91f7ae18c8caf49ba5c88501813f73ce8a07027a395e2829"
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.1.1"
+  cached_network_image_web:
+    dependency: transitive
+    description:
+      name: cached_network_image_web
+      sha256: "980842f4e8e2535b8dbd3d5ca0b1f0ba66bf61d14cc3a17a9b4788a3685ba062"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.3.1"
   characters:
     dependency: transitive
     description:
@@ -221,10 +245,10 @@ packages:
     dependency: transitive
     description:
       name: code_builder
-      sha256: "0ec10bf4a89e4c613960bf1e8b42c64127021740fb21640c29c909826a5eea3e"
+      sha256: "11654819532ba94c34de52ff5feb52bd81cba1de00ef2ed622fd50295f9d4243"
       url: "https://pub.dev"
     source: hosted
-    version: "4.10.1"
+    version: "4.11.0"
   collection:
     dependency: transitive
     description:
@@ -417,6 +441,30 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.0.1"
+  firebase_remote_config:
+    dependency: "direct main"
+    description:
+      name: firebase_remote_config
+      sha256: "5bb53899709f4b45495635d5e66f38b23ae00b115a5592d8328cc468f71ccc6c"
+      url: "https://pub.dev"
+    source: hosted
+    version: "6.0.1"
+  firebase_remote_config_platform_interface:
+    dependency: transitive
+    description:
+      name: firebase_remote_config_platform_interface
+      sha256: d7d8ac26e2bdd01e30ccb7a22aedf3150288f72ce71d26697c14d2d5295a1871
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.2"
+  firebase_remote_config_web:
+    dependency: transitive
+    description:
+      name: firebase_remote_config_web
+      sha256: "44e623ffcd7380b779d90f5a26c801d2ac913c57fa9f5a8f1fa4055ee2657516"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.8.11"
   fixnum:
     dependency: transitive
     description:
@@ -438,6 +486,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "9.1.1"
+  flutter_cache_manager:
+    dependency: transitive
+    description:
+      name: flutter_cache_manager
+      sha256: "400b6592f16a4409a7f2bb929a9a7e38c72cceb8ffb99ee57bbf2cb2cecf8386"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.4.1"
   flutter_driver:
     dependency: transitive
     description: flutter
@@ -455,10 +511,10 @@ packages:
     dependency: "direct main"
     description:
       name: flutter_local_notifications
-      sha256: a9966c850de5e445331b854fa42df96a8020066d67f125a5964cbc6556643f68
+      sha256: "7ed76be64e8a7d01dfdf250b8434618e2a028c9dfa2a3c41dc9b531d4b3fc8a5"
       url: "https://pub.dev"
     source: hosted
-    version: "19.4.1"
+    version: "19.4.2"
   flutter_local_notifications_linux:
     dependency: transitive
     description:
@@ -479,10 +535,10 @@ packages:
     dependency: transitive
     description:
       name: flutter_local_notifications_windows
-      sha256: ed46d7ae4ec9d19e4c8fa2badac5fe27ba87a3fe387343ce726f927af074ec98
+      sha256: "8d658f0d367c48bd420e7cf2d26655e2d1130147bca1eea917e576ca76668aaf"
       url: "https://pub.dev"
     source: hosted
-    version: "1.0.2"
+    version: "1.0.3"
   flutter_localizations:
     dependency: "direct main"
     description: flutter
@@ -663,6 +719,38 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.3.0"
+  in_app_purchase:
+    dependency: "direct main"
+    description:
+      name: in_app_purchase
+      sha256: "5cddd7f463f3bddb1d37a72b95066e840d5822d66291331d7f8f05ce32c24b6c"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.2.3"
+  in_app_purchase_android:
+    dependency: transitive
+    description:
+      name: in_app_purchase_android
+      sha256: "5a02da1399a8faafb36d9b4acca85001b7eefa629f0eeeebf5ad0b04b9df302a"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.4.0+4"
+  in_app_purchase_platform_interface:
+    dependency: transitive
+    description:
+      name: in_app_purchase_platform_interface
+      sha256: "1d353d38251da5b9fea6635c0ebfc6bb17a2d28d0e86ea5e083bf64244f1fb4c"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.4.0"
+  in_app_purchase_storekit:
+    dependency: transitive
+    description:
+      name: in_app_purchase_storekit
+      sha256: aedbeea5beae10af3e5c380b65049842715b2bb014983e2a48b9006473f33cd9
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.4.4"
   in_app_review:
     dependency: "direct main"
     description:
@@ -683,10 +771,10 @@ packages:
     dependency: "direct main"
     description:
       name: in_app_update
-      sha256: "489572accaa55b51518b2d64676ca8c3c6d4c989fa53cf718001882237691a3c"
+      sha256: "9924a3efe592e1c0ec89dda3683b3cfec3d4cd02d908e6de00c24b759038ddb1"
       url: "https://pub.dev"
     source: hosted
-    version: "4.2.3"
+    version: "4.2.5"
   integration_test:
     dependency: "direct dev"
     description: flutter
@@ -728,9 +816,11 @@ packages:
     dependency: transitive
     description:
       name: leak_tracker
+      sha256: "33e2e26bdd85a0112ec15400c8cbffea70d0f9c3407491f672a2fad47915e2de"
       sha256: "8dcda04c3fc16c14f48a7bb586d4be1f0d1572731b6d81d51772ef47c02081e0"
       url: "https://pub.dev"
     source: hosted
+    version: "11.0.2"
     version: "11.0.1"
   leak_tracker_flutter_testing:
     dependency: transitive
@@ -836,6 +926,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.2"
+  octo_image:
+    dependency: transitive
+    description:
+      name: octo_image
+      sha256: "34faa6639a78c7e3cbe79be6f9f96535867e879748ade7d17c9b1ae7536293bd"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.1.0"
   package_config:
     dependency: transitive
     description:
@@ -992,10 +1090,10 @@ packages:
     dependency: transitive
     description:
       name: pool
-      sha256: "20fe868b6314b322ea036ba325e6fc0711a22948856475e2c2b6306e8ab39c2a"
+      sha256: "978783255c543aa3586a1b3c21f6e9d720eb315376a915872c61ef8b5c20177d"
       url: "https://pub.dev"
     source: hosted
-    version: "1.5.1"
+    version: "1.5.2"
   process:
     dependency: transitive
     description:
@@ -1028,6 +1126,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.5.0"
+  rxdart:
+    dependency: transitive
+    description:
+      name: rxdart
+      sha256: "5c3004a4a8dbb94bd4bf5412a4def4acdaa12e12f269737a5751369e12d1a962"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.28.0"
   screenshot:
     dependency: "direct main"
     description:
@@ -1185,6 +1291,46 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "7.0.0"
+  sqflite:
+    dependency: transitive
+    description:
+      name: sqflite
+      sha256: e2297b1da52f127bc7a3da11439985d9b536f75070f3325e62ada69a5c585d03
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.4.2"
+  sqflite_android:
+    dependency: transitive
+    description:
+      name: sqflite_android
+      sha256: "2b3070c5fa881839f8b402ee4a39c1b4d561704d4ebbbcfb808a119bc2a1701b"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.4.1"
+  sqflite_common:
+    dependency: transitive
+    description:
+      name: sqflite_common
+      sha256: "6ef422a4525ecc601db6c0a2233ff448c731307906e92cabc9ba292afaae16a6"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.5.6"
+  sqflite_darwin:
+    dependency: transitive
+    description:
+      name: sqflite_darwin
+      sha256: "279832e5cde3fe99e8571879498c9211f3ca6391b0d818df4e17d9fff5c6ccb3"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.4.2"
+  sqflite_platform_interface:
+    dependency: transitive
+    description:
+      name: sqflite_platform_interface
+      sha256: "8dd4515c7bdcae0a785b0062859336de775e8c65db81ae33dd5445f35be61920"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.4.0"
   stack_trace:
     dependency: transitive
     description:
@@ -1309,10 +1455,10 @@ packages:
     dependency: transitive
     description:
       name: url_launcher_android
-      sha256: "69ee86740f2847b9a4ba6cffa74ed12ce500bbe2b07f3dc1e643439da60637b7"
+      sha256: "81777b08c498a292d93ff2feead633174c386291e35612f8da438d6e92c4447e"
       url: "https://pub.dev"
     source: hosted
-    version: "6.3.18"
+    version: "6.3.20"
   url_launcher_ios:
     dependency: transitive
     description:
@@ -1445,10 +1591,34 @@ packages:
     dependency: "direct main"
     description:
       name: workmanager
-      sha256: ed13530cccd28c5c9959ad42d657cd0666274ca74c56dea0ca183ddd527d3a00
+      sha256: "065673b2a465865183093806925419d311a9a5e0995aa74ccf8920fd695e2d10"
       url: "https://pub.dev"
     source: hosted
-    version: "0.5.2"
+    version: "0.9.0+3"
+  workmanager_android:
+    dependency: transitive
+    description:
+      name: workmanager_android
+      sha256: "9ae744db4ef891f5fcd2fb8671fccc712f4f96489a487a1411e0c8675e5e8cb7"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.9.0+2"
+  workmanager_apple:
+    dependency: transitive
+    description:
+      name: workmanager_apple
+      sha256: "1cc12ae3cbf5535e72f7ba4fde0c12dd11b757caf493a28e22d684052701f2ca"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.9.1+2"
+  workmanager_platform_interface:
+    dependency: transitive
+    description:
+      name: workmanager_platform_interface
+      sha256: f40422f10b970c67abb84230b44da22b075147637532ac501729256fcea10a47
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.9.1+1"
   xdg_directories:
     dependency: transitive
     description:
@@ -1475,4 +1645,4 @@ packages:
     version: "3.1.3"
 sdks:
   dart: ">=3.8.0 <4.0.0"
-  flutter: ">=3.29.0"
+  flutter: ">=3.32.0"
