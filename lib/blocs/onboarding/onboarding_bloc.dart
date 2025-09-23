@@ -29,6 +29,9 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
   bool _isProcessingStep = false;
   bool _isCompletingOnboarding = false;
   bool _isSavingConfiguration = false;
+  
+  // SharedPreferences operation mutex
+  static bool _isSharedPrefsOperation = false;
 
   OnboardingBloc({
     required OnboardingService onboardingService,
@@ -538,8 +541,23 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       final configJson = prefs.getString(_configurationKey);
 
       if (configJson != null) {
-        final Map<String, dynamic> wrapper =
-            jsonDecode(configJson) as Map<String, dynamic>;
+        // Enhanced JSON validation and corruption detection
+        Map<String, dynamic> wrapper;
+        try {
+          wrapper = jsonDecode(configJson) as Map<String, dynamic>;
+        } catch (e) {
+          debugPrint('❌ [ONBOARDING_BLOC] Corrupted JSON detected in configuration: $e');
+          debugPrint('🔄 [ONBOARDING_BLOC] Clearing corrupted configuration data');
+          await prefs.remove(_configurationKey);
+          return {};
+        }
+        
+        // Validate JSON structure
+        if (!_isValidConfigurationStructure(wrapper)) {
+          debugPrint('⚠️ [ONBOARDING_BLOC] Invalid configuration structure detected, falling back to defaults');
+          await prefs.remove(_configurationKey);
+          return {};
+        }
         
         // Check for schema version
         final schemaVersion = wrapper['schemaVersion'] as int? ?? 0;
@@ -572,7 +590,13 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       return;
     }
     
+    // Wait for any ongoing SharedPreferences operations
+    while (_isSharedPrefsOperation) {
+      await Future.delayed(const Duration(milliseconds: 10));
+    }
+    
     _isSavingConfiguration = true;
+    _isSharedPrefsOperation = true;
     try {
       final prefs = await SharedPreferences.getInstance();
       final wrapper = {
@@ -587,6 +611,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       debugPrint('⚠️ [ONBOARDING_BLOC] Error saving configuration: $e');
     } finally {
       _isSavingConfiguration = false;
+      _isSharedPrefsOperation = false;
     }
   }
 
@@ -597,7 +622,23 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       final progressJson = prefs.getString(_progressKey);
 
       if (progressJson != null) {
-        final Map<String, dynamic> wrapper = jsonDecode(progressJson) as Map<String, dynamic>;
+        // Enhanced JSON validation and corruption detection
+        Map<String, dynamic> wrapper;
+        try {
+          wrapper = jsonDecode(progressJson) as Map<String, dynamic>;
+        } catch (e) {
+          debugPrint('❌ [ONBOARDING_BLOC] Corrupted JSON detected in progress: $e');
+          debugPrint('🔄 [ONBOARDING_BLOC] Clearing corrupted progress data');
+          await prefs.remove(_progressKey);
+          return null;
+        }
+        
+        // Validate JSON structure
+        if (!_isValidProgressStructure(wrapper)) {
+          debugPrint('⚠️ [ONBOARDING_BLOC] Invalid progress structure detected, falling back to defaults');
+          await prefs.remove(_progressKey);
+          return null;
+        }
         
         // Check for schema version
         final schemaVersion = wrapper['schemaVersion'] as int? ?? 0;
@@ -623,6 +664,12 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
 
   /// Save progress to SharedPreferences with schema versioning
   Future<void> _saveProgress(OnboardingProgress progress) async {
+    // Wait for any ongoing SharedPreferences operations
+    while (_isSharedPrefsOperation) {
+      await Future.delayed(const Duration(milliseconds: 10));
+    }
+    
+    _isSharedPrefsOperation = true;
     try {
       final prefs = await SharedPreferences.getInstance();
       final wrapper = {
@@ -635,6 +682,8 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
           '💾 [ONBOARDING_BLOC] Progreso guardado: ${progress.completedSteps}/${progress.totalSteps}');
     } catch (e) {
       debugPrint('⚠️ [ONBOARDING_BLOC] Error saving progress: $e');
+    } finally {
+      _isSharedPrefsOperation = false;
     }
   }
 
@@ -773,5 +822,91 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       debugPrint('🔄 [ONBOARDING_BLOC] Falling back to original progress data');
       return progressData;
     }
+  }
+
+  /// Validate configuration JSON structure
+  bool _isValidConfigurationStructure(Map<String, dynamic> data) {
+    try {
+      // For wrapped format (with schema version)
+      if (data.containsKey('schemaVersion') && data.containsKey('payload')) {
+        final payload = data['payload'];
+        if (payload is! Map<String, dynamic>) return false;
+        
+        // Validate known configuration keys if present
+        for (final key in payload.keys) {
+          if (!_isValidConfigurationKey(key)) {
+            debugPrint('⚠️ [ONBOARDING_BLOC] Unknown configuration key: $key');
+          }
+        }
+        return true;
+      }
+      
+      // For legacy format (direct configuration)
+      for (final key in data.keys) {
+        if (!_isValidConfigurationKey(key)) {
+          debugPrint('⚠️ [ONBOARDING_BLOC] Unknown legacy configuration key: $key');
+        }
+      }
+      return true;
+    } catch (e) {
+      debugPrint('❌ [ONBOARDING_BLOC] Configuration structure validation failed: $e');
+      return false;
+    }
+  }
+
+  /// Validate progress JSON structure
+  bool _isValidProgressStructure(Map<String, dynamic> data) {
+    try {
+      // For wrapped format (with schema version)
+      if (data.containsKey('schemaVersion') && data.containsKey('payload')) {
+        final payload = data['payload'];
+        if (payload is! Map<String, dynamic>) return false;
+        return _isValidProgressPayload(payload);
+      }
+      
+      // For legacy format (direct progress)
+      return _isValidProgressPayload(data);
+    } catch (e) {
+      debugPrint('❌ [ONBOARDING_BLOC] Progress structure validation failed: $e');
+      return false;
+    }
+  }
+
+  /// Validate configuration key
+  bool _isValidConfigurationKey(String key) {
+    const validKeys = {
+      'selectedThemeFamily',
+      'backupEnabled',
+      'selectedLanguage',
+      'notificationsEnabled',
+      'additionalSettings',
+      'lastUpdated',
+    };
+    return validKeys.contains(key);
+  }
+
+  /// Validate progress payload structure
+  bool _isValidProgressPayload(Map<String, dynamic> payload) {
+    const requiredKeys = ['totalSteps', 'completedSteps', 'stepCompletionStatus', 'progressPercentage'];
+    
+    for (final key in requiredKeys) {
+      if (!payload.containsKey(key)) {
+        debugPrint('❌ [ONBOARDING_BLOC] Missing required progress key: $key');
+        return false;
+      }
+    }
+    
+    // Validate data types
+    if (payload['totalSteps'] is! int || payload['completedSteps'] is! int) {
+      debugPrint('❌ [ONBOARDING_BLOC] Invalid progress step count types');
+      return false;
+    }
+    
+    if (payload['stepCompletionStatus'] is! List || payload['progressPercentage'] is! num) {
+      debugPrint('❌ [ONBOARDING_BLOC] Invalid progress data types');
+      return false;
+    }
+    
+    return true;
   }
 }

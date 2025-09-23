@@ -110,6 +110,7 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
 
   void _showErrorDialog(BuildContext context, OnboardingError error) {
     if (!mounted) return; // Safety check before showing dialog
+    if (!context.mounted) return; // Context safety check
     
     showDialog(
       context: context,
@@ -139,7 +140,7 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
           TextButton(
             onPressed: () {
               Navigator.of(context).pop();
-              if (mounted) {
+              if (mounted && context.mounted) {
                 _onboardingBloc.add(const InitializeOnboarding());
               }
             },
@@ -161,23 +162,25 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<OnboardingBloc>(
-      create: (context) => _onboardingBloc,
-      child: BlocConsumer<OnboardingBloc, OnboardingState>(
-        listener: (context, state) {
-          if (!mounted) return; // Safety check for async state updates
-          
-          if (state is OnboardingStepActive) {
-            // Animate to the current step page
-            _animateToPage(state.currentStepIndex);
-          } else if (state is OnboardingCompleted) {
-            // Onboarding completed, call the completion callback
-            widget.onComplete();
-          } else if (state is OnboardingError) {
-            // Show detailed error dialog instead of just snackbar
-            _showErrorDialog(context, state);
-          }
-        },
+    return Directionality(
+      textDirection: TextDirection.ltr,
+      child: BlocProvider<OnboardingBloc>(
+        create: (context) => _onboardingBloc,
+        child: BlocConsumer<OnboardingBloc, OnboardingState>(
+          listener: (context, state) {
+            if (!mounted) return; // Safety check for async state updates
+            
+            if (state is OnboardingStepActive) {
+              // Animate to the current step page
+              _animateToPage(state.currentStepIndex);
+            } else if (state is OnboardingCompleted) {
+              // Onboarding completed, call the completion callback
+              widget.onComplete();
+            } else if (state is OnboardingError) {
+              // Show detailed error dialog instead of just snackbar
+              _showErrorDialog(context, state);
+            }
+          },
         builder: (context, state) {
           if (state is OnboardingLoading) {
             return const Scaffold(
@@ -305,6 +308,7 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
           );
         },
       ),
-    );
+    ), // Closes Directionality widget child
+    ); // Closes Directionality widget
   }
 }

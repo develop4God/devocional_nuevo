@@ -228,5 +228,131 @@ void main() {
         expect(onboardingBloc.state, isA<OnboardingCompleted>());
       });
     });
+
+    group('JSON Validation & Corruption Handling', () {
+      test('should handle corrupted configuration JSON gracefully', () async {
+        // Set completely invalid JSON
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('onboarding_configuration', 'completely invalid json');
+        
+        // Initialize onboarding - should not crash
+        onboardingBloc.add(const InitializeOnboarding());
+        await Future.delayed(const Duration(milliseconds: 100));
+        
+        // Should fallback to clean state
+        expect(onboardingBloc.state, isA<OnboardingStepActive>());
+        
+        // Configuration should be cleared from storage
+        final savedConfig = prefs.getString('onboarding_configuration');
+        expect(savedConfig, isNull);
+      });
+
+      test('should handle invalid configuration structure', () async {
+        // Set JSON with invalid structure
+        final invalidConfig = {
+          'schemaVersion': 1,
+          'payload': 'invalid_payload_should_be_map'
+        };
+        
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('onboarding_configuration', jsonEncode(invalidConfig));
+        
+        // Initialize onboarding
+        onboardingBloc.add(const InitializeOnboarding());
+        await Future.delayed(const Duration(milliseconds: 100));
+        
+        // Should handle gracefully and clear invalid data
+        expect(onboardingBloc.state, isA<OnboardingStepActive>());
+        final savedConfig = prefs.getString('onboarding_configuration');
+        expect(savedConfig, isNull);
+      });
+
+      test('should handle corrupted progress JSON gracefully', () async {
+        // Set completely invalid JSON for progress
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('onboarding_progress', '{broken json');
+        
+        // Initialize onboarding - should not crash
+        onboardingBloc.add(const InitializeOnboarding());
+        await Future.delayed(const Duration(milliseconds: 100));
+        
+        // Should start from beginning
+        expect(onboardingBloc.state, isA<OnboardingStepActive>());
+        final activeState = onboardingBloc.state as OnboardingStepActive;
+        expect(activeState.currentStepIndex, equals(0));
+        
+        // Progress should be cleared from storage
+        final savedProgress = prefs.getString('onboarding_progress');
+        expect(savedProgress, isNull);
+      });
+
+      test('should handle invalid progress structure', () async {
+        // Set JSON with missing required fields
+        final invalidProgress = {
+          'schemaVersion': 1,
+          'payload': {
+            'totalSteps': 4,
+            // Missing 'completedSteps', 'stepCompletionStatus', 'progressPercentage'
+          }
+        };
+        
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('onboarding_progress', jsonEncode(invalidProgress));
+        
+        // Initialize onboarding
+        onboardingBloc.add(const InitializeOnboarding());
+        await Future.delayed(const Duration(milliseconds: 100));
+        
+        // Should handle gracefully and clear invalid data
+        expect(onboardingBloc.state, isA<OnboardingStepActive>());
+        final activeState = onboardingBloc.state as OnboardingStepActive;
+        expect(activeState.currentStepIndex, equals(0));
+      });
+
+      test('should handle unknown configuration keys', () async {
+        // Set configuration with unknown keys (should be accepted but logged)
+        final configWithUnknownKeys = {
+          'selectedThemeFamily': 'Blue',
+          'unknownKey1': 'value1',
+          'unknownKey2': 'value2',
+        };
+        
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('onboarding_configuration', jsonEncode(configWithUnknownKeys));
+        
+        // Initialize onboarding
+        onboardingBloc.add(const InitializeOnboarding());
+        await Future.delayed(const Duration(milliseconds: 100));
+        
+        // Should accept configuration but log warnings
+        expect(onboardingBloc.state, isA<OnboardingStepActive>());
+        final activeState = onboardingBloc.state as OnboardingStepActive;
+        expect(activeState.userSelections['selectedThemeFamily'], equals('Blue'));
+      });
+    });
+
+    group('SharedPreferences Mutex Protection', () {
+      test('should handle rapid configuration saves without corruption', () async {
+        // Initialize to active state
+        onboardingBloc.add(const InitializeOnboarding());
+        await Future.delayed(const Duration(milliseconds: 50));
+        
+        // Send multiple rapid theme selection events
+        onboardingBloc.add(const SelectTheme('Blue'));
+        onboardingBloc.add(const SelectTheme('Green'));
+        onboardingBloc.add(const SelectTheme('Red'));
+        
+        // Wait for all operations to complete
+        await Future.delayed(const Duration(milliseconds: 200));
+        
+        // Should end up in a valid state without corruption
+        expect(onboardingBloc.state, isA<OnboardingStepActive>());
+        final activeState = onboardingBloc.state as OnboardingStepActive;
+        
+        // Should have one of the theme values (order not guaranteed due to async)
+        final selectedTheme = activeState.userSelections['selectedThemeFamily'];
+        expect(['Blue', 'Green', 'Red'].contains(selectedTheme), isTrue);
+      });
+    });
   });
 }

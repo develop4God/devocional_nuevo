@@ -112,10 +112,12 @@ void main() {
       await tester.pumpWidget(createTestWidget());
       await tester.pumpAndSettle();
 
-      // Check for particle containers (small circles)
+      // Check for particle containers (small circles)  
       final particles = find.byWidgetPredicate(
         (widget) =>
-            widget is Container && widget.width == 4 && widget.height == 4,
+            widget is Container && 
+            widget.constraints?.maxWidth == 4 && 
+            widget.constraints?.maxHeight == 4,
       );
 
       // Should have multiple particles
