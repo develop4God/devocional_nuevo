@@ -61,9 +61,9 @@ class RemoteBadgeService {
     try {
       final badges = await getAvailableBadges();
       return badges.cast<badge_model.Badge?>().firstWhere(
-        (badge) => badge?.id == id,
-        orElse: () => null,
-      );
+            (badge) => badge?.id == id,
+            orElse: () => null,
+          );
     } catch (e) {
       debugPrint('❌ Error getting badge by ID: $e');
       return null;
@@ -109,15 +109,13 @@ class RemoteBadgeService {
 
       debugPrint('🌐 Fetching badge config from: $_configUrl');
 
-      final response = await http
-          .get(
-            Uri.parse(_configUrl),
-            headers: {
-              'Accept': 'application/json',
-              'Cache-Control': 'no-cache',
-            },
-          )
-          .timeout(const Duration(seconds: 10));
+      final response = await http.get(
+        Uri.parse(_configUrl),
+        headers: {
+          'Accept': 'application/json',
+          'Cache-Control': 'no-cache',
+        },
+      ).timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
         final jsonData = json.decode(response.body) as Map<String, dynamic>;

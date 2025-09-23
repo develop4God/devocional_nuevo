@@ -166,8 +166,7 @@ class _AnimatedDonationHeaderState extends State<AnimatedDonationHeader>
         builder: (context, child) {
           final offset = (index * 0.25) % 1.0; // Más espaciadas
           final animValue = (_particleAnimation.value + offset) % 1.0;
-          final yOffset =
-              sin(_particleAnimation.value * pi + index) *
+          final yOffset = sin(_particleAnimation.value * pi + index) *
               15; // Menos movimiento vertical
 
           return Positioned(
@@ -178,8 +177,7 @@ class _AnimatedDonationHeaderState extends State<AnimatedDonationHeader>
               height: 2 + (index % 3) * 1.0,
               decoration: BoxDecoration(
                 color: Colors.white.withValues(
-                  alpha:
-                      0.3 +
+                  alpha: 0.3 +
                       (sin(_particleAnimation.value * 2 * pi + index) *
                           0.2), // Menos intensidad
                 ),

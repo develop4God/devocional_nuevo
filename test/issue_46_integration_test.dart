@@ -12,22 +12,22 @@ void main() {
       // Set up method channel mocks for TTS
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(const MethodChannel('flutter_tts'), (
-            MethodCall methodCall,
-          ) async {
-            // Mock TTS responses
-            switch (methodCall.method) {
-              case 'speak':
-                return true;
-              case 'stop':
-                return true;
-              case 'pause':
-                return true;
-              case 'setLanguage':
-                return 1; // Success
-              default:
-                return null;
-            }
-          });
+        MethodCall methodCall,
+      ) async {
+        // Mock TTS responses
+        switch (methodCall.method) {
+          case 'speak':
+            return true;
+          case 'stop':
+            return true;
+          case 'pause':
+            return true;
+          case 'setLanguage':
+            return 1; // Success
+          default:
+            return null;
+        }
+      });
 
       ttsService = TtsService();
     });

@@ -95,7 +95,9 @@ class _OnboardingBackupConfigurationPageState
                       // Title
                       Text(
                         'onboarding_backup_title'.tr(),
-                        style: Theme.of(context).textTheme.headlineMedium
+                        style: Theme.of(context)
+                            .textTheme
+                            .headlineMedium
                             ?.copyWith(
                               fontWeight: FontWeight.bold,
                               color: Theme.of(context).colorScheme.onSurface,
@@ -109,11 +111,11 @@ class _OnboardingBackupConfigurationPageState
                       Text(
                         'onboarding_backup_subtitle'.tr(),
                         style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.onSurface.withValues(alpha: 0.7),
-                          height: 1.5,
-                        ),
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurface.withValues(alpha: 0.7),
+                              height: 1.5,
+                            ),
                         textAlign: TextAlign.center,
                       ),
 
@@ -226,7 +228,9 @@ class _OnboardingBackupConfigurationPageState
                             Expanded(
                               child: Text(
                                 'onboarding_backup_security_info'.tr(),
-                                style: Theme.of(context).textTheme.bodyMedium
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium
                                     ?.copyWith(
                                       color: Theme.of(context)
                                           .colorScheme
@@ -284,12 +288,12 @@ class _OnboardingBackupConfigurationPageState
     context.read<BackupBloc>().add(const ToggleWifiOnly(true));
     context.read<BackupBloc>().add(const ToggleCompression(true));
     context.read<BackupBloc>().add(
-      const UpdateBackupOptions({
-        'spiritual_stats': true,
-        'favorite_devotionals': true,
-        'saved_prayers': true,
-      }),
-    );
+          const UpdateBackupOptions({
+            'spiritual_stats': true,
+            'favorite_devotionals': true,
+            'saved_prayers': true,
+          }),
+        );
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(

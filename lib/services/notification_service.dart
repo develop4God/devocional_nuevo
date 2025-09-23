@@ -8,6 +8,7 @@ import 'dart:developer' as developer;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+
 // Importaciones para Firebase Cloud Messaging y Firestore
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
@@ -69,13 +70,13 @@ class NotificationService {
 
       const InitializationSettings initializationSettings =
           InitializationSettings(
-            android: AndroidInitializationSettings('@mipmap/ic_launcher'),
-            iOS: DarwinInitializationSettings(
-              requestAlertPermission: true,
-              requestBadgePermission: true,
-              requestSoundPermission: true,
-            ),
-          );
+        android: AndroidInitializationSettings('@mipmap/ic_launcher'),
+        iOS: DarwinInitializationSettings(
+          requestAlertPermission: true,
+          requestBadgePermission: true,
+          requestSoundPermission: true,
+        ),
+      );
 
       await _flutterLocalNotificationsPlugin.initialize(
         initializationSettings,
@@ -107,8 +108,8 @@ class NotificationService {
           await _initializeFCM();
 
           // Manejar el mensaje inicial si la app se abrió desde una notificación
-          final RemoteMessage? initialMessage = await _firebaseMessaging
-              .getInitialMessage();
+          final RemoteMessage? initialMessage =
+              await _firebaseMessaging.getInitialMessage();
           if (initialMessage != null) {
             developer.log(
               'NotificationService: Aplicación abierta desde notificación inicial: ${initialMessage.messageId}',
@@ -134,7 +135,7 @@ class NotificationService {
               : true;
           String initialNotificationTime = settingsDoc.exists
               ? (settingsDoc.data()?['notificationTime'] ??
-                    _defaultNotificationTime)
+                  _defaultNotificationTime)
               : _defaultNotificationTime;
           String initialUserTimezone = settingsDoc.exists
               ? (settingsDoc.data()?['userTimezone'] ?? currentDeviceTimezone)
@@ -167,16 +168,16 @@ class NotificationService {
   Future<void> _initializeFCM() async {
     try {
       // Solicitar permiso para notificaciones (iOS y Android 13+)
-      NotificationSettings settings = await _firebaseMessaging
-          .requestPermission(
-            alert: true,
-            announcement: false,
-            badge: true,
-            carPlay: false,
-            criticalAlert: false,
-            provisional: false,
-            sound: true,
-          );
+      NotificationSettings settings =
+          await _firebaseMessaging.requestPermission(
+        alert: true,
+        announcement: false,
+        badge: true,
+        carPlay: false,
+        criticalAlert: false,
+        provisional: false,
+        sound: true,
+      );
 
       developer.log(
         'NotificationService: Permiso de usuario concedido: ${settings.authorizationStatus}',
@@ -405,32 +406,27 @@ class NotificationService {
 
       if (defaultTargetPlatform == TargetPlatform.android) {
         final notificationStatus = await Permission.notification.request();
-        allPermissionsGranted =
-            allPermissionsGranted &&
+        allPermissionsGranted = allPermissionsGranted &&
             (notificationStatus == PermissionStatus.granted);
 
         if (await Permission.scheduleExactAlarm.isDenied) {
           final alarmStatus = await Permission.scheduleExactAlarm.request();
-          allPermissionsGranted =
-              allPermissionsGranted &&
+          allPermissionsGranted = allPermissionsGranted &&
               (alarmStatus == PermissionStatus.granted);
         }
 
         if (await Permission.ignoreBatteryOptimizations.isDenied) {
-          final batteryStatus = await Permission.ignoreBatteryOptimizations
-              .request();
-          allPermissionsGranted =
-              allPermissionsGranted &&
+          final batteryStatus =
+              await Permission.ignoreBatteryOptimizations.request();
+          allPermissionsGranted = allPermissionsGranted &&
               (batteryStatus == PermissionStatus.granted);
         }
       } else if (defaultTargetPlatform == TargetPlatform.iOS) {
         final bool? result = await _flutterLocalNotificationsPlugin
             .resolvePlatformSpecificImplementation<
-              IOSFlutterLocalNotificationsPlugin
-            >()
+                IOSFlutterLocalNotificationsPlugin>()
             ?.requestPermissions(alert: true, badge: true, sound: true);
-        allPermissionsGranted =
-            result ??
+        allPermissionsGranted = result ??
             false; // Para iOS, el resultado directo de requestPermissions
       }
       developer.log(
@@ -475,8 +471,7 @@ class NotificationService {
             .get();
         String currentNotificationTime =
             settingsDoc.data()?['notificationTime'] ?? _defaultNotificationTime;
-        String currentUserTimezone =
-            settingsDoc.data()?['userTimezone'] ??
+        String currentUserTimezone = settingsDoc.data()?['userTimezone'] ??
             await FlutterTimezone.getLocalTimezone();
 
         await _saveNotificationSettingsToFirestore(
@@ -535,9 +530,8 @@ class NotificationService {
             .get();
         bool currentNotificationsEnabled =
             settingsDoc.data()?['notificationsEnabled'] ??
-            true; // Por defecto true si no existe
-        String currentUserTimezone =
-            settingsDoc.data()?['userTimezone'] ??
+                true; // Por defecto true si no existe
+        String currentUserTimezone = settingsDoc.data()?['userTimezone'] ??
             await FlutterTimezone.getLocalTimezone();
 
         await _saveNotificationSettingsToFirestore(
@@ -602,11 +596,11 @@ class NotificationService {
 
       const DarwinNotificationDetails iOSPlatformChannelSpecifics =
           DarwinNotificationDetails(
-            sound: 'default',
-            presentAlert: true,
-            presentBadge: true,
-            presentSound: true,
-          );
+        sound: 'default',
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+      );
 
       final NotificationDetails platformChannelSpecifics = NotificationDetails(
         android: androidPlatformChannelSpecifics,
@@ -732,24 +726,24 @@ class NotificationService {
 
     const AndroidNotificationDetails androidPlatformChannelSpecifics =
         AndroidNotificationDetails(
-          'daily_devotional',
-          'Devocional Diario',
-          channelDescription: 'Recordatorio diario para leer el devocional',
-          importance: Importance.max,
-          priority: Priority.high,
-          icon: '@mipmap/ic_launcher',
-          sound: RawResourceAndroidNotificationSound('notification'),
-          enableVibration: true,
-          styleInformation: BigTextStyleInformation(''),
-        );
+      'daily_devotional',
+      'Devocional Diario',
+      channelDescription: 'Recordatorio diario para leer el devocional',
+      importance: Importance.max,
+      priority: Priority.high,
+      icon: '@mipmap/ic_launcher',
+      sound: RawResourceAndroidNotificationSound('notification'),
+      enableVibration: true,
+      styleInformation: BigTextStyleInformation(''),
+    );
 
     const DarwinNotificationDetails iOSPlatformChannelSpecifics =
         DarwinNotificationDetails(
-          sound: 'default',
-          presentAlert: true,
-          presentBadge: true,
-          presentSound: true,
-        );
+      sound: 'default',
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: true,
+    );
 
     const NotificationDetails platformChannelSpecifics = NotificationDetails(
       android: androidPlatformChannelSpecifics,

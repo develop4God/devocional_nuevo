@@ -147,8 +147,8 @@ void main() {
       await tester.pumpAndSettle();
 
       // Check that onboarding service marked as complete
-      final isComplete = await OnboardingService.instance
-          .isOnboardingComplete();
+      final isComplete =
+          await OnboardingService.instance.isOnboardingComplete();
       expect(isComplete, true);
     });
 

@@ -36,7 +36,8 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   developer.log(
-    'BackgroundServiceCallback: Manejando mensaje FCM en segundo plano: ${message.messageId}',
+    'BackgroundServiceCallback: Manejando mensaje FCM en segundo plano: ${message
+        .messageId}',
     name: 'BackgroundServiceCallback',
   );
   await Firebase.initializeApp();
@@ -124,15 +125,16 @@ void main() async {
         ChangeNotifierProvider(create: (_) => AudioController()),
         // Agregar BackupBloc
         BlocProvider(
-          create: (context) => BackupBloc(
-            backupService: GoogleDriveBackupService(
-              authService: GoogleDriveAuthService(),
-              connectivityService: ConnectivityService(),
-              statsService: SpiritualStatsService(),
-            ),
-            schedulerService: null, // ✅ El BLoC maneja null correctamente
-            devocionalProvider: context.read<DevocionalProvider>(),
-          ),
+          create: (context) =>
+              BackupBloc(
+                backupService: GoogleDriveBackupService(
+                  authService: GoogleDriveAuthService(),
+                  connectivityService: ConnectivityService(),
+                  statsService: SpiritualStatsService(),
+                ),
+                schedulerService: null, // ✅ El BLoC maneja null correctamente
+                devocionalProvider: context.read<DevocionalProvider>(),
+              ),
         ),
       ],
       child: const MyApp(),

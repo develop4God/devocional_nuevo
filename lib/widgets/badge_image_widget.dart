@@ -24,7 +24,9 @@ class BadgeImageWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final colorScheme = Theme
+        .of(context)
+        .colorScheme;
 
     return GestureDetector(
       onTap: onTap,
@@ -43,16 +45,16 @@ class BadgeImageWidget extends StatelessWidget {
           ),
           boxShadow: isSelected || isUnlocked
               ? [
-                  BoxShadow(
-                    color:
-                        (isSelected
-                                ? colorScheme.primary
-                                : colorScheme.primary.withValues(alpha: 0.3))
-                            .withValues(alpha: 0.3),
-                    blurRadius: isSelected ? 12 : 8,
-                    spreadRadius: isSelected ? 3 : 1,
-                  ),
-                ]
+            BoxShadow(
+              color:
+              (isSelected
+                  ? colorScheme.primary
+                  : colorScheme.primary.withValues(alpha: 0.3))
+                  .withValues(alpha: 0.3),
+              blurRadius: isSelected ? 12 : 8,
+              spreadRadius: isSelected ? 3 : 1,
+            ),
+          ]
               : null,
         ),
         child: ClipOval(
@@ -106,7 +108,9 @@ class BadgeImageWidget extends StatelessWidget {
   }
 
   Widget _buildLoadingPlaceholder(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final colorScheme = Theme
+        .of(context)
+        .colorScheme;
 
     return Container(
       width: size,
@@ -138,7 +142,9 @@ class BadgeImageWidget extends StatelessWidget {
   }
 
   Widget _buildErrorPlaceholder(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final colorScheme = Theme
+        .of(context)
+        .colorScheme;
 
     return Container(
       width: size,
@@ -180,8 +186,12 @@ class BadgePreviewWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme
+        .of(context)
+        .colorScheme;
+    final textTheme = Theme
+        .of(context)
+        .textTheme;
 
     return Card(
       elevation: isUnlocked ? 8 : 2,

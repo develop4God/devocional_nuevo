@@ -108,7 +108,9 @@ class _OnboardingCompletePageState extends State<OnboardingCompletePage>
                       opacity: _fadeAnimation.value,
                       child: Text(
                         'onboarding_complete_title'.tr(),
-                        style: Theme.of(context).textTheme.headlineMedium
+                        style: Theme.of(context)
+                            .textTheme
+                            .headlineMedium
                             ?.copyWith(
                               fontWeight: FontWeight.bold,
                               color: Theme.of(context).colorScheme.onSurface,
@@ -130,11 +132,11 @@ class _OnboardingCompletePageState extends State<OnboardingCompletePage>
                       child: Text(
                         'onboarding_complete_subtitle'.tr(),
                         style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.onSurface.withOpacity(0.7),
-                          height: 1.5,
-                        ),
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurface.withOpacity(0.7),
+                              height: 1.5,
+                            ),
                         textAlign: TextAlign.center,
                       ),
                     );
@@ -172,7 +174,9 @@ class _OnboardingCompletePageState extends State<OnboardingCompletePage>
                           children: [
                             Text(
                               'onboarding_your_setup'.tr(),
-                              style: Theme.of(context).textTheme.titleMedium
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleMedium
                                   ?.copyWith(
                                     fontWeight: FontWeight.bold,
                                     color: Theme.of(
@@ -260,8 +264,9 @@ class _OnboardingCompletePageState extends State<OnboardingCompletePage>
           child: Text(
             text,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
-            ),
+                  color:
+                      Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
+                ),
           ),
         ),
         Icon(Icons.check_circle, color: Colors.green, size: 20),

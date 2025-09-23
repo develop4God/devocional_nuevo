@@ -16,23 +16,23 @@
 #include <share_plus/share_plus_windows_plugin_c_api.h>
 #include <url_launcher_windows/url_launcher_windows.h>
 
-void RegisterPlugins(flutter::PluginRegistry *registry) {
-    CloudFirestorePluginCApiRegisterWithRegistrar(
-            registry->GetRegistrarForPlugin("CloudFirestorePluginCApi"));
-    ConnectivityPlusWindowsPluginRegisterWithRegistrar(
-            registry->GetRegistrarForPlugin("ConnectivityPlusWindowsPlugin"));
-    FirebaseAuthPluginCApiRegisterWithRegistrar(
-            registry->GetRegistrarForPlugin("FirebaseAuthPluginCApi"));
-    FirebaseCorePluginCApiRegisterWithRegistrar(
-            registry->GetRegistrarForPlugin("FirebaseCorePluginCApi"));
-    FlutterTimezonePluginCApiRegisterWithRegistrar(
-            registry->GetRegistrarForPlugin("FlutterTimezonePluginCApi"));
-    FlutterTtsPluginRegisterWithRegistrar(
-            registry->GetRegistrarForPlugin("FlutterTtsPlugin"));
-    PermissionHandlerWindowsPluginRegisterWithRegistrar(
-            registry->GetRegistrarForPlugin("PermissionHandlerWindowsPlugin"));
-    SharePlusWindowsPluginCApiRegisterWithRegistrar(
-            registry->GetRegistrarForPlugin("SharePlusWindowsPluginCApi"));
-    UrlLauncherWindowsRegisterWithRegistrar(
-            registry->GetRegistrarForPlugin("UrlLauncherWindows"));
+void RegisterPlugins(flutter::PluginRegistry* registry) {
+  CloudFirestorePluginCApiRegisterWithRegistrar(
+      registry->GetRegistrarForPlugin("CloudFirestorePluginCApi"));
+  ConnectivityPlusWindowsPluginRegisterWithRegistrar(
+      registry->GetRegistrarForPlugin("ConnectivityPlusWindowsPlugin"));
+  FirebaseAuthPluginCApiRegisterWithRegistrar(
+      registry->GetRegistrarForPlugin("FirebaseAuthPluginCApi"));
+  FirebaseCorePluginCApiRegisterWithRegistrar(
+      registry->GetRegistrarForPlugin("FirebaseCorePluginCApi"));
+  FlutterTimezonePluginCApiRegisterWithRegistrar(
+      registry->GetRegistrarForPlugin("FlutterTimezonePluginCApi"));
+  FlutterTtsPluginRegisterWithRegistrar(
+      registry->GetRegistrarForPlugin("FlutterTtsPlugin"));
+  PermissionHandlerWindowsPluginRegisterWithRegistrar(
+      registry->GetRegistrarForPlugin("PermissionHandlerWindowsPlugin"));
+  SharePlusWindowsPluginCApiRegisterWithRegistrar(
+      registry->GetRegistrarForPlugin("SharePlusWindowsPluginCApi"));
+  UrlLauncherWindowsRegisterWithRegistrar(
+      registry->GetRegistrarForPlugin("UrlLauncherWindows"));
 }

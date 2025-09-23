@@ -248,8 +248,8 @@ class _DonatePageState extends State<DonatePage> with TickerProviderStateMixin {
         String productId = amount <= 5
             ? 'donation_5_usd'
             : amount <= 10
-            ? 'donation_10_usd'
-            : 'donation_20_usd';
+                ? 'donation_10_usd'
+                : 'donation_20_usd';
 
         success = await _donationService.purchaseProduct(
           productId,
@@ -432,9 +432,8 @@ class _DonatePageState extends State<DonatePage> with TickerProviderStateMixin {
                   height: 80,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: isSelected
-                        ? colorScheme.primary
-                        : colorScheme.surface,
+                    color:
+                        isSelected ? colorScheme.primary : colorScheme.surface,
                     border: Border.all(
                       color: isSelected
                           ? colorScheme.primary

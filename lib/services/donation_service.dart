@@ -67,8 +67,8 @@ class DonationService {
     try {
       debugPrint('🔍 Fetching available donation products...');
 
-      final ProductDetailsResponse response = await _inAppPurchase
-          .queryProductDetails(_productIds.toSet());
+      final ProductDetailsResponse response =
+          await _inAppPurchase.queryProductDetails(_productIds.toSet());
 
       if (response.error != null) {
         debugPrint('❌ Error fetching products: ${response.error}');
@@ -295,9 +295,8 @@ class DonationService {
       if (unlockedIds.isEmpty) return [];
 
       final allBadges = await getAvailableBadges();
-      final unlockedBadges = allBadges
-          .where((badge) => unlockedIds.contains(badge.id))
-          .toList();
+      final unlockedBadges =
+          allBadges.where((badge) => unlockedIds.contains(badge.id)).toList();
 
       debugPrint(
         '🏅 Returning ${unlockedBadges.length} unlocked badges with data',

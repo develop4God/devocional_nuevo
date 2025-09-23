@@ -82,7 +82,9 @@ class _OnboardingThemeSelectionPageState
                       // Title
                       Text(
                         'onboarding_theme_title'.tr(),
-                        style: Theme.of(context).textTheme.headlineMedium
+                        style: Theme.of(context)
+                            .textTheme
+                            .headlineMedium
                             ?.copyWith(
                               fontWeight: FontWeight.bold,
                               color: Theme.of(context).colorScheme.onSurface,
@@ -96,10 +98,10 @@ class _OnboardingThemeSelectionPageState
                       Text(
                         'onboarding_theme_subtitle'.tr(),
                         style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.onSurface.withOpacity(0.7),
-                        ),
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurface.withOpacity(0.7),
+                            ),
                         textAlign: TextAlign.center,
                       ),
 
@@ -110,11 +112,11 @@ class _OnboardingThemeSelectionPageState
                         child: GridView.builder(
                           gridDelegate:
                               const SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 2,
-                                crossAxisSpacing: 16,
-                                mainAxisSpacing: 16,
-                                childAspectRatio: 1.2,
-                              ),
+                            crossAxisCount: 2,
+                            crossAxisSpacing: 16,
+                            mainAxisSpacing: 16,
+                            childAspectRatio: 1.2,
+                          ),
                           itemCount: themeDisplayNames.length,
                           itemBuilder: (context, index) {
                             final themeKey = themeDisplayNames.keys.elementAt(

@@ -101,8 +101,7 @@ class DonateAmountSelector extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         border: Border.all(
-          color:
-              selectedAmount == customAmountController.text &&
+          color: selectedAmount == customAmountController.text &&
                   customAmountController.text.isNotEmpty
               ? colorScheme.primary
               : colorScheme.outline,

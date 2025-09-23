@@ -209,8 +209,8 @@ class GoogleDriveAuthService {
           return null;
         }
 
-        final GoogleSignInAccount? googleUser = await _googleSignIn!
-            .signInSilently();
+        final GoogleSignInAccount? googleUser =
+            await _googleSignIn!.signInSilently();
 
         if (googleUser != null) {
           debugPrint('🔄 [DEBUG] signInSilently exitoso: ${googleUser.email}');

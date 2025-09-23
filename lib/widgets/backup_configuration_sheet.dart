@@ -40,9 +40,8 @@ class BackupConfigurationSheet extends StatelessWidget {
       value: backupBloc,
       child: BlocBuilder<BackupBloc, BackupState>(
         builder: (context, currentState) {
-          final displayState = currentState is BackupLoaded
-              ? currentState
-              : state;
+          final displayState =
+              currentState is BackupLoaded ? currentState : state;
 
           return Container(
             decoration: BoxDecoration(

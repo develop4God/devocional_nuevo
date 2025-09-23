@@ -76,7 +76,8 @@ void main() {
           isEmpty,
         );
         expect(
-          backupData['devotional_reading_data']['reading_progress']['total_devotionals_read'],
+          backupData['devotional_reading_data']['reading_progress']
+              ['total_devotionals_read'],
           equals(0),
         );
       });

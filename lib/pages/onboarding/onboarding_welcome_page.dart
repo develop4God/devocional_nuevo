@@ -167,7 +167,9 @@ class _OnboardingWelcomePageState extends State<OnboardingWelcomePage>
                       // Welcome title
                       Text(
                         'onboarding.onboarding_welcome_title'.tr(),
-                        style: Theme.of(context).textTheme.headlineMedium
+                        style: Theme.of(context)
+                            .textTheme
+                            .headlineMedium
                             ?.copyWith(
                               fontWeight: FontWeight.bold,
                               color: Theme.of(context).colorScheme.onSurface,
@@ -181,11 +183,11 @@ class _OnboardingWelcomePageState extends State<OnboardingWelcomePage>
                       Text(
                         'onboarding.onboarding_welcome_subtitle'.tr(),
                         style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.onSurface.withOpacity(0.7),
-                          height: 1.5,
-                        ),
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurface.withOpacity(0.7),
+                              height: 1.5,
+                            ),
                         textAlign: TextAlign.center,
                       ),
                     ],
