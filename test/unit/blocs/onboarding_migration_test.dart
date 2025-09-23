@@ -3,7 +3,6 @@ import 'dart:convert';
 
 import 'package:devocional_nuevo/blocs/onboarding/onboarding_bloc.dart';
 import 'package:devocional_nuevo/blocs/onboarding/onboarding_event.dart';
-import 'package:devocional_nuevo/blocs/onboarding/onboarding_models.dart';
 import 'package:devocional_nuevo/blocs/onboarding/onboarding_state.dart';
 import 'package:devocional_nuevo/providers/theme_provider.dart';
 import 'package:devocional_nuevo/services/onboarding_service.dart';
