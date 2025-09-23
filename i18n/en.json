@@ -69,6 +69,7 @@
     "praying": "Praying...",
     "my_prayers": "My Prayers",
     "active": "Active",
+    "answered": "Answered",
     "retry": "Retry",
     "no_active_prayers_title": "No active prayers",
     "no_active_prayers_description": "Create your first prayer by tapping the \"+\" button to begin your faith journey.",
@@ -90,7 +91,6 @@
     "create_prayer": "Create Prayer",
     "update_prayer": "Update Prayer",
     "created": "Created: {date}",
-    "answered": "Answered",
     "days_old_single": "({days} day)",
     "days_old_plural": "({days} days)"
   },
@@ -118,12 +118,15 @@
     "language_change_downloading": "Downloading {language} content...",
     "language_change_error": "Error downloading content for {language}. Please try again later.",
     "language_change_success": "Language changed to {language}. App will restart to apply changes.",
+    "notifications": "Notifications",
+    "enable_notifications": "Enable notifications",
+    "notification_time": "Notification time",
     "about": "About",
     "version": "Version",
     "developer": "Developer",
     "privacy_policy": "Privacy policy",
     "terms_of_service": "Terms of service",
-    "donate": "❤\uFE0F Donate",
+    "donate": "❤️ Donate",
     "contact_us": "Contact us",
     "about_app": "About Christian Devotionals",
     "paypal_launch_error": "Could not open PayPal. The system could not launch the URL.",
@@ -403,7 +406,7 @@
     "frequency": "Frequency",
     "frequency_daily": "Daily",
     "frequency_daily_2am": "Daily (2:00 AM)",
-    "frequency_manual_only": "Only when I select 'Create backup",
+    "frequency_manual_only": "Only when I select 'Create backup'",
     "frequency_deactivated": "Deactivate",
     "frequency_weekly": "Weekly",
     "frequency_monthly": "Monthly",
@@ -451,7 +454,14 @@
     "backup_logout_confirmation_title": "Log out?",
     "backup_logout_confirmation_message": "Do you want to log out of Google Drive and disable the backup of your statistics?",
     "backup_cancel": "Cancel",
-    "backup_confirm": "Confirm"
+    "backup_confirm": "Confirm",
+    "automatic_protection_enabled": "Automatic Protection Enabled",
+    "activate_automatic": "Activate Automatic Protection",
+    "prefer_manual": "I prefer manual backup",
+    "manual_backup_active": "Manual Backup Active",
+    "manual_backup_description": "Create backups when you need them",
+    "protection_active": "Protection Active",
+    "configuration": "Configuration"
   },
   "review": {
     "title": "Thank you for your consistency 🙏",
@@ -493,6 +503,31 @@
     "give_button": "Give",
     "badge_saved": "Badge saved to your collection!",
     "badge_unlocked": "Badge Unlocked!",
-    "thank_you_message": "Your support helps us reach more hearts with God's love."
+    "thank_you_message": "Your support helps us reach more hearts with God's love.",
+    "select_amount_and_badge": "Please select an amount and a badge",
+    "badge_selected": "Selected",
+    "select_badge": "Select"
+  },
+  "badges": {
+    "title": "My Badges",
+    "collection_title": "Badge Collection",
+    "no_badges_title": "No Badges",
+    "no_badges_message": "You don't have any badges yet. Support our ministry to earn your first badge!",
+    "badge_details": "Badge Details",
+    "verse": "Verse",
+    "earned_date": "Earned on",
+    "support_again": "Support Again",
+    "close": "Close",
+    "go_to_support": "Go to Support",
+    "loading_badges": "Loading badges...",
+    "error_loading": "Error loading badges",
+    "test_badges": "Test Badges",
+    "remote_system": "Remote System",
+    "test_connection": "Test Connection"
+  },
+  "test": {
+    "badges_page_title": "Badge System Test",
+    "testing_remote_badges": "Testing remote badges",
+    "badge_system_test": "Badge System Test"
   }
 }
