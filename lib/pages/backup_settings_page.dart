@@ -451,10 +451,8 @@ class _BackupSettingsContent extends StatelessWidget {
                 const SizedBox(height: 8),
                 TextButton(
                   onPressed: () {
-                    // Skip to manual backup
-                    context
-                        .read<BackupBloc>()
-                        .add(const ToggleAutoBackup(false));
+                    // CAMBIADO: En lugar de ir a manual, hacer logout
+                    _showLogoutConfirmation(context);
                   },
                   child: Text('backup.prefer_manual'.tr()),
                 ),
@@ -513,10 +511,17 @@ class _BackupSettingsContent extends StatelessWidget {
                     ],
                   ),
                 ),
+                // 🔧 CAMBIADO: Switch con confirmación de logout
                 Switch(
                   value: state.autoBackupEnabled,
                   onChanged: (value) {
-                    context.read<BackupBloc>().add(ToggleAutoBackup(value));
+                    if (value) {
+                      // Si está activando, simplemente activar
+                      context.read<BackupBloc>().add(ToggleAutoBackup(true));
+                    } else {
+                      // Si está desactivando, mostrar confirmación de logout
+                      _showLogoutConfirmation(context);
+                    }
                   },
                 ),
                 const SizedBox(width: 8),
@@ -541,9 +546,9 @@ class _BackupSettingsContent extends StatelessWidget {
                     fontWeight: FontWeight.w500,
                   ),
                 ),
-                const SizedBox(height: 8),
               ],
             ),
+            const SizedBox(height: 8),
             // User email
             Row(
               children: [
@@ -674,7 +679,7 @@ class _BackupSettingsContent extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
 
-// User email (ABAJO del Google Drive)
+                // User email (ABAJO del Google Drive)
                 if (state.userEmail != null) ...[
                   Row(
                     children: [
@@ -756,6 +761,44 @@ class _BackupSettingsContent extends StatelessWidget {
           ),
         ],
       ],
+    );
+  }
+
+  // 🔧 ELIMINADO: _buildManualBackupState - Ya no se usa
+
+  // 🔧 NUEVO: Método de confirmación de logout
+  void _showLogoutConfirmation(BuildContext context) {
+    final theme = Theme.of(context);
+
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: Text('backup.backup_logout_confirmation_title'.tr()),
+          content: Text('backup.backup_logout_confirmation_message'.tr()),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: Text(
+                'backup.backup_cancel'.tr(),
+                style: TextStyle(color: theme.colorScheme.onSurface),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop(); // Close dialog
+                // Hacer logout y desconectar todo
+                context.read<BackupBloc>().add(const SignOutFromGoogleDrive());
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: theme.colorScheme.error,
+                foregroundColor: theme.colorScheme.onError,
+              ),
+              child: Text('backup.backup_confirm'.tr()),
+            ),
+          ],
+        );
+      },
     );
   }
 
