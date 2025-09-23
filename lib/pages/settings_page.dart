@@ -311,8 +311,7 @@ class _SettingsPageState extends State<SettingsPage> {
                           const SizedBox(height: 4),
                           Text(
                             Constants.supportedLanguages[localizationProvider
-                                    .currentLocale
-                                    .languageCode] ??
+                                    .currentLocale.languageCode] ??
                                 localizationProvider.currentLocale.languageCode,
                             style: textTheme.bodySmall?.copyWith(
                               color: colorScheme.onSurfaceVariant,

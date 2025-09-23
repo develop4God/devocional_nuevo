@@ -175,8 +175,8 @@ class _BackupSettingsView extends StatelessWidget {
                     ElevatedButton(
                       onPressed: () {
                         context.read<BackupBloc>().add(
-                          const LoadBackupSettings(),
-                        );
+                              const LoadBackupSettings(),
+                            );
                       },
                       child: Text('backup.retry'.tr()),
                     ),
@@ -432,14 +432,14 @@ class _BackupSettingsContent extends StatelessWidget {
                     onPressed: () {
                       // Activate automatic backup with all defaults
                       context.read<BackupBloc>().add(
-                        const ToggleAutoBackup(true),
-                      );
+                            const ToggleAutoBackup(true),
+                          );
                       context.read<BackupBloc>().add(
-                        const ToggleWifiOnly(true),
-                      );
+                            const ToggleWifiOnly(true),
+                          );
                       context.read<BackupBloc>().add(
-                        const ToggleCompression(true),
-                      );
+                            const ToggleCompression(true),
+                          );
                     },
                     child: Text('backup.activate_automatic'.tr()),
                   ),
@@ -724,8 +724,8 @@ class _BackupSettingsContent extends StatelessWidget {
                   child: ElevatedButton.icon(
                     onPressed: () {
                       context.read<BackupBloc>().add(
-                        const CreateManualBackup(),
-                      );
+                            const CreateManualBackup(),
+                          );
                     },
                     icon: const Icon(Icons.backup),
                     label: Text('backup.create_backup'.tr()),
@@ -738,8 +738,8 @@ class _BackupSettingsContent extends StatelessWidget {
                 TextButton(
                   onPressed: () {
                     context.read<BackupBloc>().add(
-                      const ToggleAutoBackup(true),
-                    );
+                          const ToggleAutoBackup(true),
+                        );
                   },
                   child: Text('backup.enable_auto_backup'.tr()),
                 ),
@@ -867,9 +867,9 @@ class _BackupSettingsContent extends StatelessWidget {
       return 'backup.yesterday'.tr();
     } else {
       return 'backup.days_ago'.tr().replaceAll(
-        '{days}',
-        difference.inDays.toString(),
-      );
+            '{days}',
+            difference.inDays.toString(),
+          );
     }
   }
 

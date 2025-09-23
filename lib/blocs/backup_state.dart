@@ -49,18 +49,18 @@ class BackupLoaded extends BackupState {
 
   @override
   List<Object?> get props => [
-    autoBackupEnabled,
-    backupFrequency,
-    wifiOnlyEnabled,
-    compressionEnabled,
-    backupOptions,
-    lastBackupTime,
-    nextBackupTime,
-    estimatedSize,
-    storageInfo,
-    isAuthenticated,
-    userEmail,
-  ];
+        autoBackupEnabled,
+        backupFrequency,
+        wifiOnlyEnabled,
+        compressionEnabled,
+        backupOptions,
+        lastBackupTime,
+        nextBackupTime,
+        estimatedSize,
+        storageInfo,
+        isAuthenticated,
+        userEmail,
+      ];
 
   /// Create a copy with updated values
   BackupLoaded copyWith({

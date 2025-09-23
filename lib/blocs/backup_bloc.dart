@@ -19,10 +19,10 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
     BackupSchedulerService? schedulerService,
     DevocionalProvider? devocionalProvider,
     dynamic prayerBloc,
-  }) : _backupService = backupService,
-       _schedulerService = schedulerService,
-       _devocionalProvider = devocionalProvider,
-       super(const BackupInitial()) {
+  })  : _backupService = backupService,
+        _schedulerService = schedulerService,
+        _devocionalProvider = devocionalProvider,
+        super(const BackupInitial()) {
     // Register event handlers
     on<LoadBackupSettings>(_onLoadBackupSettings);
     on<ToggleAutoBackup>(_onToggleAutoBackup);
@@ -200,8 +200,8 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
 
         final isAuthenticated =
             event.frequency == GoogleDriveBackupService.frequencyDeactivated
-            ? false
-            : currentState.isAuthenticated;
+                ? false
+                : currentState.isAuthenticated;
 
         emit(
           currentState.copyWith(

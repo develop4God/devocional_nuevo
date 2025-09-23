@@ -43,9 +43,9 @@ class GoogleDriveBackupService {
     required GoogleDriveAuthService authService,
     required ConnectivityService connectivityService,
     required SpiritualStatsService statsService,
-  }) : _authService = authService,
-       _connectivityService = connectivityService,
-       _statsService = statsService;
+  })  : _authService = authService,
+        _connectivityService = connectivityService,
+        _statsService = statsService;
 
   /// Check if Google Drive backup is enabled
   Future<bool> isAutoBackupEnabled() async {
@@ -216,9 +216,8 @@ class GoogleDriveBackupService {
 
         final usedGB = usedBytes / (1024 * 1024 * 1024);
         final totalGB = totalBytes / (1024 * 1024 * 1024);
-        final percentage = totalBytes > 0
-            ? (usedBytes / totalBytes) * 100
-            : 0.0;
+        final percentage =
+            totalBytes > 0 ? (usedBytes / totalBytes) * 100 : 0.0;
 
         debugPrint(
           'Google Drive storage: ${usedGB.toStringAsFixed(2)} GB / ${totalGB.toStringAsFixed(2)} GB',
@@ -325,8 +324,7 @@ class GoogleDriveBackupService {
         debugPrint('Creating new backup file');
         final createFile = drive.File()
           ..name = _backupFileName
-          ..parents =
-              [folderId] // Solo en creación
+          ..parents = [folderId] // Solo en creación
           ..description =
               'Devocional backup created on ${DateTime.now().toIso8601String()}'
           ..mimeType = 'application/json';
@@ -376,9 +374,8 @@ class GoogleDriveBackupService {
     // Include favorite devotionals if enabled
     if (options['favorite_devotionals'] == true && provider != null) {
       try {
-        backupData['favorite_devotionals'] = provider.favoriteDevocionales
-            .map((dev) => dev.toJson())
-            .toList();
+        backupData['favorite_devotionals'] =
+            provider.favoriteDevocionales.map((dev) => dev.toJson()).toList();
         debugPrint(
           'Included ${provider.favoriteDevocionales.length} favorite devotionals in backup',
         );
@@ -770,12 +767,10 @@ class GoogleDriveBackupService {
       }
 
       // Download the backup file
-      final media =
-          await driveApi.files.get(
-                fileId,
-                downloadOptions: drive.DownloadOptions.fullMedia,
-              )
-              as drive.Media;
+      final media = await driveApi.files.get(
+        fileId,
+        downloadOptions: drive.DownloadOptions.fullMedia,
+      ) as drive.Media;
 
       final backupData = <int>[];
       await for (final chunk in media.stream) {

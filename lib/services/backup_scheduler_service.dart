@@ -18,8 +18,8 @@ class BackupSchedulerService {
   BackupSchedulerService({
     required GoogleDriveBackupService backupService,
     required ConnectivityService connectivityService,
-  }) : _backupService = backupService,
-       _connectivityService = connectivityService;
+  })  : _backupService = backupService,
+        _connectivityService = connectivityService;
 
   /// Initialize the background task system
   static Future<void> initialize() async {

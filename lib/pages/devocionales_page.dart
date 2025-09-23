@@ -425,9 +425,8 @@ class _DevocionalesPageState extends State<DevocionalesPage>
   }
 
   Future<void> _shareAsText(Devocional devocional) async {
-    final meditationsText = devocional.paraMeditar
-        .map((p) => '${p.cita}: ${p.texto}')
-        .join('\n');
+    final meditationsText =
+        devocional.paraMeditar.map((p) => '${p.cita}: ${p.texto}').join('\n');
     final text = "devotionals.share_text_format".tr({
       'verse': devocional.versiculo,
       'reflection': devocional.reflexion,
@@ -587,8 +586,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
         title: Text(
           'devotionals.my_intimate_space_with_god'.tr(),
           style: TextStyle(
-            color:
-                Theme.of(context).appBarTheme.foregroundColor ??
+            color: Theme.of(context).appBarTheme.foregroundColor ??
                 colorScheme.onPrimary,
           ),
         ),
@@ -832,7 +830,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
 
           final Color appBarForegroundColor =
               Theme.of(context).appBarTheme.foregroundColor ??
-              colorScheme.onPrimary;
+                  colorScheme.onPrimary;
           final Color? appBarBackgroundColor = Theme.of(
             context,
           ).appBarTheme.backgroundColor;
@@ -916,8 +914,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                           child: SizedBox(
                             height: 45,
                             child: ElevatedButton.icon(
-                              onPressed:
-                                  _currentDevocionalIndex <
+                              onPressed: _currentDevocionalIndex <
                                       devocionales.length - 1
                                   ? _goToNextDevocional
                                   : null,
@@ -933,23 +930,20 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                 ),
                               ),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor:
-                                    _currentDevocionalIndex <
+                                backgroundColor: _currentDevocionalIndex <
                                         devocionales.length - 1
                                     ? colorScheme.primary
                                     : colorScheme.outline.withValues(
                                         alpha: 0.3,
                                       ),
-                                foregroundColor:
-                                    _currentDevocionalIndex <
+                                foregroundColor: _currentDevocionalIndex <
                                         devocionales.length - 1
                                     ? Colors.white
                                     : colorScheme.outline,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(22),
                                 ),
-                                elevation:
-                                    _currentDevocionalIndex <
+                                elevation: _currentDevocionalIndex <
                                         devocionales.length - 1
                                     ? 2
                                     : 0,
@@ -974,9 +968,9 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                           : 'devotionals.save_as_favorite'.tr(),
                       onPressed: currentDevocional != null
                           ? () => devocionalProvider.toggleFavorite(
-                              currentDevocional,
-                              context,
-                            )
+                                currentDevocional,
+                                context,
+                              )
                           : null,
                       icon: Icon(
                         isFavorite ? Icons.favorite : Icons.favorite_border,

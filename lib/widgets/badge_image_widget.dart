@@ -24,9 +24,7 @@ class BadgeImageWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme
-        .of(context)
-        .colorScheme;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return GestureDetector(
       onTap: onTap,
@@ -39,22 +37,21 @@ class BadgeImageWidget extends StatelessWidget {
             color: isSelected
                 ? colorScheme.primary
                 : isUnlocked
-                ? colorScheme.primary.withValues(alpha: 0.5)
-                : colorScheme.outline.withValues(alpha: 0.3),
+                    ? colorScheme.primary.withValues(alpha: 0.5)
+                    : colorScheme.outline.withValues(alpha: 0.3),
             width: isSelected ? 3 : (isUnlocked ? 2 : 1),
           ),
           boxShadow: isSelected || isUnlocked
               ? [
-            BoxShadow(
-              color:
-              (isSelected
-                  ? colorScheme.primary
-                  : colorScheme.primary.withValues(alpha: 0.3))
-                  .withValues(alpha: 0.3),
-              blurRadius: isSelected ? 12 : 8,
-              spreadRadius: isSelected ? 3 : 1,
-            ),
-          ]
+                  BoxShadow(
+                    color: (isSelected
+                            ? colorScheme.primary
+                            : colorScheme.primary.withValues(alpha: 0.3))
+                        .withValues(alpha: 0.3),
+                    blurRadius: isSelected ? 12 : 8,
+                    spreadRadius: isSelected ? 3 : 1,
+                  ),
+                ]
               : null,
         ),
         child: ClipOval(
@@ -108,9 +105,7 @@ class BadgeImageWidget extends StatelessWidget {
   }
 
   Widget _buildLoadingPlaceholder(BuildContext context) {
-    final colorScheme = Theme
-        .of(context)
-        .colorScheme;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Container(
       width: size,
@@ -142,9 +137,7 @@ class BadgeImageWidget extends StatelessWidget {
   }
 
   Widget _buildErrorPlaceholder(BuildContext context) {
-    final colorScheme = Theme
-        .of(context)
-        .colorScheme;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Container(
       width: size,
@@ -186,18 +179,13 @@ class BadgePreviewWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme
-        .of(context)
-        .colorScheme;
-    final textTheme = Theme
-        .of(context)
-        .textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
 
     return Card(
       elevation: isUnlocked ? 8 : 2,
-      shadowColor: isUnlocked
-          ? colorScheme.primary.withValues(alpha: 0.3)
-          : null,
+      shadowColor:
+          isUnlocked ? colorScheme.primary.withValues(alpha: 0.3) : null,
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
