@@ -21,6 +21,14 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
   // Configuration persistence keys
   static const String _configurationKey = 'onboarding_configuration';
   static const String _progressKey = 'onboarding_progress';
+  
+  // Schema versioning for persistence migration
+  static const int _currentSchemaVersion = 1;
+  
+  // Race condition protection
+  bool _isProcessingStep = false;
+  bool _isCompletingOnboarding = false;
+  bool _isSavingConfiguration = false;
 
   OnboardingBloc({
     required OnboardingService onboardingService,
@@ -125,12 +133,19 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     debugPrint(
         '🔄 [ONBOARDING_BLOC] === INICIANDO ProgressToStep: ${event.stepIndex} ===');
 
+    // Race condition protection
+    if (_isProcessingStep) {
+      debugPrint('⚠️ [ONBOARDING_BLOC] Step progression already in progress, ignoring duplicate event');
+      return;
+    }
+
     if (state is! OnboardingStepActive) {
       debugPrint(
           '⚠️ [ONBOARDING_BLOC] Cannot progress - not in active step state');
       return;
     }
 
+    _isProcessingStep = true;
     try {
       final currentState = state as OnboardingStepActive;
 
@@ -174,6 +189,8 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
         category: OnboardingErrorCategory.unknown,
         errorContext: {'stepIndex': event.stepIndex, 'error': e.toString()},
       ));
+    } finally {
+      _isProcessingStep = false;
     }
 
     debugPrint('🏁 [ONBOARDING_BLOC] === FIN ProgressToStep ===');
@@ -353,6 +370,13 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
   ) async {
     debugPrint('🔄 [ONBOARDING_BLOC] === INICIANDO CompleteOnboarding ===');
 
+    // Race condition protection
+    if (_isCompletingOnboarding) {
+      debugPrint('⚠️ [ONBOARDING_BLOC] Onboarding completion already in progress, ignoring duplicate event');
+      return;
+    }
+
+    _isCompletingOnboarding = true;
     try {
       // Get configurations from current state before emitting loading
       Map<String, dynamic> configurations;
@@ -384,6 +408,8 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
         category: OnboardingErrorCategory.unknown,
         errorContext: {'error': e.toString()},
       ));
+    } finally {
+      _isCompletingOnboarding = false;
     }
 
     debugPrint('🏁 [ONBOARDING_BLOC] === FIN CompleteOnboarding ===');
@@ -512,28 +538,55 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       final configJson = prefs.getString(_configurationKey);
 
       if (configJson != null) {
-        final Map<String, dynamic> config =
+        final Map<String, dynamic> wrapper =
             jsonDecode(configJson) as Map<String, dynamic>;
+        
+        // Check for schema version
+        final schemaVersion = wrapper['schemaVersion'] as int? ?? 0;
+        Map<String, dynamic> config = wrapper['payload'] as Map<String, dynamic>? ?? wrapper;
+        
+        // Apply migration if needed
+        if (schemaVersion < _currentSchemaVersion) {
+          config = _migrateConfiguration(config, schemaVersion);
+          debugPrint('🔄 [ONBOARDING_BLOC] Configuration migrated from v$schemaVersion to v$_currentSchemaVersion');
+          
+          // Save migrated configuration
+          await _saveConfiguration(config);
+        }
+        
         debugPrint(
             '📊 [ONBOARDING_BLOC] Configuración cargada: ${config.keys}');
         return config;
       }
     } catch (e) {
       debugPrint('⚠️ [ONBOARDING_BLOC] Error loading saved configuration: $e');
+      debugPrint('🔄 [ONBOARDING_BLOC] Falling back to empty configuration');
     }
     return {};
   }
 
-  /// Save configuration to SharedPreferences
+  /// Save configuration to SharedPreferences with schema versioning
   Future<void> _saveConfiguration(Map<String, dynamic> configuration) async {
+    if (_isSavingConfiguration) {
+      debugPrint('⚠️ [ONBOARDING_BLOC] Configuration save already in progress, skipping');
+      return;
+    }
+    
+    _isSavingConfiguration = true;
     try {
       final prefs = await SharedPreferences.getInstance();
-      final configJson = jsonEncode(configuration);
+      final wrapper = {
+        'schemaVersion': _currentSchemaVersion,
+        'payload': configuration,
+      };
+      final configJson = jsonEncode(wrapper);
       await prefs.setString(_configurationKey, configJson);
       debugPrint(
           '💾 [ONBOARDING_BLOC] Configuración guardada: ${configuration.keys}');
     } catch (e) {
       debugPrint('⚠️ [ONBOARDING_BLOC] Error saving configuration: $e');
+    } finally {
+      _isSavingConfiguration = false;
     }
   }
 
@@ -544,7 +597,18 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       final progressJson = prefs.getString(_progressKey);
 
       if (progressJson != null) {
-        final progressData = jsonDecode(progressJson) as Map<String, dynamic>;
+        final Map<String, dynamic> wrapper = jsonDecode(progressJson) as Map<String, dynamic>;
+        
+        // Check for schema version
+        final schemaVersion = wrapper['schemaVersion'] as int? ?? 0;
+        Map<String, dynamic> progressData = wrapper['payload'] as Map<String, dynamic>? ?? wrapper;
+        
+        // Apply migration if needed
+        if (schemaVersion < _currentSchemaVersion) {
+          progressData = _migrateProgress(progressData, schemaVersion);
+          debugPrint('🔄 [ONBOARDING_BLOC] Progress migrated from v$schemaVersion to v$_currentSchemaVersion');
+        }
+        
         final progress = OnboardingProgress.fromJson(progressData);
         debugPrint(
             '📊 [ONBOARDING_BLOC] Progreso cargado: ${progress.completedSteps}/${progress.totalSteps}');
@@ -552,15 +616,20 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       }
     } catch (e) {
       debugPrint('⚠️ [ONBOARDING_BLOC] Error loading saved progress: $e');
+      debugPrint('🔄 [ONBOARDING_BLOC] Falling back to null progress');
     }
     return null;
   }
 
-  /// Save progress to SharedPreferences
+  /// Save progress to SharedPreferences with schema versioning
   Future<void> _saveProgress(OnboardingProgress progress) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final progressJson = jsonEncode(progress.toJson());
+      final wrapper = {
+        'schemaVersion': _currentSchemaVersion,
+        'payload': progress.toJson(),
+      };
+      final progressJson = jsonEncode(wrapper);
       await prefs.setString(_progressKey, progressJson);
       debugPrint(
           '💾 [ONBOARDING_BLOC] Progreso guardado: ${progress.completedSteps}/${progress.totalSteps}');
@@ -658,5 +727,51 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     }
 
     return true;
+  }
+
+  /// Migrate configuration from older schema versions
+  Map<String, dynamic> _migrateConfiguration(Map<String, dynamic> config, int fromVersion) {
+    debugPrint('🔄 [ONBOARDING_BLOC] Migrating configuration from version $fromVersion to $_currentSchemaVersion');
+    
+    try {
+      Map<String, dynamic> migratedConfig = Map<String, dynamic>.from(config);
+      
+      // Version 0 -> 1: No changes needed for now, but this is where future migrations would go
+      if (fromVersion < 1) {
+        // Example: migratedConfig['newField'] = 'defaultValue';
+        debugPrint('✅ [ONBOARDING_BLOC] Configuration migration v0->v1 completed');
+      }
+      
+      return migratedConfig;
+    } catch (e) {
+      debugPrint('❌ [ONBOARDING_BLOC] Configuration migration failed: $e');
+      debugPrint('🔄 [ONBOARDING_BLOC] Falling back to original configuration');
+      return config;
+    }
+  }
+
+  /// Migrate progress data from older schema versions
+  Map<String, dynamic> _migrateProgress(Map<String, dynamic> progressData, int fromVersion) {
+    debugPrint('🔄 [ONBOARDING_BLOC] Migrating progress from version $fromVersion to $_currentSchemaVersion');
+    
+    try {
+      Map<String, dynamic> migratedProgress = Map<String, dynamic>.from(progressData);
+      
+      // Version 0 -> 1: No changes needed for now, but this is where future migrations would go
+      if (fromVersion < 1) {
+        // Example: Ensure all required fields exist
+        migratedProgress['totalSteps'] ??= 4;
+        migratedProgress['completedSteps'] ??= 0;
+        migratedProgress['stepCompletionStatus'] ??= List<bool>.filled(4, false);
+        migratedProgress['progressPercentage'] ??= 0.0;
+        debugPrint('✅ [ONBOARDING_BLOC] Progress migration v0->v1 completed');
+      }
+      
+      return migratedProgress;
+    } catch (e) {
+      debugPrint('❌ [ONBOARDING_BLOC] Progress migration failed: $e');
+      debugPrint('🔄 [ONBOARDING_BLOC] Falling back to original progress data');
+      return progressData;
+    }
   }
 }

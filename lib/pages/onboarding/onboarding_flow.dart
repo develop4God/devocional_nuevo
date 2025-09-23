@@ -109,6 +109,8 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
   }
 
   void _showErrorDialog(BuildContext context, OnboardingError error) {
+    if (!mounted) return; // Safety check before showing dialog
+    
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -137,14 +139,18 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
           TextButton(
             onPressed: () {
               Navigator.of(context).pop();
-              _onboardingBloc.add(const InitializeOnboarding());
+              if (mounted) {
+                _onboardingBloc.add(const InitializeOnboarding());
+              }
             },
             child: const Text('Retry'),
           ),
           TextButton(
             onPressed: () {
               Navigator.of(context).pop();
-              widget.onComplete(); // Skip onboarding on persistent errors
+              if (mounted) {
+                widget.onComplete(); // Skip onboarding on persistent errors
+              }
             },
             child: const Text('Skip'),
           ),
@@ -159,6 +165,8 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
       create: (context) => _onboardingBloc,
       child: BlocConsumer<OnboardingBloc, OnboardingState>(
         listener: (context, state) {
+          if (!mounted) return; // Safety check for async state updates
+          
           if (state is OnboardingStepActive) {
             // Animate to the current step page
             _animateToPage(state.currentStepIndex);
