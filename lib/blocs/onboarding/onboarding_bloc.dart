@@ -205,7 +205,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       }
 
       final currentState = state as OnboardingStepActive;
-      
+
       emit(OnboardingConfiguring(
         configurationType: OnboardingConfigurationType.themeSelection,
         configurationData: const {},
@@ -267,7 +267,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
 
     try {
       final currentState = state as OnboardingStepActive;
-      
+
       emit(OnboardingConfiguring(
         configurationType: OnboardingConfigurationType.backupConfiguration,
         configurationData: {'enableBackup': event.enableBackup},
@@ -512,8 +512,10 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       final configJson = prefs.getString(_configurationKey);
 
       if (configJson != null) {
-        final Map<String, dynamic> config = jsonDecode(configJson) as Map<String, dynamic>;
-        debugPrint('📊 [ONBOARDING_BLOC] Configuración cargada: ${config.keys}');
+        final Map<String, dynamic> config =
+            jsonDecode(configJson) as Map<String, dynamic>;
+        debugPrint(
+            '📊 [ONBOARDING_BLOC] Configuración cargada: ${config.keys}');
         return config;
       }
     } catch (e) {
@@ -528,7 +530,8 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       final prefs = await SharedPreferences.getInstance();
       final configJson = jsonEncode(configuration);
       await prefs.setString(_configurationKey, configJson);
-      debugPrint('💾 [ONBOARDING_BLOC] Configuración guardada: ${configuration.keys}');
+      debugPrint(
+          '💾 [ONBOARDING_BLOC] Configuración guardada: ${configuration.keys}');
     } catch (e) {
       debugPrint('⚠️ [ONBOARDING_BLOC] Error saving configuration: $e');
     }
@@ -543,7 +546,8 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       if (progressJson != null) {
         final progressData = jsonDecode(progressJson) as Map<String, dynamic>;
         final progress = OnboardingProgress.fromJson(progressData);
-        debugPrint('📊 [ONBOARDING_BLOC] Progreso cargado: ${progress.completedSteps}/${progress.totalSteps}');
+        debugPrint(
+            '📊 [ONBOARDING_BLOC] Progreso cargado: ${progress.completedSteps}/${progress.totalSteps}');
         return progress;
       }
     } catch (e) {
@@ -558,7 +562,8 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       final prefs = await SharedPreferences.getInstance();
       final progressJson = jsonEncode(progress.toJson());
       await prefs.setString(_progressKey, progressJson);
-      debugPrint('💾 [ONBOARDING_BLOC] Progreso guardado: ${progress.completedSteps}/${progress.totalSteps}');
+      debugPrint(
+          '💾 [ONBOARDING_BLOC] Progreso guardado: ${progress.completedSteps}/${progress.totalSteps}');
     } catch (e) {
       debugPrint('⚠️ [ONBOARDING_BLOC] Error saving progress: $e');
     }
@@ -593,7 +598,8 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       if (configuration.containsKey('selectedThemeFamily')) {
         final themeFamily = configuration['selectedThemeFamily'];
         if (themeFamily != null && themeFamily is! String) {
-          debugPrint('❌ [ONBOARDING_BLOC] Invalid theme family type: ${themeFamily.runtimeType}');
+          debugPrint(
+              '❌ [ONBOARDING_BLOC] Invalid theme family type: ${themeFamily.runtimeType}');
           return false;
         }
         if (themeFamily is String && themeFamily.trim().isEmpty) {
@@ -606,7 +612,8 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       if (configuration.containsKey('backupEnabled')) {
         final backupEnabled = configuration['backupEnabled'];
         if (backupEnabled != null && backupEnabled is! bool) {
-          debugPrint('❌ [ONBOARDING_BLOC] Invalid backup enabled type: ${backupEnabled.runtimeType}');
+          debugPrint(
+              '❌ [ONBOARDING_BLOC] Invalid backup enabled type: ${backupEnabled.runtimeType}');
           return false;
         }
       }
@@ -615,7 +622,8 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       if (configuration.containsKey('selectedLanguage')) {
         final language = configuration['selectedLanguage'];
         if (language != null && language is! String) {
-          debugPrint('❌ [ONBOARDING_BLOC] Invalid language type: ${language.runtimeType}');
+          debugPrint(
+              '❌ [ONBOARDING_BLOC] Invalid language type: ${language.runtimeType}');
           return false;
         }
       }
@@ -636,9 +644,17 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     }
 
     // You could add additional validation here for supported themes
-    final supportedThemes = ['Deep Purple', 'Blue', 'Green', 'Red', 'Orange', 'Purple'];
+    final supportedThemes = [
+      'Deep Purple',
+      'Blue',
+      'Green',
+      'Red',
+      'Orange',
+      'Purple'
+    ];
     if (!supportedThemes.contains(themeFamily)) {
-      debugPrint('⚠️ [ONBOARDING_BLOC] Theme family "$themeFamily" not in supported list, but allowing it');
+      debugPrint(
+          '⚠️ [ONBOARDING_BLOC] Theme family "$themeFamily" not in supported list, but allowing it');
     }
 
     return true;

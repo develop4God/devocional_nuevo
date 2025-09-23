@@ -48,7 +48,8 @@ void main() {
         expect(restored.progressPercentage, progress.progressPercentage);
       });
 
-      test('OnboardingConfiguration should serialize and deserialize correctly', () {
+      test('OnboardingConfiguration should serialize and deserialize correctly',
+          () {
         final config = OnboardingConfiguration(
           selectedThemeFamily: 'Blue',
           backupEnabled: true,
@@ -75,10 +76,14 @@ void main() {
         build: () => onboardingBloc,
         act: (bloc) async {
           // Set up test data in SharedPreferences
-          final testConfig = {'selectedThemeFamily': 'Blue', 'backupEnabled': true};
+          final testConfig = {
+            'selectedThemeFamily': 'Blue',
+            'backupEnabled': true
+          };
           final prefs = await SharedPreferences.getInstance();
-          await prefs.setString('onboarding_configuration', jsonEncode(testConfig));
-          
+          await prefs.setString(
+              'onboarding_configuration', jsonEncode(testConfig));
+
           bloc.add(const InitializeOnboarding());
         },
         wait: const Duration(milliseconds: 100),
@@ -99,10 +104,11 @@ void main() {
             stepCompletionStatus: [true, true, false, false],
             progressPercentage: 50.0,
           );
-          
+
           final prefs = await SharedPreferences.getInstance();
-          await prefs.setString('onboarding_progress', jsonEncode(progress.toJson()));
-          
+          await prefs.setString(
+              'onboarding_progress', jsonEncode(progress.toJson()));
+
           bloc.add(const InitializeOnboarding());
         },
         wait: const Duration(milliseconds: 100),
@@ -125,13 +131,13 @@ void main() {
           stepConfiguration: const {},
           canProgress: true,
           canGoBack: true,
-          progress: OnboardingProgress.fromStepCompletion([true, false, false, false]),
+          progress: OnboardingProgress.fromStepCompletion(
+              [true, false, false, false]),
         ),
         act: (bloc) => bloc.add(const SelectTheme('')), // Empty theme
         expect: () => [
-          isA<OnboardingError>()
-              .having((state) => state.category, 'category', 
-                  OnboardingErrorCategory.invalidConfiguration),
+          isA<OnboardingError>().having((state) => state.category, 'category',
+              OnboardingErrorCategory.invalidConfiguration),
         ],
       );
 
@@ -145,14 +151,16 @@ void main() {
           stepConfiguration: const {},
           canProgress: true,
           canGoBack: true,
-          progress: OnboardingProgress.fromStepCompletion([true, false, false, false]),
+          progress: OnboardingProgress.fromStepCompletion(
+              [true, false, false, false]),
         ),
         act: (bloc) => bloc.add(const SelectTheme('Blue')),
         expect: () => [
           isA<OnboardingConfiguring>(),
-          isA<OnboardingStepActive>()
-              .having((state) => state.userSelections['selectedThemeFamily'],
-                  'selectedThemeFamily', 'Blue'),
+          isA<OnboardingStepActive>().having(
+              (state) => state.userSelections['selectedThemeFamily'],
+              'selectedThemeFamily',
+              'Blue'),
         ],
       );
     });
@@ -168,34 +176,37 @@ void main() {
           stepConfiguration: const {},
           canProgress: true,
           canGoBack: true,
-          progress: OnboardingProgress.fromStepCompletion([true, false, false, false]),
+          progress: OnboardingProgress.fromStepCompletion(
+              [true, false, false, false]),
         ),
-        act: (bloc) => bloc.add(const SelectTheme('   ')), // Whitespace-only theme
+        act: (bloc) =>
+            bloc.add(const SelectTheme('   ')), // Whitespace-only theme
         expect: () => [
-          isA<OnboardingError>()
-              .having((state) => state.message, 'message', contains('Invalid theme family')),
+          isA<OnboardingError>().having((state) => state.message, 'message',
+              contains('Invalid theme family')),
         ],
       );
 
       test('should handle malformed JSON gracefully', () async {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('onboarding_configuration', '{invalid json}');
-        
+
         // This should not throw an exception
         onboardingBloc.add(const InitializeOnboarding());
         await Future.delayed(const Duration(milliseconds: 100));
-        
+
         // Should handle the error gracefully and continue
         expect(onboardingBloc.state, isNot(isA<OnboardingError>()));
       });
     });
 
     group('ThemeProvider Fallback', () {
-      test('should create fallback ThemeProvider with proper initialization', () {
+      test('should create fallback ThemeProvider with proper initialization',
+          () {
         // This tests the fallback creation logic indirectly
         final fallbackProvider = ThemeProvider();
         fallbackProvider.initializeDefaults();
-        
+
         expect(fallbackProvider.currentThemeFamily, isNotEmpty);
         expect(fallbackProvider.currentTheme, isNotNull);
       });

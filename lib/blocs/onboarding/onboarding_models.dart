@@ -125,7 +125,8 @@ class OnboardingProgress extends Equatable {
     return OnboardingProgress(
       totalSteps: json['totalSteps'] as int,
       completedSteps: json['completedSteps'] as int,
-      stepCompletionStatus: List<bool>.from(json['stepCompletionStatus'] as List),
+      stepCompletionStatus:
+          List<bool>.from(json['stepCompletionStatus'] as List),
       progressPercentage: (json['progressPercentage'] as num).toDouble(),
     );
   }

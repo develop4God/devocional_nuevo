@@ -29,7 +29,7 @@ void main() {
       mockOnboardingService = MockOnboardingService();
       mockThemeProvider = MockThemeProvider();
       mockBackupBloc = MockBackupBloc();
-      
+
       onboardingBloc = OnboardingBloc(
         onboardingService: mockOnboardingService,
         themeProvider: mockThemeProvider,
@@ -116,7 +116,8 @@ void main() {
           stepConfiguration: const {},
           canProgress: true,
           canGoBack: false,
-          progress: OnboardingProgress.fromStepCompletion([false, false, false, false]),
+          progress: OnboardingProgress.fromStepCompletion(
+              [false, false, false, false]),
         ),
         act: (bloc) => bloc.add(const ProgressToStep(1)),
         expect: () => [
@@ -139,7 +140,8 @@ void main() {
           stepConfiguration: const {},
           canProgress: true,
           canGoBack: false,
-          progress: OnboardingProgress.fromStepCompletion([false, false, false, false]),
+          progress: OnboardingProgress.fromStepCompletion(
+              [false, false, false, false]),
         ),
         act: (bloc) => bloc.add(const ProgressToStep(999)),
         expect: () => [],
@@ -161,13 +163,15 @@ void main() {
           stepConfiguration: const {},
           canProgress: true,
           canGoBack: true,
-          progress: OnboardingProgress.fromStepCompletion([true, false, false, false]),
+          progress: OnboardingProgress.fromStepCompletion(
+              [true, false, false, false]),
         ),
         act: (bloc) => bloc.add(const SelectTheme('Blue')),
         expect: () => [
-          isA<OnboardingConfiguring>()
-              .having((state) => state.configurationType, 'configurationType',
-                  OnboardingConfigurationType.themeSelection),
+          isA<OnboardingConfiguring>().having(
+              (state) => state.configurationType,
+              'configurationType',
+              OnboardingConfigurationType.themeSelection),
           isA<OnboardingStepActive>()
               .having((state) => state.userSelections['selectedThemeFamily'],
                   'selectedThemeFamily', 'Blue')
@@ -193,7 +197,8 @@ void main() {
           stepConfiguration: const {},
           canProgress: true,
           canGoBack: true,
-          progress: OnboardingProgress.fromStepCompletion([true, false, false, false]),
+          progress: OnboardingProgress.fromStepCompletion(
+              [true, false, false, false]),
         ),
         act: (bloc) => bloc.add(const SelectTheme('Blue')),
         expect: () => [
@@ -215,13 +220,15 @@ void main() {
           stepConfiguration: const {},
           canProgress: true,
           canGoBack: true,
-          progress: OnboardingProgress.fromStepCompletion([true, true, false, false]),
+          progress:
+              OnboardingProgress.fromStepCompletion([true, true, false, false]),
         ),
         act: (bloc) => bloc.add(const ConfigureBackupOption(true)),
         expect: () => [
-          isA<OnboardingConfiguring>()
-              .having((state) => state.configurationType, 'configurationType',
-                  OnboardingConfigurationType.backupConfiguration),
+          isA<OnboardingConfiguring>().having(
+              (state) => state.configurationType,
+              'configurationType',
+              OnboardingConfigurationType.backupConfiguration),
           isA<OnboardingStepActive>()
               .having((state) => state.userSelections['backupEnabled'],
                   'backupEnabled', true)
@@ -242,18 +249,24 @@ void main() {
         seed: () => OnboardingStepActive(
           currentStepIndex: 3,
           currentStep: OnboardingSteps.defaultSteps[3],
-          userSelections: const {'selectedThemeFamily': 'Blue', 'backupEnabled': true},
+          userSelections: const {
+            'selectedThemeFamily': 'Blue',
+            'backupEnabled': true
+          },
           stepConfiguration: const {},
           canProgress: false,
           canGoBack: true,
-          progress: OnboardingProgress.fromStepCompletion([true, true, true, false]),
+          progress:
+              OnboardingProgress.fromStepCompletion([true, true, true, false]),
         ),
         act: (bloc) => bloc.add(const CompleteOnboarding()),
         expect: () => [
           const OnboardingLoading(),
           isA<OnboardingCompleted>()
-              .having((state) => state.appliedConfigurations['selectedThemeFamily'],
-                  'selectedThemeFamily', 'Blue')
+              .having(
+                  (state) => state.appliedConfigurations['selectedThemeFamily'],
+                  'selectedThemeFamily',
+                  'Blue')
               .having((state) => state.appliedConfigurations['backupEnabled'],
                   'backupEnabled', true),
         ],
@@ -272,8 +285,8 @@ void main() {
         act: (bloc) => bloc.add(const CompleteOnboarding()),
         expect: () => [
           const OnboardingLoading(),
-          isA<OnboardingError>().having(
-              (state) => state.message, 'message', contains('Completion error')),
+          isA<OnboardingError>().having((state) => state.message, 'message',
+              contains('Completion error')),
         ],
       );
     });
@@ -307,7 +320,8 @@ void main() {
           stepConfiguration: const {},
           canProgress: true,
           canGoBack: true,
-          progress: OnboardingProgress.fromStepCompletion([true, false, false, false]),
+          progress: OnboardingProgress.fromStepCompletion(
+              [true, false, false, false]),
         ),
         act: (bloc) => bloc.add(const SkipCurrentStep()),
         expect: () => [
@@ -328,7 +342,8 @@ void main() {
           stepConfiguration: const {},
           canProgress: true,
           canGoBack: true,
-          progress: OnboardingProgress.fromStepCompletion([true, true, false, false]),
+          progress:
+              OnboardingProgress.fromStepCompletion([true, true, false, false]),
         ),
         act: (bloc) => bloc.add(const GoToPreviousStep()),
         expect: () => [
@@ -349,13 +364,17 @@ void main() {
           stepConfiguration: const {'existing': 'value'},
           canProgress: true,
           canGoBack: true,
-          progress: OnboardingProgress.fromStepCompletion([true, false, false, false]),
+          progress: OnboardingProgress.fromStepCompletion(
+              [true, false, false, false]),
         ),
-        act: (bloc) => bloc.add(const UpdateStepConfiguration({'new': 'config'})),
+        act: (bloc) =>
+            bloc.add(const UpdateStepConfiguration({'new': 'config'})),
         expect: () => [
           isA<OnboardingStepActive>()
-              .having((state) => state.stepConfiguration['existing'], 'existing', 'value')
-              .having((state) => state.stepConfiguration['new'], 'new', 'config'),
+              .having((state) => state.stepConfiguration['existing'],
+                  'existing', 'value')
+              .having(
+                  (state) => state.stepConfiguration['new'], 'new', 'config'),
         ],
       );
     });
@@ -371,13 +390,15 @@ void main() {
           stepConfiguration: const {},
           canProgress: true,
           canGoBack: true,
-          progress: OnboardingProgress.fromStepCompletion([true, false, false, false]),
+          progress: OnboardingProgress.fromStepCompletion(
+              [true, false, false, false]),
         ),
         act: (bloc) => bloc.add(const UpdatePreview('theme', 'Blue')),
         expect: () => [
-          isA<OnboardingStepActive>()
-              .having((state) => state.stepConfiguration['preview_theme'],
-                  'preview_theme', 'Blue'),
+          isA<OnboardingStepActive>().having(
+              (state) => state.stepConfiguration['preview_theme'],
+              'preview_theme',
+              'Blue'),
         ],
       );
     });

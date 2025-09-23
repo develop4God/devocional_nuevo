@@ -29,24 +29,24 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
   @override
   void initState() {
     super.initState();
-    
+
     // Initialize OnboardingBloc with required dependencies
     // Use try-catch to handle missing providers gracefully
     ThemeProvider? themeProvider;
     BackupBloc? backupBloc;
-    
+
     try {
       themeProvider = Provider.of<ThemeProvider>(context, listen: false);
     } catch (e) {
       debugPrint('⚠️ ThemeProvider not found in context, using fallback');
     }
-    
+
     try {
       backupBloc = context.read<BackupBloc?>();
     } catch (e) {
       debugPrint('⚠️ BackupBloc not found in context, continuing without it');
     }
-    
+
     _onboardingBloc = OnboardingBloc(
       onboardingService: OnboardingService.instance,
       themeProvider: themeProvider ?? _createFallbackThemeProvider(),
@@ -61,15 +61,16 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
   ThemeProvider _createFallbackThemeProvider() {
     debugPrint('⚠️ [ONBOARDING_FLOW] Using fallback ThemeProvider for testing');
     final fallbackProvider = ThemeProvider();
-    
+
     // Initialize with default values to prevent null errors
     try {
       // Ensure the provider has a valid default state
       fallbackProvider.initializeDefaults();
     } catch (e) {
-      debugPrint('⚠️ [ONBOARDING_FLOW] Fallback provider initialization failed: $e');
+      debugPrint(
+          '⚠️ [ONBOARDING_FLOW] Fallback provider initialization failed: $e');
     }
-    
+
     return fallbackProvider;
   }
 
@@ -227,19 +228,30 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
               body: Column(
                 children: [
                   // Progress indicator
-                  if (state.currentStepIndex < OnboardingSteps.defaultSteps.length - 1)
+                  if (state.currentStepIndex <
+                      OnboardingSteps.defaultSteps.length - 1)
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 32, vertical: 16),
                       child: Row(
-                        children: List.generate(OnboardingSteps.defaultSteps.length - 1, (index) {
+                        children: List.generate(
+                            OnboardingSteps.defaultSteps.length - 1, (index) {
                           return Expanded(
                             child: Container(
-                              margin: EdgeInsets.only(right: index < OnboardingSteps.defaultSteps.length - 2 ? 8 : 0),
+                              margin: EdgeInsets.only(
+                                  right: index <
+                                          OnboardingSteps.defaultSteps.length -
+                                              2
+                                      ? 8
+                                      : 0),
                               height: 4,
                               decoration: BoxDecoration(
                                 color: index <= state.currentStepIndex
                                     ? Theme.of(context).colorScheme.primary
-                                    : Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
+                                    : Theme.of(context)
+                                        .colorScheme
+                                        .outline
+                                        .withValues(alpha: 0.3),
                                 borderRadius: BorderRadius.circular(2),
                               ),
                             ),

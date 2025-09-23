@@ -37,14 +37,14 @@ void main() {
 
       // Initialize onboarding
       onboardingBloc.add(const InitializeOnboarding());
-      
+
       // Wait for first state change
       await Future.delayed(const Duration(milliseconds: 100));
 
       // Should have loading and then active step state
       expect(states.length, greaterThan(0));
       expect(states[0], isA<OnboardingLoading>());
-      
+
       if (states.length > 1) {
         expect(states[1], isA<OnboardingStepActive>());
         final activeState = states[1] as OnboardingStepActive;
@@ -90,7 +90,7 @@ void main() {
 
       // Should have configuration states
       expect(states.any((state) => state is OnboardingConfiguring), true);
-      
+
       await subscription.cancel();
     });
 
@@ -192,10 +192,10 @@ void main() {
     test('should handle service integration properly', () async {
       // Test that the BLoC properly integrates with OnboardingService
       final service = OnboardingService.instance;
-      
+
       // Reset to ensure clean state
       await service.resetOnboarding();
-      
+
       // Initialize onboarding
       onboardingBloc.add(const InitializeOnboarding());
       await Future.delayed(const Duration(milliseconds: 100));

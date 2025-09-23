@@ -34,7 +34,7 @@ void main() {
       WidgetTester tester,
     ) async {
       await tester.pumpWidget(createTestWidget());
-      
+
       // Should show loading indicator while initializing
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
     });
@@ -54,15 +54,18 @@ void main() {
     ) async {
       // Set up a scenario that causes initialization error
       SharedPreferences.setMockInitialValues({});
-      
+
       await tester.pumpWidget(createTestWidget());
       await tester.pumpAndSettle();
 
       // Should either show onboarding or error state
       expect(
         find.byType(CircularProgressIndicator).evaluate().isEmpty ||
-        find.text('Welcome to your spiritual space').evaluate().isNotEmpty ||
-        find.text('Error loading onboarding').evaluate().isNotEmpty,
+            find
+                .text('Welcome to your spiritual space')
+                .evaluate()
+                .isNotEmpty ||
+            find.text('Error loading onboarding').evaluate().isNotEmpty,
         true,
       );
     });
@@ -95,7 +98,7 @@ void main() {
 
       // Verify that the widget is using BLoC architecture
       final context = tester.element(find.byType(OnboardingFlow));
-      
+
       // Should not throw when trying to read the BLoC
       expect(() {
         final bloc = context.read<OnboardingBloc?>();
@@ -113,7 +116,7 @@ void main() {
       final progressIndicators = find.byWidgetPredicate(
         (widget) => widget is Container && widget.decoration != null,
       );
-      
+
       // Should have some form of progress indicator
       expect(progressIndicators.evaluate().isNotEmpty, true);
     });
