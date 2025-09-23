@@ -64,7 +64,7 @@ class _OnboardingThemeSelectionPageState
                       child: TextButton(
                         onPressed: widget.onBack,
                         child: Text(
-                          'onboarding_back'.tr(),
+                          'onboarding.onboarding_back'.tr(),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
@@ -73,7 +73,7 @@ class _OnboardingThemeSelectionPageState
                       child: TextButton(
                         onPressed: widget.onSkip,
                         child: Text(
-                          'onboarding_skip'.tr(),
+                          'onboarding.onboarding_skip'.tr(),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
@@ -100,7 +100,7 @@ class _OnboardingThemeSelectionPageState
                           children: [
                             // Title
                             Text(
-                              'onboarding_theme_title'.tr(),
+                              'onboarding.onboarding_theme_title'.tr(),
                               style: Theme.of(context)
                                   .textTheme
                                   .headlineMedium
@@ -118,7 +118,7 @@ class _OnboardingThemeSelectionPageState
 
                             // Subtitle
                             Text(
-                              'onboarding_theme_subtitle'.tr(),
+                              'onboarding.onboarding_theme_subtitle'.tr(),
                               style: Theme.of(context)
                                   .textTheme
                                   .bodyMedium
@@ -277,7 +277,7 @@ class _OnboardingThemeSelectionPageState
                       ),
                     ),
                     child: Text(
-                      'onboarding_next'.tr(),
+                      'onboarding.onboarding_next'.tr(),
                       style: const TextStyle(fontSize: 16),
                     ),
                   ),

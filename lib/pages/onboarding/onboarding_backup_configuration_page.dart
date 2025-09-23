@@ -53,11 +53,11 @@ class _OnboardingBackupConfigurationPageState
                   children: [
                     TextButton(
                       onPressed: widget.onBack,
-                      child: Text('onboarding_back'.tr()),
+                      child: Text('onboarding.onboarding_back'.tr()),
                     ),
                     TextButton(
                       onPressed: widget.onSkip,
-                      child: Text('onboarding_skip_for_now'.tr()),
+                      child: Text('onboarding.onboarding_skip_for_now'.tr()),
                     ),
                   ],
                 ),
@@ -96,7 +96,7 @@ class _OnboardingBackupConfigurationPageState
 
                       // Title
                       Text(
-                        'onboarding_backup_title'.tr(),
+                        'onboarding.onboarding_backup_title'.tr(),
                         style: Theme.of(context)
                             .textTheme
                             .headlineMedium
@@ -111,7 +111,7 @@ class _OnboardingBackupConfigurationPageState
 
                       // Subtitle
                       Text(
-                        'onboarding_backup_subtitle'.tr(),
+                        'onboarding.onboarding_backup_subtitle'.tr(),
                         style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                               color: Theme.of(
                                 context,
@@ -170,8 +170,8 @@ class _OnboardingBackupConfigurationPageState
                                   : const Icon(Icons.cloud_upload),
                               label: Text(
                                 _isConnecting
-                                    ? 'onboarding_connecting'.tr()
-                                    : 'onboarding_connect_google_drive'.tr(),
+                                    ? 'onboarding.onboarding_connecting'.tr()
+                                    : 'onboarding.onboarding_connect_google_drive'.tr(),
                                 style: const TextStyle(fontSize: 16),
                               ),
                               style: ElevatedButton.styleFrom(
@@ -203,7 +203,7 @@ class _OnboardingBackupConfigurationPageState
                           ),
                         ),
                         child: Text(
-                          'onboarding_recommended'.tr(),
+                          'onboarding.onboarding_recommended'.tr(),
                           style: TextStyle(
                             color: Colors.green.shade700,
                             fontWeight: FontWeight.w600,
@@ -236,7 +236,7 @@ class _OnboardingBackupConfigurationPageState
                             const SizedBox(width: 12),
                             Expanded(
                               child: Text(
-                                'onboarding_backup_security_info'.tr(),
+                                'onboarding.onboarding_backup_security_info'.tr(),
                                 style: Theme.of(context)
                                     .textTheme
                                     .bodyMedium
@@ -264,7 +264,7 @@ class _OnboardingBackupConfigurationPageState
                   child: TextButton(
                     onPressed: widget.onNext,
                     child: Text(
-                      'onboarding_configure_later'.tr(),
+                      'onboarding.onboarding_configure_later'.tr(),
                       style: TextStyle(
                         fontSize: 16,
                         color: Theme.of(
@@ -296,7 +296,7 @@ class _OnboardingBackupConfigurationPageState
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('onboarding_connection_timeout'.tr()),
+              content: Text('onboarding.onboarding_connection_timeout'.tr()),
               backgroundColor: Colors.orange,
             ),
           );

@@ -5,7 +5,7 @@ Aplicación móvil multilingüe para leer devocionales diarios con funcionalidad
 ## ✨ Características Principales
 
 - **📖 Devocionales Diarios**: Contenido espiritual actualizado
-- **🌍 Soporte Multilingüe**: Español, Inglés, Portugués, Francés
+- **🌍 Soporte Multilingüe**: Español, Inglés, Portugués, Francés con localización completa
 - **🔊 Audio TTS**: Lectura de devocionales con síntesis de voz
 - **⭐ Favoritos**: Guarda tus devocionales preferidos
 - **📊 Tracking Espiritual**: Estadísticas de lectura y progreso
@@ -13,11 +13,23 @@ Aplicación móvil multilingüe para leer devocionales diarios con funcionalidad
 - **📴 Modo Offline**: Acceso sin conexión a internet
 - **🔔 Notificaciones**: Recordatorios personalizables
 - **📱 Compartir**: Comparte contenido inspirador
-- **⭐ Sistema de Reseñas Inteligente**: Solicita reseñas en momentos óptimos *(NUEVO)*
+- **☁️ Respaldo en la Nube**: Sincronización automática con Google Drive *(ACTUALIZADO)*
+- **🚀 Onboarding Inteligente**: Configuración guiada inicial con BLoC architecture *(NUEVO)*
+- **⭐ Sistema de Reseñas Inteligente**: Solicita reseñas en momentos óptimos
 
-## 🆕 Nuevas Características - In-App Review System
+## 🆕 Actualizaciones Recientes
 
-### 🎯 Momentos Inteligentes para Reseñas
+### 🚀 Sistema de Onboarding con BLoC Architecture
+- **Arquitectura BLoC**: Migración completa del onboarding a patrón BLoC para mejor mantenimiento
+- **Configuración Guiada**: Flow paso a paso para selección de tema y configuración de respaldo
+- **Persistencia Inteligente**: Guardado automático de progreso con recuperación ante interrupciones
+- **Localización Completa**: Soporte total en 4 idiomas con keys actualizadas
+- **UI Responsiva**: Diseño adaptativo que funciona en todos los tamaños de pantalla
+- **Manejo de Errores**: Sistema robusto de recuperación de errores con diálogos informativos
+- **Timeout Protection**: Protección de 30 segundos para conexiones Google Drive
+- **Testing Exhaustivo**: 45+ tests cubriendo todos los escenarios posibles
+
+### 🌍 Soporte Multilingüe Mejorado
 El sistema solicita reseñas automáticamente cuando los usuarios alcanzan hitos significativos:
 - **5° devocional** (validación de engagement temprano)
 - **25° devocional** (usuario comprometido)
@@ -25,7 +37,20 @@ El sistema solicita reseñas automáticamente cuando los usuarios alcanzan hitos
 - **100° devocional** (usuario dedicado)
 - **200° devocional** (super usuario)
 
-### 🌍 Soporte Multilingüe Completo
+### 🌍 Soporte Multilingüe Mejorado
+- **Onboarding Localizado**: Todas las pantallas de configuración inicial totalmente traducidas
+- **Keys Corregidas**: Sistema de localización mejorado con estructura jerárquica (onboarding.*)
+- **Mensajes de Error**: Feedback localizado para conexiones y timeouts
+- **4 Idiomas Completos**: Español, English, Português, Français
+
+### ☁️ Sistema de Respaldo Mejorado
+- **Google Drive Integration**: Conexión segura con timeout protection
+- **Manejo de Cancelación**: Recuperación elegante cuando el usuario cancela la autenticación
+- **Estado de Conexión**: Indicadores claros de progreso y estado de conexión
+- **Auto-configuración**: Configuración automática óptima tras conexión exitosa
+- **Tests de Login Flow**: Cobertura completa de flujos de autenticación y cancelación
+
+### 🎯 Momentos Inteligentes para Reseñas
 Diálogos de reseña localizados en todos los idiomas:
 - **Español**: "Gracias por tu constancia 🙏"
 - **English**: "Thank you for your consistency 🙏"
@@ -45,9 +70,11 @@ Diálogos de reseña localizados en todos los idiomas:
 ## 🚀 Estado del Proyecto
 
 ### ✅ Testing Coverage - 95%+ en Servicios Críticos
-- **100+ Tests Unitarios**: Cobertura completa de funcionalidad
-- **36 Tests del Sistema de Reseñas**: Cobertura exhaustiva del nuevo feature *(NUEVO)*
-- **Servicios Críticos**: PrayerProvider, TtsService, LocalizationService, InAppReviewService
+- **130+ Tests Unitarios**: Cobertura completa de funcionalidad incluyendo OnboardingBloc *(ACTUALIZADO)*
+- **45+ Tests del Sistema de Onboarding**: Cobertura exhaustiva del nuevo BLoC architecture *(NUEVO)*
+- **36 Tests del Sistema de Reseñas**: Cobertura exhaustiva del feature de reseñas
+- **Login Flow Tests**: Tests específicos para flujos de autenticación y manejo de cancelación *(NUEVO)*
+- **Servicios Críticos**: PrayerProvider, TtsService, LocalizationService, InAppReviewService, OnboardingBloc
 - **Providers**: DevocionalProvider, AudioController  
 - **Performance**: Todos los tests < 30 segundos
 - **CI/CD Ready**: Tests automatizados con mocking robusto
