@@ -304,6 +304,8 @@
     "onboarding_backup_title": "Protect your spiritual progress",
     "onboarding_backup_subtitle": "Keep your devotional journey safe by connecting to Google Drive. Your reading progress, favorites, and achievements will be securely backed up.",
     "onboarding_connect_google_drive": "Connect Google Drive",
+    "onboarding_connecting": "Connecting...",
+    "onboarding_connection_timeout": "Connection timeout. Please try again.",
     "onboarding_recommended": "Recommended",
     "onboarding_skip_for_now": "Skip for now",
     "onboarding_configure_later": "Configure later",

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:devocional_nuevo/blocs/backup_bloc.dart';
 import 'package:devocional_nuevo/blocs/backup_event.dart';
 import 'package:devocional_nuevo/blocs/backup_state.dart';
@@ -141,6 +143,11 @@ class _OnboardingBackupConfigurationPageState
                                 backgroundColor: Colors.red,
                               ),
                             );
+                          } else if (state is BackupLoaded && !state.isAuthenticated && _isConnecting) {
+                            // Handle case where user cancelled the authentication
+                            setState(() {
+                              _isConnecting = false;
+                            });
                           }
                         },
                         builder: (context, state) {
@@ -161,7 +168,7 @@ class _OnboardingBackupConfigurationPageState
                                   : const Icon(Icons.cloud_upload),
                               label: Text(
                                 _isConnecting
-                                    ? 'Conectando...'
+                                    ? 'onboarding_connecting'.tr()
                                     : 'onboarding_connect_google_drive'.tr(),
                                 style: const TextStyle(fontSize: 16),
                               ),
@@ -276,6 +283,23 @@ class _OnboardingBackupConfigurationPageState
   void _connectGoogleDrive(BuildContext context) {
     setState(() {
       _isConnecting = true;
+    });
+
+    // Add timeout protection to prevent infinite connecting state
+    Timer(const Duration(seconds: 30), () {
+      if (_isConnecting && mounted) {
+        setState(() {
+          _isConnecting = false;
+        });
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('onboarding_connection_timeout'.tr()),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
+      }
     });
 
     context.read<BackupBloc>().add(const SignInToGoogleDrive());

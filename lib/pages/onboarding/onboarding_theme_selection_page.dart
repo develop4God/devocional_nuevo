@@ -60,13 +60,23 @@ class _OnboardingThemeSelectionPageState
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    TextButton(
-                      onPressed: widget.onBack,
-                      child: Text('onboarding_back'.tr()),
+                    Flexible(
+                      child: TextButton(
+                        onPressed: widget.onBack,
+                        child: Text(
+                          'onboarding_back'.tr(),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
                     ),
-                    TextButton(
-                      onPressed: widget.onSkip,
-                      child: Text('onboarding_skip'.tr()),
+                    Flexible(
+                      child: TextButton(
+                        onPressed: widget.onSkip,
+                        child: Text(
+                          'onboarding_skip'.tr(),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -77,39 +87,56 @@ class _OnboardingThemeSelectionPageState
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 32.0),
                   child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      // Title
-                      Text(
-                        'onboarding_theme_title'.tr(),
-                        style: Theme.of(context)
-                            .textTheme
-                            .headlineMedium
-                            ?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: Theme.of(context).colorScheme.onSurface,
+                      // Title and subtitle section - more flexible height
+                      ConstrainedBox(
+                        constraints: const BoxConstraints(
+                          minHeight: 80,
+                          maxHeight: 140, // Flexible height constraint
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // Title
+                            Text(
+                              'onboarding_theme_title'.tr(),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .headlineMedium
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: Theme.of(context).colorScheme.onSurface,
+                                  ),
+                              textAlign: TextAlign.center,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                        textAlign: TextAlign.center,
+
+                            const SizedBox(height: 12),
+
+                            // Subtitle
+                            Text(
+                              'onboarding_theme_subtitle'.tr(),
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurface.withValues(alpha: 0.7),
+                                  ),
+                              textAlign: TextAlign.center,
+                              maxLines: 3,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
                       ),
 
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 24),
 
-                      // Subtitle
-                      Text(
-                        'onboarding_theme_subtitle'.tr(),
-                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.onSurface.withOpacity(0.7),
-                            ),
-                        textAlign: TextAlign.center,
-                      ),
-
-                      const SizedBox(height: 48),
-
-                      // Theme selection grid
+                      // Theme selection grid - takes remaining space
                       Expanded(
                         child: GridView.builder(
+                          padding: const EdgeInsets.only(bottom: 16),
                           gridDelegate:
                               const SliverGridDelegateWithFixedCrossAxisCount(
                             crossAxisCount: 2,
@@ -162,22 +189,23 @@ class _OnboardingThemeSelectionPageState
                                 ),
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
+                                  mainAxisSize: MainAxisSize.min, // Prevent overflow
                                   children: [
-                                    // Color circle
+                                    // Color circle - smaller
                                     Container(
-                                      width: 60,
-                                      height: 60,
+                                      width: 50, // Reduced size
+                                      height: 50, // Reduced size
                                       decoration: BoxDecoration(
                                         shape: BoxShape.circle,
                                         color: themeData.colorScheme.primary,
                                         border: Border.all(
                                           color: Colors.white,
-                                          width: 3,
+                                          width: 2, // Reduced border
                                         ),
                                         boxShadow: [
                                           BoxShadow(
-                                            color: Colors.black.withOpacity(
-                                              0.1,
+                                            color: Colors.black.withValues(
+                                              alpha: 0.1,
                                             ),
                                             blurRadius: 4,
                                             offset: const Offset(0, 2),
@@ -188,24 +216,29 @@ class _OnboardingThemeSelectionPageState
 
                                     const SizedBox(height: 16),
 
-                                    // Theme name
-                                    Text(
-                                      displayName,
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w600,
-                                        color: themeData.colorScheme.onSurface,
+                                    // Theme name - constrained
+                                    Flexible(
+                                      child: Text(
+                                        displayName,
+                                        style: TextStyle(
+                                          fontSize: 12, // Smaller font
+                                          fontWeight: FontWeight.w600,
+                                          color: themeData.colorScheme.onSurface,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
                                       ),
                                     ),
 
                                     // Selected indicator
                                     if (isSelected)
                                       Padding(
-                                        padding: const EdgeInsets.only(top: 8),
+                                        padding: const EdgeInsets.only(top: 4), // Reduced padding
                                         child: Icon(
                                           Icons.check_circle,
                                           color: themeData.colorScheme.primary,
-                                          size: 20,
+                                          size: 16, // Smaller icon
                                         ),
                                       ),
                                   ],

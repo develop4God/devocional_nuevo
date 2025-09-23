@@ -81,7 +81,7 @@ class _OnboardingWelcomePageState extends State<OnboardingWelcomePage>
                   padding: const EdgeInsets.all(16.0),
                   child: TextButton(
                     onPressed: widget.onSkip,
-                    child: Text('onboarding.onboarding_skip'.tr()),
+                    child: Text('onboarding_skip'.tr()),
                   ),
                 ),
               ),
@@ -166,7 +166,7 @@ class _OnboardingWelcomePageState extends State<OnboardingWelcomePage>
 
                       // Welcome title
                       Text(
-                        'onboarding.onboarding_welcome_title'.tr(),
+                        'onboarding_welcome_title'.tr(),
                         style: Theme.of(context)
                             .textTheme
                             .headlineMedium
@@ -181,7 +181,7 @@ class _OnboardingWelcomePageState extends State<OnboardingWelcomePage>
 
                       // Welcome subtitle
                       Text(
-                        'onboarding.onboarding_welcome_subtitle'.tr(),
+                        'onboarding_welcome_subtitle'.tr(),
                         style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                               color: Theme.of(
                                 context,
@@ -209,7 +209,7 @@ class _OnboardingWelcomePageState extends State<OnboardingWelcomePage>
                       ),
                     ),
                     child: Text(
-                      'onboarding.onboarding_next'.tr(),
+                      'onboarding_next'.tr(),
                       style: const TextStyle(fontSize: 16),
                     ),
                   ),

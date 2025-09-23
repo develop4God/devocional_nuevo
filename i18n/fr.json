@@ -302,6 +302,8 @@
     "onboarding_backup_title": "Protégez votre progrès spirituel",
     "onboarding_backup_subtitle": "Gardez votre voyage dévotion en sécurité en vous connectant à Google Drive. Votre progrès de lecture, favoris et réalisations seront sauvegardés en toute sécurité.",
     "onboarding_connect_google_drive": "Connecter Google Drive",
+    "onboarding_connecting": "Connexion...",
+    "onboarding_connection_timeout": "Délai de connexion dépassé. Veuillez réessayer.",
     "onboarding_recommended": "Recommandé",
     "onboarding_skip_for_now": "Ignorer pour l'instant",
     "onboarding_configure_later": "Configurer plus tard",
