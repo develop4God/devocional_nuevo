@@ -178,7 +178,7 @@ void main() {
     ) async {
       // Test OnboardingFlow without MaterialApp wrapper to check for Directionality issues
       await tester.pumpWidget(OnboardingFlow(onComplete: () {}));
-      
+
       // Should not throw Directionality exception
       expect(tester.takeException(), isNull);
     });
@@ -186,7 +186,8 @@ void main() {
     testWidgets('OnboardingFlow with MaterialApp', (
       WidgetTester tester,
     ) async {
-      await tester.pumpWidget(MaterialApp(home: OnboardingFlow(onComplete: () {})));
+      await tester
+          .pumpWidget(MaterialApp(home: OnboardingFlow(onComplete: () {})));
       expect(find.byType(Scaffold), findsOneWidget);
     });
   });

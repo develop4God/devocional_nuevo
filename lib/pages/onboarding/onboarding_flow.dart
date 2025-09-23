@@ -111,7 +111,7 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
   void _showErrorDialog(BuildContext context, OnboardingError error) {
     if (!mounted) return; // Safety check before showing dialog
     if (!context.mounted) return; // Context safety check
-    
+
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -169,7 +169,7 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
         child: BlocConsumer<OnboardingBloc, OnboardingState>(
           listener: (context, state) {
             if (!mounted) return; // Safety check for async state updates
-            
+
             if (state is OnboardingStepActive) {
               // Animate to the current step page
               _animateToPage(state.currentStepIndex);
@@ -181,141 +181,151 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
               _showErrorDialog(context, state);
             }
           },
-        builder: (context, state) {
-          if (state is OnboardingLoading) {
+          builder: (context, state) {
+            if (state is OnboardingLoading) {
+              return const Scaffold(
+                body: Center(
+                  child: CircularProgressIndicator(),
+                ),
+              );
+            }
+
+            if (state is OnboardingCompleted) {
+              // This should not be reached due to the listener, but provide fallback
+              return const Scaffold(
+                body: Center(
+                  child: Text('Onboarding completed!'),
+                ),
+              );
+            }
+
+            if (state is OnboardingError) {
+              return Scaffold(
+                body: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.error_outline,
+                        size: 64,
+                        color: Theme.of(context).colorScheme.error,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Error loading onboarding',
+                        style: Theme.of(context).textTheme.headlineSmall,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        state.message,
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                      const SizedBox(height: 24),
+                      ElevatedButton(
+                        onPressed: () {
+                          _onboardingBloc.add(const InitializeOnboarding());
+                        },
+                        child: const Text('Retry'),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }
+
+            if (state is OnboardingStepActive) {
+              return Scaffold(
+                body: Column(
+                  children: [
+                    // Progress indicator
+                    if (state.currentStepIndex <
+                        OnboardingSteps.defaultSteps.length - 1)
+                      Container(
+                        padding: const EdgeInsets.fromLTRB(
+                            32, 24, 32, 16), // Added top padding for status bar
+                        margin: const EdgeInsets.only(
+                            top:
+                                8), // Additional margin to separate from status bar
+                        child: Row(
+                          children: List.generate(
+                              OnboardingSteps.defaultSteps.length - 1, (index) {
+                            return Expanded(
+                              child: Container(
+                                margin: EdgeInsets.only(
+                                    right: index <
+                                            OnboardingSteps
+                                                    .defaultSteps.length -
+                                                2
+                                        ? 8
+                                        : 0),
+                                height:
+                                    6, // Increased height for better visibility
+                                decoration: BoxDecoration(
+                                  color: index <= state.currentStepIndex
+                                      ? Theme.of(context).colorScheme.primary
+                                      : Theme.of(context)
+                                          .colorScheme
+                                          .outline
+                                          .withValues(alpha: 0.3),
+                                  borderRadius: BorderRadius.circular(3),
+                                  boxShadow: index <= state.currentStepIndex
+                                      ? [
+                                          BoxShadow(
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .primary
+                                                .withOpacity(0.3),
+                                            blurRadius: 4,
+                                            offset: const Offset(0, 2),
+                                          ),
+                                        ]
+                                      : null,
+                                ),
+                              ),
+                            );
+                          }),
+                        ),
+                      ),
+
+                    // Pages
+                    Expanded(
+                      child: PageView(
+                        controller: _pageController,
+                        physics: const NeverScrollableScrollPhysics(),
+                        children: [
+                          OnboardingWelcomePage(
+                            onNext: () => _handleStepNavigation(1),
+                            onSkip: _handleSkip,
+                          ),
+                          OnboardingThemeSelectionPage(
+                            onNext: () => _handleStepNavigation(2),
+                            onBack: _handleBack,
+                            onSkip: _handleSkip,
+                          ),
+                          OnboardingBackupConfigurationPage(
+                            onNext: () => _handleStepNavigation(3),
+                            onBack: _handleBack,
+                            onSkip: () => _handleStepNavigation(3),
+                          ),
+                          OnboardingCompletePage(onStartApp: _handleComplete),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }
+
+            // Default fallback for initial state
             return const Scaffold(
               body: Center(
                 child: CircularProgressIndicator(),
               ),
             );
-          }
-
-          if (state is OnboardingCompleted) {
-            // This should not be reached due to the listener, but provide fallback
-            return const Scaffold(
-              body: Center(
-                child: Text('Onboarding completed!'),
-              ),
-            );
-          }
-
-          if (state is OnboardingError) {
-            return Scaffold(
-              body: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.error_outline,
-                      size: 64,
-                      color: Theme.of(context).colorScheme.error,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Error loading onboarding',
-                      style: Theme.of(context).textTheme.headlineSmall,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      state.message,
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                    const SizedBox(height: 24),
-                    ElevatedButton(
-                      onPressed: () {
-                        _onboardingBloc.add(const InitializeOnboarding());
-                      },
-                      child: const Text('Retry'),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          }
-
-          if (state is OnboardingStepActive) {
-            return Scaffold(
-              body: Column(
-                children: [
-                  // Progress indicator  
-                  if (state.currentStepIndex <
-                      OnboardingSteps.defaultSteps.length - 1)
-                    Container(
-                      padding: const EdgeInsets.fromLTRB(32, 24, 32, 16), // Added top padding for status bar
-                      margin: const EdgeInsets.only(top: 8), // Additional margin to separate from status bar
-                      child: Row(
-                        children: List.generate(
-                            OnboardingSteps.defaultSteps.length - 1, (index) {
-                          return Expanded(
-                            child: Container(
-                              margin: EdgeInsets.only(
-                                  right: index <
-                                          OnboardingSteps.defaultSteps.length -
-                                              2
-                                      ? 8
-                                      : 0),
-                              height: 6, // Increased height for better visibility
-                              decoration: BoxDecoration(
-                                color: index <= state.currentStepIndex
-                                    ? Theme.of(context).colorScheme.primary
-                                    : Theme.of(context)
-                                        .colorScheme
-                                        .outline
-                                        .withValues(alpha: 0.3),
-                                borderRadius: BorderRadius.circular(3),
-                                boxShadow: index <= state.currentStepIndex ? [
-                                  BoxShadow(
-                                    color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
-                                    blurRadius: 4,
-                                    offset: const Offset(0, 2),
-                                  ),
-                                ] : null,
-                              ),
-                            ),
-                          );
-                        }),
-                      ),
-                    ),
-
-                  // Pages
-                  Expanded(
-                    child: PageView(
-                      controller: _pageController,
-                      physics: const NeverScrollableScrollPhysics(),
-                      children: [
-                        OnboardingWelcomePage(
-                          onNext: () => _handleStepNavigation(1),
-                          onSkip: _handleSkip,
-                        ),
-                        OnboardingThemeSelectionPage(
-                          onNext: () => _handleStepNavigation(2),
-                          onBack: _handleBack,
-                          onSkip: _handleSkip,
-                        ),
-                        OnboardingBackupConfigurationPage(
-                          onNext: () => _handleStepNavigation(3),
-                          onBack: _handleBack,
-                          onSkip: () => _handleStepNavigation(3),
-                        ),
-                        OnboardingCompletePage(onStartApp: _handleComplete),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }
-
-          // Default fallback for initial state
-          return const Scaffold(
-            body: Center(
-              child: CircularProgressIndicator(),
-            ),
-          );
-        },
-      ),
-    ), // Closes Directionality widget child
+          },
+        ),
+      ), // Closes Directionality widget child
     ); // Closes Directionality widget
   }
 }

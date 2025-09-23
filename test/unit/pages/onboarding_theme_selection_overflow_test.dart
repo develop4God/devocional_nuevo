@@ -29,7 +29,7 @@ void main() {
     ) async {
       // Set a constrained screen size to test overflow scenarios
       await tester.binding.setSurfaceSize(const Size(400, 600));
-      
+
       await tester.pumpWidget(createTestWidget());
       await tester.pumpAndSettle();
 
@@ -38,11 +38,11 @@ void main() {
 
       // Verify the GridView is present and scrollable
       expect(find.byType(GridView), findsOneWidget);
-      
+
       // Test scrolling to ensure no overflow during interaction
       await tester.drag(find.byType(GridView), const Offset(0, -100));
       await tester.pumpAndSettle();
-      
+
       // Verify no exceptions after scrolling
       expect(tester.takeException(), isNull);
     });
@@ -52,13 +52,13 @@ void main() {
     ) async {
       // Test with very small screen size
       await tester.binding.setSurfaceSize(const Size(320, 480));
-      
+
       await tester.pumpWidget(createTestWidget());
       await tester.pumpAndSettle();
 
       // Verify no overflow exceptions occurred
       expect(tester.takeException(), isNull);
-      
+
       // Verify content is still accessible
       expect(find.byType(GridView), findsOneWidget);
     });
@@ -71,7 +71,7 @@ void main() {
 
       // Verify GridView is present
       expect(find.byType(GridView), findsOneWidget);
-      
+
       // Verify there are theme selection items (circles)
       expect(find.byType(Container), findsWidgets);
     });

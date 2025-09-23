@@ -106,7 +106,8 @@ class _OnboardingThemeSelectionPageState
                                   .headlineMedium
                                   ?.copyWith(
                                     fontWeight: FontWeight.bold,
-                                    color: Theme.of(context).colorScheme.onSurface,
+                                    color:
+                                        Theme.of(context).colorScheme.onSurface,
                                   ),
                               textAlign: TextAlign.center,
                               maxLines: 2,
@@ -118,10 +119,16 @@ class _OnboardingThemeSelectionPageState
                             // Subtitle
                             Text(
                               'onboarding_theme_subtitle'.tr(),
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
+                                  ?.copyWith(
                                     color: Theme.of(
                                       context,
-                                    ).colorScheme.onSurface.withValues(alpha: 0.7),
+                                    )
+                                        .colorScheme
+                                        .onSurface
+                                        .withValues(alpha: 0.7),
                                   ),
                               textAlign: TextAlign.center,
                               maxLines: 3,
@@ -189,7 +196,8 @@ class _OnboardingThemeSelectionPageState
                                 ),
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
-                                  mainAxisSize: MainAxisSize.min, // Prevent overflow
+                                  mainAxisSize:
+                                      MainAxisSize.min, // Prevent overflow
                                   children: [
                                     // Color circle - smaller
                                     Container(
@@ -223,7 +231,8 @@ class _OnboardingThemeSelectionPageState
                                         style: TextStyle(
                                           fontSize: 12, // Smaller font
                                           fontWeight: FontWeight.w600,
-                                          color: themeData.colorScheme.onSurface,
+                                          color:
+                                              themeData.colorScheme.onSurface,
                                         ),
                                         textAlign: TextAlign.center,
                                         maxLines: 2,
@@ -234,7 +243,8 @@ class _OnboardingThemeSelectionPageState
                                     // Selected indicator
                                     if (isSelected)
                                       Padding(
-                                        padding: const EdgeInsets.only(top: 4), // Reduced padding
+                                        padding: const EdgeInsets.only(
+                                            top: 4), // Reduced padding
                                         child: Icon(
                                           Icons.check_circle,
                                           color: themeData.colorScheme.primary,

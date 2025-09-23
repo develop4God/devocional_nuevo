@@ -21,15 +21,15 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
   // Configuration persistence keys
   static const String _configurationKey = 'onboarding_configuration';
   static const String _progressKey = 'onboarding_progress';
-  
+
   // Schema versioning for persistence migration
   static const int _currentSchemaVersion = 1;
-  
+
   // Race condition protection
   bool _isProcessingStep = false;
   bool _isCompletingOnboarding = false;
   bool _isSavingConfiguration = false;
-  
+
   // SharedPreferences operation mutex
   static bool _isSharedPrefsOperation = false;
 
@@ -138,7 +138,8 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
 
     // Race condition protection
     if (_isProcessingStep) {
-      debugPrint('⚠️ [ONBOARDING_BLOC] Step progression already in progress, ignoring duplicate event');
+      debugPrint(
+          '⚠️ [ONBOARDING_BLOC] Step progression already in progress, ignoring duplicate event');
       return;
     }
 
@@ -375,7 +376,8 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
 
     // Race condition protection
     if (_isCompletingOnboarding) {
-      debugPrint('⚠️ [ONBOARDING_BLOC] Onboarding completion already in progress, ignoring duplicate event');
+      debugPrint(
+          '⚠️ [ONBOARDING_BLOC] Onboarding completion already in progress, ignoring duplicate event');
       return;
     }
 
@@ -546,32 +548,37 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
         try {
           wrapper = jsonDecode(configJson) as Map<String, dynamic>;
         } catch (e) {
-          debugPrint('❌ [ONBOARDING_BLOC] Corrupted JSON detected in configuration: $e');
-          debugPrint('🔄 [ONBOARDING_BLOC] Clearing corrupted configuration data');
+          debugPrint(
+              '❌ [ONBOARDING_BLOC] Corrupted JSON detected in configuration: $e');
+          debugPrint(
+              '🔄 [ONBOARDING_BLOC] Clearing corrupted configuration data');
           await prefs.remove(_configurationKey);
           return {};
         }
-        
+
         // Validate JSON structure
         if (!_isValidConfigurationStructure(wrapper)) {
-          debugPrint('⚠️ [ONBOARDING_BLOC] Invalid configuration structure detected, falling back to defaults');
+          debugPrint(
+              '⚠️ [ONBOARDING_BLOC] Invalid configuration structure detected, falling back to defaults');
           await prefs.remove(_configurationKey);
           return {};
         }
-        
+
         // Check for schema version
         final schemaVersion = wrapper['schemaVersion'] as int? ?? 0;
-        Map<String, dynamic> config = wrapper['payload'] as Map<String, dynamic>? ?? wrapper;
-        
+        Map<String, dynamic> config =
+            wrapper['payload'] as Map<String, dynamic>? ?? wrapper;
+
         // Apply migration if needed
         if (schemaVersion < _currentSchemaVersion) {
           config = _migrateConfiguration(config, schemaVersion);
-          debugPrint('🔄 [ONBOARDING_BLOC] Configuration migrated from v$schemaVersion to v$_currentSchemaVersion');
-          
+          debugPrint(
+              '🔄 [ONBOARDING_BLOC] Configuration migrated from v$schemaVersion to v$_currentSchemaVersion');
+
           // Save migrated configuration
           await _saveConfiguration(config);
         }
-        
+
         debugPrint(
             '📊 [ONBOARDING_BLOC] Configuración cargada: ${config.keys}');
         return config;
@@ -586,15 +593,16 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
   /// Save configuration to SharedPreferences with schema versioning
   Future<void> _saveConfiguration(Map<String, dynamic> configuration) async {
     if (_isSavingConfiguration) {
-      debugPrint('⚠️ [ONBOARDING_BLOC] Configuration save already in progress, skipping');
+      debugPrint(
+          '⚠️ [ONBOARDING_BLOC] Configuration save already in progress, skipping');
       return;
     }
-    
+
     // Wait for any ongoing SharedPreferences operations
     while (_isSharedPrefsOperation) {
       await Future.delayed(const Duration(milliseconds: 10));
     }
-    
+
     _isSavingConfiguration = true;
     _isSharedPrefsOperation = true;
     try {
@@ -627,29 +635,33 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
         try {
           wrapper = jsonDecode(progressJson) as Map<String, dynamic>;
         } catch (e) {
-          debugPrint('❌ [ONBOARDING_BLOC] Corrupted JSON detected in progress: $e');
+          debugPrint(
+              '❌ [ONBOARDING_BLOC] Corrupted JSON detected in progress: $e');
           debugPrint('🔄 [ONBOARDING_BLOC] Clearing corrupted progress data');
           await prefs.remove(_progressKey);
           return null;
         }
-        
+
         // Validate JSON structure
         if (!_isValidProgressStructure(wrapper)) {
-          debugPrint('⚠️ [ONBOARDING_BLOC] Invalid progress structure detected, falling back to defaults');
+          debugPrint(
+              '⚠️ [ONBOARDING_BLOC] Invalid progress structure detected, falling back to defaults');
           await prefs.remove(_progressKey);
           return null;
         }
-        
+
         // Check for schema version
         final schemaVersion = wrapper['schemaVersion'] as int? ?? 0;
-        Map<String, dynamic> progressData = wrapper['payload'] as Map<String, dynamic>? ?? wrapper;
-        
+        Map<String, dynamic> progressData =
+            wrapper['payload'] as Map<String, dynamic>? ?? wrapper;
+
         // Apply migration if needed
         if (schemaVersion < _currentSchemaVersion) {
           progressData = _migrateProgress(progressData, schemaVersion);
-          debugPrint('🔄 [ONBOARDING_BLOC] Progress migrated from v$schemaVersion to v$_currentSchemaVersion');
+          debugPrint(
+              '🔄 [ONBOARDING_BLOC] Progress migrated from v$schemaVersion to v$_currentSchemaVersion');
         }
-        
+
         final progress = OnboardingProgress.fromJson(progressData);
         debugPrint(
             '📊 [ONBOARDING_BLOC] Progreso cargado: ${progress.completedSteps}/${progress.totalSteps}');
@@ -668,7 +680,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     while (_isSharedPrefsOperation) {
       await Future.delayed(const Duration(milliseconds: 10));
     }
-    
+
     _isSharedPrefsOperation = true;
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -779,18 +791,21 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
   }
 
   /// Migrate configuration from older schema versions
-  Map<String, dynamic> _migrateConfiguration(Map<String, dynamic> config, int fromVersion) {
-    debugPrint('🔄 [ONBOARDING_BLOC] Migrating configuration from version $fromVersion to $_currentSchemaVersion');
-    
+  Map<String, dynamic> _migrateConfiguration(
+      Map<String, dynamic> config, int fromVersion) {
+    debugPrint(
+        '🔄 [ONBOARDING_BLOC] Migrating configuration from version $fromVersion to $_currentSchemaVersion');
+
     try {
       Map<String, dynamic> migratedConfig = Map<String, dynamic>.from(config);
-      
+
       // Version 0 -> 1: No changes needed for now, but this is where future migrations would go
       if (fromVersion < 1) {
         // Example: migratedConfig['newField'] = 'defaultValue';
-        debugPrint('✅ [ONBOARDING_BLOC] Configuration migration v0->v1 completed');
+        debugPrint(
+            '✅ [ONBOARDING_BLOC] Configuration migration v0->v1 completed');
       }
-      
+
       return migratedConfig;
     } catch (e) {
       debugPrint('❌ [ONBOARDING_BLOC] Configuration migration failed: $e');
@@ -800,22 +815,26 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
   }
 
   /// Migrate progress data from older schema versions
-  Map<String, dynamic> _migrateProgress(Map<String, dynamic> progressData, int fromVersion) {
-    debugPrint('🔄 [ONBOARDING_BLOC] Migrating progress from version $fromVersion to $_currentSchemaVersion');
-    
+  Map<String, dynamic> _migrateProgress(
+      Map<String, dynamic> progressData, int fromVersion) {
+    debugPrint(
+        '🔄 [ONBOARDING_BLOC] Migrating progress from version $fromVersion to $_currentSchemaVersion');
+
     try {
-      Map<String, dynamic> migratedProgress = Map<String, dynamic>.from(progressData);
-      
+      Map<String, dynamic> migratedProgress =
+          Map<String, dynamic>.from(progressData);
+
       // Version 0 -> 1: No changes needed for now, but this is where future migrations would go
       if (fromVersion < 1) {
         // Example: Ensure all required fields exist
         migratedProgress['totalSteps'] ??= 4;
         migratedProgress['completedSteps'] ??= 0;
-        migratedProgress['stepCompletionStatus'] ??= List<bool>.filled(4, false);
+        migratedProgress['stepCompletionStatus'] ??=
+            List<bool>.filled(4, false);
         migratedProgress['progressPercentage'] ??= 0.0;
         debugPrint('✅ [ONBOARDING_BLOC] Progress migration v0->v1 completed');
       }
-      
+
       return migratedProgress;
     } catch (e) {
       debugPrint('❌ [ONBOARDING_BLOC] Progress migration failed: $e');
@@ -831,7 +850,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       if (data.containsKey('schemaVersion') && data.containsKey('payload')) {
         final payload = data['payload'];
         if (payload is! Map<String, dynamic>) return false;
-        
+
         // Validate known configuration keys if present
         for (final key in payload.keys) {
           if (!_isValidConfigurationKey(key)) {
@@ -840,16 +859,18 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
         }
         return true;
       }
-      
+
       // For legacy format (direct configuration)
       for (final key in data.keys) {
         if (!_isValidConfigurationKey(key)) {
-          debugPrint('⚠️ [ONBOARDING_BLOC] Unknown legacy configuration key: $key');
+          debugPrint(
+              '⚠️ [ONBOARDING_BLOC] Unknown legacy configuration key: $key');
         }
       }
       return true;
     } catch (e) {
-      debugPrint('❌ [ONBOARDING_BLOC] Configuration structure validation failed: $e');
+      debugPrint(
+          '❌ [ONBOARDING_BLOC] Configuration structure validation failed: $e');
       return false;
     }
   }
@@ -863,11 +884,12 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
         if (payload is! Map<String, dynamic>) return false;
         return _isValidProgressPayload(payload);
       }
-      
+
       // For legacy format (direct progress)
       return _isValidProgressPayload(data);
     } catch (e) {
-      debugPrint('❌ [ONBOARDING_BLOC] Progress structure validation failed: $e');
+      debugPrint(
+          '❌ [ONBOARDING_BLOC] Progress structure validation failed: $e');
       return false;
     }
   }
@@ -887,26 +909,32 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
 
   /// Validate progress payload structure
   bool _isValidProgressPayload(Map<String, dynamic> payload) {
-    const requiredKeys = ['totalSteps', 'completedSteps', 'stepCompletionStatus', 'progressPercentage'];
-    
+    const requiredKeys = [
+      'totalSteps',
+      'completedSteps',
+      'stepCompletionStatus',
+      'progressPercentage'
+    ];
+
     for (final key in requiredKeys) {
       if (!payload.containsKey(key)) {
         debugPrint('❌ [ONBOARDING_BLOC] Missing required progress key: $key');
         return false;
       }
     }
-    
+
     // Validate data types
     if (payload['totalSteps'] is! int || payload['completedSteps'] is! int) {
       debugPrint('❌ [ONBOARDING_BLOC] Invalid progress step count types');
       return false;
     }
-    
-    if (payload['stepCompletionStatus'] is! List || payload['progressPercentage'] is! num) {
+
+    if (payload['stepCompletionStatus'] is! List ||
+        payload['progressPercentage'] is! num) {
       debugPrint('❌ [ONBOARDING_BLOC] Invalid progress data types');
       return false;
     }
-    
+
     return true;
   }
 }

@@ -143,7 +143,9 @@ class _OnboardingBackupConfigurationPageState
                                 backgroundColor: Colors.red,
                               ),
                             );
-                          } else if (state is BackupLoaded && !state.isAuthenticated && _isConnecting) {
+                          } else if (state is BackupLoaded &&
+                              !state.isAuthenticated &&
+                              _isConnecting) {
                             // Handle case where user cancelled the authentication
                             setState(() {
                               _isConnecting = false;
