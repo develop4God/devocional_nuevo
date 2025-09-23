@@ -1,4 +1,5 @@
 // lib/blocs/onboarding/onboarding_bloc.dart
+import 'dart:convert'; // ✅ Required for jsonEncode/jsonDecode
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -193,6 +194,16 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     }
 
     try {
+      // Validate theme family input
+      if (!_validateThemeFamily(event.themeFamily)) {
+        emit(OnboardingError(
+          message: 'Invalid theme family: ${event.themeFamily}',
+          category: OnboardingErrorCategory.invalidConfiguration,
+          errorContext: {'themeFamily': event.themeFamily},
+        ));
+        return;
+      }
+
       final currentState = state as OnboardingStepActive;
       
       emit(OnboardingConfiguring(
@@ -208,6 +219,16 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       final updatedSelections =
           Map<String, dynamic>.from(currentState.userSelections);
       updatedSelections['selectedThemeFamily'] = event.themeFamily;
+
+      // Validate configuration before saving
+      if (!_validateConfiguration(updatedSelections)) {
+        emit(OnboardingError(
+          message: 'Configuration validation failed',
+          category: OnboardingErrorCategory.invalidConfiguration,
+          errorContext: {'configuration': updatedSelections},
+        ));
+        return;
+      }
 
       // Save configuration
       await _saveConfiguration(updatedSelections);
@@ -491,8 +512,8 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       final configJson = prefs.getString(_configurationKey);
 
       if (configJson != null) {
-        final Map<String, dynamic> config = {};
-        // Parse saved configuration (simplified for this implementation)
+        final Map<String, dynamic> config = jsonDecode(configJson) as Map<String, dynamic>;
+        debugPrint('📊 [ONBOARDING_BLOC] Configuración cargada: ${config.keys}');
         return config;
       }
     } catch (e) {
@@ -505,7 +526,8 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
   Future<void> _saveConfiguration(Map<String, dynamic> configuration) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(_configurationKey, configuration.toString());
+      final configJson = jsonEncode(configuration);
+      await prefs.setString(_configurationKey, configJson);
       debugPrint('💾 [ONBOARDING_BLOC] Configuración guardada: ${configuration.keys}');
     } catch (e) {
       debugPrint('⚠️ [ONBOARDING_BLOC] Error saving configuration: $e');
@@ -519,8 +541,10 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       final progressJson = prefs.getString(_progressKey);
 
       if (progressJson != null) {
-        // Parse saved progress (simplified for this implementation)
-        return null;
+        final progressData = jsonDecode(progressJson) as Map<String, dynamic>;
+        final progress = OnboardingProgress.fromJson(progressData);
+        debugPrint('📊 [ONBOARDING_BLOC] Progreso cargado: ${progress.completedSteps}/${progress.totalSteps}');
+        return progress;
       }
     } catch (e) {
       debugPrint('⚠️ [ONBOARDING_BLOC] Error loading saved progress: $e');
@@ -532,7 +556,8 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
   Future<void> _saveProgress(OnboardingProgress progress) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(_progressKey, progress.toString());
+      final progressJson = jsonEncode(progress.toJson());
+      await prefs.setString(_progressKey, progressJson);
       debugPrint('💾 [ONBOARDING_BLOC] Progreso guardado: ${progress.completedSteps}/${progress.totalSteps}');
     } catch (e) {
       debugPrint('⚠️ [ONBOARDING_BLOC] Error saving progress: $e');
@@ -559,5 +584,63 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     } catch (e) {
       debugPrint('⚠️ [ONBOARDING_BLOC] Error clearing progress: $e');
     }
+  }
+
+  /// Validate configuration before applying
+  bool _validateConfiguration(Map<String, dynamic> configuration) {
+    try {
+      // Check for valid theme family if provided
+      if (configuration.containsKey('selectedThemeFamily')) {
+        final themeFamily = configuration['selectedThemeFamily'];
+        if (themeFamily != null && themeFamily is! String) {
+          debugPrint('❌ [ONBOARDING_BLOC] Invalid theme family type: ${themeFamily.runtimeType}');
+          return false;
+        }
+        if (themeFamily is String && themeFamily.trim().isEmpty) {
+          debugPrint('❌ [ONBOARDING_BLOC] Theme family cannot be empty');
+          return false;
+        }
+      }
+
+      // Check for valid backup enabled flag if provided
+      if (configuration.containsKey('backupEnabled')) {
+        final backupEnabled = configuration['backupEnabled'];
+        if (backupEnabled != null && backupEnabled is! bool) {
+          debugPrint('❌ [ONBOARDING_BLOC] Invalid backup enabled type: ${backupEnabled.runtimeType}');
+          return false;
+        }
+      }
+
+      // Check for valid language if provided
+      if (configuration.containsKey('selectedLanguage')) {
+        final language = configuration['selectedLanguage'];
+        if (language != null && language is! String) {
+          debugPrint('❌ [ONBOARDING_BLOC] Invalid language type: ${language.runtimeType}');
+          return false;
+        }
+      }
+
+      debugPrint('✅ [ONBOARDING_BLOC] Configuration validation passed');
+      return true;
+    } catch (e) {
+      debugPrint('❌ [ONBOARDING_BLOC] Configuration validation error: $e');
+      return false;
+    }
+  }
+
+  /// Validate theme family input
+  bool _validateThemeFamily(String themeFamily) {
+    if (themeFamily.trim().isEmpty) {
+      debugPrint('❌ [ONBOARDING_BLOC] Theme family cannot be empty');
+      return false;
+    }
+
+    // You could add additional validation here for supported themes
+    final supportedThemes = ['Deep Purple', 'Blue', 'Green', 'Red', 'Orange', 'Purple'];
+    if (!supportedThemes.contains(themeFamily)) {
+      debugPrint('⚠️ [ONBOARDING_BLOC] Theme family "$themeFamily" not in supported list, but allowing it');
+    }
+
+    return true;
   }
 }

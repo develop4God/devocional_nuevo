@@ -109,6 +109,26 @@ class OnboardingProgress extends Equatable {
       progressPercentage: progressPercentage,
     );
   }
+
+  /// Convert to JSON for persistence
+  Map<String, dynamic> toJson() {
+    return {
+      'totalSteps': totalSteps,
+      'completedSteps': completedSteps,
+      'stepCompletionStatus': stepCompletionStatus,
+      'progressPercentage': progressPercentage,
+    };
+  }
+
+  /// Create from JSON for restoration
+  factory OnboardingProgress.fromJson(Map<String, dynamic> json) {
+    return OnboardingProgress(
+      totalSteps: json['totalSteps'] as int,
+      completedSteps: json['completedSteps'] as int,
+      stepCompletionStatus: List<bool>.from(json['stepCompletionStatus'] as List),
+      progressPercentage: (json['progressPercentage'] as num).toDouble(),
+    );
+  }
 }
 
 /// Configuration data for onboarding

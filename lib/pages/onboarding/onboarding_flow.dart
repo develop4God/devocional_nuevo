@@ -59,8 +59,18 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
 
   /// Create a fallback ThemeProvider for testing
   ThemeProvider _createFallbackThemeProvider() {
-    // Create a minimal implementation for testing
-    return ThemeProvider();
+    debugPrint('⚠️ [ONBOARDING_FLOW] Using fallback ThemeProvider for testing');
+    final fallbackProvider = ThemeProvider();
+    
+    // Initialize with default values to prevent null errors
+    try {
+      // Ensure the provider has a valid default state
+      fallbackProvider.initializeDefaults();
+    } catch (e) {
+      debugPrint('⚠️ [ONBOARDING_FLOW] Fallback provider initialization failed: $e');
+    }
+    
+    return fallbackProvider;
   }
 
   @override
@@ -97,6 +107,51 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
     }
   }
 
+  void _showErrorDialog(BuildContext context, OnboardingError error) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        icon: Icon(
+          Icons.error_outline,
+          color: Theme.of(context).colorScheme.error,
+          size: 48,
+        ),
+        title: const Text('Onboarding Error'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(error.message),
+            if (error.errorContext?.isNotEmpty == true) ...[
+              const SizedBox(height: 8),
+              Text(
+                'Details: ${error.errorContext}',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ],
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              _onboardingBloc.add(const InitializeOnboarding());
+            },
+            child: const Text('Retry'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              widget.onComplete(); // Skip onboarding on persistent errors
+            },
+            child: const Text('Skip'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocProvider<OnboardingBloc>(
@@ -110,13 +165,8 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
             // Onboarding completed, call the completion callback
             widget.onComplete();
           } else if (state is OnboardingError) {
-            // Show error message to user
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Error: ${state.message}'),
-                backgroundColor: Theme.of(context).colorScheme.error,
-              ),
-            );
+            // Show detailed error dialog instead of just snackbar
+            _showErrorDialog(context, state);
           }
         },
         builder: (context, state) {
