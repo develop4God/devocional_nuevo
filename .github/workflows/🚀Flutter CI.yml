@@ -27,40 +27,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: 🔍 Debug ref information
-        run: |
-          echo "Event name: ${{ github.event_name }}"
-          echo "Ref: ${{ github.ref }}"
-          echo "Ref name: ${{ github.ref_name }}"
-          echo "Head ref: ${{ github.head_ref }}"
-          echo "Base ref: ${{ github.base_ref }}"
-          echo "Target branch input: ${{ github.event.inputs.target_branch }}"
-          echo "Repository: ${{ github.repository }}"
-          echo "Actor: ${{ github.actor }}"
-          echo "SHA: ${{ github.sha }}"
-          echo "Event path: ${{ github.event_path }}"
-          echo "Workspace: ${{ github.workspace }}"
-          echo "All GITHUB_ env vars:"
-          env | grep GITHUB_ | sort
-          
       - name: 📥 Checkout code
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          # Para PRs: usar head_ref (rama origen). Para manual: usar target_branch o SHA
-          ref: ${{ 
-            github.event_name == 'pull_request' && github.head_ref ||
-            (github.event.inputs.target_branch != '' && github.event.inputs.target_branch) ||
-            github.sha
-          }}
-          # Fetch full history para PRs para asegurar acceso a la rama origen
-          fetch-depth: 0
-
-      - name: ✅ Verify checkout success
-        run: |
-          echo "Current branch: $(git branch --show-current)"
-          echo "Current commit: $(git rev-parse HEAD)"
-          echo "Repository status: $(git status --porcelain)"
+          ref: ${{ github.event.inputs.target_branch || github.ref_name }}
 
       - name: ☕ Setup Java
         uses: actions/setup-java@v4
@@ -92,22 +63,7 @@ jobs:
                 git diff --name-only
                 git add .
                 git commit -m "🎨 Auto-format code with dart format [skip ci]"
-                
-                # Para PRs: usar head_ref (rama origen). Para manual: usar target_branch
-                BRANCH="${{ 
-                  github.event_name == 'pull_request' && github.head_ref ||
-                  (github.event.inputs.target_branch != '' && github.event.inputs.target_branch) ||
-                  'unknown'
-                }}"
-                
-                # Validar que la rama sea válida para push
-                if [[ "$BRANCH" =~ [*] || "$BRANCH" == "unknown" ]]; then
-                  echo "⚠️ Cannot push to branch: $BRANCH (invalid or unknown)"
-                  echo "Skipping automatic commit push"
-                  exit 0
-                fi
-                
-                echo "Pushing to branch: $BRANCH"
+                BRANCH="${{ github.event.inputs.target_branch || github.ref_name }}"
                 git push origin "$BRANCH"
                 echo "✅ Code has been automatically formatted and committed!"
                 echo "🔄 Contributors should pull the latest changes."
@@ -148,22 +104,7 @@ jobs:
             git config --local user.name "GitHub Action [bot]"
             git add .
             git commit -m "🧹 Remove unused imports and auto-fix code [skip ci]"
-            
-            # Para PRs: usar head_ref (rama origen). Para manual: usar target_branch
-            BRANCH="${{ 
-              github.event_name == 'pull_request' && github.head_ref ||
-              (github.event.inputs.target_branch != '' && github.event.inputs.target_branch) ||
-              'unknown'
-            }}"
-            
-            # Validar que la rama sea válida para push
-            if [[ "$BRANCH" =~ [*] || "$BRANCH" == "unknown" ]]; then
-              echo "⚠️ Cannot push to branch: $BRANCH (invalid or unknown)"
-              echo "Skipping automatic commit push"
-              exit 0
-            fi
-            
-            echo "Pushing to branch: $BRANCH"
+            BRANCH="${{ github.event.inputs.target_branch || github.ref_name }}"
             git push origin "$BRANCH"
             echo "✅ Imports limpios y fixes aplicados!"
             echo "## 🧹 Import Cleanup Summary" >> $GITHUB_STEP_SUMMARY
@@ -192,15 +133,6 @@ jobs:
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
-        with:
-          # Para PRs: usar head_ref (rama origen). Para manual: usar target_branch o SHA
-          ref: ${{ 
-            github.event_name == 'pull_request' && github.head_ref ||
-            (github.event.inputs.target_branch != '' && github.event.inputs.target_branch) ||
-            github.sha
-          }}
-          # Fetch full history para PRs para asegurar acceso a la rama origen
-          fetch-depth: 0
 
       - name: ☕ Setup Java
         uses: actions/setup-java@v4
@@ -241,7 +173,7 @@ jobs:
           sudo apt-get install -y lcov
           genhtml coverage/lcov.info -o coverage/html
           lcov --summary coverage/lcov.info
-          
+
       - name: 📋 Upload coverage artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -269,13 +201,6 @@ jobs:
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
-        with:
-          ref: ${{ 
-            github.head_ref ||
-            (github.event.inputs.target_branch != '' && github.event.inputs.target_branch) ||
-            github.sha
-          }}
-          fetch-depth: ${{ github.event_name == 'pull_request' && 0 || 1 }}
 
       - name: ☕ Setup Java
         uses: actions/setup-java@v4
@@ -305,7 +230,7 @@ jobs:
           storeFile=keystore.jks
           EOF
           echo "✅ Android signing configured successfully!"
-          
+
       - name: 🏗️ Build ${{ matrix.platform }}
         run: |
           if [[ "${{ matrix.platform }}" == "android-bundle" && -f "android/key.properties" ]]; then
@@ -318,7 +243,7 @@ jobs:
             echo "🏗️ Building ${{ matrix.platform }}..."
             ${{ matrix.build-cmd }}
           fi
-          
+
       - name: 📋 Verify build output
         run: |
           if [ -f "${{ matrix.artifact-path }}" ]; then
@@ -336,7 +261,7 @@ jobs:
             echo "❌ Build failed: ${{ matrix.artifact-path }} not found"
             exit 1
           fi
-          
+
       - name: 📤 Upload ${{ matrix.platform }} artifact
         uses: actions/upload-artifact@v4
         with:
@@ -373,7 +298,6 @@ jobs:
             const analyzeStatus = '${{ needs.analyze.result }}';
             const testStatus = '${{ needs.test.result }}';
             const buildStatus = '${{ needs.build.result }}';
-            
             const getStatusEmoji = (status) => {
               switch (status) {
                 case 'success': return '✅';
@@ -383,7 +307,6 @@ jobs:
                 default: return '🔄';
               }
             };
-            
             let coverageInfo = 'Coverage info not available';
             try {
               const files = fs.readdirSync('.');
@@ -393,12 +316,10 @@ jobs:
             } catch (e) {
               console.log('Error reading coverage:', e.message);
             }
-            
             const autoFormatEnabled = '${{ github.event.inputs.auto_format }}' === 'true';
             const formatNote = autoFormatEnabled ? '🎨 Auto-format: Enabled' : '⚠️ Auto-format: Disabled';
             const buildSigned = '${{ github.event.inputs.build_signed }}' === 'true';
             const signingNote = buildSigned ? '🔐 Signed builds: Enabled' : '⚠️ Signed builds: Disabled';
-            
             const comment = `## 🎉 CI Results for PR #${{ github.event.number }}
             
             ${getStatusEmoji(analyzeStatus)} **Static Analysis**: ${analyzeStatus}
@@ -420,7 +341,6 @@ jobs:
             
             ---
             *Generated by GitHub Actions*`;
-            
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
@@ -435,13 +355,6 @@ jobs:
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
-        with:
-          ref: ${{ 
-            github.event.inputs.target_branch != '' && github.event.inputs.target_branch ||
-            github.head_ref ||
-            github.ref_name
-          }}
-          fetch-depth: ${{ github.event_name == 'pull_request' && 0 || 1 }}
 
       - name: 🔍 Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
