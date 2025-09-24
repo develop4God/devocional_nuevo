@@ -27,6 +27,7 @@ class OnboardingBackupConfigurationPage extends StatefulWidget {
 class _OnboardingBackupConfigurationPageState
     extends State<OnboardingBackupConfigurationPage> {
   bool _isConnecting = false;
+  bool _isNavigating = false;
   Timer? _timeoutTimer;
 
   @override
@@ -75,9 +76,13 @@ class _OnboardingBackupConfigurationPageState
                 child: BlocListener<BackupBloc, BackupState>(
                   listener: (context, state) {
                     if (state is BackupLoaded && state.isAuthenticated) {
-                      _clearConnectingState();
+                      _timeoutTimer?.cancel();
                       _autoConfigureBackup(context);
-                      // Advance directly without showing success state
+
+                      setState(() {
+                        _isNavigating = true;
+                      });
+
                       Future.delayed(const Duration(milliseconds: 500), () {
                         if (mounted) {
                           widget.onNext();
@@ -179,9 +184,10 @@ class _OnboardingBackupConfigurationPageState
         SizedBox(
           width: double.infinity,
           child: ElevatedButton.icon(
-            onPressed:
-                _isConnecting ? null : () => _connectGoogleDrive(context),
-            icon: _isConnecting
+            onPressed: (_isConnecting || _isNavigating)
+                ? null
+                : () => _connectGoogleDrive(context),
+            icon: (_isConnecting || _isNavigating)
                 ? const SizedBox(
                     width: 20,
                     height: 20,
@@ -189,7 +195,7 @@ class _OnboardingBackupConfigurationPageState
                   )
                 : const Icon(Icons.add_to_drive_outlined),
             label: Text(
-              _isConnecting
+              (_isConnecting || _isNavigating)
                   ? 'onboarding.onboarding_connecting'.tr()
                   : 'backup.google_drive_connection'.tr(),
               style: const TextStyle(fontSize: 16),
@@ -257,17 +263,10 @@ class _OnboardingBackupConfigurationPageState
   }
 
   void _autoConfigureBackup(BuildContext context) {
+    // Activate automatic backup with all defaults - same as BackupSettingsPage
     context.read<BackupBloc>().add(const ToggleAutoBackup(true));
-    context.read<BackupBloc>().add(const ChangeBackupFrequency('daily'));
     context.read<BackupBloc>().add(const ToggleWifiOnly(true));
     context.read<BackupBloc>().add(const ToggleCompression(true));
-    context.read<BackupBloc>().add(
-          const UpdateBackupOptions({
-            'spiritual_stats': true,
-            'favorite_devotionals': true,
-            'saved_prayers': true,
-          }),
-        );
   }
 
   void _clearConnectingState() {
@@ -275,6 +274,7 @@ class _OnboardingBackupConfigurationPageState
     if (mounted) {
       setState(() {
         _isConnecting = false;
+        _isNavigating = false;
       });
     }
   }
