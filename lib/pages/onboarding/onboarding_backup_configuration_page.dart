@@ -257,26 +257,6 @@ class _OnboardingBackupConfigurationPageState
                   ),
                 ),
               ),
-
-              // Configure later button
-              Padding(
-                padding: const EdgeInsets.all(32.0),
-                child: SizedBox(
-                  width: double.infinity,
-                  child: TextButton(
-                    onPressed: widget.onNext,
-                    child: Text(
-                      'onboarding.onboarding_configure_later'.tr(),
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.onSurface.withValues(alpha: 0.7),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
             ],
           ),
         ),
