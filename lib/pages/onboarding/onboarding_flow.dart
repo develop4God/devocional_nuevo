@@ -296,7 +296,6 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
                           OnboardingThemeSelectionPage(
                             onNext: () => _handleStepNavigation(2),
                             onBack: _handleBack,
-                            onSkip: () {},
                           ),
                           OnboardingBackupConfigurationPage(
                             onNext: () => _handleStepNavigation(3),

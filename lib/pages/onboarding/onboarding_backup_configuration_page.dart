@@ -132,6 +132,12 @@ class _OnboardingBackupConfigurationPageState
                             '❌ [DEBUG] OnboardingBackupError recibido: ${state.message}');
                         _clearConnectingState();
                         _showError(context, state.message);
+                      }
+                      // 🔧 AGREGADO: Manejar BackupInitial para cancelación de usuario
+                      else if (state is BackupInitial) {
+                        debugPrint(
+                            '🔄 [DEBUG] OnboardingBackupInitial recibido - usuario canceló o estado inicial');
+                        _clearConnectingState();
                       } else if (state is BackupLoaded &&
                           state.isAuthenticated) {
                         debugPrint(
@@ -361,6 +367,7 @@ class _OnboardingBackupConfigurationPageState
         _isConnecting = false;
         _isNavigating = false;
       });
+      debugPrint('🔄 [DEBUG] Estado de connecting limpiado en onboarding');
     }
   }
 
