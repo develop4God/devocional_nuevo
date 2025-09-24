@@ -96,7 +96,7 @@ class _OnboardingBackupConfigurationPageState
 
                       // Title
                       Text(
-                        'onboarding.onboarding_backup_title'.tr(),
+                        'backup.description_title'.tr(),
                         style: Theme.of(context)
                             .textTheme
                             .headlineMedium
@@ -111,7 +111,7 @@ class _OnboardingBackupConfigurationPageState
 
                       // Subtitle
                       Text(
-                        'onboarding.onboarding_backup_subtitle'.tr(),
+                        'backup.description_text'.tr(),
                         style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                               color: Theme.of(
                                 context,
@@ -170,7 +170,7 @@ class _OnboardingBackupConfigurationPageState
                                   : const Icon(Icons.cloud_upload),
                               label: Text(
                                 _isConnecting
-                                    ? 'onboarding.onboarding_connecting'.tr()
+                                    ? 'backup.google_drive_connection'.tr()
                                     : 'onboarding.onboarding_connect_google_drive'
                                         .tr(),
                                 style: const TextStyle(fontSize: 16),
@@ -237,8 +237,7 @@ class _OnboardingBackupConfigurationPageState
                             const SizedBox(width: 12),
                             Expanded(
                               child: Text(
-                                'onboarding.onboarding_backup_security_info'
-                                    .tr(),
+                                'backup.security_text'.tr(),
                                 style: Theme.of(context)
                                     .textTheme
                                     .bodyMedium
