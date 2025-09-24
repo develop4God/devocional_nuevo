@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 
-import 'package:devocional_nuevo/utils/localization_extension.dart';
+import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:flutter/material.dart';
 
 class OnboardingWelcomePage extends StatefulWidget {

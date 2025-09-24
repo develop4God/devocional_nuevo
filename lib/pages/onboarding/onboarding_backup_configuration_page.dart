@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:devocional_nuevo/blocs/backup_bloc.dart';
 import 'package:devocional_nuevo/blocs/backup_event.dart';
 import 'package:devocional_nuevo/blocs/backup_state.dart';
-import 'package:devocional_nuevo/utils/localization_extension.dart';
+import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -171,7 +171,8 @@ class _OnboardingBackupConfigurationPageState
                               label: Text(
                                 _isConnecting
                                     ? 'onboarding.onboarding_connecting'.tr()
-                                    : 'onboarding.onboarding_connect_google_drive'.tr(),
+                                    : 'onboarding.onboarding_connect_google_drive'
+                                        .tr(),
                                 style: const TextStyle(fontSize: 16),
                               ),
                               style: ElevatedButton.styleFrom(
@@ -236,7 +237,8 @@ class _OnboardingBackupConfigurationPageState
                             const SizedBox(width: 12),
                             Expanded(
                               child: Text(
-                                'onboarding.onboarding_backup_security_info'.tr(),
+                                'onboarding.onboarding_backup_security_info'
+                                    .tr(),
                                 style: Theme.of(context)
                                     .textTheme
                                     .bodyMedium

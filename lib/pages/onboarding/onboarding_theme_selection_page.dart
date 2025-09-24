@@ -1,5 +1,5 @@
+import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/providers/theme_provider.dart';
-import 'package:devocional_nuevo/utils/localization_extension.dart';
 import 'package:devocional_nuevo/utils/theme_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';

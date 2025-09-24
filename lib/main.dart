@@ -141,8 +141,8 @@ void main() async {
 }
 
 // App principal - Siempre muestra SplashScreen primero
+// App principal - Siempre muestra SplashScreen primero
 class MyApp extends StatefulWidget {
-  // ← Cambiar aquí
   const MyApp({super.key});
 
   @override
@@ -150,13 +150,46 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  late Future<bool> _onboardingFuture; // ← Guardar Future
+  late Future<bool> _initializationFuture; // ← Cambiar nombre
 
   @override
   void initState() {
     super.initState();
-    _onboardingFuture =
-        OnboardingService.instance.shouldShowOnboarding(); // ← Una vez
+    _initializationFuture = _initializeApp(); // ← Nuevo método unificado
+  }
+
+  /// Método unificado que inicializa servicios y verifica onboarding
+  Future<bool> _initializeApp() async {
+    try {
+      // 1. Primero inicializar localización (crítico para traducciones)
+      await Provider.of<LocalizationProvider>(context, listen: false)
+          .initialize();
+
+      developer.log(
+        'App: LocalizationService inicializado correctamente',
+        name: 'MainApp',
+      );
+
+      // 2. Luego verificar si debe mostrar onboarding (incluye Remote Config)
+      final shouldShowOnboarding =
+          await OnboardingService.instance.shouldShowOnboarding();
+
+      developer.log(
+        'App: Onboarding check completado. Mostrar: $shouldShowOnboarding',
+        name: 'MainApp',
+      );
+
+      return shouldShowOnboarding;
+    } catch (e) {
+      developer.log(
+        'ERROR: Error en inicialización de app: $e',
+        name: 'MainApp',
+        error: e,
+      );
+
+      // En caso de error, no mostrar onboarding para evitar crashes
+      return false;
+    }
   }
 
   @override
@@ -173,15 +206,26 @@ class _MyAppState extends State<MyApp> {
       supportedLocales: localizationProvider.supportedLocales,
       locale: localizationProvider.currentLocale,
       home: FutureBuilder<bool>(
-        future: _onboardingFuture,
+        future: _initializationFuture, // ← Usar el future unificado
         builder: (context, snapshot) {
+          // Mostrar splash mientras se inicializa
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const SplashScreen();
           }
 
+          // Si hay error, ir directo a la app principal
+          if (snapshot.hasError) {
+            developer.log(
+              'ERROR: Error en FutureBuilder de inicialización: ${snapshot.error}',
+              name: 'MainApp',
+              error: snapshot.error,
+            );
+            return const AppInitializer();
+          }
+
+          // Si debe mostrar onboarding (Remote Config enabled + not completed)
           if (snapshot.hasData && snapshot.data == true) {
             return OnboardingFlow(
-              // ← DENTRO de MaterialApp
               onComplete: () {
                 Navigator.of(context).pushReplacement(
                   MaterialPageRoute(
@@ -192,6 +236,7 @@ class _MyAppState extends State<MyApp> {
             );
           }
 
+          // Caso normal: ir a la app principal
           return const AppInitializer();
         },
       ),
