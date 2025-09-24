@@ -57,7 +57,7 @@ class _OnboardingBackupConfigurationPageState
                     ),
                     TextButton(
                       onPressed: widget.onSkip,
-                      child: Text('onboarding.onboarding_skip_for_now'.tr()),
+                      child: Text('onboarding.onboarding_config_later'.tr()),
                     ),
                   ],
                 ),
@@ -167,11 +167,12 @@ class _OnboardingBackupConfigurationPageState
                                         strokeWidth: 2,
                                       ),
                                     )
-                                  : const Icon(Icons.cloud_upload),
+                                  : const Icon(Icons.add_to_drive_outlined),
                               label: Text(
                                 _isConnecting
                                     ? 'backup.google_drive_connection'.tr()
-                                    : 'onboarding.onboarding_connect_google_drive'
+                                    : 'backup.google_drive_connection'
+                                        .tr()
                                         .tr(),
                                 style: const TextStyle(fontSize: 16),
                               ),
