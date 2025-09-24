@@ -27,6 +27,13 @@ class OnboardingBackupConfigurationPage extends StatefulWidget {
 class _OnboardingBackupConfigurationPageState
     extends State<OnboardingBackupConfigurationPage> {
   bool _isConnecting = false;
+  Timer? _timeoutTimer;
+
+  @override
+  void dispose() {
+    _timeoutTimer?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -63,174 +70,39 @@ class _OnboardingBackupConfigurationPageState
                 ),
               ),
 
-              // Main content
+              // Main content with proper state management
               Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 32.0),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      // Google Drive icon
-                      Container(
-                        width: 80,
-                        height: 80,
-                        decoration: BoxDecoration(
-                          color: Colors.blue,
-                          borderRadius: BorderRadius.circular(20),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.blue.withValues(alpha: 0.3),
-                              blurRadius: 12,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: const Icon(
-                          Icons.cloud,
-                          color: Colors.white,
-                          size: 50,
-                        ),
-                      ),
+                child: BlocListener<BackupBloc, BackupState>(
+                  listener: (context, state) {
+                    if (state is BackupLoaded && state.isAuthenticated) {
+                      _clearConnectingState();
+                      _autoConfigureBackup(context);
+                      // Advance directly without showing success state
+                      Future.delayed(const Duration(milliseconds: 500), () {
+                        if (mounted) {
+                          widget.onNext();
+                        }
+                      });
+                    } else if (state is BackupError) {
+                      _clearConnectingState();
+                      _showError(context, state.message);
+                    } else if (state is BackupLoaded &&
+                        !state.isAuthenticated &&
+                        _isConnecting) {
+                      _clearConnectingState();
+                    }
+                  },
+                  child: BlocBuilder<BackupBloc, BackupState>(
+                    builder: (context, state) {
+                      if (state is BackupLoading && !_isConnecting) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
 
-                      const SizedBox(height: 32),
-
-                      // Title
-                      Text(
-                        'backup.description_title'.tr(),
-                        style: Theme.of(context)
-                            .textTheme
-                            .headlineMedium
-                            ?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: Theme.of(context).colorScheme.onSurface,
-                            ),
-                        textAlign: TextAlign.center,
-                      ),
-
-                      const SizedBox(height: 16),
-
-                      // Subtitle
-                      Text(
-                        'backup.description_text'.tr(),
-                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.onSurface.withValues(alpha: 0.7),
-                              height: 1.5,
-                            ),
-                        textAlign: TextAlign.center,
-                      ),
-
-                      const SizedBox(height: 48),
-
-                      // Connect Google Drive button
-                      BlocConsumer<BackupBloc, BackupState>(
-                        listener: (context, state) {
-                          if (state is BackupLoaded && state.isAuthenticated) {
-                            setState(() {
-                              _isConnecting = false;
-                            });
-                            // Auto-configure cuando se conecta exitosamente
-                            _autoConfigureBackup(context);
-                            widget.onNext();
-                          } else if (state is BackupError) {
-                            setState(() {
-                              _isConnecting = false;
-                            });
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(state.message),
-                                backgroundColor: Colors.red,
-                              ),
-                            );
-                          } else if (state is BackupLoaded &&
-                              !state.isAuthenticated &&
-                              _isConnecting) {
-                            // Handle case where user cancelled the authentication
-                            setState(() {
-                              _isConnecting = false;
-                            });
-                          }
-                        },
-                        builder: (context, state) {
-                          return SizedBox(
-                            width: double.infinity,
-                            child: ElevatedButton.icon(
-                              onPressed: _isConnecting
-                                  ? null
-                                  : () => _connectGoogleDrive(context),
-                              icon: _isConnecting
-                                  ? const SizedBox(
-                                      width: 20,
-                                      height: 20,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                      ),
-                                    )
-                                  : const Icon(Icons.add_to_drive_outlined),
-                              label: Text(
-                                _isConnecting
-                                    ? 'backup.google_drive_connection'.tr()
-                                    : 'backup.google_drive_connection'
-                                        .tr()
-                                        .tr(),
-                                style: const TextStyle(fontSize: 16),
-                              ),
-                              style: ElevatedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 16,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-
-                      const SizedBox(height: 24),
-
-                      const SizedBox(height: 32),
-
-                      // Security info
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.surface,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.outline.withValues(alpha: 0.2),
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(
-                              Icons.security,
-                              color: Theme.of(context).colorScheme.primary,
-                              size: 24,
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Text(
-                                'backup.security_text'.tr(),
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyMedium
-                                    ?.copyWith(
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .onSurface
-                                          .withValues(alpha: 0.8),
-                                    ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 32.0),
+                        child: _buildContent(context, state),
+                      );
+                    },
                   ),
                 ),
               ),
@@ -241,25 +113,143 @@ class _OnboardingBackupConfigurationPageState
     );
   }
 
+  Widget _buildContent(BuildContext context, BackupState state) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        _buildConnectionPrompt(context),
+        const SizedBox(height: 32),
+        _buildSecurityInfo(context),
+      ],
+    );
+  }
+
+  Widget _buildConnectionPrompt(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Column(
+      children: [
+        // Google Drive icon
+        Container(
+          width: 80,
+          height: 80,
+          decoration: BoxDecoration(
+            color: Colors.blue,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.blue.withValues(alpha: 0.3),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: const Icon(
+            Icons.cloud,
+            color: Colors.white,
+            size: 50,
+          ),
+        ),
+
+        const SizedBox(height: 32),
+
+        Text(
+          'backup.description_title'.tr(),
+          style: theme.textTheme.headlineMedium?.copyWith(
+            fontWeight: FontWeight.bold,
+            color: colorScheme.onSurface,
+          ),
+          textAlign: TextAlign.center,
+        ),
+
+        const SizedBox(height: 16),
+
+        Text(
+          'backup.description_text'.tr(),
+          style: theme.textTheme.bodyLarge?.copyWith(
+            color: colorScheme.onSurface.withValues(alpha: 0.7),
+            height: 1.5,
+          ),
+          textAlign: TextAlign.center,
+        ),
+
+        const SizedBox(height: 48),
+
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton.icon(
+            onPressed:
+                _isConnecting ? null : () => _connectGoogleDrive(context),
+            icon: _isConnecting
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.add_to_drive_outlined),
+            label: Text(
+              _isConnecting
+                  ? 'onboarding.onboarding_connecting'.tr()
+                  : 'backup.google_drive_connection'.tr(),
+              style: const TextStyle(fontSize: 16),
+            ),
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSecurityInfo(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: colorScheme.outline.withValues(alpha: 0.2),
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.security,
+            color: colorScheme.primary,
+            size: 24,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              'backup.security_text'.tr(),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurface.withValues(alpha: 0.8),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _connectGoogleDrive(BuildContext context) {
     setState(() {
       _isConnecting = true;
     });
 
-    // Add timeout protection to prevent infinite connecting state
-    Timer(const Duration(seconds: 30), () {
+    _timeoutTimer?.cancel();
+    _timeoutTimer = Timer(const Duration(seconds: 30), () {
       if (_isConnecting && mounted) {
-        setState(() {
-          _isConnecting = false;
-        });
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('onboarding.onboarding_connection_timeout'.tr()),
-              backgroundColor: Colors.orange,
-            ),
-          );
-        }
+        _clearConnectingState();
+        _showError(context, 'backup.connection_timeout'.tr());
       }
     });
 
@@ -267,7 +257,6 @@ class _OnboardingBackupConfigurationPageState
   }
 
   void _autoConfigureBackup(BuildContext context) {
-    // Configurar backup automático con configuración óptima
     context.read<BackupBloc>().add(const ToggleAutoBackup(true));
     context.read<BackupBloc>().add(const ChangeBackupFrequency('daily'));
     context.read<BackupBloc>().add(const ToggleWifiOnly(true));
@@ -279,13 +268,26 @@ class _OnboardingBackupConfigurationPageState
             'saved_prayers': true,
           }),
         );
+  }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Google Drive conectado y configurado automáticamente'),
-        backgroundColor: Colors.green,
-        duration: Duration(seconds: 2),
-      ),
-    );
+  void _clearConnectingState() {
+    _timeoutTimer?.cancel();
+    if (mounted) {
+      setState(() {
+        _isConnecting = false;
+      });
+    }
+  }
+
+  void _showError(BuildContext context, String message) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message.tr()),
+          backgroundColor: Theme.of(context).colorScheme.error,
+          duration: const Duration(seconds: 4),
+        ),
+      );
+    }
   }
 }
