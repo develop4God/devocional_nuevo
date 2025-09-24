@@ -88,7 +88,7 @@ class _OnboardingBackupConfigurationPageState
                         child: const Icon(
                           Icons.cloud,
                           color: Colors.white,
-                          size: 40,
+                          size: 50,
                         ),
                       ),
 
@@ -189,29 +189,6 @@ class _OnboardingBackupConfigurationPageState
                       ),
 
                       const SizedBox(height: 24),
-
-                      // Recommended badge
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.green.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                            color: Colors.green.withValues(alpha: 0.3),
-                          ),
-                        ),
-                        child: Text(
-                          'onboarding.onboarding_recommended'.tr(),
-                          style: TextStyle(
-                            color: Colors.green.shade700,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ),
 
                       const SizedBox(height: 32),
 
