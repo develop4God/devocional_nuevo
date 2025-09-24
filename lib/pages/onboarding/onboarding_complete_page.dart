@@ -107,7 +107,7 @@ class _OnboardingCompletePageState extends State<OnboardingCompletePage>
                     return Opacity(
                       opacity: _fadeAnimation.value,
                       child: Text(
-                        'onboarding_complete_title'.tr(),
+                        'onboarding.onboarding_complete_title'.tr(),
                         style: Theme.of(context)
                             .textTheme
                             .headlineMedium
@@ -130,7 +130,7 @@ class _OnboardingCompletePageState extends State<OnboardingCompletePage>
                     return Opacity(
                       opacity: _fadeAnimation.value,
                       child: Text(
-                        'onboarding_complete_subtitle'.tr(),
+                        'onboarding.onboarding_complete_subtitle'.tr(),
                         style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                               color: Theme.of(
                                 context,
@@ -173,7 +173,7 @@ class _OnboardingCompletePageState extends State<OnboardingCompletePage>
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'onboarding_your_setup'.tr(),
+                              'onboarding.onboarding_your_setup'.tr(),
                               style: Theme.of(context)
                                   .textTheme
                                   .titleMedium
@@ -228,7 +228,7 @@ class _OnboardingCompletePageState extends State<OnboardingCompletePage>
                             ),
                           ),
                           child: Text(
-                            'onboarding_start_app'.tr(),
+                            'onboarding.onboarding_start_app'.tr(),
                             style: const TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w600,

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:devocional_nuevo/blocs/backup_bloc.dart';
 import 'package:devocional_nuevo/blocs/backup_event.dart';
 import 'package:devocional_nuevo/blocs/backup_state.dart';
@@ -51,11 +53,11 @@ class _OnboardingBackupConfigurationPageState
                   children: [
                     TextButton(
                       onPressed: widget.onBack,
-                      child: Text('onboarding_back'.tr()),
+                      child: Text('onboarding.onboarding_back'.tr()),
                     ),
                     TextButton(
                       onPressed: widget.onSkip,
-                      child: Text('onboarding_skip_for_now'.tr()),
+                      child: Text('onboarding.onboarding_skip_for_now'.tr()),
                     ),
                   ],
                 ),
@@ -94,7 +96,7 @@ class _OnboardingBackupConfigurationPageState
 
                       // Title
                       Text(
-                        'onboarding_backup_title'.tr(),
+                        'onboarding.onboarding_backup_title'.tr(),
                         style: Theme.of(context)
                             .textTheme
                             .headlineMedium
@@ -109,7 +111,7 @@ class _OnboardingBackupConfigurationPageState
 
                       // Subtitle
                       Text(
-                        'onboarding_backup_subtitle'.tr(),
+                        'onboarding.onboarding_backup_subtitle'.tr(),
                         style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                               color: Theme.of(
                                 context,
@@ -141,6 +143,13 @@ class _OnboardingBackupConfigurationPageState
                                 backgroundColor: Colors.red,
                               ),
                             );
+                          } else if (state is BackupLoaded &&
+                              !state.isAuthenticated &&
+                              _isConnecting) {
+                            // Handle case where user cancelled the authentication
+                            setState(() {
+                              _isConnecting = false;
+                            });
                           }
                         },
                         builder: (context, state) {
@@ -161,8 +170,8 @@ class _OnboardingBackupConfigurationPageState
                                   : const Icon(Icons.cloud_upload),
                               label: Text(
                                 _isConnecting
-                                    ? 'Conectando...'
-                                    : 'onboarding_connect_google_drive'.tr(),
+                                    ? 'onboarding.onboarding_connecting'.tr()
+                                    : 'onboarding.onboarding_connect_google_drive'.tr(),
                                 style: const TextStyle(fontSize: 16),
                               ),
                               style: ElevatedButton.styleFrom(
@@ -194,7 +203,7 @@ class _OnboardingBackupConfigurationPageState
                           ),
                         ),
                         child: Text(
-                          'onboarding_recommended'.tr(),
+                          'onboarding.onboarding_recommended'.tr(),
                           style: TextStyle(
                             color: Colors.green.shade700,
                             fontWeight: FontWeight.w600,
@@ -227,7 +236,7 @@ class _OnboardingBackupConfigurationPageState
                             const SizedBox(width: 12),
                             Expanded(
                               child: Text(
-                                'onboarding_backup_security_info'.tr(),
+                                'onboarding.onboarding_backup_security_info'.tr(),
                                 style: Theme.of(context)
                                     .textTheme
                                     .bodyMedium
@@ -255,7 +264,7 @@ class _OnboardingBackupConfigurationPageState
                   child: TextButton(
                     onPressed: widget.onNext,
                     child: Text(
-                      'onboarding_configure_later'.tr(),
+                      'onboarding.onboarding_configure_later'.tr(),
                       style: TextStyle(
                         fontSize: 16,
                         color: Theme.of(
@@ -276,6 +285,23 @@ class _OnboardingBackupConfigurationPageState
   void _connectGoogleDrive(BuildContext context) {
     setState(() {
       _isConnecting = true;
+    });
+
+    // Add timeout protection to prevent infinite connecting state
+    Timer(const Duration(seconds: 30), () {
+      if (_isConnecting && mounted) {
+        setState(() {
+          _isConnecting = false;
+        });
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('onboarding.onboarding_connection_timeout'.tr()),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
+      }
     });
 
     context.read<BackupBloc>().add(const SignInToGoogleDrive());
