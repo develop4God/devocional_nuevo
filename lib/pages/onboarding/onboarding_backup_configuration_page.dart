@@ -3,9 +3,17 @@ import 'dart:async';
 import 'package:devocional_nuevo/blocs/backup_bloc.dart';
 import 'package:devocional_nuevo/blocs/backup_event.dart';
 import 'package:devocional_nuevo/blocs/backup_state.dart';
+import 'package:devocional_nuevo/blocs/prayer_bloc.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
+import 'package:devocional_nuevo/providers/devocional_provider.dart';
+import 'package:devocional_nuevo/services/backup_scheduler_service.dart';
+import 'package:devocional_nuevo/services/connectivity_service.dart';
+import 'package:devocional_nuevo/services/google_drive_auth_service.dart';
+import 'package:devocional_nuevo/services/google_drive_backup_service.dart';
+import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:provider/provider.dart';
 
 class OnboardingBackupConfigurationPage extends StatefulWidget {
   final VoidCallback onNext;
@@ -38,80 +46,138 @@ class _OnboardingBackupConfigurationPageState
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
-              Theme.of(context).colorScheme.surface,
-            ],
+    debugPrint('🏗️ [DEBUG] OnboardingBackupConfigurationPage build iniciado');
+
+    // Create services with dependencies - same as BackupSettingsPage
+    final authService = GoogleDriveAuthService();
+    debugPrint('🔧 [DEBUG] GoogleDriveAuthService creado');
+
+    final connectivityService = ConnectivityService();
+    debugPrint('🔧 [DEBUG] ConnectivityService creado');
+
+    final statsService = SpiritualStatsService();
+    debugPrint('🔧 [DEBUG] SpiritualStatsService creado');
+
+    final backupService = GoogleDriveBackupService(
+      authService: authService,
+      connectivityService: connectivityService,
+      statsService: statsService,
+    );
+    debugPrint('🔧 [DEBUG] GoogleDriveBackupService creado con dependencias');
+
+    return BlocProvider(
+      create: (context) {
+        // 🔧 CRÍTICO: Crear BackupSchedulerService igual que en BackupSettingsPage
+        final schedulerService = BackupSchedulerService(
+          backupService: backupService,
+          connectivityService: connectivityService,
+        );
+        debugPrint('🔧 [DEBUG] BackupSchedulerService creado para onboarding');
+
+        final bloc = BackupBloc(
+          backupService: backupService,
+          schedulerService: schedulerService, // 🔧 AGREGADO
+          devocionalProvider: Provider.of<DevocionalProvider>(
+            context,
+            listen: false,
           ),
-        ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              // Navigation buttons
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    TextButton(
-                      onPressed: widget.onBack,
-                      child: Text('onboarding.onboarding_back'.tr()),
-                    ),
-                    TextButton(
-                      onPressed: widget.onSkip,
-                      child: Text('onboarding.onboarding_config_later'.tr()),
-                    ),
-                  ],
-                ),
-              ),
+          prayerBloc: context.read<PrayerBloc>(), // 🔧 AGREGADO
+        );
 
-              // Main content with proper state management
-              Expanded(
-                child: BlocListener<BackupBloc, BackupState>(
-                  listener: (context, state) {
-                    if (state is BackupLoaded && state.isAuthenticated) {
-                      _timeoutTimer?.cancel();
-                      _autoConfigureBackup(context);
-
-                      setState(() {
-                        _isNavigating = true;
-                      });
-
-                      Future.delayed(const Duration(milliseconds: 500), () {
-                        if (mounted) {
-                          widget.onNext();
-                        }
-                      });
-                    } else if (state is BackupError) {
-                      _clearConnectingState();
-                      _showError(context, state.message);
-                    } else if (state is BackupLoaded &&
-                        !state.isAuthenticated &&
-                        _isConnecting) {
-                      _clearConnectingState();
-                    }
-                  },
-                  child: BlocBuilder<BackupBloc, BackupState>(
-                    builder: (context, state) {
-                      if (state is BackupLoading && !_isConnecting) {
-                        return const Center(child: CircularProgressIndicator());
-                      }
-
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 32.0),
-                        child: _buildContent(context, state),
-                      );
-                    },
+        // Load initial settings
+        bloc.add(const LoadBackupSettings());
+        return bloc;
+      },
+      child: Scaffold(
+        body: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                Theme.of(context).colorScheme.surface,
+              ],
+            ),
+          ),
+          child: SafeArea(
+            child: Column(
+              children: [
+                // Navigation buttons
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      TextButton(
+                        onPressed: widget.onBack,
+                        child: Text('onboarding.onboarding_back'.tr()),
+                      ),
+                      TextButton(
+                        onPressed: widget.onSkip,
+                        child: Text('onboarding.onboarding_config_later'.tr()),
+                      ),
+                    ],
                   ),
                 ),
-              ),
-            ],
+                // Main content with proper state management
+                Expanded(
+                  child: BlocListener<BackupBloc, BackupState>(
+                    listener: (context, state) {
+                      debugPrint(
+                          '🔄 [DEBUG] OnboardingBlocListener recibió estado: ${state.runtimeType}');
+
+                      if (state is BackupError) {
+                        debugPrint(
+                            '❌ [DEBUG] OnboardingBackupError recibido: ${state.message}');
+                        _clearConnectingState();
+                        _showError(context, state.message);
+                      } else if (state is BackupLoaded &&
+                          state.isAuthenticated) {
+                        debugPrint(
+                            '✅ [DEBUG] OnboardingBackupLoaded autenticado recibido');
+                        _timeoutTimer?.cancel();
+                        _autoConfigureBackup(context);
+
+                        // Check if we need to create initial backup for new users
+                        _checkAndCreateInitialBackup(context, state);
+
+                        setState(() {
+                          _isNavigating = true;
+                        });
+                        // Delay to allow auto-configuration to complete
+                        Future.delayed(const Duration(milliseconds: 2500), () {
+                          if (mounted) {
+                            debugPrint(
+                                '🚀 [DEBUG] Navegando al siguiente paso del onboarding');
+                            widget.onNext();
+                          }
+                        });
+                      } else if (state is BackupSuccess) {
+                        debugPrint(
+                            '✅ [DEBUG] OnboardingBackupSuccess recibido: ${state.title}');
+                      } else if (state is BackupRestored) {
+                        debugPrint(
+                            '✅ [DEBUG] OnboardingBackupRestored recibido');
+                      }
+                    },
+                    child: BlocBuilder<BackupBloc, BackupState>(
+                      builder: (context, state) {
+                        if (state is BackupLoading && !_isConnecting) {
+                          return const Center(
+                              child: CircularProgressIndicator());
+                        }
+
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 32.0),
+                          child: _buildContent(context, state),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -156,9 +222,7 @@ class _OnboardingBackupConfigurationPageState
             size: 50,
           ),
         ),
-
         const SizedBox(height: 32),
-
         Text(
           'backup.description_title'.tr(),
           style: theme.textTheme.headlineMedium?.copyWith(
@@ -167,9 +231,7 @@ class _OnboardingBackupConfigurationPageState
           ),
           textAlign: TextAlign.center,
         ),
-
         const SizedBox(height: 16),
-
         Text(
           'backup.description_text'.tr(),
           style: theme.textTheme.bodyLarge?.copyWith(
@@ -178,9 +240,7 @@ class _OnboardingBackupConfigurationPageState
           ),
           textAlign: TextAlign.center,
         ),
-
         const SizedBox(height: 48),
-
         SizedBox(
           width: double.infinity,
           child: ElevatedButton.icon(
@@ -247,6 +307,7 @@ class _OnboardingBackupConfigurationPageState
   }
 
   void _connectGoogleDrive(BuildContext context) {
+    debugPrint('🔄 [DEBUG] Onboarding Usuario tapeó conectar Google Drive');
     setState(() {
       _isConnecting = true;
     });
@@ -259,14 +320,38 @@ class _OnboardingBackupConfigurationPageState
       }
     });
 
+    debugPrint('🔄 [DEBUG] Onboarding Enviando SignInToGoogleDrive event');
     context.read<BackupBloc>().add(const SignInToGoogleDrive());
   }
 
   void _autoConfigureBackup(BuildContext context) {
+    debugPrint(
+        '⚙️ [DEBUG] Onboarding Auto-configurando backup con configuración óptima');
+
     // Activate automatic backup with all defaults - same as BackupSettingsPage
     context.read<BackupBloc>().add(const ToggleAutoBackup(true));
     context.read<BackupBloc>().add(const ToggleWifiOnly(true));
     context.read<BackupBloc>().add(const ToggleCompression(true));
+
+    debugPrint('✅ [DEBUG] Onboarding Auto-configuración enviada');
+  }
+
+  void _checkAndCreateInitialBackup(BuildContext context, BackupLoaded state) {
+    // Check if this is first time connecting (same logic as BackupSettingsPage)
+    final hasConnectedBefore =
+        state.lastBackupTime != null || state.autoBackupEnabled;
+
+    debugPrint('🔍 [DEBUG] hasConnectedBefore: $hasConnectedBefore');
+    debugPrint('🔍 [DEBUG] lastBackupTime: ${state.lastBackupTime}');
+    debugPrint('🔍 [DEBUG] autoBackupEnabled: ${state.autoBackupEnabled}');
+
+    if (!hasConnectedBefore) {
+      debugPrint('🆕 [DEBUG] Usuario nuevo detectado - creando primer backup');
+      // Create initial backup for new users
+      context.read<BackupBloc>().add(const CreateManualBackup());
+    } else {
+      debugPrint('✅ [DEBUG] Usuario existente - no necesita backup inicial');
+    }
   }
 
   void _clearConnectingState() {
