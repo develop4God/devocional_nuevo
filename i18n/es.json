@@ -523,6 +523,11 @@
     "onboarding_complete_title": "¡Todo Listo!",
     "onboarding_complete_subtitle": "Tu espacio devocional está configurado. Es hora de comenzar tu jornada espiritual diaria.",
     "onboarding_your_setup": "Tu Configuración",
-    "onboarding_start_app": "Comenzar Mi Jornada"
+    "onboarding_start_app": "Comenzar Mi Jornada",
+    "onboarding_setup_theme_configured": "Tema personalizado seleccionado",
+    "onboarding_setup_backup_configured": "Respaldo automático configurado",
+    "onboarding_setup_protection_active": "Protección de datos activada",
+    "onboarding_setup_backup_skipped": "Respaldo omitido por ahora",
+    "onboarding_setup_backup_later_info": "Puedes configurar el respaldo más tarde en Ajustes"
   }
 }
