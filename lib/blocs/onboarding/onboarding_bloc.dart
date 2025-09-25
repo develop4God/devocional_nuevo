@@ -38,8 +38,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     required OnboardingService onboardingService,
     required ThemeProvider themeProvider,
     BackupBloc? backupBloc,
-  })
-      : _onboardingService = onboardingService,
+  })  : _onboardingService = onboardingService,
         _themeProvider = themeProvider,
         _backupBloc = backupBloc,
         super(const OnboardingInitial()) {
@@ -58,8 +57,10 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
   }
 
   /// Skip backup configuration for later
-  Future<void> _onSkipBackupForNow(SkipBackupForNow event,
-      Emitter<OnboardingState> emit,) async {
+  Future<void> _onSkipBackupForNow(
+    SkipBackupForNow event,
+    Emitter<OnboardingState> emit,
+  ) async {
     debugPrint('🔄 [ONBOARDING_BLOC] === INICIANDO SkipBackupForNow ===');
 
     if (state is! OnboardingStepActive) {
@@ -72,7 +73,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       final currentState = state as OnboardingStepActive;
 
       final updatedSelections =
-      Map<String, dynamic>.from(currentState.userSelections);
+          Map<String, dynamic>.from(currentState.userSelections);
       updatedSelections['backupSkipped'] = true;
       updatedSelections['backupEnabled'] = false;
 
@@ -93,8 +94,10 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
   }
 
   /// Initialize onboarding flow and determine starting point
-  Future<void> _onInitializeOnboarding(InitializeOnboarding event,
-      Emitter<OnboardingState> emit,) async {
+  Future<void> _onInitializeOnboarding(
+    InitializeOnboarding event,
+    Emitter<OnboardingState> emit,
+  ) async {
     debugPrint('🔄 [ONBOARDING_BLOC] === INICIANDO InitializeOnboarding ===');
 
     try {
@@ -165,11 +168,12 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
   }
 
   /// Progress to specific step with validation
-  Future<void> _onProgressToStep(ProgressToStep event,
-      Emitter<OnboardingState> emit,) async {
+  Future<void> _onProgressToStep(
+    ProgressToStep event,
+    Emitter<OnboardingState> emit,
+  ) async {
     debugPrint(
-        '🔄 [ONBOARDING_BLOC] === INICIANDO ProgressToStep: ${event
-            .stepIndex} ===');
+        '🔄 [ONBOARDING_BLOC] === INICIANDO ProgressToStep: ${event.stepIndex} ===');
 
     // Race condition protection
     if (_isProcessingStep) {
@@ -198,7 +202,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
 
       // Update progress
       final updatedCompletionStatus =
-      List<bool>.from(currentState.progress.stepCompletionStatus);
+          List<bool>.from(currentState.progress.stepCompletionStatus);
       for (int i = 0; i <= event.stepIndex; i++) {
         if (i < updatedCompletionStatus.length) {
           updatedCompletionStatus[i] = true;
@@ -206,7 +210,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       }
 
       final updatedProgress =
-      OnboardingProgress.fromStepCompletion(updatedCompletionStatus);
+          OnboardingProgress.fromStepCompletion(updatedCompletionStatus);
       await _saveProgress(updatedProgress);
 
       final newStep = OnboardingSteps.defaultSteps[event.stepIndex];
@@ -236,11 +240,12 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
   }
 
   /// Select theme with immediate preview
-  Future<void> _onSelectTheme(SelectTheme event,
-      Emitter<OnboardingState> emit,) async {
+  Future<void> _onSelectTheme(
+    SelectTheme event,
+    Emitter<OnboardingState> emit,
+  ) async {
     debugPrint(
-        '🔄 [ONBOARDING_BLOC] === INICIANDO SelectTheme: ${event
-            .themeFamily} ===');
+        '🔄 [ONBOARDING_BLOC] === INICIANDO SelectTheme: ${event.themeFamily} ===');
 
     if (state is! OnboardingStepActive) {
       debugPrint(
@@ -269,11 +274,10 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       // Apply theme immediately for preview
       await _themeProvider.setThemeFamily(event.themeFamily);
       debugPrint(
-          '🎨 [ONBOARDING_BLOC] Tema aplicado para preview: ${event
-              .themeFamily}');
+          '🎨 [ONBOARDING_BLOC] Tema aplicado para preview: ${event.themeFamily}');
 
       final updatedSelections =
-      Map<String, dynamic>.from(currentState.userSelections);
+          Map<String, dynamic>.from(currentState.userSelections);
       updatedSelections['selectedThemeFamily'] = event.themeFamily;
 
       // Validate configuration before saving
@@ -308,11 +312,12 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
   }
 
   /// Configure backup option during onboarding
-  Future<void> _onConfigureBackupOption(ConfigureBackupOption event,
-      Emitter<OnboardingState> emit,) async {
+  Future<void> _onConfigureBackupOption(
+    ConfigureBackupOption event,
+    Emitter<OnboardingState> emit,
+  ) async {
     debugPrint(
-        '🔄 [ONBOARDING_BLOC] === INICIANDO ConfigureBackupOption: ${event
-            .enableBackup} ===');
+        '🔄 [ONBOARDING_BLOC] === INICIANDO ConfigureBackupOption: ${event.enableBackup} ===');
 
     if (state is! OnboardingStepActive) {
       debugPrint(
@@ -329,7 +334,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       ));
 
       final updatedSelections =
-      Map<String, dynamic>.from(currentState.userSelections);
+          Map<String, dynamic>.from(currentState.userSelections);
       updatedSelections['backupEnabled'] = event.enableBackup;
 
       // Coordinate with BackupBloc if available and backup is enabled
@@ -364,8 +369,10 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
   }
 
   /// Update step configuration
-  Future<void> _onUpdateStepConfiguration(UpdateStepConfiguration event,
-      Emitter<OnboardingState> emit,) async {
+  Future<void> _onUpdateStepConfiguration(
+    UpdateStepConfiguration event,
+    Emitter<OnboardingState> emit,
+  ) async {
     debugPrint(
         '🔄 [ONBOARDING_BLOC] === INICIANDO UpdateStepConfiguration ===');
 
@@ -378,7 +385,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     try {
       final currentState = state as OnboardingStepActive;
       final updatedConfiguration =
-      Map<String, dynamic>.from(currentState.stepConfiguration);
+          Map<String, dynamic>.from(currentState.stepConfiguration);
       updatedConfiguration.addAll(event.configuration);
 
       emit(currentState.copyWith(stepConfiguration: updatedConfiguration));
@@ -400,8 +407,10 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
   }
 
   /// Complete onboarding and finalize all configurations
-  Future<void> _onCompleteOnboarding(CompleteOnboarding event,
-      Emitter<OnboardingState> emit,) async {
+  Future<void> _onCompleteOnboarding(
+    CompleteOnboarding event,
+    Emitter<OnboardingState> emit,
+  ) async {
     debugPrint('🔄 [ONBOARDING_BLOC] === INICIANDO CompleteOnboarding ===');
 
     // Race condition protection
@@ -451,8 +460,10 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
   }
 
   /// Reset onboarding for testing/debugging
-  Future<void> _onResetOnboarding(ResetOnboarding event,
-      Emitter<OnboardingState> emit,) async {
+  Future<void> _onResetOnboarding(
+    ResetOnboarding event,
+    Emitter<OnboardingState> emit,
+  ) async {
     debugPrint('🔄 [ONBOARDING_BLOC] === INICIANDO ResetOnboarding ===');
 
     try {
@@ -476,8 +487,10 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
   }
 
   /// Skip current step
-  Future<void> _onSkipCurrentStep(SkipCurrentStep event,
-      Emitter<OnboardingState> emit,) async {
+  Future<void> _onSkipCurrentStep(
+    SkipCurrentStep event,
+    Emitter<OnboardingState> emit,
+  ) async {
     debugPrint('🔄 [ONBOARDING_BLOC] === INICIANDO SkipCurrentStep ===');
 
     if (state is! OnboardingStepActive) {
@@ -504,8 +517,10 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
   }
 
   /// Go back to previous step
-  Future<void> _onGoToPreviousStep(GoToPreviousStep event,
-      Emitter<OnboardingState> emit,) async {
+  Future<void> _onGoToPreviousStep(
+    GoToPreviousStep event,
+    Emitter<OnboardingState> emit,
+  ) async {
     debugPrint('🔄 [ONBOARDING_BLOC] === INICIANDO GoToPreviousStep ===');
 
     if (state is! OnboardingStepActive) {
@@ -531,11 +546,12 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
   }
 
   /// Update preview (for theme selection)
-  Future<void> _onUpdatePreview(UpdatePreview event,
-      Emitter<OnboardingState> emit,) async {
+  Future<void> _onUpdatePreview(
+    UpdatePreview event,
+    Emitter<OnboardingState> emit,
+  ) async {
     debugPrint(
-        '🔄 [ONBOARDING_BLOC] === INICIANDO UpdatePreview: ${event
-            .previewType} ===');
+        '🔄 [ONBOARDING_BLOC] === INICIANDO UpdatePreview: ${event.previewType} ===');
 
     if (state is! OnboardingStepActive) {
       debugPrint(
@@ -546,7 +562,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     try {
       final currentState = state as OnboardingStepActive;
       final updatedConfiguration =
-      Map<String, dynamic>.from(currentState.stepConfiguration);
+          Map<String, dynamic>.from(currentState.stepConfiguration);
       updatedConfiguration['preview_${event.previewType}'] = event.previewValue;
 
       emit(currentState.copyWith(stepConfiguration: updatedConfiguration));
@@ -687,8 +703,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
 
         final progress = OnboardingProgress.fromJson(progressData);
         debugPrint(
-            '📊 [ONBOARDING_BLOC] Progreso cargado: ${progress
-                .completedSteps}/${progress.totalSteps}');
+            '📊 [ONBOARDING_BLOC] Progreso cargado: ${progress.completedSteps}/${progress.totalSteps}');
         return progress;
       }
     } catch (e) {
@@ -715,8 +730,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       final progressJson = jsonEncode(wrapper);
       await prefs.setString(_progressKey, progressJson);
       debugPrint(
-          '💾 [ONBOARDING_BLOC] Progreso guardado: ${progress
-              .completedSteps}/${progress.totalSteps}');
+          '💾 [ONBOARDING_BLOC] Progreso guardado: ${progress.completedSteps}/${progress.totalSteps}');
     } catch (e) {
       debugPrint('⚠️ [ONBOARDING_BLOC] Error saving progress: $e');
     } finally {
@@ -754,13 +768,10 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
         final themeFamily = configuration['selectedThemeFamily'];
         if (themeFamily != null && themeFamily is! String) {
           debugPrint(
-              '❌ [ONBOARDING_BLOC] Invalid theme family type: ${themeFamily
-                  .runtimeType}');
+              '❌ [ONBOARDING_BLOC] Invalid theme family type: ${themeFamily.runtimeType}');
           return false;
         }
-        if (themeFamily is String && themeFamily
-            .trim()
-            .isEmpty) {
+        if (themeFamily is String && themeFamily.trim().isEmpty) {
           debugPrint('❌ [ONBOARDING_BLOC] Theme family cannot be empty');
           return false;
         }
@@ -771,8 +782,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
         final backupEnabled = configuration['backupEnabled'];
         if (backupEnabled != null && backupEnabled is! bool) {
           debugPrint(
-              '❌ [ONBOARDING_BLOC] Invalid backup enabled type: ${backupEnabled
-                  .runtimeType}');
+              '❌ [ONBOARDING_BLOC] Invalid backup enabled type: ${backupEnabled.runtimeType}');
           return false;
         }
       }
@@ -782,8 +792,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
         final language = configuration['selectedLanguage'];
         if (language != null && language is! String) {
           debugPrint(
-              '❌ [ONBOARDING_BLOC] Invalid language type: ${language
-                  .runtimeType}');
+              '❌ [ONBOARDING_BLOC] Invalid language type: ${language.runtimeType}');
           return false;
         }
       }
@@ -798,9 +807,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
 
   /// Validate theme family input
   bool _validateThemeFamily(String themeFamily) {
-    if (themeFamily
-        .trim()
-        .isEmpty) {
+    if (themeFamily.trim().isEmpty) {
       debugPrint('❌ [ONBOARDING_BLOC] Theme family cannot be empty');
       return false;
     }
@@ -823,8 +830,8 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
   }
 
   /// Migrate configuration from older schema versions
-  Map<String, dynamic> _migrateConfiguration(Map<String, dynamic> config,
-      int fromVersion) {
+  Map<String, dynamic> _migrateConfiguration(
+      Map<String, dynamic> config, int fromVersion) {
     debugPrint(
         '🔄 [ONBOARDING_BLOC] Migrating configuration from version $fromVersion to $_currentSchemaVersion');
 
@@ -847,14 +854,14 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
   }
 
   /// Migrate progress data from older schema versions
-  Map<String, dynamic> _migrateProgress(Map<String, dynamic> progressData,
-      int fromVersion) {
+  Map<String, dynamic> _migrateProgress(
+      Map<String, dynamic> progressData, int fromVersion) {
     debugPrint(
         '🔄 [ONBOARDING_BLOC] Migrating progress from version $fromVersion to $_currentSchemaVersion');
 
     try {
       Map<String, dynamic> migratedProgress =
-      Map<String, dynamic>.from(progressData);
+          Map<String, dynamic>.from(progressData);
 
       // Version 0 -> 1: No changes needed for now, but this is where future migrations would go
       if (fromVersion < 1) {
@@ -862,7 +869,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
         migratedProgress['totalSteps'] ??= 4;
         migratedProgress['completedSteps'] ??= 0;
         migratedProgress['stepCompletionStatus'] ??=
-        List<bool>.filled(4, false);
+            List<bool>.filled(4, false);
         migratedProgress['progressPercentage'] ??= 0.0;
         debugPrint('✅ [ONBOARDING_BLOC] Progress migration v0->v1 completed');
       }
