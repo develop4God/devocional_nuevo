@@ -1,7 +1,7 @@
 // lib/services/backup_scheduler_service.dart
 import 'package:devocional_nuevo/services/google_drive_auth_service.dart';
 import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:workmanager/workmanager.dart';
 
 import 'connectivity_service.dart';
@@ -140,7 +140,24 @@ class BackupSchedulerService {
         ),
         tag: _taskTag,
       );
+      // === INICIO: CAMBIO TEMPORAL PARA PRUEBAS ===
 
+// === INICIO: CAMBIO TEMPORAL PARA PRUEBAS ===
+      if (kDebugMode) {
+        debugPrint(
+            '📋 [SCHEDULER] Registrando tarea de prueba (un solo disparo)...');
+        await Workmanager().registerOneOffTask(
+          'unique_backup_worker_test',
+          _taskName,
+          initialDelay: const Duration(seconds: 5),
+          constraints: Constraints(
+            networkType: NetworkType.connected,
+          ),
+        );
+        debugPrint(
+            '🎉 [SCHEDULER] Tarea de prueba registrada. Se ejecutará en 5s.');
+      }
+// === FIN: CAMBIO TEMPORAL PARA PRUEBAS ===
       debugPrint('🎉 [SCHEDULER] ¡Backup automático programado exitosamente!');
       debugPrint('🎉 [SCHEDULER] - Frecuencia: $frequency');
       debugPrint(
