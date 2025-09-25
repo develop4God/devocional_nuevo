@@ -203,6 +203,14 @@ class BackupSchedulerService {
 
   /// Check if backup should run now
   Future<bool> shouldRunBackup() async {
+    // === INICIO: CAMBIO TEMPORAL PARA PRUEBAS ===
+    // Esto fuerza el backup para pruebas en modo de depuración.
+    if (kDebugMode) {
+      debugPrint(
+          '⚠️ [SCHEDULER] Modo debug, forzando shouldRunBackup() a true.');
+      return true;
+    }
+    // === FIN: CAMBIO TEMPORAL PARA PRUEBAS ===
     debugPrint('🔍 [SCHEDULER] === VERIFICANDO shouldRunBackup() ===');
 
     try {
@@ -349,6 +357,9 @@ void callbackDispatcher() {
     try {
       switch (task) {
         case BackupSchedulerService._taskName:
+        // === INICIO: CAMBIO TEMPORAL PARA PRUEBAS ===
+        case 'unique_backup_worker_test':
+// === FIN: CAMBIO TEMPORAL PARA PRUEBAS ===
           debugPrint('✅ [DISPATCHER] Ejecutando tarea de backup automático...');
           await BackupSchedulerService.executeBackgroundBackup();
           debugPrint('✅ [DISPATCHER] Tarea de backup completada exitosamente');
