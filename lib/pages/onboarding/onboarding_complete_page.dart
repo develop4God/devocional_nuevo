@@ -1,10 +1,11 @@
 import 'dart:math' as math;
 
-import 'package:devocional_nuevo/blocs/onboarding/onboarding_bloc.dart';
-import 'package:devocional_nuevo/blocs/onboarding/onboarding_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
+import '../../blocs/onboarding/onboarding_bloc.dart';
+import '../../blocs/onboarding/onboarding_state.dart';
 
 class OnboardingCompletePage extends StatefulWidget {
   final VoidCallback onStartApp;
@@ -101,410 +102,214 @@ class _OnboardingCompletePageState extends State<OnboardingCompletePage>
         child: SafeArea(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 32.0),
-            child: SingleChildScrollView(
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  minHeight: MediaQuery.of(context).size.height -
-                      MediaQuery.of(context).padding.top -
-                      MediaQuery.of(context).padding.bottom,
-                ),
-                child: Column(
-                  children: [
-                    SizedBox(height: MediaQuery.of(context).size.height * 0.05),
+            child: Column(
+              children: [
+                const Spacer(flex: 2),
 
-                    // Celebration icon with particles (responsive size)
-                    SizedBox(
-                      height: MediaQuery.of(context).size.height * 0.25,
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          // Background particles
-                          ...List.generate(8, (index) {
-                            return AnimatedBuilder(
-                              animation: _particleAnimation,
-                              builder: (context, child) {
-                                final angle = (index * 45.0) * (math.pi / 180);
-                                final distance =
-                                    60 + (40 * _particleAnimation.value);
-                                final x = distance *
-                                    math.cos(angle +
-                                        _particleAnimation.value * 2 * math.pi);
-                                final y = distance *
-                                    math.sin(angle +
-                                        _particleAnimation.value * 2 * math.pi);
-
-                                return Transform.translate(
-                                  offset: Offset(x, y),
-                                  child: Container(
-                                    width: 6,
-                                    height: 6,
-                                    decoration: BoxDecoration(
-                                      color: colorScheme.primary.withValues(
-                                        alpha: 0.3 *
-                                            (1 - _particleAnimation.value),
-                                      ),
-                                      shape: BoxShape.circle,
-                                    ),
-                                  ),
-                                );
-                              },
-                            );
-                          }),
-
-                          // Main celebration icon
-                          AnimatedBuilder(
-                            animation: Listenable.merge(
-                                [_scaleAnimation, _pulseAnimation]),
-                            builder: (context, child) {
-                              return Transform.scale(
-                                scale: _scaleAnimation.value *
-                                    _pulseAnimation.value,
-                                child: Container(
-                                  width: 140,
-                                  height: 140,
-                                  decoration: BoxDecoration(
-                                    gradient: LinearGradient(
-                                      colors: [
-                                        colorScheme.primary,
-                                        colorScheme.secondary,
-                                      ],
-                                      begin: Alignment.topLeft,
-                                      end: Alignment.bottomRight,
-                                    ),
-                                    shape: BoxShape.circle,
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: colorScheme.primary
-                                            .withValues(alpha: 0.3),
-                                        blurRadius: 30,
-                                        spreadRadius: 5,
-                                        offset: const Offset(0, 10),
-                                      ),
-                                    ],
-                                  ),
-                                  child: Icon(
-                                    Icons.celebration_outlined,
-                                    color: colorScheme.onPrimary,
-                                    size: 70,
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    SizedBox(height: MediaQuery.of(context).size.height * 0.04),
-
-                    // Title with animation (responsive sizing)
-                    AnimatedBuilder(
-                      animation: _fadeAnimation,
-                      builder: (context, child) {
-                        return Transform.translate(
-                          offset: Offset(0, 20 * (1 - _fadeAnimation.value)),
-                          child: Opacity(
-                            opacity: _fadeAnimation.value,
-                            child: Text(
-                              'onboarding.onboarding_complete_title'.tr(),
-                              style: theme.textTheme.headlineMedium?.copyWith(
-                                // Changed from headlineLarge
-                                fontWeight: FontWeight.bold,
-                                color: colorScheme.onSurface,
-                                letterSpacing: -0.5,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-
-                    SizedBox(height: MediaQuery.of(context).size.height * 0.02),
-
-                    // Subtitle
-                    AnimatedBuilder(
-                      animation: _fadeAnimation,
-                      builder: (context, child) {
-                        return Transform.translate(
-                          offset: Offset(0, 20 * (1 - _fadeAnimation.value)),
-                          child: Opacity(
-                            opacity: _fadeAnimation.value,
-                            child: Text(
-                              'onboarding.onboarding_complete_subtitle'.tr(),
-                              style: theme.textTheme.bodyLarge?.copyWith(
-                                color: colorScheme.onSurface
-                                    .withValues(alpha: 0.7),
-                                height: 1.5,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-
-                    SizedBox(height: MediaQuery.of(context).size.height * 0.03),
-
-                    // 🔧 UPDATED: Setup summary card with BlocBuilder to read actual configurations
-                    BlocBuilder<OnboardingBloc, OnboardingState>(
-                      builder: (context, state) {
-                        // Extract actual configurations
-                        Map<String, dynamic> userSelections = {};
-                        if (state is OnboardingStepActive) {
-                          userSelections = state.userSelections;
-                        } else if (state is OnboardingCompleted) {
-                          userSelections = state.appliedConfigurations;
-                        }
-
-                        debugPrint(
-                            '🔍 [DEBUG] OnboardingCompletePage - userSelections: $userSelections');
-
+                // Celebration icon with particles
+                SizedBox(
+                  height: 200,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      // Background particles
+                      ...List.generate(8, (index) {
                         return AnimatedBuilder(
-                          animation: _fadeAnimation,
+                          animation: _particleAnimation,
                           builder: (context, child) {
+                            final angle = (index * 45.0) * (math.pi / 180);
+                            final distance =
+                                60 + (40 * _particleAnimation.value);
+                            final x = distance *
+                                math.cos(angle +
+                                    _particleAnimation.value * 2 * math.pi);
+                            final y = distance *
+                                math.sin(angle +
+                                    _particleAnimation.value * 2 * math.pi);
+
                             return Transform.translate(
-                              offset:
-                                  Offset(0, 30 * (1 - _fadeAnimation.value)),
-                              child: Opacity(
-                                opacity: _fadeAnimation.value,
-                                child: Container(
-                                  padding: const EdgeInsets.all(20),
-                                  // Reduced padding
-                                  decoration: BoxDecoration(
-                                    gradient: LinearGradient(
-                                      colors: [
-                                        colorScheme.surfaceContainerHighest
-                                            .withValues(alpha: 0.8),
-                                        colorScheme.surfaceContainer
-                                            .withValues(alpha: 0.5),
-                                      ],
-                                      begin: Alignment.topLeft,
-                                      end: Alignment.bottomRight,
-                                    ),
-                                    borderRadius: BorderRadius.circular(16),
-                                    // Reduced radius
-                                    border: Border.all(
-                                      color: colorScheme.outline
-                                          .withValues(alpha: 0.1),
-                                      width: 1,
-                                    ),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: colorScheme.shadow
-                                            .withValues(alpha: 0.05),
-                                        blurRadius: 15, // Reduced shadow
-                                        offset: const Offset(0, 6),
-                                      ),
-                                    ],
+                              offset: Offset(x, y),
+                              child: Container(
+                                width: 6,
+                                height: 6,
+                                decoration: BoxDecoration(
+                                  color: colorScheme.primary.withValues(
+                                    alpha: 0.3 * (1 - _particleAnimation.value),
                                   ),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        children: [
-                                          Container(
-                                            padding: const EdgeInsets.all(6),
-                                            // Reduced padding
-                                            decoration: BoxDecoration(
-                                              color: colorScheme.primary
-                                                  .withValues(alpha: 0.1),
-                                              borderRadius:
-                                                  BorderRadius.circular(8),
-                                            ),
-                                            child: Icon(
-                                              Icons.check_circle_outline,
-                                              color: colorScheme.primary,
-                                              size: 18, // Reduced size
-                                            ),
-                                          ),
-                                          const SizedBox(width: 10),
-                                          // Reduced space
-                                          Expanded(
-                                            // Added Expanded to prevent overflow
-                                            child: Text(
-                                              'onboarding.onboarding_your_setup'
-                                                  .tr(),
-                                              style: theme.textTheme.titleMedium
-                                                  ?.copyWith(
-                                                // Changed from titleLarge
-                                                fontWeight: FontWeight.bold,
-                                                color: colorScheme.onSurface,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 16),
-                                      // Reduced space
-
-                                      // 🎨 Theme selection (always configured)
-                                      _buildSetupItem(
-                                        context,
-                                        Icons.palette_outlined,
-                                        'onboarding.onboarding_setup_theme_configured'
-                                            .tr(),
-                                        isConfigured:
-                                            true, // Theme is always configured since user can't skip
-                                      ),
-
-                                      // 🔧 CONDITIONAL: Backup configuration (only show if actually configured)
-                                      if (userSelections['backupEnabled'] ==
-                                          true) ...[
-                                        const SizedBox(height: 12),
-                                        // Reduced space
-                                        _buildSetupItem(
-                                          context,
-                                          Icons.cloud_done_outlined,
-                                          'onboarding.onboarding_setup_backup_configured'
-                                              .tr(),
-                                          isConfigured: true,
-                                        ),
-                                        const SizedBox(height: 12),
-                                        // Reduced space
-                                        _buildSetupItem(
-                                          context,
-                                          Icons.shield_outlined,
-                                          'onboarding.onboarding_setup_protection_active'
-                                              .tr(),
-                                          isConfigured: true,
-                                        ),
-                                      ] else ...[
-                                        // Show that backup was skipped
-                                        const SizedBox(height: 12),
-                                        // Reduced space
-                                        _buildSetupItem(
-                                          context,
-                                          Icons.cloud_off_outlined,
-                                          'onboarding.onboarding_setup_backup_skipped'
-                                              .tr(),
-                                          isConfigured: false,
-                                        ),
-                                      ],
-
-                                      // 🔧 Optional: Add message about being able to configure later if skipped
-                                      if (userSelections['backupEnabled'] !=
-                                          true) ...[
-                                        const SizedBox(height: 12),
-                                        // Reduced space
-                                        Container(
-                                          padding: const EdgeInsets.all(10),
-                                          // Reduced padding
-                                          decoration: BoxDecoration(
-                                            color: colorScheme
-                                                .surfaceContainerHighest
-                                                .withValues(alpha: 0.5),
-                                            borderRadius:
-                                                BorderRadius.circular(6),
-                                            border: Border.all(
-                                              color: colorScheme.outline
-                                                  .withValues(alpha: 0.2),
-                                            ),
-                                          ),
-                                          child: Row(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment
-                                                    .start, // Changed alignment
-                                            children: [
-                                              Icon(
-                                                Icons.info_outline,
-                                                color: colorScheme.primary,
-                                                size: 14, // Reduced size
-                                              ),
-                                              const SizedBox(width: 6),
-                                              Expanded(
-                                                child: Text(
-                                                  'onboarding.onboarding_setup_backup_later_info'
-                                                      .tr(),
-                                                  style: theme
-                                                      .textTheme.bodySmall
-                                                      ?.copyWith(
-                                                    color: colorScheme
-                                                        .onSurfaceVariant,
-                                                    fontSize:
-                                                        12, // Reduced font size
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ],
-                                    ],
-                                  ),
+                                  shape: BoxShape.circle,
                                 ),
                               ),
                             );
                           },
                         );
-                      },
-                    ),
+                      }),
 
-                    // Spacer that adapts to remaining space
-                    SizedBox(height: MediaQuery.of(context).size.height * 0.02),
-
-                    // Start button
-                    AnimatedBuilder(
-                      animation: _fadeAnimation,
-                      builder: (context, child) {
-                        return Transform.translate(
-                          offset: Offset(0, 20 * (1 - _fadeAnimation.value)),
-                          child: Opacity(
-                            opacity: _fadeAnimation.value,
-                            child: SizedBox(
-                              width: double.infinity,
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    colors: [
-                                      colorScheme.primary,
-                                      colorScheme.secondary,
-                                    ],
-                                  ),
-                                  borderRadius: BorderRadius.circular(12),
-                                  // Reduced radius
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: colorScheme.primary
-                                          .withValues(alpha: 0.3),
-                                      blurRadius: 15, // Reduced shadow
-                                      offset: const Offset(0, 6),
-                                    ),
+                      // Main celebration icon
+                      AnimatedBuilder(
+                        animation: Listenable.merge(
+                            [_scaleAnimation, _pulseAnimation]),
+                        builder: (context, child) {
+                          return Transform.scale(
+                            scale:
+                                _scaleAnimation.value * _pulseAnimation.value,
+                            child: Container(
+                              width: 140,
+                              height: 140,
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [
+                                    colorScheme.primary,
+                                    colorScheme.secondary,
                                   ],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
                                 ),
-                                child: ElevatedButton(
-                                  onPressed: widget.onStartApp,
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.transparent,
-                                    shadowColor: Colors.transparent,
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 16),
-                                    // Reduced padding
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: colorScheme.primary
+                                        .withValues(alpha: 0.3),
+                                    blurRadius: 30,
+                                    spreadRadius: 5,
+                                    offset: const Offset(0, 10),
                                   ),
-                                  child: Text(
-                                    'onboarding.onboarding_start_app'.tr(),
-                                    style: TextStyle(
-                                      fontSize: 16, // Reduced font size
-                                      fontWeight: FontWeight.w600,
-                                      color: colorScheme.onPrimary,
-                                    ),
-                                  ),
+                                ],
+                              ),
+                              child: Icon(
+                                Icons.celebration_outlined,
+                                color: colorScheme.onPrimary,
+                                size: 70,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 40),
+
+                // Title with animation
+                AnimatedBuilder(
+                  animation: _fadeAnimation,
+                  builder: (context, child) {
+                    return Transform.translate(
+                      offset: Offset(0, 20 * (1 - _fadeAnimation.value)),
+                      child: Opacity(
+                        opacity: _fadeAnimation.value,
+                        child: Text(
+                          'onboarding.onboarding_complete_title'.tr(),
+                          style: theme.textTheme.headlineLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: colorScheme.onSurface,
+                            letterSpacing: -0.5,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+
+                const SizedBox(height: 16),
+
+                // Subtitle
+                AnimatedBuilder(
+                  animation: _fadeAnimation,
+                  builder: (context, child) {
+                    return Transform.translate(
+                      offset: Offset(0, 20 * (1 - _fadeAnimation.value)),
+                      child: Opacity(
+                        opacity: _fadeAnimation.value,
+                        child: Text(
+                          'onboarding.onboarding_complete_subtitle'.tr(),
+                          style: theme.textTheme.bodyLarge?.copyWith(
+                            color: colorScheme.onSurface.withValues(alpha: 0.7),
+                            height: 1.5,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+
+                const SizedBox(height: 40),
+
+                // Setup summary card
+                AnimatedBuilder(
+                  animation: _fadeAnimation,
+                  builder: (context, child) {
+                    return Transform.translate(
+                      offset: Offset(0, 30 * (1 - _fadeAnimation.value)),
+                      child: Opacity(
+                        opacity: _fadeAnimation.value,
+                        child: _buildSetupSummaryCard(context),
+                      ),
+                    );
+                  },
+                ),
+
+                const Spacer(flex: 2),
+
+                // Start button
+                AnimatedBuilder(
+                  animation: _fadeAnimation,
+                  builder: (context, child) {
+                    return Transform.translate(
+                      offset: Offset(0, 20 * (1 - _fadeAnimation.value)),
+                      child: Opacity(
+                        opacity: _fadeAnimation.value,
+                        child: SizedBox(
+                          width: double.infinity,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  colorScheme.primary,
+                                  colorScheme.secondary,
+                                ],
+                              ),
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: colorScheme.primary
+                                      .withValues(alpha: 0.3),
+                                  blurRadius: 20,
+                                  offset: const Offset(0, 8),
+                                ),
+                              ],
+                            ),
+                            child: ElevatedButton(
+                              onPressed: widget.onStartApp,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.transparent,
+                                shadowColor: Colors.transparent,
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 18),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                              ),
+                              child: Text(
+                                'onboarding.onboarding_start_app'.tr(),
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w600,
+                                  color: colorScheme.onPrimary,
                                 ),
                               ),
                             ),
                           ),
-                        );
-                      },
-                    ),
-
-                    SizedBox(height: MediaQuery.of(context).size.height * 0.03),
-                  ],
+                        ),
+                      ),
+                    );
+                  },
                 ),
-              ),
+
+                const SizedBox(height: 32),
+              ],
             ),
           ),
         ),
@@ -512,66 +317,198 @@ class _OnboardingCompletePageState extends State<OnboardingCompletePage>
     );
   }
 
-  // 🔧 UPDATED: Modified to accept isConfigured parameter and show different styles
-  Widget _buildSetupItem(BuildContext context, IconData icon, String text,
-      {required bool isConfigured}) {
+  Widget _buildSetupSummaryCard(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return BlocBuilder<OnboardingBloc, OnboardingState>(
+      builder: (context, state) {
+        Map<String, dynamic> configurations = {};
+        if (state is OnboardingCompleted) {
+          configurations = state.appliedConfigurations;
+        }
+
+        return Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                colorScheme.surfaceContainerHighest.withValues(alpha: 0.8),
+                colorScheme.surfaceContainer.withValues(alpha: 0.5),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: colorScheme.outline.withValues(alpha: 0.1),
+              width: 1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: colorScheme.shadow.withValues(alpha: 0.05),
+                blurRadius: 20,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: colorScheme.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(
+                      Icons.check_circle_outline,
+                      color: colorScheme.primary,
+                      size: 20,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    'onboarding.onboarding_your_setup'.tr(),
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.onSurface,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+
+              // Theme configuration
+              _buildSetupItem(
+                context,
+                Icons.palette_outlined,
+                _getThemeStatusMessage(configurations),
+                true,
+              ),
+
+              const SizedBox(height: 16),
+
+              // Backup configuration
+              _buildSetupItem(
+                context,
+                _getBackupStatusIcon(configurations),
+                _getBackupStatusMessage(configurations),
+                _isBackupConfigured(configurations) ||
+                    _wasBackupSkipped(configurations),
+              ),
+
+              const SizedBox(height: 16),
+
+              // Data protection
+              _buildSetupItem(
+                context,
+                Icons.shield_outlined,
+                'Protección de datos activada',
+                true,
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildSetupItem(
+    BuildContext context,
+    IconData icon,
+    String text,
+    bool isConfigured,
+  ) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      // Changed to start alignment
       children: [
         Container(
-          width: 32, // Reduced size
-          height: 32,
+          width: 36,
+          height: 36,
           decoration: BoxDecoration(
             color: isConfigured
                 ? colorScheme.primaryContainer.withValues(alpha: 0.3)
-                : colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-            borderRadius: BorderRadius.circular(8), // Reduced radius
+                : colorScheme.outline.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(10),
           ),
           child: Icon(
             icon,
             color: isConfigured
                 ? colorScheme.primary
-                : colorScheme.onSurfaceVariant,
-            size: 18, // Reduced size
+                : colorScheme.outline.withValues(alpha: 0.6),
+            size: 20,
           ),
         ),
-        const SizedBox(width: 12), // Reduced spacing
+        const SizedBox(width: 16),
         Expanded(
           child: Text(
             text,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              // Changed from bodyLarge
+            style: theme.textTheme.bodyLarge?.copyWith(
               color: isConfigured
                   ? colorScheme.onSurface
-                  : colorScheme.onSurfaceVariant,
+                  : colorScheme.onSurface.withValues(alpha: 0.6),
               fontWeight: FontWeight.w500,
-              fontSize: 14, // Explicit font size for consistency
             ),
-            maxLines: 2, // Allow text to wrap
-            overflow: TextOverflow.ellipsis,
           ),
         ),
         Container(
-          padding: const EdgeInsets.all(3), // Reduced padding
+          padding: const EdgeInsets.all(4),
           decoration: BoxDecoration(
             color: isConfigured
                 ? colorScheme.primary.withValues(alpha: 0.1)
-                : colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                : colorScheme.outline.withValues(alpha: 0.1),
             shape: BoxShape.circle,
           ),
           child: Icon(
-            isConfigured ? Icons.check : Icons.close,
+            isConfigured ? Icons.check : Icons.remove,
             color: isConfigured
                 ? colorScheme.primary
-                : colorScheme.onSurfaceVariant,
-            size: 14, // Reduced size
+                : colorScheme.outline.withValues(alpha: 0.6),
+            size: 16,
           ),
         ),
       ],
     );
+  }
+
+  bool _isBackupConfigured(Map<String, dynamic> configurations) {
+    return configurations['backupEnabled'] == true;
+  }
+
+  bool _wasBackupSkipped(Map<String, dynamic> configurations) {
+    return configurations['backupSkipped'] == true;
+  }
+
+  IconData _getBackupStatusIcon(Map<String, dynamic> configurations) {
+    if (_isBackupConfigured(configurations)) {
+      return Icons.cloud_done_outlined;
+    } else if (_wasBackupSkipped(configurations)) {
+      return Icons.schedule_outlined;
+    } else {
+      return Icons.cloud_off_outlined;
+    }
+  }
+
+  String _getBackupStatusMessage(Map<String, dynamic> configurations) {
+    if (_isBackupConfigured(configurations)) {
+      return 'Respaldo automático configurado';
+    } else if (_wasBackupSkipped(configurations)) {
+      return 'Podrás configurar el respaldo más tarde';
+    } else {
+      return 'Respaldo omitido';
+    }
+  }
+
+  String _getThemeStatusMessage(Map<String, dynamic> configurations) {
+    final selectedTheme = configurations['selectedThemeFamily'] as String?;
+    if (selectedTheme != null && selectedTheme.isNotEmpty) {
+      return 'Tema "$selectedTheme" seleccionado';
+    }
+    return 'Tema personalizado seleccionado';
   }
 }
