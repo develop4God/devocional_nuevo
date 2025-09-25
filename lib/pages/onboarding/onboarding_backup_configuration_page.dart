@@ -139,6 +139,12 @@ class _OnboardingBackupConfigurationPageState
                             '🔄 [DEBUG] OnboardingBackupInitial recibido - usuario canceló o estado inicial');
                         _clearConnectingState();
                       } else if (state is BackupLoaded &&
+                          !state.isAuthenticated &&
+                          _isConnecting) {
+                        debugPrint(
+                            '🔄 [DEBUG] OnboardingBackupLoaded NO autenticado recibido - usuario canceló');
+                        _clearConnectingState();
+                      } else if (state is BackupLoaded &&
                           state.isAuthenticated) {
                         debugPrint(
                             '✅ [DEBUG] OnboardingBackupLoaded autenticado recibido');
