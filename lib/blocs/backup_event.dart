@@ -93,3 +93,8 @@ class SignInToGoogleDrive extends BackupEvent {
 class SignOutFromGoogleDrive extends BackupEvent {
   const SignOutFromGoogleDrive();
 }
+
+/// Check for startup backup (24h+ elapsed)
+class CheckStartupBackup extends BackupEvent {
+  const CheckStartupBackup();
+}

@@ -1,6 +1,7 @@
 import 'dart:developer' as developer;
 
 import 'package:devocional_nuevo/blocs/backup_bloc.dart';
+import 'package:devocional_nuevo/blocs/backup_event.dart';
 import 'package:devocional_nuevo/blocs/prayer_bloc.dart';
 import 'package:devocional_nuevo/controllers/audio_controller.dart';
 import 'package:devocional_nuevo/pages/devocionales_page.dart';
@@ -265,12 +266,25 @@ class _AppInitializerState extends State<AppInitializer> {
   }
 
   Future<void> _initializeInBackground() async {
+    // Capturar BLoC ANTES de cualquier await
+    final backupBloc = context.read<BackupBloc>();
+
     // Dar tiempo para que el SplashScreen se muestre
     await Future.delayed(const Duration(milliseconds: 600));
 
     // Inicialización completa: servicios + datos
     await _initServices();
     await _initAppData();
+
+    // Startup backup check (non-blocking)
+    Future.delayed(const Duration(seconds: 2), () {
+      try {
+        backupBloc.add(const CheckStartupBackup());
+        debugPrint('🌅 [MAIN] Startup backup check initiated');
+      } catch (e) {
+        debugPrint('❌ [MAIN] Error starting backup check: $e');
+      }
+    });
 
     developer.log(
       'AppInitializer: Inicialización completa terminada.',
