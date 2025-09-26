@@ -557,6 +557,13 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
         debugPrint('⏰ [BLOC] Horas desde último backup: $hoursSinceLastBackup');
 
         if (hoursSinceLastBackup >= 24) {
+          /* DEBUG: Para validaciones rápidas, comentar arriba y descomentar abajo
+        final minutesSinceLastBackup = now.difference(lastBackupTime).inMinutes;
+         debugPrint('⏰ [BLOC] Minutos desde último backup: $minutesSinceLastBackup');
+
+        if (minutesSinceLastBackup >= 1) {
+        */
+
           debugPrint('🚀 [BLOC] 24+ horas, ejecutando startup backup');
 
           final success =

@@ -36,6 +36,7 @@ class _OnboardingBackupConfigurationPageState
     extends State<OnboardingBackupConfigurationPage> {
   bool _isConnecting = false;
   bool _isNavigating = false;
+  bool _hasAutoConfigured = false;
   Timer? _timeoutTimer;
 
   @override
@@ -145,7 +146,9 @@ class _OnboardingBackupConfigurationPageState
                             '🔄 [DEBUG] OnboardingBackupLoaded NO autenticado recibido - usuario canceló');
                         _clearConnectingState();
                       } else if (state is BackupLoaded &&
-                          state.isAuthenticated) {
+                          state.isAuthenticated &&
+                          !_hasAutoConfigured) {
+                        _hasAutoConfigured = true;
                         debugPrint(
                             '✅ [DEBUG] OnboardingBackupLoaded autenticado recibido');
                         _timeoutTimer?.cancel();
