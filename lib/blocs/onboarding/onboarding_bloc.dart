@@ -5,7 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../providers/theme_provider.dart';
+import '../theme/theme_bloc.dart';
+import '../theme/theme_event.dart';
 import '../../services/onboarding_service.dart';
 import '../backup_bloc.dart';
 import '../backup_event.dart';
@@ -16,7 +17,7 @@ import 'onboarding_state.dart';
 /// BLoC for managing onboarding flow functionality
 class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
   final OnboardingService _onboardingService;
-  final ThemeProvider _themeProvider;
+  final ThemeBloc _themeBloc;
   final BackupBloc? _backupBloc;
 
   // Configuration persistence keys
@@ -36,10 +37,10 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
 
   OnboardingBloc({
     required OnboardingService onboardingService,
-    required ThemeProvider themeProvider,
+    required ThemeBloc themeBloc,
     BackupBloc? backupBloc,
   })  : _onboardingService = onboardingService,
-        _themeProvider = themeProvider,
+        _themeBloc = themeBloc,
         _backupBloc = backupBloc,
         super(const OnboardingInitial()) {
     // Register event handlers
@@ -272,7 +273,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       ));
 
       // Apply theme immediately for preview
-      await _themeProvider.setThemeFamily(event.themeFamily);
+      _themeBloc.add(ChangeThemeFamily(event.themeFamily));
       debugPrint(
           '🎨 [ONBOARDING_BLOC] Tema aplicado para preview: ${event.themeFamily}');
 
