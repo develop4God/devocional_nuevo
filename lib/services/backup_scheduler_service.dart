@@ -50,9 +50,9 @@ class BackupSchedulerService {
 
       if (!isEnabled) {
         debugPrint(
-          '⚠️ [SCHEDULER] Auto backup deshabilitado, cancelando tareas...',
-        );
-        await cancelAutomaticBackup();
+            '⚠️ [SCHEDULER] Auto backup deshabilitado, cancelando tareas...');
+        await Workmanager().cancelByUniqueName(_taskName);
+        await Workmanager().cancelByUniqueName('unique_backup_worker_test');
         debugPrint('✅ [SCHEDULER] Tareas canceladas por backup deshabilitado');
         return;
       }
@@ -60,12 +60,11 @@ class BackupSchedulerService {
       if (frequency == GoogleDriveBackupService.frequencyManual ||
           frequency == GoogleDriveBackupService.frequencyDeactivated) {
         debugPrint(
-          '⚠️ [SCHEDULER] Frecuencia es manual/desactivada, cancelando tareas...',
-        );
-        await cancelAutomaticBackup();
+            '⚠️ [SCHEDULER] Frecuencia es manual/desactivada, cancelando tareas...');
+        await Workmanager().cancelByUniqueName(_taskName);
+        await Workmanager().cancelByUniqueName('unique_backup_worker_test');
         debugPrint(
-          '✅ [SCHEDULER] Tareas canceladas por frecuencia manual/desactivada',
-        );
+            '✅ [SCHEDULER] Tareas canceladas por frecuencia manual/desactivada');
         return;
       }
 
@@ -75,7 +74,6 @@ class BackupSchedulerService {
       switch (frequency) {
         case GoogleDriveBackupService.frequencyDaily:
           debugPrint('📅 [SCHEDULER] Configurando backup diario...');
-
           // Calcular tiempo hasta las próximas 2:00 AM
           final now = DateTime.now();
           final today2AM = DateTime(now.year, now.month, now.day, 2, 0);
@@ -85,84 +83,88 @@ class BackupSchedulerService {
           if (now.isBefore(today2AM)) {
             nextBackup = today2AM;
             debugPrint(
-              '🕐 [SCHEDULER] Próximo backup: HOY a las 2:00 AM ($nextBackup)',
-            );
+                '🕐 [SCHEDULER] Próximo backup: HOY a las 2:00 AM ($nextBackup)');
           } else {
             nextBackup = tomorrow2AM;
             debugPrint(
-              '🕐 [SCHEDULER] Próximo backup: MAÑANA a las 2:00 AM ($nextBackup)',
-            );
+                '🕐 [SCHEDULER] Próximo backup: MAÑANA a las 2:00 AM ($nextBackup)');
           }
 
           initialDelay = nextBackup.difference(now);
           frequency_ = const Duration(hours: 24);
 
           debugPrint(
-            '⏰ [SCHEDULER] Delay inicial: ${initialDelay.inHours}h ${initialDelay.inMinutes % 60}m',
-          );
+              '⏰ [SCHEDULER] Delay inicial: ${initialDelay.inHours}h ${initialDelay.inMinutes % 60}m');
           debugPrint(
-            '🔄 [SCHEDULER] Frecuencia de repetición: ${frequency_.inHours}h',
-          );
+              '🔄 [SCHEDULER] Frecuencia de repetición: ${frequency_.inHours}h');
           break;
 
         default:
           debugPrint(
-            '⚠️ [SCHEDULER] Frecuencia no reconocida: $frequency, usando daily por defecto',
-          );
+              '⚠️ [SCHEDULER] Frecuencia no reconocida: $frequency, usando daily por defecto');
           initialDelay = const Duration(hours: 24);
           frequency_ = const Duration(hours: 24);
       }
 
-      // Cancel existing task
-      debugPrint('🗑️ [SCHEDULER] Cancelando tarea existente...');
+      // Cancel existing tasks
+      debugPrint('🗑️ [SCHEDULER] Cancelando tareas existentes...');
       await Workmanager().cancelByUniqueName(_taskName);
-      debugPrint('✅ [SCHEDULER] Tarea existente cancelada');
+      await Workmanager().cancelByUniqueName(
+          'unique_backup_worker_test'); // Cancelar prueba anterior
+      debugPrint('✅ [SCHEDULER] Tareas existentes canceladas');
 
-      // Schedule new periodic task
-      debugPrint('📋 [SCHEDULER] Registrando nueva tarea periódica...');
-      debugPrint('📋 [SCHEDULER] - Nombre: $_taskName');
-      debugPrint(
-        '📋 [SCHEDULER] - Delay inicial: ${initialDelay.inMinutes} minutos',
-      );
-      debugPrint('📋 [SCHEDULER] - Frecuencia: ${frequency_.inHours} horas');
-
-      await Workmanager().registerPeriodicTask(
-        _taskName,
-        _taskName,
-        frequency: frequency_,
-        initialDelay: initialDelay,
-        constraints: Constraints(
-          networkType: NetworkType.connected,
-          requiresBatteryNotLow: true,
-          requiresCharging: false,
-          requiresDeviceIdle: false,
-          requiresStorageNotLow: true,
-        ),
-        tag: _taskTag,
-      );
       // === INICIO: CAMBIO TEMPORAL PARA PRUEBAS ===
-
-// === INICIO: CAMBIO TEMPORAL PARA PRUEBAS ===
       if (kDebugMode) {
         debugPrint(
             '📋 [SCHEDULER] Registrando tarea de prueba (un solo disparo)...');
         await Workmanager().registerOneOffTask(
-          'unique_backup_worker_test',
-          _taskName,
-          initialDelay: const Duration(seconds: 5),
+          'unique_backup_worker_test', // Unique name diferente
+          _taskName, // Task name para el dispatcher
+          initialDelay: const Duration(seconds: 60),
           constraints: Constraints(
             networkType: NetworkType.connected,
           ),
         );
         debugPrint(
             '🎉 [SCHEDULER] Tarea de prueba registrada. Se ejecutará en 5s.');
+      } else {
+        // Solo registrar la tarea periódica en producción
+        debugPrint('📋 [SCHEDULER] Registrando nueva tarea periódica...');
+        debugPrint('📋 [SCHEDULER] - Nombre: $_taskName');
+        debugPrint(
+            '📋 [SCHEDULER] - Delay inicial: ${initialDelay.inMinutes} minutos');
+        debugPrint('📋 [SCHEDULER] - Frecuencia: ${frequency_.inHours} horas');
+
+        await Workmanager().registerPeriodicTask(
+          _taskName,
+          _taskName,
+          frequency: frequency_,
+          initialDelay: initialDelay,
+          constraints: Constraints(
+            networkType: NetworkType.connected,
+            requiresBatteryNotLow: true,
+            requiresCharging: false,
+            requiresDeviceIdle: false,
+            requiresStorageNotLow: true,
+          ),
+          tag: _taskTag,
+        );
+        // ADEMÁS registrar prueba en debug
+        if (kDebugMode) {
+          await Workmanager().registerOneOffTask(
+            'unique_backup_worker_test',
+            _taskName,
+            initialDelay: const Duration(seconds: 60),
+            constraints: Constraints(networkType: NetworkType.connected),
+          );
+        }
       }
-// === FIN: CAMBIO TEMPORAL PARA PRUEBAS ===
+      // === FIN: CAMBIO TEMPORAL PARA PRUEBAS ===
+
       debugPrint('🎉 [SCHEDULER] ¡Backup automático programado exitosamente!');
       debugPrint('🎉 [SCHEDULER] - Frecuencia: $frequency');
       debugPrint(
-        '🎉 [SCHEDULER] - Próxima ejecución: ${DateTime.now().add(initialDelay)}',
-      );
+          '🎉 [SCHEDULER] - Próxima ejecución: ${DateTime.now().add(initialDelay)}');
     } catch (e) {
       debugPrint('❌ [SCHEDULER] Error programando backup automático: $e');
       debugPrint('❌ [SCHEDULER] Stack trace: ${StackTrace.current}');
@@ -174,16 +176,14 @@ class BackupSchedulerService {
   /// Cancel automatic backup scheduling
   Future<void> cancelAutomaticBackup() async {
     debugPrint('🛑 [SCHEDULER] === INICIANDO cancelAutomaticBackup() ===');
-
     try {
       await Workmanager().cancelByUniqueName(_taskName);
+      await Workmanager().cancelByUniqueName('unique_backup_worker_test');
       debugPrint(
-        '✅ [SCHEDULER] Programación de backup automático cancelada exitosamente',
-      );
+          '✅ [SCHEDULER] Programación de backup automático cancelada exitosamente');
     } catch (e) {
       debugPrint('❌ [SCHEDULER] Error cancelando backup automático: $e');
     }
-
     debugPrint('🏁 [SCHEDULER] === FIN cancelAutomaticBackup() ===');
   }
 
@@ -345,7 +345,9 @@ class BackupSchedulerService {
 /// Background task callback dispatcher
 @pragma('vm:entry-point')
 void callbackDispatcher() {
+  final startTime = DateTime.now();
   debugPrint('🔧 [DISPATCHER] === INICIANDO CALLBACK DISPATCHER ===');
+  debugPrint('⏰ [DISPATCHER] Hora de inicio: ${startTime.toIso8601String()}');
 
   Workmanager().executeTask((task, inputData) async {
     debugPrint('📞 [DISPATCHER] Tarea recibida: $task');
