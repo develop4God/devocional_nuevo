@@ -1,16 +1,14 @@
 import 'dart:math' as math;
 
-import 'package:devocional_nuevo/utils/localization_extension.dart';
+import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:flutter/material.dart';
 
 class OnboardingWelcomePage extends StatefulWidget {
   final VoidCallback onNext;
-  final VoidCallback onSkip;
 
   const OnboardingWelcomePage({
     super.key,
     required this.onNext,
-    required this.onSkip,
   });
 
   @override
@@ -66,7 +64,7 @@ class _OnboardingWelcomePageState extends State<OnboardingWelcomePage>
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Theme.of(context).colorScheme.primary.withOpacity(0.1),
+              Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
               Theme.of(context).colorScheme.surface,
             ],
           ),
@@ -74,18 +72,6 @@ class _OnboardingWelcomePageState extends State<OnboardingWelcomePage>
         child: SafeArea(
           child: Column(
             children: [
-              // Skip button
-              Align(
-                alignment: Alignment.topRight,
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: TextButton(
-                    onPressed: widget.onSkip,
-                    child: Text('onboarding.onboarding_skip'.tr()),
-                  ),
-                ),
-              ),
-
               // Main content
               Expanded(
                 child: Padding(
@@ -119,7 +105,10 @@ class _OnboardingWelcomePageState extends State<OnboardingWelcomePage>
                                       decoration: BoxDecoration(
                                         color: Theme.of(
                                           context,
-                                        ).colorScheme.primary.withOpacity(0.6),
+                                        )
+                                            .colorScheme
+                                            .primary
+                                            .withValues(alpha: 0.6),
                                         shape: BoxShape.circle,
                                       ),
                                     ),
@@ -140,8 +129,8 @@ class _OnboardingWelcomePageState extends State<OnboardingWelcomePage>
                                         color: Theme.of(context)
                                             .colorScheme
                                             .primary
-                                            .withOpacity(
-                                              _heartGlow.value * 0.3,
+                                            .withValues(
+                                              alpha: _heartGlow.value * 0.3,
                                             ),
                                         blurRadius: 20 * _heartGlow.value,
                                         spreadRadius: 5 * _heartGlow.value,
@@ -185,7 +174,7 @@ class _OnboardingWelcomePageState extends State<OnboardingWelcomePage>
                         style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                               color: Theme.of(
                                 context,
-                              ).colorScheme.onSurface.withOpacity(0.7),
+                              ).colorScheme.onSurface.withValues(alpha: 0.7),
                               height: 1.5,
                             ),
                         textAlign: TextAlign.center,

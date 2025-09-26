@@ -85,10 +85,6 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
     _onboardingBloc.add(ProgressToStep(targetStep));
   }
 
-  void _handleSkip() {
-    _onboardingBloc.add(const SkipCurrentStep());
-  }
-
   void _handleBack() {
     _onboardingBloc.add(const GoToPreviousStep());
   }
@@ -275,7 +271,7 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
                                             color: Theme.of(context)
                                                 .colorScheme
                                                 .primary
-                                                .withOpacity(0.3),
+                                                .withValues(alpha: 0.3),
                                             blurRadius: 4,
                                             offset: const Offset(0, 2),
                                           ),
@@ -296,12 +292,10 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
                         children: [
                           OnboardingWelcomePage(
                             onNext: () => _handleStepNavigation(1),
-                            onSkip: _handleSkip,
                           ),
                           OnboardingThemeSelectionPage(
                             onNext: () => _handleStepNavigation(2),
                             onBack: _handleBack,
-                            onSkip: _handleSkip,
                           ),
                           OnboardingBackupConfigurationPage(
                             onNext: () => _handleStepNavigation(3),

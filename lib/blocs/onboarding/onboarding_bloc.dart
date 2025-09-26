@@ -1,5 +1,6 @@
 // lib/blocs/onboarding/onboarding_bloc.dart
 import 'dart:convert'; // ✅ Required for jsonEncode/jsonDecode
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -52,6 +53,44 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     on<SkipCurrentStep>(_onSkipCurrentStep);
     on<GoToPreviousStep>(_onGoToPreviousStep);
     on<UpdatePreview>(_onUpdatePreview);
+    on<SkipBackupForNow>(_onSkipBackupForNow);
+  }
+
+  /// Skip backup configuration for later
+  Future<void> _onSkipBackupForNow(
+    SkipBackupForNow event,
+    Emitter<OnboardingState> emit,
+  ) async {
+    debugPrint('🔄 [ONBOARDING_BLOC] === INICIANDO SkipBackupForNow ===');
+
+    if (state is! OnboardingStepActive) {
+      debugPrint(
+          '⚠️ [ONBOARDING_BLOC] Cannot skip backup - not in active step state');
+      return;
+    }
+
+    try {
+      final currentState = state as OnboardingStepActive;
+
+      final updatedSelections =
+          Map<String, dynamic>.from(currentState.userSelections);
+      updatedSelections['backupSkipped'] = true;
+      updatedSelections['backupEnabled'] = false;
+
+      await _saveConfiguration(updatedSelections);
+
+      emit(currentState.copyWith(
+        userSelections: updatedSelections,
+        stepConfiguration: {'backupSkipped': true},
+      ));
+
+      debugPrint(
+          '✅ [ONBOARDING_BLOC] Backup marcado como "configurar más tarde"');
+    } catch (e) {
+      debugPrint('❌ [ONBOARDING_BLOC] Error skipping backup: $e');
+    }
+
+    debugPrint('🏁 [ONBOARDING_BLOC] === FIN SkipBackupForNow ===');
   }
 
   /// Initialize onboarding flow and determine starting point

@@ -1,4 +1,5 @@
 import 'package:firebase_remote_config/firebase_remote_config.dart';
+import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class OnboardingService {
@@ -32,7 +33,7 @@ class OnboardingService {
       await prefs.setBool(_onboardingCompleteKey, true);
     } catch (e) {
       // Handle error silently - app should continue to work
-      print('Failed to save onboarding completion status: $e');
+      debugPrint('Failed to save onboarding completion status: $e');
     }
   }
 
@@ -51,7 +52,7 @@ class OnboardingService {
       return remoteConfig.getBool(_remoteConfigOnboardingKey);
     } catch (e) {
       // If Firebase Remote Config fails, default to true (onboarding enabled)
-      print(
+      debugPrint(
         'Failed to fetch remote config, defaulting to onboarding enabled: $e',
       );
       return true;
@@ -76,7 +77,7 @@ class OnboardingService {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove(_onboardingCompleteKey);
     } catch (e) {
-      print('Failed to reset onboarding status: $e');
+      debugPrint('Failed to reset onboarding status: $e');
     }
   }
 }

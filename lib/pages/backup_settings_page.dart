@@ -874,39 +874,7 @@ class _BackupSettingsContent extends StatelessWidget {
   }
 
   String _formatNextBackupTime(BuildContext context, DateTime time) {
-    final now = DateTime.now();
-    final nowDate = DateTime(now.year, now.month, now.day);
-    final timeDate = DateTime(time.year, time.month, time.day);
-    final daysDifference = timeDate.difference(nowDate).inDays;
-
-    // Formatear la hora exacta del backup programado
-    final hour = time.hour;
-    final minute = time.minute;
-    String timeString;
-
-    if (hour == 0 && minute == 0) {
-      timeString = '12:00 AM';
-    } else if (hour < 12) {
-      timeString =
-          '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')} AM';
-    } else if (hour == 12) {
-      timeString = '12:${minute.toString().padLeft(2, '0')} PM';
-    } else {
-      timeString =
-          '${(hour - 12).toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')} PM';
-    }
-
-    // Casos especiales para 2:00 AM (más legible)
-    if (hour == 2 && minute == 0) {
-      timeString = '2:00 AM';
-    }
-
-    if (daysDifference == 0) {
-      return '${'backup.today'.tr()} $timeString';
-    } else if (daysDifference == 1) {
-      return '${'backup.tomorrow'.tr()} $timeString';
-    } else {
-      return '${'backup.in_days'.tr().replaceAll('{days}', daysDifference.toString())} $timeString';
-    }
+    // Startup backup approach - always shows "today"
+    return 'backup.today_on_app_start'.tr(); // "hoy al abrir la app"
   }
 }

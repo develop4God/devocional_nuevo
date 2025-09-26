@@ -1,5 +1,5 @@
+import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/providers/theme_provider.dart';
-import 'package:devocional_nuevo/utils/localization_extension.dart';
 import 'package:devocional_nuevo/utils/theme_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -7,13 +7,11 @@ import 'package:provider/provider.dart';
 class OnboardingThemeSelectionPage extends StatefulWidget {
   final VoidCallback onNext;
   final VoidCallback onBack;
-  final VoidCallback onSkip;
 
   const OnboardingThemeSelectionPage({
     super.key,
     required this.onNext,
     required this.onBack,
-    required this.onSkip,
   });
 
   @override
@@ -46,7 +44,7 @@ class _OnboardingThemeSelectionPageState
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Theme.of(context).colorScheme.primary.withOpacity(0.1),
+              Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
               Theme.of(context).colorScheme.surface,
             ],
           ),
@@ -65,15 +63,6 @@ class _OnboardingThemeSelectionPageState
                         onPressed: widget.onBack,
                         child: Text(
                           'onboarding.onboarding_back'.tr(),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ),
-                    Flexible(
-                      child: TextButton(
-                        onPressed: widget.onSkip,
-                        child: Text(
-                          'onboarding.onboarding_skip'.tr(),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
@@ -179,7 +168,7 @@ class _OnboardingThemeSelectionPageState
                                   border: Border.all(
                                     color: isSelected
                                         ? themeData.colorScheme.primary
-                                        : Colors.grey.withOpacity(0.3),
+                                        : Colors.grey.withValues(alpha: 0.3),
                                     width: isSelected ? 3 : 1,
                                   ),
                                   color: themeData.colorScheme.surface,
@@ -187,7 +176,7 @@ class _OnboardingThemeSelectionPageState
                                       ? [
                                           BoxShadow(
                                             color: themeData.colorScheme.primary
-                                                .withOpacity(0.3),
+                                                .withValues(alpha: 0.3),
                                             blurRadius: 8,
                                             spreadRadius: 2,
                                           ),

@@ -84,3 +84,8 @@ class UpdatePreview extends OnboardingEvent {
   @override
   List<Object?> get props => [previewType, previewValue];
 }
+
+/// Skip backup configuration for now (configure later)
+class SkipBackupForNow extends OnboardingEvent {
+  const SkipBackupForNow();
+}

@@ -36,6 +36,7 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
     on<RefreshBackupStatus>(_onRefreshBackupStatus);
     on<SignInToGoogleDrive>(_onSignInToGoogleDrive);
     on<SignOutFromGoogleDrive>(_onSignOutFromGoogleDrive);
+    on<CheckStartupBackup>(_onCheckStartupBackup);
   }
 
   /// Set the devotional provider (for dependency injection)
@@ -530,5 +531,66 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
     }
 
     debugPrint('🏁 [BLOC] === FIN SignOutFromGoogleDrive ===');
+  }
+
+  /// Check and execute startup backup if 24+ hours elapsed
+  Future<void> _onCheckStartupBackup(
+    CheckStartupBackup event,
+    Emitter<BackupState> emit,
+  ) async {
+    debugPrint('🌅 [BLOC] === INICIANDO CheckStartupBackup ===');
+
+    try {
+      final isAutoEnabled = await _backupService.isAutoBackupEnabled();
+      final isAuthenticated = await _backupService.isAuthenticated();
+
+      if (!isAutoEnabled || !isAuthenticated) {
+        debugPrint('⚠️ [BLOC] Auto backup deshabilitado o no autenticado');
+        return;
+      }
+
+      final lastBackupTime = await _backupService.getLastBackupTime();
+      final now = DateTime.now();
+
+      if (lastBackupTime != null) {
+        final hoursSinceLastBackup = now.difference(lastBackupTime).inHours;
+        debugPrint('⏰ [BLOC] Horas desde último backup: $hoursSinceLastBackup');
+
+        if (hoursSinceLastBackup >= 24) {
+          /* DEBUG: Para validaciones rápidas, comentar arriba y descomentar abajo
+        final minutesSinceLastBackup = now.difference(lastBackupTime).inMinutes;
+         debugPrint('⏰ [BLOC] Minutos desde último backup: $minutesSinceLastBackup');
+
+        if (minutesSinceLastBackup >= 1) {
+        */
+
+          debugPrint('🚀 [BLOC] 24+ horas, ejecutando startup backup');
+
+          final success =
+              await _backupService.createBackup(_devocionalProvider);
+
+          if (success) {
+            debugPrint('✅ [BLOC] Startup backup exitoso');
+            if (_schedulerService != null) {
+              await _schedulerService!.scheduleAutomaticBackup();
+            }
+            add(const LoadBackupSettings());
+          }
+        }
+      } else {
+        debugPrint('🎯 [BLOC] Sin backup previo - creando inicial');
+        final success = await _backupService.createBackup(_devocionalProvider);
+        if (success) {
+          if (_schedulerService != null) {
+            await _schedulerService!.scheduleAutomaticBackup();
+          }
+          add(const LoadBackupSettings());
+        }
+      }
+    } catch (e) {
+      debugPrint('❌ [BLOC] Error en startup backup: $e');
+    }
+
+    debugPrint('🏁 [BLOC] === FIN CheckStartupBackup ===');
   }
 }
