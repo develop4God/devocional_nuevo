@@ -87,4 +87,13 @@ class ThemeProvider extends ChangeNotifier {
 
     _updateTheme(); // Aplica las preferencias cargadas para establecer el tema inicial
   }
+
+  /// Initialize with default values to prevent null errors (for testing environments)
+  void initializeDefaults() {
+    // Set safe default values for testing environments
+    if (_currentThemeFamily.isEmpty) {
+      _currentThemeFamily = 'Deep Purple';
+    }
+    _updateTheme(); // Ensure theme is properly set
+  }
 }

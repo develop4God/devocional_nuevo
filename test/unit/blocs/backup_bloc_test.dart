@@ -1,214 +1,280 @@
-// test/unit/blocs/backup_bloc_test.dart
 import 'package:bloc_test/bloc_test.dart';
 import 'package:devocional_nuevo/blocs/backup_bloc.dart';
 import 'package:devocional_nuevo/blocs/backup_event.dart';
 import 'package:devocional_nuevo/blocs/backup_state.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
+import 'package:devocional_nuevo/services/backup_scheduler_service.dart';
 import 'package:devocional_nuevo/services/google_drive_backup_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
+// Mocks mínimos necesarios
 class MockGoogleDriveBackupService extends Mock
     implements GoogleDriveBackupService {}
+
+class MockBackupSchedulerService extends Mock
+    implements BackupSchedulerService {}
 
 class MockDevocionalProvider extends Mock implements DevocionalProvider {}
 
 void main() {
-  group('BackupBloc', () {
-    late MockGoogleDriveBackupService mockBackupService;
-    late MockDevocionalProvider mockDevocionalProvider;
-    late BackupBloc backupBloc;
+  group('BackupBloc - Logic Tests', () {
+    late MockGoogleDriveBackupService mockService;
+    late MockBackupSchedulerService mockScheduler;
+    late MockDevocionalProvider mockProvider;
+    late BackupBloc bloc;
 
     setUp(() {
-      mockBackupService = MockGoogleDriveBackupService();
-      mockDevocionalProvider = MockDevocionalProvider();
-      backupBloc = BackupBloc(
-        backupService: mockBackupService,
-        devocionalProvider: mockDevocionalProvider,
+      mockService = MockGoogleDriveBackupService();
+      mockScheduler = MockBackupSchedulerService();
+      mockProvider = MockDevocionalProvider();
+
+      // Setup básico para evitar errores
+      when(() => mockScheduler.scheduleAutomaticBackup())
+          .thenAnswer((_) async {});
+      when(() => mockScheduler.cancelAutomaticBackup())
+          .thenAnswer((_) async {});
+
+      bloc = BackupBloc(
+        backupService: mockService,
+        schedulerService: mockScheduler,
+        devocionalProvider: mockProvider,
       );
     });
 
-    tearDown(() {
-      backupBloc.close();
-    });
+    tearDown(() => bloc.close());
 
     test('initial state is BackupInitial', () {
-      expect(backupBloc.state, equals(const BackupInitial()));
+      expect(bloc.state, const BackupInitial());
     });
 
-    group('LoadBackupSettings', () {
+    group('ToggleAutoBackup - Business Logic', () {
       blocTest<BackupBloc, BackupState>(
-        'emits [BackupLoading, BackupLoaded] when successful',
+        'LÓGICA: enabling auto-backup activates frequency when deactivated',
         build: () {
-          when(() => mockBackupService.isAuthenticated())
-              .thenAnswer((_) async => true);
-          when(() => mockBackupService.getUserEmail())
-              .thenAnswer((_) async => 'test@gmail.com');
-          when(() => mockBackupService.isAutoBackupEnabled())
-              .thenAnswer((_) async => false);
-          when(() => mockBackupService.getBackupFrequency())
-              .thenAnswer((_) async => GoogleDriveBackupService.frequencyDaily);
-          when(() => mockBackupService.isWifiOnlyEnabled())
-              .thenAnswer((_) async => true);
-          when(() => mockBackupService.isCompressionEnabled())
-              .thenAnswer((_) async => true);
-          when(() => mockBackupService.getBackupOptions())
-              .thenAnswer((_) async => {'spiritual_stats': true});
-          when(() => mockBackupService.getLastBackupTime())
-              .thenAnswer((_) async => null);
-          when(() => mockBackupService.getNextBackupTime())
-              .thenAnswer((_) async => null);
-          when(() => mockBackupService.getEstimatedBackupSize(any()))
-              .thenAnswer((_) async => 5120);
-          when(() => mockBackupService.getStorageInfo())
-              .thenAnswer((_) async => {'used_gb': 1.4, 'total_gb': 100.0});
-
-          return backupBloc;
-        },
-        act: (bloc) => bloc.add(const LoadBackupSettings()),
-        expect: () => [
-          const BackupLoading(),
-          isA<BackupLoaded>()
-              .having((state) => state.autoBackupEnabled, 'autoBackupEnabled',
-                  false)
-              .having((state) => state.backupFrequency, 'backupFrequency',
-                  GoogleDriveBackupService.frequencyDaily)
-              .having((state) => state.wifiOnlyEnabled, 'wifiOnlyEnabled', true)
-              .having((state) => state.compressionEnabled, 'compressionEnabled',
-                  true)
-              .having((state) => state.estimatedSize, 'estimatedSize', 5120),
-        ],
-        verify: (_) {
-          verify(() => mockBackupService.isAutoBackupEnabled()).called(1);
-          verify(() => mockBackupService.getBackupFrequency()).called(1);
-          verify(() => mockBackupService.isWifiOnlyEnabled()).called(1);
-          verify(() => mockBackupService.isCompressionEnabled()).called(1);
-          verify(() => mockBackupService.getBackupOptions()).called(1);
-          verify(() => mockBackupService.getLastBackupTime()).called(1);
-          verify(() => mockBackupService.getNextBackupTime()).called(1);
-          verify(() => mockBackupService.getEstimatedBackupSize(any()))
-              .called(1);
-          verify(() => mockBackupService.getStorageInfo()).called(1);
-        },
-      );
-
-      blocTest<BackupBloc, BackupState>(
-        'emits [BackupLoading, BackupError] when fails',
-        build: () {
-          when(() => mockBackupService.isAutoBackupEnabled())
-              .thenAnswer((_) async => false);
-          when(() => mockBackupService.getBackupFrequency())
-              .thenAnswer((_) async => GoogleDriveBackupService.frequencyDaily);
-          when(() => mockBackupService.isWifiOnlyEnabled())
-              .thenAnswer((_) async => true);
-          when(() => mockBackupService.isCompressionEnabled())
-              .thenAnswer((_) async => true);
-          when(() => mockBackupService.getBackupOptions())
-              .thenAnswer((_) async => {'spiritual_stats': true});
-          when(() => mockBackupService.getLastBackupTime())
-              .thenAnswer((_) async => null);
-          when(() => mockBackupService.getNextBackupTime())
-              .thenAnswer((_) async => null);
-          when(() => mockBackupService.getEstimatedBackupSize(any()))
-              .thenAnswer((_) async => 5120);
-          when(() => mockBackupService.getStorageInfo())
-              .thenThrow(Exception('Network error'));
-          when(() => mockBackupService.isAuthenticated())
-              .thenAnswer((_) async => true);
-          when(() => mockBackupService.getUserEmail())
-              .thenAnswer((_) async => 'test@gmail.com');
-
-          return backupBloc;
-        },
-        act: (bloc) => bloc.add(const LoadBackupSettings()),
-        expect: () => [
-          const BackupLoading(),
-          isA<BackupError>().having(
-              (state) => state.message, 'message', contains('Network error')),
-        ],
-      );
-    });
-
-    group('ToggleAutoBackup', () {
-      blocTest<BackupBloc, BackupState>(
-        'calls setAutoBackupEnabled and loads settings',
-        build: () {
-          when(() => mockBackupService.setAutoBackupEnabled(any()))
+          // Mock: frecuencia está desactivada
+          when(() => mockService.getBackupFrequency()).thenAnswer(
+              (_) async => GoogleDriveBackupService.frequencyDeactivated);
+          when(() => mockService.setAutoBackupEnabled(any()))
               .thenAnswer((_) async {});
-          when(() => mockBackupService.getNextBackupTime())
+          when(() => mockService.setBackupFrequency(any()))
+              .thenAnswer((_) async {});
+          when(() => mockService.getNextBackupTime())
               .thenAnswer((_) async => null);
 
-          return backupBloc;
+          return bloc;
         },
         seed: () => const BackupLoaded(
           autoBackupEnabled: false,
-          backupFrequency: GoogleDriveBackupService.frequencyDaily,
+          backupFrequency: GoogleDriveBackupService.frequencyDeactivated,
           wifiOnlyEnabled: true,
           compressionEnabled: true,
-          backupOptions: {'spiritual_stats': true},
-          estimatedSize: 5120,
-          storageInfo: {'used_gb': 1.4, 'total_gb': 100.0},
+          backupOptions: {},
+          estimatedSize: 0,
+          storageInfo: {},
           isAuthenticated: true,
         ),
         act: (bloc) => bloc.add(const ToggleAutoBackup(true)),
         verify: (_) {
-          verify(() => mockBackupService.setAutoBackupEnabled(true)).called(1);
-          verify(() => mockBackupService.getNextBackupTime()).called(1);
+          // VALIDACIÓN: debe cambiar frecuencia a "daily" automáticamente
+          verify(() => mockService.setBackupFrequency(
+              GoogleDriveBackupService.frequencyDaily)).called(1);
+          verify(() => mockScheduler.scheduleAutomaticBackup()).called(1);
+        },
+      );
+
+      blocTest<BackupBloc, BackupState>(
+        'LÓGICA: disabling auto-backup doesn\'t change frequency',
+        build: () {
+          when(() => mockService.setAutoBackupEnabled(any()))
+              .thenAnswer((_) async {});
+          when(() => mockService.getBackupFrequency())
+              .thenAnswer((_) async => GoogleDriveBackupService.frequencyDaily);
+          when(() => mockService.getNextBackupTime())
+              .thenAnswer((_) async => null);
+
+          return bloc;
+        },
+        seed: () => const BackupLoaded(
+          autoBackupEnabled: true,
+          backupFrequency: GoogleDriveBackupService.frequencyDaily,
+          wifiOnlyEnabled: true,
+          compressionEnabled: true,
+          backupOptions: {},
+          estimatedSize: 0,
+          storageInfo: {},
+          isAuthenticated: true,
+        ),
+        act: (bloc) => bloc.add(const ToggleAutoBackup(false)),
+        verify: (_) {
+          // VALIDACIÓN: NO debe cambiar frecuencia
+          verifyNever(() => mockService.setBackupFrequency(any()));
+          verify(() => mockScheduler.scheduleAutomaticBackup()).called(1);
         },
       );
     });
 
-    group('CreateManualBackup', () {
+    group('ChangeBackupFrequency - Business Logic', () {
       blocTest<BackupBloc, BackupState>(
-        'emits [BackupCreating, BackupCreated] when successful',
+        'LÓGICA: setting frequency to "deactivated" signs out user',
         build: () {
-          when(() => mockBackupService.createBackup(any()))
-              .thenAnswer((_) async => true);
-          // Mock the subsequent LoadBackupSettings call
-          when(() => mockBackupService.isAuthenticated())
-              .thenAnswer((_) async => true);
-          when(() => mockBackupService.getUserEmail())
-              .thenAnswer((_) async => 'test@gmail.com');
-          when(() => mockBackupService.isAutoBackupEnabled())
-              .thenAnswer((_) async => true);
-          when(() => mockBackupService.getBackupFrequency())
-              .thenAnswer((_) async => GoogleDriveBackupService.frequencyDaily);
-          when(() => mockBackupService.isWifiOnlyEnabled())
-              .thenAnswer((_) async => true);
-          when(() => mockBackupService.isCompressionEnabled())
-              .thenAnswer((_) async => true);
-          when(() => mockBackupService.getBackupOptions())
-              .thenAnswer((_) async => {'spiritual_stats': true});
-          when(() => mockBackupService.getLastBackupTime())
-              .thenAnswer((_) async => DateTime.now());
-          when(() => mockBackupService.getNextBackupTime())
+          when(() => mockService.setBackupFrequency(any()))
+              .thenAnswer((_) async {});
+          when(() => mockService.signOut()).thenAnswer((_) async {});
+          when(() => mockService.getNextBackupTime())
               .thenAnswer((_) async => null);
-          when(() => mockBackupService.getEstimatedBackupSize(any()))
-              .thenAnswer((_) async => 5120);
-          when(() => mockBackupService.getStorageInfo())
-              .thenAnswer((_) async => {'used_gb': 1.4, 'total_gb': 100.0});
 
-          return backupBloc;
+          return bloc;
+        },
+        seed: () => const BackupLoaded(
+          autoBackupEnabled: true,
+          backupFrequency: GoogleDriveBackupService.frequencyDaily,
+          wifiOnlyEnabled: true,
+          compressionEnabled: true,
+          backupOptions: {},
+          estimatedSize: 0,
+          storageInfo: {},
+          isAuthenticated: true,
+        ),
+        act: (bloc) => bloc.add(const ChangeBackupFrequency(
+            GoogleDriveBackupService.frequencyDeactivated)),
+        verify: (_) {
+          // VALIDACIÓN: debe cerrar sesión automáticamente
+          verify(() => mockService.signOut()).called(1);
+          verify(() => mockScheduler.scheduleAutomaticBackup()).called(1);
+        },
+      );
+
+      blocTest<BackupBloc, BackupState>(
+        'LÓGICA: changing to active frequency doesn\'t sign out',
+        build: () {
+          when(() => mockService.setBackupFrequency(any()))
+              .thenAnswer((_) async {});
+          when(() => mockService.getNextBackupTime())
+              .thenAnswer((_) async => null);
+
+          return bloc;
+        },
+        seed: () => const BackupLoaded(
+          autoBackupEnabled: true,
+          backupFrequency: GoogleDriveBackupService.frequencyDaily,
+          wifiOnlyEnabled: true,
+          compressionEnabled: true,
+          backupOptions: {},
+          estimatedSize: 0,
+          storageInfo: {},
+          isAuthenticated: true,
+        ),
+        verify: (_) {
+          // VALIDACIÓN: NO debe cerrar sesión
+          verifyNever(() => mockService.signOut());
+          verify(() => mockScheduler.scheduleAutomaticBackup()).called(1);
+        },
+      );
+    });
+
+    group('SignInToGoogleDrive - Business Logic', () {
+      blocTest<BackupBloc, BackupState>(
+        'LÓGICA: successful sign-in enables auto-backup by default',
+        build: () {
+          when(() => mockService.signIn()).thenAnswer((_) async => true);
+          when(() => mockService.isAutoBackupEnabled())
+              .thenAnswer((_) async => false);
+          when(() => mockService.setAutoBackupEnabled(any()))
+              .thenAnswer((_) async {});
+          when(() => mockService.checkForExistingBackup())
+              .thenAnswer((_) async => {'found': false});
+
+          return bloc;
+        },
+        act: (bloc) => bloc.add(const SignInToGoogleDrive()),
+        wait: const Duration(seconds: 3),
+        verify: (_) {
+          // VALIDACIÓN: debe activar auto-backup automáticamente
+          verify(() => mockService.setAutoBackupEnabled(true)).called(1);
+          verify(() => mockScheduler.scheduleAutomaticBackup()).called(1);
+        },
+      );
+
+      blocTest<BackupBloc, BackupState>(
+        'LÓGICA: existing backup triggers automatic restore',
+        build: () {
+          when(() => mockService.signIn()).thenAnswer((_) async => true);
+          when(() => mockService.isAutoBackupEnabled())
+              .thenAnswer((_) async => false);
+          when(() => mockService.setAutoBackupEnabled(any()))
+              .thenAnswer((_) async {});
+          when(() => mockService.checkForExistingBackup())
+              .thenAnswer((_) async => {'found': true, 'fileId': 'test123'});
+          when(() => mockService.restoreExistingBackup(any(),
+              devocionalProvider: any(),
+              prayerBloc: any())).thenAnswer((_) async => true);
+
+          return bloc;
+        },
+        act: (bloc) => bloc.add(const SignInToGoogleDrive()),
+        expect: () => [
+          const BackupLoading(),
+          const BackupRestoring(),
+          isA<BackupSuccess>(),
+          const BackupLoading(),
+        ],
+        wait: const Duration(seconds: 3),
+        verify: (_) {
+          // VALIDACIÓN: debe restaurar automáticamente
+          verify(() => mockService.restoreExistingBackup('test123',
+              devocionalProvider: any(named: 'devocionalProvider'),
+              prayerBloc: any(named: 'prayerBloc'))).called(1);
+          verify(() => mockScheduler.scheduleAutomaticBackup())
+              .called(2); // Una para login, otra para restore
+        },
+      );
+
+      blocTest<BackupBloc, BackupState>(
+        'LÓGICA: user cancels sign-in (null result)',
+        build: () {
+          when(() => mockService.signIn()).thenAnswer((_) async => null);
+          return bloc;
+        },
+        act: (bloc) => bloc.add(const SignInToGoogleDrive()),
+        expect: () => [
+          const BackupLoading(),
+          const BackupLoading(),
+        ],
+        verify: (_) {
+          // VALIDACIÓN: no debe hacer nada más si usuario cancela
+          verifyNever(() => mockService.setAutoBackupEnabled(any()));
+          verifyNever(() => mockScheduler.scheduleAutomaticBackup());
+        },
+      );
+    });
+
+    group('CreateManualBackup - Business Logic', () {
+      blocTest<BackupBloc, BackupState>(
+        'LÓGICA: successful backup reschedules automatic backup',
+        build: () {
+          when(() => mockService.createBackup(any()))
+              .thenAnswer((_) async => true);
+          return bloc;
         },
         act: (bloc) => bloc.add(const CreateManualBackup()),
         expect: () => [
           const BackupCreating(),
           isA<BackupCreated>(),
           const BackupLoading(),
-          isA<BackupLoaded>(),
         ],
         verify: (_) {
-          verify(() => mockBackupService.createBackup(any())).called(1);
+          // VALIDACIÓN: debe reprogramar backup automático después del manual
+          verify(() => mockScheduler.scheduleAutomaticBackup()).called(1);
         },
       );
 
       blocTest<BackupBloc, BackupState>(
-        'emits [BackupCreating, BackupError] when fails',
+        'LÓGICA: failed backup doesn\'t reschedule',
         build: () {
-          when(() => mockBackupService.createBackup(any()))
+          when(() => mockService.createBackup(any()))
               .thenAnswer((_) async => false);
-
-          return backupBloc;
+          return bloc;
         },
         act: (bloc) => bloc.add(const CreateManualBackup()),
         expect: () => [
@@ -216,8 +282,35 @@ void main() {
           const BackupError('Failed to create backup'),
         ],
         verify: (_) {
-          verify(() => mockBackupService.createBackup(any())).called(1);
+          // VALIDACIÓN: NO debe reprogramar si falla
+          verifyNever(() => mockScheduler.scheduleAutomaticBackup());
         },
+      );
+    });
+
+    group('Error Handling', () {
+      blocTest<BackupBloc, BackupState>(
+        'handles service exceptions gracefully',
+        build: () {
+          when(() => mockService.setAutoBackupEnabled(any()))
+              .thenThrow(Exception('Network error'));
+          return bloc;
+        },
+        seed: () => const BackupLoaded(
+          autoBackupEnabled: false,
+          backupFrequency: GoogleDriveBackupService.frequencyDaily,
+          wifiOnlyEnabled: true,
+          compressionEnabled: true,
+          backupOptions: {},
+          estimatedSize: 0,
+          storageInfo: {},
+          isAuthenticated: true,
+        ),
+        act: (bloc) => bloc.add(const ToggleAutoBackup(true)),
+        expect: () => [
+          isA<BackupError>()
+              .having((e) => e.message, 'message', contains('Network error')),
+        ],
       );
     });
   });

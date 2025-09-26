@@ -144,35 +144,20 @@ class GoogleDriveBackupService {
     await prefs.setInt(_lastBackupTimeKey, time.millisecondsSinceEpoch);
   }
 
-  /// Calculate next backup time based on frequency
+  /// Calculate next backup time - Always today for startup approach
   Future<DateTime?> getNextBackupTime() async {
-    final lastBackup = await getLastBackupTime();
     final frequency = await getBackupFrequency();
 
-    // Handle deactivated and manual frequencies
     if (frequency == frequencyDeactivated || frequency == frequencyManual) {
       return null;
     }
 
-    if (lastBackup == null || !await isAutoBackupEnabled()) {
+    if (!await isAutoBackupEnabled()) {
       return null;
     }
 
-    switch (frequency) {
-      case frequencyDaily:
-        final now = DateTime.now();
-        final today2AM = DateTime(now.year, now.month, now.day, 2, 0);
-
-        if (now.isBefore(today2AM)) {
-          // Si aún no son las 2:00 AM de hoy, el próximo es HOY a las 2:00 AM
-          return today2AM;
-        } else {
-          // Si ya pasaron las 2:00 AM, el próximo es MAÑANA a las 2:00 AM
-          final tomorrow = now.add(const Duration(days: 1));
-          return DateTime(tomorrow.year, tomorrow.month, tomorrow.day, 2, 0);
-        }
-    }
-    return null;
+    // Always return today since backup is checked at app startup
+    return DateTime.now();
   }
 
   /// Get estimated backup size in bytes

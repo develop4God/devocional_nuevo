@@ -511,17 +511,23 @@
     "onboarding_skip": "Omitir",
     "onboarding_back": "Atrás",
     "onboarding_next": "Siguiente",
-    "onboarding_skip_for_now": "Omitir por ahora",
+    "onboarding_config_later": "Configurar luego",
     "onboarding_configure_later": "Configurar más tarde",
     "onboarding_welcome_title": "Bienvenido a Devocionales Cristianos",
     "onboarding_welcome_subtitle": "Tu espacio íntimo con Dios cada día. Comencemos configurando tu experiencia personalizada.",
     "onboarding_theme_title": "Elige tu Ambiente",
     "onboarding_theme_subtitle": "Selecciona el tema que más te inspire para tu tiempo devocional.",
-    "onboarding_backup_title": "Protege tu Progreso",
-    "onboarding_backup_subtitle": "Conecta con Google Drive para mantener seguros tus devocionales favoritos, oraciones y progreso espiritual.",
+    "onboarding_connecting": "Conectando...",
+    "onboarding_connection_timeout": "Tiempo de conexión agotado. Por favor intenta de nuevo.",
+    "onboarding_recommended": "Recomendado respaldo automático",
     "onboarding_complete_title": "¡Todo Listo!",
     "onboarding_complete_subtitle": "Tu espacio devocional está configurado. Es hora de comenzar tu jornada espiritual diaria.",
     "onboarding_your_setup": "Tu Configuración",
-    "onboarding_start_app": "Comenzar Mi Jornada"
+    "onboarding_start_app": "Comenzar Mi Jornada",
+    "onboarding_setup_theme_configured": "Tema personalizado seleccionado",
+    "onboarding_setup_backup_configured": "Respaldo automático configurado",
+    "onboarding_setup_protection_active": "Protección de datos activada",
+    "onboarding_setup_backup_skipped": "Respaldo omitido por ahora",
+    "onboarding_setup_backup_later_info": "Puedes configurar el respaldo más tarde en Ajustes"
   }
 }
