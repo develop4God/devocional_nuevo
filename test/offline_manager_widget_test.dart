@@ -1,3 +1,4 @@
+@TestOn('vm')
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/widgets/offline_manager_widget.dart';
 import 'package:flutter/material.dart';

@@ -1,3 +1,4 @@
+@TestOn('vm')
 import 'dart:io';
 
 import 'package:devocional_nuevo/models/spiritual_stats_model.dart';

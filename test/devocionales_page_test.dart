@@ -1,3 +1,4 @@
+@TestOn('vm')
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:share_plus/share_plus.dart';
