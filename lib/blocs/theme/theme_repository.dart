@@ -7,7 +7,7 @@ class ThemeRepository {
   // SharedPreferences keys - keeping same as ThemeProvider for compatibility
   static const String _themeFamilyKey = 'theme_family_name';
   static const String _brightnessKey = 'theme_brightness';
-  
+
   // Default values
   static const String defaultThemeFamily = 'Deep Purple';
   static const Brightness defaultBrightness = Brightness.light;
@@ -39,9 +39,11 @@ class ThemeRepository {
     try {
       final prefs = await SharedPreferences.getInstance();
       final savedBrightnessString = prefs.getString(_brightnessKey);
-      
+
       if (savedBrightnessString != null) {
-        return savedBrightnessString == 'light' ? Brightness.light : Brightness.dark;
+        return savedBrightnessString == 'light'
+            ? Brightness.light
+            : Brightness.dark;
       }
       return defaultBrightness;
     } catch (e) {
@@ -53,7 +55,8 @@ class ThemeRepository {
   Future<void> saveBrightness(Brightness brightness) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final brightnessString = brightness == Brightness.light ? 'light' : 'dark';
+      final brightnessString =
+          brightness == Brightness.light ? 'light' : 'dark';
       await prefs.setString(_brightnessKey, brightnessString);
     } catch (e) {
       // Fail silently but log error in debug mode
@@ -67,7 +70,7 @@ class ThemeRepository {
       loadThemeFamily(),
       loadBrightness(),
     ]);
-    
+
     return {
       'themeFamily': results[0] as String,
       'brightness': results[1] as Brightness,

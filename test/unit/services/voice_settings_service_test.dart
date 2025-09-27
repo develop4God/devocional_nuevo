@@ -1,6 +1,5 @@
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mocktail/mocktail.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
@@ -306,17 +305,21 @@ void main() {
       test('should validate setting ranges correctly', () async {
         // Test speech rate boundaries
         await voiceSettingsService.setSpeechRate(0.0);
-        expect(await voiceSettingsService.getSpeechRate(), greaterThanOrEqualTo(0.0));
+        expect(await voiceSettingsService.getSpeechRate(),
+            greaterThanOrEqualTo(0.0));
 
         await voiceSettingsService.setSpeechRate(1.0);
-        expect(await voiceSettingsService.getSpeechRate(), lessThanOrEqualTo(1.0));
+        expect(
+            await voiceSettingsService.getSpeechRate(), lessThanOrEqualTo(1.0));
 
         // Test volume boundaries
         await voiceSettingsService.setVoiceVolume(0.0);
-        expect(await voiceSettingsService.getVoiceVolume(), greaterThanOrEqualTo(0.0));
+        expect(await voiceSettingsService.getVoiceVolume(),
+            greaterThanOrEqualTo(0.0));
 
         await voiceSettingsService.setVoiceVolume(1.0);
-        expect(await voiceSettingsService.getVoiceVolume(), lessThanOrEqualTo(1.0));
+        expect(await voiceSettingsService.getVoiceVolume(),
+            lessThanOrEqualTo(1.0));
       });
 
       test('should handle service reinitialization properly', () async {

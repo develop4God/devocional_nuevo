@@ -28,10 +28,10 @@ void main() {
     setUp(() {
       // Setup mock SharedPreferences for repository tests
       SharedPreferences.setMockInitialValues({});
-      
+
       // Create mock repository
       mockRepository = MockThemeRepository();
-      
+
       // Create theme BLoC with mock repository
       themeBloc = ThemeBloc(repository: mockRepository);
     });
@@ -48,14 +48,17 @@ void main() {
         repository = ThemeRepository();
       });
 
-      test('should load default theme settings when no saved preferences exist', () async {
+      test('should load default theme settings when no saved preferences exist',
+          () async {
         // Clear any existing preferences
         SharedPreferences.setMockInitialValues({});
-        
+
         final settings = await repository.loadThemeSettings();
-        
-        expect(settings['themeFamily'], equals(ThemeRepository.defaultThemeFamily));
-        expect(settings['brightness'], equals(ThemeRepository.defaultBrightness));
+
+        expect(settings['themeFamily'],
+            equals(ThemeRepository.defaultThemeFamily));
+        expect(
+            settings['brightness'], equals(ThemeRepository.defaultBrightness));
       });
 
       test('should load saved theme family from SharedPreferences', () async {
@@ -63,9 +66,9 @@ void main() {
         SharedPreferences.setMockInitialValues({
           'theme_family_name': 'Green',
         });
-        
+
         final themeFamily = await repository.loadThemeFamily();
-        
+
         expect(themeFamily, equals('Green'));
       });
 
@@ -74,22 +77,22 @@ void main() {
         SharedPreferences.setMockInitialValues({
           'theme_brightness': 'dark',
         });
-        
+
         final brightness = await repository.loadBrightness();
-        
+
         expect(brightness, equals(Brightness.dark));
       });
 
       test('should save and load theme family correctly', () async {
         SharedPreferences.setMockInitialValues({});
-        
+
         // Save theme family
         await repository.saveThemeFamily('Green');
-        
+
         // Verify it was saved
         final prefs = await SharedPreferences.getInstance();
         expect(prefs.getString('theme_family_name'), equals('Green'));
-        
+
         // Load and verify
         final loadedFamily = await repository.loadThemeFamily();
         expect(loadedFamily, equals('Green'));
@@ -97,14 +100,14 @@ void main() {
 
       test('should save and load brightness correctly', () async {
         SharedPreferences.setMockInitialValues({});
-        
+
         // Save brightness
         await repository.saveBrightness(Brightness.dark);
-        
+
         // Verify it was saved
         final prefs = await SharedPreferences.getInstance();
         expect(prefs.getString('theme_brightness'), equals('dark'));
-        
+
         // Load and verify
         final loadedBrightness = await repository.loadBrightness();
         expect(loadedBrightness, equals(Brightness.dark));
@@ -116,12 +119,14 @@ void main() {
           'theme_family_name': 'InvalidTheme',
           'theme_brightness': 'invalid_brightness',
         });
-        
+
         final settings = await repository.loadThemeSettings();
-        
+
         // Should fall back to defaults for invalid values
-        expect(settings['themeFamily'], equals('InvalidTheme')); // Repository doesn't validate
-        expect(settings['brightness'], equals(Brightness.dark)); // Any non-'light' string becomes dark
+        expect(settings['themeFamily'],
+            equals('InvalidTheme')); // Repository doesn't validate
+        expect(settings['brightness'],
+            equals(Brightness.dark)); // Any non-'light' string becomes dark
       });
     });
 
@@ -151,9 +156,12 @@ void main() {
         expect: () => [
           const ThemeLoading(),
           isA<ThemeLoaded>()
-            .having((s) => s.themeFamily, 'themeFamily', ThemeRepository.defaultThemeFamily)
-            .having((s) => s.brightness, 'brightness', ThemeRepository.defaultBrightness)
-            .having((s) => s.dividerAdaptiveColor, 'dividerAdaptiveColor', Colors.black),
+              .having((s) => s.themeFamily, 'themeFamily',
+                  ThemeRepository.defaultThemeFamily)
+              .having((s) => s.brightness, 'brightness',
+                  ThemeRepository.defaultBrightness)
+              .having((s) => s.dividerAdaptiveColor, 'dividerAdaptiveColor',
+                  Colors.black),
         ],
         verify: (bloc) {
           verify(() => mockRepository.loadThemeSettings()).called(1);
@@ -176,9 +184,10 @@ void main() {
         expect: () => [
           const ThemeLoading(),
           isA<ThemeLoaded>()
-            .having((s) => s.themeFamily, 'themeFamily', 'Green')
-            .having((s) => s.brightness, 'brightness', Brightness.dark)
-            .having((s) => s.dividerAdaptiveColor, 'dividerAdaptiveColor', Colors.white),
+              .having((s) => s.themeFamily, 'themeFamily', 'Green')
+              .having((s) => s.brightness, 'brightness', Brightness.dark)
+              .having((s) => s.dividerAdaptiveColor, 'dividerAdaptiveColor',
+                  Colors.white),
         ],
         verify: (bloc) {
           verify(() => mockRepository.loadThemeSettings()).called(1);
@@ -200,8 +209,8 @@ void main() {
         act: (bloc) => bloc.add(const LoadTheme()),
         expect: () => [
           const ThemeLoading(),
-          isA<ThemeLoaded>()
-            .having((s) => s.themeFamily, 'themeFamily', ThemeRepository.defaultThemeFamily),
+          isA<ThemeLoaded>().having((s) => s.themeFamily, 'themeFamily',
+              ThemeRepository.defaultThemeFamily),
         ],
         verify: (bloc) {
           verify(() => mockRepository.loadThemeSettings()).called(1);
@@ -211,14 +220,15 @@ void main() {
       blocTest<ThemeBloc, ThemeState>(
         'emits ThemeError when repository throws exception during LoadTheme',
         setUp: () {
-          when(() => mockRepository.loadThemeSettings()).thenThrow(Exception('Repository error'));
+          when(() => mockRepository.loadThemeSettings())
+              .thenThrow(Exception('Repository error'));
         },
         build: () => ThemeBloc(repository: mockRepository),
         act: (bloc) => bloc.add(const LoadTheme()),
         expect: () => [
           const ThemeLoading(),
-          isA<ThemeError>()
-            .having((s) => s.message, 'message', contains('Failed to load theme')),
+          isA<ThemeError>().having(
+              (s) => s.message, 'message', contains('Failed to load theme')),
         ],
       );
     });
@@ -227,7 +237,8 @@ void main() {
       blocTest<ThemeBloc, ThemeState>(
         'emits new ThemeLoaded state when ChangeThemeFamily is added with valid theme',
         setUp: () {
-          when(() => mockRepository.saveThemeFamily(any())).thenAnswer((_) async {});
+          when(() => mockRepository.saveThemeFamily(any()))
+              .thenAnswer((_) async {});
         },
         build: () => ThemeBloc(repository: mockRepository),
         seed: () => ThemeLoaded.withThemeData(
@@ -237,8 +248,8 @@ void main() {
         act: (bloc) => bloc.add(const ChangeThemeFamily('Green')),
         expect: () => [
           isA<ThemeLoaded>()
-            .having((s) => s.themeFamily, 'themeFamily', 'Green')
-            .having((s) => s.brightness, 'brightness', Brightness.light),
+              .having((s) => s.themeFamily, 'themeFamily', 'Green')
+              .having((s) => s.brightness, 'brightness', Brightness.light),
         ],
         verify: (bloc) {
           verify(() => mockRepository.saveThemeFamily('Green')).called(1);
@@ -248,7 +259,8 @@ void main() {
       blocTest<ThemeBloc, ThemeState>(
         'does not emit new state when ChangeThemeFamily is added with same theme family',
         setUp: () {
-          when(() => mockRepository.saveThemeFamily(any())).thenAnswer((_) async {});
+          when(() => mockRepository.saveThemeFamily(any()))
+              .thenAnswer((_) async {});
         },
         build: () => ThemeBloc(repository: mockRepository),
         seed: () => ThemeLoaded.withThemeData(
@@ -271,15 +283,16 @@ void main() {
         ),
         act: (bloc) => bloc.add(const ChangeThemeFamily('InvalidTheme')),
         expect: () => [
-          isA<ThemeError>()
-            .having((s) => s.message, 'message', contains('Invalid theme family')),
+          isA<ThemeError>().having(
+              (s) => s.message, 'message', contains('Invalid theme family')),
         ],
       );
 
       blocTest<ThemeBloc, ThemeState>(
         'emits ThemeError when repository throws exception during ChangeThemeFamily',
         setUp: () {
-          when(() => mockRepository.saveThemeFamily(any())).thenThrow(Exception('Save error'));
+          when(() => mockRepository.saveThemeFamily(any()))
+              .thenThrow(Exception('Save error'));
         },
         build: () => ThemeBloc(repository: mockRepository),
         seed: () => ThemeLoaded.withThemeData(
@@ -288,8 +301,8 @@ void main() {
         ),
         act: (bloc) => bloc.add(const ChangeThemeFamily('Green')),
         expect: () => [
-          isA<ThemeError>()
-            .having((s) => s.message, 'message', contains('Failed to change theme family')),
+          isA<ThemeError>().having((s) => s.message, 'message',
+              contains('Failed to change theme family')),
         ],
       );
 
@@ -308,7 +321,8 @@ void main() {
       blocTest<ThemeBloc, ThemeState>(
         'emits new ThemeLoaded state when ChangeBrightness is added',
         setUp: () {
-          when(() => mockRepository.saveBrightness(any())).thenAnswer((_) async {});
+          when(() => mockRepository.saveBrightness(any()))
+              .thenAnswer((_) async {});
         },
         build: () => ThemeBloc(repository: mockRepository),
         seed: () => ThemeLoaded.withThemeData(
@@ -318,19 +332,22 @@ void main() {
         act: (bloc) => bloc.add(const ChangeBrightness(Brightness.dark)),
         expect: () => [
           isA<ThemeLoaded>()
-            .having((s) => s.themeFamily, 'themeFamily', 'Deep Purple')
-            .having((s) => s.brightness, 'brightness', Brightness.dark)
-            .having((s) => s.dividerAdaptiveColor, 'dividerAdaptiveColor', Colors.white),
+              .having((s) => s.themeFamily, 'themeFamily', 'Deep Purple')
+              .having((s) => s.brightness, 'brightness', Brightness.dark)
+              .having((s) => s.dividerAdaptiveColor, 'dividerAdaptiveColor',
+                  Colors.white),
         ],
         verify: (bloc) {
-          verify(() => mockRepository.saveBrightness(Brightness.dark)).called(1);
+          verify(() => mockRepository.saveBrightness(Brightness.dark))
+              .called(1);
         },
       );
 
       blocTest<ThemeBloc, ThemeState>(
         'does not emit new state when ChangeBrightness is added with same brightness',
         setUp: () {
-          when(() => mockRepository.saveBrightness(any())).thenAnswer((_) async {});
+          when(() => mockRepository.saveBrightness(any()))
+              .thenAnswer((_) async {});
         },
         build: () => ThemeBloc(repository: mockRepository),
         seed: () => ThemeLoaded.withThemeData(
@@ -347,7 +364,8 @@ void main() {
       blocTest<ThemeBloc, ThemeState>(
         'emits ThemeError when repository throws exception during ChangeBrightness',
         setUp: () {
-          when(() => mockRepository.saveBrightness(any())).thenThrow(Exception('Save error'));
+          when(() => mockRepository.saveBrightness(any()))
+              .thenThrow(Exception('Save error'));
         },
         build: () => ThemeBloc(repository: mockRepository),
         seed: () => ThemeLoaded.withThemeData(
@@ -356,8 +374,8 @@ void main() {
         ),
         act: (bloc) => bloc.add(const ChangeBrightness(Brightness.dark)),
         expect: () => [
-          isA<ThemeError>()
-            .having((s) => s.message, 'message', contains('Failed to change brightness')),
+          isA<ThemeError>().having((s) => s.message, 'message',
+              contains('Failed to change brightness')),
         ],
       );
 
@@ -373,42 +391,50 @@ void main() {
     });
 
     group('Helper Methods (API Compatibility)', () {
-      test('currentThemeFamily returns default when state is not ThemeLoaded', () {
-        expect(themeBloc.currentThemeFamily, equals(ThemeRepository.defaultThemeFamily));
+      test('currentThemeFamily returns default when state is not ThemeLoaded',
+          () {
+        expect(themeBloc.currentThemeFamily,
+            equals(ThemeRepository.defaultThemeFamily));
       });
 
-      test('currentThemeFamily returns theme family when state is ThemeLoaded', () {
+      test('currentThemeFamily returns theme family when state is ThemeLoaded',
+          () {
         final loadedState = ThemeLoaded.withThemeData(
           themeFamily: 'Blue',
           brightness: Brightness.light,
         );
-        
+
         final bloc = ThemeBloc(repository: mockRepository);
         bloc.emit(loadedState);
-        
+
         expect(bloc.currentThemeFamily, equals('Blue'));
         bloc.close();
       });
 
-      test('currentBrightness returns default when state is not ThemeLoaded', () {
-        expect(themeBloc.currentBrightness, equals(ThemeRepository.defaultBrightness));
+      test('currentBrightness returns default when state is not ThemeLoaded',
+          () {
+        expect(themeBloc.currentBrightness,
+            equals(ThemeRepository.defaultBrightness));
       });
 
-      test('currentBrightness returns brightness when state is ThemeLoaded', () {
+      test('currentBrightness returns brightness when state is ThemeLoaded',
+          () {
         final loadedState = ThemeLoaded.withThemeData(
           themeFamily: 'Deep Purple',
           brightness: Brightness.dark,
         );
-        
+
         final bloc = ThemeBloc(repository: mockRepository);
         bloc.emit(loadedState);
-        
+
         expect(bloc.currentBrightness, equals(Brightness.dark));
         bloc.close();
       });
 
-      test('currentTheme returns default theme when state is not ThemeLoaded', () {
-        final defaultTheme = appThemeFamilies[ThemeRepository.defaultThemeFamily]!['light']!;
+      test('currentTheme returns default theme when state is not ThemeLoaded',
+          () {
+        final defaultTheme =
+            appThemeFamilies[ThemeRepository.defaultThemeFamily]!['light']!;
         expect(themeBloc.currentTheme, equals(defaultTheme));
       });
 
@@ -417,10 +443,10 @@ void main() {
           themeFamily: 'Green',
           brightness: Brightness.light,
         );
-        
+
         final bloc = ThemeBloc(repository: mockRepository);
         bloc.emit(loadedState);
-        
+
         final expectedTheme = appThemeFamilies['Green']!['light']!;
         expect(bloc.currentTheme, equals(expectedTheme));
         bloc.close();
@@ -431,10 +457,10 @@ void main() {
           themeFamily: 'Deep Purple',
           brightness: Brightness.light,
         );
-        
+
         final bloc = ThemeBloc(repository: mockRepository);
         bloc.emit(loadedState);
-        
+
         expect(bloc.dividerAdaptiveColor, equals(Colors.black));
         bloc.close();
       });
@@ -444,10 +470,10 @@ void main() {
           themeFamily: 'Deep Purple',
           brightness: Brightness.dark,
         );
-        
+
         final bloc = ThemeBloc(repository: mockRepository);
         bloc.emit(loadedState);
-        
+
         expect(bloc.dividerAdaptiveColor, equals(Colors.white));
         bloc.close();
       });
@@ -460,8 +486,10 @@ void main() {
         act: (bloc) => bloc.add(const InitializeThemeDefaults()),
         expect: () => [
           isA<ThemeLoaded>()
-            .having((s) => s.themeFamily, 'themeFamily', ThemeRepository.defaultThemeFamily)
-            .having((s) => s.brightness, 'brightness', ThemeRepository.defaultBrightness),
+              .having((s) => s.themeFamily, 'themeFamily',
+                  ThemeRepository.defaultThemeFamily)
+              .having((s) => s.brightness, 'brightness',
+                  ThemeRepository.defaultBrightness),
         ],
       );
     });
@@ -481,13 +509,15 @@ void main() {
         expect(copiedState.themeFamily, equals('Green'));
         expect(copiedState.brightness, equals(Brightness.dark));
         expect(copiedState.dividerAdaptiveColor, equals(Colors.white));
-        
+
         // Original should remain unchanged
         expect(originalState.themeFamily, equals('Deep Purple'));
         expect(originalState.brightness, equals(Brightness.light));
       });
 
-      test('ThemeLoaded copyWith preserves original values when no updates provided', () {
+      test(
+          'ThemeLoaded copyWith preserves original values when no updates provided',
+          () {
         final originalState = ThemeLoaded.withThemeData(
           themeFamily: 'Green',
           brightness: Brightness.dark,
@@ -502,7 +532,9 @@ void main() {
     });
 
     group('ThemeData Resolution', () {
-      test('resolves correct ThemeData for valid theme family and brightness combinations', () {
+      test(
+          'resolves correct ThemeData for valid theme family and brightness combinations',
+          () {
         // Test all available theme families with both light and dark modes
         for (final themeFamily in appThemeFamilies.keys) {
           for (final brightness in [Brightness.light, Brightness.dark]) {
@@ -511,11 +543,13 @@ void main() {
               brightness: brightness,
             );
 
-            final expectedKey = brightness == Brightness.light ? 'light' : 'dark';
+            final expectedKey =
+                brightness == Brightness.light ? 'light' : 'dark';
             final expectedTheme = appThemeFamilies[themeFamily]![expectedKey]!;
-            
-            expect(state.themeData, equals(expectedTheme), 
-              reason: 'ThemeData mismatch for $themeFamily in ${brightness.name} mode');
+
+            expect(state.themeData, equals(expectedTheme),
+                reason:
+                    'ThemeData mismatch for $themeFamily in ${brightness.name} mode');
           }
         }
       });
