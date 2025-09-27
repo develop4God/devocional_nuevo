@@ -140,7 +140,7 @@ class TestSetup {
       },
     );
 
-    // Mock connectivity plugin for web compatibility  
+    // Mock connectivity plugin for web compatibility
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
       const MethodChannel('dev.fluttercommunity.plus/connectivity'),
@@ -158,7 +158,7 @@ class TestSetup {
       },
     );
 
-    // Ensure additional web compatibility 
+    // Ensure additional web compatibility
     if (kIsWeb) {
       // Additional web-specific setup if needed
     }
