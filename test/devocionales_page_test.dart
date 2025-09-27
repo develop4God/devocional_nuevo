@@ -10,9 +10,9 @@ import 'package:path_provider_platform_interface/path_provider_platform_interfac
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
-import 'package:devocional_nuevo/blocs/devocionales_bloc.dart';
-import 'package:devocional_nuevo/blocs/devocionales_event.dart';
-import 'package:devocional_nuevo/blocs/devocionales_state.dart';
+import 'package:devocional_nuevo/blocs/devocionales/devocionales_bloc.dart';
+import 'package:devocional_nuevo/blocs/devocionales/devocionales_event.dart';
+import 'package:devocional_nuevo/blocs/devocionales/devocionales_state.dart';
 
 import 'package:devocional_nuevo/pages/settings_page.dart';
 
