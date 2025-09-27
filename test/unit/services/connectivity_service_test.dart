@@ -13,17 +13,19 @@ void main() {
   group('ConnectivityService Tests', () {
     late ConnectivityService service;
     late MockConnectivity mockConnectivity;
-    late StreamController<List<ConnectivityResult>> connectivityStreamController;
+    late StreamController<List<ConnectivityResult>>
+        connectivityStreamController;
 
     setUp(() {
       // Initialize mocks
       mockConnectivity = MockConnectivity();
-      connectivityStreamController = StreamController<List<ConnectivityResult>>.broadcast();
-      
+      connectivityStreamController =
+          StreamController<List<ConnectivityResult>>.broadcast();
+
       // Create service instance with dependency injection would require refactoring
       // For now, we'll test the public methods that can be mocked
       service = ConnectivityService();
-      
+
       // Setup default mock behavior
       when(() => mockConnectivity.checkConnectivity())
           .thenAnswer((_) async => [ConnectivityResult.wifi]);
@@ -42,7 +44,7 @@ void main() {
         final mockConnectivity = MockConnectivity();
         when(() => mockConnectivity.checkConnectivity())
             .thenAnswer((_) async => [ConnectivityResult.wifi]);
-        
+
         // We need to test the actual connectivity service behavior
         // Since we can't easily inject the dependency, we'll test the logic patterns
 
@@ -55,10 +57,10 @@ void main() {
       test('should return false when connected to mobile data only', () async {
         // Arrange
         final results = [ConnectivityResult.mobile];
-        
+
         // Act
         final isWifi = results.contains(ConnectivityResult.wifi);
-        
+
         // Assert
         expect(isWifi, isFalse);
       });
@@ -66,21 +68,22 @@ void main() {
       test('should return false when not connected', () async {
         // Arrange
         final results = [ConnectivityResult.none];
-        
+
         // Act
         final isWifi = results.contains(ConnectivityResult.wifi);
-        
+
         // Assert
         expect(isWifi, isFalse);
       });
 
-      test('should return true when connected to both WiFi and mobile', () async {
+      test('should return true when connected to both WiFi and mobile',
+          () async {
         // Arrange
         final results = [ConnectivityResult.wifi, ConnectivityResult.mobile];
-        
+
         // Act
         final isWifi = results.contains(ConnectivityResult.wifi);
-        
+
         // Assert
         expect(isWifi, isTrue);
       });
@@ -88,10 +91,10 @@ void main() {
       test('should return false when connected to ethernet only', () async {
         // Arrange
         final results = [ConnectivityResult.ethernet];
-        
+
         // Act
         final isWifi = results.contains(ConnectivityResult.wifi);
-        
+
         // Assert
         expect(isWifi, isFalse);
       });
@@ -101,10 +104,10 @@ void main() {
       test('should return true when connected to mobile data', () async {
         // Arrange
         final results = [ConnectivityResult.mobile];
-        
+
         // Act
         final isMobile = results.contains(ConnectivityResult.mobile);
-        
+
         // Assert
         expect(isMobile, isTrue);
       });
@@ -112,10 +115,10 @@ void main() {
       test('should return false when connected to WiFi only', () async {
         // Arrange
         final results = [ConnectivityResult.wifi];
-        
+
         // Act
         final isMobile = results.contains(ConnectivityResult.mobile);
-        
+
         // Assert
         expect(isMobile, isFalse);
       });
@@ -123,21 +126,22 @@ void main() {
       test('should return false when not connected', () async {
         // Arrange
         final results = [ConnectivityResult.none];
-        
+
         // Act
         final isMobile = results.contains(ConnectivityResult.mobile);
-        
+
         // Assert
         expect(isMobile, isFalse);
       });
 
-      test('should return true when connected to both mobile and WiFi', () async {
+      test('should return true when connected to both mobile and WiFi',
+          () async {
         // Arrange
         final results = [ConnectivityResult.mobile, ConnectivityResult.wifi];
-        
+
         // Act
         final isMobile = results.contains(ConnectivityResult.mobile);
-        
+
         // Assert
         expect(isMobile, isTrue);
       });
@@ -147,10 +151,11 @@ void main() {
       test('should return true when connected to WiFi', () async {
         // Arrange
         final results = [ConnectivityResult.wifi];
-        
+
         // Act
-        final isConnected = results.isNotEmpty && !results.contains(ConnectivityResult.none);
-        
+        final isConnected =
+            results.isNotEmpty && !results.contains(ConnectivityResult.none);
+
         // Assert
         expect(isConnected, isTrue);
       });
@@ -158,10 +163,11 @@ void main() {
       test('should return true when connected to mobile data', () async {
         // Arrange
         final results = [ConnectivityResult.mobile];
-        
+
         // Act
-        final isConnected = results.isNotEmpty && !results.contains(ConnectivityResult.none);
-        
+        final isConnected =
+            results.isNotEmpty && !results.contains(ConnectivityResult.none);
+
         // Assert
         expect(isConnected, isTrue);
       });
@@ -169,10 +175,11 @@ void main() {
       test('should return true when connected to ethernet', () async {
         // Arrange
         final results = [ConnectivityResult.ethernet];
-        
+
         // Act
-        final isConnected = results.isNotEmpty && !results.contains(ConnectivityResult.none);
-        
+        final isConnected =
+            results.isNotEmpty && !results.contains(ConnectivityResult.none);
+
         // Assert
         expect(isConnected, isTrue);
       });
@@ -180,10 +187,11 @@ void main() {
       test('should return false when not connected', () async {
         // Arrange
         final results = [ConnectivityResult.none];
-        
+
         // Act
-        final isConnected = results.isNotEmpty && !results.contains(ConnectivityResult.none);
-        
+        final isConnected =
+            results.isNotEmpty && !results.contains(ConnectivityResult.none);
+
         // Assert
         expect(isConnected, isFalse);
       });
@@ -191,10 +199,11 @@ void main() {
       test('should return false when results are empty', () async {
         // Arrange
         final results = <ConnectivityResult>[];
-        
+
         // Act
-        final isConnected = results.isNotEmpty && !results.contains(ConnectivityResult.none);
-        
+        final isConnected =
+            results.isNotEmpty && !results.contains(ConnectivityResult.none);
+
         // Assert
         expect(isConnected, isFalse);
       });
@@ -206,72 +215,82 @@ void main() {
           ConnectivityResult.mobile,
           ConnectivityResult.ethernet,
         ];
-        
+
         // Act
-        final isConnected = results.isNotEmpty && !results.contains(ConnectivityResult.none);
-        
+        final isConnected =
+            results.isNotEmpty && !results.contains(ConnectivityResult.none);
+
         // Assert
         expect(isConnected, isTrue);
       });
     });
 
     group('shouldProceedWithBackup', () {
-      test('should return true when WiFi-only is disabled and any connection exists', () async {
+      test(
+          'should return true when WiFi-only is disabled and any connection exists',
+          () async {
         // Arrange
         final wifiOnlyEnabled = false;
         final hasConnection = true;
-        
+
         // Act
         final shouldProceed = !wifiOnlyEnabled ? hasConnection : false;
-        
+
         // Assert
         expect(shouldProceed, isTrue);
       });
 
-      test('should return false when WiFi-only is disabled and no connection exists', () async {
+      test(
+          'should return false when WiFi-only is disabled and no connection exists',
+          () async {
         // Arrange
         final wifiOnlyEnabled = false;
         final hasConnection = false;
-        
+
         // Act
         final shouldProceed = !wifiOnlyEnabled ? hasConnection : false;
-        
+
         // Assert
         expect(shouldProceed, isFalse);
       });
 
-      test('should return true when WiFi-only is enabled and connected to WiFi', () async {
+      test('should return true when WiFi-only is enabled and connected to WiFi',
+          () async {
         // Arrange
         final wifiOnlyEnabled = true;
         final hasWifiConnection = true;
-        
+
         // Act
         final shouldProceed = wifiOnlyEnabled ? hasWifiConnection : true;
-        
+
         // Assert
         expect(shouldProceed, isTrue);
       });
 
-      test('should return false when WiFi-only is enabled and connected to mobile only', () async {
+      test(
+          'should return false when WiFi-only is enabled and connected to mobile only',
+          () async {
         // Arrange
         final wifiOnlyEnabled = true;
         final hasWifiConnection = false;
-        
+
         // Act
         final shouldProceed = wifiOnlyEnabled ? hasWifiConnection : true;
-        
+
         // Assert
         expect(shouldProceed, isFalse);
       });
 
-      test('should return false when WiFi-only is enabled and no connection exists', () async {
+      test(
+          'should return false when WiFi-only is enabled and no connection exists',
+          () async {
         // Arrange
         final wifiOnlyEnabled = true;
         final hasWifiConnection = false;
-        
+
         // Act
         final shouldProceed = wifiOnlyEnabled ? hasWifiConnection : true;
-        
+
         // Assert
         expect(shouldProceed, isFalse);
       });
@@ -284,12 +303,13 @@ void main() {
           [ConnectivityResult.none],
           [ConnectivityResult.wifi],
         ];
-        
+
         // Act & Assert
         for (final results in transitions) {
-          final isConnected = results.isNotEmpty && !results.contains(ConnectivityResult.none);
+          final isConnected =
+              results.isNotEmpty && !results.contains(ConnectivityResult.none);
           final isWifi = results.contains(ConnectivityResult.wifi);
-          
+
           if (results.contains(ConnectivityResult.none)) {
             expect(isConnected, isFalse);
             expect(isWifi, isFalse);
@@ -306,15 +326,16 @@ void main() {
           [ConnectivityResult.wifi],
           [ConnectivityResult.mobile],
         ];
-        
+
         // Act & Assert
         for (final results in transitions) {
-          final isConnected = results.isNotEmpty && !results.contains(ConnectivityResult.none);
+          final isConnected =
+              results.isNotEmpty && !results.contains(ConnectivityResult.none);
           final isWifi = results.contains(ConnectivityResult.wifi);
           final isMobile = results.contains(ConnectivityResult.mobile);
-          
+
           expect(isConnected, isTrue);
-          
+
           if (results.contains(ConnectivityResult.wifi)) {
             expect(isWifi, isTrue);
             expect(isMobile, isFalse);
@@ -331,12 +352,13 @@ void main() {
           ConnectivityResult.wifi,
           ConnectivityResult.mobile,
         ];
-        
+
         // Act
-        final isConnected = results.isNotEmpty && !results.contains(ConnectivityResult.none);
+        final isConnected =
+            results.isNotEmpty && !results.contains(ConnectivityResult.none);
         final isWifi = results.contains(ConnectivityResult.wifi);
         final isMobile = results.contains(ConnectivityResult.mobile);
-        
+
         // Assert
         expect(isConnected, isTrue);
         expect(isWifi, isTrue);
@@ -349,14 +371,29 @@ void main() {
         // Test cases for backup decisions
         final testCases = [
           // [wifiOnlyEnabled, hasWifi, hasMobile, expectedResult]
-          [true, true, false, true],   // WiFi-only + WiFi = proceed
-          [true, false, true, false],  // WiFi-only + mobile only = don't proceed
-          [true, true, true, true],    // WiFi-only + both = proceed (WiFi available)
-          [true, false, false, false], // WiFi-only + no connection = don't proceed
-          [false, true, false, true],  // Any connection + WiFi = proceed
-          [false, false, true, true],  // Any connection + mobile = proceed
-          [false, true, true, true],   // Any connection + both = proceed
-          [false, false, false, false], // Any connection + no connection = don't proceed
+          [true, true, false, true], // WiFi-only + WiFi = proceed
+          [true, false, true, false], // WiFi-only + mobile only = don't proceed
+          [
+            true,
+            true,
+            true,
+            true
+          ], // WiFi-only + both = proceed (WiFi available)
+          [
+            true,
+            false,
+            false,
+            false
+          ], // WiFi-only + no connection = don't proceed
+          [false, true, false, true], // Any connection + WiFi = proceed
+          [false, false, true, true], // Any connection + mobile = proceed
+          [false, true, true, true], // Any connection + both = proceed
+          [
+            false,
+            false,
+            false,
+            false
+          ], // Any connection + no connection = don't proceed
         ];
 
         for (final testCase in testCases) {
@@ -376,7 +413,8 @@ void main() {
           }
 
           expect(actualResult, equals(expectedResult),
-              reason: 'Failed for wifiOnly=$wifiOnlyEnabled, hasWifi=$hasWifi, hasMobile=$hasMobile');
+              reason:
+                  'Failed for wifiOnly=$wifiOnlyEnabled, hasWifi=$hasWifi, hasMobile=$hasMobile');
         }
       });
 
@@ -399,21 +437,29 @@ void main() {
           // Multiple connection scenarios
           {
             'wifiOnly': true,
-            'connections': [ConnectivityResult.wifi, ConnectivityResult.ethernet],
+            'connections': [
+              ConnectivityResult.wifi,
+              ConnectivityResult.ethernet
+            ],
             'expected': true,
             'description': 'Multiple connections including WiFi'
           },
           {
             'wifiOnly': false,
-            'connections': [ConnectivityResult.mobile, ConnectivityResult.ethernet],
+            'connections': [
+              ConnectivityResult.mobile,
+              ConnectivityResult.ethernet
+            ],
             'expected': true,
-            'description': 'Multiple connections without WiFi, any-connection mode'
+            'description':
+                'Multiple connections without WiFi, any-connection mode'
           },
         ];
 
         for (final edgeCase in edgeCases) {
           final wifiOnlyEnabled = edgeCase['wifiOnly'] as bool;
-          final connections = edgeCase['connections'] as List<ConnectivityResult>;
+          final connections =
+              edgeCase['connections'] as List<ConnectivityResult>;
           final expectedResult = edgeCase['expected'] as bool;
           final description = edgeCase['description'] as String;
 
@@ -421,7 +467,8 @@ void main() {
           late bool actualResult;
           if (!wifiOnlyEnabled) {
             // Any connection is fine
-            actualResult = connections.isNotEmpty && !connections.contains(ConnectivityResult.none);
+            actualResult = connections.isNotEmpty &&
+                !connections.contains(ConnectivityResult.none);
           } else {
             // WiFi-only is enabled
             actualResult = connections.contains(ConnectivityResult.wifi);
@@ -436,12 +483,13 @@ void main() {
       test('should handle empty connectivity results gracefully', () {
         // Arrange
         final results = <ConnectivityResult>[];
-        
+
         // Act
-        final isConnected = results.isNotEmpty && !results.contains(ConnectivityResult.none);
+        final isConnected =
+            results.isNotEmpty && !results.contains(ConnectivityResult.none);
         final isWifi = results.contains(ConnectivityResult.wifi);
         final isMobile = results.contains(ConnectivityResult.mobile);
-        
+
         // Assert
         expect(isConnected, isFalse);
         expect(isWifi, isFalse);
@@ -451,12 +499,13 @@ void main() {
       test('should handle unknown connectivity results', () {
         // Arrange - Simulate unknown connection type
         final results = [ConnectivityResult.bluetooth];
-        
+
         // Act
-        final isConnected = results.isNotEmpty && !results.contains(ConnectivityResult.none);
+        final isConnected =
+            results.isNotEmpty && !results.contains(ConnectivityResult.none);
         final isWifi = results.contains(ConnectivityResult.wifi);
         final isMobile = results.contains(ConnectivityResult.mobile);
-        
+
         // Assert
         expect(isConnected, isTrue); // Connected to something
         expect(isWifi, isFalse); // Not WiFi
@@ -470,11 +519,12 @@ void main() {
           ConnectivityResult.wifi,
           ConnectivityResult.vpn,
         ];
-        
+
         // Act
-        final isConnected = results.isNotEmpty && !results.contains(ConnectivityResult.none);
+        final isConnected =
+            results.isNotEmpty && !results.contains(ConnectivityResult.none);
         final isWifi = results.contains(ConnectivityResult.wifi);
-        
+
         // Assert
         expect(isConnected, isTrue);
         expect(isWifi, isTrue); // WiFi is present among the connections
@@ -491,10 +541,10 @@ void main() {
           [ConnectivityResult.wifi, ConnectivityResult.mobile],
           [ConnectivityResult.none],
         ];
-        
+
         // Act & Assert - Simulate what the stream would emit
         final expectedWifiStates = [false, false, true, true, false];
-        
+
         for (int i = 0; i < connectivityChanges.length; i++) {
           final results = connectivityChanges[i];
           final isWifi = results.contains(ConnectivityResult.wifi);
@@ -542,8 +592,10 @@ void main() {
           final toWifi = toResults.contains(ConnectivityResult.wifi);
 
           // Verify the transition makes sense
-          expect(fromWifi, isA<bool>(), reason: 'Invalid from state for: $description');
-          expect(toWifi, isA<bool>(), reason: 'Invalid to state for: $description');
+          expect(fromWifi, isA<bool>(),
+              reason: 'Invalid from state for: $description');
+          expect(toWifi, isA<bool>(),
+              reason: 'Invalid to state for: $description');
         }
       });
     });

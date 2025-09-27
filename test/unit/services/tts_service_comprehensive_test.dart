@@ -22,8 +22,8 @@ void main() {
         'selected_language': 'es',
         'speech_rate': 0.5,
       });
-      
-      // Get service instance 
+
+      // Get service instance
       ttsService = TtsService();
     });
 
@@ -62,7 +62,8 @@ void main() {
         await ttsService.setLanguage(testLanguage);
 
         // Assert - should complete without error
-        expect(ttsService.currentState, isIn([TtsState.idle, TtsState.initializing]));
+        expect(ttsService.currentState,
+            isIn([TtsState.idle, TtsState.initializing]));
       });
 
       test('should get available languages', () async {
@@ -96,7 +97,8 @@ void main() {
         await ttsService.setSpeechRate(0.7);
 
         // Assert - should complete successfully
-        expect(ttsService.currentState, isIn([TtsState.idle, TtsState.initializing]));
+        expect(ttsService.currentState,
+            isIn([TtsState.idle, TtsState.initializing]));
       });
 
       test('should handle extreme speech rate values', () async {
@@ -119,7 +121,8 @@ void main() {
         await ttsService.speakText(testText);
 
         // Assert - should start speaking
-        expect(ttsService.currentState, isIn([TtsState.playing, TtsState.initializing]));
+        expect(ttsService.currentState,
+            isIn([TtsState.playing, TtsState.initializing]));
       });
 
       test('should handle empty text gracefully', () async {
@@ -151,7 +154,8 @@ void main() {
         await ttsService.speakDevotional(devotional);
 
         // Assert - should start speaking
-        expect(ttsService.currentState, isIn([TtsState.playing, TtsState.initializing]));
+        expect(ttsService.currentState,
+            isIn([TtsState.playing, TtsState.initializing]));
       });
     });
 
@@ -159,8 +163,9 @@ void main() {
       test('should pause playback when speaking', () async {
         // Arrange
         await ttsService.initialize();
-        await ttsService.speakText('Texto largo para poder pausar durante la reproducción.');
-        
+        await ttsService.speakText(
+            'Texto largo para poder pausar durante la reproducción.');
+
         // Wait a moment to ensure speaking started
         await Future.delayed(Duration(milliseconds: 100));
 
@@ -182,7 +187,8 @@ void main() {
         await ttsService.resume();
 
         // Assert
-        expect(ttsService.currentState, isIn([TtsState.playing, TtsState.idle]));
+        expect(
+            ttsService.currentState, isIn([TtsState.playing, TtsState.idle]));
       });
 
       test('should stop playback completely', () async {
@@ -205,19 +211,21 @@ void main() {
         expect(ttsService.currentState, equals(TtsState.idle));
       });
 
-      test('should transition states correctly during playback lifecycle', () async {
+      test('should transition states correctly during playback lifecycle',
+          () async {
         // Arrange
         await ttsService.initialize();
         expect(ttsService.currentState, equals(TtsState.idle));
 
         // Act - Start speaking
         await ttsService.speakText('Texto para probar transiciones de estado.');
-        
+
         // Allow time for state transition
         await Future.delayed(Duration(milliseconds: 50));
 
         // Assert - Should be playing or initializing
-        expect(ttsService.currentState, isIn([TtsState.playing, TtsState.initializing]));
+        expect(ttsService.currentState,
+            isIn([TtsState.playing, TtsState.initializing]));
 
         // Stop and verify final state
         await ttsService.stop();
@@ -246,11 +254,14 @@ void main() {
       });
 
       test('should handle invalid voice settings gracefully', () async {
-        // Arrange  
+        // Arrange
         await ttsService.initialize();
 
         // Act & Assert - Should handle invalid voice settings
-        expect(() => ttsService.setVoice({'name': 'invalid_voice', 'locale': 'invalid'}), returnsNormally);
+        expect(
+            () => ttsService
+                .setVoice({'name': 'invalid_voice', 'locale': 'invalid'}),
+            returnsNormally);
       });
     });
 
@@ -302,7 +313,8 @@ void main() {
       test('should handle special characters in text', () async {
         // Arrange
         await ttsService.initialize();
-        const specialText = 'Texto con números: 123, símbolos: @#\$%, y acentos: ñáéíóú.';
+        const specialText =
+            'Texto con números: 123, símbolos: @#\$%, y acentos: ñáéíóú.';
 
         // Act & Assert
         expect(() => ttsService.speakText(specialText), returnsNormally);
@@ -311,7 +323,8 @@ void main() {
       test('should handle biblical references correctly', () async {
         // Arrange
         await ttsService.initialize();
-        const biblicalText = 'Juan 3:16 dice: "Porque de tal manera amó Dios al mundo..."';
+        const biblicalText =
+            'Juan 3:16 dice: "Porque de tal manera amó Dios al mundo..."';
 
         // Act & Assert
         expect(() => ttsService.speakText(biblicalText), returnsNormally);
@@ -320,7 +333,9 @@ void main() {
       test('should handle long text content', () async {
         // Arrange
         await ttsService.initialize();
-        final longText = 'Este es un texto muy largo que debería ser dividido en chunks ' * 50;
+        final longText =
+            'Este es un texto muy largo que debería ser dividido en chunks ' *
+                50;
 
         // Act & Assert - Should handle chunking properly
         expect(() => ttsService.speakText(longText), returnsNormally);

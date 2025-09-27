@@ -6,9 +6,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
 /// Mock class for GoogleDriveBackupService
-class MockGoogleDriveBackupService extends Mock implements GoogleDriveBackupService {}
+class MockGoogleDriveBackupService extends Mock
+    implements GoogleDriveBackupService {}
 
-/// Mock class for ConnectivityService  
+/// Mock class for ConnectivityService
 class MockConnectivityService extends Mock implements ConnectivityService {}
 
 void main() {
@@ -21,7 +22,7 @@ void main() {
       // Initialize mocks
       mockBackupService = MockGoogleDriveBackupService();
       mockConnectivityService = MockConnectivityService();
-      
+
       // Create service instance with mocked dependencies
       service = BackupSchedulerService(
         backupService: mockBackupService,
@@ -43,7 +44,7 @@ void main() {
         await BackupSchedulerService.initialize();
         await BackupSchedulerService.initialize();
         await BackupSchedulerService.initialize();
-        
+
         // Assert - Should complete without errors
         expect(true, isTrue); // Test passes if no exceptions thrown
       });
@@ -63,7 +64,7 @@ void main() {
         await service.scheduleAutomaticBackup();
         await service.scheduleAutomaticBackup();
         await service.scheduleAutomaticBackup();
-        
+
         // Assert - Should complete without errors
         expect(true, isTrue); // Test passes if no exceptions thrown
       });
@@ -81,7 +82,7 @@ void main() {
       test('should be safe to call without prior scheduling', () async {
         // Act - Cancel without scheduling first
         await service.cancelAutomaticBackup();
-        
+
         // Assert - Should complete without errors
         expect(true, isTrue); // Test passes if no exceptions thrown
       });
@@ -91,7 +92,7 @@ void main() {
         await service.cancelAutomaticBackup();
         await service.cancelAutomaticBackup();
         await service.cancelAutomaticBackup();
-        
+
         // Assert - Should complete without errors
         expect(true, isTrue); // Test passes if no exceptions thrown
       });
@@ -111,10 +112,13 @@ void main() {
         verify(() => mockBackupService.isAutoBackupEnabled()).called(1);
         verifyNever(() => mockBackupService.shouldCreateAutoBackup());
         verifyNever(() => mockBackupService.isWifiOnlyEnabled());
-        verifyNever(() => mockConnectivityService.shouldProceedWithBackup(any()));
+        verifyNever(
+            () => mockConnectivityService.shouldProceedWithBackup(any()));
       });
 
-      test('should return false when auto backup is enabled but should not create backup', () async {
+      test(
+          'should return false when auto backup is enabled but should not create backup',
+          () async {
         // Arrange
         when(() => mockBackupService.isAutoBackupEnabled())
             .thenAnswer((_) async => true);
@@ -129,10 +133,13 @@ void main() {
         verify(() => mockBackupService.isAutoBackupEnabled()).called(1);
         verify(() => mockBackupService.shouldCreateAutoBackup()).called(1);
         verifyNever(() => mockBackupService.isWifiOnlyEnabled());
-        verifyNever(() => mockConnectivityService.shouldProceedWithBackup(any()));
+        verifyNever(
+            () => mockConnectivityService.shouldProceedWithBackup(any()));
       });
 
-      test('should return false when backup conditions met but connectivity check fails', () async {
+      test(
+          'should return false when backup conditions met but connectivity check fails',
+          () async {
         // Arrange
         when(() => mockBackupService.isAutoBackupEnabled())
             .thenAnswer((_) async => true);
@@ -151,10 +158,13 @@ void main() {
         verify(() => mockBackupService.isAutoBackupEnabled()).called(1);
         verify(() => mockBackupService.shouldCreateAutoBackup()).called(1);
         verify(() => mockBackupService.isWifiOnlyEnabled()).called(1);
-        verify(() => mockConnectivityService.shouldProceedWithBackup(true)).called(1);
+        verify(() => mockConnectivityService.shouldProceedWithBackup(true))
+            .called(1);
       });
 
-      test('should return true when all backup conditions are met with WiFi-only enabled', () async {
+      test(
+          'should return true when all backup conditions are met with WiFi-only enabled',
+          () async {
         // Arrange
         when(() => mockBackupService.isAutoBackupEnabled())
             .thenAnswer((_) async => true);
@@ -173,10 +183,13 @@ void main() {
         verify(() => mockBackupService.isAutoBackupEnabled()).called(1);
         verify(() => mockBackupService.shouldCreateAutoBackup()).called(1);
         verify(() => mockBackupService.isWifiOnlyEnabled()).called(1);
-        verify(() => mockConnectivityService.shouldProceedWithBackup(true)).called(1);
+        verify(() => mockConnectivityService.shouldProceedWithBackup(true))
+            .called(1);
       });
 
-      test('should return true when all backup conditions are met with WiFi-only disabled', () async {
+      test(
+          'should return true when all backup conditions are met with WiFi-only disabled',
+          () async {
         // Arrange
         when(() => mockBackupService.isAutoBackupEnabled())
             .thenAnswer((_) async => true);
@@ -195,10 +208,12 @@ void main() {
         verify(() => mockBackupService.isAutoBackupEnabled()).called(1);
         verify(() => mockBackupService.shouldCreateAutoBackup()).called(1);
         verify(() => mockBackupService.isWifiOnlyEnabled()).called(1);
-        verify(() => mockConnectivityService.shouldProceedWithBackup(false)).called(1);
+        verify(() => mockConnectivityService.shouldProceedWithBackup(false))
+            .called(1);
       });
 
-      test('should pass correct WiFi-only setting to connectivity service', () async {
+      test('should pass correct WiFi-only setting to connectivity service',
+          () async {
         // Test cases for different WiFi-only settings
         final testCases = [
           {'wifiOnly': true, 'description': 'WiFi-only enabled'},
@@ -223,8 +238,10 @@ void main() {
           await service.shouldRunBackup();
 
           // Assert
-          verify(() => mockConnectivityService.shouldProceedWithBackup(wifiOnly)).called(1);
-          
+          verify(() =>
+                  mockConnectivityService.shouldProceedWithBackup(wifiOnly))
+              .called(1);
+
           // Reset mocks for next iteration
           reset(mockBackupService);
           reset(mockConnectivityService);
@@ -233,7 +250,9 @@ void main() {
     });
 
     group('error handling', () {
-      test('should throw exception when backup service errors in shouldRunBackup', () async {
+      test(
+          'should throw exception when backup service errors in shouldRunBackup',
+          () async {
         // Arrange
         when(() => mockBackupService.isAutoBackupEnabled())
             .thenThrow(Exception('Backup service error'));
@@ -263,7 +282,8 @@ void main() {
         );
       });
 
-      test('should throw exception for individual service method errors', () async {
+      test('should throw exception for individual service method errors',
+          () async {
         // Test each service method error individually
         final errorScenarios = [
           {
@@ -291,7 +311,7 @@ void main() {
         for (final scenario in errorScenarios) {
           final description = scenario['description'] as String;
           final setup = scenario['setup'] as Function();
-          
+
           // Arrange
           setup();
 
@@ -301,7 +321,7 @@ void main() {
             throwsA(isA<Exception>()),
             reason: description,
           );
-          
+
           // Reset for next test
           reset(mockBackupService);
           reset(mockConnectivityService);
@@ -314,21 +334,21 @@ void main() {
         // Test matrix: [autoEnabled, shouldCreate, wifiOnly, connectivityOk, expectedResult]
         final testMatrix = [
           [false, false, false, false, false], // Auto disabled
-          [false, false, false, true, false],  // Auto disabled
-          [false, false, true, false, false],  // Auto disabled
-          [false, false, true, true, false],   // Auto disabled
-          [false, true, false, false, false],  // Auto disabled
-          [false, true, false, true, false],   // Auto disabled
-          [false, true, true, false, false],   // Auto disabled
-          [false, true, true, true, false],    // Auto disabled
-          [true, false, false, false, false],  // Should not create
-          [true, false, false, true, false],   // Should not create
-          [true, false, true, false, false],   // Should not create
-          [true, false, true, true, false],    // Should not create
-          [true, true, false, false, false],   // No connectivity
-          [true, true, false, true, true],     // All conditions met
-          [true, true, true, false, false],    // WiFi required but no connectivity
-          [true, true, true, true, true],      // All conditions met with WiFi
+          [false, false, false, true, false], // Auto disabled
+          [false, false, true, false, false], // Auto disabled
+          [false, false, true, true, false], // Auto disabled
+          [false, true, false, false, false], // Auto disabled
+          [false, true, false, true, false], // Auto disabled
+          [false, true, true, false, false], // Auto disabled
+          [false, true, true, true, false], // Auto disabled
+          [true, false, false, false, false], // Should not create
+          [true, false, false, true, false], // Should not create
+          [true, false, true, false, false], // Should not create
+          [true, false, true, true, false], // Should not create
+          [true, true, false, false, false], // No connectivity
+          [true, true, false, true, true], // All conditions met
+          [true, true, true, false, false], // WiFi required but no connectivity
+          [true, true, true, true, true], // All conditions met with WiFi
         ];
 
         for (int i = 0; i < testMatrix.length; i++) {
@@ -354,8 +374,9 @@ void main() {
 
           // Assert
           expect(result, equals(expectedResult),
-              reason: 'Test case $i failed: auto=$autoEnabled, create=$shouldCreate, '
-                     'wifiOnly=$wifiOnly, connectivity=$connectivityOk, expected=$expectedResult');
+              reason:
+                  'Test case $i failed: auto=$autoEnabled, create=$shouldCreate, '
+                  'wifiOnly=$wifiOnly, connectivity=$connectivityOk, expected=$expectedResult');
 
           // Reset for next iteration
           reset(mockBackupService);
@@ -385,12 +406,13 @@ void main() {
 
         // Assert
         expect(results, everyElement(isTrue));
-        
+
         // Verify all calls went through
         verify(() => mockBackupService.isAutoBackupEnabled()).called(5);
         verify(() => mockBackupService.shouldCreateAutoBackup()).called(5);
         verify(() => mockBackupService.isWifiOnlyEnabled()).called(5);
-        verify(() => mockConnectivityService.shouldProceedWithBackup(false)).called(5);
+        verify(() => mockConnectivityService.shouldProceedWithBackup(false))
+            .called(5);
       });
     });
 
@@ -483,31 +505,31 @@ void main() {
         // Assert
         expect(result, isTrue);
         expect(stopwatch.elapsedMilliseconds, lessThan(100),
-            reason: 'shouldRunBackup took too long: ${stopwatch.elapsedMilliseconds}ms');
+            reason:
+                'shouldRunBackup took too long: ${stopwatch.elapsedMilliseconds}ms');
       });
 
       test('should handle service delays gracefully', () async {
         // Arrange - Simulate slow services
         when(() => mockBackupService.isAutoBackupEnabled())
             .thenAnswer((_) async {
-              await Future.delayed(const Duration(milliseconds: 50));
-              return true;
-            });
+          await Future.delayed(const Duration(milliseconds: 50));
+          return true;
+        });
         when(() => mockBackupService.shouldCreateAutoBackup())
             .thenAnswer((_) async {
-              await Future.delayed(const Duration(milliseconds: 50));
-              return true;
-            });
-        when(() => mockBackupService.isWifiOnlyEnabled())
-            .thenAnswer((_) async {
-              await Future.delayed(const Duration(milliseconds: 50));
-              return false;
-            });
+          await Future.delayed(const Duration(milliseconds: 50));
+          return true;
+        });
+        when(() => mockBackupService.isWifiOnlyEnabled()).thenAnswer((_) async {
+          await Future.delayed(const Duration(milliseconds: 50));
+          return false;
+        });
         when(() => mockConnectivityService.shouldProceedWithBackup(false))
             .thenAnswer((_) async {
-              await Future.delayed(const Duration(milliseconds: 50));
-              return true;
-            });
+          await Future.delayed(const Duration(milliseconds: 50));
+          return true;
+        });
 
         // Act
         final stopwatch = Stopwatch()..start();

@@ -23,12 +23,15 @@ void main() {
         // Assert
         expect(compressedData, isA<Uint8List>());
         expect(compressedData.length, greaterThan(0));
-        
+
         // Compressed data should typically be smaller than original for larger datasets
         // For small datasets, compression might be larger due to overhead
         final originalJsonString = json.encode(testData);
         final originalBytes = utf8.encode(originalJsonString).length;
-        expect(compressedData.length, lessThanOrEqualTo(originalBytes * 2)); // Allow for compression overhead
+        expect(
+            compressedData.length,
+            lessThanOrEqualTo(
+                originalBytes * 2)); // Allow for compression overhead
       });
 
       test('should compress complex nested JSON data', () {
@@ -42,11 +45,13 @@ void main() {
               'language': 'es',
               'notifications': true,
             },
-            'history': List.generate(50, (i) => {
-              'date': '2023-01-${i + 1}',
-              'action': 'read_devotional_$i',
-              'duration': i * 2,
-            }),
+            'history': List.generate(
+                50,
+                (i) => {
+                      'date': '2023-01-${i + 1}',
+                      'action': 'read_devotional_$i',
+                      'duration': i * 2,
+                    }),
           },
           'stats': {
             'total_readings': 150,
@@ -61,12 +66,14 @@ void main() {
         // Assert
         expect(compressedData, isA<Uint8List>());
         expect(compressedData.length, greaterThan(0));
-        
+
         // For larger datasets, compression should be effective
         final originalJsonString = json.encode(testData);
         final originalBytes = utf8.encode(originalJsonString).length;
-        expect(originalBytes, greaterThan(1000)); // Ensure we have substantial data
-        expect(compressedData.length, lessThan(originalBytes)); // Should be compressed
+        expect(originalBytes,
+            greaterThan(1000)); // Ensure we have substantial data
+        expect(compressedData.length,
+            lessThan(originalBytes)); // Should be compressed
       });
 
       test('should handle empty JSON data', () {
@@ -132,7 +139,7 @@ void main() {
         // Assert
         expect(compressedData, isA<Uint8List>());
         expect(compressedData.length, greaterThan(0));
-        
+
         // Should still return valid data (either compressed or fallback)
         // The method should not throw exceptions
       });
@@ -144,7 +151,8 @@ void main() {
         final originalData = {
           'devotional_id': 'test_123',
           'title': 'Test Devotional',
-          'content': 'This is a test devotional content with some length to test compression.',
+          'content':
+              'This is a test devotional content with some length to test compression.',
           'date': '2023-12-01',
           'tags': ['faith', 'hope', 'love'],
           'stats': {
@@ -155,7 +163,8 @@ void main() {
 
         // Act
         final compressedData = CompressionService.compressJson(originalData);
-        final decompressedData = CompressionService.decompressJson(compressedData);
+        final decompressedData =
+            CompressionService.decompressJson(compressedData);
 
         // Assert
         expect(decompressedData, isNotNull);
@@ -180,12 +189,14 @@ void main() {
               'reminders': true,
             },
           },
-          'reading_history': List.generate(20, (i) => {
-            'id': 'devotional_$i',
-            'date': '2023-12-${i + 1}',
-            'completed': i % 2 == 0,
-            'notes': 'Test notes for devotional $i',
-          }),
+          'reading_history': List.generate(
+              20,
+              (i) => {
+                    'id': 'devotional_$i',
+                    'date': '2023-12-${i + 1}',
+                    'completed': i % 2 == 0,
+                    'notes': 'Test notes for devotional $i',
+                  }),
           'statistics': {
             'total_days': 365,
             'streak': 15,
@@ -201,18 +212,25 @@ void main() {
 
         // Act
         final compressedData = CompressionService.compressJson(originalData);
-        final decompressedData = CompressionService.decompressJson(compressedData);
+        final decompressedData =
+            CompressionService.decompressJson(compressedData);
 
         // Assert
         expect(decompressedData, isNotNull);
         expect(decompressedData, equals(originalData));
-        
+
         // Verify nested structure
-        expect(decompressedData!['user_preferences']['theme'], equals('Deep Purple'));
-        expect(decompressedData['user_preferences']['notifications']['devotionals'], equals(true));
+        expect(decompressedData!['user_preferences']['theme'],
+            equals('Deep Purple'));
+        expect(
+            decompressedData['user_preferences']['notifications']
+                ['devotionals'],
+            equals(true));
         expect(decompressedData['reading_history'].length, equals(20));
-        expect(decompressedData['reading_history'][0]['id'], equals('devotional_0'));
-        expect(decompressedData['statistics']['categories_read']['faith'], equals(45));
+        expect(decompressedData['reading_history'][0]['id'],
+            equals('devotional_0'));
+        expect(decompressedData['statistics']['categories_read']['faith'],
+            equals(45));
       });
 
       test('should handle empty compressed data gracefully', () {
@@ -277,7 +295,8 @@ void main() {
 
         // Act
         final compressedData = CompressionService.compressJson(originalData);
-        final decompressedData = CompressionService.decompressJson(compressedData);
+        final decompressedData =
+            CompressionService.decompressJson(compressedData);
 
         // Assert
         expect(decompressedData, isNotNull);
@@ -290,28 +309,33 @@ void main() {
         expect(decompressedData['array_strings'], isA<List>());
         expect(decompressedData['array_numbers'], isA<List>());
         expect(decompressedData['nested_object'], isA<Map>());
-        
+
         // Verify exact values
         expect(decompressedData['string_value'], equals('test string'));
         expect(decompressedData['int_value'], equals(42));
         expect(decompressedData['double_value'], equals(3.14159));
         expect(decompressedData['bool_true'], equals(true));
         expect(decompressedData['bool_false'], equals(false));
-        expect(decompressedData['array_strings'], equals(['item1', 'item2', 'item3']));
-        expect(decompressedData['nested_object']['inner_string'], equals('inner value'));
+        expect(decompressedData['array_strings'],
+            equals(['item1', 'item2', 'item3']));
+        expect(decompressedData['nested_object']['inner_string'],
+            equals('inner value'));
       });
     });
 
     group('round-trip compression and decompression', () {
-      test('should maintain data integrity through multiple compression cycles', () {
+      test('should maintain data integrity through multiple compression cycles',
+          () {
         // Arrange
         final originalData = {
           'cycle_test': 'multiple compression test',
-          'data': List.generate(10, (i) => {
-            'id': i,
-            'value': 'item_$i',
-            'timestamp': DateTime.now().millisecondsSinceEpoch,
-          }),
+          'data': List.generate(
+              10,
+              (i) => {
+                    'id': i,
+                    'value': 'item_$i',
+                    'timestamp': DateTime.now().millisecondsSinceEpoch,
+                  }),
         };
 
         // Act - Multiple compression cycles
@@ -330,16 +354,19 @@ void main() {
       test('should handle large devotional data typical in app usage', () {
         // Arrange - Simulate real app data structure
         final devotionalData = {
-          'devotionals': List.generate(100, (i) => {
-            'id': 'devotional_$i',
-            'title': 'Devotional Title $i',
-            'content': 'This is the content for devotional $i. ' * 10, // Longer content
-            'date': '2023-${(i % 12) + 1}-${(i % 28) + 1}',
-            'category': ['faith', 'hope', 'love', 'wisdom'][i % 4],
-            'read': i % 3 == 0,
-            'favorite': i % 7 == 0,
-            'notes': i % 5 == 0 ? 'User notes for devotional $i' : null,
-          }),
+          'devotionals': List.generate(
+              100,
+              (i) => {
+                    'id': 'devotional_$i',
+                    'title': 'Devotional Title $i',
+                    'content': 'This is the content for devotional $i. ' *
+                        10, // Longer content
+                    'date': '2023-${(i % 12) + 1}-${(i % 28) + 1}',
+                    'category': ['faith', 'hope', 'love', 'wisdom'][i % 4],
+                    'read': i % 3 == 0,
+                    'favorite': i % 7 == 0,
+                    'notes': i % 5 == 0 ? 'User notes for devotional $i' : null,
+                  }),
           'user_stats': {
             'total_devotionals_read': 73,
             'current_streak': 15,
@@ -365,23 +392,28 @@ void main() {
         final startTime = DateTime.now();
         final compressedData = CompressionService.compressJson(devotionalData);
         final compressionTime = DateTime.now().difference(startTime);
-        
+
         final decompressStartTime = DateTime.now();
-        final decompressedData = CompressionService.decompressJson(compressedData);
-        final decompressionTime = DateTime.now().difference(decompressStartTime);
+        final decompressedData =
+            CompressionService.decompressJson(compressedData);
+        final decompressionTime =
+            DateTime.now().difference(decompressStartTime);
 
         // Assert
         expect(decompressedData, isNotNull);
         expect(decompressedData, equals(devotionalData));
-        
+
         // Performance assertions - should complete quickly
-        expect(compressionTime.inMilliseconds, lessThan(1000), reason: 'Compression took too long');
-        expect(decompressionTime.inMilliseconds, lessThan(1000), reason: 'Decompression took too long');
-        
+        expect(compressionTime.inMilliseconds, lessThan(1000),
+            reason: 'Compression took too long');
+        expect(decompressionTime.inMilliseconds, lessThan(1000),
+            reason: 'Decompression took too long');
+
         // Compression efficiency for large datasets
         final originalSize = utf8.encode(json.encode(devotionalData)).length;
         final compressedSize = compressedData.length;
-        expect(compressedSize, lessThan(originalSize), reason: 'Large dataset should be compressed efficiently');
+        expect(compressedSize, lessThan(originalSize),
+            reason: 'Large dataset should be compressed efficiently');
       });
     });
 
@@ -394,12 +426,13 @@ void main() {
           }
           return {'level_$depth': createNestedStructure(depth - 1)};
         }
-        
+
         final deepData = createNestedStructure(20); // 20 levels deep
 
         // Act
         final compressedData = CompressionService.compressJson(deepData);
-        final decompressedData = CompressionService.decompressJson(compressedData);
+        final decompressedData =
+            CompressionService.decompressJson(compressedData);
 
         // Assert
         expect(decompressedData, isNotNull);
@@ -411,26 +444,30 @@ void main() {
         final repetitiveData = {
           'pattern': 'This is a repeated pattern. ' * 100,
           'list': List.filled(50, 'repeated_item'),
-          'nested_repetition': List.generate(20, (i) => {
-            'common_key': 'common_value',
-            'another_common_key': 'another_common_value',
-            'index': i,
-          }),
+          'nested_repetition': List.generate(
+              20,
+              (i) => {
+                    'common_key': 'common_value',
+                    'another_common_key': 'another_common_value',
+                    'index': i,
+                  }),
         };
 
         // Act
         final compressedData = CompressionService.compressJson(repetitiveData);
-        final decompressedData = CompressionService.decompressJson(compressedData);
+        final decompressedData =
+            CompressionService.decompressJson(compressedData);
 
         // Assert
         expect(decompressedData, isNotNull);
         expect(decompressedData, equals(repetitiveData));
-        
+
         // Should achieve good compression ratio due to repetition
         final originalSize = utf8.encode(json.encode(repetitiveData)).length;
         final compressedSize = compressedData.length;
         final compressionRatio = compressedSize / originalSize;
-        expect(compressionRatio, lessThan(0.5), reason: 'Should achieve good compression on repetitive data');
+        expect(compressionRatio, lessThan(0.5),
+            reason: 'Should achieve good compression on repetitive data');
       });
     });
   });
