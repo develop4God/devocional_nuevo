@@ -44,12 +44,17 @@ void main() {
               'language': 'es',
             },
           },
-          'data': List.generate(50, (i) => {
-                'id': 'devotional_$i',
-                'title': 'Devocional del día $i',
-                'content': 'Contenido extenso del devocional número $i' * 10,
-                'date': DateTime.now().subtract(Duration(days: i)).toIso8601String(),
-              }),
+          'data': List.generate(
+              50,
+              (i) => {
+                    'id': 'devotional_$i',
+                    'title': 'Devocional del día $i',
+                    'content':
+                        'Contenido extenso del devocional número $i' * 10,
+                    'date': DateTime.now()
+                        .subtract(Duration(days: i))
+                        .toIso8601String(),
+                  }),
         };
 
         // Act
@@ -101,14 +106,18 @@ void main() {
       test('should achieve significant compression on repetitive data', () {
         // Arrange - Create repetitive data that should compress well
         final repetitiveData = {
-          'items': List.generate(100, (i) => {
-                'type': 'devotional',
-                'category': 'daily_reading',
-                'language': 'spanish',
-                'version': 'reina_valera_1960',
-                'tags': ['bible', 'prayer', 'reflection'],
-                'content': 'Este es un contenido repetitivo que debería comprimir muy bien ' * 20,
-              }),
+          'items': List.generate(
+              100,
+              (i) => {
+                    'type': 'devotional',
+                    'category': 'daily_reading',
+                    'language': 'spanish',
+                    'version': 'reina_valera_1960',
+                    'tags': ['bible', 'prayer', 'reflection'],
+                    'content':
+                        'Este es un contenido repetitivo que debería comprimir muy bien ' *
+                            20,
+                  }),
         };
 
         final originalJson = json.encode(repetitiveData);
@@ -116,10 +125,12 @@ void main() {
 
         // Act
         final compressed = CompressionService.compressJson(repetitiveData);
-        final compressionRatio = CompressionService.getCompressionRatio(originalSize, compressed.length);
+        final compressionRatio = CompressionService.getCompressionRatio(
+            originalSize, compressed.length);
 
         // Assert
-        expect(compressionRatio, greaterThan(50)); // Should achieve >50% compression
+        expect(compressionRatio,
+            greaterThan(50)); // Should achieve >50% compression
         expect(compressed.length, lessThan(originalSize));
       });
     });
@@ -131,7 +142,8 @@ void main() {
         const compressedSize = 300;
 
         // Act
-        final ratio = CompressionService.getCompressionRatio(originalSize, compressedSize);
+        final ratio = CompressionService.getCompressionRatio(
+            originalSize, compressedSize);
 
         // Assert
         expect(ratio, equals(70.0)); // (1000-300)/1000 * 100 = 70%
@@ -162,7 +174,8 @@ void main() {
         const compressedSize = 150;
 
         // Act
-        final ratio = CompressionService.getCompressionRatio(originalSize, compressedSize);
+        final ratio = CompressionService.getCompressionRatio(
+            originalSize, compressedSize);
 
         // Assert
         expect(ratio, equals(-50.0)); // Negative indicates expansion
@@ -175,7 +188,8 @@ void main() {
         const originalSize = 10000;
 
         // Act
-        final estimatedSize = CompressionService.estimateCompressedSize(originalSize);
+        final estimatedSize =
+            CompressionService.estimateCompressedSize(originalSize);
 
         // Assert
         expect(estimatedSize, equals(3000)); // 30% of original
@@ -187,7 +201,8 @@ void main() {
         const smallSize = 10;
 
         // Act
-        final estimatedSize = CompressionService.estimateCompressedSize(smallSize);
+        final estimatedSize =
+            CompressionService.estimateCompressedSize(smallSize);
 
         // Assert
         expect(estimatedSize, equals(3)); // 30% of 10
@@ -235,7 +250,7 @@ void main() {
             'content': 'Content of first devotional',
           },
           'devotional_2.json': {
-            'id': 'dev_2', 
+            'id': 'dev_2',
             'title': 'Second Devotional',
             'content': 'Content of second devotional',
           },
@@ -280,9 +295,12 @@ void main() {
 
         // Assert
         expect(extractedFiles, isNotNull);
-        expect(extractedFiles!.keys, containsAll(['test_file_1.json', 'test_file_2.json']));
-        expect(extractedFiles['test_file_1.json'], equals({'data': 'test content 1'}));
-        expect(extractedFiles['test_file_2.json'], equals({'data': 'test content 2'}));
+        expect(extractedFiles!.keys,
+            containsAll(['test_file_1.json', 'test_file_2.json']));
+        expect(extractedFiles['test_file_1.json'],
+            equals({'data': 'test content 1'}));
+        expect(extractedFiles['test_file_2.json'],
+            equals({'data': 'test content 2'}));
       });
     });
 
@@ -309,30 +327,34 @@ void main() {
         };
 
         // Act & Assert - Should not throw
-        expect(() => CompressionService.compressJson(dataWithNulls), returnsNormally);
-        
+        expect(() => CompressionService.compressJson(dataWithNulls),
+            returnsNormally);
+
         final compressed = CompressionService.compressJson(dataWithNulls);
         final decompressed = CompressionService.decompressJson(compressed);
-        
+
         expect(decompressed, equals(dataWithNulls));
       });
 
       test('should handle extremely large data sets', () {
         // Arrange - Create a large dataset
         final largeData = {
-          'large_array': List.generate(1000, (i) => {
-                'index': i,
-                'data': 'Large data content item number $i' * 100,
-                'timestamp': DateTime.now().millisecondsSinceEpoch,
-              }),
+          'large_array': List.generate(
+              1000,
+              (i) => {
+                    'index': i,
+                    'data': 'Large data content item number $i' * 100,
+                    'timestamp': DateTime.now().millisecondsSinceEpoch,
+                  }),
         };
 
         // Act & Assert - Should handle large data without throwing
-        expect(() => CompressionService.compressJson(largeData), returnsNormally);
-        
+        expect(
+            () => CompressionService.compressJson(largeData), returnsNormally);
+
         final compressed = CompressionService.compressJson(largeData);
         expect(compressed.isNotEmpty, isTrue);
-        
+
         final decompressed = CompressionService.decompressJson(compressed);
         expect(decompressed, isNotNull);
         expect(decompressed!['large_array'], hasLength(1000));
@@ -354,10 +376,12 @@ void main() {
       test('should process data within reasonable time limits', () {
         // Arrange
         final testData = {
-          'performance_test': List.generate(500, (i) => {
-                'id': i,
-                'content': 'Performance test data ' * 50,
-              }),
+          'performance_test': List.generate(
+              500,
+              (i) => {
+                    'id': i,
+                    'content': 'Performance test data ' * 50,
+                  }),
         };
 
         // Act & Measure
@@ -367,16 +391,19 @@ void main() {
         stopwatch.stop();
 
         // Assert
-        expect(stopwatch.elapsedMilliseconds, lessThan(1000)); // Should complete within 1 second
+        expect(stopwatch.elapsedMilliseconds,
+            lessThan(1000)); // Should complete within 1 second
         expect(decompressed, equals(testData));
       });
 
       test('should be memory efficient with large datasets', () {
         // Arrange
         final memoryTestData = {
-          'memory_test': List.generate(100, (i) => {
-                'chunk_$i': 'A' * 1000, // 1KB per chunk
-              }),
+          'memory_test': List.generate(
+              100,
+              (i) => {
+                    'chunk_$i': 'A' * 1000, // 1KB per chunk
+                  }),
         };
 
         // Act - Multiple compression/decompression cycles
