@@ -9,7 +9,8 @@ void main() {
     });
 
     group('Preferences Management', () {
-      test('should handle SharedPreferences for notification settings', () async {
+      test('should handle SharedPreferences for notification settings',
+          () async {
         // Arrange
         final prefs = await SharedPreferences.getInstance();
         const key = 'notifications_enabled';
@@ -58,12 +59,14 @@ void main() {
         const invalidTimes = ['24:00', '08:60', 'invalid', '8:0'];
 
         for (final time in validTimes) {
-          expect(RegExp(r'^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$').hasMatch(time), isTrue,
+          expect(RegExp(r'^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$').hasMatch(time),
+              isTrue,
               reason: '$time should be valid');
         }
 
         for (final time in invalidTimes) {
-          expect(RegExp(r'^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$').hasMatch(time), isFalse,
+          expect(RegExp(r'^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$').hasMatch(time),
+              isFalse,
               reason: '$time should be invalid');
         }
       });

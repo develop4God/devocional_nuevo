@@ -460,7 +460,7 @@ void main() {
         expect(stats.readDevocionalIds, hasLength(2));
         expect(stats.readDevocionalIds, contains('dev_1'));
         expect(stats.readDevocionalIds, contains('dev_2'));
-        
+
         // Test that stats object was created successfully
         expect(stats, isA<SpiritualStats>());
         expect(stats.totalDevocionalesRead, equals(0)); // default value

@@ -357,10 +357,12 @@ void main() {
                 'Next backup time should be calculated for daily frequency');
         expect(result, isA<DateTime>(),
             reason: 'Should return a valid DateTime object');
-        
+
         // Verify it's a reasonable time (should be current time or later)
         final now = DateTime.now();
-        expect(result!.millisecondsSinceEpoch >= now.millisecondsSinceEpoch - 1000, isTrue,
+        expect(
+            result!.millisecondsSinceEpoch >= now.millisecondsSinceEpoch - 1000,
+            isTrue,
             reason: 'Next backup should be at current time or later');
       });
 
@@ -665,10 +667,13 @@ void main() {
             reason: 'Next backup time should be calculated');
         expect(nextBackupTime, isA<DateTime>(),
             reason: 'Should return a valid DateTime object');
-        
+
         // Verify it's a reasonable time (should be current time or later)
         final now = DateTime.now();
-        expect(nextBackupTime!.millisecondsSinceEpoch >= now.millisecondsSinceEpoch - 1000, isTrue,
+        expect(
+            nextBackupTime!.millisecondsSinceEpoch >=
+                now.millisecondsSinceEpoch - 1000,
+            isTrue,
             reason: 'Next backup should be at current time or later');
       });
 

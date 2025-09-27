@@ -5,7 +5,7 @@ import 'package:flutter/services.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
-  
+
   group('VoiceSettingsService - Core Business Logic', () {
     late VoiceSettingsService voiceSettingsService;
 
@@ -13,7 +13,7 @@ void main() {
       // Reset SharedPreferences for each test
       SharedPreferences.setMockInitialValues({});
       voiceSettingsService = VoiceSettingsService();
-      
+
       // Mock flutter_tts channel
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(
@@ -50,7 +50,7 @@ void main() {
 
         // Act - Save voice
         await voiceSettingsService.saveVoice(language, voiceName, locale);
-        
+
         // Act - Load saved voice
         final result = await voiceSettingsService.loadSavedVoice(language);
 
@@ -90,11 +90,12 @@ void main() {
         const locale = 'pt-BR';
 
         // Act - Initially should not have saved voice
-        bool hasVoiceBefore = await voiceSettingsService.hasSavedVoice(language);
-        
+        bool hasVoiceBefore =
+            await voiceSettingsService.hasSavedVoice(language);
+
         // Save voice
         await voiceSettingsService.saveVoice(language, voiceName, locale);
-        
+
         // Check again
         bool hasVoiceAfter = await voiceSettingsService.hasSavedVoice(language);
 
@@ -116,20 +117,23 @@ void main() {
 
       test('should get voices for specific language', () async {
         // Act
-        final spanishVoices = await voiceSettingsService.getVoicesForLanguage('es');
-        final englishVoices = await voiceSettingsService.getVoicesForLanguage('en');
+        final spanishVoices =
+            await voiceSettingsService.getVoicesForLanguage('es');
+        final englishVoices =
+            await voiceSettingsService.getVoicesForLanguage('en');
 
         // Assert
         expect(spanishVoices, isA<List<String>>());
         expect(englishVoices, isA<List<String>>());
-        
+
         // Should return different results for different languages
         // (unless no voices available for that language)
       });
 
       test('should handle unknown language gracefully', () async {
         // Act
-        final unknownVoices = await voiceSettingsService.getVoicesForLanguage('xyz');
+        final unknownVoices =
+            await voiceSettingsService.getVoicesForLanguage('xyz');
 
         // Assert
         expect(unknownVoices, isA<List<String>>());
@@ -144,7 +148,7 @@ void main() {
 
         // Act
         await voiceSettingsService.autoAssignDefaultVoice(language);
-        
+
         // Verify if voice was assigned
         final hasVoice = await voiceSettingsService.hasSavedVoice(language);
 
@@ -157,13 +161,14 @@ void main() {
         const language = 'en';
         const originalVoice = 'OriginalVoice';
         const originalLocale = 'en-US';
-        
+
         // Save an original voice first
-        await voiceSettingsService.saveVoice(language, originalVoice, originalLocale);
-        
+        await voiceSettingsService.saveVoice(
+            language, originalVoice, originalLocale);
+
         // Act - Try to auto-assign (should not override)
         await voiceSettingsService.autoAssignDefaultVoice(language);
-        
+
         // Load the voice to check it wasn't changed
         final loadedVoice = await voiceSettingsService.loadSavedVoice(language);
 
@@ -175,8 +180,10 @@ void main() {
     group('Error Handling and Edge Cases', () {
       test('should handle service errors gracefully', () async {
         // Test that methods don't throw exceptions under normal use
-        expect(() => voiceSettingsService.getAvailableVoices(), returnsNormally);
-        expect(() => voiceSettingsService.getVoicesForLanguage('es'), returnsNormally);
+        expect(
+            () => voiceSettingsService.getAvailableVoices(), returnsNormally);
+        expect(() => voiceSettingsService.getVoicesForLanguage('es'),
+            returnsNormally);
         expect(() => voiceSettingsService.hasSavedVoice('en'), returnsNormally);
       });
 
@@ -185,8 +192,10 @@ void main() {
         const language = 'es';
 
         // Act & Assert - Should not crash with empty/null inputs
-        expect(() => voiceSettingsService.saveVoice(language, '', 'es-ES'), returnsNormally);
-        expect(() => voiceSettingsService.clearSavedVoice(language), returnsNormally);
+        expect(() => voiceSettingsService.saveVoice(language, '', 'es-ES'),
+            returnsNormally);
+        expect(() => voiceSettingsService.clearSavedVoice(language),
+            returnsNormally);
       });
     });
   });
