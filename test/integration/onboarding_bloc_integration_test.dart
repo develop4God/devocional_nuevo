@@ -3,7 +3,8 @@ import 'package:devocional_nuevo/blocs/onboarding/onboarding_bloc.dart';
 import 'package:devocional_nuevo/blocs/onboarding/onboarding_event.dart';
 import 'package:devocional_nuevo/blocs/onboarding/onboarding_models.dart';
 import 'package:devocional_nuevo/blocs/onboarding/onboarding_state.dart';
-import 'package:devocional_nuevo/providers/theme_provider.dart';
+import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
+import 'package:devocional_nuevo/blocs/theme/theme_event.dart';
 import 'package:devocional_nuevo/services/onboarding_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -11,20 +12,22 @@ import 'package:shared_preferences/shared_preferences.dart';
 void main() {
   group('OnboardingBloc Integration Tests', () {
     late OnboardingBloc onboardingBloc;
-    late ThemeProvider themeProvider;
+    late ThemeBloc themeBloc;
 
     setUp(() {
       SharedPreferences.setMockInitialValues({});
-      themeProvider = ThemeProvider();
+      themeBloc = ThemeBloc();
+      themeBloc.add(const LoadTheme());
       onboardingBloc = OnboardingBloc(
         onboardingService: OnboardingService.instance,
-        themeProvider: themeProvider,
+        themeBloc: themeBloc,
         backupBloc: null,
       );
     });
 
     tearDown(() {
       onboardingBloc.close();
+      themeBloc.close();
     });
 
     test('should complete full onboarding flow', () async {
@@ -65,11 +68,11 @@ void main() {
       await Future.delayed(const Duration(milliseconds: 100));
 
       // Select a theme
-      onboardingBloc.add(const SelectTheme('Blue'));
+      onboardingBloc.add(const SelectTheme('Green'));
       await Future.delayed(const Duration(milliseconds: 100));
 
       // Verify theme was applied
-      expect(themeProvider.currentThemeFamily, 'Blue');
+      expect(themeBloc.currentThemeFamily, 'Green');
     });
 
     test('should handle backup configuration', () async {

@@ -3,15 +3,14 @@ import 'package:devocional_nuevo/blocs/onboarding/onboarding_bloc.dart';
 import 'package:devocional_nuevo/blocs/onboarding/onboarding_event.dart';
 import 'package:devocional_nuevo/blocs/onboarding/onboarding_models.dart';
 import 'package:devocional_nuevo/blocs/onboarding/onboarding_state.dart';
+import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
 import 'package:devocional_nuevo/pages/onboarding/onboarding_backup_configuration_page.dart';
 import 'package:devocional_nuevo/pages/onboarding/onboarding_complete_page.dart';
 import 'package:devocional_nuevo/pages/onboarding/onboarding_theme_selection_page.dart';
 import 'package:devocional_nuevo/pages/onboarding/onboarding_welcome_page.dart';
-import 'package:devocional_nuevo/providers/theme_provider.dart';
 import 'package:devocional_nuevo/services/onboarding_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:provider/provider.dart';
 
 class OnboardingFlow extends StatefulWidget {
   final VoidCallback onComplete;
@@ -32,13 +31,14 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
 
     // Initialize OnboardingBloc with required dependencies
     // Use try-catch to handle missing providers gracefully
-    ThemeProvider? themeProvider;
+    ThemeBloc? themeBloc;
     BackupBloc? backupBloc;
 
     try {
-      themeProvider = Provider.of<ThemeProvider>(context, listen: false);
+      themeBloc = context.read<ThemeBloc>();
     } catch (e) {
-      debugPrint('⚠️ ThemeProvider not found in context, using fallback');
+      debugPrint('⚠️ ThemeBloc not found in context');
+      rethrow; // ThemeBloc is required, so we should fail if it's not available
     }
 
     try {
@@ -49,29 +49,12 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
 
     _onboardingBloc = OnboardingBloc(
       onboardingService: OnboardingService.instance,
-      themeProvider: themeProvider ?? _createFallbackThemeProvider(),
+      themeBloc: themeBloc,
       backupBloc: backupBloc,
     );
 
     // Initialize onboarding flow
     _onboardingBloc.add(const InitializeOnboarding());
-  }
-
-  /// Create a fallback ThemeProvider for testing
-  ThemeProvider _createFallbackThemeProvider() {
-    debugPrint('⚠️ [ONBOARDING_FLOW] Using fallback ThemeProvider for testing');
-    final fallbackProvider = ThemeProvider();
-
-    // Initialize with default values to prevent null errors
-    try {
-      // Ensure the provider has a valid default state
-      fallbackProvider.initializeDefaults();
-    } catch (e) {
-      debugPrint(
-          '⚠️ [ONBOARDING_FLOW] Fallback provider initialization failed: $e');
-    }
-
-    return fallbackProvider;
   }
 
   @override

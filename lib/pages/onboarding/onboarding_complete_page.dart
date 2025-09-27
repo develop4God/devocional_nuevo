@@ -402,12 +402,12 @@ class _OnboardingCompletePageState extends State<OnboardingCompletePage>
 
               const SizedBox(height: 16),
 
-              // Data protection
+              // Data protection - CORREGIDO
               _buildSetupItem(
                 context,
-                Icons.shield_outlined,
-                'Protección de datos activada',
-                true,
+                _getProtectionStatusIcon(configurations),
+                _getProtectionStatusMessage(configurations),
+                _isProtectionActive(configurations),
               ),
             ],
           ),
@@ -484,6 +484,11 @@ class _OnboardingCompletePageState extends State<OnboardingCompletePage>
     return configurations['backupSkipped'] == true;
   }
 
+  // NUEVA: Función para determinar si la protección está activa
+  bool _isProtectionActive(Map<String, dynamic> configurations) {
+    return _isBackupConfigured(configurations);
+  }
+
   IconData _getBackupStatusIcon(Map<String, dynamic> configurations) {
     if (_isBackupConfigured(configurations)) {
       return Icons.cloud_done_outlined;
@@ -494,21 +499,37 @@ class _OnboardingCompletePageState extends State<OnboardingCompletePage>
     }
   }
 
+  // NUEVA: Función para el ícono de protección
+  IconData _getProtectionStatusIcon(Map<String, dynamic> configurations) {
+    return _isProtectionActive(configurations)
+        ? Icons.shield_outlined
+        : Icons.settings_outlined;
+  }
+
   String _getBackupStatusMessage(Map<String, dynamic> configurations) {
     if (_isBackupConfigured(configurations)) {
-      return 'Respaldo automático configurado';
+      return 'backup.automatic_protection_enabled'.tr();
     } else if (_wasBackupSkipped(configurations)) {
-      return 'Podrás configurar el respaldo más tarde';
+      return 'onboarding.onboarding_setup_backup_skipped'.tr();
     } else {
-      return 'Respaldo omitido';
+      return 'onboarding.onboarding_setup_backup_skipped'.tr();
+    }
+  }
+
+  // NUEVA: Función para el mensaje de protección
+  String _getProtectionStatusMessage(Map<String, dynamic> configurations) {
+    if (_isProtectionActive(configurations)) {
+      return 'backup.protection_active'.tr();
+    } else {
+      return 'onboarding.onboarding_setup_backup_later_info'.tr();
     }
   }
 
   String _getThemeStatusMessage(Map<String, dynamic> configurations) {
     final selectedTheme = configurations['selectedThemeFamily'] as String?;
     if (selectedTheme != null && selectedTheme.isNotEmpty) {
-      return 'Tema "$selectedTheme" seleccionado';
+      return '${'onboarding.onboarding_setup_theme_configured'.tr()} "$selectedTheme"';
     }
-    return 'Tema personalizado seleccionado';
+    return 'onboarding.onboarding_setup_theme_configured'.tr();
   }
 }

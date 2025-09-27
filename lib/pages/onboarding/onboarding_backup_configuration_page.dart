@@ -15,6 +15,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 
+import '../../blocs/onboarding/onboarding_bloc.dart';
+import '../../blocs/onboarding/onboarding_event.dart';
+
 class OnboardingBackupConfigurationPage extends StatefulWidget {
   final VoidCallback onNext;
   final VoidCallback onBack;
@@ -36,7 +39,7 @@ class _OnboardingBackupConfigurationPageState
     extends State<OnboardingBackupConfigurationPage> {
   bool _isConnecting = false;
   bool _isNavigating = false;
-  bool _hasAutoConfigured = false;
+  bool _hasConfiguredOnboarding = false;
   Timer? _timeoutTimer;
 
   @override
@@ -115,7 +118,13 @@ class _OnboardingBackupConfigurationPageState
                         child: Text('onboarding.onboarding_back'.tr()),
                       ),
                       TextButton(
-                        onPressed: widget.onSkip,
+                        onPressed: () {
+                          // Marcar backup como omitido antes de saltar
+                          context
+                              .read<OnboardingBloc>()
+                              .add(const SkipBackupForNow());
+                          widget.onSkip();
+                        },
                         child: Text('onboarding.onboarding_config_later'.tr()),
                       ),
                     ],
@@ -145,12 +154,41 @@ class _OnboardingBackupConfigurationPageState
                         debugPrint(
                             '🔄 [DEBUG] OnboardingBackupLoaded NO autenticado recibido - usuario canceló');
                         _clearConnectingState();
-                      } else if (state is BackupLoaded &&
+                      }
+                      // 🔧 NUEVO: Manejar usuario ya autenticado
+                      else if (state is BackupLoaded &&
                           state.isAuthenticated &&
-                          !_hasAutoConfigured) {
-                        _hasAutoConfigured = true;
+                          !_hasConfiguredOnboarding) {
+                        _hasConfiguredOnboarding = true;
                         debugPrint(
-                            '✅ [DEBUG] OnboardingBackupLoaded autenticado recibido');
+                            '✅ [DEBUG] Usuario ya autenticado, configurando onboarding');
+
+                        // Informar al OnboardingBloc que backup está habilitado
+                        context
+                            .read<OnboardingBloc>()
+                            .add(const ConfigureBackupOption(true));
+
+                        setState(() {
+                          _isNavigating = true;
+                        });
+
+                        // Navegar después de procesar el evento
+                        Future.delayed(const Duration(milliseconds: 300), () {
+                          if (mounted) {
+                            debugPrint(
+                                '🚀 [DEBUG] Navegando - backup ya configurado');
+                            widget.onNext();
+                          }
+                        });
+                      }
+                      // 🔧 MANTENER: Para nuevos usuarios que se conectan por primera vez
+                      else if (state is BackupLoaded &&
+                          state.isAuthenticated &&
+                          _isConnecting &&
+                          !_hasConfiguredOnboarding) {
+                        _hasConfiguredOnboarding = true;
+                        debugPrint(
+                            '✅ [DEBUG] OnboardingBackupLoaded autenticado recibido - nuevo usuario');
                         _timeoutTimer?.cancel();
                         _autoConfigureBackup(context);
 
@@ -161,10 +199,10 @@ class _OnboardingBackupConfigurationPageState
                           _isNavigating = true;
                         });
                         // Delay to allow auto-configuration to complete
-                        Future.delayed(const Duration(milliseconds: 2500), () {
+                        Future.delayed(const Duration(milliseconds: 500), () {
                           if (mounted) {
                             debugPrint(
-                                '🚀 [DEBUG] Navegando al siguiente paso del onboarding');
+                                '🚀 [DEBUG] Navegando - backup recién configurado');
                             widget.onNext();
                           }
                         });
@@ -347,6 +385,9 @@ class _OnboardingBackupConfigurationPageState
     context.read<BackupBloc>().add(const ToggleAutoBackup(true));
     context.read<BackupBloc>().add(const ToggleWifiOnly(true));
     context.read<BackupBloc>().add(const ToggleCompression(true));
+
+    // 🔧 AGREGAR ESTA LÍNEA - Informar al OnboardingBloc
+    context.read<OnboardingBloc>().add(const ConfigureBackupOption(true));
 
     debugPrint('✅ [DEBUG] Onboarding Auto-configuración enviada');
   }
