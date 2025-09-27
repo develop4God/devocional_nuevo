@@ -397,10 +397,10 @@ void main() {
         ];
 
         for (final testCase in testCases) {
-          final wifiOnlyEnabled = testCase[0] as bool;
-          final hasWifi = testCase[1] as bool;
-          final hasMobile = testCase[2] as bool;
-          final expectedResult = testCase[3] as bool;
+          final wifiOnlyEnabled = testCase[0];
+          final hasWifi = testCase[1];
+          final hasMobile = testCase[2];
+          final expectedResult = testCase[3];
 
           // Simulate the shouldProceedWithBackup logic
           late bool actualResult;

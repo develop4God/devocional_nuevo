@@ -353,11 +353,11 @@ void main() {
 
         for (int i = 0; i < testMatrix.length; i++) {
           final testCase = testMatrix[i];
-          final autoEnabled = testCase[0] as bool;
-          final shouldCreate = testCase[1] as bool;
-          final wifiOnly = testCase[2] as bool;
-          final connectivityOk = testCase[3] as bool;
-          final expectedResult = testCase[4] as bool;
+          final autoEnabled = testCase[0];
+          final shouldCreate = testCase[1];
+          final wifiOnly = testCase[2];
+          final connectivityOk = testCase[3];
+          final expectedResult = testCase[4];
 
           // Arrange
           when(() => mockBackupService.isAutoBackupEnabled())
