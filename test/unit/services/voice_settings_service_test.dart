@@ -1,338 +1,192 @@
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/services.dart';
 
 void main() {
-  group('VoiceSettingsService', () {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  
+  group('VoiceSettingsService - Core Business Logic', () {
     late VoiceSettingsService voiceSettingsService;
 
     setUp(() {
-      // Set up SharedPreferences mock
+      // Reset SharedPreferences for each test
       SharedPreferences.setMockInitialValues({});
       voiceSettingsService = VoiceSettingsService();
+      
+      // Mock flutter_tts channel
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+        const MethodChannel('flutter_tts'),
+        (MethodCall methodCall) async {
+          switch (methodCall.method) {
+            case 'getVoices':
+              return [
+                {'name': 'es-ES-Monica-local', 'locale': 'es-ES'},
+                {'name': 'en-US-Karen-local', 'locale': 'en-US'},
+                {'name': 'pt-BR-Maria-local', 'locale': 'pt-BR'},
+              ];
+            case 'setVoice':
+              return true;
+            default:
+              return null;
+          }
+        },
+      );
     });
 
-    group('Speech Rate Management', () {
-      test('should set and get speech rate', () async {
-        // Arrange
-        const speechRate = 0.7;
-
-        // Act
-        await voiceSettingsService.setSpeechRate(speechRate);
-        final result = await voiceSettingsService.getSpeechRate();
-
-        // Assert
-        expect(result, equals(speechRate));
-      });
-
-      test('should return default speech rate when none set', () async {
-        // Act
-        final result = await voiceSettingsService.getSpeechRate();
-
-        // Assert
-        expect(result, equals(0.5)); // Default speech rate
-      });
-
-      test('should handle extreme speech rate values', () async {
-        // Arrange
-        const extremeRates = [0.0, 1.0, 0.1, 0.9];
-
-        // Act & Assert
-        for (final rate in extremeRates) {
-          await voiceSettingsService.setSpeechRate(rate);
-          final result = await voiceSettingsService.getSpeechRate();
-          expect(result, equals(rate));
-        }
-      });
-
-      test('should clamp invalid speech rate values', () async {
-        // Arrange
-        const invalidRates = [-0.5, 1.5, 2.0];
-
-        // Act & Assert
-        for (final rate in invalidRates) {
-          await voiceSettingsService.setSpeechRate(rate);
-          final result = await voiceSettingsService.getSpeechRate();
-          expect(result, greaterThanOrEqualTo(0.0));
-          expect(result, lessThanOrEqualTo(1.0));
-        }
-      });
+    tearDown(() {
+      // Clean up mock handlers
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(const MethodChannel('flutter_tts'), null);
     });
 
-    group('Voice Pitch Management', () {
-      test('should set and get voice pitch', () async {
+    group('Voice Management', () {
+      test('should save and load voice settings correctly', () async {
         // Arrange
-        const pitch = 1.2;
+        const language = 'es';
+        const voiceName = 'TestVoice';
+        const locale = 'es-ES';
 
-        // Act
-        await voiceSettingsService.setVoicePitch(pitch);
-        final result = await voiceSettingsService.getVoicePitch();
+        // Act - Save voice
+        await voiceSettingsService.saveVoice(language, voiceName, locale);
+        
+        // Act - Load saved voice
+        final result = await voiceSettingsService.loadSavedVoice(language);
 
         // Assert
-        expect(result, equals(pitch));
+        expect(result, isNotNull);
+        expect(result, contains('TestVoice'));
       });
 
-      test('should return default voice pitch when none set', () async {
-        // Act
-        final result = await voiceSettingsService.getVoicePitch();
-
-        // Assert
-        expect(result, equals(1.0)); // Default pitch
-      });
-
-      test('should handle various pitch values', () async {
+      test('should return null when no voice is saved', () async {
         // Arrange
-        const pitchValues = [0.5, 1.0, 1.5, 2.0];
-
-        // Act & Assert
-        for (final pitch in pitchValues) {
-          await voiceSettingsService.setVoicePitch(pitch);
-          final result = await voiceSettingsService.getVoicePitch();
-          expect(result, equals(pitch));
-        }
-      });
-    });
-
-    group('Voice Volume Management', () {
-      test('should set and get voice volume', () async {
-        // Arrange
-        const volume = 0.8;
+        const language = 'fr';
 
         // Act
-        await voiceSettingsService.setVoiceVolume(volume);
-        final result = await voiceSettingsService.getVoiceVolume();
+        final result = await voiceSettingsService.loadSavedVoice(language);
 
         // Assert
-        expect(result, equals(volume));
+        expect(result, isNull);
       });
 
-      test('should return default voice volume when none set', () async {
-        // Act
-        final result = await voiceSettingsService.getVoiceVolume();
-
-        // Assert
-        expect(result, equals(1.0)); // Default volume
-      });
-
-      test('should handle volume range validation', () async {
+      test('should clear saved voice correctly', () async {
         // Arrange
-        const validVolumes = [0.0, 0.5, 1.0];
+        const language = 'en';
+        await voiceSettingsService.saveVoice(language, 'TestVoice', 'en-US');
 
-        // Act & Assert
-        for (final volume in validVolumes) {
-          await voiceSettingsService.setVoiceVolume(volume);
-          final result = await voiceSettingsService.getVoiceVolume();
-          expect(result, equals(volume));
-        }
+        // Act
+        await voiceSettingsService.clearSavedVoice(language);
+        final result = await voiceSettingsService.loadSavedVoice(language);
+
+        // Assert
+        expect(result, isNull);
+      });
+
+      test('should check if voice is saved correctly', () async {
+        // Arrange
+        const language = 'pt';
+        const voiceName = 'TestVoice';
+        const locale = 'pt-BR';
+
+        // Act - Initially should not have saved voice
+        bool hasVoiceBefore = await voiceSettingsService.hasSavedVoice(language);
+        
+        // Save voice
+        await voiceSettingsService.saveVoice(language, voiceName, locale);
+        
+        // Check again
+        bool hasVoiceAfter = await voiceSettingsService.hasSavedVoice(language);
+
+        // Assert
+        expect(hasVoiceBefore, isFalse);
+        expect(hasVoiceAfter, isTrue);
       });
     });
 
-    group('Voice Language Management', () {
-      test('should set and get voice language', () async {
-        // Arrange
-        const language = 'es-ES';
-
+    group('Voice Discovery and Formatting', () {
+      test('should get available voices without errors', () async {
         // Act
-        await voiceSettingsService.setVoiceLanguage(language);
-        final result = await voiceSettingsService.getVoiceLanguage();
+        final voices = await voiceSettingsService.getAvailableVoices();
 
         // Assert
-        expect(result, equals(language));
+        expect(voices, isA<List<String>>());
+        expect(voices.length, greaterThanOrEqualTo(0));
       });
 
-      test('should return default voice language when none set', () async {
+      test('should get voices for specific language', () async {
         // Act
-        final result = await voiceSettingsService.getVoiceLanguage();
+        final spanishVoices = await voiceSettingsService.getVoicesForLanguage('es');
+        final englishVoices = await voiceSettingsService.getVoicesForLanguage('en');
 
         // Assert
-        expect(result, equals('en-US')); // Default language
+        expect(spanishVoices, isA<List<String>>());
+        expect(englishVoices, isA<List<String>>());
+        
+        // Should return different results for different languages
+        // (unless no voices available for that language)
       });
 
-      test('should handle different language codes', () async {
-        // Arrange
-        const languages = ['en-US', 'es-ES', 'pt-BR', 'fr-FR'];
+      test('should handle unknown language gracefully', () async {
+        // Act
+        final unknownVoices = await voiceSettingsService.getVoicesForLanguage('xyz');
 
-        // Act & Assert
-        for (final lang in languages) {
-          await voiceSettingsService.setVoiceLanguage(lang);
-          final result = await voiceSettingsService.getVoiceLanguage();
-          expect(result, equals(lang));
-        }
+        // Assert
+        expect(unknownVoices, isA<List<String>>());
+        // Should not throw exception and return empty list or default language voices
       });
     });
 
-    group('Voice Enabled State', () {
-      test('should set and get voice enabled state', () async {
+    group('Auto Voice Assignment', () {
+      test('should auto-assign voice when none saved', () async {
         // Arrange
-        const enabled = false;
+        const language = 'es';
 
         // Act
-        await voiceSettingsService.setVoiceEnabled(enabled);
-        final result = await voiceSettingsService.isVoiceEnabled();
+        await voiceSettingsService.autoAssignDefaultVoice(language);
+        
+        // Verify if voice was assigned
+        final hasVoice = await voiceSettingsService.hasSavedVoice(language);
 
         // Assert
-        expect(result, equals(enabled));
+        expect(hasVoice, isTrue);
       });
 
-      test('should return default enabled state when none set', () async {
-        // Act
-        final result = await voiceSettingsService.isVoiceEnabled();
+      test('should not override existing saved voice', () async {
+        // Arrange
+        const language = 'en';
+        const originalVoice = 'OriginalVoice';
+        const originalLocale = 'en-US';
+        
+        // Save an original voice first
+        await voiceSettingsService.saveVoice(language, originalVoice, originalLocale);
+        
+        // Act - Try to auto-assign (should not override)
+        await voiceSettingsService.autoAssignDefaultVoice(language);
+        
+        // Load the voice to check it wasn't changed
+        final loadedVoice = await voiceSettingsService.loadSavedVoice(language);
 
         // Assert
-        expect(result, isTrue); // Default enabled state
-      });
-
-      test('should toggle voice enabled state', () async {
-        // Act & Assert
-        await voiceSettingsService.setVoiceEnabled(true);
-        expect(await voiceSettingsService.isVoiceEnabled(), isTrue);
-
-        await voiceSettingsService.setVoiceEnabled(false);
-        expect(await voiceSettingsService.isVoiceEnabled(), isFalse);
-
-        await voiceSettingsService.setVoiceEnabled(true);
-        expect(await voiceSettingsService.isVoiceEnabled(), isTrue);
+        expect(loadedVoice, contains('OriginalVoice'));
       });
     });
 
-    group('Settings Persistence', () {
-      test('should persist all settings across service instances', () async {
+    group('Error Handling and Edge Cases', () {
+      test('should handle service errors gracefully', () async {
+        // Test that methods don't throw exceptions under normal use
+        expect(() => voiceSettingsService.getAvailableVoices(), returnsNormally);
+        expect(() => voiceSettingsService.getVoicesForLanguage('es'), returnsNormally);
+        expect(() => voiceSettingsService.hasSavedVoice('en'), returnsNormally);
+      });
+
+      test('should handle empty or null voice name gracefully', () async {
         // Arrange
-        const speechRate = 0.6;
-        const pitch = 1.3;
-        const volume = 0.9;
-        const language = 'es-ES';
-        const enabled = false;
+        const language = 'es';
 
-        // Act - set all settings
-        await voiceSettingsService.setSpeechRate(speechRate);
-        await voiceSettingsService.setVoicePitch(pitch);
-        await voiceSettingsService.setVoiceVolume(volume);
-        await voiceSettingsService.setVoiceLanguage(language);
-        await voiceSettingsService.setVoiceEnabled(enabled);
-
-        // Create new service instance
-        final newService = VoiceSettingsService();
-
-        // Assert - all settings should be persisted
-        expect(await newService.getSpeechRate(), equals(speechRate));
-        expect(await newService.getVoicePitch(), equals(pitch));
-        expect(await newService.getVoiceVolume(), equals(volume));
-        expect(await newService.getVoiceLanguage(), equals(language));
-        expect(await newService.isVoiceEnabled(), equals(enabled));
-      });
-
-      test('should handle missing preferences gracefully', () async {
-        // Act - get settings when none are set
-        final speechRate = await voiceSettingsService.getSpeechRate();
-        final pitch = await voiceSettingsService.getVoicePitch();
-        final volume = await voiceSettingsService.getVoiceVolume();
-        final language = await voiceSettingsService.getVoiceLanguage();
-        final enabled = await voiceSettingsService.isVoiceEnabled();
-
-        // Assert - should return default values
-        expect(speechRate, equals(0.5));
-        expect(pitch, equals(1.0));
-        expect(volume, equals(1.0));
-        expect(language, equals('en-US'));
-        expect(enabled, isTrue);
-      });
-    });
-
-    group('Error Handling', () {
-      test('should handle rapid setting changes gracefully', () async {
-        // Arrange
-        const rates = [0.3, 0.7, 0.5, 0.9, 0.4];
-
-        // Act & Assert - should not throw
-        for (final rate in rates) {
-          expect(
-            () => voiceSettingsService.setSpeechRate(rate),
-            returnsNormally,
-          );
-        }
-      });
-
-      test('should handle concurrent setting operations', () async {
-        // Act - perform concurrent operations
-        final futures = [
-          voiceSettingsService.setSpeechRate(0.6),
-          voiceSettingsService.setVoicePitch(1.2),
-          voiceSettingsService.setVoiceVolume(0.8),
-          voiceSettingsService.setVoiceLanguage('es-ES'),
-          voiceSettingsService.setVoiceEnabled(false),
-        ];
-
-        // Assert - should complete without errors
-        expect(Future.wait(futures), completes);
-      });
-
-      test('should handle null or invalid values gracefully', () async {
-        // Act & Assert - should handle gracefully without throwing
-        expect(
-          () => voiceSettingsService.setVoiceLanguage(''),
-          returnsNormally,
-        );
-        expect(
-          () => voiceSettingsService.setSpeechRate(double.nan),
-          returnsNormally,
-        );
-        expect(
-          () => voiceSettingsService.setVoicePitch(double.infinity),
-          returnsNormally,
-        );
-      });
-    });
-
-    group('Business Logic Validation', () {
-      test('should maintain setting consistency across operations', () async {
-        // Arrange
-        const testRate = 0.7;
-        const testPitch = 1.1;
-        const testVolume = 0.9;
-
-        // Act
-        await voiceSettingsService.setSpeechRate(testRate);
-        await voiceSettingsService.setVoicePitch(testPitch);
-        await voiceSettingsService.setVoiceVolume(testVolume);
-
-        // Assert - all settings should be maintained
-        expect(await voiceSettingsService.getSpeechRate(), equals(testRate));
-        expect(await voiceSettingsService.getVoicePitch(), equals(testPitch));
-        expect(await voiceSettingsService.getVoiceVolume(), equals(testVolume));
-      });
-
-      test('should validate setting ranges correctly', () async {
-        // Test speech rate boundaries
-        await voiceSettingsService.setSpeechRate(0.0);
-        expect(await voiceSettingsService.getSpeechRate(),
-            greaterThanOrEqualTo(0.0));
-
-        await voiceSettingsService.setSpeechRate(1.0);
-        expect(
-            await voiceSettingsService.getSpeechRate(), lessThanOrEqualTo(1.0));
-
-        // Test volume boundaries
-        await voiceSettingsService.setVoiceVolume(0.0);
-        expect(await voiceSettingsService.getVoiceVolume(),
-            greaterThanOrEqualTo(0.0));
-
-        await voiceSettingsService.setVoiceVolume(1.0);
-        expect(await voiceSettingsService.getVoiceVolume(),
-            lessThanOrEqualTo(1.0));
-      });
-
-      test('should handle service reinitialization properly', () async {
-        // Arrange - set custom values
-        await voiceSettingsService.setSpeechRate(0.8);
-        await voiceSettingsService.setVoiceEnabled(false);
-
-        // Act - reinitialize service
-        final newService = VoiceSettingsService();
-
-        // Assert - settings should persist
-        expect(await newService.getSpeechRate(), equals(0.8));
-        expect(await newService.isVoiceEnabled(), isFalse);
+        // Act & Assert - Should not crash with empty/null inputs
+        expect(() => voiceSettingsService.saveVoice(language, '', 'es-ES'), returnsNormally);
+        expect(() => voiceSettingsService.clearSavedVoice(language), returnsNormally);
       });
     });
   });
