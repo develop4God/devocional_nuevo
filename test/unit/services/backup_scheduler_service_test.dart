@@ -222,7 +222,6 @@ void main() {
 
         for (final testCase in testCases) {
           final wifiOnly = testCase['wifiOnly'] as bool;
-          final description = testCase['description'] as String;
 
           // Arrange
           when(() => mockBackupService.isAutoBackupEnabled())

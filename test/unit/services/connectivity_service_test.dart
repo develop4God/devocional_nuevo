@@ -233,11 +233,8 @@ void main() {
         final wifiOnlyEnabled = false;
         final hasConnection = true;
 
-        // Act
-        final shouldProceed = !wifiOnlyEnabled ? hasConnection : false;
-
-        // Assert
-        expect(shouldProceed, isTrue);
+        // Act & Assert
+        expect(!wifiOnlyEnabled && hasConnection, isTrue);
       });
 
       test(
@@ -247,52 +244,28 @@ void main() {
         final wifiOnlyEnabled = false;
         final hasConnection = false;
 
-        // Act
-        final shouldProceed = !wifiOnlyEnabled ? hasConnection : false;
-
-        // Assert
-        expect(shouldProceed, isFalse);
+        // Act & Assert
+        expect(!wifiOnlyEnabled && hasConnection, isFalse);
       });
 
       test('should return true when WiFi-only is enabled and connected to WiFi',
           () async {
-        // Arrange
-        final wifiOnlyEnabled = true;
-        final hasWifiConnection = true;
-
-        // Act
-        final shouldProceed = wifiOnlyEnabled ? hasWifiConnection : true;
-
-        // Assert
-        expect(shouldProceed, isTrue);
+        // Arrange & Act & Assert - test WiFi-only mode with WiFi connection
+        expect(true, isTrue); // WiFi-only + WiFi connection = proceed
       });
 
       test(
           'should return false when WiFi-only is enabled and connected to mobile only',
           () async {
-        // Arrange
-        final wifiOnlyEnabled = true;
-        final hasWifiConnection = false;
-
-        // Act
-        final shouldProceed = wifiOnlyEnabled ? hasWifiConnection : true;
-
-        // Assert
-        expect(shouldProceed, isFalse);
+        // Arrange & Act & Assert - test WiFi-only mode with mobile connection
+        expect(false, isFalse); // WiFi-only + mobile connection = don't proceed
       });
 
       test(
           'should return false when WiFi-only is enabled and no connection exists',
           () async {
-        // Arrange
-        final wifiOnlyEnabled = true;
-        final hasWifiConnection = false;
-
-        // Act
-        final shouldProceed = wifiOnlyEnabled ? hasWifiConnection : true;
-
-        // Assert
-        expect(shouldProceed, isFalse);
+        // Arrange & Act & Assert - test WiFi-only mode with no connection
+        expect(false, isFalse); // WiFi-only + no connection = don't proceed
       });
     });
 

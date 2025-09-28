@@ -152,7 +152,6 @@ void main() {
     test('Translation values should be different across languages', () {
       final appTitleSpanish = _getValue(spanishTranslations, 'app.title');
       final appTitleEnglish = _getValue(englishTranslations, 'app.title');
-      final appTitlePortuguese = _getValue(portugueseTranslations, 'app.title');
       final appTitleFrench = _getValue(frenchTranslations, 'app.title');
 
       // App titles should be different for different languages
