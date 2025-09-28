@@ -47,25 +47,32 @@ void main() {
 
     test('should return Bible version expansions for all languages', () {
       // Test Spanish expansions
-      final spanishExpansions = BibleTextFormatter.getBibleVersionExpansions('es');
+      final spanishExpansions =
+          BibleTextFormatter.getBibleVersionExpansions('es');
       expect(spanishExpansions['RVR1960'],
           equals('Reina Valera mil novecientos sesenta'));
       expect(spanishExpansions['NVI'], equals('Nueva Versión Internacional'));
 
       // Test English expansions
-      final englishExpansions = BibleTextFormatter.getBibleVersionExpansions('en');
+      final englishExpansions =
+          BibleTextFormatter.getBibleVersionExpansions('en');
       expect(englishExpansions['KJV'], equals('King James Version'));
       expect(englishExpansions['NIV'], equals('New International Version'));
 
       // Test Portuguese expansions
-      final portugueseExpansions = BibleTextFormatter.getBibleVersionExpansions('pt');
-      expect(portugueseExpansions['ARC'], equals('Almeida Revista e Corrigida'));
+      final portugueseExpansions =
+          BibleTextFormatter.getBibleVersionExpansions('pt');
+      expect(
+          portugueseExpansions['ARC'], equals('Almeida Revista e Corrigida'));
       expect(portugueseExpansions['NVI'], equals('Nova Versão Internacional'));
 
       // Test French expansions
-      final frenchExpansions = BibleTextFormatter.getBibleVersionExpansions('fr');
-      expect(frenchExpansions['LSG1910'], equals('Louis Segond mille neuf cent dix'));
-      expect(frenchExpansions['TOB'], equals('Traduction Oecuménique de la Bible'));
+      final frenchExpansions =
+          BibleTextFormatter.getBibleVersionExpansions('fr');
+      expect(frenchExpansions['LSG1910'],
+          equals('Louis Segond mille neuf cent dix'));
+      expect(frenchExpansions['TOB'],
+          equals('Traduction Oecuménique de la Bible'));
     });
 
     test('should default to Spanish for unknown languages', () {
