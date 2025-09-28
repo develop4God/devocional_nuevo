@@ -80,9 +80,17 @@ void main() {
     test('should handle duplicate devotional reads correctly', () async {
       const devocionalId = 'duplicate_test';
 
-      // Record the same devotional twice
-      await statsService.recordDevocionalRead(devocionalId: devocionalId);
-      await statsService.recordDevocionalRead(devocionalId: devocionalId);
+      // Record the same devotional twice with valid reading criteria
+      await statsService.recordDevocionalRead(
+        devocionalId: devocionalId,
+        readingTime: 60, // Valid reading time
+        scrollPercentage: 80.0, // Valid scroll percentage
+      );
+      await statsService.recordDevocionalRead(
+        devocionalId: devocionalId,
+        readingTime: 60, // Valid reading time
+        scrollPercentage: 80.0, // Valid scroll percentage
+      );
 
       final stats = await statsService.getStats();
       // Should not have duplicates
@@ -156,8 +164,12 @@ void main() {
     test('should persist data across service instances', () async {
       const testDevocionalId = 'persistence_test';
 
-      // Record with first instance
-      await statsService.recordDevocionalRead(devocionalId: testDevocionalId);
+      // Record with first instance with valid criteria
+      await statsService.recordDevocionalRead(
+        devocionalId: testDevocionalId,
+        readingTime: 60, // Valid reading time
+        scrollPercentage: 80.0, // Valid scroll percentage
+      );
 
       // Create new instance and check persistence
       final newService = SpiritualStatsService();
