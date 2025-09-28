@@ -47,88 +47,66 @@ void main() {
       ttsService = TtsService();
     });
 
-    test('should set language context correctly for Spanish', () {
-      ttsService.setLanguageContext('es', 'RVR1960');
-      expect(ttsService.currentState, TtsState.idle);
-    });
+    test('should set language context correctly for all supported languages', () {
+      final testCases = [
+        {'lang': 'es', 'version': 'RVR1960'},
+        {'lang': 'en', 'version': 'KJV'},
+        {'lang': 'pt', 'version': 'ARC'},
+        {'lang': 'fr', 'version': 'LSG1910'},
+      ];
 
-    test('should set language context correctly for English', () {
-      ttsService.setLanguageContext('en', 'KJV');
-      expect(ttsService.currentState, TtsState.idle);
-    });
-
-    test('should set language context correctly for Portuguese', () {
-      ttsService.setLanguageContext('pt', 'ARC');
-      expect(ttsService.currentState, TtsState.idle);
-    });
-
-    test('should set language context correctly for French', () {
-      ttsService.setLanguageContext('fr', 'LSG1910');
-      expect(ttsService.currentState, TtsState.idle);
+      for (final testCase in testCases) {
+        ttsService.setLanguageContext(testCase['lang']!, testCase['version']!);
+        expect(ttsService.currentState, TtsState.idle);
+      }
     });
 
     group('Bible Book Formatting Tests', () {
-      test('should format Spanish ordinals correctly', () {
+      test('should format ordinals correctly for all languages', () {
+        // Test Spanish
         ttsService.setLanguageContext('es', 'RVR1960');
-        final result = ttsService.formatBibleBook('1 Juan');
-        expect(result, contains('Primera de Juan'));
-      });
+        final spanishResult = ttsService.formatBibleBook('1 Juan');
+        expect(spanishResult, contains('Primera de Juan'));
 
-      test('should format English ordinals correctly', () {
-        // Using reflection to access private method for testing
-        final result = ttsService.formatBibleBook('1 John');
-        // The English formatting should be handled by _formatBibleBookEnglish
-        expect(result, isA<String>());
-      });
-
-      test('should format Portuguese ordinals correctly', () {
-        // Test Portuguese ordinal formatting
-        final result = ttsService.formatBibleBook('1 João');
-        expect(result, isA<String>());
-      });
-
-      test('should format French ordinals correctly', () {
-        // Test French ordinal formatting
-        final result = ttsService.formatBibleBook('1 Jean');
-        expect(result, isA<String>());
+        // Test other languages return valid strings (implementation may vary)
+        final englishResult = ttsService.formatBibleBook('1 John');
+        expect(englishResult, isA<String>());
+        
+        final portugueseResult = ttsService.formatBibleBook('1 João');
+        expect(portugueseResult, isA<String>());
+        
+        final frenchResult = ttsService.formatBibleBook('1 Jean');
+        expect(frenchResult, isA<String>());
       });
     });
 
     group('Copyright Utils Tests', () {
-      test('should get correct copyright for Spanish RVR1960', () {
-        const result = 'devotionals.copyright_rvr1960';
-        expect(result, contains('rvr1960'));
+      test('should get correct copyright keys for all versions', () {
+        final testCases = [
+          {'version': 'RVR1960', 'expected': 'rvr1960'},
+          {'version': 'KJV', 'expected': 'kjv'},
+          {'version': 'ARC', 'expected': 'arc'},
+          {'version': 'LSG1910', 'expected': 'lsg1910'},
+        ];
+
+        for (final testCase in testCases) {
+          final key = 'devotionals.copyright_${testCase['expected']}';
+          expect(key.toLowerCase(), contains(testCase['expected']!));
+        }
       });
 
-      test('should get correct copyright for English KJV', () {
-        const result = 'devotionals.copyright_kjv';
-        expect(result, contains('kjv'));
-      });
+      test('should get Bible version display names correctly', () {
+        final testCases = [
+          {'lang': 'en', 'version': 'KJV', 'expected': 'King James Version'},
+          {'lang': 'pt', 'version': 'ARC', 'expected': 'Almeida Revista e Corrigida'},
+          {'lang': 'fr', 'version': 'LSG1910', 'expected': 'Louis Segond 1910'},
+        ];
 
-      test('should get correct copyright for Portuguese ARC', () {
-        const result = 'devotionals.copyright_arc';
-        expect(result, contains('arc'));
-      });
-
-      test('should get correct copyright for French LSG1910', () {
-        const result = 'devotionals.copyright_lsg1910';
-        expect(result, contains('lsg1910'));
-      });
-
-      test('should get Bible version display name for KJV', () {
-        final result = CopyrightUtils.getBibleVersionDisplayName('en', 'KJV');
-        expect(result, equals('King James Version'));
-      });
-
-      test('should get Bible version display name for ARC', () {
-        final result = CopyrightUtils.getBibleVersionDisplayName('pt', 'ARC');
-        expect(result, equals('Almeida Revista e Corrigida'));
-      });
-
-      test('should get Bible version display name for LSG1910', () {
-        final result =
-            CopyrightUtils.getBibleVersionDisplayName('fr', 'LSG1910');
-        expect(result, equals('Louis Segond 1910'));
+        for (final testCase in testCases) {
+          final result = CopyrightUtils.getBibleVersionDisplayName(
+            testCase['lang']!, testCase['version']!);
+          expect(result, equals(testCase['expected']));
+        }
       });
 
       test('should fallback to version code for unknown versions', () {
@@ -138,55 +116,8 @@ void main() {
       });
     });
 
-    group('TTS Language Settings Tests', () {
-      test('should support Spanish language code', () {
-        final localTts = TtsService();
-        localTts.setLanguageContext('es', 'RVR1960');
-        // Test should verify that the language context is set properly
-        expect(localTts.currentState, TtsState.idle);
-      });
-
-      test('should support English language code', () {
-        final localTts = TtsService();
-        localTts.setLanguageContext('en', 'KJV');
-        expect(localTts.currentState, TtsState.idle);
-      });
-
-      test('should support Portuguese language code', () {
-        final localTts = TtsService();
-        localTts.setLanguageContext('pt', 'ARC');
-        expect(localTts.currentState, TtsState.idle);
-      });
-
-      test('should support French language code', () {
-        final localTts = TtsService();
-        localTts.setLanguageContext('fr', 'LSG1910');
-        expect(localTts.currentState, TtsState.idle);
-      });
-    });
-
     group('TTS Audio Controls Tests', () {
-      test('should maintain consistent state across languages', () {
-        final localTts = TtsService();
-
-        // Test Spanish
-        localTts.setLanguageContext('es', 'RVR1960');
-        expect(localTts.currentState, TtsState.idle);
-
-        // Test English
-        localTts.setLanguageContext('en', 'KJV');
-        expect(localTts.currentState, TtsState.idle);
-
-        // Test Portuguese
-        localTts.setLanguageContext('pt', 'ARC');
-        expect(localTts.currentState, TtsState.idle);
-
-        // Test French
-        localTts.setLanguageContext('fr', 'LSG1910');
-        expect(localTts.currentState, TtsState.idle);
-      });
-
-      test('should have valid TTS controls for all languages', () {
+      test('should maintain consistent state and controls across all languages', () {
         final localTts = TtsService();
         final languages = ['es', 'en', 'pt', 'fr'];
         final versions = ['RVR1960', 'KJV', 'ARC', 'LSG1910'];
@@ -194,7 +125,7 @@ void main() {
         for (int i = 0; i < languages.length; i++) {
           localTts.setLanguageContext(languages[i], versions[i]);
 
-          // Verify basic TTS service properties
+          // Verify basic TTS service properties are consistent
           expect(localTts.currentState, TtsState.idle);
           expect(localTts.isPlaying, isFalse);
           expect(localTts.isPaused, isFalse);
