@@ -5,11 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../theme/theme_bloc.dart';
-import '../theme/theme_event.dart';
 import '../../services/onboarding_service.dart';
 import '../backup_bloc.dart';
 import '../backup_event.dart';
+import '../backup_state.dart';
+import '../theme/theme_bloc.dart';
+import '../theme/theme_event.dart';
 import 'onboarding_event.dart';
 import 'onboarding_models.dart';
 import 'onboarding_state.dart';
@@ -117,6 +118,9 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
         ));
         return;
       }
+      // 🔧 NUEVO: Marcar onboarding como en progreso
+      await _onboardingService.setOnboardingInProgress(true);
+      debugPrint('🚀 [ONBOARDING_BLOC] Onboarding marcado como en progreso');
 
       // Load saved progress if any
       final savedConfiguration = await _loadSavedConfiguration();
@@ -432,6 +436,23 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       }
 
       emit(const OnboardingLoading());
+
+      // 🔧 NUEVO: Enriquecer con estado REAL del backup desde BackupBloc
+      if (_backupBloc != null && configurations['backupEnabled'] == true) {
+        final backupState = _backupBloc!.state;
+        debugPrint(
+            '📊 [ONBOARDING_BLOC] BackupBloc estado: ${backupState.runtimeType}');
+
+        if (backupState is BackupLoaded) {
+          configurations['hasActiveBackup'] =
+              backupState.lastBackupTime != null;
+          configurations['backupCompleted'] =
+              backupState.lastBackupTime != null;
+          configurations['userEmail'] = backupState.userEmail;
+          debugPrint(
+              '✅ [ONBOARDING_BLOC] Backup info agregada: hasActiveBackup=${backupState.lastBackupTime != null}');
+        }
+      }
 
       // Mark onboarding as complete
       await _onboardingService.setOnboardingComplete();
