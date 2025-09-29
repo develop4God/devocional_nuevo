@@ -19,7 +19,7 @@ void main() {
     setUp(() {
       // Reset SharedPreferences for each test
       SharedPreferences.setMockInitialValues({});
-      
+
       // Mock path_provider for file operations
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(
@@ -35,13 +35,13 @@ void main() {
           }
         },
       );
-      
+
       prayerBloc = PrayerBloc();
     });
 
     tearDown(() {
       prayerBloc.close();
-      
+
       // Clean up method channel mocks
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(
@@ -98,9 +98,9 @@ void main() {
         status: PrayerStatus.answered,
         answeredDate: DateTime.now(),
       );
-      
+
       final state = PrayerLoaded(prayers: [activePrayer, answeredPrayer]);
-      
+
       expect(state.prayers.length, equals(2));
       expect(state.activePrayers.length, equals(1));
       expect(state.answeredPrayers.length, equals(1));
@@ -115,7 +115,7 @@ void main() {
         createdDate: DateTime.now(),
         status: PrayerStatus.active,
       );
-      
+
       expect(prayer.id, equals('test-prayer'));
       expect(prayer.text, equals('Test prayer text'));
       expect(prayer.status, equals(PrayerStatus.active));
@@ -131,7 +131,7 @@ void main() {
         createdDate: DateTime.now(),
         status: PrayerStatus.active,
       );
-      
+
       final answeredPrayer = Prayer(
         id: 'answered',
         text: 'Answered prayer',
@@ -139,7 +139,7 @@ void main() {
         status: PrayerStatus.answered,
         answeredDate: DateTime.now(),
       );
-      
+
       expect(activePrayer.isActive, isTrue);
       expect(activePrayer.isAnswered, isFalse);
       expect(answeredPrayer.isActive, isFalse);
@@ -153,13 +153,13 @@ void main() {
         createdDate: DateTime.now(),
         status: PrayerStatus.active,
       );
-      
+
       final updatedPrayer = originalPrayer.copyWith(
         text: 'Updated text',
         status: PrayerStatus.answered,
         answeredDate: DateTime.now(),
       );
-      
+
       expect(updatedPrayer.id, equals('original'));
       expect(updatedPrayer.text, equals('Updated text'));
       expect(updatedPrayer.status, equals(PrayerStatus.answered));
@@ -173,13 +173,13 @@ void main() {
         createdDate: DateTime(2024, 1, 15, 10, 30),
         status: PrayerStatus.active,
       );
-      
+
       final json = prayer.toJson();
       expect(json, isA<Map<String, dynamic>>());
       expect(json['id'], equals('serialization-test'));
       expect(json['text'], equals('Prayer for serialization test'));
       expect(json['status'], equals('active'));
-      
+
       final fromJson = Prayer.fromJson(json);
       expect(fromJson.id, equals(prayer.id));
       expect(fromJson.text, equals(prayer.text));
@@ -188,7 +188,7 @@ void main() {
 
     test('should handle empty prayer list state correctly', () {
       final emptyState = PrayerLoaded(prayers: []);
-      
+
       expect(emptyState.prayers, isEmpty);
       expect(emptyState.activePrayers, isEmpty);
       expect(emptyState.answeredPrayers, isEmpty);
@@ -218,9 +218,9 @@ void main() {
           answeredDate: DateTime.now(),
         ),
       ];
-      
+
       final state = PrayerLoaded(prayers: prayers);
-      
+
       expect(state.totalPrayers, equals(3));
       expect(state.activePrayersCount, equals(2));
       expect(state.answeredPrayersCount, equals(1));

@@ -13,11 +13,10 @@ import 'package:devocional_nuevo/providers/devocional_provider.dart';
 class MockGoogleDriveBackupService extends Mock
     implements GoogleDriveBackupService {}
 
-class MockBackupSchedulerService extends Mock 
+class MockBackupSchedulerService extends Mock
     implements BackupSchedulerService {}
 
-class MockDevocionalProvider extends Mock 
-    implements DevocionalProvider {}
+class MockDevocionalProvider extends Mock implements DevocionalProvider {}
 
 void main() {
   group('BackupBloc Critical Coverage Tests', () {
@@ -29,19 +28,30 @@ void main() {
       mockBackupService = MockGoogleDriveBackupService();
       mockSchedulerService = MockBackupSchedulerService();
       mockDevocionalProvider = MockDevocionalProvider();
-      
+
       // Setup common mock responses
-      when(() => mockBackupService.isAuthenticated()).thenAnswer((_) async => false);
-      when(() => mockBackupService.isAutoBackupEnabled()).thenAnswer((_) async => false);
-      when(() => mockBackupService.getBackupFrequency()).thenAnswer((_) async => 'deactivated');
-      when(() => mockBackupService.isWifiOnlyEnabled()).thenAnswer((_) async => false);
-      when(() => mockBackupService.isCompressionEnabled()).thenAnswer((_) async => false);
-      when(() => mockBackupService.getBackupOptions()).thenAnswer((_) async => <String, bool>{});
-      when(() => mockBackupService.getLastBackupTime()).thenAnswer((_) async => null);
-      when(() => mockBackupService.getNextBackupTime()).thenAnswer((_) async => null);
-      when(() => mockBackupService.getEstimatedBackupSize(any())).thenAnswer((_) async => 0);
-      when(() => mockBackupService.getUserEmail()).thenAnswer((_) async => null);
-      when(() => mockBackupService.getStorageInfo()).thenAnswer((_) async => <String, dynamic>{});
+      when(() => mockBackupService.isAuthenticated())
+          .thenAnswer((_) async => false);
+      when(() => mockBackupService.isAutoBackupEnabled())
+          .thenAnswer((_) async => false);
+      when(() => mockBackupService.getBackupFrequency())
+          .thenAnswer((_) async => 'deactivated');
+      when(() => mockBackupService.isWifiOnlyEnabled())
+          .thenAnswer((_) async => false);
+      when(() => mockBackupService.isCompressionEnabled())
+          .thenAnswer((_) async => false);
+      when(() => mockBackupService.getBackupOptions())
+          .thenAnswer((_) async => <String, bool>{});
+      when(() => mockBackupService.getLastBackupTime())
+          .thenAnswer((_) async => null);
+      when(() => mockBackupService.getNextBackupTime())
+          .thenAnswer((_) async => null);
+      when(() => mockBackupService.getEstimatedBackupSize(any()))
+          .thenAnswer((_) async => 0);
+      when(() => mockBackupService.getUserEmail())
+          .thenAnswer((_) async => null);
+      when(() => mockBackupService.getStorageInfo())
+          .thenAnswer((_) async => <String, dynamic>{});
     });
 
     blocTest<BackupBloc, BackupState>(
@@ -88,8 +98,10 @@ void main() {
         isAuthenticated: false,
       ),
       setUp: () {
-        when(() => mockBackupService.setAutoBackupEnabled(any())).thenAnswer((_) async {});
-        when(() => mockSchedulerService.scheduleAutomaticBackup()).thenAnswer((_) async {});
+        when(() => mockBackupService.setAutoBackupEnabled(any()))
+            .thenAnswer((_) async {});
+        when(() => mockSchedulerService.scheduleAutomaticBackup())
+            .thenAnswer((_) async {});
       },
       act: (bloc) => bloc.add(const ToggleAutoBackup(true)),
       expect: () => [
@@ -115,8 +127,10 @@ void main() {
         devocionalProvider: mockDevocionalProvider,
       ),
       setUp: () {
-        when(() => mockBackupService.createBackup(any())).thenAnswer((_) async => true);
-        when(() => mockSchedulerService.scheduleAutomaticBackup()).thenAnswer((_) async {});
+        when(() => mockBackupService.createBackup(any()))
+            .thenAnswer((_) async => true);
+        when(() => mockSchedulerService.scheduleAutomaticBackup())
+            .thenAnswer((_) async {});
       },
       act: (bloc) => bloc.add(const CreateManualBackup()),
       expect: () => [
@@ -135,7 +149,8 @@ void main() {
         devocionalProvider: mockDevocionalProvider,
       ),
       setUp: () {
-        when(() => mockBackupService.createBackup(any())).thenAnswer((_) async => false);
+        when(() => mockBackupService.createBackup(any()))
+            .thenAnswer((_) async => false);
       },
       act: (bloc) => bloc.add(const CreateManualBackup()),
       expect: () => [
@@ -152,8 +167,10 @@ void main() {
         devocionalProvider: mockDevocionalProvider,
       ),
       setUp: () {
-        when(() => mockBackupService.restoreBackup()).thenAnswer((_) async => true);
-        when(() => mockSchedulerService.scheduleAutomaticBackup()).thenAnswer((_) async {});
+        when(() => mockBackupService.restoreBackup())
+            .thenAnswer((_) async => true);
+        when(() => mockSchedulerService.scheduleAutomaticBackup())
+            .thenAnswer((_) async {});
       },
       act: (bloc) => bloc.add(const RestoreFromBackup()),
       expect: () => [
@@ -173,9 +190,12 @@ void main() {
       ),
       setUp: () {
         when(() => mockBackupService.signIn()).thenAnswer((_) async => true);
-        when(() => mockBackupService.setAutoBackupEnabled(any())).thenAnswer((_) async {});
-        when(() => mockBackupService.checkForExistingBackup()).thenAnswer((_) async => null);
-        when(() => mockSchedulerService.scheduleAutomaticBackup()).thenAnswer((_) async {});
+        when(() => mockBackupService.setAutoBackupEnabled(any()))
+            .thenAnswer((_) async {});
+        when(() => mockBackupService.checkForExistingBackup())
+            .thenAnswer((_) async => null);
+        when(() => mockSchedulerService.scheduleAutomaticBackup())
+            .thenAnswer((_) async {});
       },
       act: (bloc) => bloc.add(const SignInToGoogleDrive()),
       expect: () => [

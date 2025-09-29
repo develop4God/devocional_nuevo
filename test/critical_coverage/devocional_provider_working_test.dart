@@ -16,7 +16,7 @@ void main() {
     setUp(() {
       // Initialize SharedPreferences mock for each test
       SharedPreferences.setMockInitialValues({});
-      
+
       // Mock path_provider for file operations
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(
@@ -32,13 +32,13 @@ void main() {
           }
         },
       );
-      
+
       provider = DevocionalProvider();
     });
 
     tearDown(() {
       provider.dispose();
-      
+
       // Clean up method channel mocks
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(
@@ -73,7 +73,7 @@ void main() {
 
     test('should handle language switching correctly', () {
       const newLanguage = 'en';
-      
+
       // Test method exists and can be called
       expect(() => provider.setSelectedLanguage(newLanguage), returnsNormally);
       expect(provider.selectedLanguage, equals(newLanguage));
@@ -81,7 +81,7 @@ void main() {
 
     test('should handle version switching correctly', () {
       const newVersion = 'NVI';
-      
+
       // Test method exists and can be called
       expect(() => provider.setSelectedVersion(newVersion), returnsNormally);
       expect(provider.selectedVersion, equals(newVersion));
@@ -100,7 +100,8 @@ void main() {
       // Test play
       try {
         await provider.playDevotional(testDevocional);
-        expect(true, isTrue); // Method exists and doesn't throw compilation error
+        expect(
+            true, isTrue); // Method exists and doesn't throw compilation error
       } catch (e) {
         // Expected due to TTS dependencies
         expect(e, isA<Exception>());
@@ -109,7 +110,8 @@ void main() {
       // Test pause
       try {
         await provider.pauseAudio();
-        expect(true, isTrue); // Method exists and doesn't throw compilation error
+        expect(
+            true, isTrue); // Method exists and doesn't throw compilation error
       } catch (e) {
         // Expected due to TTS dependencies
         expect(e, isA<Exception>());
@@ -118,7 +120,8 @@ void main() {
       // Test resume
       try {
         await provider.resumeAudio();
-        expect(true, isTrue); // Method exists and doesn't throw compilation error
+        expect(
+            true, isTrue); // Method exists and doesn't throw compilation error
       } catch (e) {
         // Expected due to TTS dependencies
         expect(e, isA<Exception>());
@@ -127,7 +130,8 @@ void main() {
       // Test stop
       try {
         await provider.stopAudio();
-        expect(true, isTrue); // Method exists and doesn't throw compilation error
+        expect(
+            true, isTrue); // Method exists and doesn't throw compilation error
       } catch (e) {
         // Expected due to TTS dependencies
         expect(e, isA<Exception>());
@@ -138,7 +142,8 @@ void main() {
       // Test TTS language setting
       try {
         await provider.setTtsLanguage('en-US');
-        expect(true, isTrue); // Method exists and doesn't throw compilation error
+        expect(
+            true, isTrue); // Method exists and doesn't throw compilation error
       } catch (e) {
         // Expected due to TTS dependencies
         expect(e, isA<Exception>());
@@ -147,7 +152,8 @@ void main() {
       // Test TTS voice setting
       try {
         await provider.setTtsVoice({'name': 'test-voice', 'locale': 'en-US'});
-        expect(true, isTrue); // Method exists and doesn't throw compilation error
+        expect(
+            true, isTrue); // Method exists and doesn't throw compilation error
       } catch (e) {
         // Expected due to TTS dependencies
         expect(e, isA<Exception>());
@@ -156,7 +162,8 @@ void main() {
       // Test TTS speech rate setting
       try {
         await provider.setTtsSpeechRate(0.7);
-        expect(true, isTrue); // Method exists and doesn't throw compilation error
+        expect(
+            true, isTrue); // Method exists and doesn't throw compilation error
       } catch (e) {
         // Expected due to TTS dependencies
         expect(e, isA<Exception>());
@@ -184,7 +191,8 @@ void main() {
 
       try {
         await provider.recordDevocionalRead(testDevocionalId);
-        expect(true, isTrue); // Method exists and doesn't throw compilation error
+        expect(
+            true, isTrue); // Method exists and doesn't throw compilation error
       } catch (e) {
         // Expected due to stats service dependencies
         expect(e, isA<Exception>());
@@ -193,7 +201,7 @@ void main() {
 
     test('should validate devotional playing status', () {
       const testDevocionalId = 'playing-test';
-      
+
       // Test devotional playing check
       final isPlaying = provider.isDevocionalPlaying(testDevocionalId);
       expect(isPlaying, isA<bool>());
@@ -222,7 +230,8 @@ void main() {
     test('should handle initialization process and data loading', () async {
       try {
         await provider.initializeData();
-        expect(true, isTrue); // Method exists and doesn't throw compilation error
+        expect(
+            true, isTrue); // Method exists and doesn't throw compilation error
       } catch (e) {
         // Expected due to network/file dependencies in test environment
         expect(e, isA<Exception>());

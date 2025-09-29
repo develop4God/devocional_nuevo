@@ -25,7 +25,7 @@ void main() {
     setUp(() {
       mockTtsService = MockTtsService();
       audioController = AudioController();
-      
+
       // Setup default mock behaviors
       when(() => mockTtsService.currentState).thenReturn(TtsState.idle);
       when(() => mockTtsService.currentDevocionalId).thenReturn(null);
@@ -54,10 +54,10 @@ void main() {
 
     test('should correctly identify devotional playing state', () {
       const testDevocionalId = 'test_devotional_123';
-      
+
       // Test when no devotional is playing
       expect(audioController.isDevocionalPlaying(testDevocionalId), isFalse);
-      
+
       // Test when different devotional ID is checked
       expect(audioController.isDevocionalPlaying('different_id'), isFalse);
     });
@@ -65,10 +65,10 @@ void main() {
     test('should manage state properties correctly', () {
       // Test isLoading state
       expect(audioController.isLoading, isFalse);
-      
+
       // Test isActive calculation
       expect(audioController.isActive, isFalse);
-      
+
       // Test error state detection
       expect(audioController.hasError, isFalse);
     });
@@ -84,7 +84,8 @@ void main() {
       );
 
       // Mock TTS service speakDevotional
-      when(() => mockTtsService.speakDevotional(any())).thenAnswer((_) async {});
+      when(() => mockTtsService.speakDevotional(any()))
+          .thenAnswer((_) async {});
 
       // Test that playDevotional method exists and handles operation
       bool methodCalled = false;
@@ -95,7 +96,7 @@ void main() {
         // Expected due to internal TTS service complexity
         methodCalled = true;
       }
-      
+
       expect(methodCalled, isTrue);
     });
 
@@ -112,7 +113,7 @@ void main() {
         // Expected due to internal logic checks
         methodCalled = true;
       }
-      
+
       expect(methodCalled, isTrue);
     });
 
@@ -129,7 +130,7 @@ void main() {
         // Expected due to internal logic checks
         methodCalled = true;
       }
-      
+
       expect(methodCalled, isTrue);
     });
 
@@ -146,7 +147,7 @@ void main() {
         // Expected due to internal logic
         methodCalled = true;
       }
-      
+
       expect(methodCalled, isTrue);
     });
 
@@ -161,7 +162,8 @@ void main() {
       );
 
       // Mock TTS service methods
-      when(() => mockTtsService.speakDevotional(any())).thenAnswer((_) async {});
+      when(() => mockTtsService.speakDevotional(any()))
+          .thenAnswer((_) async {});
       when(() => mockTtsService.pause()).thenAnswer((_) async {});
 
       // Test that togglePlayPause method exists and handles the call
@@ -173,7 +175,7 @@ void main() {
         // Expected due to internal TTS service complexity
         methodCalled = true;
       }
-      
+
       expect(methodCalled, isTrue);
     });
 
@@ -207,10 +209,10 @@ void main() {
     test('should properly dispose and clean up resources', () {
       // Verify initial mounted state
       expect(audioController.mounted, isTrue);
-      
+
       // Test that dispose doesn't throw
       expect(() => audioController.dispose(), returnsNormally);
-      
+
       // Verify mounted state is updated
       expect(audioController.mounted, isFalse);
     });
