@@ -28,7 +28,6 @@ void main() {
 
     test('should load translations correctly for each language', () async {
       // Since asset loading may fail in test environment, let's test graceful handling
-      bool translationsWorking = false;
 
       // Test Spanish
       await localizationService.changeLocale(const Locale('es'));
@@ -36,7 +35,6 @@ void main() {
 
       if (spanishTitle != 'app.title') {
         // If translations are loaded, test expected values
-        translationsWorking = true;
         expect(spanishTitle, equals('Devocionales Cristianos'));
         expect(localizationService.translate('app.loading'),
             equals('Cargando...'));
