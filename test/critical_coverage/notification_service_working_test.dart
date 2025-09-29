@@ -19,11 +19,14 @@ void main() {
     });
 
     test('should validate NotificationService class structure', () {
-      // Test service class can be referenced
+      // Test service class exists and can be imported
       expect(NotificationService, isA<Type>());
-
-      // Test service can be instantiated (constructor exists)
-      expect(() => NotificationService(), returnsNormally);
+      
+      // Test service instantiation patterns
+      expect(() {
+        final service = NotificationService();
+        return service;
+      }, returnsNormally);
     });
 
     test('should handle notification callback patterns correctly', () {
