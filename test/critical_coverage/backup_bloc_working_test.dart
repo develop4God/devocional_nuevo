@@ -5,7 +5,8 @@ import 'package:devocional_nuevo/blocs/backup_bloc.dart';
 import 'package:devocional_nuevo/services/google_drive_backup_service.dart';
 
 // Mock classes for testing
-class MockGoogleDriveBackupService extends Mock implements GoogleDriveBackupService {}
+class MockGoogleDriveBackupService extends Mock
+    implements GoogleDriveBackupService {}
 
 void main() {
   group('BackupBloc Critical Coverage Tests', () {
