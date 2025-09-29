@@ -1,110 +1,206 @@
 // test/critical_coverage/backup_bloc_working_test.dart
 import 'package:flutter_test/flutter_test.dart';
+import 'package:bloc_test/bloc_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:devocional_nuevo/blocs/backup_bloc.dart';
+import 'package:devocional_nuevo/blocs/backup_event.dart';
+import 'package:devocional_nuevo/blocs/backup_state.dart';
 import 'package:devocional_nuevo/services/google_drive_backup_service.dart';
+import 'package:devocional_nuevo/services/backup_scheduler_service.dart';
+import 'package:devocional_nuevo/providers/devocional_provider.dart';
 
 // Mock classes for testing
 class MockGoogleDriveBackupService extends Mock
     implements GoogleDriveBackupService {}
 
+class MockBackupSchedulerService extends Mock 
+    implements BackupSchedulerService {}
+
+class MockDevocionalProvider extends Mock 
+    implements DevocionalProvider {}
+
 void main() {
   group('BackupBloc Critical Coverage Tests', () {
-    late BackupBloc backupBloc;
     late MockGoogleDriveBackupService mockBackupService;
+    late MockBackupSchedulerService mockSchedulerService;
+    late MockDevocionalProvider mockDevocionalProvider;
 
     setUp(() {
       mockBackupService = MockGoogleDriveBackupService();
-      try {
-        // BackupBloc requires backupService parameter
-        backupBloc = BackupBloc(backupService: mockBackupService);
-      } catch (e) {
-        // If BackupBloc constructor fails, skip initialization
-        // Tests will validate expected behavior patterns
-      }
+      mockSchedulerService = MockBackupSchedulerService();
+      mockDevocionalProvider = MockDevocionalProvider();
+      
+      // Setup common mock responses
+      when(() => mockBackupService.isAuthenticated()).thenAnswer((_) async => false);
+      when(() => mockBackupService.isAutoBackupEnabled()).thenAnswer((_) async => false);
+      when(() => mockBackupService.getBackupFrequency()).thenAnswer((_) async => 'deactivated');
+      when(() => mockBackupService.isWifiOnlyEnabled()).thenAnswer((_) async => false);
+      when(() => mockBackupService.isCompressionEnabled()).thenAnswer((_) async => false);
+      when(() => mockBackupService.getBackupOptions()).thenAnswer((_) async => <String, bool>{});
+      when(() => mockBackupService.getLastBackupTime()).thenAnswer((_) async => null);
+      when(() => mockBackupService.getNextBackupTime()).thenAnswer((_) async => null);
+      when(() => mockBackupService.getEstimatedBackupSize(any())).thenAnswer((_) async => 0);
+      when(() => mockBackupService.getUserEmail()).thenAnswer((_) async => null);
+      when(() => mockBackupService.getStorageInfo()).thenAnswer((_) async => <String, dynamic>{});
     });
 
-    tearDown(() {
-      try {
-        backupBloc.close();
-      } catch (e) {
-        // Ignore disposal errors in tests
-      }
-    });
+    blocTest<BackupBloc, BackupState>(
+      'should emit loading state when loading backup settings',
+      build: () => BackupBloc(
+        backupService: mockBackupService,
+        schedulerService: mockSchedulerService,
+        devocionalProvider: mockDevocionalProvider,
+      ),
+      act: (bloc) => bloc.add(const LoadBackupSettings()),
+      expect: () => [
+        const BackupLoading(),
+        const BackupLoaded(
+          autoBackupEnabled: false,
+          backupFrequency: 'deactivated',
+          wifiOnlyEnabled: false,
+          compressionEnabled: false,
+          backupOptions: <String, bool>{},
+          lastBackupTime: null,
+          nextBackupTime: null,
+          estimatedSize: 0,
+          storageInfo: <String, dynamic>{},
+          isAuthenticated: false,
+          userEmail: null,
+        ),
+      ],
+    );
 
-    test('should emit loading state when backup starts', () {
-      // Test backup loading state transition
-      expect(true, isTrue); // Placeholder - validates test structure
+    blocTest<BackupBloc, BackupState>(
+      'should handle auto backup toggle successfully',
+      build: () => BackupBloc(
+        backupService: mockBackupService,
+        schedulerService: mockSchedulerService,
+        devocionalProvider: mockDevocionalProvider,
+      ),
+      seed: () => const BackupLoaded(
+        autoBackupEnabled: false,
+        backupFrequency: 'deactivated',
+        wifiOnlyEnabled: false,
+        compressionEnabled: false,
+        backupOptions: <String, bool>{},
+        estimatedSize: 0,
+        storageInfo: <String, dynamic>{},
+        isAuthenticated: false,
+      ),
+      setUp: () {
+        when(() => mockBackupService.setAutoBackupEnabled(any())).thenAnswer((_) async {});
+        when(() => mockSchedulerService.scheduleAutomaticBackup()).thenAnswer((_) async {});
+      },
+      act: (bloc) => bloc.add(const ToggleAutoBackup(true)),
+      expect: () => [
+        const BackupLoaded(
+          autoBackupEnabled: true,
+          backupFrequency: 'deactivated',
+          wifiOnlyEnabled: false,
+          compressionEnabled: false,
+          backupOptions: <String, bool>{},
+          estimatedSize: 0,
+          storageInfo: <String, dynamic>{},
+          isAuthenticated: false,
+          nextBackupTime: null,
+        ),
+      ],
+    );
 
-      // Expected behavior: When backup starts, should emit loading state
-      // BackupBloc should transition from initial to loading state
-      // This validates the state management pattern exists
-    });
+    blocTest<BackupBloc, BackupState>(
+      'should handle backup creation workflow',
+      build: () => BackupBloc(
+        backupService: mockBackupService,
+        schedulerService: mockSchedulerService,
+        devocionalProvider: mockDevocionalProvider,
+      ),
+      setUp: () {
+        when(() => mockBackupService.createBackup(any())).thenAnswer((_) async => true);
+        when(() => mockSchedulerService.scheduleAutomaticBackup()).thenAnswer((_) async {});
+      },
+      act: (bloc) => bloc.add(const CreateManualBackup()),
+      expect: () => [
+        const BackupCreating(),
+        isA<BackupCreated>(),
+        const BackupLoading(),
+        isA<BackupLoaded>(),
+      ],
+    );
 
-    test('should handle Google Drive backup success/failure', () {
-      // Test Google Drive integration success and failure scenarios
-      expect(true, isTrue); // Placeholder - validates test structure
+    blocTest<BackupBloc, BackupState>(
+      'should handle backup failure with error state',
+      build: () => BackupBloc(
+        backupService: mockBackupService,
+        schedulerService: mockSchedulerService,
+        devocionalProvider: mockDevocionalProvider,
+      ),
+      setUp: () {
+        when(() => mockBackupService.createBackup(any())).thenAnswer((_) async => false);
+      },
+      act: (bloc) => bloc.add(const CreateManualBackup()),
+      expect: () => [
+        const BackupCreating(),
+        const BackupError('Failed to create backup'),
+      ],
+    );
 
-      // Expected behavior: Should handle both success and failure cases
-      // Success: emit BackupSuccess state with backup information
-      // Failure: emit BackupError state with error message
-      // This validates error handling and success flow patterns
-    });
+    blocTest<BackupBloc, BackupState>(
+      'should handle restore from backup workflow',
+      build: () => BackupBloc(
+        backupService: mockBackupService,
+        schedulerService: mockSchedulerService,
+        devocionalProvider: mockDevocionalProvider,
+      ),
+      setUp: () {
+        when(() => mockBackupService.restoreBackup()).thenAnswer((_) async => true);
+        when(() => mockSchedulerService.scheduleAutomaticBackup()).thenAnswer((_) async {});
+      },
+      act: (bloc) => bloc.add(const RestoreFromBackup()),
+      expect: () => [
+        const BackupRestoring(),
+        const BackupRestored(),
+        const BackupLoading(),
+        isA<BackupLoaded>(),
+      ],
+    );
 
-    test('should persist backup configuration settings', () {
-      // Test backup configuration persistence
-      expect(true, isTrue); // Placeholder - validates test structure
+    blocTest<BackupBloc, BackupState>(
+      'should handle Google Drive sign-in success',
+      build: () => BackupBloc(
+        backupService: mockBackupService,
+        schedulerService: mockSchedulerService,
+        devocionalProvider: mockDevocionalProvider,
+      ),
+      setUp: () {
+        when(() => mockBackupService.signIn()).thenAnswer((_) async => true);
+        when(() => mockBackupService.setAutoBackupEnabled(any())).thenAnswer((_) async {});
+        when(() => mockBackupService.checkForExistingBackup()).thenAnswer((_) async => null);
+        when(() => mockSchedulerService.scheduleAutomaticBackup()).thenAnswer((_) async {});
+      },
+      act: (bloc) => bloc.add(const SignInToGoogleDrive()),
+      expect: () => [
+        const BackupLoading(),
+        const BackupLoading(),
+        isA<BackupLoaded>(),
+      ],
+    );
 
-      // Expected behavior: Configuration changes should persist
-      // Settings like backup frequency, auto-backup enabled/disabled
-      // Should save to SharedPreferences or similar storage
-      // This validates configuration management patterns
-    });
-
-    test('should emit proper error states with messages', () {
-      // Test error state emissions with descriptive messages
-      expect(true, isTrue); // Placeholder - validates test structure
-
-      // Expected behavior: Error states should include helpful messages
-      // Different error types should have specific error messages
-      // Network errors, permission errors, storage errors should be distinct
-      // This validates error messaging and user feedback patterns
-    });
-
-    test('should handle backup creation workflow', () {
-      // Test complete backup creation process
-      expect(true, isTrue); // Placeholder - validates test structure
-
-      // Expected behavior: Complete backup workflow validation
-      // 1. Start backup (emit loading)
-      // 2. Collect data to backup
-      // 3. Upload to Google Drive
-      // 4. Emit success/error based on result
-      // This validates the complete backup workflow pattern
-    });
-
-    test('should handle backup restoration workflow', () {
-      // Test complete backup restoration process
-      expect(true, isTrue); // Placeholder - validates test structure
-
-      // Expected behavior: Complete restoration workflow validation
-      // 1. Start restoration (emit loading)
-      // 2. Download from Google Drive
-      // 3. Validate backup data integrity
-      // 4. Restore data to app
-      // 5. Emit success/error based on result
-      // This validates the complete restoration workflow pattern
-    });
-
-    test('should validate backup data before operations', () {
-      // Test backup data validation before create/restore operations
-      expect(true, isTrue); // Placeholder - validates test structure
-
-      // Expected behavior: Should validate data integrity
-      // Before creating backup: validate source data completeness
-      // Before restoring: validate backup file integrity and format
-      // Should emit validation errors if data is corrupt
-      // This validates data validation and integrity patterns
-    });
+    blocTest<BackupBloc, BackupState>(
+      'should emit error when backup service throws exception',
+      build: () => BackupBloc(
+        backupService: mockBackupService,
+        schedulerService: mockSchedulerService,
+        devocionalProvider: mockDevocionalProvider,
+      ),
+      setUp: () {
+        when(() => mockBackupService.createBackup(any()))
+            .thenThrow(Exception('Network error'));
+      },
+      act: (bloc) => bloc.add(const CreateManualBackup()),
+      expect: () => [
+        const BackupCreating(),
+        isA<BackupError>(),
+      ],
+    );
   });
 }
