@@ -1,6 +1,5 @@
 // test/critical_coverage/prayer_bloc_working_test.dart
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mocktail/mocktail.dart';
 
 void main() {
   group('PrayerBloc Critical Coverage Tests', () {
