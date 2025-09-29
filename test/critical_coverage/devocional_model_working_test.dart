@@ -1,7 +1,6 @@
 // test/critical_coverage/devocional_model_working_test.dart
 import 'package:flutter_test/flutter_test.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
-import 'package:devocional_nuevo/models/para_meditar_model.dart';
 
 void main() {
   group('DevocionalModel Critical Coverage Tests', () {
@@ -29,7 +28,8 @@ void main() {
       expect(json, isA<Map<String, dynamic>>());
       expect(json['id'], equals('test_devotional_123'));
       expect(json['versiculo'], equals('Juan 3:16'));
-      expect(json['reflexion'], equals('Una reflexión profunda sobre el amor de Dios.'));
+      expect(json['reflexion'],
+          equals('Una reflexión profunda sobre el amor de Dios.'));
 
       // Test fromJson
       final fromJson = Devocional.fromJson(json);
@@ -73,7 +73,9 @@ void main() {
       // Test ParaMeditar component handling
       final paraMeditar = [
         ParaMeditar(cita: 'Mateo 5:16', texto: 'Así alumbre vuestra luz...'),
-        ParaMeditar(cita: 'Romanos 8:28', texto: 'Y sabemos que a los que aman a Dios...'),
+        ParaMeditar(
+            cita: 'Romanos 8:28',
+            texto: 'Y sabemos que a los que aman a Dios...'),
       ];
 
       final devotional = Devocional(
@@ -87,7 +89,8 @@ void main() {
 
       expect(devotional.paraMeditar.length, equals(2));
       expect(devotional.paraMeditar[0].cita, equals('Mateo 5:16'));
-      expect(devotional.paraMeditar[0].texto, equals('Así alumbre vuestra luz...'));
+      expect(devotional.paraMeditar[0].texto,
+          equals('Así alumbre vuestra luz...'));
       expect(devotional.paraMeditar[1].cita, equals('Romanos 8:28'));
 
       // Test JSON serialization with ParaMeditar
@@ -184,7 +187,7 @@ void main() {
         } catch (e) {
           // Should handle missing required fields gracefully
           expect(e, isA<Exception>());
-          throw e; // Re-throw to verify exception was caught
+          rethrow; // Re-throw to verify exception was caught
         }
       }, throwsA(isA<Exception>()));
 

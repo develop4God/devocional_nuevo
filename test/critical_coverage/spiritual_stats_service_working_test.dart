@@ -83,13 +83,9 @@ void main() {
       // Record the same devotional twice with valid reading criteria
       await statsService.recordDevocionalRead(
         devocionalId: devocionalId,
-        readingTime: 60, // Valid reading time
-        scrollPercentage: 80.0, // Valid scroll percentage
       );
       await statsService.recordDevocionalRead(
         devocionalId: devocionalId,
-        readingTime: 60, // Valid reading time
-        scrollPercentage: 80.0, // Valid scroll percentage
       );
 
       final stats = await statsService.getStats();
@@ -167,8 +163,6 @@ void main() {
       // Record with first instance with valid criteria
       await statsService.recordDevocionalRead(
         devocionalId: testDevocionalId,
-        readingTime: 60, // Valid reading time
-        scrollPercentage: 80.0, // Valid scroll percentage
       );
 
       // Create new instance and check persistence
