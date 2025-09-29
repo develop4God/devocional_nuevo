@@ -21,7 +21,7 @@ void main() {
     test('should validate NotificationService class structure', () {
       // Test service class exists and can be imported
       expect(NotificationService, isA<Type>());
-      
+
       // Test service instantiation patterns
       expect(() {
         final service = NotificationService();

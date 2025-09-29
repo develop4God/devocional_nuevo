@@ -2,20 +2,24 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:devocional_nuevo/blocs/backup_bloc.dart';
+import 'package:devocional_nuevo/services/google_drive_backup_service.dart';
 
 // Mock classes for testing
-class MockBackupService extends Mock {}
+class MockGoogleDriveBackupService extends Mock implements GoogleDriveBackupService {}
 
 void main() {
   group('BackupBloc Critical Coverage Tests', () {
     late BackupBloc backupBloc;
+    late MockGoogleDriveBackupService mockBackupService;
 
     setUp(() {
+      mockBackupService = MockGoogleDriveBackupService();
       try {
-        backupBloc = BackupBloc();
+        // BackupBloc requires backupService parameter
+        backupBloc = BackupBloc(backupService: mockBackupService);
       } catch (e) {
-        // If BackupBloc constructor fails, create a basic test structure
-        // that validates the expected behavior patterns
+        // If BackupBloc constructor fails, skip initialization
+        // Tests will validate expected behavior patterns
       }
     });
 
