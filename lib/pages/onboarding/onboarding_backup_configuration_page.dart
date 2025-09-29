@@ -37,9 +37,8 @@ class OnboardingBackupConfigurationPage extends StatefulWidget {
 
 class _OnboardingBackupConfigurationPageState
     extends State<OnboardingBackupConfigurationPage> {
-  bool _isConnecting = false;
-  bool _isNavigating = false;
-  bool _hasConfiguredOnboarding = false;
+  bool _hasAutoConfigured = false;
+  bool _hasNavigated = false;
   Timer? _timeoutTimer;
 
   @override
@@ -54,41 +53,31 @@ class _OnboardingBackupConfigurationPageState
 
     // Create services with dependencies - same as BackupSettingsPage
     final authService = GoogleDriveAuthService();
-    debugPrint('🔧 [DEBUG] GoogleDriveAuthService creado');
-
     final connectivityService = ConnectivityService();
-    debugPrint('🔧 [DEBUG] ConnectivityService creado');
-
     final statsService = SpiritualStatsService();
-    debugPrint('🔧 [DEBUG] SpiritualStatsService creado');
-
     final backupService = GoogleDriveBackupService(
       authService: authService,
       connectivityService: connectivityService,
       statsService: statsService,
     );
-    debugPrint('🔧 [DEBUG] GoogleDriveBackupService creado con dependencias');
 
     return BlocProvider(
       create: (context) {
-        // 🔧 CRÍTICO: Crear BackupSchedulerService igual que en BackupSettingsPage
         final schedulerService = BackupSchedulerService(
           backupService: backupService,
           connectivityService: connectivityService,
         );
-        debugPrint('🔧 [DEBUG] BackupSchedulerService creado para onboarding');
 
         final bloc = BackupBloc(
           backupService: backupService,
-          schedulerService: schedulerService, // 🔧 AGREGADO
+          schedulerService: schedulerService,
           devocionalProvider: Provider.of<DevocionalProvider>(
             context,
             listen: false,
           ),
-          prayerBloc: context.read<PrayerBloc>(), // 🔧 AGREGADO
+          prayerBloc: context.read<PrayerBloc>(),
         );
 
-        // Load initial settings
         bloc.add(const LoadBackupSettings());
         return bloc;
       },
@@ -119,7 +108,6 @@ class _OnboardingBackupConfigurationPageState
                       ),
                       TextButton(
                         onPressed: () {
-                          // Marcar backup como omitido antes de saltar
                           context
                               .read<OnboardingBloc>()
                               .add(const SkipBackupForNow());
@@ -139,84 +127,24 @@ class _OnboardingBackupConfigurationPageState
 
                       if (state is BackupError) {
                         debugPrint(
-                            '❌ [DEBUG] OnboardingBackupError recibido: ${state.message}');
-                        _clearConnectingState();
+                            '❌ [DEBUG] OnboardingBackupError: ${state.message}');
+                        _clearTimeoutTimer();
                         _showError(context, state.message);
-                      }
-                      // 🔧 AGREGADO: Manejar BackupInitial para cancelación de usuario
-                      else if (state is BackupInitial) {
+                      } else if (state is BackupInitial) {
                         debugPrint(
-                            '🔄 [DEBUG] OnboardingBackupInitial recibido - usuario canceló o estado inicial');
-                        _clearConnectingState();
-                      } else if (state is BackupLoaded &&
-                          !state.isAuthenticated &&
-                          _isConnecting) {
-                        debugPrint(
-                            '🔄 [DEBUG] OnboardingBackupLoaded NO autenticado recibido - usuario canceló');
-                        _clearConnectingState();
-                      }
-                      // 🔧 NUEVO: Manejar usuario ya autenticado
-                      else if (state is BackupLoaded &&
-                          state.isAuthenticated &&
-                          !_hasConfiguredOnboarding) {
-                        _hasConfiguredOnboarding = true;
-                        debugPrint(
-                            '✅ [DEBUG] Usuario ya autenticado, configurando onboarding');
-
-                        // Informar al OnboardingBloc que backup está habilitado
-                        context
-                            .read<OnboardingBloc>()
-                            .add(const ConfigureBackupOption(true));
-
-                        setState(() {
-                          _isNavigating = true;
-                        });
-
-                        // Navegar después de procesar el evento
-                        Future.delayed(const Duration(milliseconds: 300), () {
-                          if (mounted) {
-                            debugPrint(
-                                '🚀 [DEBUG] Navegando - backup ya configurado');
-                            widget.onNext();
-                          }
-                        });
-                      }
-                      // 🔧 MANTENER: Para nuevos usuarios que se conectan por primera vez
-                      else if (state is BackupLoaded &&
-                          state.isAuthenticated &&
-                          _isConnecting &&
-                          !_hasConfiguredOnboarding) {
-                        _hasConfiguredOnboarding = true;
-                        debugPrint(
-                            '✅ [DEBUG] OnboardingBackupLoaded autenticado recibido - nuevo usuario');
-                        _timeoutTimer?.cancel();
-                        _autoConfigureBackup(context);
-
-                        // Check if we need to create initial backup for new users
-                        _checkAndCreateInitialBackup(context, state);
-
-                        setState(() {
-                          _isNavigating = true;
-                        });
-                        // Delay to allow auto-configuration to complete
-                        Future.delayed(const Duration(milliseconds: 500), () {
-                          if (mounted) {
-                            debugPrint(
-                                '🚀 [DEBUG] Navegando - backup recién configurado');
-                            widget.onNext();
-                          }
-                        });
-                      } else if (state is BackupSuccess) {
-                        debugPrint(
-                            '✅ [DEBUG] OnboardingBackupSuccess recibido: ${state.title}');
+                            '🔄 [DEBUG] BackupInitial - usuario canceló o estado inicial');
+                        _clearTimeoutTimer();
+                      } else if (state is BackupLoaded) {
+                        _handleBackupLoadedState(context, state);
+                      } else if (state is BackupRestoring) {
+                        debugPrint('🔄 [DEBUG] BackupRestoring detectado');
                       } else if (state is BackupRestored) {
-                        debugPrint(
-                            '✅ [DEBUG] OnboardingBackupRestored recibido');
+                        debugPrint('✅ [DEBUG] BackupRestored detectado');
                       }
                     },
                     child: BlocBuilder<BackupBloc, BackupState>(
                       builder: (context, state) {
-                        if (state is BackupLoading && !_isConnecting) {
+                        if (state is BackupLoading) {
                           return const Center(
                               child: CircularProgressIndicator());
                         }
@@ -237,20 +165,101 @@ class _OnboardingBackupConfigurationPageState
     );
   }
 
+  void _handleBackupLoadedState(BuildContext context, BackupLoaded state) {
+    debugPrint(
+        '🔍 [DEBUG] BackupLoaded - isAuth: ${state.isAuthenticated}, autoEnabled: ${state.autoBackupEnabled}, hasConfigured: $_hasAutoConfigured, hasNavigated: $_hasNavigated');
+
+    // Usuario ya estaba autenticado (session persistida)
+    if (state.isAuthenticated &&
+        !_hasAutoConfigured &&
+        !_hasNavigated &&
+        state.autoBackupEnabled) {
+      debugPrint(
+          '✅ [DEBUG] Usuario ya autenticado con backup activo - navegando');
+      _hasNavigated = true;
+      _clearTimeoutTimer();
+
+      context.read<OnboardingBloc>().add(const ConfigureBackupOption(true));
+
+      // Navegar inmediatamente
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          widget.onNext();
+        }
+      });
+      return;
+    }
+
+    // Usuario acaba de autenticarse (nuevo login)
+    if (state.isAuthenticated && !_hasAutoConfigured) {
+      debugPrint('🔧 [DEBUG] Usuario recién autenticado - auto-configurando');
+      _hasAutoConfigured = true;
+      _clearTimeoutTimer();
+
+      // Auto-configurar backup
+      context.read<BackupBloc>().add(const ToggleAutoBackup(true));
+      context.read<BackupBloc>().add(const ToggleWifiOnly(true));
+      context.read<BackupBloc>().add(const ToggleCompression(true));
+
+      // Informar al OnboardingBloc
+      context.read<OnboardingBloc>().add(const ConfigureBackupOption(true));
+
+      // Crear backup inicial si es usuario nuevo
+      _checkAndCreateInitialBackup(context, state);
+      return;
+    }
+
+    // Verificar si ya está todo configurado para navegar
+    if (state.isAuthenticated &&
+        state.autoBackupEnabled &&
+        _hasAutoConfigured &&
+        !_hasNavigated) {
+      debugPrint('🚀 [DEBUG] Backup configurado completamente - navegando');
+      _hasNavigated = true;
+
+      // Navegar inmediatamente
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          widget.onNext();
+        }
+      });
+    }
+  }
+
   Widget _buildContent(BuildContext context, BackupState state) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        _buildConnectionPrompt(context),
+        _buildConnectionPrompt(context, state),
         const SizedBox(height: 32),
         _buildSecurityInfo(context),
       ],
     );
   }
 
-  Widget _buildConnectionPrompt(BuildContext context) {
+  Widget _buildConnectionPrompt(BuildContext context, BackupState state) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+
+    // Determinar texto del botón según estado
+    String buttonText = 'backup.google_drive_connection'.tr();
+    bool isDisabled = false;
+
+    if (state is BackupLoading) {
+      buttonText = 'onboarding.onboarding_connecting'.tr();
+      isDisabled = true;
+    } else if (state is BackupRestoring) {
+      buttonText = 'backup.restoring_data'.tr();
+      isDisabled = true;
+    } else if (state is BackupLoaded && state.isAuthenticated) {
+      if (!state.autoBackupEnabled && _hasAutoConfigured) {
+        buttonText = 'backup.configuring_backup'.tr();
+        isDisabled = true;
+      } else if (state.autoBackupEnabled) {
+        buttonText = 'backup.backup_configured'.tr();
+        isDisabled = true;
+      }
+    }
 
     return Column(
       children: [
@@ -297,10 +306,8 @@ class _OnboardingBackupConfigurationPageState
         SizedBox(
           width: double.infinity,
           child: ElevatedButton.icon(
-            onPressed: (_isConnecting || _isNavigating)
-                ? null
-                : () => _connectGoogleDrive(context),
-            icon: (_isConnecting || _isNavigating)
+            onPressed: isDisabled ? null : () => _connectGoogleDrive(context),
+            icon: isDisabled
                 ? const SizedBox(
                     width: 20,
                     height: 20,
@@ -308,9 +315,7 @@ class _OnboardingBackupConfigurationPageState
                   )
                 : const Icon(Icons.add_to_drive_outlined),
             label: Text(
-              (_isConnecting || _isNavigating)
-                  ? 'onboarding.onboarding_connecting'.tr()
-                  : 'backup.google_drive_connection'.tr(),
+              buttonText,
               style: const TextStyle(fontSize: 16),
             ),
             style: ElevatedButton.styleFrom(
@@ -361,14 +366,11 @@ class _OnboardingBackupConfigurationPageState
 
   void _connectGoogleDrive(BuildContext context) {
     debugPrint('🔄 [DEBUG] Onboarding Usuario tapeó conectar Google Drive');
-    setState(() {
-      _isConnecting = true;
-    });
 
+    // Iniciar timeout de 30 segundos
     _timeoutTimer?.cancel();
     _timeoutTimer = Timer(const Duration(seconds: 30), () {
-      if (_isConnecting && mounted) {
-        _clearConnectingState();
+      if (!_hasNavigated && mounted) {
         _showError(context, 'backup.connection_timeout'.tr());
       }
     });
@@ -377,48 +379,21 @@ class _OnboardingBackupConfigurationPageState
     context.read<BackupBloc>().add(const SignInToGoogleDrive());
   }
 
-  void _autoConfigureBackup(BuildContext context) {
-    debugPrint(
-        '⚙️ [DEBUG] Onboarding Auto-configurando backup con configuración óptima');
-
-    // Activate automatic backup with all defaults - same as BackupSettingsPage
-    context.read<BackupBloc>().add(const ToggleAutoBackup(true));
-    context.read<BackupBloc>().add(const ToggleWifiOnly(true));
-    context.read<BackupBloc>().add(const ToggleCompression(true));
-
-    // 🔧 AGREGAR ESTA LÍNEA - Informar al OnboardingBloc
-    context.read<OnboardingBloc>().add(const ConfigureBackupOption(true));
-
-    debugPrint('✅ [DEBUG] Onboarding Auto-configuración enviada');
-  }
-
   void _checkAndCreateInitialBackup(BuildContext context, BackupLoaded state) {
-    // Check if this is first time connecting (same logic as BackupSettingsPage)
     final hasConnectedBefore =
         state.lastBackupTime != null || state.autoBackupEnabled;
 
     debugPrint('🔍 [DEBUG] hasConnectedBefore: $hasConnectedBefore');
-    debugPrint('🔍 [DEBUG] lastBackupTime: ${state.lastBackupTime}');
-    debugPrint('🔍 [DEBUG] autoBackupEnabled: ${state.autoBackupEnabled}');
 
     if (!hasConnectedBefore) {
-      debugPrint('🆕 [DEBUG] Usuario nuevo detectado - creando primer backup');
-      // Create initial backup for new users
+      debugPrint('🆕 [DEBUG] Usuario nuevo - creando primer backup');
       context.read<BackupBloc>().add(const CreateManualBackup());
-    } else {
-      debugPrint('✅ [DEBUG] Usuario existente - no necesita backup inicial');
     }
   }
 
-  void _clearConnectingState() {
+  void _clearTimeoutTimer() {
     _timeoutTimer?.cancel();
-    if (mounted) {
-      setState(() {
-        _isConnecting = false;
-        _isNavigating = false;
-      });
-      debugPrint('🔄 [DEBUG] Estado de connecting limpiado en onboarding');
-    }
+    debugPrint('⏱️ [DEBUG] Timeout timer cancelado');
   }
 
   void _showError(BuildContext context, String message) {

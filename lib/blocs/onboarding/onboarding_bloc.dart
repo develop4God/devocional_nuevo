@@ -448,7 +448,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
               backupState.lastBackupTime != null;
           configurations['backupCompleted'] =
               backupState.lastBackupTime != null;
-          configurations['userEmail'] = backupState.userEmail;
+
           debugPrint(
               '✅ [ONBOARDING_BLOC] Backup info agregada: hasActiveBackup=${backupState.lastBackupTime != null}');
         }
@@ -960,6 +960,9 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     const validKeys = {
       'selectedThemeFamily',
       'backupEnabled',
+      'backupSkipped',
+      'hasActiveBackup',
+      'backupCompleted',
       'selectedLanguage',
       'notificationsEnabled',
       'additionalSettings',
