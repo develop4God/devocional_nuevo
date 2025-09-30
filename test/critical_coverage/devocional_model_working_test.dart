@@ -95,8 +95,8 @@ void main() {
 
       // Test JSON serialization with ParaMeditar
       final json = devotional.toJson();
-      expect(json['paraMeditar'], isA<List>());
-      expect(json['paraMeditar'].length, equals(2));
+      expect(json['para_meditar'], isA<List>());
+      expect(json['para_meditar'].length, equals(2));
 
       // Test deserialization preserves ParaMeditar
       final fromJson = Devocional.fromJson(json);
@@ -178,32 +178,33 @@ void main() {
         'id': 'malformed_test',
         // Missing required fields to test error handling
         'versiculo': 'Test verse',
-        // Missing reflexion, paraMeditar, oracion
+        // Missing reflexion, para_meditar, oracion
       };
 
-      expect(() {
-        try {
-          Devocional.fromJson(malformedJson);
-        } catch (e) {
-          // Should handle missing required fields gracefully
-          expect(e, isA<Exception>());
-          rethrow; // Re-throw to verify exception was caught
-        }
-      }, throwsA(isA<Exception>()));
+      // DevocionalModel.fromJson provides defaults for missing fields
+      final devotional = Devocional.fromJson(malformedJson);
+      expect(devotional.id, equals('malformed_test'));
+      expect(devotional.versiculo, equals('Test verse'));
+      expect(devotional.reflexion, equals('')); // Default empty string
+      expect(devotional.paraMeditar, isEmpty); // Default empty list
+      expect(devotional.oracion, equals('')); // Default empty string
 
-      // Test with null values
+      // Test with null values - should handle gracefully
       const nullJson = <String, dynamic>{
         'id': null,
         'date': null,
         'versiculo': null,
         'reflexion': null,
-        'paraMeditar': null,
+        'para_meditar': null,
         'oracion': null,
       };
 
-      expect(() {
-        Devocional.fromJson(nullJson);
-      }, throwsA(isA<Exception>()));
+      final nullDevotional = Devocional.fromJson(nullJson);
+      expect(nullDevotional.id, isA<String>()); // Should get generated ID
+      expect(nullDevotional.versiculo, equals(''));
+      expect(nullDevotional.reflexion, equals(''));
+      expect(nullDevotional.paraMeditar, isEmpty);
+      expect(nullDevotional.oracion, equals(''));
     });
   });
 }
