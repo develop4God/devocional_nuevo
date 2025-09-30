@@ -74,9 +74,7 @@ class OnboardingBackupConfigurationPage extends StatelessWidget {
       child: BlocBuilder<BackupBloc, BackupState>(
         builder: (context, state) {
           // Hide "Skip" button if already connected
-          final isConnected = state is BackupLoaded &&
-              state.isAuthenticated &&
-              state.autoBackupEnabled;
+          final isConnected = state is BackupLoaded && state.isAuthenticated;
 
           return Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -105,10 +103,9 @@ class OnboardingBackupConfigurationPage extends StatelessWidget {
   Widget _buildOnboardingFooter(BuildContext context) {
     return BlocBuilder<BackupBloc, BackupState>(
       builder: (context, state) {
-        // Only show "Continue" button if authenticated AND auto-backup enabled
-        final canContinue = state is BackupLoaded &&
-            state.isAuthenticated &&
-            state.autoBackupEnabled;
+        // 🔧 FIX: Show continue button as soon as user is authenticated
+        // Don't wait for autoBackupEnabled since it happens async
+        final canContinue = state is BackupLoaded && state.isAuthenticated;
 
         if (!canContinue) {
           return const SizedBox.shrink();
