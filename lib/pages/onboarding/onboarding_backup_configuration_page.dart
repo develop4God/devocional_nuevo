@@ -10,7 +10,6 @@ import '../../blocs/onboarding/onboarding_event.dart';
 import '../../blocs/prayer_bloc.dart';
 import '../../extensions/string_extensions.dart';
 import '../../providers/devocional_provider.dart';
-import '../../services/backup_scheduler_service.dart';
 import '../../services/connectivity_service.dart';
 import '../../services/google_drive_auth_service.dart';
 import '../../services/google_drive_backup_service.dart';
@@ -40,15 +39,10 @@ class OnboardingBackupConfigurationPage extends StatelessWidget {
       connectivityService: connectivityService,
       statsService: statsService,
     );
-    final schedulerService = BackupSchedulerService(
-      backupService: backupService,
-      connectivityService: connectivityService,
-    );
 
     return BlocProvider(
       create: (context) => BackupBloc(
         backupService: backupService,
-        schedulerService: schedulerService,
         devocionalProvider: context.read<DevocionalProvider>(),
         prayerBloc: context.read<PrayerBloc>(),
       )..add(const LoadBackupSettings()),

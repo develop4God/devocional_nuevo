@@ -12,7 +12,6 @@ import 'package:devocional_nuevo/pages/onboarding/onboarding_flow.dart';
 import 'package:devocional_nuevo/pages/settings_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/providers/localization_provider.dart';
-import 'package:devocional_nuevo/services/backup_scheduler_service.dart';
 import 'package:devocional_nuevo/services/connectivity_service.dart';
 import 'package:devocional_nuevo/services/google_drive_auth_service.dart';
 import 'package:devocional_nuevo/services/google_drive_backup_service.dart';
@@ -97,7 +96,6 @@ void main() async {
   await Firebase.initializeApp();
   // ➕ INICIALIZAR BACKUP SCHEDULER
   try {
-    await BackupSchedulerService.initialize();
     developer.log(
       'AppInitializer: BackupSchedulerService inicializado correctamente.',
       name: 'MainApp',
@@ -139,7 +137,6 @@ void main() async {
               connectivityService: ConnectivityService(),
               statsService: SpiritualStatsService(),
             ),
-            schedulerService: null, // ✅ El BLoC maneja null correctamente
             devocionalProvider: context.read<DevocionalProvider>(),
           ),
         ),

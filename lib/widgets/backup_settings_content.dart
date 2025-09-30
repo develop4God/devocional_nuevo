@@ -191,7 +191,7 @@ class _BackupSettingsContentState extends State<BackupSettingsContent> {
           Row(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              Icon(Icons.shield_outlined, color: colorScheme.primary, size: 28),
+              //Icon(Icons.shield_outlined, color: colorScheme.primary, size: 28),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
@@ -200,6 +200,7 @@ class _BackupSettingsContentState extends State<BackupSettingsContent> {
                     fontWeight: FontWeight.bold,
                     color: colorScheme.onSurface,
                   ),
+                  textAlign: TextAlign.center,
                 ),
               ),
             ],
