@@ -319,6 +319,7 @@ class _OnboardingCompletePageState extends State<OnboardingCompletePage>
   }
 
   Widget _buildSetupSummaryCard(BuildContext context) {
+    debugPrint('🔍 [COMPLETE] _buildSetupSummaryCard ejecutandose');
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
@@ -329,6 +330,14 @@ class _OnboardingCompletePageState extends State<OnboardingCompletePage>
           configurations = state.appliedConfigurations;
           debugPrint(
               '🔍 [COMPLETE] Configuraciones recibidas: $configurations');
+          debugPrint(
+              '🔍 [COMPLETE] Configuraciones recibidas: $configurations');
+          debugPrint(
+              '🔍 [COMPLETE] backupEnabled: ${configurations['backupEnabled']}');
+          debugPrint(
+              '🔍 [COMPLETE] backupSkipped: ${configurations['backupSkipped']}');
+          debugPrint(
+              '🔍 [COMPLETE] _isBackupConfigured: ${_isBackupConfigured(configurations)}');
         }
 
         return Container(

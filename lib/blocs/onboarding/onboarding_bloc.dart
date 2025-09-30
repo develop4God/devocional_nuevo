@@ -339,6 +339,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       final updatedSelections =
           Map<String, dynamic>.from(currentState.userSelections);
       updatedSelections['backupEnabled'] = event.enableBackup;
+      updatedSelections['backupSkipped'] = false;
 
       // Coordinate with BackupBloc if available and backup is enabled
       if (event.enableBackup && _backupBloc != null) {
