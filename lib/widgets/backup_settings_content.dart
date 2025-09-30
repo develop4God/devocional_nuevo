@@ -189,7 +189,7 @@ class BackupSettingsContent extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    // In onboarding mode, auto-activate without showing options
+    // In onboarding mode, auto-activate and show simple success
     if (isOnboardingMode) {
       // Auto-activate in background
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -229,12 +229,20 @@ class BackupSettingsContent extends StatelessWidget {
                 ),
               ),
             ],
+            const SizedBox(height: 12),
+            Text(
+              'Protección automática activada',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+              textAlign: TextAlign.center,
+            ),
           ],
         ),
       );
     }
 
-    // Settings page mode - show activation options
+    // Settings page mode - show full activation options
     return Column(
       children: [
         Container(

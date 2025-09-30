@@ -333,10 +333,8 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     try {
       final currentState = state as OnboardingStepActive;
 
-      emit(OnboardingConfiguring(
-        configurationType: OnboardingConfigurationType.backupConfiguration,
-        configurationData: {'enableBackup': event.enableBackup},
-      ));
+      // Don't emit OnboardingConfiguring - just update the state silently
+      // This keeps state as OnboardingStepActive so navigation can proceed
 
       final updatedSelections =
           Map<String, dynamic>.from(currentState.userSelections);

@@ -3,10 +3,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../blocs/backup_bloc.dart';
+import '../../blocs/backup_event.dart';
 import '../../blocs/backup_state.dart';
 import '../../blocs/onboarding/onboarding_bloc.dart';
 import '../../blocs/onboarding/onboarding_event.dart';
+import '../../blocs/prayer_bloc.dart';
 import '../../extensions/string_extensions.dart';
+import '../../providers/devocional_provider.dart';
+import '../../services/backup_scheduler_service.dart';
+import '../../services/connectivity_service.dart';
+import '../../services/google_drive_auth_service.dart';
+import '../../services/google_drive_backup_service.dart';
+import '../../services/spiritual_stats_service.dart';
 import '../../widgets/backup_settings_content.dart';
 
 class OnboardingBackupConfigurationPage extends StatelessWidget {
@@ -23,44 +31,60 @@ class OnboardingBackupConfigurationPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<BackupBloc, BackupState>(
-      listener: (context, state) {
-        // Only handle errors in onboarding
-        if (state is BackupError) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.message.tr()),
-              backgroundColor: Theme.of(context).colorScheme.error,
-            ),
-          );
-        }
-      },
-      child: Scaffold(
-        body: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
-                Theme.of(context).colorScheme.surface,
-              ],
-            ),
-          ),
-          child: SafeArea(
-            child: Column(
-              children: [
-                // Onboarding header
-                _buildOnboardingHeader(context),
+    // Create BackupBloc locally with all required services
+    final authService = GoogleDriveAuthService();
+    final connectivityService = ConnectivityService();
+    final statsService = SpiritualStatsService();
+    final backupService = GoogleDriveBackupService(
+      authService: authService,
+      connectivityService: connectivityService,
+      statsService: statsService,
+    );
+    final schedulerService = BackupSchedulerService(
+      backupService: backupService,
+      connectivityService: connectivityService,
+    );
 
-                // Reuse BackupSettingsContent
-                Expanded(
-                  child: BackupSettingsContent(isOnboardingMode: true),
-                ),
-
-                // Onboarding footer (conditional)
-                _buildOnboardingFooter(context),
-              ],
+    return BlocProvider(
+      create: (context) => BackupBloc(
+        backupService: backupService,
+        schedulerService: schedulerService,
+        devocionalProvider: context.read<DevocionalProvider>(),
+        prayerBloc: context.read<PrayerBloc>(),
+      )..add(const LoadBackupSettings()),
+      child: BlocListener<BackupBloc, BackupState>(
+        listener: (context, state) {
+          if (state is BackupError) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.message.tr()),
+                backgroundColor: Theme.of(context).colorScheme.error,
+              ),
+            );
+          }
+        },
+        child: Scaffold(
+          body: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                  Theme.of(context).colorScheme.surface,
+                ],
+              ),
+            ),
+            child: SafeArea(
+              child: Column(
+                children: [
+                  _buildOnboardingHeader(context),
+                  Expanded(
+                    child: BackupSettingsContent(isOnboardingMode: true),
+                  ),
+                  _buildOnboardingFooter(context),
+                ],
+              ),
             ),
           ),
         ),
@@ -73,7 +97,6 @@ class OnboardingBackupConfigurationPage extends StatelessWidget {
       padding: const EdgeInsets.all(16.0),
       child: BlocBuilder<BackupBloc, BackupState>(
         builder: (context, state) {
-          // Hide "Skip" button if already connected
           final isConnected = state is BackupLoaded && state.isAuthenticated;
 
           return Row(
@@ -103,8 +126,6 @@ class OnboardingBackupConfigurationPage extends StatelessWidget {
   Widget _buildOnboardingFooter(BuildContext context) {
     return BlocBuilder<BackupBloc, BackupState>(
       builder: (context, state) {
-        // 🔧 FIX: Show continue button as soon as user is authenticated
-        // Don't wait for autoBackupEnabled since it happens async
         final canContinue = state is BackupLoaded && state.isAuthenticated;
 
         if (!canContinue) {
@@ -129,12 +150,9 @@ class OnboardingBackupConfigurationPage extends StatelessWidget {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () {
-                  // Inform OnboardingBloc that backup was configured
                   context
                       .read<OnboardingBloc>()
                       .add(const ConfigureBackupOption(true));
-
-                  // Navigate to next step
                   onNext();
                 },
                 style: ElevatedButton.styleFrom(
