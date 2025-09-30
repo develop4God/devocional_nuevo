@@ -9,13 +9,20 @@ import '../extensions/string_extensions.dart';
 import '../widgets/backup_configuration_sheet.dart';
 
 /// Reusable backup settings content for both settings page and onboarding
-class BackupSettingsContent extends StatelessWidget {
+class BackupSettingsContent extends StatefulWidget {
   final bool isOnboardingMode;
 
   const BackupSettingsContent({
     super.key,
     this.isOnboardingMode = false,
   });
+
+  @override
+  State<BackupSettingsContent> createState() => _BackupSettingsContentState();
+}
+
+class _BackupSettingsContentState extends State<BackupSettingsContent> {
+  bool _hasAutoConfigured = false;
 
   @override
   Widget build(BuildContext context) {
@@ -39,36 +46,122 @@ class BackupSettingsContent extends StatelessWidget {
   }
 
   Widget _buildContent(BuildContext context, BackupLoaded state) {
+    // In onboarding mode, show simple success if authenticated
+    if (widget.isOnboardingMode && state.isAuthenticated) {
+      // Auto-configure only once
+      if (!_hasAutoConfigured) {
+        _hasAutoConfigured = true;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          context.read<BackupBloc>().add(const ToggleAutoBackup(true));
+          context.read<BackupBloc>().add(const ToggleWifiOnly(true));
+          context.read<BackupBloc>().add(const ToggleCompression(true));
+        });
+      }
+
+      return SingleChildScrollView(
+        padding: const EdgeInsets.all(16).copyWith(bottom: 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildIntroSection(context),
+            const SizedBox(height: 16),
+            _buildOnboardingSuccessCard(context, state),
+            const SizedBox(height: 24),
+            _buildSecurityInfo(context),
+          ],
+        ),
+      );
+    }
+
+    // Regular settings mode
     final hasConnectedBefore =
         state.lastBackupTime != null || state.autoBackupEnabled;
 
     return SingleChildScrollView(
-      padding: EdgeInsets.all(16).copyWith(bottom: isOnboardingMode ? 16 : 80),
+      padding: const EdgeInsets.all(16).copyWith(bottom: 80),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Intro section (always show)
           _buildIntroSection(context),
           const SizedBox(height: 8),
-
-          // Progressive content based on state
           if (!state.isAuthenticated) ...[
             _buildConnectionPrompt(context),
           ] else if (state.isAuthenticated && !hasConnectedBefore) ...[
             _buildJustConnectedState(context, state),
           ] else if (state.isAuthenticated && state.autoBackupEnabled) ...[
             const SizedBox(height: 8),
-            if (!isOnboardingMode) _buildProtectionTitle(context),
-            if (!isOnboardingMode) const SizedBox(height: 12),
+            _buildProtectionTitle(context),
+            const SizedBox(height: 12),
             _buildAutoBackupActiveState(context, state),
           ] else if (state.isAuthenticated && !state.autoBackupEnabled) ...[
             const SizedBox(height: 8),
             _buildManualBackupState(context, state),
           ],
-
-          // Security info (always at bottom)
           const SizedBox(height: 24),
           _buildSecurityInfo(context),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOnboardingSuccessCard(BuildContext context, BackupLoaded state) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: colorScheme.primaryContainer.withValues(alpha: 0.3),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: colorScheme.primary.withValues(alpha: 0.3),
+        ),
+      ),
+      child: Column(
+        children: [
+          Icon(Icons.check_circle, color: colorScheme.primary, size: 56),
+          const SizedBox(height: 16),
+          Text(
+            'backup.sign_in_success'.tr(),
+            style: theme.textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: colorScheme.primary,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          if (state.userEmail != null) ...[
+            const SizedBox(height: 8),
+            Text(
+              state.userEmail!,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(
+              color: colorScheme.primary.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.shield, color: colorScheme.primary, size: 20),
+                const SizedBox(width: 8),
+                Text(
+                  'Protección automática activada',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -189,60 +282,6 @@ class BackupSettingsContent extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    // In onboarding mode, auto-activate and show simple success
-    if (isOnboardingMode) {
-      // Auto-activate in background
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        context.read<BackupBloc>().add(const ToggleAutoBackup(true));
-        context.read<BackupBloc>().add(const ToggleWifiOnly(true));
-        context.read<BackupBloc>().add(const ToggleCompression(true));
-      });
-
-      return Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: colorScheme.primaryContainer.withValues(alpha: 0.3),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: colorScheme.primary.withValues(alpha: 0.3),
-          ),
-        ),
-        child: Column(
-          children: [
-            Icon(Icons.check_circle, color: colorScheme.primary, size: 48),
-            const SizedBox(height: 12),
-            Text(
-              'backup.sign_in_success'.tr(),
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: colorScheme.primary,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            if (state.userEmail != null) ...[
-              const SizedBox(height: 8),
-              Text(
-                state.userEmail!,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ],
-            const SizedBox(height: 12),
-            Text(
-              'Protección automática activada',
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      );
-    }
-
-    // Settings page mode - show full activation options
     return Column(
       children: [
         Container(
@@ -375,27 +414,25 @@ class BackupSettingsContent extends StatelessWidget {
                     style: theme.textTheme.bodyLarge,
                   ),
                 ),
-                if (!isOnboardingMode) ...[
-                  Switch(
-                    value: state.autoBackupEnabled,
-                    onChanged: (value) {
-                      if (value) {
-                        context
-                            .read<BackupBloc>()
-                            .add(const ToggleAutoBackup(true));
-                      } else {
-                        _showLogoutConfirmation(context);
-                      }
-                    },
-                  ),
-                  const SizedBox(width: 8),
-                  IconButton(
-                    onPressed: () =>
-                        BackupConfigurationSheet.show(context, state),
-                    icon: Icon(Icons.more_vert, color: colorScheme.primary),
-                    tooltip: 'backup.configuration'.tr(),
-                  ),
-                ],
+                Switch(
+                  value: state.autoBackupEnabled,
+                  onChanged: (value) {
+                    if (value) {
+                      context
+                          .read<BackupBloc>()
+                          .add(const ToggleAutoBackup(true));
+                    } else {
+                      _showLogoutConfirmation(context);
+                    }
+                  },
+                ),
+                const SizedBox(width: 8),
+                IconButton(
+                  onPressed: () =>
+                      BackupConfigurationSheet.show(context, state),
+                  icon: Icon(Icons.more_vert, color: colorScheme.primary),
+                  tooltip: 'backup.configuration'.tr(),
+                ),
               ],
             ),
             const SizedBox(height: 16),
