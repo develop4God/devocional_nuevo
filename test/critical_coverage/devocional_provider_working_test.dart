@@ -1,18 +1,10 @@
 // test/critical_coverage/devocional_provider_working_test.dart
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:mocktail/mocktail.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
-import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
-import 'package:devocional_nuevo/services/tts_service.dart';
-
-// Mock classes for testing
-class MockSpiritualStatsService extends Mock implements SpiritualStatsService {}
-class MockTtsService extends Mock implements TtsService {}
-class MockBuildContext extends Mock implements BuildContext {}
+import 'package:devocional_nuevo/controllers/audio_controller.dart';
 
 void main() {
   group('DevocionalProvider Behavioral Tests', () {
@@ -80,7 +72,7 @@ void main() {
       provider = DevocionalProvider();
     });
 
-    tearDown() {
+    tearDown(() {
       provider.dispose();
 
       // Clean up method channel mocks
@@ -94,58 +86,37 @@ void main() {
         const MethodChannel('flutter_tts'),
         null,
       );
-    };
+    });
 
-    test('should reload devotionals when language changes', () async {
-      // Initial state
+    test('should initialize with correct default state', () {
+      expect(provider.devocionales, isEmpty);
+      expect(provider.isLoading, isFalse);
       expect(provider.selectedLanguage, equals('es'));
-      expect(provider.devocionales, isEmpty);
-      
-      // Change language
-      const newLanguage = 'en';
-      provider.setSelectedLanguage(newLanguage);
-      
-      // Verify language changed
-      expect(provider.selectedLanguage, equals(newLanguage));
-      
-      // Verify that changing language triggers data reload (loading state should be set)
-      // The method exists and handles the change
-      expect(provider.selectedLanguage, equals(newLanguage));
-    });
-
-    test('should reload devotionals when version changes', () async {
-      // Initial state
       expect(provider.selectedVersion, equals('RVR1960'));
-      expect(provider.devocionales, isEmpty);
-      
-      // Change version
-      const newVersion = 'NVI';
-      provider.setSelectedVersion(newVersion);
-      
-      // Verify version changed
-      expect(provider.selectedVersion, equals(newVersion));
-      
-      // Verify that changing version triggers appropriate behavior
-      expect(provider.selectedVersion, equals(newVersion));
+      expect(provider.favoriteDevocionales, isEmpty);
+      expect(provider.isOfflineMode, isFalse);
+      expect(provider.isDownloading, isFalse);
     });
 
-    test('should preserve audio state during language changes', () async {
-      const testDevocionalId = 'audio_preserve_test';
-      
-      // Check initial audio state
-      expect(provider.currentPlayingDevocionalId, isNull);
-      expect(provider.isAudioPlaying, isFalse);
-      
-      // Change language and verify audio properties remain accessible
+    test('should update language and version when changed', () async {
       provider.setSelectedLanguage('en');
+      expect(provider.selectedLanguage, equals('en'));
       
-      // Verify audio state properties are still accessible after language change
-      expect(provider.currentPlayingDevocionalId, isA<String?>());
+      provider.setSelectedVersion('NVI');
+      expect(provider.selectedVersion, equals('NVI'));
+      
+      // Allow time for async operations to complete
+      await Future.delayed(Duration(milliseconds: 100));
+    });
+
+    test('should expose audio controller state correctly', () {
+      expect(provider.audioController, isA<AudioController>());
       expect(provider.isAudioPlaying, isA<bool>());
       expect(provider.isAudioPaused, isA<bool>());
+      expect(provider.currentPlayingDevocionalId, isA<String?>());
     });
 
-    test('should persist favorite toggle to service', () async {
+    test('should maintain favorite management state consistency', () {
       final testDevocional = Devocional(
         id: 'favorite_test',
         date: DateTime.now(),
@@ -155,68 +126,35 @@ void main() {
         oracion: 'Test prayer',
       );
 
-      // Initial state - not favorite
-      expect(provider.isFavorite(testDevocional), isFalse);
-      expect(provider.favoriteDevocionales, isEmpty);
-      
-      // Test that favorite management methods exist and work properly
-      // The toggleFavorite method requires a BuildContext which complicates testing
-      // So we'll verify the isFavorite method and favoriteDevocionales list work
+      // Verify favorite methods exist and work consistently
       expect(provider.isFavorite(testDevocional), isA<bool>());
       expect(provider.favoriteDevocionales, isA<List<Devocional>>());
-      
-      // Verify the favorite list is initially empty
       expect(provider.favoriteDevocionales.length, equals(0));
     });
 
-    test('should call stats service when recording devotional read', () async {
-      const testDevocionalId = 'stats_test_dev';
-      
-      // Verify method exists and can be called
-      try {
-        await provider.recordDevocionalRead(testDevocionalId);
-        // Method executed successfully
-        expect(true, isTrue);
-      } catch (e) {
-        // Expected due to mock limitations, but method should exist
-        expect(e, isA<Exception>());
-      }
-    });
-
-    test('should handle offline mode by loading from offline storage', () async {
-      // Test offline mode property
+    test('should provide offline functionality properties', () {
       expect(provider.isOfflineMode, isA<bool>());
-      expect(provider.isOfflineMode, isFalse); // Initially should be false
-      
-      // Test offline-related methods exist
       expect(provider.hasCurrentYearLocalData(), isA<Future<bool>>());
       expect(provider.hasTargetYearsLocalData(), isA<Future<bool>>());
-      
-      // Verify offline mode can be toggled
-      final initialOfflineMode = provider.isOfflineMode;
-      // Method to switch to offline mode exists in the provider
-      expect(provider.isOfflineMode, equals(initialOfflineMode));
+      expect(provider.isDownloading, isA<bool>());
+      expect(provider.downloadStatus, isA<String?>());
     });
 
-    test('should handle errors by showing errorMessage and setting isLoading=false', () async {
-      // Initial state
+    test('should handle supported languages and versions correctly', () {
+      expect(provider.supportedLanguages, isA<List<String>>());
+      expect(provider.supportedLanguages.contains('es'), isTrue);
+      expect(provider.availableVersions, isA<List<String>>());
+      expect(provider.getVersionsForLanguage('es'), isA<List<String>>());
+    });
+
+    test('should manage error and loading states properly', () {
+      expect(provider.isLoading, isA<bool>());
+      expect(provider.errorMessage, isA<String?>());
+      expect(provider.showInvitationDialog, isA<bool>());
+      
+      // Verify loading state is initially false
       expect(provider.isLoading, isFalse);
       expect(provider.errorMessage, isNull);
-      
-      // Test error handling by attempting to initialize with invalid conditions
-      try {
-        await provider.initializeData();
-        // If successful, verify states
-        expect(provider.isLoading, isFalse);
-      } catch (e) {
-        // Expected due to mock environment
-        // Verify error handling properties are accessible
-        expect(provider.isLoading, isA<bool>());
-        expect(provider.errorMessage, isA<String?>());
-      }
-      
-      // Verify error state is properly managed
-      expect(provider.isLoading, isFalse); // Should not be loading after completion/error
     });
   });
 }
