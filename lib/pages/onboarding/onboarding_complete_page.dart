@@ -327,6 +327,8 @@ class _OnboardingCompletePageState extends State<OnboardingCompletePage>
         Map<String, dynamic> configurations = {};
         if (state is OnboardingCompleted) {
           configurations = state.appliedConfigurations;
+          debugPrint(
+              '🔍 [COMPLETE] Configuraciones recibidas: $configurations');
         }
 
         return Container(
