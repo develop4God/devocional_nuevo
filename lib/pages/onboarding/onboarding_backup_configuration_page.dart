@@ -74,9 +74,11 @@ class OnboardingBackupConfigurationPage extends StatelessWidget {
                 children: [
                   _buildOnboardingHeader(context),
                   Expanded(
-                    child: BackupSettingsContent(isOnboardingMode: true),
+                    child: BackupSettingsContent(
+                      isOnboardingMode: true,
+                      onConnectionComplete: onNext, // ← AGREGA ESTO
+                    ),
                   ),
-                  _buildOnboardingFooter(context),
                 ],
               ),
             ),
@@ -114,66 +116,6 @@ class OnboardingBackupConfigurationPage extends StatelessWidget {
           );
         },
       ),
-    );
-  }
-
-  Widget _buildOnboardingFooter(BuildContext context) {
-    return BlocBuilder<BackupBloc, BackupState>(
-      builder: (context, state) {
-        final canContinue = state is BackupLoaded && state.isAuthenticated;
-
-        if (!canContinue) {
-          return const SizedBox.shrink();
-        }
-
-        return Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
-                blurRadius: 10,
-                offset: const Offset(0, -2),
-              ),
-            ],
-          ),
-          child: SafeArea(
-            top: false,
-            child: SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  context
-                      .read<OnboardingBloc>()
-                      .add(const ConfigureBackupOption(true));
-                  onNext();
-                },
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'onboarding.onboarding_next'.tr(),
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    const Icon(Icons.arrow_forward, size: 20),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        );
-      },
     );
   }
 }
