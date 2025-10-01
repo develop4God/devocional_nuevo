@@ -8,13 +8,18 @@ import '../blocs/backup_state.dart';
 import '../extensions/string_extensions.dart';
 import '../widgets/backup_configuration_sheet.dart';
 
+// 🆕 Estados del botón de conexión
+enum ConnectionButtonState { idle, connecting, success, configuring }
+
 /// Reusable backup settings content for both settings page and onboarding
 class BackupSettingsContent extends StatefulWidget {
   final bool isOnboardingMode;
+  final VoidCallback? onConnectionComplete; // 🆕 Callback para onboarding
 
   const BackupSettingsContent({
     super.key,
     this.isOnboardingMode = false,
+    this.onConnectionComplete,
   });
 
   @override
@@ -23,12 +28,56 @@ class BackupSettingsContent extends StatefulWidget {
 
 class _BackupSettingsContentState extends State<BackupSettingsContent> {
   bool _hasAutoConfigured = false;
+  ConnectionButtonState _connectionState = ConnectionButtonState.idle; // 🆕
+  bool _hasShownRestoreSnackbar = false; //
+  bool _isInitialLoad = true; // 🆕
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<BackupBloc, BackupState>(
+    return BlocConsumer<BackupBloc, BackupState>(
+      listener: (context, state) {
+        // 🔧 FIX: Marcar que ya pasó el loading inicial
+        if (state is BackupLoaded && _isInitialLoad) {
+          _isInitialLoad = false;
+        }
+
+        // 🆕 Detectar cuando termina sign-in exitoso
+        if (state is BackupLoaded &&
+            state.isAuthenticated &&
+            _connectionState == ConnectionButtonState.connecting) {
+          setState(() => _connectionState = ConnectionButtonState.success);
+
+          // Mostrar success por 1 segundo
+          Future.delayed(const Duration(milliseconds: 1000), () {
+            if (mounted) {
+              setState(
+                  () => _connectionState = ConnectionButtonState.configuring);
+            }
+          });
+        }
+
+        // 🆕 SnackBar para restauración
+        if (state is BackupRestored && !_hasShownRestoreSnackbar) {
+          _hasShownRestoreSnackbar = true;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  const Icon(Icons.cloud_download,
+                      color: Colors.white, size: 20),
+                  const SizedBox(width: 12),
+                  Expanded(child: Text('backup.restored_successfully'.tr())),
+                ],
+              ),
+              backgroundColor: Colors.green,
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
+      },
       builder: (context, state) {
-        if (state is BackupLoading) {
+        if (state is BackupLoading &&
+            _connectionState == ConnectionButtonState.idle) {
           return const Center(child: CircularProgressIndicator());
         }
 
@@ -37,6 +86,7 @@ class _BackupSettingsContentState extends State<BackupSettingsContent> {
         }
 
         if (state is BackupError) {
+          setState(() => _connectionState = ConnectionButtonState.idle);
           return _buildErrorState(context, state);
         }
 
@@ -55,6 +105,13 @@ class _BackupSettingsContentState extends State<BackupSettingsContent> {
           context.read<BackupBloc>().add(const ToggleAutoBackup(true));
           context.read<BackupBloc>().add(const ToggleWifiOnly(true));
           context.read<BackupBloc>().add(const ToggleCompression(true));
+
+          // 🆕 Delay mínimo antes de navegar (2.5s total)
+          Future.delayed(const Duration(milliseconds: 2500), () {
+            if (mounted && widget.onConnectionComplete != null) {
+              widget.onConnectionComplete!();
+            }
+          });
         });
       }
 
@@ -85,7 +142,7 @@ class _BackupSettingsContentState extends State<BackupSettingsContent> {
           _buildIntroSection(context),
           const SizedBox(height: 8),
           if (!state.isAuthenticated) ...[
-            _buildConnectionPrompt(context),
+            _buildConnectionPrompt(context), // 🔧 Ahora tiene estados visuales
           ] else if (state.isAuthenticated && !hasConnectedBefore) ...[
             _buildJustConnectedState(context, state),
           ] else if (state.isAuthenticated && state.autoBackupEnabled) ...[
@@ -191,7 +248,6 @@ class _BackupSettingsContentState extends State<BackupSettingsContent> {
           Row(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              //Icon(Icons.shield_outlined, color: colorScheme.primary, size: 28),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
@@ -222,16 +278,53 @@ class _BackupSettingsContentState extends State<BackupSettingsContent> {
     );
   }
 
+  // 🔧 MEJORADO: Botón con estados dinámicos
   Widget _buildConnectionPrompt(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
+    // 🆕 Definir apariencia según estado
+    Color buttonColor;
+    IconData buttonIcon;
+    String buttonText;
+    bool isDisabled;
+
+    switch (_connectionState) {
+      case ConnectionButtonState.connecting:
+        buttonColor = colorScheme.primary;
+        buttonIcon = Icons.sync;
+        buttonText = 'Conectando con Google Drive...';
+        isDisabled = true;
+        break;
+      case ConnectionButtonState.success:
+        buttonColor = Colors.green;
+        buttonIcon = Icons.check_circle;
+        buttonText = '¡Conectado!';
+        isDisabled = true;
+        break;
+      case ConnectionButtonState.configuring:
+        buttonColor = Colors.green;
+        buttonIcon = Icons.settings;
+        buttonText = 'Configurando respaldo...';
+        isDisabled = true;
+        break;
+      default:
+        buttonColor = colorScheme.primary;
+        buttonIcon = Icons.account_circle;
+        buttonText = 'backup.google_drive_connection'.tr();
+        isDisabled = false;
+    }
+
     return Card(
       elevation: 2,
       child: InkWell(
-        onTap: () {
-          context.read<BackupBloc>().add(const SignInToGoogleDrive());
-        },
+        onTap: isDisabled
+            ? null
+            : () {
+                setState(
+                    () => _connectionState = ConnectionButtonState.connecting);
+                context.read<BackupBloc>().add(const SignInToGoogleDrive());
+              },
         borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -259,16 +352,45 @@ class _BackupSettingsContentState extends State<BackupSettingsContent> {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: () {
-                    context.read<BackupBloc>().add(const SignInToGoogleDrive());
-                  },
-                  icon: const Icon(Icons.account_circle),
-                  label: Text('backup.google_drive_connection'.tr()),
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
+              // 🆕 Botón con animación y estados
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+                child: SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: isDisabled
+                        ? null
+                        : () {
+                            setState(() => _connectionState =
+                                ConnectionButtonState.connecting);
+                            context
+                                .read<BackupBloc>()
+                                .add(const SignInToGoogleDrive());
+                          },
+                    icon: _connectionState == ConnectionButtonState.connecting
+                        ? SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: colorScheme.onPrimary,
+                            ),
+                          )
+                        : Icon(buttonIcon),
+                    label: Text(
+                      buttonText,
+                      style: const TextStyle(fontSize: 16),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: buttonColor,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      disabledBackgroundColor:
+                          buttonColor.withValues(alpha: 0.7),
+                      disabledForegroundColor:
+                          Colors.white.withValues(alpha: 0.9),
+                    ),
                   ),
                 ),
               ),
@@ -679,6 +801,7 @@ class _BackupSettingsContentState extends State<BackupSettingsContent> {
           const SizedBox(height: 16),
           ElevatedButton(
             onPressed: () {
+              setState(() => _connectionState = ConnectionButtonState.idle);
               context.read<BackupBloc>().add(const LoadBackupSettings());
             },
             child: Text('backup.retry'.tr()),
@@ -690,7 +813,6 @@ class _BackupSettingsContentState extends State<BackupSettingsContent> {
 
   void _showLogoutConfirmation(BuildContext context) {
     final theme = Theme.of(context);
-
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
