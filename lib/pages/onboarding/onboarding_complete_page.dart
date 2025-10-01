@@ -1,4 +1,3 @@
-// lib/pages/onboarding/onboarding_complete_page.dart
 import 'dart:math' as math;
 
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
@@ -240,15 +239,34 @@ class _OnboardingCompletePageState extends State<OnboardingCompletePage>
                 const SizedBox(height: 40),
 
                 // Setup summary card
-                AnimatedBuilder(
-                  animation: _fadeAnimation,
-                  builder: (context, child) {
-                    return Transform.translate(
-                      offset: Offset(0, 30 * (1 - _fadeAnimation.value)),
-                      child: Opacity(
-                        opacity: _fadeAnimation.value,
-                        child: _buildSetupSummaryCard(context),
-                      ),
+                BlocBuilder<OnboardingBloc, OnboardingState>(
+                  builder: (context, state) {
+                    Map<String, dynamic> configurations = {};
+                    if (state is OnboardingCompleted) {
+                      configurations = state.appliedConfigurations;
+                      debugPrint(
+                          '🔍 [COMPLETE] Configuraciones recibidas: $configurations');
+                      debugPrint(
+                          '🔍 [COMPLETE] backupEnabled: ${configurations['backupEnabled']}');
+                      debugPrint(
+                          '🔍 [COMPLETE] backupSkipped: ${configurations['backupSkipped']}');
+                      debugPrint(
+                          '🔍 [COMPLETE] _isBackupConfigured: ${_isBackupConfigured(configurations)}');
+                    }
+
+                    // La animación solo aplica a la tarjeta visual, no al BlocBuilder
+                    return AnimatedBuilder(
+                      animation: _fadeAnimation,
+                      builder: (context, child) {
+                        return Transform.translate(
+                          offset: Offset(0, 30 * (1 - _fadeAnimation.value)),
+                          child: Opacity(
+                            opacity: _fadeAnimation.value,
+                            child: _buildSetupSummaryCardContent(
+                                context, configurations),
+                          ),
+                        );
+                      },
                     );
                   },
                 ),
@@ -323,110 +341,92 @@ class _OnboardingCompletePageState extends State<OnboardingCompletePage>
     );
   }
 
-  Widget _buildSetupSummaryCard(BuildContext context) {
-    debugPrint('🔍 [COMPLETE] _buildSetupSummaryCard ejecutandose');
+  // Nuevo metodo que contiene solo el contenido visual de la tarjeta de resumen.
+  Widget _buildSetupSummaryCardContent(
+      BuildContext context, Map<String, dynamic> configurations) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return BlocBuilder<OnboardingBloc, OnboardingState>(
-      builder: (context, state) {
-        Map<String, dynamic> configurations = {};
-        if (state is OnboardingCompleted) {
-          configurations = state.appliedConfigurations;
-          debugPrint(
-              '🔍 [COMPLETE] Configuraciones recibidas: $configurations');
-          debugPrint(
-              '🔍 [COMPLETE] Configuraciones recibidas: $configurations');
-          debugPrint(
-              '🔍 [COMPLETE] backupEnabled: ${configurations['backupEnabled']}');
-          debugPrint(
-              '🔍 [COMPLETE] backupSkipped: ${configurations['backupSkipped']}');
-          debugPrint(
-              '🔍 [COMPLETE] _isBackupConfigured: ${_isBackupConfigured(configurations)}');
-        }
-
-        return Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                colorScheme.surfaceContainerHighest.withValues(alpha: 0.8),
-                colorScheme.surfaceContainer.withValues(alpha: 0.5),
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: colorScheme.outline.withValues(alpha: 0.1),
-              width: 1,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: colorScheme.shadow.withValues(alpha: 0.05),
-                blurRadius: 20,
-                offset: const Offset(0, 8),
-              ),
-            ],
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            colorScheme.surfaceContainerHighest.withValues(alpha: 0.8),
+            colorScheme.surfaceContainer.withValues(alpha: 0.5),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: colorScheme.outline.withValues(alpha: 0.1),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: colorScheme.shadow.withValues(alpha: 0.05),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: colorScheme.primary.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Icon(
-                      Icons.check_circle_outline,
-                      color: colorScheme.primary,
-                      size: 20,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Text(
-                    'onboarding.onboarding_your_setup'.tr(),
-                    style: theme.textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: colorScheme.onSurface,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-
-              // 1. Theme configuration (always first)
-              _buildSetupItem(
-                context,
-                Icons.palette_outlined,
-                _getThemeStatusMessage(configurations),
-                true,
-              ),
-
-              const SizedBox(height: 16),
-
-              // 2. Backup/Protection (only ONE item, always last)
-              if (_isBackupConfigured(configurations))
-                _buildSetupItem(
-                  context,
-                  Icons.shield_outlined,
-                  'backup.protection_active'.tr(),
-                  true,
-                )
-              else
-                _buildSetupItem(
-                  context,
-                  Icons.settings_outlined,
-                  'onboarding.onboarding_setup_backup_later_info'.tr(),
-                  false,
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: colorScheme.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10),
                 ),
+                child: Icon(
+                  Icons.check_circle_outline,
+                  color: colorScheme.primary,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                'onboarding.onboarding_your_setup'.tr(),
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: colorScheme.onSurface,
+                ),
+              ),
             ],
           ),
-        );
-      },
+          const SizedBox(height: 20),
+
+          // 1. Theme configuration (always first)
+          _buildSetupItem(
+            context,
+            Icons.palette_outlined,
+            _getThemeStatusMessage(configurations),
+            true,
+          ),
+
+          const SizedBox(height: 16),
+
+          // 2. Backup/Protection (only ONE item, always last)
+          if (_isBackupConfigured(configurations))
+            _buildSetupItem(
+              context,
+              Icons.shield_outlined,
+              'backup.protection_active'.tr(),
+              true,
+            )
+          else
+            _buildSetupItem(
+              context,
+              Icons.settings_outlined,
+              'onboarding.onboarding_setup_backup_later_info'.tr(),
+              false,
+            ),
+        ],
+      ),
     );
   }
 
@@ -491,8 +491,8 @@ class _OnboardingCompletePageState extends State<OnboardingCompletePage>
   }
 
   bool _isBackupConfigured(Map<String, dynamic> configurations) {
-    return configurations['backupEnabled'] == true &&
-        configurations['backupSkipped'] != true;
+    // Solo mostrar "Configurar más tarde" si el usuario lo pidió explícitamente
+    return configurations['backupSkipped'] != true;
   }
 
   String _getThemeStatusMessage(Map<String, dynamic> configurations) {
