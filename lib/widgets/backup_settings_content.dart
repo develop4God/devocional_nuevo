@@ -61,7 +61,7 @@ class _BackupSettingsContentState extends State<BackupSettingsContent> {
               _buildContent(context, state),
               if (_isProcessing)
                 Container(
-                  color: Colors.black.withOpacity(0.3),
+                  color: Colors.black.withValues(alpha: 0.3),
                   child: const Center(
                     child: Card(
                       child: Padding(
@@ -80,6 +80,25 @@ class _BackupSettingsContentState extends State<BackupSettingsContent> {
                 ),
             ],
           );
+        }
+
+        // Si llega BackupLoading, mantener el contenido con el botón en estado "connecting"
+        if (state is BackupLoading) {
+          // Crear un estado temporal BackupLoaded con isAuthenticated = false
+          final tempState = BackupLoaded(
+            isAuthenticated: false,
+            autoBackupEnabled: false,
+            wifiOnlyEnabled: true,
+            compressionEnabled: true,
+            backupFrequency: 'daily',
+            backupOptions: const {},
+            lastBackupTime: null,
+            nextBackupTime: null,
+            estimatedSize: 0,
+            storageInfo: const {},
+            userEmail: null,
+          );
+          return _buildContent(context, tempState);
         }
 
         return const Center(child: CircularProgressIndicator());
@@ -153,8 +172,8 @@ class _BackupSettingsContentState extends State<BackupSettingsContent> {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            colorScheme.primaryContainer.withOpacity(0.3),
-            colorScheme.surfaceContainerHighest.withOpacity(0.1),
+            colorScheme.primaryContainer.withValues(alpha: 0.3),
+            colorScheme.surfaceContainerHighest.withValues(alpha: 0.1),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -220,13 +239,13 @@ class _BackupSettingsContentState extends State<BackupSettingsContent> {
         isDisabled = true;
         break;
       case ConnectionButtonState.configuring:
-        buttonColor = Colors.green;
+        buttonColor = colorScheme.primary;
         buttonIcon = Icons.settings;
         buttonText = 'Configurando respaldo...';
         isDisabled = true;
         break;
       case ConnectionButtonState.complete:
-        buttonColor = Colors.green;
+        buttonColor = colorScheme.primary;
         buttonIcon = Icons.check_circle;
         buttonText = '¡Completado!';
         isDisabled = true;
@@ -291,8 +310,9 @@ class _BackupSettingsContentState extends State<BackupSettingsContent> {
                     backgroundColor: buttonColor,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 16),
-                    disabledBackgroundColor: buttonColor.withOpacity(0.7),
-                    disabledForegroundColor: Colors.white.withOpacity(0.9),
+                    disabledBackgroundColor: buttonColor.withValues(alpha: 0.7),
+                    disabledForegroundColor:
+                        Colors.white.withValues(alpha: 0.9),
                   ),
                 ),
               ),
@@ -346,10 +366,10 @@ class _BackupSettingsContentState extends State<BackupSettingsContent> {
       width: double.infinity,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: colorScheme.primaryContainer.withOpacity(0.3),
+        color: colorScheme.primaryContainer.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: statusColor.withOpacity(0.3),
+          color: statusColor.withValues(alpha: 0.3),
         ),
       ),
       child: Column(
@@ -594,7 +614,8 @@ class _BackupSettingsContentState extends State<BackupSettingsContent> {
         if (state.lastBackupTime != null) ...[
           const SizedBox(height: 16),
           Card(
-            color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
+            color: theme.colorScheme.surfaceContainerHighest
+                .withValues(alpha: 0.3),
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Row(
@@ -624,7 +645,7 @@ class _BackupSettingsContentState extends State<BackupSettingsContent> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest.withOpacity(0.3),
+        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
