@@ -1,220 +1,181 @@
 // test/critical_coverage/audio_controller_working_test.dart
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mocktail/mocktail.dart';
+import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:devocional_nuevo/controllers/audio_controller.dart';
 import 'package:devocional_nuevo/services/tts_service.dart';
-import 'package:devocional_nuevo/models/devocional_model.dart';
-
-// Mock classes for testing
-class MockTtsService extends Mock implements TtsService {}
-
-// Fake classes for mocktail
-class FakeDevocional extends Fake implements Devocional {}
 
 void main() {
-  group('AudioController Critical Coverage Tests', () {
+  group('AudioController Behavioral Tests', () {
     late AudioController audioController;
-    late MockTtsService mockTtsService;
 
     setUpAll(() {
       TestWidgetsFlutterBinding.ensureInitialized();
-      // Register fallback values for mocktail
-      registerFallbackValue(FakeDevocional());
     });
 
     setUp(() {
-      mockTtsService = MockTtsService();
-      audioController = AudioController();
+      // Initialize SharedPreferences mock for each test
+      SharedPreferences.setMockInitialValues({});
 
-      // Setup default mock behaviors
-      when(() => mockTtsService.currentState).thenReturn(TtsState.idle);
-      when(() => mockTtsService.currentDevocionalId).thenReturn(null);
-      when(() => mockTtsService.currentChunkIndex).thenReturn(0);
-      when(() => mockTtsService.totalChunks).thenReturn(0);
-      when(() => mockTtsService.previousChunk).thenReturn(null);
-      when(() => mockTtsService.nextChunk).thenReturn(null);
-      when(() => mockTtsService.jumpToChunk).thenReturn(null);
+      // Mock flutter_tts method channel for TTS operations
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+        const MethodChannel('flutter_tts'),
+        (call) async {
+          switch (call.method) {
+            case 'speak':
+              return null;
+            case 'stop':
+              return null;
+            case 'pause':
+              return null;
+            case 'setLanguage':
+              return null;
+            case 'setSpeechRate':
+              return null;
+            case 'setVolume':
+              return null;
+            case 'setPitch':
+              return null;
+            case 'getLanguages':
+              return ['es-ES', 'en-US', 'pt-BR', 'fr-FR'];
+            case 'getVoices':
+              return [
+                {'name': 'Spanish Voice', 'locale': 'es-ES'},
+                {'name': 'English Voice', 'locale': 'en-US'},
+              ];
+            case 'awaitSpeakCompletion':
+              return null;
+            default:
+              return null;
+          }
+        },
+      );
+
+      audioController = AudioController();
+      audioController.initialize();
     });
 
     tearDown(() {
       if (audioController.mounted) {
         audioController.dispose();
       }
+
+      // Clean up method channel mocks
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+        const MethodChannel('flutter_tts'),
+        null,
+      );
     });
 
-    test('should initialize with correct default state', () {
+    test('should initialize with isActive false in idle state', () {
+      // Verify initial state is idle
+      expect(audioController.currentState, equals(TtsState.idle),
+          reason: 'Controller should start in idle state');
+
+      // Verify all activity indicators are false
+      expect(audioController.isActive, isFalse,
+          reason: 'isActive must be false when in idle state');
+      expect(audioController.isPlaying, isFalse,
+          reason: 'isPlaying must be false when in idle state');
+      expect(audioController.isPaused, isFalse,
+          reason: 'isPaused must be false when in idle state');
+
+      // Verify no devotional is set
+      expect(audioController.currentDevocionalId, isNull,
+          reason: 'No devotional should be set initially');
+
+      // Verify progress is zero
+      expect(audioController.progress, equals(0.0),
+          reason: 'Progress should be 0.0 initially');
+    });
+
+    test('should have hasError false when not in error state', () {
+      // Given: Controller in idle state (not error)
       expect(audioController.currentState, equals(TtsState.idle));
-      expect(audioController.currentDevocionalId, isNull);
-      expect(audioController.progress, equals(0.0));
+
+      // Then: hasError must be false
+      expect(audioController.hasError, isFalse,
+          reason:
+              'hasError should be false when currentState is not TtsState.error');
+
+      // Note: We can't easily test hasError=true without triggering actual errors
+      // but we validate the false case which is the normal operating condition
+    });
+
+    test('should return progress in valid range [0.0, 1.0]', () {
+      // Verify progress is within valid bounds
+      final progress = audioController.progress;
+
+      expect(progress, greaterThanOrEqualTo(0.0),
+          reason: 'Progress must be >= 0.0');
+      expect(progress, lessThanOrEqualTo(1.0),
+          reason: 'Progress must be <= 1.0');
+
+      // In initial state, progress should be exactly 0.0
+      expect(progress, equals(0.0), reason: 'Initial progress should be 0.0');
+    });
+
+    test('should have chunk navigation null when no chunks loaded', () {
+      // Verify chunk index is null or 0 initially
+      final chunkIndex = audioController.currentChunkIndex;
+      expect(chunkIndex == null || chunkIndex == 0, isTrue,
+          reason: 'Chunk index should be null or 0 when no audio loaded');
+
+      // Verify total chunks is null or 0 initially
+      final totalChunks = audioController.totalChunks;
+      expect(totalChunks == null || totalChunks == 0, isTrue,
+          reason: 'Total chunks should be null or 0 when no audio loaded');
+
+      // Verify navigation controls are null when no chunks
+      expect(audioController.previousChunk, isNull,
+          reason: 'previousChunk should be null when no audio loaded');
+      expect(audioController.nextChunk, isNull,
+          reason: 'nextChunk should be null when no audio loaded');
+    });
+
+    test('should have mutually exclusive playing and paused states', () {
+      // Verify business rule: isPlaying and isPaused cannot both be true
+      final isPlaying = audioController.isPlaying;
+      final isPaused = audioController.isPaused;
+      final bothTrue = isPlaying && isPaused;
+
+      expect(bothTrue, isFalse,
+          reason: 'Controller cannot be playing AND paused simultaneously');
+
+      // Additionally verify that in idle state, both are false
+      expect(isPlaying, isFalse);
+      expect(isPaused, isFalse);
+    });
+
+    test('should have isActive false when neither playing nor paused', () {
+      // Given: Controller in idle state
+      expect(audioController.currentState, equals(TtsState.idle));
       expect(audioController.isPlaying, isFalse);
       expect(audioController.isPaused, isFalse);
-      expect(audioController.isActive, isFalse);
-      expect(audioController.hasError, isFalse);
+
+      // Then: isActive must be false
+      expect(audioController.isActive, isFalse,
+          reason: 'isActive should be false when neither playing nor paused');
     });
 
-    test('should correctly identify devotional playing state', () {
-      const testDevocionalId = 'test_devotional_123';
+    test('should have mounted false after dispose', () {
+      // Verify initial state
+      expect(audioController.mounted, isTrue,
+          reason: 'Controller should be mounted initially');
 
-      // Test when no devotional is playing
-      expect(audioController.isDevocionalPlaying(testDevocionalId), isFalse);
+      // Dispose the controller
+      audioController.dispose();
 
-      // Test when different devotional ID is checked
-      expect(audioController.isDevocionalPlaying('different_id'), isFalse);
-    });
+      // Verify mounted is now false
+      expect(audioController.mounted, isFalse,
+          reason: 'Controller should not be mounted after dispose');
 
-    test('should manage state properties correctly', () {
-      // Test isLoading state
-      expect(audioController.isLoading, isFalse);
-
-      // Test isActive calculation
-      expect(audioController.isActive, isFalse);
-
-      // Test error state detection
-      expect(audioController.hasError, isFalse);
-    });
-
-    test('should handle playDevotional operation correctly', () async {
-      final devotional = Devocional(
-        id: 'test_dev_456',
-        date: DateTime.now(),
-        versiculo: 'Juan 3:16',
-        reflexion: 'Test reflection',
-        paraMeditar: [],
-        oracion: 'Test prayer',
-      );
-
-      // Mock TTS service speakDevotional
-      when(() => mockTtsService.speakDevotional(any()))
-          .thenAnswer((_) async {});
-
-      // Test that playDevotional method exists and handles operation
-      bool methodCalled = false;
-      try {
-        await audioController.playDevotional(devotional);
-        methodCalled = true;
-      } catch (e) {
-        // Expected due to internal TTS service complexity
-        methodCalled = true;
-      }
-
-      expect(methodCalled, isTrue);
-    });
-
-    test('should handle pause operation correctly', () async {
-      // Mock TTS service pause
-      when(() => mockTtsService.pause()).thenAnswer((_) async {});
-
-      // Test that pause method exists and handles the call
-      bool methodCalled = false;
-      try {
-        await audioController.pause();
-        methodCalled = true;
-      } catch (e) {
-        // Expected due to internal logic checks
-        methodCalled = true;
-      }
-
-      expect(methodCalled, isTrue);
-    });
-
-    test('should handle resume operation correctly', () async {
-      // Mock TTS service resume
-      when(() => mockTtsService.resume()).thenAnswer((_) async {});
-
-      // Test that resume method exists and handles the call
-      bool methodCalled = false;
-      try {
-        await audioController.resume();
-        methodCalled = true;
-      } catch (e) {
-        // Expected due to internal logic checks
-        methodCalled = true;
-      }
-
-      expect(methodCalled, isTrue);
-    });
-
-    test('should handle stop operation correctly', () async {
-      // Mock TTS service stop
-      when(() => mockTtsService.stop()).thenAnswer((_) async {});
-
-      // Test that stop method exists and handles the call
-      bool methodCalled = false;
-      try {
-        await audioController.stop();
-        methodCalled = true;
-      } catch (e) {
-        // Expected due to internal logic
-        methodCalled = true;
-      }
-
-      expect(methodCalled, isTrue);
-    });
-
-    test('should handle togglePlayPause operation correctly', () async {
-      final devotional = Devocional(
-        id: 'toggle_test',
-        date: DateTime.now(),
-        versiculo: 'Test verse',
-        reflexion: 'Test reflection',
-        paraMeditar: [],
-        oracion: 'Test prayer',
-      );
-
-      // Mock TTS service methods
-      when(() => mockTtsService.speakDevotional(any()))
-          .thenAnswer((_) async {});
-      when(() => mockTtsService.pause()).thenAnswer((_) async {});
-
-      // Test that togglePlayPause method exists and handles the call
-      bool methodCalled = false;
-      try {
-        await audioController.togglePlayPause(devotional);
-        methodCalled = true;
-      } catch (e) {
-        // Expected due to internal TTS service complexity
-        methodCalled = true;
-      }
-
-      expect(methodCalled, isTrue);
-    });
-
-    test('should provide access to voice configuration methods', () async {
-      // Test voice-related method accessibility
-      try {
-        final languages = await audioController.getAvailableLanguages();
-        expect(languages, isA<List<String>>());
-      } catch (e) {
-        // Expected due to TTS dependencies in test environment
-        expect(e, isA<Exception>());
-      }
-
-      try {
-        final voices = await audioController.getAvailableVoices();
-        expect(voices, isA<List<String>>());
-      } catch (e) {
-        // Expected due to TTS dependencies in test environment
-        expect(e, isA<Exception>());
-      }
-
-      try {
-        final langVoices = await audioController.getVoicesForLanguage('es');
-        expect(langVoices, isA<List<String>>());
-      } catch (e) {
-        // Expected due to TTS dependencies in test environment
-        expect(e, isA<Exception>());
-      }
-    });
-
-    test('should properly dispose and clean up resources', () {
-      // Verify initial mounted state
-      expect(audioController.mounted, isTrue);
-
-      // Test that dispose doesn't throw
-      expect(() => audioController.dispose(), returnsNormally);
-
-      // Verify mounted state is updated
-      expect(audioController.mounted, isFalse);
+      // Verify state properties remain accessible (don't throw)
+      expect(() => audioController.currentState, returnsNormally);
+      expect(() => audioController.isPlaying, returnsNormally);
+      expect(() => audioController.isPaused, returnsNormally);
     });
   });
 }

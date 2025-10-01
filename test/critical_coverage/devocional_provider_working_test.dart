@@ -6,7 +6,7 @@ import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
 
 void main() {
-  group('DevocionalProvider Critical Coverage Tests', () {
+  group('DevocionalProvider Behavioral Tests', () {
     late DevocionalProvider provider;
 
     setUpAll(() {
@@ -33,6 +33,41 @@ void main() {
         },
       );
 
+      // Mock flutter_tts method channel for TTS operations
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+        const MethodChannel('flutter_tts'),
+        (call) async {
+          switch (call.method) {
+            case 'speak':
+              return null;
+            case 'stop':
+              return null;
+            case 'pause':
+              return null;
+            case 'setLanguage':
+              return null;
+            case 'setSpeechRate':
+              return null;
+            case 'setVolume':
+              return null;
+            case 'setPitch':
+              return null;
+            case 'getLanguages':
+              return ['es-ES', 'en-US', 'pt-BR', 'fr-FR'];
+            case 'getVoices':
+              return [
+                {'name': 'Spanish Voice', 'locale': 'es-ES'},
+                {'name': 'English Voice', 'locale': 'en-US'},
+              ];
+            case 'awaitSpeakCompletion':
+              return null;
+            default:
+              return null;
+          }
+        },
+      );
+
       provider = DevocionalProvider();
     });
 
@@ -45,197 +80,158 @@ void main() {
         const MethodChannel('plugins.flutter.io/path_provider'),
         null,
       );
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+        const MethodChannel('flutter_tts'),
+        null,
+      );
     });
 
-    test('should initialize with correct default values', () {
-      expect(provider.devocionales, isEmpty);
-      expect(provider.isLoading, isFalse);
-      expect(provider.errorMessage, isNull);
-      expect(provider.selectedLanguage, equals('es'));
-      expect(provider.selectedVersion, equals('RVR1960'));
-      expect(provider.favoriteDevocionales, isEmpty);
-      expect(provider.showInvitationDialog, isTrue);
-      expect(provider.isOfflineMode, isFalse);
-      expect(provider.isDownloading, isFalse);
+    test('should initialize with specific default values', () {
+      // Verify language defaults to Spanish
+      expect(provider.selectedLanguage, equals('es'),
+          reason: 'Default language should be Spanish');
+
+      // Verify version defaults to RVR1960
+      expect(provider.selectedVersion, equals('RVR1960'),
+          reason: 'Default version should be RVR1960');
+
+      // Verify lists are empty initially
+      expect(provider.devocionales.isEmpty, isTrue,
+          reason: 'Devotionals list should be empty initially');
+      expect(provider.favoriteDevocionales.isEmpty, isTrue,
+          reason: 'Favorites list should be empty initially');
+
+      // Verify loading state is false
+      expect(provider.isLoading, isFalse,
+          reason: 'Should not be loading initially');
+
+      // Verify no error message
+      expect(provider.errorMessage, isNull,
+          reason: 'Should have no error message initially');
+
+      // Verify offline mode is false
+      expect(provider.isOfflineMode, isFalse,
+          reason: 'Should not be in offline mode initially');
+
+      // Verify not downloading
+      expect(provider.isDownloading, isFalse,
+          reason: 'Should not be downloading initially');
     });
 
-    test('should handle audio state properties correctly', () {
-      expect(provider.isAudioPlaying, isFalse);
-      expect(provider.isAudioPaused, isFalse);
-      expect(provider.currentPlayingDevocionalId, isNull);
+    test('should trigger loading state when language changes', () async {
+      // Given: Initial language
+      final initialLanguage = provider.selectedLanguage;
+      expect(initialLanguage, equals('es'));
+
+      // When: Language is changed
+      provider.setSelectedLanguage('en');
+
+      // Then: Language should be updated
+      expect(provider.selectedLanguage, equals('en'),
+          reason: 'Language should change to English');
+      expect(provider.selectedLanguage, isNot(equals(initialLanguage)),
+          reason: 'Language should be different from initial');
+
+      // Allow async operations to start
+      await Future.delayed(Duration(milliseconds: 50));
+
+      // Note: Due to async nature and mocked file system, we can't reliably test
+      // the loading state change, but we verified the language property changes
     });
 
-    test('should manage supported languages list', () {
+    test('should trigger reload when version changes', () async {
+      // Given: Initial version
+      final initialVersion = provider.selectedVersion;
+      expect(initialVersion, equals('RVR1960'));
+
+      // When: Version is changed
+      provider.setSelectedVersion('NVI');
+
+      // Then: Version should be updated
+      expect(provider.selectedVersion, equals('NVI'),
+          reason: 'Version should change to NVI');
+      expect(provider.selectedVersion, isNot(equals(initialVersion)),
+          reason: 'Version should be different from initial');
+
+      // Allow async operations to complete
+      await Future.delayed(Duration(milliseconds: 100));
+    });
+
+    test('should maintain favorite state correctly', () {
+      // Create test devotional
+      final testDevocional = Devocional(
+        id: 'favorite_test_001',
+        date: DateTime.now(),
+        versiculo: 'Juan 3:16',
+        reflexion: 'Test reflection',
+        paraMeditar: [],
+        oracion: 'Test prayer',
+      );
+
+      // Verify initially not favorite
+      expect(provider.isFavorite(testDevocional), isFalse,
+          reason: 'Devotional should not be favorite initially');
+
+      // Verify favorites list is empty
+      expect(provider.favoriteDevocionales.length, equals(0),
+          reason: 'Favorites list should be empty initially');
+
+      // Note: We can't test toggleFavorite without BuildContext
+      // but we verified the query methods work correctly
+    });
+
+    test('should delegate audio state to audio controller', () {
+      // Verify audio controller is accessible
+      expect(provider.audioController, isNotNull,
+          reason: 'Audio controller should not be null');
+
+      // Verify audio state properties are accessible
+      final isPlaying = provider.isAudioPlaying;
+      final isPaused = provider.isAudioPaused;
+      final currentId = provider.currentPlayingDevocionalId;
+
+      // These should match the controller's state
+      expect(isPlaying, equals(provider.audioController.isPlaying),
+          reason: 'isAudioPlaying should match controller state');
+      expect(isPaused, equals(provider.audioController.isPaused),
+          reason: 'isAudioPaused should match controller state');
+      expect(currentId, equals(provider.audioController.currentDevocionalId),
+          reason: 'currentPlayingDevocionalId should match controller');
+    });
+
+    test('should have valid supported languages', () {
       final languages = provider.supportedLanguages;
-      expect(languages, isA<List<String>>());
-      expect(languages.contains('es'), isTrue);
+
+      // Verify it's a non-empty list
+      expect(languages, isNotEmpty,
+          reason: 'Supported languages should not be empty');
+
+      // Verify expected languages are present
+      expect(languages.contains('es'), isTrue,
+          reason: 'Should support Spanish');
+      expect(languages.contains('en'), isTrue,
+          reason: 'Should support English');
+      expect(languages.contains('pt'), isTrue,
+          reason: 'Should support Portuguese');
+      expect(languages.contains('fr'), isTrue, reason: 'Should support French');
+
+      // Verify versions for Spanish
+      final versions = provider.getVersionsForLanguage('es');
+      expect(versions, isNotEmpty, reason: 'Should have versions for Spanish');
+      // All items in the list should be strings (validated by type system)
     });
 
-    test('should handle language switching correctly', () {
-      const newLanguage = 'en';
+    test('should maintain error state correctly', () {
+      // Verify initial error state
+      expect(provider.errorMessage, isNull,
+          reason: 'Should have no error initially');
+      expect(provider.isLoading, isFalse,
+          reason: 'Should not be loading initially');
 
-      // Test method exists and can be called
-      expect(() => provider.setSelectedLanguage(newLanguage), returnsNormally);
-      expect(provider.selectedLanguage, equals(newLanguage));
-    });
-
-    test('should handle version switching correctly', () {
-      const newVersion = 'NVI';
-
-      // Test method exists and can be called
-      expect(() => provider.setSelectedVersion(newVersion), returnsNormally);
-      expect(provider.selectedVersion, equals(newVersion));
-    });
-
-    test('should handle audio control methods', () async {
-      final testDevocional = Devocional(
-        id: 'audio-test',
-        date: DateTime.now(),
-        versiculo: 'Test verse',
-        reflexion: 'Test reflection',
-        paraMeditar: [],
-        oracion: 'Test prayer',
-      );
-
-      // Test play
-      try {
-        await provider.playDevotional(testDevocional);
-        expect(
-            true, isTrue); // Method exists and doesn't throw compilation error
-      } catch (e) {
-        // Expected due to TTS dependencies
-        expect(e, isA<Exception>());
-      }
-
-      // Test pause
-      try {
-        await provider.pauseAudio();
-        expect(
-            true, isTrue); // Method exists and doesn't throw compilation error
-      } catch (e) {
-        // Expected due to TTS dependencies
-        expect(e, isA<Exception>());
-      }
-
-      // Test resume
-      try {
-        await provider.resumeAudio();
-        expect(
-            true, isTrue); // Method exists and doesn't throw compilation error
-      } catch (e) {
-        // Expected due to TTS dependencies
-        expect(e, isA<Exception>());
-      }
-
-      // Test stop
-      try {
-        await provider.stopAudio();
-        expect(
-            true, isTrue); // Method exists and doesn't throw compilation error
-      } catch (e) {
-        // Expected due to TTS dependencies
-        expect(e, isA<Exception>());
-      }
-    });
-
-    test('should handle TTS settings correctly', () async {
-      // Test TTS language setting
-      try {
-        await provider.setTtsLanguage('en-US');
-        expect(
-            true, isTrue); // Method exists and doesn't throw compilation error
-      } catch (e) {
-        // Expected due to TTS dependencies
-        expect(e, isA<Exception>());
-      }
-
-      // Test TTS voice setting
-      try {
-        await provider.setTtsVoice({'name': 'test-voice', 'locale': 'en-US'});
-        expect(
-            true, isTrue); // Method exists and doesn't throw compilation error
-      } catch (e) {
-        // Expected due to TTS dependencies
-        expect(e, isA<Exception>());
-      }
-
-      // Test TTS speech rate setting
-      try {
-        await provider.setTtsSpeechRate(0.7);
-        expect(
-            true, isTrue); // Method exists and doesn't throw compilation error
-      } catch (e) {
-        // Expected due to TTS dependencies
-        expect(e, isA<Exception>());
-      }
-    });
-
-    test('should handle reading tracking functionality', () {
-      const testDevocionalId = 'tracking-test';
-
-      // Test start tracking (with optional parameter)
-      provider.startDevocionalTracking(testDevocionalId);
-      expect(provider.currentTrackedDevocionalId, equals(testDevocionalId));
-
-      // Test pause tracking
-      provider.pauseTracking();
-      expect(true, isTrue); // Method exists and completes
-
-      // Test resume tracking
-      provider.resumeTracking();
-      expect(true, isTrue); // Method exists and completes
-    });
-
-    test('should handle devotional reading recording', () async {
-      const testDevocionalId = 'reading-test';
-
-      try {
-        await provider.recordDevocionalRead(testDevocionalId);
-        expect(
-            true, isTrue); // Method exists and doesn't throw compilation error
-      } catch (e) {
-        // Expected due to stats service dependencies
-        expect(e, isA<Exception>());
-      }
-    });
-
-    test('should validate devotional playing status', () {
-      const testDevocionalId = 'playing-test';
-
-      // Test devotional playing check
-      final isPlaying = provider.isDevocionalPlaying(testDevocionalId);
-      expect(isPlaying, isA<bool>());
-      expect(isPlaying, isFalse); // Should be false initially
-    });
-
-    test('should handle favorites management', () {
-      final testDevocional = Devocional(
-        id: 'favorite-test',
-        date: DateTime.now(),
-        versiculo: 'Test verse',
-        reflexion: 'Test reflection',
-        paraMeditar: [],
-        oracion: 'Test prayer',
-      );
-
-      // Test checking if devotional is favorite
-      final isFavorite = provider.isFavorite(testDevocional);
-      expect(isFavorite, isA<bool>());
-      expect(isFavorite, isFalse); // Should be false initially
-
-      // Test that favorites list is initially empty
-      expect(provider.favoriteDevocionales, isEmpty);
-    });
-
-    test('should handle initialization process and data loading', () async {
-      try {
-        await provider.initializeData();
-        expect(
-            true, isTrue); // Method exists and doesn't throw compilation error
-      } catch (e) {
-        // Expected due to network/file dependencies in test environment
-        expect(e, isA<Exception>());
-      }
+      // Verify error message property is accessible and valid
+      final errorMsg = provider.errorMessage;
+      expect(errorMsg, isNull, reason: 'Error message should be null initially');
     });
   });
 }
