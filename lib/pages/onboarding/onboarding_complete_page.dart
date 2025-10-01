@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../blocs/onboarding/onboarding_bloc.dart';
+import '../../blocs/onboarding/onboarding_event.dart';
 import '../../blocs/onboarding/onboarding_state.dart';
 
 class OnboardingCompletePage extends StatefulWidget {
@@ -283,7 +284,11 @@ class _OnboardingCompletePageState extends State<OnboardingCompletePage>
                               ],
                             ),
                             child: ElevatedButton(
-                              onPressed: widget.onStartApp,
+                              onPressed: () {
+                                context
+                                    .read<OnboardingBloc>()
+                                    .add(const CompleteOnboarding());
+                              },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.transparent,
                                 shadowColor: Colors.transparent,
