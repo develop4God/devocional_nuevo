@@ -414,8 +414,8 @@ class _OnboardingCompletePageState extends State<OnboardingCompletePage>
           if (_isBackupConfigured(configurations))
             _buildSetupItem(
               context,
-              Icons.shield_outlined,
-              'backup.protection_active'.tr(),
+              Icons.cloud_done_outlined,
+              'onboarding.onboarding_setup_backup_configured'.tr(),
               true,
             )
           else

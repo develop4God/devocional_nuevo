@@ -14,6 +14,9 @@ import 'package:devocional_nuevo/services/update_service.dart';
 import 'package:devocional_nuevo/utils/bubble_constants.dart';
 import 'package:devocional_nuevo/utils/copyright_utils.dart';
 import 'package:devocional_nuevo/widgets/add_prayer_modal.dart';
+import 'package:devocional_nuevo/widgets/app_bar_constants.dart'
+    show CustomAppBar;
+import 'package:devocional_nuevo/widgets/app_bar_constants.dart';
 import 'package:devocional_nuevo/widgets/devocionales_page_drawer.dart';
 import 'package:devocional_nuevo/widgets/tts_player_widget.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
@@ -34,8 +37,6 @@ import '../services/spiritual_stats_service.dart';
 class DevocionalesPage extends StatefulWidget {
   final String? initialDevocionalId;
 
-  // El constructor debe ser const SIEMPRE que las propiedades sean finales/const.
-  // Así, otros archivos pueden invocarlo como const DevocionalesPage()
   const DevocionalesPage({super.key, this.initialDevocionalId});
 
   @override
@@ -115,7 +116,6 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       }
 
       if (devocionalProvider.devocionales.isNotEmpty) {
-        // Registrar visita diaria automática para la racha
         final spiritualStatsService = SpiritualStatsService();
         await spiritualStatsService.recordDailyAppVisit();
 
@@ -180,7 +180,6 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       );
 
       await remoteConfig.setDefaults({'show_badges_tab': false});
-
       await remoteConfig.fetchAndActivate();
 
       if (mounted) {
@@ -395,7 +394,6 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     );
   }
 
-  // Helper para obtener el devocional actual de forma segura
   Devocional? getCurrentDevocional(List<Devocional> devocionales) {
     if (devocionales.isNotEmpty &&
         _currentDevocionalIndex >= 0 &&
@@ -413,14 +411,11 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       case 'en':
         return DateFormat('EEEE, MMMM d', 'en');
       case 'fr':
-        return DateFormat(
-          'EEEE d MMMM',
-          'fr',
-        ); // Sin coma (formato nativo francés)
+        return DateFormat('EEEE d MMMM', 'fr');
       case 'pt':
         return DateFormat('EEEE, d \'de\' MMMM', 'pt');
       default:
-        return DateFormat('EEEE, MMMM d', 'en'); // Fallback a inglés
+        return DateFormat('EEEE, MMMM d', 'en');
     }
   }
 
@@ -477,9 +472,10 @@ class _DevocionalesPageState extends State<DevocionalesPage>
               const SizedBox(height: 20),
               Text(
                 'devotionals.share_devotional'.tr(),
-                style: Theme.of(
-                  context,
-                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                style: Theme.of(context)
+                    .textTheme
+                    .titleLarge
+                    ?.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 20),
               Row(
@@ -582,15 +578,8 @@ class _DevocionalesPageState extends State<DevocionalesPage>
 
     return Scaffold(
       drawer: const DevocionalesDrawer(),
-      appBar: AppBar(
-        title: Text(
-          'devotionals.my_intimate_space_with_god'.tr(),
-          style: TextStyle(
-            color: Theme.of(context).appBarTheme.foregroundColor ??
-                colorScheme.onPrimary,
-          ),
-        ),
-        centerTitle: true,
+      appBar: CustomAppBar(
+        titleText: 'devotionals.my_intimate_space_with_god'.tr(),
       ),
       floatingActionButton: FloatingActionButton.small(
         onPressed: _showAddPrayerModal,
@@ -616,7 +605,6 @@ class _DevocionalesPageState extends State<DevocionalesPage>
             );
           }
 
-          // Protección para el índice
           if (_currentDevocionalIndex >= devocionales.length ||
               _currentDevocionalIndex < 0) {
             _currentDevocionalIndex = 0;
