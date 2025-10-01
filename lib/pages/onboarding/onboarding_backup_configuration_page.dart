@@ -108,7 +108,7 @@ class OnboardingBackupConfigurationPage extends StatelessWidget {
                     context
                         .read<OnboardingBloc>()
                         .add(const SkipBackupForNow());
-                    onSkip();
+                    onSkip(); // <-- This triggers step navigation to summary
                   },
                   child: Text('onboarding.onboarding_config_later'.tr()),
                 ),

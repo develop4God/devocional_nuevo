@@ -433,10 +433,11 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
 
     _isCompletingOnboarding = true;
     try {
-      // Get configurations from current state before emitting loading
+      // 🔧 CORRECCIÓN: Get configurations from current state before emitting loading
       Map<String, dynamic> configurations;
       if (state is OnboardingStepActive) {
-        configurations = (state as OnboardingStepActive).userSelections;
+        configurations = Map<String, dynamic>.from(
+            (state as OnboardingStepActive).userSelections); // ← ESTA LÍNEA
       } else {
         configurations = await _loadSavedConfiguration();
       }
