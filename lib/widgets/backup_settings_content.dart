@@ -35,15 +35,29 @@ class _BackupSettingsContentState extends State<BackupSettingsContent> {
   bool _isProcessing = false;
 
   @override
+  void dispose() {
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return BlocConsumer<BackupBloc, BackupState>(
       listener: (context, state) {
         // Manejar estados en tiempo real
         if (state is BackupLoaded && state.isAuthenticated) {
           if (_connectionState == ConnectionButtonState.connecting) {
-            setState(
-                () => _connectionState = ConnectionButtonState.transferring);
+            setState(() {
+              _connectionState = ConnectionButtonState.transferring;
+              _isProcessing = true;
+            });
           }
+        }
+
+        // Cuando termine todo el proceso, desbloquear
+        if (state is BackupLoaded &&
+            state.isAuthenticated &&
+            _connectionState == ConnectionButtonState.complete) {
+          setState(() => _isProcessing = false);
         }
       },
       builder: (context, state) {
@@ -56,7 +70,20 @@ class _BackupSettingsContentState extends State<BackupSettingsContent> {
         }
 
         if (state is BackupLoaded) {
-          return _buildContent(context, state);
+          return Stack(
+            children: [
+              _buildContent(context, state),
+              if (_isProcessing)
+                Positioned.fill(
+                  child: AbsorbPointer(
+                    absorbing: true,
+                    child: Container(
+                      color: Colors.transparent,
+                    ),
+                  ),
+                ),
+            ],
+          );
         }
 
         // Si llega BackupLoading o cualquier otro estado, mantener el contenido
@@ -74,7 +101,19 @@ class _BackupSettingsContentState extends State<BackupSettingsContent> {
           storageInfo: const {},
           userEmail: null,
         );
-        return _buildContent(context, tempState);
+        return Stack(
+          children: [
+            _buildContent(context, tempState),
+            Positioned.fill(
+              child: AbsorbPointer(
+                absorbing: true,
+                child: Container(
+                  color: Colors.transparent,
+                ),
+              ),
+            ),
+          ],
+        );
       },
     );
   }
