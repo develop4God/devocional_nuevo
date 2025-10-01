@@ -158,8 +158,8 @@ class _OnboardingThemeSelectionPageState
                                 });
                                 // Apply theme immediately for live preview
                                 context.read<ThemeBloc>().add(
-                                  ChangeThemeFamily(themeKey),
-                                );
+                                      ChangeThemeFamily(themeKey),
+                                    );
                               },
                               child: AnimatedContainer(
                                 duration: const Duration(milliseconds: 300),

@@ -1,3 +1,4 @@
+// lib/pages/onboarding/onboarding_complete_page.dart
 import 'dart:math' as math;
 
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
@@ -5,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../blocs/onboarding/onboarding_bloc.dart';
+import '../../blocs/onboarding/onboarding_event.dart';
 import '../../blocs/onboarding/onboarding_state.dart';
 
 class OnboardingCompletePage extends StatefulWidget {
@@ -282,7 +284,11 @@ class _OnboardingCompletePageState extends State<OnboardingCompletePage>
                               ],
                             ),
                             child: ElevatedButton(
-                              onPressed: widget.onStartApp,
+                              onPressed: () {
+                                context
+                                    .read<OnboardingBloc>()
+                                    .add(const CompleteOnboarding());
+                              },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.transparent,
                                 shadowColor: Colors.transparent,
@@ -318,6 +324,7 @@ class _OnboardingCompletePageState extends State<OnboardingCompletePage>
   }
 
   Widget _buildSetupSummaryCard(BuildContext context) {
+    debugPrint('🔍 [COMPLETE] _buildSetupSummaryCard ejecutandose');
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
@@ -326,6 +333,16 @@ class _OnboardingCompletePageState extends State<OnboardingCompletePage>
         Map<String, dynamic> configurations = {};
         if (state is OnboardingCompleted) {
           configurations = state.appliedConfigurations;
+          debugPrint(
+              '🔍 [COMPLETE] Configuraciones recibidas: $configurations');
+          debugPrint(
+              '🔍 [COMPLETE] Configuraciones recibidas: $configurations');
+          debugPrint(
+              '🔍 [COMPLETE] backupEnabled: ${configurations['backupEnabled']}');
+          debugPrint(
+              '🔍 [COMPLETE] backupSkipped: ${configurations['backupSkipped']}');
+          debugPrint(
+              '🔍 [COMPLETE] _isBackupConfigured: ${_isBackupConfigured(configurations)}');
         }
 
         return Container(
@@ -381,7 +398,7 @@ class _OnboardingCompletePageState extends State<OnboardingCompletePage>
               ),
               const SizedBox(height: 20),
 
-              // Theme configuration
+              // 1. Theme configuration (always first)
               _buildSetupItem(
                 context,
                 Icons.palette_outlined,
@@ -391,24 +408,21 @@ class _OnboardingCompletePageState extends State<OnboardingCompletePage>
 
               const SizedBox(height: 16),
 
-              // Backup configuration
-              _buildSetupItem(
-                context,
-                _getBackupStatusIcon(configurations),
-                _getBackupStatusMessage(configurations),
-                _isBackupConfigured(configurations) ||
-                    _wasBackupSkipped(configurations),
-              ),
-
-              const SizedBox(height: 16),
-
-              // Data protection
-              _buildSetupItem(
-                context,
-                Icons.shield_outlined,
-                'Protección de datos activada',
-                true,
-              ),
+              // 2. Backup/Protection (only ONE item, always last)
+              if (_isBackupConfigured(configurations))
+                _buildSetupItem(
+                  context,
+                  Icons.shield_outlined,
+                  'backup.protection_active'.tr(),
+                  true,
+                )
+              else
+                _buildSetupItem(
+                  context,
+                  Icons.settings_outlined,
+                  'onboarding.onboarding_setup_backup_later_info'.tr(),
+                  false,
+                ),
             ],
           ),
         );
@@ -477,38 +491,11 @@ class _OnboardingCompletePageState extends State<OnboardingCompletePage>
   }
 
   bool _isBackupConfigured(Map<String, dynamic> configurations) {
-    return configurations['backupEnabled'] == true;
-  }
-
-  bool _wasBackupSkipped(Map<String, dynamic> configurations) {
-    return configurations['backupSkipped'] == true;
-  }
-
-  IconData _getBackupStatusIcon(Map<String, dynamic> configurations) {
-    if (_isBackupConfigured(configurations)) {
-      return Icons.cloud_done_outlined;
-    } else if (_wasBackupSkipped(configurations)) {
-      return Icons.schedule_outlined;
-    } else {
-      return Icons.cloud_off_outlined;
-    }
-  }
-
-  String _getBackupStatusMessage(Map<String, dynamic> configurations) {
-    if (_isBackupConfigured(configurations)) {
-      return 'Respaldo automático configurado';
-    } else if (_wasBackupSkipped(configurations)) {
-      return 'Podrás configurar el respaldo más tarde';
-    } else {
-      return 'Respaldo omitido';
-    }
+    return configurations['backupEnabled'] == true &&
+        configurations['backupSkipped'] != true;
   }
 
   String _getThemeStatusMessage(Map<String, dynamic> configurations) {
-    final selectedTheme = configurations['selectedThemeFamily'] as String?;
-    if (selectedTheme != null && selectedTheme.isNotEmpty) {
-      return 'Tema "$selectedTheme" seleccionado';
-    }
-    return 'Tema personalizado seleccionado';
+    return 'onboarding.onboarding_setup_theme_configured'.tr();
   }
 }

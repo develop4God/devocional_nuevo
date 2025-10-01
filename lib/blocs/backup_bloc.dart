@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../providers/devocional_provider.dart';
-import '../services/backup_scheduler_service.dart';
 import '../services/google_drive_backup_service.dart';
 import 'backup_event.dart';
 import 'backup_state.dart';
@@ -11,16 +10,13 @@ import 'backup_state.dart';
 /// BLoC for managing Google Drive backup functionality
 class BackupBloc extends Bloc<BackupEvent, BackupState> {
   final GoogleDriveBackupService _backupService;
-  final BackupSchedulerService? _schedulerService;
   DevocionalProvider? _devocionalProvider;
 
   BackupBloc({
     required GoogleDriveBackupService backupService,
-    BackupSchedulerService? schedulerService,
     DevocionalProvider? devocionalProvider,
     dynamic prayerBloc,
   })  : _backupService = backupService,
-        _schedulerService = schedulerService,
         _devocionalProvider = devocionalProvider,
         super(const BackupInitial()) {
     // Register event handlers
@@ -133,14 +129,6 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
         }
       }
 
-      if (_schedulerService != null) {
-        debugPrint('🔧 [BLOC] Auto backup cambió, actualizando scheduler...');
-        await _schedulerService!.scheduleAutomaticBackup();
-        debugPrint('✅ [BLOC] Scheduler actualizado por toggle auto backup');
-      } else {
-        debugPrint('⚠️ [BLOC] Scheduler service no disponible');
-      }
-
       if (state is BackupLoaded) {
         final currentState = state as BackupLoaded;
         final updatedFrequency = await _backupService.getBackupFrequency();
@@ -180,18 +168,6 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
       if (event.frequency == GoogleDriveBackupService.frequencyDeactivated) {
         debugPrint('🚪 [BLOC] Frecuencia desactivada, cerrando sesión...');
         await _backupService.signOut();
-      }
-
-      if (_schedulerService != null) {
-        debugPrint(
-          '🔧 [BLOC] Frecuencia cambió a ${event.frequency}, reprogramando scheduler...',
-        );
-        await _schedulerService!.scheduleAutomaticBackup();
-        debugPrint('✅ [BLOC] Scheduler reprogramado por cambio de frecuencia');
-      } else {
-        debugPrint(
-          '⚠️ [BLOC] Scheduler service no disponible para reprogramar',
-        );
       }
 
       if (state is BackupLoaded) {
@@ -309,20 +285,6 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
         final timestamp = DateTime.now();
         debugPrint('✅ [BLOC] Backup manual exitoso en: $timestamp');
 
-        if (_schedulerService != null) {
-          debugPrint(
-            '🔧 [BLOC] Backup manual exitoso, reprogramando siguiente backup automático...',
-          );
-          await _schedulerService!.scheduleAutomaticBackup();
-          debugPrint(
-            '✅ [BLOC] Scheduler reprogramado después de backup manual',
-          );
-        } else {
-          debugPrint(
-            '⚠️ [BLOC] Scheduler service no disponible para reprogramar',
-          );
-        }
-
         emit(BackupCreated(timestamp));
         add(const LoadBackupSettings());
         debugPrint(
@@ -356,18 +318,6 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
 
       if (success) {
         debugPrint('✅ [BLOC] Restore exitoso');
-
-        if (_schedulerService != null) {
-          debugPrint(
-            '🔧 [BLOC] Restore exitoso, reprogramando siguiente backup automático...',
-          );
-          await _schedulerService!.scheduleAutomaticBackup();
-          debugPrint('✅ [BLOC] Scheduler reprogramado después de restore');
-        } else {
-          debugPrint(
-            '⚠️ [BLOC] Scheduler service no disponible para reprogramar',
-          );
-        }
 
         emit(const BackupRestored());
         add(const LoadBackupSettings());
@@ -440,11 +390,6 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
         if (!isAutoEnabled) {
           await _backupService.setAutoBackupEnabled(true);
           debugPrint('✅ [BLOC] Auto-backup activado automáticamente al login');
-
-          if (_schedulerService != null) {
-            await _schedulerService!.scheduleAutomaticBackup();
-            debugPrint('✅ [BLOC] Backup automático programado tras login');
-          }
         }
 
         // RESTAURACIÓN AUTOMÁTICA - SIN INTERVENCIÓN DEL USUARIO
@@ -464,21 +409,6 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
 
           if (restored) {
             debugPrint('✅ [BLOC] Datos restaurados automáticamente');
-
-            // 🔧 ARREGLO: Programar scheduler después de restauración automática
-            if (_schedulerService != null) {
-              debugPrint(
-                '🔧 [BLOC] Restauración exitosa, programando scheduler...',
-              );
-              await _schedulerService!.scheduleAutomaticBackup();
-              debugPrint(
-                '✅ [BLOC] Scheduler programado después de restauración automática',
-              );
-            } else {
-              debugPrint(
-                '⚠️ [BLOC] Scheduler service no disponible después de restore',
-              );
-            }
 
             emit(
               const BackupSuccess(
@@ -518,12 +448,6 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
       await _backupService.signOut();
       debugPrint('✅ [BLOC] Sign-out exitoso');
 
-      if (_schedulerService != null) {
-        debugPrint('🛑 [BLOC] Cancelando backups programados por sign-out...');
-        await _schedulerService!.cancelAutomaticBackup();
-        debugPrint('✅ [BLOC] Backups programados cancelados');
-      }
-
       add(const LoadBackupSettings());
     } catch (e) {
       debugPrint('❌ [BLOC] Error signing out from Google Drive: $e');
@@ -557,13 +481,6 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
         debugPrint('⏰ [BLOC] Horas desde último backup: $hoursSinceLastBackup');
 
         if (hoursSinceLastBackup >= 24) {
-          /* DEBUG: Para validaciones rápidas, comentar arriba y descomentar abajo
-        final minutesSinceLastBackup = now.difference(lastBackupTime).inMinutes;
-         debugPrint('⏰ [BLOC] Minutos desde último backup: $minutesSinceLastBackup');
-
-        if (minutesSinceLastBackup >= 1) {
-        */
-
           debugPrint('🚀 [BLOC] 24+ horas, ejecutando startup backup');
 
           final success =
@@ -571,9 +488,6 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
 
           if (success) {
             debugPrint('✅ [BLOC] Startup backup exitoso');
-            if (_schedulerService != null) {
-              await _schedulerService!.scheduleAutomaticBackup();
-            }
             add(const LoadBackupSettings());
           }
         }
@@ -581,9 +495,6 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
         debugPrint('🎯 [BLOC] Sin backup previo - creando inicial');
         final success = await _backupService.createBackup(_devocionalProvider);
         if (success) {
-          if (_schedulerService != null) {
-            await _schedulerService!.scheduleAutomaticBackup();
-          }
           add(const LoadBackupSettings());
         }
       }

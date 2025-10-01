@@ -12,7 +12,6 @@ import 'package:devocional_nuevo/pages/onboarding/onboarding_flow.dart';
 import 'package:devocional_nuevo/pages/settings_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/providers/localization_provider.dart';
-import 'package:devocional_nuevo/services/backup_scheduler_service.dart';
 import 'package:devocional_nuevo/services/connectivity_service.dart';
 import 'package:devocional_nuevo/services/google_drive_auth_service.dart';
 import 'package:devocional_nuevo/services/google_drive_backup_service.dart';
@@ -95,20 +94,7 @@ void main() async {
   developer.log('App: Función main() iniciada.', name: 'MainApp');
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-  // ➕ INICIALIZAR BACKUP SCHEDULER
-  try {
-    await BackupSchedulerService.initialize();
-    developer.log(
-      'AppInitializer: BackupSchedulerService inicializado correctamente.',
-      name: 'MainApp',
-    );
-  } catch (e) {
-    developer.log(
-      'ERROR: Error inicializando BackupSchedulerService: $e',
-      name: 'MainApp',
-      error: e,
-    );
-  }
+
   // Configurar el manejador de mensajes FCM en segundo plano
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   developer.log(
@@ -139,7 +125,6 @@ void main() async {
               connectivityService: ConnectivityService(),
               statsService: SpiritualStatsService(),
             ),
-            schedulerService: null, // ✅ El BLoC maneja null correctamente
             devocionalProvider: context.read<DevocionalProvider>(),
           ),
         ),
@@ -150,7 +135,6 @@ void main() async {
 }
 
 // App principal - Siempre muestra SplashScreen primero
-// App principal - Siempre muestra SplashScreen primero
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
@@ -159,12 +143,12 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  late Future<bool> _initializationFuture; // ← Cambiar nombre
+  late Future<bool> _initializationFuture;
 
   @override
   void initState() {
     super.initState();
-    _initializationFuture = _initializeApp(); // ← Nuevo método unificado
+    _initializationFuture = _initializeApp();
   }
 
   /// Método unificado que inicializa servicios y verifica onboarding
@@ -225,7 +209,7 @@ class _MyAppState extends State<MyApp> {
           supportedLocales: localizationProvider.supportedLocales,
           locale: localizationProvider.currentLocale,
           home: FutureBuilder<bool>(
-            future: _initializationFuture, // ← Usar el future unificado
+            future: _initializationFuture,
             builder: (context, snapshot) {
               // Mostrar splash mientras se inicializa
               if (snapshot.connectionState == ConnectionState.waiting) {
@@ -292,11 +276,11 @@ class _AppInitializerState extends State<AppInitializer> {
     // Dar tiempo para que el SplashScreen se muestre
     await Future.delayed(const Duration(milliseconds: 600));
 
-    // Inicialización completa: servicios + datos
+    // Inicialización completa de servicios y datos
     await _initServices();
     await _initAppData();
 
-    // Startup backup check (non-blocking)
+    // Startup backup check cada 24h (non-blocking)
     Future.delayed(const Duration(seconds: 2), () {
       try {
         backupBloc.add(const CheckStartupBackup());

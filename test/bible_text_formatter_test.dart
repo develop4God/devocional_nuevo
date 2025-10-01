@@ -3,7 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('Bible Text Formatter Tests', () {
-    test('should format Spanish Bible books correctly', () {
+    test('should format Bible books correctly for all supported languages', () {
+      // Test Spanish
       expect(BibleTextFormatter.formatBibleBook('1 Juan', 'es'),
           contains('Primera de Juan'));
       expect(BibleTextFormatter.formatBibleBook('2 Corintios', 'es'),
@@ -12,9 +13,8 @@ void main() {
           contains('Tercera de Juan'));
       expect(BibleTextFormatter.formatBibleBook('Génesis', 'es'),
           equals('Génesis'));
-    });
 
-    test('should format English Bible books correctly', () {
+      // Test English
       expect(BibleTextFormatter.formatBibleBook('1 John', 'en'),
           contains('First John'));
       expect(BibleTextFormatter.formatBibleBook('2 Corinthians', 'en'),
@@ -23,9 +23,8 @@ void main() {
           contains('Third John'));
       expect(BibleTextFormatter.formatBibleBook('Genesis', 'en'),
           equals('Genesis'));
-    });
 
-    test('should format Portuguese Bible books correctly', () {
+      // Test Portuguese
       expect(BibleTextFormatter.formatBibleBook('1 João', 'pt'),
           contains('Primeiro João'));
       expect(BibleTextFormatter.formatBibleBook('2 Coríntios', 'pt'),
@@ -34,9 +33,8 @@ void main() {
           contains('Terceiro João'));
       expect(BibleTextFormatter.formatBibleBook('Gênesis', 'pt'),
           equals('Gênesis'));
-    });
 
-    test('should format French Bible books correctly', () {
+      // Test French
       expect(BibleTextFormatter.formatBibleBook('1 Jean', 'fr'),
           contains('Premier Jean'));
       expect(BibleTextFormatter.formatBibleBook('2 Corinthiens', 'fr'),
@@ -47,29 +45,34 @@ void main() {
           BibleTextFormatter.formatBibleBook('Genèse', 'fr'), equals('Genèse'));
     });
 
-    test('should return Spanish Bible version expansions', () {
-      final expansions = BibleTextFormatter.getBibleVersionExpansions('es');
-      expect(expansions['RVR1960'],
+    test('should return Bible version expansions for all languages', () {
+      // Test Spanish expansions
+      final spanishExpansions =
+          BibleTextFormatter.getBibleVersionExpansions('es');
+      expect(spanishExpansions['RVR1960'],
           equals('Reina Valera mil novecientos sesenta'));
-      expect(expansions['NVI'], equals('Nueva Versión Internacional'));
-    });
+      expect(spanishExpansions['NVI'], equals('Nueva Versión Internacional'));
 
-    test('should return English Bible version expansions', () {
-      final expansions = BibleTextFormatter.getBibleVersionExpansions('en');
-      expect(expansions['KJV'], equals('King James Version'));
-      expect(expansions['NIV'], equals('New International Version'));
-    });
+      // Test English expansions
+      final englishExpansions =
+          BibleTextFormatter.getBibleVersionExpansions('en');
+      expect(englishExpansions['KJV'], equals('King James Version'));
+      expect(englishExpansions['NIV'], equals('New International Version'));
 
-    test('should return Portuguese Bible version expansions', () {
-      final expansions = BibleTextFormatter.getBibleVersionExpansions('pt');
-      expect(expansions['ARC'], equals('Almeida Revista e Corrigida'));
-      expect(expansions['NVI'], equals('Nova Versão Internacional'));
-    });
+      // Test Portuguese expansions
+      final portugueseExpansions =
+          BibleTextFormatter.getBibleVersionExpansions('pt');
+      expect(
+          portugueseExpansions['ARC'], equals('Almeida Revista e Corrigida'));
+      expect(portugueseExpansions['NVI'], equals('Nova Versão Internacional'));
 
-    test('should return French Bible version expansions', () {
-      final expansions = BibleTextFormatter.getBibleVersionExpansions('fr');
-      expect(expansions['LSG1910'], equals('Louis Segond mille neuf cent dix'));
-      expect(expansions['TOB'], equals('Traduction Oecuménique de la Bible'));
+      // Test French expansions
+      final frenchExpansions =
+          BibleTextFormatter.getBibleVersionExpansions('fr');
+      expect(frenchExpansions['LSG1910'],
+          equals('Louis Segond mille neuf cent dix'));
+      expect(frenchExpansions['TOB'],
+          equals('Traduction Oecuménique de la Bible'));
     });
 
     test('should default to Spanish for unknown languages', () {

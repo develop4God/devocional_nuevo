@@ -1,4 +1,4 @@
-// lib/blocs/devocionales_state.dart
+// lib/blocs/devocionales/devocionales_state.dart
 
 import 'package:devocional_nuevo/models/devocional_model.dart';
 

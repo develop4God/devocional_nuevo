@@ -207,7 +207,7 @@ class DevocionalesDrawer extends StatelessWidget {
         String currentThemeFamily;
         Brightness currentBrightness;
         Color dividerAdaptiveColor;
-        
+
         if (themeState is ThemeLoaded) {
           currentThemeFamily = themeState.themeFamily;
           currentBrightness = themeState.brightness;
@@ -226,339 +226,348 @@ class DevocionalesDrawer extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-            // Encabezado morado compacto
-            Container(
-              height: 56,
-              width: double.infinity,
-              color: colorScheme.primary,
-              child: Stack(
-                children: [
-                  Center(
-                    child: Text(
-                      'drawer.title'.tr(),
-                      style: textTheme.titleMedium?.copyWith(
-                        fontSize: 18,
-                        color: colorScheme.onPrimary,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    right: 8,
-                    top: 0,
-                    bottom: 0,
-                    child: IconButton(
-                      icon: const Icon(Icons.exit_to_app, color: Colors.white),
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                      },
-                      tooltip: 'drawer.close'.tr(),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
-                child: ListView(
-                  children: [
-                    const SizedBox(height: 15),
-                    // --- Sección Versión Bíblica ---
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 5),
-                      child: Text(
-                        'drawer.bible_version_section'.tr(),
-                        style: textTheme.titleMedium?.copyWith(
-                          color: colorScheme.onSurface,
-                          fontWeight: FontWeight.w600,
+                // Encabezado morado compacto
+                Container(
+                  height: 56,
+                  width: double.infinity,
+                  color: colorScheme.primary,
+                  child: Stack(
+                    children: [
+                      Center(
+                        child: Text(
+                          'drawer.title'.tr(),
+                          style: textTheme.titleMedium?.copyWith(
+                            fontSize: 18,
+                            color: colorScheme.onPrimary,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
-                    ),
-                    // --- Icono alineado + dropdown ---
-                    drawerRow(
-                      icon: Icons.auto_stories_outlined,
-                      iconColor: colorScheme.primary,
-                      label: DropdownButtonHideUnderline(
-                        child: DropdownButton<String>(
-                          value: devocionalProvider.selectedVersion,
-                          icon: Icon(
-                            Icons.arrow_drop_down,
-                            color: colorScheme.onSurface,
-                          ),
-                          dropdownColor: colorScheme.surface,
-                          isExpanded: true,
-                          onChanged: (String? newValue) {
-                            if (newValue != null) {
-                              devocionalProvider.setSelectedVersion(newValue);
-                              Navigator.of(context).pop();
-                            }
+                      Positioned(
+                        right: 8,
+                        top: 0,
+                        bottom: 0,
+                        child: IconButton(
+                          icon: const Icon(Icons.exit_to_app,
+                              color: Colors.white),
+                          onPressed: () {
+                            Navigator.of(context).pop();
                           },
-                          selectedItemBuilder: (BuildContext context) {
-                            return versions.map<Widget>((String itemValue) {
-                              return Row(
+                          tooltip: 'drawer.close'.tr(),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    child: ListView(
+                      children: [
+                        const SizedBox(height: 15),
+                        // --- Sección Versión Bíblica ---
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 5),
+                          child: Text(
+                            'drawer.bible_version_section'.tr(),
+                            style: textTheme.titleMedium?.copyWith(
+                              color: colorScheme.onSurface,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                        // --- Icono alineado + dropdown ---
+                        drawerRow(
+                          icon: Icons.auto_stories_outlined,
+                          iconColor: colorScheme.primary,
+                          label: DropdownButtonHideUnderline(
+                            child: DropdownButton<String>(
+                              value: devocionalProvider.selectedVersion,
+                              icon: Icon(
+                                Icons.arrow_drop_down,
+                                color: colorScheme.onSurface,
+                              ),
+                              dropdownColor: colorScheme.surface,
+                              isExpanded: true,
+                              onChanged: (String? newValue) {
+                                if (newValue != null) {
+                                  devocionalProvider
+                                      .setSelectedVersion(newValue);
+                                  Navigator.of(context).pop();
+                                }
+                              },
+                              selectedItemBuilder: (BuildContext context) {
+                                return versions.map<Widget>((String itemValue) {
+                                  return Row(
+                                    children: [
+                                      Text(
+                                        itemValue,
+                                        style: TextStyle(
+                                          color: colorScheme.onSurface,
+                                          fontSize: 16,
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                }).toList();
+                              },
+                              items: versions.map<DropdownMenuItem<String>>((
+                                String itemValue,
+                              ) {
+                                return DropdownMenuItem<String>(
+                                  value: itemValue,
+                                  child: Text(
+                                    itemValue,
+                                    style:
+                                        TextStyle(color: colorScheme.onSurface),
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 5),
+                        // --- Favoritos guardados ---
+                        drawerRow(
+                          icon: Icons.book_outlined,
+                          iconColor: colorScheme.primary,
+                          label: Text(
+                            'drawer.saved_favorites'.tr(),
+                            style: textTheme.bodyMedium?.copyWith(
+                              fontSize: 16,
+                              color: colorScheme.onSurface,
+                            ),
+                          ),
+                          onTap: () {
+                            Navigator.of(context).pop();
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => const FavoritesPage(),
+                              ),
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 5),
+                        // --- Mis oraciones ---
+                        drawerRow(
+                          icon: Icons.local_fire_department_outlined,
+                          iconColor: colorScheme.primary,
+                          label: Text(
+                            'drawer.my_prayers'.tr(),
+                            style: textTheme.bodyMedium?.copyWith(
+                              fontSize: 16,
+                              color: colorScheme.onSurface,
+                            ),
+                          ),
+                          onTap: () {
+                            Navigator.of(context).pop();
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => const PrayersPage(),
+                              ),
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 5),
+                        // --- Switch modo oscuro ---
+                        drawerRow(
+                          icon: currentBrightness == Brightness.dark
+                              ? Icons.light_mode_outlined
+                              : Icons.dark_mode_outlined,
+                          iconColor: colorScheme.primary,
+                          label: Text(
+                            currentBrightness == Brightness.dark
+                                ? 'drawer.light_mode'.tr()
+                                : 'drawer.dark_mode'.tr(),
+                            style: textTheme.bodyMedium?.copyWith(
+                              fontSize: 15,
+                              color: colorScheme.onSurface,
+                            ),
+                          ),
+                          trailing: Switch(
+                            value: currentBrightness == Brightness.dark,
+                            onChanged: (bool value) {
+                              context.read<ThemeBloc>().add(
+                                    ChangeBrightness(
+                                      value
+                                          ? Brightness.dark
+                                          : Brightness.light,
+                                    ),
+                                  );
+                            },
+                          ),
+                          onTap: () {
+                            final newValue =
+                                currentBrightness != Brightness.dark;
+                            context.read<ThemeBloc>().add(
+                                  ChangeBrightness(
+                                    newValue
+                                        ? Brightness.dark
+                                        : Brightness.light,
+                                  ),
+                                );
+                          },
+                        ),
+                        const SizedBox(height: 5),
+                        // --- Notificaciones ---
+                        drawerRow(
+                          icon: Icons.notifications_active_outlined,
+                          iconColor: colorScheme.primary,
+                          label: Text(
+                            'drawer.notifications_config'.tr(),
+                            style: textTheme.bodyMedium?.copyWith(
+                              fontSize: 16,
+                              color: colorScheme.onSurface,
+                            ),
+                          ),
+                          onTap: () {
+                            Navigator.of(context).pop();
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => const NotificationConfigPage(),
+                              ),
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 5),
+                        // --- Compartir app ---
+                        drawerRow(
+                          icon: Icons.share,
+                          iconColor: colorScheme.primary,
+                          label: Text(
+                            'drawer.share_app'.tr(),
+                            style: textTheme.bodyMedium?.copyWith(
+                              fontSize: 16,
+                              color: colorScheme.onSurface,
+                            ),
+                          ),
+                          onTap: () => _shareApp(context),
+                        ),
+                        const SizedBox(height: 5),
+                        // --- Descargar devocionales ---
+                        FutureBuilder<bool>(
+                          future: devocionalProvider.hasTargetYearsLocalData(),
+                          builder: (context, snapshot) {
+                            final bool hasLocalData = snapshot.data ?? false;
+                            return drawerRow(
+                              icon: hasLocalData
+                                  ? Icons.offline_pin_outlined
+                                  : Icons.download_for_offline_outlined,
+                              iconColor: colorScheme.primary,
+                              label: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    itemValue,
-                                    style: TextStyle(
-                                      color: colorScheme.onSurface,
+                                    'drawer.download_devotionals'.tr(),
+                                    style: textTheme.bodyMedium?.copyWith(
                                       fontSize: 16,
+                                      color: colorScheme.onSurface,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  hasLocalData
+                                      ? Text(
+                                          'drawer.offline_content_ready'.tr(),
+                                          style: textTheme.bodySmall?.copyWith(
+                                            color: colorScheme.onSurface
+                                                .withAlpha(150),
+                                          ),
+                                        )
+                                      : Text(
+                                          'drawer.for_offline_use'.tr(),
+                                          style: textTheme.bodySmall?.copyWith(
+                                            color: colorScheme.onSurface
+                                                .withAlpha(150),
+                                          ),
+                                        ).newBubble,
+                                ],
+                              ),
+                              onTap: () {
+                                if (!hasLocalData) {
+                                  _showOfflineManagerDialog(context);
+                                } else {
+                                  Navigator.of(context)
+                                      .pop(); // Cierra el Drawer
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                          'drawer.offline_access_ready'.tr()),
+                                      backgroundColor:
+                                          Theme.of(context).colorScheme.primary,
+                                      duration: const Duration(seconds: 2),
+                                    ),
+                                  );
+                                }
+                              },
+                            );
+                          },
+                        ),
+                        Divider(
+                          height: 32,
+                          color: dividerAdaptiveColor,
+                        ),
+                        // --- Selector visual de temas con icono y título a la par, y el grid debajo ---
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 5),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  SizedBox(
+                                    width: 36,
+                                    child: Align(
+                                      alignment: Alignment.centerLeft,
+                                      child: Icon(
+                                        Icons.palette_outlined,
+                                        color: colorScheme.primary,
+                                        size: 28,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Text(
+                                      'drawer.select_theme_color'.tr(),
+                                      style: textTheme.bodyMedium?.copyWith(
+                                        fontSize: 16,
+                                        color: colorScheme.onSurface,
+                                      ),
                                     ),
                                   ),
                                 ],
-                              );
-                            }).toList();
-                          },
-                          items: versions.map<DropdownMenuItem<String>>((
-                            String itemValue,
-                          ) {
-                            return DropdownMenuItem<String>(
-                              value: itemValue,
-                              child: Text(
-                                itemValue,
-                                style: TextStyle(color: colorScheme.onSurface),
                               ),
-                            );
-                          }).toList(),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 5),
-                    // --- Favoritos guardados ---
-                    drawerRow(
-                      icon: Icons.book_outlined,
-                      iconColor: colorScheme.primary,
-                      label: Text(
-                        'drawer.saved_favorites'.tr(),
-                        style: textTheme.bodyMedium?.copyWith(
-                          fontSize: 16,
-                          color: colorScheme.onSurface,
-                        ),
-                      ),
-                      onTap: () {
-                        Navigator.of(context).pop();
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => const FavoritesPage(),
-                          ),
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 5),
-                    // --- Mis oraciones ---
-                    drawerRow(
-                      icon: Icons.local_fire_department_outlined,
-                      iconColor: colorScheme.primary,
-                      label: Text(
-                        'drawer.my_prayers'.tr(),
-                        style: textTheme.bodyMedium?.copyWith(
-                          fontSize: 16,
-                          color: colorScheme.onSurface,
-                        ),
-                      ),
-                      onTap: () {
-                        Navigator.of(context).pop();
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => const PrayersPage(),
-                          ),
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 5),
-                    // --- Switch modo oscuro ---
-                    drawerRow(
-                      icon: currentBrightness == Brightness.dark
-                          ? Icons.light_mode_outlined
-                          : Icons.dark_mode_outlined,
-                      iconColor: colorScheme.primary,
-                      label: Text(
-                        currentBrightness == Brightness.dark
-                            ? 'drawer.light_mode'.tr()
-                            : 'drawer.dark_mode'.tr(),
-                        style: textTheme.bodyMedium?.copyWith(
-                          fontSize: 15,
-                          color: colorScheme.onSurface,
-                        ),
-                      ),
-                      trailing: Switch(
-                        value: currentBrightness == Brightness.dark,
-                        onChanged: (bool value) {
-                          context.read<ThemeBloc>().add(
-                            ChangeBrightness(
-                              value ? Brightness.dark : Brightness.light,
-                            ),
-                          );
-                        },
-                      ),
-                      onTap: () {
-                        final newValue = currentBrightness != Brightness.dark;
-                        context.read<ThemeBloc>().add(
-                          ChangeBrightness(
-                            newValue ? Brightness.dark : Brightness.light,
-                          ),
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 5),
-                    // --- Notificaciones ---
-                    drawerRow(
-                      icon: Icons.notifications_active_outlined,
-                      iconColor: colorScheme.primary,
-                      label: Text(
-                        'drawer.notifications_config'.tr(),
-                        style: textTheme.bodyMedium?.copyWith(
-                          fontSize: 16,
-                          color: colorScheme.onSurface,
-                        ),
-                      ),
-                      onTap: () {
-                        Navigator.of(context).pop();
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => const NotificationConfigPage(),
-                          ),
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 5),
-                    // --- Compartir app ---
-                    drawerRow(
-                      icon: Icons.share,
-                      iconColor: colorScheme.primary,
-                      label: Text(
-                        'drawer.share_app'.tr(),
-                        style: textTheme.bodyMedium?.copyWith(
-                          fontSize: 16,
-                          color: colorScheme.onSurface,
-                        ),
-                      ),
-                      onTap: () => _shareApp(context),
-                    ),
-                    const SizedBox(height: 5),
-                    // --- Descargar devocionales ---
-                    FutureBuilder<bool>(
-                      future: devocionalProvider.hasTargetYearsLocalData(),
-                      builder: (context, snapshot) {
-                        final bool hasLocalData = snapshot.data ?? false;
-                        return drawerRow(
-                          icon: hasLocalData
-                              ? Icons.offline_pin_outlined
-                              : Icons.download_for_offline_outlined,
-                          iconColor: colorScheme.primary,
-                          label: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'drawer.download_devotionals'.tr(),
-                                style: textTheme.bodyMedium?.copyWith(
-                                  fontSize: 16,
-                                  color: colorScheme.onSurface,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              hasLocalData
-                                  ? Text(
-                                      'drawer.offline_content_ready'.tr(),
-                                      style: textTheme.bodySmall?.copyWith(
-                                        color: colorScheme.onSurface
-                                            .withAlpha(150),
-                                      ),
-                                    )
-                                  : Text(
-                                      'drawer.for_offline_use'.tr(),
-                                      style: textTheme.bodySmall?.copyWith(
-                                        color: colorScheme.onSurface
-                                            .withAlpha(150),
-                                      ),
-                                    ).newBubble,
-                            ],
-                          ),
-                          onTap: () {
-                            if (!hasLocalData) {
-                              _showOfflineManagerDialog(context);
-                            } else {
-                              Navigator.of(context).pop(); // Cierra el Drawer
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content:
-                                      Text('drawer.offline_access_ready'.tr()),
-                                  backgroundColor:
-                                      Theme.of(context).colorScheme.primary,
-                                  duration: const Duration(seconds: 2),
-                                ),
-                              );
-                            }
-                          },
-                        );
-                      },
-                    ),
-                    Divider(
-                      height: 32,
-                      color: dividerAdaptiveColor,
-                    ),
-                    // --- Selector visual de temas con icono y título a la par, y el grid debajo ---
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 5),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
+                              const SizedBox(height: 8),
+                              // Evita overflow limitando el alto del grid visual
                               SizedBox(
-                                width: 36,
-                                child: Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: Icon(
-                                    Icons.palette_outlined,
-                                    color: colorScheme.primary,
-                                    size: 28,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Text(
-                                  'drawer.select_theme_color'.tr(),
-                                  style: textTheme.bodyMedium?.copyWith(
-                                    fontSize: 16,
-                                    color: colorScheme.onSurface,
-                                  ),
+                                height: 120,
+                                child: ThemeSelectorCircleGrid(
+                                  selectedTheme: currentThemeFamily,
+                                  brightness: currentBrightness,
+                                  onThemeChanged: (theme) {
+                                    context.read<ThemeBloc>().add(
+                                          ChangeThemeFamily(theme),
+                                        );
+                                    Navigator.of(context).pop();
+                                  },
                                 ),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 8),
-                          // Evita overflow limitando el alto del grid visual
-                          SizedBox(
-                            height: 120,
-                            child: ThemeSelectorCircleGrid(
-                              selectedTheme: currentThemeFamily,
-                              brightness: currentBrightness,
-                              onThemeChanged: (theme) {
-                                context.read<ThemeBloc>().add(
-                                  ChangeThemeFamily(theme),
-                                );
-                                Navigator.of(context).pop();
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
+                        ),
+                        const SizedBox(height: 10),
+                      ],
                     ),
-                    const SizedBox(height: 10),
-                  ],
+                  ),
                 ),
-              ),
+              ],
             ),
-          ],
-        ),
-      ),
-    );
+          ),
+        );
       },
     );
   }
