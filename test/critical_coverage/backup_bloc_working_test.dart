@@ -101,7 +101,9 @@ void main() {
         when(() => mockBackupService.setAutoBackupEnabled(any()))
             .thenAnswer((_) async {});
         when(() => mockSchedulerService.scheduleAutomaticBackup())
-            .thenAnswer((_) async {});
+            .thenAnswer((_) async {
+              return null;
+            });
       },
       act: (bloc) => bloc.add(const ToggleAutoBackup(true)),
       expect: () => [
@@ -130,7 +132,9 @@ void main() {
         when(() => mockBackupService.createBackup(any()))
             .thenAnswer((_) async => true);
         when(() => mockSchedulerService.scheduleAutomaticBackup())
-            .thenAnswer((_) async {});
+            .thenAnswer((_) async {
+              return null;
+            });
       },
       act: (bloc) => bloc.add(const CreateManualBackup()),
       expect: () => [
@@ -170,7 +174,9 @@ void main() {
         when(() => mockBackupService.restoreBackup())
             .thenAnswer((_) async => true);
         when(() => mockSchedulerService.scheduleAutomaticBackup())
-            .thenAnswer((_) async {});
+            .thenAnswer((_) async {
+              return null;
+            });
       },
       act: (bloc) => bloc.add(const RestoreFromBackup()),
       expect: () => [
@@ -195,7 +201,9 @@ void main() {
         when(() => mockBackupService.checkForExistingBackup())
             .thenAnswer((_) async => null);
         when(() => mockSchedulerService.scheduleAutomaticBackup())
-            .thenAnswer((_) async {});
+            .thenAnswer((_) async {
+              return null;
+            });
       },
       act: (bloc) => bloc.add(const SignInToGoogleDrive()),
       expect: () => [

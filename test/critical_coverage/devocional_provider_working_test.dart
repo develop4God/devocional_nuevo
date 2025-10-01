@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
-import 'package:flutter/material.dart';
 
 void main() {
   late DevocionalProvider provider;
@@ -87,7 +86,7 @@ void main() {
     });
 
     test('changing language updates data and version defaults', () async {
-      await provider.setSelectedLanguage('en');
+      provider.setSelectedLanguage('en');
       expect(provider.selectedLanguage, 'en');
       expect(provider.selectedVersion, isNotNull);
       expect(provider.devocionales.isEmpty, isFalse);
@@ -95,7 +94,7 @@ void main() {
 
     test('changing version updates data', () async {
       final oldVersion = provider.selectedVersion;
-      await provider.setSelectedVersion('NVI');
+      provider.setSelectedVersion('NVI');
       expect(provider.selectedVersion, 'NVI');
       expect(provider.selectedVersion != oldVersion, isTrue);
     });
