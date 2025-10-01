@@ -1,8 +1,9 @@
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
-import 'package:devocional_nuevo/providers/theme_provider.dart';
+import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
+import 'package:devocional_nuevo/blocs/theme/theme_event.dart';
 import 'package:devocional_nuevo/utils/theme_constants.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class OnboardingThemeSelectionPage extends StatefulWidget {
   final VoidCallback onNext;
@@ -28,9 +29,9 @@ class _OnboardingThemeSelectionPageState
     super.initState();
     // Get current theme as default selection
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
+      final themeBloc = context.read<ThemeBloc>();
       setState(() {
-        selectedTheme = themeProvider.currentThemeFamily;
+        selectedTheme = themeBloc.currentThemeFamily;
       });
     });
   }
@@ -156,10 +157,9 @@ class _OnboardingThemeSelectionPageState
                                   selectedTheme = themeKey;
                                 });
                                 // Apply theme immediately for live preview
-                                Provider.of<ThemeProvider>(
-                                  context,
-                                  listen: false,
-                                ).setThemeFamily(themeKey);
+                                context.read<ThemeBloc>().add(
+                                      ChangeThemeFamily(themeKey),
+                                    );
                               },
                               child: AnimatedContainer(
                                 duration: const Duration(milliseconds: 300),

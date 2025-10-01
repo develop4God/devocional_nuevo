@@ -5,10 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../providers/theme_provider.dart';
 import '../../services/onboarding_service.dart';
 import '../backup_bloc.dart';
 import '../backup_event.dart';
+import '../backup_state.dart';
+import '../theme/theme_bloc.dart';
+import '../theme/theme_event.dart';
 import 'onboarding_event.dart';
 import 'onboarding_models.dart';
 import 'onboarding_state.dart';
@@ -16,7 +18,7 @@ import 'onboarding_state.dart';
 /// BLoC for managing onboarding flow functionality
 class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
   final OnboardingService _onboardingService;
-  final ThemeProvider _themeProvider;
+  final ThemeBloc _themeBloc;
   final BackupBloc? _backupBloc;
 
   // Configuration persistence keys
@@ -36,10 +38,10 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
 
   OnboardingBloc({
     required OnboardingService onboardingService,
-    required ThemeProvider themeProvider,
+    required ThemeBloc themeBloc,
     BackupBloc? backupBloc,
   })  : _onboardingService = onboardingService,
-        _themeProvider = themeProvider,
+        _themeBloc = themeBloc,
         _backupBloc = backupBloc,
         super(const OnboardingInitial()) {
     // Register event handlers
@@ -116,6 +118,9 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
         ));
         return;
       }
+      // 🔧 NUEVO: Marcar onboarding como en progreso
+      await _onboardingService.setOnboardingInProgress(true);
+      debugPrint('🚀 [ONBOARDING_BLOC] Onboarding marcado como en progreso');
 
       // Load saved progress if any
       final savedConfiguration = await _loadSavedConfiguration();
@@ -272,7 +277,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       ));
 
       // Apply theme immediately for preview
-      await _themeProvider.setThemeFamily(event.themeFamily);
+      _themeBloc.add(ChangeThemeFamily(event.themeFamily));
       debugPrint(
           '🎨 [ONBOARDING_BLOC] Tema aplicado para preview: ${event.themeFamily}');
 
@@ -328,14 +333,13 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     try {
       final currentState = state as OnboardingStepActive;
 
-      emit(OnboardingConfiguring(
-        configurationType: OnboardingConfigurationType.backupConfiguration,
-        configurationData: {'enableBackup': event.enableBackup},
-      ));
+      // Don't emit OnboardingConfiguring - just update the state silently
+      // This keeps state as OnboardingStepActive so navigation can proceed
 
       final updatedSelections =
           Map<String, dynamic>.from(currentState.userSelections);
       updatedSelections['backupEnabled'] = event.enableBackup;
+      updatedSelections['backupSkipped'] = false;
 
       // Coordinate with BackupBloc if available and backup is enabled
       if (event.enableBackup && _backupBloc != null) {
@@ -431,6 +435,23 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       }
 
       emit(const OnboardingLoading());
+
+      // 🔧 NUEVO: Enriquecer con estado REAL del backup desde BackupBloc
+      if (_backupBloc != null && configurations['backupEnabled'] == true) {
+        final backupState = _backupBloc!.state;
+        debugPrint(
+            '📊 [ONBOARDING_BLOC] BackupBloc estado: ${backupState.runtimeType}');
+
+        if (backupState is BackupLoaded) {
+          configurations['hasActiveBackup'] =
+              backupState.lastBackupTime != null;
+          configurations['backupCompleted'] =
+              backupState.lastBackupTime != null;
+
+          debugPrint(
+              '✅ [ONBOARDING_BLOC] Backup info agregada: hasActiveBackup=${backupState.lastBackupTime != null}');
+        }
+      }
 
       // Mark onboarding as complete
       await _onboardingService.setOnboardingComplete();
@@ -938,6 +959,9 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     const validKeys = {
       'selectedThemeFamily',
       'backupEnabled',
+      'backupSkipped',
+      'hasActiveBackup',
+      'backupCompleted',
       'selectedLanguage',
       'notificationsEnabled',
       'additionalSettings',

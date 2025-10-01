@@ -1,4 +1,4 @@
-// lib/blocs/devocionales_event.dart
+// lib/blocs/devocionales/devocionales_event.dart
 
 abstract class DevocionalesEvent {}
 

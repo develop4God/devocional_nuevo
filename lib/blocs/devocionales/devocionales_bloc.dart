@@ -1,4 +1,4 @@
-// lib/blocs/devocionales_bloc.dart
+// lib/blocs/devocionales/devocionales_bloc.dart
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';

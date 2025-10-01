@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -42,20 +43,22 @@ class TestSetup {
       },
     );
 
-    // Mock path_provider plugin with a more realistic temp directory
+    // Mock path_provider plugin with web-compatible mock paths
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
       const MethodChannel('plugins.flutter.io/path_provider'),
       (MethodCall methodCall) async {
+        // Use web-compatible mock paths
+        final mockPath = kIsWeb ? '/mock_app_dir' : (Directory.systemTemp.path);
         switch (methodCall.method) {
           case 'getApplicationDocumentsDirectory':
-            return Directory.systemTemp.path; // Use actual temp directory
+            return mockPath;
           case 'getTemporaryDirectory':
-            return Directory.systemTemp.path;
+            return mockPath;
           case 'getApplicationSupportDirectory':
-            return Directory.systemTemp.path;
+            return mockPath;
           default:
-            return Directory.systemTemp.path;
+            return mockPath;
         }
       },
     );
@@ -76,6 +79,8 @@ class TestSetup {
             return 1;
           case 'setPitch':
             return 1;
+          case 'setVoice':
+            return null;
           case 'getLanguages':
             return ['es-ES', 'en-US', 'pt-BR', 'fr-FR'];
           case 'getVoices':
@@ -86,13 +91,19 @@ class TestSetup {
               {'name': 'French Voice', 'locale': 'fr-FR'},
             ];
           case 'awaitSpeakCompletion':
-            return null;
+            return true;
           case 'setQueueMode':
             return null;
           case 'stop':
             return null;
           case 'pause':
             return null;
+          case 'getEngines':
+            return [];
+          case 'setEngine':
+            return 1;
+          case 'isLanguageAvailable':
+            return true;
           default:
             return null;
         }
@@ -112,6 +123,45 @@ class TestSetup {
         };
       },
     );
+
+    // Mock Firebase-related plugins to avoid web compatibility issues
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+      const MethodChannel('plugins.flutter.io/firebase_core'),
+      (MethodCall methodCall) async {
+        switch (methodCall.method) {
+          case 'Firebase#initializeCore':
+            return [];
+          case 'Firebase#initializeApp':
+            return null;
+          default:
+            return null;
+        }
+      },
+    );
+
+    // Mock connectivity plugin for web compatibility
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+      const MethodChannel('dev.fluttercommunity.plus/connectivity'),
+      (MethodCall methodCall) async {
+        switch (methodCall.method) {
+          case 'check':
+            return 'wifi';
+          case 'wifiName':
+          case 'wifiBSSID':
+          case 'wifiIPAddress':
+            return null;
+          default:
+            return null;
+        }
+      },
+    );
+
+    // Ensure additional web compatibility
+    if (kIsWeb) {
+      // Additional web-specific setup if needed
+    }
   }
 
   /// Cleans up plugin mocks after tests

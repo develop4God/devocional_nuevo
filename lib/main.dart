@@ -3,14 +3,15 @@ import 'dart:developer' as developer;
 import 'package:devocional_nuevo/blocs/backup_bloc.dart';
 import 'package:devocional_nuevo/blocs/backup_event.dart';
 import 'package:devocional_nuevo/blocs/prayer_bloc.dart';
+import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
+import 'package:devocional_nuevo/blocs/theme/theme_event.dart';
+import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/controllers/audio_controller.dart';
 import 'package:devocional_nuevo/pages/devocionales_page.dart';
 import 'package:devocional_nuevo/pages/onboarding/onboarding_flow.dart';
 import 'package:devocional_nuevo/pages/settings_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/providers/localization_provider.dart';
-import 'package:devocional_nuevo/providers/theme_provider.dart';
-import 'package:devocional_nuevo/services/backup_scheduler_service.dart';
 import 'package:devocional_nuevo/services/connectivity_service.dart';
 import 'package:devocional_nuevo/services/google_drive_auth_service.dart';
 import 'package:devocional_nuevo/services/google_drive_backup_service.dart';
@@ -93,20 +94,7 @@ void main() async {
   developer.log('App: Función main() iniciada.', name: 'MainApp');
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-  // ➕ INICIALIZAR BACKUP SCHEDULER
-  try {
-    await BackupSchedulerService.initialize();
-    developer.log(
-      'AppInitializer: BackupSchedulerService inicializado correctamente.',
-      name: 'MainApp',
-    );
-  } catch (e) {
-    developer.log(
-      'ERROR: Error inicializando BackupSchedulerService: $e',
-      name: 'MainApp',
-      error: e,
-    );
-  }
+
   // Configurar el manejador de mensajes FCM en segundo plano
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   developer.log(
@@ -121,7 +109,13 @@ void main() async {
         ChangeNotifierProvider(create: (context) => LocalizationProvider()),
         ChangeNotifierProvider(create: (context) => DevocionalProvider()),
         BlocProvider(create: (context) => PrayerBloc()),
-        ChangeNotifierProvider(create: (context) => ThemeProvider()),
+        BlocProvider(
+          create: (context) {
+            final themeBloc = ThemeBloc();
+            themeBloc.add(const LoadTheme()); // Load theme on app start
+            return themeBloc;
+          },
+        ),
         ChangeNotifierProvider(create: (_) => AudioController()),
         // Agregar BackupBloc
         BlocProvider(
@@ -131,7 +125,6 @@ void main() async {
               connectivityService: ConnectivityService(),
               statsService: SpiritualStatsService(),
             ),
-            schedulerService: null, // ✅ El BLoC maneja null correctamente
             devocionalProvider: context.read<DevocionalProvider>(),
           ),
         ),
@@ -142,7 +135,6 @@ void main() async {
 }
 
 // App principal - Siempre muestra SplashScreen primero
-// App principal - Siempre muestra SplashScreen primero
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
@@ -151,12 +143,12 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  late Future<bool> _initializationFuture; // ← Cambiar nombre
+  late Future<bool> _initializationFuture;
 
   @override
   void initState() {
     super.initState();
-    _initializationFuture = _initializeApp(); // ← Nuevo método unificado
+    _initializationFuture = _initializeApp();
   }
 
   /// Método unificado que inicializa servicios y verifica onboarding
@@ -195,55 +187,67 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    final themeProvider = Provider.of<ThemeProvider>(context);
     final localizationProvider = Provider.of<LocalizationProvider>(context);
 
-    return MaterialApp(
-      title: 'Devocionales',
-      debugShowCheckedModeBanner: false,
-      theme: themeProvider.currentTheme,
-      navigatorKey: navigatorKey,
-      localizationsDelegates: GlobalMaterialLocalizations.delegates,
-      supportedLocales: localizationProvider.supportedLocales,
-      locale: localizationProvider.currentLocale,
-      home: FutureBuilder<bool>(
-        future: _initializationFuture, // ← Usar el future unificado
-        builder: (context, snapshot) {
-          // Mostrar splash mientras se inicializa
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const SplashScreen();
-          }
+    return BlocBuilder<ThemeBloc, ThemeState>(
+      builder: (context, themeState) {
+        // Get theme from state, fallback to default if not loaded
+        ThemeData currentTheme;
+        if (themeState is ThemeLoaded) {
+          currentTheme = themeState.themeData;
+        } else {
+          // Fallback theme while loading or in error state
+          currentTheme = context.read<ThemeBloc>().currentTheme;
+        }
 
-          // Si hay error, ir directo a la app principal
-          if (snapshot.hasError) {
-            developer.log(
-              'ERROR: Error en FutureBuilder de inicialización: ${snapshot.error}',
-              name: 'MainApp',
-              error: snapshot.error,
-            );
-            return const AppInitializer();
-          }
+        return MaterialApp(
+          title: 'Devocionales',
+          debugShowCheckedModeBanner: false,
+          theme: currentTheme,
+          navigatorKey: navigatorKey,
+          localizationsDelegates: GlobalMaterialLocalizations.delegates,
+          supportedLocales: localizationProvider.supportedLocales,
+          locale: localizationProvider.currentLocale,
+          home: FutureBuilder<bool>(
+            future: _initializationFuture,
+            builder: (context, snapshot) {
+              // Mostrar splash mientras se inicializa
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const SplashScreen();
+              }
 
-          // Si debe mostrar onboarding (Remote Config enabled + not completed)
-          if (snapshot.hasData && snapshot.data == true) {
-            return OnboardingFlow(
-              onComplete: () {
-                Navigator.of(context).pushReplacement(
-                  MaterialPageRoute(
-                    builder: (context) => const AppInitializer(),
-                  ),
+              // Si hay error, ir directo a la app principal
+              if (snapshot.hasError) {
+                developer.log(
+                  'ERROR: Error en FutureBuilder de inicialización: ${snapshot.error}',
+                  name: 'MainApp',
+                  error: snapshot.error,
                 );
-              },
-            );
-          }
+                return const AppInitializer();
+              }
 
-          // Caso normal: ir a la app principal
-          return const AppInitializer();
-        },
-      ),
-      routes: {
-        '/settings': (context) => const SettingsPage(),
-        '/devocionales': (context) => const DevocionalesPage(),
+              // Si debe mostrar onboarding (Remote Config enabled + not completed)
+              if (snapshot.hasData && snapshot.data == true) {
+                return OnboardingFlow(
+                  onComplete: () {
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(
+                        builder: (context) => const AppInitializer(),
+                      ),
+                    );
+                  },
+                );
+              }
+
+              // Caso normal: ir a la app principal
+              return const AppInitializer();
+            },
+          ),
+          routes: {
+            '/settings': (context) => const SettingsPage(),
+            '/devocionales': (context) => const DevocionalesPage(),
+          },
+        );
       },
     );
   }
@@ -272,11 +276,11 @@ class _AppInitializerState extends State<AppInitializer> {
     // Dar tiempo para que el SplashScreen se muestre
     await Future.delayed(const Duration(milliseconds: 600));
 
-    // Inicialización completa: servicios + datos
+    // Inicialización completa de servicios y datos
     await _initServices();
     await _initAppData();
 
-    // Startup backup check (non-blocking)
+    // Startup backup check cada 24h (non-blocking)
     Future.delayed(const Duration(seconds: 2), () {
       try {
         backupBloc.add(const CheckStartupBackup());
