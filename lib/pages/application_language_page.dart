@@ -2,6 +2,7 @@ import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/providers/localization_provider.dart';
 import 'package:devocional_nuevo/utils/constants.dart';
+import 'package:devocional_nuevo/widgets/app_bar_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -402,11 +403,8 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(
-        // El AppBar ahora hereda la configuración de tu tema.
-        // No es necesario especificar backgroundColor, foregroundColor,
-        // elevation ni iconTheme aquí, ya que se toman del tema principal.
-        title: Text('application_language.title'.tr()),
+      appBar: CustomAppBar(
+        titleText: 'application_language.title'.tr(),
       ),
       backgroundColor: theme.colorScheme.surface,
       body: ListView(

@@ -52,3 +52,9 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     );
   }
 }
+//como usarlo
+//return Scaffold(
+//appBar: CustomAppBar(
+//titleText: 'settings.title'.tr(),
+//),
+//+import 'package:devocional_nuevo/widgets/app_bar_constants.dart';

@@ -1,4 +1,5 @@
 // lib/pages/backup_settings_page.dart
+import 'package:devocional_nuevo/widgets/app_bar_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
@@ -79,7 +80,9 @@ class _BackupSettingsView extends StatelessWidget {
     final colorScheme = theme.colorScheme;
 
     return Scaffold(
-      appBar: AppBar(title: Text('backup.title'.tr()), elevation: 0),
+      appBar: CustomAppBar(
+        titleText: 'backup.title'.tr(),
+      ),
       body: BlocListener<BackupBloc, BackupState>(
         listener: (context, state) {
           debugPrint(

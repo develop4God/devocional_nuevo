@@ -4,6 +4,7 @@
 import 'dart:developer' as developer;
 
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
+import 'package:devocional_nuevo/widgets/app_bar_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -120,13 +121,8 @@ class _ContactPageState extends State<ContactPage> {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'contact_page.title'.tr(),
-          style:
-              TextStyle(color: Theme.of(context).appBarTheme.foregroundColor),
-        ),
-        centerTitle: true,
+      appBar: CustomAppBar(
+        titleText: 'contact_page.title'.tr(),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20.0),

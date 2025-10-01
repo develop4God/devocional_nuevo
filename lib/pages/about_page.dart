@@ -1,9 +1,9 @@
 // lib/pages/about_page.dart
-
+import 'package:devocional_nuevo/extensions/string_extensions.dart';
+import 'package:devocional_nuevo/widgets/app_bar_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:devocional_nuevo/extensions/string_extensions.dart';
 
 class AboutPage extends StatefulWidget {
   const AboutPage({super.key});
@@ -51,16 +51,8 @@ class _AboutPageState extends State<AboutPage> {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'about.title'.tr(),
-          style: TextStyle(
-              color: Theme.of(context)
-                  .appBarTheme
-                  .foregroundColor), // Usa el color del foreground del AppBar del tema
-        ),
-        centerTitle:
-            true, // Asegura que el título del AppBar esté centrado si hay espacio
+      appBar: CustomAppBar(
+        titleText: 'about.title'.tr(),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20.0),

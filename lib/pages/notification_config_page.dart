@@ -5,6 +5,7 @@ import 'dart:developer' as developer;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/services/notification_service.dart';
+import 'package:devocional_nuevo/widgets/app_bar_constants.dart';
 // NEW IMPORTS for Firebase
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -355,30 +356,6 @@ class _NotificationConfigPageState extends State<NotificationConfigPage> {
     }
   }
 
-  // Se comenta el método _testNotification completo, ya no es necesario.
-  // Future<void> _testNotification() async {
-  //   try {
-  //     await _notificationService.showImmediateNotification(
-  //       'Prueba de Notificación', // TEXTO TRADUCIDO
-  //       '¡Esta es una notificación de prueba desde la aplicación!', // TEXTO TRADUCIDO
-  //       payload: 'test_notification_payload',
-  //     );
-  //     if (!mounted) return;
-  //     final messenger = ScaffoldMessenger.of(context);
-  //     messenger.showSnackBar(
-  //       SnackBar(content: Text('Notificación de prueba enviada.', style: TextStyle(color: Theme.of(context).colorScheme.onInverseSurface))), // TEXTO TRADUCIDO
-  //     );
-  //   } catch (e) {
-  //     developer.log('ERROR sending test notification: $e', name: 'NotificationConfigPage', error: e);
-  //     if (mounted) {
-  //       final messenger = ScaffoldMessenger.of(context);
-  //       messenger.showSnackBar(
-  //         SnackBar(content: Text('Error al enviar la prueba: $e', style: TextStyle(color: Theme.of(context).colorScheme.onInverseSurface))), // TEXTO TRADUCIDO
-  //       );
-  //     }
-  //   }
-  // }
-
   @override
   Widget build(BuildContext context) {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
@@ -399,9 +376,8 @@ class _NotificationConfigPageState extends State<NotificationConfigPage> {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text("notifications_config_page.notifications_config".tr(),
-            style: const TextStyle(color: Colors.white)), // TEXTO TRADUCIDO
+      appBar: CustomAppBar(
+        titleText: 'notifications_config_page.notifications_config'.tr(),
       ),
       body: Padding(
         padding: const EdgeInsets.all(24.0),

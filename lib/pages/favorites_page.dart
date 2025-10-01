@@ -4,6 +4,7 @@ import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart'; // Asegúrate de importar tu modelo
 import 'package:devocional_nuevo/pages/devocionales_page.dart'; // Importar DevocionalesPage
 import 'package:devocional_nuevo/services/localization_service.dart';
+import 'package:devocional_nuevo/widgets/app_bar_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart'; // Para formatear la fecha
 import 'package:provider/provider.dart';
@@ -16,13 +17,8 @@ class FavoritesPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context)
-            .appBarTheme
-            .backgroundColor, // Usa el color de fondo del AppBar del tema
-        foregroundColor: Colors.white,
-        title: Text('favorites.title'.tr()),
-        centerTitle: true,
+      appBar: CustomAppBar(
+        titleText: 'favorites.title'.tr(),
       ),
       body: Consumer<DevocionalProvider>(
         builder: (context, devocionalProvider, child) {

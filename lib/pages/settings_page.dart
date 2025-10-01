@@ -15,6 +15,7 @@ import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/providers/localization_provider.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 import 'package:devocional_nuevo/utils/constants.dart';
+import 'package:devocional_nuevo/widgets/app_bar_constants.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -240,11 +241,8 @@ class _SettingsPageState extends State<SettingsPage> {
     final TextTheme textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'settings.title'.tr(),
-          style: const TextStyle(color: Colors.white),
-        ),
+      appBar: CustomAppBar(
+        titleText: 'settings.title'.tr(),
       ),
       body: Padding(
         padding: const EdgeInsets.all(24.0),
