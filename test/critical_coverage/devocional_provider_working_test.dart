@@ -9,7 +9,8 @@ void main() {
   late DevocionalProvider provider;
 
   // Mock canales plataforma externos (path_provider, flutter_tts)
-  const MethodChannel pathProviderChannel = MethodChannel('plugins.flutter.io/path_provider');
+  const MethodChannel pathProviderChannel =
+      MethodChannel('plugins.flutter.io/path_provider');
   const MethodChannel ttsChannel = MethodChannel('flutter_tts');
 
   setUpAll(() {
@@ -66,7 +67,8 @@ void main() {
   group('DevocionalProvider Robust Tests', () {
     test('initial state validation', () {
       expect(provider.selectedLanguage, 'es', reason: 'Default language is es');
-      expect(provider.selectedVersion, 'RVR1960', reason: 'Default version is RVR1960');
+      expect(provider.selectedVersion, 'RVR1960',
+          reason: 'Default version is RVR1960');
       expect(provider.isLoading, isFalse);
       expect(provider.errorMessage, isNull);
       expect(provider.devocionales, isEmpty);
@@ -109,9 +111,11 @@ void main() {
       );
 
       expect(provider.isFavorite(devotional), isFalse);
-      provider.toggleFavorite(devotional, TestWidgetsFlutterBinding.ensureInitialized().renderViewElement!);
+      provider.toggleFavorite(devotional,
+          TestWidgetsFlutterBinding.ensureInitialized().renderViewElement!);
       expect(provider.isFavorite(devotional), isTrue);
-      provider.toggleFavorite(devotional, TestWidgetsFlutterBinding.ensureInitialized().renderViewElement!);
+      provider.toggleFavorite(devotional,
+          TestWidgetsFlutterBinding.ensureInitialized().renderViewElement!);
       expect(provider.isFavorite(devotional), isFalse);
     });
 
@@ -165,7 +169,8 @@ void main() {
       expect(hasLocal, isTrue);
 
       // Download for specific year
-      bool specificDownload = await provider.downloadDevocionalesForYear(DateTime.now().year);
+      bool specificDownload =
+          await provider.downloadDevocionalesForYear(DateTime.now().year);
       expect(specificDownload, isTrue);
 
       // Clear local files test
