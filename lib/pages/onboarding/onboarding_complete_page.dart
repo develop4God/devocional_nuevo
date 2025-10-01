@@ -84,6 +84,7 @@ class _OnboardingCompletePageState extends State<OnboardingCompletePage>
 
   @override
   Widget build(BuildContext context) {
+    debugPrint('🟢 [COMPLETE] build OnboardingCompletePage');
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 

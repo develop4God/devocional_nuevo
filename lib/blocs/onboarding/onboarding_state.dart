@@ -1,5 +1,7 @@
 // lib/blocs/onboarding/onboarding_state.dart
 import 'package:equatable/equatable.dart';
+import 'package:flutter/material.dart';
+
 import 'onboarding_models.dart';
 
 /// States for onboarding flow functionality
@@ -61,6 +63,8 @@ class OnboardingStepActive extends OnboardingState {
     bool? canGoBack,
     OnboardingProgress? progress,
   }) {
+    debugPrint(
+        '[ONBOARDING_STATE] OnboardingStepActive.copyWith: userSelections=${userSelections ?? this.userSelections}');
     return OnboardingStepActive(
       currentStepIndex: currentStepIndex ?? this.currentStepIndex,
       currentStep: currentStep ?? this.currentStep,

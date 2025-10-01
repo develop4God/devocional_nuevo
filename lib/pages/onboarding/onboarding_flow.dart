@@ -221,11 +221,10 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
                     if (state.currentStepIndex <
                         OnboardingSteps.defaultSteps.length - 1)
                       Container(
-                        padding: const EdgeInsets.fromLTRB(
-                            32, 24, 32, 16), // Added top padding for status bar
-                        margin: const EdgeInsets.only(
-                            top:
-                                8), // Additional margin to separate from status bar
+                        padding: const EdgeInsets.fromLTRB(32, 24, 32, 16),
+                        // Added top padding for status bar
+                        margin: const EdgeInsets.only(top: 16),
+                        // Additional margin to separate from status bar
                         child: Row(
                           children: List.generate(
                               OnboardingSteps.defaultSteps.length - 1, (index) {

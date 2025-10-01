@@ -80,7 +80,8 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       updatedSelections['backupEnabled'] = false;
 
       await _saveConfiguration(updatedSelections);
-
+      debugPrint(
+          '🟢 [ONBOARDING_BLOC] userSelections después de SkipBackupForNow: $updatedSelections');
       emit(currentState.copyWith(
         userSelections: updatedSelections,
         stepConfiguration: {'backupSkipped': true},
@@ -88,8 +89,9 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
 
       debugPrint(
           '✅ [ONBOARDING_BLOC] Backup marcado como "configurar más tarde"');
-    } catch (e) {
+    } catch (e, stack) {
       debugPrint('❌ [ONBOARDING_BLOC] Error skipping backup: $e');
+      debugPrint('❌ [ONBOARDING_BLOC] Stacktrace: $stack');
     }
 
     debugPrint('🏁 [ONBOARDING_BLOC] === FIN SkipBackupForNow ===');
@@ -226,6 +228,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
         canProgress: event.stepIndex < OnboardingSteps.defaultSteps.length - 1,
         canGoBack: event.stepIndex > 0,
         progress: updatedProgress,
+        userSelections: currentState.userSelections,
       ));
 
       debugPrint(
@@ -302,7 +305,8 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
         userSelections: updatedSelections,
         stepConfiguration: {'themeApplied': true},
       ));
-
+      debugPrint(
+          '🟢 [DEBUG] userSelections después de SelectTheme: $updatedSelections');
       debugPrint('✅ [ONBOARDING_BLOC] Selección de tema exitosa');
     } catch (e) {
       debugPrint('❌ [ONBOARDING_BLOC] Error selecting theme: $e');
@@ -350,6 +354,9 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
 
       // Save configuration
       await _saveConfiguration(updatedSelections);
+
+      debugPrint(
+          '🟢 [ONBOARDING_BLOC] userSelections después de ConfigureBackupOption: $updatedSelections');
 
       emit(currentState.copyWith(
         userSelections: updatedSelections,
@@ -433,6 +440,10 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       } else {
         configurations = await _loadSavedConfiguration();
       }
+      debugPrint(
+          '🟣 [ONBOARDING_BLOC] State al completar onboarding: ${state.runtimeType}');
+      debugPrint(
+          '🟣 [ONBOARDING_BLOC] Configuraciones al completar onboarding: $configurations');
 
       emit(const OnboardingLoading());
 
@@ -459,7 +470,8 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
 
       // Clear temporary progress data
       await _clearSavedProgress();
-
+      debugPrint(
+          '🟣 [BLOC] Emitiendo OnboardingCompleted con configuración: $configurations');
       emit(OnboardingCompleted(
         appliedConfigurations: configurations,
         completionTimestamp: DateTime.now(),
