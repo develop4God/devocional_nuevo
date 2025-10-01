@@ -56,52 +56,25 @@ class _BackupSettingsContentState extends State<BackupSettingsContent> {
         }
 
         if (state is BackupLoaded) {
-          return Stack(
-            children: [
-              _buildContent(context, state),
-              if (_isProcessing)
-                Container(
-                  color: Colors.black.withValues(alpha: 0.3),
-                  child: const Center(
-                    child: Card(
-                      child: Padding(
-                        padding: EdgeInsets.all(24),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            CircularProgressIndicator(),
-                            SizedBox(height: 16),
-                            Text('Procesando...'),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-            ],
-          );
+          return _buildContent(context, state);
         }
 
-        // Si llega BackupLoading, mantener el contenido con el botón en estado "connecting"
-        if (state is BackupLoading) {
-          // Crear un estado temporal BackupLoaded con isAuthenticated = false
-          final tempState = BackupLoaded(
-            isAuthenticated: false,
-            autoBackupEnabled: false,
-            wifiOnlyEnabled: true,
-            compressionEnabled: true,
-            backupFrequency: 'daily',
-            backupOptions: const {},
-            lastBackupTime: null,
-            nextBackupTime: null,
-            estimatedSize: 0,
-            storageInfo: const {},
-            userEmail: null,
-          );
-          return _buildContent(context, tempState);
-        }
-
-        return const Center(child: CircularProgressIndicator());
+        // Si llega BackupLoading o cualquier otro estado, mantener el contenido
+        // Crear un estado temporal BackupLoaded con isAuthenticated = false
+        final tempState = BackupLoaded(
+          isAuthenticated: false,
+          autoBackupEnabled: false,
+          wifiOnlyEnabled: true,
+          compressionEnabled: true,
+          backupFrequency: 'daily',
+          backupOptions: const {},
+          lastBackupTime: null,
+          nextBackupTime: null,
+          estimatedSize: 0,
+          storageInfo: const {},
+          userEmail: null,
+        );
+        return _buildContent(context, tempState);
       },
     );
   }
@@ -299,7 +272,7 @@ class _BackupSettingsContentState extends State<BackupSettingsContent> {
                           height: 20,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            color: colorScheme.onPrimary,
+                            color: Colors.white.withValues(alpha: 0.9),
                           ),
                         ),
                   label: Text(
@@ -354,12 +327,12 @@ class _BackupSettingsContentState extends State<BackupSettingsContent> {
       case ConnectionButtonState.complete:
         statusText = '¡Respaldo activado exitosamente!';
         statusIcon = Icons.check_circle;
-        statusColor = Colors.green;
+        statusColor = colorScheme.primary;
         break;
       default:
         statusText = 'Conectado';
         statusIcon = Icons.cloud_done;
-        statusColor = Colors.green;
+        statusColor = colorScheme.primary;
     }
 
     return Container(
@@ -400,17 +373,18 @@ class _BackupSettingsContentState extends State<BackupSettingsContent> {
 
   Widget _buildProtectionTitle(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4),
       child: Row(
         children: [
-          const Icon(Icons.security, color: Colors.green, size: 20),
+          Icon(Icons.security, color: colorScheme.primary, size: 20),
           const SizedBox(width: 8),
           Text(
             'backup.protection_active'.tr(),
             style: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.bold,
-              color: Colors.green,
+              color: colorScheme.primary,
             ),
           ),
         ],
