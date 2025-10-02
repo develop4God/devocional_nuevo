@@ -231,9 +231,12 @@ class _MyAppState extends State<MyApp> {
                 return OnboardingFlow(
                   onComplete: () {
                     Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(
-                        builder: (context) => const AppInitializer(),
+                      // INICIO: CAMBIO PARA TRANSICIÓN INSTANTÁNEA (SOLUCIONA EL FLICKER)
+                      PageRouteBuilder(
+                        pageBuilder: (context, a, b) => const AppInitializer(),
+                        transitionDuration: Duration.zero,
                       ),
+                      // FIN: CAMBIO PARA TRANSICIÓN INSTANTÁNEA
                     );
                   },
                 );
