@@ -56,6 +56,21 @@ class OnboardingBackupConfigurationPage extends StatelessWidget {
               ),
             );
           }
+
+          // Cuando se complete la conexión exitosamente
+          if (state is BackupLoaded && state.isAuthenticated) {
+            // Configurar backup en OnboardingBloc
+            context
+                .read<OnboardingBloc>()
+                .add(const ConfigureBackupOption(true));
+
+            // Delay para mostrar el estado conectado antes de avanzar
+            Future.delayed(const Duration(milliseconds: 1700), () {
+              if (context.mounted) {
+                onNext();
+              }
+            });
+          }
         },
         child: Scaffold(
           body: Container(

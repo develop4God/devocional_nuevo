@@ -5,8 +5,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../blocs/backup_bloc.dart';
 import '../blocs/backup_event.dart';
 import '../blocs/backup_state.dart';
-import '../blocs/onboarding/onboarding_bloc.dart';
-import '../blocs/onboarding/onboarding_event.dart';
 import '../extensions/string_extensions.dart';
 import '../widgets/backup_configuration_sheet.dart';
 
@@ -45,19 +43,7 @@ class _BackupSettingsContentState extends State<BackupSettingsContent> {
   Widget build(BuildContext context) {
     return BlocConsumer<BackupBloc, BackupState>(
       listener: (context, state) {
-        if (state is BackupLoaded && state.isAuthenticated) {
-          if (widget.isOnboardingMode) {
-            // 🔧 AGREGAR ESTAS LÍNEAS:
-            context
-                .read<OnboardingBloc>()
-                .add(const ConfigureBackupOption(true));
-
-            // Then trigger the completion callback
-            if (widget.onConnectionComplete != null) {
-              widget.onConnectionComplete!();
-            }
-          }
-        }
+        if (state is BackupLoaded && state.isAuthenticated) {}
 
         // Cuando termine todo el proceso, desbloquear
         if (state is BackupLoaded &&
