@@ -65,7 +65,7 @@ class OnboardingBackupConfigurationPage extends StatelessWidget {
                 .add(const ConfigureBackupOption(true));
 
             // Delay para mostrar el estado conectado antes de avanzar
-            Future.delayed(const Duration(milliseconds: 1700), () {
+            Future.delayed(const Duration(milliseconds: 2000), () {
               if (context.mounted) {
                 onNext();
               }
