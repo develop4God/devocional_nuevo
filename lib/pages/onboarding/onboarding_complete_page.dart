@@ -245,25 +245,24 @@ class _OnboardingCompletePageState extends State<OnboardingCompletePage>
                 BlocBuilder<OnboardingBloc, OnboardingState>(
                   builder: (context, state) {
                     Map<String, dynamic> configurations = {};
+
                     if (state is OnboardingCompleted) {
                       configurations = state.appliedConfigurations;
                       debugPrint(
-                          '🔍 [COMPLETE] Configuraciones recibidas: $configurations');
-                      debugPrint(
-                          '🔍 [COMPLETE] backupEnabled: ${configurations['backupEnabled']}');
-                      debugPrint(
-                          '🔍 [COMPLETE] backupSkipped: ${configurations['backupSkipped']}');
-                      debugPrint(
-                          '🔍 [COMPLETE] _isBackupConfigured: ${_isBackupConfigured(configurations)}');
+                          '🔍 [COMPLETE] Configuraciones desde OnboardingCompleted: $configurations');
                     } else if (state is OnboardingStepActive) {
-                      // ← AGREGA ESTA LÍNEA
-                      configurations =
-                          state.userSelections; // ← AGREGA ESTA LÍNEA
+                      configurations = state.userSelections;
                       debugPrint(
-                          '🔍 [COMPLETE] Usando userSelections: $configurations'); // ← AGREGA ESTA LÍNEA
+                          '🔍 [COMPLETE] Configuraciones desde OnboardingStepActive: $configurations');
                     }
 
-                    // La animación solo aplica a la tarjeta visual, no al BlocBuilder
+                    debugPrint(
+                        '🔍 [COMPLETE] backupEnabled: ${configurations['backupEnabled']}');
+                    debugPrint(
+                        '🔍 [COMPLETE] backupSkipped: ${configurations['backupSkipped']}');
+                    debugPrint(
+                        '🔍 [COMPLETE] _isBackupConfigured result: ${_isBackupConfigured(configurations)}');
+
                     return AnimatedBuilder(
                       animation: _fadeAnimation,
                       builder: (context, child) {
