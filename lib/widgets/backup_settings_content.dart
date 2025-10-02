@@ -34,6 +34,9 @@ class _BackupSettingsContentState extends State<BackupSettingsContent> {
   ConnectionButtonState _connectionState = ConnectionButtonState.idle;
   bool _isProcessing = false;
 
+  // 🔧 CRÍTICO: Evitar auto-configuraciones múltiples en onboarding
+  bool _hasAutoConfigured = false;
+
   @override
   void dispose() {
     super.dispose();
@@ -57,7 +60,7 @@ class _BackupSettingsContentState extends State<BackupSettingsContent> {
           );
         }
 
-        // Usuario canceló login (volvió BackupLoaded sin autenticar)
+        // Usuario canceló login
         if (state is BackupLoaded &&
             !state.isAuthenticated &&
             _connectionState != ConnectionButtonState.idle) {
@@ -67,19 +70,13 @@ class _BackupSettingsContentState extends State<BackupSettingsContent> {
           });
         }
 
-        // Conexión exitosa
-        if (state is BackupLoaded && state.isAuthenticated) {
-          if (widget.isOnboardingMode) {
-            setState(
-                () => _connectionState = ConnectionButtonState.transferring);
-          }
-        }
-
-        // Desbloquear al terminar
+        // 🔧 Conexión exitosa: cambiar estado a transferring
         if (state is BackupLoaded &&
             state.isAuthenticated &&
-            _connectionState == ConnectionButtonState.complete) {
-          setState(() => _isProcessing = false);
+            _connectionState == ConnectionButtonState.connecting) {
+          setState(() {
+            _connectionState = ConnectionButtonState.transferring;
+          });
         }
       },
       builder: (context, state) {
@@ -99,17 +96,14 @@ class _BackupSettingsContentState extends State<BackupSettingsContent> {
                 Positioned.fill(
                   child: AbsorbPointer(
                     absorbing: true,
-                    child: Container(
-                      color: Colors.transparent,
-                    ),
+                    child: Container(color: Colors.transparent),
                   ),
                 ),
             ],
           );
         }
 
-        // Si llega BackupLoading o cualquier otro estado, mantener el contenido
-        // Crear un estado temporal BackupLoaded con isAuthenticated = false
+        // Estado de carga inicial
         final tempState = BackupLoaded(
           isAuthenticated: false,
           autoBackupEnabled: false,
@@ -129,9 +123,7 @@ class _BackupSettingsContentState extends State<BackupSettingsContent> {
             Positioned.fill(
               child: AbsorbPointer(
                 absorbing: true,
-                child: Container(
-                  color: Colors.transparent,
-                ),
+                child: Container(color: Colors.transparent),
               ),
             ),
           ],
@@ -141,31 +133,38 @@ class _BackupSettingsContentState extends State<BackupSettingsContent> {
   }
 
   Widget _buildContent(BuildContext context, BackupLoaded state) {
-    if (widget.isOnboardingMode && state.isAuthenticated) {
-      // Onboarding: auto-configurar y avanzar
-      if (_connectionState == ConnectionButtonState.transferring) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) {
-            setState(
-                () => _connectionState = ConnectionButtonState.configuring);
-            context.read<BackupBloc>().add(const ToggleAutoBackup(true));
-            context.read<BackupBloc>().add(const ToggleWifiOnly(true));
-            context.read<BackupBloc>().add(const ToggleCompression(true));
+    // 🔧 CRÍTICO: Auto-configurar SOLO UNA VEZ en onboarding
+    if (widget.isOnboardingMode &&
+        state.isAuthenticated &&
+        _connectionState == ConnectionButtonState.transferring &&
+        !_hasAutoConfigured) {
+      _hasAutoConfigured = true; // ← Evita repeticiones
+      debugPrint('✅ [CONTENT] Auto-configurando backup en onboarding');
 
-            Future.delayed(const Duration(milliseconds: 1000), () {
-              if (mounted) {
-                setState(
-                    () => _connectionState = ConnectionButtonState.complete);
-                Future.delayed(const Duration(milliseconds: 1000), () {
-                  if (mounted && widget.onConnectionComplete != null) {
-                    widget.onConnectionComplete!();
-                  }
-                });
-              }
-            });
-          }
-        });
-      }
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _connectionState == ConnectionButtonState.transferring) {
+          setState(() => _connectionState = ConnectionButtonState.configuring);
+
+          // Configurar backup con todas las opciones
+          context.read<BackupBloc>().add(const ToggleAutoBackup(true));
+          context.read<BackupBloc>().add(const ToggleWifiOnly(true));
+          context.read<BackupBloc>().add(const ToggleCompression(true));
+
+          // Esperar y completar
+          Future.delayed(const Duration(milliseconds: 1500), () {
+            if (mounted) {
+              setState(() => _connectionState = ConnectionButtonState.complete);
+
+              // Llamar callback para avanzar
+              Future.delayed(const Duration(milliseconds: 1000), () {
+                if (mounted && widget.onConnectionComplete != null) {
+                  widget.onConnectionComplete!();
+                }
+              });
+            }
+          });
+        }
+      });
     }
 
     return SingleChildScrollView(
