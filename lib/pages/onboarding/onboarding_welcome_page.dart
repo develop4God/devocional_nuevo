@@ -1,6 +1,5 @@
-import 'dart:math' as math;
-
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
+import 'package:devocional_nuevo/widgets/donate/animated_donation_header.dart';
 import 'package:flutter/material.dart';
 
 class OnboardingWelcomePage extends StatefulWidget {
@@ -15,46 +14,7 @@ class OnboardingWelcomePage extends StatefulWidget {
   State<OnboardingWelcomePage> createState() => _OnboardingWelcomePageState();
 }
 
-class _OnboardingWelcomePageState extends State<OnboardingWelcomePage>
-    with TickerProviderStateMixin {
-  late AnimationController _heartController;
-  late AnimationController _particleController;
-  late Animation<double> _heartGlow;
-  late Animation<double> _particleAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-
-    _heartController = AnimationController(
-      duration: const Duration(seconds: 2),
-      vsync: this,
-    );
-
-    _particleController = AnimationController(
-      duration: const Duration(seconds: 4),
-      vsync: this,
-    );
-
-    _heartGlow = Tween<double>(begin: 0.5, end: 1.0).animate(
-      CurvedAnimation(parent: _heartController, curve: Curves.easeInOut),
-    );
-
-    _particleAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _particleController, curve: Curves.linear),
-    );
-
-    _heartController.repeat(reverse: true);
-    _particleController.repeat();
-  }
-
-  @override
-  void dispose() {
-    _heartController.dispose();
-    _particleController.dispose();
-    super.dispose();
-  }
-
+class _OnboardingWelcomePageState extends State<OnboardingWelcomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -79,76 +39,11 @@ class _OnboardingWelcomePageState extends State<OnboardingWelcomePage>
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      // Animated heart with particles
-                      SizedBox(
+                      // Header animado en lugar del corazón simple
+                      AnimatedDonationHeader(
                         height: 200,
-                        child: Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            // Floating particles
-                            ...List.generate(6, (index) {
-                              return AnimatedBuilder(
-                                animation: _particleAnimation,
-                                builder: (context, child) {
-                                  final angle =
-                                      (index * 60.0) * (math.pi / 180);
-                                  final radius =
-                                      80 + (20 * _particleAnimation.value);
-                                  final x = radius * math.cos(angle);
-                                  final y = radius * math.sin(angle);
-
-                                  return Transform.translate(
-                                    offset: Offset(x, y),
-                                    child: Container(
-                                      width: 4,
-                                      height: 4,
-                                      decoration: BoxDecoration(
-                                        color: Theme.of(
-                                          context,
-                                        )
-                                            .colorScheme
-                                            .primary
-                                            .withValues(alpha: 0.6),
-                                        shape: BoxShape.circle,
-                                      ),
-                                    ),
-                                  );
-                                },
-                              );
-                            }),
-
-                            // Animated heart
-                            AnimatedBuilder(
-                              animation: _heartGlow,
-                              builder: (context, child) {
-                                return Container(
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .primary
-                                            .withValues(
-                                              alpha: _heartGlow.value * 0.3,
-                                            ),
-                                        blurRadius: 20 * _heartGlow.value,
-                                        spreadRadius: 5 * _heartGlow.value,
-                                      ),
-                                    ],
-                                  ),
-                                  child: Icon(
-                                    Icons.favorite,
-                                    size: 80,
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.primary,
-                                  ),
-                                );
-                              },
-                            ),
-                          ],
-                        ),
+                        textTheme: Theme.of(context).textTheme,
+                        colorScheme: Theme.of(context).colorScheme,
                       ),
 
                       const SizedBox(height: 48),

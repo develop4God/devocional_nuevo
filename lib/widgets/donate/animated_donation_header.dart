@@ -1,4 +1,4 @@
-// lib/widgets/animated_donation_header.dart
+// lib/widgets/donate/animated_donation_header.dart
 import 'dart:math';
 
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
@@ -270,7 +270,7 @@ class _AnimatedDonationHeaderState extends State<AnimatedDonationHeader>
           const SizedBox(height: 6), // ← Reducido de 8 a 6
           // Título
           Text(
-            'donate.gratitude_title'.tr(),
+            'onboarding.onboarding_welcome_header'.tr(),
             style: widget.textTheme.headlineSmall?.copyWith(
               color: Colors.white,
               fontWeight: FontWeight.bold,
