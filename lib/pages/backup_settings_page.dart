@@ -262,7 +262,6 @@ class _BackupSettingsContent extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.start,
             // Asegurar que el Row esté a la izquierda
             children: [
-              Icon(Icons.shield_outlined, color: colorScheme.primary, size: 28),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
@@ -271,6 +270,7 @@ class _BackupSettingsContent extends StatelessWidget {
                     fontWeight: FontWeight.bold,
                     color: colorScheme.onSurface,
                   ),
+                  textAlign: TextAlign.center,
                 ),
               ),
             ],

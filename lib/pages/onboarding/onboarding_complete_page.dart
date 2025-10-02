@@ -4,9 +4,10 @@ import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../blocs/backup_bloc.dart';
+import '../../blocs/backup_state.dart';
 import '../../blocs/onboarding/onboarding_bloc.dart';
 import '../../blocs/onboarding/onboarding_event.dart';
-import '../../blocs/onboarding/onboarding_state.dart';
 
 class OnboardingCompletePage extends StatefulWidget {
   final VoidCallback onStartApp;
@@ -84,7 +85,6 @@ class _OnboardingCompletePageState extends State<OnboardingCompletePage>
 
   @override
   Widget build(BuildContext context) {
-    debugPrint('🟢 [COMPLETE] build OnboardingCompletePage');
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
@@ -239,27 +239,18 @@ class _OnboardingCompletePageState extends State<OnboardingCompletePage>
 
                 const SizedBox(height: 40),
 
-                // Setup summary card
-                BlocBuilder<OnboardingBloc, OnboardingState>(
-                  builder: (context, state) {
-                    Map<String, dynamic> configurations = {};
+                // Setup summary card - Consulta BackupBloc directamente
+                BlocBuilder<BackupBloc, BackupState>(
+                  builder: (context, backupState) {
+                    bool isBackupConfigured = false;
 
-                    if (state is OnboardingCompleted) {
-                      configurations = state.appliedConfigurations;
-                      debugPrint(
-                          '🔍 [COMPLETE] Configuraciones desde OnboardingCompleted: $configurations');
-                    } else if (state is OnboardingStepActive) {
-                      configurations = state.userSelections;
-                      debugPrint(
-                          '🔍 [COMPLETE] Configuraciones desde OnboardingStepActive: $configurations');
+                    if (backupState is BackupLoaded) {
+                      isBackupConfigured = backupState.isAuthenticated &&
+                          backupState.autoBackupEnabled;
                     }
 
                     debugPrint(
-                        '🔍 [COMPLETE] backupEnabled: ${configurations['backupEnabled']}');
-                    debugPrint(
-                        '🔍 [COMPLETE] backupSkipped: ${configurations['backupSkipped']}');
-                    debugPrint(
-                        '🔍 [COMPLETE] _isBackupConfigured result: ${_isBackupConfigured(configurations)}');
+                        '🔍 [COMPLETE] isBackupConfigured: $isBackupConfigured');
 
                     return AnimatedBuilder(
                       animation: _fadeAnimation,
@@ -268,8 +259,8 @@ class _OnboardingCompletePageState extends State<OnboardingCompletePage>
                           offset: Offset(0, 30 * (1 - _fadeAnimation.value)),
                           child: Opacity(
                             opacity: _fadeAnimation.value,
-                            child: _buildSetupSummaryCardContent(
-                                context, configurations),
+                            child: _buildSetupSummaryCard(
+                                context, isBackupConfigured),
                           ),
                         );
                       },
@@ -347,8 +338,7 @@ class _OnboardingCompletePageState extends State<OnboardingCompletePage>
     );
   }
 
-  Widget _buildSetupSummaryCardContent(
-      BuildContext context, Map<String, dynamic> configurations) {
+  Widget _buildSetupSummaryCard(BuildContext context, bool isBackupConfigured) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
@@ -405,18 +395,18 @@ class _OnboardingCompletePageState extends State<OnboardingCompletePage>
           ),
           const SizedBox(height: 20),
 
-          // 1. Theme configuration (always first)
+          // 1. Theme configuration
           _buildSetupItem(
             context,
             Icons.palette_outlined,
-            _getThemeStatusMessage(configurations),
+            'onboarding.onboarding_setup_theme_configured'.tr(),
             true,
           ),
 
           const SizedBox(height: 16),
 
-          // 2. Backup/Protection (only ONE item, always last)
-          if (_isBackupConfigured(configurations))
+          // 2. Backup status
+          if (isBackupConfigured)
             _buildSetupItem(
               context,
               Icons.cloud_done_outlined,
@@ -493,31 +483,5 @@ class _OnboardingCompletePageState extends State<OnboardingCompletePage>
         ),
       ],
     );
-  }
-
-  bool _isBackupConfigured(Map<String, dynamic> configurations) {
-    debugPrint('🔍 [DEBUG] _isBackupConfigured called with: $configurations');
-    debugPrint('🔍 [DEBUG] backupSkipped: ${configurations['backupSkipped']}');
-    debugPrint('🔍 [DEBUG] backupEnabled: ${configurations['backupEnabled']}');
-
-    // Primero verificar si se saltó explícitamente
-    if (configurations['backupSkipped'] == true) {
-      debugPrint('🔍 [DEBUG] Returning false - backupSkipped is true');
-      return false;
-    }
-
-    // Luego verificar si está habilitado
-    if (configurations['backupEnabled'] == true) {
-      debugPrint('🔍 [DEBUG] Returning true - backupEnabled is true');
-      return true;
-    }
-
-    // Default: no configurado
-    debugPrint('🔍 [DEBUG] Returning false - default case');
-    return false;
-  }
-
-  String _getThemeStatusMessage(Map<String, dynamic> configurations) {
-    return 'onboarding.onboarding_setup_theme_configured'.tr();
   }
 }
