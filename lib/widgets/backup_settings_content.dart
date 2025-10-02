@@ -280,7 +280,7 @@ class _BackupSettingsContentState extends State<BackupSettingsContent> {
       case ConnectionButtonState.complete:
         buttonColor = colorScheme.primary;
         buttonIcon = Icons.check_circle;
-        buttonText = 'onboarding.onboarding_completed_backup';
+        buttonText = 'onboarding.onboarding_completed_backup'.tr();
         isDisabled = true;
         break;
       default:
