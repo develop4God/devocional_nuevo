@@ -19,8 +19,6 @@ class OnboardingCompletePage extends StatefulWidget {
 
 class _OnboardingCompletePageState extends State<OnboardingCompletePage>
     with TickerProviderStateMixin {
-  bool? _cachedBackupConfigured;
-  Map<String, dynamic>? _lastConfigurations;
   late AnimationController _celebrationController;
   late AnimationController _particleController;
   late AnimationController _pulseController;
@@ -349,7 +347,6 @@ class _OnboardingCompletePageState extends State<OnboardingCompletePage>
     );
   }
 
-  // Nuevo metodo que contiene solo el contenido visual de la tarjeta de resumen.
   Widget _buildSetupSummaryCardContent(
       BuildContext context, Map<String, dynamic> configurations) {
     final theme = Theme.of(context);
@@ -499,43 +496,25 @@ class _OnboardingCompletePageState extends State<OnboardingCompletePage>
   }
 
   bool _isBackupConfigured(Map<String, dynamic> configurations) {
-    // ← AGREGA CACHE CHECK
-    if (_lastConfigurations != null &&
-        _mapEquals(_lastConfigurations!, configurations) &&
-        _cachedBackupConfigured != null) {
-      return _cachedBackupConfigured!;
-    }
-
     debugPrint('🔍 [DEBUG] _isBackupConfigured called with: $configurations');
     debugPrint('🔍 [DEBUG] backupSkipped: ${configurations['backupSkipped']}');
     debugPrint('🔍 [DEBUG] backupEnabled: ${configurations['backupEnabled']}');
 
-    bool result;
+    // Primero verificar si se saltó explícitamente
     if (configurations['backupSkipped'] == true) {
       debugPrint('🔍 [DEBUG] Returning false - backupSkipped is true');
-      result = false;
-    } else if (configurations['backupEnabled'] == true) {
+      return false;
+    }
+
+    // Luego verificar si está habilitado
+    if (configurations['backupEnabled'] == true) {
       debugPrint('🔍 [DEBUG] Returning true - backupEnabled is true');
-      result = true;
-    } else {
-      debugPrint('🔍 [DEBUG] Returning false - default case');
-      result = false;
+      return true;
     }
 
-    // ← CACHE EL RESULTADO
-    _cachedBackupConfigured = result;
-    _lastConfigurations = Map<String, dynamic>.from(configurations);
-
-    return result;
-  }
-
-// ← AGREGA HELPER METHOD
-  bool _mapEquals(Map<String, dynamic> map1, Map<String, dynamic> map2) {
-    if (map1.length != map2.length) return false;
-    for (var key in map1.keys) {
-      if (map1[key] != map2[key]) return false;
-    }
-    return true;
+    // Default: no configurado
+    debugPrint('🔍 [DEBUG] Returning false - default case');
+    return false;
   }
 
   String _getThemeStatusMessage(Map<String, dynamic> configurations) {

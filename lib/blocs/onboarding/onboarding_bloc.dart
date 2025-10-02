@@ -433,7 +433,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
 
     _isCompletingOnboarding = true;
     try {
-      // 🔧 CORRECCIÓN: Get configurations from current state before emitting loading
+      // 🔧 Step 1: Get base configurations from current state
       Map<String, dynamic> configurations;
       if (state is OnboardingStepActive) {
         configurations = Map<String, dynamic>.from(
@@ -449,17 +449,20 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       debugPrint(
           '🟣 [ONBOARDING_BLOC] State al completar onboarding: ${state.runtimeType}');
       debugPrint(
-          '🟣 [ONBOARDING_BLOC] Configuraciones al completar onboarding: $configurations');
+          '🟣 [ONBOARDING_BLOC] Configuraciones ANTES de enriquecer: $configurations');
 
-      emit(const OnboardingLoading());
-
-      // 🔧 NUEVO: Enriquecer con estado REAL del backup desde BackupBloc
+      // 🔧 Step 2: Enrich with REAL backup state from BackupBloc BEFORE emitting loading
       if (_backupBloc != null) {
         final backupState = _backupBloc!.state;
         debugPrint(
             '📊 [ONBOARDING_BLOC] BackupBloc estado: ${backupState.runtimeType}');
 
         if (backupState is BackupLoaded) {
+          debugPrint(
+              '📊 [ONBOARDING_BLOC] BackupBloc isAuthenticated: ${backupState.isAuthenticated}');
+          debugPrint(
+              '📊 [ONBOARDING_BLOC] BackupBloc autoBackupEnabled: ${backupState.autoBackupEnabled}');
+
           // Solo sobrescribir si el backup realmente está configurado
           if (backupState.isAuthenticated && backupState.autoBackupEnabled) {
             configurations['backupEnabled'] = true;
@@ -473,16 +476,34 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
                 '✅ [ONBOARDING_BLOC] Backup info actualizada desde BackupBloc');
             debugPrint(
                 '✅ [ONBOARDING_BLOC] backupEnabled: true, backupSkipped: false');
+          } else if (!backupState.isAuthenticated &&
+              configurations['backupEnabled'] != true) {
+            // Usuario no se autenticó Y no tiene backup configurado = skipped
+            configurations['backupSkipped'] = true;
+            configurations['backupEnabled'] = false;
+            debugPrint(
+                '📊 [ONBOARDING_BLOC] Backup marcado como skipped (no auth)');
           }
         }
       }
 
-      // Mark onboarding as complete
+      debugPrint(
+          '🟣 [ONBOARDING_BLOC] Configuraciones DESPUÉS de enriquecer: $configurations');
+
+      // 🔧 Step 3: Save enriched configuration BEFORE marking complete
+      await _saveConfiguration(configurations);
+      debugPrint('💾 [ONBOARDING_BLOC] Configuraciones enriquecidas guardadas');
+
+      // Step 4: Now emit loading
+      emit(const OnboardingLoading());
+
+      // Step 5: Mark onboarding as complete
       await _onboardingService.setOnboardingComplete();
       debugPrint('✅ [ONBOARDING_BLOC] Onboarding marcado como completado');
 
-      // Clear temporary progress data
+      // Step 6: Clear temporary progress data
       await _clearSavedProgress();
+
       debugPrint(
           '🟣 [BLOC] Emitiendo OnboardingCompleted con configuración: $configurations');
       emit(OnboardingCompleted(
