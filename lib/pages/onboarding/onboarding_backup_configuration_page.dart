@@ -58,6 +58,7 @@ class OnboardingBackupConfigurationPage extends StatelessWidget {
           }
 
           // Cuando se complete la conexión exitosamente
+
           if (state is BackupLoaded && state.isAuthenticated) {
             // Configurar backup en OnboardingBloc
             context

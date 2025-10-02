@@ -19,6 +19,7 @@ class GoogleDriveAuthService {
   GoogleSignIn? _googleSignIn;
   GoogleSignInAccount? _currentUser;
   AuthClient? _authClient;
+  bool _isRecreatingAuthClient = false;
 
   GoogleDriveAuthService() {
     debugPrint('🔧 [DEBUG] GoogleDriveAuthService constructor iniciado');
@@ -190,6 +191,12 @@ class GoogleDriveAuthService {
       debugPrint('🔐 [DEBUG] AuthClient ya existe');
       return _authClient;
     }
+    // ← NUEVA PROTECCIÓN: Si ya está recreando, esperar
+    if (_isRecreatingAuthClient) {
+      debugPrint('🔐 [DEBUG] Recreación ya en progreso, esperando...');
+      await Future.delayed(const Duration(milliseconds: 50));
+      return getAuthClient(); // Reintentar después de esperar
+    }
 
     debugPrint(
       '🔐 [DEBUG] AuthClient no existe, verificando si está signed in...',
@@ -197,6 +204,7 @@ class GoogleDriveAuthService {
 
     // If user is signed in but _authClient is null, try to recreate it
     if (await isSignedIn()) {
+      _isRecreatingAuthClient = true;
       debugPrint(
         '🔄 [DEBUG] Usuario signed in pero AuthClient es null, intentando recrear...',
       );
@@ -245,6 +253,8 @@ class GoogleDriveAuthService {
         }
       } catch (e) {
         debugPrint('❌ [DEBUG] Error recreando AuthClient: $e');
+      } finally {
+        _isRecreatingAuthClient = false; // ← DESACTIVAR FLAG SIEMPRE
       }
 
       // If recreation failed, clear inconsistent state
