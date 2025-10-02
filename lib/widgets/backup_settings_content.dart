@@ -262,25 +262,25 @@ class _BackupSettingsContentState extends State<BackupSettingsContent> {
       case ConnectionButtonState.connecting:
         buttonColor = colorScheme.primary;
         buttonIcon = Icons.login;
-        buttonText = 'Conectando...';
+        buttonText = 'onboarding.onboarding_connecting_backup'.tr();
         isDisabled = true;
         break;
       case ConnectionButtonState.transferring:
         buttonColor = colorScheme.primary;
         buttonIcon = Icons.sync;
-        buttonText = 'Transfiriendo datos...';
+        buttonText = 'onboarding.onboarding_updating_backup'.tr();
         isDisabled = true;
         break;
       case ConnectionButtonState.configuring:
         buttonColor = colorScheme.primary;
         buttonIcon = Icons.settings;
-        buttonText = 'Configurando respaldo...';
+        buttonText = 'onboarding.onboarding_configuring_backup'.tr();
         isDisabled = true;
         break;
       case ConnectionButtonState.complete:
         buttonColor = colorScheme.primary;
         buttonIcon = Icons.check_circle;
-        buttonText = '¡Completado!';
+        buttonText = 'onboarding.onboarding_completed_backup';
         isDisabled = true;
         break;
       default:
