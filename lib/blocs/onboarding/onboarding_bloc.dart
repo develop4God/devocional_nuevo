@@ -437,10 +437,15 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       Map<String, dynamic> configurations;
       if (state is OnboardingStepActive) {
         configurations = Map<String, dynamic>.from(
-            (state as OnboardingStepActive).userSelections); // ← ESTA LÍNEA
+            (state as OnboardingStepActive).userSelections);
+        debugPrint(
+            '🔍 [ONBOARDING_BLOC] Configuraciones desde OnboardingStepActive: $configurations');
       } else {
         configurations = await _loadSavedConfiguration();
+        debugPrint(
+            '🔍 [ONBOARDING_BLOC] Configuraciones desde SharedPreferences: $configurations');
       }
+
       debugPrint(
           '🟣 [ONBOARDING_BLOC] State al completar onboarding: ${state.runtimeType}');
       debugPrint(
@@ -449,19 +454,26 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       emit(const OnboardingLoading());
 
       // 🔧 NUEVO: Enriquecer con estado REAL del backup desde BackupBloc
-      if (_backupBloc != null && configurations['backupEnabled'] == true) {
+      if (_backupBloc != null) {
         final backupState = _backupBloc!.state;
         debugPrint(
             '📊 [ONBOARDING_BLOC] BackupBloc estado: ${backupState.runtimeType}');
 
         if (backupState is BackupLoaded) {
-          configurations['hasActiveBackup'] =
-              backupState.lastBackupTime != null;
-          configurations['backupCompleted'] =
-              backupState.lastBackupTime != null;
+          // Solo sobrescribir si el backup realmente está configurado
+          if (backupState.isAuthenticated && backupState.autoBackupEnabled) {
+            configurations['backupEnabled'] = true;
+            configurations['backupSkipped'] = false;
+            configurations['hasActiveBackup'] =
+                backupState.lastBackupTime != null;
+            configurations['backupCompleted'] =
+                backupState.lastBackupTime != null;
 
-          debugPrint(
-              '✅ [ONBOARDING_BLOC] Backup info agregada: hasActiveBackup=${backupState.lastBackupTime != null}');
+            debugPrint(
+                '✅ [ONBOARDING_BLOC] Backup info actualizada desde BackupBloc');
+            debugPrint(
+                '✅ [ONBOARDING_BLOC] backupEnabled: true, backupSkipped: false');
+          }
         }
       }
 

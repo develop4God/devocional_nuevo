@@ -19,6 +19,8 @@ class OnboardingCompletePage extends StatefulWidget {
 
 class _OnboardingCompletePageState extends State<OnboardingCompletePage>
     with TickerProviderStateMixin {
+  bool? _cachedBackupConfigured;
+  Map<String, dynamic>? _lastConfigurations;
   late AnimationController _celebrationController;
   late AnimationController _particleController;
   late AnimationController _pulseController;
@@ -498,25 +500,43 @@ class _OnboardingCompletePageState extends State<OnboardingCompletePage>
   }
 
   bool _isBackupConfigured(Map<String, dynamic> configurations) {
+    // ← AGREGA CACHE CHECK
+    if (_lastConfigurations != null &&
+        _mapEquals(_lastConfigurations!, configurations) &&
+        _cachedBackupConfigured != null) {
+      return _cachedBackupConfigured!;
+    }
+
     debugPrint('🔍 [DEBUG] _isBackupConfigured called with: $configurations');
     debugPrint('🔍 [DEBUG] backupSkipped: ${configurations['backupSkipped']}');
     debugPrint('🔍 [DEBUG] backupEnabled: ${configurations['backupEnabled']}');
 
-    // Si el usuario explícitamente pidió "configurar más tarde"
+    bool result;
     if (configurations['backupSkipped'] == true) {
       debugPrint('🔍 [DEBUG] Returning false - backupSkipped is true');
-      return false;
-    }
-
-    // Si el backup está habilitado
-    if (configurations['backupEnabled'] == true) {
+      result = false;
+    } else if (configurations['backupEnabled'] == true) {
       debugPrint('🔍 [DEBUG] Returning true - backupEnabled is true');
-      return true;
+      result = true;
+    } else {
+      debugPrint('🔍 [DEBUG] Returning false - default case');
+      result = false;
     }
 
-    // Default case - no está configurado
-    debugPrint('🔍 [DEBUG] Returning false - default case');
-    return false;
+    // ← CACHE EL RESULTADO
+    _cachedBackupConfigured = result;
+    _lastConfigurations = Map<String, dynamic>.from(configurations);
+
+    return result;
+  }
+
+// ← AGREGA HELPER METHOD
+  bool _mapEquals(Map<String, dynamic> map1, Map<String, dynamic> map2) {
+    if (map1.length != map2.length) return false;
+    for (var key in map1.keys) {
+      if (map1[key] != map2[key]) return false;
+    }
+    return true;
   }
 
   String _getThemeStatusMessage(Map<String, dynamic> configurations) {
