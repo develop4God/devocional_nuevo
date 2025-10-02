@@ -109,22 +109,27 @@ class OnboardingBackupConfigurationPage extends StatelessWidget {
       child: BlocBuilder<BackupBloc, BackupState>(
         builder: (context, state) {
           final isConnected = state is BackupLoaded && state.isAuthenticated;
+          final isLoading = state is BackupLoading;
 
           return Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               TextButton(
-                onPressed: onBack,
+                onPressed: isLoading ? null : onBack,
+                // ← Deshabilitar si está cargando
                 child: Text('onboarding.onboarding_back'.tr()),
               ),
               if (!isConnected)
                 TextButton(
-                  onPressed: () {
-                    context
-                        .read<OnboardingBloc>()
-                        .add(const SkipBackupForNow());
-                    onSkip(); // <-- This triggers step navigation to summary
-                  },
+                  onPressed: isLoading
+                      ? null
+                      : () {
+                          // ← Deshabilitar si está cargando
+                          context
+                              .read<OnboardingBloc>()
+                              .add(const SkipBackupForNow());
+                          onSkip();
+                        },
                   child: Text('onboarding.onboarding_config_later'.tr()),
                 ),
             ],

@@ -43,9 +43,39 @@ class _BackupSettingsContentState extends State<BackupSettingsContent> {
   Widget build(BuildContext context) {
     return BlocConsumer<BackupBloc, BackupState>(
       listener: (context, state) {
-        if (state is BackupLoaded && state.isAuthenticated) {}
+        // Resetear en error
+        if (state is BackupError) {
+          setState(() {
+            _connectionState = ConnectionButtonState.idle;
+            _isProcessing = false;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.message.tr()),
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
+          );
+        }
 
-        // Cuando termine todo el proceso, desbloquear
+        // Usuario canceló login (volvió BackupLoaded sin autenticar)
+        if (state is BackupLoaded &&
+            !state.isAuthenticated &&
+            _connectionState != ConnectionButtonState.idle) {
+          setState(() {
+            _connectionState = ConnectionButtonState.idle;
+            _isProcessing = false;
+          });
+        }
+
+        // Conexión exitosa
+        if (state is BackupLoaded && state.isAuthenticated) {
+          if (widget.isOnboardingMode) {
+            setState(
+                () => _connectionState = ConnectionButtonState.transferring);
+          }
+        }
+
+        // Desbloquear al terminar
         if (state is BackupLoaded &&
             state.isAuthenticated &&
             _connectionState == ConnectionButtonState.complete) {
