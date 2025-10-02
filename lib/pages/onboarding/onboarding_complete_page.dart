@@ -241,15 +241,17 @@ class _OnboardingCompletePageState extends State<OnboardingCompletePage>
 
                 // Setup summary card - Consulta BackupBloc directamente
                 BlocBuilder<BackupBloc, BackupState>(
-                  buildWhen: (previous, current) => current is BackupLoaded,
+                  buildWhen: (previous, current) {
+                    // Construir en el primer estado Y cuando sea BackupLoaded
+                    return previous is BackupInitial || current is BackupLoaded;
+                  },
                   builder: (context, backupState) {
-                    // Fallback por si acaso (no debería ejecutarse con buildWhen)
-                    if (backupState is! BackupLoaded) {
-                      return const SizedBox.shrink();
-                    }
+                    bool isBackupConfigured = false;
 
-                    bool isBackupConfigured = backupState.isAuthenticated &&
-                        backupState.autoBackupEnabled;
+                    if (backupState is BackupLoaded) {
+                      isBackupConfigured = backupState.isAuthenticated &&
+                          backupState.autoBackupEnabled;
+                    }
 
                     debugPrint(
                         '🔍 [COMPLETE] isBackupConfigured: $isBackupConfigured');
