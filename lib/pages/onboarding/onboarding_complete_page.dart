@@ -253,6 +253,12 @@ class _OnboardingCompletePageState extends State<OnboardingCompletePage>
                           '🔍 [COMPLETE] backupSkipped: ${configurations['backupSkipped']}');
                       debugPrint(
                           '🔍 [COMPLETE] _isBackupConfigured: ${_isBackupConfigured(configurations)}');
+                    } else if (state is OnboardingStepActive) {
+                      // ← AGREGA ESTA LÍNEA
+                      configurations =
+                          state.userSelections; // ← AGREGA ESTA LÍNEA
+                      debugPrint(
+                          '🔍 [COMPLETE] Usando userSelections: $configurations'); // ← AGREGA ESTA LÍNEA
                     }
 
                     // La animación solo aplica a la tarjeta visual, no al BlocBuilder
@@ -492,8 +498,25 @@ class _OnboardingCompletePageState extends State<OnboardingCompletePage>
   }
 
   bool _isBackupConfigured(Map<String, dynamic> configurations) {
-    // Solo mostrar "Configurar más tarde" si el usuario lo pidió explícitamente
-    return configurations['backupSkipped'] != true;
+    debugPrint('🔍 [DEBUG] _isBackupConfigured called with: $configurations');
+    debugPrint('🔍 [DEBUG] backupSkipped: ${configurations['backupSkipped']}');
+    debugPrint('🔍 [DEBUG] backupEnabled: ${configurations['backupEnabled']}');
+
+    // Si el usuario explícitamente pidió "configurar más tarde"
+    if (configurations['backupSkipped'] == true) {
+      debugPrint('🔍 [DEBUG] Returning false - backupSkipped is true');
+      return false;
+    }
+
+    // Si el backup está habilitado
+    if (configurations['backupEnabled'] == true) {
+      debugPrint('🔍 [DEBUG] Returning true - backupEnabled is true');
+      return true;
+    }
+
+    // Default case - no está configurado
+    debugPrint('🔍 [DEBUG] Returning false - default case');
+    return false;
   }
 
   String _getThemeStatusMessage(Map<String, dynamic> configurations) {
