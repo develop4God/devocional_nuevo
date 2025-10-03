@@ -55,7 +55,6 @@ class BackupSettingsPage extends StatelessWidget {
       create: (context) {
         final bloc = BackupBloc(
           backupService: backupService,
-
           devocionalProvider: Provider.of<DevocionalProvider>(
             context,
             listen: false,
@@ -123,13 +122,13 @@ class _BackupSettingsView extends StatelessWidget {
                   children: [
                     Text(
                       state.title.tr(),
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                      style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                     Text(state.message.tr()),
                   ],
                 ),
                 backgroundColor: Colors.green,
-                duration: Duration(seconds: 3),
+                duration: const Duration(seconds: 3),
               ),
             );
           }
@@ -211,24 +210,19 @@ class _BackupSettingsContent extends StatelessWidget {
 
           // Progressive content based on state
           if (!state.isAuthenticated) ...[
-            // State 1: Not connected - Only connection card
             _buildConnectionPrompt(context),
           ] else if (state.isAuthenticated && !hasConnectedBefore) ...[
-            // State 2: Just connected - Show success and initial setup
             _buildJustConnectedState(context),
           ] else if (state.isAuthenticated && state.autoBackupEnabled) ...[
-            // State 3: Auto backup is ON - Show protection title + simplified card
             const SizedBox(height: 8),
             _buildProtectionTitle(context),
             const SizedBox(height: 12),
-            _buildAutoBackupActiveState(context),
+            _buildAutoBackupActiveState(context, state),
           ] else if (state.isAuthenticated && !state.autoBackupEnabled) ...[
-            // State 4: Auto backup is OFF - Show manual backup option
             const SizedBox(height: 8),
             _buildManualBackupState(context),
           ],
 
-          // Security info (always at bottom)
           const SizedBox(height: 24),
           _buildSecurityInfo(context),
         ],
@@ -256,11 +250,9 @@ class _BackupSettingsContent extends StatelessWidget {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        // Mantener el título a la izquierda
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.start,
-            // Asegurar que el Row esté a la izquierda
             children: [
               const SizedBox(width: 12),
               Expanded(
@@ -277,7 +269,6 @@ class _BackupSettingsContent extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Align(
-            // Envuelve el subtítulo en un widget Align
             alignment: Alignment.center,
             child: Text(
               'backup.description_text'.tr(),
@@ -285,7 +276,7 @@ class _BackupSettingsContent extends StatelessWidget {
                 color: colorScheme.onSurfaceVariant,
                 height: 1.4,
               ),
-              textAlign: TextAlign.center, // Centrar el texto
+              textAlign: TextAlign.center,
             ),
           ),
         ],
@@ -358,7 +349,6 @@ class _BackupSettingsContent extends StatelessWidget {
 
     return Column(
       children: [
-        // Success message
         Container(
           width: double.infinity,
           padding: const EdgeInsets.all(20),
@@ -392,8 +382,6 @@ class _BackupSettingsContent extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 20),
-
-        // Auto-enable automatic backup
         Card(
           child: Padding(
             padding: const EdgeInsets.all(20),
@@ -426,7 +414,6 @@ class _BackupSettingsContent extends StatelessWidget {
                   width: double.infinity,
                   child: ElevatedButton(
                     onPressed: () {
-                      // Activate automatic backup with all defaults
                       context.read<BackupBloc>().add(
                             const ToggleAutoBackup(true),
                           );
@@ -443,7 +430,6 @@ class _BackupSettingsContent extends StatelessWidget {
                 const SizedBox(height: 8),
                 TextButton(
                   onPressed: () {
-                    // CAMBIADO: En lugar de ir a manual, hacer logout
                     _showLogoutConfirmation(context);
                   },
                   child: Text('backup.prefer_manual'.tr()),
@@ -456,7 +442,6 @@ class _BackupSettingsContent extends StatelessWidget {
     );
   }
 
-  // 🎯 NEW: Protection title outside the card (only when authenticated and auto backup active)
   Widget _buildProtectionTitle(BuildContext context) {
     final theme = Theme.of(context);
 
@@ -478,8 +463,7 @@ class _BackupSettingsContent extends StatelessWidget {
     );
   }
 
-  // 🎯 SIMPLIFIED: Auto backup active state with clean card
-  Widget _buildAutoBackupActiveState(BuildContext context) {
+  Widget _buildAutoBackupActiveState(BuildContext context, BackupLoaded state) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
@@ -489,7 +473,6 @@ class _BackupSettingsContent extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header row with title and 3 dots
             Row(
               children: [
                 Expanded(
@@ -503,15 +486,12 @@ class _BackupSettingsContent extends StatelessWidget {
                     ],
                   ),
                 ),
-                // 🔧 CAMBIADO: Switch con confirmación de logout
                 Switch(
                   value: state.autoBackupEnabled,
                   onChanged: (value) {
                     if (value) {
-                      // Si está activando, simplemente activar
                       context.read<BackupBloc>().add(ToggleAutoBackup(true));
                     } else {
-                      // Si está desactivando, mostrar confirmación de logout
                       _showLogoutConfirmation(context);
                     }
                   },
@@ -526,7 +506,6 @@ class _BackupSettingsContent extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 16),
-            //Google drive signing
             Row(
               children: [
                 Icon(
@@ -544,7 +523,6 @@ class _BackupSettingsContent extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 8),
-            // User email
             Row(
               children: [
                 Icon(
@@ -570,7 +548,6 @@ class _BackupSettingsContent extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 8),
-
             // Last backup
             if (state.lastBackupTime != null) ...[
               Row(
@@ -599,34 +576,31 @@ class _BackupSettingsContent extends StatelessWidget {
               ),
               const SizedBox(height: 8),
             ],
-
             // Next backup
-            if (state.nextBackupTime != null) ...[
-              Row(
-                children: [
-                  Icon(
-                    Icons.schedule_send,
-                    size: 16,
-                    color: colorScheme.onSurfaceVariant,
+            Row(
+              children: [
+                Icon(
+                  Icons.schedule_send,
+                  size: 16,
+                  color: colorScheme.onSurfaceVariant,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  '${'backup.next_backup'.tr()}: ',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    fontWeight: FontWeight.w500,
                   ),
-                  const SizedBox(width: 8),
-                  Text(
-                    '${'backup.next_backup'.tr()}: ',
+                ),
+                Expanded(
+                  child: Text(
+                    _formatNextBackupTime(context, state.lastBackupTime),
                     style: theme.textTheme.bodySmall?.copyWith(
-                      fontWeight: FontWeight.w500,
+                      color: colorScheme.onSurfaceVariant,
                     ),
                   ),
-                  Expanded(
-                    child: Text(
-                      _formatNextBackupTime(context, state.nextBackupTime!),
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
+                ),
+              ],
+            ),
           ],
         ),
       ),
@@ -638,7 +612,6 @@ class _BackupSettingsContent extends StatelessWidget {
 
     return Column(
       children: [
-        // Manual backup card
         Card(
           child: Padding(
             padding: const EdgeInsets.all(20),
@@ -666,8 +639,6 @@ class _BackupSettingsContent extends StatelessWidget {
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 8),
-
-                // Google Drive connection status (ARRIBA del email)
                 Row(
                   children: [
                     Icon(
@@ -685,8 +656,6 @@ class _BackupSettingsContent extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 8),
-
-                // User email (ABAJO del Google Drive)
                 if (state.userEmail != null) ...[
                   Row(
                     children: [
@@ -714,7 +683,6 @@ class _BackupSettingsContent extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
                 ],
-
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton.icon(
@@ -744,8 +712,6 @@ class _BackupSettingsContent extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 16),
-
-        // Last backup info if available
         if (state.lastBackupTime != null) ...[
           Card(
             color: theme.colorScheme.surfaceContainerHighest.withValues(
@@ -775,9 +741,6 @@ class _BackupSettingsContent extends StatelessWidget {
     );
   }
 
-  // 🔧 ELIMINADO: _buildManualBackupState - Ya no se usa
-
-  // 🔧 NUEVO: Metodo de confirmación de logout
   void _showLogoutConfirmation(BuildContext context) {
     final theme = Theme.of(context);
 
@@ -797,8 +760,7 @@ class _BackupSettingsContent extends StatelessWidget {
             ),
             ElevatedButton(
               onPressed: () {
-                Navigator.of(dialogContext).pop(); // Close dialog
-                // Hacer logout y desconectar todo
+                Navigator.of(dialogContext).pop();
                 context.read<BackupBloc>().add(const SignOutFromGoogleDrive());
               },
               style: ElevatedButton.styleFrom(
@@ -869,8 +831,36 @@ class _BackupSettingsContent extends StatelessWidget {
     }
   }
 
-  String _formatNextBackupTime(BuildContext context, DateTime time) {
-    // Startup backup approach - always shows "today"
-    return 'backup.today_on_app_start'.tr(); // "hoy al abrir la app"
+  String _formatNextBackupTime(BuildContext context, DateTime? lastBackupTime) {
+    if (lastBackupTime == null) {
+      debugPrint('[BACKUP] No lastBackupTime found, showing no_backup_yet');
+      return 'backup.no_backup_yet'.tr();
+    }
+    final now = DateTime.now();
+    final elapsed = now.difference(lastBackupTime);
+    final totalMinutes = elapsed.inMinutes;
+    final minutesLeft = 24 * 60 - totalMinutes;
+
+    debugPrint('[BACKUP] lastBackupTime: $lastBackupTime');
+    debugPrint('[BACKUP] now: $now');
+    debugPrint(
+        '[BACKUP] elapsed: ${elapsed.inHours}h ${elapsed.inMinutes % 60}m');
+    debugPrint('[BACKUP] minutesLeft before next backup: $minutesLeft');
+
+    if (minutesLeft <= 1) {
+      debugPrint('[BACKUP] Showing: Próxima copia en 24 horas');
+      return 'backup.next_backup_in_hours'.tr().replaceAll('{hours}', '24');
+    } else if (minutesLeft < 60) {
+      debugPrint('[BACKUP] Showing: Próxima copia en $minutesLeft minutos');
+      return 'backup.next_backup_in_minutes'
+          .tr()
+          .replaceAll('{minutes}', minutesLeft.toString());
+    } else {
+      final hoursLeft = minutesLeft ~/ 60;
+      debugPrint('[BACKUP] Showing: Próxima copia en $hoursLeft horas');
+      return 'backup.next_backup_in_hours'
+          .tr()
+          .replaceAll('{hours}', hoursLeft.toString());
+    }
   }
 }
