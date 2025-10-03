@@ -4,6 +4,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:googleapis/drive/v3.dart' as drive;
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../blocs/prayer_bloc.dart';
@@ -243,7 +244,7 @@ class GoogleDriveBackupService {
   Future<bool> createBackup(DevocionalProvider? provider) async {
     try {
       debugPrint('Creating Google Drive backup...');
-
+      debugPrint('Google Drive backup file name: $_backupFileName');
       // Check authentication
       if (!await _authService.isSignedIn()) {
         throw Exception('Not signed in to Google Drive');
@@ -336,12 +337,21 @@ class GoogleDriveBackupService {
     DevocionalProvider? provider,
   ) async {
     final options = await getBackupOptions();
+    final packageInfo = await PackageInfo.fromPlatform();
     final backupData = <String, dynamic>{
       'timestamp': DateTime.now().toIso8601String(),
       'version': '1.0',
-      'app_version': '1.0.45', // TODO: Get from package info
+      'app_version': packageInfo.version, // Now gets real app version
       'compression_enabled': await isCompressionEnabled(),
     };
+
+// Add logs for each section included in the backup
+    debugPrint('[BACKUP] Creating backupData...');
+    debugPrint('[BACKUP] timestamp: ${backupData['timestamp']}');
+    debugPrint('[BACKUP] version: ${backupData['version']}');
+    debugPrint('[BACKUP] app_version: ${backupData['app_version']}');
+    debugPrint(
+        '[BACKUP] compression_enabled: ${backupData['compression_enabled']}');
 
     // Include spiritual stats if enabled
     if (options['spiritual_stats'] == true) {

@@ -8,6 +8,27 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 /// Service for managing Google Drive authentication
 class GoogleDriveAuthService {
+  static GoogleDriveAuthService? _singletonInstance;
+
+  /// Use this factory to always get the same instance (singleton).
+  factory GoogleDriveAuthService() {
+    if (_singletonInstance != null) {
+      debugPrint(
+          "⚠️ [DEBUG] Duplicate GoogleDriveAuthService instantiation prevented. Singleton returned.");
+      return _singletonInstance!;
+    }
+    _singletonInstance = GoogleDriveAuthService._internal();
+    return _singletonInstance!;
+  }
+
+  // Private constructor for singleton
+  GoogleDriveAuthService._internal() {
+    debugPrint('🔧 [DEBUG] GoogleDriveAuthService constructor iniciado');
+    _googleSignIn = GoogleSignIn(scopes: _scopes);
+    debugPrint('🔧 [DEBUG] GoogleSignIn inicializado con scopes: $_scopes');
+    debugPrint('🔧 [DEBUG] GoogleSignIn clientId: ${_googleSignIn?.clientId}');
+  }
+
   static const List<String> _scopes = [
     drive.DriveApi.driveFileScope,
     drive.DriveApi.driveScope,
@@ -20,13 +41,6 @@ class GoogleDriveAuthService {
   GoogleSignInAccount? _currentUser;
   AuthClient? _authClient;
   bool _isRecreatingAuthClient = false;
-
-  GoogleDriveAuthService() {
-    debugPrint('🔧 [DEBUG] GoogleDriveAuthService constructor iniciado');
-    _googleSignIn = GoogleSignIn(scopes: _scopes);
-    debugPrint('🔧 [DEBUG] GoogleSignIn inicializado con scopes: $_scopes');
-    debugPrint('🔧 [DEBUG] GoogleSignIn clientId: ${_googleSignIn?.clientId}');
-  }
 
   /// Check if user is currently signed in to Google Drive
   Future<bool> isSignedIn() async {
