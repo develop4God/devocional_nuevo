@@ -31,6 +31,7 @@
     "salvation_promise": "Si hiciste esta oración y lo crees:\nSerás salvo tu y tu casa (Hch 16:31)\nVivirás eternamente (Jn 11:25-26)\nNunca más tendrás sed (Jn 4:14)\nEstarás con Cristo en los cielos (Ap 19:9)\nHay gozo en los cielos cuando un pecador se arrepiente (Luc 15:10)\nEscrito está y Dios es fiel (Dt 7:9)\n\nDesde ya tienes salvación y vida nueva en Jesucristo.",
     "continue": "Continuar",
     "share_text_format": "Devocional del día:\n\nVersículo:\n{verse}\n\nReflexión:\n{reflection}\n\nPara Meditar:\n{meditations}\n\nOración:\n{prayer}\n\n──────────────────────────────\nDescubre Devocionales Cristianos: Tu espacio íntimo con Dios cada día\nhttps://play.google.com/store/apps/details?id=com.develop4god.devocional_nuevo",
+    "loading_devotional": "Cargando devocional...",
     "no_devotionals": "No hay devocionales disponibles",
     "error_loading": "Error al cargar devocionales",
     "share_devotional": "Compartir devocional",
