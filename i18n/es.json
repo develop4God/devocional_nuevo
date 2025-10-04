@@ -66,7 +66,6 @@
     "praying": "Orando...",
     "my_prayers": "Mis Oraciones",
     "active": "Activas",
-    "answered": "Respondidas",
     "retry": "Reintentar",
     "no_active_prayers_title": "No hay oraciones activas",
     "no_active_prayers_description": "Crea tu primera oración tocando el botón \"+\" para comenzar tu viaje de fe.",
@@ -86,12 +85,7 @@
     "prayer_min_length_error": "La oración debe tener al menos 10 caracteres",
     "cancel": "Cancelar",
     "create_prayer": "Crear Oración",
-    "update_prayer": "Actualizar Oración",
-    "created": "TODO_TRANSLATE",
-    "days_old_single": "TODO_TRANSLATE",
-    "days_old_plural": "TODO_TRANSLATE",
-    "prayer_updated": "TODO_TRANSLATE",
-    "prayer_created": "TODO_TRANSLATE"
+    "update_prayer": "Actualizar Oración"
   },
   "settings": {
     "title": "Configuración",
@@ -546,10 +540,5 @@
     "onboarding_error_loading": "Error al cargar la configuración inicial",
     "onboarding_completed": "¡Onboarding completado!",
     "onboarding_retry": "Reintentar"
-  },
-  "test": {
-    "badges_page_title": "TODO_TRANSLATE",
-    "testing_remote_badges": "TODO_TRANSLATE",
-    "badge_system_test": "TODO_TRANSLATE"
   }
 }

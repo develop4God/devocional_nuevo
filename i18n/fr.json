@@ -66,7 +66,6 @@
     "praying": "En prière...",
     "my_prayers": "Mes Prières",
     "active": "Actives",
-    "answered": "Exaucées",
     "retry": "Réessayer",
     "no_active_prayers_title": "Aucune prière active",
     "no_active_prayers_description": "Créez votre première prière en touchant le bouton \"+\" pour commencer votre voyage de foi.",
@@ -86,12 +85,7 @@
     "prayer_min_length_error": "La prière doit contenir au moins 10 caractères",
     "cancel": "Annuler",
     "create_prayer": "Créer une prière",
-    "update_prayer": "Mettre à jour la prière",
-    "created": "TODO_TRANSLATE",
-    "days_old_single": "TODO_TRANSLATE",
-    "days_old_plural": "TODO_TRANSLATE",
-    "prayer_updated": "TODO_TRANSLATE",
-    "prayer_created": "TODO_TRANSLATE"
+    "update_prayer": "Mettre à jour la prière"
   },
   "settings": {
     "title": "Paramètres",
@@ -131,7 +125,7 @@
     "paypal_launch_error": "Impossible d'ouvrir PayPal. Le système n'a pas pu lancer l'URL.",
     "paypal_error": "Erreur lors de l'ouverture de PayPal : {error}",
     "paypal_no_app_error": "Impossible d'ouvrir PayPal. Assurez-vous d'avoir un navigateur web ou l'application PayPal installée.",
-    "backup_option": "TODO_TRANSLATE"
+    "backup_option": "Sauvegarde"
   },
   "notifications_config_page": {
     "notifications_config": "Configuration des notifications",
@@ -443,14 +437,14 @@
     "optimization": "Optimisation",
     "account_management": "Gestion du Compte",
     "logout_google_drive": "Se Déconnecter de Google Drive",
-    "next_backup_in_hours": "TODO_TRANSLATE",
-    "next_backup_in_minutes": "TODO_TRANSLATE",
-    "no_email": "TODO_TRANSLATE",
-    "error_no_internet": "TODO_TRANSLATE",
-    "error_auth_failed": "TODO_TRANSLATE",
-    "error_storage_full": "TODO_TRANSLATE",
-    "error_network": "TODO_TRANSLATE",
-    "error_generic": "TODO_TRANSLATE"
+    "next_backup_in_hours": "dans {hours} heures",
+    "next_backup_in_minutes": "dans {minutes} minutes",
+    "no_email": "Aucun email",
+    "error_no_internet": "Pas de connexion Internet",
+    "error_auth_failed": "Erreur d'authentification Google Drive",
+    "error_storage_full": "Stockage Google Drive plein",
+    "error_network": "Erreur réseau. Vérifiez votre connexion",
+    "error_generic": "Erreur inattendue. Réessayez"
   },
   "review": {
     "title": "Merci pour votre constance 🙏",
@@ -546,10 +540,5 @@
     "onboarding_error_loading": "Erreur lors du chargement de la configuration initiale",
     "onboarding_completed": "Onboarding terminé!",
     "onboarding_retry": "Réessayer"
-  },
-  "test": {
-    "badges_page_title": "TODO_TRANSLATE",
-    "testing_remote_badges": "TODO_TRANSLATE",
-    "badge_system_test": "TODO_TRANSLATE"
   }
 }

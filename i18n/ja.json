@@ -66,7 +66,6 @@
     "praying": "祈り中...",
     "my_prayers": "私の祈り",
     "active": "アクティブ",
-    "answered": "答えられた",
     "retry": "再試行",
     "no_active_prayers_title": "アクティブな祈りはありません",
     "no_active_prayers_description": "「+」ボタンをタップして最初の祈りを作成し、信仰の旅を始めましょう。",
@@ -86,12 +85,7 @@
     "prayer_min_length_error": "祈りは少なくとも10文字必要です",
     "cancel": "キャンセル",
     "create_prayer": "祈りを作成",
-    "update_prayer": "祈りを更新",
-    "created": "TODO_TRANSLATE",
-    "days_old_single": "TODO_TRANSLATE",
-    "days_old_plural": "TODO_TRANSLATE",
-    "prayer_updated": "TODO_TRANSLATE",
-    "prayer_created": "TODO_TRANSLATE"
+    "update_prayer": "祈りを更新"
   },
   "settings": {
     "title": "設定",
@@ -131,7 +125,7 @@
     "paypal_launch_error": "PayPalを開けませんでした。システムがURLを起動できませんでした。",
     "paypal_error": "PayPalを開く際にエラーが発生しました: {error}",
     "paypal_no_app_error": "PayPalを開けませんでした。ウェブブラウザまたはPayPalアプリがインストールされていることを確認してください。",
-    "backup_option": "TODO_TRANSLATE"
+    "backup_option": "バックアップ"
   },
   "notifications_config_page": {
     "notifications_config": "通知設定",
@@ -474,14 +468,14 @@
     "optimization": "最適化",
     "account_management": "アカウント管理",
     "logout_google_drive": "Google Driveからログアウト",
-    "next_backup_in_hours": "TODO_TRANSLATE",
-    "next_backup_in_minutes": "TODO_TRANSLATE",
-    "no_email": "TODO_TRANSLATE",
-    "error_no_internet": "TODO_TRANSLATE",
-    "error_auth_failed": "TODO_TRANSLATE",
-    "error_storage_full": "TODO_TRANSLATE",
-    "error_network": "TODO_TRANSLATE",
-    "error_generic": "TODO_TRANSLATE"
+    "next_backup_in_hours": "{hours}時間後",
+    "next_backup_in_minutes": "{minutes}分後",
+    "no_email": "メールなし",
+    "error_no_internet": "インターネット接続なし",
+    "error_auth_failed": "Google Drive認証エラー",
+    "error_storage_full": "Google Driveストレージが満杯です",
+    "error_network": "ネットワークエラー。接続を確認してください",
+    "error_generic": "予期しないエラー。もう一度お試しください"
   },
   "review": {
     "title": "あなたの継続に感謝します 🙏",
@@ -546,10 +540,5 @@
     "test_badges": "バッジをテスト",
     "remote_system": "リモートシステム",
     "test_connection": "接続をテスト"
-  },
-  "test": {
-    "badges_page_title": "TODO_TRANSLATE",
-    "testing_remote_badges": "TODO_TRANSLATE",
-    "badge_system_test": "TODO_TRANSLATE"
   }
 }
