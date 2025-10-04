@@ -536,7 +536,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              'devotionals.share_image'.tr(),
+                              'tooltips.share_as_image'.tr(),
                               style: Theme.of(context).textTheme.bodyMedium,
                               textAlign: TextAlign.center,
                             ),
