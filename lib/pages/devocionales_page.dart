@@ -503,7 +503,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              'Share as Text',
+                              'tooltips.share_as_text'.tr(),
                               style: Theme.of(context).textTheme.bodyMedium,
                               textAlign: TextAlign.center,
                             ),
