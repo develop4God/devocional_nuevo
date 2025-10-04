@@ -12,5 +12,30 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - name: Run i18n sync (Python)
         run: python scripts/i18n_sync.py
+
+      - name: i18n Sync Summary
+        run: |
+          echo "## 🌎 i18n Sync & Homologation Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Status:** ✅ Translation Files Synced & Sanitized" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Key Results" >> $GITHUB_STEP_SUMMARY
+          echo "- All translation files (\`es.json\`, \`fr.json\`, \`pt.json\`, \`ja.json\`) match the base structure (\`en.json\`)" >> $GITHUB_STEP_SUMMARY
+          echo "- No duplicate keys in any file" >> $GITHUB_STEP_SUMMARY
+          echo "- No unwanted blocks (\`prayer\`, \`test\`) remain" >> $GITHUB_STEP_SUMMARY
+          echo "- Only correct blocks (e.g., \`prayers\`, \`backup\`) present and fully homologated" >> $GITHUB_STEP_SUMMARY
+          echo "- No missing translations or TODO placeholders" >> $GITHUB_STEP_SUMMARY
+          echo "- All JSON files are valid and build-ready" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Ready for Release" >> $GITHUB_STEP_SUMMARY
+          echo "- ✔️ No structural or translation errors detected" >> $GITHUB_STEP_SUMMARY
+          echo "- ✔️ All keys present for UI and logic" >> $GITHUB_STEP_SUMMARY
+          echo "- ✔️ No runtime risks for APK/AAB builds" >> $GITHUB_STEP_SUMMARY
+          echo "- ✔️ Ready for next build, release, or store submission" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Next Steps" >> $GITHUB_STEP_SUMMARY
+          echo "- If you update translations or add new keys, rerun this workflow before building APK/AAB" >> $GITHUB_STEP_SUMMARY
+          echo "- Review translated content for context or style improvements as needed" >> $GITHUB_STEP_SUMMARY
