@@ -54,7 +54,7 @@
     "offline_mode": "Offline mode",
     "online_mode": "Online mode"
   },
-  "prayer": {
+  "prayers": {
     "invitation_title": "Invitation to Prayer",
     "invitation_message": "Would you like to pray now?",
     "invitation_content": "\"But thou, when thou prayest, enter into thy closet, and when thou hast shut thy door, pray to thy Father which is in secret; and thy Father which seeth in secret shall reward thee openly.\" - Matthew 6:6 (KJV)",
