@@ -368,7 +368,7 @@ class _DonatePageState extends State<DonatePage> with TickerProviderStateMixin {
                     ),
                   ),
                   child: Text(
-                    '✨ Las insignias son nuestro agradecimiento por tu generosidad y apoyo al ministerio. Cada una representa una virtud espiritual para tu colección.',
+                    'donate.badge_gratitude_message'.tr(),
                     style: textTheme.bodySmall?.copyWith(
                       color: colorScheme.primary.withValues(alpha: 0.9),
                       height: 1.3,
@@ -491,7 +491,7 @@ class _DonatePageState extends State<DonatePage> with TickerProviderStateMixin {
             child: Column(
               children: [
                 Text(
-                  'Monto personalizado',
+                  'donate.custom_amount_label'.tr(),
                   style: textTheme.labelMedium?.copyWith(
                     color: colorScheme.onSurface.withValues(alpha: 0.7),
                   ),

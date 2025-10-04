@@ -1,23 +1,44 @@
-import 'package:devocional_nuevo/extensions/string_extensions.dart';
-
 /// Utility class for handling copyright text based on language and Bible version
 class CopyrightUtils {
   /// Get the appropriate copyright text for a given language and version
   static String getCopyrightText(String language, String version) {
-    // Create version-specific copyright key
-    String versionKey = version.toLowerCase();
-    String copyrightKey = 'devotionals.copyright_$versionKey';
+    const Map<String, Map<String, String>> copyrightMap = {
+      'es': {
+        'RVR1960':
+            'El texto bíblico Reina-Valera 1960® Sociedades Bíblicas en América Latina, 1960. Derechos renovados 1988, Sociedades Bíblicas Unidas.',
+        'NVI':
+            'El texto bíblico Nueva Versión Internacional® © 1999 Biblica, Inc. Todos los derechos reservados.',
+        'default':
+            'El texto bíblico Reina-Valera 1960® Sociedades Bíblicas en América Latina, 1960. Derechos renovados 1988, Sociedades Bíblicas Unidas.',
+      },
+      'en': {
+        'KJV': 'The biblical text King James Version® Public Domain.',
+        'NIV':
+            'The biblical text New International Version® © 2011 Biblica, Inc. All rights reserved.',
+        'default': 'The biblical text King James Version® Public Domain.',
+      },
+      'pt': {
+        'ARC': 'O texto bíblico Almeida Revista e Corrigida® Domínio Público.',
+        'NVI':
+            'O texto bíblico Nova Versão Internacional® © 2000 Biblica, Inc. Todos os direitos reservados.',
+        'default':
+            'O texto bíblico Almeida Revista e Corrigida® Domínio Público.',
+      },
+      'fr': {
+        'LSG1910': 'Le texte biblique Louis Segond 1910® Domaine Public.',
+        'TOB':
+            'Le texte biblique Traduction Oecuménique de la Bible® © Société Biblique Française et Éditions du Cerf.',
+        'default': 'Le texte biblique Louis Segond 1910® Domaine Public.',
+      },
+      'ja': {
+        'KJV': '聖書本文 キング・ジェームズ版® パブリックドメイン。',
+        'NIV': '聖書本文 新国際版® © 2011 Biblica, Inc. すべての権利が保護されています。',
+        'default': '聖書本文 新改訳聖書® パブリックドメイン。',
+      },
+    };
 
-    // Try to get version-specific copyright text
-    String copyrightText = copyrightKey.tr();
-
-    // If the translation key doesn't exist, it will return the key itself
-    // In that case, fall back to the generic copyright text
-    if (copyrightText == copyrightKey) {
-      copyrightText = 'devotionals.copyright_text'.tr();
-    }
-
-    return copyrightText;
+    final langMap = copyrightMap[language] ?? copyrightMap['en']!;
+    return langMap[version] ?? langMap['default']!;
   }
 
   /// Get Bible version display name for TTS
@@ -37,8 +58,11 @@ class CopyrightUtils {
       },
       'fr': {
         'LSG1910': 'Louis Segond 1910',
-        'LSG': 'Louis Segond',
         'TOB': 'Traduction Oecuménique de la Bible',
+      },
+      'ja': {
+        'KJV': 'キング・ジェームズ版',
+        'NIV': '新国際版',
       },
     };
 

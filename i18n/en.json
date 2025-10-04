@@ -450,7 +450,11 @@
     "manual_backup_active": "Manual backup",
     "manual_backup_description": "Backup will only be saved when button is pressed.",
     "protection_active": "Data and progress protection activated",
-    "configuration": "Configuration"
+    "configuration": "Configuration",
+    "more_options": "More options",
+    "optimization": "Optimization",
+    "account_management": "Account Management",
+    "logout_google_drive": "Log Out from Google Drive"
   },
   "review": {
     "title": "Thank you for your consistency 🙏",
@@ -495,7 +499,9 @@
     "thank_you_message": "Your support helps us reach more hearts with God's love.",
     "select_amount_and_badge": "Please select an amount and a badge",
     "badge_selected": "Selected",
-    "select_badge": "Select"
+    "select_badge": "Select",
+    "badge_gratitude_message": "✨ Badges are our way of thanking you for your generosity and support of the ministry. Each one represents a spiritual virtue for your collection.",
+    "custom_amount_label": "Custom Amount"
   },
   "badges": {
     "title": "My Badges",
@@ -539,7 +545,11 @@
     "onboarding_setup_backup_configured": "Automatic backup configured",
     "onboarding_setup_protection_active": "Data protection activated",
     "onboarding_setup_backup_skipped": "Backup skipped for now",
-    "onboarding_setup_backup_later_info": "You can configure backup later in Settings"
+    "onboarding_setup_backup_later_info": "You can configure backup later in Settings",
+    "onboarding_error_title": "Configuration Error",
+    "onboarding_error_loading": "Error loading initial configuration",
+    "onboarding_completed": "Onboarding completed!",
+    "onboarding_retry": "Retry"
   },
   "test": {
     "badges_page_title": "Badge System Test",
