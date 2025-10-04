@@ -66,7 +66,6 @@
     "praying": "祈り中...",
     "my_prayers": "私の祈り",
     "active": "アクティブ",
-    "answered": "答えられた",
     "retry": "再試行",
     "no_active_prayers_title": "アクティブな祈りはありません",
     "no_active_prayers_description": "「+」ボタンをタップして最初の祈りを作成し、信仰の旅を始めましょう。",
@@ -125,7 +124,8 @@
     "about_app": "クリスチャンデボーションについて",
     "paypal_launch_error": "PayPalを開けませんでした。システムがURLを起動できませんでした。",
     "paypal_error": "PayPalを開く際にエラーが発生しました: {error}",
-    "paypal_no_app_error": "PayPalを開けませんでした。ウェブブラウザまたはPayPalアプリがインストールされていることを確認してください。"
+    "paypal_no_app_error": "PayPalを開けませんでした。ウェブブラウザまたはPayPalアプリがインストールされていることを確認してください。",
+    "backup_option": "バックアップ"
   },
   "notifications_config_page": {
     "notifications_config": "通知設定",
@@ -411,8 +411,6 @@
     "frequency": "頻度",
     "frequency_daily": "毎日",
     "frequency_daily_2am": "毎日（午前2:00）",
-    "frequency_manual_only": "'バックアップを作成'を選択した時のみ",
-    "frequency_deactivated": "非アクティブ",
     "frequency_weekly": "毎週",
     "frequency_monthly": "毎月",
     "wifi_only": "WiFiのみ",
@@ -429,7 +427,6 @@
     "storage_management": "ストレージ管理",
     "google_drive_storage": "Google Driveストレージ",
     "last_backup": "最後のバックアップ",
-    "size": "サイズ",
     "next_backup": "次のバックアップ",
     "no_backup_yet": "まだバックアップはありません",
     "create_backup": "バックアップを作成",
@@ -470,7 +467,15 @@
     "more_options": "その他のオプション",
     "optimization": "最適化",
     "account_management": "アカウント管理",
-    "logout_google_drive": "Google Driveからログアウト"
+    "logout_google_drive": "Google Driveからログアウト",
+    "next_backup_in_hours": "{hours}時間後",
+    "next_backup_in_minutes": "{minutes}分後",
+    "no_email": "メールなし",
+    "error_no_internet": "インターネット接続なし",
+    "error_auth_failed": "Google Drive認証エラー",
+    "error_storage_full": "Google Driveストレージが満杯です",
+    "error_network": "ネットワークエラー。接続を確認してください",
+    "error_generic": "予期しないエラー。もう一度お試しください"
   },
   "review": {
     "title": "あなたの継続に感謝します 🙏",

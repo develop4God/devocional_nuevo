@@ -66,7 +66,6 @@
     "praying": "En prière...",
     "my_prayers": "Mes Prières",
     "active": "Actives",
-    "answered": "Exaucées",
     "retry": "Réessayer",
     "no_active_prayers_title": "Aucune prière active",
     "no_active_prayers_description": "Créez votre première prière en touchant le bouton \"+\" pour commencer votre voyage de foi.",
@@ -120,12 +119,13 @@
     "developer": "Développeur",
     "privacy_policy": "Politique de confidentialité",
     "terms_of_service": "Conditions d'utilisation",
-    "donate": "❤\uFE0F Faire un don",
+    "donate": "❤️ Faire un don",
     "contact_us": "Nous contacter",
     "about_app": "À propos des Dévotions Chrétiennes",
     "paypal_launch_error": "Impossible d'ouvrir PayPal. Le système n'a pas pu lancer l'URL.",
     "paypal_error": "Erreur lors de l'ouverture de PayPal : {error}",
-    "paypal_no_app_error": "Impossible d'ouvrir PayPal. Assurez-vous d'avoir un navigateur web ou l'application PayPal installée."
+    "paypal_no_app_error": "Impossible d'ouvrir PayPal. Assurez-vous d'avoir un navigateur web ou l'application PayPal installée.",
+    "backup_option": "Sauvegarde"
   },
   "notifications_config_page": {
     "notifications_config": "Configuration des notifications",
@@ -380,8 +380,6 @@
     "frequency": "Fréquence",
     "frequency_daily": "Quotidien",
     "frequency_daily_2am": "Quotidien (02h00)",
-    "frequency_manual_only": "Seulement quand je sélectionne Créer une sauvegarde",
-    "frequency_deactivated": "Désactiver",
     "frequency_weekly": "Hebdomadaire",
     "frequency_monthly": "Mensuel",
     "wifi_only": "WiFi seulement",
@@ -398,7 +396,6 @@
     "storage_management": "Gestion du stockage",
     "google_drive_storage": "Stockage Google Drive",
     "last_backup": "Dernière sauvegarde",
-    "size": "Taille",
     "next_backup": "Prochaine sauvegarde",
     "no_backup_yet": "Aucune sauvegarde encore",
     "create_backup": "Créer une sauvegarde",
@@ -439,7 +436,15 @@
     "more_options": "Plus d'options",
     "optimization": "Optimisation",
     "account_management": "Gestion du Compte",
-    "logout_google_drive": "Se Déconnecter de Google Drive"
+    "logout_google_drive": "Se Déconnecter de Google Drive",
+    "next_backup_in_hours": "dans {hours} heures",
+    "next_backup_in_minutes": "dans {minutes} minutes",
+    "no_email": "Aucun email",
+    "error_no_internet": "Pas de connexion Internet",
+    "error_auth_failed": "Erreur d'authentification Google Drive",
+    "error_storage_full": "Stockage Google Drive plein",
+    "error_network": "Erreur réseau. Vérifiez votre connexion",
+    "error_generic": "Erreur inattendue. Réessayez"
   },
   "review": {
     "title": "Merci pour votre constance 🙏",
