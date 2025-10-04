@@ -422,12 +422,16 @@ class _DevocionalesPageState extends State<DevocionalesPage>
   Future<void> _shareAsText(Devocional devocional) async {
     final meditationsText =
         devocional.paraMeditar.map((p) => '${p.cita}: ${p.texto}').join('\n');
-    final text = "devotionals.share_text_format".tr({
+    final devotionalText = "devotionals.share_text_format".tr({
       'verse': devocional.versiculo,
       'reflection': devocional.reflexion,
       'meditations': meditationsText,
       'prayer': devocional.oracion,
     });
+    final shareMessage = "drawer.share_message".tr();
+
+    final text =
+        '$devotionalText\n\n$shareMessage'; // Use interpolation instead of '+'
 
     await SharePlus.instance.share(ShareParams(text: text));
   }
