@@ -42,6 +42,13 @@ def sync_keys(ref, target, path=""):
 
     return added, removed
 
+def write_sync_report(report_path, summary):
+    with open(report_path, "w", encoding="utf-8") as f:
+        for lang, changes in summary.items():
+            f.write(f"File: {lang}.json\n")
+            f.write(f"  Added keys: {changes['added'] or 'None'}\n")
+            f.write(f"  Removed keys: {changes['removed'] or 'None'}\n\n")
+
 def main():
     base = load_json(BASE_LANG)
     summary = {}
@@ -64,6 +71,9 @@ def main():
         print(f"\nFile: {lang}.json")
         print(f"  Added keys: {changes['added'] or 'None'}")
         print(f"  Removed keys: {changes['removed'] or 'None'}")
+
+    # Write sync report for workflow summary
+    write_sync_report("i18n_sync_report.txt", summary)
 
 if __name__ == "__main__":
     main()
