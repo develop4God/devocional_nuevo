@@ -86,7 +86,12 @@
     "prayer_min_length_error": "A oração deve ter pelo menos 10 caracteres",
     "cancel": "Cancelar",
     "create_prayer": "Criar Oração",
-    "update_prayer": "Atualizar Oração"
+    "update_prayer": "Atualizar Oração",
+    "created": "TODO_TRANSLATE",
+    "days_old_single": "TODO_TRANSLATE",
+    "days_old_plural": "TODO_TRANSLATE",
+    "prayer_updated": "TODO_TRANSLATE",
+    "prayer_created": "TODO_TRANSLATE"
   },
   "settings": {
     "title": "Configurações",
@@ -120,12 +125,13 @@
     "developer": "Desenvolvedor",
     "privacy_policy": "Política de privacidade",
     "terms_of_service": "Termos de serviço",
-    "donate": "❤\uFE0F Doar",
+    "donate": "❤️ Doar",
     "contact_us": "Contate-nos",
     "about_app": "Sobre Devocionais Cristãos",
     "paypal_launch_error": "Não foi possível abrir o PayPal. O sistema não conseguiu iniciar a URL.",
     "paypal_error": "Erro ao abrir o PayPal: {error}",
-    "paypal_no_app_error": "Não foi possível abrir o PayPal. Certifique-se de ter um navegador web ou aplicativo PayPal instalado."
+    "paypal_no_app_error": "Não foi possível abrir o PayPal. Certifique-se de ter um navegador web ou aplicativo PayPal instalado.",
+    "backup_option": "TODO_TRANSLATE"
   },
   "notifications_config_page": {
     "notifications_config": "Configuração de notificações",
@@ -380,8 +386,6 @@
     "frequency": "Frequência",
     "frequency_daily": "Diário",
     "frequency_daily_2am": "Diário (02:00)",
-    "frequency_manual_only": "Apenas quando eu selecionar Criar backup",
-    "frequency_deactivated": "Desativar",
     "frequency_weekly": "Semanal",
     "frequency_monthly": "Mensal",
     "wifi_only": "Apenas WiFi",
@@ -398,7 +402,6 @@
     "storage_management": "Gerenciamento de armazenamento",
     "google_drive_storage": "Armazenamento do Google Drive",
     "last_backup": "Último backup",
-    "size": "Tamanho",
     "next_backup": "Próximo backup",
     "no_backup_yet": "Nenhum backup ainda",
     "create_backup": "Criar backup",
@@ -439,7 +442,15 @@
     "more_options": "Mais opções",
     "optimization": "Otimização",
     "account_management": "Gestão de Conta",
-    "logout_google_drive": "Sair do Google Drive"
+    "logout_google_drive": "Sair do Google Drive",
+    "next_backup_in_hours": "TODO_TRANSLATE",
+    "next_backup_in_minutes": "TODO_TRANSLATE",
+    "no_email": "TODO_TRANSLATE",
+    "error_no_internet": "TODO_TRANSLATE",
+    "error_auth_failed": "TODO_TRANSLATE",
+    "error_storage_full": "TODO_TRANSLATE",
+    "error_network": "TODO_TRANSLATE",
+    "error_generic": "TODO_TRANSLATE"
   },
   "review": {
     "title": "Obrigado pela sua constância 🙏",
@@ -535,5 +546,10 @@
     "onboarding_error_loading": "Erro ao carregar a configuração inicial",
     "onboarding_completed": "Onboarding concluído!",
     "onboarding_retry": "Tentar novamente"
+  },
+  "test": {
+    "badges_page_title": "TODO_TRANSLATE",
+    "testing_remote_badges": "TODO_TRANSLATE",
+    "badge_system_test": "TODO_TRANSLATE"
   }
 }

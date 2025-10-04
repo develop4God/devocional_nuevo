@@ -86,7 +86,12 @@
     "prayer_min_length_error": "La prière doit contenir au moins 10 caractères",
     "cancel": "Annuler",
     "create_prayer": "Créer une prière",
-    "update_prayer": "Mettre à jour la prière"
+    "update_prayer": "Mettre à jour la prière",
+    "created": "TODO_TRANSLATE",
+    "days_old_single": "TODO_TRANSLATE",
+    "days_old_plural": "TODO_TRANSLATE",
+    "prayer_updated": "TODO_TRANSLATE",
+    "prayer_created": "TODO_TRANSLATE"
   },
   "settings": {
     "title": "Paramètres",
@@ -120,12 +125,13 @@
     "developer": "Développeur",
     "privacy_policy": "Politique de confidentialité",
     "terms_of_service": "Conditions d'utilisation",
-    "donate": "❤\uFE0F Faire un don",
+    "donate": "❤️ Faire un don",
     "contact_us": "Nous contacter",
     "about_app": "À propos des Dévotions Chrétiennes",
     "paypal_launch_error": "Impossible d'ouvrir PayPal. Le système n'a pas pu lancer l'URL.",
     "paypal_error": "Erreur lors de l'ouverture de PayPal : {error}",
-    "paypal_no_app_error": "Impossible d'ouvrir PayPal. Assurez-vous d'avoir un navigateur web ou l'application PayPal installée."
+    "paypal_no_app_error": "Impossible d'ouvrir PayPal. Assurez-vous d'avoir un navigateur web ou l'application PayPal installée.",
+    "backup_option": "TODO_TRANSLATE"
   },
   "notifications_config_page": {
     "notifications_config": "Configuration des notifications",
@@ -380,8 +386,6 @@
     "frequency": "Fréquence",
     "frequency_daily": "Quotidien",
     "frequency_daily_2am": "Quotidien (02h00)",
-    "frequency_manual_only": "Seulement quand je sélectionne Créer une sauvegarde",
-    "frequency_deactivated": "Désactiver",
     "frequency_weekly": "Hebdomadaire",
     "frequency_monthly": "Mensuel",
     "wifi_only": "WiFi seulement",
@@ -398,7 +402,6 @@
     "storage_management": "Gestion du stockage",
     "google_drive_storage": "Stockage Google Drive",
     "last_backup": "Dernière sauvegarde",
-    "size": "Taille",
     "next_backup": "Prochaine sauvegarde",
     "no_backup_yet": "Aucune sauvegarde encore",
     "create_backup": "Créer une sauvegarde",
@@ -439,7 +442,15 @@
     "more_options": "Plus d'options",
     "optimization": "Optimisation",
     "account_management": "Gestion du Compte",
-    "logout_google_drive": "Se Déconnecter de Google Drive"
+    "logout_google_drive": "Se Déconnecter de Google Drive",
+    "next_backup_in_hours": "TODO_TRANSLATE",
+    "next_backup_in_minutes": "TODO_TRANSLATE",
+    "no_email": "TODO_TRANSLATE",
+    "error_no_internet": "TODO_TRANSLATE",
+    "error_auth_failed": "TODO_TRANSLATE",
+    "error_storage_full": "TODO_TRANSLATE",
+    "error_network": "TODO_TRANSLATE",
+    "error_generic": "TODO_TRANSLATE"
   },
   "review": {
     "title": "Merci pour votre constance 🙏",
@@ -535,5 +546,10 @@
     "onboarding_error_loading": "Erreur lors du chargement de la configuration initiale",
     "onboarding_completed": "Onboarding terminé!",
     "onboarding_retry": "Réessayer"
+  },
+  "test": {
+    "badges_page_title": "TODO_TRANSLATE",
+    "testing_remote_badges": "TODO_TRANSLATE",
+    "badge_system_test": "TODO_TRANSLATE"
   }
 }
