@@ -24,7 +24,7 @@ jobs:
             echo "**Status:** ✅ Sync completed. See per-file changes below." >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "### File Change Report" >> $GITHUB_STEP_SUMMARY
-            cat sync_report.txt >> $GITHUB_STEP_SUMMARY
+            cat i18n_sync_report.txt >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
           else
             echo "**Status:** ⚠️ Sync completed, but no detailed report was found." >> $GITHUB_STEP_SUMMARY
