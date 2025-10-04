@@ -444,7 +444,11 @@
     "manual_backup_active": "Respaldo manual",
     "manual_backup_description": "Solamente se guardará respaldo al presionar el botón.",
     "protection_active": "Protección de datos y progreso activados",
-    "configuration": "Configuración"
+    "configuration": "Configuración",
+    "more_options": "Más opciones",
+    "optimization": "Optimización",
+    "account_management": "Gestión de Cuenta",
+    "logout_google_drive": "Cerrar Sesión de Google Drive"
   },
   "review": {
     "title": "Gracias por tu constancia 🙏",
@@ -489,7 +493,9 @@
     "thank_you_message": "Tu apoyo nos ayuda a llegar a más corazones con el amor de Dios.",
     "select_amount_and_badge": "Por favor selecciona un monto y una insignia",
     "badge_selected": "Seleccionada",
-    "select_badge": "Seleccionar"
+    "select_badge": "Seleccionar",
+    "badge_gratitude_message": "✨ Las insignias son nuestro agradecimiento por tu generosidad y apoyo al ministerio. Cada una representa una virtud espiritual para tu colección.",
+    "custom_amount_label": "Monto personalizado"
   },
   "badges": {
     "title": "Mis Insignias",
@@ -533,6 +539,10 @@
     "onboarding_setup_backup_configured": "Respaldo automático configurado",
     "onboarding_setup_protection_active": "Protección de datos activada",
     "onboarding_setup_backup_skipped": "Respaldo omitido por ahora",
-    "onboarding_setup_backup_later_info": "Puedes configurar el respaldo más tarde en Ajustes"
+    "onboarding_setup_backup_later_info": "Puedes configurar el respaldo más tarde en Ajustes",
+    "onboarding_error_title": "Error de configuración",
+    "onboarding_error_loading": "Error al cargar la configuración inicial",
+    "onboarding_completed": "¡Onboarding completado!",
+    "onboarding_retry": "Reintentar"
   }
 }

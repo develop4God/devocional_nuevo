@@ -151,7 +151,7 @@ class BackupConfigurationSheet extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 5),
           child: Text(
-            'Optimización',
+            'backup.optimization'.tr(),
             style: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.w600,
               color: theme.colorScheme.onSurface,
@@ -196,7 +196,7 @@ class BackupConfigurationSheet extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 5),
           child: Text(
-            'Gestión de Cuenta',
+            'backup.account_management'.tr(),
             style: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.w600,
               color: colorScheme.onSurface,
@@ -214,7 +214,7 @@ class BackupConfigurationSheet extends StatelessWidget {
             onPressed: () => _showLogoutConfirmation(context),
             icon: Icon(Icons.logout, color: colorScheme.error, size: 20),
             label: Text(
-              'Cerrar Sesión de Google Drive',
+              'backup.logout_google_drive'.tr(),
               style: TextStyle(color: colorScheme.error),
             ),
             style: OutlinedButton.styleFrom(

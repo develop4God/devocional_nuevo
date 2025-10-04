@@ -311,7 +311,28 @@
     "onboarding_back": "戻る",
     "onboarding_skip": "スキップ",
     "onboarding_next": "次へ",
-    "onboarding_start_app": "旅を始める"
+    "onboarding_start_app": "旅を始める",
+    "onboarding_welcome_header": "神があなたを祝福し、あなたの人生を平和で満たしますように",
+    "onboarding_config_later": "後で設定",
+    "onboarding_welcome_title": "クリスチャンデボーションへようこそ",
+    "onboarding_welcome_subtitle": "毎日神との親密な空間。個人的な体験を設定することから始めましょう。",
+    "onboarding_theme_title": "あなたの環境を選択",
+    "onboarding_theme_subtitle": "デボーショナルタイムに最も刺激を受けるテーマを選択してください。",
+    "onboarding_connecting_backup": "Google Driveに接続中...",
+    "onboarding_connection_timeout": "接続がタイムアウトしました。もう一度お試しください。",
+    "onboarding_updating_backup": "情報を更新中...",
+    "onboarding_configuring_backup": "バックアップを設定中...",
+    "onboarding_completed_backup": "バックアップ完了！",
+    "onboarding_recommended": "自動バックアップを推奨",
+    "onboarding_setup_theme_configured": "カスタムテーマを選択",
+    "onboarding_setup_backup_configured": "自動バックアップを設定",
+    "onboarding_setup_protection_active": "データ保護が有効",
+    "onboarding_setup_backup_skipped": "今はバックアップをスキップ",
+    "onboarding_setup_backup_later_info": "後で設定でバックアップを設定できます",
+    "onboarding_error_title": "設定エラー",
+    "onboarding_error_loading": "初期設定の読み込みエラー",
+    "onboarding_completed": "オンボーディング完了！",
+    "onboarding_retry": "再試行"
   },
   "about": {
     "title": "アプリについて",
@@ -458,7 +479,11 @@
     "manual_backup_active": "手動バックアップがアクティブ",
     "manual_backup_description": "必要な時にバックアップを作成",
     "protection_active": "保護がアクティブ",
-    "configuration": "設定"
+    "configuration": "設定",
+    "more_options": "その他のオプション",
+    "optimization": "最適化",
+    "account_management": "アカウント管理",
+    "logout_google_drive": "Google Driveからログアウト"
   },
   "review": {
     "title": "あなたの継続に感謝します 🙏",
@@ -503,7 +528,9 @@
     "thank_you_message": "あなたのサポートは神の愛でより多くの心に届くことを助けます。",
     "select_amount_and_badge": "金額とバッジを選択してください",
     "badge_selected": "選択済み",
-    "select_badge": "選択"
+    "select_badge": "選択",
+    "badge_gratitude_message": "✨ バッジは、あなたの寛大さと奉仕への支援に対する私たちの感謝の気持ちです。それぞれがあなたのコレクションのための霊的な美徳を表しています。",
+    "custom_amount_label": "カスタム金額"
   },
   "badges": {
     "title": "マイバッジ",
