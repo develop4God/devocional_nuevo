@@ -1,0 +1,16 @@
+name: 🌎i18n Sync and Homologation
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'i18n/*.json'
+      - 'scripts/i18n_sync.py'
+
+jobs:
+  i18n-sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run i18n sync (Python)
+        run: python scripts/i18n_sync.py
