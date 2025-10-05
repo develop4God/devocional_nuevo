@@ -1,9 +1,10 @@
-import 'package:flutter_test/flutter_test.dart';
 import 'package:devocional_nuevo/main.dart' as app;
 import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  testWidgets('Real smoke test: onboarding + drawer with waits', (WidgetTester tester) async {
+  testWidgets('Real smoke test: onboarding + drawer with waits',
+      (WidgetTester tester) async {
     // Step 0: Start app and wait for Firebase and localization
     print('[DEBUG] 🟢 Starting app (main)');
     app.main();
@@ -12,13 +13,15 @@ void main() {
     // Step 1: Wait for splash and initial async setup (Firebase, localization, Remote Config)
     print('[DEBUG] ⏳ Waiting for splash and async initialization...');
     await tester.pump(const Duration(seconds: 1));
-    await tester.pumpAndSettle(const Duration(seconds: 2)); // Extra settle for slow devices
+    await tester.pumpAndSettle(
+        const Duration(seconds: 2)); // Extra settle for slow devices
 
     // Step 2: Wait for either SplashScreen or OnboardingWelcomePage
     if (find.textContaining('Bienvenido').evaluate().isEmpty) {
       // Keep waiting for onboarding to appear
       var waitCycles = 0;
-      while (find.textContaining('Bienvenido').evaluate().isEmpty && waitCycles < 15) {
+      while (find.textContaining('Bienvenido').evaluate().isEmpty &&
+          waitCycles < 15) {
         await tester.pump(const Duration(milliseconds: 500));
         waitCycles++;
       }
@@ -36,7 +39,8 @@ void main() {
     // Step 4: Wait for theme selection
     print('[DEBUG] ⏳ Waiting for theme selection page...');
     var waitTheme = 0;
-    while (find.textContaining('Elige tu Ambiente').evaluate().isEmpty && waitTheme < 10) {
+    while (find.textContaining('Elige tu Ambiente').evaluate().isEmpty &&
+        waitTheme < 10) {
       await tester.pump(const Duration(milliseconds: 500));
       waitTheme++;
     }
@@ -55,11 +59,9 @@ void main() {
     // Step 6: Wait for backup config page
     print('[DEBUG] ⏳ Waiting for backup configuration page...');
     var waitBackup = 0;
-    while (
-      find.textContaining('Sincronización').evaluate().isEmpty &&
-      find.textContaining('Configurar luego').evaluate().isEmpty &&
-      waitBackup < 12
-    ) {
+    while (find.textContaining('Sincronización').evaluate().isEmpty &&
+        find.textContaining('Configurar luego').evaluate().isEmpty &&
+        waitBackup < 12) {
       await tester.pump(const Duration(milliseconds: 500));
       waitBackup++;
     }
@@ -73,10 +75,8 @@ void main() {
     // Step 8: Wait for completion page
     print('[DEBUG] ⏳ Waiting for onboarding complete page...');
     var waitComplete = 0;
-    while (
-      find.textContaining('¡Todo Listo!').evaluate().isEmpty &&
-      waitComplete < 10
-    ) {
+    while (find.textContaining('¡Todo Listo!').evaluate().isEmpty &&
+        waitComplete < 10) {
       await tester.pump(const Duration(milliseconds: 500));
       waitComplete++;
     }
@@ -84,16 +84,14 @@ void main() {
 
     // Step 9: Tap "Comenzar mi espacio con Dios"
     print('[DEBUG] 👉 Tapping start app');
-    await tester.tap(find.widgetWithText(ElevatedButton, 'Comenzar mi espacio con Dios'));
+    await tester.tap(
+        find.widgetWithText(ElevatedButton, 'Comenzar mi espacio con Dios'));
     await tester.pumpAndSettle(const Duration(seconds: 2));
 
     // Step 10: Wait for main splash and DevocionalesPage to load
     print('[DEBUG] ⏳ Waiting for main app splash and content...');
     var waitMain = 0;
-    while (
-      find.byIcon(Icons.menu).evaluate().isEmpty &&
-      waitMain < 15
-    ) {
+    while (find.byIcon(Icons.menu).evaluate().isEmpty && waitMain < 15) {
       await tester.pump(const Duration(milliseconds: 500));
       waitMain++;
     }
@@ -107,10 +105,8 @@ void main() {
     // Step 12: Wait for drawer content
     print('[DEBUG] ⏳ Waiting for drawer to open...');
     var waitDrawer = 0;
-    while (
-      find.text('Tu Biblia, tu estilo').evaluate().isEmpty &&
-      waitDrawer < 8
-    ) {
+    while (find.text('Tu Biblia, tu estilo').evaluate().isEmpty &&
+        waitDrawer < 8) {
       await tester.pump(const Duration(milliseconds: 400));
       waitDrawer++;
     }
