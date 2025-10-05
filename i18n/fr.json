@@ -85,7 +85,8 @@
     "prayer_min_length_error": "La prière doit contenir au moins 10 caractères",
     "cancel": "Annuler",
     "create_prayer": "Créer une prière",
-    "update_prayer": "Mettre à jour la prière"
+    "update_prayer": "Mettre à jour la prière",
+    "answered": "Exaucée"
   },
   "settings": {
     "title": "Paramètres",
