@@ -85,7 +85,8 @@
     "prayer_min_length_error": "祈りは少なくとも10文字必要です",
     "cancel": "キャンセル",
     "create_prayer": "祈りを作成",
-    "update_prayer": "祈りを更新"
+    "update_prayer": "祈りを更新",
+    "answered": "答えられた"
   },
   "settings": {
     "title": "設定",
