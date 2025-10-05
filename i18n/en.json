@@ -87,7 +87,7 @@
     "create_prayer": "Create Prayer",
     "update_prayer": "Update Prayer",
     "created": "Created: {date}",
-    "answered": "Answered: {date}",
+    "answered": "Answered:",
     "days_old_single": "({days} day)",
     "days_old_plural": "({days} days)",
     "prayer_updated": "Prayer updated successfully",
@@ -347,6 +347,15 @@
     "first_favorite_description": "Save your first favorite devotional",
     "collector_title": "Collector",
     "collector_description": "Save 10 favorite devotionals"
+  
+  },
+  "prayers": {
+  	"created": "Created: {date}",
+    "answered": "Answered: {date}",
+    "days_old_single": "({days} day)",
+    "days_old_plural": "({days} days)",
+    "prayer_updated": "Prayer updated successfully",
+    "prayer_created": "Prayer created successfully"
   },
   "contact_page": {
     "title": "Contact",
