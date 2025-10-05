@@ -971,22 +971,21 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                       ),
                     ),
                     IconButton(
-                      tooltip: 'tooltips.my_prayers'.tr(),
-                      onPressed: () async {
-                        await BubbleUtils.markAsShown(
-                          BubbleUtils.getIconBubbleId(
-                            Icons.local_fire_department_outlined,
-                            'new',
-                          ),
-                        );
-                        _goToPrayers();
-                      },
-                      icon: const Icon(
-                        Icons.local_fire_department_outlined,
-                        color: Colors.white,
-                        size: 35,
-                      ).newIconBadge,
-                    ),
+                        tooltip: 'tooltips.my_prayers'.tr(),
+                        onPressed: () async {
+                          await BubbleUtils.markAsShown(
+                            BubbleUtils.getIconBubbleId(
+                              Icons.local_fire_department_outlined,
+                              'new',
+                            ),
+                          );
+                          _goToPrayers();
+                        },
+                        icon: const Icon(
+                          Icons.local_fire_department_outlined,
+                          color: Colors.white,
+                          size: 35,
+                        )),
                     IconButton(
                       tooltip: 'devotionals.share_devotional'.tr(),
                       onPressed: currentDevocional != null
@@ -1045,7 +1044,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                         Icons.app_settings_alt_outlined,
                         color: appBarForegroundColor,
                         size: 30,
-                      ),
+                      ).newIconBadge,
                     ),
                   ],
                 ),

@@ -107,7 +107,7 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget> {
           isButtonEnabled = false;
         } else {
           // Estado idle o devocional diferente
-          mainIcon = const Icon(Icons.play_arrow, size: 32).newIconBadge;
+          mainIcon = const Icon(Icons.play_arrow, size: 32);
           mainTooltip = 'Escuchar';
           mainColor = Colors.blue;
         }
