@@ -338,10 +338,7 @@ class _SettingsPageState extends State<SettingsPage> {
             if (_showBackupSection) ...[
               InkWell(
                 onTap: () async {
-                  // Use the same bubbleId as .newBubble for this Text widget
-                  final bubbleId =
-                      'new_Text_${'settings.backup_option'.tr().hashCode}';
-                  await BubbleUtils.markAsShown(bubbleId);
+                  await BubbleUtils.markAsShown('settings_backup_option');
                   if (!context.mounted) return;
                   Navigator.push(
                     context,
@@ -371,7 +368,7 @@ class _SettingsPageState extends State<SettingsPage> {
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                            ).newBubble,
+                            ).newBubbleWithId('settings_backup_option'),
                           ],
                         ),
                       ),

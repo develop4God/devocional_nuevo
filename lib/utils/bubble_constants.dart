@@ -419,6 +419,17 @@ class BubbleUtils {
   }
 }
 
+extension BubbleExtensionsWithId on Widget {
+  Widget newBubbleWithId(String bubbleId) {
+    return _BubbleOverlay(
+      bubbleId: bubbleId,
+      text: "bubble_constants.new_feature".tr(),
+      bubbleColor: BubbleConstants.newFeatureColor,
+      child: this,
+    );
+  }
+}
+
 // EJEMPLOS DE USO:
 /*
 
