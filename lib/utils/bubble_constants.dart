@@ -458,3 +458,46 @@ IconButton(
 )
 
 */
+
+/*
+BADGE/BUBBLE SHOW/HIDE LOGIC
+
+To show a badge or bubble:
+- It will be shown if its bubbleId has NOT been marked as shown in SharedPreferences.
+
+Example:
+final shouldShow = await _BubbleManager().shouldShowBubble(bubbleId);
+if (shouldShow) {
+  // Render badge or bubble overlay here
+}
+
+/**
+ * NOTE:
+ * If you want the badge/bubble to appear next to the text (inline),
+ * you MUST place the Text widget (with .newBubble or .newBubbleWithId)
+ * inside a Row. Otherwise, the bubble will not be shown aligned with the text.
+ *
+ * Example usage:
+ * Row(
+ *   children: [
+ *     Text('Your text').newBubbleWithId('your_stable_bubble_id'),
+ *   ],
+ * )
+ */
+
+To hide a badge or bubble (immediately or after navigation):
+- Mark its bubbleId as shown before or after the user action.
+
+Example:
+await BubbleUtils.markAsShown(bubbleId);
+
+Example usage in onPressed/onTap:
+onPressed: () async {
+  await BubbleUtils.markAsShown(bubbleId); // Hide badge/bubble
+  if (!context.mounted) return;            // Guard context if async
+  Navigator.push(...);                     // Continue action
+}
+
+Requirement:
+- The bubbleId must be stable and must match between the widget that shows the badge/bubble and the code that marks it as shown.
+*/

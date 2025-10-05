@@ -1032,7 +1032,14 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                     ),
                     IconButton(
                       tooltip: 'tooltips.settings'.tr(),
-                      onPressed: () {
+                      onPressed: () async {
+                        await BubbleUtils.markAsShown(
+                          BubbleUtils.getIconBubbleId(
+                            Icons.app_settings_alt_outlined,
+                            'new',
+                          ),
+                        );
+                        if (!context.mounted) return;
                         Navigator.push(
                           context,
                           MaterialPageRoute(
