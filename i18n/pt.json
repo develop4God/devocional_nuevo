@@ -85,7 +85,8 @@
     "prayer_min_length_error": "A oração deve ter pelo menos 10 caracteres",
     "cancel": "Cancelar",
     "create_prayer": "Criar Oração",
-    "update_prayer": "Atualizar Oração"
+    "update_prayer": "Atualizar Oração",
+    "answered": "Respondida"
   },
   "settings": {
     "title": "Configurações",
