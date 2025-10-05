@@ -335,11 +335,29 @@ class _SettingsPageState extends State<SettingsPage> {
             const SizedBox(height: 20),
 
             // Backup Settings - conditional display
+            // --- [START] Backup Row with Multiple Debug Logs ---
             if (_showBackupSection) ...[
               InkWell(
                 onTap: () async {
-                  await BubbleUtils.markAsShown('settings_backup_option');
-                  if (!context.mounted) return;
+                  developer.log('[DEBUG] Settings: Backup row tapped.',
+                      name: 'SettingsPage');
+                  final bubbleId = 'settings_backup_option';
+                  developer.log(
+                      '[DEBUG] Settings: Calling BubbleUtils.markAsShown for bubbleId=$bubbleId',
+                      name: 'SettingsPage');
+                  await BubbleUtils.markAsShown(bubbleId);
+                  developer.log(
+                      '[DEBUG] Settings: markAsShown completed for bubbleId=$bubbleId',
+                      name: 'SettingsPage');
+                  if (!context.mounted) {
+                    developer.log(
+                        '[DEBUG] Settings: Context not mounted after await. Navigation skipped.',
+                        name: 'SettingsPage');
+                    return;
+                  }
+                  developer.log(
+                      '[DEBUG] Settings: Navigating to BackupSettingsPage',
+                      name: 'SettingsPage');
                   Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -360,15 +378,23 @@ class _SettingsPageState extends State<SettingsPage> {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Text(
-                              'settings.backup_option'.tr(),
-                              style: textTheme.bodyMedium?.copyWith(
-                                fontSize: 16,
-                                color: colorScheme.onSurface,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ).newBubbleWithId('settings_backup_option'),
+                            Builder(
+                              builder: (context) {
+                                final bubbleId = 'settings_backup_option';
+                                developer.log(
+                                    '[DEBUG] Settings: Rendering backup row Text.newBubbleWithId bubbleId=$bubbleId',
+                                    name: 'SettingsPage');
+                                return Text(
+                                  'settings.backup_option'.tr(),
+                                  style: textTheme.bodyMedium?.copyWith(
+                                    fontSize: 16,
+                                    color: colorScheme.onSurface,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ).newBubbleWithId(bubbleId);
+                              },
+                            ),
                           ],
                         ),
                       ),
@@ -378,6 +404,7 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
               const SizedBox(height: 20),
             ],
+// --- [END] Backup Row with Multiple Debug Logs ---
 
             // Contact
             InkWell(
