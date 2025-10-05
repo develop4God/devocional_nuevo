@@ -2,9 +2,6 @@
 import 'dart:developer' as developer;
 
 // Import condicional - solo carga debug widget en debug builds
-import 'package:devocional_nuevo/debug/debug_settings_section.dart'
-    if (dart.library.js) 'package:devocional_nuevo/debug/debug_settings_section_stub.dart'
-    if (kReleaseMode) 'package:devocional_nuevo/debug/debug_settings_section_stub.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/pages/about_page.dart';
 import 'package:devocional_nuevo/pages/application_language_page.dart';
@@ -110,37 +107,6 @@ class _SettingsPageState extends State<SettingsPage> {
     } catch (e) {
       developer.log('Feature flags failed to load: $e, using defaults');
       // Keep default values - app continues working
-    }
-  }
-
-  Future<void> _refreshFeatureFlags() async {
-    try {
-      final remoteConfig = FirebaseRemoteConfig.instance;
-      await remoteConfig.fetchAndActivate();
-
-      if (mounted) {
-        setState(() {
-          _donationMode = remoteConfig.getString('donation_mode');
-          _showBadgesTab = remoteConfig.getBool('show_badges_tab');
-          _showBackupSection = remoteConfig.getBool('show_backup_section');
-        });
-      }
-
-      developer.log('Feature flags refreshed: donation_mode=$_donationMode');
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Configuration updated from server'),
-            duration: Duration(seconds: 2),
-          ),
-        );
-      }
-    } catch (e) {
-      developer.log('Failed to refresh feature flags: $e');
-      if (mounted) {
-        _showErrorSnackBar('Failed to update configuration');
-      }
     }
   }
 
@@ -371,7 +337,12 @@ class _SettingsPageState extends State<SettingsPage> {
             // Backup Settings - conditional display
             if (_showBackupSection) ...[
               InkWell(
-                onTap: () {
+                onTap: () async {
+                  // Use the same bubbleId as .newBubble for this Text widget
+                  final bubbleId =
+                      'new_Text_${'settings.backup_option'.tr().hashCode}';
+                  await BubbleUtils.markAsShown(bubbleId);
+                  if (!context.mounted) return;
                   Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -474,16 +445,6 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
               ),
             ),
-
-            // Debug Section - only in debug mode
-            if (kDebugMode) ...[
-              DebugSettingsSection(
-                donationMode: _donationMode,
-                showBadgesTab: _showBadgesTab,
-                showBackupSection: _showBackupSection,
-                onRefreshFlags: _refreshFeatureFlags,
-              ),
-            ],
           ],
         ),
       ),
