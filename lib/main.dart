@@ -277,7 +277,7 @@ class _AppInitializerState extends State<AppInitializer> {
     final backupBloc = context.read<BackupBloc>();
 
     // Dar tiempo para que el SplashScreen se muestre
-    await Future.delayed(const Duration(milliseconds: 600));
+    await Future.delayed(const Duration(milliseconds: 700));
 
     // Inicialización completa de servicios y datos
     await _initServices();

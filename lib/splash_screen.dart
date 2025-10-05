@@ -62,7 +62,7 @@ class _SplashScreenState extends State<SplashScreen>
 
   // Maneja la navegacion a la siguiente pantalla después de un retraso
   Future<void> _navigateToNextScreen() async {
-    await Future.delayed(const Duration(milliseconds: 7000));
+    await Future.delayed(const Duration(milliseconds: 8000));
 
     if (mounted) {
       Navigator.pushReplacement(
