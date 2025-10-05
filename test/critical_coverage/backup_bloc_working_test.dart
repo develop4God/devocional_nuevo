@@ -1,13 +1,13 @@
 // test/critical_coverage/backup_bloc_working_test.dart
-import 'package:flutter_test/flutter_test.dart';
 import 'package:bloc_test/bloc_test.dart';
-import 'package:mocktail/mocktail.dart';
 import 'package:devocional_nuevo/blocs/backup_bloc.dart';
 import 'package:devocional_nuevo/blocs/backup_event.dart';
 import 'package:devocional_nuevo/blocs/backup_state.dart';
-import 'package:devocional_nuevo/services/google_drive_backup_service.dart';
-import 'package:devocional_nuevo/services/backup_scheduler_service.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
+import 'package:devocional_nuevo/services/backup_scheduler_service.dart';
+import 'package:devocional_nuevo/services/google_drive_backup_service.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
 
 // Mock classes for testing
 class MockGoogleDriveBackupService extends Mock
@@ -102,8 +102,8 @@ void main() {
             .thenAnswer((_) async {});
         when(() => mockSchedulerService.scheduleAutomaticBackup())
             .thenAnswer((_) async {
-              return null;
-            });
+          return null;
+        });
       },
       act: (bloc) => bloc.add(const ToggleAutoBackup(true)),
       expect: () => [
@@ -133,8 +133,8 @@ void main() {
             .thenAnswer((_) async => true);
         when(() => mockSchedulerService.scheduleAutomaticBackup())
             .thenAnswer((_) async {
-              return null;
-            });
+          return null;
+        });
       },
       act: (bloc) => bloc.add(const CreateManualBackup()),
       expect: () => [
@@ -175,8 +175,8 @@ void main() {
             .thenAnswer((_) async => true);
         when(() => mockSchedulerService.scheduleAutomaticBackup())
             .thenAnswer((_) async {
-              return null;
-            });
+          return null;
+        });
       },
       act: (bloc) => bloc.add(const RestoreFromBackup()),
       expect: () => [
@@ -202,8 +202,8 @@ void main() {
             .thenAnswer((_) async => null);
         when(() => mockSchedulerService.scheduleAutomaticBackup())
             .thenAnswer((_) async {
-              return null;
-            });
+          return null;
+        });
       },
       act: (bloc) => bloc.add(const SignInToGoogleDrive()),
       expect: () => [
