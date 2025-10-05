@@ -14,6 +14,7 @@ import 'package:devocional_nuevo/pages/donate_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/providers/localization_provider.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
+import 'package:devocional_nuevo/utils/bubble_constants.dart';
 import 'package:devocional_nuevo/utils/constants.dart';
 import 'package:devocional_nuevo/widgets/app_bar_constants.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
@@ -388,14 +389,19 @@ class _SettingsPageState extends State<SettingsPage> {
                       ),
                       const SizedBox(width: 10),
                       Expanded(
-                        child: Text(
-                          'settings.backup_option'.tr(),
-                          style: textTheme.bodyMedium?.copyWith(
-                            fontSize: 16,
-                            color: colorScheme.onSurface,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'settings.backup_option'.tr(),
+                              style: textTheme.bodyMedium?.copyWith(
+                                fontSize: 16,
+                                color: colorScheme.onSurface,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ).newBubble,
+                          ],
                         ),
                       ),
                     ],
