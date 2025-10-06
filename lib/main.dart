@@ -151,7 +151,7 @@ class _MyAppState extends State<MyApp> {
     _initializationFuture = _initializeApp();
   }
 
-  /// Método unificado que inicializa servicios y verifica onboarding
+  /// Metodo unificado que inicializa servicios y verifica onboarding
   Future<bool> _initializeApp() async {
     try {
       // 1. Primero inicializar localización (crítico para traducciones)
