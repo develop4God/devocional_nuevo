@@ -80,9 +80,10 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
+    - i18n/
     - assets/images/splash_background.png
     - assets/icons/
     - assets/badges/
-    - assets/lottie/tap_screen.json
+    - assets/lottie/
 
 

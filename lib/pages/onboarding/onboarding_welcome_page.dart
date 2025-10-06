@@ -18,6 +18,7 @@ class OnboardingWelcomePage extends StatefulWidget {
 class _OnboardingWelcomePageState extends State<OnboardingWelcomePage> {
   @override
   Widget build(BuildContext context) {
+    debugPrint('TRANSLATION: ' + 'onboarding.onboarding_welcome_title'.tr());
     return Scaffold(
       body: GestureDetector(
         behavior: HitTestBehavior.opaque, // Responds everywhere on the screen
