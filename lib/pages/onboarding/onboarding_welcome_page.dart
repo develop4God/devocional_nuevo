@@ -99,7 +99,7 @@ class _OnboardingWelcomePageState extends State<OnboardingWelcomePage> {
                         // Lottie animation for tap feedback
                         Lottie.asset(
                           'assets/lottie/tap_screen.json',
-                          height: 90,
+                          height: 150,
                           repeat: true,
                           animate: true,
                         ),
