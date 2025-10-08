@@ -66,6 +66,7 @@
     "praying": "Orando...",
     "my_prayers": "Minhas Orações",
     "active": "Ativas",
+    "answered_prayers": "Respondidas",
     "retry": "Tentar novamente",
     "no_active_prayers_title": "Não há orações ativas",
     "no_active_prayers_description": "Crie sua primeira oração tocando no botão \"+\" para começar sua jornada de fé.",
@@ -86,7 +87,17 @@
     "cancel": "Cancelar",
     "create_prayer": "Criar Oração",
     "update_prayer": "Atualizar Oração",
-    "answered": "Respondida"
+    "answered": "Respondida: {date}",
+    "answer_prayer": "Responder Oração",
+    "answer_prayer_description": "Adicione um comentário sobre como esta oração foi respondida (opcional).",
+    "answer_placeholder": "Deus respondeu esta oração através de...\n\nSou grato por...",
+    "confirm_answered": "Confirmar Respondida",
+    "prayer_marked_answered": "Oração marcada como respondida",
+    "created": "Criada: {date}",
+    "days_old_single": "({days} dia)",
+    "days_old_plural": "({days} dias)",
+    "prayer_updated": "Oração atualizada com sucesso",
+    "prayer_created": "Oração criada com sucesso"
   },
   "settings": {
     "title": "Configurações",
@@ -342,14 +353,6 @@
     "first_favorite_description": "Salve seu primeiro devocional favorito",
     "collector_title": "Colecionador",
     "collector_description": "Salve 10 devocionais favoritos"
-  },
-  "prayers": {
-    "created": "Criada: {date}",
-    "answered": "Respondida: {date}",
-    "days_old_single": "({days} dia)",
-    "days_old_plural": "({days} dias)",
-    "prayer_updated": "Oração atualizada com sucesso",
-    "prayer_created": "Oração criada com sucesso"
   },
   "contact_page": {
     "title": "Contato",

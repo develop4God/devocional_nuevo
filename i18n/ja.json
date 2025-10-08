@@ -66,6 +66,7 @@
     "praying": "祈り中...",
     "my_prayers": "私の祈り",
     "active": "アクティブ",
+    "answered_prayers": "回答済み",
     "retry": "再試行",
     "no_active_prayers_title": "アクティブな祈りはありません",
     "no_active_prayers_description": "「+」ボタンをタップして最初の祈りを作成し、信仰の旅を始めましょう。",
@@ -86,7 +87,17 @@
     "cancel": "キャンセル",
     "create_prayer": "祈りを作成",
     "update_prayer": "祈りを更新",
-    "answered": "答えられた"
+    "answered": "答えられた日: {date}",
+    "answer_prayer": "祈りに答える",
+    "answer_prayer_description": "この祈りがどのように答えられたかについてのコメントを追加します（任意）。",
+    "answer_placeholder": "神はこの祈りに答えてくださいました...\n\n感謝しています...",
+    "confirm_answered": "答えられたことを確認",
+    "prayer_marked_answered": "祈りが答えられたとマークされました",
+    "created": "作成日: {date}",
+    "days_old_single": "({days}日前)",
+    "days_old_plural": "({days}日前)",
+    "prayer_updated": "祈りが正常に更新されました",
+    "prayer_created": "祈りが正常に作成されました"
   },
   "settings": {
     "title": "設定",
@@ -373,14 +384,6 @@
     "first_favorite_description": "最初のお気に入りデボーションを保存する",
     "collector_title": "コレクター",
     "collector_description": "10個のお気に入りデボーションを保存する"
-  },
-  "prayers": {
-    "created": "作成日: {date}",
-    "answered": "答えられた日: {date}",
-    "days_old_single": "({days}日前)",
-    "days_old_plural": "({days}日前)",
-    "prayer_updated": "祈りが正常に更新されました",
-    "prayer_created": "祈りが正常に作成されました"
   },
   "contact_page": {
     "title": "お問い合わせ",

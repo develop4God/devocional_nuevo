@@ -4,6 +4,7 @@ import 'package:devocional_nuevo/blocs/prayer_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/prayer_model.dart';
 import 'package:devocional_nuevo/widgets/add_prayer_modal.dart';
+import 'package:devocional_nuevo/widgets/answer_prayer_modal.dart';
 import 'package:devocional_nuevo/widgets/app_bar_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -59,7 +60,7 @@ class _PrayersPageState extends State<PrayersPage>
                 ),
                 Tab(
                   icon: const Icon(Icons.check_circle_outline),
-                  text: 'prayer.answered'.tr(),
+                  text: 'prayer.answered_prayers'.tr(),
                 ),
               ],
               // Cambiar colores para fondo blanco
@@ -316,9 +317,7 @@ class _PrayersPageState extends State<PrayersPage>
                       switch (value) {
                         case 'toggle_status':
                           if (isActive) {
-                            context
-                                .read<PrayerBloc>()
-                                .add(MarkPrayerAsAnswered(prayer.id));
+                            _showAnswerPrayerModal(context, prayer);
                           } else {
                             context
                                 .read<PrayerBloc>()
@@ -402,7 +401,7 @@ class _PrayersPageState extends State<PrayersPage>
                 ),
                 const SizedBox(width: 4),
                 Text(
-                  'prayers.created'.tr({
+                  'prayer.created'.tr({
                     'date': DateFormat('dd/MM/yyyy').format(prayer.createdDate)
                   }),
                   style: textTheme.bodySmall?.copyWith(
@@ -412,9 +411,9 @@ class _PrayersPageState extends State<PrayersPage>
                 const SizedBox(width: 8),
                 Text(
                   prayer.daysOld == 1
-                      ? 'prayers.days_old_single'
+                      ? 'prayer.days_old_single'
                           .tr({'days': prayer.daysOld.toString()})
-                      : 'prayers.days_old_plural'
+                      : 'prayer.days_old_plural'
                           .tr({'days': prayer.daysOld.toString()}),
                   style: textTheme.bodySmall?.copyWith(
                     color: colorScheme.primary,
@@ -435,7 +434,7 @@ class _PrayersPageState extends State<PrayersPage>
                   ),
                   const SizedBox(width: 4),
                   Text(
-                    'prayers.answered'.tr({
+                    'prayer.answered'.tr({
                       'date':
                           DateFormat('dd/MM/yyyy').format(prayer.answeredDate!)
                     }),
@@ -445,6 +444,37 @@ class _PrayersPageState extends State<PrayersPage>
                   ),
                 ],
               ),
+              if (prayer.answeredComment != null &&
+                  prayer.answeredComment!.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.green.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        Icons.comment,
+                        size: 16,
+                        color: Colors.green.shade700,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          prayer.answeredComment!,
+                          style: textTheme.bodySmall?.copyWith(
+                            color: Colors.green.shade700,
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ],
           ],
         ),
@@ -471,6 +501,20 @@ class _PrayersPageState extends State<PrayersPage>
       backgroundColor: Colors.transparent,
       builder: (context) => AddPrayerModal(
         prayerToEdit: prayer,
+      ),
+    );
+  }
+
+  void _showAnswerPrayerModal(
+    BuildContext context,
+    Prayer prayer,
+  ) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => AnswerPrayerModal(
+        prayer: prayer,
       ),
     );
   }

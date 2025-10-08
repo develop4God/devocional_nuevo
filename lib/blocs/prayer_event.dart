@@ -30,8 +30,9 @@ class DeletePrayer extends PrayerEvent {
 /// Event to mark a prayer as answered
 class MarkPrayerAsAnswered extends PrayerEvent {
   final String prayerId;
+  final String? comment;
 
-  MarkPrayerAsAnswered(this.prayerId);
+  MarkPrayerAsAnswered(this.prayerId, {this.comment});
 }
 
 /// Event to mark a prayer as active (undo answered status)
