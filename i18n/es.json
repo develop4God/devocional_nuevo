@@ -86,7 +86,17 @@
     "cancel": "Cancelar",
     "create_prayer": "Crear Oración",
     "update_prayer": "Actualizar Oración",
-    "answered": "Respondida"
+    "answered": "Respondida: {date}",
+    "answer_prayer": "Responder Oración",
+    "answer_prayer_description": "Agrega un comentario sobre cómo fue respondida esta oración (opcional).",
+    "answer_placeholder": "Dios respondió esta oración mediante...\n\nEstoy agradecido por...",
+    "confirm_answered": "Confirmar Respondida",
+    "prayer_marked_answered": "Oración marcada como respondida",
+    "created": "Creada: {date}",
+    "days_old_single": "({days} día)",
+    "days_old_plural": "({days} días)",
+    "prayer_updated": "Oración actualizada exitosamente",
+    "prayer_created": "Oración creada exitosamente"
   },
   "settings": {
     "title": "Configuración",
@@ -342,14 +352,6 @@
     "first_favorite_description": "Guarda tu primer devocional favorito",
     "collector_title": "Coleccionista",
     "collector_description": "Guarda 10 devocionales favoritos"
-  },
-  "prayers": {
-    "created": "Creada: {date}",
-    "answered": "Respondida: {date}",
-    "days_old_single": "({days} día)",
-    "days_old_plural": "({days} días)",
-    "prayer_updated": "Oración actualizada exitosamente",
-    "prayer_created": "Oración creada exitosamente"
   },
   "contact_page": {
     "title": "Contacto",

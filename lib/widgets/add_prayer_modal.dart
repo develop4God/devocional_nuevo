@@ -287,10 +287,10 @@ class _AddPrayerModalState extends State<AddPrayerModal> {
         context
             .read<PrayerBloc>()
             .add(EditPrayer(widget.prayerToEdit!.id, text));
-        _showSuccessSnackBar('prayers.prayer_updated'.tr());
+        _showSuccessSnackBar('prayer.prayer_updated'.tr());
       } else {
         context.read<PrayerBloc>().add(AddPrayer(text));
-        _showSuccessSnackBar('prayers.prayer_created'.tr());
+        _showSuccessSnackBar('prayer.prayer_created'.tr());
       }
 
       if (mounted) {

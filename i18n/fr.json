@@ -86,7 +86,17 @@
     "cancel": "Annuler",
     "create_prayer": "Créer une prière",
     "update_prayer": "Mettre à jour la prière",
-    "answered": "Exaucée"
+    "answered": "Répondue : {date}",
+    "answer_prayer": "Répondre à la Prière",
+    "answer_prayer_description": "Ajoutez un commentaire sur la façon dont cette prière a été exaucée (facultatif).",
+    "answer_placeholder": "Dieu a répondu à cette prière par...\n\nJe suis reconnaissant pour...",
+    "confirm_answered": "Confirmer Exaucée",
+    "prayer_marked_answered": "Prière marquée comme exaucée",
+    "created": "Créée : {date}",
+    "days_old_single": "({days} jour)",
+    "days_old_plural": "({days} jours)",
+    "prayer_updated": "Prière mise à jour avec succès",
+    "prayer_created": "Prière créée avec succès"
   },
   "settings": {
     "title": "Paramètres",
@@ -342,14 +352,6 @@
     "first_favorite_description": "Sauvegardez votre premier dévotionnel favori",
     "collector_title": "Collectionneur",
     "collector_description": "Sauvegardez 10 dévotionnels favoris"
-  },
-  "prayers": {
-    "created": "Créée : {date}",
-    "answered": "Répondue : {date}",
-    "days_old_single": "({days} jour)",
-    "days_old_plural": "({days} jours)",
-    "prayer_updated": "Prière mise à jour avec succès",
-    "prayer_created": "Prière créée avec succès"
   },
   "contact_page": {
     "title": "Contact",

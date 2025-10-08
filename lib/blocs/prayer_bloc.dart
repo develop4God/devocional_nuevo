@@ -163,6 +163,7 @@ class PrayerBloc extends Bloc<PrayerEvent, PrayerState> {
           return prayer.copyWith(
             status: PrayerStatus.answered,
             answeredDate: DateTime.now(),
+            answeredComment: event.comment,
           );
         }
         return prayer;
@@ -195,6 +196,7 @@ class PrayerBloc extends Bloc<PrayerEvent, PrayerState> {
           return prayer.copyWith(
             status: PrayerStatus.active,
             clearAnsweredDate: true,
+            clearAnsweredComment: true,
           );
         }
         return prayer;

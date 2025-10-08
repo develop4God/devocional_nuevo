@@ -13,6 +13,7 @@ class Prayer {
   final DateTime createdDate;
   final PrayerStatus status;
   final DateTime? answeredDate;
+  final String? answeredComment;
 
   Prayer({
     required this.id,
@@ -20,6 +21,7 @@ class Prayer {
     required this.createdDate,
     required this.status,
     this.answeredDate,
+    this.answeredComment,
   });
 
   /// Constructor factory para crear una instancia de [Prayer] desde un JSON.
@@ -58,6 +60,7 @@ class Prayer {
       createdDate: parsedCreatedDate,
       status: PrayerStatus.fromString(json['status'] as String? ?? 'active'),
       answeredDate: parsedAnsweredDate,
+      answeredComment: json['answeredComment'] as String?,
     );
   }
 
@@ -69,6 +72,7 @@ class Prayer {
       'createdDate': createdDate.toIso8601String(),
       'status': status.toString(),
       'answeredDate': answeredDate?.toIso8601String(),
+      'answeredComment': answeredComment,
     };
   }
 
@@ -79,7 +83,9 @@ class Prayer {
     DateTime? createdDate,
     PrayerStatus? status,
     DateTime? answeredDate,
+    String? answeredComment,
     bool clearAnsweredDate = false,
+    bool clearAnsweredComment = false,
   }) {
     return Prayer(
       id: id ?? this.id,
@@ -88,6 +94,9 @@ class Prayer {
       status: status ?? this.status,
       answeredDate:
           clearAnsweredDate ? null : (answeredDate ?? this.answeredDate),
+      answeredComment: clearAnsweredComment
+          ? null
+          : (answeredComment ?? this.answeredComment),
     );
   }
 
