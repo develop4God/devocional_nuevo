@@ -12,6 +12,7 @@ class Devocional {
   final List<ParaMeditar> paraMeditar; // << CAMBIO: Ahora es List<ParaMeditar>
   final String oracion;
   final DateTime date;
+
   // Nuevos campos que se han detectado en el JSON.
   // Los hacemos nulos (String?, List<String>?) para que no sean obligatorios
   // en caso de que no siempre estén presentes en todos los devocionales.
@@ -53,7 +54,8 @@ class Devocional {
 
     return Devocional(
       id: json['id'] as String? ?? UniqueKey().hashCode.toString(),
-      versiculo: rawVersiculo, // Se usa el valor directo del JSON
+      versiculo: rawVersiculo,
+      // Se usa el valor directo del JSON
       reflexion: json['reflexion'] ?? '',
       paraMeditar: (json['para_meditar']
                   as List<dynamic>?) // << CAMBIO: Mapeo a ParaMeditar.fromJson
@@ -72,7 +74,7 @@ class Devocional {
     );
   }
 
-  // Método toJson para serializar a JSON (útil para guardar favoritos)
+  // Metodo toJson para serializar a JSON (útil para guardar favoritos)
   Map<String, dynamic> toJson() {
     return {
       'id': id,
