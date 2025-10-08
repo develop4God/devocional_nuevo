@@ -145,7 +145,7 @@ class OnboardingService {
   }
 
   /// Get the current onboarding version
-  int get currentVersion => _currentVersion;
+  /*int get currentVersion => _currentVersion;
 
   /// Check if user needs to see updated onboarding
   Future<bool> needsOnboardingUpdate() async {
@@ -161,5 +161,9 @@ class OnboardingService {
           '❌ [OnboardingService] Error checking for onboarding update: $e');
       return false;
     }
-  }
+  }*/
+  Future<bool> shouldShowOnboarding() async {
+    // Onboarding permanently disabled (forced)
+    return false;
+    }
 }
