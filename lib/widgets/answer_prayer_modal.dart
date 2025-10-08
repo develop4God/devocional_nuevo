@@ -139,8 +139,7 @@ class _AnswerPrayerModalState extends State<AnswerPrayerModal> {
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide:
-                    BorderSide(color: colorScheme.primary, width: 2),
+                borderSide: BorderSide(color: colorScheme.primary, width: 2),
               ),
               filled: true,
               fillColor: colorScheme.surface,
