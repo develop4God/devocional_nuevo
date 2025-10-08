@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Eliminado el atributo package que ahora se define como namespace en build.gradle -->
 
+    <!-- Permisos -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.VIBRATE" />
@@ -10,7 +11,9 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
 
+    <!-- Declaraciones de consulta para abrir enlaces web y otras apps -->
     <queries>
+        <!-- Para abrir enlaces web (HTTP/HTTPS) -->
         <intent>
             <action android:name="android.intent.action.VIEW" />
             <data android:scheme="https" />
@@ -19,29 +22,23 @@
             <action android:name="android.intent.action.VIEW" />
             <data android:scheme="http" />
         </intent>
+        <!-- Para abrir enlaces de correo electrónico (mailto) -->
         <intent>
             <action android:name="android.intent.action.VIEW" />
             <data android:scheme="mailto" />
         </intent>
+        <!-- Para consultar motores TTS disponibles -->
         <intent>
             <action android:name="android.intent.action.TTS_SERVICE" />
         </intent>
     </queries>
-
-    <uses-feature
-        android:name="android.hardware.camera"
-        android:required="false"
-        tools:node="merge" />
-    <uses-feature
-        android:name="android.hardware.location"
-        android:required="false"
-        tools:node="merge" />
 
     <application
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
         android:label="Devocionales Cristianos">
 
+        <!-- Actividad principal -->
         <activity
             android:name=".MainActivity"
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
@@ -66,23 +63,28 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
 
+            <!-- INICIO: Filtro para bucle de juego de Firebase Test Lab -->
             <intent-filter>
                 <action android:name="com.google.intent.action.TEST_LOOP" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <data android:mimeType="application/javascript" />
             </intent-filter>
+            <!-- FIN: Filtro para bucle de juego -->
         </activity>
 
+        <!-- ✅ ACTIVIDAD REQUERIDA PARA GOOGLE SIGN-IN EN PRODUCCIÓN -->
         <activity
             android:name="com.google.android.gms.auth.api.signin.internal.SignInHubActivity"
             android:excludeFromRecents="true"
             android:exported="false"
             android:theme="@android:style/Theme.Translucent.NoTitleBar" />
 
+        <!-- Meta-data para Flutter -->
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
 
+        <!-- Receivers para flutter_local_notifications -->
         <receiver
             android:name="com.dexterous.flutterlocalnotifications.ActionBroadcastReceiver"
             android:exported="false" />
