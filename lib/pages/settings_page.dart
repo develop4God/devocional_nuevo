@@ -1,7 +1,6 @@
-// lib/pages/settings_page.dart - SENIOR SIMPLE APPROACH
+// lib/pages/settings_page.dart - SENIOR SIMPLE APPROACH (HARD DISABLE badges, backup, force PayPal donation)
 import 'dart:developer' as developer;
 
-// Import condicional - solo carga debug widget en debug builds
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/pages/about_page.dart';
 import 'package:devocional_nuevo/pages/application_language_page.dart';
@@ -33,9 +32,9 @@ class _SettingsPageState extends State<SettingsPage> {
   final VoiceSettingsService _voiceSettingsService = VoiceSettingsService();
 
   // Feature flag state - simple and direct
-  String _donationMode = 'paypal'; // Default fallback
-  bool _showBadgesTab = false;
-  bool _showBackupSection = false;
+  String _donationMode = 'paypal'; // Hardcoded to PayPal
+  bool _showBadgesTab = false;     // Always hidden
+  bool _showBackupSection = false; // Always hidden
 
   @override
   void initState() {
@@ -72,37 +71,14 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Future<void> _loadFeatureFlags() async {
     try {
-      final remoteConfig = FirebaseRemoteConfig.instance;
-
-      // Configure with minimal settings
-      await remoteConfig.setConfigSettings(
-        RemoteConfigSettings(
-          fetchTimeout: const Duration(seconds: 10),
-          minimumFetchInterval: kDebugMode
-              ? const Duration(seconds: 0)
-              : const Duration(minutes: 5),
-        ),
-      );
-
-      // Set defaults matching your Firebase config
-      await remoteConfig.setDefaults({
-        'donation_mode': 'paypal',
-        'show_badges_tab': false,
-        'show_backup_section': false,
+      // --- HARD DISABLE ALL FLAGS ---
+      setState(() {
+        _donationMode = 'paypal';      // Always PayPal
+        _showBadgesTab = false;        // Always hidden
+        _showBackupSection = false;    // Always hidden
       });
-
-      await remoteConfig.fetchAndActivate();
-
-      if (mounted) {
-        setState(() {
-          _donationMode = remoteConfig.getString('donation_mode');
-          _showBadgesTab = remoteConfig.getBool('show_badges_tab');
-          _showBackupSection = remoteConfig.getBool('show_backup_section');
-        });
-      }
-
       developer.log(
-        'Feature flags loaded: donation_mode=$_donationMode, badges=$_showBadgesTab',
+        '[FORCED OFF] Feature flags set to: donation_mode=$_donationMode, badges=$_showBadgesTab, backup=$_showBackupSection',
       );
     } catch (e) {
       developer.log('Feature flags failed to load: $e, using defaults');
@@ -180,13 +156,8 @@ class _SettingsPageState extends State<SettingsPage> {
   // Simple decision method - senior approach
   Future<void> _handleDonateAction() async {
     developer.log('Donate action triggered with mode: $_donationMode');
-
-    if (_donationMode == 'google') {
-      await _navigateToDonatePage();
-    } else {
-      // Default to PayPal - safe fallback
-      await _launchPaypal();
-    }
+    // Only PayPal available
+    await _launchPaypal();
   }
 
   void _showErrorSnackBar(String message) {
@@ -216,12 +187,12 @@ class _SettingsPageState extends State<SettingsPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Support/Donation Button
+            // Support/Donation Button (PayPal always)
             SizedBox(
               child: Align(
                 alignment: Alignment.topRight,
                 child: OutlinedButton.icon(
-                  onPressed: _handleDonateAction, // Simple decision here
+                  onPressed: _handleDonateAction,
                   style: OutlinedButton.styleFrom(
                     foregroundColor: colorScheme.onSurface,
                     side: BorderSide(color: colorScheme.primary, width: 2.0),
@@ -334,77 +305,77 @@ class _SettingsPageState extends State<SettingsPage> {
 
             const SizedBox(height: 20),
 
-            // Backup Settings - conditional display
+            // Backup Settings - conditional display (disabled)
             // --- [START] Backup Row with Multiple Debug Logs ---
-            if (_showBackupSection) ...[
-              InkWell(
-                onTap: () async {
-                  developer.log('[DEBUG] Settings: Backup row tapped.',
-                      name: 'SettingsPage');
-                  final bubbleId = 'settings_backup_option';
-                  developer.log(
-                      '[DEBUG] Settings: Calling BubbleUtils.markAsShown for bubbleId=$bubbleId',
-                      name: 'SettingsPage');
-                  await BubbleUtils.markAsShown(bubbleId);
-                  developer.log(
-                      '[DEBUG] Settings: markAsShown completed for bubbleId=$bubbleId',
-                      name: 'SettingsPage');
-                  if (!context.mounted) {
-                    developer.log(
-                        '[DEBUG] Settings: Context not mounted after await. Navigation skipped.',
-                        name: 'SettingsPage');
-                    return;
-                  }
-                  developer.log(
-                      '[DEBUG] Settings: Navigating to BackupSettingsPage',
-                      name: 'SettingsPage');
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const BackupSettingsPage(),
-                    ),
-                  );
-                },
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8.0),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.add_to_drive_outlined,
-                        color: colorScheme.primary,
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Builder(
-                              builder: (context) {
-                                final bubbleId = 'settings_backup_option';
-                                developer.log(
-                                    '[DEBUG] Settings: Rendering backup row Text.newBubbleWithId bubbleId=$bubbleId',
-                                    name: 'SettingsPage');
-                                return Text(
-                                  'settings.backup_option'.tr(),
-                                  style: textTheme.bodyMedium?.copyWith(
-                                    fontSize: 16,
-                                    color: colorScheme.onSurface,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ).newBubbleWithId(bubbleId);
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-            ],
-// --- [END] Backup Row with Multiple Debug Logs ---
+            // if (_showBackupSection) ...[
+            //   InkWell(
+            //     onTap: () async {
+            //       developer.log('[DEBUG] Settings: Backup row tapped.',
+            //           name: 'SettingsPage');
+            //       final bubbleId = 'settings_backup_option';
+            //       developer.log(
+            //           '[DEBUG] Settings: Calling BubbleUtils.markAsShown for bubbleId=$bubbleId',
+            //           name: 'SettingsPage');
+            //       await BubbleUtils.markAsShown(bubbleId);
+            //       developer.log(
+            //           '[DEBUG] Settings: markAsShown completed for bubbleId=$bubbleId',
+            //           name: 'SettingsPage');
+            //       if (!context.mounted) {
+            //         developer.log(
+            //             '[DEBUG] Settings: Context not mounted after await. Navigation skipped.',
+            //             name: 'SettingsPage');
+            //         return;
+            //       }
+            //       developer.log(
+            //           '[DEBUG] Settings: Navigating to BackupSettingsPage',
+            //           name: 'SettingsPage');
+            //       Navigator.push(
+            //         context,
+            //         MaterialPageRoute(
+            //           builder: (context) => const BackupSettingsPage(),
+            //         ),
+            //       );
+            //     },
+            //     child: Padding(
+            //       padding: const EdgeInsets.symmetric(vertical: 8.0),
+            //       child: Row(
+            //         children: [
+            //           Icon(
+            //             Icons.add_to_drive_outlined,
+            //             color: colorScheme.primary,
+            //           ),
+            //           const SizedBox(width: 10),
+            //           Expanded(
+            //             child: Row(
+            //               mainAxisSize: MainAxisSize.min,
+            //               children: [
+            //                 Builder(
+            //                   builder: (context) {
+            //                     final bubbleId = 'settings_backup_option';
+            //                     developer.log(
+            //                         '[DEBUG] Settings: Rendering backup row Text.newBubbleWithId bubbleId=$bubbleId',
+            //                         name: 'SettingsPage');
+            //                     return Text(
+            //                       'settings.backup_option'.tr(),
+            //                       style: textTheme.bodyMedium?.copyWith(
+            //                         fontSize: 16,
+            //                         color: colorScheme.onSurface,
+            //                       ),
+            //                       maxLines: 1,
+            //                       overflow: TextOverflow.ellipsis,
+            //                     ).newBubbleWithId(bubbleId);
+            //                   },
+            //                 ),
+            //               ],
+            //             ),
+            //           ),
+            //         ],
+            //       ),
+            //     ),
+            //   ),
+            //   const SizedBox(height: 20),
+            // ],
+            // --- [END] Backup Row with Multiple Debug Logs ---
 
             // Contact
             InkWell(
