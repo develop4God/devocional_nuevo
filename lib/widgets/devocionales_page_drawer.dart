@@ -1,16 +1,16 @@
+import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
+import 'package:devocional_nuevo/blocs/theme/theme_event.dart';
+import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/pages/favorites_page.dart';
 import 'package:devocional_nuevo/pages/notification_config_page.dart';
 import 'package:devocional_nuevo/pages/prayers_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
-import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
-import 'package:devocional_nuevo/blocs/theme/theme_event.dart';
-import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/utils/bubble_constants.dart';
 import 'package:devocional_nuevo/widgets/theme_selector.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 
 class DevocionalesDrawer extends StatelessWidget {
@@ -332,7 +332,7 @@ class DevocionalesDrawer extends StatelessWidget {
                         const SizedBox(height: 5),
                         // --- Favoritos guardados ---
                         drawerRow(
-                          icon: Icons.book_outlined,
+                          icon: Icons.star_border_outlined,
                           iconColor: colorScheme.primary,
                           label: Text(
                             'drawer.saved_favorites'.tr(),

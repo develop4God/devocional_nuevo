@@ -155,8 +155,10 @@ class _MyAppState extends State<MyApp> {
   Future<bool> _initializeApp() async {
     try {
       // 1. Primero inicializar localización (crítico para traducciones)
-      await Provider.of<LocalizationProvider>(context, listen: false)
-          .initialize();
+      await Provider.of<LocalizationProvider>(
+        context,
+        listen: false,
+      ).initialize();
 
       developer.log(
         'App: LocalizationService inicializado correctamente',
@@ -277,7 +279,7 @@ class _AppInitializerState extends State<AppInitializer> {
     final backupBloc = context.read<BackupBloc>();
 
     // Dar tiempo para que el SplashScreen se muestre
-    await Future.delayed(const Duration(milliseconds: 700));
+    await Future.delayed(const Duration(milliseconds: 900));
 
     // Inicialización completa de servicios y datos
     await _initServices();

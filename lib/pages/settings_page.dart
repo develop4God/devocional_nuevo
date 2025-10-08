@@ -4,17 +4,12 @@ import 'dart:developer' as developer;
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/pages/about_page.dart';
 import 'package:devocional_nuevo/pages/application_language_page.dart';
-import 'package:devocional_nuevo/pages/backup_settings_page.dart';
 import 'package:devocional_nuevo/pages/contact_page.dart';
-import 'package:devocional_nuevo/pages/donate_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/providers/localization_provider.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
-import 'package:devocional_nuevo/utils/bubble_constants.dart';
 import 'package:devocional_nuevo/utils/constants.dart';
 import 'package:devocional_nuevo/widgets/app_bar_constants.dart';
-import 'package:firebase_remote_config/firebase_remote_config.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -33,7 +28,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
   // Feature flag state - simple and direct
   String _donationMode = 'paypal'; // Hardcoded to PayPal
-  bool _showBadgesTab = false;     // Always hidden
+  bool _showBadgesTab = false; // Always hidden
   bool _showBackupSection = false; // Always hidden
 
   @override
@@ -73,9 +68,9 @@ class _SettingsPageState extends State<SettingsPage> {
     try {
       // --- HARD DISABLE ALL FLAGS ---
       setState(() {
-        _donationMode = 'paypal';      // Always PayPal
-        _showBadgesTab = false;        // Always hidden
-        _showBackupSection = false;    // Always hidden
+        _donationMode = 'paypal'; // Always PayPal
+        _showBadgesTab = false; // Always hidden
+        _showBackupSection = false; // Always hidden
       });
       developer.log(
         '[FORCED OFF] Feature flags set to: donation_mode=$_donationMode, badges=$_showBadgesTab, backup=$_showBackupSection',
@@ -130,26 +125,6 @@ class _SettingsPageState extends State<SettingsPage> {
     } catch (e) {
       developer.log('Error launching PayPal: $e', name: 'PayPalLaunch');
       _showErrorSnackBar('settings.paypal_error'.tr({'error': e.toString()}));
-    }
-  }
-
-  Future<void> _navigateToDonatePage() async {
-    try {
-      developer.log(
-        'Navigating to advanced donate page',
-        name: 'DonateNavigation',
-      );
-
-      await Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const DonatePage()),
-      );
-    } catch (e) {
-      developer.log(
-        'Error navigating to donate page: $e',
-        name: 'DonateNavigation',
-      );
-      _showErrorSnackBar('Error opening donation page: $e');
     }
   }
 

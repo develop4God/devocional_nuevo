@@ -965,8 +965,8 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                               )
                           : null,
                       icon: Icon(
-                        isFavorite ? Icons.favorite : Icons.favorite_border,
-                        color: isFavorite ? Colors.red : Colors.white,
+                        isFavorite ? Icons.star : Icons.favorite_border,
+                        color: isFavorite ? Colors.amber : Colors.white,
                         size: 32,
                       ),
                     ),

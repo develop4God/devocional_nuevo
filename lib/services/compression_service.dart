@@ -20,9 +20,9 @@ class CompressionService {
       final compressed = GZipEncoder().encode(bytes);
 
       debugPrint(
-          'Compression: ${bytes.length} bytes -> ${compressed?.length ?? 0} bytes');
+          'Compression: ${bytes.length} bytes -> ${compressed.length} bytes');
 
-      return Uint8List.fromList(compressed ?? bytes);
+      return Uint8List.fromList(compressed);
     } catch (e) {
       debugPrint('Error compressing data: $e');
       // Return uncompressed data as fallback
@@ -94,9 +94,9 @@ class CompressionService {
       final zipData = ZipEncoder().encode(archive);
 
       debugPrint(
-          'Archive created with ${files.length} files, size: ${zipData?.length ?? 0} bytes');
+          'Archive created with ${files.length} files, size: ${zipData.length} bytes');
 
-      return Uint8List.fromList(zipData ?? []);
+      return Uint8List.fromList(zipData);
     } catch (e) {
       debugPrint('Error creating archive: $e');
       return Uint8List(0);
