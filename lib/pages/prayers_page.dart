@@ -60,7 +60,7 @@ class _PrayersPageState extends State<PrayersPage>
                 ),
                 Tab(
                   icon: const Icon(Icons.check_circle_outline),
-                  text: 'prayer.answered'.tr(),
+                  text: 'prayer.answered_prayers'.tr(),
                 ),
               ],
               // Cambiar colores para fondo blanco

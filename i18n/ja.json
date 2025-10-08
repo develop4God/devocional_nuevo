@@ -66,6 +66,7 @@
     "praying": "祈り中...",
     "my_prayers": "私の祈り",
     "active": "アクティブ",
+    "answered_prayers": "回答済み",
     "retry": "再試行",
     "no_active_prayers_title": "アクティブな祈りはありません",
     "no_active_prayers_description": "「+」ボタンをタップして最初の祈りを作成し、信仰の旅を始めましょう。",

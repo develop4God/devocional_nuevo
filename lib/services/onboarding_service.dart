@@ -1,5 +1,4 @@
 // lib/services/onboarding_service.dart
-import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -130,7 +129,8 @@ class OnboardingService {
   }
 
   /// Check if we should show onboarding flow
-  Future<bool> shouldShowOnboarding() async {
+  //flag off for now
+  /*Future<bool> shouldShowOnboarding() async {
     try {
       final remoteConfig = FirebaseRemoteConfig.instance;
       await remoteConfig.fetchAndActivate();
@@ -142,7 +142,7 @@ class OnboardingService {
       debugPrint('❌ [OnboardingService] Error reading remote config: $e');
       return !(await isOnboardingComplete());
     }
-  }
+  }*/
 
   /// Get the current onboarding version
   /*int get currentVersion => _currentVersion;
@@ -165,5 +165,5 @@ class OnboardingService {
   Future<bool> shouldShowOnboarding() async {
     // Onboarding permanently disabled (forced)
     return false;
-    }
+  }
 }

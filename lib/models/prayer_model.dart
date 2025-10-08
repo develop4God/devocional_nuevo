@@ -147,7 +147,7 @@ enum PrayerStatus {
       case PrayerStatus.active:
         return "prayer.active".tr();
       case PrayerStatus.answered:
-        return "prayer.answered".tr();
+        return "prayer.answered_prayers".tr();
     }
   }
 }
