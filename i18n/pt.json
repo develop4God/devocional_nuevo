@@ -555,6 +555,9 @@
     "copy": "Copiar",
     "clear_selection": "Limpar seleção",
     "copied_to_clipboard": "Copiado para área de transferência",
-    "no_verses": "Sem versículos"
+    "no_verses": "Sem versículos",
+    "select_version": "Selecionar versão",
+    "search_placeholder": "Buscar palavras ou frases...",
+    "no_search_results": "Nenhum resultado encontrado"
   }
 }

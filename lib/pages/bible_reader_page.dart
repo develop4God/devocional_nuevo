@@ -1,6 +1,8 @@
+import 'dart:ui' as ui;
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/bible_version.dart';
 import 'package:devocional_nuevo/services/bible_db_service.dart';
+import 'package:devocional_nuevo/services/bible_reading_position_service.dart';
 import 'package:devocional_nuevo/utils/bible_text_normalizer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -17,6 +19,8 @@ class BibleReaderPage extends StatefulWidget {
 
 class _BibleReaderPageState extends State<BibleReaderPage> {
   late BibleVersion _selectedVersion;
+  List<BibleVersion> _availableVersions = [];
+  String _deviceLanguage = '';
   List<Map<String, dynamic>> _books = [];
   String? _selectedBookName;
   int? _selectedBookNumber;
@@ -27,12 +31,92 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
   final double _fontSize = 18;
   bool _bottomSheetOpen = false;
   bool _isLoading = true;
+  bool _isSearching = false;
+  List<Map<String, dynamic>> _searchResults = [];
+  final TextEditingController _searchController = TextEditingController();
+  final BibleReadingPositionService _positionService =
+      BibleReadingPositionService();
 
   @override
   void initState() {
     super.initState();
-    _selectedVersion = widget.versions.first;
-    _initVersion();
+    _detectLanguageAndInitialize();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _detectLanguageAndInitialize() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    // Detect device language
+    _deviceLanguage = ui.PlatformDispatcher.instance.locale.languageCode;
+
+    // Filter versions by device language
+    _availableVersions = widget.versions
+        .where((v) => v.languageCode == _deviceLanguage)
+        .toList();
+
+    // If no versions for device language, fall back to all versions or Spanish
+    if (_availableVersions.isEmpty) {
+      _availableVersions =
+          widget.versions.where((v) => v.languageCode == 'es').toList();
+      if (_availableVersions.isEmpty) {
+        _availableVersions = widget.versions;
+      }
+    }
+
+    // Try to restore last reading position
+    final lastPosition = await _positionService.getLastPosition();
+
+    if (lastPosition != null &&
+        _availableVersions.any((v) =>
+            v.name == lastPosition['version'] &&
+            v.languageCode == lastPosition['languageCode'])) {
+      // Restore last version and position
+      _selectedVersion = _availableVersions.firstWhere(
+        (v) =>
+            v.name == lastPosition['version'] &&
+            v.languageCode == lastPosition['languageCode'],
+      );
+      await _initVersion();
+      await _restorePosition(lastPosition);
+    } else {
+      // Start with first available version
+      _selectedVersion = _availableVersions.isNotEmpty
+          ? _availableVersions.first
+          : widget.versions.first;
+      await _initVersion();
+    }
+
+    setState(() {
+      _isLoading = false;
+    });
+  }
+
+  Future<void> _restorePosition(Map<String, dynamic> position) async {
+    // Find the book in the loaded books
+    final book = _books.firstWhere(
+      (b) =>
+          b['short_name'] == position['bookName'] ||
+          b['book_number'] == position['bookNumber'],
+      orElse: () => _books.isNotEmpty ? _books[0] : {},
+    );
+
+    if (book.isNotEmpty) {
+      setState(() {
+        _selectedBookName = book['short_name'];
+        _selectedBookNumber = book['book_number'];
+        _selectedChapter = position['chapter'];
+      });
+      await _loadMaxChapter();
+      await _loadVerses();
+    }
   }
 
   Future<void> _initVersion() async {
@@ -84,6 +168,82 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     setState(() {
       _verses = verses;
     });
+
+    // Save reading position
+    if (_selectedBookName != null) {
+      await _positionService.savePosition(
+        bookName: _selectedBookName!,
+        bookNumber: _selectedBookNumber!,
+        chapter: _selectedChapter!,
+        version: _selectedVersion.name,
+        languageCode: _selectedVersion.languageCode,
+      );
+    }
+  }
+
+  Future<void> _switchVersion(BibleVersion newVersion) async {
+    if (newVersion.name == _selectedVersion.name) return;
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    _selectedVersion = newVersion;
+    await _initVersion();
+
+    setState(() {
+      _isLoading = false;
+    });
+  }
+
+  Future<void> _performSearch(String query) async {
+    if (query.trim().isEmpty) {
+      setState(() {
+        _isSearching = false;
+        _searchResults = [];
+      });
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    final results = await _selectedVersion.service!.searchVerses(query);
+
+    setState(() {
+      _searchResults = results;
+      _isSearching = true;
+      _isLoading = false;
+    });
+  }
+
+  void _jumpToSearchResult(Map<String, dynamic> result) async {
+    final bookNumber = result['book_number'] as int;
+    final chapter = result['chapter'] as int;
+
+    // Find the book
+    final book = _books.firstWhere(
+      (b) => b['book_number'] == bookNumber,
+      orElse: () => _books[0],
+    );
+
+    setState(() {
+      _selectedBookName = book['short_name'];
+      _selectedBookNumber = bookNumber;
+      _selectedChapter = chapter;
+      _isSearching = false;
+      _searchResults = [];
+      _searchController.clear();
+    });
+
+    await _loadMaxChapter();
+    await _loadVerses();
+
+    // Close keyboard
+    if (mounted) {
+      FocusScope.of(context).unfocus();
+    }
   }
 
   void _onVerseTap(int verseNumber) {
@@ -245,16 +405,52 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('bible.title'.tr()),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('bible.title'.tr()),
+            if (!_isLoading)
+              Text(
+                '${_selectedVersion.name} (${_selectedVersion.language})',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: colorScheme.onPrimary.withValues(alpha: 0.8),
+                ),
+              ),
+          ],
+        ),
         backgroundColor: colorScheme.primary,
         foregroundColor: colorScheme.onPrimary,
+        actions: [
+          if (_availableVersions.length > 1)
+            PopupMenuButton<BibleVersion>(
+              icon: const Icon(Icons.book),
+              tooltip: 'bible.select_version'.tr(),
+              onSelected: _switchVersion,
+              itemBuilder: (context) => _availableVersions.map((version) {
+                return PopupMenuItem<BibleVersion>(
+                  value: version,
+                  child: Row(
+                    children: [
+                      if (version.name == _selectedVersion.name)
+                        Icon(Icons.check, color: colorScheme.primary, size: 20)
+                      else
+                        const SizedBox(width: 20),
+                      const SizedBox(width: 8),
+                      Text(version.name),
+                    ],
+                  ),
+                );
+              }).toList(),
+            ),
+        ],
       ),
       body: _isLoading
           ? Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const CircularProgressIndicator(),
+                  CircularProgressIndicator(color: colorScheme.primary),
                   const SizedBox(height: 16),
                   Text('bible.loading'.tr()),
                 ],
@@ -262,137 +458,245 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
             )
           : Column(
               children: [
-                // Book and chapter selector
+                // Search bar
                 Container(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     color: colorScheme.surface,
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.1),
-                        blurRadius: 4,
-                        offset: const Offset(0, 2),
+                        color: Colors.black.withValues(alpha: 0.05),
+                        blurRadius: 2,
+                        offset: const Offset(0, 1),
                       ),
                     ],
                   ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        flex: 2,
-                        child: DropdownButton<String>(
-                          value: _selectedBookName,
-                          icon: const Icon(Icons.arrow_drop_down),
-                          isExpanded: true,
-                          items: _books
-                              .map((b) => DropdownMenuItem<String>(
-                                    value: b['short_name'],
-                                    child: Text(
-                                      b['long_name'],
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ))
-                              .toList(),
-                          onChanged: (val) async {
-                            if (val == null) return;
-                            final book = _books
-                                .firstWhere((b) => b['short_name'] == val);
-                            setState(() {
-                              _selectedBookName = val;
-                              _selectedBookNumber = book['book_number'];
-                              _selectedChapter = 1;
-                              _selectedVerses.clear();
-                            });
-                            await _loadMaxChapter();
-                            await _loadVerses();
-                          },
-                        ),
+                  child: TextField(
+                    controller: _searchController,
+                    decoration: InputDecoration(
+                      hintText: 'bible.search_placeholder'.tr(),
+                      prefixIcon: const Icon(Icons.search),
+                      suffixIcon: _searchController.text.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear),
+                              onPressed: () {
+                                _searchController.clear();
+                                setState(() {
+                                  _isSearching = false;
+                                  _searchResults = [];
+                                });
+                              },
+                            )
+                          : null,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(25),
+                        borderSide: BorderSide.none,
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: DropdownButton<int>(
-                          value: _selectedChapter,
-                          icon: const Icon(Icons.arrow_drop_down),
-                          isExpanded: true,
-                          items: List.generate(_maxChapter, (i) => i + 1)
-                              .map(
-                                (ch) => DropdownMenuItem<int>(
-                                  value: ch,
-                                  child: Text('bible.chapter'
-                                      .tr({'number': ch.toString()})),
-                                ),
-                              )
-                              .toList(),
-                          onChanged: (val) async {
-                            if (val == null) return;
-                            setState(() {
-                              _selectedChapter = val;
-                              _selectedVerses.clear();
-                            });
-                            await _loadVerses();
-                          },
-                        ),
+                      filled: true,
+                      fillColor: colorScheme.surfaceContainerHighest,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
                       ),
-                    ],
+                    ),
+                    onSubmitted: _performSearch,
+                    onChanged: (value) {
+                      setState(() {});
+                    },
                   ),
                 ),
-                // Verses list
-                Expanded(
-                  child: _verses.isEmpty
-                      ? Center(child: Text('bible.no_verses'.tr()))
-                      : ListView.builder(
-                          padding: const EdgeInsets.all(16),
-                          itemCount: _verses.length,
-                          itemBuilder: (context, idx) {
-                            final verse = _verses[idx];
-                            final verseNumber = verse['verse'];
-                            final key =
-                                "$_selectedBookName|$_selectedChapter|$verseNumber";
-                            final isSelected = _selectedVerses.contains(key);
-                            return GestureDetector(
-                              onTap: () => _onVerseTap(verseNumber),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                    vertical: 8, horizontal: 4),
-                                decoration: isSelected
-                                    ? BoxDecoration(
-                                        color: colorScheme.primaryContainer
-                                            .withValues(alpha: 0.3),
-                                        borderRadius: BorderRadius.circular(8),
-                                        border: Border.all(
-                                          color: colorScheme.primary,
-                                          width: 2,
+                // Show search results if searching
+                if (_isSearching)
+                  Expanded(
+                    child: _buildSearchResults(colorScheme),
+                  )
+                else ...[
+                  // Book and chapter selector
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: colorScheme.surface,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.1),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          flex: 2,
+                          child: DropdownButton<String>(
+                            value: _selectedBookName,
+                            icon: const Icon(Icons.arrow_drop_down),
+                            isExpanded: true,
+                            items: _books
+                                .map((b) => DropdownMenuItem<String>(
+                                      value: b['short_name'],
+                                      child: Text(
+                                        b['long_name'],
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ))
+                                .toList(),
+                            onChanged: (val) async {
+                              if (val == null) return;
+                              final book = _books
+                                  .firstWhere((b) => b['short_name'] == val);
+                              setState(() {
+                                _selectedBookName = val;
+                                _selectedBookNumber = book['book_number'];
+                                _selectedChapter = 1;
+                                _selectedVerses.clear();
+                              });
+                              await _loadMaxChapter();
+                              await _loadVerses();
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: DropdownButton<int>(
+                            value: _selectedChapter,
+                            icon: const Icon(Icons.arrow_drop_down),
+                            isExpanded: true,
+                            items: List.generate(_maxChapter, (i) => i + 1)
+                                .map(
+                                  (ch) => DropdownMenuItem<int>(
+                                    value: ch,
+                                    child: Text('bible.chapter'
+                                        .tr({'number': ch.toString()})),
+                                  ),
+                                )
+                                .toList(),
+                            onChanged: (val) async {
+                              if (val == null) return;
+                              setState(() {
+                                _selectedChapter = val;
+                                _selectedVerses.clear();
+                              });
+                              await _loadVerses();
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Verses list
+                  Expanded(
+                    child: _verses.isEmpty
+                        ? Center(child: Text('bible.no_verses'.tr()))
+                        : ListView.builder(
+                            padding: const EdgeInsets.all(16),
+                            itemCount: _verses.length,
+                            itemBuilder: (context, idx) {
+                              final verse = _verses[idx];
+                              final verseNumber = verse['verse'];
+                              final key =
+                                  "$_selectedBookName|$_selectedChapter|$verseNumber";
+                              final isSelected = _selectedVerses.contains(key);
+                              return GestureDetector(
+                                onTap: () => _onVerseTap(verseNumber),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      vertical: 8, horizontal: 4),
+                                  decoration: isSelected
+                                      ? BoxDecoration(
+                                          color: colorScheme.primaryContainer
+                                              .withValues(alpha: 0.3),
+                                          borderRadius:
+                                              BorderRadius.circular(8),
+                                          border: Border.all(
+                                            color: colorScheme.primary,
+                                            width: 2,
+                                          ),
+                                        )
+                                      : null,
+                                  child: RichText(
+                                    text: TextSpan(
+                                      style: TextStyle(
+                                        fontSize: _fontSize,
+                                        color: colorScheme.onSurface,
+                                        height: 1.6,
+                                      ),
+                                      children: [
+                                        TextSpan(
+                                          text: "${verse['verse']} ",
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            color: colorScheme.primary,
+                                            fontSize: 14,
+                                          ),
                                         ),
-                                      )
-                                    : null,
-                                child: RichText(
-                                  text: TextSpan(
-                                    style: TextStyle(
-                                      fontSize: _fontSize,
-                                      color: colorScheme.onSurface,
-                                      height: 1.6,
+                                        TextSpan(
+                                          text: _cleanVerseText(verse['text']),
+                                        ),
+                                      ],
                                     ),
-                                    children: [
-                                      TextSpan(
-                                        text: "${verse['verse']} ",
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          color: colorScheme.primary,
-                                          fontSize: 14,
-                                        ),
-                                      ),
-                                      TextSpan(
-                                        text: _cleanVerseText(verse['text']),
-                                      ),
-                                    ],
                                   ),
                                 ),
-                              ),
-                            );
-                          },
-                        ),
-                ),
+                              );
+                            },
+                          ),
+                  ),
+                ],
               ],
             ),
+    );
+  }
+
+  Widget _buildSearchResults(ColorScheme colorScheme) {
+    if (_searchResults.isEmpty) {
+      return Center(
+        child: Text('bible.no_search_results'.tr()),
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: _searchResults.length,
+      itemBuilder: (context, idx) {
+        final result = _searchResults[idx];
+        final bookName = result['long_name'] ?? result['short_name'];
+        final chapter = result['chapter'];
+        final verse = result['verse'];
+        final text = _cleanVerseText(result['text']);
+
+        return Card(
+          margin: const EdgeInsets.only(bottom: 12),
+          child: InkWell(
+            onTap: () => _jumpToSearchResult(result),
+            borderRadius: BorderRadius.circular(12),
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '$bookName $chapter:$verse',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.primary,
+                      fontSize: 14,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    text,
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: colorScheme.onSurface,
+                      height: 1.4,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

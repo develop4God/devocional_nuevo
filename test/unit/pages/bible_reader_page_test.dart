@@ -10,8 +10,10 @@ void main() {
       final versions = [
         BibleVersion(
           name: 'RVR1960',
-          assetPath: 'assets/biblia/RVR1960.SQLite3',
-          dbFileName: 'RVR1960.SQLite3',
+          language: 'Español',
+          languageCode: 'es',
+          assetPath: 'assets/biblia/RVR1960_es.SQLite3',
+          dbFileName: 'RVR1960_es.SQLite3',
         ),
       ];
 
@@ -34,8 +36,10 @@ void main() {
       final versions = [
         BibleVersion(
           name: 'RVR1960',
-          assetPath: 'assets/biblia/RVR1960.SQLite3',
-          dbFileName: 'RVR1960.SQLite3',
+          language: 'Español',
+          languageCode: 'es',
+          assetPath: 'assets/biblia/RVR1960_es.SQLite3',
+          dbFileName: 'RVR1960_es.SQLite3',
         ),
       ];
 
@@ -56,8 +60,10 @@ void main() {
       final versions = [
         BibleVersion(
           name: 'RVR1960',
-          assetPath: 'assets/biblia/RVR1960.SQLite3',
-          dbFileName: 'RVR1960.SQLite3',
+          language: 'Español',
+          languageCode: 'es',
+          assetPath: 'assets/biblia/RVR1960_es.SQLite3',
+          dbFileName: 'RVR1960_es.SQLite3',
         ),
       ];
 
@@ -80,6 +86,8 @@ void main() {
       final versions = [
         BibleVersion(
           name: 'Test',
+          language: 'Test Language',
+          languageCode: 'xx',
           assetPath: 'test.db',
           dbFileName: 'test.db',
         ),
