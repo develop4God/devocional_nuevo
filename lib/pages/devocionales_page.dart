@@ -21,8 +21,6 @@ import 'package:devocional_nuevo/widgets/app_bar_constants.dart'
 import 'package:devocional_nuevo/widgets/app_bar_constants.dart';
 import 'package:devocional_nuevo/widgets/devocionales_page_drawer.dart';
 import 'package:devocional_nuevo/widgets/tts_player_widget.dart';
-import 'package:firebase_remote_config/firebase_remote_config.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_tts/flutter_tts.dart';
@@ -55,7 +53,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
   final FlutterTts _flutterTts = FlutterTts();
 
   AudioController? _audioController;
-  bool _showBadgesTab = false;
+  final bool _showBadgesTab = false;
 
   @override
   void initState() {
@@ -65,11 +63,9 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _audioController = Provider.of<AudioController>(context, listen: false);
       _tracking.initialize(context);
-      _tracking.startCriteriaCheckTimer();
     });
 
     _loadInitialData();
-    _loadFeatureFlags();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       UpdateService.checkForUpdate();
@@ -166,34 +162,6 @@ class _DevocionalesPageState extends State<DevocionalesPage>
         }
       }
     });
-  }
-
-  Future<void> _loadFeatureFlags() async {
-    try {
-      final remoteConfig = FirebaseRemoteConfig.instance;
-
-      await remoteConfig.setConfigSettings(
-        RemoteConfigSettings(
-          fetchTimeout: const Duration(seconds: 10),
-          minimumFetchInterval: kDebugMode
-              ? const Duration(seconds: 0)
-              : const Duration(minutes: 5),
-        ),
-      );
-
-      await remoteConfig.setDefaults({'show_badges_tab': false});
-      await remoteConfig.fetchAndActivate();
-
-      if (mounted) {
-        setState(() {
-          _showBadgesTab = remoteConfig.getBool('show_badges_tab');
-        });
-      }
-
-      developer.log('Badges tab flag loaded: $_showBadgesTab');
-    } catch (e) {
-      developer.log('Failed to load badges flag: $e, keeping default false');
-    }
   }
 
   void _startTrackingCurrentDevocional() {
