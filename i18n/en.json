@@ -558,6 +558,7 @@
     "no_verses": "No verses",
     "select_version": "Select version",
     "search_placeholder": "Search for words or phrases...",
-    "no_search_results": "No results found"
+    "no_search_results": "No results found",
+    "loading_version": "Loading {version}..."
   }
 }

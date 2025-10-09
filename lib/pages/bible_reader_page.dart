@@ -189,6 +189,19 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     });
 
     _selectedVersion = newVersion;
+
+    // Show a brief message that the version is being loaded
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'bible.loading_version'.tr({'version': newVersion.name}),
+          ),
+          duration: const Duration(seconds: 1),
+        ),
+      );
+    }
+
     await _initVersion();
 
     setState(() {
