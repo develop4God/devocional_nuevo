@@ -977,7 +977,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                       tooltip: 'tooltips.bible'.tr(),
                       onPressed: () => _goToBible(),
                       icon: const Icon(
-                        Icons.menu_book_outlined,
+                        Icons.auto_stories_outlined,
                         color: Colors.white,
                         size: 32,
                       ),

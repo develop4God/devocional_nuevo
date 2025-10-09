@@ -1,12 +1,14 @@
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/bible_version.dart';
 import 'package:devocional_nuevo/services/bible_db_service.dart';
+import 'package:devocional_nuevo/utils/bible_text_normalizer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart' show ShareParams, SharePlus;
 
 class BibleReaderPage extends StatefulWidget {
   final List<BibleVersion> versions;
+
   const BibleReaderPage({super.key, required this.versions});
 
   @override
@@ -103,10 +105,13 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
 
   void _showBottomSheet() {
     _bottomSheetOpen = true;
+
+    final parentContext = context; // Capture the State's context
+
     showModalBottomSheet(
-      context: context,
+      context: parentContext,
       isScrollControlled: true,
-      backgroundColor: Theme.of(context).colorScheme.surface,
+      backgroundColor: Theme.of(parentContext).colorScheme.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -114,13 +119,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
         return StatefulBuilder(
           builder: (context, setModalState) {
             // If all verses are deselected, close the sheet
-            if (_selectedVerses.isEmpty) {
-              Future.delayed(Duration.zero, () {
-                if (mounted && Navigator.of(context).canPop()) {
-                  Navigator.of(context).pop();
-                }
-              });
-            }
+
             return Padding(
               padding: const EdgeInsets.all(20.0),
               child: Column(
@@ -195,9 +194,9 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     });
   }
 
+  //text normalizer
   String _cleanVerseText(dynamic text) {
-    if (text == null) return '';
-    return text.toString().trim();
+    return BibleTextNormalizer.clean(text?.toString());
   }
 
   String _getSelectedVersesText() {
