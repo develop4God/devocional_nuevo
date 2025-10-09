@@ -269,7 +269,8 @@
     "share_as_text": "Compartir como texto",
     "share_as_image": "Compartir como imagen",
     "progress": "Progreso",
-    "settings": "Configuración"
+    "settings": "Configuración",
+    "bible": "Biblia"
   },
   "share": {
     "share_text": "Compartir texto",
@@ -545,5 +546,16 @@
     "onboarding_error_loading": "Error al cargar la configuración inicial",
     "onboarding_completed": "¡Onboarding completado!",
     "onboarding_retry": "Reintentar"
+  },
+  "bible": {
+    "title": "Biblia",
+    "loading": "Cargando Biblia...",
+    "chapter": "Cap. {number}",
+    "selected_verses": "{count} versículos seleccionados",
+    "share": "Compartir",
+    "copy": "Copiar",
+    "clear_selection": "Limpiar selección",
+    "copied_to_clipboard": "Copiado al portapapeles",
+    "no_verses": "No hay versículos"
   }
 }

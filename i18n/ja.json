@@ -269,7 +269,8 @@
     "share_as_text": "テキストとして共有",
     "share_as_image": "画像として共有",
     "progress": "進歩",
-    "settings": "設定"
+    "settings": "設定",
+    "bible": "聖書"
   },
   "share": {
     "share_text": "テキストを共有",
@@ -544,5 +545,16 @@
     "test_badges": "バッジをテスト",
     "remote_system": "リモートシステム",
     "test_connection": "接続をテスト"
+  },
+  "bible": {
+    "title": "聖書",
+    "loading": "聖書を読み込んでいます...",
+    "chapter": "第{number}章",
+    "selected_verses": "{count}節が選択されています",
+    "share": "共有",
+    "copy": "コピー",
+    "clear_selection": "選択解除",
+    "copied_to_clipboard": "クリップボードにコピーしました",
+    "no_verses": "節がありません"
   }
 }
