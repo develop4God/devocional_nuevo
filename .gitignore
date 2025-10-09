@@ -74,3 +74,4 @@ google-services.json
 **/ios/*.xcarchive
 **/ios/*.dSYM
 .aider*
+node_modules/

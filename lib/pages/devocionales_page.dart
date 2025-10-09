@@ -3,7 +3,9 @@ import 'dart:io' show File;
 
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
+import 'package:devocional_nuevo/models/bible_version.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
+import 'package:devocional_nuevo/pages/bible_reader_page.dart';
 import 'package:devocional_nuevo/pages/my_badges_page.dart';
 import 'package:devocional_nuevo/pages/prayers_page.dart';
 import 'package:devocional_nuevo/pages/progress_page.dart';
@@ -566,6 +568,23 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     );
   }
 
+  void _goToBible() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => BibleReaderPage(
+          versions: [
+            BibleVersion(
+              name: 'RVR1960',
+              assetPath: 'assets/biblia/RVR1960.SQLite3',
+              dbFileName: 'RVR1960.SQLite3',
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   void _showAddPrayerModal() {
     showModalBottomSheet(
       context: context,
@@ -986,6 +1005,15 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                           color: Colors.white,
                           size: 35,
                         )),
+                    IconButton(
+                      tooltip: 'tooltips.bible'.tr(),
+                      onPressed: () => _goToBible(),
+                      icon: const Icon(
+                        Icons.menu_book_outlined,
+                        color: Colors.white,
+                        size: 32,
+                      ),
+                    ),
                     IconButton(
                       tooltip: 'devotionals.share_devotional'.tr(),
                       onPressed: currentDevocional != null

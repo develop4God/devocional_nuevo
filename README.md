@@ -5,6 +5,7 @@ Aplicación móvil multilingüe para leer devocionales diarios con funcionalidad
 ## ✨ Características Principales
 
 - **📖 Devocionales Diarios**: Contenido espiritual actualizado
+- **📖 Biblia Integrada**: Acceso completo a la Biblia RVR1960 con búsqueda y compartir *(NUEVO)*
 - **🌍 Soporte Multilingüe**: Español, Inglés, Portugués, Francés con localización completa
 - **🔊 Audio TTS**: Lectura de devocionales con síntesis de voz
 - **⭐ Favoritos**: Guarda tus devocionales preferidos
@@ -18,6 +19,16 @@ Aplicación móvil multilingüe para leer devocionales diarios con funcionalidad
 - **⭐ Sistema de Reseñas Inteligente**: Solicita reseñas en momentos óptimos
 
 ## 🆕 Actualizaciones Recientes
+
+### 📖 Biblia Integrada (NUEVO)
+- **Biblia Completa**: Acceso offline a la Biblia completa en versión RVR1960
+- **Navegación Fácil**: Dropdowns para seleccionar libros y capítulos
+- **Selección de Versículos**: Toca versículos para seleccionarlos y compartirlos
+- **Compartir y Copiar**: Comparte versículos seleccionados o cópialos al portapapeles
+- **Base de Datos SQLite**: 5.4 MB de base de datos optimizada
+- **UI Multilingüe**: Interfaz traducida a 5 idiomas
+- **Acceso Rápido**: Icono en el bottom bar de la página de devocionales
+- **13 Tests**: Cobertura completa de la nueva funcionalidad
 
 ### 🚀 Sistema de Onboarding con BLoC Architecture
 - **Arquitectura BLoC**: Migración completa del onboarding a patrón BLoC para mejor mantenimiento
@@ -70,11 +81,12 @@ Diálogos de reseña localizados en todos los idiomas:
 ## 🚀 Estado del Proyecto
 
 ### ✅ Testing Coverage - 95%+ en Servicios Críticos
-- **130+ Tests Unitarios**: Cobertura completa de funcionalidad incluyendo OnboardingBloc *(ACTUALIZADO)*
-- **45+ Tests del Sistema de Onboarding**: Cobertura exhaustiva del nuevo BLoC architecture *(NUEVO)*
+- **143+ Tests Unitarios**: Cobertura completa incluyendo nueva funcionalidad de Biblia *(ACTUALIZADO)*
+- **45+ Tests del Sistema de Onboarding**: Cobertura exhaustiva del nuevo BLoC architecture
 - **36 Tests del Sistema de Reseñas**: Cobertura exhaustiva del feature de reseñas
-- **Login Flow Tests**: Tests específicos para flujos de autenticación y manejo de cancelación *(NUEVO)*
-- **Servicios Críticos**: PrayerProvider, TtsService, LocalizationService, InAppReviewService, OnboardingBloc
+- **13 Tests de Funcionalidad Biblia**: Tests para models, services y UI de la Biblia *(NUEVO)*
+- **Login Flow Tests**: Tests específicos para flujos de autenticación y manejo de cancelación
+- **Servicios Críticos**: PrayerProvider, TtsService, LocalizationService, InAppReviewService, OnboardingBloc, BibleDbService *(ACTUALIZADO)*
 - **Providers**: DevocionalProvider, AudioController  
 - **Performance**: Todos los tests < 30 segundos
 - **CI/CD Ready**: Tests automatizados con mocking robusto
@@ -91,10 +103,11 @@ Diálogos de reseña localizados en todos los idiomas:
 - **Provider**: Gestión de estado
 - **Firebase**: Notificaciones y analytics
 - **SharedPreferences**: Persistencia local
+- **SQLite**: Base de datos local para Biblia *(NUEVO)*
 - **TTS**: Síntesis de voz multilingüe
 - **HTTP**: API de contenido
 - **Testing**: Mockito, flutter_test
-- **in_app_review**: Sistema nativo de reseñas *(NUEVO)*
+- **in_app_review**: Sistema nativo de reseñas
 
 ## 🏗️ Arquitectura
 

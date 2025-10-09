@@ -12,7 +12,7 @@ dependencies:
   flutter:
     sdk: flutter
 
-  firebase_remote_config: ^6.0.1
+  firebase_remote_config: ^6.0.2
   package_info_plus: ^8.0.2
   flutter_native_splash: ^2.3.1
   url_launcher: ^6.3.1
@@ -31,6 +31,8 @@ dependencies:
   in_app_review: ^2.0.8
   google_fonts: ^6.3.0
   lottie: ^3.1.0
+  sqflite: ^2.3.0
+  path: ^1.9.0
   flutter_localizations:
 
     sdk: flutter
@@ -85,5 +87,6 @@ flutter:
     - assets/icons/
     - assets/badges/
     - assets/lottie/
+    - assets/biblia/
 
 
