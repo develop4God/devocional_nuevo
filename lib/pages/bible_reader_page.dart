@@ -449,7 +449,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
         actions: [
           if (_availableVersions.length > 1)
             PopupMenuButton<BibleVersion>(
-              icon: const Icon(Icons.book),
+              icon: const Icon(Icons.menu),
               tooltip: 'bible.select_version'.tr(),
               onSelected: _switchVersion,
               itemBuilder: (context) => _availableVersions.map((version) {
