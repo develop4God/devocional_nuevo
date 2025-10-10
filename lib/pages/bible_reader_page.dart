@@ -268,6 +268,107 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     });
   }
 
+  // Show book selector dialog with search
+  Future<void> _showBookSelector() async {
+    final TextEditingController searchController = TextEditingController();
+    List<Map<String, dynamic>> filteredBooks = List.from(_books);
+
+    await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            void filterBooks(String query) {
+              setDialogState(() {
+                if (query.length < 2) {
+                  filteredBooks = List.from(_books);
+                } else {
+                  filteredBooks = _books.where((book) {
+                    final longName = book['long_name'].toString().toLowerCase();
+                    final shortName =
+                        book['short_name'].toString().toLowerCase();
+                    final searchLower = query.toLowerCase();
+                    return longName.contains(searchLower) ||
+                        shortName.contains(searchLower);
+                  }).toList();
+                }
+              });
+            }
+
+            return AlertDialog(
+              title: Text('Buscar libro'),
+              content: SizedBox(
+                width: double.maxFinite,
+                height: 400,
+                child: Column(
+                  children: [
+                    TextField(
+                      controller: searchController,
+                      decoration: InputDecoration(
+                        hintText: 'Escribe para buscar (min. 2 letras)...',
+                        prefixIcon: const Icon(Icons.search),
+                        suffixIcon: searchController.text.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(Icons.clear),
+                                onPressed: () {
+                                  searchController.clear();
+                                  filterBooks('');
+                                },
+                              )
+                            : null,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      onChanged: filterBooks,
+                    ),
+                    const SizedBox(height: 16),
+                    Expanded(
+                      child: ListView.builder(
+                        itemCount: filteredBooks.length,
+                        itemBuilder: (context, index) {
+                          final book = filteredBooks[index];
+                          final isSelected =
+                              book['short_name'] == _selectedBookName;
+                          return ListTile(
+                            title: Text(book['long_name']),
+                            subtitle: Text(book['short_name']),
+                            selected: isSelected,
+                            selectedTileColor: Theme.of(context)
+                                .colorScheme
+                                .primaryContainer
+                                .withValues(alpha: 0.3),
+                            onTap: () async {
+                              Navigator.of(context).pop();
+                              setState(() {
+                                _selectedBookName = book['short_name'];
+                                _selectedBookNumber = book['book_number'];
+                                _selectedChapter = 1;
+                                _selectedVerses.clear();
+                              });
+                              await _loadMaxChapter();
+                              await _loadVerses();
+                            },
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: Text('Cancelar'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
   Future<void> _initVersion() async {
     setState(() {
       _isLoading = true;
@@ -799,32 +900,42 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                         children: [
                           Expanded(
                             flex: 2,
-                            child: DropdownButton<String>(
-                              value: _selectedBookName,
-                              icon: const Icon(Icons.arrow_drop_down),
-                              isExpanded: true,
-                              items: _books
-                                  .map((b) => DropdownMenuItem<String>(
-                                        value: b['short_name'],
-                                        child: Text(
-                                          b['long_name'],
-                                          overflow: TextOverflow.ellipsis,
+                            child: InkWell(
+                              onTap: _showBookSelector,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 12),
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                    color: colorScheme.outline
+                                        .withValues(alpha: 0.5),
+                                  ),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.menu_book,
+                                        size: 20, color: colorScheme.primary),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        _selectedBookName != null
+                                            ? _books.firstWhere((b) =>
+                                                b['short_name'] ==
+                                                _selectedBookName)['long_name']
+                                            : 'Seleccionar libro',
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          color: colorScheme.onSurface,
                                         ),
-                                      ))
-                                  .toList(),
-                              onChanged: (val) async {
-                                if (val == null) return;
-                                final book = _books
-                                    .firstWhere((b) => b['short_name'] == val);
-                                setState(() {
-                                  _selectedBookName = val;
-                                  _selectedBookNumber = book['book_number'];
-                                  _selectedChapter = 1;
-                                  _selectedVerses.clear();
-                                });
-                                await _loadMaxChapter();
-                                await _loadVerses();
-                              },
+                                      ),
+                                    ),
+                                    Icon(Icons.arrow_drop_down,
+                                        color: colorScheme.onSurface),
+                                  ],
+                                ),
+                              ),
                             ),
                           ),
                           const SizedBox(width: 12),
