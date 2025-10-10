@@ -1,6 +1,5 @@
 import 'dart:developer' as developer;
 import 'dart:io' show File;
-import 'dart:ui' as ui;
 
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
@@ -539,24 +538,23 @@ class _DevocionalesPageState extends State<DevocionalesPage>
   }
 
   void _goToBible() async {
-    // Get device language
-    final deviceLanguage = ui.PlatformDispatcher.instance.locale.languageCode;
+    final devocionalProvider =
+        Provider.of<DevocionalProvider>(context, listen: false);
+    final appLanguage = devocionalProvider.selectedLanguage;
+    debugPrint('🟦 [Bible] Using app language instead of device: $appLanguage');
 
-    // Get Bible versions for device language
     List<BibleVersion> versions =
-        await BibleVersionRegistry.getVersionsForLanguage(deviceLanguage);
+        await BibleVersionRegistry.getVersionsForLanguage(appLanguage);
+    debugPrint(
+        '🟩 [Bible] Versions for app language ($appLanguage): ${versions.map((v) => '${v.name} (${v.languageCode}) - downloaded: ${v.isDownloaded}').join(', ')}');
 
-    // If no versions available for device language, fall back to Spanish
     if (versions.isEmpty) {
       versions = await BibleVersionRegistry.getVersionsForLanguage('es');
     }
-
-    // If still no versions, get all available versions
     if (versions.isEmpty) {
       versions = await BibleVersionRegistry.getAllVersions();
     }
 
-    // Navigate to Bible reader
     if (!mounted) return;
     Navigator.push(
       context,
