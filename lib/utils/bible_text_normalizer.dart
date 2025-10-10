@@ -1,5 +1,5 @@
 class BibleTextNormalizer {
-  /// Cleans Bible text by removing tags like <pb/>, <f>, <...>, and references like [1], [a], [36†], etc.
+  /// Cleans Bible text by removing tags like `<pb/>`, `<f>`, angle-bracketed tags, and references like [1], [a], [36†], etc.
   static String clean(String? text) {
     if (text == null) return '';
     String cleaned =
