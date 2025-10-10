@@ -194,11 +194,14 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
 
     // Show a brief message that the version is being loaded
     if (mounted) {
+      final colorScheme = Theme.of(context).colorScheme;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
             'bible.loading_version'.tr({'version': newVersion.name}),
+            style: TextStyle(color: colorScheme.onSecondary),
           ),
+          backgroundColor: colorScheme.secondary,
           duration: const Duration(seconds: 1),
         ),
       );
