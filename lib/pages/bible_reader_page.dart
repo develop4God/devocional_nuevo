@@ -6,6 +6,7 @@ import 'package:devocional_nuevo/services/bible_db_service.dart';
 import 'package:devocional_nuevo/services/bible_reading_position_service.dart';
 import 'package:devocional_nuevo/utils/bible_text_normalizer.dart';
 import 'package:devocional_nuevo/utils/copyright_utils.dart';
+import 'package:devocional_nuevo/widgets/app_bar_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart' show ShareParams, SharePlus;
@@ -429,46 +430,52 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(kToolbarHeight),
+        child: Stack(
           children: [
-            Text('bible.title'.tr()),
-            if (!_isLoading)
-              Text(
-                '${_selectedVersion.name} (${_selectedVersion.language})',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: colorScheme.onPrimary.withValues(alpha: 0.8),
+            CustomAppBar(
+              titleText: !_isLoading
+                  ? '${'bible.title'.tr()} - ${_selectedVersion.name} (${_selectedVersion.language})'
+                  : 'bible.title'.tr(),
+            ),
+            if (_availableVersions.length > 1)
+              Positioned(
+                right: 0,
+                top: 0,
+                bottom: 0,
+                child: SafeArea(
+                  child: PopupMenuButton<BibleVersion>(
+                    icon: Icon(
+                      Icons.menu,
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onPrimary, // always white
+                    ),
+                    tooltip: 'bible.select_version'.tr(),
+                    onSelected: _switchVersion,
+                    itemBuilder: (context) => _availableVersions.map((version) {
+                      return PopupMenuItem<BibleVersion>(
+                        value: version,
+                        child: Row(
+                          children: [
+                            if (version.name == _selectedVersion.name)
+                              Icon(Icons.check,
+                                  color: Theme.of(context).colorScheme.primary,
+                                  size: 20)
+                            else
+                              const SizedBox(width: 20),
+                            const SizedBox(width: 8),
+                            Text(version.name),
+                          ],
+                        ),
+                      );
+                    }).toList(),
+                  ),
                 ),
               ),
           ],
         ),
-        backgroundColor: colorScheme.primary,
-        foregroundColor: colorScheme.onPrimary,
-        actions: [
-          if (_availableVersions.length > 1)
-            PopupMenuButton<BibleVersion>(
-              icon: const Icon(Icons.menu),
-              tooltip: 'bible.select_version'.tr(),
-              onSelected: _switchVersion,
-              itemBuilder: (context) => _availableVersions.map((version) {
-                return PopupMenuItem<BibleVersion>(
-                  value: version,
-                  child: Row(
-                    children: [
-                      if (version.name == _selectedVersion.name)
-                        Icon(Icons.check, color: colorScheme.primary, size: 20)
-                      else
-                        const SizedBox(width: 20),
-                      const SizedBox(width: 8),
-                      Text(version.name),
-                    ],
-                  ),
-                );
-              }).toList(),
-            ),
-        ],
       ),
       body: _isLoading
           ? Center(
