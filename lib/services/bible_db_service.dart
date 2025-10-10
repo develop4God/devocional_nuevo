@@ -60,20 +60,49 @@ class BibleDbService {
   }
 
   // Search for verses containing a phrase
+  // Prioritizes exact word matches over partial matches
   Future<List<Map<String, dynamic>>> searchVerses(String searchQuery) async {
     if (searchQuery.trim().isEmpty) return [];
 
-    // Search in verses table, join with books to get book names
-    final results = await _db.rawQuery('''
-      SELECT v.*, b.long_name, b.short_name 
+    final query = searchQuery.trim();
+
+    // Search with word boundaries for exact word matches (priority 1)
+    final exactResults = await _db.rawQuery('''
+      SELECT v.*, b.long_name, b.short_name, 1 as priority
       FROM verses v
       JOIN books b ON v.book_number = b.book_number
       WHERE v.text LIKE ?
       ORDER BY v.book_number, v.chapter, v.verse
-      LIMIT 100
-    ''', ['%${searchQuery.trim()}%']);
+      LIMIT 50
+    ''', ['% $query %']);
 
-    return results;
+    // Search for verses that start with the word
+    final startsWithResults = await _db.rawQuery('''
+      SELECT v.*, b.long_name, b.short_name, 2 as priority
+      FROM verses v
+      JOIN books b ON v.book_number = b.book_number
+      WHERE v.text LIKE ?
+      AND v.rowid NOT IN (${exactResults.map((r) => r['rowid']).join(',')},0)
+      ORDER BY v.book_number, v.chapter, v.verse
+      LIMIT 25
+    ''', ['$query %']);
+
+    // Search for partial matches (priority 2)
+    final partialResults = await _db.rawQuery('''
+      SELECT v.*, b.long_name, b.short_name, 3 as priority
+      FROM verses v
+      JOIN books b ON v.book_number = b.book_number
+      WHERE v.text LIKE ?
+      AND v.rowid NOT IN (${[
+      ...exactResults,
+      ...startsWithResults
+    ].map((r) => r['rowid']).join(',')},0)
+      ORDER BY v.book_number, v.chapter, v.verse
+      LIMIT 25
+    ''', ['%$query%']);
+
+    // Combine results with exact matches first
+    return [...exactResults, ...startsWithResults, ...partialResults];
   }
 
   // Find a book by name or abbreviation (case-insensitive, partial match)

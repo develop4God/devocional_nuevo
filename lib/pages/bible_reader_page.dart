@@ -95,12 +95,15 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
   String? _selectedBookName;
   int? _selectedBookNumber;
   int? _selectedChapter;
+  int? _selectedVerse; // For direct verse navigation
   int _maxChapter = 1;
+  int _maxVerse = 1; // Maximum verse in current chapter
   List<Map<String, dynamic>> _verses = [];
   final Set<String> _selectedVerses = {}; // format: "book|chapter|verse"
   final Set<String> _persistentlyMarkedVerses =
       {}; // Verses marked for persistent highlighting
   double _fontSize = 18; // Made mutable for font size adjustment
+  bool _showFontControls = false; // Toggle for font size controls
   bool _bottomSheetOpen = false;
   bool _isLoading = true;
   bool _isSearching = false;
@@ -256,6 +259,15 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     _saveMarkedVerses();
   }
 
+  // Scroll to specific verse (simple implementation - could be enhanced)
+  void _scrollToVerse(int verseNumber) {
+    // For now, just update the UI. A full implementation would use ScrollController
+    // to actually scroll to the verse position
+    setState(() {
+      _selectedVerse = verseNumber;
+    });
+  }
+
   Future<void> _initVersion() async {
     setState(() {
       _isLoading = true;
@@ -304,6 +316,11 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     );
     setState(() {
       _verses = verses;
+      _maxVerse = verses.isNotEmpty ? (verses.last['verse'] as int? ?? 1) : 1;
+      // Initialize selected verse if not set
+      if (_selectedVerse == null || _selectedVerse! > _maxVerse) {
+        _selectedVerse = 1;
+      }
     });
 
     // Save reading position
@@ -640,6 +657,26 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                 ],
               ),
             ),
+            // Font size toggle button
+            Positioned(
+              right: _availableVersions.length > 1 ? 48 : 0,
+              top: 0,
+              bottom: 0,
+              child: SafeArea(
+                child: IconButton(
+                  icon: Icon(
+                    Icons.format_size,
+                    color: Theme.of(context).colorScheme.onPrimary,
+                  ),
+                  tooltip: 'Ajustar tamaño de letra',
+                  onPressed: () {
+                    setState(() {
+                      _showFontControls = !_showFontControls;
+                    });
+                  },
+                ),
+              ),
+            ),
             if (_availableVersions.length > 1)
               Positioned(
                 right: 0,
@@ -815,67 +852,85 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                               },
                             ),
                           ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: DropdownButton<int>(
+                              value: _selectedVerse,
+                              icon: const Icon(Icons.arrow_drop_down),
+                              isExpanded: true,
+                              items: List.generate(_maxVerse, (i) => i + 1)
+                                  .map(
+                                    (v) => DropdownMenuItem<int>(
+                                      value: v,
+                                      child: Text('V. $v'),
+                                    ),
+                                  )
+                                  .toList(),
+                              onChanged: (val) async {
+                                if (val == null) return;
+                                setState(() {
+                                  _selectedVerse = val;
+                                });
+                                // Scroll to the verse (we'll implement this)
+                                _scrollToVerse(val);
+                              },
+                            ),
+                          ),
                         ],
                       ),
                     ),
-                    // Font size controls
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: colorScheme.surface,
-                        border: Border(
-                          bottom: BorderSide(
-                            color: colorScheme.outline.withValues(alpha: 0.2),
-                            width: 1,
+                    // Font size controls (collapsible)
+                    if (_showFontControls)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: colorScheme.surfaceContainerHighest,
+                          border: Border(
+                            bottom: BorderSide(
+                              color: colorScheme.outline.withValues(alpha: 0.2),
+                              width: 1,
+                            ),
                           ),
                         ),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.text_decrease),
-                            onPressed: _decreaseFontSize,
-                            tooltip: 'Decrease font size',
-                            color: colorScheme.primary,
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: colorScheme.primaryContainer
-                                  .withValues(alpha: 0.3),
-                              borderRadius: BorderRadius.circular(8),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.text_decrease),
+                              onPressed: _decreaseFontSize,
+                              tooltip: 'Disminuir tamaño',
+                              color: colorScheme.primary,
                             ),
-                            child: Text(
-                              '${_fontSize.toInt()}',
+                            const SizedBox(width: 8),
+                            Text(
+                              'Tamaño de letra',
                               style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: colorScheme.onSurface,
+                                fontSize: 14,
+                                color: colorScheme.onSurface
+                                    .withValues(alpha: 0.7),
                               ),
                             ),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.text_increase),
-                            onPressed: _increaseFontSize,
-                            tooltip: 'Increase font size',
-                            color: colorScheme.primary,
-                          ),
-                          const SizedBox(width: 16),
-                          Tooltip(
-                            message:
-                                'Long press verses to mark/unmark permanently',
-                            child: Icon(
-                              Icons.info_outline,
-                              size: 20,
-                              color: colorScheme.secondary,
+                            const SizedBox(width: 8),
+                            IconButton(
+                              icon: const Icon(Icons.text_increase),
+                              onPressed: _increaseFontSize,
+                              tooltip: 'Aumentar tamaño',
+                              color: colorScheme.primary,
                             ),
-                          ),
-                        ],
+                            const Spacer(),
+                            IconButton(
+                              icon: const Icon(Icons.close, size: 20),
+                              onPressed: () {
+                                setState(() {
+                                  _showFontControls = false;
+                                });
+                              },
+                              tooltip: 'Cerrar',
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
                     // Verses list
                     Expanded(
                       child: _verses.isEmpty
