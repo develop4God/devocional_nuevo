@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
-  final String titleText;
+  final String? titleText;
+  final Widget? titleWidget; // <-- add this
   final PreferredSizeWidget? bottom;
 
   const CustomAppBar({
     super.key,
-    required this.titleText,
+    this.titleText,
+    this.titleWidget,
     this.bottom,
   });
 
@@ -24,14 +26,14 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     final textTheme = theme.textTheme;
 
     return AppBar(
-      title: Text(
-        titleText,
-        style: textTheme.titleLarge?.copyWith(
-          color: colorScheme.onPrimary,
-        ),
-      ),
+      title: titleWidget ??
+          Text(
+            titleText ?? '',
+            style: textTheme.titleLarge?.copyWith(
+              color: colorScheme.onPrimary,
+            ),
+          ),
       backgroundColor: Colors.transparent,
-      // ¡Importante!
       elevation: 0,
       flexibleSpace: Container(
         decoration: BoxDecoration(

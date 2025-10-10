@@ -435,9 +435,30 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
         child: Stack(
           children: [
             CustomAppBar(
-              titleText: !_isLoading
-                  ? '${'bible.title'.tr()} - ${_selectedVersion.name} (${_selectedVersion.language})'
-                  : 'bible.title'.tr(),
+              titleWidget: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'bible.title'.tr(),
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          color: Theme.of(context).colorScheme.onPrimary,
+                        ),
+                  ),
+                  if (!_isLoading)
+                    Text(
+                      '${_selectedVersion.name} (${_selectedVersion.language})',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onPrimary
+                                .withValues(alpha: 0.85),
+                            fontSize: 13,
+                            fontWeight: FontWeight.w400,
+                          ),
+                    ),
+                ],
+              ),
             ),
             if (_availableVersions.length > 1)
               Positioned(
