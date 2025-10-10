@@ -556,6 +556,10 @@
     "copy": "Copiar",
     "clear_selection": "Limpiar selección",
     "copied_to_clipboard": "Copiado al portapapeles",
-    "no_verses": "No hay versículos"
+    "no_verses": "No hay versículos",
+    "select_version": "Seleccionar versión",
+    "search_placeholder": "Buscar palabras o frases...",
+    "no_search_results": "No se encontraron resultados",
+    "loading_version": "Cargando {version}..."
   }
 }

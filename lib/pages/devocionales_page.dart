@@ -1,5 +1,6 @@
 import 'dart:developer' as developer;
 import 'dart:io' show File;
+import 'dart:ui' as ui;
 
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
@@ -13,6 +14,7 @@ import 'package:devocional_nuevo/pages/settings_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/services/devocionales_tracking.dart';
 import 'package:devocional_nuevo/services/update_service.dart';
+import 'package:devocional_nuevo/utils/bible_version_registry.dart';
 import 'package:devocional_nuevo/utils/bubble_constants.dart';
 import 'package:devocional_nuevo/utils/copyright_utils.dart';
 import 'package:devocional_nuevo/widgets/add_prayer_modal.dart';
@@ -536,18 +538,31 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     );
   }
 
-  void _goToBible() {
+  void _goToBible() async {
+    // Get device language
+    final deviceLanguage = ui.PlatformDispatcher.instance.locale.languageCode;
+
+    // Get Bible versions for device language
+    List<BibleVersion> versions =
+        await BibleVersionRegistry.getVersionsForLanguage(deviceLanguage);
+
+    // If no versions available for device language, fall back to Spanish
+    if (versions.isEmpty) {
+      versions = await BibleVersionRegistry.getVersionsForLanguage('es');
+    }
+
+    // If still no versions, get all available versions
+    if (versions.isEmpty) {
+      versions = await BibleVersionRegistry.getAllVersions();
+    }
+
+    // Navigate to Bible reader
+    if (!mounted) return;
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => BibleReaderPage(
-          versions: [
-            BibleVersion(
-              name: 'RVR1960',
-              assetPath: 'assets/biblia/RVR1960.SQLite3',
-              dbFileName: 'RVR1960.SQLite3',
-            ),
-          ],
+          versions: versions,
         ),
       ),
     );

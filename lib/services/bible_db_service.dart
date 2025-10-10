@@ -58,4 +58,21 @@ class BibleDbService {
       whereArgs: [bookNumber, chapter],
     );
   }
+
+  // Search for verses containing a phrase
+  Future<List<Map<String, dynamic>>> searchVerses(String searchQuery) async {
+    if (searchQuery.trim().isEmpty) return [];
+
+    // Search in verses table, join with books to get book names
+    final results = await _db.rawQuery('''
+      SELECT v.*, b.long_name, b.short_name 
+      FROM verses v
+      JOIN books b ON v.book_number = b.book_number
+      WHERE v.text LIKE ?
+      ORDER BY v.book_number, v.chapter, v.verse
+      LIMIT 100
+    ''', ['%${searchQuery.trim()}%']);
+
+    return results;
+  }
 }

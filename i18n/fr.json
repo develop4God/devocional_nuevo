@@ -555,6 +555,10 @@
     "copy": "Copier",
     "clear_selection": "Effacer la sélection",
     "copied_to_clipboard": "Copié dans le presse-papiers",
-    "no_verses": "Aucun verset"
+    "no_verses": "Aucun verset",
+    "select_version": "Sélectionner la version",
+    "search_placeholder": "Rechercher des mots ou des phrases...",
+    "no_search_results": "Aucun résultat trouvé",
+    "loading_version": "Chargement de {version}..."
   }
 }
