@@ -10,6 +10,7 @@ import 'package:devocional_nuevo/widgets/app_bar_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart' show ShareParams, SharePlus;
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// Helper class to parse Bible references like "Juan 3:16", "Genesis 1:1", etc.
 class BibleReferenceParser {
@@ -97,7 +98,9 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
   int _maxChapter = 1;
   List<Map<String, dynamic>> _verses = [];
   final Set<String> _selectedVerses = {}; // format: "book|chapter|verse"
-  final double _fontSize = 18;
+  final Set<String> _persistentlyMarkedVerses =
+      {}; // Verses marked for persistent highlighting
+  double _fontSize = 18; // Made mutable for font size adjustment
   bool _bottomSheetOpen = false;
   bool _isLoading = true;
   bool _isSearching = false;
@@ -109,6 +112,8 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
   @override
   void initState() {
     super.initState();
+    _loadFontSize();
+    _loadMarkedVerses();
     _detectLanguageAndInitialize();
   }
 
@@ -186,6 +191,69 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
       await _loadMaxChapter();
       await _loadVerses();
     }
+  }
+
+  // Load font size preference
+  Future<void> _loadFontSize() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _fontSize = prefs.getDouble('bible_font_size') ?? 18.0;
+    });
+  }
+
+  // Save font size preference
+  Future<void> _saveFontSize() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setDouble('bible_font_size', _fontSize);
+  }
+
+  // Increase font size
+  void _increaseFontSize() {
+    if (_fontSize < 30) {
+      setState(() {
+        _fontSize += 2;
+      });
+      _saveFontSize();
+    }
+  }
+
+  // Decrease font size
+  void _decreaseFontSize() {
+    if (_fontSize > 12) {
+      setState(() {
+        _fontSize -= 2;
+      });
+      _saveFontSize();
+    }
+  }
+
+  // Load persistently marked verses
+  Future<void> _loadMarkedVerses() async {
+    final prefs = await SharedPreferences.getInstance();
+    final markedList = prefs.getStringList('bible_marked_verses') ?? [];
+    setState(() {
+      _persistentlyMarkedVerses.clear();
+      _persistentlyMarkedVerses.addAll(markedList);
+    });
+  }
+
+  // Save persistently marked verses
+  Future<void> _saveMarkedVerses() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList(
+        'bible_marked_verses', _persistentlyMarkedVerses.toList());
+  }
+
+  // Toggle verse persistent marking
+  void _toggleVersePersistentMark(String verseKey) {
+    setState(() {
+      if (_persistentlyMarkedVerses.contains(verseKey)) {
+        _persistentlyMarkedVerses.remove(verseKey);
+      } else {
+        _persistentlyMarkedVerses.add(verseKey);
+      }
+    });
+    _saveMarkedVerses();
   }
 
   Future<void> _initVersion() async {
@@ -750,6 +818,64 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                         ],
                       ),
                     ),
+                    // Font size controls
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: colorScheme.surface,
+                        border: Border(
+                          bottom: BorderSide(
+                            color: colorScheme.outline.withValues(alpha: 0.2),
+                            width: 1,
+                          ),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.text_decrease),
+                            onPressed: _decreaseFontSize,
+                            tooltip: 'Decrease font size',
+                            color: colorScheme.primary,
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: colorScheme.primaryContainer
+                                  .withValues(alpha: 0.3),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              '${_fontSize.toInt()}',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: colorScheme.onSurface,
+                              ),
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.text_increase),
+                            onPressed: _increaseFontSize,
+                            tooltip: 'Increase font size',
+                            color: colorScheme.primary,
+                          ),
+                          const SizedBox(width: 16),
+                          Tooltip(
+                            message:
+                                'Long press verses to mark/unmark permanently',
+                            child: Icon(
+                              Icons.info_outline,
+                              size: 20,
+                              color: colorScheme.secondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                     // Verses list
                     Expanded(
                       child: _verses.isEmpty
@@ -766,8 +892,12 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                                     "$_selectedBookName|$_selectedChapter|$verseNumber";
                                 final isSelected =
                                     _selectedVerses.contains(key);
+                                final isPersistentlyMarked =
+                                    _persistentlyMarkedVerses.contains(key);
                                 return GestureDetector(
                                   onTap: () => _onVerseTap(verseNumber),
+                                  onLongPress: () =>
+                                      _toggleVersePersistentMark(key),
                                   child: Container(
                                     padding: const EdgeInsets.symmetric(
                                         vertical: 8, horizontal: 4),
@@ -802,6 +932,16 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                                           TextSpan(
                                             text:
                                                 _cleanVerseText(verse['text']),
+                                            style: isPersistentlyMarked
+                                                ? TextStyle(
+                                                    decoration: TextDecoration
+                                                        .underline,
+                                                    decorationColor:
+                                                        colorScheme.secondary,
+                                                    decorationThickness: 2,
+                                                    fontWeight: FontWeight.w500,
+                                                  )
+                                                : null,
                                           ),
                                         ],
                                       ),
