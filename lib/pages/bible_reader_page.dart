@@ -723,6 +723,86 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     );
   }
 
+  /// Helper method to build highlighted text spans for search results
+  List<TextSpan> _buildHighlightedTextSpans(
+    String text,
+    String query,
+    ColorScheme colorScheme,
+  ) {
+    if (query.trim().isEmpty) {
+      return [
+        TextSpan(
+          text: text,
+          style: TextStyle(
+            fontSize: 15,
+            color: colorScheme.onSurface,
+            height: 1.4,
+          ),
+        ),
+      ];
+    }
+
+    final List<TextSpan> spans = [];
+    final lowerText = text.toLowerCase();
+    final lowerQuery = query.toLowerCase();
+    int lastIndex = 0;
+
+    // Find all occurrences of the query (case-insensitive)
+    while (true) {
+      final index = lowerText.indexOf(lowerQuery, lastIndex);
+      if (index == -1) {
+        // Add remaining text
+        if (lastIndex < text.length) {
+          spans.add(
+            TextSpan(
+              text: text.substring(lastIndex),
+              style: TextStyle(
+                fontSize: 15,
+                color: colorScheme.onSurface,
+                height: 1.4,
+              ),
+            ),
+          );
+        }
+        break;
+      }
+
+      // Add text before match
+      if (index > lastIndex) {
+        spans.add(
+          TextSpan(
+            text: text.substring(lastIndex, index),
+            style: TextStyle(
+              fontSize: 15,
+              color: colorScheme.onSurface,
+              height: 1.4,
+            ),
+          ),
+        );
+      }
+
+      // Add highlighted match
+      spans.add(
+        TextSpan(
+          text: text.substring(index, index + query.length),
+          style: TextStyle(
+            fontSize: 15,
+            color: colorScheme.onSurface,
+            height: 1.4,
+            fontWeight: FontWeight.bold,
+            backgroundColor: colorScheme.primaryContainer,
+            decoration: TextDecoration.underline,
+            decorationColor: colorScheme.primary,
+          ),
+        ),
+      );
+
+      lastIndex = index + query.length;
+    }
+
+    return spans;
+  }
+
   Widget _buildSearchResults(ColorScheme colorScheme) {
     if (_searchResults.isEmpty) {
       return Center(
@@ -759,12 +839,13 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                     ),
                   ),
                   const SizedBox(height: 4),
-                  Text(
-                    text,
-                    style: TextStyle(
-                      fontSize: 15,
-                      color: colorScheme.onSurface,
-                      height: 1.4,
+                  RichText(
+                    text: TextSpan(
+                      children: _buildHighlightedTextSpans(
+                        text,
+                        _searchController.text,
+                        colorScheme,
+                      ),
                     ),
                   ),
                 ],
