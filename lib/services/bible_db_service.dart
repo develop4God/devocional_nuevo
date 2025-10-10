@@ -75,4 +75,60 @@ class BibleDbService {
 
     return results;
   }
+
+  // Find a book by name or abbreviation (case-insensitive, partial match)
+  Future<Map<String, dynamic>?> findBookByName(String bookName) async {
+    if (bookName.trim().isEmpty) return null;
+
+    final searchTerm = bookName.trim();
+
+    // Try exact match first (case-insensitive)
+    var results = await _db.rawQuery('''
+      SELECT * FROM books 
+      WHERE LOWER(long_name) = ? OR LOWER(short_name) = ?
+      LIMIT 1
+    ''', [searchTerm.toLowerCase(), searchTerm.toLowerCase()]);
+
+    if (results.isNotEmpty) {
+      return results.first;
+    }
+
+    // Try partial match at start of name
+    results = await _db.rawQuery('''
+      SELECT * FROM books 
+      WHERE LOWER(long_name) LIKE ? OR LOWER(short_name) LIKE ?
+      ORDER BY book_number
+      LIMIT 1
+    ''', ['${searchTerm.toLowerCase()}%', '${searchTerm.toLowerCase()}%']);
+
+    if (results.isNotEmpty) {
+      return results.first;
+    }
+
+    // Try contains match (for common abbreviations)
+    results = await _db.rawQuery('''
+      SELECT * FROM books 
+      WHERE LOWER(long_name) LIKE ? OR LOWER(short_name) LIKE ?
+      ORDER BY book_number
+      LIMIT 1
+    ''', ['%${searchTerm.toLowerCase()}%', '%${searchTerm.toLowerCase()}%']);
+
+    return results.isNotEmpty ? results.first : null;
+  }
+
+  // Get a specific verse
+  Future<Map<String, dynamic>?> getVerse({
+    required int bookNumber,
+    required int chapter,
+    required int verse,
+  }) async {
+    final results = await _db.query(
+      'verses',
+      where: 'book_number = ? AND chapter = ? AND verse = ?',
+      whereArgs: [bookNumber, chapter, verse],
+      limit: 1,
+    );
+
+    return results.isNotEmpty ? results.first : null;
+  }
 }
