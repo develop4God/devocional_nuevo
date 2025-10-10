@@ -17,26 +17,26 @@ class BibleReferenceParser {
   /// Returns null if the input doesn't match a Bible reference pattern
   static Map<String, dynamic>? parse(String input) {
     final trimmed = input.trim();
-    
+
     // Pattern 1: "Book Chapter:Verse" (e.g., "Juan 3:16", "Genesis 1:1")
     // Pattern 2: "Book Chapter" (e.g., "Juan 3", "Genesis 1")
     // Supports book names with numbers (e.g., "1 Juan", "2 Corintios")
     // Supports book names with spaces and accents
-    
+
     // Match patterns like: "1 Juan 3:16" or "Juan 3:16" or "Genesis 1:1"
     final regexWithVerse = RegExp(
       r'^(\d+\s+)?([a-záéíóúñü\s\.]+?)\s+(\d+):(\d+)$',
       caseSensitive: false,
       unicode: true,
     );
-    
+
     // Match patterns like: "1 Juan 3" or "Juan 3" or "Genesis 1"
     final regexWithoutVerse = RegExp(
       r'^(\d+\s+)?([a-záéíóúñü\s\.]+?)\s+(\d+)$',
       caseSensitive: false,
       unicode: true,
     );
-    
+
     // Try with verse first
     var match = regexWithVerse.firstMatch(trimmed);
     if (match != null) {
@@ -44,11 +44,10 @@ class BibleReferenceParser {
       final bookName = match.group(2)!.trim();
       final chapter = int.tryParse(match.group(3)!);
       final verse = int.tryParse(match.group(4)!);
-      
+
       if (chapter != null && verse != null) {
-        final fullBookName = bookPrefix.isEmpty 
-            ? bookName 
-            : '$bookPrefix $bookName';
+        final fullBookName =
+            bookPrefix.isEmpty ? bookName : '$bookPrefix $bookName';
         return {
           'bookName': fullBookName,
           'chapter': chapter,
@@ -56,25 +55,24 @@ class BibleReferenceParser {
         };
       }
     }
-    
+
     // Try without verse
     match = regexWithoutVerse.firstMatch(trimmed);
     if (match != null) {
       final bookPrefix = match.group(1)?.trim() ?? '';
       final bookName = match.group(2)!.trim();
       final chapter = int.tryParse(match.group(3)!);
-      
+
       if (chapter != null) {
-        final fullBookName = bookPrefix.isEmpty 
-            ? bookName 
-            : '$bookPrefix $bookName';
+        final fullBookName =
+            bookPrefix.isEmpty ? bookName : '$bookPrefix $bookName';
         return {
           'bookName': fullBookName,
           'chapter': chapter,
         };
       }
     }
-    
+
     return null;
   }
 }
@@ -298,7 +296,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
 
     // First, try to parse as a Bible reference
     final reference = BibleReferenceParser.parse(query);
-    
+
     if (reference != null) {
       // It's a Bible reference - try to navigate directly
       final bookName = reference['bookName'] as String;
@@ -306,15 +304,16 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
       // Note: verse is available but not used for scrolling yet
       // Future enhancement could scroll to specific verse
       // final verse = reference['verse'] as int?;
-      
+
       // Try to find the book in the database
       final book = await _selectedVersion.service!.findBookByName(bookName);
-      
+
       if (book != null) {
         // Book found - navigate to it
         final bookNumber = book['book_number'] as int;
-        final maxChapter = await _selectedVersion.service!.getMaxChapter(bookNumber);
-        
+        final maxChapter =
+            await _selectedVersion.service!.getMaxChapter(bookNumber);
+
         // Validate chapter exists
         if (chapter > 0 && chapter <= maxChapter) {
           setState(() {
@@ -334,7 +333,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
           if (mounted) {
             FocusScope.of(context).unfocus();
           }
-          
+
           return;
         }
       }

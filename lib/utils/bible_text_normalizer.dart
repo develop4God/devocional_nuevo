@@ -4,8 +4,8 @@ class BibleTextNormalizer {
     if (text == null) return '';
     String cleaned =
         text.replaceAll(RegExp(r'<[^>]+>'), ''); // Remove all <...> tags
-    cleaned =
-        cleaned.replaceAll(RegExp(r'\[[^\]]+\]'), ''); // Remove all [bracketed] content
+    cleaned = cleaned.replaceAll(
+        RegExp(r'\[[^\]]+\]'), ''); // Remove all [bracketed] content
     return cleaned.trim();
   }
 }
