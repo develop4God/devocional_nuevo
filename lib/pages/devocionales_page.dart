@@ -988,12 +988,17 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                         )),
                     IconButton(
                       tooltip: 'tooltips.bible'.tr(),
-                      onPressed: () => _goToBible(),
+                      onPressed: () async {
+                        await BubbleUtils.markAsShown(
+                            BubbleUtils.getIconBubbleId(
+                                Icons.auto_stories_outlined, 'new'));
+                        _goToBible();
+                      },
                       icon: const Icon(
                         Icons.auto_stories_outlined,
                         color: Colors.white,
                         size: 32,
-                      ),
+                      ).newIconBadge,
                     ),
                     IconButton(
                       tooltip: 'devotionals.share_devotional'.tr(),
