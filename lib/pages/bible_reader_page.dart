@@ -274,8 +274,28 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
         // Find the index of the verse
         final verseIndex = _verses.indexWhere((v) => v['verse'] == verseNumber);
         if (verseIndex >= 0) {
-          // Estimate scroll position (approximate 80 pixels per verse)
-          final scrollPosition = verseIndex * 80.0;
+          // Use more accurate calculation based on actual content
+          // Account for font size and estimated line wrapping
+          double estimatedHeight = 0;
+
+          for (int i = 0; i < verseIndex; i++) {
+            final verseText = _cleanVerseText(_verses[i]['text']);
+            // Estimate lines based on text length and font size
+            // Assuming ~40 characters per line on average mobile width
+            final estimatedLines = (verseText.length / 40).ceil();
+            final lineHeight = _fontSize * 1.6; // height factor from TextStyle
+            final verseHeight =
+                (estimatedLines * lineHeight) + 16; // 16 for padding
+            estimatedHeight += verseHeight;
+          }
+
+          // Add some offset to center the verse on screen
+          final screenHeight = MediaQuery.of(context).size.height;
+          final centerOffset =
+              screenHeight * 0.25; // Position verse at upper-middle of screen
+          final scrollPosition = (estimatedHeight - centerOffset)
+              .clamp(0.0, _scrollController.position.maxScrollExtent);
+
           _scrollController.animateTo(
             scrollPosition,
             duration: const Duration(milliseconds: 500),
@@ -610,98 +630,98 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     showModalBottomSheet(
       context: parentContext,
       isScrollControlled: true,
-      backgroundColor: Theme.of(parentContext).colorScheme.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
+      backgroundColor: Colors.transparent,
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setModalState) {
-            // If all verses are deselected, close the sheet
+            final colorScheme = Theme.of(context).colorScheme;
 
-            return Padding(
-              padding: const EdgeInsets.all(20.0),
+            return Container(
+              decoration: BoxDecoration(
+                color: colorScheme.surface,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(24),
+                ),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  // Handle bar
                   Container(
                     width: 40,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: Colors.grey[300],
+                      color:
+                          colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'bible.selected_verses'
-                        .tr({'count': '${_selectedVerses.length}'}),
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                  ),
                   const SizedBox(height: 20),
+
+                  // Selected verses text
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: colorScheme.surfaceContainerHighest,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      _getSelectedVersesText(),
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            height: 1.5,
+                          ),
+                      textAlign: TextAlign.center,
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+
+                  // Reference text
+                  Text(
+                    _getSelectedVersesReference(),
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Action buttons in a grid
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: () => _shareSelectedVerses(),
-                          icon: const Icon(Icons.share),
-                          label: Text('bible.share'.tr()),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor:
-                                Theme.of(context).colorScheme.primary,
-                            foregroundColor:
-                                Theme.of(context).colorScheme.onPrimary,
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                          ),
-                        ),
+                      _buildActionButton(
+                        context: context,
+                        icon: Icons.bookmark_outline,
+                        label: 'bible.save_verses'.tr(),
+                        onTap: () => _saveSelectedVerses(context),
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: () => _copySelectedVerses(context),
-                          // <-- pass modal context
-                          icon: const Icon(Icons.copy),
-                          label: Text('bible.copy'.tr()),
-                          style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                          ),
-                        ),
+                      _buildActionButton(
+                        context: context,
+                        icon: Icons.content_copy,
+                        label: 'bible.copy'.tr(),
+                        onTap: () => _copySelectedVerses(context),
+                      ),
+                      _buildActionButton(
+                        context: context,
+                        icon: Icons.share,
+                        label: 'bible.share'.tr(),
+                        onTap: () => _shareSelectedVerses(),
+                      ),
+                      _buildActionButton(
+                        context: context,
+                        icon: Icons.image_outlined,
+                        label: 'Imagen',
+                        onTap: () {
+                          // TODO: Implement image sharing
+                          Navigator.pop(context);
+                        },
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: () => _saveSelectedVerses(context),
-                          icon: const Icon(Icons.bookmark),
-                          label: Text('bible.save_verses'.tr()),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor:
-                                Theme.of(context).colorScheme.secondary,
-                            foregroundColor:
-                                Theme.of(context).colorScheme.onSecondary,
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  TextButton.icon(
-                    onPressed: () {
-                      setState(() {
-                        _selectedVerses.clear();
-                      });
-                      Navigator.of(context).pop();
-                      _bottomSheetOpen = false;
-                    },
-                    icon: const Icon(Icons.clear_all),
-                    label: Text('bible.clear_selection'.tr()),
-                  ),
+                  const SizedBox(height: 16),
                 ],
               ),
             );
@@ -742,6 +762,68 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     return lines.join('\n\n');
   }
 
+  String _getSelectedVersesReference() {
+    if (_selectedVerses.isEmpty) return '';
+
+    final sortedVerses = _selectedVerses.toList()..sort();
+    final parts = sortedVerses.first.split('|');
+    final book = parts[0];
+    final chapter = parts[1];
+
+    if (_selectedVerses.length == 1) {
+      final verse = parts[2];
+      return '$book $chapter:$verse';
+    } else {
+      final firstVerse = int.parse(parts[2]);
+      final lastParts = sortedVerses.last.split('|');
+      final lastVerse = int.parse(lastParts[2]);
+
+      if (firstVerse == lastVerse) {
+        return '$book $chapter:$firstVerse';
+      } else {
+        return '$book $chapter:$firstVerse-$lastVerse';
+      }
+    }
+  }
+
+  Widget _buildActionButton({
+    required BuildContext context,
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        width: 70,
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              size: 28,
+              color: colorScheme.onSurface,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: colorScheme.onSurface,
+                  ),
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   void _shareSelectedVerses() {
     final text = _getSelectedVersesText();
     SharePlus.instance.share(ShareParams(text: text));
@@ -775,10 +857,10 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
 
     // Close modal and clear selection
     if (!mounted) return;
-    
+
     // Pop the modal first
     Navigator.pop(modalContext);
-    
+
     // Clear selection
     if (!mounted) return;
     setState(() {
