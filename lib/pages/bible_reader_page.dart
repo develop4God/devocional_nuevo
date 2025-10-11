@@ -111,6 +111,8 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
   final TextEditingController _searchController = TextEditingController();
   final BibleReadingPositionService _positionService =
       BibleReadingPositionService();
+  final ScrollController _scrollController =
+      ScrollController(); // For verse navigation
 
   @override
   void initState() {
@@ -123,6 +125,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
   @override
   void dispose() {
     _searchController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -259,12 +262,27 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     _saveMarkedVerses();
   }
 
-  // Scroll to specific verse (simple implementation - could be enhanced)
+  // Scroll to specific verse
   void _scrollToVerse(int verseNumber) {
-    // For now, just update the UI. A full implementation would use ScrollController
-    // to actually scroll to the verse position
     setState(() {
       _selectedVerse = verseNumber;
+    });
+
+    // Wait for the build to complete then scroll
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients && _verses.isNotEmpty) {
+        // Find the index of the verse
+        final verseIndex = _verses.indexWhere((v) => v['verse'] == verseNumber);
+        if (verseIndex >= 0) {
+          // Estimate scroll position (approximate 80 pixels per verse)
+          final scrollPosition = verseIndex * 80.0;
+          _scrollController.animateTo(
+            scrollPosition,
+            duration: const Duration(milliseconds: 500),
+            curve: Curves.easeInOut,
+          );
+        }
+      }
     });
   }
 
@@ -296,7 +314,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
             }
 
             return AlertDialog(
-              title: Text('Buscar libro'),
+              title: Text('bible.search_book'.tr()),
               content: SizedBox(
                 width: double.maxFinite,
                 height: 400,
@@ -305,7 +323,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                     TextField(
                       controller: searchController,
                       decoration: InputDecoration(
-                        hintText: 'Escribe para buscar (min. 2 letras)...',
+                        hintText: 'bible.search_book_placeholder'.tr(),
                         prefixIcon: const Icon(Icons.search),
                         suffixIcon: searchController.text.isNotEmpty
                             ? IconButton(
@@ -538,6 +556,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
   void _jumpToSearchResult(Map<String, dynamic> result) async {
     final bookNumber = result['book_number'] as int;
     final chapter = result['chapter'] as int;
+    final verse = result['verse'] as int;
 
     // Find the book
     final book = _books.firstWhere(
@@ -556,6 +575,9 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
 
     await _loadMaxChapter();
     await _loadVerses();
+
+    // Scroll to the found verse
+    _scrollToVerse(verse);
 
     // Close keyboard
     if (mounted) {
@@ -650,6 +672,25 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                     ],
                   ),
                   const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: () => _saveSelectedVerses(context),
+                          icon: const Icon(Icons.bookmark),
+                          label: Text('bible.save_verses'.tr()),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor:
+                                Theme.of(context).colorScheme.secondary,
+                            foregroundColor:
+                                Theme.of(context).colorScheme.onSecondary,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
                   TextButton.icon(
                     onPressed: () {
                       setState(() {
@@ -723,6 +764,43 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     );
   }
 
+  void _saveSelectedVerses(BuildContext modalContext) async {
+    // Add selected verses to persistent marked verses
+    for (final verseKey in _selectedVerses) {
+      _persistentlyMarkedVerses.add(verseKey);
+    }
+
+    // Save to SharedPreferences
+    await _saveMarkedVerses();
+
+    // Close modal and clear selection
+    if (!mounted) return;
+    
+    // Pop the modal first
+    Navigator.pop(modalContext);
+    
+    // Clear selection
+    if (!mounted) return;
+    setState(() {
+      _selectedVerses.clear();
+    });
+
+    // Show confirmation
+    final colorScheme = Theme.of(context).colorScheme;
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'bible.save_marked_verses'.tr(),
+            style: TextStyle(color: colorScheme.onSecondary),
+          ),
+          backgroundColor: colorScheme.secondary,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -769,7 +847,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                     Icons.format_size,
                     color: Theme.of(context).colorScheme.onPrimary,
                   ),
-                  tooltip: 'Ajustar tamaño de letra',
+                  tooltip: 'bible.adjust_font_size'.tr(),
                   onPressed: () {
                     setState(() {
                       _showFontControls = !_showFontControls;
@@ -1010,12 +1088,12 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                             IconButton(
                               icon: const Icon(Icons.text_decrease),
                               onPressed: _decreaseFontSize,
-                              tooltip: 'Disminuir tamaño',
+                              tooltip: 'bible.decrease_font'.tr(),
                               color: colorScheme.primary,
                             ),
                             const SizedBox(width: 8),
                             Text(
-                              'Tamaño de letra',
+                              'bible.font_size_label'.tr(),
                               style: TextStyle(
                                 fontSize: 14,
                                 color: colorScheme.onSurface
@@ -1026,7 +1104,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                             IconButton(
                               icon: const Icon(Icons.text_increase),
                               onPressed: _increaseFontSize,
-                              tooltip: 'Aumentar tamaño',
+                              tooltip: 'bible.increase_font'.tr(),
                               color: colorScheme.primary,
                             ),
                             const Spacer(),
@@ -1047,6 +1125,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                       child: _verses.isEmpty
                           ? Center(child: Text('bible.no_verses'.tr()))
                           : ListView.builder(
+                              controller: _scrollController,
                               padding:
                                   const EdgeInsets.fromLTRB(16, 16, 16, 32),
                               // <-- extra bottom padding

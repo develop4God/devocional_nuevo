@@ -555,6 +555,18 @@
     "copy": "コピー",
     "clear_selection": "選択解除",
     "copied_to_clipboard": "クリップボードにコピーしました",
-    "no_verses": "節がありません"
+    "no_verses": "節がありません",
+    "select_version": "バージョンを選択",
+    "search_placeholder": "単語やフレーズを検索...",
+    "no_search_results": "結果が見つかりません",
+    "loading_version": "{version}を読み込んでいます...",
+    "search_book": "書籍を検索",
+    "search_book_placeholder": "検索するには入力してください（最低2文字）...",
+    "font_size_label": "フォントサイズ",
+    "decrease_font": "サイズを小さく",
+    "increase_font": "サイズを大きく",
+    "adjust_font_size": "フォントサイズを調整",
+    "save_verses": "保存",
+    "save_marked_verses": "マークした節を保存"
   }
 }

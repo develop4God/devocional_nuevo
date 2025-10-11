@@ -559,6 +559,14 @@
     "select_version": "Selecionar versão",
     "search_placeholder": "Buscar palavras ou frases...",
     "no_search_results": "Nenhum resultado encontrado",
-    "loading_version": "Carregando {version}..."
+    "loading_version": "Carregando {version}...",
+    "search_book": "Buscar livro",
+    "search_book_placeholder": "Digite para buscar (mín. 2 letras)...",
+    "font_size_label": "Tamanho da fonte",
+    "decrease_font": "Diminuir tamanho",
+    "increase_font": "Aumentar tamanho",
+    "adjust_font_size": "Ajustar tamanho da fonte",
+    "save_verses": "Salvar",
+    "save_marked_verses": "Salvar versículos marcados"
   }
 }
