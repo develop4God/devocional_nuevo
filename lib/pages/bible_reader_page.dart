@@ -113,6 +113,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
       BibleReadingPositionService();
   final ScrollController _scrollController =
       ScrollController(); // For verse navigation
+  final Map<int, GlobalKey> _verseKeys = {}; // Keys for direct verse scrolling
 
   @override
   void initState() {
@@ -270,38 +271,16 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
 
     // Wait for the build to complete then scroll
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_scrollController.hasClients && _verses.isNotEmpty) {
-        // Find the index of the verse
-        final verseIndex = _verses.indexWhere((v) => v['verse'] == verseNumber);
-        if (verseIndex >= 0) {
-          // Use more accurate calculation based on actual content
-          // Account for font size and estimated line wrapping
-          double estimatedHeight = 0;
-
-          for (int i = 0; i < verseIndex; i++) {
-            final verseText = _cleanVerseText(_verses[i]['text']);
-            // Estimate lines based on text length and font size
-            // Assuming ~40 characters per line on average mobile width
-            final estimatedLines = (verseText.length / 40).ceil();
-            final lineHeight = _fontSize * 1.6; // height factor from TextStyle
-            final verseHeight =
-                (estimatedLines * lineHeight) + 16; // 16 for padding
-            estimatedHeight += verseHeight;
-          }
-
-          // Add some offset to center the verse on screen
-          final screenHeight = MediaQuery.of(context).size.height;
-          final centerOffset =
-              screenHeight * 0.25; // Position verse at upper-middle of screen
-          final scrollPosition = (estimatedHeight - centerOffset)
-              .clamp(0.0, _scrollController.position.maxScrollExtent);
-
-          _scrollController.animateTo(
-            scrollPosition,
-            duration: const Duration(milliseconds: 500),
-            curve: Curves.easeInOut,
-          );
-        }
+      // Find the GlobalKey for this verse
+      final verseKey = _verseKeys[verseNumber];
+      if (verseKey != null && verseKey.currentContext != null) {
+        // Use Scrollable.ensureVisible for accurate, simple scrolling
+        Scrollable.ensureVisible(
+          verseKey.currentContext!,
+          duration: const Duration(milliseconds: 500),
+          curve: Curves.easeInOut,
+          alignment: 0.2, // Position verse near top (20% from top)
+        );
       }
     });
   }
@@ -459,6 +438,12 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
       // Initialize selected verse if not set
       if (_selectedVerse == null || _selectedVerse! > _maxVerse) {
         _selectedVerse = 1;
+      }
+      // Create GlobalKeys for each verse for direct scrolling
+      _verseKeys.clear();
+      for (final verse in verses) {
+        final verseNum = verse['verse'] as int;
+        _verseKeys[verseNum] = GlobalKey();
       }
     });
 
@@ -1222,6 +1207,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                                 final isPersistentlyMarked =
                                     _persistentlyMarkedVerses.contains(key);
                                 return GestureDetector(
+                                  key: _verseKeys[verseNumber],
                                   onTap: () => _onVerseTap(verseNumber),
                                   onLongPress: () =>
                                       _toggleVersePersistentMark(key),
@@ -1385,7 +1371,17 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
   Widget _buildSearchResults(ColorScheme colorScheme) {
     if (_searchResults.isEmpty) {
       return Center(
-        child: Text('bible.no_search_results'.tr()),
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Text(
+            'bible.no_matches_retry'.tr(),
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 16,
+              color: colorScheme.onSurface.withValues(alpha: 0.7),
+            ),
+          ),
+        ),
       );
     }
 

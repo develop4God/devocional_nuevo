@@ -567,6 +567,7 @@
     "increase_font": "Aumentar tamanho",
     "adjust_font_size": "Ajustar tamanho da fonte",
     "save_verses": "Salvar",
-    "save_marked_verses": "Salvar versículos marcados"
+    "save_marked_verses": "Salvar versículos marcados",
+    "no_matches_retry": "Nenhuma correspondência encontrada, tente novamente com termos diferentes."
   }
 }

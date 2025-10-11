@@ -567,6 +567,7 @@
     "increase_font": "サイズを大きく",
     "adjust_font_size": "フォントサイズを調整",
     "save_verses": "保存",
-    "save_marked_verses": "マークした節を保存"
+    "save_marked_verses": "マークした節を保存",
+    "no_matches_retry": "一致する結果が見つかりません。別の検索語句で再試行してください。"
   }
 }
