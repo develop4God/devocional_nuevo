@@ -76,27 +76,35 @@ class BibleDbService {
       LIMIT 50
     ''', ['% $query %']);
 
+    // Build exclusion list for next queries
+    final exactIds = exactResults.map((r) => r['rowid']).toList();
+    final exactIdsStr = exactIds.isEmpty ? '-1' : exactIds.join(',');
+
     // Search for verses that start with the word
     final startsWithResults = await _db.rawQuery('''
       SELECT v.*, b.long_name, b.short_name, 2 as priority
       FROM verses v
       JOIN books b ON v.book_number = b.book_number
       WHERE v.text LIKE ?
-      AND v.rowid NOT IN (${exactResults.map((r) => r['rowid']).join(',')},0)
+      AND v.rowid NOT IN ($exactIdsStr)
       ORDER BY v.book_number, v.chapter, v.verse
       LIMIT 25
     ''', ['$query %']);
 
-    // Search for partial matches (priority 2)
+    // Build combined exclusion list
+    final combinedIds = [
+      ...exactIds,
+      ...startsWithResults.map((r) => r['rowid'])
+    ];
+    final combinedIdsStr = combinedIds.isEmpty ? '-1' : combinedIds.join(',');
+
+    // Search for partial matches (priority 3)
     final partialResults = await _db.rawQuery('''
       SELECT v.*, b.long_name, b.short_name, 3 as priority
       FROM verses v
       JOIN books b ON v.book_number = b.book_number
       WHERE v.text LIKE ?
-      AND v.rowid NOT IN (${[
-      ...exactResults,
-      ...startsWithResults
-    ].map((r) => r['rowid']).join(',')},0)
+      AND v.rowid NOT IN ($combinedIdsStr)
       ORDER BY v.book_number, v.chapter, v.verse
       LIMIT 25
     ''', ['%$query%']);

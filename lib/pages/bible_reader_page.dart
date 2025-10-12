@@ -270,18 +270,21 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     });
 
     // Wait for the build to complete then scroll
+    // Use multiple frame callbacks to ensure the widget tree is fully built
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // Find the GlobalKey for this verse
-      final verseKey = _verseKeys[verseNumber];
-      if (verseKey != null && verseKey.currentContext != null) {
-        // Use Scrollable.ensureVisible for accurate, simple scrolling
-        Scrollable.ensureVisible(
-          verseKey.currentContext!,
-          duration: const Duration(milliseconds: 500),
-          curve: Curves.easeInOut,
-          alignment: 0.2, // Position verse near top (20% from top)
-        );
-      }
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        // Find the GlobalKey for this verse
+        final verseKey = _verseKeys[verseNumber];
+        if (verseKey != null && verseKey.currentContext != null) {
+          // Use Scrollable.ensureVisible for accurate, simple scrolling
+          Scrollable.ensureVisible(
+            verseKey.currentContext!,
+            duration: const Duration(milliseconds: 500),
+            curve: Curves.easeInOut,
+            alignment: 0.2, // Position verse near top (20% from top)
+          );
+        }
+      });
     });
   }
 
