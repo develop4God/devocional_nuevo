@@ -269,22 +269,41 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
       _selectedVerse = verseNumber;
     });
 
-    // Wait for the build to complete then scroll
-    // Use multiple frame callbacks to ensure the widget tree is fully built
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        // Find the GlobalKey for this verse
-        final verseKey = _verseKeys[verseNumber];
-        if (verseKey != null && verseKey.currentContext != null) {
-          // Use Scrollable.ensureVisible for accurate, simple scrolling
-          Scrollable.ensureVisible(
-            verseKey.currentContext!,
-            duration: const Duration(milliseconds: 500),
-            curve: Curves.easeInOut,
-            alignment: 0.2, // Position verse near top (20% from top)
-          );
-        }
-      });
+    // Use a small delay to ensure the scroll controller has attached and layout is complete
+    Future.delayed(const Duration(milliseconds: 150), () {
+      if (!mounted || !_scrollController.hasClients || _verses.isEmpty) return;
+
+      // Find the index of the verse in the list
+      final verseIndex =
+          _verses.indexWhere((v) => (v['verse'] as int) == verseNumber);
+
+      if (verseIndex >= 0) {
+        // Calculate approximate scroll position
+        // Use 80.0 as average verse height (works well across different font sizes)
+        final estimatedPosition = verseIndex * 80.0;
+        final maxScroll = _scrollController.position.maxScrollExtent;
+
+        // Clamp to valid range and scroll
+        final targetPosition = estimatedPosition.clamp(0.0, maxScroll);
+
+        _scrollController.animateTo(
+          targetPosition,
+          duration: const Duration(milliseconds: 500),
+          curve: Curves.easeInOut,
+        );
+      }
+    });
+  }
+
+  /// Scroll to top of the chapter
+  void _scrollToTop() {
+    Future.delayed(const Duration(milliseconds: 150), () {
+      if (!mounted || !_scrollController.hasClients) return;
+      _scrollController.animateTo(
+        0.0,
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeInOut,
+      );
     });
   }
 
@@ -460,6 +479,91 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
         languageCode: _selectedVersion.languageCode,
       );
     }
+  }
+
+  /// Navigate to the previous chapter (or previous book if at first chapter)
+  Future<void> _goToPreviousChapter() async {
+    if (_selectedBookNumber == null || _selectedChapter == null) return;
+
+    if (_selectedChapter! > 1) {
+      // Go to previous chapter in same book
+      setState(() {
+        _selectedChapter = _selectedChapter! - 1;
+        _selectedVerse = 1;
+        _selectedVerses.clear();
+      });
+      await _loadVerses();
+      _scrollToTop();
+    } else {
+      // Go to last chapter of previous book
+      final currentBookIndex =
+          _books.indexWhere((b) => b['book_number'] == _selectedBookNumber);
+      if (currentBookIndex > 0) {
+        final previousBook = _books[currentBookIndex - 1];
+        await _selectBook(previousBook,
+            goToLastChapter: true); // Will load last chapter
+      }
+    }
+  }
+
+  /// Navigate to the next chapter (or next book if at last chapter)
+  Future<void> _goToNextChapter() async {
+    if (_selectedBookNumber == null || _selectedChapter == null) return;
+
+    if (_selectedChapter! < _maxChapter) {
+      // Go to next chapter in same book
+      setState(() {
+        _selectedChapter = _selectedChapter! + 1;
+        _selectedVerse = 1;
+        _selectedVerses.clear();
+      });
+      await _loadVerses();
+      _scrollToTop();
+    } else {
+      // Go to first chapter of next book
+      final currentBookIndex =
+          _books.indexWhere((b) => b['book_number'] == _selectedBookNumber);
+      if (currentBookIndex >= 0 && currentBookIndex < _books.length - 1) {
+        final nextBook = _books[currentBookIndex + 1];
+        await _selectBook(nextBook, chapter: 1);
+      }
+    }
+  }
+
+  /// Helper method to select a book and optionally a chapter
+  Future<void> _selectBook(
+    Map<String, dynamic> book, {
+    int? chapter,
+    bool goToLastChapter = false,
+  }) async {
+    setState(() {
+      _selectedBookName = book['short_name'];
+      _selectedBookNumber = book['book_number'];
+      _selectedVerses.clear();
+    });
+
+    await _loadMaxChapter();
+
+    // Determine which chapter to load
+    if (goToLastChapter) {
+      setState(() {
+        _selectedChapter = _maxChapter;
+        _selectedVerse = 1;
+      });
+    } else if (chapter != null) {
+      setState(() {
+        _selectedChapter = chapter;
+        _selectedVerse = 1;
+      });
+    } else {
+      setState(() {
+        _selectedChapter = 1;
+        _selectedVerse = 1;
+      });
+    }
+
+    await _loadVerses();
+    _scrollToTop();
   }
 
   Future<void> _switchVersion(BibleVersion newVersion) async {
@@ -1105,9 +1209,11 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                                 if (val == null) return;
                                 setState(() {
                                   _selectedChapter = val;
+                                  _selectedVerse = 1; // Reset to verse 1
                                   _selectedVerses.clear();
                                 });
                                 await _loadVerses();
+                                _scrollToTop(); // Scroll to top of new chapter
                               },
                             ),
                           ),
@@ -1288,6 +1394,57 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                 ],
               ),
             ),
+      bottomNavigationBar: !_isLoading && _selectedBookName != null
+          ? Container(
+              decoration: BoxDecoration(
+                color: colorScheme.surface,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.1),
+                    blurRadius: 4,
+                    offset: const Offset(0, -2),
+                  ),
+                ],
+              ),
+              child: SafeArea(
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      // Previous chapter button
+                      IconButton(
+                        icon: Icon(Icons.chevron_left,
+                            color: colorScheme.primary),
+                        tooltip: 'bible.previous_chapter'.tr(),
+                        onPressed: _goToPreviousChapter,
+                      ),
+                      // Current book and chapter display
+                      Expanded(
+                        child: Text(
+                          '$_selectedBookName $_selectedChapter',
+                          textAlign: TextAlign.center,
+                          style:
+                              Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: colorScheme.onSurface,
+                                  ),
+                        ),
+                      ),
+                      // Next chapter button
+                      IconButton(
+                        icon: Icon(Icons.chevron_right,
+                            color: colorScheme.primary),
+                        tooltip: 'bible.next_chapter'.tr(),
+                        onPressed: _goToNextChapter,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            )
+          : null,
     );
   }
 

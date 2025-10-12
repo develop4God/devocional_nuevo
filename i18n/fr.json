@@ -568,6 +568,8 @@
     "adjust_font_size": "Ajuster la taille de la police",
     "save_verses": "Sauvegarder",
     "save_marked_verses": "Sauvegarder les versets marqués",
-    "no_matches_retry": "Aucune correspondance trouvée, veuillez réessayer avec d'autres termes de recherche."
+    "no_matches_retry": "Aucune correspondance trouvée, veuillez réessayer avec d'autres termes de recherche.",
+    "previous_chapter": "Chapitre précédent",
+    "next_chapter": "Chapitre suivant"
   }
 }

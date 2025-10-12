@@ -569,6 +569,8 @@
     "adjust_font_size": "Ajustar tamaño de letra",
     "save_verses": "Guardar",
     "save_marked_verses": "Guardar versículos marcados",
-    "no_matches_retry": "No se encontraron coincidencias, por favor reintenta con otros términos."
+    "no_matches_retry": "No se encontraron coincidencias, por favor reintenta con otros términos.",
+    "previous_chapter": "Capítulo anterior",
+    "next_chapter": "Siguiente capítulo"
   }
 }
