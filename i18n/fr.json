@@ -559,6 +559,17 @@
     "select_version": "Sélectionner la version",
     "search_placeholder": "Rechercher des mots ou des phrases...",
     "no_search_results": "Aucun résultat trouvé",
-    "loading_version": "Chargement de {version}..."
+    "loading_version": "Chargement de {version}...",
+    "search_book": "Rechercher un livre",
+    "search_book_placeholder": "Tapez pour rechercher (min. 2 lettres)...",
+    "font_size_label": "Taille de la police",
+    "decrease_font": "Diminuer la taille",
+    "increase_font": "Augmenter la taille",
+    "adjust_font_size": "Ajuster la taille de la police",
+    "save_verses": "Sauvegarder",
+    "save_marked_verses": "Sauvegarder les versets marqués",
+    "no_matches_retry": "Aucune correspondance trouvée, veuillez réessayer avec d'autres termes de recherche.",
+    "previous_chapter": "Chapitre précédent",
+    "next_chapter": "Chapitre suivant"
   }
 }

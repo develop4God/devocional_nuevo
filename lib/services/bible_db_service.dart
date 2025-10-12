@@ -60,19 +60,112 @@ class BibleDbService {
   }
 
   // Search for verses containing a phrase
+  // Prioritizes exact word matches over partial matches
   Future<List<Map<String, dynamic>>> searchVerses(String searchQuery) async {
     if (searchQuery.trim().isEmpty) return [];
 
-    // Search in verses table, join with books to get book names
-    final results = await _db.rawQuery('''
-      SELECT v.*, b.long_name, b.short_name 
+    final query = searchQuery.trim();
+
+    // Search with word boundaries for exact word matches (priority 1)
+    final exactResults = await _db.rawQuery('''
+      SELECT v.*, b.long_name, b.short_name, 1 as priority
       FROM verses v
       JOIN books b ON v.book_number = b.book_number
       WHERE v.text LIKE ?
       ORDER BY v.book_number, v.chapter, v.verse
-      LIMIT 100
-    ''', ['%${searchQuery.trim()}%']);
+      LIMIT 50
+    ''', ['% $query %']);
 
-    return results;
+    // Build exclusion list for next queries
+    final exactIds = exactResults.map((r) => r['rowid']).toList();
+    final exactIdsStr = exactIds.isEmpty ? '-1' : exactIds.join(',');
+
+    // Search for verses that start with the word
+    final startsWithResults = await _db.rawQuery('''
+      SELECT v.*, b.long_name, b.short_name, 2 as priority
+      FROM verses v
+      JOIN books b ON v.book_number = b.book_number
+      WHERE v.text LIKE ?
+      AND v.rowid NOT IN ($exactIdsStr)
+      ORDER BY v.book_number, v.chapter, v.verse
+      LIMIT 25
+    ''', ['$query %']);
+
+    // Build combined exclusion list
+    final combinedIds = [
+      ...exactIds,
+      ...startsWithResults.map((r) => r['rowid'])
+    ];
+    final combinedIdsStr = combinedIds.isEmpty ? '-1' : combinedIds.join(',');
+
+    // Search for partial matches (priority 3)
+    final partialResults = await _db.rawQuery('''
+      SELECT v.*, b.long_name, b.short_name, 3 as priority
+      FROM verses v
+      JOIN books b ON v.book_number = b.book_number
+      WHERE v.text LIKE ?
+      AND v.rowid NOT IN ($combinedIdsStr)
+      ORDER BY v.book_number, v.chapter, v.verse
+      LIMIT 25
+    ''', ['%$query%']);
+
+    // Combine results with exact matches first
+    return [...exactResults, ...startsWithResults, ...partialResults];
+  }
+
+  // Find a book by name or abbreviation (case-insensitive, partial match)
+  Future<Map<String, dynamic>?> findBookByName(String bookName) async {
+    if (bookName.trim().isEmpty) return null;
+
+    final searchTerm = bookName.trim();
+
+    // Try exact match first (case-insensitive)
+    var results = await _db.rawQuery('''
+      SELECT * FROM books 
+      WHERE LOWER(long_name) = ? OR LOWER(short_name) = ?
+      LIMIT 1
+    ''', [searchTerm.toLowerCase(), searchTerm.toLowerCase()]);
+
+    if (results.isNotEmpty) {
+      return results.first;
+    }
+
+    // Try partial match at start of name
+    results = await _db.rawQuery('''
+      SELECT * FROM books 
+      WHERE LOWER(long_name) LIKE ? OR LOWER(short_name) LIKE ?
+      ORDER BY book_number
+      LIMIT 1
+    ''', ['${searchTerm.toLowerCase()}%', '${searchTerm.toLowerCase()}%']);
+
+    if (results.isNotEmpty) {
+      return results.first;
+    }
+
+    // Try contains match (for common abbreviations)
+    results = await _db.rawQuery('''
+      SELECT * FROM books 
+      WHERE LOWER(long_name) LIKE ? OR LOWER(short_name) LIKE ?
+      ORDER BY book_number
+      LIMIT 1
+    ''', ['%${searchTerm.toLowerCase()}%', '%${searchTerm.toLowerCase()}%']);
+
+    return results.isNotEmpty ? results.first : null;
+  }
+
+  // Get a specific verse
+  Future<Map<String, dynamic>?> getVerse({
+    required int bookNumber,
+    required int chapter,
+    required int verse,
+  }) async {
+    final results = await _db.query(
+      'verses',
+      where: 'book_number = ? AND chapter = ? AND verse = ?',
+      whereArgs: [bookNumber, chapter, verse],
+      limit: 1,
+    );
+
+    return results.isNotEmpty ? results.first : null;
   }
 }

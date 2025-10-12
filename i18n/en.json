@@ -559,6 +559,17 @@
     "select_version": "Select version",
     "search_placeholder": "Search for words or phrases...",
     "no_search_results": "No results found",
-    "loading_version": "Loading {version}..."
+    "loading_version": "Loading {version}...",
+    "search_book": "Search book",
+    "search_book_placeholder": "Type to search (min. 2 letters)...",
+    "font_size_label": "Font size",
+    "decrease_font": "Decrease size",
+    "increase_font": "Increase size",
+    "adjust_font_size": "Adjust font size",
+    "save_verses": "Save",
+    "save_marked_verses": "Save marked verses",
+    "no_matches_retry": "No matches found, please retry with different search terms.",
+    "previous_chapter": "Previous chapter",
+    "next_chapter": "Next chapter"
   }
 }
