@@ -8,7 +8,6 @@ import 'dart:developer' as developer;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-
 // Importaciones para Firebase Cloud Messaging y Firestore
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
@@ -56,6 +55,22 @@ class NotificationService {
   static const String _fcmTokenKey = 'fcm_token';
 
   Function(String? payload)? onNotificationTapped;
+
+  /// NUEVO: Actualiza el campo lastLogin cada vez que el usuario ingresa a la app
+  Future<void> updateLastLogin() async {
+    final User? user = _auth.currentUser;
+    if (user != null) {
+      final userDocRef = _firestore.collection('users').doc(user.uid);
+      await userDocRef.set(
+        {'lastLogin': FieldValue.serverTimestamp()},
+        SetOptions(merge: true),
+      );
+      developer.log(
+        'NotificationService: lastLogin actualizado para el usuario ${user.uid}',
+        name: 'NotificationService',
+      );
+    }
+  }
 
   Future<void> initialize() async {
     try {
