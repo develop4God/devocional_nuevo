@@ -752,27 +752,13 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
   }
 
   String _getSelectedVersesText() {
-    final List<String> lines = [];
-    final sortedVerses = _selectedVerses.toList()..sort();
-
-    for (final key in sortedVerses) {
-      final parts = key.split('|');
-      final book = parts[0];
-      final chapter = parts[1];
-      final verseNum = int.parse(parts[2]);
-
-      final verse = _verses.firstWhere(
-        (v) => v['verse'] == verseNum,
-        orElse: () => {},
-      );
-
-      if (verse.isNotEmpty) {
-        lines.add(
-            '$book $chapter:$verseNum - ${_cleanVerseText(verse['text'])}');
-      }
-    }
-
-    return lines.join('\n\n');
+    return BibleVerseFormatter.formatVerses(
+      selectedVerseKeys: _selectedVerses,
+      verses: _verses,
+      books: _books,
+      versionName: _selectedVersion.name,
+      cleanText: _cleanVerseText,
+    );
   }
 
   String _getSelectedVersesReference() {

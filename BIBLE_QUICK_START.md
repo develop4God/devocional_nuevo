@@ -3,17 +3,20 @@
 ## For Users
 
 ### Opening the Bible
+
 1. Tap the Bible icon from the main menu
 2. The app automatically detects your device language
 3. You'll see only Bible versions in your language
 
 ### Switching Versions
+
 1. Look for the **book icon** in the top-right of the Bible reader
 2. Tap it to see available versions
 3. Select your preferred version
 4. The Bible will reload with your selection
 
 ### Searching for Verses
+
 1. Use the **search bar** at the top of the Bible reader
 2. Type any word or phrase (e.g., "faith", "love")
 3. Press Enter or the search icon
@@ -21,44 +24,61 @@
 5. Tap the **X** to clear search and return to reading
 
 ### Reading Position
+
 - Your position is **automatically saved** when you navigate
 - Close the app and reopen - you'll return to where you left off
 - Includes book, chapter, and version
 
 ### Selecting and Sharing Verses
+
 1. Tap any verse to select it
 2. Selected verses are highlighted
 3. A bottom sheet appears with options to:
-   - **Share** selected verses
-   - **Copy** to clipboard
-   - **Clear** selection
+    - **Share** selected verses
+    - **Copy** to clipboard
+    - **Clear** selection
 
 ## For Developers
 
 ### Key Components
 
 #### BibleVersionRegistry
+
 ```dart
 // Get versions for a language
-final versions = await BibleVersionRegistry.getVersionsForLanguage('es');
+final versions = await
+BibleVersionRegistry.getVersionsForLanguage
+('es
+'
+);
 
 // Get all supported languages
-final languages = BibleVersionRegistry.getSupportedLanguages();
+final languages
+=
+BibleVersionRegistry
+.
+getSupportedLanguages
+(
+);
 // Returns: ['es', 'en', 'pt', 'fr']
 ```
 
 #### BibleReadingPositionService
+
 ```dart
+
 final positionService = BibleReadingPositionService();
 
 // Save position
-await positionService.savePosition(
-  bookName: 'John',
-  bookNumber: 43,
-  chapter: 3,
-  verse: 16,
-  version: 'RVR1960',
-  languageCode: 'es',
+await
+positionService.savePosition
+(
+bookName: 'John',
+bookNumber: 43,
+chapter: 3,
+verse: 16,
+version: 'RVR1960',
+languageCode: 'es',
 );
 
 // Get last position
@@ -67,9 +87,19 @@ final position = await positionService.getLastPosition();
 ```
 
 #### BibleDbService Search
+
 ```dart
+
 final service = BibleDbService();
-await service.initDb('assets/biblia/RVR1960_es.SQLite3', 'RVR1960_es.SQLite3');
+await
+service.initDb
+('assets/biblia/RVR1960_es.SQLite3
+'
+,
+'
+RVR1960_es.SQLite3
+'
+);
 
 // Search for verses
 final results = await service.searchVerses('amor');
@@ -78,16 +108,17 @@ final results = await service.searchVerses('amor');
 
 ### Supported Versions
 
-| Language | Code | Versions Available |
-|----------|------|-------------------|
-| Spanish | es | RVR1960, NVI |
-| English | en | KJV, NIV |
-| Portuguese | pt | ARC |
-| French | fr | LSG1910 |
+| Language   | Code | Versions Available |
+|------------|------|--------------------|
+| Spanish    | es   | RVR1960, NVI       |
+| English    | en   | KJV, NIV           |
+| Portuguese | pt   | ARC                |
+| French     | fr   | LSG1910            |
 
 ### Database Files
 
 All Bible databases are located in `assets/biblia/`:
+
 - `RVR1960_es.SQLite3`
 - `NVI_es.SQLite3`
 - `KJV_en.SQLite3`
@@ -100,7 +131,7 @@ All Bible databases are located in `assets/biblia/`:
 ```dart
 import 'dart:ui' as ui;
 import 'package:devocional_nuevo/utils/bible_version_registry.dart';
-import 'package:devocional_nuevo/pages/bible_reader_page.dart';
+import 'package:devocional_nuevo/pages/bible_verse_formatter.dart';
 
 // In your widget
 void openBible() async {
@@ -108,8 +139,8 @@ void openBible() async {
   final deviceLanguage = ui.PlatformDispatcher.instance.locale.languageCode;
 
   // Get versions for that language
-  List<BibleVersion> versions = 
-      await BibleVersionRegistry.getVersionsForLanguage(deviceLanguage);
+  List<BibleVersion> versions =
+  await BibleVersionRegistry.getVersionsForLanguage(deviceLanguage);
 
   // Fallback to Spanish if needed
   if (versions.isEmpty) {
@@ -129,6 +160,7 @@ void openBible() async {
 ### Testing
 
 Run all Bible tests:
+
 ```bash
 flutter test test/unit/models/bible_version_test.dart \
              test/unit/pages/bible_reader_page_test.dart \
@@ -143,6 +175,7 @@ Expected: 30/30 tests passing
 ### Translations Required
 
 For any new UI elements, add translations to:
+
 - `i18n/en.json`
 - `i18n/es.json`
 - `i18n/pt.json`
@@ -153,7 +186,8 @@ Bible-specific keys are under `"bible": { ... }`
 ## FAQ
 
 **Q: Can users manually change the language?**  
-A: No. The Bible reader only shows versions for the device language. To see other language versions, users need to change their device language.
+A: No. The Bible reader only shows versions for the device language. To see other language versions,
+users need to change their device language.
 
 **Q: What happens if a user's language isn't supported?**  
 A: The app falls back to Spanish (the primary language of the app).
@@ -165,7 +199,8 @@ A: No. All versions are bundled with the app and work completely offline.
 A: Using `SharedPreferences` in the device's local storage. It persists across app sessions.
 
 **Q: Can I add a new Bible version?**  
-A: Yes! Add the SQLite3 file to `assets/biblia/`, then update `BibleVersionRegistry._versionsByLanguage` with the version info.
+A: Yes! Add the SQLite3 file to `assets/biblia/`, then update
+`BibleVersionRegistry._versionsByLanguage` with the version info.
 
 **Q: Is there a limit to search results?**  
 A: Yes, searches return a maximum of 100 results for performance.
@@ -205,6 +240,7 @@ On chapter change → BibleReadingPositionService.savePosition()
 ## Future Extensions
 
 The implementation supports:
+
 - ✅ Online version downloads (via `isDownloaded` flag)
 - ✅ Verse-level navigation (verse number already saved)
 - ✅ Advanced search (current infrastructure can be extended)

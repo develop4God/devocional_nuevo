@@ -21,6 +21,7 @@ class BibleReaderActionModal extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final double maxModalHeight = MediaQuery.of(context).size.height * 0.6;
 
     return Container(
       decoration: BoxDecoration(
@@ -44,21 +45,24 @@ class BibleReaderActionModal extends StatelessWidget {
           ),
           const SizedBox(height: 20),
 
-          // Selected verses text
+          // Selected verses text (scrollable, grows up to 60% of screen)
           Container(
+            constraints: BoxConstraints(
+              maxHeight: maxModalHeight,
+            ),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
               color: colorScheme.surfaceContainerHighest,
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Text(
-              selectedVersesText,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    height: 1.5,
-                  ),
-              textAlign: TextAlign.center,
-              maxLines: 3,
-              overflow: TextOverflow.ellipsis,
+            child: SingleChildScrollView(
+              child: Text(
+                selectedVersesText,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      height: 1.5,
+                    ),
+                textAlign: TextAlign.center,
+              ),
             ),
           ),
           const SizedBox(height: 8),
@@ -72,37 +76,41 @@ class BibleReaderActionModal extends StatelessWidget {
           ),
           const SizedBox(height: 24),
 
-          // Action buttons in a grid
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              _buildActionButton(
-                context: context,
-                icon: Icons.bookmark_outline,
-                label: 'Guardar', // Replace with tr() if needed
-                onTap: onSave,
-              ),
-              _buildActionButton(
-                context: context,
-                icon: Icons.content_copy,
-                label: 'Copiar',
-                onTap: onCopy,
-              ),
-              _buildActionButton(
-                context: context,
-                icon: Icons.share,
-                label: 'Compartir',
-                onTap: onShare,
-              ),
-              _buildActionButton(
-                context: context,
-                icon: Icons.image_outlined,
-                label: 'Imagen',
-                onTap: onImage,
-              ),
-            ],
+          // Action buttons in a grid -- moved further from the bottom
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              crossAxisAlignment: CrossAxisAlignment.start, // Move icons up
+              children: [
+                _buildActionButton(
+                  context: context,
+                  icon: Icons.bookmark_outline,
+                  label: 'Guardar', // Replace with tr() if needed
+                  onTap: onSave,
+                ),
+                _buildActionButton(
+                  context: context,
+                  icon: Icons.content_copy,
+                  label: 'Copiar',
+                  onTap: onCopy,
+                ),
+                _buildActionButton(
+                  context: context,
+                  icon: Icons.share,
+                  label: 'Compartir',
+                  onTap: onShare,
+                ),
+                _buildActionButton(
+                  context: context,
+                  icon: Icons.image_outlined,
+                  label: 'Imagen',
+                  onTap: onImage,
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 8),
         ],
       ),
     );
@@ -119,28 +127,32 @@ class BibleReaderActionModal extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
-      child: Container(
-        width: 70,
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
-              size: 28,
-              color: colorScheme.onSurface,
-            ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: colorScheme.onSurface,
-                  ),
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 24.0), // Move icon up a bit
+        child: Container(
+          width: 70,
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          // less bottom padding
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                icon,
+                size: 28,
+                color: colorScheme.onSurface,
+              ),
+              const SizedBox(height: 4),
+              Text(
+                label,
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: colorScheme.onSurface,
+                    ),
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
         ),
       ),
     );
