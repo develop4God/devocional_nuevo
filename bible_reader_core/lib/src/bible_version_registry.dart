@@ -25,6 +25,7 @@ class BibleVersionRegistry {
     ],
     'pt': [
       {'name': 'ARC', 'dbFile': 'ARC_pt.SQLite3'},
+      {'name': 'NVI', 'dbFile': 'NVI_pt.SQLite3'},
     ],
     'fr': [
       {'name': 'LSG1910', 'dbFile': 'LSG1910_fr.SQLite3'},

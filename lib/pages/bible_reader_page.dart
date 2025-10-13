@@ -4,6 +4,7 @@ import 'package:bible_reader_core/bible_reader_core.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/utils/copyright_utils.dart';
 import 'package:devocional_nuevo/widgets/app_bar_constants.dart';
+import 'package:devocional_nuevo/widgets/bible_reader_action_modal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart' show ShareParams, SharePlus;
@@ -728,99 +729,15 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setModalState) {
-            final colorScheme = Theme.of(context).colorScheme;
-
-            return Container(
-              decoration: BoxDecoration(
-                color: colorScheme.surface,
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(24),
-                ),
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Handle bar
-                  Container(
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color:
-                          colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Selected verses text
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: colorScheme.surfaceContainerHighest,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      _getSelectedVersesText(),
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            height: 1.5,
-                          ),
-                      textAlign: TextAlign.center,
-                      maxLines: 3,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-
-                  // Reference text
-                  Text(
-                    _getSelectedVersesReference(),
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Action buttons in a grid
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      _buildActionButton(
-                        context: context,
-                        icon: Icons.bookmark_outline,
-                        label: 'bible.save_verses'.tr(),
-                        onTap: () => _saveSelectedVerses(context),
-                      ),
-                      _buildActionButton(
-                        context: context,
-                        icon: Icons.content_copy,
-                        label: 'bible.copy'.tr(),
-                        onTap: () => _copySelectedVerses(context),
-                      ),
-                      _buildActionButton(
-                        context: context,
-                        icon: Icons.share,
-                        label: 'bible.share'.tr(),
-                        onTap: () => _shareSelectedVerses(),
-                      ),
-                      _buildActionButton(
-                        context: context,
-                        icon: Icons.image_outlined,
-                        label: 'Imagen',
-                        onTap: () {
-                          // TODO: Implement image sharing
-                          Navigator.pop(context);
-                        },
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                ],
-              ),
-            );
+        return BibleReaderActionModal(
+          selectedVersesText: _getSelectedVersesText(),
+          selectedVersesReference: _getSelectedVersesReference(),
+          onSave: () => _saveSelectedVerses(context),
+          onCopy: () => _copySelectedVerses(context),
+          onShare: _shareSelectedVerses,
+          onImage: () {
+            // TODO: Implement image sharing
+            Navigator.pop(context);
           },
         );
       },
@@ -880,44 +797,6 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
         return '$book $chapter:$firstVerse-$lastVerse';
       }
     }
-  }
-
-  Widget _buildActionButton({
-    required BuildContext context,
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-  }) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        width: 70,
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
-              size: 28,
-              color: colorScheme.onSurface,
-            ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: colorScheme.onSurface,
-                  ),
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
-        ),
-      ),
-    );
   }
 
   void _shareSelectedVerses() {
