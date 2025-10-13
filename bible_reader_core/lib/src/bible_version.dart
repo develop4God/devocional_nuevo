@@ -1,4 +1,4 @@
-import '../services/bible_db_service.dart';
+import 'bible_db_service.dart';
 
 class BibleVersion {
   final String name;

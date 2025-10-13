@@ -1,5 +1,6 @@
-import 'package:devocional_nuevo/utils/bible_text_normalizer.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import '../../../bible_reader_core/lib/src/bible_text_normalizer.dart';
 
 void main() {
   group('BibleTextNormalizer Tests', () {
@@ -21,7 +22,8 @@ void main() {
       expect(BibleTextNormalizer.clean(text), 'Verse text  continues here');
     });
 
-    test('should remove bracketed references with special characters [36†]', () {
+    test('should remove bracketed references with special characters [36†]',
+        () {
       const text = 'Verse text [36†] continues here';
       expect(BibleTextNormalizer.clean(text), 'Verse text  continues here');
     });

@@ -2,8 +2,8 @@ import 'dart:developer' as developer;
 import 'dart:io' show File;
 
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:bible_reader_core/bible_reader_core.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
-import 'package:devocional_nuevo/models/bible_version.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/pages/bible_reader_page.dart';
 import 'package:devocional_nuevo/pages/my_badges_page.dart';
@@ -13,7 +13,6 @@ import 'package:devocional_nuevo/pages/settings_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/services/devocionales_tracking.dart';
 import 'package:devocional_nuevo/services/update_service.dart';
-import 'package:devocional_nuevo/utils/bible_version_registry.dart';
 import 'package:devocional_nuevo/utils/bubble_constants.dart';
 import 'package:devocional_nuevo/utils/copyright_utils.dart';
 import 'package:devocional_nuevo/widgets/add_prayer_modal.dart';

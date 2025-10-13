@@ -1,8 +1,10 @@
 import 'dart:io';
-import 'package:devocional_nuevo/models/bible_version.dart';
+
 import 'package:flutter/services.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
+
+import 'bible_version.dart';
 
 class BibleVersionRegistry {
   static const Map<String, String> _languageNames = {
@@ -31,7 +33,8 @@ class BibleVersionRegistry {
 
   /// Get all Bible versions for a specific language
   static Future<List<BibleVersion>> getVersionsForLanguage(
-      String languageCode) async {
+    String languageCode,
+  ) async {
     final versions = _versionsByLanguage[languageCode] ?? [];
     final List<BibleVersion> bibleVersions = [];
 
@@ -39,14 +42,16 @@ class BibleVersionRegistry {
       final dbFileName = versionInfo['dbFile']!;
       final isDownloaded = await _isVersionDownloaded(dbFileName);
 
-      bibleVersions.add(BibleVersion(
-        name: versionInfo['name']!,
-        language: _languageNames[languageCode] ?? languageCode,
-        languageCode: languageCode,
-        assetPath: 'assets/biblia/$dbFileName',
-        dbFileName: dbFileName,
-        isDownloaded: isDownloaded,
-      ));
+      bibleVersions.add(
+        BibleVersion(
+          name: versionInfo['name']!,
+          language: _languageNames[languageCode] ?? languageCode,
+          languageCode: languageCode,
+          assetPath: 'assets/biblia/$dbFileName',
+          dbFileName: dbFileName,
+          isDownloaded: isDownloaded,
+        ),
+      );
     }
 
     return bibleVersions;

@@ -59,9 +59,13 @@ dependencies:
   connectivity_plus: ^6.0.5
   archive: ^4.0.0
   workmanager: ^0.9.0+3
-  
+
   # Google Play Billing dependencies
   in_app_purchase: ^3.1.17
+
+  bible_reader_core:
+    path: bible_reader_core
+
 
 dev_dependencies:
   flutter_test:
@@ -87,6 +91,3 @@ flutter:
     - assets/icons/
     - assets/badges/
     - assets/lottie/
-    - assets/biblia/
-
-

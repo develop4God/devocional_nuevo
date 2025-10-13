@@ -1,10 +1,7 @@
 import 'dart:ui' as ui;
 
+import 'package:bible_reader_core/bible_reader_core.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
-import 'package:devocional_nuevo/models/bible_version.dart';
-import 'package:devocional_nuevo/services/bible_db_service.dart';
-import 'package:devocional_nuevo/services/bible_reading_position_service.dart';
-import 'package:devocional_nuevo/utils/bible_text_normalizer.dart';
 import 'package:devocional_nuevo/utils/copyright_utils.dart';
 import 'package:devocional_nuevo/widgets/app_bar_constants.dart';
 import 'package:flutter/material.dart';

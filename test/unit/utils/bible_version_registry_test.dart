@@ -1,5 +1,6 @@
-import 'package:devocional_nuevo/utils/bible_version_registry.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import '../../../bible_reader_core/lib/src/bible_version_registry.dart';
 
 void main() {
   group('BibleVersionRegistry Tests', () {
@@ -21,8 +22,7 @@ void main() {
     });
 
     test('should get versions for Spanish language', () async {
-      final versions =
-          await BibleVersionRegistry.getVersionsForLanguage('es');
+      final versions = await BibleVersionRegistry.getVersionsForLanguage('es');
 
       expect(versions, isNotEmpty);
       expect(versions.any((v) => v.name == 'RVR1960'), isTrue);
@@ -32,8 +32,7 @@ void main() {
     });
 
     test('should get versions for English language', () async {
-      final versions =
-          await BibleVersionRegistry.getVersionsForLanguage('en');
+      final versions = await BibleVersionRegistry.getVersionsForLanguage('en');
 
       expect(versions, isNotEmpty);
       expect(versions.any((v) => v.name == 'KJV'), isTrue);
@@ -43,8 +42,7 @@ void main() {
     });
 
     test('should get versions for Portuguese language', () async {
-      final versions =
-          await BibleVersionRegistry.getVersionsForLanguage('pt');
+      final versions = await BibleVersionRegistry.getVersionsForLanguage('pt');
 
       expect(versions, isNotEmpty);
       expect(versions.any((v) => v.name == 'ARC'), isTrue);
@@ -53,8 +51,7 @@ void main() {
     });
 
     test('should get versions for French language', () async {
-      final versions =
-          await BibleVersionRegistry.getVersionsForLanguage('fr');
+      final versions = await BibleVersionRegistry.getVersionsForLanguage('fr');
 
       expect(versions, isNotEmpty);
       expect(versions.any((v) => v.name == 'LSG1910'), isTrue);
@@ -63,8 +60,7 @@ void main() {
     });
 
     test('should return empty list for unsupported language', () async {
-      final versions =
-          await BibleVersionRegistry.getVersionsForLanguage('de');
+      final versions = await BibleVersionRegistry.getVersionsForLanguage('de');
 
       expect(versions, isEmpty);
     });
