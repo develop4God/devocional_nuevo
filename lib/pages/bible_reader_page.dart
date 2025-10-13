@@ -115,6 +115,13 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
   @override
   void initState() {
     super.initState();
+
+    // DEBUG: Print all passed versions
+    debugPrint('🟦 [Bible] All versions passed to widget:');
+    for (final v in widget.versions) {
+      debugPrint('    ${v.name} (${v.languageCode}) - ${v.assetPath}');
+    }
+
     _loadFontSize();
     _loadMarkedVerses();
     _detectLanguageAndInitialize();
@@ -941,16 +948,13 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
       _persistentlyMarkedVerses.add(verseKey);
     }
 
+    // Pop the modal immediately before any async/await
+    Navigator.pop(modalContext);
+
     // Save to SharedPreferences
     await _saveMarkedVerses();
 
-    // Close modal and clear selection
-    if (!mounted) return;
-
-    // Pop the modal first
-    Navigator.pop(modalContext);
-
-    // Clear selection
+    // Clear selection...
     if (!mounted) return;
     setState(() {
       _selectedVerses.clear();
