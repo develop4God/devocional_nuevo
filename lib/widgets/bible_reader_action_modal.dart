@@ -1,3 +1,4 @@
+import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:flutter/material.dart';
 
 class BibleReaderActionModal extends StatelessWidget {
@@ -86,27 +87,27 @@ class BibleReaderActionModal extends StatelessWidget {
                 _buildActionButton(
                   context: context,
                   icon: Icons.bookmark_outline,
-                  label: 'Guardar', // Replace with tr() if needed
+                  label: 'bible.save'.tr(), // Replace with tr() if needed
                   onTap: onSave,
                 ),
                 _buildActionButton(
                   context: context,
                   icon: Icons.content_copy,
-                  label: 'Copiar',
+                  label: 'bible.copy'.tr(),
                   onTap: onCopy,
                 ),
                 _buildActionButton(
                   context: context,
                   icon: Icons.share,
-                  label: 'Compartir',
+                  label: 'bible.share'.tr(),
                   onTap: onShare,
                 ),
-                _buildActionButton(
+                /*_buildActionButton( //Comming soon
                   context: context,
                   icon: Icons.image_outlined,
                   label: 'Imagen',
                   onTap: onImage,
-                ),
+                ),*/
               ],
             ),
           ),
