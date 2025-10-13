@@ -1,7 +1,6 @@
+import 'package:bible_reader_core/src/bible_db_service.dart';
+import 'package:bible_reader_core/src/bible_version.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import '../../../bible_reader_core/lib/src/bible_db_service.dart';
-import '../../../bible_reader_core/lib/src/bible_version.dart';
 
 void main() {
   group('BibleVersion Model Tests', () {

@@ -38,7 +38,9 @@ class BibleDbService {
 
   // Get verses from a chapter
   Future<List<Map<String, dynamic>>> getChapterVerses(
-      int bookNumber, int chapter) async {
+    int bookNumber,
+    int chapter,
+  ) async {
     return await _db.query(
       'verses',
       where: 'book_number = ? AND chapter = ?',
@@ -67,21 +69,25 @@ class BibleDbService {
     final query = searchQuery.trim();
 
     // Search with word boundaries for exact word matches (priority 1)
-    final exactResults = await _db.rawQuery('''
+    final exactResults = await _db.rawQuery(
+      '''
       SELECT v.*, b.long_name, b.short_name, 1 as priority
       FROM verses v
       JOIN books b ON v.book_number = b.book_number
       WHERE v.text LIKE ?
       ORDER BY v.book_number, v.chapter, v.verse
       LIMIT 50
-    ''', ['% $query %']);
+    ''',
+      ['% $query %'],
+    );
 
     // Build exclusion list for next queries
     final exactIds = exactResults.map((r) => r['rowid']).toList();
     final exactIdsStr = exactIds.isEmpty ? '-1' : exactIds.join(',');
 
     // Search for verses that start with the word
-    final startsWithResults = await _db.rawQuery('''
+    final startsWithResults = await _db.rawQuery(
+      '''
       SELECT v.*, b.long_name, b.short_name, 2 as priority
       FROM verses v
       JOIN books b ON v.book_number = b.book_number
@@ -89,17 +95,20 @@ class BibleDbService {
       AND v.rowid NOT IN ($exactIdsStr)
       ORDER BY v.book_number, v.chapter, v.verse
       LIMIT 25
-    ''', ['$query %']);
+    ''',
+      ['$query %'],
+    );
 
     // Build combined exclusion list
     final combinedIds = [
       ...exactIds,
-      ...startsWithResults.map((r) => r['rowid'])
+      ...startsWithResults.map((r) => r['rowid']),
     ];
     final combinedIdsStr = combinedIds.isEmpty ? '-1' : combinedIds.join(',');
 
     // Search for partial matches (priority 3)
-    final partialResults = await _db.rawQuery('''
+    final partialResults = await _db.rawQuery(
+      '''
       SELECT v.*, b.long_name, b.short_name, 3 as priority
       FROM verses v
       JOIN books b ON v.book_number = b.book_number
@@ -107,7 +116,9 @@ class BibleDbService {
       AND v.rowid NOT IN ($combinedIdsStr)
       ORDER BY v.book_number, v.chapter, v.verse
       LIMIT 25
-    ''', ['%$query%']);
+    ''',
+      ['%$query%'],
+    );
 
     // Combine results with exact matches first
     return [...exactResults, ...startsWithResults, ...partialResults];
@@ -120,35 +131,44 @@ class BibleDbService {
     final searchTerm = bookName.trim();
 
     // Try exact match first (case-insensitive)
-    var results = await _db.rawQuery('''
+    var results = await _db.rawQuery(
+      '''
       SELECT * FROM books 
       WHERE LOWER(long_name) = ? OR LOWER(short_name) = ?
       LIMIT 1
-    ''', [searchTerm.toLowerCase(), searchTerm.toLowerCase()]);
+    ''',
+      [searchTerm.toLowerCase(), searchTerm.toLowerCase()],
+    );
 
     if (results.isNotEmpty) {
       return results.first;
     }
 
     // Try partial match at start of name
-    results = await _db.rawQuery('''
+    results = await _db.rawQuery(
+      '''
       SELECT * FROM books 
       WHERE LOWER(long_name) LIKE ? OR LOWER(short_name) LIKE ?
       ORDER BY book_number
       LIMIT 1
-    ''', ['${searchTerm.toLowerCase()}%', '${searchTerm.toLowerCase()}%']);
+    ''',
+      ['${searchTerm.toLowerCase()}%', '${searchTerm.toLowerCase()}%'],
+    );
 
     if (results.isNotEmpty) {
       return results.first;
     }
 
     // Try contains match (for common abbreviations)
-    results = await _db.rawQuery('''
+    results = await _db.rawQuery(
+      '''
       SELECT * FROM books 
       WHERE LOWER(long_name) LIKE ? OR LOWER(short_name) LIKE ?
       ORDER BY book_number
       LIMIT 1
-    ''', ['%${searchTerm.toLowerCase()}%', '%${searchTerm.toLowerCase()}%']);
+    ''',
+      ['%${searchTerm.toLowerCase()}%', '%${searchTerm.toLowerCase()}%'],
+    );
 
     return results.isNotEmpty ? results.first : null;
   }

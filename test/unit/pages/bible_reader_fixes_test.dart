@@ -1,6 +1,5 @@
+import 'package:bible_reader_core/src/bible_db_service.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import '../../../bible_reader_core/lib/src/bible_db_service.dart';
 
 void main() {
   group('Bible Search Priority Tests', () {

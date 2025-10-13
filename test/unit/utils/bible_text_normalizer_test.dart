@@ -1,6 +1,5 @@
+import 'package:bible_reader_core/src/bible_text_normalizer.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import '../../../bible_reader_core/lib/src/bible_text_normalizer.dart';
 
 void main() {
   group('BibleTextNormalizer Tests', () {

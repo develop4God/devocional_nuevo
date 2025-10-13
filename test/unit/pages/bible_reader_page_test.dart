@@ -1,8 +1,7 @@
+import 'package:bible_reader_core/src/bible_version.dart';
 import 'package:devocional_nuevo/pages/bible_reader_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import '../../../bible_reader_core/lib/src/bible_version.dart';
 
 void main() {
   group('BibleReaderPage Widget Tests', () {
