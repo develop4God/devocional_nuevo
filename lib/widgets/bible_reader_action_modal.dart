@@ -87,7 +87,8 @@ class BibleReaderActionModal extends StatelessWidget {
                 _buildActionButton(
                   context: context,
                   icon: Icons.bookmark_outline,
-                  label: 'bible.save'.tr(), // Replace with tr() if needed
+                  label: 'bible.save_verses'.tr(),
+                  // Replace with tr() if needed
                   onTap: onSave,
                 ),
                 _buildActionButton(

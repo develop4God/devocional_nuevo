@@ -1032,7 +1032,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                                 ),
                                 child: Row(
                                   children: [
-                                    Icon(Icons.menu_book,
+                                    Icon(Icons.auto_stories_outlined,
                                         size: 20, color: colorScheme.primary),
                                     const SizedBox(width: 8),
                                     Expanded(
@@ -1281,26 +1281,44 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                     children: [
                       // Previous chapter button
                       IconButton(
-                        icon: Icon(Icons.chevron_left,
+                        icon: Icon(Icons.arrow_back_ios,
                             color: colorScheme.primary),
                         tooltip: 'bible.previous_chapter'.tr(),
                         onPressed: _goToPreviousChapter,
                       ),
                       // Current book and chapter display
                       Expanded(
-                        child: Text(
-                          '$_selectedBookName $_selectedChapter',
-                          textAlign: TextAlign.center,
-                          style:
-                              Theme.of(context).textTheme.titleMedium?.copyWith(
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(8),
+                          onTap: _showBookSelector,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 6.0, horizontal: 4.0),
+                            child: Text(
+                              _selectedBookName != null
+                                  ? '${_books.firstWhere((b) => b['short_name'] == _selectedBookName, orElse: () => {
+                                        'long_name': _selectedBookName
+                                      })['long_name']} $_selectedChapter'
+                                  : '',
+                              textAlign: TextAlign.center,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleMedium
+                                  ?.copyWith(
                                     fontWeight: FontWeight.bold,
-                                    color: colorScheme.onSurface,
+                                    color: colorScheme.primary,
+                                    // Optional: highlight as clickable
+                                    decoration: TextDecoration.underline,
+                                    // Optional: hint it's a button
+                                    decorationColor: colorScheme.primary,
                                   ),
+                            ),
+                          ),
                         ),
                       ),
                       // Next chapter button
                       IconButton(
-                        icon: Icon(Icons.chevron_right,
+                        icon: Icon(Icons.arrow_forward_ios,
                             color: colorScheme.primary),
                         tooltip: 'bible.next_chapter'.tr(),
                         onPressed: _goToNextChapter,
