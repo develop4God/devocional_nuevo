@@ -270,20 +270,30 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
 
   // Scroll to specific verse
   void _scrollToVerse(int verseNumber) {
+    debugPrint('[scrollToVerse] Called for verseNumber: $verseNumber');
     setState(() {
       _selectedVerse = verseNumber;
     });
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final key = _verseKeys[verseNumber];
-      if (key != null && key.currentContext != null) {
-        Scrollable.ensureVisible(
-          key.currentContext!,
-          duration: const Duration(milliseconds: 200),
-          curve: Curves.easeInOut,
-          alignment: 0.1, // adjust as needed (0.0 = top, 1.0 = bottom)
-        );
+      debugPrint('[scrollToVerse] PostFrameCallback for verse $verseNumber');
+      if (key == null) {
+        debugPrint('[scrollToVerse] No GlobalKey found for verse $verseNumber');
+        return;
       }
+      if (key.currentContext == null) {
+        debugPrint(
+            '[scrollToVerse] GlobalKey for verse $verseNumber has no currentContext');
+        return;
+      }
+      debugPrint('[scrollToVerse] Ensuring visibility for verse $verseNumber');
+      Scrollable.ensureVisible(
+        key.currentContext!,
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeInOut,
+        alignment: 0.1, // adjust as needed
+      );
     });
   }
 
@@ -1089,8 +1099,10 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                                 setState(() {
                                   _selectedVerse = val;
                                 });
-                                // Scroll to the verse (we'll implement this)
-                                _scrollToVerse(val);
+                                WidgetsBinding.instance
+                                    .addPostFrameCallback((_) {
+                                  _scrollToVerse(val);
+                                });
                               },
                             ),
                           ),
