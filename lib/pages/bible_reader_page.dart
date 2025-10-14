@@ -269,32 +269,35 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
   }
 
   // Scroll to specific verse
-  void _scrollToVerse(int verseNumber) {
-    debugPrint('[scrollToVerse] Called for verseNumber: $verseNumber');
-    setState(() {
-      _selectedVerse = verseNumber;
-    });
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final key = _verseKeys[verseNumber];
-      debugPrint('[scrollToVerse] PostFrameCallback for verse $verseNumber');
-      if (key == null) {
-        debugPrint('[scrollToVerse] No GlobalKey found for verse $verseNumber');
-        return;
-      }
-      if (key.currentContext == null) {
+  void _scrollToVerse(int verseNumber, {int retryCount = 0}) {
+    debugPrint(
+        '[scrollToVerse] Called for verseNumber: $verseNumber, retryCount: $retryCount');
+    final key = _verseKeys[verseNumber];
+    if (key == null) {
+      debugPrint('[scrollToVerse] No GlobalKey found for verse $verseNumber');
+      return;
+    }
+    if (key.currentContext == null) {
+      debugPrint(
+          '[scrollToVerse] GlobalKey for verse $verseNumber has no currentContext (retry: $retryCount)');
+      if (retryCount < 5) {
+        // Try again on the next frame (up to 5 times)
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _scrollToVerse(verseNumber, retryCount: retryCount + 1);
+        });
+      } else {
         debugPrint(
-            '[scrollToVerse] GlobalKey for verse $verseNumber has no currentContext');
-        return;
+            '[scrollToVerse] Giving up on scrolling to verse $verseNumber after 5 retries');
       }
-      debugPrint('[scrollToVerse] Ensuring visibility for verse $verseNumber');
-      Scrollable.ensureVisible(
-        key.currentContext!,
-        duration: const Duration(milliseconds: 500),
-        curve: Curves.easeInOut,
-        alignment: 0.1, // adjust as needed
-      );
-    });
+      return;
+    }
+    debugPrint('[scrollToVerse] Ensuring visibility for verse $verseNumber');
+    Scrollable.ensureVisible(
+      key.currentContext!,
+      duration: const Duration(milliseconds: 500),
+      curve: Curves.easeInOut,
+      alignment: 0.1, // adjust as needed
+    );
   }
 
   /// Scroll to top of the chapter
