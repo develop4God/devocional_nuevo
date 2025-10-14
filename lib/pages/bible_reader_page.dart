@@ -5,6 +5,7 @@ import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/utils/copyright_utils.dart';
 import 'package:devocional_nuevo/widgets/app_bar_constants.dart';
 import 'package:devocional_nuevo/widgets/bible_reader_action_modal.dart';
+import 'package:devocional_nuevo/widgets/bible_search_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart' show ShareParams, SharePlus;
@@ -949,51 +950,24 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
               child: Column(
                 children: [
                   // Search bar
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: colorScheme.surface,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.05),
-                          blurRadius: 2,
-                          offset: const Offset(0, 1),
-                        ),
-                      ],
-                    ),
-                    child: TextField(
-                      controller: _searchController,
-                      decoration: InputDecoration(
-                        hintText: 'bible.search_placeholder'.tr(),
-                        prefixIcon: const Icon(Icons.search),
-                        suffixIcon: _searchController.text.isNotEmpty
-                            ? IconButton(
-                                icon: const Icon(Icons.clear),
-                                onPressed: () {
-                                  _searchController.clear();
-                                  setState(() {
-                                    _isSearching = false;
-                                    _searchResults = [];
-                                  });
-                                },
-                              )
-                            : null,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(25),
-                          borderSide: BorderSide.none,
-                        ),
-                        filled: true,
-                        fillColor: colorScheme.surfaceContainerHighest,
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 12,
-                        ),
-                      ),
-                      onSubmitted: _performSearch,
-                      onChanged: (value) {
-                        setState(() {});
-                      },
-                    ),
+                  BibleSearchBar(
+                    searchController: _searchController,
+                    isSearching: _isSearching,
+                    searchResults: _searchResults,
+                    colorScheme: colorScheme,
+                    onSubmitted: _performSearch,
+                    onChanged: (value) {
+                      setState(() {});
+                    },
+                    onClear: () {
+                      _searchController.clear();
+                      setState(() {
+                        _isSearching = false;
+                        _searchResults = [];
+                      });
+                    },
+                    onResultTap: _jumpToSearchResult,
+                    buildHighlightedTextSpans: _buildHighlightedTextSpans,
                   ),
                   // Show search results if searching
                   if (_isSearching)
