@@ -269,9 +269,8 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
   }
 
   // Scroll to specific verse
-  void _scrollToVerse(int verseNumber, {int retryCount = 0}) {
-    debugPrint(
-        '[scrollToVerse] Called for verseNumber: $verseNumber, retryCount: $retryCount');
+  void _scrollToVerse(int verseNumber) {
+    debugPrint('[scrollToVerse] Called for verseNumber: $verseNumber');
     final key = _verseKeys[verseNumber];
     if (key == null) {
       debugPrint('[scrollToVerse] No GlobalKey found for verse $verseNumber');
@@ -279,16 +278,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     }
     if (key.currentContext == null) {
       debugPrint(
-          '[scrollToVerse] GlobalKey for verse $verseNumber has no currentContext (retry: $retryCount)');
-      if (retryCount < 5) {
-        // Try again on the next frame (up to 5 times)
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _scrollToVerse(verseNumber, retryCount: retryCount + 1);
-        });
-      } else {
-        debugPrint(
-            '[scrollToVerse] Giving up on scrolling to verse $verseNumber after 5 retries');
-      }
+          '[scrollToVerse] GlobalKey for verse $verseNumber has no currentContext');
       return;
     }
     debugPrint('[scrollToVerse] Ensuring visibility for verse $verseNumber');
@@ -1102,6 +1092,8 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                                 setState(() {
                                   _selectedVerse = val;
                                 });
+                                await Future.delayed(
+                                    Duration.zero); // Ensure UI rebuild
                                 WidgetsBinding.instance
                                     .addPostFrameCallback((_) {
                                   _scrollToVerse(val);
