@@ -274,27 +274,14 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
       _selectedVerse = verseNumber;
     });
 
-    // Use a small delay to ensure the scroll controller has attached and layout is complete
-    Future.delayed(const Duration(milliseconds: 150), () {
-      if (!mounted || !_scrollController.hasClients || _verses.isEmpty) return;
-
-      // Find the index of the verse in the list
-      final verseIndex =
-          _verses.indexWhere((v) => (v['verse'] as int) == verseNumber);
-
-      if (verseIndex >= 0) {
-        // Calculate approximate scroll position
-        // Use 80.0 as average verse height (works well across different font sizes)
-        final estimatedPosition = verseIndex * 80.0;
-        final maxScroll = _scrollController.position.maxScrollExtent;
-
-        // Clamp to valid range and scroll
-        final targetPosition = estimatedPosition.clamp(0.0, maxScroll);
-
-        _scrollController.animateTo(
-          targetPosition,
-          duration: const Duration(milliseconds: 500),
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final key = _verseKeys[verseNumber];
+      if (key != null && key.currentContext != null) {
+        Scrollable.ensureVisible(
+          key.currentContext!,
+          duration: const Duration(milliseconds: 200),
           curve: Curves.easeInOut,
+          alignment: 0.1, // adjust as needed (0.0 = top, 1.0 = bottom)
         );
       }
     });
