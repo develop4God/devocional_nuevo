@@ -573,6 +573,8 @@
     "next_chapter": "次の章",
     "select_verse": "節を選択",
     "total_verses": "{count}節が利用可能",
+    "select_chapter": "章を選択",
+    "total_chapters": "{count}章が利用可能",
     "close": "閉じる"
   }
 }

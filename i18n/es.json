@@ -574,6 +574,8 @@
     "next_chapter": "Siguiente capítulo",
     "select_verse": "Seleccionar versículo",
     "total_verses": "{count} versículos disponibles",
+    "select_chapter": "Seleccionar capítulo",
+    "total_chapters": "{count} capítulos disponibles",
     "close": "Cerrar"
   }
 }
