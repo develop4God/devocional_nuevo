@@ -270,25 +270,42 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
   }
 
   // Scroll to specific verse
-  void _scrollToVerse(int verseNumber) {
+  void _scrollToVerse(int verseNumber) async {
     debugPrint('[scrollToVerse] Called for verseNumber: $verseNumber');
     final key = _verseKeys[verseNumber];
-    if (key == null) {
-      debugPrint('[scrollToVerse] No GlobalKey found for verse $verseNumber');
-      return;
+
+    // If key/context is not available, pre-scroll to approximate position
+    if (key == null || key.currentContext == null) {
+      // Estimate position: item height * (verseNumber - 1)
+      // Use a default item height based on your UI design
+      const double itemHeight =
+          56.0; // Tune this value to match your verse height
+      final double targetOffset = (verseNumber - 1) * itemHeight;
+      if (_scrollController.hasClients) {
+        debugPrint('[scrollToVerse] Pre-scrolling to offset: $targetOffset');
+        await _scrollController.animateTo(
+          targetOffset,
+          duration: const Duration(milliseconds: 350),
+          curve: Curves.easeInOut,
+        );
+        await Future.delayed(const Duration(milliseconds: 80));
+      }
     }
-    if (key.currentContext == null) {
+
+    // Try again after scrolling/rebuild
+    final retryKey = _verseKeys[verseNumber];
+    if (retryKey?.currentContext != null) {
+      debugPrint('[scrollToVerse] Ensuring visibility for verse $verseNumber');
+      Scrollable.ensureVisible(
+        retryKey!.currentContext!,
+        duration: const Duration(milliseconds: 400),
+        curve: Curves.easeInOut,
+        alignment: 0.1,
+      );
+    } else {
       debugPrint(
-          '[scrollToVerse] GlobalKey for verse $verseNumber has no currentContext');
-      return;
+          '[scrollToVerse] Still no context for verse $verseNumber after pre-scroll');
     }
-    debugPrint('[scrollToVerse] Ensuring visibility for verse $verseNumber');
-    Scrollable.ensureVisible(
-      key.currentContext!,
-      duration: const Duration(milliseconds: 500),
-      curve: Curves.easeInOut,
-      alignment: 0.1, // adjust as needed
-    );
   }
 
   /// Scroll to top of the chapter
