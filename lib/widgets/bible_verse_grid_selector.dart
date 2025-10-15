@@ -107,7 +107,7 @@ class BibleVerseGridSelector extends StatelessWidget {
                 child: GridView.builder(
                   padding: const EdgeInsets.all(16),
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 8,
+                    crossAxisCount: 6,
                     crossAxisSpacing: 8,
                     mainAxisSpacing: 8,
                     childAspectRatio: 1.0,
@@ -164,7 +164,7 @@ class BibleVerseGridSelector extends StatelessWidget {
                 color:
                     isSelected ? colorScheme.onPrimary : colorScheme.onSurface,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                fontSize: 14,
+                fontSize: 18,
               ),
             ),
           ),
