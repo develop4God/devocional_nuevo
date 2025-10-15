@@ -570,6 +570,9 @@
     "save_marked_verses": "マークした節を保存",
     "no_matches_retry": "一致する結果が見つかりません。別の検索語句で再試行してください。",
     "previous_chapter": "前の章",
-    "next_chapter": "次の章"
+    "next_chapter": "次の章",
+    "select_verse": "節を選択",
+    "total_verses": "{count}節が利用可能",
+    "close": "閉じる"
   }
 }
