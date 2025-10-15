@@ -1101,39 +1101,20 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                           ),
                           const SizedBox(width: 12),
                           Expanded(
-                            child: InkWell(
-                              onTap: _showChapterGridSelector,
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 12, vertical: 12),
-                                decoration: BoxDecoration(
-                                  border: Border.all(
-                                    color: colorScheme.outline
-                                        .withValues(alpha: 0.5),
-                                  ),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Row(
-                                  children: [
-                                    Icon(Icons.format_list_numbered,
-                                        size: 20, color: colorScheme.primary),
-                                    const SizedBox(width: 8),
-                                    Expanded(
-                                      child: Text(
-                                        'bible.chapter'.tr({
-                                          'number':
-                                              (_selectedChapter ?? 1).toString()
-                                        }),
-                                        overflow: TextOverflow.ellipsis,
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          color: colorScheme.onSurface,
-                                        ),
-                                      ),
-                                    ),
-                                    Icon(Icons.arrow_drop_down,
-                                        color: colorScheme.onSurface),
-                                  ],
+                            child: OutlinedButton.icon(
+                              onPressed: _showChapterGridSelector,
+                              icon: Icon(Icons.format_list_numbered,
+                                  size: 18, color: colorScheme.primary),
+                              label: Text(
+                                'C. ${_selectedChapter ?? 1}',
+                                style: const TextStyle(fontSize: 14),
+                              ),
+                              style: OutlinedButton.styleFrom(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 12),
+                                side: BorderSide(
+                                  color: colorScheme.outline
+                                      .withValues(alpha: 0.5),
                                 ),
                               ),
                             ),
