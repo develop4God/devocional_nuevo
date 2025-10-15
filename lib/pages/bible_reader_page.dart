@@ -787,10 +787,12 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
           selectedVersesReference: _getSelectedVersesReference(),
           onSave: () => _saveSelectedVerses(context),
           onCopy: () => _copySelectedVerses(context),
-          onShare: _shareSelectedVerses,
+          onShare: () => _shareSelectedVerses(context),
           onImage: () {
-            // TODO: Implement image sharing
             Navigator.pop(context);
+            setState(() {
+              _selectedVerses.clear();
+            });
           },
         );
       },
@@ -838,15 +840,22 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     }
   }
 
-  void _shareSelectedVerses() {
+  void _shareSelectedVerses(BuildContext modalContext) {
     final text = _getSelectedVersesText();
     SharePlus.instance.share(ShareParams(text: text));
+    Navigator.pop(modalContext);
+    setState(() {
+      _selectedVerses.clear();
+    });
   }
 
   void _copySelectedVerses(BuildContext modalContext) {
     final text = _getSelectedVersesText();
     Clipboard.setData(ClipboardData(text: text));
     Navigator.pop(modalContext);
+    setState(() {
+      _selectedVerses.clear();
+    });
     final colorScheme = Theme.of(context).colorScheme;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
