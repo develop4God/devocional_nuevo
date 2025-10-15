@@ -292,19 +292,31 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
       }
     }
 
-    // Try again after scrolling/rebuild
-    final retryKey = _verseKeys[verseNumber];
-    if (retryKey?.currentContext != null) {
-      debugPrint('[scrollToVerse] Ensuring visibility for verse $verseNumber');
-      Scrollable.ensureVisible(
-        retryKey!.currentContext!,
-        duration: const Duration(milliseconds: 400),
-        curve: Curves.easeInOut,
-        alignment: 0.1,
-      );
-    } else {
+    // Try multiple times to get the context after scrolling/rebuild
+    const int maxTries = 8;
+    const Duration tryDelay = Duration(milliseconds: 60);
+    bool found = false;
+
+    for (int tryNum = 0; tryNum < maxTries; tryNum++) {
+      final retryKey = _verseKeys[verseNumber];
+      if (retryKey?.currentContext != null) {
+        debugPrint(
+            '[scrollToVerse] Ensuring visibility for verse $verseNumber (try $tryNum)');
+        Scrollable.ensureVisible(
+          retryKey!.currentContext!,
+          duration: const Duration(milliseconds: 320),
+          curve: Curves.easeInOut,
+          alignment: 0.1,
+        );
+        found = true;
+        break;
+      }
+      await Future.delayed(tryDelay);
+    }
+
+    if (!found) {
       debugPrint(
-          '[scrollToVerse] Still no context for verse $verseNumber after pre-scroll');
+          '[scrollToVerse] Still no context for verse $verseNumber after $maxTries tries');
     }
   }
 
