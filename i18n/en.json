@@ -573,6 +573,8 @@
     "next_chapter": "Next chapter",
     "select_verse": "Select verse",
     "total_verses": "{count} verses available",
+    "select_chapter": "Select chapter",
+    "total_chapters": "{count} chapters available",
     "close": "Close"
   }
 }

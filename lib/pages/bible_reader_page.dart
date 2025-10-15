@@ -6,9 +6,11 @@ import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/utils/copyright_utils.dart';
 import 'package:devocional_nuevo/widgets/app_bar_constants.dart';
 import 'package:devocional_nuevo/widgets/bible_reader_action_modal.dart';
+import 'package:devocional_nuevo/widgets/bible_chapter_grid_selector.dart';
 import 'package:devocional_nuevo/widgets/bible_verse_grid_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:share_plus/share_plus.dart' show ShareParams, SharePlus;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -111,9 +113,9 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
   final TextEditingController _searchController = TextEditingController();
   final BibleReadingPositionService _positionService =
       BibleReadingPositionService();
-  final ScrollController _scrollController =
-      ScrollController(); // For verse navigation
-  final Map<int, GlobalKey> _verseKeys = {}; // Keys for direct verse scrolling
+  final ItemScrollController _itemScrollController = ItemScrollController();
+  final ItemPositionsListener _itemPositionsListener =
+      ItemPositionsListener.create();
 
   @override
   void initState() {
@@ -133,7 +135,6 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
   @override
   void dispose() {
     _searchController.dispose();
-    _scrollController.dispose();
     super.dispose();
   }
 
@@ -272,64 +273,36 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
 
   // Scroll to specific verse
   void _scrollToVerse(int verseNumber) async {
-    debugPrint('[scrollToVerse] Called for verseNumber: $verseNumber');
-    final key = _verseKeys[verseNumber];
+    debugPrint('[scrollToVerse] Scrolling to verse $verseNumber');
+    if (_verses.isEmpty) return;
 
-    // If key/context is not available, pre-scroll to approximate position
-    if (key == null || key.currentContext == null) {
-      // Estimate position: item height * (verseNumber - 1)
-      // Use a default item height based on your UI design
-      const double itemHeight =
-          56.0; // Tune this value to match your verse height
-      final double targetOffset = (verseNumber - 1) * itemHeight;
-      if (_scrollController.hasClients) {
-        debugPrint('[scrollToVerse] Pre-scrolling to offset: $targetOffset');
-        await _scrollController.animateTo(
-          targetOffset,
-          duration: const Duration(milliseconds: 350),
-          curve: Curves.easeInOut,
-        );
-        await Future.delayed(const Duration(milliseconds: 80));
-      }
+    // Find the index of the verse in the _verses list
+    final index = _verses.indexWhere((v) => v['verse'] == verseNumber);
+    if (index == -1) {
+      debugPrint('[scrollToVerse] Verse $verseNumber not found in verses list');
+      return;
     }
 
-    // Try multiple times to get the context after scrolling/rebuild
-    const int maxTries = 8;
-    const Duration tryDelay = Duration(milliseconds: 60);
-    bool found = false;
-
-    for (int tryNum = 0; tryNum < maxTries; tryNum++) {
-      final retryKey = _verseKeys[verseNumber];
-      if (retryKey?.currentContext != null) {
-        debugPrint(
-            '[scrollToVerse] Ensuring visibility for verse $verseNumber (try $tryNum)');
-        Scrollable.ensureVisible(
-          retryKey!.currentContext!,
-          duration: const Duration(milliseconds: 320),
-          curve: Curves.easeInOut,
-          alignment: 0.1,
-        );
-        found = true;
-        break;
-      }
-      await Future.delayed(tryDelay);
-    }
-
-    if (!found) {
+    // Use ScrollablePositionedList's jumpTo or scrollTo
+    if (_itemScrollController.isAttached) {
+      await _itemScrollController.scrollTo(
+        index: index,
+        duration: const Duration(milliseconds: 350),
+        curve: Curves.easeInOut,
+        alignment: 0.1, // Position verse near the top
+      );
       debugPrint(
-          '[scrollToVerse] Still no context for verse $verseNumber after $maxTries tries');
+          '[scrollToVerse] Scrolled to index $index for verse $verseNumber');
+    } else {
+      debugPrint('[scrollToVerse] ItemScrollController not attached');
     }
   }
 
   /// Scroll to top of the chapter
   void _scrollToTop() {
     Future.delayed(const Duration(milliseconds: 150), () {
-      if (!mounted || !_scrollController.hasClients) return;
-      _scrollController.animateTo(
-        0.0,
-        duration: const Duration(milliseconds: 500),
-        curve: Curves.easeInOut,
-      );
+      if (!mounted || !_itemScrollController.isAttached) return;
+      _itemScrollController.jumpTo(index: 0);
     });
   }
 
@@ -354,6 +327,32 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
             Future.delayed(const Duration(milliseconds: 100), () {
               _scrollToVerse(verseNumber);
             });
+          },
+        );
+      },
+    );
+  }
+
+  /// Show chapter grid selector dialog
+  Future<void> _showChapterGridSelector() async {
+    if (_selectedBookName == null) return;
+
+    await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return BibleChapterGridSelector(
+          totalChapters: _maxChapter,
+          selectedChapter: _selectedChapter ?? 1,
+          bookName: _selectedBookName!,
+          onChapterSelected: (chapterNumber) async {
+            Navigator.of(context).pop();
+            setState(() {
+              _selectedChapter = chapterNumber;
+              _selectedVerse = 1;
+              _selectedVerses.clear();
+            });
+            await _loadVerses();
+            _scrollToTop();
           },
         );
       },
@@ -513,12 +512,6 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
       // Initialize selected verse if not set
       if (_selectedVerse == null || _selectedVerse! > _maxVerse) {
         _selectedVerse = 1;
-      }
-      // Create GlobalKeys for each verse for direct scrolling
-      _verseKeys.clear();
-      for (final verse in verses) {
-        final verseNum = verse['verse'] as int;
-        _verseKeys[verseNum] = GlobalKey();
       }
     });
 
@@ -1106,29 +1099,43 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                           ),
                           const SizedBox(width: 12),
                           Expanded(
-                            child: DropdownButton<int>(
-                              value: _selectedChapter,
-                              icon: const Icon(Icons.arrow_drop_down),
-                              isExpanded: true,
-                              items: List.generate(_maxChapter, (i) => i + 1)
-                                  .map(
-                                    (ch) => DropdownMenuItem<int>(
-                                      value: ch,
-                                      child: Text('bible.chapter'
-                                          .tr({'number': ch.toString()})),
+                            child: InkWell(
+                              onTap: _showChapterGridSelector,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 12),
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                    color: colorScheme.outline
+                                        .withValues(alpha: 0.5),
+                                  ),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.format_list_numbered,
+                                        size: 20, color: colorScheme.primary),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        _selectedChapter != null
+                                            ? 'bible.chapter'.tr({
+                                                'number':
+                                                    _selectedChapter.toString()
+                                              })
+                                            : 'Cap. 1',
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          color: colorScheme.onSurface,
+                                        ),
+                                      ),
                                     ),
-                                  )
-                                  .toList(),
-                              onChanged: (val) async {
-                                if (val == null) return;
-                                setState(() {
-                                  _selectedChapter = val;
-                                  _selectedVerse = 1; // Reset to verse 1
-                                  _selectedVerses.clear();
-                                });
-                                await _loadVerses();
-                                _scrollToTop(); // Scroll to top of new chapter
-                              },
+                                    Icon(Icons.arrow_drop_down,
+                                        color: colorScheme.onSurface),
+                                  ],
+                                ),
+                              ),
                             ),
                           ),
                           const SizedBox(width: 12),
@@ -1206,8 +1213,9 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                     Expanded(
                       child: _verses.isEmpty
                           ? Center(child: Text('bible.no_verses'.tr()))
-                          : ListView.builder(
-                              controller: _scrollController,
+                          : ScrollablePositionedList.builder(
+                              itemScrollController: _itemScrollController,
+                              itemPositionsListener: _itemPositionsListener,
                               padding:
                                   const EdgeInsets.fromLTRB(16, 16, 16, 32),
                               // <-- extra bottom padding
@@ -1222,7 +1230,6 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                                 final isPersistentlyMarked =
                                     _persistentlyMarkedVerses.contains(key);
                                 return GestureDetector(
-                                  key: _verseKeys[verseNumber],
                                   onTap: () => _onVerseTap(verseNumber),
                                   onLongPress: () =>
                                       _toggleVersePersistentMark(key),
