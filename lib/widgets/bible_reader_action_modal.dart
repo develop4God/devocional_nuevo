@@ -35,6 +35,22 @@ class BibleReaderActionModal extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
+          // Close (X) button, top-right
+          Row(
+            children: [
+              const Spacer(),
+              IconButton(
+                icon: Icon(Icons.close,
+                    color: colorScheme.onSurfaceVariant, size: 26),
+                onPressed: () => Navigator.of(context).pop(),
+                tooltip: 'bible.close'.tr(),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+
           // Handle bar
           Container(
             width: 40,

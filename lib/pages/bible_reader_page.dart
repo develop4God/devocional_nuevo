@@ -747,18 +747,28 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
 
   void _onVerseTap(int verseNumber) {
     final key = "$_selectedBookName|$_selectedChapter|$verseNumber";
+    final wasSelected = _selectedVerses.contains(key);
+
     setState(() {
-      if (_selectedVerses.contains(key)) {
+      if (wasSelected) {
         _selectedVerses.remove(key);
       } else {
         _selectedVerses.add(key);
       }
     });
-    if (_selectedVerses.isNotEmpty && !_bottomSheetOpen) {
-      _showBottomSheet();
-    } else if (_selectedVerses.isEmpty && _bottomSheetOpen) {
-      Navigator.of(context).pop();
-      _bottomSheetOpen = false;
+
+    if (!wasSelected) {
+      // Only open the modal if a new verse is selected
+      if (_selectedVerses.isNotEmpty && !_bottomSheetOpen) {
+        _showBottomSheet();
+      }
+    } else {
+      // If that was the last selected verse, close the modal
+      if (_selectedVerses.isEmpty && _bottomSheetOpen) {
+        Navigator.of(context).pop();
+        _bottomSheetOpen = false;
+      }
+      // If at least one remains selected, do nothing (do not reopen modal)
     }
   }
 
