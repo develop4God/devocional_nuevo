@@ -5,8 +5,8 @@ import 'package:bible_reader_core/bible_reader_core.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/utils/copyright_utils.dart';
 import 'package:devocional_nuevo/widgets/app_bar_constants.dart';
-import 'package:devocional_nuevo/widgets/bible_reader_action_modal.dart';
 import 'package:devocional_nuevo/widgets/bible_chapter_grid_selector.dart';
+import 'package:devocional_nuevo/widgets/bible_reader_action_modal.dart';
 import 'package:devocional_nuevo/widgets/bible_verse_grid_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -316,7 +316,8 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
         return BibleVerseGridSelector(
           totalVerses: _maxVerse,
           selectedVerse: _selectedVerse ?? 1,
-          bookName: _selectedBookName!,
+          bookName: _books.firstWhere(
+              (b) => b['short_name'] == _selectedBookName)['long_name'],
           chapterNumber: _selectedChapter!,
           onVerseSelected: (verseNumber) {
             Navigator.of(context).pop();
@@ -343,7 +344,8 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
         return BibleChapterGridSelector(
           totalChapters: _maxChapter,
           selectedChapter: _selectedChapter ?? 1,
-          bookName: _selectedBookName!,
+          bookName: _books.firstWhere(
+              (b) => b['short_name'] == _selectedBookName)['long_name'],
           onChapterSelected: (chapterNumber) async {
             Navigator.of(context).pop();
             setState(() {
@@ -1118,12 +1120,10 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                                     const SizedBox(width: 8),
                                     Expanded(
                                       child: Text(
-                                        _selectedChapter != null
-                                            ? 'bible.chapter'.tr({
-                                                'number':
-                                                    _selectedChapter.toString()
-                                              })
-                                            : 'Cap. 1',
+                                        'bible.chapter'.tr({
+                                          'number':
+                                              (_selectedChapter ?? 1).toString()
+                                        }),
                                         overflow: TextOverflow.ellipsis,
                                         style: TextStyle(
                                           fontSize: 14,
