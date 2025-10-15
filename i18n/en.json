@@ -570,6 +570,9 @@
     "save_marked_verses": "Save marked verses",
     "no_matches_retry": "No matches found, please retry with different search terms.",
     "previous_chapter": "Previous chapter",
-    "next_chapter": "Next chapter"
+    "next_chapter": "Next chapter",
+    "select_verse": "Select verse",
+    "total_verses": "{count} verses available",
+    "close": "Close"
   }
 }

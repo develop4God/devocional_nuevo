@@ -570,6 +570,9 @@
     "save_marked_verses": "Salvar versículos marcados",
     "no_matches_retry": "Nenhuma correspondência encontrada, tente novamente com termos diferentes.",
     "previous_chapter": "Capítulo anterior",
-    "next_chapter": "Próximo capítulo"
+    "next_chapter": "Próximo capítulo",
+    "select_verse": "Selecionar versículo",
+    "total_verses": "{count} versículos disponíveis",
+    "close": "Fechar"
   }
 }

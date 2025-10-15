@@ -5,6 +5,7 @@ import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/utils/copyright_utils.dart';
 import 'package:devocional_nuevo/widgets/app_bar_constants.dart';
 import 'package:devocional_nuevo/widgets/bible_reader_action_modal.dart';
+import 'package:devocional_nuevo/widgets/bible_verse_grid_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart' show ShareParams, SharePlus;
@@ -300,6 +301,33 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
         curve: Curves.easeInOut,
       );
     });
+  }
+
+  /// Show verse grid selector dialog
+  Future<void> _showVerseGridSelector() async {
+    if (_selectedBookName == null || _selectedChapter == null) return;
+
+    await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return BibleVerseGridSelector(
+          totalVerses: _maxVerse,
+          selectedVerse: _selectedVerse ?? 1,
+          bookName: _selectedBookName!,
+          chapterNumber: _selectedChapter!,
+          onVerseSelected: (verseNumber) {
+            Navigator.of(context).pop();
+            setState(() {
+              _selectedVerse = verseNumber;
+            });
+            // Scroll to the selected verse after the dialog closes
+            Future.delayed(const Duration(milliseconds: 100), () {
+              _scrollToVerse(verseNumber);
+            });
+          },
+        );
+      },
+    );
   }
 
   // Show book selector dialog with search
@@ -1075,30 +1103,18 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                           ),
                           const SizedBox(width: 12),
                           Expanded(
-                            child: DropdownButton<int>(
-                              value: _selectedVerse,
-                              icon: const Icon(Icons.arrow_drop_down),
-                              isExpanded: true,
-                              items: List.generate(_maxVerse, (i) => i + 1)
-                                  .map(
-                                    (v) => DropdownMenuItem<int>(
-                                      value: v,
-                                      child: Text('V. $v'),
-                                    ),
-                                  )
-                                  .toList(),
-                              onChanged: (val) async {
-                                if (val == null) return;
-                                setState(() {
-                                  _selectedVerse = val;
-                                });
-                                await Future.delayed(
-                                    Duration.zero); // Ensure UI rebuild
-                                WidgetsBinding.instance
-                                    .addPostFrameCallback((_) {
-                                  _scrollToVerse(val);
-                                });
-                              },
+                            child: OutlinedButton.icon(
+                              onPressed: () => _showVerseGridSelector(),
+                              icon: const Icon(Icons.format_list_numbered,
+                                  size: 18),
+                              label: Text(
+                                'V. $_selectedVerse',
+                                style: const TextStyle(fontSize: 14),
+                              ),
+                              style: OutlinedButton.styleFrom(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 12),
+                              ),
                             ),
                           ),
                         ],
