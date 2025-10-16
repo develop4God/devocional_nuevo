@@ -1,6 +1,8 @@
 export 'src/bible_db_service.dart';
 export 'src/bible_preferences_service.dart';
+export 'src/bible_reader_controller.dart';
 export 'src/bible_reader_service.dart';
+export 'src/bible_reader_state.dart';
 export 'src/bible_reading_position_service.dart';
 export 'src/bible_reference_parser.dart';
 export 'src/bible_text_normalizer.dart';
