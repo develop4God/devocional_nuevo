@@ -12,73 +12,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:share_plus/share_plus.dart' show ShareParams, SharePlus;
-import 'package:shared_preferences/shared_preferences.dart';
-
-/// Helper class to parse Bible references like "Juan 3:16", "Genesis 1:1", etc.
-class BibleReferenceParser {
-  /// Parses a Bible reference string and returns book name, chapter, and optional verse
-  /// Returns null if the input doesn't match a Bible reference pattern
-  static Map<String, dynamic>? parse(String input) {
-    final trimmed = input.trim();
-
-    // Pattern 1: "Book Chapter:Verse" (e.g., "Juan 3:16", "Genesis 1:1")
-    // Pattern 2: "Book Chapter" (e.g., "Juan 3", "Genesis 1")
-    // Supports book names with numbers (e.g., "1 Juan", "2 Corintios")
-    // Supports book names with spaces and accents
-
-    // Match patterns like: "1 Juan 3:16" or "Juan 3:16" or "Genesis 1:1"
-    final regexWithVerse = RegExp(
-      r'^(\d+\s+)?([a-záéíóúñü\s\.]+?)\s+(\d+):(\d+)$',
-      caseSensitive: false,
-      unicode: true,
-    );
-
-    // Match patterns like: "1 Juan 3" or "Juan 3" or "Genesis 1"
-    final regexWithoutVerse = RegExp(
-      r'^(\d+\s+)?([a-záéíóúñü\s\.]+?)\s+(\d+)$',
-      caseSensitive: false,
-      unicode: true,
-    );
-
-    // Try with verse first
-    var match = regexWithVerse.firstMatch(trimmed);
-    if (match != null) {
-      final bookPrefix = match.group(1)?.trim() ?? '';
-      final bookName = match.group(2)!.trim();
-      final chapter = int.tryParse(match.group(3)!);
-      final verse = int.tryParse(match.group(4)!);
-
-      if (chapter != null && verse != null) {
-        final fullBookName =
-            bookPrefix.isEmpty ? bookName : '$bookPrefix $bookName';
-        return {
-          'bookName': fullBookName,
-          'chapter': chapter,
-          'verse': verse,
-        };
-      }
-    }
-
-    // Try without verse
-    match = regexWithoutVerse.firstMatch(trimmed);
-    if (match != null) {
-      final bookPrefix = match.group(1)?.trim() ?? '';
-      final bookName = match.group(2)!.trim();
-      final chapter = int.tryParse(match.group(3)!);
-
-      if (chapter != null) {
-        final fullBookName =
-            bookPrefix.isEmpty ? bookName : '$bookPrefix $bookName';
-        return {
-          'bookName': fullBookName,
-          'chapter': chapter,
-        };
-      }
-    }
-
-    return null;
-  }
-}
 
 class BibleReaderPage extends StatefulWidget {
   final List<BibleVersion> versions;
@@ -91,6 +24,8 @@ class BibleReaderPage extends StatefulWidget {
 
 class _BibleReaderPageState extends State<BibleReaderPage> {
   late BibleVersion _selectedVersion;
+  late BibleReaderService _readerService;
+  late BiblePreferencesService _preferencesService;
   List<BibleVersion> _availableVersions = [];
   String _deviceLanguage = '';
   List<Map<String, dynamic>> _books = [];
@@ -111,8 +46,6 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
   bool _isSearching = false;
   List<Map<String, dynamic>> _searchResults = [];
   final TextEditingController _searchController = TextEditingController();
-  final BibleReadingPositionService _positionService =
-      BibleReadingPositionService();
   final ItemScrollController _itemScrollController = ItemScrollController();
   final ItemPositionsListener _itemPositionsListener =
       ItemPositionsListener.create();
@@ -120,6 +53,9 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
   @override
   void initState() {
     super.initState();
+
+    // Initialize services
+    _preferencesService = BiblePreferencesService();
 
     // DEBUG: Print all passed versions
     debugPrint('🟦 [Bible] All versions passed to widget:');
@@ -160,8 +96,20 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
       }
     }
 
+    // Initialize first version to create the service
+    _selectedVersion = _availableVersions.isNotEmpty
+        ? _availableVersions.first
+        : widget.versions.first;
+
+    // Initialize the reader service
+    _selectedVersion.service ??= BibleDbService();
+    _readerService = BibleReaderService(
+      dbService: _selectedVersion.service!,
+      positionService: BibleReadingPositionService(),
+    );
+
     // Try to restore last reading position
-    final lastPosition = await _positionService.getLastPosition();
+    final lastPosition = await _readerService.getLastPosition();
 
     if (lastPosition != null &&
         _availableVersions.any((v) =>
@@ -173,13 +121,16 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
             v.name == lastPosition['version'] &&
             v.languageCode == lastPosition['languageCode'],
       );
+      // Reinitialize service with correct version
+      _selectedVersion.service ??= BibleDbService();
+      _readerService = BibleReaderService(
+        dbService: _selectedVersion.service!,
+        positionService: BibleReadingPositionService(),
+      );
       await _initVersion();
       await _restorePosition(lastPosition);
     } else {
       // Start with first available version
-      _selectedVersion = _availableVersions.isNotEmpty
-          ? _availableVersions.first
-          : widget.versions.first;
       await _initVersion();
     }
 
@@ -210,16 +161,15 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
 
   // Load font size preference
   Future<void> _loadFontSize() async {
-    final prefs = await SharedPreferences.getInstance();
+    final fontSize = await _preferencesService.getFontSize();
     setState(() {
-      _fontSize = prefs.getDouble('bible_font_size') ?? 18.0;
+      _fontSize = fontSize;
     });
   }
 
   // Save font size preference
   Future<void> _saveFontSize() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setDouble('bible_font_size', _fontSize);
+    await _preferencesService.saveFontSize(_fontSize);
   }
 
   // Increase font size
@@ -244,19 +194,16 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
 
   // Load persistently marked verses
   Future<void> _loadMarkedVerses() async {
-    final prefs = await SharedPreferences.getInstance();
-    final markedList = prefs.getStringList('bible_marked_verses') ?? [];
+    final markedVerses = await _preferencesService.getMarkedVerses();
     setState(() {
       _persistentlyMarkedVerses.clear();
-      _persistentlyMarkedVerses.addAll(markedList);
+      _persistentlyMarkedVerses.addAll(markedVerses);
     });
   }
 
   // Save persistently marked verses
   Future<void> _saveMarkedVerses() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setStringList(
-        'bible_marked_verses', _persistentlyMarkedVerses.toList());
+    await _preferencesService.saveMarkedVerses(_persistentlyMarkedVerses);
   }
 
   // Toggle verse persistent marking
@@ -467,11 +414,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
       _isLoading = true;
     });
 
-    _selectedVersion.service ??= BibleDbService();
-    await _selectedVersion.service!.initDb(
-      _selectedVersion.assetPath,
-      _selectedVersion.dbFileName,
-    );
+    await _readerService.initializeVersion(_selectedVersion);
     await _loadBooks();
 
     setState(() {
@@ -480,7 +423,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
   }
 
   Future<void> _loadBooks() async {
-    final books = await _selectedVersion.service!.getAllBooks();
+    final books = await _readerService.loadBooks();
     setState(() {
       _books = books;
       if (books.isNotEmpty) {
@@ -495,8 +438,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
 
   Future<void> _loadMaxChapter() async {
     if (_selectedBookNumber == null) return;
-    final max =
-        await _selectedVersion.service!.getMaxChapter(_selectedBookNumber!);
+    final max = await _readerService.getMaxChapter(_selectedBookNumber!);
     setState(() {
       _maxChapter = max;
     });
@@ -504,7 +446,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
 
   Future<void> _loadVerses() async {
     if (_selectedBookNumber == null || _selectedChapter == null) return;
-    final verses = await _selectedVersion.service!.getChapterVerses(
+    final verses = await _readerService.loadChapter(
       _selectedBookNumber!,
       _selectedChapter!,
     );
@@ -519,7 +461,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
 
     // Save reading position
     if (_selectedBookName != null) {
-      await _positionService.savePosition(
+      await _readerService.saveReadingPosition(
         bookName: _selectedBookName!,
         bookNumber: _selectedBookNumber!,
         chapter: _selectedChapter!,
@@ -623,6 +565,13 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
 
     _selectedVersion = newVersion;
 
+    // Reinitialize the reader service with the new version's DB service
+    _selectedVersion.service ??= BibleDbService();
+    _readerService = BibleReaderService(
+      dbService: _selectedVersion.service!,
+      positionService: BibleReadingPositionService(),
+    );
+
     // Show a brief message that the version is being loaded
     if (mounted) {
       final colorScheme = Theme.of(context).colorScheme;
@@ -670,13 +619,12 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
       // final verse = reference['verse'] as int?;
 
       // Try to find the book in the database
-      final book = await _selectedVersion.service!.findBookByName(bookName);
+      final book = await _readerService.findBookByName(bookName);
 
       if (book != null) {
         // Book found - navigate to it
         final bookNumber = book['book_number'] as int;
-        final maxChapter =
-            await _selectedVersion.service!.getMaxChapter(bookNumber);
+        final maxChapter = await _readerService.getMaxChapter(bookNumber);
 
         // Validate chapter exists
         if (chapter > 0 && chapter <= maxChapter) {
@@ -704,7 +652,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     }
 
     // Not a valid reference or book not found - fall back to text search
-    final results = await _selectedVersion.service!.searchVerses(query);
+    final results = await _readerService.searchVerses(query);
 
     setState(() {
       _searchResults = results;
