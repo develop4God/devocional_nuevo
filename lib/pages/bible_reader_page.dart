@@ -1,6 +1,7 @@
 //bible_reader_page.dart - Pure UI presentation layer
 import 'dart:ui' as ui;
 
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:bible_reader_core/bible_reader_core.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/utils/copyright_utils.dart';
@@ -198,6 +199,12 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
   void _showBottomSheet() {
     _bottomSheetOpen = true;
 
+    // Check if all selected verses are already saved
+    final selectedVerses = _controller.state.selectedVerses.toList();
+    final persistentlyMarkedVerses = _controller.state.persistentlyMarkedVerses;
+    final areVersesSaved =
+        selectedVerses.every((key) => persistentlyMarkedVerses.contains(key));
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -213,6 +220,9 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
             Navigator.pop(context);
             _controller.clearSelectedVerses();
           },
+          areVersesSaved: areVersesSaved,
+          onDeleteSaved:
+              areVersesSaved ? () => _deleteSelectedVerses(context) : null,
         );
       },
     ).whenComplete(() {
@@ -307,6 +317,37 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
       SnackBar(
         content: Text(
           'bible.save_marked_verses'.tr(),
+          style: TextStyle(color: colorScheme.onSecondary),
+        ),
+        backgroundColor: colorScheme.secondary,
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  void _deleteSelectedVerses(BuildContext modalContext) async {
+    final selectedVerses = List.from(_controller.state.selectedVerses);
+    for (final verseKey in selectedVerses) {
+      // Toggle will remove the mark if it's already marked
+      await _controller.togglePersistentMark(verseKey);
+    }
+
+    if (!mounted) return;
+
+    // Close modal immediately after mounted check
+    if (modalContext.mounted) {
+      Navigator.pop(modalContext);
+    }
+    _controller.clearSelectedVerses();
+
+    // Capture widget's context-dependent values immediately after mounted check
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+    final colorScheme = Theme.of(context).colorScheme;
+
+    scaffoldMessenger.showSnackBar(
+      SnackBar(
+        content: Text(
+          'bible.deleted_marked_verses'.tr(),
           style: TextStyle(color: colorScheme.onSecondary),
         ),
         backgroundColor: colorScheme.secondary,
@@ -758,29 +799,32 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                             },
                           ),
                           Expanded(
-                            child: InkWell(
-                              borderRadius: BorderRadius.circular(8),
-                              onTap: _showBookSelector,
-                              child: Padding(
+                            child: OutlinedButton(
+                              onPressed: _showBookSelector,
+                              style: OutlinedButton.styleFrom(
                                 padding: const EdgeInsets.symmetric(
-                                    vertical: 6.0, horizontal: 4.0),
-                                child: Text(
-                                  state.selectedBookName != null
-                                      ? '${state.books.firstWhere((b) => b['short_name'] == state.selectedBookName, orElse: () => {
-                                            'long_name': state.selectedBookName
-                                          })['long_name']} ${state.selectedChapter}'
-                                      : '',
-                                  textAlign: TextAlign.center,
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .titleMedium
-                                      ?.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                        color: colorScheme.primary,
-                                        decoration: TextDecoration.underline,
-                                        decorationColor: colorScheme.primary,
-                                      ),
+                                    vertical: 6.0, horizontal: 8.0),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
                                 ),
+                              ),
+                              child: AutoSizeText(
+                                state.selectedBookName != null
+                                    ? '${state.books.firstWhere((b) => b['short_name'] == state.selectedBookName, orElse: () => {
+                                          'long_name': state.selectedBookName
+                                        })['long_name']} ${state.selectedChapter}'
+                                    : '',
+                                textAlign: TextAlign.center,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleMedium
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      color: colorScheme.primary,
+                                    ),
+                                maxLines: 1,
+                                minFontSize: 12,
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
                           ),

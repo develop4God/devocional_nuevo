@@ -62,8 +62,9 @@ class _BibleSearchOverlayState extends State<BibleSearchOverlay> {
     // Close the overlay
     Navigator.of(context).pop();
 
-    // Wait for navigation to complete, then scroll to verse
-    Future.delayed(const Duration(milliseconds: 300), () {
+    // Wait longer for navigation and chapter loading to complete, then scroll to verse
+    // Increased delay to ensure chapter data is fully loaded before scrolling
+    Future.delayed(const Duration(milliseconds: 800), () {
       if (mounted) {
         final verse = result['verse'];
         widget.onScrollToVerse(verse);
