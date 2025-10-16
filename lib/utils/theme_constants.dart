@@ -160,6 +160,14 @@ final Map<String, Map<String, ThemeData>> appThemeFamilies = {
         filled: true,
         fillColor: Colors.white,
       ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          side: const BorderSide(color: Colors.black, width: 1.0),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(25),
+          ),
+        ),
+      ),
     ),
     'dark': _baseDarkTheme.copyWith(
       appBarTheme: AppBarTheme(
@@ -196,15 +204,15 @@ final Map<String, Map<String, ThemeData>> appThemeFamilies = {
         contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.all(Radius.circular(25)),
-          borderSide: BorderSide(color: Colors.black, width: 1.0),
+          borderSide: BorderSide(color: Colors.white, width: 1.0),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.all(Radius.circular(25)),
-          borderSide: BorderSide(color: Colors.black, width: 1.0),
+          borderSide: BorderSide(color: Colors.white, width: 1.0),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.all(Radius.circular(25)),
-          borderSide: BorderSide(color: Colors.black, width: 2.0),
+          borderSide: BorderSide(color: Colors.white, width: 2.0),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.all(Radius.circular(25)),
@@ -216,6 +224,14 @@ final Map<String, Map<String, ThemeData>> appThemeFamilies = {
         ),
         filled: true,
         fillColor: Colors.white,
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          side: const BorderSide(color: Colors.white, width: 1.0),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(25),
+          ),
+        ),
       ),
     ),
   },
@@ -275,6 +291,14 @@ final Map<String, Map<String, ThemeData>> appThemeFamilies = {
         filled: true,
         fillColor: Colors.white,
       ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          side: const BorderSide(color: Colors.black, width: 1.0),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(25),
+          ),
+        ),
+      ),
     ),
     'dark': _baseDarkTheme.copyWith(
       appBarTheme: AppBarTheme(
@@ -311,15 +335,15 @@ final Map<String, Map<String, ThemeData>> appThemeFamilies = {
         contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.all(Radius.circular(25)),
-          borderSide: BorderSide(color: Colors.black, width: 1.0),
+          borderSide: BorderSide(color: Colors.white, width: 1.0),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.all(Radius.circular(25)),
-          borderSide: BorderSide(color: Colors.black, width: 1.0),
+          borderSide: BorderSide(color: Colors.white, width: 1.0),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.all(Radius.circular(25)),
-          borderSide: BorderSide(color: Colors.black, width: 2.0),
+          borderSide: BorderSide(color: Colors.white, width: 2.0),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.all(Radius.circular(25)),
@@ -331,6 +355,14 @@ final Map<String, Map<String, ThemeData>> appThemeFamilies = {
         ),
         filled: true,
         fillColor: Colors.white,
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          side: const BorderSide(color: Colors.white, width: 1.0),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(25),
+          ),
+        ),
       ),
     ),
   },
@@ -390,6 +422,14 @@ final Map<String, Map<String, ThemeData>> appThemeFamilies = {
         filled: true,
         fillColor: Colors.white,
       ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          side: const BorderSide(color: Colors.black, width: 1.0),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(25),
+          ),
+        ),
+      ),
     ),
     'dark': _baseDarkTheme.copyWith(
       appBarTheme: AppBarTheme(
@@ -426,15 +466,15 @@ final Map<String, Map<String, ThemeData>> appThemeFamilies = {
         contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.all(Radius.circular(25)),
-          borderSide: BorderSide(color: Colors.black, width: 1.0),
+          borderSide: BorderSide(color: Colors.white, width: 1.0),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.all(Radius.circular(25)),
-          borderSide: BorderSide(color: Colors.black, width: 1.0),
+          borderSide: BorderSide(color: Colors.white, width: 1.0),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.all(Radius.circular(25)),
-          borderSide: BorderSide(color: Colors.black, width: 2.0),
+          borderSide: BorderSide(color: Colors.white, width: 2.0),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.all(Radius.circular(25)),
@@ -446,6 +486,14 @@ final Map<String, Map<String, ThemeData>> appThemeFamilies = {
         ),
         filled: true,
         fillColor: Colors.white,
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          side: const BorderSide(color: Colors.white, width: 1.0),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(25),
+          ),
+        ),
       ),
     ),
   },
@@ -505,6 +553,14 @@ final Map<String, Map<String, ThemeData>> appThemeFamilies = {
         filled: true,
         fillColor: Colors.white,
       ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          side: const BorderSide(color: Colors.black, width: 1.0),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(25),
+          ),
+        ),
+      ),
     ),
     'dark': _baseDarkTheme.copyWith(
       appBarTheme: AppBarTheme(
@@ -541,15 +597,15 @@ final Map<String, Map<String, ThemeData>> appThemeFamilies = {
         contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.all(Radius.circular(25)),
-          borderSide: BorderSide(color: Colors.black, width: 1.0),
+          borderSide: BorderSide(color: Colors.white, width: 1.0),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.all(Radius.circular(25)),
-          borderSide: BorderSide(color: Colors.black, width: 1.0),
+          borderSide: BorderSide(color: Colors.white, width: 1.0),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.all(Radius.circular(25)),
-          borderSide: BorderSide(color: Colors.black, width: 2.0),
+          borderSide: BorderSide(color: Colors.white, width: 2.0),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.all(Radius.circular(25)),
@@ -561,6 +617,14 @@ final Map<String, Map<String, ThemeData>> appThemeFamilies = {
         ),
         filled: true,
         fillColor: Colors.white,
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          side: const BorderSide(color: Colors.white, width: 1.0),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(25),
+          ),
+        ),
       ),
     ),
   },
@@ -625,6 +689,14 @@ final Map<String, Map<String, ThemeData>> appThemeFamilies = {
         filled: true,
         fillColor: Colors.white,
       ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          side: const BorderSide(color: Colors.black, width: 1.0),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(25),
+          ),
+        ),
+      ),
     ),
     'dark': _baseDarkTheme.copyWith(
       appBarTheme: AppBarTheme(
@@ -661,15 +733,15 @@ final Map<String, Map<String, ThemeData>> appThemeFamilies = {
         contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.all(Radius.circular(25)),
-          borderSide: BorderSide(color: Colors.black, width: 1.0),
+          borderSide: BorderSide(color: Colors.white, width: 1.0),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.all(Radius.circular(25)),
-          borderSide: BorderSide(color: Colors.black, width: 1.0),
+          borderSide: BorderSide(color: Colors.white, width: 1.0),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.all(Radius.circular(25)),
-          borderSide: BorderSide(color: Colors.black, width: 2.0),
+          borderSide: BorderSide(color: Colors.white, width: 2.0),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.all(Radius.circular(25)),
@@ -681,6 +753,14 @@ final Map<String, Map<String, ThemeData>> appThemeFamilies = {
         ),
         filled: true,
         fillColor: Colors.white,
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          side: const BorderSide(color: Colors.white, width: 1.0),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(25),
+          ),
+        ),
       ),
     ),
   },

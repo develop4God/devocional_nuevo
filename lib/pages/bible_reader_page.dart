@@ -984,10 +984,15 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                                         horizontal: 12, vertical: 12),
                                     decoration: BoxDecoration(
                                       border: Border.all(
-                                        color: colorScheme.outline
-                                            .withValues(alpha: 0.5),
+                                        color: Theme.of(context)
+                                                .outlinedButtonTheme
+                                                .style
+                                                ?.side
+                                                ?.resolve({})?.color ??
+                                            colorScheme.outline,
+                                        width: 1.0,
                                       ),
-                                      borderRadius: BorderRadius.circular(8),
+                                      borderRadius: BorderRadius.circular(25),
                                     ),
                                     child: Row(
                                       children: [
@@ -1030,10 +1035,6 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                                   style: OutlinedButton.styleFrom(
                                     padding: const EdgeInsets.symmetric(
                                         vertical: 12),
-                                    side: BorderSide(
-                                      color: colorScheme.outline
-                                          .withValues(alpha: 0.5),
-                                    ),
                                   ),
                                 ),
                               ),
