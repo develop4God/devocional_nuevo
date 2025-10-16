@@ -988,8 +988,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                                                 .outlinedButtonTheme
                                                 .style
                                                 ?.side
-                                                ?.resolve({})
-                                                ?.color ??
+                                                ?.resolve({})?.color ??
                                             colorScheme.outline,
                                         width: 1.0,
                                       ),
