@@ -1,8 +1,11 @@
 import 'package:bible_reader_core/src/bible_version.dart';
 
+/// Immutable state class for Bible Reader
+/// Designed to be framework-agnostic and ready for Bloc/Riverpod integration
 class BibleReaderState {
   final List<BibleVersion> availableVersions;
   final BibleVersion? selectedVersion;
+  final String deviceLanguage;
   final List<Map<String, dynamic>> books;
   final String? selectedBookName;
   final int? selectedBookNumber;
@@ -23,6 +26,7 @@ class BibleReaderState {
   const BibleReaderState({
     this.availableVersions = const [],
     this.selectedVersion,
+    this.deviceLanguage = '',
     this.books = const [],
     this.selectedBookName,
     this.selectedBookNumber,
@@ -44,6 +48,7 @@ class BibleReaderState {
   BibleReaderState copyWith({
     List<BibleVersion>? availableVersions,
     BibleVersion? selectedVersion,
+    String? deviceLanguage,
     List<Map<String, dynamic>>? books,
     String? selectedBookName,
     int? selectedBookNumber,
@@ -64,6 +69,7 @@ class BibleReaderState {
     return BibleReaderState(
       availableVersions: availableVersions ?? this.availableVersions,
       selectedVersion: selectedVersion ?? this.selectedVersion,
+      deviceLanguage: deviceLanguage ?? this.deviceLanguage,
       books: books ?? this.books,
       selectedBookName: selectedBookName ?? this.selectedBookName,
       selectedBookNumber: selectedBookNumber ?? this.selectedBookNumber,
