@@ -135,6 +135,31 @@ final Map<String, Map<String, ThemeData>> appThemeFamilies = {
         overlayColor: Colors.deepPurple.withAlpha(32),
         trackHeight: 4,
       ),
+      inputDecorationTheme: const InputDecorationTheme(
+        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(25)),
+          borderSide: BorderSide(color: Colors.black, width: 1.0),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(25)),
+          borderSide: BorderSide(color: Colors.black, width: 1.0),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(25)),
+          borderSide: BorderSide(color: Colors.black, width: 2.0),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(25)),
+          borderSide: BorderSide(color: Colors.red, width: 1.0),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(25)),
+          borderSide: BorderSide(color: Colors.red, width: 2.0),
+        ),
+        filled: true,
+        fillColor: Colors.white,
+      ),
     ),
     'dark': _baseDarkTheme.copyWith(
       appBarTheme: AppBarTheme(
@@ -166,6 +191,31 @@ final Map<String, Map<String, ThemeData>> appThemeFamilies = {
         thumbColor: Colors.deepPurpleAccent,
         overlayColor: Colors.deepPurpleAccent.withAlpha(32),
         trackHeight: 4,
+      ),
+      inputDecorationTheme: const InputDecorationTheme(
+        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(25)),
+          borderSide: BorderSide(color: Colors.black, width: 1.0),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(25)),
+          borderSide: BorderSide(color: Colors.black, width: 1.0),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(25)),
+          borderSide: BorderSide(color: Colors.black, width: 2.0),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(25)),
+          borderSide: BorderSide(color: Colors.red, width: 1.0),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(25)),
+          borderSide: BorderSide(color: Colors.red, width: 2.0),
+        ),
+        filled: true,
+        fillColor: Colors.white,
       ),
     ),
   },
@@ -200,6 +250,31 @@ final Map<String, Map<String, ThemeData>> appThemeFamilies = {
         overlayColor: Colors.green.withAlpha(32),
         trackHeight: 4,
       ),
+      inputDecorationTheme: const InputDecorationTheme(
+        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(25)),
+          borderSide: BorderSide(color: Colors.black, width: 1.0),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(25)),
+          borderSide: BorderSide(color: Colors.black, width: 1.0),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(25)),
+          borderSide: BorderSide(color: Colors.black, width: 2.0),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(25)),
+          borderSide: BorderSide(color: Colors.red, width: 1.0),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(25)),
+          borderSide: BorderSide(color: Colors.red, width: 2.0),
+        ),
+        filled: true,
+        fillColor: Colors.white,
+      ),
     ),
     'dark': _baseDarkTheme.copyWith(
       appBarTheme: AppBarTheme(
@@ -231,6 +306,31 @@ final Map<String, Map<String, ThemeData>> appThemeFamilies = {
         thumbColor: Colors.lightGreenAccent.shade700,
         overlayColor: Colors.lightGreenAccent.shade700.withAlpha(32),
         trackHeight: 4,
+      ),
+      inputDecorationTheme: const InputDecorationTheme(
+        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(25)),
+          borderSide: BorderSide(color: Colors.black, width: 1.0),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(25)),
+          borderSide: BorderSide(color: Colors.black, width: 1.0),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(25)),
+          borderSide: BorderSide(color: Colors.black, width: 2.0),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(25)),
+          borderSide: BorderSide(color: Colors.red, width: 1.0),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(25)),
+          borderSide: BorderSide(color: Colors.red, width: 2.0),
+        ),
+        filled: true,
+        fillColor: Colors.white,
       ),
     ),
   },
@@ -265,6 +365,31 @@ final Map<String, Map<String, ThemeData>> appThemeFamilies = {
         overlayColor: Colors.pink.withAlpha(32),
         trackHeight: 4,
       ),
+      inputDecorationTheme: const InputDecorationTheme(
+        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(25)),
+          borderSide: BorderSide(color: Colors.black, width: 1.0),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(25)),
+          borderSide: BorderSide(color: Colors.black, width: 1.0),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(25)),
+          borderSide: BorderSide(color: Colors.black, width: 2.0),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(25)),
+          borderSide: BorderSide(color: Colors.red, width: 1.0),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(25)),
+          borderSide: BorderSide(color: Colors.red, width: 2.0),
+        ),
+        filled: true,
+        fillColor: Colors.white,
+      ),
     ),
     'dark': _baseDarkTheme.copyWith(
       appBarTheme: AppBarTheme(
@@ -296,6 +421,31 @@ final Map<String, Map<String, ThemeData>> appThemeFamilies = {
         thumbColor: Colors.pinkAccent.shade700,
         overlayColor: Colors.pinkAccent.shade700.withAlpha(32),
         trackHeight: 4,
+      ),
+      inputDecorationTheme: const InputDecorationTheme(
+        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(25)),
+          borderSide: BorderSide(color: Colors.black, width: 1.0),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(25)),
+          borderSide: BorderSide(color: Colors.black, width: 1.0),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(25)),
+          borderSide: BorderSide(color: Colors.black, width: 2.0),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(25)),
+          borderSide: BorderSide(color: Colors.red, width: 1.0),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(25)),
+          borderSide: BorderSide(color: Colors.red, width: 2.0),
+        ),
+        filled: true,
+        fillColor: Colors.white,
       ),
     ),
   },
@@ -330,6 +480,31 @@ final Map<String, Map<String, ThemeData>> appThemeFamilies = {
         overlayColor: Colors.cyan.withAlpha(32),
         trackHeight: 4,
       ),
+      inputDecorationTheme: const InputDecorationTheme(
+        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(25)),
+          borderSide: BorderSide(color: Colors.black, width: 1.0),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(25)),
+          borderSide: BorderSide(color: Colors.black, width: 1.0),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(25)),
+          borderSide: BorderSide(color: Colors.black, width: 2.0),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(25)),
+          borderSide: BorderSide(color: Colors.red, width: 1.0),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(25)),
+          borderSide: BorderSide(color: Colors.red, width: 2.0),
+        ),
+        filled: true,
+        fillColor: Colors.white,
+      ),
     ),
     'dark': _baseDarkTheme.copyWith(
       appBarTheme: AppBarTheme(
@@ -361,6 +536,31 @@ final Map<String, Map<String, ThemeData>> appThemeFamilies = {
         thumbColor: Colors.cyanAccent.shade700,
         overlayColor: Colors.cyanAccent.shade700.withAlpha(32),
         trackHeight: 4,
+      ),
+      inputDecorationTheme: const InputDecorationTheme(
+        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(25)),
+          borderSide: BorderSide(color: Colors.black, width: 1.0),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(25)),
+          borderSide: BorderSide(color: Colors.black, width: 1.0),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(25)),
+          borderSide: BorderSide(color: Colors.black, width: 2.0),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(25)),
+          borderSide: BorderSide(color: Colors.red, width: 1.0),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(25)),
+          borderSide: BorderSide(color: Colors.red, width: 2.0),
+        ),
+        filled: true,
+        fillColor: Colors.white,
       ),
     ),
   },
@@ -400,6 +600,31 @@ final Map<String, Map<String, ThemeData>> appThemeFamilies = {
         overlayColor: Colors.blue.withAlpha(32),
         trackHeight: 4,
       ),
+      inputDecorationTheme: const InputDecorationTheme(
+        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(25)),
+          borderSide: BorderSide(color: Colors.black, width: 1.0),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(25)),
+          borderSide: BorderSide(color: Colors.black, width: 1.0),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(25)),
+          borderSide: BorderSide(color: Colors.black, width: 2.0),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(25)),
+          borderSide: BorderSide(color: Colors.red, width: 1.0),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(25)),
+          borderSide: BorderSide(color: Colors.red, width: 2.0),
+        ),
+        filled: true,
+        fillColor: Colors.white,
+      ),
     ),
     'dark': _baseDarkTheme.copyWith(
       appBarTheme: AppBarTheme(
@@ -431,6 +656,31 @@ final Map<String, Map<String, ThemeData>> appThemeFamilies = {
         thumbColor: Colors.blueAccent.shade700,
         overlayColor: Colors.blueAccent.shade700.withAlpha(32),
         trackHeight: 4,
+      ),
+      inputDecorationTheme: const InputDecorationTheme(
+        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(25)),
+          borderSide: BorderSide(color: Colors.black, width: 1.0),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(25)),
+          borderSide: BorderSide(color: Colors.black, width: 1.0),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(25)),
+          borderSide: BorderSide(color: Colors.black, width: 2.0),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(25)),
+          borderSide: BorderSide(color: Colors.red, width: 1.0),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.all(Radius.circular(25)),
+          borderSide: BorderSide(color: Colors.red, width: 2.0),
+        ),
+        filled: true,
+        fillColor: Colors.white,
       ),
     ),
   },
