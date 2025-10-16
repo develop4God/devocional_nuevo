@@ -712,19 +712,17 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                                                         verse['text']),
                                                     style: isPersistentlyMarked
                                                         ? TextStyle(
-                                                            decoration:
-                                                                TextDecoration
-                                                                    .underline,
-                                                            decorationColor:
+                                                            backgroundColor:
                                                                 colorScheme
-                                                                    .secondary,
-                                                            decorationThickness:
-                                                                2,
+                                                                    .secondary
+                                                                    .withValues(
+                                                                        alpha:
+                                                                            0.25),
                                                             fontWeight:
                                                                 FontWeight.w500,
                                                           )
                                                         : null,
-                                                  ),
+                                                  )
                                                 ],
                                               ),
                                             ),
