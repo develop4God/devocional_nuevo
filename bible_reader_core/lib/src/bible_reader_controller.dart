@@ -1,5 +1,5 @@
 /// BibleReaderController - Framework-agnostic controller for Bible Reader functionality
-/// 
+///
 /// This controller manages all business logic for the Bible Reader feature.
 /// It's designed to be:
 /// - Framework-agnostic (no Flutter dependencies)
@@ -20,7 +20,7 @@ class BibleReaderController {
   final List<BibleVersion> allVersions;
   final BibleReaderService readerService;
   final BiblePreferencesService preferencesService;
-  
+
   final _stateController = StreamController<BibleReaderState>.broadcast();
 
   /// Stream of state changes - suitable for Bloc/Riverpod integration
@@ -50,13 +50,13 @@ class BibleReaderController {
     _emit(_state.copyWith(isLoading: true, deviceLanguage: deviceLanguage));
 
     // Filter versions by device language
-    List<BibleVersion> availableVersions = allVersions
-        .where((v) => v.languageCode == deviceLanguage)
-        .toList();
+    List<BibleVersion> availableVersions =
+        allVersions.where((v) => v.languageCode == deviceLanguage).toList();
 
     // Fallback to Spanish or all versions if no match
     if (availableVersions.isEmpty) {
-      availableVersions = allVersions.where((v) => v.languageCode == 'es').toList();
+      availableVersions =
+          allVersions.where((v) => v.languageCode == 'es').toList();
       if (availableVersions.isEmpty) {
         availableVersions = allVersions;
       }
@@ -84,7 +84,8 @@ class BibleReaderController {
     // Try to restore last position
     final lastPosition = await readerService.getLastPosition();
 
-    if (lastPosition != null && _canRestorePosition(lastPosition, availableVersions)) {
+    if (lastPosition != null &&
+        _canRestorePosition(lastPosition, availableVersions)) {
       await _restoreLastPosition(lastPosition, availableVersions);
     } else {
       await _loadFirstBook();
@@ -176,11 +177,11 @@ class BibleReaderController {
       _state.selectedChapter!,
     );
 
-    final maxVerse = verses.isNotEmpty ? (verses.last['verse'] as int? ?? 1) : 1;
+    final maxVerse =
+        verses.isNotEmpty ? (verses.last['verse'] as int? ?? 1) : 1;
     final selectedVerse = _state.selectedVerse;
-    final validatedVerse = (selectedVerse == null || selectedVerse > maxVerse) 
-        ? 1 
-        : selectedVerse;
+    final validatedVerse =
+        (selectedVerse == null || selectedVerse > maxVerse) ? 1 : selectedVerse;
 
     _emit(_state.copyWith(
       maxChapter: maxChapter,

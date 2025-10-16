@@ -109,8 +109,8 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
         return BibleVerseGridSelector(
           totalVerses: state.maxVerse,
           selectedVerse: state.selectedVerse ?? 1,
-          bookName: state.books
-              .firstWhere((b) => b['short_name'] == state.selectedBookName)['long_name'],
+          bookName: state.books.firstWhere(
+              (b) => b['short_name'] == state.selectedBookName)['long_name'],
           chapterNumber: state.selectedChapter!,
           onVerseSelected: (verseNumber) {
             Navigator.of(context).pop();
@@ -134,8 +134,8 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
         return BibleChapterGridSelector(
           totalChapters: state.maxChapter,
           selectedChapter: state.selectedChapter ?? 1,
-          bookName: state.books
-              .firstWhere((b) => b['short_name'] == state.selectedBookName)['long_name'],
+          bookName: state.books.firstWhere(
+              (b) => b['short_name'] == state.selectedBookName)['long_name'],
           onChapterSelected: (chapterNumber) async {
             Navigator.of(context).pop();
             await _controller.selectChapter(chapterNumber);
@@ -280,7 +280,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     }
 
     if (!mounted) return;
-    
+
     Navigator.pop(modalContext);
     _controller.clearSelectedVerses();
 
@@ -389,8 +389,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                             value: version,
                             child: Row(
                               children: [
-                                if (version.name ==
-                                    state.selectedVersion?.name)
+                                if (version.name == state.selectedVersion?.name)
                                   Icon(Icons.check,
                                       color:
                                           Theme.of(context).colorScheme.primary,
@@ -522,8 +521,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                                                     .outlinedButtonTheme
                                                     .style
                                                     ?.side
-                                                    ?.resolve({})
-                                                    ?.color ??
+                                                    ?.resolve({})?.color ??
                                                 colorScheme.outline,
                                             width: 1.0,
                                           ),
@@ -541,7 +539,8 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                                                 state.selectedBookName != null
                                                     ? state.books.firstWhere((b) =>
                                                             b['short_name'] ==
-                                                            state.selectedBookName)[
+                                                            state
+                                                                .selectedBookName)[
                                                         'long_name']
                                                     : 'Seleccionar libro',
                                                 overflow: TextOverflow.ellipsis,
@@ -578,7 +577,8 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                                   Expanded(
                                     child: OutlinedButton.icon(
                                       onPressed: _showVerseGridSelector,
-                                      icon: const Icon(Icons.format_list_numbered,
+                                      icon: const Icon(
+                                          Icons.format_list_numbered,
                                           size: 18),
                                       label: Text(
                                         'V. ${state.selectedVerse ?? 1}',
@@ -638,9 +638,8 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                                     const Spacer(),
                                     IconButton(
                                       icon: const Icon(Icons.close, size: 20),
-                                      onPressed: () =>
-                                          _controller.setFontControlsVisibility(
-                                              false),
+                                      onPressed: () => _controller
+                                          .setFontControlsVisibility(false),
                                       tooltip: 'Cerrar',
                                     ),
                                   ],
@@ -649,8 +648,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                             // Verses list
                             Expanded(
                               child: state.verses.isEmpty
-                                  ? Center(
-                                      child: Text('bible.no_verses'.tr()))
+                                  ? Center(child: Text('bible.no_verses'.tr()))
                                   : ScrollablePositionedList.builder(
                                       itemScrollController:
                                           _itemScrollController,
@@ -671,8 +669,8 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                                             .contains(key);
                                         return GestureDetector(
                                           onTap: () => _onVerseTap(verseNumber),
-                                          onLongPress: () =>
-                                              _controller.togglePersistentMark(key),
+                                          onLongPress: () => _controller
+                                              .togglePersistentMark(key),
                                           child: Container(
                                             padding: const EdgeInsets.symmetric(
                                                 vertical: 8, horizontal: 4),
@@ -682,7 +680,8 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                                                         .primaryContainer
                                                         .withValues(alpha: 0.3),
                                                     borderRadius:
-                                                        BorderRadius.circular(8),
+                                                        BorderRadius.circular(
+                                                            8),
                                                     border: Border.all(
                                                       color:
                                                           colorScheme.primary,
@@ -761,86 +760,83 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                     ),
             ),
           ),
-          bottomNavigationBar:
-              !state.isLoading && state.selectedBookName != null
-                  ? Container(
-                      decoration: BoxDecoration(
-                        color: colorScheme.surface,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.1),
-                            blurRadius: 4,
-                            offset: const Offset(0, -2),
+          bottomNavigationBar: !state.isLoading &&
+                  state.selectedBookName != null
+              ? Container(
+                  decoration: BoxDecoration(
+                    color: colorScheme.surface,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.1),
+                        blurRadius: 4,
+                        offset: const Offset(0, -2),
+                      ),
+                    ],
+                  ),
+                  child: SafeArea(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 12),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          IconButton(
+                            icon: Icon(Icons.arrow_back_ios,
+                                color: colorScheme.primary),
+                            tooltip: 'bible.previous_chapter'.tr(),
+                            onPressed: () async {
+                              await _controller.goToPreviousChapter();
+                              _scrollToTop();
+                            },
+                          ),
+                          Expanded(
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(8),
+                              onTap: _showBookSelector,
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    vertical: 6.0, horizontal: 4.0),
+                                child: Text(
+                                  state.selectedBookName != null
+                                      ? '${state.books.firstWhere((b) => b['short_name'] == state.selectedBookName, orElse: () => {
+                                            'long_name': state.selectedBookName
+                                          })['long_name']} ${state.selectedChapter}'
+                                      : '',
+                                  textAlign: TextAlign.center,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleMedium
+                                      ?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                        color: colorScheme.primary,
+                                        decoration: TextDecoration.underline,
+                                        decorationColor: colorScheme.primary,
+                                      ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          IconButton(
+                            icon: Icon(Icons.arrow_forward_ios,
+                                color: colorScheme.primary),
+                            tooltip: 'bible.next_chapter'.tr(),
+                            onPressed: () async {
+                              await _controller.goToNextChapter();
+                              _scrollToTop();
+                            },
                           ),
                         ],
                       ),
-                      child: SafeArea(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 12),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              IconButton(
-                                icon: Icon(Icons.arrow_back_ios,
-                                    color: colorScheme.primary),
-                                tooltip: 'bible.previous_chapter'.tr(),
-                                onPressed: () async {
-                                  await _controller.goToPreviousChapter();
-                                  _scrollToTop();
-                                },
-                              ),
-                              Expanded(
-                                child: InkWell(
-                                  borderRadius: BorderRadius.circular(8),
-                                  onTap: _showBookSelector,
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 6.0, horizontal: 4.0),
-                                    child: Text(
-                                      state.selectedBookName != null
-                                          ? '${state.books.firstWhere((b) => b['short_name'] == state.selectedBookName, orElse: () => {
-                                                'long_name': state.selectedBookName
-                                              })['long_name']} ${state.selectedChapter}'
-                                          : '',
-                                      textAlign: TextAlign.center,
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .titleMedium
-                                          ?.copyWith(
-                                            fontWeight: FontWeight.bold,
-                                            color: colorScheme.primary,
-                                            decoration:
-                                                TextDecoration.underline,
-                                            decorationColor:
-                                                colorScheme.primary,
-                                          ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              IconButton(
-                                icon: Icon(Icons.arrow_forward_ios,
-                                    color: colorScheme.primary),
-                                tooltip: 'bible.next_chapter'.tr(),
-                                onPressed: () async {
-                                  await _controller.goToNextChapter();
-                                  _scrollToTop();
-                                },
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    )
-                  : null,
+                    ),
+                  ),
+                )
+              : null,
         );
       },
     );
   }
 
-  Widget _buildSearchResults(
-      BibleReaderState state, ColorScheme colorScheme) {
+  Widget _buildSearchResults(BibleReaderState state, ColorScheme colorScheme) {
     if (state.searchResults.isEmpty) {
       return Center(
         child: Padding(
