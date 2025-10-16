@@ -1,5 +1,6 @@
 import 'package:bible_reader_core/src/bible_db_service.dart';
 import 'package:bible_reader_core/src/bible_reading_position_service.dart';
+import 'package:bible_reader_core/src/bible_reference_parser.dart';
 import 'package:bible_reader_core/src/bible_version.dart';
 
 /// Service containing core business logic for Bible reading functionality
@@ -78,5 +79,168 @@ class BibleReaderService {
   /// Clear the saved reading position
   Future<void> clearPosition() async {
     await positionService.clearPosition();
+  }
+
+  /// Navigate to next chapter, moving to next book if at end
+  /// Returns {bookNumber, chapter, scrollToTop: true, bookName: ...} or null if at Bible end
+  Future<Map<String, dynamic>?> navigateToNextChapter({
+    required int currentBookNumber,
+    required int currentChapter,
+    required List<Map<String, dynamic>> books,
+  }) async {
+    final maxChapter = await getMaxChapter(currentBookNumber);
+
+    if (currentChapter < maxChapter) {
+      return {
+        'bookNumber': currentBookNumber,
+        'chapter': currentChapter + 1,
+        'scrollToTop': true,
+      };
+    }
+
+    // Move to next book
+    final currentIndex =
+        books.indexWhere((b) => b['book_number'] == currentBookNumber);
+    if (currentIndex >= 0 && currentIndex < books.length - 1) {
+      final nextBook = books[currentIndex + 1];
+      return {
+        'bookNumber': nextBook['book_number'],
+        'bookName': nextBook['short_name'],
+        'chapter': 1,
+        'scrollToTop': true,
+      };
+    }
+
+    return null; // At end of Bible
+  }
+
+  /// Navigate to previous chapter, moving to previous book if at start
+  /// Returns {bookNumber, chapter, scrollToTop: true, bookName: ...} or null if at Bible start
+  Future<Map<String, dynamic>?> navigateToPreviousChapter({
+    required int currentBookNumber,
+    required int currentChapter,
+    required List<Map<String, dynamic>> books,
+  }) async {
+    if (currentChapter > 1) {
+      return {
+        'bookNumber': currentBookNumber,
+        'chapter': currentChapter - 1,
+        'scrollToTop': true,
+      };
+    }
+
+    // Move to previous book's last chapter
+    final currentIndex =
+        books.indexWhere((b) => b['book_number'] == currentBookNumber);
+    if (currentIndex > 0) {
+      final previousBook = books[currentIndex - 1];
+      final maxChapter = await getMaxChapter(previousBook['book_number']);
+      return {
+        'bookNumber': previousBook['book_number'],
+        'bookName': previousBook['short_name'],
+        'chapter': maxChapter,
+        'scrollToTop': true,
+      };
+    }
+
+    return null; // At start of Bible
+  }
+
+  /// Select a book with optional chapter specification
+  /// Returns {bookNumber, bookName, chapter, maxChapter}
+  Future<Map<String, dynamic>> selectBook({
+    required Map<String, dynamic> book,
+    int? chapter,
+    bool goToLastChapter = false,
+  }) async {
+    final bookNumber = book['book_number'] as int;
+    final maxChapter = await getMaxChapter(bookNumber);
+
+    int targetChapter = 1;
+    if (goToLastChapter) {
+      targetChapter = maxChapter;
+    } else if (chapter != null && chapter > 0 && chapter <= maxChapter) {
+      targetChapter = chapter;
+    }
+
+    return {
+      'bookNumber': bookNumber,
+      'bookName': book['short_name'],
+      'chapter': targetChapter,
+      'maxChapter': maxChapter,
+    };
+  }
+
+  /// Search verses with automatic Bible reference detection
+  /// Returns {isReference: bool, navigationTarget: {...}?, searchResults: [...]}
+  Future<Map<String, dynamic>> searchWithReferenceDetection(
+      String query) async {
+    if (query.trim().isEmpty) {
+      return {'isReference': false, 'searchResults': []};
+    }
+
+    // Try parsing as Bible reference first
+    final reference = BibleReferenceParser.parse(query);
+    if (reference != null) {
+      final bookName = reference['bookName'] as String;
+      final chapter = reference['chapter'] as int;
+      final verse = reference['verse'] as int?;
+
+      // Find book
+      final book = await findBookByName(bookName);
+      if (book != null) {
+        final bookNumber = book['book_number'] as int;
+        final maxChapter = await getMaxChapter(bookNumber);
+
+        // Validate chapter
+        if (chapter > 0 && chapter <= maxChapter) {
+          return {
+            'isReference': true,
+            'navigationTarget': {
+              'bookNumber': bookNumber,
+              'bookName': book['short_name'],
+              'chapter': chapter,
+              'verse': verse,
+            },
+          };
+        }
+      }
+    }
+
+    // Fall back to text search
+    final results = await searchVerses(query);
+    return {
+      'isReference': false,
+      'searchResults': results,
+    };
+  }
+
+  /// Restore reading position from saved state
+  /// Returns null if position invalid or book not found
+  Future<Map<String, dynamic>?> restorePosition({
+    required Map<String, dynamic> savedPosition,
+    required List<Map<String, dynamic>> books,
+  }) async {
+    final bookNumber = savedPosition['bookNumber'] as int?;
+    final chapter = savedPosition['chapter'] as int?;
+
+    if (bookNumber == null || chapter == null) return null;
+
+    // Verify book exists
+    final bookIndex = books.indexWhere((b) => b['book_number'] == bookNumber);
+    if (bookIndex == -1) return null;
+
+    final book = books[bookIndex];
+
+    // Verify chapter is valid
+    final maxChapter = await getMaxChapter(bookNumber);
+    if (chapter < 1 || chapter > maxChapter) return null;
+
+    return {
+      'bookNumber': bookNumber,
+      'bookName': book['short_name'],
+      'chapter': chapter,
+      'verse': savedPosition['verse'] ?? 1,
+    };
   }
 }
