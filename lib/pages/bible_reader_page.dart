@@ -292,13 +292,13 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     }
 
     if (!mounted) return;
-    
+
     // Close modal immediately after mounted check
     if (modalContext.mounted) {
       Navigator.pop(modalContext);
     }
     _controller.clearSelectedVerses();
-    
+
     // Capture widget's context-dependent values immediately after mounted check
     final scaffoldMessenger = ScaffoldMessenger.of(context);
     final colorScheme = Theme.of(context).colorScheme;
@@ -400,12 +400,13 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                         tooltip: 'bible.select_version'.tr(),
                         onSelected: (version) async {
                           // Capture context-dependent values BEFORE async operation
-                          final scaffoldMessenger = ScaffoldMessenger.of(context);
+                          final scaffoldMessenger =
+                              ScaffoldMessenger.of(context);
                           final colorScheme = Theme.of(context).colorScheme;
-                          
+
                           await _controller.switchVersion(version);
                           if (!mounted) return;
-                          
+
                           scaffoldMessenger.showSnackBar(
                             SnackBar(
                               content: Text(
@@ -474,261 +475,254 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                           Container(
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
-                                color: colorScheme.surface,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.1),
-                                    blurRadius: 4,
-                                    offset: const Offset(0, 2),
+                              color: colorScheme.surface,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.1),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  flex: 2,
+                                  child: InkWell(
+                                    onTap: _showBookSelector,
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 12, vertical: 12),
+                                      decoration: BoxDecoration(
+                                        border: Border.all(
+                                          color: Theme.of(context)
+                                                  .outlinedButtonTheme
+                                                  .style
+                                                  ?.side
+                                                  ?.resolve({})?.color ??
+                                              colorScheme.outline,
+                                          width: 1.0,
+                                        ),
+                                        borderRadius: BorderRadius.circular(25),
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          Icon(Icons.auto_stories_outlined,
+                                              size: 20,
+                                              color: colorScheme.primary),
+                                          const SizedBox(width: 8),
+                                          Expanded(
+                                            child: Text(
+                                              state.selectedBookName != null
+                                                  ? state.books.firstWhere((b) =>
+                                                          b['short_name'] ==
+                                                          state
+                                                              .selectedBookName)[
+                                                      'long_name']
+                                                  : 'Seleccionar libro',
+                                              overflow: TextOverflow.ellipsis,
+                                              style: TextStyle(
+                                                fontSize: 14,
+                                                color: colorScheme.onSurface,
+                                              ),
+                                            ),
+                                          ),
+                                          Icon(Icons.arrow_drop_down,
+                                              color: colorScheme.onSurface),
+                                        ],
+                                      ),
+                                    ),
                                   ),
-                                ],
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: OutlinedButton.icon(
+                                    onPressed: _showChapterGridSelector,
+                                    icon: Icon(Icons.format_list_numbered,
+                                        size: 18, color: colorScheme.primary),
+                                    label: Text(
+                                      'C. ${state.selectedChapter ?? 1}',
+                                      style: const TextStyle(fontSize: 14),
+                                    ),
+                                    style: OutlinedButton.styleFrom(
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 12),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: OutlinedButton.icon(
+                                    onPressed: _showVerseGridSelector,
+                                    icon: const Icon(Icons.format_list_numbered,
+                                        size: 18),
+                                    label: Text(
+                                      'V. ${state.selectedVerse ?? 1}',
+                                      style: const TextStyle(fontSize: 14),
+                                    ),
+                                    style: OutlinedButton.styleFrom(
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 12),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          // Font controls
+                          if (state.showFontControls)
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 8),
+                              decoration: BoxDecoration(
+                                color: colorScheme.surfaceContainerHighest,
+                                border: Border(
+                                  bottom: BorderSide(
+                                    color: colorScheme.outline
+                                        .withValues(alpha: 0.2),
+                                    width: 1,
+                                  ),
+                                ),
                               ),
                               child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Expanded(
-                                    flex: 2,
-                                    child: InkWell(
-                                      onTap: _showBookSelector,
-                                      child: Container(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 12, vertical: 12),
-                                        decoration: BoxDecoration(
-                                          border: Border.all(
-                                            color: Theme.of(context)
-                                                    .outlinedButtonTheme
-                                                    .style
-                                                    ?.side
-                                                    ?.resolve({})?.color ??
-                                                colorScheme.outline,
-                                            width: 1.0,
-                                          ),
-                                          borderRadius:
-                                              BorderRadius.circular(25),
-                                        ),
-                                        child: Row(
-                                          children: [
-                                            Icon(Icons.auto_stories_outlined,
-                                                size: 20,
-                                                color: colorScheme.primary),
-                                            const SizedBox(width: 8),
-                                            Expanded(
-                                              child: Text(
-                                                state.selectedBookName != null
-                                                    ? state.books.firstWhere((b) =>
-                                                            b['short_name'] ==
-                                                            state
-                                                                .selectedBookName)[
-                                                        'long_name']
-                                                    : 'Seleccionar libro',
-                                                overflow: TextOverflow.ellipsis,
-                                                style: TextStyle(
-                                                  fontSize: 14,
-                                                  color: colorScheme.onSurface,
-                                                ),
-                                              ),
-                                            ),
-                                            Icon(Icons.arrow_drop_down,
-                                                color: colorScheme.onSurface),
-                                          ],
-                                        ),
-                                      ),
+                                  IconButton(
+                                    icon: const Icon(Icons.text_decrease),
+                                    onPressed: () =>
+                                        _controller.decreaseFontSize(),
+                                    tooltip: 'bible.decrease_font'.tr(),
+                                    color: colorScheme.primary,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'bible.font_size_label'.tr(),
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: colorScheme.onSurface
+                                          .withValues(alpha: 0.7),
                                     ),
                                   ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: OutlinedButton.icon(
-                                      onPressed: _showChapterGridSelector,
-                                      icon: Icon(Icons.format_list_numbered,
-                                          size: 18, color: colorScheme.primary),
-                                      label: Text(
-                                        'C. ${state.selectedChapter ?? 1}',
-                                        style: const TextStyle(fontSize: 14),
-                                      ),
-                                      style: OutlinedButton.styleFrom(
-                                        padding: const EdgeInsets.symmetric(
-                                            vertical: 12),
-                                      ),
-                                    ),
+                                  const SizedBox(width: 8),
+                                  IconButton(
+                                    icon: const Icon(Icons.text_increase),
+                                    onPressed: () =>
+                                        _controller.increaseFontSize(),
+                                    tooltip: 'bible.increase_font'.tr(),
+                                    color: colorScheme.primary,
                                   ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: OutlinedButton.icon(
-                                      onPressed: _showVerseGridSelector,
-                                      icon: const Icon(
-                                          Icons.format_list_numbered,
-                                          size: 18),
-                                      label: Text(
-                                        'V. ${state.selectedVerse ?? 1}',
-                                        style: const TextStyle(fontSize: 14),
-                                      ),
-                                      style: OutlinedButton.styleFrom(
-                                        padding: const EdgeInsets.symmetric(
-                                            vertical: 12),
-                                      ),
-                                    ),
+                                  const Spacer(),
+                                  IconButton(
+                                    icon: const Icon(Icons.close, size: 20),
+                                    onPressed: () => _controller
+                                        .setFontControlsVisibility(false),
+                                    tooltip: 'Cerrar',
                                   ),
                                 ],
                               ),
                             ),
-                            // Font controls
-                            if (state.showFontControls)
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 16, vertical: 8),
-                                decoration: BoxDecoration(
-                                  color: colorScheme.surfaceContainerHighest,
-                                  border: Border(
-                                    bottom: BorderSide(
-                                      color: colorScheme.outline
-                                          .withValues(alpha: 0.2),
-                                      width: 1,
-                                    ),
-                                  ),
-                                ),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    IconButton(
-                                      icon: const Icon(Icons.text_decrease),
-                                      onPressed: () =>
-                                          _controller.decreaseFontSize(),
-                                      tooltip: 'bible.decrease_font'.tr(),
-                                      color: colorScheme.primary,
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      'bible.font_size_label'.tr(),
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        color: colorScheme.onSurface
-                                            .withValues(alpha: 0.7),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    IconButton(
-                                      icon: const Icon(Icons.text_increase),
-                                      onPressed: () =>
-                                          _controller.increaseFontSize(),
-                                      tooltip: 'bible.increase_font'.tr(),
-                                      color: colorScheme.primary,
-                                    ),
-                                    const Spacer(),
-                                    IconButton(
-                                      icon: const Icon(Icons.close, size: 20),
-                                      onPressed: () => _controller
-                                          .setFontControlsVisibility(false),
-                                      tooltip: 'Cerrar',
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            // Verses list
-                            Expanded(
-                              child: state.verses.isEmpty
-                                  ? Center(child: Text('bible.no_verses'.tr()))
-                                  : ScrollablePositionedList.builder(
-                                      itemScrollController:
-                                          _itemScrollController,
-                                      itemPositionsListener:
-                                          _itemPositionsListener,
-                                      padding: const EdgeInsets.fromLTRB(
-                                          16, 16, 16, 32),
-                                      itemCount: state.verses.length,
-                                      itemBuilder: (context, idx) {
-                                        final verse = state.verses[idx];
-                                        final verseNumber = verse['verse'];
-                                        final key =
-                                            "${state.selectedBookName}|${state.selectedChapter}|$verseNumber";
-                                        final isSelected =
-                                            state.selectedVerses.contains(key);
-                                        final isPersistentlyMarked = state
-                                            .persistentlyMarkedVerses
-                                            .contains(key);
-                                        return GestureDetector(
-                                          onTap: () => _onVerseTap(verseNumber),
-                                          onLongPress: () => _controller
-                                              .togglePersistentMark(key),
-                                          child: Container(
-                                            padding: const EdgeInsets.symmetric(
-                                                vertical: 8, horizontal: 4),
-                                            decoration: isSelected
-                                                ? BoxDecoration(
-                                                    color: colorScheme
-                                                        .primaryContainer
-                                                        .withValues(alpha: 0.3),
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            8),
-                                                    border: Border.all(
-                                                      color:
-                                                          colorScheme.primary,
-                                                      width: 2,
-                                                    ),
-                                                  )
-                                                : null,
-                                            child: RichText(
-                                              text: TextSpan(
-                                                style: TextStyle(
-                                                  fontSize: state.fontSize,
-                                                  color: colorScheme.onSurface,
-                                                  height: 1.6,
-                                                ),
-                                                children: [
-                                                  TextSpan(
-                                                    text: "${verse['verse']} ",
-                                                    style: TextStyle(
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      color:
-                                                          colorScheme.primary,
-                                                      fontSize: 14,
-                                                    ),
+                          // Verses list
+                          Expanded(
+                            child: state.verses.isEmpty
+                                ? Center(child: Text('bible.no_verses'.tr()))
+                                : ScrollablePositionedList.builder(
+                                    itemScrollController: _itemScrollController,
+                                    itemPositionsListener:
+                                        _itemPositionsListener,
+                                    padding: const EdgeInsets.fromLTRB(
+                                        16, 16, 16, 32),
+                                    itemCount: state.verses.length,
+                                    itemBuilder: (context, idx) {
+                                      final verse = state.verses[idx];
+                                      final verseNumber = verse['verse'];
+                                      final key =
+                                          "${state.selectedBookName}|${state.selectedChapter}|$verseNumber";
+                                      final isSelected =
+                                          state.selectedVerses.contains(key);
+                                      final isPersistentlyMarked = state
+                                          .persistentlyMarkedVerses
+                                          .contains(key);
+                                      return GestureDetector(
+                                        onTap: () => _onVerseTap(verseNumber),
+                                        onLongPress: () => _controller
+                                            .togglePersistentMark(key),
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(
+                                              vertical: 8, horizontal: 4),
+                                          decoration: isSelected
+                                              ? BoxDecoration(
+                                                  color: colorScheme
+                                                      .primaryContainer
+                                                      .withValues(alpha: 0.3),
+                                                  borderRadius:
+                                                      BorderRadius.circular(8),
+                                                  border: Border.all(
+                                                    color: colorScheme.primary,
+                                                    width: 2,
                                                   ),
-                                                  TextSpan(
-                                                    text: _cleanVerseText(
-                                                        verse['text']),
-                                                    style: isPersistentlyMarked
-                                                        ? TextStyle(
-                                                            backgroundColor:
-                                                                colorScheme
-                                                                    .secondary
-                                                                    .withValues(
-                                                                        alpha:
-                                                                            0.25),
-                                                            fontWeight:
-                                                                FontWeight.w500,
-                                                          )
-                                                        : null,
-                                                  )
-                                                ],
+                                                )
+                                              : null,
+                                          child: RichText(
+                                            text: TextSpan(
+                                              style: TextStyle(
+                                                fontSize: state.fontSize,
+                                                color: colorScheme.onSurface,
+                                                height: 1.6,
                                               ),
+                                              children: [
+                                                TextSpan(
+                                                  text: "${verse['verse']} ",
+                                                  style: TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    color: colorScheme.primary,
+                                                    fontSize: 14,
+                                                  ),
+                                                ),
+                                                TextSpan(
+                                                  text: _cleanVerseText(
+                                                      verse['text']),
+                                                  style: isPersistentlyMarked
+                                                      ? TextStyle(
+                                                          backgroundColor:
+                                                              colorScheme
+                                                                  .secondary
+                                                                  .withValues(
+                                                                      alpha:
+                                                                          0.25),
+                                                          fontWeight:
+                                                              FontWeight.w500,
+                                                        )
+                                                      : null,
+                                                )
+                                              ],
                                             ),
                                           ),
-                                        );
-                                      },
-                                    ),
-                            ),
-                            // Copyright notice
-                            if (state.selectedVersion != null)
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 20, vertical: 8),
-                                child: Text(
-                                  CopyrightUtils.getCopyrightText(
-                                    state.selectedVersion!.languageCode,
-                                    state.selectedVersion!.name,
+                                        ),
+                                      );
+                                    },
                                   ),
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodySmall
-                                      ?.copyWith(
-                                        fontSize: 12,
-                                        color: colorScheme.onSurface
-                                            .withValues(alpha: 0.7),
-                                      ),
-                                  textAlign: TextAlign.center,
+                          ),
+                          // Copyright notice
+                          if (state.selectedVersion != null)
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 20, vertical: 8),
+                              child: Text(
+                                CopyrightUtils.getCopyrightText(
+                                  state.selectedVersion!.languageCode,
+                                  state.selectedVersion!.name,
                                 ),
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
+                                    ?.copyWith(
+                                      fontSize: 12,
+                                      color: colorScheme.onSurface
+                                          .withValues(alpha: 0.7),
+                                    ),
+                                textAlign: TextAlign.center,
                               ),
+                            ),
                         ],
                       ),
                     ),
@@ -809,5 +803,4 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
       },
     );
   }
-
 }

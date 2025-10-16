@@ -51,17 +51,17 @@ class _BibleSearchOverlayState extends State<BibleSearchOverlay> {
   Future<void> _handleSearchResultTap(Map<String, dynamic> result) async {
     // Capture FocusScope BEFORE async operation
     final focusScope = FocusScope.of(context);
-    
+
     await widget.controller.jumpToSearchResult(result);
     _searchController.clear();
     if (!mounted) return;
-    
+
     _searchFocusNode.unfocus();
     focusScope.unfocus();
-    
+
     // Close the overlay
     Navigator.of(context).pop();
-    
+
     // Wait for navigation to complete, then scroll to verse
     Future.delayed(const Duration(milliseconds: 300), () {
       if (mounted) {
@@ -95,8 +95,10 @@ class _BibleSearchOverlayState extends State<BibleSearchOverlay> {
               onTap: () {}, // Prevent tap from propagating to background
               child: Center(
                 child: Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 40),
-                  constraints: const BoxConstraints(maxWidth: 600, maxHeight: 700),
+                  margin:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 40),
+                  constraints:
+                      const BoxConstraints(maxWidth: 600, maxHeight: 700),
                   decoration: BoxDecoration(
                     color: colorScheme.surface,
                     borderRadius: BorderRadius.circular(16),
@@ -113,7 +115,8 @@ class _BibleSearchOverlayState extends State<BibleSearchOverlay> {
                     children: [
                       // Header with close button
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 12),
                         decoration: BoxDecoration(
                           color: colorScheme.surfaceContainerHighest,
                           borderRadius: const BorderRadius.only(
@@ -127,7 +130,10 @@ class _BibleSearchOverlayState extends State<BibleSearchOverlay> {
                             const SizedBox(width: 12),
                             Text(
                               'bible.search'.tr(),
-                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleMedium
+                                  ?.copyWith(
                                     fontWeight: FontWeight.bold,
                                     color: colorScheme.onSurface,
                                   ),
@@ -185,8 +191,9 @@ class _BibleSearchOverlayState extends State<BibleSearchOverlay> {
                           stream: widget.controller.stateStream,
                           initialData: widget.controller.state,
                           builder: (context, snapshot) {
-                            final state = snapshot.data ?? widget.controller.state;
-                            
+                            final state =
+                                snapshot.data ?? widget.controller.state;
+
                             if (!state.isSearching) {
                               return Center(
                                 child: Padding(
@@ -196,13 +203,14 @@ class _BibleSearchOverlayState extends State<BibleSearchOverlay> {
                                     textAlign: TextAlign.center,
                                     style: TextStyle(
                                       fontSize: 16,
-                                      color: colorScheme.onSurface.withValues(alpha: 0.5),
+                                      color: colorScheme.onSurface
+                                          .withValues(alpha: 0.5),
                                     ),
                                   ),
                                 ),
                               );
                             }
-                            
+
                             if (state.searchResults.isEmpty) {
                               return Center(
                                 child: Padding(
@@ -212,22 +220,25 @@ class _BibleSearchOverlayState extends State<BibleSearchOverlay> {
                                     textAlign: TextAlign.center,
                                     style: TextStyle(
                                       fontSize: 16,
-                                      color: colorScheme.onSurface.withValues(alpha: 0.7),
+                                      color: colorScheme.onSurface
+                                          .withValues(alpha: 0.7),
                                     ),
                                   ),
                                 ),
                               );
                             }
-                            
+
                             return ListView.builder(
                               padding: const EdgeInsets.all(16),
                               itemCount: state.searchResults.length,
                               itemBuilder: (context, idx) {
                                 final result = state.searchResults[idx];
-                                final bookName = result['long_name'] ?? result['short_name'];
+                                final bookName =
+                                    result['long_name'] ?? result['short_name'];
                                 final chapter = result['chapter'];
                                 final verse = result['verse'];
-                                final text = widget.cleanVerseText(result['text']);
+                                final text =
+                                    widget.cleanVerseText(result['text']);
 
                                 return Card(
                                   margin: const EdgeInsets.only(bottom: 12),
@@ -237,7 +248,8 @@ class _BibleSearchOverlayState extends State<BibleSearchOverlay> {
                                     child: Padding(
                                       padding: const EdgeInsets.all(12),
                                       child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
                                           Text(
                                             '$bookName $chapter:$verse',
@@ -250,7 +262,8 @@ class _BibleSearchOverlayState extends State<BibleSearchOverlay> {
                                           const SizedBox(height: 4),
                                           RichText(
                                             text: TextSpan(
-                                              children: _buildHighlightedTextSpans(
+                                              children:
+                                                  _buildHighlightedTextSpans(
                                                 text,
                                                 state.searchQuery,
                                                 colorScheme,
