@@ -578,8 +578,10 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
         _scrollToVerse(target['verse']);
       }
 
-      if (mounted) FocusScope.of(context).unfocus();
-      return;
+      if (mounted) {
+        _searchFocusNode.unfocus();
+        FocusScope.of(context).unfocus();
+      }
     }
 
     // Text search results
@@ -873,8 +875,18 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
       body: PopScope(
         canPop: true,
         onPopInvokedWithResult: (didPop, result) {
+          // Desenfoca cualquier campo enfocado
+          _searchFocusNode.unfocus();
           if (FocusScope.of(context).hasFocus) {
             FocusScope.of(context).unfocus();
+          }
+          // Limpia la búsqueda si estás en modo búsqueda
+          if (_isSearching) {
+            setState(() {
+              _isSearching = false;
+              _searchResults = [];
+              _searchController.clear();
+            });
           }
         },
         child: GestureDetector(
@@ -919,6 +931,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                                     icon: const Icon(Icons.clear),
                                     onPressed: () {
                                       _searchController.clear();
+                                      _searchFocusNode.unfocus();
                                       setState(() {
                                         _isSearching = false;
                                         _searchResults = [];
