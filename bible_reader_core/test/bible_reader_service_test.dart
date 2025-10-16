@@ -129,8 +129,18 @@ void main() {
     group('loadChapter', () {
       test('should return verses for a chapter', () async {
         mockDbService.mockChapterVerses['1:1'] = [
-          {'book_number': 1, 'chapter': 1, 'verse': 1, 'text': 'In the beginning...'},
-          {'book_number': 1, 'chapter': 1, 'verse': 2, 'text': 'And the earth...'},
+          {
+            'book_number': 1,
+            'chapter': 1,
+            'verse': 1,
+            'text': 'In the beginning...'
+          },
+          {
+            'book_number': 1,
+            'chapter': 1,
+            'verse': 2,
+            'text': 'And the earth...'
+          },
         ];
 
         final verses = await service.loadChapter(1, 1);
