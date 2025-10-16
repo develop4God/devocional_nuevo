@@ -824,7 +824,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
               child: SafeArea(
                 child: IconButton(
                   icon: Icon(
-                    Icons.format_size,
+                    Icons.text_increase_outlined,
                     color: Theme.of(context).colorScheme.onPrimary,
                   ),
                   tooltip: 'bible.adjust_font_size'.tr(),
@@ -1278,6 +1278,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
   }
 
   /// Helper method to build highlighted text spans for search results
+  /// Helper method to build highlighted text spans for search results
   List<TextSpan> _buildHighlightedTextSpans(
     String text,
     String query,
@@ -1298,60 +1299,68 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
 
     final List<TextSpan> spans = [];
     final lowerText = text.toLowerCase();
-    final lowerQuery = query.toLowerCase();
+    final queryWords = query
+        .toLowerCase()
+        .split(RegExp(r'\s+'))
+        .where((w) => w.isNotEmpty)
+        .toList();
+
     int lastIndex = 0;
 
-    // Find all occurrences of the query (case-insensitive)
-    while (true) {
-      final index = lowerText.indexOf(lowerQuery, lastIndex);
-      if (index == -1) {
-        // Add remaining text
-        if (lastIndex < text.length) {
-          spans.add(
-            TextSpan(
-              text: text.substring(lastIndex),
-              style: TextStyle(
-                fontSize: 15,
-                color: colorScheme.onSurface,
-                height: 1.4,
-              ),
-            ),
-          );
+    // Find all occurrences of any query word (case-insensitive)
+    while (lastIndex < text.length) {
+      int matchIndex = -1;
+      int matchLength = 0;
+
+      for (final word in queryWords) {
+        if (word.isEmpty) continue;
+        final index = lowerText.indexOf(word, lastIndex);
+        if (index != -1 && (matchIndex == -1 || index < matchIndex)) {
+          matchIndex = index;
+          matchLength = word.length;
         }
-        break;
       }
 
-      // Add text before match
-      if (index > lastIndex) {
-        spans.add(
-          TextSpan(
-            text: text.substring(lastIndex, index),
-            style: TextStyle(
-              fontSize: 15,
-              color: colorScheme.onSurface,
-              height: 1.4,
-            ),
-          ),
-        );
-      }
-
-      // Add highlighted match
-      spans.add(
-        TextSpan(
-          text: text.substring(index, index + query.length),
+      if (matchIndex == -1) {
+        // No more matches, add the rest
+        spans.add(TextSpan(
+          text: text.substring(lastIndex),
           style: TextStyle(
             fontSize: 15,
             color: colorScheme.onSurface,
             height: 1.4,
-            fontWeight: FontWeight.bold,
-            backgroundColor: colorScheme.primaryContainer,
-            decoration: TextDecoration.underline,
-            decorationColor: colorScheme.primary,
           ),
-        ),
-      );
+        ));
+        break;
+      }
 
-      lastIndex = index + query.length;
+      // Add text before match
+      if (matchIndex > lastIndex) {
+        spans.add(TextSpan(
+          text: text.substring(lastIndex, matchIndex),
+          style: TextStyle(
+            fontSize: 15,
+            color: colorScheme.onSurface,
+            height: 1.4,
+          ),
+        ));
+      }
+
+      // Add highlighted match
+      spans.add(TextSpan(
+        text: text.substring(matchIndex, matchIndex + matchLength),
+        style: TextStyle(
+          fontSize: 15,
+          color: colorScheme.onSurface,
+          height: 1.4,
+          fontWeight: FontWeight.bold,
+          backgroundColor: colorScheme.primaryContainer,
+          decoration: TextDecoration.underline,
+          decorationColor: colorScheme.primary,
+        ),
+      ));
+
+      lastIndex = matchIndex + matchLength;
     }
 
     return spans;

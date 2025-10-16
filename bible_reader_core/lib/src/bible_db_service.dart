@@ -63,65 +63,83 @@ class BibleDbService {
 
   // Search for verses containing a phrase
   // Prioritizes exact word matches over partial matches
+
+  // Search for verses containing a phrase
+  // Prioritizes exact word matches over partial matches
   Future<List<Map<String, dynamic>>> searchVerses(String searchQuery) async {
     if (searchQuery.trim().isEmpty) return [];
 
     final query = searchQuery.trim();
 
-    // Search with word boundaries for exact word matches (priority 1)
-    final exactResults = await _db.rawQuery(
-      '''
+    // Multi-word search: require all words to be present (AND)
+    final queryWords = query
+        .toLowerCase()
+        .split(RegExp(r'\s+'))
+        .where((w) => w.isNotEmpty)
+        .toList();
+
+    // If only one word, priority: exact word, then partial
+    if (queryWords.length == 1) {
+      final q = queryWords.first;
+
+      // 1. Exact word match in any position, case-insensitive (using spaces or start/end)
+      final exactResults = await _db.rawQuery(
+        '''
+        SELECT v.*, b.long_name, b.short_name, 1 as priority
+        FROM verses v
+        JOIN books b ON v.book_number = b.book_number
+        WHERE LOWER(v.text) = ?
+           OR LOWER(v.text) LIKE ?
+           OR LOWER(v.text) LIKE ?
+           OR LOWER(v.text) LIKE ?
+        ORDER BY v.book_number, v.chapter, v.verse
+        LIMIT 50
+        ''',
+        [
+          q, // full match
+          '$q %', // start of verse
+          '% $q', // end of verse
+          '% $q %', // surrounded by spaces
+        ],
+      );
+
+      // Remove duplicates by rowid
+      final exactRowids = exactResults.map((r) => r['rowid']).toSet();
+      final exactRowidsStr = exactRowids.isEmpty ? '-1' : exactRowids.join(',');
+
+      // 2. Partial matches (contains substring), excluding exact matches
+      final partialResults = await _db.rawQuery(
+        '''
+        SELECT v.*, b.long_name, b.short_name, 2 as priority
+        FROM verses v
+        JOIN books b ON v.book_number = b.book_number
+        WHERE LOWER(v.text) LIKE ?
+          AND v.rowid NOT IN ($exactRowidsStr)
+        ORDER BY v.book_number, v.chapter, v.verse
+        LIMIT 50
+        ''',
+        ['%$q%'],
+      );
+
+      // Combine results, exact first
+      return [...exactResults, ...partialResults];
+    }
+
+    // Multi-word search: require all words present (AND)
+    final whereClauses = queryWords
+        .map((w) => "LOWER(v.text) LIKE '%$w%'")
+        .join(' AND ');
+
+    final results = await _db.rawQuery('''
       SELECT v.*, b.long_name, b.short_name, 1 as priority
       FROM verses v
       JOIN books b ON v.book_number = b.book_number
-      WHERE v.text LIKE ?
+      WHERE $whereClauses
       ORDER BY v.book_number, v.chapter, v.verse
       LIMIT 50
-    ''',
-      ['% $query %'],
-    );
+      ''');
 
-    // Build exclusion list for next queries
-    final exactIds = exactResults.map((r) => r['rowid']).toList();
-    final exactIdsStr = exactIds.isEmpty ? '-1' : exactIds.join(',');
-
-    // Search for verses that start with the word
-    final startsWithResults = await _db.rawQuery(
-      '''
-      SELECT v.*, b.long_name, b.short_name, 2 as priority
-      FROM verses v
-      JOIN books b ON v.book_number = b.book_number
-      WHERE v.text LIKE ?
-      AND v.rowid NOT IN ($exactIdsStr)
-      ORDER BY v.book_number, v.chapter, v.verse
-      LIMIT 25
-    ''',
-      ['$query %'],
-    );
-
-    // Build combined exclusion list
-    final combinedIds = [
-      ...exactIds,
-      ...startsWithResults.map((r) => r['rowid']),
-    ];
-    final combinedIdsStr = combinedIds.isEmpty ? '-1' : combinedIds.join(',');
-
-    // Search for partial matches (priority 3)
-    final partialResults = await _db.rawQuery(
-      '''
-      SELECT v.*, b.long_name, b.short_name, 3 as priority
-      FROM verses v
-      JOIN books b ON v.book_number = b.book_number
-      WHERE v.text LIKE ?
-      AND v.rowid NOT IN ($combinedIdsStr)
-      ORDER BY v.book_number, v.chapter, v.verse
-      LIMIT 25
-    ''',
-      ['%$query%'],
-    );
-
-    // Combine results with exact matches first
-    return [...exactResults, ...startsWithResults, ...partialResults];
+    return results;
   }
 
   // Find a book by name or abbreviation (case-insensitive, partial match)
