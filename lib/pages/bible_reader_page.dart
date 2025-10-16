@@ -5,6 +5,7 @@ import 'package:bible_reader_core/bible_reader_core.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/utils/copyright_utils.dart';
 import 'package:devocional_nuevo/widgets/app_bar_constants.dart';
+import 'package:devocional_nuevo/widgets/bible_book_selector_dialog.dart';
 import 'package:devocional_nuevo/widgets/bible_chapter_grid_selector.dart';
 import 'package:devocional_nuevo/widgets/bible_reader_action_modal.dart';
 import 'package:devocional_nuevo/widgets/bible_verse_grid_selector.dart';
@@ -12,78 +13,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:share_plus/share_plus.dart' show ShareParams, SharePlus;
-import 'package:shared_preferences/shared_preferences.dart';
-
-/// Helper class to parse Bible references like "Juan 3:16", "Genesis 1:1", etc.
-class BibleReferenceParser {
-  /// Parses a Bible reference string and returns book name, chapter, and optional verse
-  /// Returns null if the input doesn't match a Bible reference pattern
-  static Map<String, dynamic>? parse(String input) {
-    final trimmed = input.trim();
-
-    // Pattern 1: "Book Chapter:Verse" (e.g., "Juan 3:16", "Genesis 1:1")
-    // Pattern 2: "Book Chapter" (e.g., "Juan 3", "Genesis 1")
-    // Supports book names with numbers (e.g., "1 Juan", "2 Corintios")
-    // Supports book names with spaces and accents
-
-    // Match patterns like: "1 Juan 3:16" or "Juan 3:16" or "Genesis 1:1"
-    final regexWithVerse = RegExp(
-      r'^(\d+\s+)?([a-záéíóúñü\s\.]+?)\s+(\d+):(\d+)$',
-      caseSensitive: false,
-      unicode: true,
-    );
-
-    // Match patterns like: "1 Juan 3" or "Juan 3" or "Genesis 1"
-    final regexWithoutVerse = RegExp(
-      r'^(\d+\s+)?([a-záéíóúñü\s\.]+?)\s+(\d+)$',
-      caseSensitive: false,
-      unicode: true,
-    );
-
-    // Try with verse first
-    var match = regexWithVerse.firstMatch(trimmed);
-    if (match != null) {
-      final bookPrefix = match.group(1)?.trim() ?? '';
-      final bookName = match.group(2)!.trim();
-      final chapter = int.tryParse(match.group(3)!);
-      final verse = int.tryParse(match.group(4)!);
-
-      if (chapter != null && verse != null) {
-        final fullBookName =
-            bookPrefix.isEmpty ? bookName : '$bookPrefix $bookName';
-        return {
-          'bookName': fullBookName,
-          'chapter': chapter,
-          'verse': verse,
-        };
-      }
-    }
-
-    // Try without verse
-    match = regexWithoutVerse.firstMatch(trimmed);
-    if (match != null) {
-      final bookPrefix = match.group(1)?.trim() ?? '';
-      final bookName = match.group(2)!.trim();
-      final chapter = int.tryParse(match.group(3)!);
-
-      if (chapter != null) {
-        final fullBookName =
-            bookPrefix.isEmpty ? bookName : '$bookPrefix $bookName';
-        return {
-          'bookName': fullBookName,
-          'chapter': chapter,
-        };
-      }
-    }
-
-    return null;
-  }
-}
 
 class BibleReaderPage extends StatefulWidget {
   final List<BibleVersion> versions;
+  final BibleReaderService? readerService; // Optional for DI
+  final BiblePreferencesService? preferencesService; // Optional for DI
 
-  const BibleReaderPage({super.key, required this.versions});
+  const BibleReaderPage({
+    super.key,
+    required this.versions,
+    this.readerService,
+    this.preferencesService,
+  });
 
   @override
   State<BibleReaderPage> createState() => _BibleReaderPageState();
@@ -91,6 +32,8 @@ class BibleReaderPage extends StatefulWidget {
 
 class _BibleReaderPageState extends State<BibleReaderPage> {
   late BibleVersion _selectedVersion;
+  late BibleReaderService _readerService;
+  late BiblePreferencesService _preferencesService;
   List<BibleVersion> _availableVersions = [];
   String _deviceLanguage = '';
   List<Map<String, dynamic>> _books = [];
@@ -111,8 +54,6 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
   bool _isSearching = false;
   List<Map<String, dynamic>> _searchResults = [];
   final TextEditingController _searchController = TextEditingController();
-  final BibleReadingPositionService _positionService =
-      BibleReadingPositionService();
   final ItemScrollController _itemScrollController = ItemScrollController();
   final ItemPositionsListener _itemPositionsListener =
       ItemPositionsListener.create();
@@ -121,14 +62,27 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
   void initState() {
     super.initState();
 
+    // Use injected services or create defaults
+    _preferencesService =
+        widget.preferencesService ?? BiblePreferencesService();
+
     // DEBUG: Print all passed versions
     debugPrint('🟦 [Bible] All versions passed to widget:');
     for (final v in widget.versions) {
       debugPrint('    ${v.name} (${v.languageCode}) - ${v.assetPath}');
     }
 
-    _loadFontSize();
-    _loadMarkedVerses();
+    // Load preferences
+    _preferencesService.getFontSize().then((fontSize) {
+      setState(() => _fontSize = fontSize);
+    });
+    _preferencesService.getMarkedVerses().then((verses) {
+      setState(() {
+        _persistentlyMarkedVerses.clear();
+        _persistentlyMarkedVerses.addAll(verses);
+      });
+    });
+
     _detectLanguageAndInitialize();
   }
 
@@ -136,6 +90,16 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
   void dispose() {
     _searchController.dispose();
     super.dispose();
+  }
+
+  /// Initialize or reinitialize the reader service for a specific version
+  void _reinitializeServiceForVersion(BibleVersion version) {
+    version.service ??= BibleDbService();
+    _readerService = widget.readerService ??
+        BibleReaderService(
+          dbService: version.service!,
+          positionService: BibleReadingPositionService(),
+        );
   }
 
   Future<void> _detectLanguageAndInitialize() async {
@@ -160,8 +124,16 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
       }
     }
 
+    // Initialize first version to create the service
+    _selectedVersion = _availableVersions.isNotEmpty
+        ? _availableVersions.first
+        : widget.versions.first;
+
+    // Initialize the reader service
+    _reinitializeServiceForVersion(_selectedVersion);
+
     // Try to restore last reading position
-    final lastPosition = await _positionService.getLastPosition();
+    final lastPosition = await _readerService.getLastPosition();
 
     if (lastPosition != null &&
         _availableVersions.any((v) =>
@@ -173,14 +145,112 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
             v.name == lastPosition['version'] &&
             v.languageCode == lastPosition['languageCode'],
       );
-      await _initVersion();
-      await _restorePosition(lastPosition);
+      // Reinitialize service with correct version
+      _reinitializeServiceForVersion(_selectedVersion);
+
+      // Initialize version and load books
+      setState(() => _isLoading = true);
+      await _selectedVersion.service!.initDb(
+        _selectedVersion.assetPath,
+        _selectedVersion.dbFileName,
+      );
+      final books = await _selectedVersion.service!.getAllBooks();
+      setState(() {
+        _books = books;
+        if (books.isNotEmpty) {
+          _selectedBookName = books[0]['short_name'];
+          _selectedBookNumber = books[0]['book_number'];
+          _selectedChapter = 1;
+        }
+      });
+
+      // Restore position
+      final position = await _readerService.restorePosition(
+        savedPosition: lastPosition,
+        books: _books,
+      );
+      if (position != null) {
+        setState(() {
+          _selectedBookName = position['bookName'];
+          _selectedBookNumber = position['bookNumber'];
+          _selectedChapter = position['chapter'];
+          _selectedVerse = position['verse'];
+        });
+      }
+
+      // Load chapter data
+      if (_selectedBookNumber != null) {
+        final max =
+            await _selectedVersion.service!.getMaxChapter(_selectedBookNumber!);
+        setState(() => _maxChapter = max);
+      }
+      if (_selectedBookNumber != null && _selectedChapter != null) {
+        final verses = await _selectedVersion.service!.getChapterVerses(
+          _selectedBookNumber!,
+          _selectedChapter!,
+        );
+        setState(() {
+          _verses = verses;
+          _maxVerse =
+              verses.isNotEmpty ? (verses.last['verse'] as int? ?? 1) : 1;
+          if (_selectedVerse == null || _selectedVerse! > _maxVerse) {
+            _selectedVerse = 1;
+          }
+        });
+        await _readerService.saveReadingPosition(
+          bookName: _selectedBookName!,
+          bookNumber: _selectedBookNumber!,
+          chapter: _selectedChapter!,
+          version: _selectedVersion.name,
+          languageCode: _selectedVersion.languageCode,
+        );
+      }
+      setState(() => _isLoading = false);
     } else {
       // Start with first available version
-      _selectedVersion = _availableVersions.isNotEmpty
-          ? _availableVersions.first
-          : widget.versions.first;
-      await _initVersion();
+      setState(() => _isLoading = true);
+      await _selectedVersion.service!.initDb(
+        _selectedVersion.assetPath,
+        _selectedVersion.dbFileName,
+      );
+      final books = await _selectedVersion.service!.getAllBooks();
+      setState(() {
+        _books = books;
+        if (books.isNotEmpty) {
+          _selectedBookName = books[0]['short_name'];
+          _selectedBookNumber = books[0]['book_number'];
+          _selectedChapter = 1;
+        }
+      });
+
+      // Load chapter data
+      if (_selectedBookNumber != null) {
+        final max =
+            await _selectedVersion.service!.getMaxChapter(_selectedBookNumber!);
+        setState(() => _maxChapter = max);
+      }
+      if (_selectedBookNumber != null && _selectedChapter != null) {
+        final verses = await _selectedVersion.service!.getChapterVerses(
+          _selectedBookNumber!,
+          _selectedChapter!,
+        );
+        setState(() {
+          _verses = verses;
+          _maxVerse =
+              verses.isNotEmpty ? (verses.last['verse'] as int? ?? 1) : 1;
+          if (_selectedVerse == null || _selectedVerse! > _maxVerse) {
+            _selectedVerse = 1;
+          }
+        });
+        await _readerService.saveReadingPosition(
+          bookName: _selectedBookName!,
+          bookNumber: _selectedBookNumber!,
+          chapter: _selectedChapter!,
+          version: _selectedVersion.name,
+          languageCode: _selectedVersion.languageCode,
+        );
+      }
+      setState(() => _isLoading = false);
     }
 
     setState(() {
@@ -188,75 +258,20 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     });
   }
 
-  Future<void> _restorePosition(Map<String, dynamic> position) async {
-    // Find the book in the loaded books
-    final book = _books.firstWhere(
-      (b) =>
-          b['short_name'] == position['bookName'] ||
-          b['book_number'] == position['bookNumber'],
-      orElse: () => _books.isNotEmpty ? _books[0] : {},
-    );
-
-    if (book.isNotEmpty) {
-      setState(() {
-        _selectedBookName = book['short_name'];
-        _selectedBookNumber = book['book_number'];
-        _selectedChapter = position['chapter'];
-      });
-      await _loadMaxChapter();
-      await _loadVerses();
-    }
-  }
-
-  // Load font size preference
-  Future<void> _loadFontSize() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _fontSize = prefs.getDouble('bible_font_size') ?? 18.0;
-    });
-  }
-
-  // Save font size preference
-  Future<void> _saveFontSize() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setDouble('bible_font_size', _fontSize);
-  }
-
   // Increase font size
   void _increaseFontSize() {
     if (_fontSize < 30) {
-      setState(() {
-        _fontSize += 2;
-      });
-      _saveFontSize();
+      setState(() => _fontSize += 2);
+      _preferencesService.saveFontSize(_fontSize);
     }
   }
 
   // Decrease font size
   void _decreaseFontSize() {
     if (_fontSize > 12) {
-      setState(() {
-        _fontSize -= 2;
-      });
-      _saveFontSize();
+      setState(() => _fontSize -= 2);
+      _preferencesService.saveFontSize(_fontSize);
     }
-  }
-
-  // Load persistently marked verses
-  Future<void> _loadMarkedVerses() async {
-    final prefs = await SharedPreferences.getInstance();
-    final markedList = prefs.getStringList('bible_marked_verses') ?? [];
-    setState(() {
-      _persistentlyMarkedVerses.clear();
-      _persistentlyMarkedVerses.addAll(markedList);
-    });
-  }
-
-  // Save persistently marked verses
-  Future<void> _saveMarkedVerses() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setStringList(
-        'bible_marked_verses', _persistentlyMarkedVerses.toList());
   }
 
   // Toggle verse persistent marking
@@ -268,7 +283,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
         _persistentlyMarkedVerses.add(verseKey);
       }
     });
-    _saveMarkedVerses();
+    _preferencesService.saveMarkedVerses(_persistentlyMarkedVerses);
   }
 
   // Scroll to specific verse
@@ -363,134 +378,25 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
 
   // Show book selector dialog with search
   Future<void> _showBookSelector() async {
-    final TextEditingController searchController = TextEditingController();
-    List<Map<String, dynamic>> filteredBooks = List.from(_books);
-
     await showDialog(
       context: context,
       builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (context, setDialogState) {
-            void filterBooks(String query) {
-              setDialogState(() {
-                if (query.length < 2) {
-                  filteredBooks = List.from(_books);
-                } else {
-                  filteredBooks = _books.where((book) {
-                    final longName = book['long_name'].toString().toLowerCase();
-                    final shortName =
-                        book['short_name'].toString().toLowerCase();
-                    final searchLower = query.toLowerCase();
-                    return longName.contains(searchLower) ||
-                        shortName.contains(searchLower);
-                  }).toList();
-                }
-              });
-            }
-
-            return AlertDialog(
-              title: Text('bible.search_book'.tr()),
-              content: SizedBox(
-                width: double.maxFinite,
-                height: 400,
-                child: Column(
-                  children: [
-                    TextField(
-                      controller: searchController,
-                      decoration: InputDecoration(
-                        hintText: 'bible.search_book_placeholder'.tr(),
-                        prefixIcon: const Icon(Icons.search),
-                        suffixIcon: searchController.text.isNotEmpty
-                            ? IconButton(
-                                icon: const Icon(Icons.clear),
-                                onPressed: () {
-                                  searchController.clear();
-                                  filterBooks('');
-                                },
-                              )
-                            : null,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      onChanged: filterBooks,
-                    ),
-                    const SizedBox(height: 16),
-                    Expanded(
-                      child: ListView.builder(
-                        itemCount: filteredBooks.length,
-                        itemBuilder: (context, index) {
-                          final book = filteredBooks[index];
-                          final isSelected =
-                              book['short_name'] == _selectedBookName;
-                          return ListTile(
-                            title: Text(book['long_name']),
-                            subtitle: Text(book['short_name']),
-                            selected: isSelected,
-                            selectedTileColor: Theme.of(context)
-                                .colorScheme
-                                .primaryContainer
-                                .withValues(alpha: 0.3),
-                            onTap: () async {
-                              Navigator.of(context).pop();
-                              setState(() {
-                                _selectedBookName = book['short_name'];
-                                _selectedBookNumber = book['book_number'];
-                                _selectedChapter = 1;
-                                _selectedVerses.clear();
-                              });
-                              await _loadMaxChapter();
-                              await _loadVerses();
-                            },
-                          );
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: Text('Cancelar'),
-                ),
-              ],
-            );
+        return BibleBookSelectorDialog(
+          books: _books,
+          selectedBookName: _selectedBookName,
+          onBookSelected: (book) async {
+            setState(() {
+              _selectedBookName = book['short_name'];
+              _selectedBookNumber = book['book_number'];
+              _selectedChapter = 1;
+              _selectedVerses.clear();
+            });
+            await _loadMaxChapter();
+            await _loadVerses();
           },
         );
       },
     );
-  }
-
-  Future<void> _initVersion() async {
-    setState(() {
-      _isLoading = true;
-    });
-
-    _selectedVersion.service ??= BibleDbService();
-    await _selectedVersion.service!.initDb(
-      _selectedVersion.assetPath,
-      _selectedVersion.dbFileName,
-    );
-    await _loadBooks();
-
-    setState(() {
-      _isLoading = false;
-    });
-  }
-
-  Future<void> _loadBooks() async {
-    final books = await _selectedVersion.service!.getAllBooks();
-    setState(() {
-      _books = books;
-      if (books.isNotEmpty) {
-        _selectedBookName = books[0]['short_name'];
-        _selectedBookNumber = books[0]['book_number'];
-        _selectedChapter = 1;
-      }
-    });
-    await _loadMaxChapter();
-    await _loadVerses();
   }
 
   Future<void> _loadMaxChapter() async {
@@ -519,7 +425,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
 
     // Save reading position
     if (_selectedBookName != null) {
-      await _positionService.savePosition(
+      await _readerService.saveReadingPosition(
         bookName: _selectedBookName!,
         bookNumber: _selectedBookNumber!,
         chapter: _selectedChapter!,
@@ -533,49 +439,56 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
   Future<void> _goToPreviousChapter() async {
     if (_selectedBookNumber == null || _selectedChapter == null) return;
 
-    if (_selectedChapter! > 1) {
-      // Go to previous chapter in same book
-      setState(() {
-        _selectedChapter = _selectedChapter! - 1;
-        _selectedVerse = 1;
-        _selectedVerses.clear();
-      });
-      await _loadVerses();
-      _scrollToTop();
-    } else {
-      // Go to last chapter of previous book
-      final currentBookIndex =
-          _books.indexWhere((b) => b['book_number'] == _selectedBookNumber);
-      if (currentBookIndex > 0) {
-        final previousBook = _books[currentBookIndex - 1];
-        await _selectBook(previousBook,
-            goToLastChapter: true); // Will load last chapter
-      }
+    final result = await _readerService.navigateToPreviousChapter(
+      currentBookNumber: _selectedBookNumber!,
+      currentChapter: _selectedChapter!,
+      books: _books,
+    );
+
+    if (result == null) return; // At start of Bible
+
+    setState(() {
+      _selectedBookNumber = result['bookNumber'];
+      _selectedBookName = result['bookName'] ?? _selectedBookName;
+      _selectedChapter = result['chapter'];
+      _selectedVerse = 1;
+      _selectedVerses.clear();
+    });
+
+    if (result['bookName'] != null) {
+      await _loadMaxChapter();
     }
+
+    await _loadVerses();
+    _scrollToTop();
   }
 
   /// Navigate to the next chapter (or next book if at last chapter)
   Future<void> _goToNextChapter() async {
     if (_selectedBookNumber == null || _selectedChapter == null) return;
 
-    if (_selectedChapter! < _maxChapter) {
-      // Go to next chapter in same book
-      setState(() {
-        _selectedChapter = _selectedChapter! + 1;
-        _selectedVerse = 1;
-        _selectedVerses.clear();
-      });
-      await _loadVerses();
-      _scrollToTop();
-    } else {
-      // Go to first chapter of next book
-      final currentBookIndex =
-          _books.indexWhere((b) => b['book_number'] == _selectedBookNumber);
-      if (currentBookIndex >= 0 && currentBookIndex < _books.length - 1) {
-        final nextBook = _books[currentBookIndex + 1];
-        await _selectBook(nextBook, chapter: 1);
-      }
+    final result = await _readerService.navigateToNextChapter(
+      currentBookNumber: _selectedBookNumber!,
+      currentChapter: _selectedChapter!,
+      books: _books,
+    );
+
+    if (result == null) return; // At end of Bible
+
+    setState(() {
+      _selectedBookNumber = result['bookNumber'];
+      _selectedBookName = result['bookName'] ?? _selectedBookName;
+      _selectedChapter = result['chapter'];
+      _selectedVerse = 1;
+      _selectedVerses.clear();
+    });
+
+    if (result['bookName'] != null) {
+      await _loadMaxChapter();
     }
+
+    await _loadVerses();
+    if (result['scrollToTop'] == true) _scrollToTop();
   }
 
   /// Helper method to select a book and optionally a chapter
@@ -584,31 +497,20 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     int? chapter,
     bool goToLastChapter = false,
   }) async {
+    final result = await _readerService.selectBook(
+      book: book,
+      chapter: chapter,
+      goToLastChapter: goToLastChapter,
+    );
+
     setState(() {
-      _selectedBookName = book['short_name'];
-      _selectedBookNumber = book['book_number'];
+      _selectedBookNumber = result['bookNumber'];
+      _selectedBookName = result['bookName'];
+      _selectedChapter = result['chapter'];
+      _maxChapter = result['maxChapter'];
+      _selectedVerse = 1;
       _selectedVerses.clear();
     });
-
-    await _loadMaxChapter();
-
-    // Determine which chapter to load
-    if (goToLastChapter) {
-      setState(() {
-        _selectedChapter = _maxChapter;
-        _selectedVerse = 1;
-      });
-    } else if (chapter != null) {
-      setState(() {
-        _selectedChapter = chapter;
-        _selectedVerse = 1;
-      });
-    } else {
-      setState(() {
-        _selectedChapter = 1;
-        _selectedVerse = 1;
-      });
-    }
 
     await _loadVerses();
     _scrollToTop();
@@ -622,6 +524,9 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     });
 
     _selectedVersion = newVersion;
+
+    // Reinitialize the reader service with the new version's DB service
+    _reinitializeServiceForVersion(newVersion);
 
     // Show a brief message that the version is being loaded
     if (mounted) {
@@ -638,7 +543,24 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
       );
     }
 
-    await _initVersion();
+    // Initialize version and load books
+    await _selectedVersion.service!.initDb(
+      _selectedVersion.assetPath,
+      _selectedVersion.dbFileName,
+    );
+    final books = await _selectedVersion.service!.getAllBooks();
+    setState(() {
+      _books = books;
+      if (books.isNotEmpty) {
+        _selectedBookName = books[0]['short_name'];
+        _selectedBookNumber = books[0]['book_number'];
+        _selectedChapter = 1;
+      }
+    });
+
+    // Load chapter data
+    await _loadMaxChapter();
+    await _loadVerses();
 
     setState(() {
       _isLoading = false;
@@ -654,60 +576,39 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
       return;
     }
 
-    setState(() {
-      _isLoading = true;
-    });
+    setState(() => _isLoading = true);
 
-    // First, try to parse as a Bible reference
-    final reference = BibleReferenceParser.parse(query);
+    final result = await _readerService.searchWithReferenceDetection(query);
 
-    if (reference != null) {
-      // It's a Bible reference - try to navigate directly
-      final bookName = reference['bookName'] as String;
-      final chapter = reference['chapter'] as int;
-      // Note: verse is available but not used for scrolling yet
-      // Future enhancement could scroll to specific verse
-      // final verse = reference['verse'] as int?;
+    if (result['isReference'] == true) {
+      // Direct navigation to Bible reference
+      final target = result['navigationTarget'] as Map<String, dynamic>;
 
-      // Try to find the book in the database
-      final book = await _selectedVersion.service!.findBookByName(bookName);
+      setState(() {
+        _selectedBookName = target['bookName'];
+        _selectedBookNumber = target['bookNumber'];
+        _selectedChapter = target['chapter'];
+        _selectedVerse = target['verse'] ?? 1;
+        _isSearching = false;
+        _searchResults = [];
+        _searchController.clear();
+        _isLoading = false;
+      });
 
-      if (book != null) {
-        // Book found - navigate to it
-        final bookNumber = book['book_number'] as int;
-        final maxChapter =
-            await _selectedVersion.service!.getMaxChapter(bookNumber);
+      await _loadMaxChapter();
+      await _loadVerses();
 
-        // Validate chapter exists
-        if (chapter > 0 && chapter <= maxChapter) {
-          setState(() {
-            _selectedBookName = book['short_name'];
-            _selectedBookNumber = bookNumber;
-            _selectedChapter = chapter;
-            _isSearching = false;
-            _searchResults = [];
-            _searchController.clear();
-            _isLoading = false;
-          });
-
-          await _loadMaxChapter();
-          await _loadVerses();
-
-          // Close keyboard
-          if (mounted) {
-            FocusScope.of(context).unfocus();
-          }
-
-          return;
-        }
+      if (target['verse'] != null) {
+        _scrollToVerse(target['verse']);
       }
+
+      if (mounted) FocusScope.of(context).unfocus();
+      return;
     }
 
-    // Not a valid reference or book not found - fall back to text search
-    final results = await _selectedVersion.service!.searchVerses(query);
-
+    // Text search results
     setState(() {
-      _searchResults = results;
+      _searchResults = result['searchResults'] as List<Map<String, dynamic>>;
       _isSearching = true;
       _isLoading = false;
     });
@@ -879,7 +780,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     Navigator.pop(modalContext);
 
     // Save to SharedPreferences
-    await _saveMarkedVerses();
+    await _preferencesService.saveMarkedVerses(_persistentlyMarkedVerses);
 
     // Clear selection...
     if (!mounted) return;
