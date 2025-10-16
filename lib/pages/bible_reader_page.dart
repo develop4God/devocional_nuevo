@@ -5,6 +5,7 @@ import 'package:bible_reader_core/bible_reader_core.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/utils/copyright_utils.dart';
 import 'package:devocional_nuevo/widgets/app_bar_constants.dart';
+import 'package:devocional_nuevo/widgets/bible_book_selector_dialog.dart';
 import 'package:devocional_nuevo/widgets/bible_chapter_grid_selector.dart';
 import 'package:devocional_nuevo/widgets/bible_reader_action_modal.dart';
 import 'package:devocional_nuevo/widgets/bible_verse_grid_selector.dart';
@@ -369,99 +370,21 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
 
   // Show book selector dialog with search
   Future<void> _showBookSelector() async {
-    final TextEditingController searchController = TextEditingController();
-    List<Map<String, dynamic>> filteredBooks = List.from(_books);
-
     await showDialog(
       context: context,
       builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (context, setDialogState) {
-            void filterBooks(String query) {
-              setDialogState(() {
-                if (query.length < 2) {
-                  filteredBooks = List.from(_books);
-                } else {
-                  filteredBooks = _books.where((book) {
-                    final longName = book['long_name'].toString().toLowerCase();
-                    final shortName =
-                        book['short_name'].toString().toLowerCase();
-                    final searchLower = query.toLowerCase();
-                    return longName.contains(searchLower) ||
-                        shortName.contains(searchLower);
-                  }).toList();
-                }
-              });
-            }
-
-            return AlertDialog(
-              title: Text('bible.search_book'.tr()),
-              content: SizedBox(
-                width: double.maxFinite,
-                height: 400,
-                child: Column(
-                  children: [
-                    TextField(
-                      controller: searchController,
-                      decoration: InputDecoration(
-                        hintText: 'bible.search_book_placeholder'.tr(),
-                        prefixIcon: const Icon(Icons.search),
-                        suffixIcon: searchController.text.isNotEmpty
-                            ? IconButton(
-                                icon: const Icon(Icons.clear),
-                                onPressed: () {
-                                  searchController.clear();
-                                  filterBooks('');
-                                },
-                              )
-                            : null,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      onChanged: filterBooks,
-                    ),
-                    const SizedBox(height: 16),
-                    Expanded(
-                      child: ListView.builder(
-                        itemCount: filteredBooks.length,
-                        itemBuilder: (context, index) {
-                          final book = filteredBooks[index];
-                          final isSelected =
-                              book['short_name'] == _selectedBookName;
-                          return ListTile(
-                            title: Text(book['long_name']),
-                            subtitle: Text(book['short_name']),
-                            selected: isSelected,
-                            selectedTileColor: Theme.of(context)
-                                .colorScheme
-                                .primaryContainer
-                                .withValues(alpha: 0.3),
-                            onTap: () async {
-                              Navigator.of(context).pop();
-                              setState(() {
-                                _selectedBookName = book['short_name'];
-                                _selectedBookNumber = book['book_number'];
-                                _selectedChapter = 1;
-                                _selectedVerses.clear();
-                              });
-                              await _loadMaxChapter();
-                              await _loadVerses();
-                            },
-                          );
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: Text('Cancelar'),
-                ),
-              ],
-            );
+        return BibleBookSelectorDialog(
+          books: _books,
+          selectedBookName: _selectedBookName,
+          onBookSelected: (book) async {
+            setState(() {
+              _selectedBookName = book['short_name'];
+              _selectedBookNumber = book['book_number'];
+              _selectedChapter = 1;
+              _selectedVerses.clear();
+            });
+            await _loadMaxChapter();
+            await _loadVerses();
           },
         );
       },
