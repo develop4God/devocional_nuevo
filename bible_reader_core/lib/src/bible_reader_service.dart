@@ -1,7 +1,6 @@
 import 'package:bible_reader_core/src/bible_db_service.dart';
 import 'package:bible_reader_core/src/bible_reading_position_service.dart';
 import 'package:bible_reader_core/src/bible_reference_parser.dart';
-import 'package:bible_reader_core/src/bible_version.dart';
 
 /// Service containing core business logic for Bible reading functionality
 /// This service is framework-agnostic and can be easily tested without Flutter dependencies
@@ -13,44 +12,6 @@ class BibleReaderService {
     required this.dbService,
     required this.positionService,
   });
-
-  /// Initialize a Bible version by setting up its database
-  Future<void> initializeVersion(BibleVersion version) async {
-    await dbService.initDb(
-      version.assetPath,
-      version.dbFileName,
-    );
-  }
-
-  /// Load all books from the current Bible version
-  Future<List<Map<String, dynamic>>> loadBooks() async {
-    return await dbService.getAllBooks();
-  }
-
-  /// Get the maximum chapter number for a specific book
-  Future<int> getMaxChapter(int bookNumber) async {
-    return await dbService.getMaxChapter(bookNumber);
-  }
-
-  /// Load all verses for a specific chapter in a book
-  Future<List<Map<String, dynamic>>> loadChapter(
-    int bookNumber,
-    int chapter,
-  ) async {
-    return await dbService.getChapterVerses(bookNumber, chapter);
-  }
-
-  /// Search for verses containing the given query
-  Future<List<Map<String, dynamic>>> searchVerses(String query) async {
-    if (query.trim().isEmpty) return [];
-    return await dbService.searchVerses(query);
-  }
-
-  /// Find a book by its name or abbreviation
-  Future<Map<String, dynamic>?> findBookByName(String name) async {
-    if (name.trim().isEmpty) return null;
-    return await dbService.findBookByName(name);
-  }
 
   /// Save the current reading position
   Future<void> saveReadingPosition({
@@ -88,7 +49,7 @@ class BibleReaderService {
     required int currentChapter,
     required List<Map<String, dynamic>> books,
   }) async {
-    final maxChapter = await getMaxChapter(currentBookNumber);
+    final maxChapter = await dbService.getMaxChapter(currentBookNumber);
 
     if (currentChapter < maxChapter) {
       return {
@@ -134,7 +95,8 @@ class BibleReaderService {
         books.indexWhere((b) => b['book_number'] == currentBookNumber);
     if (currentIndex > 0) {
       final previousBook = books[currentIndex - 1];
-      final maxChapter = await getMaxChapter(previousBook['book_number']);
+      final maxChapter =
+          await dbService.getMaxChapter(previousBook['book_number']);
       return {
         'bookNumber': previousBook['book_number'],
         'bookName': previousBook['short_name'],
@@ -154,7 +116,7 @@ class BibleReaderService {
     bool goToLastChapter = false,
   }) async {
     final bookNumber = book['book_number'] as int;
-    final maxChapter = await getMaxChapter(bookNumber);
+    final maxChapter = await dbService.getMaxChapter(bookNumber);
 
     int targetChapter = 1;
     if (goToLastChapter) {
@@ -187,10 +149,10 @@ class BibleReaderService {
       final verse = reference['verse'] as int?;
 
       // Find book
-      final book = await findBookByName(bookName);
+      final book = await dbService.findBookByName(bookName);
       if (book != null) {
         final bookNumber = book['book_number'] as int;
-        final maxChapter = await getMaxChapter(bookNumber);
+        final maxChapter = await dbService.getMaxChapter(bookNumber);
 
         // Validate chapter
         if (chapter > 0 && chapter <= maxChapter) {
@@ -208,7 +170,7 @@ class BibleReaderService {
     }
 
     // Fall back to text search
-    final results = await searchVerses(query);
+    final results = await dbService.searchVerses(query);
     return {
       'isReference': false,
       'searchResults': results,
@@ -233,7 +195,7 @@ class BibleReaderService {
     final book = books[bookIndex];
 
     // Verify chapter is valid
-    final maxChapter = await getMaxChapter(bookNumber);
+    final maxChapter = await dbService.getMaxChapter(bookNumber);
     if (chapter < 1 || chapter > maxChapter) return null;
 
     return {

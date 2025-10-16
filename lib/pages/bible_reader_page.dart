@@ -150,8 +150,11 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
 
       // Initialize version and load books
       setState(() => _isLoading = true);
-      await _readerService.initializeVersion(_selectedVersion);
-      final books = await _readerService.loadBooks();
+      await _selectedVersion.service!.initDb(
+        _selectedVersion.assetPath,
+        _selectedVersion.dbFileName,
+      );
+      final books = await _selectedVersion.service!.getAllBooks();
       setState(() {
         _books = books;
         if (books.isNotEmpty) {
@@ -177,11 +180,12 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
 
       // Load chapter data
       if (_selectedBookNumber != null) {
-        final max = await _readerService.getMaxChapter(_selectedBookNumber!);
+        final max =
+            await _selectedVersion.service!.getMaxChapter(_selectedBookNumber!);
         setState(() => _maxChapter = max);
       }
       if (_selectedBookNumber != null && _selectedChapter != null) {
-        final verses = await _readerService.loadChapter(
+        final verses = await _selectedVersion.service!.getChapterVerses(
           _selectedBookNumber!,
           _selectedChapter!,
         );
@@ -205,8 +209,11 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     } else {
       // Start with first available version
       setState(() => _isLoading = true);
-      await _readerService.initializeVersion(_selectedVersion);
-      final books = await _readerService.loadBooks();
+      await _selectedVersion.service!.initDb(
+        _selectedVersion.assetPath,
+        _selectedVersion.dbFileName,
+      );
+      final books = await _selectedVersion.service!.getAllBooks();
       setState(() {
         _books = books;
         if (books.isNotEmpty) {
@@ -218,11 +225,12 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
 
       // Load chapter data
       if (_selectedBookNumber != null) {
-        final max = await _readerService.getMaxChapter(_selectedBookNumber!);
+        final max =
+            await _selectedVersion.service!.getMaxChapter(_selectedBookNumber!);
         setState(() => _maxChapter = max);
       }
       if (_selectedBookNumber != null && _selectedChapter != null) {
-        final verses = await _readerService.loadChapter(
+        final verses = await _selectedVersion.service!.getChapterVerses(
           _selectedBookNumber!,
           _selectedChapter!,
         );
@@ -393,7 +401,8 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
 
   Future<void> _loadMaxChapter() async {
     if (_selectedBookNumber == null) return;
-    final max = await _readerService.getMaxChapter(_selectedBookNumber!);
+    final max =
+        await _selectedVersion.service!.getMaxChapter(_selectedBookNumber!);
     setState(() {
       _maxChapter = max;
     });
@@ -401,7 +410,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
 
   Future<void> _loadVerses() async {
     if (_selectedBookNumber == null || _selectedChapter == null) return;
-    final verses = await _readerService.loadChapter(
+    final verses = await _selectedVersion.service!.getChapterVerses(
       _selectedBookNumber!,
       _selectedChapter!,
     );
@@ -535,8 +544,11 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     }
 
     // Initialize version and load books
-    await _readerService.initializeVersion(_selectedVersion);
-    final books = await _readerService.loadBooks();
+    await _selectedVersion.service!.initDb(
+      _selectedVersion.assetPath,
+      _selectedVersion.dbFileName,
+    );
+    final books = await _selectedVersion.service!.getAllBooks();
     setState(() {
       _books = books;
       if (books.isNotEmpty) {
