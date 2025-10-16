@@ -280,12 +280,18 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     }
 
     if (!mounted) return;
-
-    Navigator.pop(modalContext);
+    
+    // Close modal immediately after mounted check
+    if (modalContext.mounted) {
+      Navigator.pop(modalContext);
+    }
     _controller.clearSelectedVerses();
-
+    
+    // Capture widget's context-dependent values immediately after mounted check
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
     final colorScheme = Theme.of(context).colorScheme;
-    ScaffoldMessenger.of(context).showSnackBar(
+
+    scaffoldMessenger.showSnackBar(
       SnackBar(
         content: Text(
           'bible.save_marked_verses'.tr(),
@@ -366,22 +372,25 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                         ),
                         tooltip: 'bible.select_version'.tr(),
                         onSelected: (version) async {
+                          // Capture context-dependent values BEFORE async operation
+                          final scaffoldMessenger = ScaffoldMessenger.of(context);
+                          final colorScheme = Theme.of(context).colorScheme;
+                          
                           await _controller.switchVersion(version);
-                          if (mounted) {
-                            final colorScheme = Theme.of(context).colorScheme;
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  'bible.loading_version'
-                                      .tr({'version': version.name}),
-                                  style:
-                                      TextStyle(color: colorScheme.onSecondary),
-                                ),
-                                backgroundColor: colorScheme.secondary,
-                                duration: const Duration(seconds: 1),
+                          if (!mounted) return;
+                          
+                          scaffoldMessenger.showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                'bible.loading_version'
+                                    .tr({'version': version.name}),
+                                style:
+                                    TextStyle(color: colorScheme.onSecondary),
                               ),
-                            );
-                          }
+                              backgroundColor: colorScheme.secondary,
+                              duration: const Duration(seconds: 1),
+                            ),
+                          );
                         },
                         itemBuilder: (context) =>
                             state.availableVersions.map((version) {
@@ -865,11 +874,15 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
           margin: const EdgeInsets.only(bottom: 12),
           child: InkWell(
             onTap: () async {
+              // Capture context-dependent values BEFORE async operation
+              final focusScope = FocusScope.of(context);
+              
               await _controller.jumpToSearchResult(result);
               _searchController.clear();
               if (!mounted) return;
+              
               _searchFocusNode.unfocus();
-              FocusScope.of(context).unfocus();
+              focusScope.unfocus();
               // Wait for navigation to complete, then scroll to verse
               Future.delayed(const Duration(milliseconds: 300), () {
                 if (mounted) {
