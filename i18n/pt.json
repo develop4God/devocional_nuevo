@@ -557,6 +557,7 @@
     "copied_to_clipboard": "Copiado para área de transferência",
     "no_verses": "Sem versículos",
     "select_version": "Selecionar versão",
+    "search": "Buscar",
     "search_placeholder": "Buscar palavras ou frases...",
     "no_search_results": "Nenhum resultado encontrado",
     "loading_version": "Carregando {version}...",

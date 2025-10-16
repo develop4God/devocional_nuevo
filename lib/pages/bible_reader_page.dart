@@ -8,6 +8,7 @@ import 'package:devocional_nuevo/widgets/app_bar_constants.dart';
 import 'package:devocional_nuevo/widgets/bible_book_selector_dialog.dart';
 import 'package:devocional_nuevo/widgets/bible_chapter_grid_selector.dart';
 import 'package:devocional_nuevo/widgets/bible_reader_action_modal.dart';
+import 'package:devocional_nuevo/widgets/bible_search_overlay.dart';
 import 'package:devocional_nuevo/widgets/bible_verse_grid_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -35,8 +36,6 @@ class BibleReaderPage extends StatefulWidget {
 class _BibleReaderPageState extends State<BibleReaderPage> {
   late BibleReaderController _controller;
   bool _bottomSheetOpen = false;
-  final TextEditingController _searchController = TextEditingController();
-  final FocusNode _searchFocusNode = FocusNode();
   final ItemScrollController _itemScrollController = ItemScrollController();
   final ItemPositionsListener _itemPositionsListener =
       ItemPositionsListener.create();
@@ -68,8 +67,6 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
 
   @override
   void dispose() {
-    _searchController.dispose();
-    _searchFocusNode.dispose();
     _controller.dispose();
     super.dispose();
   }
@@ -158,6 +155,21 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
             await _controller.selectBook(book);
             _scrollToTop();
           },
+        );
+      },
+    );
+  }
+
+  void _showSearchOverlay() {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierColor: Colors.transparent,
+      builder: (BuildContext context) {
+        return BibleSearchOverlay(
+          controller: _controller,
+          onScrollToVerse: _scrollToVerse,
+          cleanVerseText: _cleanVerseText,
         );
       },
     );
@@ -345,6 +357,21 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                   ),
                 ),
                 Positioned(
+                  right: state.availableVersions.length > 1 ? 96 : 48,
+                  top: 0,
+                  bottom: 0,
+                  child: SafeArea(
+                    child: IconButton(
+                      icon: Icon(
+                        Icons.search,
+                        color: Theme.of(context).colorScheme.onPrimary,
+                      ),
+                      tooltip: 'bible.search'.tr(),
+                      onPressed: _showSearchOverlay,
+                    ),
+                  ),
+                ),
+                Positioned(
                   right: state.availableVersions.length > 1 ? 48 : 0,
                   top: 0,
                   bottom: 0,
@@ -420,13 +447,8 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
           body: PopScope(
             canPop: true,
             onPopInvokedWithResult: (didPop, result) {
-              _searchFocusNode.unfocus();
               if (FocusScope.of(context).hasFocus) {
                 FocusScope.of(context).unfocus();
-              }
-              if (state.isSearching) {
-                _controller.clearSearch();
-                _searchController.clear();
               }
             },
             child: GestureDetector(
@@ -448,64 +470,10 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                   : SafeArea(
                       child: Column(
                         children: [
-                          // Search bar
+                          // Navigation controls
                           Container(
-                            padding: const EdgeInsets.all(12),
+                            padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
-                              color: colorScheme.surface,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.05),
-                                  blurRadius: 2,
-                                  offset: const Offset(0, 1),
-                                ),
-                              ],
-                            ),
-                            child: TextField(
-                              controller: _searchController,
-                              focusNode: _searchFocusNode,
-                              decoration: InputDecoration(
-                                hintText: 'bible.search_placeholder'.tr(),
-                                prefixIcon: const Icon(Icons.search),
-                                suffixIcon: _searchController.text.isNotEmpty
-                                    ? IconButton(
-                                        icon: const Icon(Icons.clear),
-                                        onPressed: () {
-                                          _searchController.clear();
-                                          _searchFocusNode.unfocus();
-                                          _controller.clearSearch();
-                                        },
-                                      )
-                                    : null,
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(25),
-                                  borderSide: BorderSide.none,
-                                ),
-                                filled: true,
-                                fillColor: colorScheme.surfaceContainerHighest,
-                                contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 12,
-                                ),
-                              ),
-                              onSubmitted: (query) async {
-                                await _controller.performSearch(query);
-                              },
-                              onChanged: (value) {
-                                setState(() {});
-                              },
-                            ),
-                          ),
-                          // Search results or Bible content
-                          if (state.isSearching)
-                            Expanded(
-                              child: _buildSearchResults(state, colorScheme),
-                            )
-                          else ...[
-                            // Navigation controls
-                            Container(
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
                                 color: colorScheme.surface,
                                 boxShadow: [
                                   BoxShadow(
@@ -761,7 +729,6 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                                   textAlign: TextAlign.center,
                                 ),
                               ),
-                          ],
                         ],
                       ),
                     ),
@@ -843,166 +810,4 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     );
   }
 
-  Widget _buildSearchResults(BibleReaderState state, ColorScheme colorScheme) {
-    if (state.searchResults.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Text(
-            'bible.no_matches_retry'.tr(),
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 16,
-              color: colorScheme.onSurface.withValues(alpha: 0.7),
-            ),
-          ),
-        ),
-      );
-    }
-
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: state.searchResults.length,
-      itemBuilder: (context, idx) {
-        final result = state.searchResults[idx];
-        final bookName = result['long_name'] ?? result['short_name'];
-        final chapter = result['chapter'];
-        final verse = result['verse'];
-        final text = _cleanVerseText(result['text']);
-
-        return Card(
-          margin: const EdgeInsets.only(bottom: 12),
-          child: InkWell(
-            onTap: () async {
-              // Capture context-dependent values BEFORE async operation
-              final focusScope = FocusScope.of(context);
-              
-              await _controller.jumpToSearchResult(result);
-              _searchController.clear();
-              if (!mounted) return;
-              
-              _searchFocusNode.unfocus();
-              focusScope.unfocus();
-              // Wait for navigation to complete, then scroll to verse
-              Future.delayed(const Duration(milliseconds: 300), () {
-                if (mounted) {
-                  _scrollToVerse(verse);
-                }
-              });
-            },
-            borderRadius: BorderRadius.circular(12),
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '$bookName $chapter:$verse',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: colorScheme.primary,
-                      fontSize: 14,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  RichText(
-                    text: TextSpan(
-                      children: _buildHighlightedTextSpans(
-                        text,
-                        state.searchQuery,
-                        colorScheme,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  List<TextSpan> _buildHighlightedTextSpans(
-    String text,
-    String query,
-    ColorScheme colorScheme,
-  ) {
-    if (query.trim().isEmpty) {
-      return [
-        TextSpan(
-          text: text,
-          style: TextStyle(
-            fontSize: 15,
-            color: colorScheme.onSurface,
-            height: 1.4,
-          ),
-        ),
-      ];
-    }
-
-    final List<TextSpan> spans = [];
-    final lowerText = text.toLowerCase();
-    final queryWords = query
-        .toLowerCase()
-        .split(RegExp(r'\s+'))
-        .where((w) => w.isNotEmpty)
-        .toList();
-
-    int lastIndex = 0;
-
-    while (lastIndex < text.length) {
-      int matchIndex = -1;
-      int matchLength = 0;
-
-      for (final word in queryWords) {
-        if (word.isEmpty) continue;
-        final index = lowerText.indexOf(word, lastIndex);
-        if (index != -1 && (matchIndex == -1 || index < matchIndex)) {
-          matchIndex = index;
-          matchLength = word.length;
-        }
-      }
-
-      if (matchIndex == -1) {
-        spans.add(TextSpan(
-          text: text.substring(lastIndex),
-          style: TextStyle(
-            fontSize: 15,
-            color: colorScheme.onSurface,
-            height: 1.4,
-          ),
-        ));
-        break;
-      }
-
-      if (matchIndex > lastIndex) {
-        spans.add(TextSpan(
-          text: text.substring(lastIndex, matchIndex),
-          style: TextStyle(
-            fontSize: 15,
-            color: colorScheme.onSurface,
-            height: 1.4,
-          ),
-        ));
-      }
-
-      spans.add(TextSpan(
-        text: text.substring(matchIndex, matchIndex + matchLength),
-        style: TextStyle(
-          fontSize: 15,
-          color: colorScheme.onSurface,
-          height: 1.4,
-          fontWeight: FontWeight.bold,
-          backgroundColor: colorScheme.primaryContainer,
-          decoration: TextDecoration.underline,
-          decorationColor: colorScheme.primary,
-        ),
-      ));
-
-      lastIndex = matchIndex + matchLength;
-    }
-
-    return spans;
-  }
 }
