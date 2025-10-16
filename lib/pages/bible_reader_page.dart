@@ -71,8 +71,17 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
       debugPrint('    ${v.name} (${v.languageCode}) - ${v.assetPath}');
     }
 
-    _loadFontSize();
-    _loadMarkedVerses();
+    // Load preferences
+    _preferencesService.getFontSize().then((fontSize) {
+      setState(() => _fontSize = fontSize);
+    });
+    _preferencesService.getMarkedVerses().then((verses) {
+      setState(() {
+        _persistentlyMarkedVerses.clear();
+        _persistentlyMarkedVerses.addAll(verses);
+      });
+    });
+
     _detectLanguageAndInitialize();
   }
 
@@ -137,11 +146,102 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
       );
       // Reinitialize service with correct version
       _reinitializeServiceForVersion(_selectedVersion);
-      await _initVersion();
-      await _restorePosition(lastPosition);
+
+      // Initialize version and load books
+      setState(() => _isLoading = true);
+      await _readerService.initializeVersion(_selectedVersion);
+      final books = await _readerService.loadBooks();
+      setState(() {
+        _books = books;
+        if (books.isNotEmpty) {
+          _selectedBookName = books[0]['short_name'];
+          _selectedBookNumber = books[0]['book_number'];
+          _selectedChapter = 1;
+        }
+      });
+
+      // Restore position
+      final position = await _readerService.restorePosition(
+        savedPosition: lastPosition,
+        books: _books,
+      );
+      if (position != null) {
+        setState(() {
+          _selectedBookName = position['bookName'];
+          _selectedBookNumber = position['bookNumber'];
+          _selectedChapter = position['chapter'];
+          _selectedVerse = position['verse'];
+        });
+      }
+
+      // Load chapter data
+      if (_selectedBookNumber != null) {
+        final max = await _readerService.getMaxChapter(_selectedBookNumber!);
+        setState(() => _maxChapter = max);
+      }
+      if (_selectedBookNumber != null && _selectedChapter != null) {
+        final verses = await _readerService.loadChapter(
+          _selectedBookNumber!,
+          _selectedChapter!,
+        );
+        setState(() {
+          _verses = verses;
+          _maxVerse =
+              verses.isNotEmpty ? (verses.last['verse'] as int? ?? 1) : 1;
+          if (_selectedVerse == null || _selectedVerse! > _maxVerse) {
+            _selectedVerse = 1;
+          }
+        });
+        await _readerService.saveReadingPosition(
+          bookName: _selectedBookName!,
+          bookNumber: _selectedBookNumber!,
+          chapter: _selectedChapter!,
+          version: _selectedVersion.name,
+          languageCode: _selectedVersion.languageCode,
+        );
+      }
+      setState(() => _isLoading = false);
     } else {
       // Start with first available version
-      await _initVersion();
+      setState(() => _isLoading = true);
+      await _readerService.initializeVersion(_selectedVersion);
+      final books = await _readerService.loadBooks();
+      setState(() {
+        _books = books;
+        if (books.isNotEmpty) {
+          _selectedBookName = books[0]['short_name'];
+          _selectedBookNumber = books[0]['book_number'];
+          _selectedChapter = 1;
+        }
+      });
+
+      // Load chapter data
+      if (_selectedBookNumber != null) {
+        final max = await _readerService.getMaxChapter(_selectedBookNumber!);
+        setState(() => _maxChapter = max);
+      }
+      if (_selectedBookNumber != null && _selectedChapter != null) {
+        final verses = await _readerService.loadChapter(
+          _selectedBookNumber!,
+          _selectedChapter!,
+        );
+        setState(() {
+          _verses = verses;
+          _maxVerse =
+              verses.isNotEmpty ? (verses.last['verse'] as int? ?? 1) : 1;
+          if (_selectedVerse == null || _selectedVerse! > _maxVerse) {
+            _selectedVerse = 1;
+          }
+        });
+        await _readerService.saveReadingPosition(
+          bookName: _selectedBookName!,
+          bookNumber: _selectedBookNumber!,
+          chapter: _selectedChapter!,
+          version: _selectedVersion.name,
+          languageCode: _selectedVersion.languageCode,
+        );
+      }
+      setState(() => _isLoading = false);
     }
 
     setState(() {
@@ -149,70 +249,20 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     });
   }
 
-  Future<void> _restorePosition(Map<String, dynamic> savedPosition) async {
-    final position = await _readerService.restorePosition(
-      savedPosition: savedPosition,
-      books: _books,
-    );
-
-    if (position == null) return; // Invalid position
-
-    setState(() {
-      _selectedBookName = position['bookName'];
-      _selectedBookNumber = position['bookNumber'];
-      _selectedChapter = position['chapter'];
-      _selectedVerse = position['verse'];
-    });
-
-    await _loadMaxChapter();
-    await _loadVerses();
-  }
-
-  // Load font size preference
-  Future<void> _loadFontSize() async {
-    final fontSize = await _preferencesService.getFontSize();
-    setState(() {
-      _fontSize = fontSize;
-    });
-  }
-
-  // Save font size preference
-  Future<void> _saveFontSize() async {
-    await _preferencesService.saveFontSize(_fontSize);
-  }
-
   // Increase font size
   void _increaseFontSize() {
     if (_fontSize < 30) {
-      setState(() {
-        _fontSize += 2;
-      });
-      _saveFontSize();
+      setState(() => _fontSize += 2);
+      _preferencesService.saveFontSize(_fontSize);
     }
   }
 
   // Decrease font size
   void _decreaseFontSize() {
     if (_fontSize > 12) {
-      setState(() {
-        _fontSize -= 2;
-      });
-      _saveFontSize();
+      setState(() => _fontSize -= 2);
+      _preferencesService.saveFontSize(_fontSize);
     }
-  }
-
-  // Load persistently marked verses
-  Future<void> _loadMarkedVerses() async {
-    final markedVerses = await _preferencesService.getMarkedVerses();
-    setState(() {
-      _persistentlyMarkedVerses.clear();
-      _persistentlyMarkedVerses.addAll(markedVerses);
-    });
-  }
-
-  // Save persistently marked verses
-  Future<void> _saveMarkedVerses() async {
-    await _preferencesService.saveMarkedVerses(_persistentlyMarkedVerses);
   }
 
   // Toggle verse persistent marking
@@ -224,7 +274,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
         _persistentlyMarkedVerses.add(verseKey);
       }
     });
-    _saveMarkedVerses();
+    _preferencesService.saveMarkedVerses(_persistentlyMarkedVerses);
   }
 
   // Scroll to specific verse
@@ -418,33 +468,6 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     );
   }
 
-  Future<void> _initVersion() async {
-    setState(() {
-      _isLoading = true;
-    });
-
-    await _readerService.initializeVersion(_selectedVersion);
-    await _loadBooks();
-
-    setState(() {
-      _isLoading = false;
-    });
-  }
-
-  Future<void> _loadBooks() async {
-    final books = await _readerService.loadBooks();
-    setState(() {
-      _books = books;
-      if (books.isNotEmpty) {
-        _selectedBookName = books[0]['short_name'];
-        _selectedBookNumber = books[0]['book_number'];
-        _selectedChapter = 1;
-      }
-    });
-    await _loadMaxChapter();
-    await _loadVerses();
-  }
-
   Future<void> _loadMaxChapter() async {
     if (_selectedBookNumber == null) return;
     final max = await _readerService.getMaxChapter(_selectedBookNumber!);
@@ -588,7 +611,21 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
       );
     }
 
-    await _initVersion();
+    // Initialize version and load books
+    await _readerService.initializeVersion(_selectedVersion);
+    final books = await _readerService.loadBooks();
+    setState(() {
+      _books = books;
+      if (books.isNotEmpty) {
+        _selectedBookName = books[0]['short_name'];
+        _selectedBookNumber = books[0]['book_number'];
+        _selectedChapter = 1;
+      }
+    });
+
+    // Load chapter data
+    await _loadMaxChapter();
+    await _loadVerses();
 
     setState(() {
       _isLoading = false;
@@ -808,7 +845,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     Navigator.pop(modalContext);
 
     // Save to SharedPreferences
-    await _saveMarkedVerses();
+    await _preferencesService.saveMarkedVerses(_persistentlyMarkedVerses);
 
     // Clear selection...
     if (!mounted) return;
