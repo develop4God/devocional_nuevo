@@ -50,13 +50,15 @@ class BibleReaderController {
     _emit(_state.copyWith(isLoading: true, deviceLanguage: deviceLanguage));
 
     // Filter versions by device language
-    List<BibleVersion> availableVersions =
-        allVersions.where((v) => v.languageCode == deviceLanguage).toList();
+    List<BibleVersion> availableVersions = allVersions
+        .where((v) => v.languageCode == deviceLanguage)
+        .toList();
 
     // Fallback to Spanish or all versions if no match
     if (availableVersions.isEmpty) {
-      availableVersions =
-          allVersions.where((v) => v.languageCode == 'es').toList();
+      availableVersions = allVersions
+          .where((v) => v.languageCode == 'es')
+          .toList();
       if (availableVersions.isEmpty) {
         availableVersions = allVersions;
       }
@@ -74,12 +76,14 @@ class BibleReaderController {
     final fontSize = await preferencesService.getFontSize();
     final markedVerses = await preferencesService.getMarkedVerses();
 
-    _emit(_state.copyWith(
-      availableVersions: availableVersions,
-      selectedVersion: selectedVersion,
-      fontSize: fontSize,
-      persistentlyMarkedVerses: markedVerses,
-    ));
+    _emit(
+      _state.copyWith(
+        availableVersions: availableVersions,
+        selectedVersion: selectedVersion,
+        fontSize: fontSize,
+        persistentlyMarkedVerses: markedVerses,
+      ),
+    );
 
     // Try to restore last position
     final lastPosition = await readerService.getLastPosition();
@@ -98,9 +102,11 @@ class BibleReaderController {
     Map<String, dynamic> lastPosition,
     List<BibleVersion> availableVersions,
   ) {
-    return availableVersions.any((v) =>
-        v.name == lastPosition['version'] &&
-        v.languageCode == lastPosition['languageCode']);
+    return availableVersions.any(
+      (v) =>
+          v.name == lastPosition['version'] &&
+          v.languageCode == lastPosition['languageCode'],
+    );
   }
 
   Future<void> _restoreLastPosition(
@@ -126,14 +132,16 @@ class BibleReaderController {
     );
 
     if (position != null) {
-      _emit(_state.copyWith(
-        selectedVersion: savedVersion,
-        books: books,
-        selectedBookName: position['bookName'],
-        selectedBookNumber: position['bookNumber'],
-        selectedChapter: position['chapter'],
-        selectedVerse: position['verse'],
-      ));
+      _emit(
+        _state.copyWith(
+          selectedVersion: savedVersion,
+          books: books,
+          selectedBookName: position['bookName'],
+          selectedBookNumber: position['bookNumber'],
+          selectedChapter: position['chapter'],
+          selectedVerse: position['verse'],
+        ),
+      );
 
       // Load chapter data
       await _loadChapterData();
@@ -147,13 +155,15 @@ class BibleReaderController {
     final books = await _state.selectedVersion!.service!.getAllBooks();
 
     if (books.isNotEmpty) {
-      _emit(_state.copyWith(
-        books: books,
-        selectedBookName: books[0]['short_name'],
-        selectedBookNumber: books[0]['book_number'],
-        selectedChapter: 1,
-        selectedVerse: 1,
-      ));
+      _emit(
+        _state.copyWith(
+          books: books,
+          selectedBookName: books[0]['short_name'],
+          selectedBookNumber: books[0]['book_number'],
+          selectedChapter: 1,
+          selectedVerse: 1,
+        ),
+      );
 
       await _loadChapterData();
     }
@@ -162,6 +172,8 @@ class BibleReaderController {
   Future<void> _initializeVersionService(BibleVersion version) async {
     version.service ??= BibleDbService();
     await version.service!.initDb(version.assetPath, version.dbFileName);
+    // Also initialize readerService.dbService with the same DB for business logic
+    await readerService.dbService.initDb(version.assetPath, version.dbFileName);
   }
 
   Future<void> _loadChapterData() async {
@@ -169,26 +181,31 @@ class BibleReaderController {
       return;
     }
 
-    final maxChapter = await _state.selectedVersion!.service!
-        .getMaxChapter(_state.selectedBookNumber!);
+    final maxChapter = await _state.selectedVersion!.service!.getMaxChapter(
+      _state.selectedBookNumber!,
+    );
 
     final verses = await _state.selectedVersion!.service!.getChapterVerses(
       _state.selectedBookNumber!,
       _state.selectedChapter!,
     );
 
-    final maxVerse =
-        verses.isNotEmpty ? (verses.last['verse'] as int? ?? 1) : 1;
+    final maxVerse = verses.isNotEmpty
+        ? (verses.last['verse'] as int? ?? 1)
+        : 1;
     final selectedVerse = _state.selectedVerse;
-    final validatedVerse =
-        (selectedVerse == null || selectedVerse > maxVerse) ? 1 : selectedVerse;
+    final validatedVerse = (selectedVerse == null || selectedVerse > maxVerse)
+        ? 1
+        : selectedVerse;
 
-    _emit(_state.copyWith(
-      maxChapter: maxChapter,
-      verses: verses,
-      maxVerse: maxVerse,
-      selectedVerse: validatedVerse,
-    ));
+    _emit(
+      _state.copyWith(
+        maxChapter: maxChapter,
+        verses: verses,
+        maxVerse: maxVerse,
+        selectedVerse: validatedVerse,
+      ),
+    );
 
     // Save reading position
     if (_state.selectedBookName != null) {
@@ -212,15 +229,17 @@ class BibleReaderController {
 
     final books = await newVersion.service!.getAllBooks();
 
-    _emit(_state.copyWith(
-      selectedVersion: newVersion,
-      books: books,
-      selectedBookName: books.isNotEmpty ? books[0]['short_name'] : null,
-      selectedBookNumber: books.isNotEmpty ? books[0]['book_number'] : null,
-      selectedChapter: 1,
-      selectedVerse: 1,
-      selectedVerses: {},
-    ));
+    _emit(
+      _state.copyWith(
+        selectedVersion: newVersion,
+        books: books,
+        selectedBookName: books.isNotEmpty ? books[0]['short_name'] : null,
+        selectedBookNumber: books.isNotEmpty ? books[0]['book_number'] : null,
+        selectedChapter: 1,
+        selectedVerse: 1,
+        selectedVerses: {},
+      ),
+    );
 
     await _loadChapterData();
 
@@ -228,28 +247,29 @@ class BibleReaderController {
   }
 
   /// Select a book and optionally a chapter
-  Future<void> selectBook(
-    Map<String, dynamic> book, {
-    int? chapter,
-  }) async {
-    _emit(_state.copyWith(
-      selectedBookName: book['short_name'],
-      selectedBookNumber: book['book_number'],
-      selectedChapter: chapter ?? 1,
-      selectedVerse: 1,
-      selectedVerses: {},
-    ));
+  Future<void> selectBook(Map<String, dynamic> book, {int? chapter}) async {
+    _emit(
+      _state.copyWith(
+        selectedBookName: book['short_name'],
+        selectedBookNumber: book['book_number'],
+        selectedChapter: chapter ?? 1,
+        selectedVerse: 1,
+        selectedVerses: {},
+      ),
+    );
 
     await _loadChapterData();
   }
 
   /// Select a specific chapter
   Future<void> selectChapter(int chapter) async {
-    _emit(_state.copyWith(
-      selectedChapter: chapter,
-      selectedVerse: 1,
-      selectedVerses: {},
-    ));
+    _emit(
+      _state.copyWith(
+        selectedChapter: chapter,
+        selectedVerse: 1,
+        selectedVerses: {},
+      ),
+    );
 
     await _loadChapterData();
   }
@@ -273,18 +293,21 @@ class BibleReaderController {
 
     if (result == null) return; // At end of Bible
 
-    _emit(_state.copyWith(
-      selectedBookNumber: result['bookNumber'],
-      selectedBookName: result['bookName'] ?? _state.selectedBookName,
-      selectedChapter: result['chapter'],
-      selectedVerse: 1,
-      selectedVerses: {},
-    ));
+    _emit(
+      _state.copyWith(
+        selectedBookNumber: result['bookNumber'],
+        selectedBookName: result['bookName'] ?? _state.selectedBookName,
+        selectedChapter: result['chapter'],
+        selectedVerse: 1,
+        selectedVerses: {},
+      ),
+    );
 
     if (result['bookName'] != null) {
       // Book changed, need to reload max chapter
-      final maxChapter = await _state.selectedVersion!.service!
-          .getMaxChapter(result['bookNumber']);
+      final maxChapter = await _state.selectedVersion!.service!.getMaxChapter(
+        result['bookNumber'],
+      );
       _emit(_state.copyWith(maxChapter: maxChapter));
     }
 
@@ -305,18 +328,21 @@ class BibleReaderController {
 
     if (result == null) return; // At start of Bible
 
-    _emit(_state.copyWith(
-      selectedBookNumber: result['bookNumber'],
-      selectedBookName: result['bookName'] ?? _state.selectedBookName,
-      selectedChapter: result['chapter'],
-      selectedVerse: 1,
-      selectedVerses: {},
-    ));
+    _emit(
+      _state.copyWith(
+        selectedBookNumber: result['bookNumber'],
+        selectedBookName: result['bookName'] ?? _state.selectedBookName,
+        selectedChapter: result['chapter'],
+        selectedVerse: 1,
+        selectedVerses: {},
+      ),
+    );
 
     if (result['bookName'] != null) {
       // Book changed, need to reload max chapter
-      final maxChapter = await _state.selectedVersion!.service!
-          .getMaxChapter(result['bookNumber']);
+      final maxChapter = await _state.selectedVersion!.service!.getMaxChapter(
+        result['bookNumber'],
+      );
       _emit(_state.copyWith(maxChapter: maxChapter));
     }
 
@@ -326,11 +352,9 @@ class BibleReaderController {
   /// Perform search with automatic Bible reference detection
   Future<void> performSearch(String query) async {
     if (query.trim().isEmpty) {
-      _emit(_state.copyWith(
-        isSearching: false,
-        searchResults: [],
-        searchQuery: '',
-      ));
+      _emit(
+        _state.copyWith(isSearching: false, searchResults: [], searchQuery: ''),
+      );
       return;
     }
 
@@ -342,26 +366,30 @@ class BibleReaderController {
       // Direct navigation to Bible reference
       final target = result['navigationTarget'] as Map<String, dynamic>;
 
-      _emit(_state.copyWith(
-        selectedBookName: target['bookName'],
-        selectedBookNumber: target['bookNumber'],
-        selectedChapter: target['chapter'],
-        selectedVerse: target['verse'] ?? 1,
-        isSearching: false,
-        searchResults: [],
-        searchQuery: '',
-        isLoading: false,
-      ));
+      _emit(
+        _state.copyWith(
+          selectedBookName: target['bookName'],
+          selectedBookNumber: target['bookNumber'],
+          selectedChapter: target['chapter'],
+          selectedVerse: target['verse'] ?? 1,
+          isSearching: false,
+          searchResults: [],
+          searchQuery: '',
+          isLoading: false,
+        ),
+      );
 
       await _loadChapterData();
     } else {
       // Text search results
-      _emit(_state.copyWith(
-        searchResults: result['searchResults'] as List<Map<String, dynamic>>,
-        searchQuery: query,
-        isSearching: true,
-        isLoading: false,
-      ));
+      _emit(
+        _state.copyWith(
+          searchResults: result['searchResults'] as List<Map<String, dynamic>>,
+          searchQuery: query,
+          isSearching: true,
+          isLoading: false,
+        ),
+      );
     }
   }
 
@@ -377,26 +405,26 @@ class BibleReaderController {
       orElse: () => _state.books[0],
     );
 
-    _emit(_state.copyWith(
-      selectedBookName: book['short_name'],
-      selectedBookNumber: bookNumber,
-      selectedChapter: chapter,
-      selectedVerse: verse,
-      isSearching: false,
-      searchResults: [],
-      searchQuery: '',
-    ));
+    _emit(
+      _state.copyWith(
+        selectedBookName: book['short_name'],
+        selectedBookNumber: bookNumber,
+        selectedChapter: chapter,
+        selectedVerse: verse,
+        isSearching: false,
+        searchResults: [],
+        searchQuery: '',
+      ),
+    );
 
     await _loadChapterData();
   }
 
   /// Clear search results and exit search mode
   void clearSearch() {
-    _emit(_state.copyWith(
-      isSearching: false,
-      searchResults: [],
-      searchQuery: '',
-    ));
+    _emit(
+      _state.copyWith(isSearching: false, searchResults: [], searchQuery: ''),
+    );
   }
 
   /// Toggle verse selection for copy/share
