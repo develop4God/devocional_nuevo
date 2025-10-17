@@ -6,6 +6,7 @@
 /// - Testable (all services injected)
 /// - Ready for Bloc/Riverpod integration (exposes state stream)
 /// - Fully decoupled from UI layer
+library;
 
 import 'dart:async';
 

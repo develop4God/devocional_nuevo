@@ -1,5 +1,6 @@
 /// Utility for formatting Bible verses with full book name and version.
 /// PURE Dart (no Flutter imports).
+library;
 
 class BibleVerseFormatter {
   /// Formats selected verses for sharing/copy, using full book name and version.
