@@ -114,12 +114,12 @@ class _DevocionalesPageState extends State<DevocionalesPage>
   }
 
   @override
-  void didPop() {
+  void didPushNext() {
     _tracking.pauseTracking();
-    debugPrint('📄 DevocionalesPage popped → tracking PAUSED');
+    debugPrint('📄 DevocionalesPage didPushNext → tracking PAUSED');
     if (_audioController != null && _audioController!.isActive) {
-      debugPrint('🎵 Audio was active → stopping audio');
-      _audioController!.stop();
+      debugPrint('🎵 [DEBUG] Navigation away - stopping audio (force)');
+      _audioController!.forceStop();
     }
   }
 
