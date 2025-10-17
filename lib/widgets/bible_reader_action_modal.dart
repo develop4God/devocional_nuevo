@@ -8,6 +8,8 @@ class BibleReaderActionModal extends StatelessWidget {
   final VoidCallback onCopy;
   final VoidCallback onShare;
   final VoidCallback onImage;
+  final bool areVersesSaved;
+  final VoidCallback? onDeleteSaved;
 
   const BibleReaderActionModal({
     super.key,
@@ -17,6 +19,8 @@ class BibleReaderActionModal extends StatelessWidget {
     required this.onCopy,
     required this.onShare,
     required this.onImage,
+    this.areVersesSaved = false,
+    this.onDeleteSaved,
   });
 
   @override
@@ -35,10 +39,36 @@ class BibleReaderActionModal extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Close (X) button, top-right
+          // Close (X) button and menu button (if verses are saved), top-right
           Row(
             children: [
               const Spacer(),
+              if (areVersesSaved && onDeleteSaved != null)
+                PopupMenuButton<String>(
+                  icon: Icon(Icons.more_vert,
+                      color: colorScheme.onSurfaceVariant, size: 24),
+                  tooltip: 'bible.close'.tr(),
+                  padding: EdgeInsets.zero,
+                  onSelected: (value) {
+                    if (value == 'delete') {
+                      onDeleteSaved!();
+                    }
+                  },
+                  itemBuilder: (context) => [
+                    PopupMenuItem<String>(
+                      value: 'delete',
+                      child: Row(
+                        children: [
+                          Icon(Icons.delete_outline,
+                              color: colorScheme.error, size: 20),
+                          const SizedBox(width: 8),
+                          Text('bible.delete_saved_verses'.tr()),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              const SizedBox(width: 8),
               IconButton(
                 icon: Icon(Icons.close,
                     color: colorScheme.onSurfaceVariant, size: 26),
@@ -102,9 +132,11 @@ class BibleReaderActionModal extends StatelessWidget {
               children: [
                 _buildActionButton(
                   context: context,
-                  icon: Icons.bookmark_outline,
-                  label: 'bible.save_verses'.tr(),
-                  // Replace with tr() if needed
+                  icon:
+                      areVersesSaved ? Icons.bookmark : Icons.bookmark_outline,
+                  label: areVersesSaved
+                      ? 'bible.saved_verses'.tr()
+                      : 'bible.save_verses'.tr(),
                   onTap: onSave,
                 ),
                 _buildActionButton(

@@ -1,6 +1,7 @@
 //bible_reader_page.dart - Pure UI presentation layer
 import 'dart:ui' as ui;
 
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:bible_reader_core/bible_reader_core.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/utils/copyright_utils.dart';
@@ -8,6 +9,7 @@ import 'package:devocional_nuevo/widgets/app_bar_constants.dart';
 import 'package:devocional_nuevo/widgets/bible_book_selector_dialog.dart';
 import 'package:devocional_nuevo/widgets/bible_chapter_grid_selector.dart';
 import 'package:devocional_nuevo/widgets/bible_reader_action_modal.dart';
+import 'package:devocional_nuevo/widgets/bible_search_overlay.dart';
 import 'package:devocional_nuevo/widgets/bible_verse_grid_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -35,8 +37,6 @@ class BibleReaderPage extends StatefulWidget {
 class _BibleReaderPageState extends State<BibleReaderPage> {
   late BibleReaderController _controller;
   bool _bottomSheetOpen = false;
-  final TextEditingController _searchController = TextEditingController();
-  final FocusNode _searchFocusNode = FocusNode();
   final ItemScrollController _itemScrollController = ItemScrollController();
   final ItemPositionsListener _itemPositionsListener =
       ItemPositionsListener.create();
@@ -68,8 +68,6 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
 
   @override
   void dispose() {
-    _searchController.dispose();
-    _searchFocusNode.dispose();
     _controller.dispose();
     super.dispose();
   }
@@ -163,6 +161,21 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     );
   }
 
+  void _showSearchOverlay() {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierColor: Colors.transparent,
+      builder: (BuildContext context) {
+        return BibleSearchOverlay(
+          controller: _controller,
+          onScrollToVerse: _scrollToVerse,
+          cleanVerseText: _cleanVerseText,
+        );
+      },
+    );
+  }
+
   void _onVerseTap(int verseNumber) {
     final state = _controller.state;
     final key =
@@ -186,6 +199,12 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
   void _showBottomSheet() {
     _bottomSheetOpen = true;
 
+    // Check if all selected verses are already saved
+    final selectedVerses = _controller.state.selectedVerses.toList();
+    final persistentlyMarkedVerses = _controller.state.persistentlyMarkedVerses;
+    final areVersesSaved =
+        selectedVerses.every((key) => persistentlyMarkedVerses.contains(key));
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -201,6 +220,9 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
             Navigator.pop(context);
             _controller.clearSelectedVerses();
           },
+          areVersesSaved: areVersesSaved,
+          onDeleteSaved:
+              areVersesSaved ? () => _deleteSelectedVerses(context) : null,
         );
       },
     ).whenComplete(() {
@@ -281,14 +303,51 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
 
     if (!mounted) return;
 
-    Navigator.pop(modalContext);
+    // Close modal immediately after mounted check
+    if (modalContext.mounted) {
+      Navigator.pop(modalContext);
+    }
     _controller.clearSelectedVerses();
 
+    // Capture widget's context-dependent values immediately after mounted check
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
     final colorScheme = Theme.of(context).colorScheme;
-    ScaffoldMessenger.of(context).showSnackBar(
+
+    scaffoldMessenger.showSnackBar(
       SnackBar(
         content: Text(
           'bible.save_marked_verses'.tr(),
+          style: TextStyle(color: colorScheme.onSecondary),
+        ),
+        backgroundColor: colorScheme.secondary,
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  void _deleteSelectedVerses(BuildContext modalContext) async {
+    final selectedVerses = List.from(_controller.state.selectedVerses);
+    for (final verseKey in selectedVerses) {
+      // Toggle will remove the mark if it's already marked
+      await _controller.togglePersistentMark(verseKey);
+    }
+
+    if (!mounted) return;
+
+    // Close modal immediately after mounted check
+    if (modalContext.mounted) {
+      Navigator.pop(modalContext);
+    }
+    _controller.clearSelectedVerses();
+
+    // Capture widget's context-dependent values immediately after mounted check
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+    final colorScheme = Theme.of(context).colorScheme;
+
+    scaffoldMessenger.showSnackBar(
+      SnackBar(
+        content: Text(
+          'bible.deleted_marked_verses'.tr(),
           style: TextStyle(color: colorScheme.onSecondary),
         ),
         backgroundColor: colorScheme.secondary,
@@ -339,6 +398,21 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                   ),
                 ),
                 Positioned(
+                  right: state.availableVersions.length > 1 ? 96 : 48,
+                  top: 0,
+                  bottom: 0,
+                  child: SafeArea(
+                    child: IconButton(
+                      icon: Icon(
+                        Icons.search,
+                        color: Theme.of(context).colorScheme.onPrimary,
+                      ),
+                      tooltip: 'bible.search'.tr(),
+                      onPressed: _showSearchOverlay,
+                    ),
+                  ),
+                ),
+                Positioned(
                   right: state.availableVersions.length > 1 ? 48 : 0,
                   top: 0,
                   bottom: 0,
@@ -366,22 +440,26 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                         ),
                         tooltip: 'bible.select_version'.tr(),
                         onSelected: (version) async {
+                          // Capture context-dependent values BEFORE async operation
+                          final scaffoldMessenger =
+                              ScaffoldMessenger.of(context);
+                          final colorScheme = Theme.of(context).colorScheme;
+
                           await _controller.switchVersion(version);
-                          if (mounted) {
-                            final colorScheme = Theme.of(context).colorScheme;
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  'bible.loading_version'
-                                      .tr({'version': version.name}),
-                                  style:
-                                      TextStyle(color: colorScheme.onSecondary),
-                                ),
-                                backgroundColor: colorScheme.secondary,
-                                duration: const Duration(seconds: 1),
+                          if (!mounted) return;
+
+                          scaffoldMessenger.showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                'bible.loading_version'
+                                    .tr({'version': version.name}),
+                                style:
+                                    TextStyle(color: colorScheme.onSecondary),
                               ),
-                            );
-                          }
+                              backgroundColor: colorScheme.secondary,
+                              duration: const Duration(seconds: 1),
+                            ),
+                          );
                         },
                         itemBuilder: (context) =>
                             state.availableVersions.map((version) {
@@ -411,13 +489,8 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
           body: PopScope(
             canPop: true,
             onPopInvokedWithResult: (didPop, result) {
-              _searchFocusNode.unfocus();
               if (FocusScope.of(context).hasFocus) {
                 FocusScope.of(context).unfocus();
-              }
-              if (state.isSearching) {
-                _controller.clearSearch();
-                _searchController.clear();
               }
             },
             child: GestureDetector(
@@ -439,320 +512,258 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                   : SafeArea(
                       child: Column(
                         children: [
-                          // Search bar
+                          // Navigation controls
                           Container(
-                            padding: const EdgeInsets.all(12),
+                            padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
                               color: colorScheme.surface,
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.05),
-                                  blurRadius: 2,
-                                  offset: const Offset(0, 1),
+                                  color: Colors.black.withValues(alpha: 0.1),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 2),
                                 ),
                               ],
                             ),
-                            child: TextField(
-                              controller: _searchController,
-                              focusNode: _searchFocusNode,
-                              decoration: InputDecoration(
-                                hintText: 'bible.search_placeholder'.tr(),
-                                prefixIcon: const Icon(Icons.search),
-                                suffixIcon: _searchController.text.isNotEmpty
-                                    ? IconButton(
-                                        icon: const Icon(Icons.clear),
-                                        onPressed: () {
-                                          _searchController.clear();
-                                          _searchFocusNode.unfocus();
-                                          _controller.clearSearch();
-                                        },
-                                      )
-                                    : null,
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(25),
-                                  borderSide: BorderSide.none,
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  flex: 2,
+                                  child: InkWell(
+                                    onTap: _showBookSelector,
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 12, vertical: 12),
+                                      decoration: BoxDecoration(
+                                        border: Border.all(
+                                          color: Theme.of(context)
+                                                  .outlinedButtonTheme
+                                                  .style
+                                                  ?.side
+                                                  ?.resolve({})?.color ??
+                                              colorScheme.outline,
+                                          width: 1.0,
+                                        ),
+                                        borderRadius: BorderRadius.circular(25),
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          Icon(Icons.auto_stories_outlined,
+                                              size: 20,
+                                              color: colorScheme.primary),
+                                          const SizedBox(width: 8),
+                                          Expanded(
+                                            child: Text(
+                                              state.selectedBookName != null
+                                                  ? state.books.firstWhere((b) =>
+                                                          b['short_name'] ==
+                                                          state
+                                                              .selectedBookName)[
+                                                      'long_name']
+                                                  : 'Seleccionar libro',
+                                              overflow: TextOverflow.ellipsis,
+                                              style: TextStyle(
+                                                fontSize: 14,
+                                                color: colorScheme.onSurface,
+                                              ),
+                                            ),
+                                          ),
+                                          Icon(Icons.arrow_drop_down,
+                                              color: colorScheme.onSurface),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
                                 ),
-                                filled: true,
-                                fillColor: colorScheme.surfaceContainerHighest,
-                                contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 12,
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: OutlinedButton.icon(
+                                    onPressed: _showChapterGridSelector,
+                                    icon: Icon(Icons.format_list_numbered,
+                                        size: 18, color: colorScheme.primary),
+                                    label: Text(
+                                      'C. ${state.selectedChapter ?? 1}',
+                                      style: const TextStyle(fontSize: 14),
+                                    ),
+                                    style: OutlinedButton.styleFrom(
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 12),
+                                    ),
+                                  ),
                                 ),
-                              ),
-                              onSubmitted: (query) async {
-                                await _controller.performSearch(query);
-                              },
-                              onChanged: (value) {
-                                setState(() {});
-                              },
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: OutlinedButton.icon(
+                                    onPressed: _showVerseGridSelector,
+                                    icon: const Icon(Icons.format_list_numbered,
+                                        size: 18),
+                                    label: Text(
+                                      'V. ${state.selectedVerse ?? 1}',
+                                      style: const TextStyle(fontSize: 14),
+                                    ),
+                                    style: OutlinedButton.styleFrom(
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 12),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                          // Search results or Bible content
-                          if (state.isSearching)
-                            Expanded(
-                              child: _buildSearchResults(state, colorScheme),
-                            )
-                          else ...[
-                            // Navigation controls
+                          // Font controls
+                          if (state.showFontControls)
                             Container(
-                              padding: const EdgeInsets.all(16),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 8),
                               decoration: BoxDecoration(
-                                color: colorScheme.surface,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.1),
-                                    blurRadius: 4,
-                                    offset: const Offset(0, 2),
+                                color: colorScheme.surfaceContainerHighest,
+                                border: Border(
+                                  bottom: BorderSide(
+                                    color: colorScheme.outline
+                                        .withValues(alpha: 0.2),
+                                    width: 1,
                                   ),
-                                ],
+                                ),
                               ),
                               child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Expanded(
-                                    flex: 2,
-                                    child: InkWell(
-                                      onTap: _showBookSelector,
-                                      child: Container(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 12, vertical: 12),
-                                        decoration: BoxDecoration(
-                                          border: Border.all(
-                                            color: Theme.of(context)
-                                                    .outlinedButtonTheme
-                                                    .style
-                                                    ?.side
-                                                    ?.resolve({})?.color ??
-                                                colorScheme.outline,
-                                            width: 1.0,
-                                          ),
-                                          borderRadius:
-                                              BorderRadius.circular(25),
-                                        ),
-                                        child: Row(
-                                          children: [
-                                            Icon(Icons.auto_stories_outlined,
-                                                size: 20,
-                                                color: colorScheme.primary),
-                                            const SizedBox(width: 8),
-                                            Expanded(
-                                              child: Text(
-                                                state.selectedBookName != null
-                                                    ? state.books.firstWhere((b) =>
-                                                            b['short_name'] ==
-                                                            state
-                                                                .selectedBookName)[
-                                                        'long_name']
-                                                    : 'Seleccionar libro',
-                                                overflow: TextOverflow.ellipsis,
-                                                style: TextStyle(
-                                                  fontSize: 14,
-                                                  color: colorScheme.onSurface,
-                                                ),
-                                              ),
-                                            ),
-                                            Icon(Icons.arrow_drop_down,
-                                                color: colorScheme.onSurface),
-                                          ],
-                                        ),
-                                      ),
+                                  IconButton(
+                                    icon: const Icon(Icons.text_decrease),
+                                    onPressed: () =>
+                                        _controller.decreaseFontSize(),
+                                    tooltip: 'bible.decrease_font'.tr(),
+                                    color: colorScheme.primary,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'bible.font_size_label'.tr(),
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: colorScheme.onSurface
+                                          .withValues(alpha: 0.7),
                                     ),
                                   ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: OutlinedButton.icon(
-                                      onPressed: _showChapterGridSelector,
-                                      icon: Icon(Icons.format_list_numbered,
-                                          size: 18, color: colorScheme.primary),
-                                      label: Text(
-                                        'C. ${state.selectedChapter ?? 1}',
-                                        style: const TextStyle(fontSize: 14),
-                                      ),
-                                      style: OutlinedButton.styleFrom(
-                                        padding: const EdgeInsets.symmetric(
-                                            vertical: 12),
-                                      ),
-                                    ),
+                                  const SizedBox(width: 8),
+                                  IconButton(
+                                    icon: const Icon(Icons.text_increase),
+                                    onPressed: () =>
+                                        _controller.increaseFontSize(),
+                                    tooltip: 'bible.increase_font'.tr(),
+                                    color: colorScheme.primary,
                                   ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: OutlinedButton.icon(
-                                      onPressed: _showVerseGridSelector,
-                                      icon: const Icon(
-                                          Icons.format_list_numbered,
-                                          size: 18),
-                                      label: Text(
-                                        'V. ${state.selectedVerse ?? 1}',
-                                        style: const TextStyle(fontSize: 14),
-                                      ),
-                                      style: OutlinedButton.styleFrom(
-                                        padding: const EdgeInsets.symmetric(
-                                            vertical: 12),
-                                      ),
-                                    ),
+                                  const Spacer(),
+                                  IconButton(
+                                    icon: const Icon(Icons.close, size: 20),
+                                    onPressed: () => _controller
+                                        .setFontControlsVisibility(false),
+                                    tooltip: 'Cerrar',
                                   ),
                                 ],
                               ),
                             ),
-                            // Font controls
-                            if (state.showFontControls)
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 16, vertical: 8),
-                                decoration: BoxDecoration(
-                                  color: colorScheme.surfaceContainerHighest,
-                                  border: Border(
-                                    bottom: BorderSide(
-                                      color: colorScheme.outline
-                                          .withValues(alpha: 0.2),
-                                      width: 1,
-                                    ),
-                                  ),
-                                ),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    IconButton(
-                                      icon: const Icon(Icons.text_decrease),
-                                      onPressed: () =>
-                                          _controller.decreaseFontSize(),
-                                      tooltip: 'bible.decrease_font'.tr(),
-                                      color: colorScheme.primary,
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      'bible.font_size_label'.tr(),
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        color: colorScheme.onSurface
-                                            .withValues(alpha: 0.7),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    IconButton(
-                                      icon: const Icon(Icons.text_increase),
-                                      onPressed: () =>
-                                          _controller.increaseFontSize(),
-                                      tooltip: 'bible.increase_font'.tr(),
-                                      color: colorScheme.primary,
-                                    ),
-                                    const Spacer(),
-                                    IconButton(
-                                      icon: const Icon(Icons.close, size: 20),
-                                      onPressed: () => _controller
-                                          .setFontControlsVisibility(false),
-                                      tooltip: 'Cerrar',
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            // Verses list
-                            Expanded(
-                              child: state.verses.isEmpty
-                                  ? Center(child: Text('bible.no_verses'.tr()))
-                                  : ScrollablePositionedList.builder(
-                                      itemScrollController:
-                                          _itemScrollController,
-                                      itemPositionsListener:
-                                          _itemPositionsListener,
-                                      padding: const EdgeInsets.fromLTRB(
-                                          16, 16, 16, 32),
-                                      itemCount: state.verses.length,
-                                      itemBuilder: (context, idx) {
-                                        final verse = state.verses[idx];
-                                        final verseNumber = verse['verse'];
-                                        final key =
-                                            "${state.selectedBookName}|${state.selectedChapter}|$verseNumber";
-                                        final isSelected =
-                                            state.selectedVerses.contains(key);
-                                        final isPersistentlyMarked = state
-                                            .persistentlyMarkedVerses
-                                            .contains(key);
-                                        return GestureDetector(
-                                          onTap: () => _onVerseTap(verseNumber),
-                                          onLongPress: () => _controller
-                                              .togglePersistentMark(key),
-                                          child: Container(
-                                            padding: const EdgeInsets.symmetric(
-                                                vertical: 8, horizontal: 4),
-                                            decoration: isSelected
-                                                ? BoxDecoration(
-                                                    color: colorScheme
-                                                        .primaryContainer
-                                                        .withValues(alpha: 0.3),
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            8),
-                                                    border: Border.all(
-                                                      color:
-                                                          colorScheme.primary,
-                                                      width: 2,
-                                                    ),
-                                                  )
-                                                : null,
-                                            child: RichText(
-                                              text: TextSpan(
-                                                style: TextStyle(
-                                                  fontSize: state.fontSize,
-                                                  color: colorScheme.onSurface,
-                                                  height: 1.6,
-                                                ),
-                                                children: [
-                                                  TextSpan(
-                                                    text: "${verse['verse']} ",
-                                                    style: TextStyle(
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      color:
-                                                          colorScheme.primary,
-                                                      fontSize: 14,
-                                                    ),
+                          // Verses list
+                          Expanded(
+                            child: state.verses.isEmpty
+                                ? Center(child: Text('bible.no_verses'.tr()))
+                                : ScrollablePositionedList.builder(
+                                    itemScrollController: _itemScrollController,
+                                    itemPositionsListener:
+                                        _itemPositionsListener,
+                                    padding: const EdgeInsets.fromLTRB(
+                                        16, 16, 16, 32),
+                                    itemCount: state.verses.length,
+                                    itemBuilder: (context, idx) {
+                                      final verse = state.verses[idx];
+                                      final verseNumber = verse['verse'];
+                                      final key =
+                                          "${state.selectedBookName}|${state.selectedChapter}|$verseNumber";
+                                      final isSelected =
+                                          state.selectedVerses.contains(key);
+                                      final isPersistentlyMarked = state
+                                          .persistentlyMarkedVerses
+                                          .contains(key);
+                                      return GestureDetector(
+                                        onTap: () => _onVerseTap(verseNumber),
+                                        onLongPress: () => _controller
+                                            .togglePersistentMark(key),
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(
+                                              vertical: 8, horizontal: 4),
+                                          decoration: isSelected
+                                              ? BoxDecoration(
+                                                  color: colorScheme
+                                                      .primaryContainer
+                                                      .withValues(alpha: 0.3),
+                                                  borderRadius:
+                                                      BorderRadius.circular(8),
+                                                  border: Border.all(
+                                                    color: colorScheme.primary,
+                                                    width: 2,
                                                   ),
-                                                  TextSpan(
-                                                    text: _cleanVerseText(
-                                                        verse['text']),
-                                                    style: isPersistentlyMarked
-                                                        ? TextStyle(
-                                                            backgroundColor:
-                                                                colorScheme
-                                                                    .secondary
-                                                                    .withValues(
-                                                                        alpha:
-                                                                            0.25),
-                                                            fontWeight:
-                                                                FontWeight.w500,
-                                                          )
-                                                        : null,
-                                                  )
-                                                ],
+                                                )
+                                              : null,
+                                          child: RichText(
+                                            text: TextSpan(
+                                              style: TextStyle(
+                                                fontSize: state.fontSize,
+                                                color: colorScheme.onSurface,
+                                                height: 1.6,
                                               ),
+                                              children: [
+                                                TextSpan(
+                                                  text: "${verse['verse']} ",
+                                                  style: TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    color: colorScheme.primary,
+                                                    fontSize: 14,
+                                                  ),
+                                                ),
+                                                TextSpan(
+                                                  text: _cleanVerseText(
+                                                      verse['text']),
+                                                  style: isPersistentlyMarked
+                                                      ? TextStyle(
+                                                          backgroundColor:
+                                                              colorScheme
+                                                                  .secondary
+                                                                  .withValues(
+                                                                      alpha:
+                                                                          0.25),
+                                                          fontWeight:
+                                                              FontWeight.w500,
+                                                        )
+                                                      : null,
+                                                )
+                                              ],
                                             ),
                                           ),
-                                        );
-                                      },
-                                    ),
-                            ),
-                            // Copyright notice
-                            if (state.selectedVersion != null)
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 20, vertical: 8),
-                                child: Text(
-                                  CopyrightUtils.getCopyrightText(
-                                    state.selectedVersion!.languageCode,
-                                    state.selectedVersion!.name,
+                                        ),
+                                      );
+                                    },
                                   ),
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodySmall
-                                      ?.copyWith(
-                                        fontSize: 12,
-                                        color: colorScheme.onSurface
-                                            .withValues(alpha: 0.7),
-                                      ),
-                                  textAlign: TextAlign.center,
+                          ),
+                          // Copyright notice
+                          if (state.selectedVersion != null)
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 20, vertical: 8),
+                              child: Text(
+                                CopyrightUtils.getCopyrightText(
+                                  state.selectedVersion!.languageCode,
+                                  state.selectedVersion!.name,
                                 ),
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
+                                    ?.copyWith(
+                                      fontSize: 12,
+                                      color: colorScheme.onSurface
+                                          .withValues(alpha: 0.7),
+                                    ),
+                                textAlign: TextAlign.center,
                               ),
-                          ],
+                            ),
                         ],
                       ),
                     ),
@@ -788,29 +799,32 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                             },
                           ),
                           Expanded(
-                            child: InkWell(
-                              borderRadius: BorderRadius.circular(8),
-                              onTap: _showBookSelector,
-                              child: Padding(
+                            child: OutlinedButton(
+                              onPressed: _showBookSelector,
+                              style: OutlinedButton.styleFrom(
                                 padding: const EdgeInsets.symmetric(
-                                    vertical: 6.0, horizontal: 4.0),
-                                child: Text(
-                                  state.selectedBookName != null
-                                      ? '${state.books.firstWhere((b) => b['short_name'] == state.selectedBookName, orElse: () => {
-                                            'long_name': state.selectedBookName
-                                          })['long_name']} ${state.selectedChapter}'
-                                      : '',
-                                  textAlign: TextAlign.center,
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .titleMedium
-                                      ?.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                        color: colorScheme.primary,
-                                        decoration: TextDecoration.underline,
-                                        decorationColor: colorScheme.primary,
-                                      ),
+                                    vertical: 6.0, horizontal: 8.0),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
                                 ),
+                              ),
+                              child: AutoSizeText(
+                                state.selectedBookName != null
+                                    ? '${state.books.firstWhere((b) => b['short_name'] == state.selectedBookName, orElse: () => {
+                                          'long_name': state.selectedBookName
+                                        })['long_name']} ${state.selectedChapter}'
+                                    : '',
+                                textAlign: TextAlign.center,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleMedium
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      color: colorScheme.primary,
+                                    ),
+                                maxLines: 1,
+                                minFontSize: 12,
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
                           ),
@@ -832,164 +846,5 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
         );
       },
     );
-  }
-
-  Widget _buildSearchResults(BibleReaderState state, ColorScheme colorScheme) {
-    if (state.searchResults.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Text(
-            'bible.no_matches_retry'.tr(),
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 16,
-              color: colorScheme.onSurface.withValues(alpha: 0.7),
-            ),
-          ),
-        ),
-      );
-    }
-
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: state.searchResults.length,
-      itemBuilder: (context, idx) {
-        final result = state.searchResults[idx];
-        final bookName = result['long_name'] ?? result['short_name'];
-        final chapter = result['chapter'];
-        final verse = result['verse'];
-        final text = _cleanVerseText(result['text']);
-
-        return Card(
-          margin: const EdgeInsets.only(bottom: 12),
-          child: InkWell(
-            onTap: () async {
-              await _controller.jumpToSearchResult(result);
-              _searchController.clear();
-              if (!mounted) return;
-              _searchFocusNode.unfocus();
-              FocusScope.of(context).unfocus();
-              // Wait for navigation to complete, then scroll to verse
-              Future.delayed(const Duration(milliseconds: 300), () {
-                if (mounted) {
-                  _scrollToVerse(verse);
-                }
-              });
-            },
-            borderRadius: BorderRadius.circular(12),
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '$bookName $chapter:$verse',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: colorScheme.primary,
-                      fontSize: 14,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  RichText(
-                    text: TextSpan(
-                      children: _buildHighlightedTextSpans(
-                        text,
-                        state.searchQuery,
-                        colorScheme,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  List<TextSpan> _buildHighlightedTextSpans(
-    String text,
-    String query,
-    ColorScheme colorScheme,
-  ) {
-    if (query.trim().isEmpty) {
-      return [
-        TextSpan(
-          text: text,
-          style: TextStyle(
-            fontSize: 15,
-            color: colorScheme.onSurface,
-            height: 1.4,
-          ),
-        ),
-      ];
-    }
-
-    final List<TextSpan> spans = [];
-    final lowerText = text.toLowerCase();
-    final queryWords = query
-        .toLowerCase()
-        .split(RegExp(r'\s+'))
-        .where((w) => w.isNotEmpty)
-        .toList();
-
-    int lastIndex = 0;
-
-    while (lastIndex < text.length) {
-      int matchIndex = -1;
-      int matchLength = 0;
-
-      for (final word in queryWords) {
-        if (word.isEmpty) continue;
-        final index = lowerText.indexOf(word, lastIndex);
-        if (index != -1 && (matchIndex == -1 || index < matchIndex)) {
-          matchIndex = index;
-          matchLength = word.length;
-        }
-      }
-
-      if (matchIndex == -1) {
-        spans.add(TextSpan(
-          text: text.substring(lastIndex),
-          style: TextStyle(
-            fontSize: 15,
-            color: colorScheme.onSurface,
-            height: 1.4,
-          ),
-        ));
-        break;
-      }
-
-      if (matchIndex > lastIndex) {
-        spans.add(TextSpan(
-          text: text.substring(lastIndex, matchIndex),
-          style: TextStyle(
-            fontSize: 15,
-            color: colorScheme.onSurface,
-            height: 1.4,
-          ),
-        ));
-      }
-
-      spans.add(TextSpan(
-        text: text.substring(matchIndex, matchIndex + matchLength),
-        style: TextStyle(
-          fontSize: 15,
-          color: colorScheme.onSurface,
-          height: 1.4,
-          fontWeight: FontWeight.bold,
-          backgroundColor: colorScheme.primaryContainer,
-          decoration: TextDecoration.underline,
-          decorationColor: colorScheme.primary,
-        ),
-      ));
-
-      lastIndex = matchIndex + matchLength;
-    }
-
-    return spans;
   }
 }
