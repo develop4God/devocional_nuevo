@@ -138,21 +138,37 @@ class BibleReaderActionModal extends StatelessWidget {
                       ? 'bible.saved_verses'.tr()
                       : 'bible.save_verses'.tr(),
                   onTap: () {
-                    onSave();
-                    final scaffoldMessenger = ScaffoldMessenger.of(context);
-                    final colorScheme = Theme.of(context).colorScheme;
-                    scaffoldMessenger.showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          areVersesSaved
-                              ? 'bible.deleted_marked_verses'.tr()
-                              : 'bible.save_marked_verses'.tr(),
-                          style: TextStyle(color: colorScheme.onSecondary),
+                    if (areVersesSaved) {
+                      if (onDeleteSaved != null) {
+                        onDeleteSaved!();
+                        final scaffoldMessenger = ScaffoldMessenger.of(context);
+                        final colorScheme = Theme.of(context).colorScheme;
+                        scaffoldMessenger.showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              'bible.deleted_marked_verses'.tr(),
+                              style: TextStyle(color: colorScheme.onSecondary),
+                            ),
+                            backgroundColor: colorScheme.secondary,
+                            duration: const Duration(seconds: 2),
+                          ),
+                        );
+                      }
+                    } else {
+                      onSave();
+                      final scaffoldMessenger = ScaffoldMessenger.of(context);
+                      final colorScheme = Theme.of(context).colorScheme;
+                      scaffoldMessenger.showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            'bible.save_marked_verses'.tr(),
+                            style: TextStyle(color: colorScheme.onSecondary),
+                          ),
+                          backgroundColor: colorScheme.secondary,
+                          duration: const Duration(seconds: 2),
                         ),
-                        backgroundColor: colorScheme.secondary,
-                        duration: const Duration(seconds: 2),
-                      ),
-                    );
+                      );
+                    }
                   },
                 ),
                 _buildActionButton(
