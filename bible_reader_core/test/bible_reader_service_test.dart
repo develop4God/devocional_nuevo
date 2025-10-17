@@ -121,26 +121,28 @@ void main() {
         expect(result['bookName'], isNull);
       });
 
-      test('should move to first chapter of next book at end of book',
-          () async {
-        mockDbService.mockMaxChapters[1] = 50;
-        final books = [
-          {'book_number': 1, 'short_name': 'Gen'},
-          {'book_number': 2, 'short_name': 'Ex'},
-        ];
+      test(
+        'should move to first chapter of next book at end of book',
+        () async {
+          mockDbService.mockMaxChapters[1] = 50;
+          final books = [
+            {'book_number': 1, 'short_name': 'Gen'},
+            {'book_number': 2, 'short_name': 'Ex'},
+          ];
 
-        final result = await service.navigateToNextChapter(
-          currentBookNumber: 1,
-          currentChapter: 50,
-          books: books,
-        );
+          final result = await service.navigateToNextChapter(
+            currentBookNumber: 1,
+            currentChapter: 50,
+            books: books,
+          );
 
-        expect(result, isNotNull);
-        expect(result!['bookNumber'], equals(2));
-        expect(result['bookName'], equals('Ex'));
-        expect(result['chapter'], equals(1));
-        expect(result['scrollToTop'], isTrue);
-      });
+          expect(result, isNotNull);
+          expect(result!['bookNumber'], equals(2));
+          expect(result['bookName'], equals('Ex'));
+          expect(result['chapter'], equals(1));
+          expect(result['scrollToTop'], isTrue);
+        },
+      );
 
       test('should return null at end of Bible', () async {
         mockDbService.mockMaxChapters[66] = 22;
@@ -177,26 +179,28 @@ void main() {
         expect(result['bookName'], isNull);
       });
 
-      test('should move to last chapter of previous book at start of book',
-          () async {
-        mockDbService.mockMaxChapters[1] = 50;
-        final books = [
-          {'book_number': 1, 'short_name': 'Gen'},
-          {'book_number': 2, 'short_name': 'Ex'},
-        ];
+      test(
+        'should move to last chapter of previous book at start of book',
+        () async {
+          mockDbService.mockMaxChapters[1] = 50;
+          final books = [
+            {'book_number': 1, 'short_name': 'Gen'},
+            {'book_number': 2, 'short_name': 'Ex'},
+          ];
 
-        final result = await service.navigateToPreviousChapter(
-          currentBookNumber: 2,
-          currentChapter: 1,
-          books: books,
-        );
+          final result = await service.navigateToPreviousChapter(
+            currentBookNumber: 2,
+            currentChapter: 1,
+            books: books,
+          );
 
-        expect(result, isNotNull);
-        expect(result!['bookNumber'], equals(1));
-        expect(result['bookName'], equals('Gen'));
-        expect(result['chapter'], equals(50));
-        expect(result['scrollToTop'], isTrue);
-      });
+          expect(result, isNotNull);
+          expect(result!['bookNumber'], equals(1));
+          expect(result['bookName'], equals('Gen'));
+          expect(result['chapter'], equals(50));
+          expect(result['scrollToTop'], isTrue);
+        },
+      );
 
       test('should return null at start of Bible', () async {
         final books = [
@@ -242,8 +246,10 @@ void main() {
         mockDbService.mockMaxChapters[43] = 21;
         final book = {'book_number': 43, 'short_name': 'John'};
 
-        final result =
-            await service.selectBook(book: book, goToLastChapter: true);
+        final result = await service.selectBook(
+          book: book,
+          goToLastChapter: true,
+        );
 
         expect(result['bookNumber'], equals(43));
         expect(result['bookName'], equals('John'));
@@ -317,10 +323,7 @@ void main() {
       });
 
       test('should fall back to text search for invalid chapter', () async {
-        mockDbService.mockFoundBook = {
-          'book_number': 43,
-          'short_name': 'Juan',
-        };
+        mockDbService.mockFoundBook = {'book_number': 43, 'short_name': 'Juan'};
         mockDbService.mockMaxChapters[43] = 21;
         mockDbService.mockSearchResults = [];
 
@@ -334,11 +337,7 @@ void main() {
     group('Position - restorePosition', () {
       test('should restore valid position', () async {
         mockDbService.mockMaxChapters[43] = 21;
-        final savedPosition = {
-          'bookNumber': 43,
-          'chapter': 3,
-          'verse': 16,
-        };
+        final savedPosition = {'bookNumber': 43, 'chapter': 3, 'verse': 16};
         final books = [
           {'book_number': 43, 'short_name': 'Juan'},
         ];
@@ -384,10 +383,7 @@ void main() {
       });
 
       test('should return null for book not found', () async {
-        final savedPosition = {
-          'bookNumber': 999,
-          'chapter': 1,
-        };
+        final savedPosition = {'bookNumber': 999, 'chapter': 1};
         final books = [
           {'book_number': 43, 'short_name': 'Juan'},
         ];
@@ -402,10 +398,7 @@ void main() {
 
       test('should return null for invalid chapter (too low)', () async {
         mockDbService.mockMaxChapters[43] = 21;
-        final savedPosition = {
-          'bookNumber': 43,
-          'chapter': 0,
-        };
+        final savedPosition = {'bookNumber': 43, 'chapter': 0};
         final books = [
           {'book_number': 43, 'short_name': 'Juan'},
         ];
@@ -420,10 +413,7 @@ void main() {
 
       test('should return null for invalid chapter (too high)', () async {
         mockDbService.mockMaxChapters[43] = 21;
-        final savedPosition = {
-          'bookNumber': 43,
-          'chapter': 999,
-        };
+        final savedPosition = {'bookNumber': 43, 'chapter': 999};
         final books = [
           {'book_number': 43, 'short_name': 'Juan'},
         ];
@@ -438,10 +428,7 @@ void main() {
 
       test('should use default verse 1 when not provided', () async {
         mockDbService.mockMaxChapters[43] = 21;
-        final savedPosition = {
-          'bookNumber': 43,
-          'chapter': 3,
-        };
+        final savedPosition = {'bookNumber': 43, 'chapter': 3};
         final books = [
           {'book_number': 43, 'short_name': 'Juan'},
         ];

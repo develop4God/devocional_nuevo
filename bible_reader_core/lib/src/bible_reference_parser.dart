@@ -33,13 +33,10 @@ class BibleReferenceParser {
       final verse = int.tryParse(match.group(4)!);
 
       if (chapter != null && verse != null) {
-        final fullBookName =
-            bookPrefix.isEmpty ? bookName : '$bookPrefix $bookName';
-        return {
-          'bookName': fullBookName,
-          'chapter': chapter,
-          'verse': verse,
-        };
+        final fullBookName = bookPrefix.isEmpty
+            ? bookName
+            : '$bookPrefix $bookName';
+        return {'bookName': fullBookName, 'chapter': chapter, 'verse': verse};
       }
     }
 
@@ -51,12 +48,10 @@ class BibleReferenceParser {
       final chapter = int.tryParse(match.group(3)!);
 
       if (chapter != null) {
-        final fullBookName =
-            bookPrefix.isEmpty ? bookName : '$bookPrefix $bookName';
-        return {
-          'bookName': fullBookName,
-          'chapter': chapter,
-        };
+        final fullBookName = bookPrefix.isEmpty
+            ? bookName
+            : '$bookPrefix $bookName';
+        return {'bookName': fullBookName, 'chapter': chapter};
       }
     }
 

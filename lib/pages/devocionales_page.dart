@@ -55,6 +55,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
 
   AudioController? _audioController;
   final bool _showBadgesTab = false;
+  bool _routeSubscribed = false;
 
   @override
   void initState() {
@@ -76,11 +77,14 @@ class _DevocionalesPageState extends State<DevocionalesPage>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final route = ModalRoute.of(context);
-    if (route is PageRoute) {
-      routeObserver.subscribe(this, route);
-      debugPrint(
-          '🔄 [DEBUG] Global RouteObserver subscribed for DevocionalesPage');
+    if (!_routeSubscribed) {
+      final route = ModalRoute.of(context);
+      if (route is PageRoute) {
+        routeObserver.subscribe(this, route);
+        debugPrint(
+            '🔄 [DEBUG] Global RouteObserver subscribed for DevocionalesPage');
+        _routeSubscribed = true;
+      }
     }
   }
 
@@ -122,10 +126,11 @@ class _DevocionalesPageState extends State<DevocionalesPage>
   @override
   void dispose() {
     final route = ModalRoute.of(context);
-    if (route is PageRoute) {
+    if (_routeSubscribed && route is PageRoute) {
       routeObserver.unsubscribe(this);
       debugPrint(
           '🗑️ [DEBUG] Global RouteObserver unsubscribed for DevocionalesPage');
+      _routeSubscribed = false;
     }
     _tracking.dispose();
     _stopSpeaking();

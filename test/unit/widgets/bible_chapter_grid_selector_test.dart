@@ -86,7 +86,7 @@ void main() {
       final gridViewFinder = find.byType(GridView);
       final gridView = tester.widget<GridView>(gridViewFinder);
       final builder = gridView.childrenDelegate as SliverChildBuilderDelegate;
-      
+
       // GridView.builder should have totalChapters items
       expect(builder.estimatedChildCount, equals(totalChapters));
     });
@@ -238,8 +238,8 @@ void main() {
       await tester.pumpAndSettle();
 
       final gridView = tester.widget<GridView>(find.byType(GridView));
-      final gridDelegate = gridView.gridDelegate
-          as SliverGridDelegateWithFixedCrossAxisCount;
+      final gridDelegate =
+          gridView.gridDelegate as SliverGridDelegateWithFixedCrossAxisCount;
 
       expect(gridDelegate.crossAxisCount, equals(8));
     });

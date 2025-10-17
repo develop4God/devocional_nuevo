@@ -2,8 +2,8 @@ import 'package:bible_reader_core/src/bible_db_service.dart';
 import 'package:bible_reader_core/src/bible_preferences_service.dart';
 import 'package:bible_reader_core/src/bible_reader_controller.dart';
 import 'package:bible_reader_core/src/bible_reader_service.dart';
-import 'package:bible_reader_core/src/bible_reading_position_service.dart';
 import 'package:bible_reader_core/src/bible_reader_state.dart';
+import 'package:bible_reader_core/src/bible_reading_position_service.dart';
 import 'package:bible_reader_core/src/bible_version.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -202,11 +202,17 @@ void main() {
 
       await controller.togglePersistentMark(verseKey);
 
-      expect(controller.state.persistentlyMarkedVerses.contains(verseKey), true);
+      expect(
+        controller.state.persistentlyMarkedVerses.contains(verseKey),
+        true,
+      );
 
       await controller.togglePersistentMark(verseKey);
 
-      expect(controller.state.persistentlyMarkedVerses.contains(verseKey), false);
+      expect(
+        controller.state.persistentlyMarkedVerses.contains(verseKey),
+        false,
+      );
     });
 
     test('should persist marked verses', () async {
@@ -233,7 +239,7 @@ void main() {
       );
 
       // Initialize to load preferences
-      final loadedSize = await preferencesService.getFontSize();
+      final _ = await preferencesService.getFontSize();
       final loadedMarked = await preferencesService.getMarkedVerses();
 
       // Verify marked verses are loaded
@@ -274,7 +280,7 @@ void main() {
           isSearching: true,
           searchQuery: 'test',
           searchResults: [
-            {'book_number': 1, 'chapter': 1, 'verse': 1, 'text': 'test'}
+            {'book_number': 1, 'chapter': 1, 'verse': 1, 'text': 'test'},
           ],
         ),
       );
@@ -328,10 +334,7 @@ void main() {
     test('should properly copy state with copyWith', () {
       final state = controller.state;
 
-      final newState = state.copyWith(
-        fontSize: 20.0,
-        showFontControls: true,
-      );
+      final newState = state.copyWith(fontSize: 20.0, showFontControls: true);
 
       expect(newState.fontSize, 20.0);
       expect(newState.showFontControls, true);
@@ -424,17 +427,20 @@ void main() {
   });
 
   group('BibleReaderController Integration Tests', () {
-    test('should maintain consistent state through multiple operations', () async {
-      // Perform multiple operations
-      await controller.increaseFontSize();
-      controller.toggleFontControls();
-      controller.toggleVerseSelection('Genesis|1|1');
+    test(
+      'should maintain consistent state through multiple operations',
+      () async {
+        // Perform multiple operations
+        await controller.increaseFontSize();
+        controller.toggleFontControls();
+        controller.toggleVerseSelection('Genesis|1|1');
 
-      // Verify all changes are reflected
-      expect(controller.state.fontSize, 20.0);
-      expect(controller.state.showFontControls, true);
-      expect(controller.state.selectedVerses.contains('Genesis|1|1'), true);
-    });
+        // Verify all changes are reflected
+        expect(controller.state.fontSize, 20.0);
+        expect(controller.state.showFontControls, true);
+        expect(controller.state.selectedVerses.contains('Genesis|1|1'), true);
+      },
+    );
 
     test('should handle rapid state changes', () async {
       for (int i = 0; i < 10; i++) {

@@ -8,10 +8,7 @@ class BibleReaderService {
   final BibleDbService dbService;
   final BibleReadingPositionService positionService;
 
-  BibleReaderService({
-    required this.dbService,
-    required this.positionService,
-  });
+  BibleReaderService({required this.dbService, required this.positionService});
 
   /// Save the current reading position
   Future<void> saveReadingPosition({
@@ -60,8 +57,9 @@ class BibleReaderService {
     }
 
     // Move to next book
-    final currentIndex =
-        books.indexWhere((b) => b['book_number'] == currentBookNumber);
+    final currentIndex = books.indexWhere(
+      (b) => b['book_number'] == currentBookNumber,
+    );
     if (currentIndex >= 0 && currentIndex < books.length - 1) {
       final nextBook = books[currentIndex + 1];
       return {
@@ -91,12 +89,14 @@ class BibleReaderService {
     }
 
     // Move to previous book's last chapter
-    final currentIndex =
-        books.indexWhere((b) => b['book_number'] == currentBookNumber);
+    final currentIndex = books.indexWhere(
+      (b) => b['book_number'] == currentBookNumber,
+    );
     if (currentIndex > 0) {
       final previousBook = books[currentIndex - 1];
-      final maxChapter =
-          await dbService.getMaxChapter(previousBook['book_number']);
+      final maxChapter = await dbService.getMaxChapter(
+        previousBook['book_number'],
+      );
       return {
         'bookNumber': previousBook['book_number'],
         'bookName': previousBook['short_name'],
@@ -136,7 +136,8 @@ class BibleReaderService {
   /// Search verses with automatic Bible reference detection
   /// Returns {isReference: bool, navigationTarget: {...}?, searchResults: [...]}
   Future<Map<String, dynamic>> searchWithReferenceDetection(
-      String query) async {
+    String query,
+  ) async {
     if (query.trim().isEmpty) {
       return {'isReference': false, 'searchResults': []};
     }
@@ -171,10 +172,7 @@ class BibleReaderService {
 
     // Fall back to text search
     final results = await dbService.searchVerses(query);
-    return {
-      'isReference': false,
-      'searchResults': results,
-    };
+    return {'isReference': false, 'searchResults': results};
   }
 
   /// Restore reading position from saved state
