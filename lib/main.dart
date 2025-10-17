@@ -34,6 +34,9 @@ import 'package:timezone/timezone.dart' as tz;
 
 // Global navigator key for app navigation
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+// ADD this global RouteObserver at the top level
+final RouteObserver<PageRoute<dynamic>> routeObserver =
+    RouteObserver<PageRoute<dynamic>>();
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -210,6 +213,8 @@ class _MyAppState extends State<MyApp> {
           localizationsDelegates: GlobalMaterialLocalizations.delegates,
           supportedLocales: localizationProvider.supportedLocales,
           locale: localizationProvider.currentLocale,
+          // ADD this line to connect the global RouteObserver
+          navigatorObservers: [routeObserver],
           home: FutureBuilder<bool>(
             future: _initializationFuture,
             builder: (context, snapshot) {
