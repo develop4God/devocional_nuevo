@@ -108,12 +108,7 @@ class _BibleBookSelectorDialogState extends State<BibleBookSelectorDialog> {
                         color: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
-                    subtitle: Text(
-                      book['short_name'],
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.onSurface,
-                      ),
-                    ),
+                    // Remove subtitle to only show long name
                     selected: isSelected,
                     selectedTileColor: Theme.of(context)
                         .colorScheme
