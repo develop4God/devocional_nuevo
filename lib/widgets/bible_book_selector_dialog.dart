@@ -76,6 +76,20 @@ class _BibleBookSelectorDialogState extends State<BibleBookSelectorDialog> {
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
+                filled: true,
+                fillColor: Theme.of(context).brightness == Brightness.dark
+                    ? const Color(0xFF232232)
+                    : Colors.white,
+                hintStyle: TextStyle(
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.white70
+                      : Colors.grey,
+                ),
+              ),
+              style: TextStyle(
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? Colors.white
+                    : Colors.black,
               ),
               onChanged: _filterBooks,
             ),
@@ -109,7 +123,7 @@ class _BibleBookSelectorDialogState extends State<BibleBookSelectorDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancelar'),
+          child: Text('app.cancel'.tr()),
         ),
       ],
     );
