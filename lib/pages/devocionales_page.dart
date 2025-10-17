@@ -44,7 +44,7 @@ class DevocionalesPage extends StatefulWidget {
 }
 
 class _DevocionalesPageState extends State<DevocionalesPage>
-    with WidgetsBindingObserver {
+    with WidgetsBindingObserver, RouteAware {
   final ScreenshotController screenshotController = ScreenshotController();
   final ScrollController _scrollController = ScrollController();
   int _currentDevocionalIndex = 0;
@@ -54,6 +54,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
 
   AudioController? _audioController;
   final bool _showBadgesTab = false;
+  RouteObserver<PageRoute>? _routeObserver; // ← NEW
 
   @override
   void initState() {
@@ -73,6 +74,17 @@ class _DevocionalesPageState extends State<DevocionalesPage>
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _routeObserver = RouteObserver<PageRoute>();
+    final route = ModalRoute.of(context);
+    if (route is PageRoute) {
+      _routeObserver!.subscribe(this, route);
+      debugPrint('🔄 RouteObserver subscribed for DevocionalesPage');
+    }
+  }
+
+  @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.inactive) {
@@ -86,7 +98,36 @@ class _DevocionalesPageState extends State<DevocionalesPage>
   }
 
   @override
+  void didPush() {
+    _tracking.resumeTracking();
+    debugPrint('📄 DevocionalesPage pushed → tracking resumed');
+  }
+
+  @override
+  void didPopNext() {
+    _tracking.resumeTracking();
+    debugPrint('📄 DevocionalesPage popped next → tracking resumed');
+  }
+
+  @override
+  void didPop() {
+    _tracking.pauseTracking();
+    debugPrint('📄 DevocionalesPage popped → tracking PAUSED');
+    if (_audioController != null && _audioController!.isActive) {
+      debugPrint('🎵 Audio was active → stopping audio');
+      _audioController!.stop();
+    }
+  }
+
+  @override
   void dispose() {
+    if (_routeObserver != null && ModalRoute.of(context) != null) {
+      final route = ModalRoute.of(context);
+      if (route is PageRoute) {
+        _routeObserver!.unsubscribe(this);
+        debugPrint('🗑️ RouteObserver unsubscribed');
+      }
+    }
     _tracking.dispose();
     _stopSpeaking();
     WidgetsBinding.instance.removeObserver(this);
