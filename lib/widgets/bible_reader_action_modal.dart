@@ -141,33 +141,9 @@ class BibleReaderActionModal extends StatelessWidget {
                     if (areVersesSaved) {
                       if (onDeleteSaved != null) {
                         onDeleteSaved!();
-                        final scaffoldMessenger = ScaffoldMessenger.of(context);
-                        final colorScheme = Theme.of(context).colorScheme;
-                        scaffoldMessenger.showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              'bible.deleted_marked_verses'.tr(),
-                              style: TextStyle(color: colorScheme.onSecondary),
-                            ),
-                            backgroundColor: colorScheme.secondary,
-                            duration: const Duration(seconds: 2),
-                          ),
-                        );
                       }
                     } else {
                       onSave();
-                      final scaffoldMessenger = ScaffoldMessenger.of(context);
-                      final colorScheme = Theme.of(context).colorScheme;
-                      scaffoldMessenger.showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            'bible.save_marked_verses'.tr(),
-                            style: TextStyle(color: colorScheme.onSecondary),
-                          ),
-                          backgroundColor: colorScheme.secondary,
-                          duration: const Duration(seconds: 2),
-                        ),
-                      );
                     }
                   },
                 ),
