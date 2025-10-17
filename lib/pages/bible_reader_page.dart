@@ -365,6 +365,14 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
         final state = snapshot.data ?? _controller.state;
         final colorScheme = Theme.of(context).colorScheme;
 
+        // Detect post-search navigation and auto-scroll to selected verse
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (state.selectedVerse != null &&
+              state.verses.any((v) => v['verse'] == state.selectedVerse)) {
+            _scrollToVerse(state.selectedVerse!);
+          }
+        });
+
         return Scaffold(
           appBar: PreferredSize(
             preferredSize: const Size.fromHeight(kToolbarHeight),
