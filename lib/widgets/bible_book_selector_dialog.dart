@@ -102,8 +102,18 @@ class _BibleBookSelectorDialogState extends State<BibleBookSelectorDialog> {
                   final isSelected =
                       book['short_name'] == widget.selectedBookName;
                   return ListTile(
-                    title: Text(book['long_name']),
-                    subtitle: Text(book['short_name']),
+                    title: Text(
+                      book['long_name'],
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                    ),
+                    subtitle: Text(
+                      book['short_name'],
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                    ),
                     selected: isSelected,
                     selectedTileColor: Theme.of(context)
                         .colorScheme
