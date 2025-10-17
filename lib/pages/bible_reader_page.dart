@@ -137,7 +137,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
           onChapterSelected: (chapterNumber) async {
             Navigator.of(context).pop();
             await _controller.selectChapter(chapterNumber);
-            _scrollToTop();
+            _scrollToTop(); // Always scroll to top after chapter change
           },
         );
       },

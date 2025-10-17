@@ -269,6 +269,7 @@ class BibleReaderController {
         selectedChapter: chapter,
         selectedVerse: 1,
         selectedVerses: {},
+        verses: [], // Ensure verses list is reset before loading new
       ),
     );
 
