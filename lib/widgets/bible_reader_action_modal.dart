@@ -137,7 +137,23 @@ class BibleReaderActionModal extends StatelessWidget {
                   label: areVersesSaved
                       ? 'bible.saved_verses'.tr()
                       : 'bible.save_verses'.tr(),
-                  onTap: onSave,
+                  onTap: () {
+                    onSave();
+                    final scaffoldMessenger = ScaffoldMessenger.of(context);
+                    final colorScheme = Theme.of(context).colorScheme;
+                    scaffoldMessenger.showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          areVersesSaved
+                              ? 'bible.deleted_marked_verses'.tr()
+                              : 'bible.save_marked_verses'.tr(),
+                          style: TextStyle(color: colorScheme.onSecondary),
+                        ),
+                        backgroundColor: colorScheme.secondary,
+                        duration: const Duration(seconds: 2),
+                      ),
+                    );
+                  },
                 ),
                 _buildActionButton(
                   context: context,
@@ -152,11 +168,11 @@ class BibleReaderActionModal extends StatelessWidget {
                   onTap: onShare,
                 ),
                 /*_buildActionButton( //Comming soon
-                  context: context,
-                  icon: Icons.image_outlined,
-                  label: 'Imagen',
-                  onTap: onImage,
-                ),*/
+          context: context,
+          icon: Icons.image_outlined,
+          label: 'Imagen',
+          onTap: onImage,
+        ),*/
               ],
             ),
           ),
