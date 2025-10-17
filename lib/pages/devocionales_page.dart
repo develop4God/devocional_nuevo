@@ -4,6 +4,7 @@ import 'dart:io' show File;
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:bible_reader_core/bible_reader_core.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
+import 'package:devocional_nuevo/main.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/pages/bible_reader_page.dart';
 import 'package:devocional_nuevo/pages/my_badges_page.dart';
@@ -54,7 +55,6 @@ class _DevocionalesPageState extends State<DevocionalesPage>
 
   AudioController? _audioController;
   final bool _showBadgesTab = false;
-  RouteObserver<PageRoute>? _routeObserver; // ← NEW
 
   @override
   void initState() {
@@ -76,11 +76,11 @@ class _DevocionalesPageState extends State<DevocionalesPage>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _routeObserver = RouteObserver<PageRoute>();
     final route = ModalRoute.of(context);
     if (route is PageRoute) {
-      _routeObserver!.subscribe(this, route);
-      debugPrint('🔄 RouteObserver subscribed for DevocionalesPage');
+      routeObserver.subscribe(this, route);
+      debugPrint(
+          '🔄 [DEBUG] Global RouteObserver subscribed for DevocionalesPage');
     }
   }
 
@@ -121,12 +121,11 @@ class _DevocionalesPageState extends State<DevocionalesPage>
 
   @override
   void dispose() {
-    if (_routeObserver != null && ModalRoute.of(context) != null) {
-      final route = ModalRoute.of(context);
-      if (route is PageRoute) {
-        _routeObserver!.unsubscribe(this);
-        debugPrint('🗑️ RouteObserver unsubscribed');
-      }
+    final route = ModalRoute.of(context);
+    if (route is PageRoute) {
+      routeObserver.unsubscribe(this);
+      debugPrint(
+          '🗑️ [DEBUG] Global RouteObserver unsubscribed for DevocionalesPage');
     }
     _tracking.dispose();
     _stopSpeaking();
