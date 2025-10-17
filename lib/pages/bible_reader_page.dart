@@ -371,6 +371,10 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
               state.verses.any((v) => v['verse'] == state.selectedVerse)) {
             _scrollToVerse(state.selectedVerse!);
           }
+          // Always scroll to top after chapter change
+          else if (state.verses.isNotEmpty) {
+            _scrollToTop();
+          }
         });
 
         return Scaffold(
@@ -842,6 +846,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                             tooltip: 'bible.next_chapter'.tr(),
                             onPressed: () async {
                               await _controller.goToNextChapter();
+                              _itemScrollController.jumpTo(index: 0);
                               _scrollToTop();
                             },
                           ),
