@@ -182,16 +182,27 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
         "${state.selectedBookName}|${state.selectedChapter}|$verseNumber";
     final wasSelected = state.selectedVerses.contains(key);
 
+    debugPrint(
+        '[BibleReader] Tapping verse $verseNumber, key: $key, wasSelected: $wasSelected');
+    debugPrint(
+        '[BibleReader] Before tap: selectedVerses: ${state.selectedVerses}, selectedVerse: ${state.selectedVerse}, scroll attached: ${_itemScrollController.isAttached}');
+
     _controller.toggleVerseSelection(key);
+
+    final afterState = _controller.state;
+    debugPrint(
+        '[BibleReader] After tap: selectedVerses: ${afterState.selectedVerses}, selectedVerse: ${afterState.selectedVerse}');
 
     // Do not update selectedVerse, do not scroll!
     // Only show/hide modal if needed
     if (!wasSelected) {
-      if (_controller.state.selectedVerses.isNotEmpty && !_bottomSheetOpen) {
+      if (afterState.selectedVerses.isNotEmpty && !_bottomSheetOpen) {
+        debugPrint('[BibleReader] Opening bottom sheet');
         _showBottomSheet();
       }
     } else {
-      if (_controller.state.selectedVerses.isEmpty && _bottomSheetOpen) {
+      if (afterState.selectedVerses.isEmpty && _bottomSheetOpen) {
+        debugPrint('[BibleReader] Closing bottom sheet');
         Navigator.of(context).pop();
         _bottomSheetOpen = false;
       }
@@ -368,13 +379,19 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
         final colorScheme = Theme.of(context).colorScheme;
 
         // Detect post-search navigation and auto-scroll to selected verse
+        // Detect post-search navigation and auto-scroll to selected verse
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (state.selectedVerse != null &&
-              state.verses.any((v) => v['verse'] == state.selectedVerse)) {
+              state.verses.any((v) => v['verse'] == state.selectedVerse) &&
+              state.isSearching) {
             _scrollToVerse(state.selectedVerse!);
           }
-          // Always scroll to top after chapter change
-          else if (state.verses.isNotEmpty) {
+          // Only scroll to top after chapter change (not on tap/select/copy/share/delete)
+          else if (state.verses.isNotEmpty &&
+              state.selectedVerses.isEmpty &&
+              !state.isSearching &&
+              state.selectedVerse == 1 &&
+              !ModalRoute.of(context)!.isCurrent) {
             _scrollToTop();
           }
         });
