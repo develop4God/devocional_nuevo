@@ -443,12 +443,9 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       'meditations': meditationsText,
       'prayer': devocional.oracion,
     });
-    final shareMessage = "drawer.share_message".tr();
 
-    final text =
-        '$devotionalText\n\n$shareMessage'; // Use interpolation instead of '+'
-
-    await SharePlus.instance.share(ShareParams(text: text));
+    // Only share the devotional text, without the app share message
+    await SharePlus.instance.share(ShareParams(text: devotionalText));
   }
 
   Future<void> _shareAsImage(Devocional devocional) async {
