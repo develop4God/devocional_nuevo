@@ -675,6 +675,26 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                               ),
                             ),
                           // Verses list
+                          // Verses list
+                          if (state.selectedBookName != null &&
+                              state.selectedChapter != null)
+                            Padding(
+                              padding:
+                                  const EdgeInsets.only(top: 12, bottom: 4),
+                              child: Text(
+                                '${state.books.firstWhere((b) => b['short_name'] == state.selectedBookName, orElse: () => {
+                                      'long_name': state.selectedBookName
+                                    })['long_name']} ${state.selectedChapter}',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleLarge
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      color: colorScheme.primary,
+                                    ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
                           Expanded(
                             child: state.verses.isEmpty
                                 ? Center(child: Text('bible.no_verses'.tr()))
