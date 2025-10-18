@@ -184,7 +184,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
 
     _controller.toggleVerseSelection(key);
 
-    // Remove scroll or index jump here!
+    // Do not update selectedVerse, do not scroll!
     // Only show/hide modal if needed
     if (!wasSelected) {
       if (_controller.state.selectedVerses.isNotEmpty && !_bottomSheetOpen) {
