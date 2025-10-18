@@ -10,10 +10,11 @@ La aplicación Devocionales Cristianos sigue una arquitectura **híbrida Provide
 - **Patrones Híbridos**: Provider Pattern para estado global, BLoC Pattern para flujos complejos
 - **Inyección de Dependencias**: Uso de Provider y BlocProvider para gestión de estado y dependencias
 - **Offline First**: Capacidad de funcionar sin conexión a internet
-- **Multilingual Support**: Soporte completo para 4 idiomas con localización jerárquica
+- **Multilingual Support**: Soporte completo para 5 idiomas con localización jerárquica (es, en, pt, fr, ja)
 - **Modularidad**: Componentes reutilizables y servicios independientes
 - **Schema Versioning**: Migración automática de datos con versionado
 - **Race Condition Protection**: Protección contra operaciones concurrentes
+- **Android 15+ Compatibility**: Soporte para edge-to-edge display y APIs modernas
 
 ## Estructura de Carpetas
 
@@ -39,6 +40,17 @@ lib/
 - **Ubicación**: `lib/pages/`, `lib/widgets/`
 - **Responsabilidad**: Interfaz de usuario y experiencia del usuario
 - **Tecnología**: Flutter Widgets, Material Design
+
+#### Características de DevocionalesPage
+- **Navegación de Devocionales**: Sistema de índices con guardado de progreso
+- **Audio TTS**: Lectura automática con control de reproducción
+- **Sistema de Compartir Dual**:
+  - **Compartir Devocional**: Formato de texto limpio sin duplicación
+  - **Compartir como Imagen**: Captura de screenshot del devocional
+- **Tracking de Lectura**: Monitoreo automático de tiempo y scroll
+- **Favoritos**: Sistema de guardado rápido con feedback visual
+- **Integración con Biblia**: Acceso directo a lecturas bíblicas relacionadas
+- **Responsive Design**: Adaptación a diferentes tamaños de pantalla
 
 ### 2. Capa de Gestión de Estado
 - **Ubicación**: `lib/providers/`, `lib/blocs/`
