@@ -1,65 +1,190 @@
 #!/bin/bash
 
-# 1. Leer versión actual desde pubspec.yaml
-VERSION_LINE=$(grep '^version:' pubspec.yaml)
-VERSION=$(echo "$VERSION_LINE" | cut -d ' ' -f2)
-CURRENT_VERSION_NAME=$(echo "$VERSION" | cut -d '+' -f1) # Esto es el versionName (ej. 1.0.0)
-CURRENT_BUILD_NUMBER=$(echo "$VERSION" | cut -d '+' -f2)   # Esto es el versionCode (ej. 16)
+set -e
 
-# Extraer las dos primeras partes del versionName (ej. "1.0" de "1.0.0" o "1.0.17")
-# Esto asegura que siempre tomamos la parte "major.minor"
-# Si el formato es solo "1.0", esto devolverá "1.0". Si es "1.0.0", devolverá "1.0".
-# Si el formato es "1", esto devolverá "1". En ese caso, lo forzamos a "1.0".
-BASE_VERSION_NAME=""
-if [[ "$CURRENT_VERSION_NAME" =~ ^([0-9]+\.[0-9]+)(\.[0-9]+)?$ ]]; then
-    BASE_VERSION_NAME="${BASH_REMATCH[1]}" # Captura 1.0 de 1.0.0 o 1.0.17
-else
-    # Fallback si el formato no es el esperado, intenta extraer las dos primeras partes
-    MAJOR_VERSION=$(echo "$CURRENT_VERSION_NAME" | cut -d '.' -f1)
-    MINOR_VERSION=$(echo "$CURRENT_VERSION_NAME" | cut -d '.' -f2)
-    if [[ -n "$MAJOR_VERSION" && -n "$MINOR_VERSION" ]]; then
-        BASE_VERSION_NAME="${MAJOR_VERSION}.${MINOR_VERSION}"
-    elif [[ -n "$MAJOR_VERSION" ]]; then
-        BASE_VERSION_NAME="${MAJOR_VERSION}.0" # Si solo hay major, asume minor 0
-    else
-        BASE_VERSION_NAME="1.0" # Valor por defecto si no se puede parsear
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# Function to print colored messages
+print_error() {
+    echo -e "${RED}❌ $1${NC}"
+}
+
+print_success() {
+    echo -e "${GREEN}✅ $1${NC}"
+}
+
+print_warning() {
+    echo -e "${YELLOW}⚠️  $1${NC}"
+}
+
+print_info() {
+    echo -e "${BLUE}ℹ️  $1${NC}"
+}
+
+# 1. Check if we're in a git repository
+if ! git rev-parse --git-dir > /dev/null 2>&1; then
+    print_error "Not a git repository"
+    exit 1
+fi
+
+# 2. Check for uncommitted changes
+if [[ -n $(git status -s) ]]; then
+    print_warning "You have uncommitted changes"
+    git status -s
+    echo ""
+    read -p "Continue anyway? [y/n]: " -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        print_info "Aborted"
+        exit 0
     fi
 fi
 
+# 3. Check current branch
+CURRENT_BRANCH=$(git branch --show-current)
+if [[ "$CURRENT_BRANCH" != "main" ]]; then
+    print_warning "Current branch is '$CURRENT_BRANCH' (not 'main')"
+fi
 
-# 2. Incrementar el número de compilación (versionCode) automáticamente
+# 4. Read current version from pubspec.yaml
+if [[ ! -f "pubspec.yaml" ]]; then
+    print_error "pubspec.yaml not found"
+    exit 1
+fi
+
+VERSION_LINE=$(grep '^version:' pubspec.yaml)
+if [[ -z "$VERSION_LINE" ]]; then
+    print_error "Version not found in pubspec.yaml"
+    exit 1
+fi
+
+VERSION=$(echo "$VERSION_LINE" | cut -d ' ' -f2)
+CURRENT_VERSION_NAME=$(echo "$VERSION" | cut -d '+' -f1)
+CURRENT_BUILD_NUMBER=$(echo "$VERSION" | cut -d '+' -f2)
+
+# Parse semantic version
+if [[ ! "$CURRENT_VERSION_NAME" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+    print_error "Invalid version format: $CURRENT_VERSION_NAME (expected: MAJOR.MINOR.PATCH)"
+    exit 1
+fi
+
+MAJOR="${BASH_REMATCH[1]}"
+MINOR="${BASH_REMATCH[2]}"
+PATCH="${BASH_REMATCH[3]}"
+
+echo ""
+print_info "Current version: ${BLUE}${CURRENT_VERSION_NAME}+${CURRENT_BUILD_NUMBER}${NC}"
+echo ""
+
+# 5. Select version type
+echo "Select version type:"
+echo "1) major - Breaking changes (${CURRENT_VERSION_NAME} → $((MAJOR + 1)).0.0)"
+echo "2) minor - New features (${CURRENT_VERSION_NAME} → ${MAJOR}.$((MINOR + 1)).0)"
+echo "3) patch - Bug fixes (${CURRENT_VERSION_NAME} → ${MAJOR}.${MINOR}.$((PATCH + 1)))"
+echo ""
+
+while true; do
+    read -p "Choice [1-3]: " CHOICE
+    case $CHOICE in
+        1)
+            VERSION_TYPE="major"
+            NEW_MAJOR=$((MAJOR + 1))
+            NEW_MINOR=0
+            NEW_PATCH=0
+            break
+            ;;
+        2)
+            VERSION_TYPE="minor"
+            NEW_MAJOR=$MAJOR
+            NEW_MINOR=$((MINOR + 1))
+            NEW_PATCH=0
+            break
+            ;;
+        3)
+            VERSION_TYPE="patch"
+            NEW_MAJOR=$MAJOR
+            NEW_MINOR=$MINOR
+            NEW_PATCH=$((PATCH + 1))
+            break
+            ;;
+        *)
+            print_error "Invalid choice. Please enter 1, 2, or 3"
+            ;;
+    esac
+done
+
+# 6. Calculate new version
+NEW_VERSION_NAME="${NEW_MAJOR}.${NEW_MINOR}.${NEW_PATCH}"
 NEW_BUILD_NUMBER=$((CURRENT_BUILD_NUMBER + 1))
-echo "Número de compilación (versionCode) actual: $CURRENT_BUILD_NUMBER"
-echo "Nuevo número de compilación (versionCode): $NEW_BUILD_NUMBER"
+NEW_FULL_VERSION="${NEW_VERSION_NAME}+${NEW_BUILD_NUMBER}"
 
-# 3. Derivar el nuevo número de versión (versionName)
-# El nuevo versionName será BASE_VERSION_NAME.NEW_BUILD_NUMBER
-# Esto asegura que la parte final del versionName siempre coincida con el versionCode
-NEW_VERSION_NAME="${BASE_VERSION_NAME}.${NEW_BUILD_NUMBER}"
+echo ""
+print_info "New version will be: ${GREEN}${NEW_FULL_VERSION}${NC}"
+echo ""
 
-echo "Número de versión (versionName) actual: $CURRENT_VERSION_NAME"
-echo "Nuevo número de versión (versionName) derivado: $NEW_VERSION_NAME"
+# 7. Get commit message
+read -p "Commit message: " COMMIT_MESSAGE
 
-# 4. Construir la nueva cadena de versión completa
-NEW_FULL_VERSION="$NEW_VERSION_NAME+$NEW_BUILD_NUMBER"
+if [[ -z "$COMMIT_MESSAGE" ]]; then
+    print_error "Commit message cannot be empty"
+    exit 1
+fi
 
-# 5. Reemplazar versión en pubspec.yaml
-echo "Actualizando pubspec.yaml a version: $NEW_FULL_VERSION"
+# Build full commit message with prefix
+FULL_COMMIT_MESSAGE="${VERSION_TYPE}: ${COMMIT_MESSAGE}"
+
+# 8. Show preview and confirm
+echo ""
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "Preview:"
+echo "  Version:  ${CURRENT_VERSION_NAME}+${CURRENT_BUILD_NUMBER} → ${GREEN}${NEW_FULL_VERSION}${NC}"
+echo "  Commit:   \"${FULL_COMMIT_MESSAGE}\""
+echo "  Tag:      v${NEW_FULL_VERSION}"
+echo "  Push to:  origin/${CURRENT_BRANCH}"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
+
+read -p "Proceed? [y/n]: " -n 1 -r
+echo
+
+if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+    print_info "Aborted"
+    exit 0
+fi
+
+# 9. Update pubspec.yaml
+echo ""
+print_info "Updating pubspec.yaml..."
 sed -i "s/^version: .*/version: $NEW_FULL_VERSION/" pubspec.yaml
 
-# 6. Agregar cambios al staging
-git add .
+# 10. Git operations
+print_info "Adding changes to git..."
+git add pubspec.yaml
 
-# 7. Mensaje de commit
-read -p "Mensaje del commit: " COMMIT_MESSAGE
-git commit -m "$COMMIT_MESSAGE"
+print_info "Creating commit..."
+git commit -m "$FULL_COMMIT_MESSAGE"
 
-# 8. Crear tag con la nueva versión
+print_info "Creating tag..."
 git tag "v$NEW_FULL_VERSION"
 
-# 9. Hacer push del commit y del tag
-git push origin main
+print_info "Pushing to origin/${CURRENT_BRANCH}..."
+git push origin "$CURRENT_BRANCH"
+
+print_info "Pushing tag..."
 git push origin "v$NEW_FULL_VERSION"
 
-# 10. Confirmación
-echo "✅ Commit y tag creados con versión: $NEW_FULL_VERSION"
+# 11. Success
+echo ""
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+print_success "Version bumped successfully!"
+echo ""
+echo "  Old: ${CURRENT_VERSION_NAME}+${CURRENT_BUILD_NUMBER}"
+echo "  New: ${GREEN}${NEW_FULL_VERSION}${NC}"
+echo "  Tag: v${NEW_FULL_VERSION}"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
