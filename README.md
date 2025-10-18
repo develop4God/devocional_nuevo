@@ -13,12 +13,25 @@ Aplicación móvil multilingüe para leer devocionales diarios con funcionalidad
 - **🙏 Gestión de Oraciones**: Seguimiento de oraciones personales
 - **📴 Modo Offline**: Acceso sin conexión a internet
 - **🔔 Notificaciones**: Recordatorios personalizables
-- **📱 Compartir**: Comparte contenido inspirador
+- **📱 Compartir**: Comparte contenido inspirador con formato optimizado *(ACTUALIZADO)*
 - **☁️ Respaldo en la Nube**: Sincronización automática con Google Drive *(ACTUALIZADO)*
 - **🚀 Onboarding Inteligente**: Configuración guiada inicial con BLoC architecture *(NUEVO)*
 - **⭐ Sistema de Reseñas Inteligente**: Solicita reseñas en momentos óptimos
+- **📱 Soporte Android 15**: Compatible con edge-to-edge display y APIs modernas *(NUEVO)*
 
 ## 🆕 Actualizaciones Recientes
+
+### 📱 Compatibilidad Android 15+ (NUEVO)
+- **Edge-to-Edge Display**: Soporte completo para Android 15 (API 35+)
+- **WindowCompat Integration**: Gestión apropiada de window insets
+- **Deprecated APIs Migration**: Eliminación de APIs obsoletas (setStatusBarColor, setNavigationBarColor)
+- **Modern UI Experience**: Experiencia de pantalla completa en dispositivos modernos
+
+### 📤 Sistema de Compartir Optimizado (ACTUALIZADO)
+- **Compartir Devocionales**: Formato limpio sin duplicación de mensajes
+- **Compartir App**: Mensaje dedicado desde el drawer para invitar usuarios
+- **Formato Mejorado**: Separador visual optimizado (20 caracteres) para mejor legibilidad
+- **Multilingüe**: Mensajes de compartir traducidos en 5 idiomas (es, en, pt, fr, ja)
 
 ### 📖 Biblia Integrada (NUEVO)
 - **Biblia Completa**: Acceso offline a la Biblia completa en versión RVR1960
@@ -150,6 +163,7 @@ La aplicación cuenta con un sistema completo de notificaciones push que incluye
 - Flutter 3.32.8 o superior
 - Dart 3.8.1 o superior
 - Android SDK 21+ (Android 5.0+)
+- Android compileSdk 34+ (para Android 15 compatibility)
 - iOS 11.0+
 
 ## 🧪 Testing
