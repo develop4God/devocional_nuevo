@@ -61,7 +61,7 @@ void main() {
     test('Share text should not duplicate app invitation message', () {
       // This test validates that the devotional sharing logic
       // does NOT concatenate the drawer share message
-      
+
       // Build meditations text as done in _shareAsText method
       final meditationsText = testDevocional.paraMeditar
           .map((p) => '${p.cita}: ${p.texto}')
@@ -69,14 +69,16 @@ void main() {
 
       // In the fixed version, we should ONLY use devotionals.share_text_format
       // NOT concatenate with drawer.share_message
-      
+
       // The share message should contain the devotional content
       expect(meditationsText, isNotEmpty);
-      
+
       // Verify it does NOT have duplicated sections
-      final playStoreLinkCount = 
-          'https://play.google.com/store/apps/details?id='.allMatches(meditationsText).length;
-      
+      final playStoreLinkCount =
+          'https://play.google.com/store/apps/details?id='
+              .allMatches(meditationsText)
+              .length;
+
       // The meditations text itself should not contain any play store links
       expect(playStoreLinkCount, equals(0),
           reason: 'Meditations text should not contain play store links');
@@ -86,14 +88,14 @@ void main() {
       // The divider in share_text_format should be exactly 20 characters
       // Old: ──────────────────────────────  (30 chars)
       // New: ────────────────────  (20 chars)
-      
+
       const correctDividerLength = 20;
       const incorrectDividerLength = 30;
-      
+
       // Test divider construction
       final correctDivider = '─' * correctDividerLength;
       final incorrectDivider = '─' * incorrectDividerLength;
-      
+
       expect(correctDivider.length, equals(20));
       expect(incorrectDivider.length, equals(30));
       expect(correctDivider.length, lessThan(incorrectDivider.length));
@@ -147,7 +149,7 @@ void main() {
       expect(meditationsText, contains('Test 2:2:'));
       expect(meditationsText, contains('C' * 500));
       expect(meditationsText, contains('D' * 500));
-      
+
       // Verify proper line separation
       final lines = meditationsText.split('\n');
       expect(lines, hasLength(2));
@@ -201,7 +203,7 @@ void main() {
       expect(minimalDevocional.language, isNull);
       expect(minimalDevocional.version, isNull);
       expect(minimalDevocional.tags, isNull);
-      
+
       // But required fields should still be present
       expect(minimalDevocional.id, isNotEmpty);
       expect(minimalDevocional.versiculo, isNotEmpty);
@@ -219,7 +221,8 @@ void main() {
       );
 
       expect(meditation.cita, equals('Juan 3:16'));
-      expect(meditation.texto, equals('Porque de tal manera amó Dios al mundo'));
+      expect(
+          meditation.texto, equals('Porque de tal manera amó Dios al mundo'));
     });
 
     test('Multiple meditations should be independent', () {
@@ -235,7 +238,7 @@ void main() {
     test('ShareAsText should only include devotional content', () {
       // This test validates the fix for the duplicate message bug
       // The _shareAsText method should NOT concatenate drawer.share_message
-      
+
       final devotional = Devocional(
         id: 'test',
         date: DateTime.now(),
@@ -254,9 +257,9 @@ void main() {
       // The key fix: We should NOT append drawer.share_message
       // Old code: '$devotionalText\n\n$shareMessage'
       // New code: just devotionalText
-      
+
       expect(meditationsText, equals('Test 1:1: Test text'));
-      
+
       // Verify the meditation text doesn't inadvertently contain invitation phrases
       expect(meditationsText.toLowerCase(), isNot(contains('paz diaria')));
       expect(meditationsText.toLowerCase(), isNot(contains('daily peace')));
@@ -267,12 +270,12 @@ void main() {
     test('Drawer share message should be separate', () {
       // Drawer share functionality should use drawer.share_message
       // This should be completely independent from devotional sharing
-      
+
       // The drawer share message would typically contain:
       // - Invitation text
       // - Play store link
       // But NOT devotional content
-      
+
       const hasDrawerShare = true; // Feature exists in drawer
       expect(hasDrawerShare, isTrue);
     });
