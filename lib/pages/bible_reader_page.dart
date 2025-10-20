@@ -144,18 +144,27 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     );
   }
 
+  //Bible book selector dialog
   Future<void> _showBookSelector() async {
     final state = _controller.state;
-    await showDialog(
+    await showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
       builder: (BuildContext context) {
-        return BibleBookSelectorDialog(
-          books: state.books,
-          selectedBookName: state.selectedBookName,
-          onBookSelected: (book) async {
-            await _controller.selectBook(book);
-            _scrollToTop();
-          },
+        return SafeArea(
+          child: SizedBox(
+            height: MediaQuery.of(context).size.height * 0.9,
+            child: BibleBookSelectorDialog(
+              books: state.books,
+              selectedBookName: state.selectedBookName,
+              onBookSelected: (book) async {
+                Navigator.of(context).pop();
+                await _controller.selectBook(book);
+                _scrollToTop();
+              },
+            ),
+          ),
         );
       },
     );
