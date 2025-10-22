@@ -3,12 +3,16 @@
 import 'dart:developer' as developer;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
+import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/services/notification_service.dart';
 import 'package:devocional_nuevo/widgets/app_bar_constants.dart';
 // NEW IMPORTS for Firebase
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class NotificationConfigPage extends StatefulWidget {
   const NotificationConfigPage({super.key});
@@ -358,122 +362,129 @@ class _NotificationConfigPageState extends State<NotificationConfigPage> {
 
   @override
   Widget build(BuildContext context) {
-    final ColorScheme colorScheme = Theme.of(context).colorScheme;
     final TextTheme textTheme = Theme.of(context).textTheme;
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+    final themeState = context.watch<ThemeBloc>().state as ThemeLoaded;
 
     // Determina si el botón de confirmar debe estar habilitado
     bool isConfirmButtonEnabled =
         _newlySelectedTime != null && _newlySelectedTime != _selectedTime;
 
     if (_isLoading) {
-      return Scaffold(
-        appBar: AppBar(
-          title: Text("notifications_config_page.notifications_config".tr(),
-              style: const TextStyle(color: Colors.white)), // TEXTO TRADUCIDO
-        ),
-        body: const Center(child: CircularProgressIndicator()),
-      );
+      return AnnotatedRegion<SystemUiOverlayStyle>(
+          value: themeState.systemUiOverlayStyle,
+          child: Scaffold(
+            appBar: AppBar(
+              title: Text("notifications_config_page.notifications_config".tr(),
+                  style:
+                      const TextStyle(color: Colors.white)), // TEXTO TRADUCIDO
+            ),
+            body: const Center(child: CircularProgressIndicator()),
+          ));
     }
 
-    return Scaffold(
-      appBar: CustomAppBar(
-        titleText: 'notifications_config_page.notifications_config'.tr(),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+        value: themeState.systemUiOverlayStyle,
+        child: Scaffold(
+          appBar: CustomAppBar(
+            titleText: 'notifications_config_page.notifications_config'.tr(),
+          ),
+          body: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'notifications_config_page.enable_notifications'.tr(),
-                  style: textTheme.titleMedium
-                      ?.copyWith(color: colorScheme.onSurface),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'notifications_config_page.enable_notifications'.tr(),
+                      style: textTheme.titleMedium
+                          ?.copyWith(color: colorScheme.onSurface),
+                    ),
+                    Switch(
+                      value: _notificationsEnabled,
+                      onChanged: _toggleNotifications,
+                      activeTrackColor: colorScheme.primary,
+                    ),
+                  ],
                 ),
-                Switch(
-                  value: _notificationsEnabled,
-                  onChanged: _toggleNotifications,
-                  activeTrackColor: colorScheme.primary,
+                const SizedBox(height: 20),
+                InkWell(
+                  onTap:
+                      _notificationsEnabled ? () => _selectTime(context) : null,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: Row(
+                      children: [
+                        Icon(Icons.access_time,
+                            color: _notificationsEnabled
+                                ? colorScheme.primary
+                                : colorScheme.onSurface.withAlpha(127)),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            'notifications_config_page.notification_time'.tr(),
+                            style: textTheme.titleMedium?.copyWith(
+                              color: _notificationsEnabled
+                                  ? colorScheme.onSurface
+                                  : colorScheme.onSurface.withAlpha(127),
+                            ),
+                          ),
+                        ),
+                        // Muestra la hora temporal si existe, sino la hora guardada
+                        Text(
+                          (_newlySelectedTime ?? _selectedTime).format(context),
+                          style: textTheme.titleMedium?.copyWith(
+                            color: _notificationsEnabled
+                                ? colorScheme.primary
+                                : colorScheme.onSurface.withAlpha(127),
+                          ),
+                        ),
+                        Icon(Icons.arrow_forward_ios,
+                            size: 16,
+                            color: _notificationsEnabled
+                                ? colorScheme.onSurface
+                                : colorScheme.onSurface.withAlpha(127)),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                // Botón de Confirmar Hora
+                ElevatedButton.icon(
+                  // Habilitado solo si las notificaciones están activadas Y hay una hora nueva seleccionada diferente a la actual
+                  onPressed: (_notificationsEnabled && isConfirmButtonEnabled)
+                      ? _confirmSelectedTime
+                      : null,
+                  icon: Icon(Icons.schedule_send_outlined,
+                      size: 30, // Agregando la propiedad de tamaño
+                      color: (_notificationsEnabled && isConfirmButtonEnabled)
+                          ? Colors.white
+                          : Colors.white.withAlpha(127)),
+                  label: Text(
+                    'notifications_config_page.notification_confirm'.tr(),
+                    style: textTheme.titleMedium?.copyWith(
+                      color: (_notificationsEnabled && isConfirmButtonEnabled)
+                          ? Colors.white
+                          : Colors.white.withAlpha(127),
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor:
+                        (_notificationsEnabled && isConfirmButtonEnabled)
+                            ? colorScheme.primary
+                            : colorScheme.primary.withAlpha(127),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 15),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
                 ),
               ],
             ),
-            const SizedBox(height: 20),
-            InkWell(
-              onTap: _notificationsEnabled ? () => _selectTime(context) : null,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                child: Row(
-                  children: [
-                    Icon(Icons.access_time,
-                        color: _notificationsEnabled
-                            ? colorScheme.primary
-                            : colorScheme.onSurface.withAlpha(127)),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        'notifications_config_page.notification_time'.tr(),
-                        style: textTheme.titleMedium?.copyWith(
-                          color: _notificationsEnabled
-                              ? colorScheme.onSurface
-                              : colorScheme.onSurface.withAlpha(127),
-                        ),
-                      ),
-                    ),
-                    // Muestra la hora temporal si existe, sino la hora guardada
-                    Text(
-                      (_newlySelectedTime ?? _selectedTime).format(context),
-                      style: textTheme.titleMedium?.copyWith(
-                        color: _notificationsEnabled
-                            ? colorScheme.primary
-                            : colorScheme.onSurface.withAlpha(127),
-                      ),
-                    ),
-                    Icon(Icons.arrow_forward_ios,
-                        size: 16,
-                        color: _notificationsEnabled
-                            ? colorScheme.onSurface
-                            : colorScheme.onSurface.withAlpha(127)),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            // Botón de Confirmar Hora
-            ElevatedButton.icon(
-              // Habilitado solo si las notificaciones están activadas Y hay una hora nueva seleccionada diferente a la actual
-              onPressed: (_notificationsEnabled && isConfirmButtonEnabled)
-                  ? _confirmSelectedTime
-                  : null,
-              icon: Icon(Icons.schedule_send_outlined,
-                  size: 30, // Agregando la propiedad de tamaño
-                  color: (_notificationsEnabled && isConfirmButtonEnabled)
-                      ? Colors.white
-                      : Colors.white.withAlpha(127)),
-              label: Text(
-                'notifications_config_page.notification_confirm'.tr(),
-                style: textTheme.titleMedium?.copyWith(
-                  color: (_notificationsEnabled && isConfirmButtonEnabled)
-                      ? Colors.white
-                      : Colors.white.withAlpha(127),
-                ),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor:
-                    (_notificationsEnabled && isConfirmButtonEnabled)
-                        ? colorScheme.primary
-                        : colorScheme.primary.withAlpha(127),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+          ),
+        ));
   }
 }

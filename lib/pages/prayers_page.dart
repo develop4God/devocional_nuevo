@@ -1,12 +1,15 @@
 import 'package:devocional_nuevo/blocs/prayer_bloc.dart';
 import 'package:devocional_nuevo/blocs/prayer_event.dart';
 import 'package:devocional_nuevo/blocs/prayer_state.dart';
+import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
+import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/prayer_model.dart';
 import 'package:devocional_nuevo/widgets/add_prayer_modal.dart';
 import 'package:devocional_nuevo/widgets/answer_prayer_modal.dart';
 import 'package:devocional_nuevo/widgets/app_bar_constants.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
@@ -40,101 +43,108 @@ class _PrayersPageState extends State<PrayersPage>
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+    final themeState = context.watch<ThemeBloc>().state as ThemeLoaded;
 
-    return Scaffold(
-      appBar: CustomAppBar(
-        titleText: 'prayer.my_prayers'.tr(),
-      ),
-      body: Column(
-        children: [
-          // Container para las tabs en la parte blanca
-          Container(
-            color: colorScheme.surface,
-            child: TabBar(
-              controller: _tabController,
-              tabs: [
-                Tab(
-                  icon: const Icon(Icons.schedule),
-                  text: 'prayer.active'.tr(),
-                ),
-                Tab(
-                  icon: const Icon(Icons.check_circle_outline),
-                  text: 'prayer.answered_prayers'.tr(),
-                ),
-              ],
-              // Cambiar colores para fondo blanco
-              indicatorColor: colorScheme.primary,
-              labelColor: colorScheme.primary,
-              unselectedLabelColor:
-                  colorScheme.onSurface.withValues(alpha: 0.6),
-            ),
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+        value: themeState.systemUiOverlayStyle,
+        child: Scaffold(
+          appBar: CustomAppBar(
+            titleText: 'prayer.my_prayers'.tr(),
           ),
-          // El contenido expandido
-          Expanded(
-            child: BlocBuilder<PrayerBloc, PrayerState>(
-              builder: (context, state) {
-                if (state is PrayerLoading) {
-                  return const Center(
-                    child: CircularProgressIndicator(),
-                  );
-                }
+          body: Column(
+            children: [
+              // Container para las tabs en la parte blanca
+              Container(
+                color: colorScheme.surface,
+                child: TabBar(
+                  controller: _tabController,
+                  tabs: [
+                    Tab(
+                      icon: const Icon(Icons.schedule),
+                      text: 'prayer.active'.tr(),
+                    ),
+                    Tab(
+                      icon: const Icon(Icons.check_circle_outline),
+                      text: 'prayer.answered_prayers'.tr(),
+                    ),
+                  ],
+                  // Cambiar colores para fondo blanco
+                  indicatorColor: colorScheme.primary,
+                  labelColor: colorScheme.primary,
+                  unselectedLabelColor:
+                      colorScheme.onSurface.withValues(alpha: 0.6),
+                ),
+              ),
+              // El contenido expandido
+              Expanded(
+                child: BlocBuilder<PrayerBloc, PrayerState>(
+                  builder: (context, state) {
+                    if (state is PrayerLoading) {
+                      return const Center(
+                        child: CircularProgressIndicator(),
+                      );
+                    }
 
-                if (state is PrayerError) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.error_outline,
-                          size: 64,
-                          color: colorScheme.error,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          state.message,
-                          style:
-                              Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    if (state is PrayerError) {
+                      return Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.error_outline,
+                              size: 64,
+                              color: colorScheme.error,
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              state.message,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyLarge
+                                  ?.copyWith(
                                     color: colorScheme.error,
                                   ),
-                          textAlign: TextAlign.center,
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 16),
+                            ElevatedButton(
+                              onPressed: () {
+                                context
+                                    .read<PrayerBloc>()
+                                    .add(RefreshPrayers());
+                              },
+                              child: Text('prayer.retry'.tr()),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 16),
-                        ElevatedButton(
-                          onPressed: () {
-                            context.read<PrayerBloc>().add(RefreshPrayers());
-                          },
-                          child: Text('prayer.retry'.tr()),
-                        ),
-                      ],
-                    ),
-                  );
-                }
+                      );
+                    }
 
-                if (state is PrayerLoaded) {
-                  return TabBarView(
-                    controller: _tabController,
-                    children: [
-                      _buildActivePrayersTab(context, state),
-                      _buildAnsweredPrayersTab(context, state),
-                    ],
-                  );
-                }
+                    if (state is PrayerLoaded) {
+                      return TabBarView(
+                        controller: _tabController,
+                        children: [
+                          _buildActivePrayersTab(context, state),
+                          _buildAnsweredPrayersTab(context, state),
+                        ],
+                      );
+                    }
 
-                return const Center(
-                  child: CircularProgressIndicator(),
-                );
-              },
-            ),
+                    return const Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  },
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _showAddPrayerModal(context),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        child: const Icon(Icons.add),
-      ),
-    );
+          floatingActionButton: FloatingActionButton(
+            onPressed: () => _showAddPrayerModal(context),
+            backgroundColor: Theme.of(context).colorScheme.primary,
+            child: const Icon(Icons.add),
+          ),
+        ));
   }
 
   Widget _buildActivePrayersTab(
