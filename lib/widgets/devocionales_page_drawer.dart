@@ -248,7 +248,7 @@ class DevocionalesDrawer extends StatelessWidget {
                         top: 0,
                         bottom: 0,
                         child: IconButton(
-                          icon: const Icon(Icons.exit_to_app,
+                          icon: const Icon(Icons.close_outlined,
                               color: Colors.white),
                           onPressed: () {
                             Navigator.of(context).pop();
