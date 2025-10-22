@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 final ThemeData _baseLightTheme = ThemeData(
   brightness: Brightness.light,
@@ -775,3 +776,19 @@ const Map<String, String> themeDisplayNames = {
 };
 
 const TextStyle settingsOptionTextStyle = TextStyle(fontSize: 20.0);
+
+/// Consistent system UI overlay style for all themes
+/// Dark gray navigation bar with white icons for better visibility
+/// This ensures consistency across all pages and themes
+const SystemUiOverlayStyle systemUiOverlayStyle = SystemUiOverlayStyle(
+  // Status bar (top) - transparent to allow gradient from AppBar
+  statusBarColor: Colors.transparent,
+  statusBarIconBrightness: Brightness.light, // White icons on status bar
+  statusBarBrightness: Brightness.dark, // For iOS
+
+  // Navigation bar (bottom) - consistent dark gray with white buttons
+  systemNavigationBarColor: Color(0xFF424242), // Dark gray (Material grey 800)
+  systemNavigationBarIconBrightness:
+      Brightness.light, // White navigation buttons
+  systemNavigationBarDividerColor: Colors.transparent,
+);
