@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lottie/lottie.dart';
 
 class FloatingFontControlButtons extends StatelessWidget {
   final double currentFontSize;
@@ -36,7 +37,7 @@ class FloatingFontControlButtons extends StatelessWidget {
         ),
         Positioned(
           right: 24,
-          bottom: 24,
+          top: 70,
           child: Material(
             color: Colors.transparent,
             elevation: 0,
@@ -55,20 +56,20 @@ class FloatingFontControlButtons extends StatelessWidget {
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.08),
+                          color: Colors.black.withValues(alpha: 0.08),
                           blurRadius: 8,
                           offset: const Offset(0, 4),
                         ),
                       ],
                       border: Border.all(
-                        color: colorScheme.outline.withAlpha(40),
+                        color: colorScheme.error.withAlpha(40),
                         width: 1.2,
                       ),
                     ),
                     child: Icon(
-                      Icons.close,
-                      size: 20,
-                      color: colorScheme.onSurface.withOpacity(0.6),
+                      Icons.close_outlined,
+                      size: 25,
+                      color: colorScheme.error.withValues(alpha: 0.6),
                     ),
                   ),
                 ),
@@ -86,13 +87,13 @@ class FloatingFontControlButtons extends StatelessWidget {
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.12),
+                          color: Colors.black.withValues(alpha: 0.12),
                           blurRadius: 10,
                           offset: const Offset(0, 4),
                         ),
                       ],
                       border: Border.all(
-                        color: colorScheme.primary.withOpacity(0.12),
+                        color: colorScheme.primary.withValues(alpha: 0.12),
                         width: 2,
                       ),
                     ),
@@ -104,63 +105,56 @@ class FloatingFontControlButtons extends StatelessWidget {
                           fontWeight: FontWeight.bold,
                           color: canIncrease
                               ? colorScheme.onPrimary
-                              : colorScheme.onSurface.withOpacity(0.3),
+                              : colorScheme.onSurface.withValues(alpha: 0.3),
                         ),
                       ),
                     ),
                   ),
                 ),
-                const SizedBox(height: 12),
-                // Font size indicator
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: colorScheme.primaryContainer.withOpacity(0.4),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    currentFontSize.toInt().toString(),
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: colorScheme.primary,
-                    ),
-                  ),
+
+                // Lottie animation for tap feedback
+                Lottie.asset(
+                  'assets/lottie/tap_screen.json',
+                  height: 80,
+                  repeat: true,
+                  animate: true,
                 ),
-                const SizedBox(height: 12),
-                // Decrease font (smaller circle)
-                GestureDetector(
-                  onTap: canDecrease ? onDecrease : null,
-                  child: Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color: canDecrease
-                          ? colorScheme.primary
-                          : colorScheme.surfaceContainerHighest,
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.08),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
+
+                // Decrease font (smaller circle) - centrado con los botones más grandes
+                Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: GestureDetector(
+                    onTap: canDecrease ? onDecrease : null,
+                    child: Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: canDecrease
+                            ? colorScheme.primary
+                            : colorScheme.surfaceContainerHighest,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.08),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                        border: Border.all(
+                          color: colorScheme.primary.withValues(alpha: 0.12),
+                          width: 2,
                         ),
-                      ],
-                      border: Border.all(
-                        color: colorScheme.primary.withOpacity(0.12),
-                        width: 2,
                       ),
-                    ),
-                    child: Center(
-                      child: Text(
-                        'A-',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: canDecrease
-                              ? colorScheme.onPrimary
-                              : colorScheme.onSurface.withOpacity(0.3),
+                      child: Center(
+                        child: Text(
+                          'A-',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: canDecrease
+                                ? colorScheme.onPrimary
+                                : colorScheme.onSurface.withValues(alpha: 0.3),
+                          ),
                         ),
                       ),
                     ),
