@@ -19,11 +19,13 @@ import 'package:devocional_nuevo/services/notification_service.dart';
 import 'package:devocional_nuevo/services/onboarding_service.dart';
 import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
 import 'package:devocional_nuevo/splash_screen.dart';
+import 'package:devocional_nuevo/utils/theme_constants.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
@@ -97,6 +99,14 @@ void main() async {
   developer.log('App: Función main() iniciada.', name: 'MainApp');
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+
+  // Configure system UI overlay style for consistent navigation bar appearance
+  // This ensures dark gray navigation bar with white buttons across all themes
+  SystemChrome.setSystemUIOverlayStyle(systemUiOverlayStyle);
+  developer.log(
+    'App: System UI overlay style configured for consistent navigation bar.',
+    name: 'MainApp',
+  );
 
   // Configurar el manejador de mensajes FCM en segundo plano
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
@@ -205,58 +215,62 @@ class _MyAppState extends State<MyApp> {
           currentTheme = context.read<ThemeBloc>().currentTheme;
         }
 
-        return MaterialApp(
-          title: 'Devocionales',
-          debugShowCheckedModeBanner: false,
-          theme: currentTheme,
-          navigatorKey: navigatorKey,
-          localizationsDelegates: GlobalMaterialLocalizations.delegates,
-          supportedLocales: localizationProvider.supportedLocales,
-          locale: localizationProvider.currentLocale,
-          // ADD this line to connect the global RouteObserver
-          navigatorObservers: [routeObserver],
-          home: FutureBuilder<bool>(
-            future: _initializationFuture,
-            builder: (context, snapshot) {
-              // Mostrar splash mientras se inicializa
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const SplashScreen();
-              }
+        return AnnotatedRegion<SystemUiOverlayStyle>(
+          value: systemUiOverlayStyle,
+          child: MaterialApp(
+            title: 'Devocionales',
+            debugShowCheckedModeBanner: false,
+            theme: currentTheme,
+            navigatorKey: navigatorKey,
+            localizationsDelegates: GlobalMaterialLocalizations.delegates,
+            supportedLocales: localizationProvider.supportedLocales,
+            locale: localizationProvider.currentLocale,
+            // ADD this line to connect the global RouteObserver
+            navigatorObservers: [routeObserver],
+            home: FutureBuilder<bool>(
+              future: _initializationFuture,
+              builder: (context, snapshot) {
+                // Mostrar splash mientras se inicializa
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const SplashScreen();
+                }
 
-              // Si hay error, ir directo a la app principal
-              if (snapshot.hasError) {
-                developer.log(
-                  'ERROR: Error en FutureBuilder de inicialización: ${snapshot.error}',
-                  name: 'MainApp',
-                  error: snapshot.error,
-                );
+                // Si hay error, ir directo a la app principal
+                if (snapshot.hasError) {
+                  developer.log(
+                    'ERROR: Error en FutureBuilder de inicialización: ${snapshot.error}',
+                    name: 'MainApp',
+                    error: snapshot.error,
+                  );
+                  return const AppInitializer();
+                }
+
+                // Si debe mostrar onboarding (Remote Config enabled + not completed)
+                if (snapshot.hasData && snapshot.data == true) {
+                  return OnboardingFlow(
+                    onComplete: () {
+                      Navigator.of(context).pushReplacement(
+                        // INICIO: CAMBIO PARA TRANSICIÓN INSTANTÁNEA (SOLUCIONA EL FLICKER)
+                        PageRouteBuilder(
+                          pageBuilder: (context, a, b) =>
+                              const AppInitializer(),
+                          transitionDuration: Duration.zero,
+                        ),
+                        // FIN: CAMBIO PARA TRANSICIÓN INSTANTÁNEA
+                      );
+                    },
+                  );
+                }
+
+                // Caso normal: ir a la app principal
                 return const AppInitializer();
-              }
-
-              // Si debe mostrar onboarding (Remote Config enabled + not completed)
-              if (snapshot.hasData && snapshot.data == true) {
-                return OnboardingFlow(
-                  onComplete: () {
-                    Navigator.of(context).pushReplacement(
-                      // INICIO: CAMBIO PARA TRANSICIÓN INSTANTÁNEA (SOLUCIONA EL FLICKER)
-                      PageRouteBuilder(
-                        pageBuilder: (context, a, b) => const AppInitializer(),
-                        transitionDuration: Duration.zero,
-                      ),
-                      // FIN: CAMBIO PARA TRANSICIÓN INSTANTÁNEA
-                    );
-                  },
-                );
-              }
-
-              // Caso normal: ir a la app principal
-              return const AppInitializer();
+              },
+            ),
+            routes: {
+              '/settings': (context) => const SettingsPage(),
+              '/devocionales': (context) => const DevocionalesPage(),
             },
           ),
-          routes: {
-            '/settings': (context) => const SettingsPage(),
-            '/devocionales': (context) => const DevocionalesPage(),
-          },
         );
       },
     );
