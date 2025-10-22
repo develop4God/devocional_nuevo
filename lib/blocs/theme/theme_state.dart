@@ -1,7 +1,8 @@
 // lib/blocs/theme/theme_state.dart
+import 'package:devocional_nuevo/utils/theme_constants.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
-import 'package:devocional_nuevo/utils/theme_constants.dart';
+import 'package:flutter/services.dart';
 
 /// States for theme functionality
 abstract class ThemeState extends Equatable {
@@ -36,6 +37,21 @@ class ThemeLoaded extends ThemeState {
   /// Get adaptive divider color based on brightness
   Color get dividerAdaptiveColor {
     return brightness == Brightness.dark ? Colors.white : Colors.black;
+  }
+
+  /// Get system UI overlay style for current theme
+  SystemUiOverlayStyle get systemUiOverlayStyle {
+    final navBarColor =
+        themeData.appBarTheme.backgroundColor ?? themeData.colorScheme.primary;
+    final iconBrightness =
+        brightness == Brightness.dark ? Brightness.light : Brightness.dark;
+
+    return SystemUiOverlayStyle(
+      systemNavigationBarColor: navBarColor,
+      systemNavigationBarIconBrightness: iconBrightness,
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: iconBrightness,
+    );
   }
 
   @override

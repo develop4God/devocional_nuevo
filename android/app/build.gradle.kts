@@ -38,7 +38,7 @@ android {
 
     defaultConfig {
         applicationId = "com.develop4god.devocional_nuevo"
-        minSdk = 23
+        minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
@@ -116,7 +116,7 @@ android {
 dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
     implementation("androidx.multidex:multidex:2.0.1")
-    implementation("androidx.core:core-ktx:1.15.0")
+    implementation("androidx.core:core-ktx:1.17.0")
     implementation("androidx.window:window:1.5.0")
     implementation("androidx.window:window-java:1.5.0")
     implementation(platform("com.google.firebase:firebase-bom:34.4.0"))
