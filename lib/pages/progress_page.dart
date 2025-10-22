@@ -1,6 +1,9 @@
 // lib/pages/progress_page.dart - Fixed themed shadows
+import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
+import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -177,46 +180,49 @@ class _ProgressPageState extends State<ProgressPage>
 
   @override
   Widget build(BuildContext context) {
-    Theme.of(context);
+    final themeState = context.watch<ThemeBloc>().state as ThemeLoaded;
 
-    return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: Transform(
-            alignment: Alignment.center,
-            transform: Matrix4.rotationY(3.14159),
-            // Esto invierte horizontalmente el icono
-            child: Icon(
-              Icons.exit_to_app,
-              color: Theme.of(context).colorScheme.primary, // <--- CAMBIO AQUÍ
-            ),
-          ),
-          onPressed: () => Navigator.of(context).pop(),
-          tooltip: 'progress.back'.tr(),
-        ),
-        title: Text(
-          'progress.title'.tr(),
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).colorScheme.primary,
-                fontSize: 24,
-              ),
-        ),
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        foregroundColor: Theme.of(context).colorScheme.onSurface,
-        elevation: 0,
-        centerTitle: true,
-        // Si quieres centrar igual que otras páginas
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _stats == null
-              ? _buildErrorWidget()
-              : RefreshIndicator(
-                  onRefresh: _loadStats,
-                  child: _buildContent(),
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+        value: themeState.systemUiOverlayStyle,
+        child: Scaffold(
+          appBar: AppBar(
+            leading: IconButton(
+              icon: Transform(
+                alignment: Alignment.center,
+                transform: Matrix4.rotationY(3.14159),
+                // Esto invierte horizontalmente el icono
+                child: Icon(
+                  Icons.exit_to_app,
+                  color:
+                      Theme.of(context).colorScheme.primary, // <--- CAMBIO AQUÍ
                 ),
-    );
+              ),
+              onPressed: () => Navigator.of(context).pop(),
+              tooltip: 'progress.back'.tr(),
+            ),
+            title: Text(
+              'progress.title'.tr(),
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.primary,
+                    fontSize: 24,
+                  ),
+            ),
+            backgroundColor: Theme.of(context).colorScheme.surface,
+            foregroundColor: Theme.of(context).colorScheme.onSurface,
+            elevation: 0,
+            centerTitle: true,
+            // Si quieres centrar igual que otras páginas
+          ),
+          body: _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : _stats == null
+                  ? _buildErrorWidget()
+                  : RefreshIndicator(
+                      onRefresh: _loadStats,
+                      child: _buildContent(),
+                    ),
+        ));
   }
 
   Widget _buildErrorWidget() {
