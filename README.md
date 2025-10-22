@@ -1,6 +1,7 @@
 # Devocionales Cristianos
 
-Aplicación móvil multilingüe para leer devocionales diarios con funcionalidades avanzadas de audio, favoritos, tracking espiritual y sistema inteligente de reseñas.
+Aplicación móvil multilingüe para leer devocionales diarios con funcionalidades avanzadas de audio,
+favoritos, tracking espiritual y sistema inteligente de reseñas.
 
 ## ✨ Características Principales
 
@@ -22,18 +23,22 @@ Aplicación móvil multilingüe para leer devocionales diarios con funcionalidad
 ## 🆕 Actualizaciones Recientes
 
 ### 📱 Compatibilidad Android 15+ (NUEVO)
+
 - **Edge-to-Edge Display**: Soporte completo para Android 15 (API 35+)
 - **WindowCompat Integration**: Gestión apropiada de window insets
-- **Deprecated APIs Migration**: Eliminación de APIs obsoletas (setStatusBarColor, setNavigationBarColor)
+- **Deprecated APIs Migration**: Eliminación de APIs obsoletas (setStatusBarColor,
+  setNavigationBarColor)
 - **Modern UI Experience**: Experiencia de pantalla completa en dispositivos modernos
 
 ### 📤 Sistema de Compartir Optimizado (ACTUALIZADO)
+
 - **Compartir Devocionales**: Formato limpio sin duplicación de mensajes
 - **Compartir App**: Mensaje dedicado desde el drawer para invitar usuarios
 - **Formato Mejorado**: Separador visual optimizado (20 caracteres) para mejor legibilidad
 - **Multilingüe**: Mensajes de compartir traducidos en 5 idiomas (es, en, pt, fr, ja)
 
 ### 📖 Biblia Integrada (NUEVO)
+
 - **Biblia Completa**: Acceso offline a la Biblia completa en versión RVR1960
 - **Navegación Fácil**: Dropdowns para seleccionar libros y capítulos
 - **Selección de Versículos**: Toca versículos para seleccionarlos y compartirlos
@@ -44,6 +49,7 @@ Aplicación móvil multilingüe para leer devocionales diarios con funcionalidad
 - **13 Tests**: Cobertura completa de la nueva funcionalidad
 
 ### 🚀 Sistema de Onboarding con BLoC Architecture
+
 - **Arquitectura BLoC**: Migración completa del onboarding a patrón BLoC para mejor mantenimiento
 - **Configuración Guiada**: Flow paso a paso para selección de tema y configuración de respaldo
 - **Persistencia Inteligente**: Guardado automático de progreso con recuperación ante interrupciones
@@ -54,7 +60,9 @@ Aplicación móvil multilingüe para leer devocionales diarios con funcionalidad
 - **Testing Exhaustivo**: 45+ tests cubriendo todos los escenarios posibles
 
 ### 🌍 Soporte Multilingüe Mejorado
+
 El sistema solicita reseñas automáticamente cuando los usuarios alcanzan hitos significativos:
+
 - **5° devocional** (validación de engagement temprano)
 - **25° devocional** (usuario comprometido)
 - **50° devocional** (usuario regular)
@@ -62,12 +70,14 @@ El sistema solicita reseñas automáticamente cuando los usuarios alcanzan hitos
 - **200° devocional** (super usuario)
 
 ### 🌍 Soporte Multilingüe Mejorado
+
 - **Onboarding Localizado**: Todas las pantallas de configuración inicial totalmente traducidas
 - **Keys Corregidas**: Sistema de localización mejorado con estructura jerárquica (onboarding.*)
 - **Mensajes de Error**: Feedback localizado para conexiones y timeouts
 - **4 Idiomas Completos**: Español, English, Português, Français
 
 ### ☁️ Sistema de Respaldo Mejorado
+
 - **Google Drive Integration**: Conexión segura con timeout protection
 - **Manejo de Cancelación**: Recuperación elegante cuando el usuario cancela la autenticación
 - **Estado de Conexión**: Indicadores claros de progreso y estado de conexión
@@ -75,18 +85,22 @@ El sistema solicita reseñas automáticamente cuando los usuarios alcanzan hitos
 - **Tests de Login Flow**: Cobertura completa de flujos de autenticación y cancelación
 
 ### 🎯 Momentos Inteligentes para Reseñas
+
 Diálogos de reseña localizados en todos los idiomas:
+
 - **Español**: "Gracias por tu constancia 🙏"
 - **English**: "Thank you for your consistency 🙏"
 - **Português**: "Obrigado pela sua constância 🙏"
 - **Français**: "Merci pour votre constance 🙏"
 
 ### ⏰ Sistema de Enfriamiento Inteligente
+
 - **90 días de enfriamiento global**: Previene sobre-solicitud
 - **30 días "recordar después"**: Respeta la elección del usuario
 - **Preferencias permanentes**: "Ya califiqué" y "No preguntar más"
 
 ### 📱 Integración Nativa con Respaldos
+
 - **Primario**: API nativa de Android/iOS
 - **Respaldo**: Redirección directa a Play Store/App Store
 - **Fallback final**: Lanzador de URL para casos extremos
@@ -94,19 +108,23 @@ Diálogos de reseña localizados en todos los idiomas:
 ## 🚀 Estado del Proyecto
 
 ### ✅ Testing Coverage - 95%+ en Servicios Críticos
-- **143+ Tests Unitarios**: Cobertura completa incluyendo nueva funcionalidad de Biblia *(ACTUALIZADO)*
+
+- **143+ Tests Unitarios**: Cobertura completa incluyendo nueva funcionalidad de Biblia *(
+  ACTUALIZADO)*
 - **45+ Tests del Sistema de Onboarding**: Cobertura exhaustiva del nuevo BLoC architecture
 - **36 Tests del Sistema de Reseñas**: Cobertura exhaustiva del feature de reseñas
 - **13 Tests de Funcionalidad Biblia**: Tests para models, services y UI de la Biblia *(NUEVO)*
 - **Login Flow Tests**: Tests específicos para flujos de autenticación y manejo de cancelación
-- **Servicios Críticos**: PrayerProvider, TtsService, LocalizationService, InAppReviewService, OnboardingBloc, BibleDbService *(ACTUALIZADO)*
-- **Providers**: DevocionalProvider, AudioController  
+- **Servicios Críticos**: PrayerProvider, TtsService, LocalizationService, InAppReviewService,
+  OnboardingBloc, BibleDbService *(ACTUALIZADO)*
+- **Providers**: DevocionalProvider, AudioController
 - **Performance**: Todos los tests < 30 segundos
 - **CI/CD Ready**: Tests automatizados con mocking robusto
 
 ### 🎯 Idiomas y Versiones Bíblicas
+
 - **Español**: RVR1960, NVI
-- **Inglés**: KJV, NIV  
+- **Inglés**: KJV, NIV
 - **Portugués**: ARC, NVI
 - **Francés**: LSG1910, TOB
 
@@ -125,6 +143,7 @@ Diálogos de reseña localizados en todos los idiomas:
 ## 🏗️ Arquitectura
 
 ### Arquitectura Limpia
+
 - **Separación de responsabilidades**: Límites claros entre capas
 - **Patrón BLoC**: Para gestión de estado compleja (devocionales, oraciones)
 - **Patrón Provider**: Para gestión de estado simple (tema, localización)
@@ -132,6 +151,7 @@ Diálogos de reseña localizados en todos los idiomas:
 - **Widgets Reutilizables**: Componentes UI en carpeta dedicada
 
 ### Estructura de Carpetas
+
 ```
 lib/
 ├── blocs/           # Gestión de estado BLoC
@@ -169,6 +189,7 @@ La aplicación cuenta con un sistema completo de notificaciones push que incluye
 ## 🧪 Testing
 
 ### Ejecutar Tests
+
 ```bash
 # Todos los tests
 flutter test
@@ -186,6 +207,7 @@ flutter test --coverage
 ```
 
 ### Estructura de Tests
+
 ```
 test/
 ├── unit/                    # Tests unitarios organizados
@@ -200,6 +222,7 @@ test/
 ```
 
 ### Cobertura de Tests del Sistema de Reseñas
+
 - ✅ **17 Tests de Funcionalidad Central**: Detección de hitos, validación, preferencias
 - ✅ **8 Tests de Usuarios Existentes**: Lógica para usuarios con 5+ devocionales
 - ✅ **8 Tests de Integración**: Ciclo de vida de contexto, seguridad async
@@ -215,13 +238,17 @@ test/
 ## 📚 Documentación
 
 ### Documentación del Proyecto
-- [DEVOCIONAL_NUEVO_LIB_STRUCTURE.md](./DEVOCIONAL_NUEVO_LIB_STRUCTURE.md) - Estructura detallada del código fuente
-- [DEVOCIONAL_NUEVO_TEST_STRUCTURE.md](./DEVOCIONAL_NUEVO_TEST_STRUCTURE.md) - Estructura detallada de tests
-- [ARCHITECTURE.md](./ARCHITECTURE.md) - Documentación de arquitectura
-- [TECHNICAL_SERVICES.md](./TECHNICAL_SERVICES.md) - Documentación de servicios
-- [TEST_COVERAGE_REPORT.md](./TEST_COVERAGE_REPORT.md) - Reporte de cobertura de tests
+
+- [DEVOCIONAL_NUEVO_LIB_STRUCTURE.md](./DEVOCIONAL_NUEVO_LIB_STRUCTURE.md) - Estructura detallada
+  del código fuente
+- [DEVOCIONAL_NUEVO_TEST_STRUCTURE.md](./DEVOCIONAL_NUEVO_TEST_STRUCTURE.md) - Estructura detallada
+  de tests
+- [ARCHITECTURE.md](docs/ARCHITECTURE.md) - Documentación de arquitectura
+- [TECHNICAL_SERVICES.md](docs/TECHNICAL_SERVICES.md) - Documentación de servicios
+- [TEST_COVERAGE_REPORT.md](docs/TEST_COVERAGE_REPORT.md) - Reporte de cobertura de tests
 
 ### Características Técnicas
+
 - **44 archivos Dart** en 11 directorios
 - **38 archivos de test** con cobertura exhaustiva
 - **4 idiomas** completamente soportados
@@ -233,16 +260,19 @@ test/
 ## 🔧 Desarrollo
 
 ### Análisis de Código
+
 ```bash
 dart analyze
 ```
 
 ### Formateo de Código
+
 ```bash
 dart format .
 ```
 
 ### Generar Documentación
+
 ```bash
 dart doc
 ```
