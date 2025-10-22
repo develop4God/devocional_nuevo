@@ -37,7 +37,7 @@ class FloatingFontControlButtons extends StatelessWidget {
         ),
         Positioned(
           right: 24,
-          top: 70,
+          top: 100,
           child: Material(
             color: Colors.transparent,
             elevation: 0,
@@ -62,14 +62,14 @@ class FloatingFontControlButtons extends StatelessWidget {
                         ),
                       ],
                       border: Border.all(
-                        color: colorScheme.error.withAlpha(40),
+                        color: colorScheme.error.withAlpha(90),
                         width: 1.2,
                       ),
                     ),
                     child: Icon(
                       Icons.close_outlined,
                       size: 25,
-                      color: colorScheme.error.withValues(alpha: 0.6),
+                      color: colorScheme.error.withValues(alpha: 0.9),
                     ),
                   ),
                 ),
