@@ -1,9 +1,12 @@
+import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
+import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/providers/localization_provider.dart';
 import 'package:devocional_nuevo/utils/constants.dart';
 import 'package:devocional_nuevo/widgets/app_bar_constants.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -401,28 +404,32 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final themeState = context.watch<ThemeBloc>().state as ThemeLoaded;
 
-    return Scaffold(
-      appBar: CustomAppBar(
-        titleText: 'application_language.title'.tr(),
-      ),
-      backgroundColor: theme.colorScheme.surface,
-      body: ListView(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Text(
-              'application_language.description'.tr(),
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: themeState.systemUiOverlayStyle,
+      child: Scaffold(
+        appBar: CustomAppBar(
+          titleText: 'application_language.title'.tr(),
+        ),
+        backgroundColor: theme.colorScheme.surface,
+        body: ListView(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Text(
+                'application_language.description'.tr(),
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
               ),
             ),
-          ),
-          ...Constants.supportedLanguages.entries.map((entry) {
-            return _buildLanguageItem(entry.key, entry.value);
-          }),
-          const SizedBox(height: 20),
-        ],
+            ...Constants.supportedLanguages.entries.map((entry) {
+              return _buildLanguageItem(entry.key, entry.value);
+            }),
+            const SizedBox(height: 20),
+          ],
+        ),
       ),
     );
   }
