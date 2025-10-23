@@ -1183,6 +1183,11 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                     ],
                   ),
                 ),
+                // Spacer system navigation color
+                Container(
+                  height: MediaQuery.of(context).padding.bottom,
+                  color: Colors.grey[500]!.withValues(alpha: 0.5),
+                ),
               ],
             );
           },
