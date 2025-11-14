@@ -258,7 +258,7 @@ class _SplashScreenState extends State<SplashScreen>
                         text: 'God',
                         style: GoogleFonts.poppins(
                           fontSize: 26,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.w500,
                           color: const Color(0xFFFFD700),
                           // Dorado
                           letterSpacing: 1.2,
