@@ -328,7 +328,8 @@ class _SettingsPageState extends State<SettingsPage> {
                       ),
                       child: Row(
                         children: [
-                          Icon(Icons.backup, color: colorScheme.primary),
+                          Icon(Icons.add_to_drive_rounded,
+                              color: colorScheme.primary),
                           const SizedBox(width: 10),
                           Expanded(
                             child: Column(
