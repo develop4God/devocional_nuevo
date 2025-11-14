@@ -64,8 +64,7 @@ void main() {
           reason: 'Navigation bar should have sufficient contrast with icons');
     });
 
-    test(
-        'System UI overlay style is consistent across all app configurations',
+    test('System UI overlay style is consistent across all app configurations',
         () {
       // Verify the configuration works for both light and dark themes
       // by checking that the values are constant
