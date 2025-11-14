@@ -117,8 +117,8 @@ class _AnswerPrayerModalState extends State<AnswerPrayerModal> {
           TextField(
             controller: _commentController,
             focusNode: _focusNode,
-            maxLines: 4,
-            maxLength: 250,
+            maxLines: 6,
+            maxLength: 400,
             textCapitalization: TextCapitalization.sentences,
             style: textTheme.bodyMedium?.copyWith(
               color: colorScheme.onSurface,
@@ -143,7 +143,7 @@ class _AnswerPrayerModalState extends State<AnswerPrayerModal> {
               ),
               filled: true,
               fillColor: colorScheme.surface,
-              counterText: '${_commentController.text.length}/250',
+              counterText: '${_commentController.text.length}/400',
             ),
             onChanged: (_) => setState(() {}),
           ),
