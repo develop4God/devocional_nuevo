@@ -119,6 +119,9 @@ class NotificationService {
             name: 'NotificationService',
           );
 
+          // Actualizar lastLogin cada vez que el usuario ingresa
+          await updateLastLogin();
+
           // Ahora, inicializar FCM y gestionar el token solo si hay un usuario
           await _initializeFCM();
 
@@ -182,7 +185,6 @@ class NotificationService {
   // Método para inicializar FCM, obtener/guardar token y configurar listeners
   Future<void> _initializeFCM() async {
     try {
-      // Solicitar permiso para notificaciones (iOS y Android 13+)
       NotificationSettings settings =
           await _firebaseMessaging.requestPermission(
         alert: true,
@@ -193,33 +195,60 @@ class NotificationService {
         provisional: false,
         sound: true,
       );
-
       developer.log(
         'NotificationService: Permiso de usuario concedido: ${settings.authorizationStatus}',
         name: 'NotificationService',
       );
-
-      // Obtener el token FCM
-      String? token = await _firebaseMessaging.getToken();
-      developer.log(
-        'NotificationService: Token FCM obtenido: $token',
-        name: 'NotificationService',
-      );
-      if (token != null) {
-        // Asegurarse de que el token no sea nulo antes de pasarlo
-        await _saveFcmToken(token); // Guardar token en Firestore
+      String? token;
+      const int maxAttempts = 3;
+      for (int attempt = 1; attempt <= maxAttempts; attempt++) {
+        try {
+          token = await _firebaseMessaging.getToken();
+          if (token != null) {
+            developer.log(
+              'NotificationService: Token FCM obtenido en intento $attempt: $token',
+              name: 'NotificationService',
+            );
+            break;
+          } else {
+            developer.log(
+              'NotificationService: Token FCM nulo en intento $attempt',
+              name: 'NotificationService',
+            );
+          }
+        } catch (e) {
+          final msg = e.toString();
+          developer.log(
+            'NotificationService: Error obteniendo token (intento $attempt): $msg',
+            name: 'NotificationService',
+            error: e,
+          );
+          if (msg.contains('SERVICE_NOT_AVAILABLE') && attempt < maxAttempts) {
+            await Future.delayed(Duration(milliseconds: 600 * attempt));
+            continue;
+          } else {
+            rethrow;
+          }
+        }
+        if (token == null && attempt < maxAttempts) {
+          await Future.delayed(Duration(milliseconds: 400 * attempt));
+        }
       }
-
-      // Escuchar cambios en el token
+      if (token != null) {
+        await _saveFcmToken(token);
+      } else {
+        developer.log(
+          'NotificationService: No se pudo obtener token FCM tras $maxAttempts intentos (token sigue nulo).',
+          name: 'NotificationService',
+        );
+      }
       _firebaseMessaging.onTokenRefresh.listen((newToken) {
         developer.log(
           'NotificationService: Token FCM refrescado: $newToken',
           name: 'NotificationService',
         );
-        _saveFcmToken(newToken); // Actualizar token en Firestore
+        _saveFcmToken(newToken);
       });
-
-      // NUEVO: Listener para mensajes FCM cuando la app está en primer plano
       FirebaseMessaging.onMessage.listen((RemoteMessage message) {
         developer.log(
           'NotificationService: Mensaje FCM en primer plano: ${message.messageId}',
@@ -227,8 +256,6 @@ class NotificationService {
         );
         _handleMessage(message);
       });
-
-      // NUEVO: Listener para cuando el usuario toca una notificación FCM
       FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
         developer.log(
           'NotificationService: Aplicación abierta desde notificación: ${message.messageId}',
@@ -236,6 +263,8 @@ class NotificationService {
         );
         _handleMessage(message);
       });
+      // Verificación consolidada al terminar inicialización FCM
+      await verifyNotificationSetup();
     } catch (e) {
       developer.log(
         'ERROR en _initializeFCM: $e',
@@ -300,12 +329,14 @@ class NotificationService {
         return;
       }
 
-      // Añadir el campo lastLogin al documento principal del usuario
       final userDocRef = _firestore.collection('users').doc(user.uid);
-      await userDocRef.set(
-        {'lastLogin': FieldValue.serverTimestamp()},
-        SetOptions(merge: true),
-      ); // Usar merge para no sobrescribir subcolecciones
+
+      // Añadir el campo lastLogin al documento principal del usuario
+      // Eliminado para evitar duplicidad
+      // await userDocRef.set(
+      //   {'lastLogin': FieldValue.serverTimestamp()},
+      //   SetOptions(merge: true),
+      // ); // Usar merge para no sobrescribir subcolecciones
 
       final tokenRef = userDocRef.collection('fcmTokens').doc(token);
 
@@ -350,23 +381,22 @@ class NotificationService {
           .doc(userId)
           .collection('settings')
           .doc('notifications');
-
       await docRef.set(
         {
           'notificationsEnabled': notificationsEnabled,
           'notificationTime': notificationTime,
           'userTimezone': userTimezone,
           'lastUpdated': FieldValue.serverTimestamp(),
-          'preferredLanguage': currentLanguage, //nueva opcion lenguaje
+          'preferredLanguage': currentLanguage,
         },
-        // Usar merge:true para no sobrescribir otros campos si ya existen
         SetOptions(merge: true),
       );
       developer.log(
-        'NotificationService: Configuración de notificaciones guardada para $userId: '
-        'Enabled: $notificationsEnabled, Time: $notificationTime, Timezone: $userTimezone, Language: $currentLanguage',
+        'NotificationService: Configuración de notificaciones guardada para $userId: Enabled: $notificationsEnabled, Time: $notificationTime, Timezone: $userTimezone, Language: $currentLanguage',
         name: 'NotificationService',
       );
+      // Verificación tras guardar configuración
+      await verifyNotificationSetup();
     } catch (e) {
       developer.log(
         'Error al guardar la configuración de notificaciones para el usuario $userId: $e',
@@ -802,5 +832,32 @@ class NotificationService {
       );
       return 'es'; // Valor por defecto en caso de error
     }
+  }
+
+  Future<void> verifyNotificationSetup() async {
+    final user = _auth.currentUser;
+    if (user == null) {
+      developer.log(
+        'NotificationService: verifyNotificationSetup → SIN USUARIO autenticado',
+        name: 'NotificationService',
+      );
+      return;
+    }
+    final prefs = await SharedPreferences.getInstance();
+    final storedToken = prefs.getString(_fcmTokenKey);
+    final settingsDoc = await _firestore
+        .collection('users')
+        .doc(user.uid)
+        .collection('settings')
+        .doc('notifications')
+        .get();
+    final data = settingsDoc.data() ?? {};
+    final enabled = data['notificationsEnabled'];
+    final notifTime = data['notificationTime'];
+    final timezone = data['userTimezone'];
+    developer.log(
+      'NotificationService: verifyNotificationSetup → Usuario: ${user.uid}, Token Local: ${storedToken != null ? 'OK' : 'NO'}, Firestore notificationsEnabled: $enabled, Hora: $notifTime, TZ: $timezone',
+      name: 'NotificationService',
+    );
   }
 }
