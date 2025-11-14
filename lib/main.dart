@@ -3,6 +3,7 @@ import 'dart:developer' as developer;
 import 'package:devocional_nuevo/blocs/backup_bloc.dart';
 import 'package:devocional_nuevo/blocs/backup_event.dart';
 import 'package:devocional_nuevo/blocs/prayer_bloc.dart';
+import 'package:devocional_nuevo/blocs/thanksgiving_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_event.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
@@ -122,6 +123,7 @@ void main() async {
         ChangeNotifierProvider(create: (context) => LocalizationProvider()),
         ChangeNotifierProvider(create: (context) => DevocionalProvider()),
         BlocProvider(create: (context) => PrayerBloc()),
+        BlocProvider(create: (context) => ThanksgivingBloc()),
         BlocProvider(
           create: (context) {
             final themeBloc = ThemeBloc();
