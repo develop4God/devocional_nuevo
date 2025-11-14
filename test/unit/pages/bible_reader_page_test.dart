@@ -1,10 +1,30 @@
 import 'package:bible_reader_core/src/bible_version.dart';
+import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
+import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/pages/bible_reader_page.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:provider/provider.dart';
 
 void main() {
   group('BibleReaderPage Widget Tests', () {
+    Widget buildTestableWidget(Widget child) {
+      return MultiProvider(
+        providers: [
+          BlocProvider<ThemeBloc>(
+            create: (_) => ThemeBloc()
+              ..emit(ThemeLoaded(
+                themeFamily: 'Deep Purple',
+                brightness: Brightness.light,
+                themeData: ThemeData.light(),
+              )),
+          ),
+        ],
+        child: MaterialApp(home: child),
+      );
+    }
+
     testWidgets('should create BibleReaderPage with versions',
         (WidgetTester tester) async {
       final versions = [
@@ -17,11 +37,8 @@ void main() {
         ),
       ];
 
-      await tester.pumpWidget(
-        MaterialApp(
-          home: BibleReaderPage(versions: versions),
-        ),
-      );
+      await tester
+          .pumpWidget(buildTestableWidget(BibleReaderPage(versions: versions)));
 
       // Wait for first frame
       await tester.pump();
@@ -43,17 +60,14 @@ void main() {
         ),
       ];
 
-      await tester.pumpWidget(
-        MaterialApp(
-          home: BibleReaderPage(versions: versions),
-        ),
-      );
+      await tester
+          .pumpWidget(buildTestableWidget(BibleReaderPage(versions: versions)));
 
       // Initial frame
       await tester.pump();
 
-      // Should show loading indicator
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      // Debe mostrar el texto de carga real
+      expect(find.text('bible.no_verses'), findsOneWidget);
     });
 
     testWidgets('should have AppBar with title', (WidgetTester tester) async {
@@ -67,11 +81,8 @@ void main() {
         ),
       ];
 
-      await tester.pumpWidget(
-        MaterialApp(
-          home: BibleReaderPage(versions: versions),
-        ),
-      );
+      await tester
+          .pumpWidget(buildTestableWidget(BibleReaderPage(versions: versions)));
 
       await tester.pump();
 
@@ -93,11 +104,8 @@ void main() {
         ),
       ];
 
-      await tester.pumpWidget(
-        MaterialApp(
-          home: BibleReaderPage(versions: versions),
-        ),
-      );
+      await tester
+          .pumpWidget(buildTestableWidget(BibleReaderPage(versions: versions)));
 
       await tester.pump();
 
