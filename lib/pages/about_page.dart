@@ -107,7 +107,6 @@ class _AboutPageState extends State<AboutPage> {
                   ),
                   textAlign: TextAlign.center, // centrado
                 ),
-                const SizedBox(height: 10),
 
                 // Descripción de la Aplicación
                 Text(
@@ -165,8 +164,7 @@ class _AboutPageState extends State<AboutPage> {
                 Center(
                   // Envuelve el botón en un Center para centrarlo horizontalmente
                   child: ElevatedButton.icon(
-                    onPressed: () =>
-                        _launchURL('https://develop4god.github.io/'),
+                    onPressed: () => _launchURL('https://www.develop4god.com/'),
                     icon: Icon(Icons.public, color: colorScheme.onPrimary),
                     // MODIFICADO: de Colors.white a colorScheme.onPrimary
                     label: Text('about.terms_copyright'.tr(),

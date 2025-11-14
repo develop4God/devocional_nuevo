@@ -137,7 +137,8 @@
     "paypal_launch_error": "PayPalを開けませんでした。システムがURLを起動できませんでした。",
     "paypal_error": "PayPalを開く際にエラーが発生しました: {error}",
     "paypal_no_app_error": "PayPalを開けませんでした。ウェブブラウザまたはPayPalアプリがインストールされていることを確認してください。",
-    "backup_option": "バックアップ"
+    "backup_option": "バックアップ",
+    "backup_subtitle": "データを安全にバックアップして復元"
   },
   "notifications_config_page": {
     "notifications_config": "通知設定",
