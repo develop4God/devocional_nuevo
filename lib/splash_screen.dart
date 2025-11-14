@@ -200,6 +200,88 @@ class _SplashScreenState extends State<SplashScreen>
               ),
             ),
           ),
+          // 3. Texto "Develop4God" en la parte inferior
+          Positioned(
+            bottom: 60,
+            left: 0,
+            right: 0,
+            child: FadeTransition(
+              opacity: _fadeAnimation,
+              child: Center(
+                child: RichText(
+                  text: TextSpan(
+                    children: [
+                      TextSpan(
+                        text: 'Develop',
+                        style: GoogleFonts.poppins(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                          letterSpacing: 1,
+                          shadows: [
+                            const Shadow(
+                              offset: Offset(2.0, 2.0),
+                              blurRadius: 8.0,
+                              color: Colors.black45,
+                            ),
+                            const Shadow(
+                              offset: Offset(0, 0),
+                              blurRadius: 15.0,
+                              color: Colors.white24,
+                            ),
+                          ],
+                        ),
+                      ),
+                      TextSpan(
+                        text: '4',
+                        style: GoogleFonts.poppins(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w600,
+                          color: const Color(0xFF32CD32),
+                          // Verde lima
+                          letterSpacing: 1,
+                          shadows: [
+                            const Shadow(
+                              offset: Offset(2.0, 2.0),
+                              blurRadius: 8.0,
+                              color: Colors.black45,
+                            ),
+                            const Shadow(
+                              offset: Offset(0, 0),
+                              blurRadius: 20.0,
+                              color: Color(0xFF32CD32),
+                            ),
+                          ],
+                        ),
+                      ),
+                      TextSpan(
+                        text: 'God',
+                        style: GoogleFonts.poppins(
+                          fontSize: 26,
+                          fontWeight: FontWeight.w500,
+                          color: const Color(0xFFFFD700),
+                          // Dorado
+                          letterSpacing: 1.2,
+                          shadows: [
+                            const Shadow(
+                              offset: Offset(2.0, 2.0),
+                              blurRadius: 8.0,
+                              color: Colors.black45,
+                            ),
+                            const Shadow(
+                              offset: Offset(0, 0),
+                              blurRadius: 15.0,
+                              color: Color(0xFFFFD700),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
         ],
       ),
     );

@@ -62,77 +62,70 @@ class _AboutPageState extends State<AboutPage> {
             titleText: 'about.title'.tr(),
           ),
           body: SingleChildScrollView(
-            padding: const EdgeInsets.all(20.0),
+            padding: const EdgeInsets.all(16.0),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment
-                  .start, // Alinea los hijos a la izquierda por defecto
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: <Widget>[
-                // Ícono de la Aplicación (Centrado como lo deseas)
-                Align(
-                  alignment: Alignment.center,
-                  // Centra el ícono dentro de su espacio disponible
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(20.0),
-                    // Bordes redondeados
-                    child: Image.asset(
-                      'assets/icons/app_icon.png',
-                      // Ruta de tu ícono, ¡confirma que exista!
-                      width: 100,
-                      height: 100,
-                      fit: BoxFit.cover,
-                    ),
+                // Ícono de la Aplicación
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(20.0),
+                  child: Image.asset(
+                    'assets/icons/app_icon.png',
+                    width: 100,
+                    height: 100,
+                    fit: BoxFit.cover,
                   ),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 12),
 
                 // Nombre de la Aplicación
-                Text(
-                  'about.app_name'.tr(),
-                  style: textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color:
-                        colorScheme.primary, // Usa el color primario de tu tema
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    'about.app_name'.tr(),
+                    style: textTheme.headlineMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.primary,
+                    ),
+                    textAlign: TextAlign.center,
                   ),
-                  textAlign:
-                      TextAlign.left, // **Corregido:** Alineado a la izquierda
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 6),
 
                 // Versión de la Aplicación
                 Text(
                   '${'about.version'.tr()} $_appVersion',
                   style: textTheme.bodySmall?.copyWith(
-                    color: colorScheme
-                        .onSurface, // MODIFICADO: de Colors.grey[600] a colorScheme.onSurface
+                    color: colorScheme.onSurface,
                   ),
-                  textAlign: TextAlign.center, // centrado
+                  textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 8),
 
                 // Descripción de la Aplicación
                 Text(
                   'about.description'.tr(),
-                  style: textTheme.bodyLarge
-                      ?.copyWith(color: colorScheme.onSurface),
-                  // MODIFICADO: Añadido colorScheme.onSurface
-                  textAlign: TextAlign.center, //centrado
+                  style: textTheme.bodyLarge?.copyWith(
+                    color: colorScheme.onSurface,
+                    fontSize: 15,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 8),
 
                 // Características Principales
                 Text(
                   'about.main_features'.tr(),
-                  style: textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: colorScheme.onSurface),
-                  // MODIFICADO: Añadido colorScheme.onSurface
-                  textAlign: TextAlign.center, // centrado
+                  style: textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: colorScheme.onSurface,
+                    fontSize: 17,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 6),
                 Column(
-                  // Añadido 'const' para mejorar el rendimiento
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  // Los ítems de características ya están alineados a la izquierda
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: <Widget>[
                     _FeatureItem(text: 'about.feature_daily'.tr()),
                     _FeatureItem(text: 'about.feature_multiversion'.tr()),
@@ -144,45 +137,58 @@ class _AboutPageState extends State<AboutPage> {
                     _FeatureItem(text: 'about.feature_notifications'.tr()),
                   ],
                 ),
-                const SizedBox(height: 30),
+                const SizedBox(height: 12),
 
                 // Desarrollado por
-                Center(
-                  // Envuelve el texto con Center para centrarlo horizontalmente
+                Text(
+                  'about.developed_by'.tr(),
+                  style: textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurface,
+                    fontSize: 15,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 12),
+
+                // Enlace visible del sitio web (ARRIBA del botón)
+                InkWell(
+                  onTap: () => _launchURL('https://www.develop4God.com/'),
                   child: Text(
-                    'about.developed_by'.tr(),
+                    'https://www.develop4God.com/',
                     style: textTheme.bodyMedium?.copyWith(
-                      color: colorScheme
-                          .onSurface, // MODIFICADO: de Colors.grey[700] a colorScheme.onSurface
+                      color: colorScheme.primary,
+                      decoration: TextDecoration.underline,
+                      fontWeight: FontWeight.w500,
+                      fontSize: 15,
                     ),
-                    textAlign: TextAlign
-                        .center, // Este textAlign ahora centrará el texto dentro del Center
+                    textAlign: TextAlign.center,
                   ),
                 ),
-                const SizedBox(height: 30),
+                const SizedBox(height: 12),
 
-                // Enlace a la Web (Términos y Condiciones / Copyright)
-                Center(
-                  // Envuelve el botón en un Center para centrarlo horizontalmente
+                // Botón de Términos y Condiciones / Copyright
+                FittedBox(
+                  fit: BoxFit.scaleDown,
                   child: ElevatedButton.icon(
-                    onPressed: () =>
-                        _launchURL('https://develop4god.github.io/'),
+                    onPressed: () => _launchURL('https://www.develop4god.com/'),
                     icon: Icon(Icons.public, color: colorScheme.onPrimary),
-                    // MODIFICADO: de Colors.white a colorScheme.onPrimary
-                    label: Text('about.terms_copyright'.tr(),
-                        style: TextStyle(color: colorScheme.onPrimary)),
-                    // MODIFICADO: de Colors.white a colorScheme.onPrimary
+                    label: Text(
+                      'about.terms_copyright'.tr(),
+                      style: TextStyle(color: colorScheme.onPrimary),
+                    ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: colorScheme.primary,
-                      // MODIFICADO: de Colors.deepPurple a colorScheme.primary
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 24, vertical: 12),
+                        horizontal: 20,
+                        vertical: 10,
+                      ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(30.0),
                       ),
                     ),
                   ),
                 ),
+                const SizedBox(height: 16),
               ],
             ),
           ),
@@ -199,14 +205,14 @@ class _FeatureItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      padding: const EdgeInsets.symmetric(vertical: 3.0),
       child: Text(
         text,
         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            color: Theme.of(context)
-                .colorScheme
-                .onSurface), // MODIFICADO: Añadido colorScheme.onSurface
-        textAlign: TextAlign.center, // centrado
+              color: Theme.of(context).colorScheme.onSurface,
+              fontSize: 14,
+            ),
+        textAlign: TextAlign.center,
       ),
     );
   }

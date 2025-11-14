@@ -55,7 +55,6 @@ void main() {
 
     test('Previous chapter navigation within same book', () {
       int currentChapter = 5;
-      final maxChapter = 10;
 
       // Go to previous chapter
       if (currentChapter > 1) {
@@ -67,10 +66,9 @@ void main() {
 
     test('Next chapter navigation within same book', () {
       int currentChapter = 5;
-      final maxChapter = 10;
 
       // Go to next chapter
-      if (currentChapter < maxChapter) {
+      if (currentChapter < 10) {
         currentChapter++;
       }
 

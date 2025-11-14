@@ -650,8 +650,36 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                                 itemPositionsListener: _itemPositionsListener,
                                 padding:
                                     const EdgeInsets.fromLTRB(16, 16, 16, 32),
-                                itemCount: state.verses.length,
+                                itemCount: state.verses.length + 1,
+                                // +1 para disclaimer
                                 itemBuilder: (context, idx) {
+                                  // Último item: disclaimer de copyright
+                                  if (idx == state.verses.length) {
+                                    if (state.selectedVersion == null) {
+                                      return const SizedBox.shrink();
+                                    }
+                                    return Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 4, vertical: 16),
+                                      child: Text(
+                                        CopyrightUtils.getCopyrightText(
+                                          state.selectedVersion!.languageCode,
+                                          state.selectedVersion!.name,
+                                        ),
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodySmall
+                                            ?.copyWith(
+                                              fontSize: 12,
+                                              color: colorScheme.onSurface
+                                                  .withValues(alpha: 0.7),
+                                            ),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    );
+                                  }
+
+                                  // Items de versículos
                                   final verse = state.verses[idx];
                                   final verseNumber = verse['verse'];
                                   final key =
@@ -719,24 +747,6 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                                 },
                               ),
                       ),
-                      if (state.selectedVersion != null)
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 20, vertical: 8),
-                          child: Text(
-                            CopyrightUtils.getCopyrightText(
-                              state.selectedVersion!.languageCode,
-                              state.selectedVersion!.name,
-                            ),
-                            style:
-                                Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      fontSize: 12,
-                                      color: colorScheme.onSurface
-                                          .withValues(alpha: 0.7),
-                                    ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
                     ],
                   ),
                 ),
@@ -779,32 +789,45 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                               },
                             ),
                             Expanded(
-                              child: OutlinedButton(
-                                onPressed: _showBookSelector,
-                                style: OutlinedButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(
-                                      vertical: 6.0, horizontal: 8.0),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
+                              child: Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 8.0),
+                                child: ElevatedButton(
+                                  onPressed: _showBookSelector,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor:
+                                        colorScheme.primaryContainer,
+                                    foregroundColor:
+                                        colorScheme.onPrimaryContainer,
+                                    elevation: 2,
+                                    shadowColor: colorScheme.primary
+                                        .withValues(alpha: 0.3),
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 10.0, horizontal: 16.0),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(30),
+                                    ),
                                   ),
-                                ),
-                                child: AutoSizeText(
-                                  state.selectedBookName != null
-                                      ? '${state.books.firstWhere((b) => b['short_name'] == state.selectedBookName, orElse: () => {
-                                            'long_name': state.selectedBookName
-                                          })['long_name']} ${state.selectedChapter}'
-                                      : '',
-                                  textAlign: TextAlign.center,
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .titleMedium
-                                      ?.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                        color: colorScheme.primary,
-                                      ),
-                                  maxLines: 1,
-                                  minFontSize: 12,
-                                  overflow: TextOverflow.ellipsis,
+                                  child: AutoSizeText(
+                                    state.selectedBookName != null
+                                        ? '${state.books.firstWhere((b) => b['short_name'] == state.selectedBookName, orElse: () => {
+                                              'long_name':
+                                                  state.selectedBookName
+                                            })['long_name']} ${state.selectedChapter}'
+                                        : '',
+                                    textAlign: TextAlign.center,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleSmall
+                                        ?.copyWith(
+                                          fontWeight: FontWeight.w600,
+                                          color: colorScheme.onPrimaryContainer,
+                                        ),
+                                    maxLines: 1,
+                                    minFontSize: 11,
+                                    maxFontSize: 15,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
                                 ),
                               ),
                             ),

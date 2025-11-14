@@ -1,5 +1,4 @@
 // test/integration/system_navigation_bar_integration_test.dart
-import 'package:devocional_nuevo/main.dart';
 import 'package:devocional_nuevo/utils/theme_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -68,7 +67,8 @@ void main() {
       await tester.pumpAndSettle();
 
       // Verify second page
-      expect(find.text('Second Page'), findsNWidgets(2)); // One in AppBar, one in body
+      expect(find.text('Second Page'),
+          findsNWidgets(2)); // One in AppBar, one in body
 
       // The AnnotatedRegion should still be in effect
       // (we can't directly test the SystemUiOverlayStyle, but if the widget
@@ -96,8 +96,8 @@ void main() {
                         isDarkMode = !isDarkMode;
                       });
                     },
-                    child: Text(
-                        isDarkMode ? 'Switch to Light' : 'Switch to Dark'),
+                    child:
+                        Text(isDarkMode ? 'Switch to Light' : 'Switch to Dark'),
                   ),
                 ),
               ),

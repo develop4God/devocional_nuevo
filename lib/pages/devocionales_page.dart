@@ -1078,115 +1078,116 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                     ],
                   ),
                 ),
-                BottomAppBar(
-                  height: 70,
-                  color: appBarBackgroundColor,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      IconButton(
-                        tooltip: isFavorite
-                            ? 'devotionals.remove_from_favorites_short'.tr()
-                            : 'devotionals.save_as_favorite'.tr(),
-                        onPressed: currentDevocional != null
-                            ? () => devocionalProvider.toggleFavorite(
-                                  currentDevocional,
-                                  context,
-                                )
-                            : null,
-                        icon: Icon(
-                          isFavorite ? Icons.star : Icons.favorite_border,
-                          color: isFavorite ? Colors.amber : Colors.white,
-                          size: 32,
-                        ),
-                      ),
-                      IconButton(
-                          tooltip: 'tooltips.my_prayers'.tr(),
-                          onPressed: () async {
-                            await BubbleUtils.markAsShown(
-                              BubbleUtils.getIconBubbleId(
+                SafeArea(
+                  top: false,
+                  child: BottomAppBar(
+                    height: 60,
+                    color: appBarBackgroundColor,
+                    padding: EdgeInsets.zero,
+                    child: Center(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          IconButton(
+                            tooltip: isFavorite
+                                ? 'devotionals.remove_from_favorites_short'.tr()
+                                : 'devotionals.save_as_favorite'.tr(),
+                            onPressed: currentDevocional != null
+                                ? () => devocionalProvider.toggleFavorite(
+                                      currentDevocional,
+                                      context,
+                                    )
+                                : null,
+                            icon: Icon(
+                              isFavorite ? Icons.star : Icons.favorite_border,
+                              color: isFavorite ? Colors.amber : Colors.white,
+                              size: 32,
+                            ),
+                          ),
+                          IconButton(
+                              tooltip: 'tooltips.my_prayers'.tr(),
+                              onPressed: () async {
+                                await BubbleUtils.markAsShown(
+                                  BubbleUtils.getIconBubbleId(
+                                    Icons.local_fire_department_outlined,
+                                    'new',
+                                  ),
+                                );
+                                _goToPrayers();
+                              },
+                              icon: const Icon(
                                 Icons.local_fire_department_outlined,
-                                'new',
-                              ),
-                            );
-                            _goToPrayers();
-                          },
-                          icon: const Icon(
-                            Icons.local_fire_department_outlined,
-                            color: Colors.white,
-                            size: 35,
-                          )),
-                      IconButton(
-                        tooltip: 'tooltips.bible'.tr(),
-                        onPressed: () async {
-                          await BubbleUtils.markAsShown(
-                              BubbleUtils.getIconBubbleId(
-                                  Icons.auto_stories_outlined, 'new'));
-                          _goToBible();
-                        },
-                        icon: const Icon(
-                          Icons.auto_stories_outlined,
-                          color: Colors.white,
-                          size: 32,
-                        ).newIconBadge,
-                      ),
-                      IconButton(
-                        tooltip: 'devotionals.share_devotional'.tr(),
-                        onPressed: currentDevocional != null
-                            ? () => _showShareOptions(currentDevocional)
-                            : null,
-                        icon: Icon(
-                          Icons.share_outlined,
-                          color: appBarForegroundColor,
-                          size: 30,
-                        ),
-                      ),
-                      IconButton(
-                        tooltip: 'tooltips.progress'.tr(),
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const ProgressPage(),
+                                color: Colors.white,
+                                size: 35,
+                              )),
+                          IconButton(
+                            tooltip: 'tooltips.bible'.tr(),
+                            onPressed: () async {
+                              await BubbleUtils.markAsShown(
+                                  BubbleUtils.getIconBubbleId(
+                                      Icons.auto_stories_outlined, 'new'));
+                              _goToBible();
+                            },
+                            icon: const Icon(
+                              Icons.auto_stories_outlined,
+                              color: Colors.white,
+                              size: 32,
+                            ).newIconBadge,
+                          ),
+                          IconButton(
+                            tooltip: 'devotionals.share_devotional'.tr(),
+                            onPressed: currentDevocional != null
+                                ? () => _showShareOptions(currentDevocional)
+                                : null,
+                            icon: Icon(
+                              Icons.share_outlined,
+                              color: appBarForegroundColor,
+                              size: 30,
                             ),
-                          );
-                        },
-                        icon: Icon(
-                          Icons.emoji_events_outlined,
-                          color: appBarForegroundColor,
-                          size: 30,
-                        ),
-                      ),
-                      IconButton(
-                        tooltip: 'tooltips.settings'.tr(),
-                        onPressed: () async {
-                          await BubbleUtils.markAsShown(
-                            BubbleUtils.getIconBubbleId(
+                          ),
+                          IconButton(
+                            tooltip: 'tooltips.progress'.tr(),
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const ProgressPage(),
+                                ),
+                              );
+                            },
+                            icon: Icon(
+                              Icons.emoji_events_outlined,
+                              color: appBarForegroundColor,
+                              size: 30,
+                            ),
+                          ),
+                          IconButton(
+                            tooltip: 'tooltips.settings'.tr(),
+                            onPressed: () async {
+                              await BubbleUtils.markAsShown(
+                                BubbleUtils.getIconBubbleId(
+                                  Icons.app_settings_alt_outlined,
+                                  'new',
+                                ),
+                              );
+                              if (!context.mounted) return;
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const SettingsPage(),
+                                ),
+                              );
+                            },
+                            icon: Icon(
                               Icons.app_settings_alt_outlined,
-                              'new',
-                            ),
-                          );
-                          if (!context.mounted) return;
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const SettingsPage(),
-                            ),
-                          );
-                        },
-                        icon: Icon(
-                          Icons.app_settings_alt_outlined,
-                          color: appBarForegroundColor,
-                          size: 30,
-                        ).newIconBadge,
+                              color: appBarForegroundColor,
+                              size: 30,
+                            ).newIconBadge,
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
-                ),
-                // Spacer system navigation color
-                Container(
-                  height: MediaQuery.of(context).padding.bottom,
-                  color: Colors.grey[500]!.withValues(alpha: 0.5),
                 ),
               ],
             );

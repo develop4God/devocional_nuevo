@@ -12,14 +12,14 @@ class BibleReferenceParser {
 
     // Match patterns like: "1 Juan 3:16" or "Juan 3:16" or "Genesis 1:1"
     final regexWithVerse = RegExp(
-      r'^(\d+\s+)?([a-záéíóúñü\s\.]+?)\s+(\d+):(\d+)$',
+      r'^(\d+\s+)?([a-záéíóúñü\s.]+?)\s+(\d+):(\d+)$',
       caseSensitive: false,
       unicode: true,
     );
 
     // Match patterns like: "1 Juan 3" or "Juan 3" or "Genesis 1"
     final regexWithoutVerse = RegExp(
-      r'^(\d+\s+)?([a-záéíóúñü\s\.]+?)\s+(\d+)$',
+      r'^(\d+\s+)?([a-záéíóúñü\s.]+?)\s+(\d+)$',
       caseSensitive: false,
       unicode: true,
     );
@@ -33,8 +33,9 @@ class BibleReferenceParser {
       final verse = int.tryParse(match.group(4)!);
 
       if (chapter != null && verse != null) {
-        final fullBookName =
-            bookPrefix.isEmpty ? bookName : '$bookPrefix $bookName';
+        final fullBookName = bookPrefix.isEmpty
+            ? bookName
+            : '$bookPrefix $bookName';
         return {'bookName': fullBookName, 'chapter': chapter, 'verse': verse};
       }
     }
@@ -47,8 +48,9 @@ class BibleReferenceParser {
       final chapter = int.tryParse(match.group(3)!);
 
       if (chapter != null) {
-        final fullBookName =
-            bookPrefix.isEmpty ? bookName : '$bookPrefix $bookName';
+        final fullBookName = bookPrefix.isEmpty
+            ? bookName
+            : '$bookPrefix $bookName';
         return {'bookName': fullBookName, 'chapter': chapter};
       }
     }

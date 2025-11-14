@@ -137,7 +137,8 @@
     "paypal_launch_error": "Impossible d'ouvrir PayPal. Le système n'a pas pu lancer l'URL.",
     "paypal_error": "Erreur lors de l'ouverture de PayPal : {error}",
     "paypal_no_app_error": "Impossible d'ouvrir PayPal. Assurez-vous d'avoir un navigateur web ou l'application PayPal installée.",
-    "backup_option": "Sauvegarde"
+    "backup_option": "Sauvegarde",
+    "backup_subtitle": "Sauvegardez et restaurez vos données en toute sécurité"
   },
   "notifications_config_page": {
     "notifications_config": "Configuration des notifications",
