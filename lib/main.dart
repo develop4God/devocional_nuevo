@@ -373,19 +373,6 @@ class _AppInitializerState extends State<AppInitializer> {
           name: 'MainApp',
         );
       }
-      // DEBUG: Antes de actualizar lastLogin
-      developer.log(
-        'DEBUG: Llamando a updateLastLogin()',
-        name: 'MainApp',
-      );
-
-      // NUEVO: Actualiza lastLogin cada vez que arranca la app
-      await NotificationService().updateLastLogin();
-      // DEBUG: Después de actualizar lastLogin
-      developer.log(
-        'DEBUG: updateLastLogin() completado',
-        name: 'MainApp',
-      );
     } catch (e) {
       developer.log(
         'ERROR en AppInitializer: Error al inicializar Firebase Auth o autenticar anónimamente: $e',
