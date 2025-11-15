@@ -9,13 +9,14 @@ import '../blocs/backup_bloc.dart';
 import '../blocs/backup_event.dart';
 import '../blocs/backup_state.dart';
 import '../blocs/prayer_bloc.dart';
+import '../blocs/theme/theme_bloc.dart';
+import '../blocs/theme/theme_state.dart';
 import '../extensions/string_extensions.dart';
 import '../providers/devocional_provider.dart';
 import '../services/connectivity_service.dart';
 import '../services/google_drive_auth_service.dart';
 import '../services/google_drive_backup_service.dart';
 import '../services/spiritual_stats_service.dart';
-import '../utils/theme_constants.dart' as theme_state;
 import '../widgets/backup_configuration_sheet.dart';
 
 /// BackupSettingsPage with simplified progressive UI
@@ -77,11 +78,11 @@ class _BackupSettingsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+    final themeState = context.watch<ThemeBloc>().state as ThemeLoaded;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
-        value: theme_state.systemUiOverlayStyle,
+        value: themeState.systemUiOverlayStyle,
         child: Scaffold(
           appBar: CustomAppBar(
             titleText: 'backup.title'.tr(),
@@ -148,6 +149,10 @@ class _BackupSettingsView extends StatelessWidget {
                 }
 
                 if (state is BackupError) {
+                  // Solución: agregar la declaración de 'theme' en el metodo donde falta
+                  final theme = Theme.of(context);
+                  final colorScheme = theme.colorScheme;
+
                   return Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
