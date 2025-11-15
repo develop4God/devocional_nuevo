@@ -1,6 +1,7 @@
 // lib/pages/backup_settings_page.dart
 import 'package:devocional_nuevo/widgets/app_bar_constants.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 
@@ -14,6 +15,7 @@ import '../services/connectivity_service.dart';
 import '../services/google_drive_auth_service.dart';
 import '../services/google_drive_backup_service.dart';
 import '../services/spiritual_stats_service.dart';
+import '../utils/theme_constants.dart' as theme_state;
 import '../widgets/backup_configuration_sheet.dart';
 
 /// BackupSettingsPage with simplified progressive UI
@@ -78,113 +80,115 @@ class _BackupSettingsView extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return Scaffold(
-      appBar: CustomAppBar(
-        titleText: 'backup.title'.tr(),
-      ),
-      body: BlocListener<BackupBloc, BackupState>(
-        listener: (context, state) {
-          debugPrint(
-            '🔄 [DEBUG] BlocListener recibió estado: ${state.runtimeType}',
-          );
-
-          if (state is BackupError) {
-            debugPrint('❌ [DEBUG] BackupError recibido: ${state.message}');
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.message.tr()),
-                backgroundColor: colorScheme.error,
-              ),
-            );
-          } else if (state is BackupCreated) {
-            debugPrint('✅ [DEBUG] BackupCreated recibido');
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('backup.created_successfully'.tr()),
-                backgroundColor: colorScheme.primary,
-              ),
-            );
-          } else if (state is BackupRestored) {
-            debugPrint('✅ [DEBUG] BackupRestored recibido');
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('backup.restored_successfully'.tr()),
-                backgroundColor: colorScheme.primary,
-              ),
-            );
-          } else if (state is BackupSuccess) {
-            debugPrint('✅ [DEBUG] BackupSuccess recibido');
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      state.title.tr(),
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    Text(state.message.tr()),
-                  ],
-                ),
-                backgroundColor: Colors.green,
-                duration: const Duration(seconds: 3),
-              ),
-            );
-          }
-        },
-        child: BlocBuilder<BackupBloc, BackupState>(
-          builder: (context, state) {
-            if (state is BackupLoading) {
-              return const Center(child: CircularProgressIndicator());
-            }
-
-            if (state is BackupLoaded) {
-              return _BackupSettingsContent(state: state);
-            }
-
-            if (state is BackupError) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.error_outline,
-                      size: 64,
-                      color: colorScheme.error,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'backup.error_loading'.tr(),
-                      style: theme.textTheme.titleLarge,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      state.message,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: () {
-                        context.read<BackupBloc>().add(
-                              const LoadBackupSettings(),
-                            );
-                      },
-                      child: Text('backup.retry'.tr()),
-                    ),
-                  ],
-                ),
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+        value: theme_state.systemUiOverlayStyle,
+        child: Scaffold(
+          appBar: CustomAppBar(
+            titleText: 'backup.title'.tr(),
+          ),
+          body: BlocListener<BackupBloc, BackupState>(
+            listener: (context, state) {
+              debugPrint(
+                '🔄 [DEBUG] BlocListener recibió estado: ${state.runtimeType}',
               );
-            }
 
-            return const Center(child: CircularProgressIndicator());
-          },
-        ),
-      ),
-    );
+              if (state is BackupError) {
+                debugPrint('❌ [DEBUG] BackupError recibido: ${state.message}');
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(state.message.tr()),
+                    backgroundColor: colorScheme.error,
+                  ),
+                );
+              } else if (state is BackupCreated) {
+                debugPrint('✅ [DEBUG] BackupCreated recibido');
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('backup.created_successfully'.tr()),
+                    backgroundColor: colorScheme.primary,
+                  ),
+                );
+              } else if (state is BackupRestored) {
+                debugPrint('✅ [DEBUG] BackupRestored recibido');
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('backup.restored_successfully'.tr()),
+                    backgroundColor: colorScheme.primary,
+                  ),
+                );
+              } else if (state is BackupSuccess) {
+                debugPrint('✅ [DEBUG] BackupSuccess recibido');
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          state.title.tr(),
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        Text(state.message.tr()),
+                      ],
+                    ),
+                    backgroundColor: Colors.green,
+                    duration: const Duration(seconds: 3),
+                  ),
+                );
+              }
+            },
+            child: BlocBuilder<BackupBloc, BackupState>(
+              builder: (context, state) {
+                if (state is BackupLoading) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                if (state is BackupLoaded) {
+                  return _BackupSettingsContent(state: state);
+                }
+
+                if (state is BackupError) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.error_outline,
+                          size: 64,
+                          color: colorScheme.error,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'backup.error_loading'.tr(),
+                          style: theme.textTheme.titleLarge,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          state.message,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 16),
+                        ElevatedButton(
+                          onPressed: () {
+                            context.read<BackupBloc>().add(
+                                  const LoadBackupSettings(),
+                                );
+                          },
+                          child: Text('backup.retry'.tr()),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
+                return const Center(child: CircularProgressIndicator());
+              },
+            ),
+          ),
+        ));
   }
 }
 
