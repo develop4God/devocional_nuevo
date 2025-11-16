@@ -20,6 +20,7 @@ import 'package:devocional_nuevo/services/notification_service.dart';
 import 'package:devocional_nuevo/services/onboarding_service.dart';
 import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
 import 'package:devocional_nuevo/splash_screen.dart';
+import 'package:devocional_nuevo/utils/constants.dart';
 import 'package:devocional_nuevo/utils/theme_constants.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -180,16 +181,24 @@ class _MyAppState extends State<MyApp> {
         name: 'MainApp',
       );
 
-      // 2. Luego verificar si debe mostrar onboarding (incluye Remote Config)
-      final shouldShowOnboarding =
-          await OnboardingService.instance.shouldShowOnboarding();
+      // 2. Verificar si debe mostrar onboarding solo si la feature está habilitada
+      if (Constants.enableOnboardingFeature) {
+        final shouldShowOnboarding =
+            await OnboardingService.instance.shouldShowOnboarding();
 
-      developer.log(
-        'App: Onboarding check completado. Mostrar: $shouldShowOnboarding',
-        name: 'MainApp',
-      );
+        developer.log(
+          'App: Onboarding check completado. Mostrar: $shouldShowOnboarding',
+          name: 'MainApp',
+        );
 
-      return shouldShowOnboarding;
+        return shouldShowOnboarding;
+      } else {
+        developer.log(
+          'App: Onboarding feature deshabilitada por feature flag',
+          name: 'MainApp',
+        );
+        return false;
+      }
     } catch (e) {
       developer.log(
         'ERROR: Error en inicialización de app: $e',
@@ -296,8 +305,11 @@ class _AppInitializerState extends State<AppInitializer> {
   }
 
   Future<void> _initializeInBackground() async {
-    // Capturar BLoC ANTES de cualquier await
-    final backupBloc = context.read<BackupBloc>();
+    // Capturar BLoC ANTES de cualquier await (solo si backup está habilitado)
+    BackupBloc? backupBloc;
+    if (Constants.enableBackupFeature) {
+      backupBloc = context.read<BackupBloc>();
+    }
 
     // Dar tiempo para que el SplashScreen se muestre
     await Future.delayed(const Duration(milliseconds: 900));
@@ -306,15 +318,22 @@ class _AppInitializerState extends State<AppInitializer> {
     await _initServices();
     await _initAppData();
 
-    // Startup backup check cada 24h (non-blocking)
-    Future.delayed(const Duration(seconds: 2), () {
-      try {
-        backupBloc.add(const CheckStartupBackup());
-        debugPrint('🌅 [MAIN] Startup backup check initiated');
-      } catch (e) {
-        debugPrint('❌ [MAIN] Error starting backup check: $e');
-      }
-    });
+    // Startup backup check cada 24h (non-blocking) - solo si está habilitado
+    if (Constants.enableBackupFeature && backupBloc != null) {
+      Future.delayed(const Duration(seconds: 2), () {
+        try {
+          backupBloc!.add(const CheckStartupBackup());
+          debugPrint('🌅 [MAIN] Startup backup check initiated');
+        } catch (e) {
+          debugPrint('❌ [MAIN] Error starting backup check: $e');
+        }
+      });
+    } else {
+      developer.log(
+        'AppInitializer: Backup feature deshabilitada por feature flag',
+        name: 'MainApp',
+      );
+    }
 
     developer.log(
       'AppInitializer: Inicialización completa terminada.',
@@ -323,12 +342,6 @@ class _AppInitializerState extends State<AppInitializer> {
   }
 
   Future<void> _initServices() async {
-    // Get providers before any async operations
-    final localizationProvider = Provider.of<LocalizationProvider>(
-      context,
-      listen: false,
-    );
-
     // Inicialización global
     try {
       tzdata.initializeTimeZones();
@@ -345,20 +358,8 @@ class _AppInitializerState extends State<AppInitializer> {
       );
     }
 
-    // Initialize localization service
-    try {
-      await localizationProvider.initialize();
-      developer.log(
-        'AppInitializer: Localization service initialized successfully.',
-        name: 'MainApp',
-      );
-    } catch (e) {
-      developer.log(
-        'ERROR en AppInitializer: Error al inicializar localization service: $e',
-        name: 'MainApp',
-        error: e,
-      );
-    }
+    // Note: LocalizationProvider is already initialized in _initializeApp()
+    // No need to initialize it again here to avoid duplicate initialization
 
     // Firebase Auth
     try {
@@ -417,35 +418,42 @@ class _AppInitializerState extends State<AppInitializer> {
       );
     }
 
-    // Spiritual stats service
-    try {
-      final spiritualStatsService = SpiritualStatsService();
+    // Spiritual stats service - solo si backup está habilitado
+    if (Constants.enableBackupFeature) {
+      try {
+        final spiritualStatsService = SpiritualStatsService();
 
-      // Verificar integridad de datos al inicio
-      await spiritualStatsService.getStats();
+        // Verificar integridad de datos al inicio
+        await spiritualStatsService.getStats();
 
-      // Habilitar auto-backup si no está configurado (primera vez)
-      if (!await spiritualStatsService.isAutoBackupEnabled()) {
-        await spiritualStatsService.setAutoBackupEnabled(true);
+        // Habilitar auto-backup si no está configurado (primera vez)
+        if (!await spiritualStatsService.isAutoBackupEnabled()) {
+          await spiritualStatsService.setAutoBackupEnabled(true);
+          developer.log(
+            'AppInitializer: Auto-backup de estadísticas espirituales habilitado por defecto.',
+            name: 'MainApp',
+          );
+        }
+
+        // Obtener información de backup para logging
+        final backupInfo = await spiritualStatsService.getBackupInfo();
         developer.log(
-          'AppInitializer: Auto-backup de estadísticas espirituales habilitado por defecto.',
+          'AppInitializer: Sistema de backup inicializado. Auto-backups: ${backupInfo['auto_backups_count']}, Último backup: ${backupInfo['last_auto_backup']}',
           name: 'MainApp',
         );
+      } catch (e) {
+        developer.log(
+          'ERROR en AppInitializer: Error al inicializar sistema de backup de estadísticas: $e',
+          name: 'MainApp',
+          error: e,
+        );
+        // No es crítico, la app puede continuar funcionando
       }
-
-      // Obtener información de backup para logging
-      final backupInfo = await spiritualStatsService.getBackupInfo();
+    } else {
       developer.log(
-        'AppInitializer: Sistema de backup inicializado. Auto-backups: ${backupInfo['auto_backups_count']}, Último backup: ${backupInfo['last_auto_backup']}',
+        'AppInitializer: Sistema de backup de estadísticas deshabilitado por feature flag',
         name: 'MainApp',
       );
-    } catch (e) {
-      developer.log(
-        'ERROR en AppInitializer: Error al inicializar sistema de backup de estadísticas: $e',
-        name: 'MainApp',
-        error: e,
-      );
-      // No es crítico, la app puede continuar funcionando
     }
   }
 
