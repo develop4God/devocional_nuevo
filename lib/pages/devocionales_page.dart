@@ -1067,12 +1067,14 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                 onClose: () => setState(() => _showFontControls = false),
               ),
             if (_showPostSplashAnimation)
-              Positioned.fill(
-                child: IgnorePointer(
-                  child: Align(
-                    alignment: Alignment.topRight,
-                    child: Padding(
-                      padding: const EdgeInsets.only(top: 50.0, right: 12.0),
+              Builder(
+                builder: (context) {
+                  final double top =
+                      MediaQuery.of(context).padding.top + kToolbarHeight;
+                  return Positioned(
+                    top: top,
+                    right: 0,
+                    child: IgnorePointer(
                       child: Lottie.asset(
                         'assets/lottie/happy_bird.json',
                         width: 200,
@@ -1080,8 +1082,8 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                         fit: BoxFit.contain,
                       ),
                     ),
-                  ),
-                ),
+                  );
+                },
               ),
           ],
         ),
