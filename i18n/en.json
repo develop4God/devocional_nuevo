@@ -52,7 +52,8 @@
     "download_complete": "Download complete",
     "download_error": "Download error",
     "offline_mode": "Offline mode",
-    "online_mode": "Online mode"
+    "online_mode": "Online mode",
+    "choose_option": "Choose an option"
   },
   "prayer": {
     "invitation_title": "Invitation to Prayer",
@@ -64,7 +65,7 @@
     "already_prayed": "Already did it 🙏\nDon't show again",
     "prayer_time": "Prayer time",
     "praying": "Praying...",
-    "my_prayers": "My Prayers",
+    "my_prayers": "Prayers and Thanksgivings",
     "active": "Active",
     "answered_prayers": "Answered",
     "retry": "Retry",
@@ -97,7 +98,8 @@
     "days_old_single": "({days} day)",
     "days_old_plural": "({days} days)",
     "prayer_updated": "Prayer updated successfully",
-    "prayer_created": "Prayer created successfully"
+    "prayer_created": "Prayer created successfully",
+    "prayer": "Prayer"
   },
   "settings": {
     "title": "Settings",
@@ -233,7 +235,8 @@
     "no_internet": "No internet connection",
     "server_error": "Server error",
     "timeout_error": "Request timeout",
-    "prayer_loading_error": "Error loading prayers"
+    "prayer_loading_error": "Error loading prayers",
+    "thanksgiving_loading_error": "Error loading thanksgivings"
   },
   "messages": {
     "welcome": "Welcome!",
@@ -271,7 +274,8 @@
     "share_as_image": "Share as image",
     "progress": "Progress",
     "settings": "Settings",
-    "bible": "Bible"
+    "bible": "Bible",
+    "add_prayer_or_thanksgiving": "Add prayer or thanksgiving"
   },
   "share": {
     "share_text": "Share text",
@@ -581,5 +585,29 @@
     "select_chapter": "Select chapter",
     "total_chapters": "{count} chapters available",
     "close": "Close"
+  },
+  "thanksgiving": {
+    "thanksgiving": "Thanksgiving",
+    "thanksgivings": "Thanksgivings",
+    "new_thanksgiving": "New Thanksgiving",
+    "edit_thanksgiving": "Edit Thanksgiving",
+    "delete_thanksgiving": "Delete thanksgiving",
+    "delete_confirmation": "Are you sure you want to delete this thanksgiving? This action cannot be undone.",
+    "new_thanksgiving_description": "Write what you are grateful to God for today.",
+    "edit_thanksgiving_description": "Edit your personal thanksgiving text.",
+    "new_placeholder": "I am grateful to God for...\n\nThank you Lord for...\n\nToday I praise you because...",
+    "edit_placeholder": "Edit your thanksgiving...",
+    "enter_thanksgiving_text_error": "Please enter the thanksgiving text",
+    "thanksgiving_min_length_error": "Thanksgiving must have at least 10 characters",
+    "cancel": "Cancel",
+    "create_thanksgiving": "Create Thanksgiving",
+    "update_thanksgiving": "Update Thanksgiving",
+    "created": "Created: {date}",
+    "thanksgiving_created": "Thanksgiving created successfully",
+    "thanksgiving_updated": "Thanksgiving updated successfully",
+    "no_thanksgivings_title": "No thanksgivings",
+    "no_thanksgivings_description": "Create your first thanksgiving to express your gratitude to God.",
+    "days_old_single": "({days} day)",
+    "days_old_plural": "({days} days)"
   }
 }
