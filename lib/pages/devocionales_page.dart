@@ -1,5 +1,6 @@
 import 'dart:developer' as developer;
 import 'dart:io' show File;
+import 'dart:math';
 
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:bible_reader_core/bible_reader_core.dart';
@@ -67,6 +68,14 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       false; // Controla mostrar solo una vez
   bool _showPostSplashAnimation = false; // Estado local
 
+  // Lista de animaciones Lottie disponibles
+  final List<String> _lottieAssets = [
+    'assets/lottie/bird_love.json',
+    'assets/lottie/confetti.json',
+    'assets/lottie/happy_bird.json',
+  ];
+  String? _selectedLottieAsset;
+
   @override
   void initState() {
     super.initState();
@@ -80,13 +89,22 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       UpdateService.checkForUpdate();
     });
+    _pickRandomLottie();
     if (!_postSplashAnimationShown) {
       _showPostSplashAnimation = true;
       _postSplashAnimationShown = true;
-      Future.delayed(const Duration(seconds: 10), () {
+      Future.delayed(const Duration(seconds: 7), () {
         if (mounted) setState(() => _showPostSplashAnimation = false);
       });
     }
+  }
+
+  void _pickRandomLottie() {
+    final random = Random();
+    setState(() {
+      _selectedLottieAsset =
+          _lottieAssets[random.nextInt(_lottieAssets.length)];
+    });
   }
 
   Future<void> _loadFontSize() async {
@@ -1067,23 +1085,17 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                 onClose: () => setState(() => _showFontControls = false),
               ),
             if (_showPostSplashAnimation)
-              Builder(
-                builder: (context) {
-                  final double top =
-                      MediaQuery.of(context).padding.top + kToolbarHeight;
-                  return Positioned(
-                    top: top,
-                    right: 0,
-                    child: IgnorePointer(
-                      child: Lottie.asset(
-                        'assets/lottie/happy_bird.json',
-                        width: 200,
-                        repeat: true,
-                        fit: BoxFit.contain,
-                      ),
-                    ),
-                  );
-                },
+              Positioned(
+                top: MediaQuery.of(context).padding.top + kToolbarHeight,
+                right: 0,
+                child: IgnorePointer(
+                  child: Lottie.asset(
+                    _selectedLottieAsset ?? 'assets/lottie/happy_bird.json',
+                    width: 200,
+                    repeat: true,
+                    fit: BoxFit.contain,
+                  ),
+                ),
               ),
           ],
         ),
