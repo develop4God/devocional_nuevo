@@ -665,27 +665,20 @@ class _PrayersPageState extends State<PrayersPage>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header with emoji and actions
+            // Header con acciones (sin emoji por línea)
             Row(
               children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.amber.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text('☺️', style: TextStyle(fontSize: 16)),
-                      SizedBox(width: 4),
-                    ],
+                Expanded(
+                  child: Text(
+                    thanksgiving.text,
+                    style: textTheme.bodyMedium?.copyWith(
+                      color: colorScheme.onSurface,
+                      fontSize: 15,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                const Spacer(),
                 Container(
                   padding: const EdgeInsets.all(4),
                   child: PopupMenuButton<String>(
@@ -733,16 +726,6 @@ class _PrayersPageState extends State<PrayersPage>
                   ),
                 ),
               ],
-            ),
-            const SizedBox(height: 12),
-
-            // Thanksgiving text
-            Text(
-              thanksgiving.text,
-              style: textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurface,
-                height: 1.4,
-              ),
             ),
             const SizedBox(height: 12),
 
