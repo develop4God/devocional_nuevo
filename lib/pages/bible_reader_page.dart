@@ -624,24 +624,6 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                           ],
                         ),
                       ),
-                      if (state.selectedBookName != null &&
-                          state.selectedChapter != null)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 12, bottom: 4),
-                          child: Text(
-                            '${state.books.firstWhere((b) => b['short_name'] == state.selectedBookName, orElse: () => {
-                                  'long_name': state.selectedBookName
-                                })['long_name']} ${state.selectedChapter}',
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleLarge
-                                ?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: colorScheme.primary,
-                                ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
                       Expanded(
                         child: state.verses.isEmpty
                             ? Center(child: Text('bible.no_verses'.tr()))
@@ -650,37 +632,55 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                                 itemPositionsListener: _itemPositionsListener,
                                 padding:
                                     const EdgeInsets.fromLTRB(16, 16, 16, 32),
-                                itemCount: state.verses.length + 1,
-                                // +1 para disclaimer
+                                itemCount: state.verses.length + 2,
+                                // +1 título, +1 disclaimer
                                 itemBuilder: (context, idx) {
-                                  // Último item: disclaimer de copyright
-                                  if (idx == state.verses.length) {
-                                    if (state.selectedVersion == null) {
-                                      return const SizedBox.shrink();
-                                    }
+                                  if (idx == 0) {
+                                    // Título como primer elemento scrollable
                                     return Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 4, vertical: 16),
+                                      padding: const EdgeInsets.only(bottom: 8),
                                       child: Text(
-                                        CopyrightUtils.getCopyrightText(
-                                          state.selectedVersion!.languageCode,
-                                          state.selectedVersion!.name,
-                                        ),
+                                        state.selectedBookName != null &&
+                                                state.selectedChapter != null
+                                            ? '${state.books.firstWhere((b) => b['short_name'] == state.selectedBookName, orElse: () => {
+                                                  'long_name':
+                                                      state.selectedBookName
+                                                })['long_name']} ${state.selectedChapter}'
+                                            : '',
                                         style: Theme.of(context)
                                             .textTheme
-                                            .bodySmall
+                                            .titleLarge
                                             ?.copyWith(
-                                              fontSize: 12,
-                                              color: colorScheme.onSurface
-                                                  .withValues(alpha: 0.7),
+                                              fontWeight: FontWeight.bold,
+                                              color: colorScheme.primary,
                                             ),
                                         textAlign: TextAlign.center,
                                       ),
                                     );
                                   }
-
-                                  // Items de versículos
-                                  final verse = state.verses[idx];
+                                  // Último item: disclaimer de copyright
+                                  if (idx == state.verses.length + 1) {
+                                    if (state.selectedVersion == null) {
+                                      return const SizedBox.shrink();
+                                    }
+                                    return Padding(
+                                      padding: const EdgeInsets.only(top: 24),
+                                      child: Text(
+                                        CopyrightUtils.getCopyrightText(
+                                            state.selectedVersion!.language,
+                                            state.selectedVersion!.name),
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodySmall
+                                            ?.copyWith(
+                                                color: colorScheme.onSurface
+                                                    .withValues(alpha: 153)),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    );
+                                  }
+                                  // Versos
+                                  final verse = state.verses[idx - 1];
                                   final verseNumber = verse['verse'];
                                   final key =
                                       "${state.selectedBookName}|${state.selectedChapter}|$verseNumber";

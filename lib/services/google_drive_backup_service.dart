@@ -120,6 +120,7 @@ class GoogleDriveBackupService {
       'spiritual_stats': true,
       'favorite_devotionals': true,
       'saved_prayers': true,
+      'saved_thanksgivings': true,
     };
   }
 
@@ -179,6 +180,11 @@ class GoogleDriveBackupService {
 
     // Saved prayers (~15 KB default)
     if (options['saved_prayers'] == true) {
+      totalSize += 15 * 1024; // 15 KB
+    }
+
+    // Saved thanksgivings (~15 KB default)
+    if (options['saved_thanksgivings'] == true) {
       totalSize += 15 * 1024; // 15 KB
     }
 
@@ -391,6 +397,22 @@ class GoogleDriveBackupService {
       } catch (e) {
         debugPrint('Error getting saved prayers: $e');
         backupData['saved_prayers'] = [];
+      }
+    }
+
+    // Include saved thanksgivings if enabled
+    if (options['saved_thanksgivings'] == true) {
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        final thanksgivingsJson = prefs.getString('thanksgivings') ?? '[]';
+        final thanksgivingsList =
+            json.decode(thanksgivingsJson) as List<dynamic>;
+        backupData['saved_thanksgivings'] = thanksgivingsList;
+        debugPrint(
+            'Included ${thanksgivingsList.length} saved thanksgivings in backup');
+      } catch (e) {
+        debugPrint('Error getting saved thanksgivings: $e');
+        backupData['saved_thanksgivings'] = [];
       }
     }
 
@@ -670,6 +692,19 @@ class GoogleDriveBackupService {
           debugPrint('Restored ${prayers.length} saved prayers from backup');
         } catch (e) {
           debugPrint('Error restoring saved prayers: $e');
+        }
+      }
+
+      // Restore saved thanksgivings
+      if (data.containsKey('saved_thanksgivings')) {
+        try {
+          final thanksgivings = data['saved_thanksgivings'] as List<dynamic>;
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('thanksgivings', json.encode(thanksgivings));
+          debugPrint(
+              'Restored ${thanksgivings.length} saved thanksgivings from backup');
+        } catch (e) {
+          debugPrint('Error restoring saved thanksgivings: $e');
         }
       }
 

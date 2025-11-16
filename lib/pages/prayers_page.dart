@@ -1,11 +1,16 @@
 import 'package:devocional_nuevo/blocs/prayer_bloc.dart';
 import 'package:devocional_nuevo/blocs/prayer_event.dart';
 import 'package:devocional_nuevo/blocs/prayer_state.dart';
+import 'package:devocional_nuevo/blocs/thanksgiving_bloc.dart';
+import 'package:devocional_nuevo/blocs/thanksgiving_event.dart';
+import 'package:devocional_nuevo/blocs/thanksgiving_state.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/prayer_model.dart';
+import 'package:devocional_nuevo/models/thanksgiving_model.dart';
 import 'package:devocional_nuevo/widgets/add_prayer_modal.dart';
+import 'package:devocional_nuevo/widgets/add_thanksgiving_modal.dart';
 import 'package:devocional_nuevo/widgets/answer_prayer_modal.dart';
 import 'package:devocional_nuevo/widgets/app_bar_constants.dart';
 import 'package:flutter/material.dart';
@@ -27,11 +32,12 @@ class _PrayersPageState extends State<PrayersPage>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
 
-    // Trigger initial loading of prayers
+    // Trigger initial loading of prayers and thanksgivings
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<PrayerBloc>().add(LoadPrayers());
+      context.read<ThanksgivingBloc>().add(LoadThanksgivings());
     });
   }
 
@@ -68,79 +74,112 @@ class _PrayersPageState extends State<PrayersPage>
                       icon: const Icon(Icons.check_circle_outline),
                       text: 'prayer.answered_prayers'.tr(),
                     ),
+                    // Ajuste: Tab de agradecimiento con autofit y centrado
+                    Container(
+                      constraints: const BoxConstraints(minWidth: 0),
+                      alignment: Alignment.center,
+                      child: Tab(
+                        icon: const Text('☺️', style: TextStyle(fontSize: 20)),
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            'thanksgiving.thanksgivings'.tr(),
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(fontSize: 14),
+                          ),
+                        ),
+                      ),
+                    ),
                   ],
-                  // Cambiar colores para fondo blanco
                   indicatorColor: colorScheme.primary,
                   labelColor: colorScheme.primary,
                   unselectedLabelColor:
                       colorScheme.onSurface.withValues(alpha: 0.6),
+                  isScrollable: true,
+                  // Permite autofit y mejor centrado
+                  labelPadding: const EdgeInsets.symmetric(
+                      horizontal: 8), // Menos padding para que no se corte
                 ),
               ),
               // El contenido expandido
               Expanded(
-                child: BlocBuilder<PrayerBloc, PrayerState>(
-                  builder: (context, state) {
-                    if (state is PrayerLoading) {
-                      return const Center(
-                        child: CircularProgressIndicator(),
-                      );
-                    }
-
-                    if (state is PrayerError) {
-                      return Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.error_outline,
-                              size: 64,
-                              color: colorScheme.error,
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              state.message,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyLarge
-                                  ?.copyWith(
-                                    color: colorScheme.error,
-                                  ),
-                              textAlign: TextAlign.center,
-                            ),
-                            const SizedBox(height: 16),
-                            ElevatedButton(
-                              onPressed: () {
-                                context
-                                    .read<PrayerBloc>()
-                                    .add(RefreshPrayers());
-                              },
-                              child: Text('prayer.retry'.tr()),
-                            ),
-                          ],
-                        ),
-                      );
-                    }
-
-                    if (state is PrayerLoaded) {
-                      return TabBarView(
-                        controller: _tabController,
-                        children: [
-                          _buildActivePrayersTab(context, state),
-                          _buildAnsweredPrayersTab(context, state),
-                        ],
-                      );
-                    }
-
-                    return const Center(
-                      child: CircularProgressIndicator(),
-                    );
-                  },
+                child: TabBarView(
+                  controller: _tabController,
+                  children: [
+                    // Tab 1: Active Prayers
+                    BlocBuilder<PrayerBloc, PrayerState>(
+                      builder: (context, state) {
+                        if (state is PrayerLoading) {
+                          return const Center(
+                            child: CircularProgressIndicator(),
+                          );
+                        }
+                        if (state is PrayerError) {
+                          return _buildErrorState(context, state.message, () {
+                            context.read<PrayerBloc>().add(RefreshPrayers());
+                          });
+                        }
+                        if (state is PrayerLoaded) {
+                          return _buildActivePrayersTab(context, state);
+                        }
+                        return const Center(
+                          child: CircularProgressIndicator(),
+                        );
+                      },
+                    ),
+                    // Tab 2: Answered Prayers
+                    BlocBuilder<PrayerBloc, PrayerState>(
+                      builder: (context, state) {
+                        if (state is PrayerLoading) {
+                          return const Center(
+                            child: CircularProgressIndicator(),
+                          );
+                        }
+                        if (state is PrayerError) {
+                          return _buildErrorState(context, state.message, () {
+                            context.read<PrayerBloc>().add(RefreshPrayers());
+                          });
+                        }
+                        if (state is PrayerLoaded) {
+                          return _buildAnsweredPrayersTab(context, state);
+                        }
+                        return const Center(
+                          child: CircularProgressIndicator(),
+                        );
+                      },
+                    ),
+                    // Tab 3: Thanksgivings
+                    BlocBuilder<ThanksgivingBloc, ThanksgivingState>(
+                      builder: (context, state) {
+                        if (state is ThanksgivingLoading) {
+                          return const Center(
+                            child: CircularProgressIndicator(),
+                          );
+                        }
+                        if (state is ThanksgivingError) {
+                          return _buildErrorState(context, state.message, () {
+                            context
+                                .read<ThanksgivingBloc>()
+                                .add(RefreshThanksgivings());
+                          });
+                        }
+                        if (state is ThanksgivingLoaded) {
+                          return _buildThanksgivingsTab(context, state);
+                        }
+                        return const Center(
+                          child: CircularProgressIndicator(),
+                        );
+                      },
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
           floatingActionButton: FloatingActionButton(
-            onPressed: () => _showAddPrayerModal(context),
+            onPressed: () {
+              _showAddPrayerOrThanksgivingChoice();
+            },
             backgroundColor: Theme.of(context).colorScheme.primary,
             child: const Icon(Icons.add),
           ),
@@ -156,7 +195,11 @@ class _PrayersPageState extends State<PrayersPage>
     if (activePrayers.isEmpty) {
       return _buildEmptyState(
         context,
-        icon: Icons.schedule,
+        icon: Icon(
+          Icons.schedule,
+          size: 80,
+          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
+        ),
         title: 'prayer.no_active_prayers_title'.tr(),
         message: 'prayer.no_active_prayers_description'.tr(),
       );
@@ -191,7 +234,11 @@ class _PrayersPageState extends State<PrayersPage>
     if (answeredPrayers.isEmpty) {
       return _buildEmptyState(
         context,
-        icon: Icons.check_circle_outline,
+        icon: Icon(
+          Icons.check_circle_outline,
+          size: 80,
+          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
+        ),
         title: 'prayer.no_answered_prayers_title'.tr(),
         message: 'prayer.no_answered_prayers_description'.tr(),
       );
@@ -219,7 +266,7 @@ class _PrayersPageState extends State<PrayersPage>
 
   Widget _buildEmptyState(
     BuildContext context, {
-    required IconData icon,
+    required Widget icon,
     required String title,
     required String message,
   }) {
@@ -232,11 +279,7 @@ class _PrayersPageState extends State<PrayersPage>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              icon,
-              size: 80,
-              color: colorScheme.primary.withValues(alpha: 0.5),
-            ),
+            icon,
             const SizedBox(height: 24),
             Text(
               title,
@@ -389,7 +432,7 @@ class _PrayersPageState extends State<PrayersPage>
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 6), // Reducido para autofit
 
             // Prayer text
             Text(
@@ -399,7 +442,7 @@ class _PrayersPageState extends State<PrayersPage>
                 height: 1.4,
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8), // Reducido para autofit
 
             // Footer with dates
             Row(
@@ -549,6 +592,352 @@ class _PrayersPageState extends State<PrayersPage>
             onPressed: () {
               Navigator.of(context).pop();
               context.read<PrayerBloc>().add(DeletePrayer(prayer.id));
+            },
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.red,
+            ),
+            child: Text('app.delete'.tr()),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showAddThanksgivingModal(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => const AddThanksgivingModal(),
+    );
+  }
+
+  void _showAddPrayerOrThanksgivingChoice() {
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+    final TextTheme textTheme = Theme.of(context).textTheme;
+
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (BuildContext context) {
+        return Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                'devotionals.choose_option'.tr(),
+                style: textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(
+                    child: InkWell(
+                      onTap: () {
+                        Navigator.pop(context);
+                        _showAddPrayerModal(context);
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: colorScheme.outline,
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Column(
+                          children: [
+                            const Text(
+                              '🙏',
+                              style: TextStyle(fontSize: 48),
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              'prayer.prayer'.tr(),
+                              style: textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: InkWell(
+                      onTap: () {
+                        Navigator.pop(context);
+                        _showAddThanksgivingModal(context);
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: colorScheme.outline,
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Column(
+                          children: [
+                            const Text(
+                              '☺️',
+                              style: TextStyle(fontSize: 48),
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              'thanksgiving.thanksgiving'.tr(),
+                              style: textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildErrorState(
+    BuildContext context,
+    String message,
+    VoidCallback onRetry,
+  ) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.error_outline,
+            size: 64,
+            color: colorScheme.error,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            message,
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  color: colorScheme.error,
+                ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: onRetry,
+            child: Text('prayer.retry'.tr()),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildThanksgivingsTab(
+    BuildContext context,
+    ThanksgivingLoaded state,
+  ) {
+    final thanksgivings = state.thanksgivings;
+
+    if (thanksgivings.isEmpty) {
+      return _buildEmptyState(
+        context,
+        icon: const Text('☺️', style: TextStyle(fontSize: 60)),
+        title: 'thanksgiving.no_thanksgivings_title'.tr(),
+        message: 'thanksgiving.no_thanksgivings_description'.tr(),
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: () async {
+        context.read<ThanksgivingBloc>().add(RefreshThanksgivings());
+      },
+      child: ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: thanksgivings.length,
+        itemBuilder: (context, index) {
+          final thanksgiving = thanksgivings[index];
+          return _buildThanksgivingCard(context, thanksgiving);
+        },
+      ),
+    );
+  }
+
+  Widget _buildThanksgivingCard(
+    BuildContext context,
+    Thanksgiving thanksgiving,
+  ) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      elevation: 2,
+      color: colorScheme.surface,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header con acciones (sin emoji por línea)
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    thanksgiving.text,
+                    style: textTheme.bodyMedium?.copyWith(
+                      color: colorScheme.onSurface,
+                      fontSize: 15,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.all(4),
+                  child: PopupMenuButton<String>(
+                    padding: const EdgeInsets.all(8),
+                    iconSize: 24,
+                    icon: Icon(
+                      Icons.more_vert,
+                      color: colorScheme.onSurface.withValues(alpha: 0.7),
+                    ),
+                    onSelected: (value) {
+                      switch (value) {
+                        case 'edit':
+                          _showEditThanksgivingModal(context, thanksgiving);
+                          break;
+                        case 'delete':
+                          _showDeleteThanksgivingConfirmation(
+                              context, thanksgiving);
+                          break;
+                      }
+                    },
+                    itemBuilder: (context) => [
+                      PopupMenuItem(
+                        value: 'edit',
+                        child: Row(
+                          children: [
+                            const Icon(Icons.edit, size: 20),
+                            const SizedBox(width: 12),
+                            Text('thanksgiving.edit_thanksgiving'.tr()),
+                          ],
+                        ),
+                      ),
+                      PopupMenuItem(
+                        value: 'delete',
+                        child: Row(
+                          children: [
+                            const Icon(Icons.delete,
+                                size: 20, color: Colors.red),
+                            const SizedBox(width: 12),
+                            Text('app.delete'.tr(),
+                                style: const TextStyle(color: Colors.red)),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+
+            // Footer with date
+            Row(
+              children: [
+                Icon(
+                  Icons.calendar_month_outlined,
+                  size: 16,
+                  color: colorScheme.onSurface.withValues(alpha: 0.6),
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  'thanksgiving.created'.tr({
+                    'date': DateFormat('dd/MM/yyyy')
+                        .format(thanksgiving.createdDate)
+                  }),
+                  style: textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurface.withValues(alpha: 0.6),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  thanksgiving.daysOld == 1
+                      ? 'thanksgiving.days_old_single'
+                          .tr({'days': thanksgiving.daysOld.toString()})
+                      : 'thanksgiving.days_old_plural'
+                          .tr({'days': thanksgiving.daysOld.toString()}),
+                  style: textTheme.bodySmall?.copyWith(
+                    color: Colors.amber.shade700,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showEditThanksgivingModal(
+    BuildContext context,
+    Thanksgiving thanksgiving,
+  ) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => AddThanksgivingModal(
+        thanksgivingToEdit: thanksgiving,
+      ),
+    );
+  }
+
+  void _showDeleteThanksgivingConfirmation(
+    BuildContext context,
+    Thanksgiving thanksgiving,
+  ) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('thanksgiving.delete_thanksgiving'.tr()),
+        content: Text(
+          'thanksgiving.delete_confirmation'.tr(),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text('app.cancel'.tr()),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              context
+                  .read<ThanksgivingBloc>()
+                  .add(DeleteThanksgiving(thanksgiving.id));
             },
             style: TextButton.styleFrom(
               foregroundColor: Colors.red,

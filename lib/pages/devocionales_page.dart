@@ -1,5 +1,6 @@
 import 'dart:developer' as developer;
 import 'dart:io' show File;
+import 'dart:math';
 
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:bible_reader_core/bible_reader_core.dart';
@@ -18,6 +19,7 @@ import 'package:devocional_nuevo/services/update_service.dart';
 import 'package:devocional_nuevo/utils/bubble_constants.dart';
 import 'package:devocional_nuevo/utils/copyright_utils.dart';
 import 'package:devocional_nuevo/widgets/add_prayer_modal.dart';
+import 'package:devocional_nuevo/widgets/add_thanksgiving_modal.dart';
 import 'package:devocional_nuevo/widgets/app_bar_constants.dart'
     show CustomAppBar;
 import 'package:devocional_nuevo/widgets/app_bar_constants.dart';
@@ -28,6 +30,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:intl/intl.dart';
+import 'package:lottie/lottie.dart'; // Re-agregado para animación post-splash
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:screenshot/screenshot.dart';
@@ -61,6 +64,18 @@ class _DevocionalesPageState extends State<DevocionalesPage>
   bool _showFontControls = false;
   double _fontSize = 16.0;
 
+  static bool _postSplashAnimationShown =
+      false; // Controla mostrar solo una vez
+  bool _showPostSplashAnimation = false; // Estado local
+
+  // Lista de animaciones Lottie disponibles
+  final List<String> _lottieAssets = [
+    'assets/lottie/bird_love.json',
+    'assets/lottie/confetti.json',
+    'assets/lottie/happy_bird.json',
+  ];
+  String? _selectedLottieAsset;
+
   @override
   void initState() {
     super.initState();
@@ -73,6 +88,22 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     _loadInitialData();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       UpdateService.checkForUpdate();
+    });
+    _pickRandomLottie();
+    if (!_postSplashAnimationShown) {
+      _showPostSplashAnimation = true;
+      _postSplashAnimationShown = true;
+      Future.delayed(const Duration(seconds: 7), () {
+        if (mounted) setState(() => _showPostSplashAnimation = false);
+      });
+    }
+  }
+
+  void _pickRandomLottie() {
+    final random = Random();
+    setState(() {
+      _selectedLottieAsset =
+          _lottieAssets[random.nextInt(_lottieAssets.length)];
     });
   }
 
@@ -648,12 +679,131 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     );
   }
 
+  void _showAddPrayerOrThanksgivingChoice() {
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+    final TextTheme textTheme = Theme.of(context).textTheme;
+
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (BuildContext context) {
+        return Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                'devotionals.choose_option'.tr(),
+                style: textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(
+                    child: InkWell(
+                      onTap: () {
+                        Navigator.pop(context);
+                        _showAddPrayerModal();
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: colorScheme.outline,
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Column(
+                          children: [
+                            const Text(
+                              '🙏',
+                              style: TextStyle(fontSize: 48),
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              'prayer.prayer'.tr(),
+                              style: textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: InkWell(
+                      onTap: () {
+                        Navigator.pop(context);
+                        _showAddThanksgivingModal();
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: colorScheme.outline,
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Column(
+                          children: [
+                            const Text(
+                              '☺️',
+                              style: TextStyle(fontSize: 48),
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              'thanksgiving.thanksgiving'.tr(),
+                              style: textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   void _showAddPrayerModal() {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => const AddPrayerModal(),
+    );
+  }
+
+  void _showAddThanksgivingModal() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => const AddThanksgivingModal(),
     );
   }
 
@@ -693,10 +843,10 @@ class _DevocionalesPageState extends State<DevocionalesPage>
           ),
         ),
         floatingActionButton: FloatingActionButton.small(
-          onPressed: _showAddPrayerModal,
+          onPressed: _showAddPrayerOrThanksgivingChoice,
           backgroundColor: colorScheme.primary,
           foregroundColor: colorScheme.onPrimary,
-          tooltip: 'tooltips.add_prayer'.tr(),
+          tooltip: 'tooltips.add_prayer_or_thanksgiving'.tr(),
           child: const Icon(Icons.add, size: 30),
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
@@ -933,6 +1083,19 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                 onIncrease: _increaseFontSize,
                 onDecrease: _decreaseFontSize,
                 onClose: () => setState(() => _showFontControls = false),
+              ),
+            if (_showPostSplashAnimation)
+              Positioned(
+                top: MediaQuery.of(context).padding.top + kToolbarHeight,
+                right: 0,
+                child: IgnorePointer(
+                  child: Lottie.asset(
+                    _selectedLottieAsset ?? 'assets/lottie/happy_bird.json',
+                    width: 200,
+                    repeat: true,
+                    fit: BoxFit.contain,
+                  ),
+                ),
               ),
           ],
         ),
