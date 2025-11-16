@@ -1,9 +1,9 @@
 // lib/widgets/add_thanksgiving_modal.dart
 
-import 'package:devocional_nuevo/extensions/string_extensions.dart';
-import 'package:devocional_nuevo/models/thanksgiving_model.dart';
 import 'package:devocional_nuevo/blocs/thanksgiving_bloc.dart';
 import 'package:devocional_nuevo/blocs/thanksgiving_event.dart';
+import 'package:devocional_nuevo/extensions/string_extensions.dart';
+import 'package:devocional_nuevo/models/thanksgiving_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -69,16 +69,17 @@ class _AddThanksgivingModalState extends State<AddThanksgivingModal> {
           // Header con título y botón cerrar
           Row(
             children: [
-              const Text(
-                '😌',
-                style: TextStyle(fontSize: 28),
+              Icon(
+                _isEditing ? Icons.edit : Icons.add_circle_outline,
+                color: colorScheme.primary,
+                size: 28,
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
                   _isEditing
                       ? 'thanksgiving.edit_thanksgiving'.tr()
-                      : 'thanksgiving.new_thanksgiving'.tr(),
+                      : '${'thanksgiving.new_thanksgiving'.tr()} ☺️',
                   style: textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: colorScheme.onSurface,

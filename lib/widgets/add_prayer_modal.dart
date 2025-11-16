@@ -1,9 +1,9 @@
 // lib/widgets/add_prayer_modal.dart
 
-import 'package:devocional_nuevo/extensions/string_extensions.dart';
-import 'package:devocional_nuevo/models/prayer_model.dart';
 import 'package:devocional_nuevo/blocs/prayer_bloc.dart';
 import 'package:devocional_nuevo/blocs/prayer_event.dart';
+import 'package:devocional_nuevo/extensions/string_extensions.dart';
+import 'package:devocional_nuevo/models/prayer_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -79,7 +79,7 @@ class _AddPrayerModalState extends State<AddPrayerModal> {
                 child: Text(
                   _isEditing
                       ? 'prayer.edit_prayer'.tr()
-                      : 'prayer.new_prayer'.tr(),
+                      : '${'prayer.new_prayer'.tr()} 🙏',
                   style: textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: colorScheme.onSurface,

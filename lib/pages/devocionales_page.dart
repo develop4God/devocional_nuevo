@@ -699,7 +699,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                         child: Column(
                           children: [
                             const Text(
-                              '🙏🏻',
+                              '🙏',
                               style: TextStyle(fontSize: 48),
                             ),
                             const SizedBox(height: 12),
@@ -733,7 +733,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                         child: Column(
                           children: [
                             const Text(
-                              '😌',
+                              '☺️',
                               style: TextStyle(fontSize: 48),
                             ),
                             const SizedBox(height: 12),

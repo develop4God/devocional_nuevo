@@ -1,6 +1,4 @@
 import 'package:devocional_nuevo/blocs/thanksgiving_bloc.dart';
-import 'package:devocional_nuevo/blocs/thanksgiving_event.dart';
-import 'package:devocional_nuevo/blocs/thanksgiving_state.dart';
 import 'package:devocional_nuevo/models/thanksgiving_model.dart';
 import 'package:devocional_nuevo/widgets/add_thanksgiving_modal.dart';
 import 'package:flutter/material.dart';
@@ -40,7 +38,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Check if title is present (will need actual translation)
-      expect(find.text('😌'), findsOneWidget);
+      expect(find.text('☺️'), findsOneWidget);
       expect(find.byType(TextField), findsOneWidget);
     });
 
@@ -146,7 +144,7 @@ void main() {
 
       // Check that the bloc received the event
       await tester.pumpAndSettle();
-      
+
       // Modal should close after successful creation
       expect(find.byType(AddThanksgivingModal), findsNothing);
     });

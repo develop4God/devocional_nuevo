@@ -75,7 +75,7 @@ class _PrayersPageState extends State<PrayersPage>
                       text: 'prayer.answered_prayers'.tr(),
                     ),
                     Tab(
-                      icon: const Text('😌', style: TextStyle(fontSize: 20)),
+                      icon: const Text('☺️', style: TextStyle(fontSize: 20)),
                       text: 'thanksgiving.thanksgivings'.tr(),
                     ),
                   ],
@@ -628,7 +628,7 @@ class _PrayersPageState extends State<PrayersPage>
     if (thanksgivings.isEmpty) {
       return _buildEmptyState(
         context,
-        icon: const Text('😌', style: TextStyle(fontSize: 60)),
+        icon: const Text('☺️', style: TextStyle(fontSize: 60)),
         title: 'thanksgiving.no_thanksgivings_title'.tr(),
         message: 'thanksgiving.no_thanksgivings_description'.tr(),
       );
@@ -680,7 +680,7 @@ class _PrayersPageState extends State<PrayersPage>
                   child: const Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text('😌', style: TextStyle(fontSize: 16)),
+                      Text('☺️', style: TextStyle(fontSize: 16)),
                       SizedBox(width: 4),
                     ],
                   ),
