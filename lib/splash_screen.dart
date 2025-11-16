@@ -216,7 +216,7 @@ class _SplashScreenState extends State<SplashScreen>
                         style: GoogleFonts.poppins(
                           fontSize: 22,
                           fontWeight: FontWeight.w600,
-                          color: Colors.white,
+                          color: Colors.black,
                           letterSpacing: 1,
                           shadows: [
                             const Shadow(
@@ -229,6 +229,12 @@ class _SplashScreenState extends State<SplashScreen>
                               blurRadius: 15.0,
                               color: Colors.white24,
                             ),
+                            Shadow(
+                              offset: Offset(0, 0),
+                              blurRadius: 4.0,
+                              color: Colors.white
+                                  .withAlpha(128), // Sombra blanca suave
+                            ),
                           ],
                         ),
                       ),
@@ -238,7 +244,6 @@ class _SplashScreenState extends State<SplashScreen>
                           fontSize: 22,
                           fontWeight: FontWeight.w600,
                           color: const Color(0xFF32CD32),
-                          // Verde lima
                           letterSpacing: 1,
                           shadows: [
                             const Shadow(
@@ -251,29 +256,54 @@ class _SplashScreenState extends State<SplashScreen>
                               blurRadius: 20.0,
                               color: Color(0xFF32CD32),
                             ),
+                            Shadow(
+                              offset: Offset(0, 0),
+                              blurRadius: 4.0,
+                              color: Colors.white
+                                  .withAlpha(128), // Sombra blanca suave
+                            ),
                           ],
                         ),
                       ),
-                      TextSpan(
-                        text: 'God',
-                        style: GoogleFonts.poppins(
-                          fontSize: 26,
-                          fontWeight: FontWeight.w500,
-                          color: const Color(0xFFFFD700),
-                          // Dorado
-                          letterSpacing: 1.2,
-                          shadows: [
-                            const Shadow(
-                              offset: Offset(2.0, 2.0),
-                              blurRadius: 8.0,
-                              color: Colors.black45,
+                      WidgetSpan(
+                        alignment: PlaceholderAlignment.middle,
+                        child: ShaderMask(
+                          shaderCallback: (bounds) => const LinearGradient(
+                            colors: [
+                              Color(0xFFE0B04F), // Dorado claro
+                              Color(0xFFB8860B), // Dorado oscuro
+                              Color(0xFFE0B04F), // Dorado claro
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ).createShader(bounds),
+                          child: Text(
+                            'God',
+                            style: GoogleFonts.poppins(
+                              fontSize: 26,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.white,
+                              letterSpacing: 1.2,
+                              shadows: [
+                                const Shadow(
+                                  offset: Offset(2.0, 2.0),
+                                  blurRadius: 8.0,
+                                  color: Colors.black45,
+                                ),
+                                const Shadow(
+                                  offset: Offset(0, 0),
+                                  blurRadius: 15.0,
+                                  color: Color(0xFFFFD700),
+                                ),
+                                Shadow(
+                                  offset: Offset(0, 0),
+                                  blurRadius: 4.0,
+                                  color: Colors.white
+                                      .withAlpha(128), // Sombra blanca suave
+                                ),
+                              ],
                             ),
-                            const Shadow(
-                              offset: Offset(0, 0),
-                              blurRadius: 15.0,
-                              color: Color(0xFFFFD700),
-                            ),
-                          ],
+                          ),
                         ),
                       ),
                     ],
