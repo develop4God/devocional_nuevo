@@ -29,6 +29,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:intl/intl.dart';
+import 'package:lottie/lottie.dart'; // Re-agregado para animación post-splash
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:screenshot/screenshot.dart';
@@ -62,6 +63,10 @@ class _DevocionalesPageState extends State<DevocionalesPage>
   bool _showFontControls = false;
   double _fontSize = 16.0;
 
+  static bool _postSplashAnimationShown =
+      false; // Controla mostrar solo una vez
+  bool _showPostSplashAnimation = false; // Estado local
+
   @override
   void initState() {
     super.initState();
@@ -75,6 +80,13 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       UpdateService.checkForUpdate();
     });
+    if (!_postSplashAnimationShown) {
+      _showPostSplashAnimation = true;
+      _postSplashAnimationShown = true;
+      Future.delayed(const Duration(seconds: 10), () {
+        if (mounted) setState(() => _showPostSplashAnimation = false);
+      });
+    }
   }
 
   Future<void> _loadFontSize() async {
@@ -1053,6 +1065,23 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                 onIncrease: _increaseFontSize,
                 onDecrease: _decreaseFontSize,
                 onClose: () => setState(() => _showFontControls = false),
+              ),
+            if (_showPostSplashAnimation)
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: Padding(
+                      padding: const EdgeInsets.only(right: 12.0),
+                      child: Lottie.asset(
+                        'assets/lottie/happy_bird.json',
+                        width: 140,
+                        repeat: true,
+                        fit: BoxFit.contain,
+                      ),
+                    ),
+                  ),
+                ),
               ),
           ],
         ),
