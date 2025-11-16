@@ -432,7 +432,7 @@ class _PrayersPageState extends State<PrayersPage>
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 6), // Reducido para autofit
 
             // Prayer text
             Text(
@@ -442,7 +442,7 @@ class _PrayersPageState extends State<PrayersPage>
                 height: 1.4,
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8), // Reducido para autofit
 
             // Footer with dates
             Row(
