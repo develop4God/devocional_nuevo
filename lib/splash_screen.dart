@@ -202,7 +202,7 @@ class _SplashScreenState extends State<SplashScreen>
           ),
           // 3. Texto "Develop4God" en la parte inferior
           Positioned(
-            bottom: 60,
+            bottom: 40,
             left: 0,
             right: 0,
             child: FadeTransition(
@@ -214,7 +214,7 @@ class _SplashScreenState extends State<SplashScreen>
                       TextSpan(
                         text: 'Develop',
                         style: GoogleFonts.poppins(
-                          fontSize: 22,
+                          fontSize: 18,
                           fontWeight: FontWeight.w600,
                           color: Colors.black,
                           letterSpacing: 1,
@@ -231,9 +231,9 @@ class _SplashScreenState extends State<SplashScreen>
                             ),
                             Shadow(
                               offset: Offset(0, 0),
-                              blurRadius: 4.0,
+                              blurRadius: 8.0,
                               color: Colors.white
-                                  .withAlpha(128), // Sombra blanca suave
+                                  .withAlpha(200), // Sombra blanca más intensa
                             ),
                           ],
                         ),
@@ -241,7 +241,7 @@ class _SplashScreenState extends State<SplashScreen>
                       TextSpan(
                         text: '4',
                         style: GoogleFonts.poppins(
-                          fontSize: 22,
+                          fontSize: 18,
                           fontWeight: FontWeight.w600,
                           color: const Color(0xFF32CD32),
                           letterSpacing: 1,
@@ -262,6 +262,12 @@ class _SplashScreenState extends State<SplashScreen>
                               color: Colors.white
                                   .withAlpha(128), // Sombra blanca suave
                             ),
+                            Shadow(
+                              offset: Offset(0, 0),
+                              blurRadius: 7.0,
+                              color: Colors.black.withAlpha(
+                                  100), // Sombra oscura sutil igual que en 'God'
+                            ),
                           ],
                         ),
                       ),
@@ -280,7 +286,7 @@ class _SplashScreenState extends State<SplashScreen>
                           child: Text(
                             'God',
                             style: GoogleFonts.poppins(
-                              fontSize: 26,
+                              fontSize: 22,
                               fontWeight: FontWeight.w500,
                               color: Colors.white,
                               letterSpacing: 1.2,
@@ -297,9 +303,9 @@ class _SplashScreenState extends State<SplashScreen>
                                 ),
                                 Shadow(
                                   offset: Offset(0, 0),
-                                  blurRadius: 4.0,
-                                  color: Colors.white
-                                      .withAlpha(128), // Sombra blanca suave
+                                  blurRadius: 7.0,
+                                  color: Colors.black.withAlpha(
+                                      100), // Sombra oscura más sutil
                                 ),
                               ],
                             ),
