@@ -6,7 +6,6 @@ import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/pages/about_page.dart';
 import 'package:devocional_nuevo/pages/application_language_page.dart';
-import 'package:devocional_nuevo/pages/backup_settings_page.dart';
 import 'package:devocional_nuevo/pages/contact_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/providers/localization_provider.dart';
@@ -18,8 +17,6 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
-
-import '../utils/bubble_constants.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -144,10 +141,7 @@ class _SettingsPageState extends State<SettingsPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(message),
-          backgroundColor: Theme
-              .of(context)
-              .colorScheme
-              .error,
+          backgroundColor: Theme.of(context).colorScheme.error,
           duration: const Duration(seconds: 3),
         ),
       );
@@ -157,15 +151,9 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     final localizationProvider = Provider.of<LocalizationProvider>(context);
-    final ColorScheme colorScheme = Theme
-        .of(context)
-        .colorScheme;
-    final TextTheme textTheme = Theme
-        .of(context)
-        .textTheme;
-    final themeState = context
-        .watch<ThemeBloc>()
-        .state as ThemeLoaded;
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+    final TextTheme textTheme = Theme.of(context).textTheme;
+    final themeState = context.watch<ThemeBloc>().state as ThemeLoaded;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
         value: themeState.systemUiOverlayStyle,
@@ -187,7 +175,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       style: OutlinedButton.styleFrom(
                         foregroundColor: colorScheme.onSurface,
                         side:
-                        BorderSide(color: colorScheme.primary, width: 2.0),
+                            BorderSide(color: colorScheme.primary, width: 2.0),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(20.0),
                         ),
@@ -239,8 +227,8 @@ class _SettingsPageState extends State<SettingsPage> {
                               const SizedBox(height: 4),
                               Text(
                                 Constants.supportedLanguages[
-                                localizationProvider
-                                    .currentLocale.languageCode] ??
+                                        localizationProvider
+                                            .currentLocale.languageCode] ??
                                     localizationProvider
                                         .currentLocale.languageCode,
                                 style: textTheme.bodySmall?.copyWith(
@@ -300,74 +288,74 @@ class _SettingsPageState extends State<SettingsPage> {
                 const SizedBox(height: 20),
 
                 // Backup Settings - conditional display (ahora habilitado)
-                if (_showBackupSection) ...[
-                  InkWell(
-                    onTap: () async {
-                      developer.log('[DEBUG] Settings: Backup row tapped.',
-                          name: 'SettingsPage');
-                      final bubbleId = 'settings_backup_option';
-                      developer.log(
-                          '[DEBUG] Settings: Calling BubbleUtils.markAsShown for bubbleId=$bubbleId',
-                          name: 'SettingsPage');
-                      await BubbleUtils.markAsShown(bubbleId);
-                      developer.log(
-                          '[DEBUG] Settings: markAsShown completed for bubbleId=$bubbleId',
-                          name: 'SettingsPage');
-                      if (!context.mounted) {
-                        developer.log(
-                            '[DEBUG] Settings: Context not mounted after await. Navigation skipped.',
-                            name: 'SettingsPage');
-                        return;
-                      }
-                      developer.log(
-                          '[DEBUG] Settings: Navigating to BackupSettingsPage',
-                          name: 'SettingsPage');
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const BackupSettingsPage(),
-                        ),
-                      );
-                    },
-                    borderRadius: BorderRadius.circular(8.0),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 12,
-                        horizontal: 4,
-                      ),
-                      child: Row(
-                        children: [
-                          /*Icon(Icons.add_to_drive_rounded,
-                              color: colorScheme.primary),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'settings.backup_option'.tr(),
-                                  style: textTheme.bodyMedium?.copyWith(
-                                    fontSize: 16,
-                                    color: colorScheme.onSurface,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  'settings.backup_subtitle'.tr(),
-                                  style: textTheme.bodySmall?.copyWith(
-                                    color: colorScheme.onSurfaceVariant,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),*/
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                ],
+                // if (_showBackupSection) ...[
+                //   InkWell(
+                //     onTap: () async {
+                //       developer.log('[DEBUG] Settings: Backup row tapped.',
+                //           name: 'SettingsPage');
+                //       final bubbleId = 'settings_backup_option';
+                //       developer.log(
+                //           '[DEBUG] Settings: Calling BubbleUtils.markAsShown for bubbleId=bubbleId',
+                //           name: 'SettingsPage');
+                //       await BubbleUtils.markAsShown(bubbleId);
+                //       developer.log(
+                //           '[DEBUG] Settings: markAsShown completed for bubbleId=bubbleId',
+                //           name: 'SettingsPage');
+                //       if (!context.mounted) {
+                //         developer.log(
+                //             '[DEBUG] Settings: Context not mounted after await. Navigation skipped.',
+                //             name: 'SettingsPage');
+                //         return;
+                //       }
+                //       developer.log(
+                //           '[DEBUG] Settings: Navigating to BackupSettingsPage',
+                //           name: 'SettingsPage');
+                //       Navigator.push(
+                //         context,
+                //         MaterialPageRoute(
+                //           builder: (context) => const BackupSettingsPage(),
+                //         ),
+                //       );
+                //     },
+                //     borderRadius: BorderRadius.circular(8.0),
+                //     child: Container(
+                //       padding: const EdgeInsets.symmetric(
+                //         vertical: 12,
+                //         horizontal: 4,
+                //       ),
+                //       child: Row(
+                //         children: [
+                //           Icon(Icons.add_to_drive_rounded,
+                //               color: colorScheme.primary),
+                //           const SizedBox(width: 10),
+                //           Expanded(
+                //             child: Column(
+                //               crossAxisAlignment: CrossAxisAlignment.start,
+                //               children: [
+                //                 Text(
+                //                   'settings.backup_option'.tr(),
+                //                   style: textTheme.bodyMedium?.copyWith(
+                //                     fontSize: 16,
+                //                     color: colorScheme.onSurface,
+                //                   ),
+                //                 ),
+                //                 const SizedBox(height: 4),
+                //                 Text(
+                //                   'settings.backup_subtitle'.tr(),
+                //                   style: textTheme.bodySmall?.copyWith(
+                //                     color: colorScheme.onSurfaceVariant,
+                //                     fontSize: 12,
+                //                   ),
+                //                 ),
+                //               ],
+                //             ),
+                //           ),
+                //         ],
+                //       ),
+                //     ),
+                //   ),
+                //   const SizedBox(height: 20),
+                // ],
 
                 // Contact
                 InkWell(
