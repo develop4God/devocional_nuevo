@@ -56,8 +56,8 @@ dependencies:
 
   # Google Drive Backup dependencies
   googleapis: ^13.2.0
-  googleapis_auth: ^1.6.0
   google_sign_in: ^6.2.1
+  extension_google_sign_in_as_googleapis_auth: ^2.0.12
   connectivity_plus: ^6.0.5
   archive: ^4.0.0
 

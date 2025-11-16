@@ -2,7 +2,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis/drive/v3.dart' as drive;
-import 'package:googleapis_auth/auth_io.dart';
+import 'package:extension_google_sign_in_as_googleapis_auth/extension_google_sign_in_as_googleapis_auth.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -39,7 +39,7 @@ class GoogleDriveAuthService {
 
   GoogleSignIn? _googleSignIn;
   GoogleSignInAccount? _currentUser;
-  AuthClient? _authClient;
+  http.Client? _authClient;
   bool _isRecreatingAuthClient = false;
 
   /// Check if user is currently signed in to Google Drive
@@ -75,41 +75,23 @@ class GoogleDriveAuthService {
       );
 
       if (_currentUser != null) {
-        debugPrint('🔑 [DEBUG] Usuario obtenido, obteniendo authentication...');
-        final auth = await _currentUser!.authentication;
-        debugPrint('🔑 [DEBUG] Authentication obtenido');
         debugPrint(
-          '🔑 [DEBUG] AccessToken existe: ${auth.accessToken != null}',
-        );
-        debugPrint('🔑 [DEBUG] IdToken existe: ${auth.idToken != null}');
+            '🔑 [DEBUG] Usuario obtenido, creando authenticated client...');
 
-        // Check if we have valid tokens
-        if (auth.accessToken == null) {
+        // Use the extension method on GoogleSignIn to get authenticated client
+        _authClient = await _googleSignIn!.authenticatedClient();
+
+        if (_authClient == null) {
           debugPrint(
-            '❌ [DEBUG] No access token recibido - problema de configuración OAuth',
-          );
-          debugPrint(
-            'Google Sign-In error: No access token received. Check OAuth configuration.',
+            '❌ [DEBUG] No authenticated client - problema de configuración OAuth',
           );
           throw Exception(
             'OAuth not configured. Please check google-services.json has OAuth clients.',
           );
         }
 
-        debugPrint('🔑 [DEBUG] Creando AuthClient...');
-        _authClient = authenticatedClient(
-          http.Client(),
-          AccessCredentials(
-            AccessToken(
-              'Bearer',
-              auth.accessToken!,
-              DateTime.now().toUtc().add(const Duration(hours: 1)),
-            ),
-            auth.idToken,
-            _scopes,
-          ),
-        );
-        debugPrint('🔑 [DEBUG] AuthClient creado exitosamente');
+        debugPrint(
+            '🔑 [DEBUG] AuthClient creado exitosamente usando extension');
 
         // Save sign-in state
         debugPrint('🔑 [DEBUG] Guardando estado en SharedPreferences...');
@@ -198,7 +180,7 @@ class GoogleDriveAuthService {
   }
 
   /// Get authenticated client for Google APIs
-  Future<AuthClient?> getAuthClient() async {
+  Future<http.Client?> getAuthClient() async {
     debugPrint('🔐 [DEBUG] Obteniendo AuthClient...');
 
     if (_authClient != null) {
@@ -238,29 +220,16 @@ class GoogleDriveAuthService {
           debugPrint('🔄 [DEBUG] signInSilently exitoso: ${googleUser.email}');
           _currentUser = googleUser;
 
-          final GoogleSignInAuthentication googleAuth =
-              await googleUser.authentication;
+          // Use the extension method on GoogleSignIn to get authenticated client
+          _authClient = await _googleSignIn!.authenticatedClient();
 
-          if (googleAuth.accessToken != null) {
+          if (_authClient != null) {
             debugPrint(
-              '🔄 [DEBUG] Access token obtenido, recreando AuthClient...',
-            );
-
-            final credentials = AccessCredentials(
-              AccessToken(
-                'Bearer',
-                googleAuth.accessToken!,
-                DateTime.now().toUtc().add(const Duration(hours: 1)),
-              ),
-              googleAuth.idToken,
-              _scopes,
-            );
-
-            _authClient = authenticatedClient(http.Client(), credentials);
-            debugPrint('✅ [DEBUG] AuthClient recreado exitosamente');
+                '✅ [DEBUG] AuthClient recreado exitosamente usando extension');
             return _authClient;
           } else {
-            debugPrint('❌ [DEBUG] No access token en recreación');
+            debugPrint(
+                '❌ [DEBUG] No se pudo crear authenticated client en recreación');
           }
         } else {
           debugPrint('❌ [DEBUG] signInSilently falló - usuario no disponible');
