@@ -144,7 +144,10 @@ class _SettingsPageState extends State<SettingsPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(message),
-          backgroundColor: Theme.of(context).colorScheme.error,
+          backgroundColor: Theme
+              .of(context)
+              .colorScheme
+              .error,
           duration: const Duration(seconds: 3),
         ),
       );
@@ -154,9 +157,15 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     final localizationProvider = Provider.of<LocalizationProvider>(context);
-    final ColorScheme colorScheme = Theme.of(context).colorScheme;
-    final TextTheme textTheme = Theme.of(context).textTheme;
-    final themeState = context.watch<ThemeBloc>().state as ThemeLoaded;
+    final ColorScheme colorScheme = Theme
+        .of(context)
+        .colorScheme;
+    final TextTheme textTheme = Theme
+        .of(context)
+        .textTheme;
+    final themeState = context
+        .watch<ThemeBloc>()
+        .state as ThemeLoaded;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
         value: themeState.systemUiOverlayStyle,
@@ -178,7 +187,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       style: OutlinedButton.styleFrom(
                         foregroundColor: colorScheme.onSurface,
                         side:
-                            BorderSide(color: colorScheme.primary, width: 2.0),
+                        BorderSide(color: colorScheme.primary, width: 2.0),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(20.0),
                         ),
@@ -230,8 +239,8 @@ class _SettingsPageState extends State<SettingsPage> {
                               const SizedBox(height: 4),
                               Text(
                                 Constants.supportedLanguages[
-                                        localizationProvider
-                                            .currentLocale.languageCode] ??
+                                localizationProvider
+                                    .currentLocale.languageCode] ??
                                     localizationProvider
                                         .currentLocale.languageCode,
                                 style: textTheme.bodySmall?.copyWith(
@@ -328,7 +337,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       ),
                       child: Row(
                         children: [
-                          Icon(Icons.add_to_drive_rounded,
+                          /*Icon(Icons.add_to_drive_rounded,
                               color: colorScheme.primary),
                           const SizedBox(width: 10),
                           Expanded(
@@ -352,7 +361,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                 ),
                               ],
                             ),
-                          ),
+                          ),*/
                         ],
                       ),
                     ),
