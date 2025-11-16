@@ -52,7 +52,8 @@
     "download_complete": "Download concluído",
     "download_error": "Erro no download",
     "offline_mode": "Modo offline",
-    "online_mode": "Modo online"
+    "online_mode": "Modo online",
+    "choose_option": "Escolha uma opção"
   },
   "prayer": {
     "invitation_title": "Convite à Oração",
@@ -97,7 +98,8 @@
     "days_old_single": "({days} dia)",
     "days_old_plural": "({days} dias)",
     "prayer_updated": "Oração atualizada com sucesso",
-    "prayer_created": "Oração criada com sucesso"
+    "prayer_created": "Oração criada com sucesso",
+    "prayer": "Oração"
   },
   "settings": {
     "title": "Configurações",
@@ -233,7 +235,8 @@
     "no_internet": "Sem conexão com a internet",
     "server_error": "Erro do servidor",
     "timeout_error": "Tempo limite esgotado",
-    "prayer_loading_error": "Erro ao carregar orações"
+    "prayer_loading_error": "Erro ao carregar orações",
+    "thanksgiving_loading_error": "Erro ao carregar ações de graças"
   },
   "messages": {
     "welcome": "Bem-vindo!",
@@ -271,7 +274,8 @@
     "share_as_image": "Compartilhar como imagem",
     "progress": "Progresso",
     "settings": "Configurações",
-    "bible": "Bíblia"
+    "bible": "Bíblia",
+    "add_prayer_or_thanksgiving": "Adicionar oração ou ação de graças"
   },
   "share": {
     "share_text": "Compartilhar texto",
@@ -581,5 +585,29 @@
     "select_chapter": "Selecionar capítulo",
     "total_chapters": "{count} capítulos disponíveis",
     "close": "Fechar"
+  },
+  "thanksgiving": {
+    "thanksgiving": "Ação de graças",
+    "thanksgivings": "Ações de graças",
+    "new_thanksgiving": "Nova ação de graças",
+    "edit_thanksgiving": "Editar ação de graças",
+    "delete_thanksgiving": "Excluir ação de graças",
+    "delete_confirmation": "Tem certeza de que deseja excluir esta ação de graças? Esta ação não pode ser desfeita.",
+    "new_thanksgiving_description": "Escreva pelo que você é grato a Deus hoje.",
+    "edit_thanksgiving_description": "Edite o texto de sua ação de graças pessoal.",
+    "new_placeholder": "Sou grato a Deus por...\n\nObrigado Senhor por...\n\nHoje te louvo porque...",
+    "edit_placeholder": "Edite sua ação de graças...",
+    "enter_thanksgiving_text_error": "Por favor, insira o texto da ação de graças",
+    "thanksgiving_min_length_error": "A ação de graças deve ter pelo menos 10 caracteres",
+    "cancel": "Cancelar",
+    "create_thanksgiving": "Criar ação de graças",
+    "update_thanksgiving": "Atualizar ação de graças",
+    "created": "Criado: {date}",
+    "thanksgiving_created": "Ação de graças criada com sucesso",
+    "thanksgiving_updated": "Ação de graças atualizada com sucesso",
+    "no_thanksgivings_title": "Nenhuma ação de graças",
+    "no_thanksgivings_description": "Crie sua primeira ação de graças para expressar sua gratidão a Deus.",
+    "days_old_single": "({days} dia)",
+    "days_old_plural": "({days} dias)"
   }
 }
