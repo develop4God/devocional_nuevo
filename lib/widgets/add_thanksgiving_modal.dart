@@ -69,6 +69,12 @@ class _AddThanksgivingModalState extends State<AddThanksgivingModal> {
           // Header con título y botón cerrar
           Row(
             children: [
+              IconButton(
+                onPressed: () => Navigator.of(context).pop(),
+                icon: const Icon(Icons.arrow_back_ios_new, size: 24),
+                tooltip: 'Cerrar',
+                color: colorScheme.onSurface.withValues(alpha: 0.7),
+              ),
               Icon(
                 _isEditing ? Icons.edit : Icons.add_circle_outline,
                 color: colorScheme.primary,

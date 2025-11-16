@@ -74,16 +74,31 @@ class _PrayersPageState extends State<PrayersPage>
                       icon: const Icon(Icons.check_circle_outline),
                       text: 'prayer.answered_prayers'.tr(),
                     ),
-                    Tab(
-                      icon: const Text('☺️', style: TextStyle(fontSize: 20)),
-                      text: 'thanksgiving.thanksgivings'.tr(),
+                    // Ajuste: Tab de agradecimiento con autofit y centrado
+                    Container(
+                      constraints: const BoxConstraints(minWidth: 0),
+                      alignment: Alignment.center,
+                      child: Tab(
+                        icon: const Text('☺️', style: TextStyle(fontSize: 20)),
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            'thanksgiving.thanksgivings'.tr(),
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(fontSize: 14),
+                          ),
+                        ),
+                      ),
                     ),
                   ],
-                  // Cambiar colores para fondo blanco
                   indicatorColor: colorScheme.primary,
                   labelColor: colorScheme.primary,
                   unselectedLabelColor:
                       colorScheme.onSurface.withValues(alpha: 0.6),
+                  isScrollable: true,
+                  // Permite autofit y mejor centrado
+                  labelPadding: const EdgeInsets.symmetric(
+                      horizontal: 8), // Menos padding para que no se corte
                 ),
               ),
               // El contenido expandido
@@ -162,7 +177,9 @@ class _PrayersPageState extends State<PrayersPage>
             ],
           ),
           floatingActionButton: FloatingActionButton(
-            onPressed: () => _showAddPrayerModal(context),
+            onPressed: () {
+              _showAddPrayerOrThanksgivingChoice();
+            },
             backgroundColor: Theme.of(context).colorScheme.primary,
             child: const Icon(Icons.add),
           ),
@@ -583,6 +600,124 @@ class _PrayersPageState extends State<PrayersPage>
           ),
         ],
       ),
+    );
+  }
+
+  void _showAddThanksgivingModal(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => const AddThanksgivingModal(),
+    );
+  }
+
+  void _showAddPrayerOrThanksgivingChoice() {
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+    final TextTheme textTheme = Theme.of(context).textTheme;
+
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (BuildContext context) {
+        return Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                'devotionals.choose_option'.tr(),
+                style: textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(
+                    child: InkWell(
+                      onTap: () {
+                        Navigator.pop(context);
+                        _showAddPrayerModal(context);
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: colorScheme.outline,
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Column(
+                          children: [
+                            const Text(
+                              '🙏',
+                              style: TextStyle(fontSize: 48),
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              'prayer.prayer'.tr(),
+                              style: textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: InkWell(
+                      onTap: () {
+                        Navigator.pop(context);
+                        _showAddThanksgivingModal(context);
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: colorScheme.outline,
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Column(
+                          children: [
+                            const Text(
+                              '☺️',
+                              style: TextStyle(fontSize: 48),
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              'thanksgiving.thanksgiving'.tr(),
+                              style: textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
