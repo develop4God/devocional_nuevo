@@ -1070,12 +1070,12 @@ class _DevocionalesPageState extends State<DevocionalesPage>
               Positioned.fill(
                 child: IgnorePointer(
                   child: Align(
-                    alignment: Alignment.centerRight,
+                    alignment: Alignment.topRight,
                     child: Padding(
-                      padding: const EdgeInsets.only(right: 12.0),
+                      padding: const EdgeInsets.only(top: 50.0, right: 12.0),
                       child: Lottie.asset(
                         'assets/lottie/happy_bird.json',
-                        width: 140,
+                        width: 200,
                         repeat: true,
                         fit: BoxFit.contain,
                       ),
