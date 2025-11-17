@@ -100,9 +100,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
   // Original PayPal method - preserved exactly
   Future<void> _launchPaypal() async {
-    const String baseUrl = 'https://www.paypal.com/paypalme/develop4God';
-    const String paypalUrlWithLocale = '$baseUrl&locale.x=es_ES';
-    final Uri url = Uri.parse(paypalUrlWithLocale);
+    final Uri url = Uri.parse('https://paypal.me/develop4God');
 
     developer.log('Launching PayPal URL: $url', name: 'PayPalLaunch');
 
