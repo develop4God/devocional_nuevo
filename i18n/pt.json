@@ -99,7 +99,8 @@
     "days_old_plural": "({days} dias)",
     "prayer_updated": "Oração atualizada com sucesso",
     "prayer_created": "Oração criada com sucesso",
-    "prayer": "Oração"
+    "prayer": "Oração",
+    "prayers": "Orações"
   },
   "settings": {
     "title": "Configurações",
@@ -175,7 +176,7 @@
     "language_section": "Idioma",
     "bible_version_section": "Versão da Bíblia",
     "saved_favorites": "Favoritos salvos",
-    "my_prayers": "Minhas orações",
+    "my_prayers": "Orações e agradecimentos",
     "light_mode": "Luz forte (modo claro)",
     "dark_mode": "Luz fraca (modo escuro)",
     "notifications_config": "Configurações de notificação",

@@ -56,6 +56,13 @@ class Constants {
 
   /// Compatibilidad con lógica de mostrar/no mostrar diálogos de invitación (usada en el provider)
   static const String prefShowInvitationDialog = 'showInvitationDialog';
+
+  /// FEATURE FLAGS
+  /// Feature flag to disable onboarding initialization (not available to users)
+  static const bool enableOnboardingFeature = false;
+
+  /// Feature flag to disable backup initialization (not available to users)
+  static const bool enableBackupFeature = false;
 }
 
 // Servicio de navegación global

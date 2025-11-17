@@ -99,7 +99,8 @@
     "days_old_plural": "({days}日前)",
     "prayer_updated": "祈りが正常に更新されました",
     "prayer_created": "祈りが正常に作成されました",
-    "prayer": "祈り"
+    "prayer": "祈り",
+    "prayers": "祈り"
   },
   "settings": {
     "title": "設定",
@@ -175,7 +176,7 @@
     "language_section": "言語",
     "bible_version_section": "聖書バージョン",
     "saved_favorites": "保存されたお気に入り",
-    "my_prayers": "私の祈り",
+    "my_prayers": "祈りと感謝",
     "light_mode": "明るい光（ライトモード）",
     "dark_mode": "薄暗い光（ダークモード）",
     "notifications_config": "通知設定",

@@ -99,7 +99,8 @@
     "days_old_plural": "({days} jours)",
     "prayer_updated": "Prière mise à jour avec succès",
     "prayer_created": "Prière créée avec succès",
-    "prayer": "Prière"
+    "prayer": "Prière",
+    "prayers": "Prières"
   },
   "settings": {
     "title": "Paramètres",
@@ -175,7 +176,7 @@
     "language_section": "Langue",
     "bible_version_section": "Version de la Bible",
     "saved_favorites": "Favoris sauvegardés",
-    "my_prayers": "Mes prières",
+    "my_prayers": "Prières et remerciements",
     "light_mode": "Lumière forte (mode clair)",
     "dark_mode": "Lumière faible (mode sombre)",
     "notifications_config": "Paramètres de notification",

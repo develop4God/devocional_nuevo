@@ -32,7 +32,7 @@
     "continue": "Continuar",
     "share_text_format": "Devocional del día:\n\nVersículo:\n{verse}\n\nReflexión:\n{reflection}\n\nPara Meditar:\n{meditations}\n\nOración:\n{prayer}\n\n────────────────────\nDescubre Devocionales Cristianos: Tu espacio íntimo con Dios cada día\nhttps://play.google.com/store/apps/details?id=com.develop4god.devocional_nuevo",
     "loading_devotional": "Cargando devocional...",
-    "no_devotionals": "No hay devocionales disponibles",
+    "no_devocionales": "No hay devocionales disponibles",
     "error_loading": "Error al cargar devocionales",
     "share_devotional": "Compartir devocional",
     "share_image": "Compartir imagen",
@@ -99,7 +99,8 @@
     "days_old_plural": "({days} días)",
     "prayer_updated": "Oración actualizada exitosamente",
     "prayer_created": "Oración creada exitosamente",
-    "prayer": "Oración"
+    "prayer": "Oración",
+    "prayers": "Oraciones"
   },
   "settings": {
     "title": "Configuración",
@@ -175,7 +176,7 @@
     "language_section": "Idioma",
     "bible_version_section": "Versión Bíblica",
     "saved_favorites": "Favoritos guardados",
-    "my_prayers": "Mis oraciones",
+    "my_prayers": "Oraciones y agradecimientos",
     "light_mode": "Luz alta (modo claro)",
     "dark_mode": "Luz baja (modo oscuro)",
     "notifications_config": "Configuración de notificaciones",

@@ -449,6 +449,14 @@ void main() {
 
       await tester.pumpAndSettle();
 
+      // Scroll to make verse 50 visible
+      await tester.dragUntilVisible(
+        find.text('50'),
+        find.byType(GridView),
+        const Offset(0, -100),
+      );
+      await tester.pumpAndSettle();
+
       // Select middle verse
       await tester.tap(find.text('50'));
       await tester.pumpAndSettle();

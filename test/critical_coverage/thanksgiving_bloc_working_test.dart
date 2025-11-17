@@ -1,7 +1,6 @@
 import 'package:devocional_nuevo/blocs/thanksgiving_bloc.dart';
 import 'package:devocional_nuevo/blocs/thanksgiving_event.dart';
 import 'package:devocional_nuevo/blocs/thanksgiving_state.dart';
-import 'package:devocional_nuevo/models/thanksgiving_model.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -186,7 +185,7 @@ void main() {
       );
 
       final state = bloc.state as ThanksgivingLoaded;
-      
+
       // The most recent should be first
       expect(state.thanksgivings[0].text, equals('Second thanksgiving'));
       expect(state.thanksgivings[1].text, equals('First thanksgiving'));

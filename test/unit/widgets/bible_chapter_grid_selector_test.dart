@@ -7,7 +7,7 @@ void main() {
   group('Bible Chapter Grid Selector Tests', () {
     testWidgets('Should display grid with correct number of chapters',
         (WidgetTester tester) async {
-      const totalChapters = 50;
+      const totalChapters = 24; // Use 24 to fit in 4 rows of 6 columns
       int? selectedChapterValue;
 
       await tester.pumpWidget(
@@ -27,7 +27,7 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      // Check that all chapter numbers are present
+      // Check that all chapter numbers are present (now they all fit on screen)
       for (int i = 1; i <= totalChapters; i++) {
         expect(find.text(i.toString()), findsOneWidget);
       }
@@ -220,7 +220,7 @@ void main() {
       expect(find.byType(Scrollbar), findsOneWidget);
     });
 
-    testWidgets('Grid should arrange chapters in 8 columns',
+    testWidgets('Grid should arrange chapters in 6 columns',
         (WidgetTester tester) async {
       await tester.pumpWidget(
         MaterialApp(
@@ -241,7 +241,7 @@ void main() {
       final gridDelegate =
           gridView.gridDelegate as SliverGridDelegateWithFixedCrossAxisCount;
 
-      expect(gridDelegate.crossAxisCount, equals(8));
+      expect(gridDelegate.crossAxisCount, equals(6));
     });
 
     testWidgets('Should navigate multiple chapters in sequence',
@@ -416,6 +416,14 @@ void main() {
         ),
       );
 
+      await tester.pumpAndSettle();
+
+      // Scroll to make chapter 50 visible
+      await tester.dragUntilVisible(
+        find.text(middleChapter.toString()),
+        find.byType(GridView),
+        const Offset(0, -100),
+      );
       await tester.pumpAndSettle();
 
       await tester.tap(find.text(middleChapter.toString()));

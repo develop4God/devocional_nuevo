@@ -99,7 +99,8 @@
     "days_old_plural": "({days} days)",
     "prayer_updated": "Prayer updated successfully",
     "prayer_created": "Prayer created successfully",
-    "prayer": "Prayer"
+    "prayer": "Prayer",
+    "prayers": "Prayers"
   },
   "settings": {
     "title": "Settings",
@@ -175,7 +176,7 @@
     "language_section": "Language",
     "bible_version_section": "Bible Version",
     "saved_favorites": "Saved favorites",
-    "my_prayers": "My prayers",
+    "my_prayers": "Prayers and thanksgivings",
     "light_mode": "Bright light (light mode)",
     "dark_mode": "Low light (dark mode)",
     "notifications_config": "Notification settings",

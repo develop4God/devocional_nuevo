@@ -37,8 +37,8 @@ void main() {
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
 
-      // Check if title is present (will need actual translation)
-      expect(find.text('☺️'), findsOneWidget);
+      // Check if title contains emoji and text field is present
+      expect(find.textContaining('☺️'), findsOneWidget);
       expect(find.byType(TextField), findsOneWidget);
     });
 
