@@ -195,8 +195,7 @@ void main() {
       // Week later: User decides to clean up old thanksgivings
       bloc.add(DeleteThanksgiving(thanksgivingId));
       await bloc.stream.firstWhere(
-        (state) =>
-            state is ThanksgivingLoaded && state.thanksgivings.isEmpty,
+        (state) => state is ThanksgivingLoaded && state.thanksgivings.isEmpty,
       );
 
       state = bloc.state as ThanksgivingLoaded;
@@ -213,7 +212,7 @@ void main() {
 
       // Simulate logout/login (new bloc instance)
       await bloc.close();
-      
+
       // User 2 logs in with fresh storage
       SharedPreferences.setMockInitialValues({});
       final user2Bloc = ThanksgivingBloc();
