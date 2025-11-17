@@ -68,22 +68,22 @@ void main() {
       },
     );
 
-    blocTest<PrayerBloc, PrayerState>(
-      'should add prayer successfully',
-      build: () => prayerBloc,
-      act: (bloc) => bloc.add(AddPrayer('Test prayer for healing')),
-      expect: () => [
-        isA<PrayerLoading>(),
-        isA<PrayerLoaded>(),
-      ],
-      verify: (bloc) {
-        final state = bloc.state as PrayerLoaded;
-        expect(state.prayers.length, equals(1));
-        expect(state.prayers.first.text, equals('Test prayer for healing'));
-        expect(state.prayers.first.status, equals(PrayerStatus.active));
-      },
-      skip: 'Requires file system mocking - Cannot create file in mock directory',
-    );
+    // Skipped: Requires file system mocking - Cannot create file in mock directory
+    // blocTest<PrayerBloc, PrayerState>(
+    //   'should add prayer successfully',
+    //   build: () => prayerBloc,
+    //   act: (bloc) => bloc.add(AddPrayer('Test prayer for healing')),
+    //   expect: () => [
+    //     isA<PrayerLoading>(),
+    //     isA<PrayerLoaded>(),
+    //   ],
+    //   verify: (bloc) {
+    //     final state = bloc.state as PrayerLoaded;
+    //     expect(state.prayers.length, equals(1));
+    //     expect(state.prayers.first.text, equals('Test prayer for healing'));
+    //     expect(state.prayers.first.status, equals(PrayerStatus.active));
+    //   },
+    // );
 
     test('should handle prayer filtering correctly in state', () {
       final activePrayer = Prayer(
