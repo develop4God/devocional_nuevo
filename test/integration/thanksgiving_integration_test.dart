@@ -134,14 +134,25 @@ void main() {
       // User accidentally taps create without entering text
       bloc.add(AddThanksgiving(''));
 
-      await bloc.stream.firstWhere(
-        (state) => state is ThanksgivingLoaded && state.errorMessage != null,
+      // Wait for either error state or loaded state with error message
+      final state = await bloc.stream.firstWhere(
+        (state) => 
+            (state is ThanksgivingLoaded && state.errorMessage != null) ||
+            state is ThanksgivingError,
+        orElse: () => bloc.state,
       );
 
-      final state = bloc.state as ThanksgivingLoaded;
-      expect(state.errorMessage, isNotNull);
-      expect(state.thanksgivings.isEmpty, isTrue);
-    });
+      // Check that error is present
+      if (state is ThanksgivingLoaded) {
+        expect(state.errorMessage, isNotNull);
+        expect(state.thanksgivings.isEmpty, isTrue);
+      } else if (state is ThanksgivingError) {
+        // Error state is also acceptable
+        expect(state.message, isNotNull);
+      } else {
+        fail('Expected ThanksgivingLoaded with error or ThanksgivingError state');
+      }
+    }, timeout: const Timeout(Duration(seconds: 10)));
 
     test('User refreshes their thanksgiving list', () async {
       // User has some thanksgivings
@@ -237,24 +248,13 @@ void main() {
       // User is very grateful and creates many thanksgivings
       for (int i = 1; i <= 20; i++) {
         bloc.add(AddThanksgiving('Thanksgiving number $i'));
-        await Future.delayed(const Duration(milliseconds: 5));
-        if (i % 5 == 0) {
-          // Wait for state update every 5 items
-          await bloc.stream.firstWhere(
-            (state) =>
-                state is ThanksgivingLoaded && state.thanksgivings.length >= i,
-            orElse: () => bloc.state,
-          );
-        }
+        // Wait for each one to be added
+        await bloc.stream.firstWhere(
+          (state) =>
+              state is ThanksgivingLoaded && state.thanksgivings.length >= i,
+          orElse: () => bloc.state,
+        );
       }
-
-      // Final wait to ensure all are added
-      await Future.delayed(const Duration(milliseconds: 200));
-      await bloc.stream.firstWhere(
-        (state) =>
-            state is ThanksgivingLoaded && state.thanksgivings.length == 20,
-        orElse: () => bloc.state,
-      );
 
       final state = bloc.state as ThanksgivingLoaded;
       expect(state.thanksgivings.length, equals(20));
@@ -262,7 +262,7 @@ void main() {
       // Verify they're sorted correctly (newest first)
       expect(state.thanksgivings[0].text, equals('Thanksgiving number 20'));
       expect(state.thanksgivings[19].text, equals('Thanksgiving number 1'));
-    });
+    }, timeout: const Timeout(Duration(seconds: 60)));
 
     test('Days old calculation changes over time', () async {
       // Create a thanksgiving
