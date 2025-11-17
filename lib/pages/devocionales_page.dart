@@ -1,5 +1,4 @@
 import 'dart:developer' as developer;
-import 'dart:io' show File;
 import 'dart:math';
 
 import 'package:auto_size_text/auto_size_text.dart';
@@ -31,7 +30,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart'; // Re-agregado para animación post-splash
-import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:share_plus/share_plus.dart';
