@@ -73,7 +73,6 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     'assets/lottie/happy_bird.json',
     'assets/lottie/dog_walking.json',
     'assets/lottie/book_animation.json',
-    'assets/lottie/bible_open.json',
     'assets/lottie/plant.json',
   ];
   String? _selectedLottieAsset;

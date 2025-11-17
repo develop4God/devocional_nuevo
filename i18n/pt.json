@@ -99,7 +99,8 @@
     "days_old_plural": "({days} dias)",
     "prayer_updated": "Oração atualizada com sucesso",
     "prayer_created": "Oração criada com sucesso",
-    "prayer": "Oração"
+    "prayer": "Oração",
+    "prayers": "Orações"
   },
   "settings": {
     "title": "Configurações",

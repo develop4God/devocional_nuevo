@@ -72,7 +72,7 @@ class _PrayersPageState extends State<PrayersPage>
                       child: FittedBox(
                         fit: BoxFit.scaleDown,
                         child: Text(
-                          'Prayers\n${'prayer.active'.tr()}',
+                          '${'prayer.prayers'.tr()}\n${'prayer.active'.tr()}',
                           textAlign: TextAlign.center,
                           style: const TextStyle(fontSize: 13),
                         ),
@@ -84,7 +84,7 @@ class _PrayersPageState extends State<PrayersPage>
                       child: FittedBox(
                         fit: BoxFit.scaleDown,
                         child: Text(
-                          'Prayers\n${'prayer.answered_prayers'.tr()}',
+                          '${'prayer.prayers'.tr()}\n${'prayer.answered_prayers'.tr()}',
                           textAlign: TextAlign.center,
                           style: const TextStyle(fontSize: 13),
                         ),
