@@ -300,7 +300,7 @@ class _ContactPageState extends State<ContactPage> {
                       style: TextStyle(color: colorScheme.onSurface)),
                   onTap: () async {
                     final Uri webUri =
-                        Uri.parse('https://develop4god.github.io/');
+                        Uri.parse('https://www.develop4god.com/');
                     if (await canLaunchUrl(webUri)) {
                       await launchUrl(webUri,
                           mode: LaunchMode.externalApplication);
