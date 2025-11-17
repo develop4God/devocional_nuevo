@@ -131,27 +131,24 @@ void main() {
     });
 
     test('User tries to create empty thanksgiving and sees error', () async {
+      // First load thanksgivings to get into ThanksgivingLoaded state
+      bloc.add(LoadThanksgivings());
+      await bloc.stream.firstWhere((state) => state is ThanksgivingLoaded);
+
       // User accidentally taps create without entering text
       bloc.add(AddThanksgiving(''));
 
-      // Wait for either error state or loaded state with error message
+      // Wait for error message in loaded state
       final state = await bloc.stream.firstWhere(
-        (state) => 
-            (state is ThanksgivingLoaded && state.errorMessage != null) ||
-            state is ThanksgivingError,
+        (state) => state is ThanksgivingLoaded && state.errorMessage != null,
         orElse: () => bloc.state,
       );
 
       // Check that error is present
-      if (state is ThanksgivingLoaded) {
-        expect(state.errorMessage, isNotNull);
-        expect(state.thanksgivings.isEmpty, isTrue);
-      } else if (state is ThanksgivingError) {
-        // Error state is also acceptable
-        expect(state.message, isNotNull);
-      } else {
-        fail('Expected ThanksgivingLoaded with error or ThanksgivingError state');
-      }
+      expect(state, isA<ThanksgivingLoaded>());
+      final loadedState = state as ThanksgivingLoaded;
+      expect(loadedState.errorMessage, isNotNull);
+      expect(loadedState.thanksgivings.isEmpty, isTrue);
     }, timeout: const Timeout(Duration(seconds: 10)));
 
     test('User refreshes their thanksgiving list', () async {
