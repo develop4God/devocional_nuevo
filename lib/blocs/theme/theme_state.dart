@@ -41,13 +41,12 @@ class ThemeLoaded extends ThemeState {
 
   /// Get system UI overlay style for current theme
   SystemUiOverlayStyle get systemUiOverlayStyle {
-    final navBarColor =
-        themeData.appBarTheme.backgroundColor ?? themeData.colorScheme.primary;
     final iconBrightness =
         brightness == Brightness.dark ? Brightness.light : Brightness.dark;
 
     return SystemUiOverlayStyle(
-      systemNavigationBarColor: navBarColor,
+      systemNavigationBarColor: themeData.colorScheme.surface,
+      // ✅ Usa color del scaffold
       systemNavigationBarIconBrightness: iconBrightness,
       statusBarColor: Colors.transparent,
       statusBarIconBrightness: iconBrightness,
