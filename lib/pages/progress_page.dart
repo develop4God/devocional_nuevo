@@ -21,19 +21,28 @@ class ProgressPage extends StatefulWidget {
 }
 
 class _ProgressPageState extends State<ProgressPage>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, WidgetsBindingObserver {
   final SpiritualStatsService _statsService = SpiritualStatsService();
   SpiritualStats? _stats;
   bool _isLoading = true;
   late AnimationController _streakAnimationController;
   late Animation<double> _streakAnimation;
+  ScaffoldMessengerState? _scaffoldMessenger;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _initAnimations();
     _loadStats();
     _showAchievementTipIfNeeded();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Guardar referencia al ScaffoldMessenger para uso seguro en dispose
+    _scaffoldMessenger = ScaffoldMessenger.of(context);
   }
 
   void _initAnimations() {
@@ -174,10 +183,22 @@ class _ProgressPageState extends State<ProgressPage>
 
   @override
   void dispose() {
-    // Hide the snackbar immediately when leaving the page
-    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    WidgetsBinding.instance.removeObserver(this);
+    // Hide the snackbar usando la referencia guardada
+    _scaffoldMessenger?.hideCurrentSnackBar();
     _streakAnimationController.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive) {
+      // Cerrar SnackBar cuando la app va a segundo plano o se pausa
+      if (mounted) {
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      }
+    }
   }
 
   @override
@@ -185,46 +206,47 @@ class _ProgressPageState extends State<ProgressPage>
     final themeState = context.watch<ThemeBloc>().state as ThemeLoaded;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
-        value: themeState.systemUiOverlayStyle,
-        child: Scaffold(
-          appBar: AppBar(
-            leading: IconButton(
-              icon: Transform(
-                alignment: Alignment.center,
-                transform: Matrix4.rotationY(3.14159),
-                // Esto invierte horizontalmente el icono
-                child: Icon(
-                  Icons.exit_to_app,
-                  color:
-                      Theme.of(context).colorScheme.primary, // <--- CAMBIO AQUÍ
-                ),
+      value: themeState.systemUiOverlayStyle,
+      child: Scaffold(
+        appBar: AppBar(
+          leading: IconButton(
+            icon: Transform(
+              alignment: Alignment.center,
+              transform: Matrix4.rotationY(3.14159),
+              child: Icon(
+                Icons.exit_to_app,
+                color: Theme.of(context).colorScheme.primary,
               ),
-              onPressed: () => Navigator.of(context).pop(),
-              tooltip: 'progress.back'.tr(),
             ),
-            title: Text(
-              'progress.title'.tr(),
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.primary,
-                    fontSize: 24,
-                  ),
-            ),
-            backgroundColor: Theme.of(context).colorScheme.surface,
-            foregroundColor: Theme.of(context).colorScheme.onSurface,
-            elevation: 0,
-            centerTitle: true,
-            // Si quieres centrar igual que otras páginas
+            onPressed: () {
+              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+              Navigator.of(context).pop();
+            },
+            tooltip: 'progress.back'.tr(),
           ),
-          body: _isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : _stats == null
-                  ? _buildErrorWidget()
-                  : RefreshIndicator(
-                      onRefresh: _loadStats,
-                      child: _buildContent(),
-                    ),
-        ));
+          title: Text(
+            'progress.title'.tr(),
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.primary,
+                  fontSize: 24,
+                ),
+          ),
+          backgroundColor: Theme.of(context).colorScheme.surface,
+          foregroundColor: Theme.of(context).colorScheme.onSurface,
+          elevation: 0,
+          centerTitle: true,
+        ),
+        body: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : _stats == null
+                ? _buildErrorWidget()
+                : RefreshIndicator(
+                    onRefresh: _loadStats,
+                    child: _buildContent(),
+                  ),
+      ),
+    );
   }
 
   Widget _buildErrorWidget() {
