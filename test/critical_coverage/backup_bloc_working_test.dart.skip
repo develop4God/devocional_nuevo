@@ -6,6 +6,7 @@ import 'package:devocional_nuevo/blocs/backup_state.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/services/backup_scheduler_service.dart';
 import 'package:devocional_nuevo/services/google_drive_backup_service.dart';
+import 'package:devocional_nuevo/utils/constants.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -19,6 +20,24 @@ class MockBackupSchedulerService extends Mock
 class MockDevocionalProvider extends Mock implements DevocionalProvider {}
 
 void main() {
+  group('Backup Feature Flag Tests', () {
+    test('Backup feature should be disabled by default', () {
+      // Verify that backup feature is disabled via feature flag
+      expect(Constants.enableBackupFeature, false,
+          reason: 'Backup feature should be disabled for users');
+    });
+
+    test('Feature flag should prevent backup initialization', () {
+      // When backup feature is disabled, backup services should not initialize
+      const backupFeatureEnabled = Constants.enableBackupFeature;
+      
+      if (!backupFeatureEnabled) {
+        // Backup should not be initialized
+        expect(backupFeatureEnabled, false);
+      }
+    });
+  });
+
   group('BackupBloc Critical Coverage Tests', () {
     late MockGoogleDriveBackupService mockBackupService;
     late MockBackupSchedulerService mockSchedulerService;

@@ -1,5 +1,4 @@
 import 'dart:developer' as developer;
-import 'dart:io' show File;
 import 'dart:math';
 
 import 'package:auto_size_text/auto_size_text.dart';
@@ -31,7 +30,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart'; // Re-agregado para animación post-splash
-import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:share_plus/share_plus.dart';
@@ -520,128 +518,130 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     await SharePlus.instance.share(ShareParams(text: devotionalText));
   }
 
-  Future<void> _shareAsImage(Devocional devocional) async {
-    final image = await screenshotController.capture();
-    if (image != null) {
-      final directory = await getApplicationDocumentsDirectory();
-      final imagePath = await File('${directory.path}/devocional.png').create();
-      await imagePath.writeAsBytes(image);
+  // Commented out - Share as image functionality removed per user request
+  // Future<void> _shareAsImage(Devocional devocional) async {
+  //   final image = await screenshotController.capture();
+  //   if (image != null) {
+  //     final directory = await getApplicationDocumentsDirectory();
+  //     final imagePath = await File('${directory.path}/devocional.png').create();
+  //     await imagePath.writeAsBytes(image);
+  //
+  //     await SharePlus.instance.share(
+  //       ShareParams(
+  //         files: [XFile(imagePath.path)],
+  //         text: 'devotionals.devotional_of_the_day'.tr(),
+  //         subject: 'devotionals.app_title'.tr(),
+  //       ),
+  //     );
+  //   }
+  // }
 
-      await SharePlus.instance.share(
-        ShareParams(
-          files: [XFile(imagePath.path)],
-          text: 'devotionals.devotional_of_the_day'.tr(),
-          subject: 'devotionals.app_title'.tr(),
-        ),
-      );
-    }
-  }
-
-  void _showShareOptions(Devocional devocional) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (BuildContext context) {
-        return Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                'devotionals.share_devotional'.tr(),
-                style: Theme.of(context)
-                    .textTheme
-                    .titleLarge
-                    ?.copyWith(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 20),
-              Row(
-                children: [
-                  Expanded(
-                    child: InkWell(
-                      onTap: () {
-                        Navigator.pop(context);
-                        _shareAsText(devocional);
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                            color: Theme.of(context).colorScheme.outline,
-                          ),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Column(
-                          children: [
-                            Icon(
-                              Icons.text_fields,
-                              size: 32,
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'tooltips.share_as_text'.tr(),
-                              style: Theme.of(context).textTheme.bodyMedium,
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: InkWell(
-                      onTap: () {
-                        Navigator.pop(context);
-                        _shareAsImage(devocional);
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                            color: Theme.of(context).colorScheme.outline,
-                          ),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Column(
-                          children: [
-                            Icon(
-                              Icons.image,
-                              size: 32,
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'tooltips.share_as_image'.tr(),
-                              style: Theme.of(context).textTheme.bodyMedium,
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-            ],
-          ),
-        );
-      },
-    );
-  }
+  // Commented out - Share options dialog removed per user request
+  // void _showShareOptions(Devocional devocional) {
+  //   showModalBottomSheet(
+  //     context: context,
+  //     shape: const RoundedRectangleBorder(
+  //       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+  //     ),
+  //     builder: (BuildContext context) {
+  //       return Padding(
+  //         padding: const EdgeInsets.all(20.0),
+  //         child: Column(
+  //           mainAxisSize: MainAxisSize.min,
+  //           children: [
+  //             Container(
+  //               width: 40,
+  //               height: 4,
+  //               decoration: BoxDecoration(
+  //                 color: Colors.grey[300],
+  //                 borderRadius: BorderRadius.circular(2),
+  //               ),
+  //             ),
+  //             const SizedBox(height: 20),
+  //             Text(
+  //               'devotionals.share_devotional'.tr(),
+  //               style: Theme.of(context)
+  //                   .textTheme
+  //                   .titleLarge
+  //                   ?.copyWith(fontWeight: FontWeight.bold),
+  //             ),
+  //             const SizedBox(height: 20),
+  //             Row(
+  //               children: [
+  //                 Expanded(
+  //                   child: InkWell(
+  //                     onTap: () {
+  //                       Navigator.pop(context);
+  //                       _shareAsText(devocional);
+  //                     },
+  //                     child: Container(
+  //                       padding: const EdgeInsets.all(16),
+  //                       decoration: BoxDecoration(
+  //                         border: Border.all(
+  //                           color: Theme.of(context).colorScheme.outline,
+  //                         ),
+  //                         borderRadius: BorderRadius.circular(12),
+  //                       ),
+  //                       child: Column(
+  //                         children: [
+  //                           Icon(
+  //                             Icons.text_fields,
+  //                             size: 32,
+  //                             color: Theme.of(context).colorScheme.primary,
+  //                           ),
+  //                           const SizedBox(height: 8),
+  //                           Text(
+  //                             'tooltips.share_as_text'.tr(),
+  //                             style: Theme.of(context).textTheme.bodyMedium,
+  //                             textAlign: TextAlign.center,
+  //                           ),
+  //                         ],
+  //                       ),
+  //                     ),
+  //                   ),
+  //                 ),
+  //                 const SizedBox(width: 16),
+  //                 Expanded(
+  //                   child: InkWell(
+  //                     onTap: () {
+  //                       Navigator.pop(context);
+  //                       _shareAsImage(devocional);
+  //                     },
+  //                     child: Container(
+  //                       padding: const EdgeInsets.all(16),
+  //                       decoration: BoxDecoration(
+  //                         border: Border.all(
+  //                           color: Theme.of(context).colorScheme.outline,
+  //                         ),
+  //                         borderRadius: BorderRadius.circular(12),
+  //                       ),
+  //                       child: Column(
+  //                         children: [
+  //                           Icon(
+  //                             Icons.image,
+  //                             size: 32,
+  //                             color: Theme.of(context).colorScheme.primary,
+  //                           ),
+  //                           const SizedBox(height: 8),
+  //                           Text(
+  //                             'tooltips.share_as_image'.tr(),
+  //                             style: Theme.of(context).textTheme.bodyMedium,
+  //                             textAlign: TextAlign.center,
+  //                           ),
+  //                         ],
+  //                       ),
+  //                     ),
+  //                   ),
+  //                 ),
+  //               ],
+  //             ),
+  //             const SizedBox(height: 20),
+  //           ],
+  //         ),
+  //       );
+  //     },
+  //   );
+  // }
 
   void _goToPrayers() {
     Navigator.push(
@@ -1304,7 +1304,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                           IconButton(
                             tooltip: 'devotionals.share_devotional'.tr(),
                             onPressed: currentDevocional != null
-                                ? () => _showShareOptions(currentDevocional)
+                                ? () => _shareAsText(currentDevocional)
                                 : null,
                             icon: Icon(
                               Icons.share_outlined,

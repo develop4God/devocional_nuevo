@@ -11,7 +11,8 @@ void main() {
       );
 
       expect(thanksgiving.id, equals('thanksgiving_123'));
-      expect(thanksgiving.text, equals('Gracias Señor por tu amor y fidelidad.'));
+      expect(
+          thanksgiving.text, equals('Gracias Señor por tu amor y fidelidad.'));
       expect(thanksgiving.createdDate, equals(DateTime(2024, 1, 15, 10, 30)));
     });
 
@@ -30,7 +31,8 @@ void main() {
 
       expect(thanksgivingFromJson.id, equals(thanksgiving.id));
       expect(thanksgivingFromJson.text, equals(thanksgiving.text));
-      expect(thanksgivingFromJson.createdDate, equals(thanksgiving.createdDate));
+      expect(
+          thanksgivingFromJson.createdDate, equals(thanksgiving.createdDate));
     });
 
     test('should copy thanksgiving with updated fields', () {

@@ -66,15 +66,31 @@ class _PrayersPageState extends State<PrayersPage>
                 child: TabBar(
                   controller: _tabController,
                   tabs: [
+                    // Active prayers tab with line break
                     Tab(
                       icon: const Icon(Icons.schedule),
-                      text: 'prayer.active'.tr(),
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          'Prayers\n${'prayer.active'.tr()}',
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(fontSize: 13),
+                        ),
+                      ),
                     ),
+                    // Answered prayers tab with line break
                     Tab(
                       icon: const Icon(Icons.check_circle_outline),
-                      text: 'prayer.answered_prayers'.tr(),
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          'Prayers\n${'prayer.answered_prayers'.tr()}',
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(fontSize: 13),
+                        ),
+                      ),
                     ),
-                    // Ajuste: Tab de agradecimiento con autofit y centrado
+                    // Thanksgiving tab with autofit
                     Container(
                       constraints: const BoxConstraints(minWidth: 0),
                       alignment: Alignment.center,
