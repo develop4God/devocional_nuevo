@@ -206,7 +206,9 @@ exports.sendDailyDevotionalNotification = onSchedule({
 });
 
 // ==========================================
-// FUNCIÓN 2: LIMPIEZA DE BASE DE DATOS
+// FUNCIÓN 2: LIMPIEZA AGRESIVA DE BASE DE DATOS 
+// Elimina usuario completo si cumple cualquier condición
+// 16-nov-2025 20:23
 // ==========================================
 exports.cleanupInvalidFCMTokens = onSchedule({
   schedule: "every 24 hours",
@@ -221,51 +223,92 @@ exports.cleanupInvalidFCMTokens = onSchedule({
   const thirtyDaysAgo = admin.firestore.Timestamp.fromMillis(now.toMillis() - (30 * 24 * 60 * 60 * 1000));
 
   let deletedUsers = 0;
-  let deletedTokens = 0;
-  let validatedTokens = 0;
 
   try {
-    // FASE 1: Eliminar usuarios inactivos
-    logger.info("Limpieza: Fase 1 - Buscando usuarios inactivos.", {structuredData: true});
+    logger.info("Limpieza: Evaluando usuarios.", {structuredData: true});
 
     const usersSnapshot = await db.collection("users").get();
-    const batch = db.batch();
+    let batch = db.batch();
     let batchCount = 0;
 
     for (const userDoc of usersSnapshot.docs) {
       const userId = userDoc.id;
-      const settingsRef = db.collection("users").doc(userId).collection("settings").doc("notifications");
+      let shouldDelete = false;
+      let deleteReason = "";
 
+      const settingsRef = db.collection("users").doc(userId).collection("settings").doc("notifications");
       let settingsDoc;
+      
       try {
         settingsDoc = await settingsRef.get();
       } catch (e) {
+        logger.error(`Limpieza: Error al obtener settings de ${userId}.`, {structuredData: true});
         continue;
       }
 
+      // Condición 1: Sin settings
       if (!settingsDoc.exists) {
-        continue;
+        shouldDelete = true;
+        deleteReason = "sin settings";
       }
 
-      const settingsData = settingsDoc.data();
-      const lastUpdated = settingsData.lastUpdated;
+      // Condición 2: lastLogin > 7 días
+      if (!shouldDelete) {
+        const userData = userDoc.data();
+        const lastLogin = userData?.lastLogin;
+        
+        if (!lastLogin || (lastLogin instanceof admin.firestore.Timestamp && lastLogin.toMillis() < sevenDaysAgo.toMillis())) {
+          shouldDelete = true;
+          deleteReason = "inactivo +7 días (lastLogin)";
+        }
+      }
 
-      if (!lastUpdated || (lastUpdated instanceof admin.firestore.Timestamp && lastUpdated.toMillis() < sevenDaysAgo.toMillis())) {
-        logger.info(`Limpieza: Usuario inactivo ${userId}. Eliminando.`, {structuredData: true});
+      // Condición 3: Todos los tokens son > 30 días o sin tokens
+      if (!shouldDelete) {
+        const tokensSnapshot = await db.collection("users").doc(userId).collection("fcmTokens").get();
+        
+        if (tokensSnapshot.empty) {
+          shouldDelete = true;
+          deleteReason = "sin tokens";
+        } else {
+          const allTokensOld = tokensSnapshot.docs.every((tokenDoc) => {
+            const tokenData = tokenDoc.data();
+            const createdAt = tokenData.createdAt;
+            return createdAt instanceof admin.firestore.Timestamp && createdAt.toMillis() < thirtyDaysAgo.toMillis();
+          });
 
+          if (allTokensOld) {
+            shouldDelete = true;
+            deleteReason = "todos tokens +30 días";
+          }
+        }
+      }
+
+      // ELIMINAR USUARIO COMPLETO
+      if (shouldDelete) {
+        logger.info(`Limpieza: Eliminando usuario ${userId} (${deleteReason}).`, {structuredData: true});
+
+        // Eliminar subcolecciones
         const tokensSnapshot = await db.collection("users").doc(userId).collection("fcmTokens").get();
         tokensSnapshot.docs.forEach((tokenDoc) => {
           batch.delete(tokenDoc.ref);
           batchCount++;
-          deletedTokens++;
         });
 
-        batch.delete(settingsRef);
+        if (settingsDoc && settingsDoc.exists) {
+          batch.delete(settingsRef);
+          batchCount++;
+        }
+
+        // Eliminar documento principal
+        batch.delete(userDoc.ref);
         batchCount++;
         deletedUsers++;
 
         if (batchCount >= 450) {
           await batch.commit();
+          logger.info(`Limpieza: Batch commit (${deletedUsers} usuarios hasta ahora).`, {structuredData: true});
+          batch = db.batch();
           batchCount = 0;
         }
       }
@@ -275,111 +318,7 @@ exports.cleanupInvalidFCMTokens = onSchedule({
       await batch.commit();
     }
 
-    logger.info(`Limpieza: Fase 1 completada. ${deletedUsers} usuarios eliminados.`, {structuredData: true});
-
-    // FASE 2: Eliminar tokens antiguos
-    logger.info("Limpieza: Fase 2 - Limpiando tokens antiguos.", {structuredData: true});
-
-    const activeUsersSnapshot = await db.collection("users").get();
-    const tokenBatch = db.batch();
-    let tokenBatchCount = 0;
-
-    for (const userDoc of activeUsersSnapshot.docs) {
-      const userId = userDoc.id;
-      const tokensSnapshot = await db.collection("users").doc(userId).collection("fcmTokens").get();
-
-      for (const tokenDoc of tokensSnapshot.docs) {
-        const tokenData = tokenDoc.data();
-        const createdAt = tokenData.createdAt;
-
-        if (createdAt instanceof admin.firestore.Timestamp && createdAt.toMillis() < thirtyDaysAgo.toMillis()) {
-          logger.info(`Limpieza: Token antiguo de ${userId}. Eliminando.`, {structuredData: true});
-          tokenBatch.delete(tokenDoc.ref);
-          tokenBatchCount++;
-          deletedTokens++;
-
-          if (tokenBatchCount >= 450) {
-            await tokenBatch.commit();
-            tokenBatchCount = 0;
-          }
-        }
-      }
-    }
-
-    if (tokenBatchCount > 0) {
-      await tokenBatch.commit();
-    }
-
-    logger.info(`Limpieza: Fase 2 completada. ${deletedTokens - deletedUsers} tokens antiguos eliminados.`, {structuredData: true});
-
-    // FASE 3: Validar tokens con FCM
-    logger.info("Limpieza: Fase 3 - Validando tokens con FCM.", {structuredData: true});
-
-    const allTokensToValidate = [];
-    const finalUsersSnapshot = await db.collection("users").get();
-
-    for (const userDoc of finalUsersSnapshot.docs) {
-      const userId = userDoc.id;
-      const tokensSnapshot = await db.collection("users").doc(userId).collection("fcmTokens").get();
-
-      tokensSnapshot.docs.forEach((tokenDoc) => {
-        const tokenData = tokenDoc.data();
-        if (tokenData.token) {
-          allTokensToValidate.push({
-            token: tokenData.token,
-            userId: userId,
-            ref: tokenDoc.ref,
-          });
-        }
-      });
-    }
-
-    if (allTokensToValidate.length === 0) {
-      logger.info("Limpieza: Sin tokens para validar.", {structuredData: true});
-    } else {
-      logger.info(`Limpieza: Validando ${allTokensToValidate.length} tokens.`, {structuredData: true});
-
-      for (let i = 0; i < allTokensToValidate.length; i += 500) {
-        const chunk = allTokensToValidate.slice(i, i + 500);
-        const tokens = chunk.map((t) => t.token);
-
-        const message = {
-          data: {
-            type: "cleanup_check",
-            timestamp: new Date().toISOString(),
-          },
-          tokens: tokens,
-        };
-
-        try {
-          const response = await admin.messaging().sendEachForMulticast(message);
-          validatedTokens += response.successCount;
-
-          const invalidBatch = db.batch();
-          let invalidBatchCount = 0;
-
-          response.responses.forEach((resp, index) => {
-            if (!resp.success) {
-              const tokenInfo = chunk[index];
-              logger.warn(`Limpieza: Token inválido (${tokenInfo.userId}). Eliminando.`, {structuredData: true});
-              invalidBatch.delete(tokenInfo.ref);
-              invalidBatchCount++;
-              deletedTokens++;
-            }
-          });
-
-          if (invalidBatchCount > 0) {
-            await invalidBatch.commit();
-          }
-        } catch (error) {
-          logger.error("Limpieza: Error al validar chunk:", error, {structuredData: true});
-        }
-      }
-
-      logger.info(`Limpieza: Fase 3 completada. ${validatedTokens} tokens válidos.`, {structuredData: true});
-    }
-
-    logger.info(`Limpieza: Completado. ${deletedUsers} usuarios, ${deletedTokens} tokens eliminados.`, {structuredData: true});
+    logger.info(`Limpieza: Completado. ${deletedUsers} usuarios eliminados completamente.`, {structuredData: true});
   } catch (error) {
     logger.error("Limpieza: Error general:", error, {structuredData: true});
   }
