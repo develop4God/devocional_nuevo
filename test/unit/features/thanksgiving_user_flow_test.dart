@@ -73,8 +73,7 @@ void main() {
       expect(hasTextField, isTrue,
           reason: 'Modal should have text input field');
       expect(hasSaveButton, isTrue, reason: 'Modal should have save button');
-      expect(hasCloseButton, isTrue,
-          reason: 'Modal should have close button');
+      expect(hasCloseButton, isTrue, reason: 'Modal should have close button');
     });
 
     test('User flow: Complete thanksgiving creation', () {

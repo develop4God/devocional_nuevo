@@ -93,7 +93,7 @@ void main() {
         expect(timezoneRegex.hasMatch(timezone), isFalse,
             reason: '$timezone should be invalid format');
       }
-      
+
       // Note: 'Europe/InvalidCity' matches the format but isn't a real timezone
       // This test only validates format, not timezone database validity
     });

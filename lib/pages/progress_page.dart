@@ -174,6 +174,8 @@ class _ProgressPageState extends State<ProgressPage>
 
   @override
   void dispose() {
+    // Hide the snackbar immediately when leaving the page
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
     _streakAnimationController.dispose();
     super.dispose();
   }

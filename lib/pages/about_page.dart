@@ -152,9 +152,9 @@ class _AboutPageState extends State<AboutPage> {
 
                 // Enlace visible del sitio web (ARRIBA del botón)
                 InkWell(
-                  onTap: () => _launchURL('https://www.develop4God.com/'),
+                  onTap: () => _launchURL('https://www.develop4God.com'),
                   child: Text(
-                    'https://www.develop4God.com/',
+                    'https://www.develop4God.com',
                     style: textTheme.bodyMedium?.copyWith(
                       color: colorScheme.primary,
                       decoration: TextDecoration.underline,

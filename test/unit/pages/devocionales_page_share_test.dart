@@ -348,8 +348,7 @@ void main() {
         versiculo: 'Test verse for user flow',
         reflexion: 'Test reflection for user flow',
         paraMeditar: [
-          ParaMeditar(
-              cita: 'Test 1:1', texto: 'Meditation text for user flow'),
+          ParaMeditar(cita: 'Test 1:1', texto: 'Meditation text for user flow'),
         ],
         oracion: 'Test prayer for user flow',
         language: 'es',

@@ -13,7 +13,7 @@ void main() {
     test('Feature flag should prevent onboarding check', () {
       // When onboarding feature is disabled, onboarding should not show
       const onboardingFeatureEnabled = Constants.enableOnboardingFeature;
-      
+
       if (!onboardingFeatureEnabled) {
         // Onboarding should not be checked
         expect(onboardingFeatureEnabled, false);
@@ -22,8 +22,9 @@ void main() {
 
     test('Onboarding service should return false when disabled', () async {
       // Even if the service is called, it should return false
-      final shouldShow = await OnboardingService.instance.shouldShowOnboarding();
-      
+      final shouldShow =
+          await OnboardingService.instance.shouldShowOnboarding();
+
       // Onboarding is permanently disabled
       expect(shouldShow, false,
           reason: 'Onboarding should always return false when disabled');
