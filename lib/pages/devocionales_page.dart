@@ -396,6 +396,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       barrierDismissible: false,
       builder: (dialogContext) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
+          key: const Key('salvation_prayer_dialog'),
           backgroundColor: colorScheme.surface,
           title: Text(
             "devotionals.salvation_prayer_title".tr(),
@@ -460,6 +461,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
             Align(
               alignment: Alignment.center,
               child: TextButton(
+                key: const Key('salvation_prayer_continue_button'),
                 onPressed: () {
                   devocionalProvider.setInvitationDialogVisibility(
                     !doNotShowAgainChecked,
@@ -1158,6 +1160,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                             child: SizedBox(
                               height: 45,
                               child: ElevatedButton.icon(
+                                key: const Key('bottom_nav_previous_button'),
                                 onPressed: _currentDevocionalIndex > 0
                                     ? _goToPreviousDevocional
                                     : null,
@@ -1193,6 +1196,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                             child: Center(
                               child: currentDevocional != null
                                   ? TtsPlayerWidget(
+                                      key: const Key('bottom_nav_tts_player'),
                                       devocional: currentDevocional)
                                   : const SizedBox(width: 56, height: 56),
                             ),
@@ -1202,6 +1206,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                             child: SizedBox(
                               height: 45,
                               child: ElevatedButton.icon(
+                                key: const Key('bottom_nav_next_button'),
                                 onPressed: _currentDevocionalIndex <
                                         devocionales.length - 1
                                     ? _goToNextDevocional
@@ -1255,6 +1260,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: [
                           IconButton(
+                            key: const Key('bottom_appbar_favorite_icon'),
                             tooltip: isFavorite
                                 ? 'devotionals.remove_from_favorites_short'.tr()
                                 : 'devotionals.save_as_favorite'.tr(),
@@ -1271,6 +1277,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                             ),
                           ),
                           IconButton(
+                              key: const Key('bottom_appbar_prayers_icon'),
                               tooltip: 'tooltips.my_prayers'.tr(),
                               onPressed: () async {
                                 await BubbleUtils.markAsShown(
@@ -1287,6 +1294,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                 size: 35,
                               )),
                           IconButton(
+                            key: const Key('bottom_appbar_bible_icon'),
                             tooltip: 'tooltips.bible'.tr(),
                             onPressed: () async {
                               await BubbleUtils.markAsShown(
@@ -1301,6 +1309,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                             ).newIconBadge,
                           ),
                           IconButton(
+                            key: const Key('bottom_appbar_share_icon'),
                             tooltip: 'devotionals.share_devotional'.tr(),
                             onPressed: currentDevocional != null
                                 ? () => _shareAsText(currentDevocional)
@@ -1312,6 +1321,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                             ),
                           ),
                           IconButton(
+                            key: const Key('bottom_appbar_progress_icon'),
                             tooltip: 'tooltips.progress'.tr(),
                             onPressed: () {
                               Navigator.push(
@@ -1328,6 +1338,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                             ),
                           ),
                           IconButton(
+                            key: const Key('bottom_appbar_settings_icon'),
                             tooltip: 'tooltips.settings'.tr(),
                             onPressed: () async {
                               await BubbleUtils.markAsShown(

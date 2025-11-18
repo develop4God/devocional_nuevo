@@ -82,6 +82,49 @@ Este conjunto de archivos JSON contiene scripts de prueba automatizada para Fire
 - **Duración estimada**: 5-6 minutos
 - **Componentes probados**: End-to-end user workflow
 
+### 14. **14_offline_functionality_test.json**
+- **Funcionalidad**: Funcionalidad offline
+- **Acciones**: Descarga contenido, prueba modo offline
+- **Duración estimada**: 4-5 minutos
+- **Componentes probados**: Offline mode, local storage
+
+### 15. **15_critical_download_validation.json**
+- **Funcionalidad**: Validación crítica de descargas
+- **Acciones**: Verifica integridad de descargas
+- **Duración estimada**: 3-4 minutos
+- **Componentes probados**: Download validation
+
+### 16. **16_comprehensive_navigation_with_keys.json** ✨ NEW
+- **Funcionalidad**: Navegación completa con claves semánticas
+- **Acciones**: Prueba todos los componentes con claves de identificación únicas
+- **Duración estimada**: 4-5 minutos
+- **Componentes probados**: 
+  - Drawer navigation (Bible version, favorites, prayers, dark mode, notifications, download, close button)
+  - Bottom navigation bar (previous/next buttons, TTS player)
+  - Bottom app bar icons (favorite, prayers, Bible, share, progress, settings)
+  - Salvation prayer dialog (checkbox, continue button)
+- **Claves probadas**:
+  - `drawer_bible_version_selector`
+  - `drawer_saved_favorites`
+  - `drawer_my_prayers`
+  - `drawer_dark_mode_toggle`
+  - `drawer_notifications_config`
+  - `drawer_share_app`
+  - `drawer_download_devotionals`
+  - `drawer_close_button`
+  - `bottom_nav_previous_button`
+  - `bottom_nav_next_button`
+  - `bottom_nav_tts_player`
+  - `bottom_appbar_favorite_icon`
+  - `bottom_appbar_prayers_icon`
+  - `bottom_appbar_bible_icon`
+  - `bottom_appbar_share_icon`
+  - `bottom_appbar_progress_icon`
+  - `bottom_appbar_settings_icon`
+  - `salvation_prayer_dialog`
+  - `salvation_prayer_checkbox`
+  - `salvation_prayer_continue_button`
+
 ## Instrucciones de Uso
 
 ### 1. Subir a Firebase Test Lab
@@ -125,6 +168,10 @@ done
 - [x] Navegación por fechas
 - [x] Configuración de notificaciones
 - [x] Flujos de trabajo complejos
+- [x] **Navegación con claves semánticas (NEW)**
+- [x] **Drawer completo con IDs (NEW)**
+- [x] **Bottom navigation con IDs (NEW)**
+- [x] **Salvación prayer dialog (NEW)**
 
 ### 🎯 Escenarios de Prueba:
 - **Funcionalidad básica**: Todos los componentes principales

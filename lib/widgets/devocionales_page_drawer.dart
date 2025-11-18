@@ -164,8 +164,10 @@ class DevocionalesDrawer extends StatelessWidget {
       horizontal: 0,
     ),
     Color? iconColor,
+    Key? key,
   }) {
     return InkWell(
+      key: key,
       borderRadius: BorderRadius.circular(8),
       onTap: onTap,
       child: Padding(
@@ -248,6 +250,7 @@ class DevocionalesDrawer extends StatelessWidget {
                         top: 0,
                         bottom: 0,
                         child: IconButton(
+                          key: const Key('drawer_close_button'),
                           icon: const Icon(Icons.close_outlined,
                               color: Colors.white),
                           onPressed: () {
@@ -281,6 +284,7 @@ class DevocionalesDrawer extends StatelessWidget {
                         ),
                         // --- Icono alineado + dropdown ---
                         drawerRow(
+                          key: const Key('drawer_bible_version_selector'),
                           icon: Icons.auto_stories_outlined,
                           iconColor: colorScheme.primary,
                           label: DropdownButtonHideUnderline(
@@ -332,6 +336,7 @@ class DevocionalesDrawer extends StatelessWidget {
                         const SizedBox(height: 5),
                         // --- Favoritos guardados ---
                         drawerRow(
+                          key: const Key('drawer_saved_favorites'),
                           icon: Icons.star_border_outlined,
                           iconColor: colorScheme.primary,
                           label: Text(
@@ -353,6 +358,7 @@ class DevocionalesDrawer extends StatelessWidget {
                         const SizedBox(height: 5),
                         // --- Mis oraciones ---
                         drawerRow(
+                          key: const Key('drawer_my_prayers'),
                           icon: Icons.local_fire_department_outlined,
                           iconColor: colorScheme.primary,
                           label: Text(
@@ -374,6 +380,7 @@ class DevocionalesDrawer extends StatelessWidget {
                         const SizedBox(height: 5),
                         // --- Switch modo oscuro ---
                         drawerRow(
+                          key: const Key('drawer_dark_mode_toggle'),
                           icon: currentBrightness == Brightness.dark
                               ? Icons.light_mode_outlined
                               : Icons.dark_mode_outlined,
@@ -414,6 +421,7 @@ class DevocionalesDrawer extends StatelessWidget {
                         const SizedBox(height: 5),
                         // --- Notificaciones ---
                         drawerRow(
+                          key: const Key('drawer_notifications_config'),
                           icon: Icons.notifications_active_outlined,
                           iconColor: colorScheme.primary,
                           label: Text(
@@ -435,6 +443,7 @@ class DevocionalesDrawer extends StatelessWidget {
                         const SizedBox(height: 5),
                         // --- Compartir app ---
                         drawerRow(
+                          key: const Key('drawer_share_app'),
                           icon: Icons.share,
                           iconColor: colorScheme.primary,
                           label: Text(
@@ -453,6 +462,7 @@ class DevocionalesDrawer extends StatelessWidget {
                           builder: (context, snapshot) {
                             final bool hasLocalData = snapshot.data ?? false;
                             return drawerRow(
+                              key: const Key('drawer_download_devotionals'),
                               icon: hasLocalData
                                   ? Icons.offline_pin_outlined
                                   : Icons.download_for_offline_outlined,
