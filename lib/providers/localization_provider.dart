@@ -14,6 +14,9 @@ class LocalizationProvider extends ChangeNotifier {
   /// Initialize localization
   Future<void> initialize() async {
     await _localizationService.initialize();
+    // Proactivo: asignar voz TTS al iniciar la app según idioma actual
+    final languageCode = _localizationService.currentLocale.languageCode;
+    await VoiceSettingsService().proactiveAssignVoiceOnInit(languageCode);
     notifyListeners();
   }
 
