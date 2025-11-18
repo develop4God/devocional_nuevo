@@ -390,7 +390,7 @@ class VoiceSettingsService {
     }
   }
 
-  /// Método proactivo para inicializar el TTS con la voz correcta al iniciar la app o cambiar idioma
+  /// Metodo proactivo para inicializar el TTS con la voz correcta al iniciar la app o cambiar idioma
   Future<void> proactiveAssignVoiceOnInit(String language) async {
     debugPrint(
         '🔄 [proactiveAssignVoiceOnInit] Inicializando TTS para idioma: $language');
