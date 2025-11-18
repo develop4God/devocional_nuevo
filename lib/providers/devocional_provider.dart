@@ -385,6 +385,8 @@ class DevocionalProvider with ChangeNotifier {
       String defaultVersion =
           Constants.defaultVersionByLanguage[supportedLanguage] ?? 'RVR1960';
       _selectedVersion = defaultVersion;
+      debugPrint(
+          '[PROVIDER] setLanguageContext: idioma=$supportedLanguage, version=$defaultVersion');
       await prefs.setString('selectedVersion', defaultVersion);
 
       // Update TTS language context immediately
