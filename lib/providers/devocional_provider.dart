@@ -84,8 +84,14 @@ class DevocionalProvider with ChangeNotifier {
   String? get currentTrackedDevocionalId =>
       _readingTracker.currentTrackedDevocionalId;
 
-  // Supported languages - Updated to include new languages (pt and fr commented out initially)
-  static const List<String> _supportedLanguages = ['es', 'en', 'pt', 'fr'];
+  // Supported languages - Updated to incluir japonés
+  static const List<String> _supportedLanguages = [
+    'es',
+    'en',
+    'pt',
+    'fr',
+    'ja'
+  ];
   static const String _fallbackLanguage = 'es';
 
   List<String> get supportedLanguages => List.from(_supportedLanguages);

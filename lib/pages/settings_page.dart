@@ -234,6 +234,17 @@ class _SettingsPageState extends State<SettingsPage> {
                                   fontSize: 12,
                                 ),
                               ),
+                              // Mostrar la versión por defecto si es japonés
+                              if (localizationProvider
+                                      .currentLocale.languageCode ==
+                                  'ja')
+                                Text(
+                                  'Versión: SK2017',
+                                  style: textTheme.bodySmall?.copyWith(
+                                    color: colorScheme.primary,
+                                    fontSize: 12,
+                                  ),
+                                ),
                             ],
                           ),
                         ),
