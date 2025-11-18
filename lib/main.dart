@@ -19,6 +19,7 @@ import 'package:devocional_nuevo/services/google_drive_backup_service.dart';
 import 'package:devocional_nuevo/services/notification_service.dart';
 import 'package:devocional_nuevo/services/onboarding_service.dart';
 import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
+import 'package:devocional_nuevo/services/tts_service.dart';
 import 'package:devocional_nuevo/splash_screen.dart';
 import 'package:devocional_nuevo/utils/constants.dart';
 import 'package:devocional_nuevo/utils/theme_constants.dart';
@@ -342,6 +343,10 @@ class _AppInitializerState extends State<AppInitializer> {
   }
 
   Future<void> _initServices() async {
+    // Obtener el idioma ANTES de cualquier await para evitar usar context tras async gap
+    final localizationProvider =
+        Provider.of<LocalizationProvider>(context, listen: false);
+    final languageCode = localizationProvider.currentLocale.languageCode;
     // Inicialización global
     try {
       tzdata.initializeTimeZones();
@@ -350,9 +355,13 @@ class _AppInitializerState extends State<AppInitializer> {
         'AppInitializer: Zona horaria y formateo de fechas inicializados.',
         name: 'MainApp',
       );
+      // Inicializar TTS proactivamente con el idioma del usuario
+      await TtsService().initializeTtsOnAppStart(languageCode);
+      debugPrint(
+          '[MAIN] TTS inicializado proactivamente con idioma: $languageCode');
     } catch (e) {
       developer.log(
-        'ERROR en AppInitializer: Error al inicializar zona horaria o date formatting: $e',
+        'ERROR en AppInitializer: Error al inicializar zona horaria, date formatting o TTS: $e',
         name: 'MainApp',
         error: e,
       );

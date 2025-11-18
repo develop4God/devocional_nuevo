@@ -989,4 +989,21 @@ class TtsService {
     await _progressController.close();
     debugPrint('🧹 TTS: Service disposed at ${DateTime.now()}');
   }
+
+  Future<void> initializeTtsOnAppStart(String languageCode) async {
+    // Asigna proactivamente la voz y el idioma TTS al iniciar la app
+    await assignDefaultVoiceForLanguage(languageCode);
+    debugPrint(
+        '[TTS] Voz e idioma asignados proactivamente al iniciar la app: $languageCode');
+  }
+
+  Future<void> assignDefaultVoiceForLanguage(String languageCode) async {
+    String ttsLocale = _getTtsLocaleForLanguage(languageCode);
+    await _flutterTts.setLanguage(ttsLocale);
+    await _voiceSettingsService.loadSavedVoice(languageCode);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('tts_language', ttsLocale);
+    debugPrint(
+        '[TTS] Voz por defecto asignada para idioma: $languageCode ($ttsLocale)');
+  }
 }
