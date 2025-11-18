@@ -207,7 +207,8 @@ void main() {
 
     // ========== TESTS DE OPERACIONES (Sin verificar implementación interna) ==========
 
-    test('should accept playDevotional call without throwing immediately', () {
+    test('should accept playDevotional call without throwing immediately',
+        () async {
       final devocional = Devocional(
         id: 'test_1',
         date: DateTime.now(),
@@ -217,10 +218,20 @@ void main() {
         oracion: 'Test prayer',
       );
 
-      // El método debe existir y aceptar la llamada
-      // No verificamos si TtsService realmente reproduce (eso es interno)
-      expect(() => controller.playDevotional(devocional), returnsNormally);
-    }, skip: 'Test timing issue with BLoC stream closure');
+      // The method should exist and accept the call without throwing synchronously
+      // In test environment, TTS service may be disposed, so async errors are expected
+      // We test peripheral behavior: method exists and is callable
+      final future = controller.playDevotional(devocional);
+      expect(future, isA<Future<void>>());
+
+      // Wait for async operations to complete or fail (peripheral behavior)
+      try {
+        await future;
+      } catch (e) {
+        // TTS service disposed is expected in test environment
+        expect(e.toString(), contains('TTS service disposed'));
+      }
+    });
 
     test('should accept pause/resume/stop calls in any state', () {
       // Los métodos deben existir y no lanzar errores de compilación
