@@ -390,6 +390,24 @@ class VoiceSettingsService {
     }
   }
 
+  /// Método proactivo para inicializar el TTS con la voz correcta al iniciar la app o cambiar idioma
+  Future<void> proactiveAssignVoiceOnInit(String language) async {
+    debugPrint(
+        '🔄 [proactiveAssignVoiceOnInit] Inicializando TTS para idioma: $language');
+    final friendlyName = await loadSavedVoice(language);
+    if (friendlyName == null) {
+      debugPrint(
+          '🔄 [proactiveAssignVoiceOnInit] No hay voz guardada válida, asignando automáticamente...');
+      await autoAssignDefaultVoice(language);
+      final newFriendlyName = await loadSavedVoice(language);
+      debugPrint(
+          '🔄 [proactiveAssignVoiceOnInit] Voz asignada: $newFriendlyName');
+    } else {
+      debugPrint(
+          '🔄 [proactiveAssignVoiceOnInit] Voz guardada aplicada: $friendlyName');
+    }
+  }
+
   /// Obtiene todas las voces disponibles y las formatea de manera user-friendly
   Future<List<String>> getAvailableVoices() async {
     try {
