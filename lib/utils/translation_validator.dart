@@ -1,12 +1,11 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:io';
 
-import 'package:flutter/foundation.dart';
-
-/// Utilidad para validar traducciones entre el archivo de referencia en.json y cualquier archivo de idioma
+/// Utilidad para validar y completar traducciones entre el archivo de referencia es.json y cualquier archivo de idioma
 /// Uso: dart run lib/utils/translation_validator.dart [lang]
 void main(List<String> args) async {
-  final referencePath = 'i18n/en.json';
+  final referencePath = 'i18n/es.json';
   final lang = args.isNotEmpty ? args[0] : 'ja';
   final targetPath = 'i18n/$lang.json';
 
@@ -14,8 +13,7 @@ void main(List<String> args) async {
   final targetFile = File(targetPath);
 
   if (!referenceFile.existsSync() || !targetFile.existsSync()) {
-    debugPrint(
-        '❌ No se encontró el archivo de referencia o el de traducción ($lang).');
+    log('❌ No se encontró el archivo de referencia o el de traducción ($lang).');
     return;
   }
 
@@ -24,6 +22,26 @@ void main(List<String> args) async {
 
   final missingKeys = <String>[];
   final incompleteKeys = <String>[];
+
+  /// Inserta claves faltantes en el JSON destino, usando el valor 'PENDING' por defecto
+  void insertMissingKeys(dynamic reference, dynamic target) {
+    if (reference is Map) {
+      reference.forEach((key, value) {
+        if (target is Map) {
+          if (!target.containsKey(key)) {
+            if (value is Map) {
+              target[key] = {};
+              insertMissingKeys(value, target[key]);
+            } else {
+              target[key] = 'PENDING';
+            }
+          } else {
+            insertMissingKeys(value, target[key]);
+          }
+        }
+      });
+    }
+  }
 
   void compareKeys(dynamic reference, dynamic target, String prefix) {
     if (reference is Map) {
@@ -43,22 +61,28 @@ void main(List<String> args) async {
   }
 
   compareKeys(referenceJson, targetJson, '');
+  insertMissingKeys(referenceJson, targetJson);
 
-  debugPrint('==== REPORTE DE VALIDACIÓN DE TRADUCCIÓN ($lang) ====');
+  log('==== REPORTE DE VALIDACIÓN Y COMPLETADO DE TRADUCCIÓN ($lang) ====');
   if (missingKeys.isEmpty && incompleteKeys.isEmpty) {
-    debugPrint('✅ Todas las claves están presentes y completas.');
+    log('✅ Todas las claves están presentes y completas.');
   } else {
     if (missingKeys.isNotEmpty) {
-      debugPrint('❌ Claves faltantes en $lang.json:');
+      log('❌ Claves faltantes en $lang.json:');
       for (final k in missingKeys) {
-        debugPrint('  - $k');
+        log('  - $k');
       }
     }
     if (incompleteKeys.isNotEmpty) {
-      debugPrint('⚠️ Claves incompletas o vacías en $lang.json:');
+      log('⚠️ Claves incompletas o vacías en $lang.json:');
       for (final k in incompleteKeys) {
-        debugPrint('  - $k');
+        log('  - $k');
       }
     }
   }
+
+  // Guarda el archivo destino actualizado con las claves faltantes
+  await targetFile
+      .writeAsString(JsonEncoder.withIndent('  ').convert(targetJson));
+  log('✅ Archivo $lang.json actualizado con claves faltantes marcadas como "PENDING".');
 }
