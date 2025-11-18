@@ -12,6 +12,7 @@ class BibleVersionRegistry {
     'en': 'English',
     'pt': 'Português',
     'fr': 'Français',
+    'ja': '日本語',
   };
 
   static const Map<String, List<Map<String, String>>> _versionsByLanguage = {
@@ -29,6 +30,9 @@ class BibleVersionRegistry {
     ],
     'fr': [
       {'name': 'LSG1910', 'dbFile': 'LSG1910_fr.SQLite3'},
+    ],
+    'ja': [
+      {'name': 'SK2003', 'dbFile': 'SK2003_ja.SQLite3'},
     ],
   };
 

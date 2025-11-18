@@ -493,13 +493,15 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     final locale = Localizations.localeOf(context).languageCode;
     switch (locale) {
       case 'es':
-        return DateFormat('EEEE, d \'de\' MMMM', 'es');
+        return DateFormat('EEEE, d ' 'de' ' MMMM', 'es');
       case 'en':
         return DateFormat('EEEE, MMMM d', 'en');
       case 'fr':
         return DateFormat('EEEE d MMMM', 'fr');
       case 'pt':
-        return DateFormat('EEEE, d \'de\' MMMM', 'pt');
+        return DateFormat('EEEE, d ' 'de' ' MMMM', 'pt');
+      case 'ja':
+        return DateFormat('y年M月d日 EEEE', 'ja');
       default:
         return DateFormat('EEEE, MMMM d', 'en');
     }
