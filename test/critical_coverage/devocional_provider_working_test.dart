@@ -1,9 +1,9 @@
-import 'package:flutter_test/flutter_test.dart';
+import 'package:devocional_nuevo/models/devocional_model.dart';
+import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:devocional_nuevo/providers/devocional_provider.dart';
-import 'package:devocional_nuevo/models/devocional_model.dart';
 
 void main() {
   late DevocionalProvider provider;
@@ -15,40 +15,46 @@ void main() {
 
   setUpAll(() {
     TestWidgetsFlutterBinding.ensureInitialized();
-
-    pathProviderChannel.setMockMethodCallHandler((MethodCall methodCall) async {
-      switch (methodCall.method) {
-        case 'getApplicationDocumentsDirectory':
-          return '/mock_documents';
-        case 'getTemporaryDirectory':
-          return '/mock_temp';
-        default:
-          return null;
-      }
-    });
-
-    ttsChannel.setMockMethodCallHandler((MethodCall call) async {
-      switch (call.method) {
-        case 'speak':
-        case 'stop':
-        case 'pause':
-        case 'setLanguage':
-        case 'setSpeechRate':
-        case 'setVolume':
-        case 'setPitch':
-        case 'awaitSpeakCompletion':
-          return null;
-        case 'getLanguages':
-          return ['es-ES', 'en-US'];
-        case 'getVoices':
-          return [
-            {'name': 'Voice ES', 'locale': 'es-ES'},
-            {'name': 'Voice EN', 'locale': 'en-US'},
-          ];
-        default:
-          return null;
-      }
-    });
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+      pathProviderChannel,
+      (MethodCall methodCall) async {
+        switch (methodCall.method) {
+          case 'getApplicationDocumentsDirectory':
+            return '/mock_documents';
+          case 'getTemporaryDirectory':
+            return '/mock_temp';
+          default:
+            return null;
+        }
+      },
+    );
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+      ttsChannel,
+      (MethodCall call) async {
+        switch (call.method) {
+          case 'speak':
+          case 'stop':
+          case 'pause':
+          case 'setLanguage':
+          case 'setSpeechRate':
+          case 'setVolume':
+          case 'setPitch':
+          case 'awaitSpeakCompletion':
+            return null;
+          case 'getLanguages':
+            return ['es-ES', 'en-US'];
+          case 'getVoices':
+            return [
+              {'name': 'Voice ES', 'locale': 'es-ES'},
+              {'name': 'Voice EN', 'locale': 'en-US'},
+            ];
+          default:
+            return null;
+        }
+      },
+    );
   });
 
   setUp(() async {
@@ -59,9 +65,10 @@ void main() {
 
   tearDown(() {
     provider.dispose();
-
-    pathProviderChannel.setMockMethodCallHandler(null);
-    ttsChannel.setMockMethodCallHandler(null);
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(pathProviderChannel, null);
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(ttsChannel, null);
   });
 
   group('DevocionalProvider Robust Tests', () {
@@ -128,10 +135,12 @@ void main() {
       );
 
       expect(provider.isFavorite(devotional), isFalse);
-      provider.toggleFavorite(devotional, tester.element(find.byType(Container)));
+      provider.toggleFavorite(
+          devotional, tester.element(find.byType(Container)));
       await tester.pump(); // Let the snackbar animation complete
       expect(provider.isFavorite(devotional), isTrue);
-      provider.toggleFavorite(devotional, tester.element(find.byType(Container)));
+      provider.toggleFavorite(
+          devotional, tester.element(find.byType(Container)));
       await tester.pump();
       expect(provider.isFavorite(devotional), isFalse);
     });
@@ -186,7 +195,7 @@ void main() {
       final voices = await provider.getAvailableVoices();
       // In test environment, may be empty or have mock data
       expect(voices, isA<List>());
-      
+
       final voicesForLang = await provider.getVoicesForLanguage('es');
       expect(voicesForLang, isA<List>());
 
