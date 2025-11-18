@@ -496,6 +496,61 @@ class TtsService {
     final currentLang = targetLanguage ?? _currentLanguage;
     final sectionHeaders = _getSectionHeaders(currentLang);
 
+    // Lógica específica para japonés
+    if (currentLang == 'ja') {
+      // Versículo
+      if (devocional.versiculo.trim().isNotEmpty) {
+        final normalizedVerse = _normalizeTtsText(
+            devocional.versiculo, currentLang, _currentVersion);
+        chunks.add('${sectionHeaders['verse']}:: $normalizedVerse');
+      }
+      // Reflexión
+      if (devocional.reflexion.trim().isNotEmpty) {
+        chunks.add('${sectionHeaders['reflection']}::');
+        final reflection = _normalizeTtsText(
+            devocional.reflexion, currentLang, _currentVersion);
+        final paragraphs = reflection.split(RegExp(r'\n+'));
+        for (final paragraph in paragraphs) {
+          final trimmed = paragraph.trim();
+          if (trimmed.isNotEmpty) {
+            chunks.add(trimmed);
+          }
+        }
+      }
+      // Para meditar
+      if (devocional.paraMeditar.isNotEmpty) {
+        chunks.add('${sectionHeaders['meditate']}::');
+        for (final item in devocional.paraMeditar) {
+          final citation =
+              _normalizeTtsText(item.cita, currentLang, _currentVersion);
+          final text =
+              _normalizeTtsText(item.texto, currentLang, _currentVersion);
+          if (citation.isNotEmpty && text.isNotEmpty) {
+            chunks.add('$citation: $text');
+          }
+        }
+      }
+      // Oración
+      if (devocional.oracion.trim().isNotEmpty) {
+        chunks.add('${sectionHeaders['prayer']}::');
+        final prayer =
+            _normalizeTtsText(devocional.oracion, currentLang, _currentVersion);
+        final paragraphs = prayer.split(RegExp(r'\n+'));
+        for (final paragraph in paragraphs) {
+          final trimmed = paragraph.trim();
+          if (trimmed.isNotEmpty) {
+            chunks.add(trimmed);
+          }
+        }
+      }
+      debugPrint(
+          '📝 TTS: [JA] Generated ${chunks.length} chunks for language $currentLang');
+      for (int i = 0; i < chunks.length; i++) {
+        debugPrint('  $i: ${chunks[i]}');
+      }
+      return chunks.where((chunk) => chunk.trim().isNotEmpty).toList();
+    }
+
     if (devocional.versiculo.trim().isNotEmpty) {
       final normalizedVerse =
           _normalizeTtsText(devocional.versiculo, currentLang, _currentVersion);
