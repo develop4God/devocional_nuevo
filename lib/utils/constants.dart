@@ -38,7 +38,7 @@ class Constants {
     'en': ['KJV', 'NIV'],
     'pt': ['ARC', 'NVI'],
     'fr': ['LSG1910', 'TOB'],
-    'ja': ['SK2003'], // Versión bíblica japonesa
+    'ja': ['SK2003', 'JCB'], // Agrego JCB para japonés
   };
 
   // Versión de Biblia por defecto por idioma

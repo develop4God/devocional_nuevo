@@ -33,6 +33,7 @@ class BibleVersionRegistry {
     ],
     'ja': [
       {'name': 'SK2003', 'dbFile': 'SK2003_ja.SQLite3'},
+      {'name': 'JCB', 'dbFile': 'JCB_ja.SQLite3'}, // Agrego JCB japonesa
     ],
   };
 

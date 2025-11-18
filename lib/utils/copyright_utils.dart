@@ -31,6 +31,9 @@ class CopyrightUtils {
         'default': 'Le texte biblique Louis Segond 1910® Domaine Public.',
       },
       'ja': {
+        'SK2003': '聖書本文 新改訳2003聖書® © 2003 新日本聖書刊行会。すべての権利が保護されています。',
+        'JCB': '聖書本文 JCB日本語共同訳聖書® © 2018 日本聖書協会。すべての権利が保護されています。',
+        'devocional': 'デボーション著作権 © 2025 develop4God. 無断転載・複製を禁じます。',
         'KJV': '聖書本文 キング・ジェームズ版® パブリックドメイン。',
         'NIV': '聖書本文 新国際版® © 2011 Biblica, Inc. すべての権利が保護されています。',
         'default': '聖書本文 新改訳聖書® パブリックドメイン。',
