@@ -26,6 +26,7 @@ class VoiceSettingsService {
       'en': ['en-US', 'en-GB', 'en-AU'],
       'pt': ['pt-BR', 'pt-PT'],
       'fr': ['fr-FR', 'fr-CA'],
+      'ja': ['ja-JP'],
     };
     final locales = preferredLocales[language] ?? [language];
 
@@ -241,7 +242,7 @@ class VoiceSettingsService {
         });
 
         debugPrint(
-            '🔧 VoiceSettings: Loaded saved voice $voiceName for language $language');
+            '🔧 VoiceSettings: Loaded saved voice $voiceName for language $language (locale: $locale)');
         return _getFriendlyVoiceName(voiceName, locale);
       }
     } catch (e) {
@@ -510,6 +511,8 @@ class VoiceSettingsService {
         return 'pt-BR';
       case 'fr':
         return 'fr-FR';
+      case 'ja':
+        return 'ja-JP';
       default:
         return 'es-ES';
     }

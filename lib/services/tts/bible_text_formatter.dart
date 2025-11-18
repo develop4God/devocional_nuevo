@@ -16,6 +16,8 @@ class BibleTextFormatter {
         return _formatBibleBookPortuguese(reference);
       case 'fr':
         return _formatBibleBookFrench(reference);
+      case 'ja':
+        return _formatBibleBookJapanese(reference);
       default:
         debugPrint(
             '[BibleTextFormatter] Unknown language "$language", using Spanish as default');
@@ -106,6 +108,12 @@ class BibleTextFormatter {
       );
     }
     return reference;
+  }
+
+  /// Formato para libros bíblicos en japonés (sin ordinales, solo limpieza básica)
+  static String _formatBibleBookJapanese(String reference) {
+    // En japonés, los libros bíblicos no usan ordinales, solo se devuelve el texto tal cual
+    return reference.trim();
   }
 
   /// Get Bible version expansions based on language
