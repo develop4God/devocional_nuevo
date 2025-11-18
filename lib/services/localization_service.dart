@@ -1,11 +1,14 @@
 import 'dart:convert';
 import 'dart:ui';
+
 import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Service for managing app localization and translations
 class LocalizationService {
   static LocalizationService? _instance;
+
   static LocalizationService get instance =>
       _instance ??= LocalizationService._();
 
@@ -22,6 +25,7 @@ class LocalizationService {
     Locale('en', ''), // English
     Locale('pt', ''), // Portuguese
     Locale('fr', ''), // French
+    Locale('ja', ''), // Japanese
   ];
 
   // Default locale
@@ -29,6 +33,7 @@ class LocalizationService {
 
   // Current locale
   Locale _currentLocale = defaultLocale;
+
   Locale get currentLocale => _currentLocale;
 
   // Translation cache
@@ -161,8 +166,28 @@ class LocalizationService {
         return 'Português';
       case 'fr':
         return 'Français';
+      case 'ja':
+        return '日本語';
       default:
         return languageCode;
+    }
+  }
+
+  /// Get localized date format
+  DateFormat getLocalizedDateFormat(String languageCode) {
+    switch (languageCode) {
+      case 'es':
+        return DateFormat('EEEE, d ' 'de' ' MMMM', 'es');
+      case 'en':
+        return DateFormat('EEEE, MMMM d', 'en');
+      case 'fr':
+        return DateFormat('EEEE d MMMM', 'fr');
+      case 'pt':
+        return DateFormat('EEEE, d ' 'de' ' MMMM', 'pt');
+      case 'ja':
+        return DateFormat('y年M月d日 EEEE', 'ja');
+      default:
+        return DateFormat('EEEE, MMMM d', 'en');
     }
   }
 }

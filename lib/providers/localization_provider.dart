@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../services/localization_service.dart';
 
 /// Provider for managing app localization state
@@ -44,6 +45,7 @@ class LocalizationProvider extends ChangeNotifier {
       'en': getLanguageName('en'),
       'pt': getLanguageName('pt'),
       'fr': getLanguageName('fr'),
+      'ja': getLanguageName('ja'),
     };
   }
 }
