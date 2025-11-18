@@ -38,7 +38,7 @@ class Constants {
     'en': ['KJV', 'NIV'],
     'pt': ['ARC', 'NVI'],
     'fr': ['LSG1910', 'TOB'],
-    'ja': ['SK2017'], // Versión bíblica japonesa
+    'ja': ['SK2003'], // Versión bíblica japonesa
   };
 
   // Versión de Biblia por defecto por idioma
@@ -47,7 +47,7 @@ class Constants {
     'en': 'KJV',
     'pt': 'ARC',
     'fr': 'LSG1910',
-    'ja': 'SK2017', // Por defecto para japonés
+    'ja': 'SK2003', // Por defecto para japonés
   };
 
   /// PREFERENCIAS (SharedPreferences KEYS)
