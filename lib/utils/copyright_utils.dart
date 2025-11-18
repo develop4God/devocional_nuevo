@@ -64,6 +64,8 @@ class CopyrightUtils {
         'TOB': 'Traduction Oecuménique de la Bible',
       },
       'ja': {
+        'SK2003': '新改訳2003聖書',
+        'JCB': '日本語共同訳聖書',
         'KJV': 'キング・ジェームズ版',
         'NIV': '新国際版',
       },

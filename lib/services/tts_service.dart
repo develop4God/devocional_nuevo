@@ -810,6 +810,9 @@ class TtsService {
       case 'fr':
         ttsLocale = 'fr-FR';
         break;
+      case 'ja':
+        ttsLocale = 'ja-JP';
+        break;
       default:
         ttsLocale = 'es-ES';
     }

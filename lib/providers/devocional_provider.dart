@@ -405,12 +405,9 @@ class DevocionalProvider with ChangeNotifier {
       _selectedVersion = version;
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('selectedVersion', version);
-
-      // Update TTS language context immediately
+      // Actualizar el contexto de TTS al cambiar la versión
       _audioController.ttsService
           .setLanguageContext(_selectedLanguage, _selectedVersion);
-
-      // Refetch data for new version
       await _fetchAllDevocionalesForLanguage();
     }
   }
