@@ -33,13 +33,39 @@ class TtsException implements Exception {
 }
 
 class TtsService implements ITtsService {
-  TtsService({
-    FlutterTts? flutterTts,
-    LocalizationService? localizationService,
-    VoiceSettingsService? voiceSettingsService,
-  })  : _flutterTts = flutterTts ?? FlutterTts(),
-        _localizationService = localizationService ?? LocalizationService.instance,
-        _voiceSettingsService = voiceSettingsService ?? VoiceSettingsService();
+  /// Private constructor for dependency injection
+  /// Use getService\<ITtsService\>() instead of direct construction
+  TtsService._internal({
+    required FlutterTts flutterTts,
+    required LocalizationService localizationService,
+    required VoiceSettingsService voiceSettingsService,
+  })  : _flutterTts = flutterTts,
+        _localizationService = localizationService,
+        _voiceSettingsService = voiceSettingsService;
+
+  /// Factory constructor that creates instance with proper dependencies
+  /// This is used by the service locator
+  factory TtsService() {
+    return TtsService._internal(
+      flutterTts: FlutterTts(),
+      localizationService: LocalizationService.instance,
+      voiceSettingsService: VoiceSettingsService(),
+    );
+  }
+
+  /// Test constructor for injecting mocks
+  @visibleForTesting
+  factory TtsService.forTest({
+    required FlutterTts flutterTts,
+    required LocalizationService localizationService,
+    required VoiceSettingsService voiceSettingsService,
+  }) {
+    return TtsService._internal(
+      flutterTts: flutterTts,
+      localizationService: localizationService,
+      voiceSettingsService: voiceSettingsService,
+    );
+  }
 
   final FlutterTts _flutterTts;
   final LocalizationService _localizationService;
