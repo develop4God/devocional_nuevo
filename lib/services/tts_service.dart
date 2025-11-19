@@ -995,6 +995,10 @@ class TtsService {
 
   Future<void> initializeTtsOnAppStart(String languageCode) async {
     // Asigna proactivamente la voz y el idioma TTS al iniciar la app
+    // CRITICAL: Update _currentLanguage BEFORE any initialization to ensure correct language
+    _currentLanguage = languageCode;
+    debugPrint(
+        '[TTS] Language context set to $languageCode before initialization');
     await assignDefaultVoiceForLanguage(languageCode);
     debugPrint(
         '[TTS] Voz e idioma asignados proactivamente al iniciar la app: $languageCode');
