@@ -153,6 +153,9 @@ class TtsService {
 
       debugPrint('🔧 TTS: Loading config - Language: $language, Rate: $rate');
 
+      // Asignar voz y guardar idioma igual que en settings
+      await assignDefaultVoiceForLanguage(_currentLanguage);
+
       await _configureTts(language, rate);
       await _flutterTts.awaitSpeakCompletion(true);
 
@@ -171,7 +174,7 @@ class TtsService {
   String _getTtsLocaleForLanguage(String language) {
     switch (language) {
       case 'es':
-        return 'es-ES';
+        return 'es-US';
       case 'en':
         return 'en-US';
       case 'pt':
