@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/pages/devocionales_page.dart'; // CAMBIADO: Importar página principal
 import 'package:flutter/material.dart';
@@ -174,7 +175,7 @@ class _SplashScreenState extends State<SplashScreen>
                             ),
                             // Texto principal centrado en el Stack
                             Center(
-                              child: Text(
+                              child: AutoSizeText(
                                 'app.preparing'.tr(),
                                 textAlign: TextAlign.center,
                                 style: GoogleFonts.dancingScript(
@@ -189,6 +190,9 @@ class _SplashScreenState extends State<SplashScreen>
                                     ),
                                   ],
                                 ),
+                                maxLines: 1,
+                                minFontSize: 16,
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
                           ],
