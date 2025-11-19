@@ -150,6 +150,8 @@ class LocalizationService {
         return 'pt-BR';
       case 'fr':
         return 'fr-FR';
+      case 'ja':
+        return 'ja-JP';
       default:
         return 'es-ES';
     }

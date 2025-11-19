@@ -87,8 +87,11 @@ void main() {
           reason: 'Pure white can cause visibility issues with white icons');
 
       // Should be a neutral gray for maximum compatibility
-      expect(navColor.red, navColor.green);
-      expect(navColor.green, navColor.blue);
+      final redValue = (navColor.r * 255.0).round() & 0xff;
+      final greenValue = (navColor.g * 255.0).round() & 0xff;
+      final blueValue = (navColor.b * 255.0).round() & 0xff;
+      expect(redValue, greenValue);
+      expect(greenValue, blueValue);
     });
   });
 

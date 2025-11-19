@@ -264,11 +264,17 @@ void main() {
 
       // Verificar que las propiedades no lanzan excepciones
       expect(() {
-        final _ = controller.currentState;
-        final __ = controller.isPlaying;
-        final ___ = controller.isPaused;
-        final ____ = controller.isActive;
-        final _____ = controller.progress;
+        final unused = controller.currentState;
+        final unused2 = controller.isPlaying;
+        final unused3 = controller.isPaused;
+        final unused4 = controller.isActive;
+        final unused5 = controller.progress;
+        // Suppress unused variable warnings
+        expect(unused, isNotNull);
+        expect(unused2, isNotNull);
+        expect(unused3, isNotNull);
+        expect(unused4, isNotNull);
+        expect(unused5, isNotNull);
       }, returnsNormally);
     });
   });
