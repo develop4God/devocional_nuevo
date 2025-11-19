@@ -64,11 +64,11 @@ void main() {
 
   setUp(() async {
     SharedPreferences.setMockInitialValues({}); // Reset SharedPreferences
-    
+
     // Setup service locator for DI
     ServiceLocator().reset();
     setupServiceLocator();
-    
+
     provider = DevocionalProvider();
     await provider.initializeData();
   });

@@ -106,7 +106,8 @@ void main() async {
 
   // Setup dependency injection
   setupServiceLocator();
-  developer.log('App: Service locator initialized with DI container.', name: 'MainApp');
+  developer.log('App: Service locator initialized with DI container.',
+      name: 'MainApp');
 
   // Configure system UI overlay style for consistent navigation bar appearance
   // This ensures dark gray navigation bar with white buttons across all themes

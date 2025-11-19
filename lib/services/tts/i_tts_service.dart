@@ -54,10 +54,10 @@ abstract class ITtsService {
   // Testing support
   @visibleForTesting
   List<String> generateChunksForTesting(Devocional devocional);
-  
+
   @visibleForTesting
   Map<String, String> getSectionHeadersForTesting(String language);
-  
+
   @visibleForTesting
   String formatBibleBook(String reference);
 }

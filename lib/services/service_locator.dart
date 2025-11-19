@@ -1,9 +1,9 @@
 // ignore_for_file: dangling_library_doc_comments
 /// Service Locator for Dependency Injection
-/// 
+///
 /// This provides a simple, agnostic DI container that works with any state management
 /// solution including BLoC, Riverpod, Provider, GetIt, etc.
-/// 
+///
 /// Usage:
 /// - Call `setupServiceLocator()` once at app startup
 /// - Access services via `ServiceLocator.get<ServiceType>()`

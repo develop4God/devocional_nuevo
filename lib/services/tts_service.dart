@@ -142,6 +142,7 @@ class TtsService implements ITtsService {
   List<String> _currentChunks = [];
   int _currentChunkIndex = 0;
   Timer? _emergencyTimer;
+  int? _lastEmergencyEstimatedMs;
   bool _chunkInProgress = false;
   DateTime _lastNativeActivity = DateTime.now();
 
@@ -441,13 +442,26 @@ class TtsService implements ITtsService {
 
   void _startEmergencyTimer(String chunk) {
     _cancelEmergencyTimer();
-    final wordCount = chunk.trim().split(RegExp(r'\s+')).length;
+    // Calcular wordCount respetando idiomas sin espacios (ej. japonés)
+    int wordCount;
+    final lang = _currentLanguage.toLowerCase();
+    if (lang.startsWith('ja')) {
+      // Estimar palabras en japonés por caracteres (avg ~6 chars = 1 palabra)
+      wordCount = (chunk.trim().length / 6).ceil();
+    } else {
+      wordCount = chunk.trim().split(RegExp(r'\s+')).length;
+    }
+
     final minTimer = wordCount < 10 ? 2500 : 4000;
-    const maxTimer = 6000;
-    final estimatedTime = (wordCount * 180).clamp(minTimer, maxTimer);
+    const maxTimer = 10000; // aumentado para soportar textos JA más largos
+    final estimatedTimeNum = (wordCount * 180).clamp(minTimer, maxTimer);
+    final estimatedTime = estimatedTimeNum.toInt();
+
+    // Guardar para pruebas
+    _lastEmergencyEstimatedMs = estimatedTime;
 
     debugPrint(
-        '🚨 TTS: Emergency timer set for ${estimatedTime}ms ($wordCount words) at ${DateTime.now()}');
+        '🚨 TTS: Emergency timer ${estimatedTime}ms ($wordCount words, lang: $_currentLanguage) at ${DateTime.now()}');
 
     _emergencyTimer = Timer(Duration(milliseconds: estimatedTime), () {
       final now = DateTime.now();
@@ -466,6 +480,29 @@ class TtsService implements ITtsService {
             '🚨 TTS: Emergency fallback - detenido por estado pausado o disposed');
       }
     });
+  }
+
+  /// Devuelve la última duración estimada del timer de emergencia en ms.
+  /// Visible para testing.
+  @visibleForTesting
+  int get emergencyTimerDurationMs => _lastEmergencyEstimatedMs ?? 0;
+
+  /// Metodo auxiliar público para calcular el tiempo estimado sin iniciar el timer.
+  /// Esto facilita pruebas unitarias sin necesidad de instanciar dependencias nativas.
+  @visibleForTesting
+  static int computeEstimatedEmergencyMs(String chunk, String language) {
+    final lang = language.toLowerCase();
+    int wordCount;
+    if (lang.startsWith('ja')) {
+      wordCount = (chunk.trim().length / 6).ceil();
+    } else {
+      wordCount = chunk.trim().split(RegExp(r'\s+')).length;
+    }
+
+    final minTimer = wordCount < 10 ? 2500 : 4000;
+    const maxTimer = 10000;
+    final estimatedTime = (wordCount * 180).clamp(minTimer, maxTimer).toInt();
+    return estimatedTime;
   }
 
   void _speakNextChunk() async {

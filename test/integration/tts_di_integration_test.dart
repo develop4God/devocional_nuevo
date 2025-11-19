@@ -1,9 +1,9 @@
 // ignore_for_file: dangling_library_doc_comments
 /// Integration tests for TTS Dependency Injection
-/// 
+///
 /// These tests validate that the DI implementation works correctly
 /// with real consumers (AudioController, DevocionalProvider)
-/// 
+///
 /// Focus: End-to-end integration, not unit behavior
 library;
 
@@ -153,15 +153,12 @@ void main() {
       await Future.delayed(const Duration(milliseconds: 200));
 
       // Then: Playback should start (allow time for initialization)
+      expect(controller.currentDevocionalId, 'di-test-1',
+          reason: 'Devotional ID should be set after play command');
       expect(
-        controller.currentDevocionalId, 
-        'di-test-1',
-        reason: 'Devotional ID should be set after play command'
-      );
-      expect(
-        controller.isPlaying || 
-        controller.currentState == TtsState.initializing ||
-        controller.currentState == TtsState.playing,
+        controller.isPlaying ||
+            controller.currentState == TtsState.initializing ||
+            controller.currentState == TtsState.playing,
         true,
         reason: 'Should be playing or initializing after play command',
       );
@@ -181,7 +178,7 @@ void main() {
 
       // Then: Provider should be functional and have audio controller
       expect(provider.audioController, isNotNull);
-      
+
       // And: Audio controller should have TTS service
       expect(provider.audioController.ttsService, isA<ITtsService>());
 
@@ -317,7 +314,8 @@ void main() {
         id: 'integration-flow',
         date: DateTime.now(),
         versiculo: 'Juan 3:16 - Porque de tal manera amó Dios al mundo',
-        reflexion: 'Una reflexión sobre el amor de Dios que es profunda y significativa.',
+        reflexion:
+            'Una reflexión sobre el amor de Dios que es profunda y significativa.',
         oracion: 'Padre celestial, gracias por tu amor incondicional.',
         paraMeditar: [
           ParaMeditar(

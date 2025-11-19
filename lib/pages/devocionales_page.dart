@@ -886,16 +886,6 @@ class _DevocionalesPageState extends State<DevocionalesPage>
 
                 return Column(
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8.0),
-                      child: Text(
-                        _getLocalizedDateFormat(context).format(DateTime.now()),
-                        style: textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: colorScheme.primary,
-                        ),
-                      ),
-                    ),
                     Expanded(
                       child: Screenshot(
                         controller: screenshotController,
@@ -907,6 +897,17 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 12.0),
+                                  child: Text(
+                                    _getLocalizedDateFormat(context)
+                                        .format(DateTime.now()),
+                                    style: textTheme.titleMedium?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      color: colorScheme.primary,
+                                    ),
+                                  ),
+                                ),
                                 Container(
                                   padding: const EdgeInsets.symmetric(
                                     horizontal: 12,

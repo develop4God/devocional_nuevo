@@ -1,9 +1,9 @@
 // ignore_for_file: dangling_library_doc_comments
 /// Comprehensive TTS Service Behavior Tests
-/// 
+///
 /// Focus: Real user scenarios and behaviors, not implementation details
 /// Approach: Test what users experience, not how code works internally
-/// 
+///
 /// These tests validate:
 /// - User plays devotional → TTS speaks content correctly
 /// - User pauses → TTS pauses immediately
@@ -247,8 +247,7 @@ void main() {
         id: 'test-6',
         date: DateTime.now(),
         versiculo: 'Romanos 8:28 - Y sabemos que a los que aman a Dios',
-        reflexion:
-            'Esta es una reflexión larga que generará múltiples chunks. '
+        reflexion: 'Esta es una reflexión larga que generará múltiples chunks. '
             'El propósito es probar que la navegación entre chunks funciona correctamente.',
         oracion:
             'Padre celestial, ayúdanos a confiar en tu plan perfecto para nuestras vidas.',
@@ -280,7 +279,7 @@ void main() {
 
       // Then: Service should be disposed
       expect(ttsService.isDisposed, true);
-      
+
       // And: Attempting operations should throw
       expect(
         () => ttsService.speakText('test'),
@@ -306,7 +305,8 @@ void main() {
       expect(ttsService.isDisposed, false);
     });
 
-    test('User Scenario: Service handles empty devotional gracefully', () async {
+    test('User Scenario: Service handles empty devotional gracefully',
+        () async {
       // Given: An empty or minimal devotional
       final emptyDevotional = Devocional(
         id: 'test-empty',
@@ -385,8 +385,7 @@ void main() {
         // Then: Progress should be tracked
         expect(progressValues.isNotEmpty, true,
             reason: 'Progress stream should emit progress values');
-        expect(progressValues.first, 0.0,
-            reason: 'Progress should start at 0');
+        expect(progressValues.first, 0.0, reason: 'Progress should start at 0');
         // Last value should be 0.0 after stop
         expect(progressValues.last, 0.0,
             reason: 'Progress should reset to 0 after stop');
@@ -434,7 +433,7 @@ void main() {
       // Given: A TTS service instance
       TestWidgetsFlutterBinding.ensureInitialized();
       SharedPreferences.setMockInitialValues({});
-      
+
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(
         const MethodChannel('flutter_tts'),
