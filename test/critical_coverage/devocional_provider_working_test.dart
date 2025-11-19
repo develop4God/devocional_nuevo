@@ -1,5 +1,6 @@
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
+import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -42,7 +43,9 @@ void main() {
           case 'setVolume':
           case 'setPitch':
           case 'awaitSpeakCompletion':
-            return null;
+          case 'setQueueMode':
+          case 'awaitSynthCompletion':
+            return 1;
           case 'getLanguages':
             return ['es-ES', 'en-US'];
           case 'getVoices':
@@ -50,6 +53,8 @@ void main() {
               {'name': 'Voice ES', 'locale': 'es-ES'},
               {'name': 'Voice EN', 'locale': 'en-US'},
             ];
+          case 'isLanguageAvailable':
+            return true;
           default:
             return null;
         }
@@ -59,12 +64,18 @@ void main() {
 
   setUp(() async {
     SharedPreferences.setMockInitialValues({}); // Reset SharedPreferences
+    
+    // Setup service locator for DI
+    ServiceLocator().reset();
+    setupServiceLocator();
+    
     provider = DevocionalProvider();
     await provider.initializeData();
   });
 
   tearDown(() {
     provider.dispose();
+    ServiceLocator().reset();
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(pathProviderChannel, null);
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
