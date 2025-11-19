@@ -49,8 +49,7 @@ void main() {
       final tipShownCount = prefs.getInt('achievement_tip_count') ?? 0;
       final shouldShow = tipShownCount < 2;
 
-      expect(shouldShow, isTrue,
-          reason: 'Tip should show when count is 0');
+      expect(shouldShow, isTrue, reason: 'Tip should show when count is 0');
     });
 
     test('Tip banner does not show when count is 2 or more', () async {

@@ -53,7 +53,8 @@
     "download_error": "ダウンロードエラー",
     "offline_mode": "オフラインモード",
     "online_mode": "オンラインモード",
-    "choose_option": "オプションを選択"
+    "choose_option": "オプションを選択",
+    "no_devocionales": "利用可能なデボーションがありません"
   },
   "prayer": {
     "invitation_title": "祈りへの招き",
@@ -338,7 +339,8 @@
     "onboarding_error_title": "設定エラー",
     "onboarding_error_loading": "初期設定の読み込みエラー",
     "onboarding_completed": "オンボーディング完了！",
-    "onboarding_retry": "再試行"
+    "onboarding_retry": "再試行",
+    "onboarding_touch_screen": "画面をタッチしてください"
   },
   "about": {
     "title": "アプリについて",
@@ -581,7 +583,11 @@
     "total_verses": "{count}節が利用可能",
     "select_chapter": "章を選択",
     "total_chapters": "{count}章が利用可能",
-    "close": "閉じる"
+    "close": "閉じる",
+    "search": "検索",
+    "saved_verses": "保存された節",
+    "delete_saved_verses": "保存された節を削除",
+    "deleted_marked_verses": "マークした節を削除しました"
   },
   "thanksgiving": {
     "thanksgiving": "感謝",

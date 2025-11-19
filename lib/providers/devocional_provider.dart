@@ -84,8 +84,14 @@ class DevocionalProvider with ChangeNotifier {
   String? get currentTrackedDevocionalId =>
       _readingTracker.currentTrackedDevocionalId;
 
-  // Supported languages - Updated to include new languages (pt and fr commented out initially)
-  static const List<String> _supportedLanguages = ['es', 'en', 'pt', 'fr'];
+  // Supported languages - Updated to incluir japonés
+  static const List<String> _supportedLanguages = [
+    'es',
+    'en',
+    'pt',
+    'fr',
+    'ja'
+  ];
   static const String _fallbackLanguage = 'es';
 
   List<String> get supportedLanguages => List.from(_supportedLanguages);
@@ -379,6 +385,8 @@ class DevocionalProvider with ChangeNotifier {
       String defaultVersion =
           Constants.defaultVersionByLanguage[supportedLanguage] ?? 'RVR1960';
       _selectedVersion = defaultVersion;
+      debugPrint(
+          '[PROVIDER] setLanguageContext: idioma=$supportedLanguage, version=$defaultVersion');
       await prefs.setString('selectedVersion', defaultVersion);
 
       // Update TTS language context immediately
@@ -399,12 +407,9 @@ class DevocionalProvider with ChangeNotifier {
       _selectedVersion = version;
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('selectedVersion', version);
-
-      // Update TTS language context immediately
+      // Actualizar el contexto de TTS al cambiar la versión
       _audioController.ttsService
           .setLanguageContext(_selectedLanguage, _selectedVersion);
-
-      // Refetch data for new version
       await _fetchAllDevocionalesForLanguage();
     }
   }

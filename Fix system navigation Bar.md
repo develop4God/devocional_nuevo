@@ -14,3 +14,18 @@ final themeState = context.watch<ThemeBloc>().state as ThemeLoaded;
         value: themeState.systemUiOverlayStyle,
         child: Scaffold(
           appBar: CustomAppBar(
+
+pero antes habia que hacer un ajustes en el theme bloc para que devuelva el systemUiOverlayStyle
+correcto
+/// Get system UI overlay style for current theme
+SystemUiOverlayStyle get systemUiOverlayStyle {
+final iconBrightness =
+brightness == Brightness.dark ? Brightness.light : Brightness.dark;
+
+    return SystemUiOverlayStyle(
+      systemNavigationBarColor: themeData.colorScheme.surface,
+      // ✅ Usa color del scaffold
+      systemNavigationBarIconBrightness: iconBrightness,
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: iconBrightness,
+    );

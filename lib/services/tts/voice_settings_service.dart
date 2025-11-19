@@ -26,6 +26,7 @@ class VoiceSettingsService {
       'en': ['en-US', 'en-GB', 'en-AU'],
       'pt': ['pt-BR', 'pt-PT'],
       'fr': ['fr-FR', 'fr-CA'],
+      'ja': ['ja-JP'],
     };
     final locales = preferredLocales[language] ?? [language];
 
@@ -241,7 +242,7 @@ class VoiceSettingsService {
         });
 
         debugPrint(
-            '🔧 VoiceSettings: Loaded saved voice $voiceName for language $language');
+            '🔧 VoiceSettings: Loaded saved voice $voiceName for language $language (locale: $locale)');
         return _getFriendlyVoiceName(voiceName, locale);
       }
     } catch (e) {
@@ -389,6 +390,24 @@ class VoiceSettingsService {
     }
   }
 
+  /// Metodo proactivo para inicializar el TTS con la voz correcta al iniciar la app o cambiar idioma
+  Future<void> proactiveAssignVoiceOnInit(String language) async {
+    debugPrint(
+        '🔄 [proactiveAssignVoiceOnInit] Inicializando TTS para idioma: $language');
+    final friendlyName = await loadSavedVoice(language);
+    if (friendlyName == null) {
+      debugPrint(
+          '🔄 [proactiveAssignVoiceOnInit] No hay voz guardada válida, asignando automáticamente...');
+      await autoAssignDefaultVoice(language);
+      final newFriendlyName = await loadSavedVoice(language);
+      debugPrint(
+          '🔄 [proactiveAssignVoiceOnInit] Voz asignada: $newFriendlyName');
+    } else {
+      debugPrint(
+          '🔄 [proactiveAssignVoiceOnInit] Voz guardada aplicada: $friendlyName');
+    }
+  }
+
   /// Obtiene todas las voces disponibles y las formatea de manera user-friendly
   Future<List<String>> getAvailableVoices() async {
     try {
@@ -510,6 +529,8 @@ class VoiceSettingsService {
         return 'pt-BR';
       case 'fr':
         return 'fr-FR';
+      case 'ja':
+        return 'ja-JP';
       default:
         return 'es-ES';
     }

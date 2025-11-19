@@ -147,10 +147,14 @@ class TtsService {
       }
 
       final prefs = await SharedPreferences.getInstance();
-      final language = prefs.getString('tts_language') ?? 'es-US';
+      // Priorizar el idioma del contexto sobre el guardado
+      String language = _getTtsLocaleForLanguage(_currentLanguage);
       final rate = prefs.getDouble('tts_rate') ?? 0.5;
 
       debugPrint('🔧 TTS: Loading config - Language: $language, Rate: $rate');
+
+      // Asignar voz y guardar idioma igual que en settings
+      await assignDefaultVoiceForLanguage(_currentLanguage);
 
       await _configureTts(language, rate);
       await _flutterTts.awaitSpeakCompletion(true);
@@ -167,13 +171,30 @@ class TtsService {
     }
   }
 
+  String _getTtsLocaleForLanguage(String language) {
+    switch (language) {
+      case 'es':
+        return 'es-US';
+      case 'en':
+        return 'en-US';
+      case 'pt':
+        return 'pt-BR';
+      case 'fr':
+        return 'fr-FR';
+      case 'ja':
+        return 'ja-JP';
+      default:
+        return 'es-ES';
+    }
+  }
+
   Future<void> _configureTts(String language, double rate) async {
     try {
       debugPrint('🔧 TTS: Setting language to $language');
       await _flutterTts.setLanguage(language);
 
       final savedVoice =
-          await _voiceSettingsService.loadSavedVoice(_currentLanguage);
+          await _voiceSettingsService.loadSavedVoice(language.split('-')[0]);
       if (savedVoice != null) {
         debugPrint('🔧 TTS: Voice loaded by VoiceSettingsService: $savedVoice');
       }
@@ -420,6 +441,11 @@ class TtsService {
     });
 
     // 3. Formatear referencias bíblicas básicas (capítulo:versículo)
+    if (currentLang == 'ja') {
+      // En japonés, no segmentar ni agregar palabras como capítulo/versículo
+      // Solo limpiar espacios y devolver el texto tal cual
+      return normalized.replaceAll(RegExp(r'\s+'), ' ').trim();
+    }
     normalized = _formatBibleReferences(normalized, currentLang);
 
     // Clean up whitespace
@@ -472,6 +498,61 @@ class TtsService {
     List<String> chunks = [];
     final currentLang = targetLanguage ?? _currentLanguage;
     final sectionHeaders = _getSectionHeaders(currentLang);
+
+    // Lógica específica para japonés
+    if (currentLang == 'ja') {
+      // Versículo
+      if (devocional.versiculo.trim().isNotEmpty) {
+        final normalizedVerse = _normalizeTtsText(
+            devocional.versiculo, currentLang, _currentVersion);
+        chunks.add('${sectionHeaders['verse']}:: $normalizedVerse');
+      }
+      // Reflexión
+      if (devocional.reflexion.trim().isNotEmpty) {
+        chunks.add('${sectionHeaders['reflection']}::');
+        final reflection = _normalizeTtsText(
+            devocional.reflexion, currentLang, _currentVersion);
+        final paragraphs = reflection.split(RegExp(r'\n+'));
+        for (final paragraph in paragraphs) {
+          final trimmed = paragraph.trim();
+          if (trimmed.isNotEmpty) {
+            chunks.add(trimmed);
+          }
+        }
+      }
+      // Para meditar
+      if (devocional.paraMeditar.isNotEmpty) {
+        chunks.add('${sectionHeaders['meditate']}::');
+        for (final item in devocional.paraMeditar) {
+          final citation =
+              _normalizeTtsText(item.cita, currentLang, _currentVersion);
+          final text =
+              _normalizeTtsText(item.texto, currentLang, _currentVersion);
+          if (citation.isNotEmpty && text.isNotEmpty) {
+            chunks.add('$citation: $text');
+          }
+        }
+      }
+      // Oración
+      if (devocional.oracion.trim().isNotEmpty) {
+        chunks.add('${sectionHeaders['prayer']}::');
+        final prayer =
+            _normalizeTtsText(devocional.oracion, currentLang, _currentVersion);
+        final paragraphs = prayer.split(RegExp(r'\n+'));
+        for (final paragraph in paragraphs) {
+          final trimmed = paragraph.trim();
+          if (trimmed.isNotEmpty) {
+            chunks.add(trimmed);
+          }
+        }
+      }
+      debugPrint(
+          '📝 TTS: [JA] Generated ${chunks.length} chunks for language $currentLang');
+      for (int i = 0; i < chunks.length; i++) {
+        debugPrint('  $i: ${chunks[i]}');
+      }
+      return chunks.where((chunk) => chunk.trim().isNotEmpty).toList();
+    }
 
     if (devocional.versiculo.trim().isNotEmpty) {
       final normalizedVerse =
@@ -542,6 +623,17 @@ class TtsService {
 
   void _splitLongParagraph(
       String paragraph, List<String> chunks, String currentLang) {
+    if (currentLang == 'ja') {
+      // En japonés, no segmentar por puntuación occidental, solo cortar cada 300 caracteres
+      for (int i = 0; i < paragraph.length; i += 300) {
+        final part = paragraph.substring(
+            i, i + 300 > paragraph.length ? paragraph.length : i + 300);
+        if (part.trim().isNotEmpty) {
+          chunks.add(part.trim());
+        }
+      }
+      return;
+    }
     final sentences = paragraph.split(RegExp(r'(?<=[.!?])\s+'));
     String chunkParagraph = '';
 
@@ -567,6 +659,15 @@ class TtsService {
     if (_localizationService.currentLocale.languageCode != language) {
       debugPrint(
           '⚠️ TTS: Language mismatch between localization service (${_localizationService.currentLocale.languageCode}) and TTS context ($language)');
+      // Listener proactivo: Forzar actualización de contexto TTS si hay mismatch
+      Future.microtask(() async {
+        debugPrint(
+            '🔄 TTS: Forzando actualización de contexto TTS a ${_localizationService.currentLocale.languageCode}');
+        setLanguageContext(
+            _localizationService.currentLocale.languageCode, _currentVersion);
+        await _updateTtsLanguageSettings(
+            _localizationService.currentLocale.languageCode);
+      });
     }
 
     return {
@@ -782,10 +883,10 @@ class TtsService {
     _currentVersion = version;
     debugPrint('🌐 TTS: Language context set to $language ($version)');
 
-    if (_localizationService.currentLocale.languageCode != language) {
-      debugPrint(
-          '🔄 TTS: Syncing localization service to language context $language');
-    }
+    SharedPreferences.getInstance().then((prefs) {
+      String ttsLocale = _getTtsLocaleForLanguage(language);
+      prefs.setString('tts_language', ttsLocale);
+    });
 
     _updateTtsLanguageSettings(language);
   }
@@ -809,6 +910,9 @@ class TtsService {
         break;
       case 'fr':
         ttsLocale = 'fr-FR';
+        break;
+      case 'ja':
+        ttsLocale = 'ja-JP';
         break;
       default:
         ttsLocale = 'es-ES';
@@ -887,5 +991,22 @@ class TtsService {
     await _stateController.close();
     await _progressController.close();
     debugPrint('🧹 TTS: Service disposed at ${DateTime.now()}');
+  }
+
+  Future<void> initializeTtsOnAppStart(String languageCode) async {
+    // Asigna proactivamente la voz y el idioma TTS al iniciar la app
+    await assignDefaultVoiceForLanguage(languageCode);
+    debugPrint(
+        '[TTS] Voz e idioma asignados proactivamente al iniciar la app: $languageCode');
+  }
+
+  Future<void> assignDefaultVoiceForLanguage(String languageCode) async {
+    String ttsLocale = _getTtsLocaleForLanguage(languageCode);
+    await _flutterTts.setLanguage(ttsLocale);
+    await _voiceSettingsService.loadSavedVoice(languageCode);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('tts_language', ttsLocale);
+    debugPrint(
+        '[TTS] Voz por defecto asignada para idioma: $languageCode ($ttsLocale)');
   }
 }

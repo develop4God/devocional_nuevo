@@ -63,100 +63,107 @@ class _PrayersPageState extends State<PrayersPage>
               // Container para las tabs en la parte blanca
               Container(
                 color: colorScheme.surface,
-                child: TabBar(
-                  controller: _tabController,
-                  isScrollable: true,
-                  indicatorColor: colorScheme.primary,
-                  labelColor: colorScheme.primary,
-                  unselectedLabelColor:
-                      colorScheme.onSurface.withValues(alpha: 0.6),
-                  labelPadding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
-                  tabs: [
-                    Tab(
-                      height: 72,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(Icons.schedule, size: 22),
-                          const SizedBox(height: 2),
-                          FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(
-                              'prayer.prayers'.tr(),
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.fade,
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: TabBar(
+                        controller: _tabController,
+                        indicatorColor: colorScheme.primary,
+                        labelColor: colorScheme.primary,
+                        unselectedLabelColor:
+                            colorScheme.onSurface.withValues(alpha: 0.6),
+                        labelPadding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 0),
+                        tabs: [
+                          Tab(
+                            height: 72,
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.schedule, size: 22),
+                                const SizedBox(height: 2),
+                                FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child: Text(
+                                    'prayer.prayers'.tr(),
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.fade,
+                                  ),
+                                ),
+                                FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child: Text(
+                                    'prayer.active'.tr(),
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(fontSize: 13),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.fade,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                          FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(
-                              'prayer.active'.tr(),
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(fontSize: 13),
-                              maxLines: 1,
-                              overflow: TextOverflow.fade,
+                          Tab(
+                            height: 72,
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.check_circle_outline,
+                                    size: 22),
+                                const SizedBox(height: 2),
+                                FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child: Text(
+                                    'prayer.prayers'.tr(),
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.fade,
+                                  ),
+                                ),
+                                FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child: Text(
+                                    'prayer.answered_prayers'.tr(),
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(fontSize: 13),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.fade,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        ],
-                      ),
-                    ),
-                    Tab(
-                      height: 72,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(Icons.check_circle_outline, size: 22),
-                          const SizedBox(height: 2),
-                          FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(
-                              'prayer.prayers'.tr(),
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.fade,
-                            ),
-                          ),
-                          FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(
-                              'prayer.answered_prayers'.tr(),
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(fontSize: 13),
-                              maxLines: 1,
-                              overflow: TextOverflow.fade,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Tab(
-                      height: 72,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Text('☺️', style: TextStyle(fontSize: 22)),
-                          const SizedBox(height: 2),
-                          FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(
-                              'thanksgiving.thanksgivings'.tr(),
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                              ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
+                          Tab(
+                            height: 72,
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Text('☺️',
+                                    style: TextStyle(fontSize: 22)),
+                                const SizedBox(height: 2),
+                                FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child: Text(
+                                    'thanksgiving.thanksgivings'.tr(),
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ],

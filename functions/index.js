@@ -23,6 +23,11 @@ const NOTIFICATION_TRANSLATIONS = {
   fr: {
     title: "Votre espace de Paix vous attend",
     body: "N'oubliez pas de vous connecter aujourd'hui avec la parole de Dieu!",
+    },
+  ja: {
+    title: "あなたの平和の空間が待っています",
+    body: "今日、神の言葉とつながることを忘れないでください！",
+
   },
 };
 

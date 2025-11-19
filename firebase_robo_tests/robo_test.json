@@ -1,0 +1,254 @@
+[
+  {
+    "comment": "Comprehensive navigation test with new semantic keys for drawer, bottom nav, and salvation prayer",
+    "type": "wait",
+    "delay": 8000
+  },
+  {
+    "comment": "Wait for splash screen to complete",
+    "type": "wait",
+    "delay": 3000
+  },
+  {
+    "comment": "Test Bottom Navigation Bar - Previous Button",
+    "type": "click",
+    "key": "bottom_nav_previous_button",
+    "delay": 2000
+  },
+  {
+    "comment": "Test Bottom Navigation Bar - Next Button",
+    "type": "click",
+    "key": "bottom_nav_next_button",
+    "delay": 2000
+  },
+  {
+    "comment": "Test Bottom Navigation Bar - TTS Player",
+    "type": "click",
+    "key": "bottom_nav_tts_player",
+    "delay": 3000
+  },
+  {
+    "comment": "Stop TTS if playing",
+    "type": "click",
+    "key": "bottom_nav_tts_player",
+    "delay": 2000
+  },
+  {
+    "comment": "Test Bottom App Bar - Favorite Icon",
+    "type": "click",
+    "key": "bottom_appbar_favorite_icon",
+    "delay": 2000
+  },
+  {
+    "comment": "Unfavorite (toggle back)",
+    "type": "click",
+    "key": "bottom_appbar_favorite_icon",
+    "delay": 2000
+  },
+  {
+    "comment": "Test Bottom App Bar - Prayers Icon",
+    "type": "click",
+    "key": "bottom_appbar_prayers_icon",
+    "delay": 2000
+  },
+  {
+    "comment": "Go back from prayers page",
+    "type": "press",
+    "keyCode": 4,
+    "delay": 1500
+  },
+  {
+    "comment": "Test Bottom App Bar - Bible Icon",
+    "type": "click",
+    "key": "bottom_appbar_bible_icon",
+    "delay": 3000
+  },
+  {
+    "comment": "Go back from bible page",
+    "type": "press",
+    "keyCode": 4,
+    "delay": 1500
+  },
+  {
+    "comment": "Test Bottom App Bar - Progress Icon",
+    "type": "click",
+    "key": "bottom_appbar_progress_icon",
+    "delay": 2000
+  },
+  {
+    "comment": "Go back from progress page",
+    "type": "press",
+    "keyCode": 4,
+    "delay": 1500
+  },
+  {
+    "comment": "Test Bottom App Bar - Settings Icon",
+    "type": "click",
+    "key": "bottom_appbar_settings_icon",
+    "delay": 2000
+  },
+  {
+    "comment": "Go back from settings page",
+    "type": "press",
+    "keyCode": 4,
+    "delay": 1500
+  },
+  {
+    "comment": "Open drawer",
+    "type": "swipe",
+    "startX": 10,
+    "startY": 500,
+    "endX": 300,
+    "endY": 500,
+    "duration": 300,
+    "delay": 2000
+  },
+  {
+    "comment": "Test Drawer - Bible Version Selector",
+    "type": "click",
+    "key": "drawer_bible_version_selector",
+    "delay": 2000
+  },
+  {
+    "comment": "Close dropdown (if opened)",
+    "type": "press",
+    "keyCode": 4,
+    "delay": 1000
+  },
+  {
+    "comment": "Open drawer again",
+    "type": "swipe",
+    "startX": 10,
+    "startY": 500,
+    "endX": 300,
+    "endY": 500,
+    "duration": 300,
+    "delay": 2000
+  },
+  {
+    "comment": "Test Drawer - Saved Favorites",
+    "type": "click",
+    "key": "drawer_saved_favorites",
+    "delay": 2000
+  },
+  {
+    "comment": "Go back from favorites",
+    "type": "press",
+    "keyCode": 4,
+    "delay": 1500
+  },
+  {
+    "comment": "Open drawer again",
+    "type": "swipe",
+    "startX": 10,
+    "startY": 500,
+    "endX": 300,
+    "endY": 500,
+    "duration": 300,
+    "delay": 2000
+  },
+  {
+    "comment": "Test Drawer - My Prayers (Salvation Prayer section)",
+    "type": "click",
+    "key": "drawer_my_prayers",
+    "delay": 2000
+  },
+  {
+    "comment": "Go back from prayers",
+    "type": "press",
+    "keyCode": 4,
+    "delay": 1500
+  },
+  {
+    "comment": "Open drawer again",
+    "type": "swipe",
+    "startX": 10,
+    "startY": 500,
+    "endX": 300,
+    "endY": 500,
+    "duration": 300,
+    "delay": 2000
+  },
+  {
+    "comment": "Test Drawer - Dark Mode Toggle",
+    "type": "click",
+    "key": "drawer_dark_mode_toggle",
+    "delay": 2000
+  },
+  {
+    "comment": "Toggle back to original mode",
+    "type": "click",
+    "key": "drawer_dark_mode_toggle",
+    "delay": 2000
+  },
+  {
+    "comment": "Test Drawer - Notifications Config",
+    "type": "click",
+    "key": "drawer_notifications_config",
+    "delay": 2000
+  },
+  {
+    "comment": "Go back from notifications",
+    "type": "press",
+    "keyCode": 4,
+    "delay": 1500
+  },
+  {
+    "comment": "Open drawer again",
+    "type": "swipe",
+    "startX": 10,
+    "startY": 500,
+    "endX": 300,
+    "endY": 500,
+    "duration": 300,
+    "delay": 2000
+  },
+  {
+    "comment": "Test Drawer - Download Devotionals",
+    "type": "click",
+    "key": "drawer_download_devotionals",
+    "delay": 2000
+  },
+  {
+    "comment": "Cancel download if dialog appears",
+    "type": "click",
+    "text": "Cancelar",
+    "optional": true,
+    "delay": 1500
+  },
+  {
+    "comment": "Open drawer one more time",
+    "type": "swipe",
+    "startX": 10,
+    "startY": 500,
+    "endX": 300,
+    "endY": 500,
+    "duration": 300,
+    "delay": 2000
+  },
+  {
+    "comment": "Test Drawer - Close Button",
+    "type": "click",
+    "key": "drawer_close_button",
+    "delay": 2000
+  },
+  {
+    "comment": "Test Salvation Prayer Dialog (if it appears on first launch)",
+    "type": "click",
+    "key": "salvation_prayer_checkbox",
+    "optional": true,
+    "delay": 1500
+  },
+  {
+    "comment": "Continue from salvation prayer dialog",
+    "type": "click",
+    "key": "salvation_prayer_continue_button",
+    "optional": true,
+    "delay": 2000
+  },
+  {
+    "comment": "Final wait to ensure all actions completed",
+    "type": "wait",
+    "delay": 3000
+  }
+]

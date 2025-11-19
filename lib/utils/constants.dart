@@ -29,6 +29,7 @@ class Constants {
     'en': 'English',
     'pt': 'Português',
     'fr': 'Français',
+    'ja': '日本語', // Habilitar japonés
   };
 
   // Versiones de la Biblia disponibles por idioma
@@ -37,6 +38,7 @@ class Constants {
     'en': ['KJV', 'NIV'],
     'pt': ['ARC', 'NVI'],
     'fr': ['LSG1910', 'TOB'],
+    'ja': ['SK2003', 'JCB'], // Agrego JCB para japonés
   };
 
   // Versión de Biblia por defecto por idioma
@@ -45,6 +47,7 @@ class Constants {
     'en': 'KJV',
     'pt': 'ARC',
     'fr': 'LSG1910',
+    'ja': 'SK2003', // Por defecto para japonés
   };
 
   /// PREFERENCIAS (SharedPreferences KEYS)

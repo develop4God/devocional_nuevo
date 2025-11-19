@@ -234,6 +234,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                   fontSize: 12,
                                 ),
                               ),
+                              // Mostrar solo el idioma, sin versión bíblica
                             ],
                           ),
                         ),

@@ -102,6 +102,13 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
         devocionalProvider.setSelectedVersion(defaultVersion);
       }
 
+      // Cambiar el contexto de TTS al idioma y versión seleccionados
+      devocionalProvider.audioController.ttsService
+          .setLanguageContext(languageCode, defaultVersion ?? '');
+      // Usar el metodo getTtsLocale del provider de localización
+      await devocionalProvider.audioController.ttsService
+          .setLanguage(localizationProvider.getTtsLocale());
+
       // Download devotional content (only if not already downloaded or if it's not Spanish)
       bool downloadSuccess = true;
       if (!(_downloadStatus[languageCode] == true) || languageCode == 'es') {

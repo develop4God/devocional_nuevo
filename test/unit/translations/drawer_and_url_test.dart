@@ -6,8 +6,7 @@ void main() {
   group('Drawer Translation Tests', () {
     test('Spanish drawer label should say "Oraciones y agradecimientos"',
         () async {
-      final file =
-          File('i18n/es.json');
+      final file = File('i18n/es.json');
       final content = await file.readAsString();
       final json = jsonDecode(content) as Map<String, dynamic>;
 
@@ -18,8 +17,7 @@ void main() {
 
     test('English drawer label should say "Prayers and thanksgivings"',
         () async {
-      final file =
-          File('i18n/en.json');
+      final file = File('i18n/en.json');
       final content = await file.readAsString();
       final json = jsonDecode(content) as Map<String, dynamic>;
 
@@ -28,10 +26,8 @@ void main() {
           reason: 'English drawer should include prayers and thanksgivings');
     });
 
-    test('French drawer label should say "Prières et remerciements"',
-        () async {
-      final file =
-          File('i18n/fr.json');
+    test('French drawer label should say "Prières et remerciements"', () async {
+      final file = File('i18n/fr.json');
       final content = await file.readAsString();
       final json = jsonDecode(content) as Map<String, dynamic>;
 
@@ -42,20 +38,17 @@ void main() {
 
     test('Portuguese drawer label should say "Orações e agradecimentos"',
         () async {
-      final file =
-          File('i18n/pt.json');
+      final file = File('i18n/pt.json');
       final content = await file.readAsString();
       final json = jsonDecode(content) as Map<String, dynamic>;
 
       final drawer = json['drawer'] as Map<String, dynamic>;
       expect(drawer['my_prayers'], equals('Orações e agradecimentos'),
-          reason:
-              'Portuguese drawer should include prayers and thanksgivings');
+          reason: 'Portuguese drawer should include prayers and thanksgivings');
     });
 
     test('Japanese drawer label should say "祈りと感謝"', () async {
-      final file =
-          File('i18n/ja.json');
+      final file = File('i18n/ja.json');
       final content = await file.readAsString();
       final json = jsonDecode(content) as Map<String, dynamic>;
 
@@ -75,8 +68,7 @@ void main() {
       };
 
       for (final lang in languages) {
-        final file =
-            File('i18n/$lang.json');
+        final file = File('i18n/$lang.json');
         final content = await file.readAsString();
         final json = jsonDecode(content) as Map<String, dynamic>;
         final drawer = json['drawer'] as Map<String, dynamic>;
@@ -90,8 +82,7 @@ void main() {
   group('Website URL Tests', () {
     test('About page should have correct website URL without trailing slash',
         () async {
-      final file = File(
-          'lib/pages/about_page.dart');
+      final file = File('lib/pages/about_page.dart');
       final content = await file.readAsString();
 
       // Check that the URL exists and doesn't have trailing slash
@@ -103,8 +94,7 @@ void main() {
 
     test('Website URL appears in both display text and launchURL call',
         () async {
-      final file = File(
-          'lib/pages/about_page.dart');
+      final file = File('lib/pages/about_page.dart');
       final content = await file.readAsString();
 
       // Count occurrences of the correct URL
