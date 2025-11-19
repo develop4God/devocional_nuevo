@@ -32,6 +32,72 @@ class TtsException implements Exception {
       'TtsException: $message${code != null ? ' (Code: $code)' : ''}';
 }
 
+/// Text-to-Speech service implementing the ITtsService interface.
+///
+/// This service provides comprehensive TTS functionality for speaking devotional
+/// content, with support for multiple languages, voice customization, and
+/// chunk-based playback for better user experience.
+///
+/// ## Usage Patterns
+///
+/// ### 1. Production Usage (Recommended)
+/// Use the service locator to access the singleton instance:
+/// ```dart
+/// // In main.dart
+/// void main() {
+///   setupServiceLocator();
+///   runApp(MyApp());
+/// }
+///
+/// // In your code
+/// final ttsService = getService<ITtsService>();
+/// await ttsService.speakDevotional(devotional);
+/// ```
+///
+/// ### 2. Direct Instantiation (Legacy Support)
+/// The factory constructor is available for backward compatibility:
+/// ```dart
+/// final tts = TtsService(); // Creates new instance with default dependencies
+/// ```
+/// ⚠️ **Warning:** This creates a new instance each time and bypasses the
+/// service locator singleton. Use service locator pattern instead.
+///
+/// ### 3. Testing (Test Constructor)
+/// Use the forTest constructor to inject mocks:
+/// ```dart
+/// test('TTS service test', () {
+///   final mockFlutterTts = MockFlutterTts();
+///   final mockLocalization = MockLocalizationService();
+///   final mockVoiceSettings = MockVoiceSettingsService();
+///
+///   final tts = TtsService.forTest(
+///     flutterTts: mockFlutterTts,
+///     localizationService: mockLocalization,
+///     voiceSettingsService: mockVoiceSettings,
+///   );
+///
+///   // Test with mocked dependencies
+/// });
+/// ```
+///
+/// ## Singleton Pattern
+/// When using the service locator (recommended approach), only one instance
+/// of TtsService exists throughout the app lifecycle. This ensures:
+/// - Consistent state across the application
+/// - Efficient resource usage (single FlutterTts instance)
+/// - Proper lifecycle management
+///
+/// ⚠️ **Important:** Do not create multiple TtsService instances manually.
+/// Always use `getService<ITtsService>()` for production code.
+///
+/// ## Dependencies
+/// TtsService requires three dependencies:
+/// - `FlutterTts`: Platform TTS implementation
+/// - `LocalizationService`: For language-specific text normalization
+/// - `VoiceSettingsService`: For voice selection and preferences
+///
+/// These are automatically provided when using the factory constructor or
+/// service locator, but must be explicitly provided when using forTest.
 class TtsService implements ITtsService {
   /// Private constructor for dependency injection
   /// Use getService\<ITtsService\>() instead of direct construction
