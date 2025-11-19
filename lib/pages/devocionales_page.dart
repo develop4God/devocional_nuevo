@@ -600,7 +600,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
   //                           ),
   //                         ],
   //                       ),
-  //                     ),
+  //                     },
   //                   ),
   //                 ),
   //                 const SizedBox(width: 16),
