@@ -48,7 +48,7 @@ void main() {
         },
       );
 
-      controller = AudioController();
+      controller = AudioController(TtsService());
       controller.initialize();
     });
 

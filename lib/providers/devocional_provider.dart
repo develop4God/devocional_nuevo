@@ -8,7 +8,9 @@ import 'dart:ui';
 import 'package:devocional_nuevo/controllers/audio_controller.dart'; // NEW
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
+import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
+import 'package:devocional_nuevo/services/tts/i_tts_service.dart';
 import 'package:devocional_nuevo/utils/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -110,8 +112,8 @@ class DevocionalProvider with ChangeNotifier {
   DevocionalProvider() {
     debugPrint('🏗️ Provider: Constructor iniciado');
 
-    // Initialize audio controller
-    _audioController = AudioController();
+    // Initialize audio controller with DI
+    _audioController = AudioController(getService<ITtsService>());
     _audioController.initialize();
 
     // Listen to audio controller changes and relay to our listeners
