@@ -18,8 +18,9 @@ import 'package:devocional_nuevo/services/google_drive_auth_service.dart';
 import 'package:devocional_nuevo/services/google_drive_backup_service.dart';
 import 'package:devocional_nuevo/services/notification_service.dart';
 import 'package:devocional_nuevo/services/onboarding_service.dart';
+import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
-import 'package:devocional_nuevo/services/tts_service.dart';
+import 'package:devocional_nuevo/services/tts/i_tts_service.dart';
 import 'package:devocional_nuevo/splash_screen.dart';
 import 'package:devocional_nuevo/utils/constants.dart';
 import 'package:devocional_nuevo/utils/theme_constants.dart';
@@ -103,6 +104,11 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
 
+  // Setup dependency injection
+  setupServiceLocator();
+  developer.log('App: Service locator initialized with DI container.',
+      name: 'MainApp');
+
   // Configure system UI overlay style for consistent navigation bar appearance
   // This ensures dark gray navigation bar with white buttons across all themes
   SystemChrome.setSystemUIOverlayStyle(systemUiOverlayStyle);
@@ -133,7 +139,9 @@ void main() async {
             return themeBloc;
           },
         ),
-        ChangeNotifierProvider(create: (_) => AudioController()),
+        ChangeNotifierProvider(
+          create: (_) => AudioController(getService<ITtsService>()),
+        ),
         // Agregar BackupBloc
         BlocProvider(
           create: (context) => BackupBloc(
@@ -356,7 +364,7 @@ class _AppInitializerState extends State<AppInitializer> {
         name: 'MainApp',
       );
       // Inicializar TTS proactivamente con el idioma del usuario
-      await TtsService().initializeTtsOnAppStart(languageCode);
+      await getService<ITtsService>().initializeTtsOnAppStart(languageCode);
       debugPrint(
           '[MAIN] TTS inicializado proactivamente con idioma: $languageCode');
     } catch (e) {

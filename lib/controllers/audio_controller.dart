@@ -5,13 +5,17 @@
 import 'dart:async';
 
 import 'package:devocional_nuevo/models/devocional_model.dart';
+import 'package:devocional_nuevo/services/tts/i_tts_service.dart';
 import 'package:devocional_nuevo/services/tts_service.dart';
 import 'package:flutter/widgets.dart';
 
 /// AudioController refactorizado como proxy reactivo puro
 /// Eliminado estado local duplicado - solo retransmite estados del TtsService
 class AudioController extends ChangeNotifier {
-  final TtsService _ttsService = TtsService();
+  final ITtsService _ttsService;
+
+  // Constructor with dependency injection
+  AudioController(this._ttsService);
 
   // Subscriptions para actualizaciones reactivas
   StreamSubscription<TtsState>? _stateSubscription;
@@ -56,7 +60,7 @@ class AudioController extends ChangeNotifier {
       _currentState == TtsState.playing || _currentState == TtsState.paused;
 
   // Getter for TTS service to allow language context updates
-  TtsService get ttsService => _ttsService;
+  ITtsService get ttsService => _ttsService;
 
   /// FIX: Verifica si un devocional específico está activo - LÓGICA CORREGIDA
   bool isDevocionalPlaying(String devocionalId) {

@@ -493,13 +493,13 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     final locale = Localizations.localeOf(context).languageCode;
     switch (locale) {
       case 'es':
-        return DateFormat('EEEE, d ' 'de' ' MMMM', 'es');
+        return DateFormat("EEEE, d 'de' MMMM", 'es');
       case 'en':
         return DateFormat('EEEE, MMMM d', 'en');
       case 'fr':
         return DateFormat('EEEE d MMMM', 'fr');
       case 'pt':
-        return DateFormat('EEEE, d ' 'de' ' MMMM', 'pt');
+        return DateFormat("EEEE, d 'de' MMMM", 'pt');
       case 'ja':
         return DateFormat('y年M月d日 EEEE', 'ja');
       default:
@@ -600,7 +600,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
   //                           ),
   //                         ],
   //                       ),
-  //                     ),
+  //                     },
   //                   ),
   //                 ),
   //                 const SizedBox(width: 16),
@@ -633,7 +633,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
   //                           ),
   //                         ],
   //                       ),
-  //                     ),
+  //                     },
   //                   ),
   //                 ),
   //               ],
@@ -886,16 +886,6 @@ class _DevocionalesPageState extends State<DevocionalesPage>
 
                 return Column(
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8.0),
-                      child: Text(
-                        _getLocalizedDateFormat(context).format(DateTime.now()),
-                        style: textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: colorScheme.primary,
-                        ),
-                      ),
-                    ),
                     Expanded(
                       child: Screenshot(
                         controller: screenshotController,
@@ -907,6 +897,20 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 12.0),
+                                  child: Center(
+                                    child: Text(
+                                      _getLocalizedDateFormat(context)
+                                          .format(DateTime.now()),
+                                      style: textTheme.titleMedium?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                        color: colorScheme.primary,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                ),
                                 Container(
                                   padding: const EdgeInsets.symmetric(
                                     horizontal: 12,

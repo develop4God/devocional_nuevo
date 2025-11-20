@@ -11,6 +11,7 @@ import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/services/localization_service.dart';
 import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
 import 'package:devocional_nuevo/services/tts/bible_text_formatter.dart';
+import 'package:devocional_nuevo/services/tts/i_tts_service.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -31,22 +32,117 @@ class TtsException implements Exception {
       'TtsException: $message${code != null ? ' (Code: $code)' : ''}';
 }
 
-class TtsService {
-  static final TtsService _instance = TtsService._internal();
+/// Text-to-Speech service implementing the ITtsService interface.
+///
+/// This service provides comprehensive TTS functionality for speaking devotional
+/// content, with support for multiple languages, voice customization, and
+/// chunk-based playback for better user experience.
+///
+/// ## Usage Patterns
+///
+/// ### 1. Production Usage (Recommended)
+/// Use the service locator to access the singleton instance:
+/// ```dart
+/// // In main.dart
+/// void main() {
+///   setupServiceLocator();
+///   runApp(MyApp());
+/// }
+///
+/// // In your code
+/// final ttsService = getService<ITtsService>();
+/// await ttsService.speakDevotional(devotional);
+/// ```
+///
+/// ### 2. Direct Instantiation (Legacy Support)
+/// The factory constructor is available for backward compatibility:
+/// ```dart
+/// final tts = TtsService(); // Creates new instance with default dependencies
+/// ```
+/// ⚠️ **Warning:** This creates a new instance each time and bypasses the
+/// service locator singleton. Use service locator pattern instead.
+///
+/// ### 3. Testing (Test Constructor)
+/// Use the forTest constructor to inject mocks:
+/// ```dart
+/// test('TTS service test', () {
+///   final mockFlutterTts = MockFlutterTts();
+///   final mockLocalization = MockLocalizationService();
+///   final mockVoiceSettings = MockVoiceSettingsService();
+///
+///   final tts = TtsService.forTest(
+///     flutterTts: mockFlutterTts,
+///     localizationService: mockLocalization,
+///     voiceSettingsService: mockVoiceSettings,
+///   );
+///
+///   // Test with mocked dependencies
+/// });
+/// ```
+///
+/// ## Singleton Pattern
+/// When using the service locator (recommended approach), only one instance
+/// of TtsService exists throughout the app lifecycle. This ensures:
+/// - Consistent state across the application
+/// - Efficient resource usage (single FlutterTts instance)
+/// - Proper lifecycle management
+///
+/// ⚠️ **Important:** Do not create multiple TtsService instances manually.
+/// Always use `getService<ITtsService>()` for production code.
+///
+/// ## Dependencies
+/// TtsService requires three dependencies:
+/// - `FlutterTts`: Platform TTS implementation
+/// - `LocalizationService`: For language-specific text normalization
+/// - `VoiceSettingsService`: For voice selection and preferences
+///
+/// These are automatically provided when using the factory constructor or
+/// service locator, but must be explicitly provided when using forTest.
+class TtsService implements ITtsService {
+  /// Private constructor for dependency injection
+  /// Use getService\<ITtsService\>() instead of direct construction
+  TtsService._internal({
+    required FlutterTts flutterTts,
+    required LocalizationService localizationService,
+    required VoiceSettingsService voiceSettingsService,
+  })  : _flutterTts = flutterTts,
+        _localizationService = localizationService,
+        _voiceSettingsService = voiceSettingsService;
 
-  factory TtsService() => _instance;
+  /// Factory constructor that creates instance with proper dependencies
+  /// This is used by the service locator
+  factory TtsService() {
+    return TtsService._internal(
+      flutterTts: FlutterTts(),
+      localizationService: LocalizationService.instance,
+      voiceSettingsService: VoiceSettingsService(),
+    );
+  }
 
-  TtsService._internal();
+  /// Test constructor for injecting mocks
+  @visibleForTesting
+  factory TtsService.forTest({
+    required FlutterTts flutterTts,
+    required LocalizationService localizationService,
+    required VoiceSettingsService voiceSettingsService,
+  }) {
+    return TtsService._internal(
+      flutterTts: flutterTts,
+      localizationService: localizationService,
+      voiceSettingsService: voiceSettingsService,
+    );
+  }
 
-  final FlutterTts _flutterTts = FlutterTts();
-  final LocalizationService _localizationService = LocalizationService.instance;
-  final VoiceSettingsService _voiceSettingsService = VoiceSettingsService();
+  final FlutterTts _flutterTts;
+  final LocalizationService _localizationService;
+  final VoiceSettingsService _voiceSettingsService;
 
   TtsState _currentState = TtsState.idle;
   String? _currentDevocionalId;
   List<String> _currentChunks = [];
   int _currentChunkIndex = 0;
   Timer? _emergencyTimer;
+  int? _lastEmergencyEstimatedMs;
   bool _chunkInProgress = false;
   DateTime _lastNativeActivity = DateTime.now();
 
@@ -59,20 +155,28 @@ class TtsService {
   String _currentLanguage = 'es';
   String _currentVersion = 'RVR1960';
 
+  @override
   Stream<TtsState> get stateStream => _stateController.stream;
 
+  @override
   Stream<double> get progressStream => _progressController.stream;
 
+  @override
   TtsState get currentState => _currentState;
 
+  @override
   String? get currentDevocionalId => _currentDevocionalId;
 
+  @override
   bool get isPlaying => _currentState == TtsState.playing;
 
+  @override
   bool get isPaused => _currentState == TtsState.paused;
 
+  @override
   bool get isActive => isPlaying || isPaused;
 
+  @override
   bool get isDisposed => _disposed;
 
   bool get _isPlatformSupported {
@@ -92,10 +196,13 @@ class TtsService {
   // CHUNK NAVIGATION SUPPORT
   // =========================
 
+  @override
   int get currentChunkIndex => _currentChunkIndex;
 
+  @override
   int get totalChunks => _currentChunks.length;
 
+  @override
   VoidCallback? get previousChunk {
     if (_currentChunkIndex > 0 && _chunkInProgress) {
       return () => _jumpToChunk(_currentChunkIndex - 1);
@@ -103,6 +210,7 @@ class TtsService {
     return null;
   }
 
+  @override
   VoidCallback? get nextChunk {
     if (_currentChunkIndex < _currentChunks.length - 1 && _chunkInProgress) {
       return () => _jumpToChunk(_currentChunkIndex + 1);
@@ -110,6 +218,7 @@ class TtsService {
     return null;
   }
 
+  @override
   Future<void> Function(int index)? get jumpToChunk {
     if (_currentChunks.isNotEmpty && _chunkInProgress) {
       return (int index) async => await _jumpToChunk(index);
@@ -333,13 +442,26 @@ class TtsService {
 
   void _startEmergencyTimer(String chunk) {
     _cancelEmergencyTimer();
-    final wordCount = chunk.trim().split(RegExp(r'\s+')).length;
+    // Calcular wordCount respetando idiomas sin espacios (ej. japonés)
+    int wordCount;
+    final lang = _currentLanguage.toLowerCase();
+    if (lang.startsWith('ja')) {
+      // Estimar palabras en japonés por caracteres (avg ~6 chars = 1 palabra)
+      wordCount = (chunk.trim().length / 6).ceil();
+    } else {
+      wordCount = chunk.trim().split(RegExp(r'\s+')).length;
+    }
+
     final minTimer = wordCount < 10 ? 2500 : 4000;
-    const maxTimer = 6000;
-    final estimatedTime = (wordCount * 180).clamp(minTimer, maxTimer);
+    const maxTimer = 10000; // aumentado para soportar textos JA más largos
+    final estimatedTimeNum = (wordCount * 180).clamp(minTimer, maxTimer);
+    final estimatedTime = estimatedTimeNum.toInt();
+
+    // Guardar para pruebas
+    _lastEmergencyEstimatedMs = estimatedTime;
 
     debugPrint(
-        '🚨 TTS: Emergency timer set for ${estimatedTime}ms ($wordCount words) at ${DateTime.now()}');
+        '🚨 TTS: Emergency timer ${estimatedTime}ms ($wordCount words, lang: $_currentLanguage) at ${DateTime.now()}');
 
     _emergencyTimer = Timer(Duration(milliseconds: estimatedTime), () {
       final now = DateTime.now();
@@ -358,6 +480,29 @@ class TtsService {
             '🚨 TTS: Emergency fallback - detenido por estado pausado o disposed');
       }
     });
+  }
+
+  /// Devuelve la última duración estimada del timer de emergencia en ms.
+  /// Visible para testing.
+  @visibleForTesting
+  int get emergencyTimerDurationMs => _lastEmergencyEstimatedMs ?? 0;
+
+  /// Metodo auxiliar público para calcular el tiempo estimado sin iniciar el timer.
+  /// Esto facilita pruebas unitarias sin necesidad de instanciar dependencias nativas.
+  @visibleForTesting
+  static int computeEstimatedEmergencyMs(String chunk, String language) {
+    final lang = language.toLowerCase();
+    int wordCount;
+    if (lang.startsWith('ja')) {
+      wordCount = (chunk.trim().length / 6).ceil();
+    } else {
+      wordCount = chunk.trim().split(RegExp(r'\s+')).length;
+    }
+
+    final minTimer = wordCount < 10 ? 2500 : 4000;
+    const maxTimer = 10000;
+    final estimatedTime = (wordCount * 180).clamp(minTimer, maxTimer).toInt();
+    return estimatedTime;
   }
 
   void _speakNextChunk() async {
@@ -711,10 +856,12 @@ class TtsService {
   // PUBLIC API
   // =========================
 
+  @override
   Future<void> initialize() async {
     await _initialize();
   }
 
+  @override
   Future<void> speakDevotional(Devocional devocional) async {
     debugPrint(
         '🎤 TTS: Starting devotional ${devocional.id} at ${DateTime.now()}');
@@ -754,6 +901,7 @@ class TtsService {
     }
   }
 
+  @override
   Future<void> speakText(String text) async {
     debugPrint('🔊 TTS: Speaking single text chunk at ${DateTime.now()}');
 
@@ -794,6 +942,7 @@ class TtsService {
   }
 
   // FIX 3: Reforzada cancelación de timer de emergencia en pause
+  @override
   Future<void> pause() async {
     debugPrint(
         '⏸️ TTS: Pause requested (current state: $_currentState) at ${DateTime.now()}');
@@ -813,6 +962,7 @@ class TtsService {
     }
   }
 
+  @override
   Future<void> resume() async {
     debugPrint(
         '▶️ TTS: Resume requested (current state: $_currentState) at ${DateTime.now()}');
@@ -841,6 +991,7 @@ class TtsService {
   }
 
   // FIX 2: Stop inmediato sin validaciones restrictivas
+  @override
   Future<void> stop() async {
     debugPrint(
         '⏹️ TTS: Stop requested (current state: $_currentState) at ${DateTime.now()}');
@@ -858,6 +1009,7 @@ class TtsService {
     debugPrint('✅ TTS: Stop completed at ${DateTime.now()}');
   }
 
+  @override
   Future<void> setLanguage(String language) async {
     if (!_isInitialized) await _initialize();
     await _flutterTts.setLanguage(language);
@@ -869,6 +1021,7 @@ class TtsService {
     await _voiceSettingsService.loadSavedVoice(languageCode);
   }
 
+  @override
   Future<void> setSpeechRate(double rate) async {
     if (!_isInitialized) await _initialize();
     final clampedRate = rate.clamp(0.1, 3.0);
@@ -878,6 +1031,7 @@ class TtsService {
     await prefs.setDouble('tts_rate', clampedRate);
   }
 
+  @override
   void setLanguageContext(String language, String version) {
     _currentLanguage = language;
     _currentVersion = version;
@@ -940,6 +1094,7 @@ class TtsService {
     }
   }
 
+  @override
   Future<List<String>> getLanguages() async {
     if (!_isInitialized) await _initialize();
     try {
@@ -951,14 +1106,17 @@ class TtsService {
     }
   }
 
+  @override
   Future<List<String>> getVoices() async {
     return await _voiceSettingsService.getAvailableVoices();
   }
 
+  @override
   Future<List<String>> getVoicesForLanguage(String language) async {
     return await _voiceSettingsService.getVoicesForLanguage(language);
   }
 
+  @override
   Future<void> setVoice(Map<String, String> voice) async {
     if (!_isInitialized) await _initialize();
     final voiceName = voice['name'] ?? '';
@@ -966,16 +1124,19 @@ class TtsService {
     await _voiceSettingsService.saveVoice(_currentLanguage, voiceName, locale);
   }
 
+  @override
   @visibleForTesting
   List<String> generateChunksForTesting(Devocional devocional) {
     return _generateChunks(devocional);
   }
 
+  @override
   @visibleForTesting
   Map<String, String> getSectionHeadersForTesting(String language) {
     return _getSectionHeaders(language);
   }
 
+  @override
   @visibleForTesting
 
   /// Formats Bible book references with appropriate ordinals based on current language context
@@ -983,6 +1144,7 @@ class TtsService {
     return BibleTextFormatter.formatBibleBook(reference, _currentLanguage);
   }
 
+  @override
   Future<void> dispose() async {
     if (_disposed) return;
     _disposed = true;
@@ -993,6 +1155,7 @@ class TtsService {
     debugPrint('🧹 TTS: Service disposed at ${DateTime.now()}');
   }
 
+  @override
   Future<void> initializeTtsOnAppStart(String languageCode) async {
     // Asigna proactivamente la voz y el idioma TTS al iniciar la app
     // CRITICAL: Update _currentLanguage BEFORE any initialization to ensure correct language
@@ -1004,6 +1167,7 @@ class TtsService {
         '[TTS] Voz e idioma asignados proactivamente al iniciar la app: $languageCode');
   }
 
+  @override
   Future<void> assignDefaultVoiceForLanguage(String languageCode) async {
     String ttsLocale = _getTtsLocaleForLanguage(languageCode);
     await _flutterTts.setLanguage(ttsLocale);

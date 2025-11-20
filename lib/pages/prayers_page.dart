@@ -933,7 +933,16 @@ class _PrayersPageState extends State<PrayersPage>
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 6),
+            // Mostrar el texto completo de thanksgiving debajo del header
+            Text(
+              thanksgiving.text,
+              style: textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurface,
+                height: 1.4,
+              ),
+            ),
+            const SizedBox(height: 8),
 
             // Footer with date
             Row(
