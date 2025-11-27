@@ -1,5 +1,6 @@
 // lib/services/spiritual_stats_service.dart - VERSIÓN CON AUTO-BACKUP
 import 'dart:convert';
+import 'dart:developer' as developer;
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -296,8 +297,15 @@ class SpiritualStatsService {
       'Reading time: ${readingTimeSeconds}s, Scroll: ${(scrollPercentage * 100).toStringAsFixed(1)}%',
     );
     debugPrint('Meets criteria: $meetsReadingCriteria');
+    developer.log(
+        '[STATS] Intento de guardar devocional: $devocionalId, tiempo: ${readingTimeSeconds}s, scroll: ${(scrollPercentage * 100).toStringAsFixed(1)}%',
+        name: 'SpiritualStatsService');
+    developer.log('[STATS] ¿Cumple criterio?: $meetsReadingCriteria',
+        name: 'SpiritualStatsService');
 
     if (stats.readDevocionalIds.contains(devocionalId)) {
+      developer.log('[STATS] Devocional ya registrado: $devocionalId',
+          name: 'SpiritualStatsService');
       debugPrint('Devotional $devocionalId already counted in statistics');
       if (favoritesCount != null) {
         final updatedStats = stats.copyWith(favoritesCount: favoritesCount);
@@ -308,6 +316,9 @@ class SpiritualStatsService {
     }
 
     if (!meetsReadingCriteria) {
+      developer.log(
+          '[STATS] Devocional no cumple criterio, no se suma: $devocionalId',
+          name: 'SpiritualStatsService');
       debugPrint(
           'Devotional read but not counting for statistics (criteria not met)');
       await prefs.setString(_lastReadDevocionalKey, devocionalId);
@@ -345,6 +356,9 @@ class SpiritualStatsService {
     );
 
     await saveStats(updatedStats);
+    developer.log(
+        '[STATS] Devocional guardado: $devocionalId, total ahora: ${updatedStats.totalDevocionalesRead}',
+        name: 'SpiritualStatsService');
 
     debugPrint(
         'Recorded devotional for statistics: $devocionalId, total: ${updatedStats.totalDevocionalesRead}');

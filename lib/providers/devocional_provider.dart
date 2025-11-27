@@ -2,6 +2,7 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:developer' as developer;
 import 'dart:io';
 import 'dart:ui';
 
@@ -242,7 +243,9 @@ class DevocionalProvider with ChangeNotifier {
 
   Future<void> recordDevocionalRead(String devocionalId) async {
     final trackingData = _readingTracker.finalize(devocionalId);
-
+    developer.log(
+        '[PROVIDER] Finalizando tracking para: $devocionalId, tiempo: ${trackingData.readingTime}s, scroll: ${(trackingData.scrollPercentage * 100).toStringAsFixed(1)}%',
+        name: 'DevocionalProvider');
     try {
       await _statsService.recordDevocionalRead(
         devocionalId: devocionalId,
@@ -250,10 +253,13 @@ class DevocionalProvider with ChangeNotifier {
         readingTimeSeconds: trackingData.readingTime,
         scrollPercentage: trackingData.scrollPercentage,
       );
-
+      developer.log('[PROVIDER] Devocional guardado en stats: $devocionalId',
+          name: 'DevocionalProvider');
       debugPrint('✅ Recorded devotional read: $devocionalId');
       notifyListeners();
     } catch (e) {
+      developer.log('[PROVIDER] Error guardando devocional: $e',
+          name: 'DevocionalProvider');
       debugPrint('❌ Error recording devotional read: $e');
     }
   }
@@ -863,15 +869,19 @@ class ReadingTracker {
 
   void pause() {
     if (_currentDevocionalId == null) return;
-
-    _pausedTime = DateTime.now();
-    _accumulatedSeconds += _getCurrentSessionSeconds();
+    if (_pausedTime == null) {
+      _pausedTime = DateTime.now();
+      _accumulatedSeconds += _getCurrentSessionSeconds();
+      debugPrint(
+          '[TRACKER] pause() - acumulado: $_accumulatedSeconds segundos');
+    }
     _timer?.cancel();
   }
 
   void resume() {
     if (_currentDevocionalId == null || _pausedTime == null) return;
-
+    debugPrint(
+        '[TRACKER] resume() - acumulado antes de reanudar: $_accumulatedSeconds segundos');
     _startTime = DateTime.now();
     _pausedTime = null;
     _startTimer();

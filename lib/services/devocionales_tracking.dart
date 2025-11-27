@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer' as developer;
 
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/services/in_app_review_service.dart';
@@ -106,9 +107,17 @@ class DevocionalesTracking {
 
     final meetsCriteria = readingTime >= 60 && scrollPercentage >= 0.8;
     debugPrint('Meets criteria: $meetsCriteria');
+    developer.log(
+        '[TRACKING] Intento de lectura: ${currentDevocional.id}, tiempo: ${readingTime}s, scroll: ${(scrollPercentage * 100).toStringAsFixed(1)}%',
+        name: 'DevocionalesTracking');
+    developer.log('[TRACKING] ¿Cumple criterio?: $meetsCriteria',
+        name: 'DevocionalesTracking');
 
     if (meetsCriteria) {
       debugPrint('✅ Criteria met automatically - updating stats immediately');
+      developer.log(
+          '[TRACKING] Criterio cumplido, actualizando stats para: ${currentDevocional.id}',
+          name: 'DevocionalesTracking');
       _updateReadingStats(currentDevocional.id);
     }
   }
@@ -127,6 +136,8 @@ class DevocionalesTracking {
 
     // Registrar la lectura inmediatamente
     devocionalProvider.recordDevocionalRead(devocionalId);
+    developer.log('[TRACKING] Devocional leído registrado: $devocionalId',
+        name: 'DevocionalesTracking');
 
     // FORZAR ACTUALIZACIÓN INMEDIATA DE LA UI
     devocionalProvider.forceUIUpdate();
