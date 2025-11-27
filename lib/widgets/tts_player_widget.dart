@@ -48,7 +48,15 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget> {
       widget.devocional.versiculo,
       language,
       widget.devocional.version,
-    )}\n${widget.devocional.reflexion}\n${widget.devocional.paraMeditar.map((m) => '${m.cita}: ${m.texto}').join('\n')}\n${widget.devocional.oracion}';
+    )}\n${BibleTextFormatter.normalizeTtsText(
+      widget.devocional.reflexion,
+      language,
+      widget.devocional.version,
+    )}\n${widget.devocional.paraMeditar.map((m) => '${BibleTextFormatter.normalizeTtsText(m.cita, language, widget.devocional.version)}: ${m.texto}').join('\n')}\n${BibleTextFormatter.normalizeTtsText(
+      widget.devocional.oracion,
+      language,
+      widget.devocional.version,
+    )}';
     debugPrint('[TTS Widget] Texto TTS armado: $ttsText');
     widget.audioController.setText(ttsText);
     return ValueListenableBuilder<TtsPlayerState>(
