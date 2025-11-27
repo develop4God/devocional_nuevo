@@ -832,6 +832,82 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     );
   }
 
+  String normalizeVerse(String verse, String language) {
+    // Si ya contiene 'capítulo' o 'versículo', no modificar
+    if (RegExp(r'cap[ií]tulo|vers[ií]culo|chapter|verse|chapitre|verset|章|節')
+        .hasMatch(verse)) {
+      return verse;
+    }
+    // Español
+    if (language == 'es') {
+      return verse.replaceAllMapped(RegExp(r'(\d+)\s*([a-zA-Z]+)'), (m) {
+        final num = m[1];
+        final book = m[2];
+        String ordinal = '';
+        if (num == '1')
+          ordinal = 'Primera';
+        else if (num == '2')
+          ordinal = 'Segunda';
+        else if (num == '3') ordinal = 'Tercera';
+        return ordinal.isNotEmpty ? '$ordinal de $book' : verse;
+      }).replaceAllMapped(
+          RegExp(r'(\d+):(\d+)'), (m) => 'capítulo ${m[1]}, versículo ${m[2]}');
+    }
+    // Inglés
+    if (language == 'en') {
+      return verse.replaceAllMapped(RegExp(r'(\d+)\s*([a-zA-Z]+)'), (m) {
+        final num = m[1];
+        final book = m[2];
+        String ordinal = '';
+        if (num == '1')
+          ordinal = 'First';
+        else if (num == '2')
+          ordinal = 'Second';
+        else if (num == '3') ordinal = 'Third';
+        return ordinal.isNotEmpty ? '$ordinal $book' : verse;
+      }).replaceAllMapped(
+          RegExp(r'(\d+):(\d+)'), (m) => 'chapter ${m[1]}, verse ${m[2]}');
+    }
+    // Portugués
+    if (language == 'pt') {
+      return verse.replaceAllMapped(RegExp(r'(\d+)\s*([a-zA-Z]+)'), (m) {
+        final num = m[1];
+        final book = m[2];
+        String ordinal = '';
+        if (num == '1')
+          ordinal = 'Primeira';
+        else if (num == '2')
+          ordinal = 'Segunda';
+        else if (num == '3') ordinal = 'Terceira';
+        return ordinal.isNotEmpty ? '$ordinal de $book' : verse;
+      }).replaceAllMapped(
+          RegExp(r'(\d+):(\d+)'), (m) => 'capítulo ${m[1]}, versículo ${m[2]}');
+    }
+    // Francés
+    if (language == 'fr') {
+      return verse.replaceAllMapped(RegExp(r'(\d+)\s*([a-zA-Z]+)'), (m) {
+        final num = m[1];
+        final book = m[2];
+        String ordinal = '';
+        if (num == '1')
+          ordinal = 'Première';
+        else if (num == '2')
+          ordinal = 'Deuxième';
+        else if (num == '3') ordinal = 'Troisième';
+        return ordinal.isNotEmpty ? '$ordinal $book' : verse;
+      }).replaceAllMapped(
+          RegExp(r'(\d+):(\d+)'), (m) => 'chapitre ${m[1]}, verset ${m[2]}');
+    }
+    // Japonés
+    if (language == 'ja') {
+      // En japonés no se usan ordinales ni palabras como capítulo/versículo, solo se limpia el texto
+      return verse.replaceAllMapped(
+          RegExp(r'(\d+):(\d+)'), (m) => '${m[1]}章${m[2]}節');
+    }
+    // Por defecto, retorna el texto original
+    return verse;
+  }
+
   @override
   Widget build(BuildContext context) {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
@@ -1223,12 +1299,19 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                       builder: (context) {
                                         print(
                                             '[DevocionalesPage] Renderizando TtsPlayerWidget, devocional: \u001b[32m${currentDevocional.id}\u001b[0m');
+                                        final String language =
+                                            devocionalProvider.selectedLanguage;
                                         final String ttsText = [
-                                          currentDevocional.versiculo,
+                                          normalizeVerse(
+                                              currentDevocional.versiculo,
+                                              language),
                                           currentDevocional.reflexion,
                                           ...currentDevocional.paraMeditar.map(
                                               (item) =>
-                                                  '${item.cita}: ${item.texto}'),
+                                                  normalizeVerse(
+                                                      item.cita, language) +
+                                                  ': ' +
+                                                  item.texto),
                                           currentDevocional.oracion
                                         ]
                                             .where((s) =>

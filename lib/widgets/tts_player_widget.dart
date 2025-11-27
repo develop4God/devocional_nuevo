@@ -20,7 +20,18 @@ class TtsPlayerWidget extends StatefulWidget {
 
 class _TtsPlayerWidgetState extends State<TtsPlayerWidget> {
   @override
+  void didUpdateWidget(covariant TtsPlayerWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.devocional.id != widget.devocional.id) {
+      print('[TTS Widget] Cambio de devocional detectado, deteniendo audio');
+      widget.audioController.stop();
+    }
+  }
+
+  @override
   void dispose() {
+    print('[TTS Widget] dispose() llamado, deteniendo audio');
+    widget.audioController.stop();
     super.dispose();
   }
 
