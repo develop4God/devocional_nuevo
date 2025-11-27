@@ -389,6 +389,8 @@ class TtsService implements ITtsService {
 
     final progress = (_currentChunkIndex + 1) / _currentChunks.length;
     if (_currentDevocionalId != null && progress >= 0.8) {
+      debugPrint(
+          '[TTS] Registrando devocional heard: id=$_currentDevocionalId, progreso=${(progress * 100).toStringAsFixed(1)}%');
       await SpiritualStatsService().recordDevotionalHeard(
         devocionalId: _currentDevocionalId!,
         listenedPercentage: progress,

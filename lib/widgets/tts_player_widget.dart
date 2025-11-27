@@ -81,7 +81,7 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget> {
           mainTooltip = 'Cargando...';
           mainColor = Colors.blue;
           isButtonEnabled = false;
-        } else if (effectiveIsPlaying && currentState == TtsState.playing) {
+        } else if (isThisDevocional && currentState == TtsState.playing) {
           // Este devocional está reproduciendo
           mainIcon = const Icon(Icons.pause, size: 32);
           mainTooltip = 'Pausar';
@@ -115,17 +115,33 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget> {
         }
 
         // Callback cuando termina el devocional
-        if (progress >= 0.999 &&
-            progress != _lastProgress &&
-            !_completedTriggered) {
+        if (progress >= 0.999 && !_completedTriggered) {
           _completedTriggered = true;
           if (widget.onCompleted != null) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               widget.onCompleted!();
             });
           }
+          // Resetear el estado local para mostrar play al finalizar
+          if (currentState == TtsState.idle) {
+            _localIsPlaying = false;
+            _completedTriggered = false;
+            mainIcon = const Icon(Icons.play_arrow, size: 32);
+            mainTooltip = 'Escuchar';
+            mainColor = Colors.blue;
+            isButtonEnabled = true;
+          }
         }
         _lastProgress = progress;
+
+        // Detectar que el audio ya no se reproduce y forzar reset visual
+        if (currentState == TtsState.idle &&
+            !isDevocionalPlaying &&
+            _localIsPlaying) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _forceStopAndReset(audioController);
+          });
+        }
 
         return LayoutBuilder(
           builder: (context, constraints) {
@@ -203,6 +219,19 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget> {
     final stateChanged = currentState != _lastKnownState;
     final devocionalChanged = currentDevocionalId != _lastKnownDevocionalId;
 
+    // Si el devocional terminó, forzar reset de estados locales
+    if (currentState == TtsState.idle && _lastProgress >= 0.999) {
+      debugPrint(
+          'TtsPlayerWidget(${widget.devocional.id}): Forzando reset tras finalizar devocional');
+      _localIsPlaying = false;
+      _completedTriggered = false;
+      if (mounted) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) setState(() {});
+        });
+      }
+    }
+
     if (stateChanged || devocionalChanged) {
       debugPrint(
           'TtsPlayerWidget(${widget.devocional.id}): State/devotional changed - '
@@ -279,5 +308,14 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget> {
     } catch (e) {
       debugPrint('TtsPlayerWidget: Button press error: $e');
     }
+  }
+
+  Future<void> _forceStopAndReset(AudioController audioController) async {
+    debugPrint(
+        'TtsPlayerWidget(${widget.devocional.id}): Ejecutando stop y reset visual');
+    _localIsPlaying = false;
+    _completedTriggered = false;
+    await audioController.stop();
+    if (mounted) setState(() {});
   }
 }
