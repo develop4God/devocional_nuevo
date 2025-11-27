@@ -36,6 +36,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../controllers/audio_controller.dart';
+import '../controllers/tts_audio_controller.dart';
 import '../services/spiritual_stats_service.dart';
 
 class DevocionalesPage extends StatefulWidget {
@@ -55,6 +56,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
   static const String _lastDevocionalIndexKey = 'lastDevocionalIndex';
   final DevocionalesTracking _tracking = DevocionalesTracking();
   final FlutterTts _flutterTts = FlutterTts();
+  late final TtsAudioController _ttsAudioController;
   AudioController? _audioController;
   bool _routeSubscribed = false;
 
@@ -80,6 +82,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
   @override
   void initState() {
     super.initState();
+    _ttsAudioController = TtsAudioController(flutterTts: _flutterTts);
     WidgetsBinding.instance.addObserver(this);
     _scrollController.addListener(_onScrollChanged);
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -1216,9 +1219,31 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                             flex: 1,
                             child: Center(
                               child: currentDevocional != null
-                                  ? TtsPlayerWidget(
-                                      key: const Key('bottom_nav_tts_player'),
-                                      devocional: currentDevocional)
+                                  ? Builder(
+                                      builder: (context) {
+                                        print(
+                                            '[DevocionalesPage] Renderizando TtsPlayerWidget, devocional: \u001b[32m${currentDevocional.id}\u001b[0m');
+                                        final String ttsText = [
+                                          currentDevocional.versiculo,
+                                          currentDevocional.reflexion,
+                                          ...currentDevocional.paraMeditar.map(
+                                              (item) =>
+                                                  '${item.cita}: ${item.texto}'),
+                                          currentDevocional.oracion
+                                        ]
+                                            .where((s) =>
+                                                s != null &&
+                                                s.toString().trim().isNotEmpty)
+                                            .join('. ');
+                                        _ttsAudioController.setText(ttsText);
+                                        return TtsPlayerWidget(
+                                          key: const Key(
+                                              'bottom_nav_tts_player'),
+                                          devocional: currentDevocional,
+                                          audioController: _ttsAudioController,
+                                        );
+                                      },
+                                    )
                                   : const SizedBox(width: 56, height: 56),
                             ),
                           ),
