@@ -1,6 +1,7 @@
 import 'package:devocional_nuevo/controllers/tts_audio_controller.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
+import 'package:devocional_nuevo/services/tts/bible_text_formatter.dart';
 import 'package:flutter/material.dart';
 
 class TtsPlayerWidget extends StatefulWidget {
@@ -24,14 +25,15 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget> {
   void didUpdateWidget(covariant TtsPlayerWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.devocional.id != widget.devocional.id) {
-      print('[TTS Widget] Cambio de devocional detectado, deteniendo audio');
+      debugPrint(
+          '[TTS Widget] Cambio de devocional detectado, deteniendo audio');
       widget.audioController.stop();
     }
   }
 
   @override
   void dispose() {
-    print('[TTS Widget] dispose() llamado, deteniendo audio');
+    debugPrint('[TTS Widget] dispose() llamado, deteniendo audio');
     widget.audioController.stop();
     super.dispose();
   }
@@ -39,7 +41,16 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget> {
   @override
   Widget build(BuildContext context) {
     debugPrint(
-        '[TTS Widget] build() llamado para devocional: ${widget.devocional.id}');
+        '[TTS Widget] build() llamado para devocional: [32m${widget.devocional.id}[0m');
+    // Armar el texto TTS normalizado como un solo string
+    final language = Localizations.localeOf(context).languageCode;
+    final ttsText = '${BibleTextFormatter.normalizeTtsText(
+      widget.devocional.versiculo,
+      language,
+      widget.devocional.version,
+    )}\n${widget.devocional.reflexion}\n${widget.devocional.paraMeditar.map((m) => '${m.cita}: ${m.texto}').join('\n')}\n${widget.devocional.oracion}';
+    debugPrint('[TTS Widget] Texto TTS armado: $ttsText');
+    widget.audioController.setText(ttsText);
     return ValueListenableBuilder<TtsPlayerState>(
       valueListenable: widget.audioController.state,
       builder: (context, state, child) {
@@ -57,11 +68,11 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget> {
           case TtsPlayerState.playing:
             mainIcon = const Icon(Icons.pause, size: 32);
             break;
-          case TtsPlayerState.paused:
-            mainIcon = const Icon(Icons.play_arrow, size: 32);
-            break;
           case TtsPlayerState.completed:
           case TtsPlayerState.idle:
+            mainIcon = const Icon(Icons.play_arrow, size: 32);
+            break;
+          case TtsPlayerState.paused:
             mainIcon = const Icon(Icons.play_arrow, size: 32);
             break;
           case TtsPlayerState.error:
@@ -103,7 +114,7 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget> {
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.15),
+                    color: Colors.black.withValues(alpha: 0.15),
                     blurRadius: 8,
                     offset: const Offset(0, 4),
                   ),
