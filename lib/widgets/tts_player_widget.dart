@@ -86,13 +86,15 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget> {
           mainIcon = const Icon(Icons.pause, size: 32);
           mainTooltip = 'Pausar';
           mainColor = Colors.orange;
-          isButtonEnabled =
-              true; // Siempre habilitado mientras está reproduciendo
-        } else if (isThisDevocional && currentState == TtsState.paused) {
+          isButtonEnabled = true;
+        } else if (isThisDevocional &&
+            currentState == TtsState.paused &&
+            isDevocionalPlaying) {
           // Este devocional está pausado
           mainIcon = const Icon(Icons.play_arrow, size: 32);
           mainTooltip = 'Continuar';
           mainColor = Colors.green;
+          isButtonEnabled = true;
         } else if (isThisDevocional &&
             (currentState == TtsState.stopping ||
                 currentState == TtsState.initializing)) {
