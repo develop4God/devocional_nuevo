@@ -563,6 +563,47 @@ class TtsService implements ITtsService {
   // TEXT NORMALIZATION - OPTIMIZED
   // =========================
 
+  String _formatBibleReferences(String text, String language) {
+    final Map<String, String> referenceWords = {
+      'es': 'capítulo|versículo',
+      'en': 'chapter|verse',
+      'pt': 'capítulo|versículo',
+      'fr': 'chapitre|verset',
+      'ja': '章|節', // Japonés: capítulo=章, versículo=節
+    };
+
+    final words = referenceWords[language] ?? referenceWords['es']!;
+    final chapterWord = words.split('|')[0];
+    final verseWord = words.split('|')[1];
+
+    return text.replaceAllMapped(
+      RegExp(
+          r'(\b(?:\d+\s+)?[A-Za-záéíóúÁÉÍÓÚñÑ一-龯ぁ-んァ-ン]+)\s+(\d+):(\d+)(?:-(\d+))?',
+          caseSensitive: false),
+      (match) {
+        final book = match.group(1)!;
+        final chapter = match.group(2)!;
+        final verseStart = match.group(3)!;
+        final verseEnd = match.group(4);
+
+        String result = '$book $chapterWord $chapter $verseWord $verseStart';
+        if (verseEnd != null) {
+          final toWord = language == 'en'
+              ? 'to'
+              : language == 'pt'
+                  ? 'ao'
+                  : language == 'fr'
+                      ? 'au'
+                      : language == 'ja'
+                          ? '～'
+                          : 'al';
+          result += ' $toWord $verseEnd';
+        }
+        return result;
+      },
+    );
+  }
+
   String _normalizeTtsText(String text, [String? language, String? version]) {
     String normalized = text;
     final currentLang = language ?? _currentLanguage;
@@ -580,52 +621,10 @@ class TtsService implements ITtsService {
     });
 
     // 3. Formatear referencias bíblicas básicas (capítulo:versículo)
-    if (currentLang == 'ja') {
-      // En japonés, no segmentar ni agregar palabras como capítulo/versículo
-      // Solo limpiar espacios y devolver el texto tal cual
-      return normalized.replaceAll(RegExp(r'\s+'), ' ').trim();
-    }
     normalized = _formatBibleReferences(normalized, currentLang);
 
     // Clean up whitespace
     return normalized.replaceAll(RegExp(r'\s+'), ' ').trim();
-  }
-
-  String _formatBibleReferences(String text, String language) {
-    final Map<String, String> referenceWords = {
-      'es': 'capítulo|versículo',
-      'en': 'chapter|verse',
-      'pt': 'capítulo|versículo',
-      'fr': 'chapitre|verset',
-    };
-
-    final words = referenceWords[language] ?? referenceWords['es']!;
-    final chapterWord = words.split('|')[0];
-    final verseWord = words.split('|')[1];
-
-    return text.replaceAllMapped(
-      RegExp(r'(\b(?:\d+\s+)?[A-Za-záéíóúÁÉÍÓÚñÑ]+)\s+(\d+):(\d+)(?:-(\d+))?',
-          caseSensitive: false),
-      (match) {
-        final book = match.group(1)!;
-        final chapter = match.group(2)!;
-        final verseStart = match.group(3)!;
-        final verseEnd = match.group(4);
-
-        String result = '$book $chapterWord $chapter $verseWord $verseStart';
-        if (verseEnd != null) {
-          final toWord = language == 'en'
-              ? 'to'
-              : language == 'pt'
-                  ? 'ao'
-                  : language == 'fr'
-                      ? 'au'
-                      : 'al';
-          result += ' $toWord $verseEnd';
-        }
-        return result;
-      },
-    );
   }
 
   // =========================

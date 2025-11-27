@@ -86,6 +86,8 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget> {
           mainIcon = const Icon(Icons.pause, size: 32);
           mainTooltip = 'Pausar';
           mainColor = Colors.orange;
+          isButtonEnabled =
+              true; // Siempre habilitado mientras está reproduciendo
         } else if (isThisDevocional && currentState == TtsState.paused) {
           // Este devocional está pausado
           mainIcon = const Icon(Icons.play_arrow, size: 32);
@@ -155,19 +157,6 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget> {
                           : null,
                     ),
                   ),
-
-                  // Stop button si está activo
-                  if (isDevocionalPlaying) ...[
-                    const SizedBox(height: 4),
-                    IconButton(
-                      icon: const Icon(Icons.stop_circle_outlined, size: 40),
-                      tooltip: 'Detener',
-                      color: Colors.red,
-                      onPressed: () async {
-                        await audioController.stop();
-                      },
-                    ),
-                  ],
                 ],
               );
             } else {
@@ -199,19 +188,6 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget> {
                           : null,
                     ),
                   ),
-
-                  // Botón stop (solo visible si está activo)
-                  if (isDevocionalPlaying) ...[
-                    const SizedBox(width: 16),
-                    IconButton(
-                      icon: const Icon(Icons.stop, size: 28),
-                      tooltip: 'Detener',
-                      color: Colors.red,
-                      onPressed: () async {
-                        await audioController.stop();
-                      },
-                    ),
-                  ],
                 ],
               );
             }
