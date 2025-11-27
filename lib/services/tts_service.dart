@@ -442,27 +442,21 @@ class TtsService implements ITtsService {
 
   void _startEmergencyTimer(String chunk) {
     _cancelEmergencyTimer();
-    // Calcular wordCount respetando idiomas sin espacios (ej. japonés)
     int wordCount;
     final lang = _currentLanguage.toLowerCase();
     if (lang.startsWith('ja')) {
-      // Estimar palabras en japonés por caracteres (avg ~6 chars = 1 palabra)
       wordCount = (chunk.trim().length / 6).ceil();
     } else {
       wordCount = chunk.trim().split(RegExp(r'\s+')).length;
     }
-
-    final minTimer = wordCount < 10 ? 2500 : 4000;
-    const maxTimer = 10000; // aumentado para soportar textos JA más largos
+    final minTimer =
+        lang.startsWith('ja') ? 4000 : (wordCount < 10 ? 2500 : 4000);
+    const maxTimer = 10000;
     final estimatedTimeNum = (wordCount * 180).clamp(minTimer, maxTimer);
     final estimatedTime = estimatedTimeNum.toInt();
-
-    // Guardar para pruebas
     _lastEmergencyEstimatedMs = estimatedTime;
-
     debugPrint(
-        '🚨 TTS: Emergency timer ${estimatedTime}ms ($wordCount words, lang: $_currentLanguage) at ${DateTime.now()}');
-
+        '[TTS] Emergency timer: $estimatedTime ms, chunk: ${chunk.length} chars, lang: $_currentLanguage');
     _emergencyTimer = Timer(Duration(milliseconds: estimatedTime), () {
       final now = DateTime.now();
       final timeSinceActivity = now.difference(_lastNativeActivity).inSeconds;
@@ -769,10 +763,11 @@ class TtsService implements ITtsService {
   void _splitLongParagraph(
       String paragraph, List<String> chunks, String currentLang) {
     if (currentLang == 'ja') {
-      // En japonés, no segmentar por puntuación occidental, solo cortar cada 300 caracteres
-      for (int i = 0; i < paragraph.length; i += 300) {
+      // En japonés, cortar cada 600 caracteres para chunks más largos
+      for (int i = 0; i < paragraph.length; i += 600) {
         final part = paragraph.substring(
-            i, i + 300 > paragraph.length ? paragraph.length : i + 300);
+            i, i + 600 > paragraph.length ? paragraph.length : i + 600);
+        debugPrint('[TTS] Chunk japonés generado: ${part.length} caracteres');
         if (part.trim().isNotEmpty) {
           chunks.add(part.trim());
         }
