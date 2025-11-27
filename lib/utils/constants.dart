@@ -50,6 +50,12 @@ class Constants {
     'ja': 'SK2003', // Por defecto para japonés
   };
 
+  // Nombres japoneses para versiones de la Biblia
+  static const Map<String, String> bibleJapaneseNames = {
+    'SK2003': '新改訳2003', // Shinkaiyaku 2003
+    'JCB': '新共同訳', // Shin Kyoudouyaku
+  };
+
   /// PREFERENCIAS (SharedPreferences KEYS)
   static const String prefSeenIndices = 'seenIndices';
   static const String prefFavorites = 'favorites';

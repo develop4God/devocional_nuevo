@@ -81,6 +81,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _scrollController.addListener(_onScrollChanged);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _audioController = Provider.of<AudioController>(context, listen: false);
       _tracking.initialize(context);
@@ -98,6 +99,19 @@ class _DevocionalesPageState extends State<DevocionalesPage>
         if (mounted) setState(() => _showPostSplashAnimation = false);
       });
     }
+  }
+
+  void _onScrollChanged() {
+    if (!_scrollController.hasClients) return;
+    final maxScroll = _scrollController.position.maxScrollExtent;
+    final currentScroll = _scrollController.position.pixels;
+    double percent = 0;
+    if (maxScroll > 0) {
+      percent = (currentScroll / maxScroll) * 100;
+    }
+    developer.log(
+        '[SCROLL] Porcentaje de avance: ${percent.toStringAsFixed(1)}%',
+        name: 'DevocionalesPage');
   }
 
   void _pickRandomLottie() {
@@ -192,6 +206,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
 
   @override
   void dispose() {
+    _scrollController.removeListener(_onScrollChanged);
     final route = ModalRoute.of(context);
     if (_routeSubscribed && route is PageRoute) {
       routeObserver.unsubscribe(this);

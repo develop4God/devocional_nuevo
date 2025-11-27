@@ -213,7 +213,7 @@ exports.sendDailyDevotionalNotification = onSchedule({
 // ==========================================
 // FUNCIÓN 2: LIMPIEZA AGRESIVA DE BASE DE DATOS 
 // Elimina usuario completo si cumple cualquier condición
-// 16-nov-2025 20:23
+// Modificado: 27-nov-2025 - Parámetros de retención ajustados
 // ==========================================
 exports.cleanupInvalidFCMTokens = onSchedule({
   schedule: "every 24 hours",
@@ -224,8 +224,13 @@ exports.cleanupInvalidFCMTokens = onSchedule({
   logger.info("Limpieza: Iniciando proceso.", {structuredData: true});
 
   const now = admin.firestore.Timestamp.now();
-  const sevenDaysAgo = admin.firestore.Timestamp.fromMillis(now.toMillis() - (7 * 24 * 60 * 60 * 1000));
-  const thirtyDaysAgo = admin.firestore.Timestamp.fromMillis(now.toMillis() - (30 * 24 * 60 * 60 * 1000));
+  
+  // Parámetros de retención configurables
+  const RETENTION_DAYS_LAST_LOGIN = 15;
+  const RETENTION_DAYS_TOKENS = 30;
+  
+  const cutoffLastLogin = admin.firestore.Timestamp.fromMillis(now.toMillis() - (RETENTION_DAYS_LAST_LOGIN * 24 * 60 * 60 * 1000));
+  const cutoffTokens = admin.firestore.Timestamp.fromMillis(now.toMillis() - (RETENTION_DAYS_TOKENS * 24 * 60 * 60 * 1000));
 
   let deletedUsers = 0;
 
@@ -257,14 +262,14 @@ exports.cleanupInvalidFCMTokens = onSchedule({
         deleteReason = "sin settings";
       }
 
-      // Condición 2: lastLogin > 7 días
+      // Condición 2: lastLogin > 15 días (modificado)
       if (!shouldDelete) {
         const userData = userDoc.data();
         const lastLogin = userData?.lastLogin;
         
-        if (!lastLogin || (lastLogin instanceof admin.firestore.Timestamp && lastLogin.toMillis() < sevenDaysAgo.toMillis())) {
+        if (!lastLogin || (lastLogin instanceof admin.firestore.Timestamp && lastLogin.toMillis() < cutoffLastLogin.toMillis())) {
           shouldDelete = true;
-          deleteReason = "inactivo +7 días (lastLogin)";
+          deleteReason = `inactivo +${RETENTION_DAYS_LAST_LOGIN} días (lastLogin)`;
         }
       }
 
@@ -279,12 +284,12 @@ exports.cleanupInvalidFCMTokens = onSchedule({
           const allTokensOld = tokensSnapshot.docs.every((tokenDoc) => {
             const tokenData = tokenDoc.data();
             const createdAt = tokenData.createdAt;
-            return createdAt instanceof admin.firestore.Timestamp && createdAt.toMillis() < thirtyDaysAgo.toMillis();
+            return createdAt instanceof admin.firestore.Timestamp && createdAt.toMillis() < cutoffTokens.toMillis();
           });
 
           if (allTokensOld) {
             shouldDelete = true;
-            deleteReason = "todos tokens +30 días";
+            deleteReason = `todos tokens +${RETENTION_DAYS_TOKENS} días`;
           }
         }
       }
