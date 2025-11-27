@@ -565,68 +565,9 @@ class TtsService implements ITtsService {
   // TEXT NORMALIZATION - OPTIMIZED
   // =========================
 
-  String _formatBibleReferences(String text, String language) {
-    final Map<String, String> referenceWords = {
-      'es': 'capítulo|versículo',
-      'en': 'chapter|verse',
-      'pt': 'capítulo|versículo',
-      'fr': 'chapitre|verset',
-      'ja': '章|節', // Japonés: capítulo=章, versículo=節
-    };
-
-    final words = referenceWords[language] ?? referenceWords['es']!;
-    final chapterWord = words.split('|')[0];
-    final verseWord = words.split('|')[1];
-
-    return text.replaceAllMapped(
-      RegExp(
-          r'(\b(?:\d+\s+)?[A-Za-záéíóúÁÉÍÓÚñÑ一-龯ぁ-んァ-ン]+)\s+(\d+):(\d+)(?:-(\d+))?',
-          caseSensitive: false),
-      (match) {
-        final book = match.group(1)!;
-        final chapter = match.group(2)!;
-        final verseStart = match.group(3)!;
-        final verseEnd = match.group(4);
-
-        String result = '$book $chapterWord $chapter $verseWord $verseStart';
-        if (verseEnd != null) {
-          final toWord = language == 'en'
-              ? 'to'
-              : language == 'pt'
-                  ? 'ao'
-                  : language == 'fr'
-                      ? 'au'
-                      : language == 'ja'
-                          ? '～'
-                          : 'al';
-          result += ' $toWord $verseEnd';
-        }
-        return result;
-      },
-    );
-  }
-
   String _normalizeTtsText(String text, [String? language, String? version]) {
-    String normalized = text;
     final currentLang = language ?? _currentLanguage;
-
-    // 1. Formatear libros bíblicos PRIMERO (con RegExp corregido)
-    normalized = BibleTextFormatter.formatBibleBook(normalized, currentLang);
-
-    // 2. Expandir versiones bíblicas
-    final bibleVersions =
-        BibleTextFormatter.getBibleVersionExpansions(currentLang);
-    bibleVersions.forEach((versionKey, expansion) {
-      if (normalized.contains(versionKey)) {
-        normalized = normalized.replaceAll(versionKey, expansion);
-      }
-    });
-
-    // 3. Formatear referencias bíblicas básicas (capítulo:versículo)
-    normalized = _formatBibleReferences(normalized, currentLang);
-
-    // Clean up whitespace
-    return normalized.replaceAll(RegExp(r'\s+'), ' ').trim();
+    return BibleTextFormatter.normalizeTtsText(text, currentLang, version);
   }
 
   // =========================
