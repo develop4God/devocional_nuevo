@@ -38,6 +38,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../controllers/audio_controller.dart';
 import '../controllers/tts_audio_controller.dart';
 import '../services/spiritual_stats_service.dart';
+import '../services/tts/bible_text_formatter.dart';
 
 class DevocionalesPage extends StatefulWidget {
   final String? initialDevocionalId;
@@ -908,6 +909,11 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     return verse;
   }
 
+  String expandBibleVersion(String version, String language) {
+    final expansions = BibleTextFormatter.getBibleVersionExpansions(language);
+    return expansions[version] ?? version;
+  }
+
   @override
   Widget build(BuildContext context) {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
@@ -1305,6 +1311,10 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                           normalizeVerse(
                                               currentDevocional.versiculo,
                                               language),
+                                          if (currentDevocional.version != null)
+                                            expandBibleVersion(
+                                                currentDevocional.version!,
+                                                language),
                                           currentDevocional.reflexion,
                                           ...currentDevocional.paraMeditar.map(
                                               (item) =>

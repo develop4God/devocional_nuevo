@@ -1,5 +1,6 @@
 import 'package:devocional_nuevo/controllers/tts_audio_controller.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
+import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
 import 'package:flutter/material.dart';
 
 class TtsPlayerWidget extends StatefulWidget {
@@ -37,61 +38,61 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget> {
 
   @override
   Widget build(BuildContext context) {
+    debugPrint(
+        '[TTS Widget] build() llamado para devocional: ${widget.devocional.id}');
     return ValueListenableBuilder<TtsPlayerState>(
       valueListenable: widget.audioController.state,
       builder: (context, state, child) {
-        print('[TTS Widget] Estado actual: $state');
+        debugPrint('[TTS Widget] Estado actual: $state');
+        if (state == TtsPlayerState.completed) {
+          debugPrint(
+              '[TTS Widget] Devocional escuchado COMPLETADO: ${widget.devocional.id}');
+          SpiritualStatsService().recordDevotionalHeard(
+            devocionalId: widget.devocional.id,
+            listenedPercentage: 1.0,
+          );
+        }
         Widget mainIcon;
-        String mainTooltip;
-        bool isButtonEnabled = true;
-
         switch (state) {
           case TtsPlayerState.playing:
             mainIcon = const Icon(Icons.pause, size: 32);
-            mainTooltip = 'Pausar';
             break;
           case TtsPlayerState.paused:
             mainIcon = const Icon(Icons.play_arrow, size: 32);
-            mainTooltip = 'Continuar';
             break;
           case TtsPlayerState.completed:
           case TtsPlayerState.idle:
             mainIcon = const Icon(Icons.play_arrow, size: 32);
-            mainTooltip = 'Escuchar';
             break;
           case TtsPlayerState.error:
             mainIcon = const Icon(Icons.refresh, size: 32);
-            mainTooltip = 'Reintentar';
             break;
         }
-
-        print('[TTS Widget] Renderizando IconButton, estado: $state');
+        debugPrint('[TTS Widget] Renderizando IconButton, estado: $state');
         return Material(
           color: Colors.transparent,
           elevation: 4,
           shape: const CircleBorder(),
           child: InkWell(
             customBorder: const CircleBorder(),
-            onTap: isButtonEnabled
-                ? () {
-                    print('[TTS Widget] Acción de usuario: $state');
-                    switch (state) {
-                      case TtsPlayerState.playing:
-                        widget.audioController.pause();
-                        break;
-                      case TtsPlayerState.paused:
-                        widget.audioController.play();
-                        break;
-                      case TtsPlayerState.completed:
-                      case TtsPlayerState.idle:
-                        widget.audioController.play();
-                        break;
-                      case TtsPlayerState.error:
-                        widget.audioController.play();
-                        break;
-                    }
-                  }
-                : null,
+            onTap: () {
+              debugPrint('[TTS Widget] Acción de usuario: $state');
+              switch (state) {
+                case TtsPlayerState.playing:
+                  widget.audioController.pause();
+                  break;
+                case TtsPlayerState.paused:
+                  widget.audioController.play();
+                  break;
+                case TtsPlayerState.completed:
+                case TtsPlayerState.idle:
+                  widget.audioController.play();
+                  break;
+                case TtsPlayerState.error:
+                  widget.audioController.play();
+                  break;
+              }
+            },
             child: Ink(
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
