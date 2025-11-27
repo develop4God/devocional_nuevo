@@ -63,12 +63,21 @@ class DevocionalesTracking {
       listen: false,
     );
 
+    debugPrint(
+        '[TRACKING] startDevocionalTracking() llamado para $devocionalId');
+
+    debugPrint(
+        '[TRACKING] Antes de start: trackedId=${devocionalProvider.currentTrackedDevocionalId}, segundos=${devocionalProvider.currentReadingSeconds}');
+
     devocionalProvider.startDevocionalTracking(
       devocionalId,
       scrollController: scrollController,
     );
 
     debugPrint('📖 Started tracking for devotional: $devocionalId');
+
+    debugPrint(
+        '[TRACKING] Después de start: trackedId=${devocionalProvider.currentTrackedDevocionalId}, segundos=${devocionalProvider.currentReadingSeconds}');
   }
 
   /// Evalúa criterios de lectura automáticamente
@@ -201,15 +210,18 @@ class DevocionalesTracking {
   /// Reanuda el tracking (cuando la app vuelve de background)
   void resumeTracking() {
     if (_context == null) return;
-
+    debugPrint('[TRACKING] resumeTracking() llamado');
     final devocionalProvider = Provider.of<DevocionalProvider>(
       _context!,
       listen: false,
     );
-
+    debugPrint(
+        '[TRACKING] Antes de resume: trackedId=${devocionalProvider.currentTrackedDevocionalId}, segundos=${devocionalProvider.currentReadingSeconds}');
     devocionalProvider.resumeTracking();
     startCriteriaCheckTimer();
     debugPrint('▶️ Tracking resumed');
+    debugPrint(
+        '[TRACKING] Después de resume: trackedId=${devocionalProvider.currentTrackedDevocionalId}, segundos=${devocionalProvider.currentReadingSeconds}');
   }
 
   /// Registra manualmente la lectura de un devocional

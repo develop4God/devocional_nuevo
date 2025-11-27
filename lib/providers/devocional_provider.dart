@@ -797,8 +797,17 @@ class ReadingTracker {
   TrackingData? _lastFinalizedData;
 
   // Getters
-  int get currentReadingSeconds =>
-      _accumulatedSeconds + _getCurrentSessionSeconds();
+  int get currentReadingSeconds {
+    if (_startTime == null) return _accumulatedSeconds;
+    if (_pausedTime != null) {
+      // Si está pausado, solo devuelve el acumulado
+      return _accumulatedSeconds;
+    } else {
+      // Si está activo, suma el tiempo actual
+      return _accumulatedSeconds +
+          DateTime.now().difference(_startTime!).inSeconds;
+    }
+  }
 
   double get currentScrollPercentage => _maxScrollPercentage;
 
@@ -860,29 +869,22 @@ class ReadingTracker {
     });
   }
 
-  int _getCurrentSessionSeconds() {
-    if (_startTime == null) return 0;
-    final now = DateTime.now();
-    final sessionStart = _pausedTime ?? _startTime!;
-    return now.difference(sessionStart).inSeconds;
-  }
-
   void pause() {
-    if (_currentDevocionalId == null) return;
-    if (_pausedTime == null) {
-      _pausedTime = DateTime.now();
-      _accumulatedSeconds += _getCurrentSessionSeconds();
-      debugPrint(
-          '[TRACKER] pause() - acumulado: $_accumulatedSeconds segundos');
-    }
+    if (_currentDevocionalId == null || _startTime == null) return;
+    final now = DateTime.now();
+    final sessionSeconds = now.difference(_startTime!).inSeconds;
+    _accumulatedSeconds += sessionSeconds;
+    _pausedTime = now;
+    debugPrint(
+        '[TRACKER] pause() - acumulado: $_accumulatedSeconds segundos, session: $sessionSeconds, startTime: $_startTime, pausedTime: $_pausedTime');
     _timer?.cancel();
   }
 
   void resume() {
     if (_currentDevocionalId == null || _pausedTime == null) return;
-    debugPrint(
-        '[TRACKER] resume() - acumulado antes de reanudar: $_accumulatedSeconds segundos');
     _startTime = DateTime.now();
+    debugPrint(
+        '[TRACKER] resume() - acumulado antes de reanudar: $_accumulatedSeconds segundos, pausedTime: $_pausedTime');
     _pausedTime = null;
     _startTimer();
   }
@@ -895,24 +897,22 @@ class ReadingTracker {
 
   void _finalizeCurrentTracking() {
     if (_currentDevocionalId == null) return;
-
-    final totalTime = _accumulatedSeconds + _getCurrentSessionSeconds();
-
+    final totalTime =
+        (_accumulatedSeconds + _getCurrentSessionSeconds()).toInt();
     _lastFinalizedId = _currentDevocionalId;
     _lastFinalizedData = TrackingData(
       readingTime: totalTime,
       scrollPercentage: _maxScrollPercentage,
     );
-
     _cleanup();
   }
 
   TrackingData finalize(String devocionalId) {
     TrackingData result;
-
     if (_currentDevocionalId == devocionalId) {
       // Currently tracked devotional
-      final totalTime = _accumulatedSeconds + _getCurrentSessionSeconds();
+      final totalTime =
+          (_accumulatedSeconds + _getCurrentSessionSeconds()).toInt();
       result = TrackingData(
         readingTime: totalTime,
         scrollPercentage: _maxScrollPercentage,
@@ -927,7 +927,6 @@ class ReadingTracker {
       // Unknown devotional
       result = TrackingData(readingTime: 0, scrollPercentage: 0.0);
     }
-
     return result;
   }
 
@@ -951,6 +950,11 @@ class ReadingTracker {
     _cleanup();
     _lastFinalizedId = null;
     _lastFinalizedData = null;
+  }
+
+  int _getCurrentSessionSeconds() {
+    if (_startTime == null || _pausedTime != null) return 0;
+    return DateTime.now().difference(_startTime!).inSeconds;
   }
 }
 
