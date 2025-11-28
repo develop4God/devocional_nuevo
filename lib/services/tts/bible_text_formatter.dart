@@ -3,8 +3,10 @@ import 'package:flutter/foundation.dart';
 /// Bible text formatting utilities for TTS
 /// Handles ordinal formatting and Bible version expansions across multiple languages
 class BibleTextFormatter {
-  /// Static regex for checking if match starts with whitespace
-  static final _whitespaceRegex = RegExp(r'\s');
+  /// Helper to check if a match starts with whitespace
+  static bool _startsWithWhitespace(String text) {
+    return text.isNotEmpty && text[0].trim().isEmpty;
+  }
   
   /// Formats Bible book names with ordinals based on the specified language
   static String formatBibleBook(String reference, String language) {
@@ -36,7 +38,8 @@ class BibleTextFormatter {
         RegExp(r'(?:^|\s)([123])\s+([A-Za-záéíóúÁÉÍÓÚñÑ]+)', caseSensitive: false);
     
     return reference.replaceAllMapped(exp, (match) {
-      final prefix = match.group(0)!.startsWith(_whitespaceRegex) ? ' ' : '';
+      final matchText = match.group(0)!;
+      final prefix = _startsWithWhitespace(matchText) ? ' ' : '';
       final number = match.group(1)!;
       final book = match.group(2)!;
       String ordinal;
@@ -64,7 +67,8 @@ class BibleTextFormatter {
     final ordinals = {'1': 'First', '2': 'Second', '3': 'Third'};
     
     return reference.replaceAllMapped(exp, (match) {
-      final prefix = match.group(0)!.startsWith(_whitespaceRegex) ? ' ' : '';
+      final matchText = match.group(0)!;
+      final prefix = _startsWithWhitespace(matchText) ? ' ' : '';
       final number = match.group(1)!;
       final bookName = match.group(2)!;
       final ordinal = ordinals[number] ?? number;
@@ -79,7 +83,8 @@ class BibleTextFormatter {
     final ordinals = {'1': 'Primeiro', '2': 'Segundo', '3': 'Terceiro'};
     
     return reference.replaceAllMapped(exp, (match) {
-      final prefix = match.group(0)!.startsWith(_whitespaceRegex) ? ' ' : '';
+      final matchText = match.group(0)!;
+      final prefix = _startsWithWhitespace(matchText) ? ' ' : '';
       final number = match.group(1)!;
       final bookName = match.group(2)!;
       final ordinal = ordinals[number] ?? number;
@@ -94,7 +99,8 @@ class BibleTextFormatter {
     final ordinals = {'1': 'Premier', '2': 'Deuxième', '3': 'Troisième'};
     
     return reference.replaceAllMapped(exp, (match) {
-      final prefix = match.group(0)!.startsWith(_whitespaceRegex) ? ' ' : '';
+      final matchText = match.group(0)!;
+      final prefix = _startsWithWhitespace(matchText) ? ' ' : '';
       final number = match.group(1)!;
       final bookName = match.group(2)!;
       final ordinal = ordinals[number] ?? number;
