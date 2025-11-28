@@ -26,12 +26,14 @@ class BibleTextFormatter {
   }
 
   /// Formats Spanish Bible book ordinals (Primera de, Segunda de, Tercera de)
+  /// Now uses replaceAllMapped to work anywhere in text, not just at beginning
   static String _formatBibleBookSpanish(String reference) {
-    // CAMBIO QUIRÚRGICO: \b -> ^
+    // Use word boundary (\b) or start of string to match Bible book references anywhere
     final exp =
-        RegExp(r'^([123])\s+([A-Za-záéíóúÁÉÍÓÚñÑ]+)', caseSensitive: false);
-    final match = exp.firstMatch(reference.trim());
-    if (match != null) {
+        RegExp(r'(?:^|\s)([123])\s+([A-Za-záéíóúÁÉÍÓÚñÑ]+)', caseSensitive: false);
+    
+    return reference.replaceAllMapped(exp, (match) {
+      final prefix = match.group(0)!.startsWith(RegExp(r'\s')) ? ' ' : '';
       final number = match.group(1)!;
       final book = match.group(2)!;
       String ordinal;
@@ -48,66 +50,53 @@ class BibleTextFormatter {
         default:
           ordinal = '';
       }
-      return reference.replaceFirst(exp, '$ordinal $book');
-    }
-    return reference;
+      return '$prefix$ordinal $book';
+    });
   }
 
   /// Formats English Bible book ordinals (First, Second, Third)
+  /// Now uses replaceAllMapped to work anywhere in text, not just at beginning
   static String _formatBibleBookEnglish(String reference) {
-    final exp = RegExp(r'^([123])\s+([A-Za-z]+)', caseSensitive: false);
-    final match = exp.firstMatch(reference.trim());
-    if (match != null) {
+    final exp = RegExp(r'(?:^|\s)([123])\s+([A-Za-z]+)', caseSensitive: false);
+    final ordinals = {'1': 'First', '2': 'Second', '3': 'Third'};
+    
+    return reference.replaceAllMapped(exp, (match) {
+      final prefix = match.group(0)!.startsWith(RegExp(r'\s')) ? ' ' : '';
       final number = match.group(1)!;
       final bookName = match.group(2)!;
-
-      final ordinals = {'1': 'First', '2': 'Second', '3': 'Third'};
       final ordinal = ordinals[number] ?? number;
-
-      return reference.replaceFirst(
-        RegExp('^$number\\s+$bookName', caseSensitive: false),
-        '$ordinal $bookName',
-      );
-    }
-    return reference;
+      return '$prefix$ordinal $bookName';
+    });
   }
 
   /// Formats Portuguese Bible book ordinals (Primeiro, Segundo, Terceiro)
+  /// Now uses replaceAllMapped to work anywhere in text, not just at beginning
   static String _formatBibleBookPortuguese(String reference) {
-    final exp = RegExp(r'^([123])\s+([A-Za-z]+)', caseSensitive: false);
-    final match = exp.firstMatch(reference.trim());
-    if (match != null) {
+    final exp = RegExp(r'(?:^|\s)([123])\s+([A-Za-záéíóúâêîôûãõç]+)', caseSensitive: false);
+    final ordinals = {'1': 'Primeiro', '2': 'Segundo', '3': 'Terceiro'};
+    
+    return reference.replaceAllMapped(exp, (match) {
+      final prefix = match.group(0)!.startsWith(RegExp(r'\s')) ? ' ' : '';
       final number = match.group(1)!;
       final bookName = match.group(2)!;
-
-      final ordinals = {'1': 'Primeiro', '2': 'Segundo', '3': 'Terceiro'};
       final ordinal = ordinals[number] ?? number;
-
-      return reference.replaceFirst(
-        RegExp('^$number\\s+$bookName', caseSensitive: false),
-        '$ordinal $bookName',
-      );
-    }
-    return reference;
+      return '$prefix$ordinal $bookName';
+    });
   }
 
   /// Formats French Bible book ordinals (Premier, Deuxième, Troisième)
+  /// Now uses replaceAllMapped to work anywhere in text, not just at beginning
   static String _formatBibleBookFrench(String reference) {
-    final exp = RegExp(r'^([123])\s+([A-Za-z]+)', caseSensitive: false);
-    final match = exp.firstMatch(reference.trim());
-    if (match != null) {
+    final exp = RegExp(r'(?:^|\s)([123])\s+([A-Za-zéèêëàâäùûüôîïç]+)', caseSensitive: false);
+    final ordinals = {'1': 'Premier', '2': 'Deuxième', '3': 'Troisième'};
+    
+    return reference.replaceAllMapped(exp, (match) {
+      final prefix = match.group(0)!.startsWith(RegExp(r'\s')) ? ' ' : '';
       final number = match.group(1)!;
       final bookName = match.group(2)!;
-
-      final ordinals = {'1': 'Premier', '2': 'Deuxième', '3': 'Troisième'};
       final ordinal = ordinals[number] ?? number;
-
-      return reference.replaceFirst(
-        RegExp('^$number\\s+$bookName', caseSensitive: false),
-        '$ordinal $bookName',
-      );
-    }
-    return reference;
+      return '$prefix$ordinal $bookName';
+    });
   }
 
   /// Formato para libros bíblicos en japonés (sin ordinales, solo limpieza básica)

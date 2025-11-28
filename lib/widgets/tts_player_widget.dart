@@ -1,4 +1,5 @@
 import 'package:devocional_nuevo/controllers/tts_audio_controller.dart';
+import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
 import 'package:devocional_nuevo/services/tts/bible_text_formatter.dart';
@@ -38,25 +39,59 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget> {
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    debugPrint(
-        '[TTS Widget] build() llamado para devocional: [32m${widget.devocional.id}[0m');
-    // Armar el texto TTS normalizado como un solo string
-    final language = Localizations.localeOf(context).languageCode;
-    final ttsText = '${BibleTextFormatter.normalizeTtsText(
+  /// Build TTS text with localized section labels
+  /// Uses i18n keys: devotionals.verse, devotionals.reflection, devotionals.to_meditate, devotionals.prayer
+  String _buildTtsText(String language) {
+    // Get localized labels (remove trailing colon from labels, we add it in formatting)
+    final verseLabel = 'devotionals.verse'.tr().replaceAll(':', '');
+    final reflectionLabel = 'devotionals.reflection'.tr().replaceAll(':', '');
+    final meditateLabel = 'devotionals.to_meditate'.tr().replaceAll(':', '');
+    final prayerLabel = 'devotionals.prayer'.tr().replaceAll(':', '');
+
+    final StringBuffer ttsBuffer = StringBuffer();
+
+    // Section 1: Verse with label
+    ttsBuffer.write('$verseLabel: ');
+    ttsBuffer.write(BibleTextFormatter.normalizeTtsText(
       widget.devocional.versiculo,
       language,
       widget.devocional.version,
-    )}\n${BibleTextFormatter.normalizeTtsText(
+    ));
+
+    // Section 2: Reflection with label
+    ttsBuffer.write('\n$reflectionLabel: ');
+    ttsBuffer.write(BibleTextFormatter.normalizeTtsText(
       widget.devocional.reflexion,
       language,
       widget.devocional.version,
-    )}\n${widget.devocional.paraMeditar.map((m) => '${BibleTextFormatter.normalizeTtsText(m.cita, language, widget.devocional.version)}: ${m.texto}').join('\n')}\n${BibleTextFormatter.normalizeTtsText(
+    ));
+
+    // Section 3: To Meditate with label
+    if (widget.devocional.paraMeditar.isNotEmpty) {
+      ttsBuffer.write('\n$meditateLabel: ');
+      ttsBuffer.write(widget.devocional.paraMeditar.map((m) {
+        return '${BibleTextFormatter.normalizeTtsText(m.cita, language, widget.devocional.version)}: ${m.texto}';
+      }).join('\n'));
+    }
+
+    // Section 4: Prayer with label
+    ttsBuffer.write('\n$prayerLabel: ');
+    ttsBuffer.write(BibleTextFormatter.normalizeTtsText(
       widget.devocional.oracion,
       language,
       widget.devocional.version,
-    )}';
+    ));
+
+    return ttsBuffer.toString();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    debugPrint(
+        '[TTS Widget] build() llamado para devocional: ${widget.devocional.id}');
+    // Armar el texto TTS normalizado con etiquetas localizadas
+    final language = Localizations.localeOf(context).languageCode;
+    final ttsText = _buildTtsText(language);
     debugPrint('[TTS Widget] Texto TTS armado: $ttsText');
     widget.audioController.setText(ttsText);
     return ValueListenableBuilder<TtsPlayerState>(

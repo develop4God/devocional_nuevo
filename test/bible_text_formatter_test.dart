@@ -45,6 +45,60 @@ void main() {
           BibleTextFormatter.formatBibleBook('Genèse', 'fr'), equals('Genèse'));
     });
 
+    test('should format Bible books in middle of sentence for all languages',
+        () {
+      // Bug fix: TTS normalizer should work in middle of sentence, not just at beginning
+      // Test Spanish - middle of sentence
+      expect(
+          BibleTextFormatter.formatBibleBook(
+              'En la reflexión, 2 Pedro nos enseña', 'es'),
+          contains('Segunda de Pedro'));
+      expect(
+          BibleTextFormatter.formatBibleBook(
+              'Como dice 1 Juan sobre el amor', 'es'),
+          contains('Primera de Juan'));
+
+      // Test English - middle of sentence
+      expect(
+          BibleTextFormatter.formatBibleBook(
+              'In the reflection, 2 Peter teaches us', 'en'),
+          contains('Second Peter'));
+      expect(
+          BibleTextFormatter.formatBibleBook('As 1 John says about love', 'en'),
+          contains('First John'));
+
+      // Test Portuguese - middle of sentence
+      expect(
+          BibleTextFormatter.formatBibleBook(
+              'Na reflexão, 2 Pedro nos ensina', 'pt'),
+          contains('Segundo Pedro'));
+
+      // Test French - middle of sentence
+      expect(
+          BibleTextFormatter.formatBibleBook(
+              'Dans la réflexion, 2 Pierre nous enseigne', 'fr'),
+          contains('Deuxième Pierre'));
+    });
+
+    test('should format multiple Bible books in same text', () {
+      // Test multiple books in one sentence
+      expect(
+          BibleTextFormatter.formatBibleBook(
+              '1 Juan y 2 Pedro hablan del amor', 'es'),
+          allOf([
+            contains('Primera de Juan'),
+            contains('Segunda de Pedro'),
+          ]));
+
+      expect(
+          BibleTextFormatter.formatBibleBook(
+              '1 John and 2 Peter speak about love', 'en'),
+          allOf([
+            contains('First John'),
+            contains('Second Peter'),
+          ]));
+    });
+
     test('should return Bible version expansions for all languages', () {
       // Test Spanish expansions
       final spanishExpansions =
