@@ -54,8 +54,8 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
         state == AppLifecycleState.inactive ||
         state == AppLifecycleState.detached) {
       debugPrint(
-          '[TTS Widget] App en segundo plano o pantalla inactiva, deteniendo audio');
-      widget.audioController.stop();
+          '[TTS Widget] App en segundo plano o pantalla inactiva, pausando audio');
+      widget.audioController.pause();
     }
   }
 
