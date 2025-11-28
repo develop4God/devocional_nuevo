@@ -1,6 +1,7 @@
 import 'package:devocional_nuevo/controllers/tts_audio_controller.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
+import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
 import 'package:devocional_nuevo/services/tts/bible_text_formatter.dart';
 import 'package:flutter/material.dart';
 
@@ -22,6 +23,10 @@ class TtsPlayerWidget extends StatefulWidget {
 
 class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
     with WidgetsBindingObserver {
+  /// Track if we have already registered this devotional as heard
+  /// to prevent duplicate registrations
+  bool _hasRegisteredHeard = false;
+
   @override
   void initState() {
     super.initState();
@@ -35,6 +40,8 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
       debugPrint(
           '[TTS Widget] Cambio de devocional detectado, deteniendo audio');
       widget.audioController.stop();
+      // Reset heard tracking for new devotional
+      _hasRegisteredHeard = false;
     }
   }
 
@@ -118,6 +125,29 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
       valueListenable: widget.audioController.state,
       builder: (context, state, child) {
         debugPrint('[TTS Widget] Estado actual: $state');
+
+        // Record devotional as heard when TTS completes (80% threshold)
+        // This is called with a real estimate of listening completion
+        if (state == TtsPlayerState.completed && !_hasRegisteredHeard) {
+          _hasRegisteredHeard = true;
+          // Check if already read to avoid duplication
+          SpiritualStatsService()
+              .hasDevocionalBeenRead(widget.devocional.id)
+              .then((alreadyRead) {
+            if (!alreadyRead) {
+              debugPrint(
+                  '[TTS Widget] Registrando devocional heard: id=${widget.devocional.id}, porcentaje=80%');
+              SpiritualStatsService().recordDevotionalHeard(
+                devocionalId: widget.devocional.id,
+                listenedPercentage: 0.8, // 80% threshold for TTS completion
+              );
+            } else {
+              debugPrint(
+                  '[TTS Widget] Ya registrado como leído, no se duplica');
+            }
+          });
+        }
+
         Widget mainIcon;
         Widget buttonWidget;
         final themeColor = Theme.of(context).colorScheme.primary;

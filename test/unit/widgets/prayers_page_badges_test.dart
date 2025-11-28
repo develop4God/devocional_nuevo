@@ -203,7 +203,8 @@ void main() {
       );
 
       await tester.pumpWidget(createWidgetUnderTest(
-        prayerState: PrayerLoaded(prayers: [...activePrayers, ...answeredPrayers]),
+        prayerState:
+            PrayerLoaded(prayers: [...activePrayers, ...answeredPrayers]),
         thanksgivingState: ThanksgivingLoaded(thanksgivings: thanksgivings),
       ));
       await tester.pumpAndSettle();

@@ -12,7 +12,7 @@ class BibleTextFormatter {
   static String formatBibleBook(String reference, String language) {
     final maxLogLength = 80;
     final logText = reference.length > maxLogLength
-        ? reference.substring(0, maxLogLength) + '...'
+        ? '${reference.substring(0, maxLogLength)}...'
         : reference;
     debugPrint(
         '[BibleTextFormatter] formatBibleBook called with reference="$logText", language="$language"');

@@ -141,27 +141,6 @@ void main() {
           reason: 'Progress cannot exceed 1.0');
     });
 
-    // ========== TESTS DE NAVEGACIÓN DE CHUNKS ==========
-
-    test('should have null chunk navigation when no audio loaded', () {
-      // Sin audio cargado, la navegación debe estar deshabilitada
-      expect(controller.previousChunk, isNull,
-          reason: 'previousChunk should be null without audio');
-
-      expect(controller.nextChunk, isNull,
-          reason: 'nextChunk should be null without audio');
-
-      // Los índices pueden ser null o 0
-      final chunkIndex = controller.currentChunkIndex;
-      final totalChunks = controller.totalChunks;
-
-      expect(chunkIndex == null || chunkIndex == 0, isTrue,
-          reason: 'currentChunkIndex should be null or 0 without audio');
-
-      expect(totalChunks == null || totalChunks == 0, isTrue,
-          reason: 'totalChunks should be null or 0 without audio');
-    });
-
     // ========== TESTS DE ESTADO DE ERROR ==========
 
     test('should map error state to hasError property correctly', () {

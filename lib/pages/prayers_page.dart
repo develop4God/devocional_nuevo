@@ -50,7 +50,7 @@ class _PrayersPageState extends State<PrayersPage>
   /// Build a modern count badge widget for tab headers
   Widget _buildCountBadge(int count, Color backgroundColor) {
     if (count == 0) return const SizedBox.shrink();
-    
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
@@ -142,7 +142,8 @@ class _PrayersPageState extends State<PrayersPage>
                                           child: Text(
                                             'prayer.active'.tr(),
                                             textAlign: TextAlign.center,
-                                            style: const TextStyle(fontSize: 13),
+                                            style:
+                                                const TextStyle(fontSize: 13),
                                             maxLines: 1,
                                             overflow: TextOverflow.fade,
                                           ),
@@ -196,7 +197,8 @@ class _PrayersPageState extends State<PrayersPage>
                                           child: Text(
                                             'prayer.answered_prayers'.tr(),
                                             textAlign: TextAlign.center,
-                                            style: const TextStyle(fontSize: 13),
+                                            style:
+                                                const TextStyle(fontSize: 13),
                                             maxLines: 1,
                                             overflow: TextOverflow.fade,
                                           ),
@@ -218,8 +220,8 @@ class _PrayersPageState extends State<PrayersPage>
                           // Tab 3: Thanksgivings with count badge
                           Tab(
                             height: 72,
-                            child:
-                                BlocBuilder<ThanksgivingBloc, ThanksgivingState>(
+                            child: BlocBuilder<ThanksgivingBloc,
+                                ThanksgivingState>(
                               builder: (context, state) {
                                 final count = state is ThanksgivingLoaded
                                     ? state.thanksgivings.length

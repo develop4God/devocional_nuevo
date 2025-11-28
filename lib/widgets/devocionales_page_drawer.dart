@@ -309,7 +309,7 @@ class DevocionalesDrawer extends StatelessWidget {
                                   if (devocionalProvider.selectedLanguage ==
                                       'ja') {
                                     if (itemValue == 'SK2003') {
-                                      displayText = '新改訳';
+                                      displayText = '新改訳 2003';
                                     } else if (itemValue == 'JCB') {
                                       displayText = '新共同訳';
                                     }
@@ -334,7 +334,7 @@ class DevocionalesDrawer extends StatelessWidget {
                                 if (devocionalProvider.selectedLanguage ==
                                     'ja') {
                                   if (itemValue == 'SK2003') {
-                                    displayText = '新改訳';
+                                    displayText = '新改訳 2003';
                                   } else if (itemValue == 'JCB') {
                                     displayText = '新共同訳';
                                   }
