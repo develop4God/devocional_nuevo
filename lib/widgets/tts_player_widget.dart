@@ -1,7 +1,6 @@
 import 'package:devocional_nuevo/controllers/tts_audio_controller.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
-import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
 import 'package:devocional_nuevo/services/tts/bible_text_formatter.dart';
 import 'package:flutter/material.dart';
 
@@ -112,97 +111,113 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
     // Armar el texto TTS normalizado con etiquetas localizadas
     final language = Localizations.localeOf(context).languageCode;
     final ttsText = _buildTtsText(language);
-    debugPrint('[TTS Widget] Texto TTS armado: $ttsText');
+    debugPrint('[TTS Widget] Texto TTS armado: ' +
+        (ttsText.length > 80 ? ttsText.substring(0, 80) + '...' : ttsText));
     widget.audioController.setText(ttsText);
     return ValueListenableBuilder<TtsPlayerState>(
       valueListenable: widget.audioController.state,
       builder: (context, state, child) {
         debugPrint('[TTS Widget] Estado actual: $state');
-        if (state == TtsPlayerState.completed) {
-          debugPrint(
-              '[TTS Widget] Devocional escuchado COMPLETADO: ${widget.devocional.id}');
-          debugPrint(
-              '[TTS Widget] Tracking TTS: id=${widget.devocional.id}, porcentaje=100%');
-          // Solo registrar si no está ya registrado como leído/escuchado
-          SpiritualStatsService()
-              .hasDevocionalBeenRead(widget.devocional.id)
-              .then((alreadyRegistered) {
-            if (!alreadyRegistered) {
-              debugPrint(
-                  '[TTS Widget] Registrando devocional heard en stats: id=${widget.devocional.id}, porcentaje=100%');
-              SpiritualStatsService().recordDevotionalHeard(
-                devocionalId: widget.devocional.id,
-                listenedPercentage: 1.0,
-              );
-            } else {
-              debugPrint(
-                  '[TTS Widget] Ya registrado como leído/escuchado, no se duplica');
-            }
-          });
-        }
         Widget mainIcon;
-        switch (state) {
-          case TtsPlayerState.playing:
-            mainIcon = const Icon(Icons.pause, size: 32);
-            break;
-          case TtsPlayerState.completed:
-          case TtsPlayerState.idle:
-            mainIcon = const Icon(Icons.play_arrow, size: 32);
-            break;
-          case TtsPlayerState.paused:
-            mainIcon = const Icon(Icons.play_arrow, size: 32);
-            break;
-          case TtsPlayerState.error:
-            mainIcon = const Icon(Icons.refresh, size: 32);
-            break;
+        Widget buttonWidget;
+        if (state == TtsPlayerState.loading) {
+          mainIcon = const SizedBox(
+            width: 32,
+            height: 32,
+            child: CircularProgressIndicator(
+              strokeWidth: 3,
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.orange),
+            ),
+          );
+          buttonWidget = Container(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: const LinearGradient(
+                colors: [Colors.orange, Colors.amber],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.15),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            width: 56,
+            height: 56,
+            child: Center(child: mainIcon),
+          );
+        } else if (state == TtsPlayerState.playing) {
+          mainIcon = const Icon(Icons.pause, size: 32, color: Colors.white);
+          buttonWidget = Container(
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Colors.orange, Colors.amber],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.15),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            width: 56,
+            height: 56,
+            child: Center(child: mainIcon),
+          );
+        } else {
+          mainIcon =
+              const Icon(Icons.play_arrow, size: 32, color: Colors.white);
+          buttonWidget = Container(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: const LinearGradient(
+                colors: [Color(0xFF4F8CFF), Color(0xFF6DD5FA)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.15),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            width: 56,
+            height: 56,
+            child: Center(child: mainIcon),
+          );
         }
         debugPrint('[TTS Widget] Renderizando IconButton, estado: $state');
         return Material(
           color: Colors.transparent,
           elevation: 4,
-          shape: const CircleBorder(),
+          shape: state == TtsPlayerState.playing
+              ? RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))
+              : const CircleBorder(),
           child: InkWell(
-            customBorder: const CircleBorder(),
+            customBorder: state == TtsPlayerState.playing
+                ? RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16))
+                : const CircleBorder(),
             onTap: () {
               debugPrint('[TTS Widget] Acción de usuario: $state');
-              switch (state) {
-                case TtsPlayerState.playing:
-                  widget.audioController.pause();
-                  break;
-                case TtsPlayerState.paused:
-                  widget.audioController.play();
-                  break;
-                case TtsPlayerState.completed:
-                case TtsPlayerState.idle:
-                  widget.audioController.play();
-                  break;
-                case TtsPlayerState.error:
-                  widget.audioController.play();
-                  break;
+              if (state == TtsPlayerState.playing) {
+                widget.audioController.pause();
+              } else if (state == TtsPlayerState.loading) {
+                // No hacer nada mientras carga
+              } else {
+                widget.audioController.play();
               }
             },
-            child: Ink(
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF4F8CFF), Color(0xFF6DD5FA)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.15),
-                    blurRadius: 8,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              width: 56,
-              height: 56,
-              child: Center(
-                child: mainIcon,
-              ),
-            ),
+            child: buttonWidget,
           ),
         );
       },
