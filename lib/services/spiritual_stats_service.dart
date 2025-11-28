@@ -378,8 +378,9 @@ class SpiritualStatsService {
       return stats;
     }
 
+    // Si ya está registrado como leído o escuchado, no duplicar
     if (stats.readDevocionalIds.contains(devocionalId)) {
-      debugPrint('Devocional $devocionalId ya registrado como leído');
+      debugPrint('Devocional $devocionalId ya registrado como leído/escuchado');
       if (favoritesCount != null) {
         final updatedStats = stats.copyWith(favoritesCount: favoritesCount);
         await saveStats(updatedStats);

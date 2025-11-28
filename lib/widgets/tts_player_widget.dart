@@ -101,10 +101,24 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget> {
         if (state == TtsPlayerState.completed) {
           debugPrint(
               '[TTS Widget] Devocional escuchado COMPLETADO: ${widget.devocional.id}');
-          SpiritualStatsService().recordDevotionalHeard(
-            devocionalId: widget.devocional.id,
-            listenedPercentage: 1.0,
-          );
+          debugPrint(
+              '[TTS Widget] Tracking TTS: id=${widget.devocional.id}, porcentaje=100%');
+          // Solo registrar si no está ya registrado como leído/escuchado
+          SpiritualStatsService()
+              .hasDevocionalBeenRead(widget.devocional.id)
+              .then((alreadyRegistered) {
+            if (!alreadyRegistered) {
+              debugPrint(
+                  '[TTS Widget] Registrando devocional heard en stats: id=${widget.devocional.id}, porcentaje=100%');
+              SpiritualStatsService().recordDevotionalHeard(
+                devocionalId: widget.devocional.id,
+                listenedPercentage: 1.0,
+              );
+            } else {
+              debugPrint(
+                  '[TTS Widget] Ya registrado como leído/escuchado, no se duplica');
+            }
+          });
         }
         Widget mainIcon;
         switch (state) {
