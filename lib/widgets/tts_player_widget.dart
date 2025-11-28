@@ -111,8 +111,8 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
     // Armar el texto TTS normalizado con etiquetas localizadas
     final language = Localizations.localeOf(context).languageCode;
     final ttsText = _buildTtsText(language);
-    debugPrint('[TTS Widget] Texto TTS armado: ' +
-        (ttsText.length > 80 ? ttsText.substring(0, 80) + '...' : ttsText));
+    debugPrint(
+        '[TTS Widget] Texto TTS armado: ${ttsText.length > 80 ? '${ttsText.substring(0, 80)}...' : ttsText}');
     widget.audioController.setText(ttsText);
     return ValueListenableBuilder<TtsPlayerState>(
       valueListenable: widget.audioController.state,
@@ -120,75 +120,42 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
         debugPrint('[TTS Widget] Estado actual: $state');
         Widget mainIcon;
         Widget buttonWidget;
+        final themeColor = Theme.of(context).colorScheme.primary;
+        const borderWidth = 2.0;
         if (state == TtsPlayerState.loading) {
           mainIcon = const SizedBox(
             width: 32,
             height: 32,
             child: CircularProgressIndicator(
-              strokeWidth: 3,
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.orange),
+              strokeWidth: 2,
             ),
           );
           buttonWidget = Container(
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              gradient: const LinearGradient(
-                colors: [Colors.orange, Colors.amber],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.15),
-                  blurRadius: 8,
-                  offset: const Offset(0, 4),
-                ),
-              ],
+              border: Border.all(color: themeColor, width: borderWidth),
             ),
             width: 56,
             height: 56,
             child: Center(child: mainIcon),
           );
         } else if (state == TtsPlayerState.playing) {
-          mainIcon = const Icon(Icons.pause, size: 32, color: Colors.white);
+          mainIcon = Icon(Icons.pause, size: 32, color: themeColor);
           buttonWidget = Container(
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Colors.orange, Colors.amber],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
+              border: Border.all(color: themeColor, width: borderWidth),
               borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.15),
-                  blurRadius: 8,
-                  offset: const Offset(0, 4),
-                ),
-              ],
             ),
             width: 56,
             height: 56,
             child: Center(child: mainIcon),
           );
         } else {
-          mainIcon =
-              const Icon(Icons.play_arrow, size: 32, color: Colors.white);
+          mainIcon = Icon(Icons.play_arrow, size: 32, color: themeColor);
           buttonWidget = Container(
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              gradient: const LinearGradient(
-                colors: [Color(0xFF4F8CFF), Color(0xFF6DD5FA)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.15),
-                  blurRadius: 8,
-                  offset: const Offset(0, 4),
-                ),
-              ],
+              border: Border.all(color: themeColor, width: borderWidth),
             ),
             width: 56,
             height: 56,
@@ -198,7 +165,7 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
         debugPrint('[TTS Widget] Renderizando IconButton, estado: $state');
         return Material(
           color: Colors.transparent,
-          elevation: 4,
+          elevation: 0,
           shape: state == TtsPlayerState.playing
               ? RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))
               : const CircleBorder(),
