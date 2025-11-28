@@ -145,6 +145,8 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
               debugPrint(
                   '[TTS Widget] Ya registrado como leído, no se duplica');
             }
+          }).catchError((error) {
+            debugPrint('[TTS Widget] Error recording devotional heard: $error');
           });
         }
 
