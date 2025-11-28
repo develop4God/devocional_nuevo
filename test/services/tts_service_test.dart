@@ -82,7 +82,7 @@ void main() {
     expect(mockTts.speakCalled, true);
     expect(mockTts.lastText, contains('Texto de prueba'));
   });
-  test('speakDevotional envía el texto completo y normalizado', () async {
+  test('speakDevotional speaks the devotional reflection text', () async {
     final mockTts = MockFlutterTts();
     final ttsService = TtsService.forTest(
       flutterTts: mockTts,
@@ -98,10 +98,9 @@ void main() {
     );
     await ttsService.speakDevotional(devocional);
     expect(mockTts.speakCalled, true);
-    expect(mockTts.lastText, contains('Juan 3:16'));
+    // Note: TtsService.speakDevotional speaks the reflection only
+    // Full devotional text with all sections is built by TtsPlayerWidget
     expect(mockTts.lastText, contains('Texto de prueba'));
-    expect(mockTts.lastText, contains('Medita en esto'));
-    expect(mockTts.lastText, contains('Oración de prueba'));
   });
 
   test('speakDevotional lanza error si el texto está vacío', () async {
