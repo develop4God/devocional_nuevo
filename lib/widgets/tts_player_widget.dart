@@ -21,7 +21,14 @@ class TtsPlayerWidget extends StatefulWidget {
   State<TtsPlayerWidget> createState() => _TtsPlayerWidgetState();
 }
 
-class _TtsPlayerWidgetState extends State<TtsPlayerWidget> {
+class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
+    with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
   @override
   void didUpdateWidget(covariant TtsPlayerWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -36,7 +43,20 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget> {
   void dispose() {
     debugPrint('[TTS Widget] dispose() llamado, deteniendo audio');
     widget.audioController.stop();
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    debugPrint('[TTS Widget] didChangeAppLifecycleState: $state');
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.detached) {
+      debugPrint(
+          '[TTS Widget] App en segundo plano o pantalla inactiva, deteniendo audio');
+      widget.audioController.stop();
+    }
   }
 
   /// Build TTS text with localized section labels
