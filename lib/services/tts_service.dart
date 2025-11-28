@@ -8,8 +8,6 @@ import 'dart:developer' as developer;
 import 'dart:io' show Platform;
 
 import 'package:devocional_nuevo/models/devocional_model.dart';
-import 'package:devocional_nuevo/services/localization_service.dart';
-import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
 import 'package:devocional_nuevo/services/tts/bible_text_formatter.dart';
 import 'package:devocional_nuevo/services/tts/i_tts_service.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
@@ -103,10 +101,8 @@ class TtsService implements ITtsService {
   /// Use getService\<ITtsService\>() instead of direct construction
   TtsService._internal({
     required FlutterTts flutterTts,
-    required LocalizationService localizationService,
     required VoiceSettingsService voiceSettingsService,
   })  : _flutterTts = flutterTts,
-        _localizationService = localizationService,
         _voiceSettingsService = voiceSettingsService;
 
   /// Factory constructor that creates instance with proper dependencies
@@ -114,7 +110,6 @@ class TtsService implements ITtsService {
   factory TtsService() {
     return TtsService._internal(
       flutterTts: FlutterTts(),
-      localizationService: LocalizationService.instance,
       voiceSettingsService: VoiceSettingsService(),
     );
   }
@@ -123,28 +118,19 @@ class TtsService implements ITtsService {
   @visibleForTesting
   factory TtsService.forTest({
     required FlutterTts flutterTts,
-    required LocalizationService localizationService,
     required VoiceSettingsService voiceSettingsService,
   }) {
     return TtsService._internal(
       flutterTts: flutterTts,
-      localizationService: localizationService,
       voiceSettingsService: voiceSettingsService,
     );
   }
 
   final FlutterTts _flutterTts;
-  final LocalizationService _localizationService;
   final VoiceSettingsService _voiceSettingsService;
 
   TtsState _currentState = TtsState.idle;
   String? _currentDevocionalId;
-  List<String> _currentChunks = [];
-  int _currentChunkIndex = 0;
-  Timer? _emergencyTimer;
-  int? _lastEmergencyEstimatedMs;
-  bool _chunkInProgress = false;
-  DateTime _lastNativeActivity = DateTime.now();
 
   final _stateController = StreamController<TtsState>.broadcast();
   final _progressController = StreamController<double>.broadcast();
@@ -154,6 +140,8 @@ class TtsService implements ITtsService {
   // Language context for TTS normalization
   String _currentLanguage = 'es';
   String _currentVersion = 'RVR1960';
+
+  String _lastTextSpoken = '';
 
   @override
   Stream<TtsState> get stateStream => _stateController.stream;
@@ -193,52 +181,6 @@ class TtsService implements ITtsService {
   }
 
   // =========================
-  // CHUNK NAVIGATION SUPPORT
-  // =========================
-
-  @override
-  int get currentChunkIndex => _currentChunkIndex;
-
-  @override
-  int get totalChunks => _currentChunks.length;
-
-  @override
-  VoidCallback? get previousChunk {
-    if (_currentChunkIndex > 0 && _chunkInProgress) {
-      return () => _jumpToChunk(_currentChunkIndex - 1);
-    }
-    return null;
-  }
-
-  @override
-  VoidCallback? get nextChunk {
-    if (_currentChunkIndex < _currentChunks.length - 1 && _chunkInProgress) {
-      return () => _jumpToChunk(_currentChunkIndex + 1);
-    }
-    return null;
-  }
-
-  @override
-  Future<void> Function(int index)? get jumpToChunk {
-    if (_currentChunks.isNotEmpty && _chunkInProgress) {
-      return (int index) async => await _jumpToChunk(index);
-    }
-    return null;
-  }
-
-  Future<void> _jumpToChunk(int index) async {
-    if (_chunkInProgress &&
-        index >= 0 &&
-        index < _currentChunks.length &&
-        index != _currentChunkIndex) {
-      _cancelEmergencyTimer();
-      _currentChunkIndex = index;
-      _progressController.add(_currentChunkIndex / _currentChunks.length);
-      _speakNextChunk();
-    }
-  }
-
-  // =========================
   // INITIALIZATION & CONFIG
   // =========================
 
@@ -246,7 +188,7 @@ class TtsService implements ITtsService {
     if (_isInitialized || _disposed) return;
 
     debugPrint('🔧 TTS: Initializing service...');
-    _updateState(TtsState.initializing);
+    _currentState = TtsState.initializing;
 
     try {
       if (!_isPlatformSupported) {
@@ -271,11 +213,11 @@ class TtsService implements ITtsService {
       _setupEventHandlers();
 
       _isInitialized = true;
-      _updateState(TtsState.idle);
+      _currentState = TtsState.idle;
       debugPrint('✅ TTS: Service initialized successfully');
     } catch (e) {
       debugPrint('❌ TTS: Initialization failed: $e');
-      _updateState(TtsState.error);
+      _currentState = TtsState.error;
       rethrow;
     }
   }
@@ -327,45 +269,35 @@ class TtsService implements ITtsService {
     _flutterTts.setStartHandler(() {
       debugPrint('🎬 TTS: START handler (nativo) en ${DateTime.now()}');
       if (!_disposed) {
-        _lastNativeActivity = DateTime.now();
-        _cancelEmergencyTimer();
-        _updateState(TtsState.playing);
+        _currentState = TtsState.playing;
       }
     });
 
     _flutterTts.setCompletionHandler(() {
       debugPrint('🏁 TTS: COMPLETION handler (nativo) en ${DateTime.now()}');
       if (!_disposed) {
-        _lastNativeActivity = DateTime.now();
-        _cancelEmergencyTimer();
-        _onChunkCompleted();
+        _currentState = TtsState.idle;
       }
     });
 
     _flutterTts.setPauseHandler(() {
       debugPrint('⏸️ TTS: Native PAUSE handler at ${DateTime.now()}');
       if (!_disposed) {
-        _lastNativeActivity = DateTime.now();
-        _cancelEmergencyTimer();
-        _updateState(TtsState.paused);
+        _currentState = TtsState.paused;
       }
     });
 
     _flutterTts.setContinueHandler(() {
       debugPrint('▶️ TTS: Native CONTINUE handler at ${DateTime.now()}');
       if (!_disposed) {
-        _lastNativeActivity = DateTime.now();
-        _updateState(TtsState.playing);
+        _currentState = TtsState.playing;
       }
     });
 
     _flutterTts.setErrorHandler((msg) {
       debugPrint('💥 TTS: Native ERROR handler: $msg at ${DateTime.now()}');
       if (!_disposed) {
-        _lastNativeActivity = DateTime.now();
-        _cancelEmergencyTimer();
-        _updateState(TtsState.error);
-        _resetPlayback();
+        _currentState = TtsState.error;
       }
     });
 
@@ -376,191 +308,6 @@ class TtsService implements ITtsService {
   // PLAYBACK MANAGEMENT
   // =========================
 
-  // FIX 1: Verificación de pausa ANTES de incrementar chunk
-  void _onChunkCompleted() async {
-    if (!_chunkInProgress) return;
-
-    // CRÍTICO: Verificar pausa ANTES de incrementar chunk para evitar avance no deseado
-    if (_currentState == TtsState.paused) {
-      debugPrint(
-          '⏸️ TTS: Chunk completado pero estado pausado, manteniendo chunk actual');
-      return;
-    }
-
-    final progress = (_currentChunkIndex + 1) / _currentChunks.length;
-    if (_currentDevocionalId != null && progress >= 0.8) {
-      debugPrint(
-          '[TTS] Registrando devocional heard: id=$_currentDevocionalId, progreso=${(progress * 100).toStringAsFixed(1)}%');
-      await SpiritualStatsService().recordDevotionalHeard(
-        devocionalId: _currentDevocionalId!,
-        listenedPercentage: progress,
-      );
-      debugPrint(
-          '📈 TTS: Devocional registrado en estadísticas por escucha con progreso ${progress * 100}%');
-
-      // Check for in-app review opportunity - AUDIO COMPLETION PATH
-      try {
-        // Add delay to ensure stats are persisted before checking
-        await Future.delayed(const Duration(milliseconds: 100));
-
-        final stats = await SpiritualStatsService().getStats();
-        debugPrint(
-            '🎯 Audio completion review check: ${stats.totalDevocionalesRead} devotionals');
-
-        // Note: We cannot show dialog from TTS service without context
-        // This will be handled via callback mechanism if needed
-        // For now, just log the attempt
-        debugPrint(
-            '🔔 TTS: Review milestone check completed - context needed for dialog');
-      } catch (e) {
-        debugPrint('❌ Error checking in-app review (audio completion): $e');
-        // Fail silently - review errors should not affect devotional recording
-      }
-    }
-
-    debugPrint(
-        '🏁 TTS: Processing chunk ${_currentChunkIndex + 1}/${_currentChunks.length} completion at ${DateTime.now()}');
-
-    _currentChunkIndex++;
-
-    if (_currentChunks.isNotEmpty) {
-      final progress = _currentChunkIndex / _currentChunks.length;
-      debugPrint('📊 TTS: Progress: ${(progress * 100).toInt()}%');
-      _progressController.add(progress);
-    }
-
-    if (_currentChunkIndex < _currentChunks.length) {
-      debugPrint('➡️ TTS: Moving to next chunk...');
-      Future.delayed(const Duration(milliseconds: 100), () {
-        if (!_disposed && _chunkInProgress) {
-          _speakNextChunk();
-        }
-      });
-    } else {
-      debugPrint('✅ TTS: Playback finalizado.');
-      _resetPlayback();
-    }
-  }
-
-  void _startEmergencyTimer(String chunk) {
-    _cancelEmergencyTimer();
-    int wordCount;
-    final lang = _currentLanguage.toLowerCase();
-    if (lang.startsWith('ja')) {
-      wordCount = (chunk.trim().length / 6).ceil();
-    } else {
-      wordCount = chunk.trim().split(RegExp(r'\s+')).length;
-    }
-    final minTimer =
-        lang.startsWith('ja') ? 4000 : (wordCount < 10 ? 2500 : 4000);
-    const maxTimer = 10000;
-    final estimatedTimeNum = (wordCount * 180).clamp(minTimer, maxTimer);
-    final estimatedTime = estimatedTimeNum.toInt();
-    _lastEmergencyEstimatedMs = estimatedTime;
-    debugPrint(
-        '[TTS] Emergency timer: $estimatedTime ms, chunk: ${chunk.length} chars, lang: $_currentLanguage');
-    _emergencyTimer = Timer(Duration(milliseconds: estimatedTime), () {
-      final now = DateTime.now();
-      final timeSinceActivity = now.difference(_lastNativeActivity).inSeconds;
-
-      debugPrint(
-          '🚨 TTS: Emergency timer triggered after ${estimatedTime}ms at $now');
-      debugPrint(
-          '🚨 TTS: Time since last native activity: ${timeSinceActivity}s');
-
-      if (!_disposed && _chunkInProgress && _currentState != TtsState.paused) {
-        debugPrint('🚨 TTS: Emergency fallback - avanzando chunk');
-        _onChunkCompleted();
-      } else {
-        debugPrint(
-            '🚨 TTS: Emergency fallback - detenido por estado pausado o disposed');
-      }
-    });
-  }
-
-  /// Devuelve la última duración estimada del timer de emergencia en ms.
-  /// Visible para testing.
-  @visibleForTesting
-  int get emergencyTimerDurationMs => _lastEmergencyEstimatedMs ?? 0;
-
-  /// Metodo auxiliar público para calcular el tiempo estimado sin iniciar el timer.
-  /// Esto facilita pruebas unitarias sin necesidad de instanciar dependencias nativas.
-  @visibleForTesting
-  static int computeEstimatedEmergencyMs(String chunk, String language) {
-    final lang = language.toLowerCase();
-    int wordCount;
-    if (lang.startsWith('ja')) {
-      wordCount = (chunk.trim().length / 6).ceil();
-    } else {
-      wordCount = chunk.trim().split(RegExp(r'\s+')).length;
-    }
-
-    final minTimer = wordCount < 10 ? 2500 : 4000;
-    const maxTimer = 10000;
-    final estimatedTime = (wordCount * 180).clamp(minTimer, maxTimer).toInt();
-    return estimatedTime;
-  }
-
-  void _speakNextChunk() async {
-    if (_disposed || !_chunkInProgress) return;
-
-    if (_currentState != TtsState.idle && _currentState != TtsState.playing) {
-      if (_currentState == TtsState.paused) {
-        debugPrint('⏸️ TTS: Playback pausado, no continuar chunks');
-        return;
-      }
-      debugPrint('⏳ TTS: Esperando estado idle/playing para avanzar chunk...');
-      Future.delayed(const Duration(milliseconds: 100), _speakNextChunk);
-      return;
-    }
-
-    if (_currentChunkIndex < _currentChunks.length) {
-      String chunk = _currentChunks[_currentChunkIndex];
-      if (chunk.trim().length < 6 &&
-          _currentChunkIndex + 1 < _currentChunks.length) {
-        chunk = '$chunk ${_currentChunks[_currentChunkIndex + 1]}';
-        debugPrint('🔗 TTS: Chunk fusionado con siguiente por ser muy corto.');
-        _currentChunkIndex++;
-      }
-
-      debugPrint(
-          '🔊 TTS: Speaking chunk ${_currentChunkIndex + 1}/${_currentChunks.length} at ${DateTime.now()}');
-      debugPrint(
-          '📝 TTS: Content: ${chunk.length > 50 ? '${chunk.substring(0, 50)}...' : chunk}');
-
-      try {
-        _cancelEmergencyTimer();
-        if (_currentState != TtsState.paused &&
-            _currentState != TtsState.error &&
-            _currentState != TtsState.stopping) {
-          await _flutterTts.speak(chunk);
-          if (_currentState != TtsState.playing) {
-            _updateState(TtsState.playing);
-          }
-          _startEmergencyTimer(chunk);
-        } else {
-          debugPrint(
-              '🚫 TTS: No se reproduce chunk porque el estado es $_currentState');
-        }
-      } catch (e) {
-        debugPrint('❌ TTS: Failed to speak chunk: $e');
-        _updateState(TtsState.error);
-        _resetPlayback();
-      }
-    } else {
-      debugPrint('✅ TTS: Todos los chunks han sido reproducidos.');
-      _resetPlayback();
-    }
-  }
-
-  void _cancelEmergencyTimer() {
-    if (_emergencyTimer != null) {
-      _emergencyTimer!.cancel();
-      _emergencyTimer = null;
-      debugPrint('🔄 TTS: Emergency timer cancelled at ${DateTime.now()}');
-    }
-  }
-
   // =========================
   // TEXT NORMALIZATION - OPTIMIZED
   // =========================
@@ -568,225 +315,6 @@ class TtsService implements ITtsService {
   String _normalizeTtsText(String text, [String? language, String? version]) {
     final currentLang = language ?? _currentLanguage;
     return BibleTextFormatter.normalizeTtsText(text, currentLang, version);
-  }
-
-  // =========================
-  // CHUNK GENERATION
-  // =========================
-
-  List<String> _generateChunks(Devocional devocional,
-      [String? targetLanguage]) {
-    List<String> chunks = [];
-    final currentLang = targetLanguage ?? _currentLanguage;
-    final sectionHeaders = _getSectionHeaders(currentLang);
-
-    // Lógica específica para japonés
-    if (currentLang == 'ja') {
-      // Versículo
-      if (devocional.versiculo.trim().isNotEmpty) {
-        final normalizedVerse = _normalizeTtsText(
-            devocional.versiculo, currentLang, _currentVersion);
-        chunks.add('${sectionHeaders['verse']}:: $normalizedVerse');
-      }
-      // Reflexión
-      if (devocional.reflexion.trim().isNotEmpty) {
-        chunks.add('${sectionHeaders['reflection']}::');
-        final reflection = _normalizeTtsText(
-            devocional.reflexion, currentLang, _currentVersion);
-        final paragraphs = reflection.split(RegExp(r'\n+'));
-        for (final paragraph in paragraphs) {
-          final trimmed = paragraph.trim();
-          if (trimmed.isNotEmpty) {
-            chunks.add(trimmed);
-          }
-        }
-      }
-      // Para meditar
-      if (devocional.paraMeditar.isNotEmpty) {
-        chunks.add('${sectionHeaders['meditate']}::');
-        for (final item in devocional.paraMeditar) {
-          final citation =
-              _normalizeTtsText(item.cita, currentLang, _currentVersion);
-          final text =
-              _normalizeTtsText(item.texto, currentLang, _currentVersion);
-          if (citation.isNotEmpty && text.isNotEmpty) {
-            chunks.add('$citation: $text');
-          }
-        }
-      }
-      // Oración
-      if (devocional.oracion.trim().isNotEmpty) {
-        chunks.add('${sectionHeaders['prayer']}::');
-        final prayer =
-            _normalizeTtsText(devocional.oracion, currentLang, _currentVersion);
-        final paragraphs = prayer.split(RegExp(r'\n+'));
-        for (final paragraph in paragraphs) {
-          final trimmed = paragraph.trim();
-          if (trimmed.isNotEmpty) {
-            chunks.add(trimmed);
-          }
-        }
-      }
-      debugPrint(
-          '📝 TTS: [JA] Generated ${chunks.length} chunks for language $currentLang');
-      for (int i = 0; i < chunks.length; i++) {
-        debugPrint('  $i: ${chunks[i]}');
-      }
-      return chunks.where((chunk) => chunk.trim().isNotEmpty).toList();
-    }
-
-    if (devocional.versiculo.trim().isNotEmpty) {
-      final normalizedVerse =
-          _normalizeTtsText(devocional.versiculo, currentLang, _currentVersion);
-      chunks.add('${sectionHeaders['verse']}: ${_sanitize(normalizedVerse)}');
-    }
-
-    if (devocional.reflexion.trim().isNotEmpty) {
-      chunks.add('${sectionHeaders['reflection']}:');
-      final reflection = _normalizeTtsText(
-          _sanitize(devocional.reflexion), currentLang, _currentVersion);
-      final paragraphs = reflection.split(RegExp(r'\n+'));
-
-      for (final paragraph in paragraphs) {
-        final trimmed = paragraph.trim();
-        if (trimmed.isNotEmpty) {
-          if (trimmed.length > 300) {
-            _splitLongParagraph(trimmed, chunks, currentLang);
-          } else {
-            chunks
-                .add(_normalizeTtsText(trimmed, currentLang, _currentVersion));
-          }
-        }
-      }
-    }
-
-    if (devocional.paraMeditar.isNotEmpty) {
-      chunks.add('${sectionHeaders['meditate']}:');
-      for (final item in devocional.paraMeditar) {
-        final citation = _normalizeTtsText(
-            _sanitize(item.cita), currentLang, _currentVersion);
-        final text = _normalizeTtsText(
-            _sanitize(item.texto), currentLang, _currentVersion);
-        if (citation.isNotEmpty && text.isNotEmpty) {
-          chunks.add('$citation: $text');
-        }
-      }
-    }
-
-    if (devocional.oracion.trim().isNotEmpty) {
-      chunks.add('${sectionHeaders['prayer']}:');
-      final prayer = _normalizeTtsText(
-          _sanitize(devocional.oracion), currentLang, _currentVersion);
-      final paragraphs = prayer.split(RegExp(r'\n+'));
-
-      for (final paragraph in paragraphs) {
-        final trimmed = paragraph.trim();
-        if (trimmed.isNotEmpty) {
-          if (trimmed.length > 300) {
-            _splitLongParagraph(trimmed, chunks, currentLang);
-          } else {
-            chunks
-                .add(_normalizeTtsText(trimmed, currentLang, _currentVersion));
-          }
-        }
-      }
-    }
-
-    debugPrint(
-        '📝 TTS: Generated ${chunks.length} chunks for language $currentLang');
-    for (int i = 0; i < chunks.length; i++) {
-      debugPrint(
-          '  $i: ${chunks[i].length > 50 ? '${chunks[i].substring(0, 50)}...' : chunks[i]}');
-    }
-
-    return chunks.where((chunk) => chunk.trim().isNotEmpty).toList();
-  }
-
-  void _splitLongParagraph(
-      String paragraph, List<String> chunks, String currentLang) {
-    if (currentLang == 'ja') {
-      // En japonés, cortar cada 600 caracteres para chunks más largos
-      for (int i = 0; i < paragraph.length; i += 600) {
-        final part = paragraph.substring(
-            i, i + 600 > paragraph.length ? paragraph.length : i + 600);
-        debugPrint('[TTS] Chunk japonés generado: ${part.length} caracteres');
-        if (part.trim().isNotEmpty) {
-          chunks.add(part.trim());
-        }
-      }
-      return;
-    }
-    final sentences = paragraph.split(RegExp(r'(?<=[.!?])\s+'));
-    String chunkParagraph = '';
-
-    for (final sentence in sentences) {
-      final normalizedSentence =
-          _normalizeTtsText(sentence, currentLang, _currentVersion);
-      if (chunkParagraph.length + normalizedSentence.length < 300) {
-        chunkParagraph += '$normalizedSentence ';
-      } else {
-        if (chunkParagraph.trim().isNotEmpty) {
-          chunks.add(chunkParagraph.trim());
-        }
-        chunkParagraph = '$normalizedSentence ';
-      }
-    }
-
-    if (chunkParagraph.trim().isNotEmpty) {
-      chunks.add(chunkParagraph.trim());
-    }
-  }
-
-  Map<String, String> _getSectionHeaders(String language) {
-    if (_localizationService.currentLocale.languageCode != language) {
-      debugPrint(
-          '⚠️ TTS: Language mismatch between localization service (${_localizationService.currentLocale.languageCode}) and TTS context ($language)');
-      // Listener proactivo: Forzar actualización de contexto TTS si hay mismatch
-      Future.microtask(() async {
-        debugPrint(
-            '🔄 TTS: Forzando actualización de contexto TTS a ${_localizationService.currentLocale.languageCode}');
-        setLanguageContext(
-            _localizationService.currentLocale.languageCode, _currentVersion);
-        await _updateTtsLanguageSettings(
-            _localizationService.currentLocale.languageCode);
-      });
-    }
-
-    return {
-      'verse': _localizationService.translate('devotionals.verse'),
-      'reflection': _localizationService.translate('devotionals.reflection'),
-      'meditate': _localizationService.translate('devotionals.to_meditate'),
-      'prayer': _localizationService.translate('devotionals.prayer'),
-    };
-  }
-
-  String _sanitize(String text) {
-    return text
-        .trim()
-        .replaceAll(RegExp(r'[^\w\s.,!?;:áéíóúÁÉÍÓÚüÜñÑ\-()]'), ' ')
-        .replaceAll(RegExp(r'\s+'), ' ');
-  }
-
-  void _updateState(TtsState newState) {
-    if (_currentState != newState) {
-      final oldState = _currentState;
-      _currentState = newState;
-      _stateController.add(newState);
-      debugPrint(
-          '🔄 TTS: State changed from $oldState to $newState at ${DateTime.now()}');
-    }
-  }
-
-  void _resetPlayback() {
-    debugPrint('🔄 TTS: Resetting playback state at ${DateTime.now()}');
-    _cancelEmergencyTimer();
-    _chunkInProgress = false;
-    _currentDevocionalId = null;
-    _currentChunks = [];
-    _currentChunkIndex = 0;
-    _progressController.add(0.0);
-    debugPrint('📊 TTS: Progress reset to 0%');
-    _updateState(TtsState.idle);
   }
 
   // =========================
@@ -818,22 +346,31 @@ class TtsService implements ITtsService {
       }
 
       _currentDevocionalId = devocional.id;
-      _currentChunks = _generateChunks(devocional);
-      _currentChunkIndex = 0;
-      _chunkInProgress = true;
       _progressController.add(0.0);
 
-      if (_currentChunks.isEmpty) {
-        throw const TtsException('No content to speak');
+      final normalizedText = _normalizeTtsText(
+          devocional.reflexion, _currentLanguage, _currentVersion);
+
+      if (normalizedText.isEmpty) {
+        throw const TtsException('No valid text content to speak');
       }
 
       debugPrint(
-          '📝 TTS: Generated ${_currentChunks.length} chunks for ${devocional.id} at ${DateTime.now()}');
+          '📝 TTS: Speaking: ${normalizedText.length > 50 ? '${normalizedText.substring(0, 50)}...' : normalizedText}');
 
-      _speakNextChunk();
+      _lastTextSpoken = normalizedText;
+
+      await _flutterTts.speak(normalizedText);
+
+      Timer(const Duration(seconds: 3), () {
+        if (_currentState == TtsState.idle && !_disposed) {
+          debugPrint(
+              '⚠️ TTS: Start handler fallback for speakText at ${DateTime.now()}');
+          _currentState = TtsState.playing;
+        }
+      });
     } catch (e) {
       debugPrint('❌ TTS: speakDevotional failed: $e at ${DateTime.now()}');
-      _resetPlayback();
       rethrow;
     }
   }
@@ -862,18 +399,20 @@ class TtsService implements ITtsService {
       debugPrint(
           '📝 TTS: Speaking: ${normalizedText.length > 50 ? '${normalizedText.substring(0, 50)}...' : normalizedText}');
 
+      _lastTextSpoken = normalizedText;
+
       await _flutterTts.speak(normalizedText);
 
       Timer(const Duration(seconds: 3), () {
         if (_currentState == TtsState.idle && !_disposed) {
           debugPrint(
               '⚠️ TTS: Start handler fallback for speakText at ${DateTime.now()}');
-          _updateState(TtsState.playing);
+          _currentState = TtsState.playing;
         }
       });
     } catch (e) {
       debugPrint('❌ TTS: speakText failed: $e at ${DateTime.now()}');
-      _updateState(TtsState.error);
+      _currentState = TtsState.error;
       rethrow;
     }
   }
@@ -886,14 +425,13 @@ class TtsService implements ITtsService {
 
     if (_currentState == TtsState.playing) {
       // CRÍTICO: Cancelar timer de emergencia INMEDIATAMENTE para evitar avance de chunk
-      _cancelEmergencyTimer();
-      _updateState(TtsState.paused);
+      _currentState = TtsState.paused;
       await _flutterTts.pause();
 
       Timer(const Duration(milliseconds: 300), () {
         if (_currentState != TtsState.paused && !_disposed) {
           debugPrint('! TTS: Pause handler fallback at ${DateTime.now()}');
-          _updateState(TtsState.paused);
+          _currentState = TtsState.paused;
         }
       });
     }
@@ -905,21 +443,15 @@ class TtsService implements ITtsService {
         '▶️ TTS: Resume requested (current state: $_currentState) at ${DateTime.now()}');
 
     if (_currentState == TtsState.paused) {
-      if (_currentChunkIndex < _currentChunks.length && _chunkInProgress) {
-        try {
-          debugPrint(
-              '▶️ TTS: Resuming current chunk ${_currentChunkIndex + 1}/${_currentChunks.length} at ${DateTime.now()}');
-          _updateState(TtsState.playing);
-          _speakNextChunk();
-        } catch (e) {
-          debugPrint('❌ TTS: Resume failed: $e at ${DateTime.now()}');
-          _updateState(TtsState.error);
-          rethrow;
-        }
-      } else {
+      try {
         debugPrint(
-            '⚠️ TTS: Cannot resume - no active playback at ${DateTime.now()}');
-        _resetPlayback();
+            '▶️ TTS: Resuming devotional $_currentDevocionalId at ${DateTime.now()}');
+        _currentState = TtsState.playing;
+        await _flutterTts.speak(_lastTextSpoken);
+      } catch (e) {
+        debugPrint('❌ TTS: Resume failed: $e at ${DateTime.now()}');
+        _currentState = TtsState.error;
+        rethrow;
       }
     } else {
       debugPrint(
@@ -934,7 +466,7 @@ class TtsService implements ITtsService {
         '⏹️ TTS: Stop requested (current state: $_currentState) at ${DateTime.now()}');
 
     // CRÍTICO: Stop inmediato sin validaciones restrictivas - usuario siempre tiene control
-    _updateState(TtsState.stopping);
+    _currentState = TtsState.stopping;
 
     try {
       await _flutterTts.stop();
@@ -942,7 +474,6 @@ class TtsService implements ITtsService {
       debugPrint('⚠️ TTS: Stop error (continuing with reset): $e');
     }
 
-    _resetPlayback();
     debugPrint('✅ TTS: Stop completed at ${DateTime.now()}');
   }
 
@@ -1063,18 +594,6 @@ class TtsService implements ITtsService {
 
   @override
   @visibleForTesting
-  List<String> generateChunksForTesting(Devocional devocional) {
-    return _generateChunks(devocional);
-  }
-
-  @override
-  @visibleForTesting
-  Map<String, String> getSectionHeadersForTesting(String language) {
-    return _getSectionHeaders(language);
-  }
-
-  @override
-  @visibleForTesting
 
   /// Formats Bible book references with appropriate ordinals based on current language context
   String formatBibleBook(String reference) {
@@ -1113,5 +632,9 @@ class TtsService implements ITtsService {
     await prefs.setString('tts_language', ttsLocale);
     debugPrint(
         '[TTS] Voz por defecto asignada para idioma: $languageCode ($ttsLocale)');
+  }
+
+  String _sanitize(String text) {
+    return text.trim().replaceAll(RegExp(r'[\s]+'), ' ');
   }
 }
