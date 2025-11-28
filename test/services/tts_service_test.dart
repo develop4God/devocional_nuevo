@@ -4,6 +4,7 @@ import 'package:devocional_nuevo/services/tts_service.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_tts/flutter_tts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class MockFlutterTts extends FlutterTts {
   bool speakCalled = false;
@@ -19,25 +20,26 @@ class MockFlutterTts extends FlutterTts {
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  group('TtsService', () {
-    test('speakDevotional llama a speak en FlutterTts con el texto normalizado',
-        () async {
-      final mockTts = MockFlutterTts();
-      final ttsService = TtsService.forTest(
-        flutterTts: mockTts,
-        voiceSettingsService: VoiceSettingsService(),
-      );
-      final devocional = Devocional(
-        id: 'test',
-        reflexion: 'Texto de prueba',
-        versiculo: 'Juan 3:16',
-        paraMeditar: [ParaMeditar(texto: 'Medita en esto', cita: 'Salmo 23:1')],
-        oracion: 'Oración de prueba',
-        date: DateTime(2025, 1, 1),
-      );
-      await ttsService.speakDevotional(devocional);
-      expect(mockTts.speakCalled, true);
-      expect(mockTts.lastText, contains('Texto de prueba'));
-    });
+  setUp(() async {
+    SharedPreferences.setMockInitialValues({});
+  });
+  test('speakDevotional llama a speak en FlutterTts con el texto normalizado',
+      () async {
+    final mockTts = MockFlutterTts();
+    final ttsService = TtsService.forTest(
+      flutterTts: mockTts,
+      voiceSettingsService: VoiceSettingsService(),
+    );
+    final devocional = Devocional(
+      id: 'test',
+      reflexion: 'Texto de prueba',
+      versiculo: 'Juan 3:16',
+      paraMeditar: [ParaMeditar(texto: 'Medita en esto', cita: 'Salmo 23:1')],
+      oracion: 'Oración de prueba',
+      date: DateTime(2025, 1, 1),
+    );
+    await ttsService.speakDevotional(devocional);
+    expect(mockTts.speakCalled, true);
+    expect(mockTts.lastText, contains('Texto de prueba'));
   });
 }

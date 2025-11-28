@@ -1026,9 +1026,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                       Consumer<AudioController>(
                         builder: (context, audioController, _) {
                           final progress = audioController.progress;
-                          final chunkIndex = audioController.currentChunkIndex;
-                          final totalChunks = audioController.totalChunks;
-
+                          // Eliminados chunkIndex y totalChunks
                           return Column(
                             children: [
                               LinearProgressIndicator(
@@ -1037,8 +1035,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                 backgroundColor: Colors.grey[300],
                                 color: colorScheme.primary,
                               ),
-                              if (chunkIndex != null && totalChunks != null)
-                                const Padding(padding: EdgeInsets.only(top: 2)),
+                              // Eliminada la lógica condicional de chunks
                             ],
                           );
                         },
