@@ -7,11 +7,15 @@ class BibleTextFormatter {
   static bool _startsWithWhitespace(String text) {
     return text.isNotEmpty && text[0].trim().isEmpty;
   }
-  
+
   /// Formats Bible book names with ordinals based on the specified language
   static String formatBibleBook(String reference, String language) {
+    final maxLogLength = 80;
+    final logText = reference.length > maxLogLength
+        ? reference.substring(0, maxLogLength) + '...'
+        : reference;
     debugPrint(
-        '[BibleTextFormatter] formatBibleBook called with reference="$reference", language="$language"');
+        '[BibleTextFormatter] formatBibleBook called with reference="$logText", language="$language"');
     switch (language) {
       case 'es':
         return _formatBibleBookSpanish(reference);
@@ -34,9 +38,9 @@ class BibleTextFormatter {
   /// Now uses replaceAllMapped to work anywhere in text, not just at beginning
   static String _formatBibleBookSpanish(String reference) {
     // Use word boundary (\b) or start of string to match Bible book references anywhere
-    final exp =
-        RegExp(r'(?:^|\s)([123])\s+([A-Za-záéíóúÁÉÍÓÚñÑ]+)', caseSensitive: false);
-    
+    final exp = RegExp(r'(?:^|\s)([123])\s+([A-Za-záéíóúÁÉÍÓÚñÑ]+)',
+        caseSensitive: false);
+
     return reference.replaceAllMapped(exp, (match) {
       final matchText = match.group(0)!;
       final prefix = _startsWithWhitespace(matchText) ? ' ' : '';
@@ -65,7 +69,7 @@ class BibleTextFormatter {
   static String _formatBibleBookEnglish(String reference) {
     final exp = RegExp(r'(?:^|\s)([123])\s+([A-Za-z]+)', caseSensitive: false);
     final ordinals = {'1': 'First', '2': 'Second', '3': 'Third'};
-    
+
     return reference.replaceAllMapped(exp, (match) {
       final matchText = match.group(0)!;
       final prefix = _startsWithWhitespace(matchText) ? ' ' : '';
@@ -79,9 +83,10 @@ class BibleTextFormatter {
   /// Formats Portuguese Bible book ordinals (Primeiro, Segundo, Terceiro)
   /// Now uses replaceAllMapped to work anywhere in text, not just at beginning
   static String _formatBibleBookPortuguese(String reference) {
-    final exp = RegExp(r'(?:^|\s)([123])\s+([A-Za-záéíóúâêîôûãõç]+)', caseSensitive: false);
+    final exp = RegExp(r'(?:^|\s)([123])\s+([A-Za-záéíóúâêîôûãõç]+)',
+        caseSensitive: false);
     final ordinals = {'1': 'Primeiro', '2': 'Segundo', '3': 'Terceiro'};
-    
+
     return reference.replaceAllMapped(exp, (match) {
       final matchText = match.group(0)!;
       final prefix = _startsWithWhitespace(matchText) ? ' ' : '';
@@ -95,9 +100,10 @@ class BibleTextFormatter {
   /// Formats French Bible book ordinals (Premier, Deuxième, Troisième)
   /// Now uses replaceAllMapped to work anywhere in text, not just at beginning
   static String _formatBibleBookFrench(String reference) {
-    final exp = RegExp(r'(?:^|\s)([123])\s+([A-Za-zéèêëàâäùûüôîïç]+)', caseSensitive: false);
+    final exp = RegExp(r'(?:^|\s)([123])\s+([A-Za-zéèêëàâäùûüôîïç]+)',
+        caseSensitive: false);
     final ordinals = {'1': 'Premier', '2': 'Deuxième', '3': 'Troisième'};
-    
+
     return reference.replaceAllMapped(exp, (match) {
       final matchText = match.group(0)!;
       final prefix = _startsWithWhitespace(matchText) ? ' ' : '';
