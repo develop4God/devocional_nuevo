@@ -47,7 +47,7 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
   String _getSampleTextByLanguage(String language) {
     switch (language) {
       case 'es':
-        return 'Puede Guardar esta voz o selecciona otra de su preferencia';
+        return 'Puede Guardar esta voz o seleccionat otra, de su preferencia';
       case 'en':
         return 'You can keep this voice or select a different one';
       case 'pt':
