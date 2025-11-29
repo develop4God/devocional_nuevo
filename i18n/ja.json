@@ -120,6 +120,7 @@
     "tts_voice": "音声を選択",
     "select_voice": "音声を選択",
     "voice_changed": "音声が正常に変更されました",
+    "voice_sample_text": "この声を維持するか、別の声を選択できます",
     "language_change_dialog_title": "ダウンロードして再起動",
     "language_change_dialog_message": "{language}への言語変更を完了するには、デボーションコンテンツをダウンロードし、アプリが再起動されます。続行しますか？",
     "language_change_confirm": "ダウンロードして再起動",

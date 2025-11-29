@@ -382,12 +382,12 @@ class _SettingsPageState extends State<SettingsPage> {
                     onPressed: () async {
                       final language =
                           localizationProvider.currentLocale.languageCode;
+                      final sampleText = 'settings.voice_sample_text'.tr();
                       await showDialog(
                         context: context,
                         builder: (context) => VoiceSelectorDialog(
                           language: language,
-                          sampleText:
-                              'Puedes mantener esta voz o seleccionar una diferente',
+                          sampleText: sampleText,
                           onVoiceSelected: (name, locale) async {
                             debugPrint(
                                 '🔊 Voz seleccionada en Settings: $name ($locale)');

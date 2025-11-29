@@ -141,7 +141,8 @@
     "paypal_error": "Erreur lors de l'ouverture de PayPal : {error}",
     "paypal_no_app_error": "Impossible d'ouvrir PayPal. Assurez-vous d'avoir un navigateur web ou l'application PayPal installée.",
     "backup_option": "Sauvegarde",
-    "backup_subtitle": "Sauvegardez et restaurez vos données en toute sécurité"
+    "backup_subtitle": "Sauvegardez et restaurez vos données en toute sécurité",
+    "voice_sample_text": "Vous pouvez garder cette voix ou en sélectionner une différente"
   },
   "notifications_config_page": {
     "notifications_config": "Configuration des notifications",

@@ -141,7 +141,8 @@
     "paypal_error": "Error opening PayPal: {error}",
     "paypal_no_app_error": "Could not open PayPal. Make sure you have a web browser or PayPal app installed.",
     "backup_option": "Backup",
-    "backup_subtitle": "Backup and restore your data securely"
+    "backup_subtitle": "Backup and restore your data securely",
+    "voice_sample_text": "You can keep this voice or select a different one"
   },
   "notifications_config_page": {
     "notifications_config": "Notifications Config",

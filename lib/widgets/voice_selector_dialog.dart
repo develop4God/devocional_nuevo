@@ -61,138 +61,135 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: Padding(
         padding: const EdgeInsets.all(24.0),
-        child: _isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Fila superior con cerrar y confirmar
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.close),
-                        tooltip: 'Cerrar',
-                        onPressed: () => Navigator.of(context).pop(),
-                      ),
-                      IconButton(
-                        icon: Icon(Icons.check_circle,
-                            color: (_selectedVoiceName != null &&
-                                    _selectedVoiceLocale != null)
-                                ? colorScheme.primary
-                                : colorScheme.outline),
-                        tooltip: 'Confirmar selección',
-                        onPressed: (_selectedVoiceName != null &&
-                                _selectedVoiceLocale != null)
-                            ? () {
-                                Navigator.of(context).pop();
-                              }
-                            : null,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Selecciona una voz',
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: colorScheme.primary,
-                        ),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    'Escucha y elige la voz que prefieras para el idioma actual.',
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                  const SizedBox(height: 18),
-                  SizedBox(
-                    height: 320,
-                    child: ListView.separated(
-                      itemCount: _voices.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 8),
-                      itemBuilder: (context, index) {
-                        final voice = _voices[index];
-                        final isSelected =
-                            _selectedVoiceName == voice['name'] &&
-                                _selectedVoiceLocale == voice['locale'];
-                        final isPlaying = _playingIndex == index;
-                        return InkWell(
-                          borderRadius: BorderRadius.circular(14),
-                          onTap: () async {
-                            setState(() {
-                              _selectedVoiceName = voice['name'];
-                              _selectedVoiceLocale = voice['locale'];
-                            });
-                            widget.onVoiceSelected(
-                                voice['name']!, voice['locale']!);
-                            await _playSample(
-                                voice['name']!, voice['locale']!, index);
-                          },
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 250),
-                            curve: Curves.easeInOut,
-                            decoration: BoxDecoration(
-                              color: isSelected
-                                  ? colorScheme.primary.withAlpha(60)
-                                  : colorScheme.surface,
-                              borderRadius: BorderRadius.circular(14),
-                              border: Border.all(
-                                color: isSelected
-                                    ? colorScheme.primary
-                                    : colorScheme.outline.withAlpha(80),
-                                width: isSelected ? 2 : 1,
-                              ),
-                              boxShadow: isSelected
-                                  ? [
-                                      BoxShadow(
-                                          color:
-                                              colorScheme.primary.withAlpha(40),
-                                          blurRadius: 8,
-                                          offset: Offset(0, 2))
-                                    ]
-                                  : [],
-                            ),
-                            child: ListTile(
-                              leading: Icon(Icons.record_voice_over,
-                                  color: colorScheme.primary),
-                              title: Text(voice['name'] ?? '',
-                                  style:
-                                      TextStyle(fontWeight: FontWeight.w600)),
-                              subtitle: Text(voice['locale'] ?? '',
-                                  style: TextStyle(fontSize: 13)),
-                              trailing: isPlaying
-                                  ? const SizedBox(
-                                      width: 32,
-                                      height: 32,
-                                      child: CircularProgressIndicator(
-                                          strokeWidth: 2))
-                                  : Icon(Icons.volume_up,
-                                      color: colorScheme.primary),
-                              selected: isSelected,
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  ElevatedButton.icon(
-                    icon: const Icon(Icons.check_circle_outline),
-                    label: const Text('Confirmar selección'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: colorScheme.primary,
-                      foregroundColor: colorScheme.onPrimary,
-                      minimumSize: const Size(180, 48),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16)),
-                    ),
-                    onPressed: _selectedVoiceName != null &&
-                            _selectedVoiceLocale != null
-                        ? () => Navigator.of(context).pop()
-                        : null,
-                  ),
-                ],
+        child: Stack(
+          children: [
+            // Botón de cerrar en la esquina superior izquierda
+            Positioned(
+              top: 0,
+              left: 0,
+              child: IconButton(
+                icon: const Icon(Icons.close),
+                tooltip: 'Cerrar',
+                onPressed: () => Navigator.of(context).pop(),
               ),
+            ),
+            Padding(
+              padding:
+                  const EdgeInsets.only(top: 8.0, left: 0, right: 0, bottom: 0),
+              child: _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const SizedBox(height: 8),
+                        Text(
+                          'Selecciona una voz',
+                          style: Theme.of(context)
+                              .textTheme
+                              .headlineSmall
+                              ?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: colorScheme.primary,
+                              ),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          // Usar la clave de traducción para el sample
+                          'settings.voice_sample_text'.tr(),
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                        const SizedBox(height: 18),
+                        SizedBox(
+                          height: 320,
+                          child: ListView.separated(
+                            itemCount: _voices.length,
+                            separatorBuilder: (_, __) =>
+                                const SizedBox(height: 8),
+                            itemBuilder: (context, index) {
+                              final voice = _voices[index];
+                              final isSelected =
+                                  _selectedVoiceName == voice['name'] &&
+                                      _selectedVoiceLocale == voice['locale'];
+                              final isPlaying = _playingIndex == index;
+                              return InkWell(
+                                borderRadius: BorderRadius.circular(14),
+                                onTap: () async {
+                                  setState(() {
+                                    _selectedVoiceName = voice['name'];
+                                    _selectedVoiceLocale = voice['locale'];
+                                  });
+                                  widget.onVoiceSelected(
+                                      voice['name']!, voice['locale']!);
+                                  await _playSample(
+                                      voice['name']!, voice['locale']!, index);
+                                },
+                                child: AnimatedContainer(
+                                  duration: const Duration(milliseconds: 250),
+                                  curve: Curves.easeInOut,
+                                  decoration: BoxDecoration(
+                                    color: isSelected
+                                        ? colorScheme.primary.withAlpha(60)
+                                        : colorScheme.surface,
+                                    borderRadius: BorderRadius.circular(14),
+                                    border: Border.all(
+                                      color: isSelected
+                                          ? colorScheme.primary
+                                          : colorScheme.outline.withAlpha(80),
+                                      width: isSelected ? 2 : 1,
+                                    ),
+                                    boxShadow: isSelected
+                                        ? [
+                                            BoxShadow(
+                                                color: colorScheme.primary
+                                                    .withAlpha(40),
+                                                blurRadius: 8,
+                                                offset: Offset(0, 2))
+                                          ]
+                                        : [],
+                                  ),
+                                  child: ListTile(
+                                    leading: Icon(Icons.record_voice_over,
+                                        color: colorScheme.primary),
+                                    title: Text(voice['name'] ?? '',
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.w600)),
+                                    subtitle: Text(voice['locale'] ?? '',
+                                        style: TextStyle(fontSize: 13)),
+                                    trailing: isPlaying
+                                        ? const SizedBox(
+                                            width: 32,
+                                            height: 32,
+                                            child: CircularProgressIndicator(
+                                                strokeWidth: 2))
+                                        : Icon(Icons.volume_up,
+                                            color: colorScheme.primary),
+                                    selected: isSelected,
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        ElevatedButton(
+                          child: Text('app.save'.tr()),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: colorScheme.primary,
+                            foregroundColor: colorScheme.onPrimary,
+                            minimumSize: const Size(180, 48),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16)),
+                          ),
+                          onPressed: _selectedVoiceName != null &&
+                                  _selectedVoiceLocale != null
+                              ? () => Navigator.of(context).pop()
+                              : null,
+                        ),
+                      ],
+                    ),
+            ),
+          ],
+        ),
       ),
     );
   }
