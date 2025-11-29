@@ -370,20 +370,26 @@ class SpiritualStatsService {
     required double listenedPercentage, // De 0.0 a 1.0
     int? favoritesCount,
   }) async {
+    debugPrint(
+        '[STATS] recordDevotionalHeard llamado con devocionalId: $devocionalId, listenedPercentage: $listenedPercentage, favoritesCount: $favoritesCount');
     final prefs = await SharedPreferences.getInstance();
     final stats = await getStats();
 
     if (listenedPercentage < 0.8) {
-      debugPrint('Escucha menor a 80%, no se cuenta: $listenedPercentage');
+      debugPrint(
+          '[STATS] Escucha menor a 80%, no se cuenta: $listenedPercentage');
       return stats;
     }
 
     // Si ya está registrado como leído o escuchado, no duplicar
     if (stats.readDevocionalIds.contains(devocionalId)) {
-      debugPrint('Devocional $devocionalId ya registrado como leído/escuchado');
+      debugPrint(
+          '[STATS] Devocional $devocionalId ya registrado como leído/escuchado');
       if (favoritesCount != null) {
         final updatedStats = stats.copyWith(favoritesCount: favoritesCount);
         await saveStats(updatedStats);
+        debugPrint(
+            '[STATS] Favoritos actualizados para $devocionalId: $favoritesCount');
         return updatedStats;
       }
       return stats;
@@ -403,11 +409,13 @@ class SpiritualStatsService {
     if (!alreadyReadToday) {
       readDates.add(todayDateOnly);
       await _saveReadDates(readDates);
+      debugPrint('[STATS] Nueva fecha de lectura agregada: $todayDateOnly');
     }
 
     await prefs.setString(_lastReadDevocionalKey, devocionalId);
     await prefs.setInt(
         _lastReadTimeKey, DateTime.now().millisecondsSinceEpoch ~/ 1000);
+    debugPrint('[STATS] Último devocional leído actualizado: $devocionalId');
 
     final newStreak = _calculateCurrentStreak(readDates);
     final newReadDevocionalIds = List<String>.from(stats.readDevocionalIds);
@@ -431,7 +439,8 @@ class SpiritualStatsService {
 
     await saveStats(updatedStats);
 
-    debugPrint('Devocional contado como escuchado: $devocionalId');
+    debugPrint(
+        '[STATS] Devocional contado como escuchado: $devocionalId, total ahora: ${updatedStats.totalDevocionalesRead}');
     return updatedStats;
   }
 

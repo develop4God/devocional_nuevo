@@ -31,30 +31,23 @@ void main() {
     ) async {
       // iPhone SE size (smallest common screen)
       const smallScreenSize = Size(320, 568);
-
-      // Capture any overflow errors
-      final List<FlutterError> errors = [];
+      final List<FlutterErrorDetails> errors = [];
+      final originalOnError = FlutterError.onError;
       FlutterError.onError = (details) {
         if (details.exception.toString().contains('overflowed')) {
-          errors.add(details as FlutterError);
+          errors.add(details);
         }
       };
-
       await tester.pumpWidget(
         createProgressPageWithProvider(screenSize: smallScreenSize),
       );
-
-      // Wait for the page to fully load
       await tester.pumpAndSettle();
-
-      // Verify no overflow errors occurred
+      FlutterError.onError = originalOnError;
       expect(
         errors,
         isEmpty,
         reason: 'Progress page should not have overflow errors on small screen',
       );
-
-      // Verify key elements are present
       expect(find.text('Mi Progreso Espiritual'), findsOneWidget);
       expect(find.text('Racha Actual'), findsOneWidget);
       expect(find.text('Logros'), findsOneWidget);
@@ -65,19 +58,18 @@ void main() {
         (WidgetTester tester) async {
       // iPhone 8 size
       const mediumScreenSize = Size(375, 667);
-
-      final List<FlutterError> errors = [];
+      final List<FlutterErrorDetails> errors = [];
+      final originalOnError = FlutterError.onError;
       FlutterError.onError = (details) {
         if (details.exception.toString().contains('overflowed')) {
-          errors.add(details as FlutterError);
+          errors.add(details);
         }
       };
-
       await tester.pumpWidget(
         createProgressPageWithProvider(screenSize: mediumScreenSize),
       );
       await tester.pumpAndSettle();
-
+      FlutterError.onError = originalOnError;
       expect(
         errors,
         isEmpty,
@@ -94,19 +86,18 @@ void main() {
         (WidgetTester tester) async {
       // iPhone XR size (large screen)
       const largeScreenSize = Size(414, 896);
-
-      final List<FlutterError> errors = [];
+      final List<FlutterErrorDetails> errors = [];
+      final originalOnError = FlutterError.onError;
       FlutterError.onError = (details) {
         if (details.exception.toString().contains('overflowed')) {
-          errors.add(details as FlutterError);
+          errors.add(details);
         }
       };
-
       await tester.pumpWidget(
         createProgressPageWithProvider(screenSize: largeScreenSize),
       );
       await tester.pumpAndSettle();
-
+      FlutterError.onError = originalOnError;
       expect(
         errors,
         isEmpty,
