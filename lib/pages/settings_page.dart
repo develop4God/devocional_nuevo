@@ -40,6 +40,7 @@ class _SettingsPageState extends State<SettingsPage> {
     super.initState();
     _loadTtsSettings();
     _loadFeatureFlags();
+    _loadSavedVoices();
   }
 
   Future<void> _loadTtsSettings() async {
@@ -81,6 +82,18 @@ class _SettingsPageState extends State<SettingsPage> {
     } catch (e) {
       developer.log('Feature flags failed to load: $e, using defaults');
       // Keep default values - app continues working
+    }
+  }
+
+  Future<void> _loadSavedVoices() async {
+    final localizationProvider =
+        Provider.of<LocalizationProvider>(context, listen: false);
+    final language = localizationProvider.currentLocale.languageCode;
+    final savedVoice = await _voiceSettingsService.loadSavedVoice(language);
+    if (mounted) {
+      setState(() {
+        _selectedVoiceName = savedVoice;
+      });
     }
   }
 
@@ -306,12 +319,14 @@ class _SettingsPageState extends State<SettingsPage> {
                             Text('No hay voces disponibles para este idioma.'),
                       );
                     }
+                    String language =
+                        localizationProvider.currentLocale.languageCode;
                     return DropdownButtonFormField<String>(
                       decoration: InputDecoration(
                         labelText: 'settings.tts_voice'.tr(),
                         border: const OutlineInputBorder(),
                       ),
-                      value: _selectedVoiceName,
+                      initialValue: _selectedVoiceName,
                       items: voices.map((voice) {
                         final friendly =
                             _voiceSettingsService.getFriendlyVoiceName(
@@ -325,14 +340,15 @@ class _SettingsPageState extends State<SettingsPage> {
                         final selected = voices
                             .firstWhere((v) => v['name'] == selectedVoiceName);
                         await _voiceSettingsService.saveVoice(
-                          localizationProvider.currentLocale.languageCode,
+                          language,
                           selected['name']!,
                           selected['locale']!,
                         );
-                        if (mounted)
+                        if (mounted) {
                           setState(() {
                             _selectedVoiceName = selectedVoiceName;
                           });
+                        }
                       },
                     );
                   },

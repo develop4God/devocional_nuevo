@@ -747,7 +747,7 @@ class VoiceSettingsService {
         friendly == 'Sistema' ||
         friendly == '' ||
         friendly == technicalName) {
-      return '$technicalName';
+      return technicalName;
     }
     // Si el nombre amigable es diferente, mostrar ambos
     return '$friendly [$technicalName]';
