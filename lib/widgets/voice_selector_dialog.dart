@@ -197,7 +197,7 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
                         const SizedBox(height: 12),
                         // El texto de muestra ahora usa la clave de traducción settings.voice_selector_sample_text
                         Text(
-                          'settings.voice_selector_sample_text'.tr(),
+                          'settings.voice_sample_text'.tr(),
                           style: Theme.of(context).textTheme.bodyMedium,
                         ),
                         const SizedBox(height: 18),
