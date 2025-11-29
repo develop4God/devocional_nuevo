@@ -36,6 +36,14 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
     'es-ES-language': 'Voz Mujer España',
   };
 
+  // Mapeo de voces amigables para inglés
+  static const Map<String, String> englishVoiceMap = {
+    'en-us-x-tpd-network': 'Voice Male US',
+    'en-us-x-tpf-local': 'Voice Female US',
+    'en-GB-language': 'Voice Female UK',
+    'en-gb-x-gbb-local': 'Voice Male UK',
+  };
+
   @override
   void initState() {
     super.initState();
@@ -72,20 +80,34 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
       filteredVoices = voices
           .where((voice) => spanishVoiceMap.containsKey(voice['name']))
           .toList();
-      // Ordenar según el mapa
       filteredVoices.sort((a, b) =>
           spanishVoiceMap.keys.toList().indexOf(a['name']!) -
           spanishVoiceMap.keys.toList().indexOf(b['name']!));
+    } else if (widget.language == 'en') {
+      filteredVoices = voices
+          .where((voice) => englishVoiceMap.containsKey(voice['name']))
+          .toList();
+      filteredVoices.sort((a, b) =>
+          englishVoiceMap.keys.toList().indexOf(a['name']!) -
+          englishVoiceMap.keys.toList().indexOf(b['name']!));
     }
     setState(() {
       _voices = filteredVoices;
       _isLoading = false;
-      // Selección por defecto: Voz Hombre Latino
+      // Selección por defecto: Voz Hombre Latino para español, Voice Male US para inglés
       if (widget.language == 'es' &&
           _voices.isNotEmpty &&
           _selectedVoiceName == null) {
         final defaultVoice = _voices.firstWhere(
             (v) => v['name'] == 'es-us-x-esd-local',
+            orElse: () => _voices[0]);
+        _selectedVoiceName = defaultVoice['name'];
+        _selectedVoiceLocale = defaultVoice['locale'];
+      } else if (widget.language == 'en' &&
+          _voices.isNotEmpty &&
+          _selectedVoiceName == null) {
+        final defaultVoice = _voices.firstWhere(
+            (v) => v['name'] == 'en-us-x-tpd-network',
             orElse: () => _voices[0]);
         _selectedVoiceName = defaultVoice['name'];
         _selectedVoiceLocale = defaultVoice['locale'];
@@ -244,13 +266,17 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
                                   child: ListTile(
                                     leading: Icon(Icons.record_voice_over,
                                         color: colorScheme.primary),
-                                    // En el ListTile, mostrar el nombre amigable si es español
+                                    // En el ListTile, mostrar el nombre amigable si es español o inglés
                                     title: Text(
                                         widget.language == 'es'
                                             ? spanishVoiceMap[
                                                     voice['name'] ?? ''] ??
                                                 (voice['name'] ?? '')
-                                            : (voice['name'] ?? ''),
+                                            : widget.language == 'en'
+                                                ? englishVoiceMap[
+                                                        voice['name'] ?? ''] ??
+                                                    (voice['name'] ?? '')
+                                                : (voice['name'] ?? ''),
                                         style: TextStyle(
                                             fontWeight: FontWeight.w600)),
                                     subtitle: Text(voice['locale'] ?? '',
