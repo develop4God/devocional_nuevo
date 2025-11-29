@@ -33,6 +33,7 @@ class _SettingsPageState extends State<SettingsPage> {
   String _donationMode = 'paypal'; // Hardcoded to PayPal
   bool _showBadgesTab = false; // Always hidden
   bool _showBackupSection = false; // Always hidden
+  String? _selectedVoiceName; // Nueva variable para la voz seleccionada
 
   @override
   void initState() {
@@ -310,7 +311,7 @@ class _SettingsPageState extends State<SettingsPage> {
                         labelText: 'settings.tts_voice'.tr(),
                         border: const OutlineInputBorder(),
                       ),
-                      initialValue: null,
+                      value: _selectedVoiceName,
                       items: voices.map((voice) {
                         final friendly =
                             _voiceSettingsService.getFriendlyVoiceName(
@@ -328,7 +329,10 @@ class _SettingsPageState extends State<SettingsPage> {
                           selected['name']!,
                           selected['locale']!,
                         );
-                        if (mounted) setState(() {});
+                        if (mounted)
+                          setState(() {
+                            _selectedVoiceName = selectedVoiceName;
+                          });
                       },
                     );
                   },
