@@ -738,4 +738,18 @@ class VoiceSettingsService {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getDouble('tts_rate') ?? 0.5;
   }
+
+  /// Método público para obtener el nombre amigable de la voz
+  String getFriendlyVoiceName(String technicalName, String locale) {
+    final friendly = _getFriendlyVoiceName(technicalName, locale);
+    // Si el nombre amigable es igual al genérico, mostrar ambos
+    if (friendly == 'Voz por Defecto' ||
+        friendly == 'Sistema' ||
+        friendly == '' ||
+        friendly == technicalName) {
+      return '$technicalName';
+    }
+    // Si el nombre amigable es diferente, mostrar ambos
+    return '$friendly [$technicalName]';
+  }
 }

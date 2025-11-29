@@ -286,6 +286,55 @@ class _SettingsPageState extends State<SettingsPage> {
 
                 const SizedBox(height: 20),
 
+                // Selector de voz TTS
+                FutureBuilder<List<Map<String, String>>>(
+                  future: _voiceSettingsService.getAvailableVoicesForLanguage(
+                      localizationProvider.currentLocale.languageCode),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 12),
+                        child: LinearProgressIndicator(),
+                      );
+                    }
+                    final voices = snapshot.data ?? [];
+                    if (voices.isEmpty) {
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        child:
+                            Text('No hay voces disponibles para este idioma.'),
+                      );
+                    }
+                    return DropdownButtonFormField<String>(
+                      decoration: InputDecoration(
+                        labelText: 'settings.tts_voice'.tr(),
+                        border: const OutlineInputBorder(),
+                      ),
+                      initialValue: null,
+                      items: voices.map((voice) {
+                        final friendly =
+                            _voiceSettingsService.getFriendlyVoiceName(
+                                voice['name']!, voice['locale']!);
+                        return DropdownMenuItem<String>(
+                          value: voice['name'],
+                          child: Text('$friendly (${voice['locale']})'),
+                        );
+                      }).toList(),
+                      onChanged: (selectedVoiceName) async {
+                        final selected = voices
+                            .firstWhere((v) => v['name'] == selectedVoiceName);
+                        await _voiceSettingsService.saveVoice(
+                          localizationProvider.currentLocale.languageCode,
+                          selected['name']!,
+                          selected['locale']!,
+                        );
+                        if (mounted) setState(() {});
+                      },
+                    );
+                  },
+                ),
+                const SizedBox(height: 20),
+
                 // Backup Settings - conditional display (ahora habilitado)
                 // if (_showBackupSection) ...[
                 //   InkWell(
