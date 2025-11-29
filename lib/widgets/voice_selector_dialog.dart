@@ -1,3 +1,4 @@
+import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
@@ -8,11 +9,11 @@ class VoiceSelectorDialog extends StatefulWidget {
   final Function(String name, String locale) onVoiceSelected;
 
   const VoiceSelectorDialog({
-    Key? key,
+    super.key,
     required this.language,
     required this.sampleText,
     required this.onVoiceSelected,
-  }) : super(key: key);
+  });
 
   @override
   State<VoiceSelectorDialog> createState() => _VoiceSelectorDialogState();
@@ -25,12 +26,31 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
   String? _selectedVoiceLocale;
   bool _isLoading = true;
   int? _playingIndex;
+  late String _translatedSampleText;
 
   @override
   void initState() {
     super.initState();
     _flutterTts = FlutterTts();
+    _translatedSampleText = _getSampleTextByLanguage(widget.language);
     _loadVoices();
+  }
+
+  String _getSampleTextByLanguage(String language) {
+    switch (language) {
+      case 'es':
+        return 'Puedes mantener esta voz o seleccionar una diferente';
+      case 'en':
+        return 'You can keep this voice or select a different one';
+      case 'pt':
+        return 'Você pode manter esta voz ou selecionar outra diferente';
+      case 'fr':
+        return 'Vous pouvez garder cette voix ou en choisir une autre';
+      case 'ja':
+        return 'この声を維持するか、別の声を選択できます';
+      default:
+        return 'You can keep this voice or select a different one';
+    }
   }
 
   Future<void> _loadVoices() async {
@@ -47,7 +67,9 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
       _playingIndex = index;
     });
     await _flutterTts.setVoice({'name': name, 'locale': locale});
-    await _flutterTts.speak(widget.sampleText);
+    debugPrint(
+        '[VoiceSelectorDialog] sampleText leído: "$_translatedSampleText"');
+    await _flutterTts.speak(_translatedSampleText);
     await Future.delayed(const Duration(seconds: 2));
     setState(() {
       _playingIndex = null;
@@ -63,14 +85,41 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
         padding: const EdgeInsets.all(24.0),
         child: Stack(
           children: [
-            // Botón de cerrar en la esquina superior izquierda
+            // Botón de cerrar en la esquina superior izquierda (más arriba)
             Positioned(
-              top: 0,
-              left: 0,
+              top: 2,
+              left: 2,
               child: IconButton(
                 icon: const Icon(Icons.close),
                 tooltip: 'Cerrar',
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
                 onPressed: () => Navigator.of(context).pop(),
+              ),
+            ),
+            // Texto de guardar en la esquina superior derecha (más arriba)
+            Positioned(
+              top: 0,
+              right: 0,
+              child: GestureDetector(
+                onTap:
+                    _selectedVoiceName != null && _selectedVoiceLocale != null
+                        ? () => Navigator.of(context).pop()
+                        : null,
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 2, right: 8),
+                  child: Text(
+                    'app.save'.tr(),
+                    style: TextStyle(
+                      color: _selectedVoiceName != null &&
+                              _selectedVoiceLocale != null
+                          ? colorScheme.primary
+                          : colorScheme.outline,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
               ),
             ),
             Padding(
@@ -94,8 +143,7 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
                         ),
                         const SizedBox(height: 12),
                         Text(
-                          // Usar la clave de traducción para el sample
-                          'settings.voice_sample_text'.tr(),
+                          _translatedSampleText,
                           style: Theme.of(context).textTheme.bodyMedium,
                         ),
                         const SizedBox(height: 18),
@@ -120,6 +168,10 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
                                   });
                                   widget.onVoiceSelected(
                                       voice['name']!, voice['locale']!);
+                                  await _playSample(
+                                      voice['name']!, voice['locale']!, index);
+                                },
+                                onDoubleTap: () async {
                                   await _playSample(
                                       voice['name']!, voice['locale']!, index);
                                 },
@@ -171,20 +223,6 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
                           ),
                         ),
                         const SizedBox(height: 20),
-                        ElevatedButton(
-                          child: Text('app.save'.tr()),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: colorScheme.primary,
-                            foregroundColor: colorScheme.onPrimary,
-                            minimumSize: const Size(180, 48),
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16)),
-                          ),
-                          onPressed: _selectedVoiceName != null &&
-                                  _selectedVoiceLocale != null
-                              ? () => Navigator.of(context).pop()
-                              : null,
-                        ),
                       ],
                     ),
             ),
