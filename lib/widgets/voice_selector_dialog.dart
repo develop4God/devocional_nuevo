@@ -47,7 +47,7 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
   String _getSampleTextByLanguage(String language) {
     switch (language) {
       case 'es':
-        return 'Puede Guardar esta voz o seleccionat otra, de su preferencia';
+        return 'Puede Guardar esta voz o seleccionar otra, de su preferencia';
       case 'en':
         return 'You can keep this voice or select a different one';
       case 'pt':
@@ -149,10 +149,11 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
                   child: Text(
                     'app.save'.tr(),
                     style: TextStyle(
+                      // Invertir colores: tema cuando no hay selección, negro cuando sí
                       color: _selectedVoiceName != null &&
                               _selectedVoiceLocale != null
-                          ? colorScheme.primary
-                          : colorScheme.outline,
+                          ? Colors.black
+                          : colorScheme.primary,
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
                     ),
