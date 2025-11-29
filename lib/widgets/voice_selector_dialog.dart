@@ -30,18 +30,18 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
 
   // Mapeo de voces amigables para español
   static const Map<String, String> spanishVoiceMap = {
-    'es-us-x-esd-local': 'Voz Hombre Latino',
-    'es-US-language': 'Voz Mujer Latino',
-    'es-es-x-eed-local': 'Voz Hombre España',
-    'es-ES-language': 'Voz Mujer España',
+    'es-us-x-esd-local': '🚹 🇲🇽',
+    'es-US-language': '🚺 🇲🇽',
+    'es-es-x-eed-local': '🚹 🇪🇸',
+    'es-ES-language': '🚺 🇪🇸',
   };
 
   // Mapeo de voces amigables para inglés
   static const Map<String, String> englishVoiceMap = {
     'en-us-x-tpd-network': 'Voice Male US',
     'en-us-x-tpf-local': 'Voice Female US',
-    'en-GB-language': 'Voice Female UK',
     'en-gb-x-gbb-local': 'Voice Male UK',
+    'en-GB-language': 'Voice Female UK',
   };
 
   @override
