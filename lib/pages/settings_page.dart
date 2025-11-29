@@ -12,6 +12,7 @@ import 'package:devocional_nuevo/providers/localization_provider.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 import 'package:devocional_nuevo/utils/constants.dart';
 import 'package:devocional_nuevo/widgets/app_bar_constants.dart';
+import 'package:devocional_nuevo/widgets/voice_selector_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -363,6 +364,50 @@ class _SettingsPageState extends State<SettingsPage> {
                     );
                   },
                 ),
+                const SizedBox(height: 20),
+
+                // Botón para abrir el diálogo moderno de selección de voz
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: ElevatedButton.icon(
+                    icon: const Icon(Icons.record_voice_over),
+                    label: const Text('Seleccionar voz TTS'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: colorScheme.primary,
+                      foregroundColor: colorScheme.onPrimary,
+                      minimumSize: const Size(180, 48),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16)),
+                    ),
+                    onPressed: () async {
+                      final language =
+                          localizationProvider.currentLocale.languageCode;
+                      await showDialog(
+                        context: context,
+                        builder: (context) => VoiceSelectorDialog(
+                          language: language,
+                          sampleText:
+                              'Puedes mantener esta voz o seleccionar una diferente',
+                          onVoiceSelected: (name, locale) async {
+                            debugPrint(
+                                '🔊 Voz seleccionada en Settings: $name ($locale)');
+                            await _voiceSettingsService.saveVoice(
+                                language, name, locale);
+                            final prefs = await SharedPreferences.getInstance();
+                            await prefs.setString(
+                                'tts_voice_name_$language', name);
+                            if (mounted) {
+                              setState(() {
+                                _selectedVoiceName = name;
+                              });
+                            }
+                          },
+                        ),
+                      );
+                    },
+                  ),
+                ),
+
                 const SizedBox(height: 20),
 
                 // Backup Settings - conditional display (ahora habilitado)
