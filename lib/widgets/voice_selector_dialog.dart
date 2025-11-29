@@ -155,7 +155,7 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
               ),
               // Texto de guardar en la esquina superior derecha (lo más arriba posible)
               Positioned(
-                top: -6,
+                top: -5,
                 right: 0,
                 child: GestureDetector(
                   onTap:
@@ -191,7 +191,7 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
               ),
               Padding(
                 padding: const EdgeInsets.only(
-                    top: 8.0, left: 0, right: 0, bottom: 0),
+                    top: 15.0, left: 0, right: 0, bottom: 0),
                 child: _isLoading
                     ? const Center(child: CircularProgressIndicator())
                     : Column(
