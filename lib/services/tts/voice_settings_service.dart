@@ -492,6 +492,24 @@ class VoiceSettingsService {
     }
   }
 
+  /// Obtiene todas las voces disponibles para el idioma actual
+  Future<List<Map<String, String>>> getAvailableVoicesForLanguage(
+      String language) async {
+    final voices = await _flutterTts.getVoices;
+    if (voices is List) {
+      return voices.cast<Map>().where((voice) {
+        final locale = voice['locale'] as String? ?? '';
+        return locale.toLowerCase().contains(language.toLowerCase());
+      }).map((voice) {
+        return {
+          'name': voice['name'] as String? ?? '',
+          'locale': voice['locale'] as String? ?? '',
+        };
+      }).toList();
+    }
+    return [];
+  }
+
   /// ✅ VERIFICA SI UNA VOZ TIENE NOMBRE PROPIO
   bool _hasProperName(String voiceName) {
     final cleanName = voiceName.split('(')[0].trim();
@@ -713,5 +731,11 @@ class VoiceSettingsService {
       debugPrint('❌ VoiceSettings: Failed to check saved voice: $e');
       return false;
     }
+  }
+
+  /// Obtiene la velocidad de reproducción TTS guardada
+  Future<double> getSavedSpeechRate() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getDouble('tts_rate') ?? 0.5;
   }
 }
