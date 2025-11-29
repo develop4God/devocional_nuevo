@@ -194,20 +194,10 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
                   : Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const SizedBox(height: 8),
-                        Text(
-                          'Selecciona una voz',
-                          style: Theme.of(context)
-                              .textTheme
-                              .headlineSmall
-                              ?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: colorScheme.primary,
-                              ),
-                        ),
                         const SizedBox(height: 12),
+                        // El texto de muestra ahora usa la clave de traducción settings.voice_selector_sample_text
                         Text(
-                          _translatedSampleText,
+                          'settings.voice_selector_sample_text'.tr(),
                           style: Theme.of(context).textTheme.bodyMedium,
                         ),
                         const SizedBox(height: 18),
