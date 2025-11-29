@@ -45,19 +45,22 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
   }
 
   String _getSampleTextByLanguage(String language) {
+    // Plantilla base tomada de español
+    const template =
+        'Puede guardar esta voz o seleccionar otra, de su preferencia';
     switch (language) {
       case 'es':
-        return 'Puede Guardar esta voz o seleccionar otra, de su preferencia';
+        return template;
       case 'en':
-        return 'You can keep this voice or select a different one';
+        return 'You can save this voice or select another, as you prefer';
       case 'pt':
-        return 'Você pode manter esta voz ou selecionar outra diferente';
+        return 'Você pode salvar esta voz ou selecionar outra, de sua preferência';
       case 'fr':
-        return 'Vous pouvez garder cette voix ou en choisir une autre';
+        return 'Vous pouvez enregistrer cette voix ou en choisir une autre, selon votre préférence';
       case 'ja':
-        return 'この声を維持するか、別の声を選択できます';
+        return 'この声を保存するか、別の声を選択することができます。お好みに合わせて';
       default:
-        return 'You can keep this voice or select a different one';
+        return template;
     }
   }
 
