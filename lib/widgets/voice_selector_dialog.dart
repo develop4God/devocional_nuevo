@@ -85,10 +85,10 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
         padding: const EdgeInsets.all(24.0),
         child: Stack(
           children: [
-            // Botón de cerrar en la esquina superior izquierda (más arriba)
+            // Botón de cerrar en la esquina superior izquierda (lo más arriba posible)
             Positioned(
-              top: 2,
-              left: 2,
+              top: -8,
+              left: 0,
               child: IconButton(
                 icon: const Icon(Icons.close),
                 tooltip: 'Cerrar',
@@ -97,17 +97,27 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
                 onPressed: () => Navigator.of(context).pop(),
               ),
             ),
-            // Texto de guardar en la esquina superior derecha (más arriba)
+            // Texto de guardar en la esquina superior derecha (lo más arriba posible)
             Positioned(
-              top: 0,
+              top: -6,
               right: 0,
               child: GestureDetector(
                 onTap:
                     _selectedVoiceName != null && _selectedVoiceLocale != null
-                        ? () => Navigator.of(context).pop()
+                        ? () async {
+                            await VoiceSettingsService().saveVoice(
+                              widget.language,
+                              _selectedVoiceName!,
+                              _selectedVoiceLocale!,
+                            );
+                            debugPrint(
+                                '[VoiceSelectorDialog] Voz guardada: $_selectedVoiceName ($_selectedVoiceLocale) para idioma ${widget.language}');
+                            if (!mounted) return;
+                            Navigator.of(context).pop();
+                          }
                         : null,
                 child: Padding(
-                  padding: const EdgeInsets.only(top: 2, right: 8),
+                  padding: const EdgeInsets.only(top: 0, right: 8),
                   child: Text(
                     'app.save'.tr(),
                     style: TextStyle(
