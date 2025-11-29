@@ -87,8 +87,8 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
           children: [
             // Botón de cerrar en la esquina superior izquierda (lo más arriba posible)
             Positioned(
-              top: -8,
-              left: 0,
+              top: -18,
+              left: -15,
               child: IconButton(
                 icon: const Icon(Icons.close),
                 tooltip: 'Cerrar',
