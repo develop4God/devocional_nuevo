@@ -333,7 +333,7 @@ class _SettingsPageState extends State<SettingsPage> {
                         labelText: 'settings.tts_voice'.tr(),
                         border: const OutlineInputBorder(),
                       ),
-                      value: initialVoice,
+                      initialValue: initialVoice,
                       items: voices.map((voice) {
                         final friendly =
                             _voiceSettingsService.getFriendlyVoiceName(
@@ -354,10 +354,11 @@ class _SettingsPageState extends State<SettingsPage> {
                         final prefs = await SharedPreferences.getInstance();
                         await prefs.setString(
                             'tts_voice_name_$language', selectedVoiceName!);
-                        if (mounted)
+                        if (mounted) {
                           setState(() {
                             _selectedVoiceName = selectedVoiceName;
                           });
+                        }
                       },
                     );
                   },

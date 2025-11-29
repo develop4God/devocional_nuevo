@@ -209,6 +209,16 @@ class VoiceSettingsService {
     }
   }
 
+  /// Guarda la voz seleccionada en SharedPreferences y muestra debugPrint
+  Future<void> saveVoiceWithDebug(
+      String language, String name, String locale) async {
+    debugPrint(
+        '🔊 Voz seleccionada: name=$name, locale=$locale, language=$language');
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('voice_name_$language', name);
+    await prefs.setString('voice_locale_$language', locale);
+  }
+
   /// Carga la voz guardada para un idioma específico
   Future<String?> loadSavedVoice(String language) async {
     try {
@@ -739,7 +749,7 @@ class VoiceSettingsService {
     return prefs.getDouble('tts_rate') ?? 0.5;
   }
 
-  /// Método público para obtener el nombre amigable de la voz
+  /// Metodo público para obtener el nombre amigable de la voz
   String getFriendlyVoiceName(String technicalName, String locale) {
     final friendly = _getFriendlyVoiceName(technicalName, locale);
     // Si el nombre amigable es igual al genérico, mostrar ambos
