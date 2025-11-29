@@ -89,10 +89,11 @@ class _SettingsPageState extends State<SettingsPage> {
     final localizationProvider =
         Provider.of<LocalizationProvider>(context, listen: false);
     final language = localizationProvider.currentLocale.languageCode;
-    final savedVoice = await _voiceSettingsService.loadSavedVoice(language);
+    final prefs = await SharedPreferences.getInstance();
+    final savedVoiceName = prefs.getString('tts_voice_name_$language');
     if (mounted) {
       setState(() {
-        _selectedVoiceName = savedVoice;
+        _selectedVoiceName = savedVoiceName;
       });
     }
   }
@@ -321,12 +322,18 @@ class _SettingsPageState extends State<SettingsPage> {
                     }
                     String language =
                         localizationProvider.currentLocale.languageCode;
+                    // Validar que el valor inicial esté en la lista
+                    String initialVoice =
+                        _selectedVoiceName ?? voices.first['name']!;
+                    if (!voices.any((v) => v['name'] == initialVoice)) {
+                      initialVoice = voices.first['name']!;
+                    }
                     return DropdownButtonFormField<String>(
                       decoration: InputDecoration(
                         labelText: 'settings.tts_voice'.tr(),
                         border: const OutlineInputBorder(),
                       ),
-                      initialValue: _selectedVoiceName,
+                      value: initialVoice,
                       items: voices.map((voice) {
                         final friendly =
                             _voiceSettingsService.getFriendlyVoiceName(
@@ -344,11 +351,13 @@ class _SettingsPageState extends State<SettingsPage> {
                           selected['name']!,
                           selected['locale']!,
                         );
-                        if (mounted) {
+                        final prefs = await SharedPreferences.getInstance();
+                        await prefs.setString(
+                            'tts_voice_name_$language', selectedVoiceName!);
+                        if (mounted)
                           setState(() {
                             _selectedVoiceName = selectedVoiceName;
                           });
-                        }
                       },
                     );
                   },
