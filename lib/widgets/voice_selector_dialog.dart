@@ -38,10 +38,10 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
 
   // Mapeo de voces amigables para inglés
   static const Map<String, String> englishVoiceMap = {
-    'en-us-x-tpd-network': 'US',
-    'en-us-x-tpf-local': 'US',
-    'en-gb-x-gbb-local': 'UK',
-    'en-GB-language': 'UK',
+    'en-us-x-tpd-network': '🇺🇸',
+    'en-us-x-tpf-local': '🇺🇸',
+    'en-gb-x-gbb-local': '🇬🇧',
+    'en-GB-language': '🇬🇧',
   };
 
   @override
@@ -382,7 +382,8 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
                                                     padding:
                                                         const EdgeInsets.only(
                                                             left: 36, top: 2),
-                                                    child: Text('Hombre Latino',
+                                                    child: Text(
+                                                        'Hombre Latinoamérica',
                                                         style: TextStyle(
                                                             fontSize: 13,
                                                             color: colorScheme
@@ -394,7 +395,8 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
                                                     padding:
                                                         const EdgeInsets.only(
                                                             left: 36, top: 2),
-                                                    child: Text('Mujer Latina',
+                                                    child: Text(
+                                                        'Mujer Latinoamérica',
                                                         style: TextStyle(
                                                             fontSize: 13,
                                                             color: colorScheme
@@ -406,8 +408,7 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
                                                     padding:
                                                         const EdgeInsets.only(
                                                             left: 36, top: 2),
-                                                    child: Text(
-                                                        'Hombre Español',
+                                                    child: Text('Hombre España',
                                                         style: TextStyle(
                                                             fontSize: 13,
                                                             color: colorScheme
@@ -419,8 +420,7 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
                                                     padding:
                                                         const EdgeInsets.only(
                                                             left: 36, top: 2),
-                                                    child: Text(
-                                                        'Mujer Española',
+                                                    child: Text('Mujer España',
                                                         style: TextStyle(
                                                             fontSize: 13,
                                                             color: colorScheme
