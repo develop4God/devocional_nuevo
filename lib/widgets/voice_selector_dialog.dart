@@ -66,6 +66,32 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
             : Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  // Fila superior con cerrar y confirmar
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.close),
+                        tooltip: 'Cerrar',
+                        onPressed: () => Navigator.of(context).pop(),
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.check_circle,
+                            color: (_selectedVoiceName != null &&
+                                    _selectedVoiceLocale != null)
+                                ? colorScheme.primary
+                                : colorScheme.outline),
+                        tooltip: 'Confirmar selección',
+                        onPressed: (_selectedVoiceName != null &&
+                                _selectedVoiceLocale != null)
+                            ? () {
+                                Navigator.of(context).pop();
+                              }
+                            : null,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
                   Text(
                     'Selecciona una voz',
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
@@ -90,58 +116,60 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
                             _selectedVoiceName == voice['name'] &&
                                 _selectedVoiceLocale == voice['locale'];
                         final isPlaying = _playingIndex == index;
-                        return AnimatedContainer(
-                          duration: const Duration(milliseconds: 250),
-                          curve: Curves.easeInOut,
-                          decoration: BoxDecoration(
-                            color: isSelected
-                                ? colorScheme.primary.withAlpha(60)
-                                : colorScheme.surface,
-                            borderRadius: BorderRadius.circular(14),
-                            border: Border.all(
+                        return InkWell(
+                          borderRadius: BorderRadius.circular(14),
+                          onTap: () async {
+                            setState(() {
+                              _selectedVoiceName = voice['name'];
+                              _selectedVoiceLocale = voice['locale'];
+                            });
+                            widget.onVoiceSelected(
+                                voice['name']!, voice['locale']!);
+                            await _playSample(
+                                voice['name']!, voice['locale']!, index);
+                          },
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 250),
+                            curve: Curves.easeInOut,
+                            decoration: BoxDecoration(
                               color: isSelected
-                                  ? colorScheme.primary
-                                  : colorScheme.outline.withAlpha(80),
-                              width: isSelected ? 2 : 1,
+                                  ? colorScheme.primary.withAlpha(60)
+                                  : colorScheme.surface,
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(
+                                color: isSelected
+                                    ? colorScheme.primary
+                                    : colorScheme.outline.withAlpha(80),
+                                width: isSelected ? 2 : 1,
+                              ),
+                              boxShadow: isSelected
+                                  ? [
+                                      BoxShadow(
+                                          color:
+                                              colorScheme.primary.withAlpha(40),
+                                          blurRadius: 8,
+                                          offset: Offset(0, 2))
+                                    ]
+                                  : [],
                             ),
-                            boxShadow: isSelected
-                                ? [
-                                    BoxShadow(
-                                        color:
-                                            colorScheme.primary.withAlpha(40),
-                                        blurRadius: 8,
-                                        offset: Offset(0, 2))
-                                  ]
-                                : [],
-                          ),
-                          child: ListTile(
-                            leading: Icon(Icons.record_voice_over,
-                                color: colorScheme.primary),
-                            title: Text(voice['name'] ?? '',
-                                style: TextStyle(fontWeight: FontWeight.w600)),
-                            subtitle: Text(voice['locale'] ?? '',
-                                style: TextStyle(fontSize: 13)),
-                            trailing: isPlaying
-                                ? const SizedBox(
-                                    width: 32,
-                                    height: 32,
-                                    child: CircularProgressIndicator(
-                                        strokeWidth: 2))
-                                : IconButton(
-                                    icon: const Icon(Icons.volume_up),
-                                    tooltip: 'Escuchar muestra',
-                                    onPressed: () => _playSample(voice['name']!,
-                                        voice['locale']!, index),
-                                  ),
-                            selected: isSelected,
-                            onTap: () {
-                              setState(() {
-                                _selectedVoiceName = voice['name'];
-                                _selectedVoiceLocale = voice['locale'];
-                              });
-                              widget.onVoiceSelected(
-                                  voice['name']!, voice['locale']!);
-                            },
+                            child: ListTile(
+                              leading: Icon(Icons.record_voice_over,
+                                  color: colorScheme.primary),
+                              title: Text(voice['name'] ?? '',
+                                  style:
+                                      TextStyle(fontWeight: FontWeight.w600)),
+                              subtitle: Text(voice['locale'] ?? '',
+                                  style: TextStyle(fontSize: 13)),
+                              trailing: isPlaying
+                                  ? const SizedBox(
+                                      width: 32,
+                                      height: 32,
+                                      child: CircularProgressIndicator(
+                                          strokeWidth: 2))
+                                  : Icon(Icons.volume_up,
+                                      color: colorScheme.primary),
+                              selected: isSelected,
+                            ),
                           ),
                         );
                       },
