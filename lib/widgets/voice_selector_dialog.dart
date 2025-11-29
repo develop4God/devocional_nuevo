@@ -30,18 +30,18 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
 
   // Mapeo de voces amigables para español
   static const Map<String, String> spanishVoiceMap = {
-    'es-us-x-esd-local': '🚹 🇲🇽',
-    'es-US-language': '🚺 🇲🇽',
-    'es-es-x-eed-local': '🚹 🇪🇸',
-    'es-ES-language': '🚺 🇪🇸',
+    'es-us-x-esd-local': '🇲🇽',
+    'es-US-language': '🇲🇽',
+    'es-es-x-eed-local': '🇪🇸',
+    'es-ES-language': '🇪🇸',
   };
 
   // Mapeo de voces amigables para inglés
   static const Map<String, String> englishVoiceMap = {
-    'en-us-x-tpd-network': 'Voice Male US',
-    'en-us-x-tpf-local': 'Voice Female US',
-    'en-gb-x-gbb-local': 'Voice Male UK',
-    'en-GB-language': 'Voice Female UK',
+    'en-us-x-tpd-network': 'US',
+    'en-us-x-tpf-local': 'US',
+    'en-gb-x-gbb-local': 'UK',
+    'en-GB-language': 'UK',
   };
 
   @override
@@ -256,21 +256,71 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
                                   child: ListTile(
                                     leading: Icon(Icons.record_voice_over,
                                         color: colorScheme.primary),
-                                    // En el ListTile, mostrar el nombre amigable si es español o inglés
-                                    title: Text(
-                                        widget.language == 'es'
-                                            ? spanishVoiceMap[
+                                    // En el ListTile, mostrar el nombre amigable y el icono correspondiente, con texto más grande y sin subtitle
+                                    title: Row(
+                                      children: [
+                                        if (widget.language == 'es') ...[
+                                          if (voice['name'] ==
+                                                  'es-us-x-esd-local' ||
+                                              voice['name'] ==
+                                                  'es-es-x-eed-local')
+                                            Icon(Icons.man_3_outlined,
+                                                color: colorScheme.primary,
+                                                size: 28),
+                                          if (voice['name'] ==
+                                                  'es-US-language' ||
+                                              voice['name'] == 'es-ES-language')
+                                            Icon(Icons.woman_outlined,
+                                                color: colorScheme.primary,
+                                                size: 28),
+                                          const SizedBox(width: 8),
+                                          Text(
+                                            spanishVoiceMap[
                                                     voice['name'] ?? ''] ??
-                                                (voice['name'] ?? '')
-                                            : widget.language == 'en'
-                                                ? englishVoiceMap[
-                                                        voice['name'] ?? ''] ??
-                                                    (voice['name'] ?? '')
-                                                : (voice['name'] ?? ''),
-                                        style: TextStyle(
-                                            fontWeight: FontWeight.w600)),
-                                    subtitle: Text(voice['locale'] ?? '',
-                                        style: TextStyle(fontSize: 13)),
+                                                (voice['name'] ?? ''),
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.w900,
+                                              fontSize: 28,
+                                              color: colorScheme.primary,
+                                            ),
+                                          ),
+                                        ] else if (widget.language == 'en') ...[
+                                          if (voice['name'] ==
+                                                  'en-us-x-tpd-network' ||
+                                              voice['name'] ==
+                                                  'en-gb-x-gbb-local')
+                                            Icon(Icons.man_3_outlined,
+                                                color: colorScheme.primary,
+                                                size: 28),
+                                          if (voice['name'] ==
+                                                  'en-us-x-tpf-local' ||
+                                              voice['name'] == 'en-GB-language')
+                                            Icon(Icons.woman_outlined,
+                                                color: colorScheme.primary,
+                                                size: 28),
+                                          const SizedBox(width: 8),
+                                          Text(
+                                            englishVoiceMap[
+                                                    voice['name'] ?? ''] ??
+                                                (voice['name'] ?? ''),
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.w900,
+                                              fontSize: 28,
+                                              color: colorScheme.primary,
+                                            ),
+                                          ),
+                                        ] else ...[
+                                          Text(
+                                            voice['name'] ?? '',
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.w900,
+                                              fontSize: 28,
+                                              color: colorScheme.primary,
+                                            ),
+                                          ),
+                                        ]
+                                      ],
+                                    ),
                                     trailing: isPlaying
                                         ? const SizedBox(
                                             width: 32,
