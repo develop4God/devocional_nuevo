@@ -47,6 +47,39 @@ class _PrayersPageState extends State<PrayersPage>
     super.dispose();
   }
 
+  /// Build a modern count badge widget for tab headers
+  Widget _buildCountBadge(int count, Color backgroundColor) {
+    if (count == 0) return const SizedBox.shrink();
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(10),
+        boxShadow: [
+          BoxShadow(
+            color: backgroundColor.withValues(alpha: 0.3),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      constraints: const BoxConstraints(
+        minWidth: 18,
+        minHeight: 18,
+      ),
+      child: Text(
+        count > 99 ? '99+' : count.toString(),
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 11,
+          fontWeight: FontWeight.bold,
+        ),
+        textAlign: TextAlign.center,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
@@ -75,95 +108,158 @@ class _PrayersPageState extends State<PrayersPage>
                         labelPadding: const EdgeInsets.symmetric(
                             horizontal: 10, vertical: 0),
                         tabs: [
+                          // Tab 1: Active Prayers with count badge
                           Tab(
                             height: 72,
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(Icons.schedule, size: 22),
-                                const SizedBox(height: 2),
-                                FittedBox(
-                                  fit: BoxFit.scaleDown,
-                                  child: Text(
-                                    'prayer.prayers'.tr(),
-                                    textAlign: TextAlign.center,
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w600,
+                            child: BlocBuilder<PrayerBloc, PrayerState>(
+                              builder: (context, state) {
+                                final count = state is PrayerLoaded
+                                    ? state.activePrayersCount
+                                    : 0;
+                                return Stack(
+                                  clipBehavior: Clip.none,
+                                  children: [
+                                    Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Icon(Icons.schedule, size: 22),
+                                        const SizedBox(height: 2),
+                                        FittedBox(
+                                          fit: BoxFit.scaleDown,
+                                          child: Text(
+                                            'prayer.prayers'.tr(),
+                                            textAlign: TextAlign.center,
+                                            style: const TextStyle(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.fade,
+                                          ),
+                                        ),
+                                        FittedBox(
+                                          fit: BoxFit.scaleDown,
+                                          child: Text(
+                                            'prayer.active'.tr(),
+                                            textAlign: TextAlign.center,
+                                            style:
+                                                const TextStyle(fontSize: 13),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.fade,
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.fade,
-                                  ),
-                                ),
-                                FittedBox(
-                                  fit: BoxFit.scaleDown,
-                                  child: Text(
-                                    'prayer.active'.tr(),
-                                    textAlign: TextAlign.center,
-                                    style: const TextStyle(fontSize: 13),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.fade,
-                                  ),
-                                ),
-                              ],
+                                    if (count > 0)
+                                      Positioned(
+                                        right: -8,
+                                        top: -4,
+                                        child: _buildCountBadge(
+                                            count, colorScheme.primary),
+                                      ),
+                                  ],
+                                );
+                              },
                             ),
                           ),
+                          // Tab 2: Answered Prayers with count badge
                           Tab(
                             height: 72,
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(Icons.check_circle_outline,
-                                    size: 22),
-                                const SizedBox(height: 2),
-                                FittedBox(
-                                  fit: BoxFit.scaleDown,
-                                  child: Text(
-                                    'prayer.prayers'.tr(),
-                                    textAlign: TextAlign.center,
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w600,
+                            child: BlocBuilder<PrayerBloc, PrayerState>(
+                              builder: (context, state) {
+                                final count = state is PrayerLoaded
+                                    ? state.answeredPrayersCount
+                                    : 0;
+                                return Stack(
+                                  clipBehavior: Clip.none,
+                                  children: [
+                                    Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Icon(Icons.check_circle_outline,
+                                            size: 22),
+                                        const SizedBox(height: 2),
+                                        FittedBox(
+                                          fit: BoxFit.scaleDown,
+                                          child: Text(
+                                            'prayer.prayers'.tr(),
+                                            textAlign: TextAlign.center,
+                                            style: const TextStyle(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.fade,
+                                          ),
+                                        ),
+                                        FittedBox(
+                                          fit: BoxFit.scaleDown,
+                                          child: Text(
+                                            'prayer.answered_prayers'.tr(),
+                                            textAlign: TextAlign.center,
+                                            style:
+                                                const TextStyle(fontSize: 13),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.fade,
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.fade,
-                                  ),
-                                ),
-                                FittedBox(
-                                  fit: BoxFit.scaleDown,
-                                  child: Text(
-                                    'prayer.answered_prayers'.tr(),
-                                    textAlign: TextAlign.center,
-                                    style: const TextStyle(fontSize: 13),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.fade,
-                                  ),
-                                ),
-                              ],
+                                    if (count > 0)
+                                      Positioned(
+                                        right: -8,
+                                        top: -4,
+                                        child: _buildCountBadge(
+                                            count, Colors.green),
+                                      ),
+                                  ],
+                                );
+                              },
                             ),
                           ),
+                          // Tab 3: Thanksgivings with count badge
                           Tab(
                             height: 72,
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Text('☺️',
-                                    style: TextStyle(fontSize: 22)),
-                                const SizedBox(height: 2),
-                                FittedBox(
-                                  fit: BoxFit.scaleDown,
-                                  child: Text(
-                                    'thanksgiving.thanksgivings'.tr(),
-                                    textAlign: TextAlign.center,
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w600,
+                            child: BlocBuilder<ThanksgivingBloc,
+                                ThanksgivingState>(
+                              builder: (context, state) {
+                                final count = state is ThanksgivingLoaded
+                                    ? state.thanksgivings.length
+                                    : 0;
+                                return Stack(
+                                  clipBehavior: Clip.none,
+                                  children: [
+                                    Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Text('☺️',
+                                            style: TextStyle(fontSize: 22)),
+                                        const SizedBox(height: 2),
+                                        FittedBox(
+                                          fit: BoxFit.scaleDown,
+                                          child: Text(
+                                            'thanksgiving.thanksgivings'.tr(),
+                                            textAlign: TextAlign.center,
+                                            style: const TextStyle(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                              ],
+                                    if (count > 0)
+                                      Positioned(
+                                        right: -8,
+                                        top: -4,
+                                        child: _buildCountBadge(
+                                            count, Colors.amber.shade700),
+                                      ),
+                                  ],
+                                );
+                              },
                             ),
                           ),
                         ],

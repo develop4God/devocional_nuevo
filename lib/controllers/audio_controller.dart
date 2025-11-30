@@ -109,17 +109,6 @@ class AudioController extends ChangeNotifier {
     return result;
   }
 
-  /// Propiedades de navegación de chunks (delegadas al servicio)
-  int? get currentChunkIndex => _ttsService.currentChunkIndex;
-
-  int? get totalChunks => _ttsService.totalChunks;
-
-  VoidCallback? get previousChunk => _ttsService.previousChunk;
-
-  VoidCallback? get nextChunk => _ttsService.nextChunk;
-
-  Future<void> Function(int index)? get jumpToChunk => _ttsService.jumpToChunk;
-
   /// Inicialización del controller
   void initialize() {
     debugPrint('AudioController: Initializing reactive proxy...');
@@ -644,8 +633,6 @@ class AudioController extends ChangeNotifier {
   /// Información de debug
   String getDebugInfo() {
     final currentId = _currentDevocionalId;
-    final chunkIndex = currentChunkIndex;
-    final totalChunksCount = totalChunks;
     final serviceActive = _ttsService.isActive;
 
     return '''
@@ -658,7 +645,6 @@ AudioController Debug Info (Reactive Proxy):
 - Is Paused: $isPaused
 - Is Loading: $isLoading
 - Is Active: $isActive
-- Chunk: ${chunkIndex ?? '-'} / ${totalChunksCount ?? '-'}
 - Service Active: $serviceActive
 ''';
   }

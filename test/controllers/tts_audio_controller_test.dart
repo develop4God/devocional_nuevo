@@ -1,59 +1,105 @@
 import 'package:devocional_nuevo/controllers/tts_audio_controller.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_tts/flutter_tts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   group('TtsAudioController', () {
     late TtsAudioController controller;
+    late FlutterTts mockFlutterTts;
 
     setUp(() {
-      controller = TtsAudioController();
+      // Mock SharedPreferences
+      SharedPreferences.setMockInitialValues({});
+
+      // Mock the flutter_tts platform channel
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+        const MethodChannel('flutter_tts'),
+        (call) async {
+          switch (call.method) {
+            case 'speak':
+            case 'stop':
+            case 'pause':
+            case 'setLanguage':
+            case 'setSpeechRate':
+            case 'setVolume':
+            case 'setPitch':
+            case 'awaitSpeakCompletion':
+              return 1;
+            default:
+              return null;
+          }
+        },
+      );
+
+      mockFlutterTts = FlutterTts();
+      controller = TtsAudioController(flutterTts: mockFlutterTts);
     });
 
     tearDown(() {
       controller.dispose();
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(const MethodChannel('flutter_tts'), null);
     });
 
     test('initial state is idle', () {
-      print('Estado inicial: ${controller.state.value}');
+      debugPrint('Estado inicial: ${controller.state.value}');
       expect(controller.state.value, TtsPlayerState.idle);
     });
 
-    test('play sets state to playing', () {
-      print('Antes de play: ${controller.state.value}');
-      controller.play();
-      print('Después de play: ${controller.state.value}');
+    test('play sets state to loading then playing when text is set', () async {
+      controller.setText('Test text');
+      debugPrint('Antes de play: ${controller.state.value}');
+      await controller.play();
+      debugPrint('Después de play: ${controller.state.value}');
       expect(controller.state.value, TtsPlayerState.playing);
     });
 
-    test('pause sets state to paused', () {
-      controller.play();
-      print('Antes de pause: ${controller.state.value}');
-      controller.pause();
-      print('Después de pause: ${controller.state.value}');
+    test('play sets state to error when no text is set', () async {
+      debugPrint('Antes de play sin texto: ${controller.state.value}');
+      await controller.play();
+      debugPrint('Después de play sin texto: ${controller.state.value}');
+      expect(controller.state.value, TtsPlayerState.error);
+    });
+
+    test('pause sets state to paused', () async {
+      controller.setText('Test text');
+      await controller.play();
+      debugPrint('Antes de pause: ${controller.state.value}');
+      await controller.pause();
+      debugPrint('Después de pause: ${controller.state.value}');
       expect(controller.state.value, TtsPlayerState.paused);
     });
 
-    test('stop sets state to idle', () {
-      controller.play();
-      print('Antes de stop: ${controller.state.value}');
-      controller.stop();
-      print('Después de stop: ${controller.state.value}');
+    test('stop sets state to idle', () async {
+      controller.setText('Test text');
+      await controller.play();
+      debugPrint('Antes de stop: ${controller.state.value}');
+      await controller.stop();
+      debugPrint('Después de stop: ${controller.state.value}');
       expect(controller.state.value, TtsPlayerState.idle);
     });
 
-    test('complete sets state to completed', () {
-      controller.play();
-      print('Antes de complete: ${controller.state.value}');
+    test('complete sets state to completed', () async {
+      controller.setText('Test text');
+      await controller.play();
+      debugPrint('Antes de complete: ${controller.state.value}');
       controller.complete();
-      print('Después de complete: ${controller.state.value}');
+      debugPrint('Después de complete: ${controller.state.value}');
       expect(controller.state.value, TtsPlayerState.completed);
     });
 
-    test('error sets state to error', () {
-      controller.play();
-      print('Antes de error: ${controller.state.value}');
+    test('error sets state to error', () async {
+      controller.setText('Test text');
+      await controller.play();
+      debugPrint('Antes de error: ${controller.state.value}');
       controller.error();
-      print('Después de error: ${controller.state.value}');
+      debugPrint('Después de error: ${controller.state.value}');
       expect(controller.state.value, TtsPlayerState.error);
     });
   });

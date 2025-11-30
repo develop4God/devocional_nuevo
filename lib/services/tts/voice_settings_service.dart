@@ -209,6 +209,16 @@ class VoiceSettingsService {
     }
   }
 
+  /// Guarda la voz seleccionada en SharedPreferences y muestra debugPrint
+  Future<void> saveVoiceWithDebug(
+      String language, String name, String locale) async {
+    debugPrint(
+        '🔊 Voz seleccionada: name=$name, locale=$locale, language=$language');
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('voice_name_$language', name);
+    await prefs.setString('voice_locale_$language', locale);
+  }
+
   /// Carga la voz guardada para un idioma específico
   Future<String?> loadSavedVoice(String language) async {
     try {
@@ -492,6 +502,24 @@ class VoiceSettingsService {
     }
   }
 
+  /// Obtiene todas las voces disponibles para el idioma actual
+  Future<List<Map<String, String>>> getAvailableVoicesForLanguage(
+      String language) async {
+    final voices = await _flutterTts.getVoices;
+    if (voices is List) {
+      return voices.cast<Map>().where((voice) {
+        final locale = voice['locale'] as String? ?? '';
+        return locale.toLowerCase().contains(language.toLowerCase());
+      }).map((voice) {
+        return {
+          'name': voice['name'] as String? ?? '',
+          'locale': voice['locale'] as String? ?? '',
+        };
+      }).toList();
+    }
+    return [];
+  }
+
   /// ✅ VERIFICA SI UNA VOZ TIENE NOMBRE PROPIO
   bool _hasProperName(String voiceName) {
     final cleanName = voiceName.split('(')[0].trim();
@@ -713,5 +741,25 @@ class VoiceSettingsService {
       debugPrint('❌ VoiceSettings: Failed to check saved voice: $e');
       return false;
     }
+  }
+
+  /// Obtiene la velocidad de reproducción TTS guardada
+  Future<double> getSavedSpeechRate() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getDouble('tts_rate') ?? 0.5;
+  }
+
+  /// Metodo público para obtener el nombre amigable de la voz
+  String getFriendlyVoiceName(String technicalName, String locale) {
+    final friendly = _getFriendlyVoiceName(technicalName, locale);
+    // Si el nombre amigable es igual al genérico, mostrar ambos
+    if (friendly == 'Voz por Defecto' ||
+        friendly == 'Sistema' ||
+        friendly == '' ||
+        friendly == technicalName) {
+      return technicalName;
+    }
+    // Si el nombre amigable es diferente, mostrar ambos
+    return '$friendly [$technicalName]';
   }
 }

@@ -1,7 +1,8 @@
+import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 
-enum TtsPlayerState { idle, playing, paused, completed, error }
+enum TtsPlayerState { idle, loading, playing, paused, completed, error }
 
 class TtsAudioController {
   final ValueNotifier<TtsPlayerState> state =
@@ -11,7 +12,8 @@ class TtsAudioController {
 
   TtsAudioController({required this.flutterTts}) {
     flutterTts.setCompletionHandler(() {
-      print('[TTS Controller] Audio completado, cambiando estado a COMPLETED');
+      debugPrint(
+          '[TTS Controller] Audio completado, cambiando estado a COMPLETED');
       state.value = TtsPlayerState.completed;
     });
   }
@@ -21,45 +23,52 @@ class TtsAudioController {
   }
 
   Future<void> play() async {
-    print(
-        '[TTS Controller] play() llamado, estado previo: [33m${state.value}[0m');
+    debugPrint(
+        '[TTS Controller] play() llamado, estado previo: \x1B[33m${state.value}\x1B[0m');
     if (_currentText == null || _currentText!.isEmpty) {
       state.value = TtsPlayerState.error;
       return;
     }
+    state.value = TtsPlayerState.loading;
+    await Future.delayed(
+        const Duration(milliseconds: 400)); // Simula carga breve
+    // Obtener y aplicar la velocidad guardada antes de reproducir
+    final double rate = await VoiceSettingsService().getSavedSpeechRate();
+    debugPrint('[TTS Controller] Aplicando velocidad TTS: $rate');
+    await flutterTts.setSpeechRate(rate);
     state.value = TtsPlayerState.playing;
     await flutterTts.speak(_currentText!);
-    print('[TTS Controller] estado actual: [32m${state.value}[0m');
+    debugPrint('[TTS Controller] estado actual: \x1B[32m${state.value}\x1B[0m');
   }
 
   Future<void> pause() async {
-    print(
-        '[TTS Controller] pause() llamado, estado previo: [33m${state.value}[0m');
+    debugPrint(
+        '[TTS Controller] pause() llamado, estado previo: \x1B[33m${state.value}\x1B[0m');
     await flutterTts.pause();
     state.value = TtsPlayerState.paused;
-    print('[TTS Controller] estado actual: [32m${state.value}[0m');
+    debugPrint('[TTS Controller] estado actual: \x1B[32m${state.value}\x1B[0m');
   }
 
   Future<void> stop() async {
-    print(
-        '[TTS Controller] stop() llamado, estado previo: [33m${state.value}[0m');
+    debugPrint(
+        '[TTS Controller] stop() llamado, estado previo: \x1B[33m${state.value}\x1B[0m');
     await flutterTts.stop();
     state.value = TtsPlayerState.idle;
-    print('[TTS Controller] estado actual: [32m${state.value}[0m');
+    debugPrint('[TTS Controller] estado actual: \x1B[32m${state.value}\x1B[0m');
   }
 
   void complete() {
-    print(
-        '[TTS Controller] complete() llamado, estado previo: [33m${state.value}[0m');
+    debugPrint(
+        '[TTS Controller] complete() llamado, estado previo: \x1B[33m${state.value}\x1B[0m');
     state.value = TtsPlayerState.completed;
-    print('[TTS Controller] estado actual: [32m${state.value}[0m');
+    debugPrint('[TTS Controller] estado actual: \x1B[32m${state.value}\x1B[0m');
   }
 
   void error() {
-    print(
-        '[TTS Controller] error() llamado, estado previo: [33m${state.value}[0m');
+    debugPrint(
+        '[TTS Controller] error() llamado, estado previo: \x1B[33m${state.value}\x1B[0m');
     state.value = TtsPlayerState.error;
-    print('[TTS Controller] estado actual: [31m${state.value}[0m');
+    debugPrint('[TTS Controller] estado actual: \x1B[31m${state.value}\x1B[0m');
   }
 
   void dispose() {
