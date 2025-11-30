@@ -22,7 +22,7 @@ class VoiceSettingsService {
 
     // Define los locales preferidos para cada idioma
     final Map<String, List<String>> preferredLocales = {
-      'es': ['es-ES', 'es-US', 'es-MX'],
+      'es': ['es-US', 'es-MX', 'es-ES'],
       'en': ['en-US', 'en-GB', 'en-AU'],
       'pt': ['pt-BR', 'pt-PT'],
       'fr': ['fr-FR', 'fr-CA'],
