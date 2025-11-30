@@ -51,8 +51,7 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
     'pt-br-x-afs-network': '🇧🇷', // Mujer Brasil
     // Portugal
     'pt-pt-x-pmj-local': '🇵🇹', // Hombre Portugal
-    'pt-pt-language': '🇵🇹', // Mujer Portugal (minúsculas)
-    'pt-PT-language': '🇵🇹', // Mujer Portugal (mayúsculas)
+    'pt-PT-language': '🇵🇹', // Mujer Portugal (solo mayúsculas)
   };
 
   @override
@@ -336,8 +335,6 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
                                                     if (voice['name'] ==
                                                             'pt-br-x-afs-network' ||
                                                         voice['name'] ==
-                                                            'pt-pt-language' ||
-                                                        voice['name'] ==
                                                             'pt-PT-language')
                                                       Icon(Icons.woman_outlined,
                                                           color: colorScheme
@@ -473,9 +470,7 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
                                                                 .onSurface)),
                                                   ),
                                                 if (voice['name'] ==
-                                                        'pt-pt-language' ||
-                                                    voice['name'] ==
-                                                        'pt-PT-language')
+                                                    'pt-PT-language')
                                                   Padding(
                                                     padding:
                                                         const EdgeInsets.only(
