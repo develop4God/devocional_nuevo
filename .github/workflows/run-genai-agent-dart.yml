@@ -39,11 +39,26 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: 'stable'
+          flutter-version: '3.32.8'  # ← MISMA versión que funciona en tu workflow
+          channel: stable
+          cache: true
 
-      - name: Flutter pub get
+      - name: Show Flutter location and version
         run: |
-          flutter pub get
+          echo ">>> FLUTTER_HOME: $FLUTTER_HOME"
+          which flutter || true
+          flutter --version || true
+          echo ">>> PATH:"
+          echo $PATH
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Accept Android Licenses
+        run: yes | flutter doctor --android-licenses
+
+      - name: Run flutter doctor
+        run: flutter doctor -v
 
       - name: Run behavioral tests (capture output)
         id: run_tests
