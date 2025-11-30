@@ -44,6 +44,16 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
     'en-GB-language': '🇬🇧',
   };
 
+  // Mapeo de voces amigables para portugués
+  static const Map<String, String> portugueseVoiceMap = {
+    // Brasil
+    'pt-br-x-afs-network': '🇧🇷', // Mujer Brasil
+    'pt-br-x-ptd-network': '🇧🇷', // Hombre Brasil
+    // Portugal
+    'pt-pt-language': '🇵🇹', // Mujer Portugal
+    'pt-pt-x-pmj-local': '🇵🇹', // Hombre Portugal
+  };
+
   @override
   void initState() {
     super.initState();
@@ -90,6 +100,13 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
       filteredVoices.sort((a, b) =>
           englishVoiceMap.keys.toList().indexOf(a['name']!) -
           englishVoiceMap.keys.toList().indexOf(b['name']!));
+    } else if (widget.language == 'pt') {
+      filteredVoices = voices
+          .where((voice) => portugueseVoiceMap.containsKey(voice['name']))
+          .toList();
+      filteredVoices.sort((a, b) =>
+          portugueseVoiceMap.keys.toList().indexOf(a['name']!) -
+          portugueseVoiceMap.keys.toList().indexOf(b['name']!));
     }
     setState(() {
       _voices = filteredVoices;
@@ -108,6 +125,14 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
           _selectedVoiceName == null) {
         final defaultVoice = _voices.firstWhere(
             (v) => v['name'] == 'en-us-x-tpd-network',
+            orElse: () => _voices[0]);
+        _selectedVoiceName = defaultVoice['name'];
+        _selectedVoiceLocale = defaultVoice['locale'];
+      } else if (widget.language == 'pt' &&
+          _voices.isNotEmpty &&
+          _selectedVoiceName == null) {
+        final defaultVoice = _voices.firstWhere(
+            (v) => v['name'] == 'pt-br-x-afs-network',
             orElse: () => _voices[0]);
         _selectedVoiceName = defaultVoice['name'];
         _selectedVoiceLocale = defaultVoice['locale'];
@@ -296,8 +321,50 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
                                             children: [
                                               Row(
                                                 children: [
-                                                  // Icono según género de la voz
+                                                  // Icono y emoji para portugués
                                                   if (widget.language ==
+                                                      'pt') ...[
+                                                    if (voice['name'] ==
+                                                        'pt-br-x-afs-network')
+                                                      Icon(Icons.woman_outlined,
+                                                          color: colorScheme
+                                                              .primary,
+                                                          size: 38),
+                                                    if (voice['name'] ==
+                                                        'pt-br-x-ptd-network')
+                                                      Icon(Icons.man_3_outlined,
+                                                          color: colorScheme
+                                                              .primary,
+                                                          size: 38),
+                                                    if (voice['name'] ==
+                                                        'pt-pt-language')
+                                                      Icon(Icons.woman_outlined,
+                                                          color: colorScheme
+                                                              .primary,
+                                                          size: 38),
+                                                    if (voice['name'] ==
+                                                        'pt-pt-x-pmj-local')
+                                                      Icon(Icons.man_3_outlined,
+                                                          color: colorScheme
+                                                              .primary,
+                                                          size: 38),
+                                                    const SizedBox(width: 10),
+                                                    Text(
+                                                      portugueseVoiceMap[
+                                                              voice['name'] ??
+                                                                  ''] ??
+                                                          (voice['name'] ?? ''),
+                                                      style: TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.w900,
+                                                        fontSize: 32,
+                                                        color:
+                                                            colorScheme.primary,
+                                                      ),
+                                                    ),
+                                                  ]
+                                                  // ...existing code para es/en...
+                                                  else if (widget.language ==
                                                       'es') ...[
                                                     if (voice['name'] ==
                                                             'es-us-x-esd-local' ||
@@ -376,7 +443,61 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
                                                 ],
                                               ),
                                               // Explicación debajo de cada voz
-                                              if (widget.language == 'es') ...[
+                                              if (widget.language == 'pt') ...[
+                                                if (voice['name'] ==
+                                                    'pt-br-x-afs-network')
+                                                  Padding(
+                                                    padding:
+                                                        const EdgeInsets.only(
+                                                            left: 36, top: 2),
+                                                    child: Text('Mulher Brasil',
+                                                        style: TextStyle(
+                                                            fontSize: 13,
+                                                            color: colorScheme
+                                                                .onSurface)),
+                                                  ),
+                                                if (voice['name'] ==
+                                                    'pt-br-x-ptd-network')
+                                                  Padding(
+                                                    padding:
+                                                        const EdgeInsets.only(
+                                                            left: 36, top: 2),
+                                                    child: Text('Homem Brasil',
+                                                        style: TextStyle(
+                                                            fontSize: 13,
+                                                            color: colorScheme
+                                                                .onSurface)),
+                                                  ),
+                                                if (voice['name'] ==
+                                                    'pt-pt-language')
+                                                  Padding(
+                                                    padding:
+                                                        const EdgeInsets.only(
+                                                            left: 36, top: 2),
+                                                    child: Text(
+                                                        'Mulher Portugal',
+                                                        style: TextStyle(
+                                                            fontSize: 13,
+                                                            color: colorScheme
+                                                                .onSurface)),
+                                                  ),
+                                                if (voice['name'] ==
+                                                    'pt-pt-x-pmj-local')
+                                                  Padding(
+                                                    padding:
+                                                        const EdgeInsets.only(
+                                                            left: 36, top: 2),
+                                                    child: Text(
+                                                        'Homem Portugal',
+                                                        style: TextStyle(
+                                                            fontSize: 13,
+                                                            color: colorScheme
+                                                                .onSurface)),
+                                                  ),
+                                              ]
+                                              // ...existing code para es/en...
+                                              else if (widget.language ==
+                                                  'es') ...[
                                                 if (voice['name'] ==
                                                     'es-us-x-esd-local')
                                                   Padding(
