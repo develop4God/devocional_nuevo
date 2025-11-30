@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_tts/flutter_tts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -12,6 +13,9 @@ void main() {
     late FlutterTts mockFlutterTts;
 
     setUp(() {
+      // Mock SharedPreferences
+      SharedPreferences.setMockInitialValues({});
+
       // Mock the flutter_tts platform channel
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(

@@ -2,6 +2,20 @@ import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'dart:io';
 
+/// Helper function to get drawer translations from JSON
+/// Handles different structures: 'drawer.my_prayers' or 'settings.drawer.my_prayers'
+Map<String, dynamic>? getDrawer(Map<String, dynamic> json) {
+  if (json.containsKey('drawer')) {
+    return json['drawer'] as Map<String, dynamic>;
+  } else if (json.containsKey('settings')) {
+    final settings = json['settings'] as Map<String, dynamic>;
+    if (settings.containsKey('drawer')) {
+      return settings['drawer'] as Map<String, dynamic>;
+    }
+  }
+  return null;
+}
+
 void main() {
   group('Drawer Translation Tests', () {
     test('Spanish drawer label should say "Oraciones y agradecimientos"',
@@ -10,8 +24,9 @@ void main() {
       final content = await file.readAsString();
       final json = jsonDecode(content) as Map<String, dynamic>;
 
-      final drawer = json['drawer'] as Map<String, dynamic>;
-      expect(drawer['my_prayers'], equals('Oraciones y agradecimientos'),
+      final drawer = getDrawer(json);
+      expect(drawer, isNotNull, reason: 'Spanish should have drawer section');
+      expect(drawer!['my_prayers'], equals('Oraciones y agradecimientos'),
           reason: 'Spanish drawer should include prayers and thanksgivings');
     });
 
@@ -21,8 +36,9 @@ void main() {
       final content = await file.readAsString();
       final json = jsonDecode(content) as Map<String, dynamic>;
 
-      final drawer = json['drawer'] as Map<String, dynamic>;
-      expect(drawer['my_prayers'], equals('Prayers and thanksgivings'),
+      final drawer = getDrawer(json);
+      expect(drawer, isNotNull, reason: 'English should have drawer section');
+      expect(drawer!['my_prayers'], equals('Prayers and thanksgivings'),
           reason: 'English drawer should include prayers and thanksgivings');
     });
 
@@ -31,8 +47,9 @@ void main() {
       final content = await file.readAsString();
       final json = jsonDecode(content) as Map<String, dynamic>;
 
-      final drawer = json['drawer'] as Map<String, dynamic>;
-      expect(drawer['my_prayers'], equals('Prières et remerciements'),
+      final drawer = getDrawer(json);
+      expect(drawer, isNotNull, reason: 'French should have drawer section');
+      expect(drawer!['my_prayers'], equals('Prières et remerciements'),
           reason: 'French drawer should include prayers and thanksgivings');
     });
 
@@ -42,8 +59,10 @@ void main() {
       final content = await file.readAsString();
       final json = jsonDecode(content) as Map<String, dynamic>;
 
-      final drawer = json['drawer'] as Map<String, dynamic>;
-      expect(drawer['my_prayers'], equals('Orações e agradecimentos'),
+      final drawer = getDrawer(json);
+      expect(drawer, isNotNull,
+          reason: 'Portuguese should have drawer section');
+      expect(drawer!['my_prayers'], equals('Orações e agradecimentos'),
           reason: 'Portuguese drawer should include prayers and thanksgivings');
     });
 
@@ -52,8 +71,9 @@ void main() {
       final content = await file.readAsString();
       final json = jsonDecode(content) as Map<String, dynamic>;
 
-      final drawer = json['drawer'] as Map<String, dynamic>;
-      expect(drawer['my_prayers'], equals('祈りと感謝'),
+      final drawer = getDrawer(json);
+      expect(drawer, isNotNull, reason: 'Japanese should have drawer section');
+      expect(drawer!['my_prayers'], equals('祈りと感謝'),
           reason: 'Japanese drawer should include prayers and thanksgivings');
     });
 
@@ -71,9 +91,10 @@ void main() {
         final file = File('i18n/$lang.json');
         final content = await file.readAsString();
         final json = jsonDecode(content) as Map<String, dynamic>;
-        final drawer = json['drawer'] as Map<String, dynamic>;
+        final drawer = getDrawer(json);
 
-        expect(drawer['my_prayers'], equals(expectedLabels[lang]),
+        expect(drawer, isNotNull, reason: '$lang should have drawer section');
+        expect(drawer!['my_prayers'], equals(expectedLabels[lang]),
             reason: '$lang drawer label should be updated');
       }
     });

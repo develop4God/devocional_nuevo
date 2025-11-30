@@ -34,7 +34,6 @@ class _SettingsPageState extends State<SettingsPage> {
   String _donationMode = 'paypal'; // Hardcoded to PayPal
   bool _showBadgesTab = false; // Always hidden
   bool _showBackupSection = false; // Always hidden
-  String? _selectedVoiceName; // Nueva variable para la voz seleccionada
 
   @override
   void initState() {
@@ -91,12 +90,8 @@ class _SettingsPageState extends State<SettingsPage> {
         Provider.of<LocalizationProvider>(context, listen: false);
     final language = localizationProvider.currentLocale.languageCode;
     final prefs = await SharedPreferences.getInstance();
-    final savedVoiceName = prefs.getString('tts_voice_name_$language');
-    if (mounted) {
-      setState(() {
-        _selectedVoiceName = savedVoiceName;
-      });
-    }
+    // Load saved voice name for the current language (used by VoiceSelectorDialog)
+    prefs.getString('tts_voice_name_$language');
   }
 
   Future<void> _onSpeedChanged(double value) async {
@@ -332,11 +327,6 @@ class _SettingsPageState extends State<SettingsPage> {
                             final prefs = await SharedPreferences.getInstance();
                             await prefs.setString(
                                 'tts_voice_name_$language', name);
-                            if (mounted) {
-                              setState(() {
-                                _selectedVoiceName = name;
-                              });
-                            }
                           },
                         ),
                       );

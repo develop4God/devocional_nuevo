@@ -247,7 +247,9 @@ void main() {
       // Test past time (should be tomorrow)
       final pastTime = getNextNotificationTime('00:01');
       if (now.hour > 0 || now.minute > 1) {
-        expect(pastTime.day, equals(now.day + 1));
+        // The scheduled time should be tomorrow, which is now + 1 day
+        final expectedTomorrow = now.add(const Duration(days: 1));
+        expect(pastTime.day, equals(expectedTomorrow.day));
       }
     });
 

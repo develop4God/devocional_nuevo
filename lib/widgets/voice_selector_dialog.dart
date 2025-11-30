@@ -168,6 +168,7 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
                   onTap:
                       _selectedVoiceName != null && _selectedVoiceLocale != null
                           ? () async {
+                              final navigator = Navigator.of(context);
                               await VoiceSettingsService().saveVoice(
                                 widget.language,
                                 _selectedVoiceName!,
@@ -176,7 +177,7 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
                               debugPrint(
                                   '[VoiceSelectorDialog] Voz guardada: $_selectedVoiceName ($_selectedVoiceLocale) para idioma ${widget.language}');
                               if (!mounted) return;
-                              Navigator.of(context).pop();
+                              navigator.pop();
                             }
                           : null,
                   child: Container(
