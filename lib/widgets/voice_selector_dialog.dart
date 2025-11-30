@@ -47,11 +47,12 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
   // Mapeo de voces amigables para portugués
   static const Map<String, String> portugueseVoiceMap = {
     // Brasil
-    'pt-br-x-afs-network': '🇧🇷', // Mujer Brasil
     'pt-br-x-ptd-network': '🇧🇷', // Hombre Brasil
+    'pt-br-x-afs-network': '🇧🇷', // Mujer Brasil
     // Portugal
-    'pt-pt-language': '🇵🇹', // Mujer Portugal
     'pt-pt-x-pmj-local': '🇵🇹', // Hombre Portugal
+    'pt-pt-language': '🇵🇹', // Mujer Portugal (minúsculas)
+    'pt-PT-language': '🇵🇹', // Mujer Portugal (mayúsculas)
   };
 
   @override
@@ -132,7 +133,7 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
           _voices.isNotEmpty &&
           _selectedVoiceName == null) {
         final defaultVoice = _voices.firstWhere(
-            (v) => v['name'] == 'pt-br-x-afs-network',
+            (v) => v['name'] == 'pt-br-x-ptd-network',
             orElse: () => _voices[0]);
         _selectedVoiceName = defaultVoice['name'];
         _selectedVoiceLocale = defaultVoice['locale'];
@@ -325,26 +326,20 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
                                                   if (widget.language ==
                                                       'pt') ...[
                                                     if (voice['name'] ==
-                                                        'pt-br-x-afs-network')
-                                                      Icon(Icons.woman_outlined,
-                                                          color: colorScheme
-                                                              .primary,
-                                                          size: 38),
-                                                    if (voice['name'] ==
-                                                        'pt-br-x-ptd-network')
+                                                            'pt-br-x-ptd-network' ||
+                                                        voice['name'] ==
+                                                            'pt-pt-x-pmj-local')
                                                       Icon(Icons.man_3_outlined,
                                                           color: colorScheme
                                                               .primary,
                                                           size: 38),
                                                     if (voice['name'] ==
-                                                        'pt-pt-language')
+                                                            'pt-br-x-afs-network' ||
+                                                        voice['name'] ==
+                                                            'pt-pt-language' ||
+                                                        voice['name'] ==
+                                                            'pt-PT-language')
                                                       Icon(Icons.woman_outlined,
-                                                          color: colorScheme
-                                                              .primary,
-                                                          size: 38),
-                                                    if (voice['name'] ==
-                                                        'pt-pt-x-pmj-local')
-                                                      Icon(Icons.man_3_outlined,
                                                           color: colorScheme
                                                               .primary,
                                                           size: 38),
@@ -355,12 +350,11 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
                                                                   ''] ??
                                                           (voice['name'] ?? ''),
                                                       style: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.w900,
-                                                        fontSize: 32,
-                                                        color:
-                                                            colorScheme.primary,
-                                                      ),
+                                                          fontWeight:
+                                                              FontWeight.w900,
+                                                          fontSize: 32,
+                                                          color: colorScheme
+                                                              .primary),
                                                     ),
                                                   ]
                                                   // ...existing code para es/en...
@@ -389,12 +383,11 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
                                                                   ''] ??
                                                           (voice['name'] ?? ''),
                                                       style: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.w900,
-                                                        fontSize: 32,
-                                                        color:
-                                                            colorScheme.primary,
-                                                      ),
+                                                          fontWeight:
+                                                              FontWeight.w900,
+                                                          fontSize: 32,
+                                                          color: colorScheme
+                                                              .primary),
                                                     ),
                                                   ] else if (widget.language ==
                                                       'en') ...[
@@ -421,41 +414,27 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
                                                                   ''] ??
                                                           (voice['name'] ?? ''),
                                                       style: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.w900,
-                                                        fontSize: 32,
-                                                        color:
-                                                            colorScheme.primary,
-                                                      ),
+                                                          fontWeight:
+                                                              FontWeight.w900,
+                                                          fontSize: 32,
+                                                          color: colorScheme
+                                                              .primary),
                                                     ),
                                                   ] else ...[
                                                     Text(
                                                       voice['name'] ?? '',
                                                       style: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.w900,
-                                                        fontSize: 32,
-                                                        color:
-                                                            colorScheme.primary,
-                                                      ),
+                                                          fontWeight:
+                                                              FontWeight.w900,
+                                                          fontSize: 32,
+                                                          color: colorScheme
+                                                              .primary),
                                                     ),
                                                   ]
                                                 ],
                                               ),
                                               // Explicación debajo de cada voz
                                               if (widget.language == 'pt') ...[
-                                                if (voice['name'] ==
-                                                    'pt-br-x-afs-network')
-                                                  Padding(
-                                                    padding:
-                                                        const EdgeInsets.only(
-                                                            left: 36, top: 2),
-                                                    child: Text('Mulher Brasil',
-                                                        style: TextStyle(
-                                                            fontSize: 13,
-                                                            color: colorScheme
-                                                                .onSurface)),
-                                                  ),
                                                 if (voice['name'] ==
                                                     'pt-br-x-ptd-network')
                                                   Padding(
@@ -469,13 +448,12 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
                                                                 .onSurface)),
                                                   ),
                                                 if (voice['name'] ==
-                                                    'pt-pt-language')
+                                                    'pt-br-x-afs-network')
                                                   Padding(
                                                     padding:
                                                         const EdgeInsets.only(
                                                             left: 36, top: 2),
-                                                    child: Text(
-                                                        'Mulher Portugal',
+                                                    child: Text('Mulher Brasil',
                                                         style: TextStyle(
                                                             fontSize: 13,
                                                             color: colorScheme
@@ -489,6 +467,21 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
                                                             left: 36, top: 2),
                                                     child: Text(
                                                         'Homem Portugal',
+                                                        style: TextStyle(
+                                                            fontSize: 13,
+                                                            color: colorScheme
+                                                                .onSurface)),
+                                                  ),
+                                                if (voice['name'] ==
+                                                        'pt-pt-language' ||
+                                                    voice['name'] ==
+                                                        'pt-PT-language')
+                                                  Padding(
+                                                    padding:
+                                                        const EdgeInsets.only(
+                                                            left: 36, top: 2),
+                                                    child: Text(
+                                                        'Mulher Portugal',
                                                         style: TextStyle(
                                                             fontSize: 13,
                                                             color: colorScheme
