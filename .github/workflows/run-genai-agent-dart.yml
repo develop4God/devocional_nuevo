@@ -1,4 +1,4 @@
-name: GenAI - Generate Flutter Behavioral Tests and Run
+name: 🤖 GenAI - Generate Flutter Behavioral Tests and Run
 on:
   workflow_dispatch: {}
   push:
