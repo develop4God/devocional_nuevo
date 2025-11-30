@@ -3,7 +3,7 @@ on:
   workflow_dispatch: {}
   push:
     branches:
-      - 'feature/genai-agent'
+      - 'genaiscripts/tests'
 
 permissions:
   contents: write
