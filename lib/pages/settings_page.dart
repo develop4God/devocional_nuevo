@@ -324,14 +324,10 @@ class _SettingsPageState extends State<SettingsPage> {
                             onVoiceSelected: (name, locale) async {
                               debugPrint(
                                   '🔊 Voz seleccionada en Settings: $name ($locale)');
-                              await _voiceSettingsService.saveVoice(
-                                  language, name, locale);
-                              await _voiceSettingsService
-                                  .setUserSavedVoice(language);
-                              final prefs =
-                                  await SharedPreferences.getInstance();
-                              await prefs.setString(
-                                  'tts_voice_name_$language', name);
+                              // Solo reproducir el sample, no guardar ni aplicar globalmente
+                              await _voiceSettingsService.playVoiceSample(
+                                  name, locale, sampleText);
+                              // El guardado/aplicación ocurre solo al pulsar guardar en el diálogo
                             },
                           ),
                         );

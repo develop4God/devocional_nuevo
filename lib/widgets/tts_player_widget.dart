@@ -239,6 +239,10 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
                 // No iniciar el audio automáticamente, el usuario debe volver a tocar play
                 return;
               }
+              // 🗂️ Antes de reproducir, aplicar la última voz guardada
+              final friendlyName = await voiceService.loadSavedVoice(language);
+              debugPrint(
+                  '🗂️🔊 [TTS Widget] Voz aplicada antes de reproducir: $friendlyName');
               if (state == TtsPlayerState.playing) {
                 widget.audioController.pause();
               } else if (state == TtsPlayerState.loading) {
