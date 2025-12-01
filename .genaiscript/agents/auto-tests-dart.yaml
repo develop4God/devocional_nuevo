@@ -1,5 +1,5 @@
 name: auto-tests-dart-agent
-description: "Genera pruebas (unit/widget) en Flutter/Dart para archivos modificados y crea un PR para revisión."
+description: "Genera pruebas (unit/widget) en Flutter/Dart y crea un PR para revisión. Soporta modos: modified, coverage, all."
 entrypoint: .genaiscript/scripts/generate_tests_dart.py
 llm:
   provider: "gemini"
@@ -9,8 +9,13 @@ permissions:
   read:
     - "lib/**"
     - "lib/*.dart"
+    - "test/**"
   write:
     - "test/behavioral/**"
+environment:
+  GENAI_MODE: "coverage"
+  GENAI_MAX_FILES: "10"
+  GENAI_VALIDATE_SYNTAX: "true"
 commit:
   enabled: false
   message: "chore(tests): tests generados por GenAI"

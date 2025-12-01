@@ -1,0 +1,21 @@
+name: architectural-review-agent
+description: "Realiza revisiones arquitectónicas del proyecto. Tipos: full, security, performance, patterns."
+entrypoint: .genaiscript/scripts/architectural_review.py
+llm:
+  provider: "gemini"
+  model: "gemini-2.0-flash-lite"
+  temperature: 0.3
+permissions:
+  read:
+    - "lib/**"
+    - "pubspec.yaml"
+    - "test/**"
+  write:
+    - "docs/reviews/**"
+environment:
+  REVIEW_TYPE: "full"
+commit:
+  enabled: false
+  message: "docs: revisión arquitectónica automática"
+safety:
+  require_human_review: true

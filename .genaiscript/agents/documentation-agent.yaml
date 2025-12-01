@@ -1,0 +1,23 @@
+name: documentation-agent
+description: "Genera y actualiza documentación del proyecto automáticamente. Soporta: readme, api, architecture, all."
+entrypoint: .genaiscript/scripts/generate_documentation.py
+llm:
+  provider: "gemini"
+  model: "gemini-2.0-flash-lite"
+  temperature: 0.2
+permissions:
+  read:
+    - "lib/**"
+    - "pubspec.yaml"
+    - "README.md"
+    - "docs/**"
+  write:
+    - "README.md"
+    - "docs/**"
+environment:
+  DOC_SCOPE: "readme"
+commit:
+  enabled: false
+  message: "docs: actualización automática de documentación"
+safety:
+  require_human_review: true
