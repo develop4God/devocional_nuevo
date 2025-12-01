@@ -112,17 +112,32 @@ class VoiceSettingsService {
 
       await prefs.setString('tts_voice_$language', voiceData.toString());
 
-      // También aplicar la voz inmediatamente al TTS
+      // Solo aplicar la voz globalmente al TTS al guardar
       await _flutterTts.setVoice({
         'name': voiceName,
         'locale': locale,
       });
 
       debugPrint(
-          '🔧 VoiceSettings: Saved voice ${voiceData['friendly_name']} (${voiceData['technical_name']}) for language $language');
+          '🔧🗂️ VoiceSettings: Saved & applied voice ${voiceData['friendly_name']} (${voiceData['technical_name']}) for language $language');
     } catch (e) {
       debugPrint('❌ VoiceSettings: Failed to save voice: $e');
       rethrow;
+    }
+  }
+
+  /// Reproduce solo el sample de voz, sin guardar ni aplicar globalmente
+  Future<void> playVoiceSample(
+      String voiceName, String locale, String sampleText) async {
+    try {
+      await _flutterTts.setVoice({
+        'name': voiceName,
+        'locale': locale,
+      });
+      await _flutterTts.speak(sampleText);
+      debugPrint('🔊🔬 VoiceSettings: Played sample for $voiceName ($locale)');
+    } catch (e) {
+      debugPrint('❌ VoiceSettings: Failed to play sample: $e');
     }
   }
 

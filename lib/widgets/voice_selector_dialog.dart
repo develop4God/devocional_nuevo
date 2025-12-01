@@ -143,10 +143,8 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
     setState(() {
       _playingIndex = index;
     });
-    await _flutterTts.setVoice({'name': name, 'locale': locale});
-    debugPrint(
-        '[VoiceSelectorDialog] sampleText leído: "$_translatedSampleText"');
-    await _flutterTts.speak(_translatedSampleText);
+    await VoiceSettingsService()
+        .playVoiceSample(name, locale, _translatedSampleText);
     await Future.delayed(const Duration(seconds: 2));
     setState(() {
       _playingIndex = null;
