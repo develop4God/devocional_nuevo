@@ -499,6 +499,24 @@ class VoiceSettingsService {
     }
   }
 
+  /// Verifica si el usuario ya guardó su voz personalizada
+  Future<bool> hasUserSavedVoice(String language) async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool('tts_voice_user_saved_$language') ?? false;
+  }
+
+  /// Marca que el usuario guardó su voz personalizada
+  Future<void> setUserSavedVoice(String language) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('tts_voice_user_saved_$language', true);
+  }
+
+  /// Borra el flag de voz guardada por el usuario
+  Future<void> clearUserSavedVoiceFlag(String language) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('tts_voice_user_saved_$language');
+  }
+
   /// Obtiene la velocidad de reproducción TTS guardada
   Future<double> getSavedSpeechRate() async {
     final prefs = await SharedPreferences.getInstance();

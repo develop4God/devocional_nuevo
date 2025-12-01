@@ -3,7 +3,10 @@ import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
 import 'package:devocional_nuevo/services/tts/bible_text_formatter.dart';
+import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 import 'package:flutter/material.dart';
+
+import '../widgets/voice_selector_dialog.dart';
 
 class TtsPlayerWidget extends StatefulWidget {
   final Devocional devocional;
@@ -206,8 +209,33 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
                 ? RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16))
                 : const CircleBorder(),
-            onTap: () {
+            onTap: () async {
               debugPrint('[TTS Widget] Acción de usuario: $state');
+              final language = Localizations.localeOf(context).languageCode;
+              final voiceService = VoiceSettingsService();
+              final hasSaved = await voiceService.hasUserSavedVoice(language);
+              if (!hasSaved) {
+                // Mostrar el selector de voz moderno ya existente
+                await showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (context) {
+                    return VoiceSelectorDialog(
+                      language: language,
+                      sampleText: ttsText,
+                      onVoiceSelected: (name, locale) async {
+                        await voiceService.saveVoice(language, name, locale);
+                        await voiceService.setUserSavedVoice(language);
+                        debugPrint(
+                            '[TTS Widget] Voz guardada por el usuario: $name');
+                        Navigator.of(context).pop();
+                        widget.audioController.play();
+                      },
+                    );
+                  },
+                );
+                return;
+              }
               if (state == TtsPlayerState.playing) {
                 widget.audioController.pause();
               } else if (state == TtsPlayerState.loading) {
@@ -221,5 +249,10 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
         );
       },
     );
+  }
+
+  /// Utilidad para pruebas: borra el flag de voz guardada por el usuario
+  static Future<void> clearUserVoiceFlagForTest(String language) async {
+    await VoiceSettingsService().clearUserSavedVoiceFlag(language);
   }
 }
