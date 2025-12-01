@@ -1,53 +1,26 @@
-name: auto-tests-dart-agent-v2
-description: "Genera pruebas COMPORTAMENTALES de ALTA CALIDAD enfocadas en flujos reales de usuario"
-
+name: auto-tests-dart-agent
+description: "Generates behavioral Flutter/Dart tests based on real user interaction patterns"
 entrypoint: .genaiscript/scripts/generate_tests_dart.py
-
 llm:
   provider: "gemini"
-  model: "gemini-2.0-flash-lite"  # CHAMPION FREE tier: 30 RPM, 1M TPM, 200 RPD
-  temperature: 0.4  # Balance óptimo
-  max_tokens: 8192  # Suficiente para 3-5 tests complejos
-
-quality_thresholds:
-  min_score: 6  # Sobre 10
-  reject_anti_patterns: true
-  require_integration_tests: true
-
-test_strategy:
-  # Ratio de tipos de tests a generar
-  integration: 60%  # Mayoría tests de integración
-  widget: 30%       # Tests de UI
-  unit: 10%         # Solo para lógica crítica
-
+  model: "gemini-2.0-flash-exp"
+  temperature: 0.0
+  max_tokens: 8192
+  top_p: 0.95
+  top_k: 40
 permissions:
   read:
-    - "lib/**/*.dart"
-    - "test/integration/**"  # Leer ejemplos existentes
-    - "i18n/**"              # Para tests con traducciones
+    - "lib/**"
+    - "test/integration/**"
+    - "test/widget/**"
   write:
     - "test/behavioral/**"
-
-validation:
-  anti_patterns:
-    - "MockBuildContext"
-    - "called(0) in test name with 'should call'"
-    - "import.*your_app"
-    - "Testing private members (_privateKey)"
-  
-  required_patterns:
-    - "testWidgets|test("
-    - "expect("
-    - "import 'package:devocional_nuevo/"
-
 commit:
-  enabled: false  # Mantener revisión manual
-  message: "test: add behavioral tests (AI-generated, quality-validated)"
-
+  enabled: false
+  message: "test: add behavioral tests based on user interaction patterns"
 safety:
   require_human_review: true
-  quality_gate: 6.0  # Mínimo score 6/10 para aceptar
-  
-output:
-  report: "test_output/quality_report.json"
-  summary: true
+validation:
+  require_mock_annotations: true
+  require_platform_channel_mocks: true
+  require_async_state_validation: true
