@@ -131,14 +131,11 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
     setState(() {
       _voices = filteredVoices;
       _isLoading = false;
-      // Selección por defecto
-      if (_voices.isNotEmpty && _selectedVoiceName == null) {
-        final defaultVoice = _voices[0];
-        _selectedVoiceName = defaultVoice['name'];
-        _selectedVoiceLocale = defaultVoice['locale'];
-        _initialVoiceName = defaultVoice['name'];
-        _initialVoiceLocale = defaultVoice['locale'];
-      }
+      // Elimino la selección por defecto, el usuario debe seleccionar manualmente
+      _selectedVoiceName = null;
+      _selectedVoiceLocale = null;
+      _initialVoiceName = null;
+      _initialVoiceLocale = null;
     });
   }
 
