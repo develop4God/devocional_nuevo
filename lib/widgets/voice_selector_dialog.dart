@@ -54,6 +54,14 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
     'pt-PT-language': '🇵🇹', // Mujer Portugal (solo mayúsculas)
   };
 
+  // Mapeo de voces amigables para japonés
+  static const Map<String, String> japaneseVoiceMap = {
+    'ja-jp-x-jac-local': '🇯🇵', // Hombre Voz 1
+    'ja-jp-x-jab-local': '🇯🇵', // Mujer Voz 1
+    'ja-jp-x-jad-local': '🇯🇵', // Hombre Voz 2
+    'ja-jp-x-htm-local': '🇯🇵', // Mujer Voz 2
+  };
+
   @override
   void initState() {
     super.initState();
@@ -107,6 +115,13 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
       filteredVoices.sort((a, b) =>
           portugueseVoiceMap.keys.toList().indexOf(a['name']!) -
           portugueseVoiceMap.keys.toList().indexOf(b['name']!));
+    } else if (widget.language == 'ja') {
+      filteredVoices = voices
+          .where((voice) => japaneseVoiceMap.containsKey(voice['name']))
+          .toList();
+      filteredVoices.sort((a, b) =>
+          japaneseVoiceMap.keys.toList().indexOf(a['name']!) -
+          japaneseVoiceMap.keys.toList().indexOf(b['name']!));
     }
     setState(() {
       _voices = filteredVoices;
@@ -133,6 +148,14 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
           _selectedVoiceName == null) {
         final defaultVoice = _voices.firstWhere(
             (v) => v['name'] == 'pt-br-x-ptd-network',
+            orElse: () => _voices[0]);
+        _selectedVoiceName = defaultVoice['name'];
+        _selectedVoiceLocale = defaultVoice['locale'];
+      } else if (widget.language == 'ja' &&
+          _voices.isNotEmpty &&
+          _selectedVoiceName == null) {
+        final defaultVoice = _voices.firstWhere(
+            (v) => v['name'] == 'ja-jp-x-jac-local',
             orElse: () => _voices[0]);
         _selectedVoiceName = defaultVoice['name'];
         _selectedVoiceLocale = defaultVoice['locale'];
@@ -417,9 +440,30 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
                                                           color: colorScheme
                                                               .primary),
                                                     ),
-                                                  ] else ...[
+                                                  ] else if (widget.language ==
+                                                      'ja') ...[
+                                                    if (voice['name'] ==
+                                                            'ja-jp-x-jac-local' ||
+                                                        voice['name'] ==
+                                                            'ja-jp-x-jad-local')
+                                                      Icon(Icons.man_3_outlined,
+                                                          color: colorScheme
+                                                              .primary,
+                                                          size: 38),
+                                                    if (voice['name'] ==
+                                                            'ja-jp-x-jab-local' ||
+                                                        voice['name'] ==
+                                                            'ja-jp-x-htm-local')
+                                                      Icon(Icons.woman_outlined,
+                                                          color: colorScheme
+                                                              .primary,
+                                                          size: 38),
+                                                    const SizedBox(width: 10),
                                                     Text(
-                                                      voice['name'] ?? '',
+                                                      japaneseVoiceMap[
+                                                              voice['name'] ??
+                                                                  ''] ??
+                                                          (voice['name'] ?? ''),
                                                       style: TextStyle(
                                                           fontWeight:
                                                               FontWeight.w900,
@@ -585,6 +629,56 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
                                                             left: 36, top: 2),
                                                     child: Text(
                                                         'Female United Kingdom',
+                                                        style: TextStyle(
+                                                            fontSize: 13,
+                                                            color: colorScheme
+                                                                .onSurface)),
+                                                  ),
+                                              ] else if (widget.language ==
+                                                  'ja') ...[
+                                                if (voice['name'] ==
+                                                    'ja-jp-x-jac-local')
+                                                  Padding(
+                                                    padding:
+                                                        const EdgeInsets.only(
+                                                            left: 36, top: 2),
+                                                    child: Text('男性 声 1',
+                                                        style: TextStyle(
+                                                            fontSize: 13,
+                                                            color: colorScheme
+                                                                .onSurface)),
+                                                  ),
+                                                if (voice['name'] ==
+                                                    'ja-jp-x-jad-local')
+                                                  Padding(
+                                                    padding:
+                                                        const EdgeInsets.only(
+                                                            left: 36, top: 2),
+                                                    child: Text('男性 声 2',
+                                                        style: TextStyle(
+                                                            fontSize: 13,
+                                                            color: colorScheme
+                                                                .onSurface)),
+                                                  ),
+                                                if (voice['name'] ==
+                                                    'ja-jp-x-jab-local')
+                                                  Padding(
+                                                    padding:
+                                                        const EdgeInsets.only(
+                                                            left: 36, top: 2),
+                                                    child: Text('女性 声 1',
+                                                        style: TextStyle(
+                                                            fontSize: 13,
+                                                            color: colorScheme
+                                                                .onSurface)),
+                                                  ),
+                                                if (voice['name'] ==
+                                                    'ja-jp-x-htm-local')
+                                                  Padding(
+                                                    padding:
+                                                        const EdgeInsets.only(
+                                                            left: 36, top: 2),
+                                                    child: Text('女性 声 2',
                                                         style: TextStyle(
                                                             fontSize: 13,
                                                             color: colorScheme
