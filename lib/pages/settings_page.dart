@@ -316,20 +316,35 @@ class _SettingsPageState extends State<SettingsPage> {
                         final language =
                             localizationProvider.currentLocale.languageCode;
                         final sampleText = 'settings.voice_sample_text'.tr();
-                        await showDialog(
+                        await showModalBottomSheet(
                           context: context,
-                          builder: (context) => VoiceSelectorDialog(
-                            language: language,
-                            sampleText: sampleText,
-                            onVoiceSelected: (name, locale) async {
-                              debugPrint(
-                                  '🔊 Voz seleccionada en Settings: $name ($locale)');
-                              // Solo reproducir el sample, no guardar ni aplicar globalmente
-                              await _voiceSettingsService.playVoiceSample(
-                                  name, locale, sampleText);
-                              // El guardado/aplicación ocurre solo al pulsar guardar en el diálogo
-                            },
+                          isScrollControlled: true,
+                          shape: const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.vertical(
+                              top: Radius.circular(28),
+                            ),
                           ),
+                          builder: (context) {
+                            return FractionallySizedBox(
+                              heightFactor: 0.8,
+                              child: Padding(
+                                padding: EdgeInsets.only(
+                                  bottom:
+                                      MediaQuery.of(context).viewInsets.bottom,
+                                ),
+                                child: VoiceSelectorDialog(
+                                  language: language,
+                                  sampleText: sampleText,
+                                  onVoiceSelected: (name, locale) async {
+                                    debugPrint(
+                                        '🔊 Voz seleccionada en Settings: $name ($locale)');
+                                    await _voiceSettingsService.playVoiceSample(
+                                        name, locale, sampleText);
+                                  },
+                                ),
+                              ),
+                            );
+                          },
                         );
                       },
                     ),

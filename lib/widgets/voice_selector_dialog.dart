@@ -763,7 +763,7 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
                                                 : isSelected
                                                     ? Icon(
                                                         Icons
-                                                            .check_circle_outline_outlined,
+                                                            .speaker_phone_outlined,
                                                         color:
                                                             colorScheme.primary,
                                                         size: 32)

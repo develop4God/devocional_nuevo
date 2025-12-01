@@ -220,19 +220,30 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
               final voiceService = VoiceSettingsService();
               final hasSaved = await voiceService.hasUserSavedVoice(language);
               if (!hasSaved) {
-                // Mostrar el selector de voz moderno ya existente
-                await showDialog(
+                // Mostrar el selector de voz moderno como Bottom Sheet animado
+                await showModalBottomSheet(
                   context: context,
-                  barrierDismissible: false,
+                  isScrollControlled: true,
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(28),
+                    ),
+                  ),
                   builder: (context) {
-                    return VoiceSelectorDialog(
-                      language: language,
-                      sampleText: ttsText,
-                      // Solo actualiza la selección, no cierra el diálogo
-                      onVoiceSelected: (name, locale) async {
-                        // No cerrar el diálogo aquí
-                        // El cierre ocurre solo al guardar en el dialog
-                      },
+                    return FractionallySizedBox(
+                      heightFactor: 0.8,
+                      child: Padding(
+                        padding: EdgeInsets.only(
+                          bottom: MediaQuery.of(context).viewInsets.bottom,
+                        ),
+                        child: VoiceSelectorDialog(
+                          language: language,
+                          sampleText: ttsText,
+                          onVoiceSelected: (name, locale) async {
+                            // No cerrar el diálogo aquí
+                          },
+                        ),
+                      ),
                     );
                   },
                 );
