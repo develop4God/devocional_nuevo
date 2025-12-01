@@ -22,6 +22,11 @@ class TtsPlayerWidget extends StatefulWidget {
 
   @override
   State<TtsPlayerWidget> createState() => _TtsPlayerWidgetState();
+
+  /// Utilidad para pruebas: borra el flag de voz guardada por el usuario
+  static Future<void> clearUserVoiceFlagForTest(String language) async {
+    await VoiceSettingsService().clearUserSavedVoiceFlag(language);
+  }
 }
 
 class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
@@ -223,17 +228,15 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
                     return VoiceSelectorDialog(
                       language: language,
                       sampleText: ttsText,
+                      // Solo actualiza la selección, no cierra el diálogo
                       onVoiceSelected: (name, locale) async {
-                        await voiceService.saveVoice(language, name, locale);
-                        await voiceService.setUserSavedVoice(language);
-                        debugPrint(
-                            '[TTS Widget] Voz guardada por el usuario: $name');
-                        Navigator.of(context).pop();
-                        widget.audioController.play();
+                        // No cerrar el diálogo aquí
+                        // El cierre ocurre solo al guardar en el dialog
                       },
                     );
                   },
                 );
+                // No iniciar el audio automáticamente, el usuario debe volver a tocar play
                 return;
               }
               if (state == TtsPlayerState.playing) {
@@ -249,10 +252,5 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
         );
       },
     );
-  }
-
-  /// Utilidad para pruebas: borra el flag de voz guardada por el usuario
-  static Future<void> clearUserVoiceFlagForTest(String language) async {
-    await VoiceSettingsService().clearUserSavedVoiceFlag(language);
   }
 }

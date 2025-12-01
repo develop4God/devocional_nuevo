@@ -185,7 +185,7 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
           padding: const EdgeInsets.all(24.0),
           child: Stack(
             children: [
-              // Botón de cerrar en la esquina superior izquierda, con área de toque más grande
+              // Botón de cerrar en la esquina superior izquierda, siempre visible
               Positioned(
                 top: 8,
                 left: 8,
@@ -243,6 +243,8 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
                           _selectedVoiceName!,
                           _selectedVoiceLocale!,
                         );
+                        await VoiceSettingsService()
+                            .setUserSavedVoice(widget.language);
                         debugPrint(
                             '[VoiceSelectorDialog] Voz guardada: $_selectedVoiceName ($_selectedVoiceLocale) para idioma ${widget.language}');
                         if (!mounted) return;

@@ -12,6 +12,7 @@ import 'package:devocional_nuevo/providers/localization_provider.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 import 'package:devocional_nuevo/utils/constants.dart';
 import 'package:devocional_nuevo/widgets/app_bar_constants.dart';
+import 'package:devocional_nuevo/widgets/tts_player_widget.dart';
 import 'package:devocional_nuevo/widgets/voice_selector_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -325,11 +326,44 @@ class _SettingsPageState extends State<SettingsPage> {
                                   '🔊 Voz seleccionada en Settings: $name ($locale)');
                               await _voiceSettingsService.saveVoice(
                                   language, name, locale);
+                              await _voiceSettingsService
+                                  .setUserSavedVoice(language);
                               final prefs =
                                   await SharedPreferences.getInstance();
                               await prefs.setString(
                                   'tts_voice_name_$language', name);
                             },
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // Botón para borrar el flag de voz guardada (pruebas)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: OutlinedButton.icon(
+                      icon: const Icon(Icons.delete_forever, color: Colors.red),
+                      label: const Text('Borrar flag de voz (pruebas)',
+                          style: TextStyle(color: Colors.red)),
+                      style: OutlinedButton.styleFrom(
+                        side: BorderSide(color: Colors.red, width: 2.0),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20.0),
+                        ),
+                      ),
+                      onPressed: () async {
+                        final language =
+                            localizationProvider.currentLocale.languageCode;
+                        await TtsPlayerWidget.clearUserVoiceFlagForTest(
+                            language);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                                'Flag de voz borrado. Puedes probar el diálogo de selección de voz.'),
+                            backgroundColor: Colors.red,
                           ),
                         );
                       },
