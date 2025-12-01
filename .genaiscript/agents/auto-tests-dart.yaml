@@ -1,0 +1,18 @@
+name: auto-tests-dart-agent
+description: "Genera pruebas (unit/widget) en Flutter/Dart para archivos modificados y crea un PR para revisión."
+entrypoint: .genaiscript/scripts/generate_tests_dart.py
+llm:
+  provider: "gemini"
+  model: "gemini-2.0-flash-lite"
+  temperature: 0.0
+permissions:
+  read:
+    - "lib/**"
+    - "lib/*.dart"
+  write:
+    - "test/behavioral/**"
+commit:
+  enabled: false
+  message: "chore(tests): tests generados por GenAI"
+safety:
+  require_human_review: true

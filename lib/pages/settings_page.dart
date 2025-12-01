@@ -172,306 +172,309 @@ class _SettingsPageState extends State<SettingsPage> {
           ),
           body: Padding(
             padding: const EdgeInsets.all(24.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Support/Donation Button (PayPal always)
-                SizedBox(
-                  child: Align(
-                    alignment: Alignment.topRight,
-                    child: OutlinedButton.icon(
-                      onPressed: _handleDonateAction,
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: colorScheme.onSurface,
-                        side:
-                            BorderSide(color: colorScheme.primary, width: 2.0),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20.0),
-                        ),
-                      ),
-                      label: Text(
-                        'settings.donate'.tr(),
-                        style: textTheme.bodyMedium?.copyWith(
-                          color: colorScheme.onSurface,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-
-                // Language Selection
-                InkWell(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const ApplicationLanguagePage(),
-                      ),
-                    );
-                  },
-                  borderRadius: BorderRadius.circular(8.0),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 12,
-                      horizontal: 4,
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(Icons.language, color: colorScheme.primary),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'settings.language'.tr(),
-                                style: textTheme.bodyMedium?.copyWith(
-                                  fontSize: 16,
-                                  color: colorScheme.onSurface,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                Constants.supportedLanguages[
-                                        localizationProvider
-                                            .currentLocale.languageCode] ??
-                                    localizationProvider
-                                        .currentLocale.languageCode,
-                                style: textTheme.bodySmall?.copyWith(
-                                  color: colorScheme.onSurfaceVariant,
-                                  fontSize: 12,
-                                ),
-                              ),
-                              // Mostrar solo el idioma, sin versión bíblica
-                            ],
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Support/Donation Button (PayPal always)
+                  SizedBox(
+                    child: Align(
+                      alignment: Alignment.topRight,
+                      child: OutlinedButton.icon(
+                        onPressed: _handleDonateAction,
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: colorScheme.onSurface,
+                          side: BorderSide(
+                              color: colorScheme.primary, width: 2.0),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20.0),
                           ),
                         ),
-                      ],
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 20),
-
-                // Audio Settings
-                Text(
-                  'settings.audio_settings'.tr(),
-                  style: textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: colorScheme.primary,
-                  ),
-                ),
-                const SizedBox(height: 15),
-
-                Row(
-                  children: [
-                    Icon(Icons.speed, color: colorScheme.primary),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        'settings.tts_speed'.tr(),
-                        style: textTheme.bodyMedium?.copyWith(
-                          fontSize: 16,
-                          color: colorScheme.onSurface,
+                        label: Text(
+                          'settings.donate'.tr(),
+                          style: textTheme.bodyMedium?.copyWith(
+                            color: colorScheme.onSurface,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
                         ),
                       ),
                     ),
-                  ],
-                ),
-                Slider(
-                  value: _ttsSpeed,
-                  min: 0.1,
-                  max: 1.0,
-                  divisions: 9,
-                  label: '${(_ttsSpeed * 100).round()}%',
-                  onChanged: (double value) {
-                    setState(() {
-                      _ttsSpeed = value;
-                    });
-                  },
-                  onChangeEnd: _onSpeedChanged,
-                ),
+                  ),
+                  const SizedBox(height: 20),
 
-                const SizedBox(height: 20),
-
-                // Botón para abrir el diálogo moderno de selección de voz
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8.0),
-                  child: ElevatedButton.icon(
-                    icon: const Icon(Icons.record_voice_over),
-                    label: const Text('Seleccionar voz TTS'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: colorScheme.primary,
-                      foregroundColor: colorScheme.onPrimary,
-                      minimumSize: const Size(180, 48),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16)),
-                    ),
-                    onPressed: () async {
-                      final language =
-                          localizationProvider.currentLocale.languageCode;
-                      final sampleText = 'settings.voice_sample_text'.tr();
-                      await showDialog(
-                        context: context,
-                        builder: (context) => VoiceSelectorDialog(
-                          language: language,
-                          sampleText: sampleText,
-                          onVoiceSelected: (name, locale) async {
-                            debugPrint(
-                                '🔊 Voz seleccionada en Settings: $name ($locale)');
-                            await _voiceSettingsService.saveVoice(
-                                language, name, locale);
-                            final prefs = await SharedPreferences.getInstance();
-                            await prefs.setString(
-                                'tts_voice_name_$language', name);
-                          },
+                  // Language Selection
+                  InkWell(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const ApplicationLanguagePage(),
                         ),
                       );
                     },
-                  ),
-                ),
-
-                const SizedBox(height: 20),
-
-                // Backup Settings - conditional display (ahora habilitado)
-                // if (_showBackupSection) ...[
-                //   InkWell(
-                //     onTap: () async {
-                //       developer.log('[DEBUG] Settings: Backup row tapped.',
-                //           name: 'SettingsPage');
-                //       final bubbleId = 'settings_backup_option';
-                //       developer.log(
-                //           '[DEBUG] Settings: Calling BubbleUtils.markAsShown for bubbleId=bubbleId',
-                //           name: 'SettingsPage');
-                //       await BubbleUtils.markAsShown(bubbleId);
-                //       developer.log(
-                //           '[DEBUG] Settings: markAsShown completed for bubbleId=bubbleId',
-                //           name: 'SettingsPage');
-                //       if (!context.mounted) {
-                //         developer.log(
-                //             '[DEBUG] Settings: Context not mounted after await. Navigation skipped.',
-                //             name: 'SettingsPage');
-                //         return;
-                //       }
-                //       developer.log(
-                //           '[DEBUG] Settings: Navigating to BackupSettingsPage',
-                //           name: 'SettingsPage');
-                //       Navigator.push(
-                //         context,
-                //         MaterialPageRoute(
-                //           builder: (context) => const BackupSettingsPage(),
-                //         ),
-                //       );
-                //     },
-                //     borderRadius: BorderRadius.circular(8.0),
-                //     child: Container(
-                //       padding: const EdgeInsets.symmetric(
-                //         vertical: 12,
-                //         horizontal: 4,
-                //       ),
-                //       child: Row(
-                //         children: [
-                //           Icon(Icons.add_to_drive_rounded,
-                //               color: colorScheme.primary),
-                //           const SizedBox(width: 10),
-                //           Expanded(
-                //             child: Column(
-                //               crossAxisAlignment: CrossAxisAlignment.start,
-                //               children: [
-                //                 Text(
-                //                   'settings.backup_option'.tr(),
-                //                   style: textTheme.bodyMedium?.copyWith(
-                //                     fontSize: 16,
-                //                     color: colorScheme.onSurface,
-                //                   ),
-                //                 ),
-                //                 const SizedBox(height: 4),
-                //                 Text(
-                //                   'settings.backup_subtitle'.tr(),
-                //                   style: textTheme.bodySmall?.copyWith(
-                //                     color: colorScheme.onSurfaceVariant,
-                //                     fontSize: 12,
-                //                   ),
-                //                 ),
-                //               ],
-                //             ),
-                //           ),
-                //         ],
-                //       ),
-                //     ),
-                //   ),
-                //   const SizedBox(height: 20),
-                // ],
-
-                // Contact
-                InkWell(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const ContactPage()),
-                    );
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
-                    child: Row(
-                      children: [
-                        Icon(Icons.contact_mail, color: colorScheme.primary),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Text(
-                            'settings.contact_us'.tr(),
-                            style: textTheme.bodyMedium?.copyWith(
-                              fontSize: 16,
-                              color: colorScheme.onSurface,
+                    borderRadius: BorderRadius.circular(8.0),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 12,
+                        horizontal: 4,
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.language, color: colorScheme.primary),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'settings.language'.tr(),
+                                  style: textTheme.bodyMedium?.copyWith(
+                                    fontSize: 16,
+                                    color: colorScheme.onSurface,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  Constants.supportedLanguages[
+                                          localizationProvider
+                                              .currentLocale.languageCode] ??
+                                      localizationProvider
+                                          .currentLocale.languageCode,
+                                  style: textTheme.bodySmall?.copyWith(
+                                    color: colorScheme.onSurfaceVariant,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                                // Mostrar solo el idioma, sin versión bíblica
+                              ],
                             ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 20),
 
-                // About
-                InkWell(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const AboutPage()),
-                    );
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.perm_device_info_outlined,
-                          color: colorScheme.primary,
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Text(
-                            'settings.about_app'.tr(),
-                            style: textTheme.bodyMedium?.copyWith(
-                              fontSize: 16,
-                              color: colorScheme.onSurface,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
+                  const SizedBox(height: 20),
+
+                  // Audio Settings
+                  Text(
+                    'settings.audio_settings'.tr(),
+                    style: textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.primary,
                     ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 15),
+
+                  Row(
+                    children: [
+                      Icon(Icons.speed, color: colorScheme.primary),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          'settings.tts_speed'.tr(),
+                          style: textTheme.bodyMedium?.copyWith(
+                            fontSize: 16,
+                            color: colorScheme.onSurface,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  Slider(
+                    value: _ttsSpeed,
+                    min: 0.1,
+                    max: 1.0,
+                    divisions: 9,
+                    label: '${(_ttsSpeed * 100).round()}%',
+                    onChanged: (double value) {
+                      setState(() {
+                        _ttsSpeed = value;
+                      });
+                    },
+                    onChangeEnd: _onSpeedChanged,
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // Botón para abrir el diálogo moderno de selección de voz
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: ElevatedButton.icon(
+                      icon: const Icon(Icons.record_voice_over),
+                      label: const Text('Seleccionar voz TTS'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: colorScheme.primary,
+                        foregroundColor: colorScheme.onPrimary,
+                        minimumSize: const Size(180, 48),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16)),
+                      ),
+                      onPressed: () async {
+                        final language =
+                            localizationProvider.currentLocale.languageCode;
+                        final sampleText = 'settings.voice_sample_text'.tr();
+                        await showDialog(
+                          context: context,
+                          builder: (context) => VoiceSelectorDialog(
+                            language: language,
+                            sampleText: sampleText,
+                            onVoiceSelected: (name, locale) async {
+                              debugPrint(
+                                  '🔊 Voz seleccionada en Settings: $name ($locale)');
+                              await _voiceSettingsService.saveVoice(
+                                  language, name, locale);
+                              final prefs =
+                                  await SharedPreferences.getInstance();
+                              await prefs.setString(
+                                  'tts_voice_name_$language', name);
+                            },
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // Backup Settings - conditional display (ahora habilitado)
+                  // if (_showBackupSection) ...[
+                  //   InkWell(
+                  //     onTap: () async {
+                  //       developer.log('[DEBUG] Settings: Backup row tapped.',
+                  //           name: 'SettingsPage');
+                  //       final bubbleId = 'settings_backup_option';
+                  //       developer.log(
+                  //           '[DEBUG] Settings: Calling BubbleUtils.markAsShown for bubbleId=bubbleId',
+                  //           name: 'SettingsPage');
+                  //       await BubbleUtils.markAsShown(bubbleId);
+                  //       developer.log(
+                  //           '[DEBUG] Settings: markAsShown completed for bubbleId=bubbleId',
+                  //           name: 'SettingsPage');
+                  //       if (!context.mounted) {
+                  //         developer.log(
+                  //             '[DEBUG] Settings: Context not mounted after await. Navigation skipped.',
+                  //             name: 'SettingsPage');
+                  //         return;
+                  //       }
+                  //       developer.log(
+                  //           '[DEBUG] Settings: Navigating to BackupSettingsPage',
+                  //           name: 'SettingsPage');
+                  //       Navigator.push(
+                  //         context,
+                  //         MaterialPageRoute(
+                  //           builder: (context) => const BackupSettingsPage(),
+                  //         ),
+                  //       );
+                  //     },
+                  //     borderRadius: BorderRadius.circular(8.0),
+                  //     child: Container(
+                  //       padding: const EdgeInsets.symmetric(
+                  //         vertical: 12,
+                  //         horizontal: 4,
+                  //       ),
+                  //       child: Row(
+                  //         children: [
+                  //           Icon(Icons.add_to_drive_rounded,
+                  //               color: colorScheme.primary),
+                  //           const SizedBox(width: 10),
+                  //           Expanded(
+                  //             child: Column(
+                  //               crossAxisAlignment: CrossAxisAlignment.start,
+                  //               children: [
+                  //                 Text(
+                  //                   'settings.backup_option'.tr(),
+                  //                   style: textTheme.bodyMedium?.copyWith(
+                  //                     fontSize: 16,
+                  //                     color: colorScheme.onSurface,
+                  //                   ),
+                  //                 ),
+                  //                 const SizedBox(height: 4),
+                  //                 Text(
+                  //                   'settings.backup_subtitle'.tr(),
+                  //                   style: textTheme.bodySmall?.copyWith(
+                  //                     color: colorScheme.onSurfaceVariant,
+                  //                     fontSize: 12,
+                  //                   ),
+                  //                 ),
+                  //               ],
+                  //             ),
+                  //           ),
+                  //         ],
+                  //       ),
+                  //     ),
+                  //   ),
+                  //   const SizedBox(height: 20),
+                  // ],
+
+                  // Contact
+                  InkWell(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const ContactPage()),
+                      );
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: Row(
+                        children: [
+                          Icon(Icons.contact_mail, color: colorScheme.primary),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              'settings.contact_us'.tr(),
+                              style: textTheme.bodyMedium?.copyWith(
+                                fontSize: 16,
+                                color: colorScheme.onSurface,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // About
+                  InkWell(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const AboutPage()),
+                      );
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.perm_device_info_outlined,
+                            color: colorScheme.primary,
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              'settings.about_app'.tr(),
+                              style: textTheme.bodyMedium?.copyWith(
+                                fontSize: 16,
+                                color: colorScheme.onSurface,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ));
