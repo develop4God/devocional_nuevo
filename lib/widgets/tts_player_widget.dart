@@ -135,26 +135,29 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
         debugPrint('[TTS Widget] Estado actual: $state');
 
         // Record devotional as heard when TTS completes (80% threshold)
-        // This is called with a real estimate of listening completion
+        // This is called with una estimación real de finalización de escucha
         if (state == TtsPlayerState.completed && !_hasRegisteredHeard) {
           _hasRegisteredHeard = true;
-          // Check if already read to avoid duplication
+          final devotionalId = widget.devocional.id;
           SpiritualStatsService()
-              .hasDevocionalBeenRead(widget.devocional.id)
+              .hasDevocionalBeenRead(devotionalId)
               .then((alreadyRead) {
             if (!alreadyRead) {
               debugPrint(
-                  '[TTS Widget] Registrando devocional heard: id=${widget.devocional.id}, porcentaje=80%');
+                  '[TTS Widget] Registrando devocional heard: id=$devotionalId, porcentaje=80%');
               SpiritualStatsService().recordDevotionalHeard(
-                devocionalId: widget.devocional.id,
-                listenedPercentage: 0.8, // 80% threshold for TTS completion
+                devocionalId: devotionalId,
+                listenedPercentage: 0.8,
               );
             } else {
               debugPrint(
                   '[TTS Widget] Ya registrado como leído, no se duplica');
             }
+            // Resetear el estado a idle para mostrar el botón de play
+            widget.audioController.state.value = TtsPlayerState.idle;
           }).catchError((error) {
             debugPrint('[TTS Widget] Error recording devotional heard: $error');
+            widget.audioController.state.value = TtsPlayerState.idle;
           });
         }
 
