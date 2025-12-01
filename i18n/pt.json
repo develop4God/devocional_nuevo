@@ -53,7 +53,8 @@
     "download_error": "Erro no download",
     "offline_mode": "Modo offline",
     "online_mode": "Modo online",
-    "choose_option": "Escolha uma opção"
+    "choose_option": "Escolha uma opção",
+    "no_devocionales": "Nenhum devocional disponível"
   },
   "prayer": {
     "invitation_title": "Convite à Oração",
@@ -551,7 +552,8 @@
     "onboarding_error_title": "Erro de configuração",
     "onboarding_error_loading": "Erro ao carregar a configuração inicial",
     "onboarding_completed": "Onboarding concluído!",
-    "onboarding_retry": "Tentar novamente"
+    "onboarding_retry": "Tentar novamente",
+    "onboarding_touch_screen": "PENDING"
   },
   "bible": {
     "title": "Bíblia",
