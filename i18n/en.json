@@ -553,7 +553,7 @@
     "onboarding_error_loading": "Error loading initial configuration",
     "onboarding_completed": "Onboarding completed!",
     "onboarding_retry": "Retry",
-    "onboarding_touch_screen": "PENDING"
+    "onboarding_touch_screen": "Tap to continue"
   },
   "bible": {
     "title": "Bible",
