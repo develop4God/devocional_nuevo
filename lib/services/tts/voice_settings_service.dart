@@ -69,89 +69,6 @@ class VoiceSettingsService {
     }
   }
 
-  // ✅ MAPEO DE NOMBRES TÉCNICOS A NOMBRES AMIGABLES
-  static const Map<String, String> _voiceNameMappings = {
-    // Apple iOS/macOS voces
-    'com.apple.ttsbundle.Mónica-compact': 'Mónica',
-    'com.apple.ttsbundle.Diego-compact': 'Diego',
-    'com.apple.ttsbundle.Paulina-compact': 'Paulina',
-    'com.apple.ttsbundle.Carlos-compact': 'Carlos',
-    'com.apple.ttsbundle.Angelica-compact': 'Angélica',
-    'com.apple.ttsbundle.Jorge-compact': 'Jorge',
-    'com.apple.ttsbundle.Juan-compact': 'Juan',
-    'com.apple.ttsbundle.Marisol-compact': 'Marisol',
-    'com.apple.ttsbundle.Samantha-compact': 'Samantha',
-    'com.apple.ttsbundle.Alex-compact': 'Alex',
-    'com.apple.ttsbundle.Victoria-compact': 'Victoria',
-    'com.apple.ttsbundle.Daniel-compact': 'Daniel',
-    'com.apple.ttsbundle.Karen-compact': 'Karen',
-    'com.apple.ttsbundle.Moira-compact': 'Moira',
-    'com.apple.ttsbundle.Tessa-compact': 'Tessa',
-    'com.apple.ttsbundle.Veena-compact': 'Veena',
-    'com.apple.ttsbundle.Rishi-compact': 'Rishi',
-    'com.apple.ttsbundle.Fiona-compact': 'Fiona',
-
-    // Android/Google voces
-    'es-es-x-eef#female_1-local': 'Carmen',
-    'es-es-x-eef#female_2-local': 'Esperanza',
-    'es-es-x-eef#female_3-local': 'Gloria',
-    'es-es-x-eed#male_1-local': 'Enrique',
-    'es-es-x-eed#male_2-local': 'Francisco',
-    'es-es-x-eed#male_3-local': 'Álvaro',
-    'es-us-x-sfb#female_1-local': 'Penélope',
-    'es-us-x-sfb#female_2-local': 'Lupe',
-    'es-us-x-sfb#male_1-local': 'Miguel',
-    'es-us-x-sfb#male_2-local': 'Juan Carlos',
-
-    'en-us-x-sfg#female_1-local': 'Rachel',
-    'en-us-x-sfg#female_2-local': 'Sarah',
-    'en-us-x-sfg#female_3-local': 'Amy',
-    'en-us-x-sfg#male_1-local': 'John',
-    'en-us-x-sfg#male_2-local': 'Mike',
-    'en-us-x-sfg#male_3-local': 'David',
-    'en-gb-x-gba#female_1-local': 'Emma',
-    'en-gb-x-gba#female_2-local': 'Sophie',
-    'en-gb-x-gba#male_1-local': 'James',
-    'en-gb-x-gba#male_2-local': 'Oliver',
-
-    'pt-br-x-afs#female_1-local': 'Vitória',
-    'pt-br-x-afs#female_2-local': 'Lúcia',
-    'pt-br-x-afs#female_3-local': 'Francisca',
-    'pt-br-x-afs#male_1-local': 'Ricardo',
-    'pt-br-x-afs#male_2-local': 'Thiago',
-    'pt-br-x-afs#male_3-local': 'Antônio',
-    'pt-pt-x-jmn#female_1-local': 'Inês',
-    'pt-pt-x-jmn#male_1-local': 'Cristiano',
-
-    'fr-fr-x-frc#female_1-local': 'Céline',
-    'fr-fr-x-frc#female_2-local': 'Amélie',
-    'fr-fr-x-frc#female_3-local': 'Marie',
-    'fr-fr-x-frc#male_1-local': 'Henri',
-    'fr-fr-x-frc#male_2-local': 'Claude',
-    'fr-fr-x-frc#male_3-local': 'Antoine',
-    'fr-ca-x-cab#female_1-local': 'Chantal',
-    'fr-ca-x-cab#male_1-local': 'Nicolas',
-
-    // Microsoft Edge voces
-    'Microsoft Zira - English (United States)': 'Zira',
-    'Microsoft David - English (United States)': 'David',
-    'Microsoft Mark - English (United States)': 'Mark',
-    'Microsoft Hazel - English (Great Britain)': 'Hazel',
-    'Microsoft George - English (Great Britain)': 'George',
-    'Microsoft Susan - English (Great Britain)': 'Susan',
-    'Microsoft Helena - Spanish (Spain)': 'Helena',
-    'Microsoft Laura - Spanish (Spain)': 'Laura',
-    'Microsoft Pablo - Spanish (Spain)': 'Pablo',
-    'Microsoft Sabina - Spanish (Mexico)': 'Sabina',
-    'Microsoft Raul - Spanish (Mexico)': 'Raúl',
-    'Microsoft Maria - Portuguese (Brazil)': 'Maria',
-    'Microsoft Daniel - Portuguese (Brazil)': 'Daniel',
-    'Microsoft Hortense - French (France)': 'Hortense',
-    'Microsoft Paul - French (France)': 'Paul',
-    'Microsoft Caroline - French (Canada)': 'Caroline',
-    'Microsoft Claude - French (Canada)': 'Claude',
-  };
-
   // ✅ MAPEO DE PATRONES COMPLEJOS
   static final Map<RegExp, String> _voicePatternMappings = {
     // Patrones Android con códigos técnicos
@@ -264,11 +181,11 @@ class VoiceSettingsService {
 
   /// ✅ METODO PRINCIPAL MEJORADO PARA NOMBRES USER-FRIENDLY
   String _getFriendlyVoiceName(String technicalName, String locale) {
-    // 1. Primero verificar mapeo directo
-    if (_voiceNameMappings.containsKey(technicalName)) {
-      final friendlyName = _voiceNameMappings[technicalName]!;
-      final genderInfo = _getVoiceGenderInfo(technicalName);
-      return genderInfo.isNotEmpty ? '$friendlyName $genderInfo' : friendlyName;
+    // 1. Verificar mapeo amigable con emoji y nombre
+    final language = locale.split('-').first;
+    final map = friendlyVoiceMap[language];
+    if (map != null && map.containsKey(technicalName)) {
+      return map[technicalName]!;
     }
 
     // 2. Verificar patrones complejos
@@ -334,7 +251,26 @@ class VoiceSettingsService {
     if (friendlyName.contains('x-') ||
         friendlyName.contains('#') ||
         friendlyName.length < 3) {
-      friendlyName = _getLocalizedDefaultName(locale);
+      // Devuelve un nombre genérico por idioma
+      switch (locale.split('-').first) {
+        case 'es':
+          friendlyName = 'Voz por Defecto';
+          break;
+        case 'en':
+          friendlyName = 'Default Voice';
+          break;
+        case 'pt':
+          friendlyName = 'Voz Padrão';
+          break;
+        case 'fr':
+          friendlyName = 'Voix par Défaut';
+          break;
+        case 'ja':
+          friendlyName = 'デフォルトの声';
+          break;
+        default:
+          friendlyName = 'Default Voice';
+      }
     }
 
     // Limpiar y capitalizar
@@ -373,30 +309,6 @@ class VoiceSettingsService {
         return gender == 'female' ? 'Voix Féminine$num' : 'Voix Masculine$num';
       default:
         return gender == 'female' ? 'Female Voice$num' : 'Male Voice$num';
-    }
-  }
-
-  /// ✅ NOMBRES POR DEFECTO LOCALIZADOS
-  String _getLocalizedDefaultName(String locale) {
-    switch (locale.toLowerCase()) {
-      case String s when s.contains('es-es'):
-        return 'Voz Española';
-      case String s when s.contains('es-us') || s.contains('es-mx'):
-        return 'Voz Latina';
-      case String s when s.contains('en-us'):
-        return 'American Voice';
-      case String s when s.contains('en-gb'):
-        return 'British Voice';
-      case String s when s.contains('pt-br'):
-        return 'Voz Brasileira';
-      case String s when s.contains('pt-pt'):
-        return 'Voz Portuguesa';
-      case String s when s.contains('fr-fr'):
-        return 'Voix Française';
-      case String s when s.contains('fr-ca'):
-        return 'Voix Canadienne';
-      default:
-        return 'Sistema';
     }
   }
 
@@ -564,162 +476,6 @@ class VoiceSettingsService {
     }
   }
 
-  /// Obtiene información del género de la voz
-  String _getVoiceGenderInfo(String voiceName) {
-    final name = voiceName.toLowerCase();
-
-    // Indicadores explícitos de género
-    if (name.contains('female') ||
-        name.contains('woman') ||
-        name.contains('femenina')) {
-      return '♀';
-    }
-    if (name.contains('male') ||
-        name.contains('man') ||
-        name.contains('masculina')) {
-      return '♂';
-    }
-
-    // Nombres femeninos comunes (expandido)
-    const femaleNames = [
-      'samantha',
-      'anna',
-      'karen',
-      'moira',
-      'tessa',
-      'veena',
-      'zuzana',
-      'carolina',
-      'silvia',
-      'monica',
-      'lucia',
-      'sofia',
-      'paloma',
-      'maria',
-      'carmen',
-      'elena',
-      'isabel',
-      'fernanda',
-      'ines',
-      'alice',
-      'amelie',
-      'marie',
-      'celine',
-      'claudia',
-      'audrey',
-      'susan',
-      'victoria',
-      'kate',
-      'zira',
-      'hazel',
-      'heather',
-      'cortana',
-      'aria',
-      'eva',
-      'joanna',
-      'kimberly',
-      'salli',
-      'nicole',
-      'emma',
-      'amy',
-      'elly',
-      'chloe',
-      'olivia',
-      'bianca',
-      'carla',
-      'vitoria',
-      'esperanza',
-      'gloria',
-      'penelope',
-      'lupe',
-      'rachel',
-      'sarah',
-      'sophie',
-      'francisca',
-      'ines',
-      'chantal',
-      'helena',
-      'laura',
-      'sabina',
-      'hortense',
-      'caroline',
-      'angelica',
-      'marisol'
-    ];
-
-    // Nombres masculinos comunes (expandido)
-    const maleNames = [
-      'alex',
-      'daniel',
-      'diego',
-      'carlos',
-      'jorge',
-      'juan',
-      'thomas',
-      'ricky',
-      'fred',
-      'david',
-      'mark',
-      'richard',
-      'aaron',
-      'albert',
-      'brad',
-      'bruce',
-      'ralph',
-      'kevin',
-      'lee',
-      'paul',
-      'reed',
-      'alan',
-      'gordon',
-      'henry',
-      'james',
-      'john',
-      'malcolm',
-      'michael',
-      'nathan',
-      'oliver',
-      'ryan',
-      'sean',
-      'william',
-      'antonio',
-      'francisco',
-      'ricardo',
-      'miguel',
-      'pedro',
-      'jose',
-      'felipe',
-      'sebastiao',
-      'enrique',
-      'alvaro',
-      'thiago',
-      'cristiano',
-      'henri',
-      'claude',
-      'antoine',
-      'nicolas',
-      'pablo',
-      'raul',
-      'george',
-      'pablo'
-    ];
-
-    // Verificar contra nombres conocidos
-    for (final femaleName in femaleNames) {
-      if (name.contains(femaleName)) {
-        return '♀';
-      }
-    }
-
-    for (final maleName in maleNames) {
-      if (name.contains(maleName)) {
-        return '♂';
-      }
-    }
-
-    return ''; // Sin género determinado
-  }
-
   /// Elimina la voz guardada para un idioma específico
   Future<void> clearSavedVoice(String language) async {
     try {
@@ -749,17 +505,40 @@ class VoiceSettingsService {
     return prefs.getDouble('tts_rate') ?? 0.5;
   }
 
-  /// Metodo público para obtener el nombre amigable de la voz
-  String getFriendlyVoiceName(String technicalName, String locale) {
-    final friendly = _getFriendlyVoiceName(technicalName, locale);
-    // Si el nombre amigable es igual al genérico, mostrar ambos
-    if (friendly == 'Voz por Defecto' ||
-        friendly == 'Sistema' ||
-        friendly == '' ||
-        friendly == technicalName) {
-      return technicalName;
+  // Mapeo amigable de voces con emoji y nombre
+  static const Map<String, Map<String, String>> friendlyVoiceMap = {
+    'es': {
+      'es-us-x-esd-local': '🇲🇽 Hombre Latinoamérica',
+      'es-US-language': '🇲🇽 Mujer Latinoamérica',
+      'es-es-x-eed-local': '🇪🇸 Hombre España',
+      'es-ES-language': '🇪🇸 Mujer España',
+    },
+    'en': {
+      'en-us-x-tpd-network': '🇺🇸 Male United States',
+      'en-us-x-tpf-local': '🇺🇸 Female United States',
+      'en-gb-x-gbb-local': '🇬🇧 Male United Kingdom',
+      'en-GB-language': '🇬🇧 Female United Kingdom',
+    },
+    'pt': {
+      'pt-br-x-ptd-network': '🇧🇷 Homem Brasil',
+      'pt-br-x-afs-network': '🇧🇷 Mulher Brasil',
+      'pt-pt-x-pmj-local': '🇵🇹 Homem Portugal',
+      'pt-PT-language': '🇵🇹 Mulher Portugal',
+    },
+    'ja': {
+      'ja-jp-x-jac-local': '🇯🇵 男性 声 1',
+      'ja-jp-x-jab-local': '🇯🇵 女性 声 1',
+      'ja-jp-x-jad-local': '🇯🇵 男性 声 2',
+      'ja-jp-x-htm-local': '🇯🇵 女性 声 2',
+    },
+  };
+
+  /// Nuevo método para obtener nombre amigable con emoji
+  String getFriendlyVoiceName(String language, String technicalName) {
+    final map = friendlyVoiceMap[language];
+    if (map != null && map.containsKey(technicalName)) {
+      return map[technicalName]!;
     }
-    // Si el nombre amigable es diferente, mostrar ambos
-    return '$friendly [$technicalName]';
+    return technicalName;
   }
 }
