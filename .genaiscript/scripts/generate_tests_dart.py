@@ -380,24 +380,26 @@ def call_genai(prompt: str, retry: int = 0) -> str:
     if not api_key:
         raise Exception("GOOGLE_API_KEY not set in environment.")
     
-    model = os.getenv("GENAI_MODEL", "gemini-2.0-flash-exp")
+    # gemini-2.0-flash-thinking-exp: FREE tier, 32K output tokens, mejor razonamiento
+    model = os.getenv("GENAI_MODEL", "gemini-2.0-flash-thinking-exp")
     base = "https://generativelanguage.googleapis.com/v1beta/models"
     url = f"{base}/{model}:generateContent?key={api_key}"
     
     headers = {"Content-Type": "application/json"}
     
-    # Temperature 0.5 = balanced (creative but consistent)
+    # Temperature 0.4 = balance óptimo (0.2 muy rígido, 0.5+ muy creativo)
     payload = {
         "contents": [{"parts": [{"text": prompt}]}],
         "generationConfig": {
-            "temperature": 0.5,  # Increased for better variety
-            "maxOutputTokens": 8192,  # Increased for complex tests
-            "topP": 0.9,
+            "temperature": 0.4,  # Sweet spot para tests consistentes pero variados
+            "maxOutputTokens": 16384,  # 16K tokens (suficiente para tests complejos)
+            "topP": 0.95,
             "topK": 40
         }
     }
     
-    print(f"[INFO] Calling Gemini API (attempt {retry + 1}/3)...")
+    print(f"[INFO] Calling Gemini API with {model} (attempt {retry + 1}/3)...")
+    print(f"[DEBUG] Temperature: {payload['generationConfig']['temperature']}, MaxTokens: {payload['generationConfig']['maxOutputTokens']}")
     resp = requests.post(url, headers=headers, json=payload, timeout=180)
     
     if resp.status_code != 200:
