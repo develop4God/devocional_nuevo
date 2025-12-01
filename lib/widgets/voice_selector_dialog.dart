@@ -471,6 +471,24 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
                                                           color: colorScheme
                                                               .primary),
                                                     ),
+                                                  ] else if (widget.language ==
+                                                      'fr') ...[
+                                                    Icon(
+                                                        Icons.record_voice_over,
+                                                        color:
+                                                            colorScheme.primary,
+                                                        size: 38),
+                                                    const SizedBox(width: 10),
+                                                    Text(
+                                                      '🇫🇷 ' +
+                                                          (voice['name'] ?? ''),
+                                                      style: TextStyle(
+                                                          fontWeight:
+                                                              FontWeight.w900,
+                                                          fontSize: 22,
+                                                          color: colorScheme
+                                                              .primary),
+                                                    ),
                                                   ]
                                                 ],
                                               ),
