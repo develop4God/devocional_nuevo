@@ -137,6 +137,8 @@ def call_genai(prompt: str) -> str:
     headers = {"Content-Type": "application/json"}
     
     # Use the correct request format for Gemini API v1beta
+    # Temperature 0.2 provides slight creativity while maintaining code quality
+    # (0.0 was too deterministic, higher values produce inconsistent code)
     payload = {
         "contents": [
             {
@@ -231,8 +233,17 @@ def main():
             print(f"[ERROR] GenAI call failed for {f}: {e}")
             continue
         
-        # Validate that we got actual Dart code
-        if not result.strip().startswith("import"):
+        # Validate that we got actual Dart code (check for common patterns)
+        is_likely_dart = (
+            result.strip().startswith("import") or
+            result.strip().startswith("//") or
+            result.strip().startswith("library") or
+            result.strip().startswith("part") or
+            "void main(" in result or
+            "test(" in result or
+            "group(" in result
+        )
+        if not is_likely_dart:
             print(f"[WARN] Generated content for {f} doesn't look like valid Dart code")
             print(f"[DEBUG] First 200 chars: {result[:200]}")
         
