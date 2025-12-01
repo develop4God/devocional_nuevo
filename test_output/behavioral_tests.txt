@@ -1,1 +1,0 @@
-No behavioral tests directory found.
