@@ -167,13 +167,21 @@ def validate_test_syntax(test_path: str) -> bool:
         return False
 
 def run_single_test(test_path: str) -> tuple:
-    """Ejecuta un test específico y retorna (success, output)"""
+    """Ejecuta un test específico y retorna (success, exit_code, output)"""
     try:
-        result = run(f"flutter test {test_path}", check=False)
-        success = "All tests passed" in result or "tests passed" in result.lower()
-        return (success, result)
+        res = subprocess.run(
+            f"flutter test {test_path}",
+            shell=True,
+            capture_output=True,
+            text=True,
+            cwd=str(ROOT)
+        )
+        # Use exit code for success detection (0 = success)
+        success = res.returncode == 0
+        output = res.stdout + res.stderr
+        return (success, res.returncode, output)
     except Exception as e:
-        return (False, str(e))
+        return (False, -1, str(e))
 
 def clean_generated_content(content: str) -> str:
     """Limpia el contenido generado, removiendo markdown code blocks"""
