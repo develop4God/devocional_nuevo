@@ -2,6 +2,7 @@ import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
+import 'package:lottie/lottie.dart';
 
 class VoiceSelectorDialog extends StatefulWidget {
   final String language;
@@ -27,6 +28,10 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
   bool _isLoading = true;
   int? _playingIndex;
   late String _translatedSampleText;
+
+  // Variables para guardar la selección inicial
+  String? _initialVoiceName;
+  String? _initialVoiceLocale;
 
   // Mapeo de voces amigables para español
   static const Map<String, String> spanishVoiceMap = {
@@ -126,39 +131,13 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
     setState(() {
       _voices = filteredVoices;
       _isLoading = false;
-      // Selección por defecto: Voz Hombre Latino para español, Voice Male US para inglés
-      if (widget.language == 'es' &&
-          _voices.isNotEmpty &&
-          _selectedVoiceName == null) {
-        final defaultVoice = _voices.firstWhere(
-            (v) => v['name'] == 'es-us-x-esd-local',
-            orElse: () => _voices[0]);
+      // Selección por defecto
+      if (_voices.isNotEmpty && _selectedVoiceName == null) {
+        final defaultVoice = _voices[0];
         _selectedVoiceName = defaultVoice['name'];
         _selectedVoiceLocale = defaultVoice['locale'];
-      } else if (widget.language == 'en' &&
-          _voices.isNotEmpty &&
-          _selectedVoiceName == null) {
-        final defaultVoice = _voices.firstWhere(
-            (v) => v['name'] == 'en-us-x-tpd-network',
-            orElse: () => _voices[0]);
-        _selectedVoiceName = defaultVoice['name'];
-        _selectedVoiceLocale = defaultVoice['locale'];
-      } else if (widget.language == 'pt' &&
-          _voices.isNotEmpty &&
-          _selectedVoiceName == null) {
-        final defaultVoice = _voices.firstWhere(
-            (v) => v['name'] == 'pt-br-x-ptd-network',
-            orElse: () => _voices[0]);
-        _selectedVoiceName = defaultVoice['name'];
-        _selectedVoiceLocale = defaultVoice['locale'];
-      } else if (widget.language == 'ja' &&
-          _voices.isNotEmpty &&
-          _selectedVoiceName == null) {
-        final defaultVoice = _voices.firstWhere(
-            (v) => v['name'] == 'ja-jp-x-jac-local',
-            orElse: () => _voices[0]);
-        _selectedVoiceName = defaultVoice['name'];
-        _selectedVoiceLocale = defaultVoice['locale'];
+        _initialVoiceName = defaultVoice['name'];
+        _initialVoiceLocale = defaultVoice['locale'];
       }
     });
   }
@@ -227,54 +206,70 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
                   ),
                 ),
               ),
-              // Botón de guardar en la esquina superior derecha, con área de toque más grande y padding
-              Positioned(
-                top: 8,
-                right: 8,
-                child: Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(32),
-                    onTap: _selectedVoiceName != null &&
-                            _selectedVoiceLocale != null
-                        ? () async {
-                            final navigator = Navigator.of(context);
-                            await VoiceSettingsService().saveVoice(
-                              widget.language,
-                              _selectedVoiceName!,
-                              _selectedVoiceLocale!,
-                            );
-                            debugPrint(
-                                '[VoiceSelectorDialog] Voz guardada: $_selectedVoiceName ($_selectedVoiceLocale) para idioma ${widget.language}');
-                            if (!mounted) return;
-                            navigator.pop();
-                          }
-                        : null,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: _selectedVoiceName != null &&
-                                _selectedVoiceLocale != null
-                            ? colorScheme.primary.withAlpha(40)
-                            : Colors.transparent,
-                        borderRadius: BorderRadius.circular(32),
+              // Mostrar Lottie de tap si no hay selección nueva
+              if (!(_selectedVoiceName != null &&
+                  _selectedVoiceLocale != null &&
+                  (_selectedVoiceName != _initialVoiceName ||
+                      _selectedVoiceLocale != _initialVoiceLocale)))
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: SizedBox(
+                    width: 48,
+                    height: 48,
+                    child: Transform.rotate(
+                      angle: 3.92699, // 225 grados en radianes
+                      child: Lottie.asset(
+                        'assets/lottie/tap_screen.json',
+                        repeat: true,
+                        animate: true,
                       ),
-                      child: Text(
-                        'app.save'.tr(),
-                        style: TextStyle(
-                          color: _selectedVoiceName != null &&
-                                  _selectedVoiceLocale != null
-                              ? Colors.black
-                              : colorScheme.primary,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 20,
+                    ),
+                  ),
+                ),
+              // Botón de guardar en la esquina superior derecha
+              if (_selectedVoiceName != null &&
+                  _selectedVoiceLocale != null &&
+                  (_selectedVoiceName != _initialVoiceName ||
+                      _selectedVoiceLocale != _initialVoiceLocale))
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(32),
+                      onTap: () async {
+                        final navigator = Navigator.of(context);
+                        await VoiceSettingsService().saveVoice(
+                          widget.language,
+                          _selectedVoiceName!,
+                          _selectedVoiceLocale!,
+                        );
+                        debugPrint(
+                            '[VoiceSelectorDialog] Voz guardada: $_selectedVoiceName ($_selectedVoiceLocale) para idioma ${widget.language}');
+                        if (!mounted) return;
+                        navigator.pop();
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: colorScheme.primary.withAlpha(40),
+                          borderRadius: BorderRadius.circular(32),
+                        ),
+                        child: Text(
+                          'app.save'.tr(),
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 20,
+                          ),
                         ),
                       ),
                     ),
                   ),
                 ),
-              ),
               Padding(
                 padding: const EdgeInsets.only(
                     top: 70.0, left: 0, right: 0, bottom: 0),
