@@ -1,29 +1,6 @@
 name: 🤖 GenAI - Generate Flutter Behavioral Tests and Run
 on:
-  workflow_dispatch:
-    inputs:
-      mode:
-        description: 'Modo de generación: modified, coverage, all'
-        required: false
-        default: 'coverage'
-        type: choice
-        options:
-          - modified
-          - coverage
-          - all
-      max_files:
-        description: 'Máximo de archivos a procesar'
-        required: false
-        default: '10'
-        type: string
-      validate_syntax:
-        description: 'Validar sintaxis de tests generados'
-        required: false
-        default: 'true'
-        type: boolean
-  schedule:
-    # Ejecutar todos los domingos a las 3:00 AM UTC para aumentar cobertura
-    - cron: '0 3 * * 0'
+  workflow_dispatch: {}
   push:
     branches:
       - 'genaiscripts/tests'
@@ -55,19 +32,14 @@ jobs:
         env:
           GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
           GENAI_MODEL: 'gemini-2.0-flash-lite'
-          GENAI_MODE: ${{ github.event.inputs.mode || 'coverage' }}
-          GENAI_MAX_FILES: ${{ github.event.inputs.max_files || '10' }}
-          GENAI_VALIDATE_SYNTAX: ${{ github.event.inputs.validate_syntax || 'true' }}
           REQUIRE_HUMAN_REVIEW: 'true'
         run: |
-          echo ">>> Modo de generación: $GENAI_MODE"
-          echo ">>> Max archivos: $GENAI_MAX_FILES"
           python .genaiscript/scripts/generate_tests_dart.py || true
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.32.8'
+          flutter-version: '3.32.8'  # ← MISMA versión que funciona en tu workflow
           channel: stable
           cache: true
 
@@ -105,34 +77,6 @@ jobs:
           cat test_output/behavioral_tests.txt || true
           echo "::endgroup::"
 
-      - name: Run full test suite with coverage
-        id: full_tests
-        continue-on-error: true
-        run: |
-          mkdir -p coverage
-          flutter test --coverage > test_output/full_tests.txt 2>&1 || FULL_EXIT=$?
-          echo "full_exit_code=${FULL_EXIT:-0}" >> $GITHUB_OUTPUT
-          echo "::group::Full test suite output"
-          cat test_output/full_tests.txt || true
-          echo "::endgroup::"
-
-      - name: Generate coverage report
-        continue-on-error: true
-        run: |
-          if [ -f "coverage/lcov.info" ]; then
-            echo "Coverage file found, generating summary..."
-            # Calcular líneas cubiertas
-            TOTAL_LINES=$(grep -c "^DA:" coverage/lcov.info || echo "0")
-            COVERED_LINES=$(grep "^DA:" coverage/lcov.info | grep -v ",0$" | wc -l || echo "0")
-            if [ "$TOTAL_LINES" -gt 0 ]; then
-              COVERAGE_PCT=$(echo "scale=2; $COVERED_LINES * 100 / $TOTAL_LINES" | bc)
-              echo "Coverage: $COVERAGE_PCT% ($COVERED_LINES/$TOTAL_LINES lines)"
-              echo "coverage_pct=$COVERAGE_PCT" >> $GITHUB_OUTPUT
-            fi
-          else
-            echo "No coverage file found"
-          fi
-
       - name: Commit generated tests and create PR (if changes)
         id: create_pr
         uses: peter-evans/create-pull-request@v5
@@ -142,22 +86,11 @@ jobs:
           branch: genai/flutter-tests-${{ github.run_id }}
           title: "[genai] Add behavioral Flutter tests"
           body: |
-            ## 🤖 Tests generados por GenAI (Gemini)
-            
-            **Modo de generación:** ${{ github.event.inputs.mode || 'coverage' }}
-            **Archivos procesados:** hasta ${{ github.event.inputs.max_files || '10' }}
-            
-            ### Resultados de ejecución
-            - Behavioral test run exit code: ${{ steps.run_tests.outputs.exit_code }}
-            - Full test suite exit code: ${{ steps.full_tests.outputs.full_exit_code }}
-            
-            ### Acciones requeridas
-            - [ ] Revisar los tests generados en `test/behavioral/`
-            - [ ] Verificar que los tests son correctos y útiles
-            - [ ] Aprobar y mergear si todo está bien
-            
+            Tests generados por GenAI (Gemini) centrados en comportamiento real de usuario.
+            Revisa los tests en test/behavioral/ antes de mergear.
+
             ---
-            _Tests centrados en comportamiento real de usuario._
+            Behavioral test run exit code: ${{ steps.run_tests.outputs.exit_code }}
           labels: automated,genai,tests
           delete-branch: false
 
@@ -169,26 +102,13 @@ jobs:
           script: |
             const fs = require('fs');
             const prNumber = parseInt(process.env.PR_NUMBER || '${{ steps.create_pr.outputs.pull-request-number }}', 10);
-            let body = '### 📊 Resultado de ejecución de tests\n\n';
-            
-            // Behavioral tests
-            body += '#### Tests de comportamiento\n';
+            let body = '### Resultado de ejecución de tests de comportamiento\\n\\n';
             try {
               const txt = fs.readFileSync('test_output/behavioral_tests.txt', 'utf8');
-              body += '```\n' + txt.substring(0, 30000) + '\n```\n';
+              body += '```\n' + txt.substring(0, 64000) + '\n```\n';
             } catch (e) {
-              body += '_No se encontró salida de tests de comportamiento._\n';
+              body += '_No se encontró salida de tests._\\n';
             }
-            
-            // Full test suite
-            body += '\n#### Suite completa de tests\n';
-            try {
-              const fullTxt = fs.readFileSync('test_output/full_tests.txt', 'utf8');
-              body += '```\n' + fullTxt.substring(0, 30000) + '\n```\n';
-            } catch (e) {
-              body += '_No se encontró salida de tests completos._\n';
-            }
-            
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,

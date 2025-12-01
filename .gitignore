@@ -75,4 +75,3 @@ google-services.json
 **/ios/*.dSYM
 .aider*
 node_modules/
-__pycache__/
