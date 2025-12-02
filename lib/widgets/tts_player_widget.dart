@@ -1,6 +1,7 @@
 import 'package:devocional_nuevo/controllers/tts_audio_controller.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
+import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
 import 'package:devocional_nuevo/services/tts/bible_text_formatter.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
@@ -22,10 +23,6 @@ class TtsPlayerWidget extends StatefulWidget {
 
   @override
   State<TtsPlayerWidget> createState() => _TtsPlayerWidgetState();
-
-  static Future<void> clearUserVoiceFlagForTest(String language) async {
-    await VoiceSettingsService().clearUserSavedVoiceFlag(language);
-  }
 }
 
 class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
@@ -157,7 +154,7 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
   ) async {
     debugPrint('[TTS Widget] Acción de usuario: $state');
 
-    final voiceService = VoiceSettingsService();
+    final voiceService = getService<VoiceSettingsService>();
     final hasSaved = await voiceService.hasUserSavedVoice(language);
 
     if (!mounted) return;

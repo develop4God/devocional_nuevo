@@ -1,4 +1,5 @@
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
+import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
@@ -26,6 +27,10 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
   bool _isLoading = true;
   int? _playingIndex;
   late String _translatedSampleText;
+
+  // Get VoiceSettingsService instance from the Service Locator
+  late final VoiceSettingsService _voiceSettingsService =
+      getService<VoiceSettingsService>();
 
   // Variables para guardar la selección inicial
   String? _initialVoiceName;
@@ -93,7 +98,7 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
   }
 
   Future<void> _loadVoices() async {
-    final voices = await VoiceSettingsService()
+    final voices = await _voiceSettingsService
         .getAvailableVoicesForLanguage(widget.language);
     List<Map<String, String>> filteredVoices = voices;
     if (widget.language == 'es') {
@@ -140,8 +145,8 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
     setState(() {
       _playingIndex = index;
     });
-    await VoiceSettingsService()
-        .playVoiceSample(name, locale, _translatedSampleText);
+    await _voiceSettingsService.playVoiceSample(
+        name, locale, _translatedSampleText);
     await Future.delayed(const Duration(seconds: 2));
     setState(() {
       _playingIndex = null;
@@ -233,12 +238,12 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
                       borderRadius: BorderRadius.circular(32),
                       onTap: () async {
                         final navigator = Navigator.of(context);
-                        await VoiceSettingsService().saveVoice(
+                        await _voiceSettingsService.saveVoice(
                           widget.language,
                           _selectedVoiceName!,
                           _selectedVoiceLocale!,
                         );
-                        await VoiceSettingsService()
+                        await _voiceSettingsService
                             .setUserSavedVoice(widget.language);
                         debugPrint(
                             '[VoiceSelectorDialog] Voz guardada: $_selectedVoiceName ($_selectedVoiceLocale) para idioma ${widget.language}');

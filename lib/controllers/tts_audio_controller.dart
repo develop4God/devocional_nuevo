@@ -1,3 +1,4 @@
+import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_tts/flutter_tts.dart';
@@ -33,7 +34,8 @@ class TtsAudioController {
     await Future.delayed(
         const Duration(milliseconds: 400)); // Simula carga breve
     // Obtener y aplicar la velocidad guardada antes de reproducir
-    final double rate = await VoiceSettingsService().getSavedSpeechRate();
+    final double rate =
+        await getService<VoiceSettingsService>().getSavedSpeechRate();
     debugPrint('[TTS Controller] Aplicando velocidad TTS: $rate');
     await flutterTts.setSpeechRate(rate);
     state.value = TtsPlayerState.playing;
