@@ -23,11 +23,6 @@ class TtsPlayerWidget extends StatefulWidget {
 
   @override
   State<TtsPlayerWidget> createState() => _TtsPlayerWidgetState();
-
-  /// Helper for testing - clears user voice flag using DI
-  static Future<void> clearUserVoiceFlagForTest(String language) async {
-    await getService<VoiceSettingsService>().clearUserSavedVoiceFlag(language);
-  }
 }
 
 class _TtsPlayerWidgetState extends State<TtsPlayerWidget>

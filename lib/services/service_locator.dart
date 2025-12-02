@@ -45,6 +45,7 @@ class ServiceLocator {
   }
 
   /// Get an instance of the requested service type
+  /// Throws [StateError] if service is not registered
   T get<T>() {
     // Check singletons first
     if (_singletons.containsKey(T)) {
@@ -56,8 +57,8 @@ class ServiceLocator {
       return _factories[T]!() as T;
     }
 
-    throw Exception(
-        'Service of type $T not registered. Call registerFactory or registerSingleton first.');
+    throw StateError('Service ${T.toString()} not registered. '
+        'Ensure setupServiceLocator() is called at app startup.');
   }
 
   /// Check if a service is registered

@@ -28,7 +28,7 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
   int? _playingIndex;
   late String _translatedSampleText;
 
-  // Cache the VoiceSettingsService singleton from the Service Locator
+  // Get VoiceSettingsService instance from the Service Locator
   late final VoiceSettingsService _voiceSettingsService =
       getService<VoiceSettingsService>();
 

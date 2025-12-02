@@ -13,7 +13,6 @@ import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 import 'package:devocional_nuevo/utils/constants.dart';
 import 'package:devocional_nuevo/widgets/app_bar_constants.dart';
-import 'package:devocional_nuevo/widgets/tts_player_widget.dart';
 import 'package:devocional_nuevo/widgets/voice_selector_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -30,7 +29,7 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage> {
   double _ttsSpeed = 0.4;
-  // Cache the VoiceSettingsService singleton from the Service Locator
+  // Get VoiceSettingsService instance from the Service Locator
   late final VoiceSettingsService _voiceSettingsService =
       getService<VoiceSettingsService>();
 
@@ -371,8 +370,9 @@ class _SettingsPageState extends State<SettingsPage> {
                       onPressed: () async {
                         final language =
                             localizationProvider.currentLocale.languageCode;
-                        await TtsPlayerWidget.clearUserVoiceFlagForTest(
-                            language);
+                        // Use DI to clear the voice flag
+                        await _voiceSettingsService
+                            .clearUserSavedVoiceFlag(language);
                         if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
