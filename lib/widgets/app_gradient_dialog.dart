@@ -36,50 +36,52 @@ class AppGradientDialog extends StatelessWidget {
           colorScheme.surface.withAlpha(240),
         ];
     final bColor = borderColor ?? Colors.white.withAlpha(200);
-    return Stack(
-      children: [
-        GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: () {
-            Navigator.of(context).maybePop();
-          },
-          child: Container(
-            color: Colors.transparent,
-            width: double.infinity,
-            height: double.infinity,
-          ),
-        ),
-        Center(
-          child: GestureDetector(
-            onTap: () {}, // Para evitar que el tap dentro cierre el modal
+    return SafeArea(
+      child: Stack(
+        children: [
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () {
+              Navigator.of(context).maybePop();
+            },
             child: Container(
-              constraints: BoxConstraints(
-                maxWidth: maxWidth,
-                maxHeight: MediaQuery.of(context).size.height * 0.7,
-              ),
-              decoration: BoxDecoration(
-                color: bgColor,
-                gradient: LinearGradient(
-                  colors: gradColors,
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(borderRadius),
-                border: Border.all(color: bColor, width: borderWidth),
-                boxShadow: [
-                  BoxShadow(
-                    color: colorScheme.primary.withAlpha(80),
-                    blurRadius: 18,
-                    offset: Offset(0, 8),
-                  ),
-                ],
-              ),
-              padding: padding,
-              child: SingleChildScrollView(child: child),
+              color: Colors.transparent,
+              width: double.infinity,
+              height: double.infinity,
             ),
           ),
-        ),
-      ],
+          Center(
+            child: GestureDetector(
+              onTap: () {}, // Para evitar que el tap dentro cierre el modal
+              child: Container(
+                constraints: BoxConstraints(
+                  maxWidth: maxWidth,
+                  maxHeight: MediaQuery.of(context).size.height * 0.7,
+                ),
+                decoration: BoxDecoration(
+                  color: bgColor,
+                  gradient: LinearGradient(
+                    colors: gradColors,
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(borderRadius),
+                  border: Border.all(color: bColor, width: borderWidth),
+                  boxShadow: [
+                    BoxShadow(
+                      color: colorScheme.primary.withAlpha(80),
+                      blurRadius: 18,
+                      offset: Offset(0, 8),
+                    ),
+                  ],
+                ),
+                padding: padding,
+                child: SingleChildScrollView(child: child),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
