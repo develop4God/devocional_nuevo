@@ -1,40 +1,67 @@
-<!--
-This README describes the package. If you publish this package to pub.dev,
-this README's contents appear on the landing page for your package.
+# Bible Reader Core
 
-For information about how to write a good package README, see the guide for
-[writing package pages](https://dart.dev/tools/pub/writing-package-pages).
-
-For general information about developing packages, see the Dart guide for
-[creating packages](https://dart.dev/guides/libraries/create-packages)
-and the Flutter guide for
-[developing packages and plugins](https://flutter.dev/to/develop-packages).
--->
-
-TODO: Put a short description of the package here that helps potential users
-know whether this package might be useful for them.
+Core Flutter package for Bible reading functionality in the Devocionales Cristianos app.
 
 ## Features
 
-TODO: List what your package can do. Maybe include images, gifs, or videos.
+This package provides the core infrastructure for Bible reading functionality:
 
-## Getting started
+- **BibleDbService** - SQLite database management for Bible data
+- **BiblePreferencesService** - User preferences for Bible reading (version, font size, etc.)
+- **BibleReaderController** - Main controller for Bible reading state and navigation
+- **BibleReaderService** - Service layer for Bible content operations
+- **BibleReaderState** - Immutable state management for Bible reader
+- **BibleReadingPositionService** - Save and restore reading positions
+- **BibleReferenceParser** - Parse Bible references (e.g., "John 3:16")
+- **BibleTextNormalizer** - Normalize text for consistent display
+- **BibleVerseFormatter** - Format verses for display
+- **BibleVersion** - Bible version model and metadata
+- **BibleVersionRegistry** - Registry of available Bible versions
 
-TODO: List prerequisites and provide or point to information on how to
-start using the package.
+## Getting Started
+
+This package is used internally by the Devocionales Cristianos app and is not intended for standalone use.
+
+### Dependencies
+
+```yaml
+dependencies:
+  bible_reader_core:
+    path: bible_reader_core
+```
 
 ## Usage
 
-TODO: Include short and useful examples for package users. Add longer examples
-to `/example` folder.
-
 ```dart
+import 'package:bible_reader_core/bible_reader_core.dart';
 
-const like = 'sample';
+// Initialize Bible database
+final dbService = BibleDbService();
+await dbService.initialize();
+
+// Get verses
+final verses = await dbService.getVerses(book: 'Genesis', chapter: 1);
 ```
 
-## Additional information
+## Architecture
 
-TODO: Tell users more about the package: where to find more information, how to
-contribute to the package, how to file issues, what response they can expect
-from the package authors, and more.
+```
+lib/
+├── bible_reader_core.dart        # Package exports
+└── src/
+    ├── bible_db_service.dart           # Database operations
+    ├── bible_preferences_service.dart  # User preferences
+    ├── bible_reader_controller.dart    # Main controller
+    ├── bible_reader_service.dart       # Service layer
+    ├── bible_reader_state.dart         # State management
+    ├── bible_reading_position_service.dart  # Position tracking
+    ├── bible_reference_parser.dart     # Reference parsing
+    ├── bible_text_normalizer.dart      # Text normalization
+    ├── bible_verse_formatter.dart      # Verse formatting
+    ├── bible_version.dart              # Version model
+    └── bible_version_registry.dart     # Version registry
+```
+
+## License
+
+This package is part of the Devocionales Cristianos project and is licensed under the [CC BY-NC 4.0 License](../LICENSE).
