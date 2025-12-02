@@ -30,8 +30,8 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage> {
   double _ttsSpeed = 0.4;
-  // Get the VoiceSettingsService singleton from the Service Locator
-  VoiceSettingsService get _voiceSettingsService =>
+  // Cache the VoiceSettingsService singleton from the Service Locator
+  late final VoiceSettingsService _voiceSettingsService =
       getService<VoiceSettingsService>();
 
   // Feature flag state - simple and direct
