@@ -11,7 +11,8 @@
     "ok": "OK",
     "yes": "Sí",
     "no": "No",
-    "delete": "Eliminar"
+    "delete": "Eliminar",
+    "skip": "Omitir"
   },
   "devotionals": {
     "app_title": "Devocionales Diarios",
