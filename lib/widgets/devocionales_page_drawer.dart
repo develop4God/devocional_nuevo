@@ -7,6 +7,7 @@ import 'package:devocional_nuevo/pages/notification_config_page.dart';
 import 'package:devocional_nuevo/pages/prayers_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/utils/bubble_constants.dart';
+import 'package:devocional_nuevo/widgets/app_gradient_dialog.dart';
 import 'package:devocional_nuevo/widgets/theme_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -40,32 +41,37 @@ class DevocionalesDrawer extends StatelessWidget {
         bool downloading = false;
 
         return StatefulBuilder(
-          builder: (context, setState) => AlertDialog(
-            title: Row(
-              children: [
-                Icon(Icons.download_for_offline_outlined,
-                    color: colorScheme.primary),
-                const SizedBox(width: 8),
-                Text(
-                  downloading
-                      ? 'drawer.download_dialog_downloading'.tr()
-                      : 'drawer.download_dialog_title'.tr(),
-                  style: textTheme.bodyMedium?.copyWith(
-                    fontSize: 16, // O prueba 15, 14, etc.
-                    color: colorScheme.onSurface,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-            content: Column(
+          builder: (context, setState) => AppGradientDialog(
+            maxWidth: 420,
+            child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Row(
+                  children: [
+                    Icon(Icons.download_for_offline_outlined,
+                        color: colorScheme.primary),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        downloading
+                            ? 'drawer.download_dialog_downloading'.tr()
+                            : 'drawer.download_dialog_title'.tr(),
+                        style: textTheme.bodyMedium?.copyWith(
+                          fontSize: 16,
+                          color: Colors.white,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
                 Text(
                   'drawer.download_dialog_content'.tr(),
                   style: textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.onSurface,
+                    color: colorScheme.onPrimary,
                   ),
                 ),
                 if (downloading) ...[
@@ -77,75 +83,80 @@ class DevocionalesDrawer extends StatelessWidget {
                   const SizedBox(height: 8),
                   Text(
                     "${'drawer.download_dialog_downloading'.tr()} ${(progress * 100).toStringAsFixed(0)}%",
-                    style: textTheme.bodySmall,
+                    style: textTheme.bodySmall
+                        ?.copyWith(color: colorScheme.onPrimary),
                   ),
                 ],
+                const SizedBox(height: 24),
+                if (!downloading)
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(dialogContext).pop();
+                        },
+                        child: Text(
+                          'drawer.cancel'.tr(),
+                          style: TextStyle(
+                              color: colorScheme.onPrimary, fontSize: 16),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      ElevatedButton(
+                        onPressed: () async {
+                          setState(() {
+                            downloading = true;
+                            progress = 0.0;
+                          });
+
+                          final devocionalProvider =
+                              Provider.of<DevocionalProvider>(context,
+                                  listen: false);
+
+                          bool success = await devocionalProvider
+                              .downloadDevocionalesWithProgress(
+                                  onProgress: (p) {
+                            setState(() {
+                              progress = p;
+                            });
+                          });
+
+                          if (context.mounted) {
+                            Future.delayed(const Duration(milliseconds: 400),
+                                () {
+                              if (context.mounted) {
+                                Navigator.of(context).pop();
+                                if (success) {
+                                  Navigator.of(context).pop();
+                                }
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      success
+                                          ? 'drawer.download_success'.tr()
+                                          : 'drawer.download_error'.tr(),
+                                    ),
+                                    backgroundColor: success
+                                        ? colorScheme.primary
+                                        : colorScheme.error,
+                                    duration: const Duration(seconds: 4),
+                                  ),
+                                );
+                              }
+                            });
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: colorScheme.primary,
+                          foregroundColor: colorScheme.onPrimary,
+                        ),
+                        child: Text('drawer.accept'.tr()),
+                      ),
+                    ],
+                  ),
               ],
             ),
-            actions: downloading
-                ? []
-                : [
-                    TextButton(
-                      onPressed: () {
-                        Navigator.of(dialogContext).pop();
-                      },
-                      child: Text(
-                        'drawer.cancel'.tr(),
-                        style: TextStyle(color: colorScheme.onSurface),
-                      ),
-                    ),
-                    ElevatedButton(
-                      onPressed: () async {
-                        setState(() {
-                          downloading = true;
-                          progress = 0.0;
-                        });
-
-                        // Tu lógica real de descarga con progreso
-                        final devocionalProvider =
-                            Provider.of<DevocionalProvider>(context,
-                                listen: false);
-
-                        bool success = await devocionalProvider
-                            .downloadDevocionalesWithProgress(onProgress: (p) {
-                          setState(() {
-                            progress = p;
-                          });
-                        });
-
-                        if (context.mounted) {
-                          Future.delayed(const Duration(milliseconds: 400), () {
-                            if (context.mounted) {
-                              Navigator.of(context)
-                                  .pop(); // Cierra el AlertDialog
-                              if (success) {
-                                Navigator.of(context)
-                                    .pop(); // Cierra el Drawer exitoso y fallido,para que se vea el snackbar message
-                              }
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    success
-                                        ? 'drawer.download_success'.tr()
-                                        : 'drawer.download_error'.tr(),
-                                  ),
-                                  backgroundColor: success
-                                      ? colorScheme.primary
-                                      : colorScheme.error,
-                                  duration: const Duration(seconds: 4),
-                                ),
-                              );
-                            }
-                          });
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: colorScheme.primary,
-                        foregroundColor: colorScheme.onPrimary,
-                      ),
-                      child: Text('drawer.accept'.tr()),
-                    ),
-                  ],
           ),
         );
       },
