@@ -1,12 +1,148 @@
-# Devocionales Cristianos
+# Devocionales Cristianos / Christian Devotionals
 
-Aplicación móvil multilingüe para leer devocionales diarios con funcionalidades avanzadas de audio,
-favoritos, tracking espiritual y sistema inteligente de reseñas.
+[![Flutter](https://img.shields.io/badge/Flutter-3.32.8-blue.svg)](https://flutter.dev/)
+[![License: CC BY-NC 4.0](https://img.shields.io/badge/License-CC%20BY--NC%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc/4.0/)
+[![Tests](https://img.shields.io/badge/Tests-549-green.svg)](#-testing--pruebas)
+[![Coverage](https://img.shields.io/badge/Coverage-40.91%25-yellow.svg)](#-testing--pruebas)
 
-## ✨ Características Principales
+---
+
+**[English](#english)** | **[Español](#español)**
+
+---
+
+<a name="english"></a>
+## 🇺🇸 English
+
+Multilingual mobile application for reading daily devotionals with advanced audio features, favorites, spiritual tracking, and intelligent review system.
+
+### ✨ Main Features
+
+- **📖 Daily Devotionals**: Updated spiritual content
+- **📖 Integrated Bible**: Complete offline Bible access with search and share functionality
+- **🌍 Multilingual Support**: Spanish, English, Portuguese, French with complete localization
+- **🔊 Audio TTS**: Text-to-speech reading of devotionals
+- **⭐ Favorites**: Save your favorite devotionals
+- **📊 Spiritual Tracking**: Reading statistics and progress
+- **🙏 Prayer Management**: Personal prayer tracking
+- **📴 Offline Mode**: Access without internet connection
+- **🔔 Notifications**: Customizable reminders
+- **📱 Share**: Share inspiring content with optimized format
+- **☁️ Cloud Backup**: Automatic sync with Google Drive
+- **🚀 Smart Onboarding**: Guided initial setup with BLoC architecture
+- **⭐ Smart Review System**: Requests reviews at optimal moments
+- **📱 Android 15 Support**: Compatible with edge-to-edge display and modern APIs
+
+### 🛠️ Technologies
+
+- **Flutter 3.32.8**: Main framework
+- **Flutter BLoC**: Complex state management
+- **Provider**: Simple state management
+- **Firebase**: Notifications, auth, and analytics
+- **SQLite**: Local database for Bible
+- **flutter_tts**: Multilingual text-to-speech synthesis
+- **Mockito & mocktail**: Testing frameworks
+
+### 📊 Project Statistics
+
+| Metric | Value |
+|--------|-------|
+| Source Files (lib/) | 98 Dart files |
+| Test Files | 58 test files |
+| Total Tests | 549 tests |
+| Test Coverage | 40.91% (2424/5924 lines) |
+| Supported Languages | 4 (es, en, pt, fr) |
+
+### 🏗️ Architecture
+
+The application follows a **hybrid Provider + BLoC Pattern** architecture with clear separation of concerns:
+
+```
+lib/
+├── blocs/           # BLoC state management (9 files)
+│   ├── devocionales/
+│   ├── onboarding/
+│   └── theme/
+├── controllers/     # Application controllers (2 files)
+├── extensions/      # Dart extensions (1 file)
+├── models/          # Data models (5 files)
+├── pages/           # Application screens (11 files)
+│   └── onboarding/
+├── providers/       # State providers (2 files)
+├── services/        # Core services (14 files)
+│   └── tts/
+├── utils/           # Utilities and constants (5 files)
+└── widgets/         # Reusable UI components (19 files)
+    └── donate/
+```
+
+### 🧪 Testing
+
+```bash
+# Run all tests
+flutter test
+
+# Run tests with coverage
+flutter test --coverage
+
+# Run specific test categories
+flutter test test/unit/services/
+flutter test test/unit/providers/
+```
+
+**Test Structure:**
+```
+test/
+├── unit/                    # Unit tests organized by feature
+│   ├── controllers/
+│   ├── extensions/
+│   ├── models/
+│   ├── providers/
+│   ├── services/
+│   ├── utils/
+│   ├── widgets/
+│   └── features/
+├── integration/             # Integration tests
+├── widget/                  # Widget tests
+├── services/               # Service tests
+└── critical_coverage/       # Critical path coverage
+```
+
+### 📱 Requirements
+
+- Flutter 3.32.8 or higher
+- Dart SDK >=3.0.0 <4.0.0
+- Android SDK 21+ (Android 5.0+)
+- Android compileSdk 34+ (for Android 15 compatibility)
+- iOS 11.0+
+
+### 🚀 Installation
+
+1. Clone this repository
+2. Run `flutter pub get` to install dependencies
+3. Run `flutter run` to start the application
+
+### 📚 Documentation
+
+All documentation is organized in the [docs/](./docs/) folder:
+
+- [Architecture Documentation](./docs/architecture/) - Technical architecture and decisions
+- [Feature Documentation](./docs/features/) - Feature-specific guides
+- [Testing Documentation](./docs/testing/) - Test coverage reports
+- [Guides](./docs/guides/) - Development and testing guides
+- [Security](./docs/security/) - Security policies
+
+---
+
+<a name="español"></a>
+## 🇪🇸 Español
+
+Aplicación móvil multilingüe para leer devocionales diarios con funcionalidades avanzadas de audio, favoritos, tracking espiritual y sistema inteligente de reseñas.
+
+### ✨ Características Principales
 
 - **📖 Devocionales Diarios**: Contenido espiritual actualizado
-- **📖 Biblia Integrada**: Acceso completo a la Biblia RVR1960 con búsqueda y compartir *(NUEVO)*
+- **📖 Biblia Integrada**: Acceso completo a la Biblia offline con búsqueda y compartir
 - **🌍 Soporte Multilingüe**: Español, Inglés, Portugués, Francés con localización completa
 - **🔊 Audio TTS**: Lectura de devocionales con síntesis de voz
 - **⭐ Favoritos**: Guarda tus devocionales preferidos
@@ -14,277 +150,179 @@ favoritos, tracking espiritual y sistema inteligente de reseñas.
 - **🙏 Gestión de Oraciones**: Seguimiento de oraciones personales
 - **📴 Modo Offline**: Acceso sin conexión a internet
 - **🔔 Notificaciones**: Recordatorios personalizables
-- **📱 Compartir**: Comparte contenido inspirador con formato optimizado *(ACTUALIZADO)*
-- **☁️ Respaldo en la Nube**: Sincronización automática con Google Drive *(ACTUALIZADO)*
-- **🚀 Onboarding Inteligente**: Configuración guiada inicial con BLoC architecture *(NUEVO)*
+- **📱 Compartir**: Comparte contenido inspirador con formato optimizado
+- **☁️ Respaldo en la Nube**: Sincronización automática con Google Drive
+- **🚀 Onboarding Inteligente**: Configuración guiada inicial con arquitectura BLoC
 - **⭐ Sistema de Reseñas Inteligente**: Solicita reseñas en momentos óptimos
-- **📱 Soporte Android 15**: Compatible con edge-to-edge display y APIs modernas *(NUEVO)*
+- **📱 Soporte Android 15**: Compatible con edge-to-edge display y APIs modernas
 
-## 🆕 Actualizaciones Recientes
-
-### 📱 Compatibilidad Android 15+ (NUEVO)
-
-- **Edge-to-Edge Display**: Soporte completo para Android 15 (API 35+)
-- **WindowCompat Integration**: Gestión apropiada de window insets
-- **Deprecated APIs Migration**: Eliminación de APIs obsoletas (setStatusBarColor,
-  setNavigationBarColor)
-- **Modern UI Experience**: Experiencia de pantalla completa en dispositivos modernos
-
-### 📤 Sistema de Compartir Optimizado (ACTUALIZADO)
-
-- **Compartir Devocionales**: Formato limpio sin duplicación de mensajes
-- **Compartir App**: Mensaje dedicado desde el drawer para invitar usuarios
-- **Formato Mejorado**: Separador visual optimizado (20 caracteres) para mejor legibilidad
-- **Multilingüe**: Mensajes de compartir traducidos en 5 idiomas (es, en, pt, fr, ja)
-
-### 📖 Biblia Integrada (NUEVO)
-
-- **Biblia Completa**: Acceso offline a la Biblia completa en versión RVR1960
-- **Navegación Fácil**: Dropdowns para seleccionar libros y capítulos
-- **Selección de Versículos**: Toca versículos para seleccionarlos y compartirlos
-- **Compartir y Copiar**: Comparte versículos seleccionados o cópialos al portapapeles
-- **Base de Datos SQLite**: 5.4 MB de base de datos optimizada
-- **UI Multilingüe**: Interfaz traducida a 5 idiomas
-- **Acceso Rápido**: Icono en el bottom bar de la página de devocionales
-- **13 Tests**: Cobertura completa de la nueva funcionalidad
-
-### 🚀 Sistema de Onboarding con BLoC Architecture
-
-- **Arquitectura BLoC**: Migración completa del onboarding a patrón BLoC para mejor mantenimiento
-- **Configuración Guiada**: Flow paso a paso para selección de tema y configuración de respaldo
-- **Persistencia Inteligente**: Guardado automático de progreso con recuperación ante interrupciones
-- **Localización Completa**: Soporte total en 4 idiomas con keys actualizadas
-- **UI Responsiva**: Diseño adaptativo que funciona en todos los tamaños de pantalla
-- **Manejo de Errores**: Sistema robusto de recuperación de errores con diálogos informativos
-- **Timeout Protection**: Protección de 30 segundos para conexiones Google Drive
-- **Testing Exhaustivo**: 45+ tests cubriendo todos los escenarios posibles
-
-### 🌍 Soporte Multilingüe Mejorado
-
-El sistema solicita reseñas automáticamente cuando los usuarios alcanzan hitos significativos:
-
-- **5° devocional** (validación de engagement temprano)
-- **25° devocional** (usuario comprometido)
-- **50° devocional** (usuario regular)
-- **100° devocional** (usuario dedicado)
-- **200° devocional** (super usuario)
-
-### 🌍 Soporte Multilingüe Mejorado
-
-- **Onboarding Localizado**: Todas las pantallas de configuración inicial totalmente traducidas
-- **Keys Corregidas**: Sistema de localización mejorado con estructura jerárquica (onboarding.*)
-- **Mensajes de Error**: Feedback localizado para conexiones y timeouts
-- **4 Idiomas Completos**: Español, English, Português, Français
-
-### ☁️ Sistema de Respaldo Mejorado
-
-- **Google Drive Integration**: Conexión segura con timeout protection
-- **Manejo de Cancelación**: Recuperación elegante cuando el usuario cancela la autenticación
-- **Estado de Conexión**: Indicadores claros de progreso y estado de conexión
-- **Auto-configuración**: Configuración automática óptima tras conexión exitosa
-- **Tests de Login Flow**: Cobertura completa de flujos de autenticación y cancelación
-
-### 🎯 Momentos Inteligentes para Reseñas
-
-Diálogos de reseña localizados en todos los idiomas:
-
-- **Español**: "Gracias por tu constancia 🙏"
-- **English**: "Thank you for your consistency 🙏"
-- **Português**: "Obrigado pela sua constância 🙏"
-- **Français**: "Merci pour votre constance 🙏"
-
-### ⏰ Sistema de Enfriamiento Inteligente
-
-- **90 días de enfriamiento global**: Previene sobre-solicitud
-- **30 días "recordar después"**: Respeta la elección del usuario
-- **Preferencias permanentes**: "Ya califiqué" y "No preguntar más"
-
-### 📱 Integración Nativa con Respaldos
-
-- **Primario**: API nativa de Android/iOS
-- **Respaldo**: Redirección directa a Play Store/App Store
-- **Fallback final**: Lanzador de URL para casos extremos
-
-## 🚀 Estado del Proyecto
-
-### ✅ Testing Coverage - 95%+ en Servicios Críticos
-
-- **143+ Tests Unitarios**: Cobertura completa incluyendo nueva funcionalidad de Biblia *(
-  ACTUALIZADO)*
-- **45+ Tests del Sistema de Onboarding**: Cobertura exhaustiva del nuevo BLoC architecture
-- **36 Tests del Sistema de Reseñas**: Cobertura exhaustiva del feature de reseñas
-- **13 Tests de Funcionalidad Biblia**: Tests para models, services y UI de la Biblia *(NUEVO)*
-- **Login Flow Tests**: Tests específicos para flujos de autenticación y manejo de cancelación
-- **Servicios Críticos**: PrayerProvider, TtsService, LocalizationService, InAppReviewService,
-  OnboardingBloc, BibleDbService *(ACTUALIZADO)*
-- **Providers**: DevocionalProvider, AudioController
-- **Performance**: Todos los tests < 30 segundos
-- **CI/CD Ready**: Tests automatizados con mocking robusto
-
-### 🎯 Idiomas y Versiones Bíblicas
-
-- **Español**: RVR1960, NVI
-- **Inglés**: KJV, NIV
-- **Portugués**: ARC, NVI
-- **Francés**: LSG1910, TOB
-
-## 🛠️ Tecnologías
+### 🛠️ Tecnologías
 
 - **Flutter 3.32.8**: Framework principal
-- **Provider**: Gestión de estado
-- **Firebase**: Notificaciones y analytics
-- **SharedPreferences**: Persistencia local
-- **SQLite**: Base de datos local para Biblia *(NUEVO)*
-- **TTS**: Síntesis de voz multilingüe
-- **HTTP**: API de contenido
-- **Testing**: Mockito, flutter_test
-- **in_app_review**: Sistema nativo de reseñas
+- **Flutter BLoC**: Gestión de estado complejo
+- **Provider**: Gestión de estado simple
+- **Firebase**: Notificaciones, autenticación y analytics
+- **SQLite**: Base de datos local para Biblia
+- **flutter_tts**: Síntesis de voz multilingüe
+- **Mockito & mocktail**: Frameworks de testing
 
-## 🏗️ Arquitectura
+### 📊 Estadísticas del Proyecto
 
-### Arquitectura Limpia
+| Métrica | Valor |
+|---------|-------|
+| Archivos Fuente (lib/) | 98 archivos Dart |
+| Archivos de Test | 58 archivos |
+| Total de Tests | 549 tests |
+| Cobertura de Tests | 40.91% (2424/5924 líneas) |
+| Idiomas Soportados | 4 (es, en, pt, fr) |
 
-- **Separación de responsabilidades**: Límites claros entre capas
-- **Patrón BLoC**: Para gestión de estado compleja (devocionales, oraciones)
-- **Patrón Provider**: Para gestión de estado simple (tema, localización)
-- **Capa de Servicios**: Servicios dedicados para funcionalidad central
-- **Widgets Reutilizables**: Componentes UI en carpeta dedicada
+### 🏗️ Arquitectura
 
-### Estructura de Carpetas
+La aplicación sigue una arquitectura **híbrida Provider + Patrón BLoC** con clara separación de responsabilidades:
 
 ```
 lib/
-├── blocs/           # Gestión de estado BLoC
-├── controllers/     # Controladores de aplicación
-├── extensions/      # Extensiones de Dart
-├── models/          # Modelos de datos
-├── pages/           # Pantallas de la aplicación
-├── providers/       # Proveedores de estado
-├── services/        # Servicios centrales
-│   ├── tts/         # Servicios específicos de TTS
-│   └── ...
-├── utils/           # Utilidades y constantes
-└── widgets/         # Componentes UI reutilizables
+├── blocs/           # Gestión de estado BLoC (9 archivos)
+│   ├── devocionales/
+│   ├── onboarding/
+│   └── theme/
+├── controllers/     # Controladores de aplicación (2 archivos)
+├── extensions/      # Extensiones de Dart (1 archivo)
+├── models/          # Modelos de datos (5 archivos)
+├── pages/           # Pantallas de la aplicación (11 archivos)
+│   └── onboarding/
+├── providers/       # Proveedores de estado (2 archivos)
+├── services/        # Servicios centrales (14 archivos)
+│   └── tts/
+├── utils/           # Utilidades y constantes (5 archivos)
+└── widgets/         # Componentes UI reutilizables (19 archivos)
+    └── donate/
 ```
 
-## Sistema de Notificaciones
-
-La aplicación cuenta con un sistema completo de notificaciones push que incluye:
-
-- **Notificaciones locales programadas**: Recordatorios diarios para leer el devocional
-- **Notificaciones remotas**: Recibe mensajes importantes a través de Firebase Cloud Messaging
-- **Notificaciones con contenido dinámico**: Muestra el título del devocional del día
-- **Notificaciones con imágenes**: Soporte para notificaciones con imágenes grandes
-- **Gestión de permisos**: Solicitud y verificación de permisos de notificaciones
-- **Tareas en segundo plano**: Actualización de contenido incluso cuando la app está cerrada
-
-## Requisitos
-
-- Flutter 3.32.8 o superior
-- Dart 3.8.1 o superior
-- Android SDK 21+ (Android 5.0+)
-- Android compileSdk 34+ (para Android 15 compatibility)
-- iOS 11.0+
-
-## 🧪 Testing
-
-### Ejecutar Tests
+### 🧪 Testing / Pruebas
 
 ```bash
-# Todos los tests
+# Ejecutar todos los tests
 flutter test
 
-# Tests del sistema de reseñas
-flutter test test/in_app_review_service_test.dart
+# Ejecutar tests con cobertura
+flutter test --coverage
 
-# Tests específicos por categoría
+# Ejecutar categorías específicas de tests
 flutter test test/unit/services/
 flutter test test/unit/providers/
-flutter test test/unit/controllers/
-
-# Con cobertura
-flutter test --coverage
 ```
 
-### Estructura de Tests
-
+**Estructura de Tests:**
 ```
 test/
-├── unit/                    # Tests unitarios organizados
-│   ├── controllers/         # Tests de controladores
-│   ├── extensions/          # Tests de extensiones
-│   ├── providers/           # Tests de proveedores
-│   ├── services/            # Tests de servicios
-│   └── utils/               # Tests de utilidades
+├── unit/                    # Tests unitarios organizados por feature
+│   ├── controllers/
+│   ├── extensions/
+│   ├── models/
+│   ├── providers/
+│   ├── services/
+│   ├── utils/
+│   ├── widgets/
+│   └── features/
 ├── integration/             # Tests de integración
-├── mocks/                   # Mocks para testing
-└── *.dart                   # Tests principales y configuración
+├── widget/                  # Tests de widgets
+├── services/               # Tests de servicios
+└── critical_coverage/       # Cobertura de rutas críticas
 ```
 
-### Cobertura de Tests del Sistema de Reseñas
+### 📱 Requisitos
 
-- ✅ **17 Tests de Funcionalidad Central**: Detección de hitos, validación, preferencias
-- ✅ **8 Tests de Usuarios Existentes**: Lógica para usuarios con 5+ devocionales
-- ✅ **8 Tests de Integración**: Ciclo de vida de contexto, seguridad async
-- ✅ **2 Tests de Modo Debug**: Comportamiento en desarrollo
-- ✅ **1 Test de Widget**: Integración UI con gestión apropiada de contexto
+- Flutter 3.32.8 o superior
+- Dart SDK >=3.0.0 <4.0.0
+- Android SDK 21+ (Android 5.0+)
+- Android compileSdk 34+ (para compatibilidad con Android 15)
+- iOS 11.0+
 
-## Instalación
+### 🚀 Instalación
 
 1. Clona este repositorio
 2. Ejecuta `flutter pub get` para instalar las dependencias
 3. Ejecuta `flutter run` para iniciar la aplicación
 
-## 📚 Documentación
+### 📚 Documentación
 
-### Documentación del Proyecto
+Toda la documentación está organizada en la carpeta [docs/](./docs/):
 
-- [DEVOCIONAL_NUEVO_LIB_STRUCTURE.md](./DEVOCIONAL_NUEVO_LIB_STRUCTURE.md) - Estructura detallada
-  del código fuente
-- [DEVOCIONAL_NUEVO_TEST_STRUCTURE.md](./DEVOCIONAL_NUEVO_TEST_STRUCTURE.md) - Estructura detallada
-  de tests
-- [ARCHITECTURE.md](docs/ARCHITECTURE.md) - Documentación de arquitectura
-- [TECHNICAL_SERVICES.md](docs/TECHNICAL_SERVICES.md) - Documentación de servicios
-- [TEST_COVERAGE_REPORT.md](docs/TEST_COVERAGE_REPORT.md) - Reporte de cobertura de tests
+- [Documentación de Arquitectura](./docs/architecture/) - Arquitectura técnica y decisiones
+- [Documentación de Features](./docs/features/) - Guías específicas de características
+- [Documentación de Testing](./docs/testing/) - Reportes de cobertura de tests
+- [Guías](./docs/guides/) - Guías de desarrollo y pruebas
+- [Seguridad](./docs/security/) - Políticas de seguridad
 
-### Características Técnicas
+---
 
-- **44 archivos Dart** en 11 directorios
-- **38 archivos de test** con cobertura exhaustiva
-- **4 idiomas** completamente soportados
-- **Funcionalidad offline** completa
-- **Sistema de audio** con configuraciones de voz
-- **Tracking de progreso** y estadísticas espirituales
-- **Sistema de reseñas inteligente** con timing óptimo
-
-## 🔧 Desarrollo
-
-### Análisis de Código
+## 🔧 Development / Desarrollo
 
 ```bash
+# Install dependencies / Instalar dependencias
+flutter pub get
+
+# Run the app / Ejecutar la app
+flutter run
+
+# Analyze code / Analizar código
 dart analyze
-```
 
-### Formateo de Código
-
-```bash
+# Format code / Formatear código
 dart format .
+
+# Run tests / Ejecutar tests
+flutter test
+
+# Run tests with coverage / Ejecutar tests con cobertura
+flutter test --coverage
 ```
 
-### Generar Documentación
+## 🤝 Contributing / Contribuir
 
-```bash
-dart doc
-```
+1. Fork the project / Fork el proyecto
+2. Create your feature branch / Crea tu rama de feature (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes / Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch / Push a la rama (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request / Abre un Pull Request
 
-## 🤝 Contribuir
+---
 
-1. Fork el proyecto
-2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
-3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
-4. Push a la rama (`git push origin feature/AmazingFeature`)
-5. Abre un Pull Request
+## 📄 License / Licencia
 
-## Licencia
+### English
 
-Este proyecto está licenciado bajo la Licencia MIT - ver el archivo LICENSE para más detalles.
+This work is licensed under the [Creative Commons Attribution-NonCommercial 4.0 International License (CC BY-NC 4.0)](https://creativecommons.org/licenses/by-nc/4.0/).
+
+You are free to:
+- **Share** — copy and redistribute the material in any medium or format
+- **Adapt** — remix, transform, and build upon the material
+
+Under the following terms:
+- **Attribution (BY)** — You must give appropriate credit, provide a link to the license, and indicate if changes were made.
+- **NonCommercial (NC)** — You may not use the material for commercial purposes.
+
+For the full license text, see the [LICENSE](./LICENSE) file or visit:
+- Summary: https://creativecommons.org/licenses/by-nc/4.0/
+- Legal Code: https://creativecommons.org/licenses/by-nc/4.0/legalcode
+
+### Español
+
+Este trabajo está licenciado bajo la [Licencia Creative Commons Atribución-NoComercial 4.0 Internacional (CC BY-NC 4.0)](https://creativecommons.org/licenses/by-nc/4.0/deed.es).
+
+Puedes:
+- **Compartir** — copiar y redistribuir el material en cualquier medio o formato
+- **Adaptar** — remezclar, transformar y construir sobre el material
+
+Bajo las siguientes condiciones:
+- **Atribución (BY)** — Debes dar crédito adecuado, proporcionar un enlace a la licencia e indicar si se realizaron cambios.
+- **NoComercial (NC)** — No puedes utilizar el material con fines comerciales.
+
+Para el texto completo de la licencia, ver el archivo [LICENSE](./LICENSE) o visitar:
+- Resumen: https://creativecommons.org/licenses/by-nc/4.0/deed.es
+- Código Legal: https://creativecommons.org/licenses/by-nc/4.0/legalcode.es
+
+---
+
+© 2024 develop4God
