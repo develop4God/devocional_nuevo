@@ -9,6 +9,7 @@ import 'package:devocional_nuevo/pages/application_language_page.dart';
 import 'package:devocional_nuevo/pages/contact_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/providers/localization_provider.dart';
+import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 import 'package:devocional_nuevo/utils/constants.dart';
 import 'package:devocional_nuevo/widgets/app_bar_constants.dart';
@@ -29,7 +30,9 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage> {
   double _ttsSpeed = 0.4;
-  final VoiceSettingsService _voiceSettingsService = VoiceSettingsService();
+  // Get the VoiceSettingsService singleton from the Service Locator
+  VoiceSettingsService get _voiceSettingsService =>
+      getService<VoiceSettingsService>();
 
   // Feature flag state - simple and direct
   String _donationMode = 'paypal'; // Hardcoded to PayPal

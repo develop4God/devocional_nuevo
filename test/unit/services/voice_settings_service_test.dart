@@ -1,3 +1,4 @@
+import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -11,7 +12,76 @@ void main() {
 
     setUp(() {
       SharedPreferences.setMockInitialValues({});
+      // Reset the service locator before each test
+      ServiceLocator().reset();
+      // Create a fresh instance for testing
       voiceSettingsService = VoiceSettingsService();
+    });
+
+    tearDown(() {
+      // Clean up service locator after tests
+      ServiceLocator().reset();
+    });
+
+    group('Dependency Injection', () {
+      test('ServiceLocator should return singleton instance', () {
+        // Register VoiceSettingsService in the service locator
+        ServiceLocator().registerLazySingleton<VoiceSettingsService>(
+            () => voiceSettingsService);
+
+        // Get two references from service locator
+        final instance1 = getService<VoiceSettingsService>();
+        final instance2 = getService<VoiceSettingsService>();
+
+        // Both should be the same instance (singleton behavior)
+        expect(identical(instance1, instance2), isTrue);
+      });
+
+      test('ServiceLocator should allow mock replacement for testing', () {
+        // Create a mock/different instance
+        final mockService = VoiceSettingsService();
+
+        // Register the mock as singleton
+        ServiceLocator().registerSingleton<VoiceSettingsService>(mockService);
+
+        // Get from service locator
+        final retrieved = getService<VoiceSettingsService>();
+
+        // Should be the same as the mock we registered
+        expect(identical(retrieved, mockService), isTrue);
+      });
+
+      test('ServiceLocator reset should clear registrations', () {
+        // Register a service
+        ServiceLocator().registerLazySingleton<VoiceSettingsService>(
+            () => VoiceSettingsService());
+
+        // Verify it's registered
+        expect(ServiceLocator().isRegistered<VoiceSettingsService>(), isTrue);
+
+        // Reset the locator
+        ServiceLocator().reset();
+
+        // Should no longer be registered
+        expect(ServiceLocator().isRegistered<VoiceSettingsService>(), isFalse);
+      });
+
+      test('Multiple calls to getService should return same instance', () {
+        // Setup the service locator with lazy singleton
+        ServiceLocator().registerLazySingleton<VoiceSettingsService>(
+            () => VoiceSettingsService());
+
+        // Get multiple references
+        final refs = <VoiceSettingsService>[];
+        for (int i = 0; i < 5; i++) {
+          refs.add(getService<VoiceSettingsService>());
+        }
+
+        // All should be identical (same instance)
+        for (int i = 1; i < refs.length; i++) {
+          expect(identical(refs[0], refs[i]), isTrue);
+        }
+      });
     });
 
     group('Friendly Voice Name Mapping', () {

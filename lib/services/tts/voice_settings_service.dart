@@ -2,15 +2,30 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+/// Voice Settings Service - Manages TTS voice selection and preferences.
+///
+/// This service is registered as a lazy singleton in the Service Locator.
+/// Access it via `getService<VoiceSettingsService>()` instead of direct instantiation.
+///
+/// ## Usage
+/// ```dart
+/// // Get the service via DI
+/// final voiceService = getService<VoiceSettingsService>();
+/// await voiceService.saveVoice('es', 'es-us-x-esd-local', 'es-US');
+/// ```
 class VoiceSettingsService {
-  static final VoiceSettingsService _instance =
-      VoiceSettingsService._internal();
+  /// Default constructor for DI registration.
+  /// The Service Locator will create and manage the singleton instance.
+  VoiceSettingsService();
 
-  factory VoiceSettingsService() => _instance;
+  /// Test constructor for injecting a mock FlutterTts instance.
+  @visibleForTesting
+  VoiceSettingsService.withTts(FlutterTts tts) : _flutterTtsInstance = tts;
 
-  VoiceSettingsService._internal();
+  // FlutterTts instance - initialized lazily or injected for testing
+  FlutterTts? _flutterTtsInstance;
 
-  final FlutterTts _flutterTts = FlutterTts();
+  FlutterTts get _flutterTts => _flutterTtsInstance ??= FlutterTts();
 
   /// Asigna automáticamente una voz válida por defecto para un idioma si no hay ninguna guardada o la guardada es inválida
   /// Asigna automáticamente una voz válida por defecto para un idioma si no hay ninguna guardada o la guardada es inválida

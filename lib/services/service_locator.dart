@@ -11,6 +11,7 @@
 library;
 
 import 'package:devocional_nuevo/services/tts/i_tts_service.dart';
+import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 import 'package:devocional_nuevo/services/tts_service.dart';
 
 class ServiceLocator {
@@ -81,6 +82,11 @@ class ServiceLocator {
 /// Call this once at app startup, before any service is used
 void setupServiceLocator() {
   final locator = ServiceLocator();
+
+  // Register VoiceSettingsService as a lazy singleton (created when first accessed)
+  // This must be registered before TtsService as TtsService depends on it
+  locator.registerLazySingleton<VoiceSettingsService>(
+      () => VoiceSettingsService());
 
   // Register TTS service as a lazy singleton (created when first accessed)
   locator.registerLazySingleton<ITtsService>(() => TtsService());

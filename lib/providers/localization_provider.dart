@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../services/localization_service.dart';
+import '../services/service_locator.dart';
 import '../services/tts/voice_settings_service.dart';
 
 /// Provider for managing app localization state
@@ -16,7 +17,8 @@ class LocalizationProvider extends ChangeNotifier {
     await _localizationService.initialize();
     // Proactivo: asignar voz TTS al iniciar la app según idioma actual
     final languageCode = _localizationService.currentLocale.languageCode;
-    await VoiceSettingsService().proactiveAssignVoiceOnInit(languageCode);
+    await getService<VoiceSettingsService>()
+        .proactiveAssignVoiceOnInit(languageCode);
     notifyListeners();
   }
 
@@ -25,7 +27,8 @@ class LocalizationProvider extends ChangeNotifier {
     final locale = Locale(languageCode);
     await _localizationService.changeLocale(locale);
     // Proactivo: asignar voz TTS al cambiar idioma
-    await VoiceSettingsService().proactiveAssignVoiceOnInit(languageCode);
+    await getService<VoiceSettingsService>()
+        .proactiveAssignVoiceOnInit(languageCode);
     notifyListeners();
   }
 
