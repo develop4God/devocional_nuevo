@@ -370,13 +370,15 @@ class _SettingsPageState extends State<SettingsPage> {
                             localizationProvider.currentLocale.languageCode;
                         await TtsPlayerWidget.clearUserVoiceFlagForTest(
                             language);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text(
-                                'Flag de voz borrado. Puedes probar el diálogo de selección de voz.'),
-                            backgroundColor: Colors.red,
-                          ),
-                        );
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                  'Flag de voz borrado. Puedes probar el diálogo de selección de voz.'),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                        }
                       },
                     ),
                   ),

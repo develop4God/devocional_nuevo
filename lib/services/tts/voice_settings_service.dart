@@ -30,6 +30,21 @@ class VoiceSettingsService {
     };
     final locales = preferredLocales[language] ?? [language];
 
+    // Define preferred default male voices per language (technical names)
+    // These are the recommended voices for each language on first app start
+    final Map<String, List<String>> preferredMaleVoices = {
+      // Spanish Latin America male voice
+      'es': ['es-us-x-esd-local', 'es-us-x-esd-network'],
+      // English US male voice
+      'en': ['en-us-x-tpd-network', 'en-us-x-tpd-local', 'en-us-x-iom-network'],
+      // Portuguese Brazil male voice
+      'pt': ['pt-br-x-ptd-network', 'pt-br-x-ptd-local'],
+      // French France male voice
+      'fr': ['fr-fr-x-frd-local', 'fr-fr-x-frd-network', 'fr-fr-x-vlf-local'],
+      // Japanese male voice
+      'ja': ['ja-jp-x-jac-local', 'ja-jp-x-jad-local', 'ja-jp-x-jac-network'],
+    };
+
     final voices = await _flutterTts.getVoices;
     if (voices is List) {
       debugPrint(
@@ -56,13 +71,37 @@ class VoiceSettingsService {
         return;
       }
 
-      final selected = filtered.first;
-      final name = selected['name'] as String? ?? '';
-      final locale = selected['locale'] as String? ?? '';
+      // Try to find a preferred male voice first
+      final preferredVoices = preferredMaleVoices[language] ?? [];
+      Map? selectedVoice;
+
+      for (final preferredVoiceName in preferredVoices) {
+        selectedVoice = filtered.firstWhere(
+          (voice) =>
+              (voice['name'] as String?)?.toLowerCase() ==
+              preferredVoiceName.toLowerCase(),
+          orElse: () => <String, dynamic>{},
+        );
+        if (selectedVoice.isNotEmpty && selectedVoice['name'] != null) {
+          debugPrint(
+              '🎤✅ [autoAssignDefaultVoice] Found preferred male voice: ${selectedVoice['name']}');
+          break;
+        }
+        selectedVoice = null;
+      }
+
+      // Fallback to first available voice if no preferred voice found
+      selectedVoice ??= filtered.first;
+
+      final name = selectedVoice['name'] as String? ?? '';
+      final locale = selectedVoice['locale'] as String? ?? '';
+      final friendlyName = getFriendlyVoiceName(language, name);
       debugPrint(
-          '🎵 [autoAssignDefaultVoice] → Asignada: name="$name", locale="$locale" para $language');
+          '🎵🔊 [autoAssignDefaultVoice] → Asignada: name="$name" ($friendlyName), locale="$locale" para $language');
       if (name.isNotEmpty && locale.isNotEmpty) {
         await saveVoice(language, name, locale);
+        debugPrint(
+            '✅🎙️ [autoAssignDefaultVoice] Default voice saved successfully for $language: $friendlyName');
       }
     } else {
       debugPrint('⚠️ [autoAssignDefaultVoice] No se obtuvo lista de voces');
@@ -546,24 +585,37 @@ class VoiceSettingsService {
   static const Map<String, Map<String, String>> friendlyVoiceMap = {
     'es': {
       'es-us-x-esd-local': '🇲🇽 Hombre Latinoamérica',
+      'es-us-x-esd-network': '🇲🇽 Hombre Latinoamérica',
       'es-US-language': '🇲🇽 Mujer Latinoamérica',
       'es-es-x-eed-local': '🇪🇸 Hombre España',
       'es-ES-language': '🇪🇸 Mujer España',
     },
     'en': {
       'en-us-x-tpd-network': '🇺🇸 Male United States',
+      'en-us-x-tpd-local': '🇺🇸 Male United States',
       'en-us-x-tpf-local': '🇺🇸 Female United States',
+      'en-us-x-iom-network': '🇺🇸 Male United States',
       'en-gb-x-gbb-local': '🇬🇧 Male United Kingdom',
       'en-GB-language': '🇬🇧 Female United Kingdom',
     },
     'pt': {
       'pt-br-x-ptd-network': '🇧🇷 Homem Brasil',
+      'pt-br-x-ptd-local': '🇧🇷 Homem Brasil',
       'pt-br-x-afs-network': '🇧🇷 Mulher Brasil',
       'pt-pt-x-pmj-local': '🇵🇹 Homem Portugal',
       'pt-PT-language': '🇵🇹 Mulher Portugal',
     },
+    'fr': {
+      'fr-fr-x-frd-local': '🇫🇷 Homme France',
+      'fr-fr-x-frd-network': '🇫🇷 Homme France',
+      'fr-fr-x-vlf-local': '🇫🇷 Homme France',
+      'fr-fr-x-frf-local': '🇫🇷 Femme France',
+      'fr-ca-x-cad-local': '🇨🇦 Homme Canada',
+      'fr-ca-x-caf-local': '🇨🇦 Femme Canada',
+    },
     'ja': {
       'ja-jp-x-jac-local': '🇯🇵 男性 声 1',
+      'ja-jp-x-jac-network': '🇯🇵 男性 声 1',
       'ja-jp-x-jab-local': '🇯🇵 女性 声 1',
       'ja-jp-x-jad-local': '🇯🇵 男性 声 2',
       'ja-jp-x-htm-local': '🇯🇵 女性 声 2',

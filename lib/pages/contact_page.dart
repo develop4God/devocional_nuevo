@@ -227,14 +227,35 @@ class _ContactPageState extends State<ContactPage> {
                 ),
                 const SizedBox(height: 20),
 
-                // Campo de texto para el mensaje (sin cambios)
+                // Campo de texto para el mensaje
                 TextField(
                   controller: _messageController,
+                  style: TextStyle(color: colorScheme.onSurface),
                   decoration: InputDecoration(
                     labelText: 'contact_page.message_label'.tr(),
+                    labelStyle: TextStyle(color: colorScheme.onSurfaceVariant),
                     hintText: 'contact_page.message_hint'.tr(),
+                    hintStyle: TextStyle(
+                      color: colorScheme.onSurface.withValues(alpha: 0.5),
+                    ),
+                    filled: true,
+                    fillColor: Theme.of(context).brightness == Brightness.dark
+                        ? colorScheme.surfaceContainerHighest
+                        : colorScheme.surface,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(color: colorScheme.outline),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(color: colorScheme.outline),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(
+                        color: colorScheme.primary,
+                        width: 2,
+                      ),
                     ),
                     prefixIcon: Icon(Icons.message, color: colorScheme.primary),
                   ),
