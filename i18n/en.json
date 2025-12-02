@@ -11,7 +11,8 @@
     "ok": "OK",
     "yes": "Yes",
     "no": "No",
-    "delete": "Delete"
+    "delete": "Delete",
+    "skip": "Skip"
   },
   "devotionals": {
     "app_title": "Daily Devotionals",

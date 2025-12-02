@@ -11,7 +11,8 @@
     "ok": "OK",
     "yes": "はい",
     "no": "いいえ",
-    "delete": "削除"
+    "delete": "削除",
+    "skip": "スキップ"
   },
   "devotionals": {
     "app_title": "毎日のデボーション",

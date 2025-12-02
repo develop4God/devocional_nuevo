@@ -15,7 +15,6 @@ class ModernVoiceFeatureDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return AppGradientDialog(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -60,8 +59,8 @@ class ModernVoiceFeatureDialog extends StatelessWidget {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
                 ),
-                child: Text('app.omit'.tr()),
                 onPressed: onContinue,
+                child: Text('app.skip'.tr()),
               ),
             ],
           ),

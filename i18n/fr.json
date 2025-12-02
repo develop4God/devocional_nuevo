@@ -11,7 +11,8 @@
     "ok": "OK",
     "yes": "Oui",
     "no": "Non",
-    "delete": "Supprimer"
+    "delete": "Supprimer",
+    "skip": "Ignorer"
   },
   "devotionals": {
     "app_title": "Méditations Quotidiennes",

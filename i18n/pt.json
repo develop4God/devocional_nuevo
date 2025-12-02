@@ -11,7 +11,8 @@
     "ok": "OK",
     "yes": "Sim",
     "no": "Não",
-    "delete": "Excluir"
+    "delete": "Excluir",
+    "skip": "Pular"
   },
   "devotionals": {
     "app_title": "Devocionais Diários",
