@@ -60,7 +60,21 @@ class ModernVoiceFeatureDialog extends StatelessWidget {
                       const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
                 ),
                 onPressed: onContinue,
-                child: Text('app.skip'.tr()),
+                child: Text(
+                  'app.skip'.tr(),
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.normal,
+                        fontSize:
+                            Theme.of(context).textTheme.titleMedium?.fontSize !=
+                                    null
+                                ? Theme.of(context)
+                                        .textTheme
+                                        .titleMedium!
+                                        .fontSize! *
+                                    1.2
+                                : 20,
+                      ),
+                ),
               ),
             ],
           ),
