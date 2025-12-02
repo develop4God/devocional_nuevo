@@ -8,6 +8,7 @@ import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 import 'package:flutter/material.dart';
 
 import '../widgets/voice_selector_dialog.dart';
+import 'modern_voice_feature_dialog.dart';
 
 class TtsPlayerWidget extends StatefulWidget {
   final Devocional devocional;
@@ -160,8 +161,32 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
     if (!mounted) return;
 
     if (!hasSaved) {
-      // ignore: use_build_context_synchronously
-      await _showVoiceSelector(context, language, ttsText);
+      await showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        builder: (ctx) => Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
+          child: ModernVoiceFeatureDialog(
+            onConfigure: () async {
+              Navigator.of(ctx).pop();
+              await _showVoiceSelector(context, language, ttsText);
+            },
+            onContinue: () async {
+              Navigator.of(ctx).pop();
+              await voiceService.setUserSavedVoice(language);
+              if (state != TtsPlayerState.loading) {
+                widget.audioController.play();
+              }
+            },
+          ),
+        ),
+      );
       return;
     }
 

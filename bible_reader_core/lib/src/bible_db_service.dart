@@ -126,8 +126,9 @@ class BibleDbService {
     }
 
     // Multi-word search: require all words present (AND)
-    final whereClauses =
-        queryWords.map((w) => "LOWER(v.text) LIKE '%$w%'").join(' AND ');
+    final whereClauses = queryWords
+        .map((w) => "LOWER(v.text) LIKE '%$w%'")
+        .join(' AND ');
 
     final results = await _db.rawQuery('''
       SELECT v.*, b.long_name, b.short_name, 1 as priority
