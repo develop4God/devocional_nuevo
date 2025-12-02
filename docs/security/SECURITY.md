@@ -2,20 +2,24 @@
 
 ## Supported Versions
 
-Use this section to tell people about which versions of your project are
-currently being supported with security updates.
+The following versions of Devocionales Cristianos are currently supported with security updates:
 
 | Version | Supported          |
 |---------|--------------------|
-| 5.1.x   | :white_check_mark: |
-| 5.0.x   | :x:                |
-| 4.0.x   | :white_check_mark: |
-| < 4.0   | :x:                |
+| 1.4.x   | :white_check_mark: |
+| 1.3.x   | :x:                |
+| < 1.3   | :x:                |
 
 ## Reporting a Vulnerability
 
-Use this section to tell people how to report a vulnerability.
+If you discover a security vulnerability in this project, please follow these steps:
 
-Tell them where to go, how often they can expect to get an update on a
-reported vulnerability, what to expect if the vulnerability is accepted or
-declined, etc
+1. **Do not** open a public issue for security vulnerabilities.
+2. Report vulnerabilities via GitHub's private security advisory feature or contact the maintainers directly.
+3. Include as much detail as possible about the vulnerability, including steps to reproduce if applicable.
+
+We will acknowledge receipt of your vulnerability report within 48 hours and aim to provide a fix within 14 days for critical issues.
+
+## Security Updates
+
+Security updates are released as patch versions. Users are encouraged to always use the latest version.

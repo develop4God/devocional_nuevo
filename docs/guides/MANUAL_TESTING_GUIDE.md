@@ -1,4 +1,4 @@
-// Manual Testing Guide for Spiritual Progress Implementation
+# Manual Testing Guide for Spiritual Progress Implementation
 
 ## Testing Steps
 

@@ -76,7 +76,7 @@ Guías de pruebas manuales y desarrollo.
 - [MANUAL_TESTING_NAVIGATION_BAR.md](./guides/MANUAL_TESTING_NAVIGATION_BAR.md) - Navigation bar testing
 - [QUICK_REFERENCE_NAVIGATION_BAR.md](./guides/QUICK_REFERENCE_NAVIGATION_BAR.md) - Navigation bar quick reference
 - [BUG_FIXES_DOCUMENTATION.md](./guides/BUG_FIXES_DOCUMENTATION.md) - Bug fixes documentation
-- [Fix system navigation Bar.md](./guides/Fix%20system%20navigation%20Bar.md) - System navigation bar fix
+- [System_Navigation_Bar_Fix.md](./guides/System_Navigation_Bar_Fix.md) - System navigation bar fix
 
 ### 🔒 [security/](./security/)
 Security policies and guidelines.
