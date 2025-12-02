@@ -146,7 +146,17 @@ class _AddThanksgivingModalState extends State<AddThanksgivingModal> {
                 color: colorScheme.onSurface.withValues(alpha: 0.5),
                 height: 1.4,
               ),
+              filled: true,
+              fillColor: Theme.of(context).brightness == Brightness.dark
+                  ? colorScheme.surfaceContainerHighest
+                  : colorScheme.surface,
               border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(
+                  color: colorScheme.outline,
+                ),
+              ),
+              enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: BorderSide(
                   color: colorScheme.outline,

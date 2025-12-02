@@ -1,7 +1,6 @@
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_tts/flutter_tts.dart';
 import 'package:lottie/lottie.dart';
 
 class VoiceSelectorDialog extends StatefulWidget {
@@ -21,7 +20,6 @@ class VoiceSelectorDialog extends StatefulWidget {
 }
 
 class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
-  late FlutterTts _flutterTts;
   List<Map<String, String>> _voices = [];
   String? _selectedVoiceName;
   String? _selectedVoiceLocale;
@@ -70,7 +68,6 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
   @override
   void initState() {
     super.initState();
-    _flutterTts = FlutterTts();
     _translatedSampleText = _getSampleTextByLanguage(widget.language);
     _loadVoices();
   }
@@ -522,9 +519,7 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
                                                           size: 38),
                                                       const SizedBox(width: 10),
                                                       Text(
-                                                        '🇫🇷 ' +
-                                                            (voice['name'] ??
-                                                                ''),
+                                                        '🇫🇷 ${voice['name'] ?? ''}',
                                                         style: TextStyle(
                                                             fontWeight:
                                                                 FontWeight.w900,
