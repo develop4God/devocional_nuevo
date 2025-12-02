@@ -1,7 +1,11 @@
 import 'package:devocional_nuevo/controllers/tts_audio_controller.dart';
+import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
+import 'package:devocional_nuevo/widgets/tts_player_widget.dart';
+import 'package:devocional_nuevo/widgets/voice_selector_dialog.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -56,9 +60,20 @@ class MockFlutterTts extends FlutterTts {
 }
 
 /// Widget tests for TTS Player user flows
-/// Tests real user behavior scenarios with mocked dependencies
+/// Tests real user behavior scenarios with actual widget rendering
 void main() {
-  WidgetsFlutterBinding.ensureInitialized();
+  // Test devocional data
+  final testDevocional = Devocional(
+    id: 'test-123',
+    versiculo: 'Juan 3:16 - Porque de tal manera amó Dios al mundo',
+    reflexion: 'Esta es una reflexión de prueba para el devocional',
+    paraMeditar: [
+      ParaMeditar(cita: 'Salmo 23:1', texto: 'El Señor es mi pastor'),
+    ],
+    oracion: 'Señor, gracias por tu amor',
+    date: DateTime(2024, 1, 15),
+    version: 'RVR1960',
+  );
 
   group('TTS Player Widget - User Flow Tests', () {
     late MockFlutterTts mockTts;
@@ -82,8 +97,40 @@ void main() {
       ServiceLocator().reset();
     });
 
+    /// Creates the widget under test wrapped in MaterialApp with proper locale
+    Widget createWidgetUnderTest({TtsAudioController? customController}) {
+      return MaterialApp(
+        // Provide Spanish locale for testing
+        locale: const Locale('es'),
+        localizationsDelegates: const [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: const [Locale('es'), Locale('en')],
+        home: Scaffold(
+          body: Center(
+            child: TtsPlayerWidget(
+              devocional: testDevocional,
+              audioController: customController ?? controller,
+            ),
+          ),
+        ),
+      );
+    }
+
     group('Scenario 1: First Time User', () {
-      test('First time user has no saved voice', () async {
+      testWidgets('First time user - play button is visible',
+          (WidgetTester tester) async {
+        // GIVEN: User has never selected a voice
+        await tester.pumpWidget(createWidgetUnderTest());
+        await tester.pump(const Duration(milliseconds: 100));
+
+        // THEN: Play button (play_arrow icon) is visible
+        expect(find.byIcon(Icons.play_arrow), findsOneWidget);
+      });
+
+      testWidgets('First time user has no saved voice', (tester) async {
         // GIVEN: User has never selected a voice
         final hasVoice = await voiceSettingsService.hasUserSavedVoice('es');
 
@@ -91,7 +138,7 @@ void main() {
         expect(hasVoice, isFalse);
       });
 
-      test('After saving voice, user has saved voice', () async {
+      testWidgets('After saving voice, user has saved voice', (tester) async {
         // GIVEN: User has never selected a voice
         expect(await voiceSettingsService.hasUserSavedVoice('es'), isFalse);
 
@@ -104,7 +151,23 @@ void main() {
     });
 
     group('Scenario 2: Returning User', () {
-      test('Returning user has saved voice available', () async {
+      testWidgets('Returning user - plays immediately without modal',
+          (WidgetTester tester) async {
+        // GIVEN: Voice already saved
+        await voiceSettingsService.setUserSavedVoice('es');
+
+        await tester.pumpWidget(createWidgetUnderTest());
+        await tester.pump(const Duration(milliseconds: 100));
+
+        // WHEN: User taps play button
+        await tester.tap(find.byIcon(Icons.play_arrow));
+        await tester.pump(const Duration(milliseconds: 500));
+
+        // THEN: No VoiceSelectorDialog modal appears
+        expect(find.byType(VoiceSelectorDialog), findsNothing);
+      });
+
+      testWidgets('Returning user has saved voice available', (tester) async {
         // GIVEN: User has previously saved a voice
         await voiceSettingsService.setUserSavedVoice('es');
 
@@ -115,7 +178,8 @@ void main() {
         expect(hasVoice, isTrue);
       });
 
-      test('Returning user with saved voice can play immediately', () async {
+      testWidgets('Returning user with saved voice can play immediately',
+          (tester) async {
         // GIVEN: User has saved voice
         await voiceSettingsService.setUserSavedVoice('es');
 
@@ -129,7 +193,8 @@ void main() {
     });
 
     group('Scenario 3: Language Switcher', () {
-      test('User switching language has no voice for new language', () async {
+      testWidgets('User switching language has no voice for new language',
+          (tester) async {
         // GIVEN: User has Spanish voice saved
         await voiceSettingsService.setUserSavedVoice('es');
 
@@ -143,7 +208,8 @@ void main() {
         expect(await voiceSettingsService.hasUserSavedVoice('es'), isTrue);
       });
 
-      test('Each language maintains independent voice selection', () async {
+      testWidgets('Each language maintains independent voice selection',
+          (tester) async {
         // GIVEN: User saves Spanish voice
         await voiceSettingsService.setUserSavedVoice('es');
 
@@ -160,7 +226,79 @@ void main() {
       });
     });
 
-    group('Scenario 4: Playback Controls', () {
+    group('Scenario 4: Playback Controls - Widget Tests', () {
+      testWidgets('Initial state shows play button',
+          (WidgetTester tester) async {
+        await tester.pumpWidget(createWidgetUnderTest());
+        await tester.pump(const Duration(milliseconds: 100));
+
+        // THEN: Play icon is visible, pause is not
+        expect(find.byIcon(Icons.play_arrow), findsOneWidget);
+        expect(find.byIcon(Icons.pause), findsNothing);
+      });
+
+      testWidgets('Playing state shows pause button',
+          (WidgetTester tester) async {
+        // GIVEN: User has saved voice
+        await voiceSettingsService.setUserSavedVoice('es');
+
+        await tester.pumpWidget(createWidgetUnderTest());
+        await tester.pump(const Duration(milliseconds: 100));
+
+        // WHEN: User taps play and state transitions to playing
+        controller.setText('Test text');
+        // Trigger play and pump to allow async operations to complete
+        final playFuture = controller.play();
+        await tester.pump(
+            const Duration(milliseconds: 500)); // Advance past the 400ms delay
+        await playFuture;
+        await tester.pump(const Duration(milliseconds: 100));
+
+        // THEN: Icon changes to pause
+        expect(find.byIcon(Icons.pause), findsOneWidget);
+        expect(find.byIcon(Icons.play_arrow), findsNothing);
+      });
+
+      testWidgets('Pause button returns to play icon',
+          (WidgetTester tester) async {
+        // GIVEN: User has saved voice
+        await voiceSettingsService.setUserSavedVoice('es');
+
+        await tester.pumpWidget(createWidgetUnderTest());
+        await tester.pump(const Duration(milliseconds: 100));
+
+        // Play first
+        controller.setText('Test text');
+        final playFuture = controller.play();
+        await tester.pump(const Duration(milliseconds: 500));
+        await playFuture;
+        await tester.pump(const Duration(milliseconds: 100));
+        expect(find.byIcon(Icons.pause), findsOneWidget);
+
+        // WHEN: Pause is called
+        await controller.pause();
+        await tester.pump(const Duration(milliseconds: 100));
+
+        // THEN: Returns to play icon
+        expect(find.byIcon(Icons.play_arrow), findsOneWidget);
+        expect(find.byIcon(Icons.pause), findsNothing);
+      });
+
+      testWidgets('Loading state shows progress indicator',
+          (WidgetTester tester) async {
+        await tester.pumpWidget(createWidgetUnderTest());
+        await tester.pump(const Duration(milliseconds: 100));
+
+        // Set state to loading
+        controller.state.value = TtsPlayerState.loading;
+        await tester.pump();
+
+        // THEN: CircularProgressIndicator is visible
+        expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      });
+    });
+
+    group('Scenario 4: Playback Controls - Controller Tests', () {
       test('Initial state is idle', () {
         // GIVEN: Fresh controller
         // THEN: State is idle
