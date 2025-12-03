@@ -9,6 +9,7 @@ import 'package:devocional_nuevo/pages/application_language_page.dart';
 import 'package:devocional_nuevo/pages/contact_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/providers/localization_provider.dart';
+import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 import 'package:devocional_nuevo/utils/constants.dart';
 import 'package:devocional_nuevo/widgets/app_bar_constants.dart';
@@ -28,7 +29,9 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage> {
   double _ttsSpeed = 0.4;
-  final VoiceSettingsService _voiceSettingsService = VoiceSettingsService();
+  // Get VoiceSettingsService instance from the Service Locator
+  late final VoiceSettingsService _voiceSettingsService =
+      getService<VoiceSettingsService>();
 
   // Feature flag state - simple and direct
   String _donationMode = 'paypal'; // Hardcoded to PayPal
@@ -315,23 +318,70 @@ class _SettingsPageState extends State<SettingsPage> {
                         final language =
                             localizationProvider.currentLocale.languageCode;
                         final sampleText = 'settings.voice_sample_text'.tr();
-                        await showDialog(
+                        await showModalBottomSheet(
                           context: context,
-                          builder: (context) => VoiceSelectorDialog(
-                            language: language,
-                            sampleText: sampleText,
-                            onVoiceSelected: (name, locale) async {
-                              debugPrint(
-                                  '🔊 Voz seleccionada en Settings: $name ($locale)');
-                              await _voiceSettingsService.saveVoice(
-                                  language, name, locale);
-                              final prefs =
-                                  await SharedPreferences.getInstance();
-                              await prefs.setString(
-                                  'tts_voice_name_$language', name);
-                            },
+                          isScrollControlled: true,
+                          shape: const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.vertical(
+                              top: Radius.circular(28),
+                            ),
                           ),
+                          builder: (context) {
+                            return FractionallySizedBox(
+                              heightFactor: 0.8,
+                              child: Padding(
+                                padding: EdgeInsets.only(
+                                  bottom:
+                                      MediaQuery.of(context).viewInsets.bottom,
+                                ),
+                                child: VoiceSelectorDialog(
+                                  language: language,
+                                  sampleText: sampleText,
+                                  onVoiceSelected: (name, locale) async {
+                                    debugPrint(
+                                        '🔊 Voz seleccionada en Settings: $name ($locale)');
+                                    await _voiceSettingsService.playVoiceSample(
+                                        name, locale, sampleText);
+                                  },
+                                ),
+                              ),
+                            );
+                          },
                         );
+                      },
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // Botón para borrar el flag de voz guardada (pruebas)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: OutlinedButton.icon(
+                      icon: const Icon(Icons.delete_forever, color: Colors.red),
+                      label: const Text('Borrar flag de voz (pruebas)',
+                          style: TextStyle(color: Colors.red)),
+                      style: OutlinedButton.styleFrom(
+                        side: BorderSide(color: Colors.red, width: 2.0),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20.0),
+                        ),
+                      ),
+                      onPressed: () async {
+                        final language =
+                            localizationProvider.currentLocale.languageCode;
+                        // Use DI to clear the voice flag
+                        await _voiceSettingsService
+                            .clearUserSavedVoiceFlag(language);
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                  'Flag de voz borrado. Puedes probar el diálogo de selección de voz.'),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                        }
                       },
                     ),
                   ),

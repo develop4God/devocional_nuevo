@@ -11,6 +11,7 @@
 library;
 
 import 'package:devocional_nuevo/services/tts/i_tts_service.dart';
+import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 import 'package:devocional_nuevo/services/tts_service.dart';
 
 class ServiceLocator {
@@ -44,6 +45,7 @@ class ServiceLocator {
   }
 
   /// Get an instance of the requested service type
+  /// Throws [StateError] if service is not registered
   T get<T>() {
     // Check singletons first
     if (_singletons.containsKey(T)) {
@@ -55,8 +57,8 @@ class ServiceLocator {
       return _factories[T]!() as T;
     }
 
-    throw Exception(
-        'Service of type $T not registered. Call registerFactory or registerSingleton first.');
+    throw StateError('Service ${T.toString()} not registered. '
+        'Ensure setupServiceLocator() is called at app startup.');
   }
 
   /// Check if a service is registered
@@ -81,6 +83,11 @@ class ServiceLocator {
 /// Call this once at app startup, before any service is used
 void setupServiceLocator() {
   final locator = ServiceLocator();
+
+  // Register VoiceSettingsService as a lazy singleton (created when first accessed)
+  // This must be registered before TtsService as TtsService depends on it
+  locator.registerLazySingleton<VoiceSettingsService>(
+      () => VoiceSettingsService());
 
   // Register TTS service as a lazy singleton (created when first accessed)
   locator.registerLazySingleton<ITtsService>(() => TtsService());

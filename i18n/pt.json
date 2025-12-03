@@ -11,7 +11,8 @@
     "ok": "OK",
     "yes": "Sim",
     "no": "Não",
-    "delete": "Excluir"
+    "delete": "Excluir",
+    "skip": "Pular"
   },
   "devotionals": {
     "app_title": "Devocionais Diários",
@@ -53,7 +54,8 @@
     "download_error": "Erro no download",
     "offline_mode": "Modo offline",
     "online_mode": "Modo online",
-    "choose_option": "Escolha uma opção"
+    "choose_option": "Escolha uma opção",
+    "no_devocionales": "Nenhum devocional disponível"
   },
   "prayer": {
     "invitation_title": "Convite à Oração",
@@ -187,9 +189,9 @@
     "for_offline_use": "Para uso offline",
     "offline_content_ready": "Aproveite o conteúdo sem internet",
     "select_theme_color": "Selecione a cor do tema",
-    "download_dialog_title": "Confirmar download",
+    "download_dialog_title": "⬇️✨ Confirmar download",
     "download_dialog_downloading": "Baixando...",
-    "download_dialog_content": "Este download é feito uma vez. Permite acesso aos devocionais e versículos sem conexão com a internet/offline.",
+    "download_dialog_content": "Este download é realizado apenas uma vez. Permite acessar os devocionais e versículos sem internet/offline. 🛜+🚫",
     "cancel": "Cancelar",
     "accept": "Aceitar",
     "download_success": "Devocionais baixados com sucesso",
@@ -551,7 +553,8 @@
     "onboarding_error_title": "Erro de configuração",
     "onboarding_error_loading": "Erro ao carregar a configuração inicial",
     "onboarding_completed": "Onboarding concluído!",
-    "onboarding_retry": "Tentar novamente"
+    "onboarding_retry": "Tentar novamente",
+    "onboarding_touch_screen": "Toque para continuar"
   },
   "bible": {
     "title": "Bíblia",

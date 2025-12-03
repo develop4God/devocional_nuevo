@@ -8,6 +8,7 @@ import 'dart:developer' as developer;
 import 'dart:io' show Platform;
 
 import 'package:devocional_nuevo/models/devocional_model.dart';
+import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/tts/bible_text_formatter.dart';
 import 'package:devocional_nuevo/services/tts/i_tts_service.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
@@ -106,11 +107,11 @@ class TtsService implements ITtsService {
         _voiceSettingsService = voiceSettingsService;
 
   /// Factory constructor that creates instance with proper dependencies
-  /// This is used by the service locator
+  /// Uses the Service Locator to get VoiceSettingsService singleton
   factory TtsService() {
     return TtsService._internal(
       flutterTts: FlutterTts(),
-      voiceSettingsService: VoiceSettingsService(),
+      voiceSettingsService: getService<VoiceSettingsService>(),
     );
   }
 

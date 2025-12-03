@@ -11,7 +11,8 @@
     "ok": "OK",
     "yes": "Sí",
     "no": "No",
-    "delete": "Eliminar"
+    "delete": "Eliminar",
+    "skip": "Omitir"
   },
   "devotionals": {
     "app_title": "Devocionales Diarios",
@@ -187,9 +188,9 @@
     "for_offline_use": "Para uso sin internet",
     "offline_content_ready": "Disfruta contenido sin internet",
     "select_theme_color": "Selecciona color de tema",
-    "download_dialog_title": "Confirmar descarga",
+    "download_dialog_title": "⬇️✨ Confirmar descarga",
     "download_dialog_downloading": "Descargando...",
-    "download_dialog_content": "Esta descarga se realiza una sola vez. Permite acceder a los devocionales y versículos sin conexión a internet/offline.",
+    "download_dialog_content": "Esta descarga se realiza una sola vez. Permite acceder a los devocionales y versículos sin conexión a internet/offline. 🛜+🚫",
     "cancel": "Cancelar",
     "accept": "Aceptar",
     "download_success": "Devocionales descargados exitosamente",

@@ -1046,34 +1046,28 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                             flex: 2,
                             child: SizedBox(
                               height: 45,
-                              child: ElevatedButton.icon(
+                              child: OutlinedButton.icon(
                                 key: const Key('bottom_nav_previous_button'),
                                 onPressed: _currentDevocionalIndex > 0
                                     ? _goToPreviousDevocional
                                     : null,
-                                icon:
-                                    const Icon(Icons.arrow_back_ios, size: 16),
+                                icon: Icon(Icons.arrow_back_ios,
+                                    size: 16, color: colorScheme.primary),
                                 label: Text(
                                   'devotionals.previous'.tr(),
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 14,
                                     fontWeight: FontWeight.w600,
+                                    color: colorScheme.primary,
                                   ),
                                 ),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: _currentDevocionalIndex > 0
-                                      ? colorScheme.primary
-                                      : colorScheme.outline.withValues(
-                                          alpha: 0.3,
-                                        ),
-                                  foregroundColor: _currentDevocionalIndex > 0
-                                      ? Colors.white
-                                      : colorScheme.outline,
+                                style: OutlinedButton.styleFrom(
+                                  side: BorderSide(
+                                      color: colorScheme.primary, width: 1.5),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(22),
                                   ),
-                                  elevation:
-                                      _currentDevocionalIndex > 0 ? 2 : 0,
+                                  foregroundColor: colorScheme.primary,
                                 ),
                               ),
                             ),
@@ -1084,9 +1078,6 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                               child: currentDevocional != null
                                   ? Builder(
                                       builder: (context) {
-                                        debugPrint(
-                                            '[DevocionalesPage] Renderizando TtsPlayerWidget, devocional: \u001b[32m${currentDevocional.id}\u001b[0m');
-                                        // El widget TtsPlayerWidget debe encargarse de armar el texto TTS usando BibleTextFormatter
                                         return TtsPlayerWidget(
                                           key: const Key(
                                               'bottom_nav_tts_player'),
@@ -1102,41 +1093,35 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                             flex: 2,
                             child: SizedBox(
                               height: 45,
-                              child: ElevatedButton.icon(
+                              child: OutlinedButton(
                                 key: const Key('bottom_nav_next_button'),
                                 onPressed: _currentDevocionalIndex <
                                         devocionales.length - 1
                                     ? _goToNextDevocional
                                     : null,
-                                label: const Icon(
-                                  Icons.arrow_forward_ios,
-                                  size: 16,
-                                ),
-                                icon: Text(
-                                  'devotionals.next'.tr(),
-                                  style: const TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: _currentDevocionalIndex <
-                                          devocionales.length - 1
-                                      ? colorScheme.primary
-                                      : colorScheme.outline.withValues(
-                                          alpha: 0.3,
-                                        ),
-                                  foregroundColor: _currentDevocionalIndex <
-                                          devocionales.length - 1
-                                      ? Colors.white
-                                      : colorScheme.outline,
+                                style: OutlinedButton.styleFrom(
+                                  side: BorderSide(
+                                      color: colorScheme.primary, width: 1.5),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(22),
                                   ),
-                                  elevation: _currentDevocionalIndex <
-                                          devocionales.length - 1
-                                      ? 2
-                                      : 0,
+                                  foregroundColor: colorScheme.primary,
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      'devotionals.next'.tr(),
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                        color: colorScheme.primary,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Icon(Icons.arrow_forward_ios,
+                                        size: 16, color: colorScheme.primary),
+                                  ],
                                 ),
                               ),
                             ),
