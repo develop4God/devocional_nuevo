@@ -5,6 +5,7 @@ import 'dart:io';
 
 import 'package:devocional_nuevo/models/thanksgiving_model.dart';
 import 'package:devocional_nuevo/services/localization_service.dart';
+import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:path_provider/path_provider.dart';
@@ -34,7 +35,7 @@ class ThanksgivingBloc extends Bloc<ThanksgivingEvent, ThanksgivingState> {
       final thanksgivings = await _loadThanksgivingsFromStorage();
       emit(ThanksgivingLoaded(thanksgivings: thanksgivings));
     } catch (e) {
-      final errorMessage = LocalizationService.instance
+      final errorMessage = getService<LocalizationService>()
           .translate('errors.thanksgiving_loading_error');
       debugPrint('Error loading thanksgivings: $e');
       emit(ThanksgivingError(errorMessage));

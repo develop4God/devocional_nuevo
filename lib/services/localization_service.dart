@@ -5,19 +5,22 @@ import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Service for managing app localization and translations
+/// Service for managing app localization and translations.
+///
+/// This service is registered as a lazy singleton in the Service Locator.
+/// Access it via `getService<LocalizationService>()` instead of direct instantiation.
+/// The singleton pattern was removed to enable proper dependency injection and testing.
+///
+/// ## Usage
+/// ```dart
+/// // Get the service via DI
+/// final localizationService = getService<LocalizationService>();
+/// await localizationService.initialize();
+/// ```
 class LocalizationService {
-  static LocalizationService? _instance;
-
-  static LocalizationService get instance =>
-      _instance ??= LocalizationService._();
-
-  LocalizationService._();
-
-  /// Reset instance for testing purposes
-  static void resetInstance() {
-    _instance = null;
-  }
+  /// Default constructor for DI registration.
+  /// The Service Locator will create and manage the singleton instance.
+  LocalizationService();
 
   // Supported locales
   static const List<Locale> supportedLocales = [

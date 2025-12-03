@@ -1,4 +1,5 @@
 import '../services/localization_service.dart';
+import '../services/service_locator.dart';
 
 /// Extension on String to provide easy translation access
 extension StringTranslation on String {
@@ -6,6 +7,6 @@ extension StringTranslation on String {
   /// Usage: 'devotionals.app_title'.tr()
   /// With parameters: 'messages.welcome'.tr({'name': 'John'})
   String tr([Map<String, dynamic>? params]) {
-    return LocalizationService.instance.translate(this, params);
+    return getService<LocalizationService>().translate(this, params);
   }
 }

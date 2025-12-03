@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import '../services/localization_service.dart';
+import '../services/service_locator.dart';
 
 /// Model to track user's spiritual progress and achievements
 class SpiritualStats {
@@ -192,9 +193,9 @@ class PredefinedAchievements {
   static List<Achievement> get all => [
         Achievement(
           id: 'first_read',
-          title: LocalizationService.instance
+          title: getService<LocalizationService>()
               .translate('achievements.first_read_title'),
-          description: LocalizationService.instance
+          description: getService<LocalizationService>()
               .translate('achievements.first_read_description'),
           icon: Icons.auto_stories,
           color: Colors.green,
@@ -203,9 +204,9 @@ class PredefinedAchievements {
         ),
         Achievement(
           id: 'week_reader',
-          title: LocalizationService.instance
+          title: getService<LocalizationService>()
               .translate('achievements.week_reader_title'),
-          description: LocalizationService.instance
+          description: getService<LocalizationService>()
               .translate('achievements.week_reader_description'),
           icon: Icons.calendar_view_week,
           color: Colors.blue,
@@ -214,9 +215,9 @@ class PredefinedAchievements {
         ),
         Achievement(
           id: 'month_reader',
-          title: LocalizationService.instance
+          title: getService<LocalizationService>()
               .translate('achievements.month_reader_title'),
-          description: LocalizationService.instance
+          description: getService<LocalizationService>()
               .translate('achievements.month_reader_description'),
           icon: Icons.calendar_month,
           color: Colors.purple,
@@ -225,9 +226,9 @@ class PredefinedAchievements {
         ),
         Achievement(
           id: 'streak_3',
-          title: LocalizationService.instance
+          title: getService<LocalizationService>()
               .translate('achievements.streak_3_title'),
-          description: LocalizationService.instance
+          description: getService<LocalizationService>()
               .translate('achievements.streak_3_description'),
           icon: Icons.local_fire_department,
           color: Colors.orange,
@@ -236,9 +237,9 @@ class PredefinedAchievements {
         ),
         Achievement(
           id: 'streak_7',
-          title: LocalizationService.instance
+          title: getService<LocalizationService>()
               .translate('achievements.streak_7_title'),
-          description: LocalizationService.instance
+          description: getService<LocalizationService>()
               .translate('achievements.streak_7_description'),
           icon: Icons.whatshot,
           color: Colors.red,
@@ -247,9 +248,9 @@ class PredefinedAchievements {
         ),
         Achievement(
           id: 'streak_30',
-          title: LocalizationService.instance
+          title: getService<LocalizationService>()
               .translate('achievements.streak_30_title'),
-          description: LocalizationService.instance
+          description: getService<LocalizationService>()
               .translate('achievements.streak_30_description'),
           icon: Icons.emoji_events,
           color: Colors.amber,
@@ -258,9 +259,9 @@ class PredefinedAchievements {
         ),
         Achievement(
           id: 'first_favorite',
-          title: LocalizationService.instance
+          title: getService<LocalizationService>()
               .translate('achievements.first_favorite_title'),
-          description: LocalizationService.instance
+          description: getService<LocalizationService>()
               .translate('achievements.first_favorite_description'),
           icon: Icons.favorite,
           color: Colors.pink,
@@ -269,9 +270,9 @@ class PredefinedAchievements {
         ),
         Achievement(
           id: 'collector',
-          title: LocalizationService.instance
+          title: getService<LocalizationService>()
               .translate('achievements.collector_title'),
-          description: LocalizationService.instance
+          description: getService<LocalizationService>()
               .translate('achievements.collector_description'),
           icon: Icons.bookmark,
           color: Colors.indigo,
