@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as path;
 
 void main() {
   group('Migration Safety Tests - No Singleton Antipatterns', () {
@@ -185,7 +186,7 @@ Future<void> _checkDirectoryForPattern(
           entity.path.endsWith('.dart') &&
           !entity.path.contains('.skip') &&
           // Exclude this test file from the check since it contains the patterns as strings
-          !entity.path.contains('no_singleton_antipatterns_test.dart'))
+          path.basename(entity.path) != 'no_singleton_antipatterns_test.dart')
       .cast<File>()
       .toList();
 
