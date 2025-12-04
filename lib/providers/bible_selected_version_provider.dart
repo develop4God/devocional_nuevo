@@ -223,6 +223,14 @@ class BibleSelectedVersionProvider extends ChangeNotifier {
         '[BibleProvider] URL de descarga para [1m${versionObj.name}[0m: ${versionObj.downloadUrl}');
     try {
       await _repository.downloadVersion(versionObj.id);
+      // Listar archivos en el directorio de biblias después de la descarga
+      final biblesDir = await _repository.storage.getBiblesDirectory();
+      final filesAfterDownload = await _repository.storage.listFiles(biblesDir);
+      debugPrint(
+          '[BibleProvider] Archivos en el directorio de biblias después de la descarga:');
+      for (var file in filesAfterDownload) {
+        debugPrint(' - $file');
+      }
       return true;
     } catch (_) {
       return false;
