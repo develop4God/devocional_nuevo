@@ -29,6 +29,7 @@ class BibleSelectedVersionProvider extends ChangeNotifier {
     storage: StorageAdapter(),
   );
   List<Map<String, dynamic>> _verses = [];
+  List<BibleVersion> _availableVersions = [];
 
   List<Map<String, dynamic>> get verses => _verses;
 
@@ -39,6 +40,8 @@ class BibleSelectedVersionProvider extends ChangeNotifier {
   BibleProviderState get state => _state;
 
   String? get errorMessage => _errorMessage;
+
+  List<BibleVersion> get availableVersions => _availableVersions;
 
   /// Inicializa el provider con idioma y versión guardados o por defecto
   Future<void> initialize({String? languageCode}) async {
@@ -55,6 +58,7 @@ class BibleSelectedVersionProvider extends ChangeNotifier {
     debugPrint(
         '[BibleProvider] Idioma: $_selectedLanguage, Versión: $_selectedVersion');
     await _ensureVersionDownloaded();
+    await _updateAvailableVersions();
   }
 
   /// Cambia el idioma y selecciona la versión por defecto de ese idioma
@@ -70,6 +74,7 @@ class BibleSelectedVersionProvider extends ChangeNotifier {
     debugPrint(
         '[BibleProvider] Nuevo idioma: $_selectedLanguage, versión: $_selectedVersion');
     await _ensureVersionDownloaded();
+    await _updateAvailableVersions();
   }
 
   /// Cambia la versión bíblica seleccionada manualmente
@@ -81,6 +86,7 @@ class BibleSelectedVersionProvider extends ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('selectedBibleVersion', version);
     await _ensureVersionDownloaded();
+    await _updateAvailableVersions();
   }
 
   /// Hace fetch de la información de la Biblia para el idioma y versión actual
@@ -89,6 +95,24 @@ class BibleSelectedVersionProvider extends ChangeNotifier {
     _state = BibleProviderState.loading;
     notifyListeners();
     await _ensureVersionDownloaded();
+    // Actualiza la lista de versiones disponibles
+    await _updateAvailableVersions();
+  }
+
+  Future<void> _updateAvailableVersions() async {
+    await _repository.initialize();
+    final allVersions = await _repository.fetchAvailableVersions();
+    _availableVersions = allVersions
+        .where((v) => v.language == _selectedLanguage)
+        .map((meta) => BibleVersion(
+              name: meta.name,
+              language: meta.languageName,
+              languageCode: meta.language,
+              dbFileName: meta.filename,
+              isDownloaded: true, // O ajusta según lógica real
+            ))
+        .toList();
+    notifyListeners();
   }
 
   /// Lógica para descargar la versión si no está presente y hacer fetch
@@ -141,12 +165,9 @@ class BibleSelectedVersionProvider extends ChangeNotifier {
     await _repository.initialize();
     final downloadedIds = await _repository.getDownloadedVersionIds();
     final allVersions = await _repository.fetchAvailableVersions();
-    debugPrint('[BibleProvider] Versiones disponibles para $lang: ' +
-        allVersions
-            .where((v) => v.language == lang)
-            .map((v) => v.name)
-            .join(', '));
-    var versionObj;
+    debugPrint(
+        '[BibleProvider] Versiones disponibles para $lang: ${allVersions.where((v) => v.language == lang).map((v) => v.name).join(', ')}');
+    BibleVersionMetadata versionObj;
     try {
       versionObj = allVersions.firstWhere(
         (v) => v.language == lang && v.name == version,
@@ -162,18 +183,27 @@ class BibleSelectedVersionProvider extends ChangeNotifier {
       return false;
     }
     _selectedVersion = versionObj.name;
+    final biblesDir = await _repository.storage.getBiblesDirectory();
+    final dbPath = '$biblesDir/${versionObj.filename}';
+    final fileExists = await _repository.storage.fileExists(dbPath);
+    if (!fileExists) {
+      // Si el archivo no existe, elimina el ID de la lista y fuerza descarga
+      if (downloadedIds.contains(versionObj.id)) {
+        downloadedIds.remove(versionObj.id);
+        await _repository.storage.saveDownloadedVersions(downloadedIds);
+      }
+      debugPrint('[BibleProvider] Archivo no encontrado en $dbPath');
+      return false;
+    }
     return downloadedIds.contains(versionObj.id);
   }
 
   Future<bool> _downloadVersion(String lang, String version) async {
     await _repository.initialize();
     final allVersions = await _repository.fetchAvailableVersions();
-    debugPrint('[BibleProvider] Versiones disponibles para $lang: ' +
-        allVersions
-            .where((v) => v.language == lang)
-            .map((v) => v.name)
-            .join(', '));
-    var versionObj;
+    debugPrint(
+        '[BibleProvider] Versiones disponibles para $lang: ${allVersions.where((v) => v.language == lang).map((v) => v.name).join(', ')}');
+    BibleVersionMetadata versionObj;
     try {
       versionObj = allVersions.firstWhere(
         (v) => v.language == lang && v.name == version,
@@ -200,21 +230,29 @@ class BibleSelectedVersionProvider extends ChangeNotifier {
   }
 
   Future<bool> _fetchVerses(String lang, String version) async {
-    // Aquí deberías usar el servicio de lectura de la Biblia, no el repositorio de versiones.
-    // Ejemplo de integración real:
-    // final dbService = BibleDbService();
-    // final result = await dbService.getVerses(
-    //   versionId: versionObj.id,
-    //   book: 'John',
-    //   chapter: 3,
-    // );
-    // _verses = result.map((v) => v.toJson()).toList();
-    // return _verses.isNotEmpty;
-    // Por ahora, simula fetch exitoso:
-    await Future.delayed(const Duration(milliseconds: 500));
-    _verses = [
-      {'verse': 1, 'text': 'Versículo de ejemplo.'}
-    ];
-    return true;
+    try {
+      await _repository.initialize();
+      final allVersions = await _repository.fetchAvailableVersions();
+      final versionObj = allVersions.firstWhere(
+        (v) => v.language == lang && v.name == version,
+        orElse: () => allVersions.firstWhere((v) => v.language == lang),
+      );
+      // Obtener el directorio de biblias y armar el path del archivo descargado
+      final biblesDir = await _repository.storage.getBiblesDirectory();
+      final dbPath = '$biblesDir/${versionObj.filename}';
+      final dbService = BibleDbService(customDatabasePath: dbPath);
+      await dbService.initDbFromPath();
+      // Obtener el primer libro y capítulo disponibles
+      final books = await dbService.getAllBooks();
+      if (books.isEmpty) return false;
+      final firstBook = books.first;
+      final bookNumber = firstBook['book_number'] as int? ?? 1;
+      final verses = await dbService.getChapterVerses(bookNumber, 1);
+      _verses = verses;
+      return _verses.isNotEmpty;
+    } catch (e) {
+      debugPrint('[BibleProvider] ERROR al obtener versículos: $e');
+      return false;
+    }
   }
 }
