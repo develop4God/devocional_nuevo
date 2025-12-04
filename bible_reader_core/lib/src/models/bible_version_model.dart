@@ -203,17 +203,20 @@ class BibleVersionWithState {
   });
 
   /// Creates a copy with optionally modified fields.
+  /// 
+  /// Use `clearError: true` to explicitly clear the error message.
   BibleVersionWithState copyWith({
     BibleVersionMetadata? metadata,
     DownloadState? state,
     double? progress,
     String? errorMessage,
+    bool clearError = false,
   }) {
     return BibleVersionWithState(
       metadata: metadata ?? this.metadata,
       state: state ?? this.state,
       progress: progress ?? this.progress,
-      errorMessage: errorMessage,
+      errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
     );
   }
 

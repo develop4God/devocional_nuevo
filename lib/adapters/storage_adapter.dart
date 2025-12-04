@@ -81,7 +81,7 @@ class StorageAdapter implements BibleVersionStorage {
 
   @override
   Future<bool> fileExists(String path) async {
-    return File(path).existsSync();
+    return await File(path).exists();
   }
 
   @override
@@ -102,13 +102,13 @@ class StorageAdapter implements BibleVersionStorage {
 
   @override
   Future<bool> directoryExists(String path) async {
-    return Directory(path).existsSync();
+    return await Directory(path).exists();
   }
 
   @override
   Future<void> createDirectory(String path) async {
     final dir = Directory(path);
-    if (!dir.existsSync()) {
+    if (!await dir.exists()) {
       await dir.create(recursive: true);
     }
   }

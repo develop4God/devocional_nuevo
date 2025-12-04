@@ -88,7 +88,7 @@ class BibleVersionBloc extends Bloc<BibleVersionEvent, BibleVersionState> {
     // Update the version state to downloading
     final versions = currentState.versions.map((v) {
       if (v.metadata.id == event.versionId) {
-        return v.copyWith(state: DownloadState.downloading, progress: 0.0);
+        return v.copyWith(state: DownloadState.downloading, progress: 0.0, clearError: true);
       }
       return v;
     }).toList();
@@ -147,7 +147,7 @@ class BibleVersionBloc extends Bloc<BibleVersionEvent, BibleVersionState> {
       // Update versions list
       final versions = currentState.versions.map((v) {
         if (v.metadata.id == event.versionId) {
-          return v.copyWith(state: DownloadState.notDownloaded, progress: 0.0);
+          return v.copyWith(state: DownloadState.notDownloaded, progress: 0.0, clearError: true);
         }
         return v;
       }).toList();
