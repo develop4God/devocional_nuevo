@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:flutter/services.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -33,7 +32,7 @@ class BibleVersionRegistry {
     ],
     'ja': [
       {'name': '新改訳2003', 'dbFile': 'SK2003_ja.SQLite3'},
-      {'name': '口語訳', 'dbFile': 'JCB_ja.SQLite3'}, // Agrego JCB japonesa
+      {'name': '口語訳', 'dbFile': 'JCB_ja.SQLite3'},
     ],
   };
 
@@ -53,7 +52,6 @@ class BibleVersionRegistry {
           name: versionInfo['name']!,
           language: _languageNames[languageCode] ?? languageCode,
           languageCode: languageCode,
-          assetPath: 'assets/biblia/$dbFileName',
           dbFileName: dbFileName,
           isDownloaded: isDownloaded,
         ),
@@ -83,16 +81,6 @@ class BibleVersionRegistry {
       return File(dbPath).existsSync();
     } catch (e) {
       // If we can't check, assume it needs to be downloaded from assets
-      return false;
-    }
-  }
-
-  /// Check if asset exists
-  static Future<bool> assetExists(String assetPath) async {
-    try {
-      await rootBundle.load(assetPath);
-      return true;
-    } catch (e) {
       return false;
     }
   }

@@ -2,8 +2,8 @@ import 'package:bible_reader_core/src/bible_version.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/pages/bible_reader_page.dart';
-import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/localization_service.dart';
+import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -49,7 +49,6 @@ void main() {
           name: 'RVR1960',
           language: 'Español',
           languageCode: 'es',
-          assetPath: 'assets/biblia/RVR1960_es.SQLite3',
           dbFileName: 'RVR1960_es.SQLite3',
         ),
       ];
@@ -72,7 +71,6 @@ void main() {
           name: 'RVR1960',
           language: 'Español',
           languageCode: 'es',
-          assetPath: 'assets/biblia/RVR1960_es.SQLite3',
           dbFileName: 'RVR1960_es.SQLite3',
         ),
       ];
@@ -93,7 +91,6 @@ void main() {
           name: 'RVR1960',
           language: 'Español',
           languageCode: 'es',
-          assetPath: 'assets/biblia/RVR1960_es.SQLite3',
           dbFileName: 'RVR1960_es.SQLite3',
         ),
       ];
@@ -116,7 +113,6 @@ void main() {
           name: 'Test',
           language: 'Test Language',
           languageCode: 'xx',
-          assetPath: 'test.db',
           dbFileName: 'test.db',
         ),
       ];

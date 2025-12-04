@@ -1,8 +1,5 @@
 import 'dart:io';
 
-import 'package:flutter/services.dart' show rootBundle;
-import 'package:path/path.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 
 import 'exceptions/bible_version_exceptions.dart';
@@ -34,34 +31,13 @@ class BibleDbService {
   /// Creates a BibleDbService instance.
   ///
   /// [customDatabasePath] - Optional path to a pre-existing database file.
-  /// If provided, use [initDbFromPath] instead of [initDb].
+  /// If provided, use [initDbFromPath].
   BibleDbService({this.customDatabasePath});
-
-  /// Initializes the database from the app's assets.
-  ///
-  /// This is the original method that loads a database from assets.
-  /// Use this for bundled Bible versions.
-  ///
-  /// [dbAssetPath] - Asset path like 'assets/biblia/RVR1960_es.SQLite3'
-  /// [dbName] - Name for the copied database file
-  Future<void> initDb(String dbAssetPath, String dbName) async {
-    final documentsDirectory = await getApplicationDocumentsDirectory();
-    final dbPath = join(documentsDirectory.path, dbName);
-
-    if (!File(dbPath).existsSync()) {
-      // Read the asset correctly using rootBundle
-      final data = await rootBundle.load(dbAssetPath);
-      final bytes = data.buffer.asUint8List();
-      await File(dbPath).writeAsBytes(bytes, flush: true);
-    }
-
-    _db = await openDatabase(dbPath, readOnly: true);
-  }
 
   /// Initializes the database from a custom path.
   ///
   /// Use this method when [customDatabasePath] is set.
-  /// This is typically used for downloaded Bible versions.
+  /// This is used for downloaded Bible versions.
   ///
   /// Performs validation:
   /// 1. Schema version check (PRAGMA user_version)
@@ -74,15 +50,12 @@ class BibleDbService {
   Future<void> initDbFromPath({int? expectedSchemaVersion}) async {
     if (customDatabasePath == null) {
       throw StateError(
-        'customDatabasePath is null. Use initDb() for asset-based databases.',
+        'customDatabasePath is null. Use a valid path for downloaded databases.',
       );
     }
 
     if (!File(customDatabasePath!).existsSync()) {
-      throw FileSystemException(
-        'Database file not found',
-        customDatabasePath,
-      );
+      throw FileSystemException('Database file not found', customDatabasePath);
     }
 
     _db = await openDatabase(customDatabasePath!, readOnly: true);
@@ -246,8 +219,9 @@ class BibleDbService {
     }
 
     // Multi-word search: require all words present (AND)
-    final whereClauses =
-        queryWords.map((w) => "LOWER(v.text) LIKE '%$w%'").join(' AND ');
+    final whereClauses = queryWords
+        .map((w) => "LOWER(v.text) LIKE '%$w%'")
+        .join(' AND ');
 
     final results = await _db.rawQuery('''
       SELECT v.*, b.long_name, b.short_name, 1 as priority

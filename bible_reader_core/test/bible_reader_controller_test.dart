@@ -25,14 +25,12 @@ void main() {
         name: 'RVR1960',
         language: 'Español',
         languageCode: 'es',
-        assetPath: 'assets/bible/es_rvr1960.db',
         dbFileName: 'es_rvr1960.db',
       ),
       BibleVersion(
         name: 'NIV',
         language: 'English',
         languageCode: 'en',
-        assetPath: 'assets/bible/en_niv.db',
         dbFileName: 'en_niv.db',
       ),
     ];

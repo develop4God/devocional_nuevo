@@ -9,14 +9,12 @@ void main() {
         name: 'RVR1960',
         language: 'Español',
         languageCode: 'es',
-        assetPath: 'assets/biblia/RVR1960_es.SQLite3',
         dbFileName: 'RVR1960_es.SQLite3',
       );
 
       expect(version.name, equals('RVR1960'));
       expect(version.language, equals('Español'));
       expect(version.languageCode, equals('es'));
-      expect(version.assetPath, equals('assets/biblia/RVR1960_es.SQLite3'));
       expect(version.dbFileName, equals('RVR1960_es.SQLite3'));
       expect(version.service, isNull);
       expect(version.isDownloaded, isTrue); // default value
@@ -28,7 +26,6 @@ void main() {
         name: 'RVR1960',
         language: 'Español',
         languageCode: 'es',
-        assetPath: 'assets/biblia/RVR1960_es.SQLite3',
         dbFileName: 'RVR1960_es.SQLite3',
         service: service,
       );
@@ -41,7 +38,6 @@ void main() {
         name: 'RVR1960',
         language: 'Español',
         languageCode: 'es',
-        assetPath: 'assets/biblia/RVR1960_es.SQLite3',
         dbFileName: 'RVR1960_es.SQLite3',
       );
 
@@ -56,7 +52,6 @@ void main() {
         name: 'KJV',
         language: 'English',
         languageCode: 'en',
-        assetPath: 'assets/biblia/KJV_en.SQLite3',
         dbFileName: 'KJV_en.SQLite3',
         isDownloaded: false,
       );
