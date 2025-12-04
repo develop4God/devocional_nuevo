@@ -28,7 +28,9 @@ class BibleReaderDrawer extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    final bibleProvider = Provider.of<BibleSelectedVersionProvider>(context);
+    // Using listen: false since we only need the provider for the download dialog
+    final bibleProvider =
+        Provider.of<BibleSelectedVersionProvider>(context, listen: false);
 
     return Drawer(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -479,7 +481,7 @@ class _BibleDownloadDialogState extends State<_BibleDownloadDialog> {
             title: Text(
               '${version.metadata.name} (${version.metadata.languageName})',
               style: textTheme.bodyMedium?.copyWith(
-                color: Colors.white,
+                color: colorScheme.onPrimary,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -542,7 +544,7 @@ class _BibleDownloadDialogState extends State<_BibleDownloadDialog> {
           const SizedBox(width: 4),
           Text(
             '#${version.queuePosition}',
-            style: TextStyle(color: Colors.white, fontSize: 12),
+            style: TextStyle(color: colorScheme.onPrimary, fontSize: 12),
           ),
         ],
       );

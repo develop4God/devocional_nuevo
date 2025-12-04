@@ -428,19 +428,21 @@ class BibleVersionRepository {
       _updateQueuePositions();
 
       _performDownloadWithRetry(download).then((_) {
-        _downloadQueue.remove(download);
-        _activeDownloads--;
+        _cleanupDownload(download);
         download.completer.complete();
-        _updateQueuePositions();
-        _processQueue();
       }).catchError((error) {
-        _downloadQueue.remove(download);
-        _activeDownloads--;
+        _cleanupDownload(download);
         download.completer.completeError(error);
-        _updateQueuePositions();
-        _processQueue();
       });
     }
+  }
+
+  /// Cleans up after a download completes (success or failure).
+  void _cleanupDownload(_QueuedDownload download) {
+    _downloadQueue.remove(download);
+    _activeDownloads--;
+    _updateQueuePositions();
+    _processQueue();
   }
 
   Future<void> _performDownloadWithRetry(_QueuedDownload download) async {
