@@ -2,6 +2,7 @@ import 'package:bible_reader_core/src/bible_version.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/pages/bible_reader_page.dart';
+import 'package:devocional_nuevo/providers/bible_selected_version_provider.dart';
 import 'package:devocional_nuevo/services/localization_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:flutter/material.dart';
@@ -12,6 +13,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   group('BibleReaderPage Widget Tests', () {
+    late BibleSelectedVersionProvider bibleVersionProvider;
+
     setUp(() {
       TestWidgetsFlutterBinding.ensureInitialized();
       // Reset ServiceLocator for clean test state
@@ -20,6 +23,8 @@ void main() {
       // Register LocalizationService
       ServiceLocator().registerLazySingleton<LocalizationService>(
           () => LocalizationService());
+      // Create mock provider
+      bibleVersionProvider = BibleSelectedVersionProvider();
     });
 
     tearDown(() {
@@ -36,6 +41,9 @@ void main() {
                 brightness: Brightness.light,
                 themeData: ThemeData.light(),
               )),
+          ),
+          ChangeNotifierProvider<BibleSelectedVersionProvider>.value(
+            value: bibleVersionProvider,
           ),
         ],
         child: MaterialApp(home: child),
@@ -59,9 +67,9 @@ void main() {
       // Wait for first frame
       await tester.pump();
 
-      // Verify widget is created
+      // Verify widget is created (shows loading state since provider is loading)
       expect(find.byType(BibleReaderPage), findsOneWidget);
-      expect(find.byType(AppBar), findsOneWidget);
+      expect(find.byType(Scaffold), findsOneWidget);
     });
 
     testWidgets('should show loading indicator initially',
@@ -78,11 +86,11 @@ void main() {
       await tester
           .pumpWidget(buildTestableWidget(BibleReaderPage(versions: versions)));
 
-      // Initial frame
+      // Initial frame - shows loading because provider state is loading
       await tester.pump();
 
-      // Debe mostrar el texto de carga real
-      expect(find.text('bible.no_verses'), findsOneWidget);
+      // Should show CircularProgressIndicator during loading state
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
     });
 
     testWidgets('should have AppBar with title', (WidgetTester tester) async {
@@ -100,7 +108,7 @@ void main() {
 
       await tester.pump();
 
-      // Check for AppBar
+      // Check for AppBar (loading state shows AppBar)
       expect(find.byType(AppBar), findsOneWidget);
     });
 

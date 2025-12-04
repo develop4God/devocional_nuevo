@@ -148,7 +148,7 @@ class BibleVersionRepository {
     this.githubApiBaseUrl =
         'https://api.github.com/repos/develop4God/bible_versions/contents',
     this.githubRawBaseUrl =
-        'https://raw.githubusercontent.com/develop4God/bible_versions/refs/heads/main',
+        'https://raw.githubusercontent.com/develop4God/bible_versions/main',
     this.retryConfig = const RetryConfig(),
     this.maxConcurrentDownloads = 2,
   });
@@ -427,21 +427,19 @@ class BibleVersionRepository {
       _activeDownloads++;
       _updateQueuePositions();
 
-      _performDownloadWithRetry(download)
-          .then((_) {
-            _downloadQueue.remove(download);
-            _activeDownloads--;
-            download.completer.complete();
-            _updateQueuePositions();
-            _processQueue();
-          })
-          .catchError((error) {
-            _downloadQueue.remove(download);
-            _activeDownloads--;
-            download.completer.completeError(error);
-            _updateQueuePositions();
-            _processQueue();
-          });
+      _performDownloadWithRetry(download).then((_) {
+        _downloadQueue.remove(download);
+        _activeDownloads--;
+        download.completer.complete();
+        _updateQueuePositions();
+        _processQueue();
+      }).catchError((error) {
+        _downloadQueue.remove(download);
+        _activeDownloads--;
+        download.completer.completeError(error);
+        _updateQueuePositions();
+        _processQueue();
+      });
     }
   }
 
@@ -695,7 +693,7 @@ class BibleVersionRepository {
 
   /// Construye la URL de descarga para una versión bíblica, igual que DevocionalProvider
   static String getBibleVersionDownloadUrl(String language, String filename) {
-    return 'https://raw.githubusercontent.com/develop4God/bible_versions/refs/heads/main/$language/$filename';
+    return 'https://raw.githubusercontent.com/develop4God/bible_versions/main/$language/$filename';
   }
 }
 
