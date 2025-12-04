@@ -81,8 +81,14 @@ class BibleVersionRepository {
   /// Storage interface for file operations.
   final BibleVersionStorage storage;
 
-  /// URL to fetch the metadata.json catalog.
-  final String metadataUrl;
+  /// URL to fetch the metadata.json catalog (optional).
+  final String? metadataUrl;
+
+  /// Base URL for GitHub API to fetch versions by language folder.
+  final String githubApiBaseUrl;
+
+  /// Base URL for raw file downloads from GitHub.
+  final String githubRawBaseUrl;
 
   /// Configuration for download retries.
   final RetryConfig retryConfig;
@@ -92,6 +98,18 @@ class BibleVersionRepository {
 
   /// Buffer size multiplier for storage space (2x file size).
   static const int _storageBufferMultiplier = 2;
+
+  /// Supported language codes matching the repository folder structure.
+  static const List<String> supportedLanguages = ['en', 'es', 'fr', 'ja', 'pt'];
+
+  /// Human-readable language names.
+  static const Map<String, String> languageNames = {
+    'en': 'English',
+    'es': 'Español',
+    'fr': 'Français',
+    'ja': '日本語',
+    'pt': 'Português',
+  };
 
   /// Cached metadata for available versions.
   List<BibleVersionMetadata>? _cachedMetadata;
@@ -116,14 +134,19 @@ class BibleVersionRepository {
   ///
   /// [httpClient] - HTTP client implementation for network operations.
   /// [storage] - Storage implementation for file operations.
-  /// [metadataUrl] - URL to fetch the versions catalog (metadata.json).
+  /// [metadataUrl] - Optional URL to fetch the versions catalog (metadata.json).
+  /// [githubApiBaseUrl] - GitHub API base URL for fetching folder contents.
+  /// [githubRawBaseUrl] - GitHub raw base URL for downloading files.
   /// [retryConfig] - Configuration for download retry behavior.
   /// [maxConcurrentDownloads] - Maximum number of simultaneous downloads (default: 2).
   BibleVersionRepository({
     required this.httpClient,
     required this.storage,
-    this.metadataUrl =
-        'https://raw.githubusercontent.com/develop4God/bible_versions/main/metadata.json',
+    this.metadataUrl,
+    this.githubApiBaseUrl =
+        'https://api.github.com/repos/develop4God/bible_versions/contents',
+    this.githubRawBaseUrl =
+        'https://raw.githubusercontent.com/develop4God/bible_versions/main',
     this.retryConfig = const RetryConfig(),
     this.maxConcurrentDownloads = 2,
   });
@@ -149,6 +172,9 @@ class BibleVersionRepository {
 
   /// Fetches the list of available Bible versions from the remote catalog.
   ///
+  /// If [metadataUrl] is provided, fetches from metadata.json file.
+  /// Otherwise, fetches directly from GitHub API by scanning language folders.
+  ///
   /// Returns a list of [BibleVersionMetadata] with information about each version.
   /// Throws [NetworkException] if the fetch fails.
   /// Throws [MetadataParsingException] if the JSON is malformed.
@@ -158,31 +184,13 @@ class BibleVersionRepository {
     }
 
     try {
-      final response = await httpClient.get(metadataUrl);
-
-      if (!response.isSuccess) {
-        throw NetworkException(
-          'Failed to fetch metadata',
-          statusCode: response.statusCode,
-        );
+      // If metadata URL is provided, use it
+      if (metadataUrl != null) {
+        return await _fetchFromMetadataJson();
       }
 
-      final json = jsonDecode(response.body);
-      if (json is! Map<String, dynamic>) {
-        throw const MetadataParsingException('Invalid metadata format');
-      }
-
-      final versionsJson = json['versions'];
-      if (versionsJson is! List) {
-        throw const MetadataParsingException(
-            'Missing or invalid versions array');
-      }
-
-      _cachedMetadata = versionsJson
-          .map((v) => BibleVersionMetadata.fromJson(v as Map<String, dynamic>))
-          .toList();
-
-      return _cachedMetadata!;
+      // Otherwise, fetch from GitHub API by language folders
+      return await _fetchFromGitHubApi();
     } on BibleVersionException {
       rethrow;
     } on FormatException catch (e) {
@@ -190,6 +198,147 @@ class BibleVersionRepository {
     } catch (e) {
       throw NetworkException('Failed to fetch versions: $e', cause: e);
     }
+  }
+
+  /// Fetches versions from metadata.json file.
+  Future<List<BibleVersionMetadata>> _fetchFromMetadataJson() async {
+    final response = await httpClient.get(metadataUrl!);
+
+    if (!response.isSuccess) {
+      throw NetworkException(
+        'Failed to fetch metadata',
+        statusCode: response.statusCode,
+      );
+    }
+
+    final json = jsonDecode(response.body);
+    if (json is! Map<String, dynamic>) {
+      throw const MetadataParsingException('Invalid metadata format');
+    }
+
+    final versionsJson = json['versions'];
+    if (versionsJson is! List) {
+      throw const MetadataParsingException('Missing or invalid versions array');
+    }
+
+    _cachedMetadata = versionsJson
+        .map((v) => BibleVersionMetadata.fromJson(v as Map<String, dynamic>))
+        .toList();
+
+    return _cachedMetadata!;
+  }
+
+  /// Fetches versions from GitHub API by scanning language folders.
+  Future<List<BibleVersionMetadata>> _fetchFromGitHubApi() async {
+    final versions = <BibleVersionMetadata>[];
+
+    for (final language in supportedLanguages) {
+      try {
+        final languageVersions = await fetchVersionsByLanguage(language);
+        versions.addAll(languageVersions);
+      } catch (e) {
+        // Continue with other languages if one fails
+        continue;
+      }
+    }
+
+    if (versions.isEmpty) {
+      throw const NetworkException('No Bible versions found');
+    }
+
+    _cachedMetadata = versions;
+    return _cachedMetadata!;
+  }
+
+  /// Fetches Bible versions for a specific language from GitHub API.
+  ///
+  /// [languageCode] - The language code (e.g., 'en', 'es', 'fr', 'ja', 'pt').
+  ///
+  /// Returns a list of [BibleVersionMetadata] for the specified language.
+  /// Throws [NetworkException] if the fetch fails.
+  Future<List<BibleVersionMetadata>> fetchVersionsByLanguage(
+      String languageCode) async {
+    final url = '$githubApiBaseUrl/$languageCode';
+    final response = await httpClient.get(url);
+
+    if (!response.isSuccess) {
+      throw NetworkException(
+        'Failed to fetch versions for language: $languageCode',
+        statusCode: response.statusCode,
+      );
+    }
+
+    final json = jsonDecode(response.body);
+    if (json is! List) {
+      throw MetadataParsingException(
+          'Invalid response for language: $languageCode');
+    }
+
+    final versions = <BibleVersionMetadata>[];
+    for (final item in json) {
+      if (item is! Map<String, dynamic>) continue;
+
+      final name = item['name'] as String?;
+      if (name == null || !name.endsWith('.SQLite3')) continue;
+
+      // Extract version ID from filename (e.g., 'KJV_en.SQLite3' -> 'en-KJV')
+      final filenameParts = name.replaceAll('.SQLite3', '').split('_');
+      if (filenameParts.length < 2) continue;
+
+      final versionName = filenameParts[0]; // e.g., 'KJV', 'NVI', 'RVR1960'
+      final id = '$languageCode-$versionName';
+
+      final sizeBytes = item['size'] as int? ?? 0;
+      final downloadUrl = '$githubRawBaseUrl/$languageCode/$name';
+
+      versions.add(BibleVersionMetadata(
+        id: id,
+        name: _getVersionDisplayName(versionName, languageCode),
+        language: languageCode,
+        languageName: languageNames[languageCode] ?? languageCode,
+        filename: name,
+        downloadUrl: downloadUrl,
+        rawUrl: downloadUrl,
+        sizeBytes: sizeBytes,
+        uncompressedSizeBytes: sizeBytes, // Actual size for uncompressed files
+        version: '1.0.0',
+        description: _getVersionDescription(versionName, languageCode),
+        license: 'Public Domain',
+      ));
+    }
+
+    return versions;
+  }
+
+  /// Gets a human-readable display name for a Bible version.
+  String _getVersionDisplayName(String versionCode, String language) {
+    const displayNames = {
+      'KJV': 'King James Version',
+      'NIV': 'New International Version',
+      'NVI': 'Nueva Versión Internacional',
+      'RVR1960': 'Reina Valera 1960',
+      'LSG1910': 'Louis Segond 1910',
+      'JCB': 'Japanese Contemporary Bible',
+      'SK2003': 'Shinkaiyaku 2003',
+      'ARC': 'Almeida Revista e Corrigida',
+    };
+    return displayNames[versionCode] ?? versionCode;
+  }
+
+  /// Gets a description for a Bible version.
+  String _getVersionDescription(String versionCode, String language) {
+    const descriptions = {
+      'KJV': 'Traditional English translation from 1611',
+      'NIV': 'Modern English translation',
+      'NVI': 'Traducción moderna en español',
+      'RVR1960': 'Traducción tradicional en español',
+      'LSG1910': 'Traduction française classique',
+      'JCB': '現代日本語訳聖書',
+      'SK2003': '新改訳聖書 2003年版',
+      'ARC': 'Tradução portuguesa clássica',
+    };
+    return descriptions[versionCode] ??
+        'Bible version in ${languageNames[language] ?? language}';
   }
 
   /// Downloads a Bible version to local storage.
@@ -381,21 +530,30 @@ class BibleVersionRepository {
       // Write partial file
       await storage.writeFile(partialPath, downloadedBytes);
 
-      // Decompress if needed (gzip)
-      List<int> decompressedBytes;
+      // Try to decompress if gzipped, otherwise use raw bytes
+      List<int> finalBytes;
       try {
-        decompressedBytes = gzip.decode(downloadedBytes);
+        // Check if it's gzip compressed (gzip magic number: 0x1f 0x8b)
+        if (downloadedBytes.length >= 2 &&
+            downloadedBytes[0] == 0x1f &&
+            downloadedBytes[1] == 0x8b) {
+          finalBytes = gzip.decode(downloadedBytes);
+        } else {
+          // Raw SQLite file (not compressed)
+          finalBytes = downloadedBytes;
+        }
       } catch (e) {
-        throw DecompressionException(versionId, e);
+        // If gzip decode fails, try using raw bytes
+        finalBytes = downloadedBytes;
       }
 
       // Validate the database (basic check: SQLite header)
-      if (!_isValidSqliteDatabase(decompressedBytes)) {
+      if (!_isValidSqliteDatabase(finalBytes)) {
         throw DatabaseCorruptedException.forVersion(versionId);
       }
 
       // Write final file
-      await storage.writeFile(dbPath, decompressedBytes);
+      await storage.writeFile(dbPath, finalBytes);
 
       // Remove partial file
       await storage.deleteFile(partialPath);
