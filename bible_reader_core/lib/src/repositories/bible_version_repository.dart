@@ -695,7 +695,7 @@ class BibleVersionRepository {
 
   /// Construye la URL de descarga para una versión bíblica, igual que DevocionalProvider
   static String getBibleVersionDownloadUrl(String language, String filename) {
-    return 'https://raw.githubusercontent.com/develop4God/bible_versions/refs/heads/main/$language/$filename';
+    return 'https://raw.githubusercontent.com/develop4God/bible_versions/refs/heads/main/$language/$filename';
   }
 }
 
