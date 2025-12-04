@@ -141,26 +141,56 @@ class BibleSelectedVersionProvider extends ChangeNotifier {
     await _repository.initialize();
     final downloadedIds = await _repository.getDownloadedVersionIds();
     final allVersions = await _repository.fetchAvailableVersions();
-    final versionObj = allVersions.firstWhere(
-      (v) => v.language == lang && v.name == version,
-      orElse: () => allVersions.firstWhere(
-        (v) => v.language == lang,
-        orElse: () => allVersions.first,
-      ),
-    );
+    debugPrint('[BibleProvider] Versiones disponibles para $lang: ' +
+        allVersions
+            .where((v) => v.language == lang)
+            .map((v) => v.name)
+            .join(', '));
+    var versionObj;
+    try {
+      versionObj = allVersions.firstWhere(
+        (v) => v.language == lang && v.name == version,
+        orElse: () => allVersions.firstWhere(
+          (v) => v.language == lang,
+        ),
+      );
+    } catch (_) {
+      _errorMessage =
+          'No hay ninguna versión bíblica disponible para el idioma $lang.';
+      _state = BibleProviderState.error;
+      notifyListeners();
+      return false;
+    }
+    _selectedVersion = versionObj.name;
     return downloadedIds.contains(versionObj.id);
   }
 
   Future<bool> _downloadVersion(String lang, String version) async {
     await _repository.initialize();
     final allVersions = await _repository.fetchAvailableVersions();
-    final versionObj = allVersions.firstWhere(
-      (v) => v.language == lang && v.name == version,
-      orElse: () => allVersions.firstWhere(
-        (v) => v.language == lang,
-        orElse: () => allVersions.first,
-      ),
-    );
+    debugPrint('[BibleProvider] Versiones disponibles para $lang: ' +
+        allVersions
+            .where((v) => v.language == lang)
+            .map((v) => v.name)
+            .join(', '));
+    var versionObj;
+    try {
+      versionObj = allVersions.firstWhere(
+        (v) => v.language == lang && v.name == version,
+        orElse: () => allVersions.firstWhere(
+          (v) => v.language == lang,
+        ),
+      );
+    } catch (_) {
+      _errorMessage =
+          'No hay ninguna versión bíblica disponible para el idioma $lang.';
+      _state = BibleProviderState.error;
+      notifyListeners();
+      return false;
+    }
+    _selectedVersion = versionObj.name;
+    debugPrint(
+        '[BibleProvider] URL de descarga para [1m${versionObj.name}[0m: ${versionObj.downloadUrl}');
     try {
       await _repository.downloadVersion(versionObj.id);
       return true;

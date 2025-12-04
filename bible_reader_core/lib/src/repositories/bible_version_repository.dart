@@ -146,7 +146,7 @@ class BibleVersionRepository {
     this.githubApiBaseUrl =
         'https://api.github.com/repos/develop4God/bible_versions/contents',
     this.githubRawBaseUrl =
-        'https://raw.githubusercontent.com/develop4God/bible_versions/main',
+        'https://raw.githubusercontent.com/develop4God/bible_versions/refs/heads/main',
     this.retryConfig = const RetryConfig(),
     this.maxConcurrentDownloads = 2,
   });
@@ -257,7 +257,8 @@ class BibleVersionRepository {
   /// Returns a list of [BibleVersionMetadata] for the specified language.
   /// Throws [NetworkException] if the fetch fails.
   Future<List<BibleVersionMetadata>> fetchVersionsByLanguage(
-      String languageCode) async {
+    String languageCode,
+  ) async {
     final url = '$githubApiBaseUrl/$languageCode';
     final response = await httpClient.get(url);
 
@@ -271,7 +272,8 @@ class BibleVersionRepository {
     final json = jsonDecode(response.body);
     if (json is! List) {
       throw MetadataParsingException(
-          'Invalid response for language: $languageCode');
+        'Invalid response for language: $languageCode',
+      );
     }
 
     final versions = <BibleVersionMetadata>[];
@@ -289,22 +291,25 @@ class BibleVersionRepository {
       final id = '$languageCode-$versionName';
 
       final sizeBytes = item['size'] as int? ?? 0;
-      final downloadUrl = '$githubRawBaseUrl/$languageCode/$name';
+      final downloadUrl = getBibleVersionDownloadUrl(languageCode, name);
 
-      versions.add(BibleVersionMetadata(
-        id: id,
-        name: _getVersionDisplayName(versionName, languageCode),
-        language: languageCode,
-        languageName: languageNames[languageCode] ?? languageCode,
-        filename: name,
-        downloadUrl: downloadUrl,
-        rawUrl: downloadUrl,
-        sizeBytes: sizeBytes,
-        uncompressedSizeBytes: sizeBytes, // Actual size for uncompressed files
-        version: '1.0.0',
-        description: _getVersionDescription(versionName, languageCode),
-        license: 'Public Domain',
-      ));
+      versions.add(
+        BibleVersionMetadata(
+          id: id,
+          name: _getVersionDisplayName(versionName, languageCode),
+          language: languageCode,
+          languageName: languageNames[languageCode] ?? languageCode,
+          filename: name,
+          downloadUrl: downloadUrl,
+          rawUrl: downloadUrl,
+          sizeBytes: sizeBytes,
+          uncompressedSizeBytes: sizeBytes,
+          // Actual size for uncompressed files
+          version: '1.0.0',
+          description: _getVersionDescription(versionName, languageCode),
+          license: 'Public Domain',
+        ),
+      );
     }
 
     return versions;
@@ -364,8 +369,10 @@ class BibleVersionRepository {
     }
 
     // Add to queue with priority
-    final queuedDownload =
-        _QueuedDownload(versionId: versionId, priority: priority);
+    final queuedDownload = _QueuedDownload(
+      versionId: versionId,
+      priority: priority,
+    );
 
     if (priority == DownloadPriority.high) {
       _downloadQueue.insert(0, queuedDownload);
@@ -416,19 +423,21 @@ class BibleVersionRepository {
       _activeDownloads++;
       _updateQueuePositions();
 
-      _performDownloadWithRetry(download).then((_) {
-        _downloadQueue.remove(download);
-        _activeDownloads--;
-        download.completer.complete();
-        _updateQueuePositions();
-        _processQueue();
-      }).catchError((error) {
-        _downloadQueue.remove(download);
-        _activeDownloads--;
-        download.completer.completeError(error);
-        _updateQueuePositions();
-        _processQueue();
-      });
+      _performDownloadWithRetry(download)
+          .then((_) {
+            _downloadQueue.remove(download);
+            _activeDownloads--;
+            download.completer.complete();
+            _updateQueuePositions();
+            _processQueue();
+          })
+          .catchError((error) {
+            _downloadQueue.remove(download);
+            _activeDownloads--;
+            download.completer.completeError(error);
+            _updateQueuePositions();
+            _processQueue();
+          });
     }
   }
 
@@ -517,8 +526,9 @@ class BibleVersionRepository {
       // Download the file
       final downloadedBytes = <int>[];
 
-      await for (final progress
-          in httpClient.downloadStream(metadata.downloadUrl)) {
+      await for (final progress in httpClient.downloadStream(
+        metadata.downloadUrl,
+      )) {
         downloadedBytes.addAll(progress.data);
         controller?.add(progress.progress);
       }
@@ -600,7 +610,7 @@ class BibleVersionRepository {
       0x74,
       0x20,
       0x33,
-      0x00
+      0x00,
     ];
 
     if (bytes.length < sqliteHeader.length) {
@@ -677,6 +687,11 @@ class BibleVersionRepository {
     _progressControllers.clear();
     _queuePositionController.close();
   }
+
+  /// Construye la URL de descarga para una versión bíblica, igual que DevocionalProvider
+  static String getBibleVersionDownloadUrl(String language, String filename) {
+    return 'https://raw.githubusercontent.com/develop4God/bible_versions/refs/heads/main/$language/$filename';
+  }
 }
 
 /// Internal class for managing queued downloads.
@@ -686,8 +701,5 @@ class _QueuedDownload {
   final Completer<void> completer = Completer<void>();
   bool isProcessing = false;
 
-  _QueuedDownload({
-    required this.versionId,
-    required this.priority,
-  });
+  _QueuedDownload({required this.versionId, required this.priority});
 }
