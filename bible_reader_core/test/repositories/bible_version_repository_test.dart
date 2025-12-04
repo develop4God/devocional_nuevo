@@ -57,12 +57,39 @@ class MockHttpClient implements HttpClient {
     );
   }
 
+  void givenDownloadResponse(String versionId, List<int> data) {
+    _downloadStreams[versionId] = MockDownloadStream(
+      data: data,
+      total: data.length,
+    );
+  }
+
+  void givenDownloadResponseWithDelay(String versionId, Duration delay) {
+    // Create a valid gzip compressed SQLite-like response
+    _downloadStreams[versionId] = MockDownloadStream(
+      data: gzip.encode([0x53, 0x51, 0x4C, 0x69, 0x74, 0x65]),
+      total: 6,
+      delayBetweenChunks: delay,
+    );
+  }
+
+  void givenGetThrows(String urlPattern, Exception exception) {
+    _exceptions[urlPattern] = exception;
+  }
+
+  final Map<String, Exception> _exceptions = {};
+
   Future<void> verifyNoDownloadStarted() async {
     expect(_downloadStarted, isFalse, reason: 'Download should not have started');
   }
 
   @override
   Future<HttpResponse> get(String url) async {
+    for (final pattern in _exceptions.keys) {
+      if (url.contains(pattern)) {
+        throw _exceptions[pattern]!;
+      }
+    }
     for (final pattern in _responses.keys) {
       if (url.contains(pattern)) {
         final response = _responses[pattern]!;
@@ -556,6 +583,103 @@ void main() {
       versions = await repo.fetchAvailableVersions();
       expect(versions, hasLength(2));
     });
+
+    test('Download corrupted response is detected', () async {
+      // Given: Download returns invalid data (not a SQLite database)
+      mockStorage.givenDownloadedVersions([]);
+      mockStorage.givenAvailableSpace(100 * 1024 * 1024); // 100MB
+      mockHttp.givenMetadataResponse([
+        createVersionMetadata(
+          id: 'es-RVR1960',
+          name: 'Reina Valera 1960',
+          language: 'es',
+          languageName: 'Español',
+          sizeBytes: 1000,
+          uncompressedSizeBytes: 1000,
+        ),
+      ]);
+      // Valid gzip data that decompresses to invalid SQLite content
+      mockHttp.givenDownloadProducesCorruptedFile('es-RVR1960');
+
+      await repo.initialize();
+
+      // When/Then: Throws DatabaseCorruptedException
+      expect(
+        () => repo.downloadVersion('es-RVR1960'),
+        throwsA(isA<DatabaseCorruptedException>()),
+      );
+    });
+
+    test('Metadata fetch timeout throws NetworkException', () async {
+      // Given: Network timeout
+      mockHttp.givenGetThrows('metadata.json', NetworkException('Connection timeout'));
+
+      // When/Then: Network exception
+      expect(
+        () => repo.fetchAvailableVersions(),
+        throwsA(isA<NetworkException>()),
+      );
+    });
+
+    test('Download fills disk space throws InsufficientStorageException', () async {
+      // Given: Not enough space for download (need 2x buffer)
+      mockStorage.givenDownloadedVersions([]);
+      mockStorage.givenAvailableSpace(10 * 1024); // Only 10KB available
+      mockHttp.givenMetadataResponse([
+        createVersionMetadata(
+          id: 'es-RVR1960',
+          name: 'Reina Valera 1960',
+          language: 'es',
+          languageName: 'Español',
+          sizeBytes: 100 * 1024, // 100KB compressed
+          uncompressedSizeBytes: 200 * 1024, // 200KB uncompressed
+        ),
+      ]);
+
+      await repo.initialize();
+
+      // When/Then: Throws InsufficientStorageException
+      expect(
+        () => repo.downloadVersion('es-RVR1960'),
+        throwsA(isA<InsufficientStorageException>()),
+      );
+    });
+
+    test('Delete version while downloading cancels download', () async {
+      // Given: Download in progress
+      mockStorage.givenDownloadedVersions([]);
+      mockStorage.givenAvailableSpace(100 * 1024 * 1024);
+      mockHttp.givenMetadataResponse([
+        createVersionMetadata(
+          id: 'es-RVR1960',
+          name: 'Reina Valera 1960',
+          language: 'es',
+          languageName: 'Español',
+          sizeBytes: 1000,
+          uncompressedSizeBytes: 2000,
+        ),
+      ]);
+      mockHttp.givenDownloadResponseWithDelay('es-RVR1960', Duration(seconds: 5));
+
+      await repo.initialize();
+
+      // Start download (don't await)
+      final downloadFuture = repo.downloadVersion('es-RVR1960');
+
+      // Delete while downloading
+      await Future.delayed(Duration(milliseconds: 100));
+      await repo.deleteVersion('es-RVR1960');
+
+      // Verify version is not downloaded
+      expect(repo.isVersionDownloaded('es-RVR1960'), isFalse);
+
+      // Clean up the future
+      try {
+        await downloadFuture;
+      } catch (_) {
+        // Expected to fail or complete without the version
+      }
+    });
   });
 
   group('Model Tests', () {
@@ -649,9 +773,26 @@ void main() {
     });
 
     test('DatabaseCorruptedException has correct properties', () {
-      const e = DatabaseCorruptedException('test-version');
+      const e = DatabaseCorruptedException.forVersion('test-version');
       expect(e.versionId, equals('test-version'));
       expect(e.message, contains('test-version'));
+    });
+
+    test('DatabaseCorruptedException with message has correct properties', () {
+      const e = DatabaseCorruptedException('Test corruption error');
+      expect(e.versionId, isNull);
+      expect(e.message, equals('Test corruption error'));
+    });
+
+    test('DatabaseSchemaException has correct properties', () {
+      const e = DatabaseSchemaException(
+        'Schema mismatch',
+        expectedVersion: 2,
+        actualVersion: 1,
+      );
+      expect(e.expectedVersion, equals(2));
+      expect(e.actualVersion, equals(1));
+      expect(e.message, equals('Schema mismatch'));
     });
   });
 }

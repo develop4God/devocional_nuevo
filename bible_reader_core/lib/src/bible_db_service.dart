@@ -5,6 +5,8 @@ import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 
+import 'exceptions/bible_version_exceptions.dart';
+
 /// Service for interacting with Bible SQLite databases.
 ///
 /// Supports two modes:
@@ -61,9 +63,15 @@ class BibleDbService {
   /// Use this method when [customDatabasePath] is set.
   /// This is typically used for downloaded Bible versions.
   ///
+  /// Performs validation:
+  /// 1. Schema version check (PRAGMA user_version)
+  /// 2. Database integrity check (PRAGMA integrity_check)
+  ///
   /// Throws [StateError] if [customDatabasePath] is null.
   /// Throws [FileSystemException] if the database file doesn't exist.
-  Future<void> initDbFromPath() async {
+  /// Throws [DatabaseSchemaException] if schema version doesn't match.
+  /// Throws [DatabaseCorruptedException] if integrity check fails.
+  Future<void> initDbFromPath({int? expectedSchemaVersion}) async {
     if (customDatabasePath == null) {
       throw StateError(
         'customDatabasePath is null. Use initDb() for asset-based databases.',
@@ -78,6 +86,30 @@ class BibleDbService {
     }
 
     _db = await openDatabase(customDatabasePath!, readOnly: true);
+
+    // Validate schema version if expected version is provided
+    if (expectedSchemaVersion != null) {
+      final versionResult = await _db.rawQuery('PRAGMA user_version');
+      final actualVersion = versionResult.first['user_version'] as int? ?? 0;
+      if (actualVersion != expectedSchemaVersion) {
+        await _db.close();
+        throw DatabaseSchemaException(
+          'Schema version mismatch: expected $expectedSchemaVersion, got $actualVersion',
+          expectedVersion: expectedSchemaVersion,
+          actualVersion: actualVersion,
+        );
+      }
+    }
+
+    // Run integrity check
+    final integrityResult = await _db.rawQuery('PRAGMA integrity_check');
+    final integrityStatus = integrityResult.first['integrity_check'] as String?;
+    if (integrityStatus != 'ok') {
+      await _db.close();
+      throw DatabaseCorruptedException(
+        'Database integrity check failed: $integrityStatus',
+      );
+    }
   }
 
   /// Returns true if the database has been initialized.

@@ -384,7 +384,7 @@ class BibleVersionRepository {
 
       // Validate the database (basic check: SQLite header)
       if (!_isValidSqliteDatabase(decompressedBytes)) {
-        throw DatabaseCorruptedException(versionId);
+        throw DatabaseCorruptedException.forVersion(versionId);
       }
 
       // Write final file

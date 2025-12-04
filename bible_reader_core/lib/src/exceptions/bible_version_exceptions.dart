@@ -62,15 +62,44 @@ class InsufficientStorageException extends BibleVersionException {
 
 /// Exception thrown when a downloaded database is corrupted.
 class DatabaseCorruptedException extends BibleVersionException {
-  /// The version ID that was corrupted.
-  final String versionId;
+  /// The version ID that was corrupted (optional for integrity check failures).
+  final String? versionId;
 
-  /// Creates a database corrupted exception.
-  const DatabaseCorruptedException(this.versionId, [Object? cause])
-      : super('Database for version $versionId is corrupted', cause);
+  /// Creates a database corrupted exception with version ID.
+  const DatabaseCorruptedException.forVersion(String versionId, [Object? cause])
+      : versionId = versionId,
+        super('Database for version $versionId is corrupted', cause);
+
+  /// Creates a database corrupted exception with a message.
+  const DatabaseCorruptedException(String message, [Object? cause])
+      : versionId = null,
+        super(message, cause);
 
   @override
-  String toString() => 'DatabaseCorruptedException: $versionId';
+  String toString() => versionId != null
+      ? 'DatabaseCorruptedException: $versionId'
+      : 'DatabaseCorruptedException: $message';
+}
+
+/// Exception thrown when database schema version doesn't match expected version.
+class DatabaseSchemaException extends BibleVersionException {
+  /// Expected schema version.
+  final int expectedVersion;
+
+  /// Actual schema version found.
+  final int actualVersion;
+
+  /// Creates a database schema exception.
+  const DatabaseSchemaException(
+    super.message, {
+    required this.expectedVersion,
+    required this.actualVersion,
+  });
+
+  @override
+  String toString() =>
+      'DatabaseSchemaException: expected version $expectedVersion, '
+      'found $actualVersion';
 }
 
 /// Exception thrown when metadata JSON is malformed.
