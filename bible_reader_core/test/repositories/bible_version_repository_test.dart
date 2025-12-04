@@ -65,10 +65,15 @@ class MockHttpClient implements HttpClient {
   }
 
   void givenDownloadResponseWithDelay(String versionId, Duration delay) {
-    // Create a valid gzip compressed SQLite-like response
+    // Create a valid gzip compressed SQLite-like response with proper header
+    // SQLite header: 'SQLite format 3\0' (16 bytes)
+    final sqliteHeader = [
+      0x53, 0x51, 0x4C, 0x69, 0x74, 0x65, 0x20, 0x66,
+      0x6F, 0x72, 0x6D, 0x61, 0x74, 0x20, 0x33, 0x00
+    ];
     _downloadStreams[versionId] = MockDownloadStream(
-      data: gzip.encode([0x53, 0x51, 0x4C, 0x69, 0x74, 0x65]),
-      total: 6,
+      data: gzip.encode(sqliteHeader),
+      total: sqliteHeader.length,
       delayBetweenChunks: delay,
     );
   }

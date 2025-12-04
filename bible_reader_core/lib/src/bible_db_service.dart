@@ -90,6 +90,12 @@ class BibleDbService {
     // Validate schema version if expected version is provided
     if (expectedSchemaVersion != null) {
       final versionResult = await _db.rawQuery('PRAGMA user_version');
+      if (versionResult.isEmpty) {
+        await _db.close();
+        throw DatabaseCorruptedException(
+          'Could not read schema version from database',
+        );
+      }
       final actualVersion = versionResult.first['user_version'] as int? ?? 0;
       if (actualVersion != expectedSchemaVersion) {
         await _db.close();
@@ -103,6 +109,12 @@ class BibleDbService {
 
     // Run integrity check
     final integrityResult = await _db.rawQuery('PRAGMA integrity_check');
+    if (integrityResult.isEmpty) {
+      await _db.close();
+      throw DatabaseCorruptedException(
+        'Could not perform integrity check on database',
+      );
+    }
     final integrityStatus = integrityResult.first['integrity_check'] as String?;
     if (integrityStatus != 'ok') {
       await _db.close();
