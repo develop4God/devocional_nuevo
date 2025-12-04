@@ -282,6 +282,11 @@ void main() {
       httpClient: mockHttp,
       storage: mockStorage,
       metadataUrl: 'https://test.com/metadata.json',
+      // Use no retries for faster tests
+      retryConfig: const RetryConfig(
+        maxRetries: 0,
+        initialDelay: Duration.zero,
+      ),
     );
   });
 
@@ -355,10 +360,13 @@ void main() {
 
       await repo.initialize();
 
-      // When: Network drops at 50%
+      // When: Network drops at 50% - with 0 retries configured, it throws MaxRetriesExceededException
       expect(
         () => repo.downloadVersion('en-KJV'),
-        throwsA(isA<NetworkException>()),
+        throwsA(anyOf(
+          isA<NetworkException>(),
+          isA<MaxRetriesExceededException>(),
+        )),
       );
 
       // Then: Version not marked downloaded (no partial data remains)

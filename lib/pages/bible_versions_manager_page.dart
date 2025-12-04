@@ -236,6 +236,23 @@ class _VersionTile extends StatelessWidget {
           tooltip: 'Download',
         );
 
+      case DownloadState.queued:
+        return Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(
+              width: 24,
+              height: 24,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              '#${version.queuePosition}',
+              style: Theme.of(context).textTheme.labelMedium,
+            ),
+          ],
+        );
+
       case DownloadState.downloading:
         return SizedBox(
           width: 48,
@@ -253,6 +270,32 @@ class _VersionTile extends StatelessWidget {
               ),
             ],
           ),
+        );
+
+      case DownloadState.paused:
+        return IconButton(
+          icon: Icon(Icons.play_arrow, color: colorScheme.primary),
+          onPressed: () {
+            bloc.add(DownloadVersionEvent(version.metadata.id));
+          },
+          tooltip: 'Resume',
+        );
+
+      case DownloadState.validating:
+        return Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(
+              width: 24,
+              height: 24,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              'Validating...',
+              style: Theme.of(context).textTheme.labelSmall,
+            ),
+          ],
         );
 
       case DownloadState.downloaded:

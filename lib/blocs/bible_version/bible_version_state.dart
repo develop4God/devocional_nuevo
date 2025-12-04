@@ -27,9 +27,13 @@ class BibleVersionLoaded extends BibleVersionState {
   /// Set of version IDs that are currently downloaded.
   final Set<String> downloadedVersionIds;
 
+  /// Current queue positions for queued downloads.
+  final Map<String, int> queuePositions;
+
   const BibleVersionLoaded({
     required this.versions,
     required this.downloadedVersionIds,
+    this.queuePositions = const {},
   });
 
   /// Returns versions filtered by language.
@@ -53,19 +57,35 @@ class BibleVersionLoaded extends BibleVersionState {
         .toList();
   }
 
+  /// Returns versions currently in the download queue.
+  List<BibleVersionWithState> get queuedVersions {
+    return versions
+        .where((v) => v.state == DownloadState.queued)
+        .toList();
+  }
+
+  /// Returns versions currently being validated.
+  List<BibleVersionWithState> get validatingVersions {
+    return versions
+        .where((v) => v.state == DownloadState.validating)
+        .toList();
+  }
+
   /// Creates a copy with updated versions.
   BibleVersionLoaded copyWith({
     List<BibleVersionWithState>? versions,
     Set<String>? downloadedVersionIds,
+    Map<String, int>? queuePositions,
   }) {
     return BibleVersionLoaded(
       versions: versions ?? this.versions,
       downloadedVersionIds: downloadedVersionIds ?? this.downloadedVersionIds,
+      queuePositions: queuePositions ?? this.queuePositions,
     );
   }
 
   @override
-  List<Object?> get props => [versions, downloadedVersionIds];
+  List<Object?> get props => [versions, downloadedVersionIds, queuePositions];
 }
 
 /// State when loading or an operation fails.

@@ -11,13 +11,19 @@ import 'bible_version_state.dart';
 /// This BLoC wraps the framework-agnostic [BibleVersionRepository] from
 /// bible_reader_core and converts its streams/futures to BLoC events and states.
 ///
+/// Features:
+/// - Download queue management with priority support
+/// - Retry logic with exponential backoff
+/// - Queue position tracking
+/// - Validation state tracking
+///
 /// Usage:
 /// ```dart
 /// final bloc = BibleVersionBloc(repository: repository);
 /// bloc.add(const LoadBibleVersionsEvent());
 ///
-/// // Later:
-/// bloc.add(DownloadVersionEvent('es-RVR1960'));
+/// // Later, download with high priority:
+/// bloc.add(DownloadVersionEvent('es-RVR1960', priority: DownloadPriority.high));
 /// ```
 class BibleVersionBloc extends Bloc<BibleVersionEvent, BibleVersionState> {
   /// The underlying repository for Bible version operations.
@@ -25,6 +31,9 @@ class BibleVersionBloc extends Bloc<BibleVersionEvent, BibleVersionState> {
 
   /// Active download progress subscriptions.
   final Map<String, StreamSubscription<double>> _progressSubscriptions = {};
+
+  /// Subscription for queue position updates.
+  StreamSubscription<Map<String, int>>? _queuePositionSubscription;
 
   /// Creates a BibleVersionBloc with the given repository.
   BibleVersionBloc({required this.repository})
@@ -35,6 +44,13 @@ class BibleVersionBloc extends Bloc<BibleVersionEvent, BibleVersionState> {
     on<UpdateDownloadProgressEvent>(_onUpdateProgress);
     on<DownloadCompletedEvent>(_onDownloadCompleted);
     on<DownloadFailedEvent>(_onDownloadFailed);
+    on<UpdateQueuePositionsEvent>(_onUpdateQueuePositions);
+    on<ValidationStartedEvent>(_onValidationStarted);
+
+    // Subscribe to queue position updates
+    _queuePositionSubscription = repository.queuePositionUpdates.listen((positions) {
+      add(UpdateQueuePositionsEvent(positions));
+    });
   }
 
   Future<void> _onLoadVersions(
@@ -85,10 +101,20 @@ class BibleVersionBloc extends Bloc<BibleVersionEvent, BibleVersionState> {
     final currentState = state;
     if (currentState is! BibleVersionLoaded) return;
 
-    // Update the version state to downloading
+    // Check if version is already queued or downloading
+    final existingVersion = currentState.versions.firstWhere(
+      (v) => v.metadata.id == event.versionId,
+      orElse: () => throw StateError('Version not found'),
+    );
+    if (existingVersion.state == DownloadState.downloading ||
+        existingVersion.state == DownloadState.queued) {
+      return; // Already in progress
+    }
+
+    // Update the version state to queued initially
     final versions = currentState.versions.map((v) {
       if (v.metadata.id == event.versionId) {
-        return v.copyWith(state: DownloadState.downloading, progress: 0.0, clearError: true);
+        return v.copyWith(state: DownloadState.queued, progress: 0.0, clearError: true);
       }
       return v;
     }).toList();
@@ -107,9 +133,9 @@ class BibleVersionBloc extends Bloc<BibleVersionEvent, BibleVersionState> {
       },
     );
 
-    // Start download
+    // Start download with priority
     try {
-      await repository.downloadVersion(event.versionId);
+      await repository.downloadVersion(event.versionId, priority: event.priority);
       add(DownloadCompletedEvent(event.versionId));
     } on InsufficientStorageException catch (e) {
       add(DownloadFailedEvent(
@@ -120,6 +146,11 @@ class BibleVersionBloc extends Bloc<BibleVersionEvent, BibleVersionState> {
       add(DownloadFailedEvent(
         versionId: event.versionId,
         errorMessage: 'Downloaded file was corrupted. Please try again.',
+      ));
+    } on MaxRetriesExceededException catch (e) {
+      add(DownloadFailedEvent(
+        versionId: event.versionId,
+        errorMessage: 'Download failed after ${e.attempts} attempts. Please try again later.',
       ));
     } on NetworkException catch (e) {
       add(DownloadFailedEvent(
@@ -241,8 +272,57 @@ class BibleVersionBloc extends Bloc<BibleVersionEvent, BibleVersionState> {
     return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
   }
 
+  void _onUpdateQueuePositions(
+    UpdateQueuePositionsEvent event,
+    Emitter<BibleVersionState> emit,
+  ) {
+    final currentState = state;
+    if (currentState is! BibleVersionLoaded) return;
+
+    // Update version states based on queue positions
+    final versions = currentState.versions.map((v) {
+      final position = event.positions[v.metadata.id];
+      if (position != null) {
+        // In queue - update position
+        return v.copyWith(
+          state: v.state == DownloadState.downloading 
+              ? DownloadState.downloading 
+              : DownloadState.queued,
+          queuePosition: position,
+        );
+      } else if (v.state == DownloadState.queued) {
+        // Was in queue but now processing - set to downloading
+        return v.copyWith(state: DownloadState.downloading, queuePosition: 0);
+      }
+      return v;
+    }).toList();
+
+    emit(currentState.copyWith(
+      versions: versions,
+      queuePositions: event.positions,
+    ));
+  }
+
+  void _onValidationStarted(
+    ValidationStartedEvent event,
+    Emitter<BibleVersionState> emit,
+  ) {
+    final currentState = state;
+    if (currentState is! BibleVersionLoaded) return;
+
+    final versions = currentState.versions.map((v) {
+      if (v.metadata.id == event.versionId) {
+        return v.copyWith(state: DownloadState.validating);
+      }
+      return v;
+    }).toList();
+
+    emit(currentState.copyWith(versions: versions));
+  }
+
   @override
   Future<void> close() {
+    _queuePositionSubscription?.cancel();
     for (final subscription in _progressSubscriptions.values) {
       subscription.cancel();
     }

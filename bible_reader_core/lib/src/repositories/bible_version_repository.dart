@@ -7,11 +7,51 @@ import '../interfaces/bible_version_storage.dart';
 import '../interfaces/http_client.dart';
 import '../models/bible_version_model.dart';
 
+/// Configuration for download retry behavior.
+class RetryConfig {
+  /// Maximum number of retry attempts.
+  final int maxRetries;
+
+  /// Initial delay between retries (doubles with each attempt).
+  final Duration initialDelay;
+
+  /// Maximum delay between retries.
+  final Duration maxDelay;
+
+  /// Creates a retry configuration.
+  const RetryConfig({
+    this.maxRetries = 3,
+    this.initialDelay = const Duration(seconds: 2),
+    this.maxDelay = const Duration(seconds: 30),
+  });
+
+  /// Calculates delay for given attempt (exponential backoff).
+  Duration delayForAttempt(int attempt) {
+    final delay = initialDelay * (1 << attempt); // 2^attempt
+    return delay > maxDelay ? maxDelay : delay;
+  }
+}
+
+/// Priority levels for download queue.
+enum DownloadPriority {
+  /// Normal priority (default).
+  normal,
+
+  /// High priority - moves to front of queue.
+  high,
+}
+
 /// Repository for managing Bible version downloads and storage.
 ///
 /// This is a framework-agnostic class that can be used with any state management
 /// solution (BLoC, Riverpod, Provider, etc.). It uses constructor-based
 /// dependency injection for all external dependencies.
+///
+/// Features:
+/// - Download queuing with priority support (max 2 concurrent)
+/// - Exponential backoff retry on failure (3 retries by default)
+/// - Pre-download storage space validation
+/// - SQLite database integrity verification
 ///
 /// Usage example:
 /// ```dart
@@ -24,11 +64,11 @@ import '../models/bible_version_model.dart';
 /// // Fetch available versions
 /// final versions = await repo.fetchAvailableVersions();
 ///
-/// // Download a version
+/// // Download a version with high priority
 /// repo.downloadProgress('es-RVR1960').listen((progress) {
 ///   print('Progress: ${progress * 100}%');
 /// });
-/// await repo.downloadVersion('es-RVR1960');
+/// await repo.downloadVersion('es-RVR1960', priority: DownloadPriority.high);
 /// ```
 class BibleVersionRepository {
   /// HTTP client for network operations.
@@ -40,8 +80,14 @@ class BibleVersionRepository {
   /// URL to fetch the metadata.json catalog.
   final String metadataUrl;
 
-  /// Buffer size in bytes before checking storage space (5MB).
-  static const int _storageCheckBufferBytes = 5 * 1024 * 1024;
+  /// Configuration for download retries.
+  final RetryConfig retryConfig;
+
+  /// Maximum concurrent downloads allowed.
+  final int maxConcurrentDownloads;
+
+  /// Buffer size multiplier for storage space (2x file size).
+  static const int _storageBufferMultiplier = 2;
 
   /// Cached metadata for available versions.
   List<BibleVersionMetadata>? _cachedMetadata;
@@ -52,22 +98,29 @@ class BibleVersionRepository {
   /// Map of version ID to download progress stream controllers.
   final Map<String, StreamController<double>> _progressControllers = {};
 
-  /// Queue for managing concurrent downloads.
-  final _downloadQueue = <String>[];
+  /// Queue for managing pending downloads.
+  final List<_QueuedDownload> _downloadQueue = [];
 
-  /// Flag indicating if a download is in progress.
-  bool _isDownloading = false;
+  /// Number of currently active downloads.
+  int _activeDownloads = 0;
+
+  /// Stream controller for queue position updates.
+  final _queuePositionController = StreamController<Map<String, int>>.broadcast();
 
   /// Creates a Bible version repository.
   ///
   /// [httpClient] - HTTP client implementation for network operations.
   /// [storage] - Storage implementation for file operations.
   /// [metadataUrl] - URL to fetch the versions catalog (metadata.json).
+  /// [retryConfig] - Configuration for download retry behavior.
+  /// [maxConcurrentDownloads] - Maximum number of simultaneous downloads (default: 2).
   BibleVersionRepository({
     required this.httpClient,
     required this.storage,
     this.metadataUrl =
         'https://raw.githubusercontent.com/develop4God/bible_versions/main/metadata.json',
+    this.retryConfig = const RetryConfig(),
+    this.maxConcurrentDownloads = 2,
   });
 
   /// Initializes the repository by loading the list of downloaded versions.
@@ -136,38 +189,128 @@ class BibleVersionRepository {
   /// Downloads a Bible version to local storage.
   ///
   /// Progress can be monitored via [downloadProgress].
-  /// Downloads are queued - only one download runs at a time.
+  /// Downloads are queued - max [maxConcurrentDownloads] run simultaneously.
+  /// Implements exponential backoff retry on transient failures.
+  ///
+  /// [priority] - Download priority (high moves to front of queue).
   ///
   /// Throws [InsufficientStorageException] if there isn't enough space.
-  /// Throws [NetworkException] if the download fails.
+  /// Throws [NetworkException] if the download fails after all retries.
   /// Throws [DatabaseCorruptedException] if validation fails.
   /// Throws [VersionNotFoundException] if the version doesn't exist.
-  Future<void> downloadVersion(String versionId) async {
-    // Add to queue
-    _downloadQueue.add(versionId);
-
-    // If already downloading, wait in queue
-    if (_isDownloading) {
-      await _waitForDownload(versionId);
-      return;
+  /// Throws [MaxRetriesExceededException] if download fails after max retries.
+  Future<void> downloadVersion(
+    String versionId, {
+    DownloadPriority priority = DownloadPriority.normal,
+  }) async {
+    // Check if already in queue or downloading
+    if (_downloadQueue.any((q) => q.versionId == versionId)) {
+      return; // Already queued
     }
 
-    _isDownloading = true;
-
-    while (_downloadQueue.isNotEmpty) {
-      final currentId = _downloadQueue.removeAt(0);
-      await _performDownload(currentId);
+    // Add to queue with priority
+    final queuedDownload = _QueuedDownload(versionId: versionId, priority: priority);
+    
+    if (priority == DownloadPriority.high) {
+      _downloadQueue.insert(0, queuedDownload);
+    } else {
+      _downloadQueue.add(queuedDownload);
     }
+    
+    _updateQueuePositions();
+    _processQueue();
 
-    _isDownloading = false;
+    // Wait for this download to complete
+    await queuedDownload.completer.future;
   }
 
-  Future<void> _waitForDownload(String versionId) async {
-    // Wait until our version is processed
-    while (_downloadQueue.contains(versionId) || 
-           (_progressControllers[versionId]?.hasListener ?? false)) {
-      await Future.delayed(const Duration(milliseconds: 100));
+  /// Returns the current queue position for a version (0 if not queued).
+  int getQueuePosition(String versionId) {
+    final index = _downloadQueue.indexWhere((q) => q.versionId == versionId);
+    return index >= 0 ? index + 1 : 0;
+  }
+
+  /// Stream of queue position updates as downloads progress.
+  Stream<Map<String, int>> get queuePositionUpdates => _queuePositionController.stream;
+
+  /// Calculates the required storage space for a version.
+  Future<int> calculateRequiredSpace(String versionId) async {
+    final versions = await fetchAvailableVersions();
+    final metadata = versions.where((v) => v.id == versionId).firstOrNull;
+    if (metadata == null) return 0;
+    return metadata.uncompressedSizeBytes * _storageBufferMultiplier;
+  }
+
+  void _updateQueuePositions() {
+    final positions = <String, int>{};
+    for (var i = 0; i < _downloadQueue.length; i++) {
+      positions[_downloadQueue[i].versionId] = i + 1;
     }
+    _queuePositionController.add(positions);
+  }
+
+  void _processQueue() {
+    while (_activeDownloads < maxConcurrentDownloads && _downloadQueue.isNotEmpty) {
+      final download = _downloadQueue.firstOrNull;
+      if (download == null || download.isProcessing) break;
+      
+      download.isProcessing = true;
+      _activeDownloads++;
+      _updateQueuePositions();
+      
+      _performDownloadWithRetry(download).then((_) {
+        _downloadQueue.remove(download);
+        _activeDownloads--;
+        download.completer.complete();
+        _updateQueuePositions();
+        _processQueue();
+      }).catchError((error) {
+        _downloadQueue.remove(download);
+        _activeDownloads--;
+        download.completer.completeError(error);
+        _updateQueuePositions();
+        _processQueue();
+      });
+    }
+  }
+
+  Future<void> _performDownloadWithRetry(_QueuedDownload download) async {
+    final versionId = download.versionId;
+    int attempt = 0;
+    Object? lastError;
+
+    while (attempt <= retryConfig.maxRetries) {
+      try {
+        await _performDownload(versionId);
+        return; // Success
+      } on NetworkException catch (e) {
+        lastError = e;
+        attempt++;
+        if (attempt <= retryConfig.maxRetries) {
+          final delay = retryConfig.delayForAttempt(attempt - 1);
+          await Future.delayed(delay);
+        }
+      } on InsufficientStorageException {
+        rethrow; // Don't retry storage issues
+      } on DatabaseCorruptedException {
+        rethrow; // Don't retry corruption
+      } on VersionNotFoundException {
+        rethrow; // Don't retry not found
+      } catch (e) {
+        lastError = e;
+        attempt++;
+        if (attempt <= retryConfig.maxRetries) {
+          final delay = retryConfig.delayForAttempt(attempt - 1);
+          await Future.delayed(delay);
+        }
+      }
+    }
+
+    throw MaxRetriesExceededException(
+      versionId: versionId,
+      attempts: retryConfig.maxRetries,
+      cause: lastError,
+    );
   }
 
   Future<void> _performDownload(String versionId) async {
@@ -183,9 +326,15 @@ class BibleVersionRepository {
         throw VersionNotFoundException(versionId);
       }
 
-      // Check storage space
+      // Validate metadata
+      final validationErrors = metadata.validate();
+      if (validationErrors.isNotEmpty) {
+        throw MetadataValidationException(validationErrors);
+      }
+
+      // Check storage space (require 2x uncompressed size as buffer)
       final availableSpace = await storage.getAvailableSpace();
-      final requiredSpace = metadata.uncompressedSizeBytes + _storageCheckBufferBytes;
+      final requiredSpace = metadata.uncompressedSizeBytes * _storageBufferMultiplier;
       
       if (availableSpace > 0 && availableSpace < requiredSpace) {
         throw InsufficientStorageException(
@@ -341,5 +490,19 @@ class BibleVersionRepository {
       controller.close();
     }
     _progressControllers.clear();
+    _queuePositionController.close();
   }
+}
+
+/// Internal class for managing queued downloads.
+class _QueuedDownload {
+  final String versionId;
+  final DownloadPriority priority;
+  final Completer<void> completer = Completer<void>();
+  bool isProcessing = false;
+
+  _QueuedDownload({
+    required this.versionId,
+    required this.priority,
+  });
 }

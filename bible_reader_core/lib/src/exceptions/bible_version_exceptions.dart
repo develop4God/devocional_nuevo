@@ -120,3 +120,36 @@ class DecompressionException extends BibleVersionException {
   @override
   String toString() => 'DecompressionException: $versionId';
 }
+
+/// Exception thrown when metadata validation fails.
+class MetadataValidationException extends BibleVersionException {
+  /// List of validation errors.
+  final List<String> errors;
+
+  /// Creates a metadata validation exception.
+  MetadataValidationException(this.errors)
+      : super('Metadata validation failed: ${errors.join(', ')}');
+
+  @override
+  String toString() => 'MetadataValidationException: ${errors.join(', ')}';
+}
+
+/// Exception thrown when maximum retry attempts are exceeded.
+class MaxRetriesExceededException extends BibleVersionException {
+  /// The version ID that exceeded retries.
+  final String versionId;
+
+  /// Number of retry attempts made.
+  final int attempts;
+
+  /// Creates a max retries exceeded exception.
+  const MaxRetriesExceededException({
+    required this.versionId,
+    required this.attempts,
+    Object? cause,
+  }) : super('Download failed after $attempts attempts for $versionId', cause);
+
+  @override
+  String toString() =>
+      'MaxRetriesExceededException: $versionId after $attempts attempts';
+}
