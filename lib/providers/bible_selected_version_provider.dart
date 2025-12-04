@@ -102,14 +102,15 @@ class BibleSelectedVersionProvider extends ChangeNotifier {
   Future<void> _updateAvailableVersions() async {
     await _repository.initialize();
     final allVersions = await _repository.fetchAvailableVersions();
+    final downloadedIds = await _repository.getDownloadedVersionIds();
     _availableVersions = allVersions
         .where((v) => v.language == _selectedLanguage)
         .map((meta) => BibleVersion(
               name: meta.name,
               language: meta.languageName,
               languageCode: meta.language,
-              dbFileName: meta.filename,
-              isDownloaded: true, // O ajusta según lógica real
+              dbFileName: '${meta.id}/bible.db',
+              isDownloaded: downloadedIds.contains(meta.id),
             ))
         .toList();
     notifyListeners();
