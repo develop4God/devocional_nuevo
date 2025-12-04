@@ -63,6 +63,9 @@ class StorageAdapter implements BibleVersionStorage {
     }
 
     await file.writeAsBytes(bytes, flush: true);
+    final exists = await file.exists();
+    print(
+        '[StorageAdapter] writeFile: Guardado en $path, ¿existe?: $exists, tamaño: ${bytes.length} bytes');
   }
 
   @override

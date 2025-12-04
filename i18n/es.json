@@ -15,6 +15,9 @@
     "skip": "Omitir"
   },
   "devotionals": {
+      "modern_voice_title": "🎤✨ ¡Nueva función disponible! ✨🎤",
+      "modern_voice_description": "Ahora puedes elegir entre distintas voces para la lectura devocional. Personaliza tu experiencia y disfruta de una lectura más agradable y moderna. 😃🔊",
+      "modern_voice_configure": "Configurar voces",
     "app_title": "Devocionales Diarios",
     "my_intimate_space_with_god": "Mi espacio íntimo con Dios",
     "devotional_of_the_day": "Devocional del día",
