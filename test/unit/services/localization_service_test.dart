@@ -405,8 +405,7 @@ void main() {
     setUp(() async {
       ServiceLocator().reset();
       SharedPreferences.setMockInitialValues({});
-      ServiceLocator().registerLazySingleton<LocalizationService>(
-          () => LocalizationService());
+      setupServiceLocator();
       localizationService = getService<LocalizationService>();
     });
 
@@ -434,12 +433,11 @@ void main() {
 
     test('Service recovers from initialization errors', () async {
       // Initialize with a persisted locale that may not have translations
+      ServiceLocator().reset();
       SharedPreferences.setMockInitialValues({'locale': 'es'});
 
-      // Re-create service with new SharedPreferences state
-      ServiceLocator().reset();
-      ServiceLocator().registerLazySingleton<LocalizationService>(
-          () => LocalizationService());
+      // Re-create service with new SharedPreferences state using setupServiceLocator
+      setupServiceLocator();
       final service = getService<LocalizationService>();
 
       await service.initialize();
