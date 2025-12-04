@@ -5,6 +5,7 @@ import 'dart:io';
 
 import 'package:devocional_nuevo/models/prayer_model.dart';
 import 'package:devocional_nuevo/services/localization_service.dart';
+import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:path_provider/path_provider.dart';
@@ -36,8 +37,8 @@ class PrayerBloc extends Bloc<PrayerEvent, PrayerState> {
       final prayers = await _loadPrayersFromStorage();
       emit(PrayerLoaded(prayers: prayers));
     } catch (e) {
-      final errorMessage =
-          LocalizationService.instance.translate('errors.prayer_loading_error');
+      final errorMessage = getService<LocalizationService>()
+          .translate('errors.prayer_loading_error');
       debugPrint('Error loading prayers: $e');
       emit(PrayerError(errorMessage));
     }

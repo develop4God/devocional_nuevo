@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/services/localization_service.dart';
+import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:ui';
 
@@ -10,15 +11,22 @@ void main() {
     late LocalizationService localizationService;
 
     setUp(() async {
-      // Reset singleton instance for clean test state
-      LocalizationService.resetInstance();
+      // Reset ServiceLocator and register LocalizationService for clean test state
+      ServiceLocator().reset();
+      ServiceLocator().registerLazySingleton<LocalizationService>(
+          () => LocalizationService());
 
       // Mock SharedPreferences
       SharedPreferences.setMockInitialValues({});
 
-      // Get fresh instance and initialize with real assets
-      localizationService = LocalizationService.instance;
+      // Get fresh instance from ServiceLocator and initialize with real assets
+      localizationService = getService<LocalizationService>();
       await localizationService.initialize();
+    });
+
+    tearDown(() {
+      // Clean up ServiceLocator after each test
+      ServiceLocator().reset();
     });
 
     test('should translate simple keys', () async {

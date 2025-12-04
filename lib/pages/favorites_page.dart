@@ -6,6 +6,7 @@ import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart'; // Asegúrate de importar tu modelo
 import 'package:devocional_nuevo/pages/devocionales_page.dart'; // Importar DevocionalesPage
 import 'package:devocional_nuevo/services/localization_service.dart';
+import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/widgets/app_bar_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -103,8 +104,9 @@ class FavoritesPage extends StatelessWidget {
                                 Text(
                                   DateFormat(
                                           'EEEE, d MMMM yyyy',
-                                          LocalizationService.instance
-                                              .currentLocale.languageCode)
+                                          getService<LocalizationService>()
+                                              .currentLocale
+                                              .languageCode)
                                       .format(devocional.date),
                                   style: Theme.of(context)
                                       .textTheme

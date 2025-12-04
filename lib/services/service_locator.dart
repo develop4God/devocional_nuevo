@@ -8,8 +8,13 @@
 /// - Call `setupServiceLocator()` once at app startup
 /// - Access services via `ServiceLocator.get<ServiceType>()`
 /// - For testing, use `ServiceLocator.registerFactory()` to inject mocks
+///
+/// Note: Services like LocalizationService, VoiceSettingsService, and TtsService
+/// are registered here instead of using static singletons to enable proper DI
+/// and testing.
 library;
 
+import 'package:devocional_nuevo/services/localization_service.dart';
 import 'package:devocional_nuevo/services/tts/i_tts_service.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 import 'package:devocional_nuevo/services/tts_service.dart';
@@ -83,6 +88,12 @@ class ServiceLocator {
 /// Call this once at app startup, before any service is used
 void setupServiceLocator() {
   final locator = ServiceLocator();
+
+  // Register LocalizationService as a lazy singleton (created when first accessed)
+  // This replaces the previous static singleton pattern to enable proper DI and testing.
+  // See LocalizationService documentation for usage details.
+  locator
+      .registerLazySingleton<LocalizationService>(() => LocalizationService());
 
   // Register VoiceSettingsService as a lazy singleton (created when first accessed)
   // This must be registered before TtsService as TtsService depends on it

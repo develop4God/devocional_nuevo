@@ -179,11 +179,24 @@ class _MyAppState extends State<MyApp> {
   /// Metodo unificado que inicializa servicios y verifica onboarding
   Future<bool> _initializeApp() async {
     try {
-      // 1. Primero inicializar localización (crítico para traducciones)
-      await Provider.of<LocalizationProvider>(
+      // Capture provider reference before any async operation to avoid
+      // context-after-dispose issues if widget unmounts during async gaps
+      final localizationProvider = Provider.of<LocalizationProvider>(
         context,
         listen: false,
-      ).initialize();
+      );
+
+      // 1. Primero inicializar localización (crítico para traducciones)
+      await localizationProvider.initialize();
+
+      // Check if widget is still mounted after async operation
+      if (!mounted) {
+        developer.log(
+          'App: Widget unmounted during initialization, aborting',
+          name: 'MainApp',
+        );
+        return false;
+      }
 
       developer.log(
         'App: LocalizationService inicializado correctamente',
@@ -194,6 +207,15 @@ class _MyAppState extends State<MyApp> {
       if (Constants.enableOnboardingFeature) {
         final shouldShowOnboarding =
             await OnboardingService.instance.shouldShowOnboarding();
+
+        // Check if widget is still mounted after second async operation
+        if (!mounted) {
+          developer.log(
+            'App: Widget unmounted during onboarding check, aborting',
+            name: 'MainApp',
+          );
+          return false;
+        }
 
         developer.log(
           'App: Onboarding check completado. Mostrar: $shouldShowOnboarding',
