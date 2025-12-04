@@ -4,6 +4,7 @@ export 'src/interfaces/bible_version_storage.dart';
 export 'src/models/bible_version_model.dart';
 export 'src/repositories/bible_version_repository.dart';
 export 'src/exceptions/bible_version_exceptions.dart';
+export 'src/exceptions/bible_version_error_code.dart';
 
 // Existing exports
 export 'src/bible_db_service.dart';

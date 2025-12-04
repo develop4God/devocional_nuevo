@@ -1,4 +1,5 @@
 import '../exceptions/bible_version_exceptions.dart';
+import '../exceptions/bible_version_error_code.dart';
 
 /// Valid ISO 639-1 language codes for Bible versions.
 const Set<String> _validLanguageCodes = {
@@ -290,8 +291,11 @@ class BibleVersionWithState {
   /// Only meaningful when state is [DownloadState.downloading].
   final double progress;
 
-  /// Error message if state is [DownloadState.failed].
-  final String? errorMessage;
+  /// Error code if state is [DownloadState.failed].
+  final BibleVersionErrorCode? errorCode;
+
+  /// Optional context data for error message formatting.
+  final Map<String, dynamic>? errorContext;
 
   /// Queue position when state is [DownloadState.queued].
   /// 0 means not in queue, 1 means next to download.
@@ -302,18 +306,20 @@ class BibleVersionWithState {
     required this.metadata,
     required this.state,
     this.progress = 0.0,
-    this.errorMessage,
+    this.errorCode,
+    this.errorContext,
     this.queuePosition = 0,
   });
 
   /// Creates a copy with optionally modified fields.
   /// 
-  /// Use `clearError: true` to explicitly clear the error message.
+  /// Use `clearError: true` to explicitly clear the error.
   BibleVersionWithState copyWith({
     BibleVersionMetadata? metadata,
     DownloadState? state,
     double? progress,
-    String? errorMessage,
+    BibleVersionErrorCode? errorCode,
+    Map<String, dynamic>? errorContext,
     bool clearError = false,
     int? queuePosition,
   }) {
@@ -321,7 +327,8 @@ class BibleVersionWithState {
       metadata: metadata ?? this.metadata,
       state: state ?? this.state,
       progress: progress ?? this.progress,
-      errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
+      errorCode: clearError ? null : (errorCode ?? this.errorCode),
+      errorContext: clearError ? null : (errorContext ?? this.errorContext),
       queuePosition: queuePosition ?? this.queuePosition,
     );
   }
@@ -333,12 +340,12 @@ class BibleVersionWithState {
         other.metadata == metadata &&
         other.state == state &&
         other.progress == progress &&
-        other.errorMessage == errorMessage &&
+        other.errorCode == errorCode &&
         other.queuePosition == queuePosition;
   }
 
   @override
-  int get hashCode => Object.hash(metadata, state, progress, errorMessage, queuePosition);
+  int get hashCode => Object.hash(metadata, state, progress, errorCode, queuePosition);
 
   @override
   String toString() {

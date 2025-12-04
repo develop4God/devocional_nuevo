@@ -85,12 +85,15 @@ class BibleVersionBloc extends Bloc<BibleVersionEvent, BibleVersionState> {
         versions: versions,
         downloadedVersionIds: downloadedIds.toSet(),
       ));
-    } on NetworkException catch (e) {
-      emit(BibleVersionError(message: 'Network error: ${e.message}'));
-    } on MetadataParsingException catch (e) {
-      emit(BibleVersionError(message: 'Invalid catalog data: ${e.message}'));
+    } on NetworkException {
+      emit(const BibleVersionError(errorCode: BibleVersionErrorCode.network));
+    } on MetadataParsingException {
+      emit(const BibleVersionError(errorCode: BibleVersionErrorCode.metadataParsing));
     } catch (e) {
-      emit(BibleVersionError(message: 'Failed to load versions: $e'));
+      emit(BibleVersionError(
+        errorCode: BibleVersionErrorCode.unknown,
+        context: {'error': e.toString()},
+      ));
     }
   }
 
@@ -104,7 +107,7 @@ class BibleVersionBloc extends Bloc<BibleVersionEvent, BibleVersionState> {
     // Check if version is already queued or downloading
     final existingVersion = currentState.versions.firstWhere(
       (v) => v.metadata.id == event.versionId,
-      orElse: () => throw StateError('Version not found'),
+      orElse: () => throw StateError('Version not found: ${event.versionId}'),
     );
     if (existingVersion.state == DownloadState.downloading ||
         existingVersion.state == DownloadState.queued) {
@@ -140,27 +143,30 @@ class BibleVersionBloc extends Bloc<BibleVersionEvent, BibleVersionState> {
     } on InsufficientStorageException catch (e) {
       add(DownloadFailedEvent(
         versionId: event.versionId,
-        errorMessage: 'Not enough storage space. Need ${_formatBytes(e.requiredBytes)}.',
+        errorCode: BibleVersionErrorCode.storage,
+        context: {'requiredBytes': e.requiredBytes},
       ));
     } on DatabaseCorruptedException {
       add(DownloadFailedEvent(
         versionId: event.versionId,
-        errorMessage: 'Downloaded file was corrupted. Please try again.',
+        errorCode: BibleVersionErrorCode.corrupted,
       ));
     } on MaxRetriesExceededException catch (e) {
       add(DownloadFailedEvent(
         versionId: event.versionId,
-        errorMessage: 'Download failed after ${e.attempts} attempts. Please try again later.',
+        errorCode: BibleVersionErrorCode.maxRetriesExceeded,
+        context: {'attempts': e.attempts},
       ));
-    } on NetworkException catch (e) {
+    } on NetworkException {
       add(DownloadFailedEvent(
         versionId: event.versionId,
-        errorMessage: 'Network error: ${e.message}',
+        errorCode: BibleVersionErrorCode.network,
       ));
     } catch (e) {
       add(DownloadFailedEvent(
         versionId: event.versionId,
-        errorMessage: 'Download failed: $e',
+        errorCode: BibleVersionErrorCode.unknown,
+        context: {'error': e.toString()},
       ));
     }
   }
@@ -192,7 +198,8 @@ class BibleVersionBloc extends Bloc<BibleVersionEvent, BibleVersionState> {
       ));
     } catch (e) {
       emit(BibleVersionError(
-        message: 'Failed to delete version: $e',
+        errorCode: BibleVersionErrorCode.unknown,
+        context: {'error': e.toString()},
         previousState: currentState,
       ));
     }
@@ -256,20 +263,14 @@ class BibleVersionBloc extends Bloc<BibleVersionEvent, BibleVersionState> {
         return v.copyWith(
           state: DownloadState.failed,
           progress: 0.0,
-          errorMessage: event.errorMessage,
+          errorCode: event.errorCode,
+          errorContext: event.context,
         );
       }
       return v;
     }).toList();
 
     emit(currentState.copyWith(versions: versions));
-  }
-
-  /// Formats bytes to human-readable string.
-  String _formatBytes(int bytes) {
-    if (bytes < 1024) return '$bytes B';
-    if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
-    return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
   }
 
   void _onUpdateQueuePositions(
@@ -283,13 +284,11 @@ class BibleVersionBloc extends Bloc<BibleVersionEvent, BibleVersionState> {
     final versions = currentState.versions.map((v) {
       final position = event.positions[v.metadata.id];
       if (position != null) {
-        // In queue - update position
-        return v.copyWith(
-          state: v.state == DownloadState.downloading 
-              ? DownloadState.downloading 
-              : DownloadState.queued,
-          queuePosition: position,
-        );
+        // In queue - update position, preserve downloading state if already downloading
+        final newState = v.state == DownloadState.downloading 
+            ? DownloadState.downloading 
+            : DownloadState.queued;
+        return v.copyWith(state: newState, queuePosition: position);
       } else if (v.state == DownloadState.queued) {
         // Was in queue but now processing - set to downloading
         return v.copyWith(state: DownloadState.downloading, queuePosition: 0);

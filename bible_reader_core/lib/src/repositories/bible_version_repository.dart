@@ -26,8 +26,12 @@ class RetryConfig {
   });
 
   /// Calculates delay for given attempt (exponential backoff).
+  /// Uses bounded calculation to prevent overflow for large attempt values.
   Duration delayForAttempt(int attempt) {
-    final delay = initialDelay * (1 << attempt); // 2^attempt
+    // Limit exponent to prevent overflow (max ~17 hours with default 2s initial delay)
+    final boundedAttempt = attempt.clamp(0, 20);
+    final multiplier = 1 << boundedAttempt; // 2^attempt, capped at 2^20
+    final delay = initialDelay * multiplier;
     return delay > maxDelay ? maxDelay : delay;
   }
 }
@@ -251,8 +255,8 @@ class BibleVersionRepository {
 
   void _processQueue() {
     while (_activeDownloads < maxConcurrentDownloads && _downloadQueue.isNotEmpty) {
-      final download = _downloadQueue.firstOrNull;
-      if (download == null || download.isProcessing) break;
+      final download = _downloadQueue.first;
+      if (download.isProcessing) break;
       
       download.isProcessing = true;
       _activeDownloads++;

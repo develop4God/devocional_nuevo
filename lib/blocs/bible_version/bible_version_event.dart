@@ -81,16 +81,20 @@ class DownloadFailedEvent extends BibleVersionEvent {
   /// The ID of the version that failed to download.
   final String versionId;
 
-  /// Error message describing the failure.
-  final String errorMessage;
+  /// Error code for localization.
+  final BibleVersionErrorCode errorCode;
+
+  /// Optional context data for error message formatting.
+  final Map<String, dynamic>? context;
 
   const DownloadFailedEvent({
     required this.versionId,
-    required this.errorMessage,
+    required this.errorCode,
+    this.context,
   });
 
   @override
-  List<Object?> get props => [versionId, errorMessage];
+  List<Object?> get props => [versionId, errorCode, context];
 }
 
 /// Event to update queue positions.

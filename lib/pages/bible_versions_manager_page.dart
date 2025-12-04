@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../blocs/bible_version/bible_version_bloc.dart';
 import '../blocs/bible_version/bible_version_event.dart';
 import '../blocs/bible_version/bible_version_state.dart';
+import '../extensions/string_extensions.dart';
 import '../services/service_locator.dart';
 
 /// Page for managing Bible version downloads.
@@ -32,7 +33,7 @@ class _BibleVersionsManagerView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Bible Versions'),
+        title: Text('bible_version.manager_title'.tr()),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -41,7 +42,7 @@ class _BibleVersionsManagerView extends StatelessWidget {
                     const LoadBibleVersionsEvent(forceRefresh: true),
                   );
             },
-            tooltip: 'Refresh',
+            tooltip: 'bible_version.retry'.tr(),
           ),
         ],
       ),
@@ -55,7 +56,8 @@ class _BibleVersionsManagerView extends StatelessWidget {
 
           if (state is BibleVersionError) {
             return _ErrorView(
-              message: state.message,
+              errorCode: state.errorCode,
+              context: state.context,
               onRetry: () {
                 context.read<BibleVersionBloc>().add(
                       const LoadBibleVersionsEvent(forceRefresh: true),
@@ -76,13 +78,49 @@ class _BibleVersionsManagerView extends StatelessWidget {
 }
 
 class _ErrorView extends StatelessWidget {
-  final String message;
+  final BibleVersionErrorCode errorCode;
+  final Map<String, dynamic>? context;
   final VoidCallback onRetry;
 
   const _ErrorView({
-    required this.message,
+    required this.errorCode,
+    this.context,
     required this.onRetry,
   });
+
+  String _getLocalizedError() {
+    switch (errorCode) {
+      case BibleVersionErrorCode.network:
+        return 'bible_version.error_network'.tr();
+      case BibleVersionErrorCode.storage:
+        final size = context?['requiredBytes'] as int?;
+        if (size != null) {
+          return 'bible_version.error_storage'.tr({'size': _formatBytes(size)});
+        }
+        return 'bible_version.error_storage'.tr({'size': '?'});
+      case BibleVersionErrorCode.corrupted:
+        return 'bible_version.error_corrupted'.tr();
+      case BibleVersionErrorCode.notFound:
+        return 'bible_version.error_not_found'.tr();
+      case BibleVersionErrorCode.metadataParsing:
+        return 'bible_version.error_metadata_parsing'.tr();
+      case BibleVersionErrorCode.maxRetriesExceeded:
+        final attempts = context?['attempts'] as int?;
+        return 'bible_version.error_max_retries'.tr({'attempts': attempts?.toString() ?? '3'});
+      case BibleVersionErrorCode.decompression:
+        return 'bible_version.error_decompression'.tr();
+      case BibleVersionErrorCode.metadataValidation:
+        return 'bible_version.error_metadata_validation'.tr();
+      case BibleVersionErrorCode.unknown:
+        return 'bible_version.error_unknown'.tr();
+    }
+  }
+
+  String _formatBytes(int bytes) {
+    if (bytes < 1024) return '$bytes B';
+    if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
+    return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -99,7 +137,7 @@ class _ErrorView extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              message,
+              _getLocalizedError(),
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyLarge,
             ),
@@ -107,7 +145,7 @@ class _ErrorView extends StatelessWidget {
             ElevatedButton.icon(
               onPressed: onRetry,
               icon: const Icon(Icons.refresh),
-              label: const Text('Retry'),
+              label: Text('bible_version.retry'.tr()),
             ),
           ],
         ),
@@ -208,9 +246,9 @@ class _VersionTile extends StatelessWidget {
                 ),
           ),
           if (version.state == DownloadState.failed &&
-              version.errorMessage != null)
+              version.errorCode != null)
             Text(
-              version.errorMessage!,
+              _getLocalizedError(version.errorCode!, version.errorContext),
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: colorScheme.error,
                   ),
@@ -220,6 +258,40 @@ class _VersionTile extends StatelessWidget {
       trailing: _buildTrailing(context),
       isThreeLine: true,
     );
+  }
+
+  String _getLocalizedError(BibleVersionErrorCode errorCode, Map<String, dynamic>? context) {
+    switch (errorCode) {
+      case BibleVersionErrorCode.network:
+        return 'bible_version.error_network'.tr();
+      case BibleVersionErrorCode.storage:
+        final size = context?['requiredBytes'] as int?;
+        if (size != null) {
+          return 'bible_version.error_storage'.tr({'size': _formatBytes(size)});
+        }
+        return 'bible_version.error_storage'.tr({'size': '?'});
+      case BibleVersionErrorCode.corrupted:
+        return 'bible_version.error_corrupted'.tr();
+      case BibleVersionErrorCode.notFound:
+        return 'bible_version.error_not_found'.tr();
+      case BibleVersionErrorCode.metadataParsing:
+        return 'bible_version.error_metadata_parsing'.tr();
+      case BibleVersionErrorCode.maxRetriesExceeded:
+        final attempts = context?['attempts'] as int?;
+        return 'bible_version.error_max_retries'.tr({'attempts': attempts?.toString() ?? '3'});
+      case BibleVersionErrorCode.decompression:
+        return 'bible_version.error_decompression'.tr();
+      case BibleVersionErrorCode.metadataValidation:
+        return 'bible_version.error_metadata_validation'.tr();
+      case BibleVersionErrorCode.unknown:
+        return 'bible_version.error_unknown'.tr();
+    }
+  }
+
+  String _formatBytes(int bytes) {
+    if (bytes < 1024) return '$bytes B';
+    if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
+    return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
   }
 
   Widget _buildTrailing(BuildContext context) {
@@ -233,7 +305,7 @@ class _VersionTile extends StatelessWidget {
           onPressed: () {
             bloc.add(DownloadVersionEvent(version.metadata.id));
           },
-          tooltip: 'Download',
+          tooltip: 'bible_version.download'.tr(),
         );
 
       case DownloadState.queued:

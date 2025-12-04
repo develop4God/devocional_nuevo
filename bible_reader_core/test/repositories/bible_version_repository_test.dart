@@ -612,20 +612,20 @@ void main() {
       final withError = BibleVersionWithState(
         metadata: metadata,
         state: DownloadState.failed,
-        errorMessage: 'Network error',
+        errorCode: BibleVersionErrorCode.network,
       );
 
-      // Without clearError, error message is preserved
+      // Without clearError, error code is preserved
       final copy1 = withError.copyWith(state: DownloadState.downloading);
-      expect(copy1.errorMessage, equals('Network error'));
+      expect(copy1.errorCode, equals(BibleVersionErrorCode.network));
 
-      // With clearError, error message is cleared
+      // With clearError, error code is cleared
       final copy2 = withError.copyWith(state: DownloadState.downloading, clearError: true);
-      expect(copy2.errorMessage, isNull);
+      expect(copy2.errorCode, isNull);
 
-      // With new error message, it's updated
-      final copy3 = withError.copyWith(errorMessage: 'New error');
-      expect(copy3.errorMessage, equals('New error'));
+      // With new error code, it's updated
+      final copy3 = withError.copyWith(errorCode: BibleVersionErrorCode.storage);
+      expect(copy3.errorCode, equals(BibleVersionErrorCode.storage));
     });
   });
 

@@ -90,18 +90,22 @@ class BibleVersionLoaded extends BibleVersionState {
 
 /// State when loading or an operation fails.
 class BibleVersionError extends BibleVersionState {
-  /// Error message describing what went wrong.
-  final String message;
+  /// Error code for localization.
+  final BibleVersionErrorCode errorCode;
+
+  /// Optional context data for error message formatting.
+  final Map<String, dynamic>? context;
 
   /// Previous state before the error, if available.
   /// This allows the UI to show an error while keeping the last known data.
   final BibleVersionLoaded? previousState;
 
   const BibleVersionError({
-    required this.message,
+    required this.errorCode,
+    this.context,
     this.previousState,
   });
 
   @override
-  List<Object?> get props => [message, previousState];
+  List<Object?> get props => [errorCode, context, previousState];
 }
