@@ -50,7 +50,8 @@ class LocalizationService {
 
   /// Check if translations for a language are cached (for testing)
   @visibleForTesting
-  bool isCached(String languageCode) => _translationsCache.containsKey(languageCode);
+  bool isCached(String languageCode) =>
+      _translationsCache.containsKey(languageCode);
 
   /// Initialize the localization service
   Future<void> initialize() async {
