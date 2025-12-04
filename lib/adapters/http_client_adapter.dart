@@ -23,7 +23,14 @@ class HttpClientAdapter implements HttpClient {
 
   @override
   Future<HttpResponse> get(String url) async {
-    final response = await _client.get(Uri.parse(url));
+    final response = await _client.get(
+      Uri.parse(url),
+      headers: {'User-Agent': 'devocional_nuevo/1.0 (Flutter)'},
+    );
+    print('[HttpClientAdapter] GET $url -> ${response.statusCode}');
+    print('[HttpClientAdapter] First 100 bytes: ' +
+        response.body.substring(
+            0, response.body.length > 100 ? 100 : response.body.length));
     return HttpResponse(
       statusCode: response.statusCode,
       body: response.body,
@@ -34,8 +41,11 @@ class HttpClientAdapter implements HttpClient {
   @override
   Stream<HttpDownloadProgress> downloadStream(String url) async* {
     final request = http.Request('GET', Uri.parse(url));
+    request.headers['User-Agent'] = 'devocional_nuevo/1.0 (Flutter)';
     final streamedResponse = await _client.send(request);
-
+    print(
+        '[HttpClientAdapter] downloadStream $url -> ${streamedResponse.statusCode}');
+    int chunkCount = 0;
     final total = streamedResponse.contentLength;
     int downloaded = 0;
     final chunks = <int>[];
@@ -43,7 +53,11 @@ class HttpClientAdapter implements HttpClient {
     await for (final chunk in streamedResponse.stream) {
       chunks.addAll(chunk);
       downloaded += chunk.length;
-
+      if (chunkCount == 0) {
+        final preview = String.fromCharCodes(chunk.take(100).toList());
+        print('[HttpClientAdapter] First chunk (max 100 bytes): $preview');
+      }
+      chunkCount++;
       yield HttpDownloadProgress(
         downloaded: downloaded,
         total: total,

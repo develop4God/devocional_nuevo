@@ -8,6 +8,7 @@ import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_event.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/controllers/audio_controller.dart';
+import 'package:devocional_nuevo/pages/bible_versions_manager_page.dart';
 import 'package:devocional_nuevo/pages/devocionales_page.dart';
 import 'package:devocional_nuevo/pages/onboarding/onboarding_flow.dart';
 import 'package:devocional_nuevo/pages/settings_page.dart';
@@ -318,6 +319,8 @@ class _MyAppState extends State<MyApp> {
             routes: {
               '/settings': (context) => const SettingsPage(),
               '/devocionales': (context) => const DevocionalesPage(),
+              '/bible_versions_manager': (context) =>
+                  const BibleVersionsManagerPage(),
             },
           ),
         );
