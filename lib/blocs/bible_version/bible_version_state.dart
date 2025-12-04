@@ -38,16 +38,12 @@ class BibleVersionLoaded extends BibleVersionState {
 
   /// Returns versions filtered by language.
   List<BibleVersionWithState> getVersionsByLanguage(String languageCode) {
-    return versions
-        .where((v) => v.metadata.language == languageCode)
-        .toList();
+    return versions.where((v) => v.metadata.language == languageCode).toList();
   }
 
   /// Returns only downloaded versions.
   List<BibleVersionWithState> get downloadedVersions {
-    return versions
-        .where((v) => v.state == DownloadState.downloaded)
-        .toList();
+    return versions.where((v) => v.state == DownloadState.downloaded).toList();
   }
 
   /// Returns versions that are not downloaded.
@@ -59,16 +55,12 @@ class BibleVersionLoaded extends BibleVersionState {
 
   /// Returns versions currently in the download queue.
   List<BibleVersionWithState> get queuedVersions {
-    return versions
-        .where((v) => v.state == DownloadState.queued)
-        .toList();
+    return versions.where((v) => v.state == DownloadState.queued).toList();
   }
 
   /// Returns versions currently being validated.
   List<BibleVersionWithState> get validatingVersions {
-    return versions
-        .where((v) => v.state == DownloadState.validating)
-        .toList();
+    return versions.where((v) => v.state == DownloadState.validating).toList();
   }
 
   /// Creates a copy with updated versions.

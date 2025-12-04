@@ -229,8 +229,8 @@ void main() {
       expect(
         () => getService<ITtsService>(),
         throwsA(
-          isA<Exception>().having(
-            (e) => e.toString(),
+          isA<StateError>().having(
+            (e) => e.message,
             'message',
             contains('not registered'),
           ),
@@ -283,6 +283,8 @@ void main() {
 
     test('Factory constructor creates functional TTS instance', () async {
       // Given: We use the factory constructor directly (for legacy compatibility)
+      // First, we need VoiceSettingsService registered
+      setupServiceLocator();
       final service = TtsService();
 
       // When: We initialize

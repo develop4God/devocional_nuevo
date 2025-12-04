@@ -42,14 +42,15 @@ void main() {
           reason: 'English drawer should include prayers and thanksgivings');
     });
 
-    test('French drawer label should say "Prières et remerciements"', () async {
+    test('French drawer label should say "Prières et actions de grâce"',
+        () async {
       final file = File('i18n/fr.json');
       final content = await file.readAsString();
       final json = jsonDecode(content) as Map<String, dynamic>;
 
       final drawer = getDrawer(json);
       expect(drawer, isNotNull, reason: 'French should have drawer section');
-      expect(drawer!['my_prayers'], equals('Prières et remerciements'),
+      expect(drawer!['my_prayers'], equals('Prières et actions de grâce'),
           reason: 'French drawer should include prayers and thanksgivings');
     });
 
@@ -82,7 +83,7 @@ void main() {
       final expectedLabels = {
         'es': 'Oraciones y agradecimientos',
         'en': 'Prayers and thanksgivings',
-        'fr': 'Prières et remerciements',
+        'fr': 'Prières et actions de grâce',
         'pt': 'Orações e agradecimentos',
         'ja': '祈りと感謝',
       };

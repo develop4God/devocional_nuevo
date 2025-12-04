@@ -7,6 +7,8 @@ import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/models/prayer_model.dart';
 import 'package:devocional_nuevo/models/thanksgiving_model.dart';
 import 'package:devocional_nuevo/pages/prayers_page.dart';
+import 'package:devocional_nuevo/services/service_locator.dart';
+import 'package:devocional_nuevo/services/localization_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -26,7 +28,14 @@ void main() {
   late MockThemeBloc mockThemeBloc;
 
   setUp(() {
+    TestWidgetsFlutterBinding.ensureInitialized();
+    // Reset ServiceLocator for clean test state
+    ServiceLocator().reset();
     SharedPreferences.setMockInitialValues({});
+    // Register LocalizationService
+    ServiceLocator().registerLazySingleton<LocalizationService>(
+        () => LocalizationService());
+
     mockPrayerBloc = MockPrayerBloc();
     mockThanksgivingBloc = MockThanksgivingBloc();
     mockThemeBloc = MockThemeBloc();
@@ -40,6 +49,10 @@ void main() {
       ),
     );
     when(() => mockThemeBloc.stream).thenAnswer((_) => Stream.empty());
+  });
+
+  tearDown(() {
+    ServiceLocator().reset();
   });
 
   group('Prayers Page Count Badges', () {

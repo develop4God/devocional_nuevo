@@ -109,7 +109,8 @@ class BibleVersionRepository {
   int _activeDownloads = 0;
 
   /// Stream controller for queue position updates.
-  final _queuePositionController = StreamController<Map<String, int>>.broadcast();
+  final _queuePositionController =
+      StreamController<Map<String, int>>.broadcast();
 
   /// Creates a Bible version repository.
   ///
@@ -173,7 +174,8 @@ class BibleVersionRepository {
 
       final versionsJson = json['versions'];
       if (versionsJson is! List) {
-        throw const MetadataParsingException('Missing or invalid versions array');
+        throw const MetadataParsingException(
+            'Missing or invalid versions array');
       }
 
       _cachedMetadata = versionsJson
@@ -213,14 +215,15 @@ class BibleVersionRepository {
     }
 
     // Add to queue with priority
-    final queuedDownload = _QueuedDownload(versionId: versionId, priority: priority);
-    
+    final queuedDownload =
+        _QueuedDownload(versionId: versionId, priority: priority);
+
     if (priority == DownloadPriority.high) {
       _downloadQueue.insert(0, queuedDownload);
     } else {
       _downloadQueue.add(queuedDownload);
     }
-    
+
     _updateQueuePositions();
     _processQueue();
 
@@ -235,7 +238,8 @@ class BibleVersionRepository {
   }
 
   /// Stream of queue position updates as downloads progress.
-  Stream<Map<String, int>> get queuePositionUpdates => _queuePositionController.stream;
+  Stream<Map<String, int>> get queuePositionUpdates =>
+      _queuePositionController.stream;
 
   /// Calculates the required storage space for a version.
   Future<int> calculateRequiredSpace(String versionId) async {
@@ -254,14 +258,15 @@ class BibleVersionRepository {
   }
 
   void _processQueue() {
-    while (_activeDownloads < maxConcurrentDownloads && _downloadQueue.isNotEmpty) {
+    while (_activeDownloads < maxConcurrentDownloads &&
+        _downloadQueue.isNotEmpty) {
       final download = _downloadQueue.first;
       if (download.isProcessing) break;
-      
+
       download.isProcessing = true;
       _activeDownloads++;
       _updateQueuePositions();
-      
+
       _performDownloadWithRetry(download).then((_) {
         _downloadQueue.remove(download);
         _activeDownloads--;
@@ -325,7 +330,7 @@ class BibleVersionRepository {
       // Get version metadata
       final versions = await fetchAvailableVersions();
       final metadata = versions.where((v) => v.id == versionId).firstOrNull;
-      
+
       if (metadata == null) {
         throw VersionNotFoundException(versionId);
       }
@@ -338,8 +343,9 @@ class BibleVersionRepository {
 
       // Check storage space (require 2x uncompressed size as buffer)
       final availableSpace = await storage.getAvailableSpace();
-      final requiredSpace = metadata.uncompressedSizeBytes * _storageBufferMultiplier;
-      
+      final requiredSpace =
+          metadata.uncompressedSizeBytes * _storageBufferMultiplier;
+
       if (availableSpace > 0 && availableSpace < requiredSpace) {
         throw InsufficientStorageException(
           availableBytes: availableSpace,
@@ -361,8 +367,9 @@ class BibleVersionRepository {
 
       // Download the file
       final downloadedBytes = <int>[];
-      
-      await for (final progress in httpClient.downloadStream(metadata.downloadUrl)) {
+
+      await for (final progress
+          in httpClient.downloadStream(metadata.downloadUrl)) {
         downloadedBytes.addAll(progress.data);
         controller?.add(progress.progress);
       }
@@ -419,19 +426,35 @@ class BibleVersionRepository {
   /// Validates that the bytes represent a valid SQLite database.
   bool _isValidSqliteDatabase(List<int> bytes) {
     // SQLite database files start with "SQLite format 3\0"
-    const sqliteHeader = [0x53, 0x51, 0x4C, 0x69, 0x74, 0x65, 0x20, 0x66, 
-                          0x6F, 0x72, 0x6D, 0x61, 0x74, 0x20, 0x33, 0x00];
-    
+    const sqliteHeader = [
+      0x53,
+      0x51,
+      0x4C,
+      0x69,
+      0x74,
+      0x65,
+      0x20,
+      0x66,
+      0x6F,
+      0x72,
+      0x6D,
+      0x61,
+      0x74,
+      0x20,
+      0x33,
+      0x00
+    ];
+
     if (bytes.length < sqliteHeader.length) {
       return false;
     }
-    
+
     for (int i = 0; i < sqliteHeader.length; i++) {
       if (bytes[i] != sqliteHeader[i]) {
         return false;
       }
     }
-    
+
     return true;
   }
 

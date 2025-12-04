@@ -55,13 +55,13 @@ class StorageAdapter implements BibleVersionStorage {
   @override
   Future<void> writeFile(String path, List<int> bytes) async {
     final file = File(path);
-    
+
     // Create parent directories if needed
     final parentDir = file.parent;
     if (!parentDir.existsSync()) {
       await parentDir.create(recursive: true);
     }
-    
+
     await file.writeAsBytes(bytes, flush: true);
   }
 

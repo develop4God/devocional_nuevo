@@ -1,4 +1,6 @@
 import 'package:devocional_nuevo/controllers/tts_audio_controller.dart';
+import 'package:devocional_nuevo/services/service_locator.dart';
+import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -13,6 +15,9 @@ void main() {
     late FlutterTts mockFlutterTts;
 
     setUp(() {
+      // Reset ServiceLocator for clean test state
+      ServiceLocator().reset();
+
       // Mock SharedPreferences
       SharedPreferences.setMockInitialValues({});
 
@@ -31,11 +36,20 @@ void main() {
             case 'setPitch':
             case 'awaitSpeakCompletion':
               return 1;
+            case 'getVoices':
+              return [
+                {'name': 'Voice ES', 'locale': 'es-ES'},
+                {'name': 'Voice EN', 'locale': 'en-US'},
+              ];
             default:
               return null;
           }
         },
       );
+
+      // Register required services
+      ServiceLocator().registerLazySingleton<VoiceSettingsService>(
+          () => VoiceSettingsService());
 
       mockFlutterTts = FlutterTts();
       controller = TtsAudioController(flutterTts: mockFlutterTts);
@@ -43,6 +57,8 @@ void main() {
 
     tearDown(() {
       controller.dispose();
+      // Clean up ServiceLocator
+      ServiceLocator().reset();
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(const MethodChannel('flutter_tts'), null);
     });

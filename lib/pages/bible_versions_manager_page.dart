@@ -85,7 +85,8 @@ String _formatBytes(int bytes) {
 }
 
 /// Returns a localized error message for the given error code.
-String _getLocalizedError(BibleVersionErrorCode errorCode, Map<String, dynamic>? context) {
+String _getLocalizedError(
+    BibleVersionErrorCode errorCode, Map<String, dynamic>? context) {
   switch (errorCode) {
     case BibleVersionErrorCode.network:
       return 'bible_version.error_network'.tr();
@@ -103,7 +104,8 @@ String _getLocalizedError(BibleVersionErrorCode errorCode, Map<String, dynamic>?
       return 'bible_version.error_metadata_parsing'.tr();
     case BibleVersionErrorCode.maxRetriesExceeded:
       final attempts = context?['attempts'] as int?;
-      return 'bible_version.error_max_retries'.tr({'attempts': attempts?.toString() ?? '3'});
+      return 'bible_version.error_max_retries'
+          .tr({'attempts': attempts?.toString() ?? '3'});
     case BibleVersionErrorCode.decompression:
       return 'bible_version.error_decompression'.tr();
     case BibleVersionErrorCode.metadataValidation:

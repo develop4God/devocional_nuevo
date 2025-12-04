@@ -2,13 +2,30 @@ import 'package:bible_reader_core/src/bible_version.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/pages/bible_reader_page.dart';
+import 'package:devocional_nuevo/services/service_locator.dart';
+import 'package:devocional_nuevo/services/localization_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   group('BibleReaderPage Widget Tests', () {
+    setUp(() {
+      TestWidgetsFlutterBinding.ensureInitialized();
+      // Reset ServiceLocator for clean test state
+      ServiceLocator().reset();
+      SharedPreferences.setMockInitialValues({});
+      // Register LocalizationService
+      ServiceLocator().registerLazySingleton<LocalizationService>(
+          () => LocalizationService());
+    });
+
+    tearDown(() {
+      ServiceLocator().reset();
+    });
+
     Widget buildTestableWidget(Widget child) {
       return MultiProvider(
         providers: [

@@ -22,8 +22,10 @@ class MockHttpClient implements HttpClient {
     );
   }
 
-  void givenGetResponse(String urlPattern, {required int statusCode, String body = ''}) {
-    _responses[urlPattern] = MockHttpResponse(statusCode: statusCode, body: body);
+  void givenGetResponse(String urlPattern,
+      {required int statusCode, String body = ''}) {
+    _responses[urlPattern] =
+        MockHttpResponse(statusCode: statusCode, body: body);
   }
 
   void givenDownloadStream(String versionId, List<int> data) {
@@ -33,7 +35,8 @@ class MockHttpClient implements HttpClient {
     );
   }
 
-  void givenDownloadStreamFailsAt(String versionId, List<int> data, int failAtPercent) {
+  void givenDownloadStreamFailsAt(
+      String versionId, List<int> data, int failAtPercent) {
     _downloadStreams[versionId] = MockDownloadStream(
       data: data,
       total: data.length,
@@ -68,8 +71,22 @@ class MockHttpClient implements HttpClient {
     // Create a valid gzip compressed SQLite-like response with proper header
     // SQLite header: 'SQLite format 3\0' (16 bytes)
     final sqliteHeader = [
-      0x53, 0x51, 0x4C, 0x69, 0x74, 0x65, 0x20, 0x66,
-      0x6F, 0x72, 0x6D, 0x61, 0x74, 0x20, 0x33, 0x00
+      0x53,
+      0x51,
+      0x4C,
+      0x69,
+      0x74,
+      0x65,
+      0x20,
+      0x66,
+      0x6F,
+      0x72,
+      0x6D,
+      0x61,
+      0x74,
+      0x20,
+      0x33,
+      0x00
     ];
     _downloadStreams[versionId] = MockDownloadStream(
       data: gzip.encode(sqliteHeader),
@@ -85,7 +102,8 @@ class MockHttpClient implements HttpClient {
   final Map<String, Exception> _exceptions = {};
 
   Future<void> verifyNoDownloadStarted() async {
-    expect(_downloadStarted, isFalse, reason: 'Download should not have started');
+    expect(_downloadStarted, isFalse,
+        reason: 'Download should not have started');
   }
 
   @override
@@ -111,14 +129,14 @@ class MockHttpClient implements HttpClient {
   @override
   Stream<HttpDownloadProgress> downloadStream(String url) async* {
     _downloadStarted = true;
-    
+
     for (final pattern in _downloadStreams.keys) {
       if (url.contains(pattern)) {
         yield* _downloadStreams[pattern]!.stream();
         return;
       }
     }
-    
+
     throw NetworkException('Download URL not found: $url');
   }
 }
@@ -192,12 +210,14 @@ class MockBibleVersionStorage implements BibleVersionStorage {
 
   Future<void> verifyFileDeleted(String pathContains) async {
     final found = _deletedFiles.any((f) => f.contains(pathContains));
-    expect(found, isTrue, reason: 'Expected file containing "$pathContains" to be deleted');
+    expect(found, isTrue,
+        reason: 'Expected file containing "$pathContains" to be deleted');
   }
 
   Future<void> verifyDirectoryDeleted(String pathContains) async {
     final found = _deletedDirectories.any((d) => d.contains(pathContains));
-    expect(found, isTrue, reason: 'Expected directory containing "$pathContains" to be deleted');
+    expect(found, isTrue,
+        reason: 'Expected directory containing "$pathContains" to be deleted');
   }
 
   @override
@@ -270,8 +290,24 @@ class MockBibleVersionStorage implements BibleVersionStorage {
 /// Creates a valid SQLite database bytes (just the header for testing).
 List<int> createValidSqliteDatabase() {
   // SQLite header: "SQLite format 3\0"
-  final header = [0x53, 0x51, 0x4C, 0x69, 0x74, 0x65, 0x20, 0x66, 
-                  0x6F, 0x72, 0x6D, 0x61, 0x74, 0x20, 0x33, 0x00];
+  final header = [
+    0x53,
+    0x51,
+    0x4C,
+    0x69,
+    0x74,
+    0x65,
+    0x20,
+    0x66,
+    0x6F,
+    0x72,
+    0x6D,
+    0x61,
+    0x74,
+    0x20,
+    0x33,
+    0x00
+  ];
   // Add some padding to make it look like a real database
   final padding = List.filled(1024, 0);
   return [...header, ...padding];
@@ -323,19 +359,53 @@ void main() {
   });
 
   group('User Scenario Tests', () {
-    test('Scenario 1: Fresh install - User browses available versions', () async {
+    test('Scenario 1: Fresh install - User browses available versions',
+        () async {
       // Given: Fresh install, no downloaded versions
       mockStorage.givenDownloadedVersions([]);
       mockHttp.givenMetadataResponse([
-        createVersionMetadata(id: 'es-RVR1960', name: 'Reina Valera 1960', language: 'es', languageName: 'Español'),
-        createVersionMetadata(id: 'es-NVI', name: 'Nueva Versión Internacional', language: 'es', languageName: 'Español'),
-        createVersionMetadata(id: 'en-KJV', name: 'King James Version', language: 'en', languageName: 'English'),
-        createVersionMetadata(id: 'en-NIV', name: 'New International Version', language: 'en', languageName: 'English'),
-        createVersionMetadata(id: 'pt-ARC', name: 'Almeida Revista e Corrigida', language: 'pt', languageName: 'Português'),
-        createVersionMetadata(id: 'pt-NVI', name: 'Nova Versão Internacional', language: 'pt', languageName: 'Português'),
-        createVersionMetadata(id: 'fr-LSG1910', name: 'Louis Segond 1910', language: 'fr', languageName: 'Français'),
-        createVersionMetadata(id: 'ja-SK2003', name: '新改訳2003', language: 'ja', languageName: '日本語'),
-        createVersionMetadata(id: 'ja-JCB', name: '口語訳', language: 'ja', languageName: '日本語'),
+        createVersionMetadata(
+            id: 'es-RVR1960',
+            name: 'Reina Valera 1960',
+            language: 'es',
+            languageName: 'Español'),
+        createVersionMetadata(
+            id: 'es-NVI',
+            name: 'Nueva Versión Internacional',
+            language: 'es',
+            languageName: 'Español'),
+        createVersionMetadata(
+            id: 'en-KJV',
+            name: 'King James Version',
+            language: 'en',
+            languageName: 'English'),
+        createVersionMetadata(
+            id: 'en-NIV',
+            name: 'New International Version',
+            language: 'en',
+            languageName: 'English'),
+        createVersionMetadata(
+            id: 'pt-ARC',
+            name: 'Almeida Revista e Corrigida',
+            language: 'pt',
+            languageName: 'Português'),
+        createVersionMetadata(
+            id: 'pt-NVI',
+            name: 'Nova Versão Internacional',
+            language: 'pt',
+            languageName: 'Português'),
+        createVersionMetadata(
+            id: 'fr-LSG1910',
+            name: 'Louis Segond 1910',
+            language: 'fr',
+            languageName: 'Français'),
+        createVersionMetadata(
+            id: 'ja-SK2003',
+            name: '新改訳2003',
+            language: 'ja',
+            languageName: '日本語'),
+        createVersionMetadata(
+            id: 'ja-JCB', name: '口語訳', language: 'ja', languageName: '日本語'),
       ]);
 
       // When: User opens version manager
@@ -352,9 +422,13 @@ void main() {
       // Given: Version not downloaded
       mockStorage.givenDownloadedVersions([]);
       mockHttp.givenMetadataResponse([
-        createVersionMetadata(id: 'es-RVR1960', name: 'Reina Valera 1960', language: 'es', languageName: 'Español'),
+        createVersionMetadata(
+            id: 'es-RVR1960',
+            name: 'Reina Valera 1960',
+            language: 'es',
+            languageName: 'Español'),
       ]);
-      
+
       // Prepare valid database bytes
       final validDb = createValidSqliteDatabase();
       final compressedDb = gzip.encode(validDb);
@@ -379,13 +453,19 @@ void main() {
       expect(path, endsWith('bibles/es-RVR1960/bible.db'));
     });
 
-    test('Scenario 3: Network fails mid-download, version not marked downloaded', () async {
+    test(
+        'Scenario 3: Network fails mid-download, version not marked downloaded',
+        () async {
       // Given: Download starts but fails at 50%
       mockStorage.givenDownloadedVersions([]);
       mockHttp.givenMetadataResponse([
-        createVersionMetadata(id: 'en-KJV', name: 'King James Version', language: 'en', languageName: 'English'),
+        createVersionMetadata(
+            id: 'en-KJV',
+            name: 'King James Version',
+            language: 'en',
+            languageName: 'English'),
       ]);
-      
+
       final validDb = createValidSqliteDatabase();
       final compressedDb = gzip.encode(validDb);
       mockHttp.givenDownloadStreamFailsAt('en-KJV', compressedDb, 50);
@@ -411,19 +491,31 @@ void main() {
       // Given: User has versions downloaded
       final validDb = createValidSqliteDatabase();
       final compressedDb = gzip.encode(validDb);
-      
+
       mockStorage.givenDownloadedVersions([]);
       mockHttp.givenMetadataResponse([
-        createVersionMetadata(id: 'es-RVR1960', name: 'Reina Valera 1960', language: 'es', languageName: 'Español'),
-        createVersionMetadata(id: 'en-KJV', name: 'King James Version', language: 'en', languageName: 'English'),
-        createVersionMetadata(id: 'fr-LSG', name: 'Louis Segond', language: 'fr', languageName: 'Français'),
+        createVersionMetadata(
+            id: 'es-RVR1960',
+            name: 'Reina Valera 1960',
+            language: 'es',
+            languageName: 'Español'),
+        createVersionMetadata(
+            id: 'en-KJV',
+            name: 'King James Version',
+            language: 'en',
+            languageName: 'English'),
+        createVersionMetadata(
+            id: 'fr-LSG',
+            name: 'Louis Segond',
+            language: 'fr',
+            languageName: 'Français'),
       ]);
       mockHttp.givenDownloadStream('es-RVR1960', compressedDb);
       mockHttp.givenDownloadStream('en-KJV', compressedDb);
       mockHttp.givenDownloadStream('fr-LSG', compressedDb);
 
       await repo.initialize();
-      
+
       await repo.downloadVersion('es-RVR1960');
       await repo.downloadVersion('en-KJV');
       await repo.downloadVersion('fr-LSG');
@@ -445,7 +537,11 @@ void main() {
       // Given: Download completes but file corrupted
       mockStorage.givenDownloadedVersions([]);
       mockHttp.givenMetadataResponse([
-        createVersionMetadata(id: 'ja-COLLOQUIAL', name: 'Japanese Colloquial', language: 'ja', languageName: '日本語'),
+        createVersionMetadata(
+            id: 'ja-COLLOQUIAL',
+            name: 'Japanese Colloquial',
+            language: 'ja',
+            languageName: '日本語'),
       ]);
       mockHttp.givenDownloadProducesCorruptedFile('ja-COLLOQUIAL');
 
@@ -491,11 +587,19 @@ void main() {
       // Given: User downloaded 2 versions
       final validDb = createValidSqliteDatabase();
       final compressedDb = gzip.encode(validDb);
-      
+
       mockStorage.givenDownloadedVersions([]);
       mockHttp.givenMetadataResponse([
-        createVersionMetadata(id: 'es-RVR1960', name: 'Reina Valera 1960', language: 'es', languageName: 'Español'),
-        createVersionMetadata(id: 'pt-ARC', name: 'Almeida Revista e Corrigida', language: 'pt', languageName: 'Português'),
+        createVersionMetadata(
+            id: 'es-RVR1960',
+            name: 'Reina Valera 1960',
+            language: 'es',
+            languageName: 'Español'),
+        createVersionMetadata(
+            id: 'pt-ARC',
+            name: 'Almeida Revista e Corrigida',
+            language: 'pt',
+            languageName: 'Português'),
       ]);
       mockHttp.givenDownloadStream('es-RVR1960', compressedDb);
       mockHttp.givenDownloadStream('pt-ARC', compressedDb);
@@ -521,7 +625,8 @@ void main() {
   group('Edge Case Tests', () {
     test('Malformed metadata JSON returns graceful error', () async {
       // Given: Malformed JSON
-      mockHttp.givenGetResponse('metadata.json', statusCode: 200, body: 'not valid json');
+      mockHttp.givenGetResponse('metadata.json',
+          statusCode: 200, body: 'not valid json');
 
       // When/Then: Graceful error
       expect(
@@ -532,7 +637,8 @@ void main() {
 
     test('GitHub repo unavailable (404) throws NetworkException', () async {
       // Given: 404 response
-      mockHttp.givenGetResponse('metadata.json', statusCode: 404, body: 'Not Found');
+      mockHttp.givenGetResponse('metadata.json',
+          statusCode: 404, body: 'Not Found');
 
       // When/Then: Network exception
       expect(
@@ -555,7 +661,8 @@ void main() {
       );
     });
 
-    test('getVersionDatabasePath returns null for non-downloaded version', () async {
+    test('getVersionDatabasePath returns null for non-downloaded version',
+        () async {
       mockStorage.givenDownloadedVersions([]);
       await repo.initialize();
 
@@ -566,7 +673,11 @@ void main() {
     test('clearMetadataCache forces refresh', () async {
       mockStorage.givenDownloadedVersions([]);
       mockHttp.givenMetadataResponse([
-        createVersionMetadata(id: 'es-RVR1960', name: 'Reina Valera 1960', language: 'es', languageName: 'Español'),
+        createVersionMetadata(
+            id: 'es-RVR1960',
+            name: 'Reina Valera 1960',
+            language: 'es',
+            languageName: 'Español'),
       ]);
 
       // First fetch
@@ -575,8 +686,16 @@ void main() {
 
       // Update response
       mockHttp.givenMetadataResponse([
-        createVersionMetadata(id: 'es-RVR1960', name: 'Reina Valera 1960', language: 'es', languageName: 'Español'),
-        createVersionMetadata(id: 'en-KJV', name: 'King James Version', language: 'en', languageName: 'English'),
+        createVersionMetadata(
+            id: 'es-RVR1960',
+            name: 'Reina Valera 1960',
+            language: 'es',
+            languageName: 'Español'),
+        createVersionMetadata(
+            id: 'en-KJV',
+            name: 'King James Version',
+            language: 'en',
+            languageName: 'English'),
       ]);
 
       // Second fetch without clear - should use cache
@@ -617,7 +736,8 @@ void main() {
 
     test('Metadata fetch timeout throws NetworkException', () async {
       // Given: Network timeout
-      mockHttp.givenGetThrows('metadata.json', NetworkException('Connection timeout'));
+      mockHttp.givenGetThrows(
+          'metadata.json', NetworkException('Connection timeout'));
 
       // When/Then: Network exception
       expect(
@@ -626,7 +746,8 @@ void main() {
       );
     });
 
-    test('Download fills disk space throws InsufficientStorageException', () async {
+    test('Download fills disk space throws InsufficientStorageException',
+        () async {
       // Given: Not enough space for download (need 2x buffer)
       mockStorage.givenDownloadedVersions([]);
       mockStorage.givenAvailableSpace(10 * 1024); // Only 10KB available
@@ -664,7 +785,8 @@ void main() {
           uncompressedSizeBytes: 2000,
         ),
       ]);
-      mockHttp.givenDownloadResponseWithDelay('es-RVR1960', Duration(seconds: 5));
+      mockHttp.givenDownloadResponseWithDelay(
+          'es-RVR1960', Duration(seconds: 5));
 
       await repo.initialize();
 
@@ -690,13 +812,22 @@ void main() {
   group('Model Tests', () {
     test('BibleVersionMetadata equality works correctly', () {
       final v1 = BibleVersionMetadata.fromJson(
-        createVersionMetadata(id: 'es-RVR1960', name: 'RVR1960', language: 'es', languageName: 'Español'),
+        createVersionMetadata(
+            id: 'es-RVR1960',
+            name: 'RVR1960',
+            language: 'es',
+            languageName: 'Español'),
       );
       final v2 = BibleVersionMetadata.fromJson(
-        createVersionMetadata(id: 'es-RVR1960', name: 'RVR1960', language: 'es', languageName: 'Español'),
+        createVersionMetadata(
+            id: 'es-RVR1960',
+            name: 'RVR1960',
+            language: 'es',
+            languageName: 'Español'),
       );
       final v3 = BibleVersionMetadata.fromJson(
-        createVersionMetadata(id: 'en-KJV', name: 'KJV', language: 'en', languageName: 'English'),
+        createVersionMetadata(
+            id: 'en-KJV', name: 'KJV', language: 'en', languageName: 'English'),
       );
 
       expect(v1, equals(v2));
@@ -706,7 +837,11 @@ void main() {
 
     test('BibleVersionMetadata.copyWith works correctly', () {
       final original = BibleVersionMetadata.fromJson(
-        createVersionMetadata(id: 'es-RVR1960', name: 'RVR1960', language: 'es', languageName: 'Español'),
+        createVersionMetadata(
+            id: 'es-RVR1960',
+            name: 'RVR1960',
+            language: 'es',
+            languageName: 'Español'),
       );
 
       final copy = original.copyWith(name: 'Updated Name');
@@ -718,7 +853,11 @@ void main() {
 
     test('BibleVersionWithState.copyWith works correctly', () {
       final metadata = BibleVersionMetadata.fromJson(
-        createVersionMetadata(id: 'es-RVR1960', name: 'RVR1960', language: 'es', languageName: 'Español'),
+        createVersionMetadata(
+            id: 'es-RVR1960',
+            name: 'RVR1960',
+            language: 'es',
+            languageName: 'Español'),
       );
 
       final original = BibleVersionWithState(
@@ -726,7 +865,8 @@ void main() {
         state: DownloadState.notDownloaded,
       );
 
-      final copy = original.copyWith(state: DownloadState.downloading, progress: 0.5);
+      final copy =
+          original.copyWith(state: DownloadState.downloading, progress: 0.5);
 
       expect(copy.metadata, equals(original.metadata));
       expect(copy.state, equals(DownloadState.downloading));
@@ -735,7 +875,11 @@ void main() {
 
     test('BibleVersionWithState.copyWith clearError works correctly', () {
       final metadata = BibleVersionMetadata.fromJson(
-        createVersionMetadata(id: 'es-RVR1960', name: 'RVR1960', language: 'es', languageName: 'Español'),
+        createVersionMetadata(
+            id: 'es-RVR1960',
+            name: 'RVR1960',
+            language: 'es',
+            languageName: 'Español'),
       );
 
       final withError = BibleVersionWithState(
@@ -749,11 +893,13 @@ void main() {
       expect(copy1.errorCode, equals(BibleVersionErrorCode.network));
 
       // With clearError, error code is cleared
-      final copy2 = withError.copyWith(state: DownloadState.downloading, clearError: true);
+      final copy2 = withError.copyWith(
+          state: DownloadState.downloading, clearError: true);
       expect(copy2.errorCode, isNull);
 
       // With new error code, it's updated
-      final copy3 = withError.copyWith(errorCode: BibleVersionErrorCode.storage);
+      final copy3 =
+          withError.copyWith(errorCode: BibleVersionErrorCode.storage);
       expect(copy3.errorCode, equals(BibleVersionErrorCode.storage));
     });
   });

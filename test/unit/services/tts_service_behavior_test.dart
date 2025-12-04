@@ -17,6 +17,7 @@ library;
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/tts/i_tts_service.dart';
+import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 import 'package:devocional_nuevo/services/tts_service.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -62,6 +63,10 @@ void main() {
         },
       );
 
+      // Register required services
+      ServiceLocator().registerLazySingleton<VoiceSettingsService>(
+          () => VoiceSettingsService());
+
       // Create fresh service instance for each test
       ttsService = TtsService();
     });
@@ -70,6 +75,9 @@ void main() {
       if (!ttsService.isDisposed) {
         await ttsService.dispose();
       }
+      // Clean up ServiceLocator
+      ServiceLocator().reset();
+
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(const MethodChannel('flutter_tts'), null);
     });

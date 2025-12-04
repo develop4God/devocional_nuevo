@@ -3,7 +3,20 @@ import '../exceptions/bible_version_error_code.dart';
 
 /// Valid ISO 639-1 language codes for Bible versions.
 const Set<String> _validLanguageCodes = {
-  'es', 'en', 'pt', 'fr', 'ja', 'de', 'it', 'ko', 'zh', 'ru', 'ar', 'he', 'el', 'la',
+  'es',
+  'en',
+  'pt',
+  'fr',
+  'ja',
+  'de',
+  'it',
+  'ko',
+  'zh',
+  'ru',
+  'ar',
+  'he',
+  'el',
+  'la',
 };
 
 /// Data model for Bible version metadata.
@@ -200,7 +213,8 @@ class BibleVersionMetadata {
       downloadUrl: downloadUrl ?? this.downloadUrl,
       rawUrl: rawUrl ?? this.rawUrl,
       sizeBytes: sizeBytes ?? this.sizeBytes,
-      uncompressedSizeBytes: uncompressedSizeBytes ?? this.uncompressedSizeBytes,
+      uncompressedSizeBytes:
+          uncompressedSizeBytes ?? this.uncompressedSizeBytes,
       version: version ?? this.version,
       description: description ?? this.description,
       license: license ?? this.license,
@@ -312,7 +326,7 @@ class BibleVersionWithState {
   });
 
   /// Creates a copy with optionally modified fields.
-  /// 
+  ///
   /// Use `clearError: true` to explicitly clear the error.
   BibleVersionWithState copyWith({
     BibleVersionMetadata? metadata,
@@ -345,7 +359,8 @@ class BibleVersionWithState {
   }
 
   @override
-  int get hashCode => Object.hash(metadata, state, progress, errorCode, queuePosition);
+  int get hashCode =>
+      Object.hash(metadata, state, progress, errorCode, queuePosition);
 
   @override
   String toString() {

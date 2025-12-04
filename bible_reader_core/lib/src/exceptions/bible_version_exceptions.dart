@@ -66,14 +66,12 @@ class DatabaseCorruptedException extends BibleVersionException {
   final String? versionId;
 
   /// Creates a database corrupted exception with version ID.
-  const DatabaseCorruptedException.forVersion(String versionId, [Object? cause])
-      : versionId = versionId,
-        super('Database for version $versionId is corrupted', cause);
+  const DatabaseCorruptedException.forVersion(this.versionId, [Object? cause])
+      : super('Database for version $versionId is corrupted', cause);
 
   /// Creates a database corrupted exception with a message.
-  const DatabaseCorruptedException(String message, [Object? cause])
-      : versionId = null,
-        super(message, cause);
+  const DatabaseCorruptedException(super.message, [super.cause])
+      : versionId = null;
 
   @override
   String toString() => versionId != null

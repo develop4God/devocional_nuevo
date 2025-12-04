@@ -6,6 +6,8 @@ import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:devocional_nuevo/controllers/audio_controller.dart';
 import 'package:devocional_nuevo/services/tts_service.dart';
+import 'package:devocional_nuevo/services/service_locator.dart';
+import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
 
 void main() {
@@ -17,6 +19,9 @@ void main() {
     });
 
     setUp(() {
+      // Reset ServiceLocator for clean test state
+      ServiceLocator().reset();
+
       SharedPreferences.setMockInitialValues({});
 
       // Mock solo los platform channels (infraestructura externa)
@@ -48,6 +53,10 @@ void main() {
         },
       );
 
+      // Register required services
+      ServiceLocator().registerLazySingleton<VoiceSettingsService>(
+          () => VoiceSettingsService());
+
       controller = AudioController(TtsService());
       controller.initialize();
     });
@@ -56,6 +65,9 @@ void main() {
       if (controller.mounted) {
         controller.dispose();
       }
+
+      // Clean up ServiceLocator
+      ServiceLocator().reset();
 
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(

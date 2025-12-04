@@ -1,11 +1,28 @@
+import 'package:devocional_nuevo/services/service_locator.dart';
+import 'package:devocional_nuevo/services/localization_service.dart';
 import 'package:devocional_nuevo/widgets/bible_verse_grid_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// Test suite for Bible verse grid selector widget
 /// Tests grid-based verse selection with multiple books and chapters
 /// including Psalm 119 (176 verses) as requested
 void main() {
+  setUp(() {
+    TestWidgetsFlutterBinding.ensureInitialized();
+    // Reset ServiceLocator for clean test state
+    ServiceLocator().reset();
+    SharedPreferences.setMockInitialValues({});
+    // Register LocalizationService
+    ServiceLocator().registerLazySingleton<LocalizationService>(
+        () => LocalizationService());
+  });
+
+  tearDown(() {
+    ServiceLocator().reset();
+  });
+
   group('Bible Verse Grid Selector Tests', () {
     testWidgets('Should display grid with correct number of verses',
         (WidgetTester tester) async {

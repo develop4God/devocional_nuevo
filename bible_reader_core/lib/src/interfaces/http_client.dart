@@ -81,7 +81,8 @@ class HttpDownloadProgress {
 
   /// Returns the download progress as a value between 0.0 and 1.0.
   /// Returns 0.0 if the total size is unknown.
-  double get progress => total != null && total! > 0 ? downloaded / total! : 0.0;
+  double get progress =>
+      total != null && total! > 0 ? downloaded / total! : 0.0;
 
   /// Returns true if the download is complete.
   bool get isComplete => total != null && downloaded >= total!;

@@ -48,7 +48,8 @@ class BibleVersionBloc extends Bloc<BibleVersionEvent, BibleVersionState> {
     on<ValidationStartedEvent>(_onValidationStarted);
 
     // Subscribe to queue position updates
-    _queuePositionSubscription = repository.queuePositionUpdates.listen((positions) {
+    _queuePositionSubscription =
+        repository.queuePositionUpdates.listen((positions) {
       add(UpdateQueuePositionsEvent(positions));
     });
   }
@@ -77,7 +78,9 @@ class BibleVersionBloc extends Bloc<BibleVersionEvent, BibleVersionState> {
         final isDownloaded = downloadedIds.contains(m.id);
         return BibleVersionWithState(
           metadata: m,
-          state: isDownloaded ? DownloadState.downloaded : DownloadState.notDownloaded,
+          state: isDownloaded
+              ? DownloadState.downloaded
+              : DownloadState.notDownloaded,
         );
       }).toList();
 
@@ -88,7 +91,8 @@ class BibleVersionBloc extends Bloc<BibleVersionEvent, BibleVersionState> {
     } on NetworkException {
       emit(const BibleVersionError(errorCode: BibleVersionErrorCode.network));
     } on MetadataParsingException {
-      emit(const BibleVersionError(errorCode: BibleVersionErrorCode.metadataParsing));
+      emit(const BibleVersionError(
+          errorCode: BibleVersionErrorCode.metadataParsing));
     } catch (e) {
       emit(BibleVersionError(
         errorCode: BibleVersionErrorCode.unknown,
@@ -117,7 +121,8 @@ class BibleVersionBloc extends Bloc<BibleVersionEvent, BibleVersionState> {
     // Update the version state to queued initially
     final versions = currentState.versions.map((v) {
       if (v.metadata.id == event.versionId) {
-        return v.copyWith(state: DownloadState.queued, progress: 0.0, clearError: true);
+        return v.copyWith(
+            state: DownloadState.queued, progress: 0.0, clearError: true);
       }
       return v;
     }).toList();
@@ -138,7 +143,8 @@ class BibleVersionBloc extends Bloc<BibleVersionEvent, BibleVersionState> {
 
     // Start download with priority
     try {
-      await repository.downloadVersion(event.versionId, priority: event.priority);
+      await repository.downloadVersion(event.versionId,
+          priority: event.priority);
       add(DownloadCompletedEvent(event.versionId));
     } on InsufficientStorageException catch (e) {
       add(DownloadFailedEvent(
@@ -184,7 +190,10 @@ class BibleVersionBloc extends Bloc<BibleVersionEvent, BibleVersionState> {
       // Update versions list
       final versions = currentState.versions.map((v) {
         if (v.metadata.id == event.versionId) {
-          return v.copyWith(state: DownloadState.notDownloaded, progress: 0.0, clearError: true);
+          return v.copyWith(
+              state: DownloadState.notDownloaded,
+              progress: 0.0,
+              clearError: true);
         }
         return v;
       }).toList();
@@ -285,8 +294,8 @@ class BibleVersionBloc extends Bloc<BibleVersionEvent, BibleVersionState> {
       final position = event.positions[v.metadata.id];
       if (position != null) {
         // In queue - update position, preserve downloading state if already downloading
-        final newState = v.state == DownloadState.downloading 
-            ? DownloadState.downloading 
+        final newState = v.state == DownloadState.downloading
+            ? DownloadState.downloading
             : DownloadState.queued;
         return v.copyWith(state: newState, queuePosition: position);
       } else if (v.state == DownloadState.queued) {
