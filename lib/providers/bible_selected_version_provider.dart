@@ -183,8 +183,9 @@ class BibleSelectedVersionProvider extends ChangeNotifier {
       return false;
     }
     _selectedVersion = versionObj.name;
+    // Construir la ruta real del archivo guardado por el StorageAdapter usando el id
     final biblesDir = await _repository.storage.getBiblesDirectory();
-    final dbPath = '$biblesDir/${versionObj.filename}';
+    final dbPath = '${biblesDir}/${versionObj.id}/bible.db';
     final fileExists = await _repository.storage.fileExists(dbPath);
     if (!fileExists) {
       // Si el archivo no existe, elimina el ID de la lista y fuerza descarga
@@ -251,9 +252,9 @@ class BibleSelectedVersionProvider extends ChangeNotifier {
         (v) => v.language == lang && v.name == version,
         orElse: () => allVersions.firstWhere((v) => v.language == lang),
       );
-      // Obtener el directorio de biblias y armar el path del archivo descargado
+      // Construir la ruta real del archivo guardado por el StorageAdapter usando el id
       final biblesDir = await _repository.storage.getBiblesDirectory();
-      final dbPath = '$biblesDir/${versionObj.filename}';
+      final dbPath = '${biblesDir}/${versionObj.id}/bible.db';
       final dbService = BibleDbService(customDatabasePath: dbPath);
       await dbService.initDbFromPath();
       // Obtener el primer libro y capítulo disponibles
