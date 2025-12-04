@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:developer' as developer;
 import 'dart:ui';
 
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -46,6 +47,10 @@ class LocalizationService {
 
   // Current translations (reference to cached entry)
   Map<String, dynamic> _translations = {};
+
+  /// Check if translations for a language are cached (for testing)
+  @visibleForTesting
+  bool isCached(String languageCode) => _translationsCache.containsKey(languageCode);
 
   /// Initialize the localization service
   Future<void> initialize() async {

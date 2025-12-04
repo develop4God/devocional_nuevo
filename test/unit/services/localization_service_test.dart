@@ -330,30 +330,32 @@ void main() {
       expect(prefs.getString('locale'), equals('es'));
     });
 
-    test('Translation cache improves performance on repeated language switches',
+    test('Translation cache stores and reuses translations on language switches',
         () async {
       await localizationService.initialize();
 
-      // First switch to English - should load from file
+      // Initially, only the current locale should be cached
+      final initialLocale = localizationService.currentLocale.languageCode;
+      expect(localizationService.isCached(initialLocale), isTrue);
+
+      // Switch to English - should load and cache
       await localizationService.changeLocale(const Locale('en'));
-
-      // Switch to Spanish
-      await localizationService.changeLocale(const Locale('es'));
-
-      // Second switch back to English - should use cache (faster)
-      final secondSwitchStart = DateTime.now();
-      await localizationService.changeLocale(const Locale('en'));
-      final secondSwitchDuration =
-          DateTime.now().difference(secondSwitchStart).inMilliseconds;
-
-      // Both operations should complete successfully
+      expect(localizationService.isCached('en'), isTrue);
       expect(localizationService.currentLocale.languageCode, equals('en'));
 
-      // Second switch should be fast (using cache)
-      // In test environment, first load may be fast too, but cache should not be slower
-      // Using a reasonable threshold for test environments
-      expect(secondSwitchDuration, lessThanOrEqualTo(100),
-          reason: 'Cached translation load should complete quickly');
+      // Switch to Spanish - should load and cache
+      await localizationService.changeLocale(const Locale('es'));
+      expect(localizationService.isCached('es'), isTrue);
+      expect(localizationService.currentLocale.languageCode, equals('es'));
+
+      // Both languages should now be cached
+      expect(localizationService.isCached('en'), isTrue);
+      expect(localizationService.isCached('es'), isTrue);
+
+      // Switch back to English - should use cache (verify it's still cached)
+      await localizationService.changeLocale(const Locale('en'));
+      expect(localizationService.isCached('en'), isTrue);
+      expect(localizationService.currentLocale.languageCode, equals('en'));
     });
 
     test('Error handling falls back to default locale gracefully', () async {
