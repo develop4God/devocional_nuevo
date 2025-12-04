@@ -595,6 +595,30 @@ void main() {
       expect(copy.state, equals(DownloadState.downloading));
       expect(copy.progress, equals(0.5));
     });
+
+    test('BibleVersionWithState.copyWith clearError works correctly', () {
+      final metadata = BibleVersionMetadata.fromJson(
+        createVersionMetadata(id: 'es-RVR1960', name: 'RVR1960', language: 'es', languageName: 'Español'),
+      );
+
+      final withError = BibleVersionWithState(
+        metadata: metadata,
+        state: DownloadState.failed,
+        errorMessage: 'Network error',
+      );
+
+      // Without clearError, error message is preserved
+      final copy1 = withError.copyWith(state: DownloadState.downloading);
+      expect(copy1.errorMessage, equals('Network error'));
+
+      // With clearError, error message is cleared
+      final copy2 = withError.copyWith(state: DownloadState.downloading, clearError: true);
+      expect(copy2.errorMessage, isNull);
+
+      // With new error message, it's updated
+      final copy3 = withError.copyWith(errorMessage: 'New error');
+      expect(copy3.errorMessage, equals('New error'));
+    });
   });
 
   group('Exception Tests', () {
