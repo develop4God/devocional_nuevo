@@ -27,13 +27,11 @@ class AppGradientDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final bgColor =
-        backgroundColor ?? colorScheme.surface.withAlpha(240); // más oscuro
     final gradColors = gradientColors ??
         [
-          colorScheme.primary.withAlpha(220),
-          colorScheme.secondary.withAlpha(230),
-          colorScheme.surface.withAlpha(240),
+          colorScheme.primary,
+          colorScheme.secondary,
+          colorScheme.surface,
         ];
     final bColor = borderColor ?? Colors.white.withAlpha(200);
     return SafeArea(
@@ -59,7 +57,6 @@ class AppGradientDialog extends StatelessWidget {
                   maxHeight: MediaQuery.of(context).size.height * 0.7,
                 ),
                 decoration: BoxDecoration(
-                  color: bgColor,
                   gradient: LinearGradient(
                     colors: gradColors,
                     begin: Alignment.topLeft,
