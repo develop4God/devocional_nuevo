@@ -5,9 +5,43 @@ import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 
+/// Service for interacting with Bible SQLite databases.
+///
+/// Supports two modes:
+/// 1. Asset-based: Loads a database from the app's assets (default behavior)
+/// 2. Custom path: Opens a database from a custom file path (for downloaded versions)
+///
+/// Example usage with asset (existing behavior):
+/// ```dart
+/// final service = BibleDbService();
+/// await service.initDb('assets/biblia/RVR1960_es.SQLite3', 'RVR1960_es.db');
+/// ```
+///
+/// Example usage with custom path (downloaded version):
+/// ```dart
+/// final service = BibleDbService(customDatabasePath: '/path/to/downloaded/bible.db');
+/// await service.initDbFromPath();
+/// ```
 class BibleDbService {
   late Database _db;
 
+  /// Optional custom database path for downloaded Bible versions.
+  /// When set, [initDbFromPath] will use this path instead of loading from assets.
+  final String? customDatabasePath;
+
+  /// Creates a BibleDbService instance.
+  ///
+  /// [customDatabasePath] - Optional path to a pre-existing database file.
+  /// If provided, use [initDbFromPath] instead of [initDb].
+  BibleDbService({this.customDatabasePath});
+
+  /// Initializes the database from the app's assets.
+  ///
+  /// This is the original method that loads a database from assets.
+  /// Use this for bundled Bible versions.
+  ///
+  /// [dbAssetPath] - Asset path like 'assets/biblia/RVR1960_es.SQLite3'
+  /// [dbName] - Name for the copied database file
   Future<void> initDb(String dbAssetPath, String dbName) async {
     final documentsDirectory = await getApplicationDocumentsDirectory();
     final dbPath = join(documentsDirectory.path, dbName);
@@ -20,6 +54,48 @@ class BibleDbService {
     }
 
     _db = await openDatabase(dbPath, readOnly: true);
+  }
+
+  /// Initializes the database from a custom path.
+  ///
+  /// Use this method when [customDatabasePath] is set.
+  /// This is typically used for downloaded Bible versions.
+  ///
+  /// Throws [StateError] if [customDatabasePath] is null.
+  /// Throws [FileSystemException] if the database file doesn't exist.
+  Future<void> initDbFromPath() async {
+    if (customDatabasePath == null) {
+      throw StateError(
+        'customDatabasePath is null. Use initDb() for asset-based databases.',
+      );
+    }
+
+    if (!File(customDatabasePath!).existsSync()) {
+      throw FileSystemException(
+        'Database file not found',
+        customDatabasePath,
+      );
+    }
+
+    _db = await openDatabase(customDatabasePath!, readOnly: true);
+  }
+
+  /// Returns true if the database has been initialized.
+  bool get isInitialized {
+    try {
+      return _db.isOpen;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// Closes the database connection.
+  ///
+  /// Call this when done using the service to release resources.
+  Future<void> close() async {
+    if (isInitialized) {
+      await _db.close();
+    }
   }
 
   // Get all books

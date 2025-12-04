@@ -14,6 +14,9 @@
 /// and testing.
 library;
 
+import 'package:bible_reader_core/bible_reader_core.dart';
+import 'package:devocional_nuevo/adapters/http_client_adapter.dart';
+import 'package:devocional_nuevo/adapters/storage_adapter.dart';
 import 'package:devocional_nuevo/services/localization_service.dart';
 import 'package:devocional_nuevo/services/tts/i_tts_service.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
@@ -102,6 +105,25 @@ void setupServiceLocator() {
 
   // Register TTS service as a lazy singleton (created when first accessed)
   locator.registerLazySingleton<ITtsService>(() => TtsService());
+
+  // Register Bible version services
+  // HttpClient adapter using package:http
+  locator.registerLazySingleton<HttpClient>(
+    () => HttpClientAdapter.create(),
+  );
+
+  // Storage adapter using path_provider and shared_preferences
+  locator.registerLazySingleton<BibleVersionStorage>(
+    () => StorageAdapter(),
+  );
+
+  // Bible version repository using the adapters
+  locator.registerLazySingleton<BibleVersionRepository>(
+    () => BibleVersionRepository(
+      httpClient: locator.get<HttpClient>(),
+      storage: locator.get<BibleVersionStorage>(),
+    ),
+  );
 
   // Add more service registrations here as needed
   // Example:
