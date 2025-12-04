@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io' show gzip;
 
+import 'package:flutter/foundation.dart';
+
 import '../exceptions/bible_version_exceptions.dart';
 import '../interfaces/bible_version_storage.dart';
 import '../interfaces/http_client.dart';
@@ -260,9 +262,11 @@ class BibleVersionRepository {
     String languageCode,
   ) async {
     final url = '$githubApiBaseUrl/$languageCode';
+    debugPrint('[BibleRepo] Fetching versions for $languageCode: $url');
     final response = await httpClient.get(url);
-
+    debugPrint('[BibleRepo] Response status: [1m${response.statusCode}[0m');
     if (!response.isSuccess) {
+      debugPrint('[BibleRepo] Error body: [31m${response.body}[0m');
       throw NetworkException(
         'Failed to fetch versions for language: $languageCode',
         statusCode: response.statusCode,
@@ -490,8 +494,11 @@ class BibleVersionRepository {
       final metadata = versions.where((v) => v.id == versionId).firstOrNull;
 
       if (metadata == null) {
+        debugPrint('[BibleRepo] No metadata found for versionId: $versionId');
         throw VersionNotFoundException(versionId);
       }
+
+      debugPrint('[BibleRepo] Downloading: [1m${metadata.downloadUrl}[0m');
 
       // Validate metadata
       final validationErrors = metadata.validate();
@@ -532,10 +539,7 @@ class BibleVersionRepository {
         downloadedBytes.addAll(progress.data);
         controller?.add(progress.progress);
       }
-
-      if (downloadedBytes.isEmpty) {
-        throw NetworkException('Download produced no data');
-      }
+      debugPrint('[BibleRepo] Downloaded bytes: ${downloadedBytes.length}');
 
       // Write partial file
       await storage.writeFile(partialPath, downloadedBytes);
@@ -576,6 +580,7 @@ class BibleVersionRepository {
       // Emit completion
       controller?.add(1.0);
     } catch (e) {
+      debugPrint('[BibleRepo] Download error: $e');
       // Clean up partial file on failure
       if (partialPath != null) {
         await storage.deleteFile(partialPath);

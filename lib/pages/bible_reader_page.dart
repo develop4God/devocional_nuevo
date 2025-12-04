@@ -394,16 +394,6 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
   @override
   Widget build(BuildContext context) {
     final bibleProvider = Provider.of<BibleSelectedVersionProvider>(context);
-    if (bibleProvider.state == BibleProviderState.loading ||
-        bibleProvider.state == BibleProviderState.downloading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-    if (bibleProvider.state == BibleProviderState.error) {
-      return Center(
-          child: Text(bibleProvider.errorMessage ?? 'Error al cargar la Biblia',
-              style: const TextStyle(color: Colors.red)));
-    }
-
     final themeState = context.watch<ThemeBloc>().state as ThemeLoaded;
     return StreamBuilder<BibleReaderState>(
       stream: _controller.stateStream,
@@ -411,6 +401,58 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
       builder: (context, snapshot) {
         final state = snapshot.data ?? _controller.state;
         final colorScheme = Theme.of(context).colorScheme;
+
+        // Mostrar loader amigable si la Biblia está cargando o descargando
+        if (bibleProvider.state == BibleProviderState.loading ||
+            bibleProvider.state == BibleProviderState.downloading) {
+          return Scaffold(
+            key: _scaffoldKey,
+            appBar: AppBar(
+              title: Text('Cargando Biblia...'),
+              backgroundColor: colorScheme.primary,
+            ),
+            body: const Center(child: CircularProgressIndicator()),
+          );
+        }
+        // Si hay error, mostrar mensaje suave y opción de reintentar
+        if (bibleProvider.state == BibleProviderState.error) {
+          final locale = Localizations.localeOf(context).languageCode;
+          String errorMsg;
+          if (locale == 'es') {
+            errorMsg =
+                'No se pudo descargar la Biblia en tu idioma. Puedes reintentar o cambiar de versión.';
+          } else if (locale == 'en') {
+            errorMsg =
+                'Could not download the Bible in your language. You can retry or change version.';
+          } else {
+            errorMsg = bibleProvider.errorMessage ?? 'Error loading Bible.';
+          }
+          return Scaffold(
+            key: _scaffoldKey,
+            appBar: AppBar(
+              title: Text('Biblia'),
+              backgroundColor: colorScheme.primary,
+            ),
+            body: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.error_outline, color: Colors.red, size: 48),
+                  const SizedBox(height: 16),
+                  Text(errorMsg,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(color: Colors.red, fontSize: 16)),
+                  const SizedBox(height: 24),
+                  ElevatedButton.icon(
+                    icon: const Icon(Icons.refresh),
+                    label: Text(locale == 'es' ? 'Reintentar' : 'Retry'),
+                    onPressed: () => bibleProvider.fetchBibleInfo(),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
 
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (state.selectedVerse != null &&
