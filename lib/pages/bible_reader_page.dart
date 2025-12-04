@@ -11,6 +11,7 @@ import 'package:devocional_nuevo/widgets/app_bar_constants.dart';
 import 'package:devocional_nuevo/widgets/bible_book_selector_dialog.dart';
 import 'package:devocional_nuevo/widgets/bible_chapter_grid_selector.dart';
 import 'package:devocional_nuevo/widgets/bible_reader_action_modal.dart';
+import 'package:devocional_nuevo/widgets/bible_reader_drawer.dart';
 import 'package:devocional_nuevo/widgets/bible_search_overlay.dart';
 import 'package:devocional_nuevo/widgets/bible_verse_grid_selector.dart';
 import 'package:devocional_nuevo/widgets/floating_font_control_buttons.dart';
@@ -448,54 +449,12 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
       value: themeState.systemUiOverlayStyle,
       child: Scaffold(
         key: _scaffoldKey,
-        endDrawer: Drawer(
-          child: SafeArea(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Text(
-                    'Versiones Bíblicas',
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                ),
-                Expanded(
-                  child: ListView(
-                    children:
-                        _controller!.state.availableVersions.map((version) {
-                      final isSelected = version.name ==
-                          _controller!.state.selectedVersion?.name;
-                      return ListTile(
-                        leading: Icon(
-                          isSelected ? Icons.check_circle : Icons.menu_book,
-                          color: isSelected ? colorScheme.primary : null,
-                        ),
-                        title: Text('${version.name} (${version.language})'),
-                        selected: isSelected,
-                        onTap: () async {
-                          Navigator.of(context).maybePop();
-                          await _controller!.switchVersion(version);
-                        },
-                      );
-                    }).toList(),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: ElevatedButton.icon(
-                    icon: const Icon(Icons.download),
-                    label: const Text('Gestionar/Descargar versiones'),
-                    onPressed: () {
-                      Navigator.of(context).maybePop();
-                      Navigator.of(context)
-                          .pushNamed('/bible_versions_manager');
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),
+        endDrawer: BibleReaderDrawer(
+          availableVersions: _controller!.state.availableVersions,
+          selectedVersion: _controller!.state.selectedVersion,
+          onVersionSelected: (version) async {
+            await _controller!.switchVersion(version);
+          },
         ),
         appBar: PreferredSize(
           preferredSize: const Size.fromHeight(kToolbarHeight),

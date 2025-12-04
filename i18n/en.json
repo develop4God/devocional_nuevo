@@ -589,7 +589,17 @@
     "total_verses": "{count} verses available",
     "select_chapter": "Select chapter",
     "total_chapters": "{count} chapters available",
-    "close": "Close"
+    "close": "Close",
+    "drawer_title": "Bible Versions",
+    "current_version": "Current Version",
+    "available_versions": "Available Versions",
+    "download_versions": "Download More Versions",
+    "download_versions_subtitle": "Get Bible versions for offline use",
+    "manage_versions": "Manage All Versions",
+    "download_dialog_title": "Download Bible Versions",
+    "download_dialog_content": "Select versions to download for offline reading. Downloads occur in the background.",
+    "download_error": "Error loading available versions",
+    "no_versions_available": "No versions available to download"
   },
   "bible_version": {
     "title": "Bible Versions",

@@ -589,7 +589,17 @@
     "total_verses": "{count} versets disponibles",
     "select_chapter": "Sélectionner le chapitre",
     "total_chapters": "{count} chapitres disponibles",
-    "close": "Fermer"
+    "close": "Fermer",
+    "drawer_title": "Versions de la Bible",
+    "current_version": "Version Actuelle",
+    "available_versions": "Versions Disponibles",
+    "download_versions": "Télécharger Plus de Versions",
+    "download_versions_subtitle": "Obtenez des versions bibliques pour une utilisation hors ligne",
+    "manage_versions": "Gérer Toutes les Versions",
+    "download_dialog_title": "Télécharger des Versions Bibliques",
+    "download_dialog_content": "Sélectionnez des versions à télécharger pour la lecture hors ligne. Les téléchargements se font en arrière-plan.",
+    "download_error": "Erreur lors du chargement des versions disponibles",
+    "no_versions_available": "Aucune version disponible à télécharger"
   },
   "bible_version": {
     "title": "Versions de la Bible",

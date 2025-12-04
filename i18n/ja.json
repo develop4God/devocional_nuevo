@@ -589,7 +589,17 @@
     "search": "検索",
     "saved_verses": "保存された節",
     "delete_saved_verses": "保存された節を削除",
-    "deleted_marked_verses": "マークした節を削除しました"
+    "deleted_marked_verses": "マークした節を削除しました",
+    "drawer_title": "聖書のバージョン",
+    "current_version": "現在のバージョン",
+    "available_versions": "利用可能なバージョン",
+    "download_versions": "他のバージョンをダウンロード",
+    "download_versions_subtitle": "オフラインで使用する聖書のバージョンを取得",
+    "manage_versions": "すべてのバージョンを管理",
+    "download_dialog_title": "聖書のバージョンをダウンロード",
+    "download_dialog_content": "オフラインで読むためのバージョンを選択してください。ダウンロードはバックグラウンドで行われます。",
+    "download_error": "利用可能なバージョンの読み込みエラー",
+    "no_versions_available": "ダウンロードできるバージョンがありません"
   },
   "bible_version": {
     "title": "聖書のバージョン",
