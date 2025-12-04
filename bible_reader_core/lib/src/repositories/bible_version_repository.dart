@@ -427,13 +427,15 @@ class BibleVersionRepository {
       _activeDownloads++;
       _updateQueuePositions();
 
-      _performDownloadWithRetry(download).then((_) {
-        _cleanupDownload(download);
-        download.completer.complete();
-      }).catchError((error) {
-        _cleanupDownload(download);
-        download.completer.completeError(error);
-      });
+      _performDownloadWithRetry(download)
+          .then((_) {
+            _cleanupDownload(download);
+            download.completer.complete();
+          })
+          .catchError((error) {
+            _cleanupDownload(download);
+            download.completer.completeError(error);
+          });
     }
   }
 
@@ -568,6 +570,10 @@ class BibleVersionRepository {
 
       // Write final file
       await storage.writeFile(dbPath, finalBytes);
+      final existsAfterWrite = await storage.fileExists(dbPath);
+      print(
+        '[BibleRepo] Verificación tras guardar: $dbPath ¿existe?: $existsAfterWrite',
+      );
 
       // Remove partial file
       await storage.deleteFile(partialPath);
