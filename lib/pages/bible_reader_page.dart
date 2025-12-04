@@ -6,6 +6,7 @@ import 'package:bible_reader_core/bible_reader_core.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
+import 'package:devocional_nuevo/providers/bible_selected_version_provider.dart';
 import 'package:devocional_nuevo/utils/copyright_utils.dart';
 import 'package:devocional_nuevo/widgets/app_bar_constants.dart';
 import 'package:devocional_nuevo/widgets/bible_book_selector_dialog.dart';
@@ -16,7 +17,7 @@ import 'package:devocional_nuevo/widgets/bible_verse_grid_selector.dart';
 import 'package:devocional_nuevo/widgets/floating_font_control_buttons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:provider/provider.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:share_plus/share_plus.dart' show ShareParams, SharePlus;
 
@@ -44,6 +45,8 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
   final ItemScrollController _itemScrollController = ItemScrollController();
   final ItemPositionsListener _itemPositionsListener =
       ItemPositionsListener.create();
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  String? _lastLanguage;
 
   @override
   void initState() {
@@ -68,6 +71,17 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     // Initialize controller with device language
     final deviceLanguage = ui.PlatformDispatcher.instance.locale.languageCode;
     _controller.initialize(deviceLanguage);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final bibleVersionProvider =
+        Provider.of<BibleSelectedVersionProvider>(context);
+    if (_lastLanguage != bibleVersionProvider.selectedLanguage) {
+      _lastLanguage = bibleVersionProvider.selectedLanguage;
+      _controller.initialize(_lastLanguage!);
+    }
   }
 
   @override
@@ -373,8 +387,23 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     );
   }
 
+  void _openVersionsDrawer() {
+    _scaffoldKey.currentState?.openEndDrawer();
+  }
+
   @override
   Widget build(BuildContext context) {
+    final bibleProvider = Provider.of<BibleSelectedVersionProvider>(context);
+    if (bibleProvider.state == BibleProviderState.loading ||
+        bibleProvider.state == BibleProviderState.downloading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (bibleProvider.state == BibleProviderState.error) {
+      return Center(
+          child: Text(bibleProvider.errorMessage ?? 'Error al cargar la Biblia',
+              style: const TextStyle(color: Colors.red)));
+    }
+
     final themeState = context.watch<ThemeBloc>().state as ThemeLoaded;
     return StreamBuilder<BibleReaderState>(
       stream: _controller.stateStream,
@@ -400,6 +429,56 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
         return AnnotatedRegion<SystemUiOverlayStyle>(
           value: themeState.systemUiOverlayStyle,
           child: Scaffold(
+            key: _scaffoldKey,
+            endDrawer: Drawer(
+              child: SafeArea(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Text(
+                        'Versiones Bíblicas',
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
+                    ),
+                    Expanded(
+                      child: ListView(
+                        children: state.availableVersions.map((version) {
+                          final isSelected =
+                              version.name == state.selectedVersion?.name;
+                          return ListTile(
+                            leading: Icon(
+                              isSelected ? Icons.check_circle : Icons.menu_book,
+                              color: isSelected ? colorScheme.primary : null,
+                            ),
+                            title:
+                                Text('${version.name} (${version.language})'),
+                            selected: isSelected,
+                            onTap: () async {
+                              Navigator.of(context).maybePop();
+                              await _controller.switchVersion(version);
+                            },
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: ElevatedButton.icon(
+                        icon: const Icon(Icons.download),
+                        label: const Text('Gestionar/Descargar versiones'),
+                        onPressed: () {
+                          Navigator.of(context).maybePop();
+                          Navigator.of(context)
+                              .pushNamed('/bible_versions_manager');
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
             appBar: PreferredSize(
               preferredSize: const Size.fromHeight(kToolbarHeight),
               child: Stack(
@@ -436,6 +515,37 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                       ],
                     ),
                   ),
+                  // Orden de iconos: menu_book (Drawer), text_increase, search, menú de versiones
+                  Positioned(
+                    right: state.availableVersions.length > 1 ? 192 : 144,
+                    top: 0,
+                    bottom: 0,
+                    child: SafeArea(
+                      child: IconButton(
+                        icon: Icon(
+                          Icons.menu_book,
+                          color: Theme.of(context).colorScheme.onPrimary,
+                        ),
+                        tooltip: 'Gestionar versiones bíblicas',
+                        onPressed: _openVersionsDrawer,
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    right: state.availableVersions.length > 1 ? 144 : 96,
+                    top: 0,
+                    bottom: 0,
+                    child: SafeArea(
+                      child: IconButton(
+                        icon: Icon(
+                          Icons.text_increase_outlined,
+                          color: Theme.of(context).colorScheme.onPrimary,
+                        ),
+                        tooltip: 'bible.adjust_font_size'.tr(),
+                        onPressed: () => _controller.toggleFontControls(),
+                      ),
+                    ),
+                  ),
                   Positioned(
                     right: state.availableVersions.length > 1 ? 96 : 48,
                     top: 0,
@@ -451,24 +561,9 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                       ),
                     ),
                   ),
-                  Positioned(
-                    right: state.availableVersions.length > 1 ? 48 : 0,
-                    top: 0,
-                    bottom: 0,
-                    child: SafeArea(
-                      child: IconButton(
-                        icon: Icon(
-                          Icons.text_increase_outlined,
-                          color: Theme.of(context).colorScheme.onPrimary,
-                        ),
-                        tooltip: 'bible.adjust_font_size'.tr(),
-                        onPressed: () => _controller.toggleFontControls(),
-                      ),
-                    ),
-                  ),
                   if (state.availableVersions.length > 1)
                     Positioned(
-                      right: 0,
+                      right: 48,
                       top: 0,
                       bottom: 0,
                       child: SafeArea(

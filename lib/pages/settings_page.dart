@@ -7,6 +7,7 @@ import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/pages/about_page.dart';
 import 'package:devocional_nuevo/pages/application_language_page.dart';
 import 'package:devocional_nuevo/pages/contact_page.dart';
+import 'package:devocional_nuevo/providers/bible_selected_version_provider.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/providers/localization_provider.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
@@ -29,6 +30,7 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage> {
   double _ttsSpeed = 0.4;
+
   // Get VoiceSettingsService instance from the Service Locator
   late final VoiceSettingsService _voiceSettingsService =
       getService<VoiceSettingsService>();
@@ -146,6 +148,16 @@ class _SettingsPageState extends State<SettingsPage> {
     developer.log('Donate action triggered with mode: $_donationMode');
     // Only PayPal available
     await _launchPaypal();
+  }
+
+  Future<void> _onChangeLanguage(String languageCode) async {
+    final localizationProvider =
+        Provider.of<LocalizationProvider>(context, listen: false);
+    final bibleVersionProvider =
+        Provider.of<BibleSelectedVersionProvider>(context, listen: false);
+    await localizationProvider.changeLanguage(languageCode);
+    await bibleVersionProvider.setLanguage(languageCode);
+    // Si tienes lógica para refrescar la UI de la Biblia, puedes notificar aquí
   }
 
   void _showErrorSnackBar(String message) {
