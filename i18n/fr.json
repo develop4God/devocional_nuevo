@@ -12,7 +12,11 @@
     "yes": "Oui",
     "no": "Non",
     "delete": "Supprimer",
-    "skip": "Ignorer"
+    "skip": "Ignorer",
+    "voice_feature_title": "🎤✨ Nouvelle fonctionnalité disponible ! ✨🎤",
+    "voice_feature_description": "Vous pouvez désormais choisir entre différentes voix pour la lecture des méditations. Personnalisez votre expérience et profitez d'une lecture plus agréable et moderne. 😃🔊",
+    "voice_feature_configure": "Configurer les voix",
+    "voice_feature_continue": "Continuer"
   },
   "devotionals": {
     "app_title": "Méditations Quotidiennes",
