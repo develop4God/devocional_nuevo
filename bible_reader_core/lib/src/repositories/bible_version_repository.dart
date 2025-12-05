@@ -510,14 +510,12 @@ class BibleVersionRepository {
         );
       }
 
-      // Prepare paths
+      // Prepare paths - SIMPLIFIED: use original filename from GitHub
+      // Files are saved directly in bibles folder: bibles/KJV_en.SQLite3
       final biblesDir = await storage.getBiblesDirectory();
-      final versionDir = '$biblesDir/$versionId';
-      final dbPath = '$versionDir/bible.db';
+      final dbPath = '$biblesDir/${metadata.filename}';
       partialPath = '$dbPath.partial';
-
-      // Create version directory
-      await storage.createDirectory(versionDir);
+      _logger.i('[BibleRepo] Will save to: $dbPath');
 
       // Emit initial progress
       controller?.add(0.0);
@@ -637,11 +635,16 @@ class BibleVersionRepository {
   /// Removes all files associated with the version and updates the downloaded list.
   /// Does nothing if the version is not downloaded.
   Future<void> deleteVersion(String versionId) async {
-    final biblesDir = await storage.getBiblesDirectory();
-    final versionDir = '$biblesDir/$versionId';
+    // First get the metadata to find the filename
+    final versions = await fetchAvailableVersions();
+    final metadata = versions.where((v) => v.id == versionId).firstOrNull;
 
-    // Delete the version directory
-    await storage.deleteDirectory(versionDir);
+    if (metadata != null) {
+      final biblesDir = await storage.getBiblesDirectory();
+      // Delete the file directly: bibles/KJV_en.SQLite3
+      final filePath = '$biblesDir/${metadata.filename}';
+      await storage.deleteFile(filePath);
+    }
 
     // Update downloaded versions
     _downloadedVersions.remove(versionId);
@@ -670,8 +673,17 @@ class BibleVersionRepository {
       return null;
     }
 
+    // Get the metadata to find the filename
+    final versions = await fetchAvailableVersions();
+    final metadata = versions.where((v) => v.id == versionId).firstOrNull;
+
+    if (metadata == null) {
+      return null;
+    }
+
     final biblesDir = await storage.getBiblesDirectory();
-    final dbPath = '$biblesDir/$versionId/bible.db';
+    // Path is: bibles/KJV_en.SQLite3
+    final dbPath = '$biblesDir/${metadata.filename}';
 
     if (await storage.fileExists(dbPath)) {
       return dbPath;

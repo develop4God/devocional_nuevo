@@ -116,8 +116,8 @@ class BibleSelectedVersionProvider extends ChangeNotifier {
             name: meta.name,
             language: meta.languageName,
             languageCode: meta.language,
-            // Path must match where StorageAdapter saves files: {documentsDir}/bibles/{versionId}/bible.db
-            dbFileName: 'bibles/${meta.id}/bible.db',
+            // Path uses original filename: bibles/{filename}
+            dbFileName: 'bibles/${meta.filename}',
             isDownloaded: downloadedIds.contains(meta.id),
           ),
         )
@@ -197,9 +197,10 @@ class BibleSelectedVersionProvider extends ChangeNotifier {
       return false;
     }
     _selectedVersion = versionObj.name;
-    // Construir la ruta real del archivo guardado por el StorageAdapter usando el id
+    // SIMPLIFIED: Path uses original filename: bibles/{filename}
     final biblesDir = await _repository.storage.getBiblesDirectory();
-    final dbPath = '$biblesDir/${versionObj.id}/bible.db';
+    final dbPath = '$biblesDir/${versionObj.filename}';
+    _logger.i('[BibleProvider] Verificando archivo en: $dbPath');
     final fileExists = await _repository.storage.fileExists(dbPath);
     if (!fileExists) {
       // Si el archivo no existe, elimina el ID de la lista y fuerza descarga
@@ -254,8 +255,9 @@ class BibleSelectedVersionProvider extends ChangeNotifier {
       _logger.i(
         '[BibleProvider] ¿Archivo guardado correctamente?: $fileExists',
       );
-      return true;
-    } catch (_) {
+      return fileExists;
+    } catch (e) {
+      _logger.e('[BibleProvider] Error al descargar: $e');
       return false;
     }
   }
@@ -268,9 +270,10 @@ class BibleSelectedVersionProvider extends ChangeNotifier {
         (v) => v.language == lang && v.name == version,
         orElse: () => allVersions.firstWhere((v) => v.language == lang),
       );
-      // Construir la ruta real del archivo guardado por el StorageAdapter usando el id
+      // SIMPLIFIED: Path uses original filename
       final biblesDir = await _repository.storage.getBiblesDirectory();
-      final dbPath = '$biblesDir/${versionObj.id}/bible.db';
+      final dbPath = '$biblesDir/${versionObj.filename}';
+      _logger.i('[BibleProvider] Abriendo base de datos en: $dbPath');
       final dbService = BibleDbService(customDatabasePath: dbPath);
       await dbService.initDbFromPath();
       // Obtener el primer libro y capítulo disponibles
@@ -280,6 +283,7 @@ class BibleSelectedVersionProvider extends ChangeNotifier {
       final bookNumber = firstBook['book_number'] as int? ?? 1;
       final verses = await dbService.getChapterVerses(bookNumber, 1);
       _verses = verses;
+      _logger.i('[BibleProvider] Versículos cargados: ${_verses.length}');
       return _verses.isNotEmpty;
     } catch (e) {
       _logger.e('[BibleProvider] ERROR al obtener versículos: $e');

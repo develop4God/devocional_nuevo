@@ -222,10 +222,9 @@ void main() {
         expect(progressValues.last, 1.0);
         expect(repository.isVersionDownloaded('es-NVI'), true);
 
-        // And: Database path is available
+        // And: Database path uses original filename
         final dbPath = await repository.getVersionDatabasePath('es-NVI');
-        expect(dbPath, contains('es-NVI'));
-        expect(dbPath, endsWith('bible.db'));
+        expect(dbPath, contains('NVI_es.SQLite3'));
       });
     });
 
@@ -256,8 +255,10 @@ void main() {
         expect(versions.any((v) => v.id == 'en-NIV'), true);
 
         final kjv = versions.firstWhere((v) => v.id == 'en-KJV');
-        expect(kjv.name, 'KJV'); // Short code for matching in BibleSelectedVersionProvider
-        expect(kjv.description, 'King James Version'); // Display name in description
+        expect(kjv.name,
+            'KJV'); // Short code for matching in BibleSelectedVersionProvider
+        expect(kjv.description,
+            'King James Version'); // Display name in description
         expect(kjv.language, 'en');
         expect(kjv.languageName, 'English');
       });
