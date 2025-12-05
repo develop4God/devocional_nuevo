@@ -156,11 +156,14 @@ class BibleDbService {
     int bookNumber,
     int chapter,
   ) async {
-    return await _db.query(
+    final results = await _db.query(
       'verses',
       where: 'book_number = ? AND chapter = ?',
       whereArgs: [bookNumber, chapter],
     );
+    _logger.i(
+        '[BibleDbService] getChapterVerses: bookNumber=$bookNumber, chapter=$chapter, results.length=${results.length}');
+    return results;
   }
 
   // (Optional) Get a chapter using the original method
