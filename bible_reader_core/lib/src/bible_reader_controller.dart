@@ -17,7 +17,6 @@ import 'package:bible_reader_core/src/bible_reader_service.dart';
 import 'package:bible_reader_core/src/bible_reader_state.dart';
 import 'package:bible_reader_core/src/bible_version.dart';
 import 'package:flutter/foundation.dart';
-import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 
 class BibleReaderController {
@@ -67,9 +66,12 @@ class BibleReaderController {
       }
     }
 
-    // Select initial version
+    // Select initial version - prefer downloaded versions
     final selectedVersion = availableVersions.isNotEmpty
-        ? availableVersions.first
+        ? (availableVersions.firstWhere(
+            (v) => v.isDownloaded,
+            orElse: () => availableVersions.first,
+          ))
         : allVersions.first;
 
     // Initialize version's database service
@@ -173,23 +175,23 @@ class BibleReaderController {
   }
 
   Future<void> _initializeVersionService(BibleVersion version) async {
+    // SOLUCIÓN: Obtener el directorio base exactamente igual que StorageAdapter
     final documents = await getApplicationDocumentsDirectory();
-    final downloadedPath = join(documents.path, version.dbFileName);
+    final downloadedPath = '${documents.path}/${version.dbFileName}';
+
     debugPrint(
         '[BibleReaderController] Verificando archivo en: $downloadedPath');
     debugPrint(
-      '[BibleReaderController] ¿Existe?: ${File(downloadedPath).existsSync()}',
-    );
+        '[BibleReaderController] ¿Existe?: ${File(downloadedPath).existsSync()}');
+
     if (File(downloadedPath).existsSync()) {
-      // Create and initialize the database service for this version
       version.service = BibleDbService(customDatabasePath: downloadedPath);
       await version.service!.initDbFromPath();
       debugPrint(
           '[BibleReaderController] Base de datos inicializada correctamente');
     } else {
       debugPrint(
-        '[BibleReaderController] ERROR: No se encontró el archivo en $downloadedPath',
-      );
+          '[BibleReaderController] ERROR: No se encontró el archivo en $downloadedPath');
       throw Exception(
         'La versión bíblica no está descargada. Descárguela desde el gestor de versiones.',
       );
