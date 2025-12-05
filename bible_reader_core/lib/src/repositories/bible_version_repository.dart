@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io' show gzip;
 
 import 'package:flutter/foundation.dart';
+import 'package:logger/logger.dart';
 
 import '../exceptions/bible_version_exceptions.dart';
 import '../interfaces/bible_version_storage.dart';
@@ -413,15 +414,13 @@ class BibleVersionRepository {
       _activeDownloads++;
       _updateQueuePositions();
 
-      _performDownloadWithRetry(download)
-          .then((_) {
-            _cleanupDownload(download);
-            download.completer.complete();
-          })
-          .catchError((error) {
-            _cleanupDownload(download);
-            download.completer.completeError(error);
-          });
+      _performDownloadWithRetry(download).then((_) {
+        _cleanupDownload(download);
+        download.completer.complete();
+      }).catchError((error) {
+        _cleanupDownload(download);
+        download.completer.completeError(error);
+      });
     }
   }
 
@@ -482,14 +481,18 @@ class BibleVersionRepository {
       final metadata = versions.where((v) => v.id == versionId).firstOrNull;
 
       if (metadata == null) {
-        debugPrint('[BibleRepo] No metadata found for versionId: $versionId');
+        _logVersionNotFound(versionId);
         throw VersionNotFoundException(versionId);
       }
 
-      debugPrint('[BibleRepo] Downloading: [1m${metadata.downloadUrl}[0m');
+      _logDownloadStart(versionId);
+      _logger.i(
+        '[BibleRepo] Downloading: [1m[36m${metadata.downloadUrl}[0m',
+      );
 
       // Validate metadata
       final validationErrors = metadata.validate();
+      _logMetadataValidation(versionId, validationErrors);
       if (validationErrors.isNotEmpty) {
         throw MetadataValidationException(validationErrors);
       }
@@ -498,6 +501,7 @@ class BibleVersionRepository {
       final availableSpace = await storage.getAvailableSpace();
       final requiredSpace =
           metadata.uncompressedSizeBytes * _storageBufferMultiplier;
+      _logStorageSpaceCheck(versionId, availableSpace, requiredSpace);
 
       if (availableSpace > 0 && availableSpace < requiredSpace) {
         throw InsufficientStorageException(
@@ -526,8 +530,11 @@ class BibleVersionRepository {
       )) {
         downloadedBytes.addAll(progress.data);
         controller?.add(progress.progress);
+        _logDownloadProgress(versionId, progress.progress);
       }
-      debugPrint('[BibleRepo] Downloaded bytes: ${downloadedBytes.length}');
+      _logger.i(
+        '[BibleRepo] Downloaded bytes: [32m${downloadedBytes.length}[0m',
+      );
 
       // Write partial file
       await storage.writeFile(partialPath, downloadedBytes);
@@ -551,13 +558,14 @@ class BibleVersionRepository {
 
       // Validate the database (basic check: SQLite header)
       if (!_isValidSqliteDatabase(finalBytes)) {
+        _logDatabaseCorruption(versionId);
         throw DatabaseCorruptedException.forVersion(versionId);
       }
 
       // Write final file
       await storage.writeFile(dbPath, finalBytes);
       final existsAfterWrite = await storage.fileExists(dbPath);
-      print(
+      _logger.i(
         '[BibleRepo] Verificación tras guardar: $dbPath ¿existe?: $existsAfterWrite',
       );
 
@@ -571,8 +579,9 @@ class BibleVersionRepository {
 
       // Emit completion
       controller?.add(1.0);
+      _logDownloadComplete(versionId);
     } catch (e) {
-      debugPrint('[BibleRepo] Download error: $e');
+      _logDownloadError(versionId, e);
       // Clean up partial file on failure
       if (partialPath != null) {
         await storage.deleteFile(partialPath);
@@ -699,4 +708,54 @@ class _QueuedDownload {
   bool isProcessing = false;
 
   _QueuedDownload({required this.versionId, required this.priority});
+}
+
+final Logger _logger = Logger();
+
+extension on BibleVersionRepository {
+  void _logDownloadStart(String versionId) {
+    _logger.i('Starting download for version: $versionId');
+  }
+
+  void _logDownloadProgress(String versionId, double progress) {
+    _logger.i('Download progress for $versionId: ${progress * 100}%');
+  }
+
+  void _logDownloadComplete(String versionId) {
+    _logger.i('Download complete for version: $versionId');
+  }
+
+  void _logDownloadError(String versionId, Object error) {
+    _logger.e('Error downloading version $versionId: $error');
+  }
+
+  void _logStorageSpaceCheck(String versionId, int available, int required) {
+    _logger.i(
+      'Storage space check for $versionId: available $available, required $required',
+    );
+  }
+
+  void _logMetadataValidation(String versionId, List<String> errors) {
+    if (errors.isEmpty) {
+      _logger.i('Metadata validation passed for version: $versionId');
+    } else {
+      _logger.w(
+        'Metadata validation warnings for $versionId: ${errors.join(', ')}',
+      );
+    }
+  }
+
+  void _logDatabaseCorruption(String versionId) {
+    _logger.e('Database corruption detected for version: $versionId');
+  }
+
+  void _logVersionNotFound(String versionId) {
+    _logger.e('Version not found: $versionId');
+  }
+
+  void _logMaxRetriesExceeded(String versionId, int attempts) {
+    _logger.e(
+      'Max retries exceeded for version $versionId after $attempts attempts',
+    );
+  }
 }

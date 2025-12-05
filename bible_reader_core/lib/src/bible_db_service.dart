@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:logger/logger.dart';
 import 'package:sqflite/sqflite.dart';
 
 import 'exceptions/bible_version_exceptions.dart';
@@ -28,6 +29,8 @@ class BibleDbService {
   /// When set, [initDbFromPath] will use this path instead of loading from assets.
   final String? customDatabasePath;
 
+  final Logger _logger = Logger();
+
   /// Creates a BibleDbService instance.
   ///
   /// [customDatabasePath] - Optional path to a pre-existing database file.
@@ -48,23 +51,34 @@ class BibleDbService {
   /// Throws [DatabaseSchemaException] if schema version doesn't match.
   /// Throws [DatabaseCorruptedException] if integrity check fails.
   Future<void> initDbFromPath({int? expectedSchemaVersion}) async {
+    _logger.i(
+      '[BibleDbService] Intentando abrir base de datos en: $customDatabasePath',
+    );
     if (customDatabasePath == null) {
+      _logger.e('[BibleDbService] customDatabasePath es null');
       throw StateError(
         'customDatabasePath is null. Use a valid path for downloaded databases.',
       );
     }
 
     if (!File(customDatabasePath!).existsSync()) {
+      _logger.e(
+        '[BibleDbService] Archivo de base de datos no encontrado: $customDatabasePath',
+      );
       throw FileSystemException('Database file not found', customDatabasePath);
     }
 
     _db = await openDatabase(customDatabasePath!, readOnly: true);
+    _logger.i(
+      '[BibleDbService] Base de datos abierta correctamente: $customDatabasePath',
+    );
 
     // Validate schema version if expected version is provided
     if (expectedSchemaVersion != null) {
       final versionResult = await _db.rawQuery('PRAGMA user_version');
       if (versionResult.isEmpty) {
         await _db.close();
+        _logger.e('[BibleDbService] No se pudo leer la versión de esquema');
         throw DatabaseCorruptedException(
           'Could not read schema version from database',
         );
@@ -72,6 +86,9 @@ class BibleDbService {
       final actualVersion = versionResult.first['user_version'] as int? ?? 0;
       if (actualVersion != expectedSchemaVersion) {
         await _db.close();
+        _logger.e(
+          '[BibleDbService] Versión de esquema incorrecta: esperado $expectedSchemaVersion, obtenido $actualVersion',
+        );
         throw DatabaseSchemaException(
           'Schema version mismatch: expected $expectedSchemaVersion, got $actualVersion',
           expectedVersion: expectedSchemaVersion,
@@ -84,6 +101,7 @@ class BibleDbService {
     final integrityResult = await _db.rawQuery('PRAGMA integrity_check');
     if (integrityResult.isEmpty) {
       await _db.close();
+      _logger.e('[BibleDbService] No se pudo realizar el integrity_check');
       throw DatabaseCorruptedException(
         'Could not perform integrity check on database',
       );
@@ -91,10 +109,14 @@ class BibleDbService {
     final integrityStatus = integrityResult.first['integrity_check'] as String?;
     if (integrityStatus != 'ok') {
       await _db.close();
+      _logger.e('[BibleDbService] Integrity check falló: $integrityStatus');
       throw DatabaseCorruptedException(
         'Database integrity check failed: $integrityStatus',
       );
     }
+    _logger.i(
+      '[BibleDbService] Base de datos validada correctamente: $customDatabasePath',
+    );
   }
 
   /// Returns true if the database has been initialized.
