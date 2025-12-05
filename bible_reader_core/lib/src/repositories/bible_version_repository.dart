@@ -427,15 +427,13 @@ class BibleVersionRepository {
       _activeDownloads++;
       _updateQueuePositions();
 
-      _performDownloadWithRetry(download)
-          .then((_) {
-            _cleanupDownload(download);
-            download.completer.complete();
-          })
-          .catchError((error) {
-            _cleanupDownload(download);
-            download.completer.completeError(error);
-          });
+      _performDownloadWithRetry(download).then((_) {
+        _cleanupDownload(download);
+        download.completer.complete();
+      }).catchError((error) {
+        _cleanupDownload(download);
+        download.completer.completeError(error);
+      });
     }
   }
 

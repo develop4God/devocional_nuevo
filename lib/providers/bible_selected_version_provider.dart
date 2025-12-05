@@ -109,7 +109,8 @@ class BibleSelectedVersionProvider extends ChangeNotifier {
               name: meta.name,
               language: meta.languageName,
               languageCode: meta.language,
-              dbFileName: '${meta.id}/bible.db',
+              // Path must match where StorageAdapter saves files: {documentsDir}/bibles/{versionId}/bible.db
+              dbFileName: 'bibles/${meta.id}/bible.db',
               isDownloaded: downloadedIds.contains(meta.id),
             ))
         .toList();
@@ -186,7 +187,7 @@ class BibleSelectedVersionProvider extends ChangeNotifier {
     _selectedVersion = versionObj.name;
     // Construir la ruta real del archivo guardado por el StorageAdapter usando el id
     final biblesDir = await _repository.storage.getBiblesDirectory();
-    final dbPath = '${biblesDir}/${versionObj.id}/bible.db';
+    final dbPath = '$biblesDir/${versionObj.id}/bible.db';
     final fileExists = await _repository.storage.fileExists(dbPath);
     if (!fileExists) {
       // Si el archivo no existe, elimina el ID de la lista y fuerza descarga
@@ -255,7 +256,7 @@ class BibleSelectedVersionProvider extends ChangeNotifier {
       );
       // Construir la ruta real del archivo guardado por el StorageAdapter usando el id
       final biblesDir = await _repository.storage.getBiblesDirectory();
-      final dbPath = '${biblesDir}/${versionObj.id}/bible.db';
+      final dbPath = '$biblesDir/${versionObj.id}/bible.db';
       final dbService = BibleDbService(customDatabasePath: dbPath);
       await dbService.initDbFromPath();
       // Obtener el primer libro y capítulo disponibles

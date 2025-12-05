@@ -16,6 +16,7 @@ import 'package:bible_reader_core/src/bible_preferences_service.dart';
 import 'package:bible_reader_core/src/bible_reader_service.dart';
 import 'package:bible_reader_core/src/bible_reader_state.dart';
 import 'package:bible_reader_core/src/bible_version.dart';
+import 'package:flutter/foundation.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -54,15 +55,13 @@ class BibleReaderController {
     _emit(_state.copyWith(isLoading: true, deviceLanguage: deviceLanguage));
 
     // Filter versions by device language
-    List<BibleVersion> availableVersions = allVersions
-        .where((v) => v.languageCode == deviceLanguage)
-        .toList();
+    List<BibleVersion> availableVersions =
+        allVersions.where((v) => v.languageCode == deviceLanguage).toList();
 
     // Fallback to Spanish or all versions if no match
     if (availableVersions.isEmpty) {
-      availableVersions = allVersions
-          .where((v) => v.languageCode == 'es')
-          .toList();
+      availableVersions =
+          allVersions.where((v) => v.languageCode == 'es').toList();
       if (availableVersions.isEmpty) {
         availableVersions = allVersions;
       }
@@ -176,33 +175,19 @@ class BibleReaderController {
   Future<void> _initializeVersionService(BibleVersion version) async {
     final documents = await getApplicationDocumentsDirectory();
     final downloadedPath = join(documents.path, version.dbFileName);
-    print('[BibleReaderController] Verificando archivo en: $downloadedPath');
-    print(
+    debugPrint(
+        '[BibleReaderController] Verificando archivo en: $downloadedPath');
+    debugPrint(
       '[BibleReaderController] ¿Existe?: ${File(downloadedPath).existsSync()}',
     );
     if (File(downloadedPath).existsSync()) {
+      // Create and initialize the database service for this version
       version.service = BibleDbService(customDatabasePath: downloadedPath);
       await version.service!.initDbFromPath();
-      // Crear un nuevo BibleReaderService con el DB correcto
-      final newDbService = BibleDbService(customDatabasePath: downloadedPath);
-      await newDbService.initDbFromPath();
-      // Si el controlador permite, actualiza readerService
-      // Si readerService es final, deberás recrear el controlador en la UI
-      // Aquí asumo que puedes actualizarlo:
-      // ignore: invalid_use_of_visible_for_testing_member, invalid_use_of_protected_member
-      // ignore: invalid_use_of_visible_for_testing_member
-      // ignore: invalid_use_of_protected_member
-      // Si no puedes reasignar, deberás recrear el controlador
-      // (esto es solo ejemplo, ajusta según tu arquitectura)
-      // readerService = BibleReaderService(dbService: newDbService, positionService: readerService.positionService);
-      // Si no puedes reasignar, lanza un error claro:
-      if (readerService.dbService.customDatabasePath != downloadedPath) {
-        throw StateError(
-          'readerService.dbService no se puede actualizar dinámicamente. Debes recrear BibleReaderService con el DB correcto.',
-        );
-      }
+      debugPrint(
+          '[BibleReaderController] Base de datos inicializada correctamente');
     } else {
-      print(
+      debugPrint(
         '[BibleReaderController] ERROR: No se encontró el archivo en $downloadedPath',
       );
       throw Exception(
@@ -225,13 +210,11 @@ class BibleReaderController {
       _state.selectedChapter!,
     );
 
-    final maxVerse = verses.isNotEmpty
-        ? (verses.last['verse'] as int? ?? 1)
-        : 1;
+    final maxVerse =
+        verses.isNotEmpty ? (verses.last['verse'] as int? ?? 1) : 1;
     final selectedVerse = _state.selectedVerse;
-    final validatedVerse = (selectedVerse == null || selectedVerse > maxVerse)
-        ? 1
-        : selectedVerse;
+    final validatedVerse =
+        (selectedVerse == null || selectedVerse > maxVerse) ? 1 : selectedVerse;
 
     _emit(
       _state.copyWith(
