@@ -45,6 +45,8 @@ class BibleReaderController {
   }
 
   void _emit(BibleReaderState newState) {
+    debugPrint(
+        '[BibleReaderController] _emit() llamado. Verses: ${newState.verses.length}, Book: ${newState.selectedBookName}, Chapter: ${newState.selectedChapter}');
     _state = newState;
     _stateController.add(_state);
   }

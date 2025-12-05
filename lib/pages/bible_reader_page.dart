@@ -357,6 +357,8 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
 
   @override
   Widget build(BuildContext context) {
+    debugPrint('[BibleReaderPage] build() llamado. Provider state: '
+        '${Provider.of<BibleSelectedVersionProvider>(context).state}');
     final bibleProvider = Provider.of<BibleSelectedVersionProvider>(context);
     final themeState = context.watch<ThemeBloc>().state as ThemeLoaded;
     final colorScheme = Theme.of(context).colorScheme;
@@ -430,492 +432,503 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
       );
     }
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final state = _controller!.state;
-      if (state.selectedVerse != null &&
-          state.verses.any((v) => v['verse'] == state.selectedVerse) &&
-          state.isSearching) {
-        _scrollToVerse(state.selectedVerse!);
-      } else if (state.verses.isNotEmpty &&
-          state.selectedVerses.isEmpty &&
-          !state.isSearching &&
-          state.selectedVerse == 1 &&
-          !ModalRoute.of(context)!.isCurrent) {
-        _scrollToTop();
-      }
-    });
-
-    return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: themeState.systemUiOverlayStyle,
-      child: Scaffold(
-        key: _scaffoldKey,
-        endDrawer: BibleReaderDrawer(
-          availableVersions: _controller!.state.availableVersions,
-          selectedVersion: _controller!.state.selectedVersion,
-          onVersionSelected: (version) async {
-            await _controller!.switchVersion(version);
-          },
-        ),
-        appBar: PreferredSize(
-          preferredSize: const Size.fromHeight(kToolbarHeight),
-          child: Stack(
-            children: [
-              CustomAppBar(
-                titleWidget: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      'bible.title'.tr(),
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+    // StreamBuilder para escuchar el estado del controlador
+    return StreamBuilder<BibleReaderState>(
+      stream: _controller!.stateStream,
+      initialData: _controller!.state,
+      builder: (context, snapshot) {
+        final state = snapshot.data ?? _controller!.state;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (state.selectedVerse != null &&
+              state.verses.any((v) => v['verse'] == state.selectedVerse) &&
+              state.isSearching) {
+            _scrollToVerse(state.selectedVerse!);
+          } else if (state.verses.isNotEmpty &&
+              state.selectedVerses.isEmpty &&
+              !state.isSearching &&
+              state.selectedVerse == 1 &&
+              !ModalRoute.of(context)!.isCurrent) {
+            _scrollToTop();
+          }
+        });
+        return AnnotatedRegion<SystemUiOverlayStyle>(
+          value: themeState.systemUiOverlayStyle,
+          child: Scaffold(
+            key: _scaffoldKey,
+            endDrawer: BibleReaderDrawer(
+              availableVersions: state.availableVersions,
+              selectedVersion: state.selectedVersion,
+              onVersionSelected: (version) async {
+                await _controller!.switchVersion(version);
+              },
+            ),
+            appBar: PreferredSize(
+              preferredSize: const Size.fromHeight(kToolbarHeight),
+              child: Stack(
+                children: [
+                  CustomAppBar(
+                    titleWidget: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'bible.title'.tr(),
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleLarge
+                              ?.copyWith(
+                                color: Theme.of(context).colorScheme.onPrimary,
+                              ),
+                        ),
+                        if (!state.isLoading && state.selectedVersion != null)
+                          Text(
+                            '${state.selectedVersion!.name} (${state.selectedVersion!.language})',
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyMedium
+                                ?.copyWith(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onPrimary
+                                      .withValues(alpha: 0.85),
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w400,
+                                ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  // Orden de iconos: menu_book (Drawer), text_increase, search, menú de versiones
+                  Positioned(
+                    right: state.availableVersions.length > 1 ? 192 : 144,
+                    top: 0,
+                    bottom: 0,
+                    child: SafeArea(
+                      child: IconButton(
+                        icon: Icon(
+                          Icons.menu_book,
+                          color: Theme.of(context).colorScheme.onPrimary,
+                        ),
+                        tooltip: 'Gestionar versiones bíblicas',
+                        onPressed: _openVersionsDrawer,
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    right: state.availableVersions.length > 1 ? 144 : 96,
+                    top: 0,
+                    bottom: 0,
+                    child: SafeArea(
+                      child: IconButton(
+                        icon: Icon(
+                          Icons.text_increase_outlined,
+                          color: Theme.of(context).colorScheme.onPrimary,
+                        ),
+                        tooltip: 'bible.adjust_font_size'.tr(),
+                        onPressed: () => _controller!.toggleFontControls(),
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    right: state.availableVersions.length > 1 ? 96 : 48,
+                    top: 0,
+                    bottom: 0,
+                    child: SafeArea(
+                      child: IconButton(
+                        icon: Icon(
+                          Icons.search,
+                          color: Theme.of(context).colorScheme.onPrimary,
+                        ),
+                        tooltip: 'bible.search'.tr(),
+                        onPressed: _showSearchOverlay,
+                      ),
+                    ),
+                  ),
+                  if (state.availableVersions.length > 1)
+                    Positioned(
+                      right: 48,
+                      top: 0,
+                      bottom: 0,
+                      child: SafeArea(
+                        child: PopupMenuButton<BibleVersion>(
+                          icon: Icon(
+                            Icons.menu,
                             color: Theme.of(context).colorScheme.onPrimary,
                           ),
-                    ),
-                    if (!_controller!.state.isLoading &&
-                        _controller!.state.selectedVersion != null)
-                      Text(
-                        '${_controller!.state.selectedVersion!.name} (${_controller!.state.selectedVersion!.language})',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onPrimary
-                                  .withValues(alpha: 0.85),
-                              fontSize: 13,
-                              fontWeight: FontWeight.w400,
-                            ),
+                          tooltip: 'bible.select_version'.tr(),
+                          onSelected: (version) async {
+                            final scaffoldMessenger =
+                                ScaffoldMessenger.of(context);
+                            final colorScheme = Theme.of(context).colorScheme;
+                            await _controller!.switchVersion(version);
+                            if (!mounted) return;
+                            scaffoldMessenger.showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  'bible.loading_version'
+                                      .tr({'version': version.name}),
+                                  style:
+                                      TextStyle(color: colorScheme.onSecondary),
+                                ),
+                                backgroundColor: colorScheme.secondary,
+                                duration: const Duration(seconds: 1),
+                              ),
+                            );
+                          },
+                          itemBuilder: (context) =>
+                              state.availableVersions.map((version) {
+                            return PopupMenuItem<BibleVersion>(
+                              value: version,
+                              child: Row(
+                                children: [
+                                  if (version.name ==
+                                      state.selectedVersion?.name)
+                                    Icon(Icons.check,
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .primary,
+                                        size: 20)
+                                  else
+                                    const SizedBox(width: 20),
+                                  const SizedBox(width: 8),
+                                  Text(version.name),
+                                ],
+                              ),
+                            );
+                          }).toList(),
+                        ),
                       ),
-                  ],
-                ),
-              ),
-              // Orden de iconos: menu_book (Drawer), text_increase, search, menú de versiones
-              Positioned(
-                right:
-                    _controller!.state.availableVersions.length > 1 ? 192 : 144,
-                top: 0,
-                bottom: 0,
-                child: SafeArea(
-                  child: IconButton(
-                    icon: Icon(
-                      Icons.menu_book,
-                      color: Theme.of(context).colorScheme.onPrimary,
                     ),
-                    tooltip: 'Gestionar versiones bíblicas',
-                    onPressed: _openVersionsDrawer,
-                  ),
-                ),
+                ],
               ),
-              Positioned(
-                right:
-                    _controller!.state.availableVersions.length > 1 ? 144 : 96,
-                top: 0,
-                bottom: 0,
-                child: SafeArea(
-                  child: IconButton(
-                    icon: Icon(
-                      Icons.text_increase_outlined,
-                      color: Theme.of(context).colorScheme.onPrimary,
-                    ),
-                    tooltip: 'bible.adjust_font_size'.tr(),
-                    onPressed: () => _controller!.toggleFontControls(),
-                  ),
-                ),
-              ),
-              Positioned(
-                right:
-                    _controller!.state.availableVersions.length > 1 ? 96 : 48,
-                top: 0,
-                bottom: 0,
-                child: SafeArea(
-                  child: IconButton(
-                    icon: Icon(
-                      Icons.search,
-                      color: Theme.of(context).colorScheme.onPrimary,
-                    ),
-                    tooltip: 'bible.search'.tr(),
-                    onPressed: _showSearchOverlay,
-                  ),
-                ),
-              ),
-              if (_controller!.state.availableVersions.length > 1)
-                Positioned(
-                  right: 48,
-                  top: 0,
-                  bottom: 0,
-                  child: SafeArea(
-                    child: PopupMenuButton<BibleVersion>(
-                      icon: Icon(
-                        Icons.menu,
-                        color: Theme.of(context).colorScheme.onPrimary,
-                      ),
-                      tooltip: 'bible.select_version'.tr(),
-                      onSelected: (version) async {
-                        final scaffoldMessenger = ScaffoldMessenger.of(context);
-                        final colorScheme = Theme.of(context).colorScheme;
-                        await _controller!.switchVersion(version);
-                        if (!mounted) return;
-                        scaffoldMessenger.showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              'bible.loading_version'
-                                  .tr({'version': version.name}),
-                              style: TextStyle(color: colorScheme.onSecondary),
+            ),
+            body: Stack(
+              children: [
+                SafeArea(
+                  child: Column(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: colorScheme.surface,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.1),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
                             ),
-                            backgroundColor: colorScheme.secondary,
-                            duration: const Duration(seconds: 1),
-                          ),
-                        );
-                      },
-                      itemBuilder: (context) =>
-                          _controller!.state.availableVersions.map((version) {
-                        return PopupMenuItem<BibleVersion>(
-                          value: version,
-                          child: Row(
-                            children: [
-                              if (version.name ==
-                                  _controller!.state.selectedVersion?.name)
-                                Icon(Icons.check,
-                                    color:
-                                        Theme.of(context).colorScheme.primary,
-                                    size: 20)
-                              else
-                                const SizedBox(width: 20),
-                              const SizedBox(width: 8),
-                              Text(version.name),
-                            ],
-                          ),
-                        );
-                      }).toList(),
-                    ),
+                          ],
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              flex: 2,
+                              child: InkWell(
+                                onTap: _showBookSelector,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 12, vertical: 12),
+                                  decoration: BoxDecoration(
+                                    border: Border.all(
+                                      color: Theme.of(context)
+                                              .outlinedButtonTheme
+                                              .style
+                                              ?.side
+                                              ?.resolve({})?.color ??
+                                          colorScheme.outline,
+                                      width: 1.0,
+                                    ),
+                                    borderRadius: BorderRadius.circular(25),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.auto_stories_outlined,
+                                          size: 20, color: colorScheme.primary),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: Text(
+                                          state.selectedBookName != null
+                                              ? state.books.firstWhere((b) =>
+                                                      b['short_name'] ==
+                                                      state.selectedBookName)[
+                                                  'long_name']
+                                              : 'Seleccionar libro',
+                                          overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            color: colorScheme.onSurface,
+                                          ),
+                                        ),
+                                      ),
+                                      Icon(Icons.arrow_drop_down,
+                                          color: colorScheme.onSurface),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: OutlinedButton.icon(
+                                onPressed: _showChapterGridSelector,
+                                icon: Icon(Icons.format_list_numbered,
+                                    size: 18, color: colorScheme.primary),
+                                label: Text(
+                                  'C. ${state.selectedChapter ?? 1}',
+                                  style: const TextStyle(fontSize: 14),
+                                ),
+                                style: OutlinedButton.styleFrom(
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 12),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: OutlinedButton.icon(
+                                onPressed: _showVerseGridSelector,
+                                icon: const Icon(Icons.format_list_numbered,
+                                    size: 18),
+                                label: Text(
+                                  'V. ${state.selectedVerse ?? 1}',
+                                  style: const TextStyle(fontSize: 14),
+                                ),
+                                style: OutlinedButton.styleFrom(
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 12),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Expanded(
+                        child: state.verses.isEmpty
+                            ? Center(child: Text('bible.no_verses'.tr()))
+                            : ScrollablePositionedList.builder(
+                                itemScrollController: _itemScrollController,
+                                itemPositionsListener: _itemPositionsListener,
+                                padding:
+                                    const EdgeInsets.fromLTRB(16, 16, 16, 32),
+                                itemCount: state.verses.length + 2,
+                                // +1 título, +1 disclaimer
+                                itemBuilder: (context, idx) {
+                                  if (idx == 0) {
+                                    // Título como primer elemento scrollable
+                                    return Padding(
+                                      padding: const EdgeInsets.only(bottom: 8),
+                                      child: Text(
+                                        state.selectedBookName != null &&
+                                                state.selectedChapter != null
+                                            ? '${state.books.firstWhere((b) => b['short_name'] == state.selectedBookName, orElse: () => {
+                                                  'long_name':
+                                                      state.selectedBookName
+                                                })['long_name']} ${state.selectedChapter}'
+                                            : '',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .titleLarge
+                                            ?.copyWith(
+                                              fontWeight: FontWeight.bold,
+                                              color: colorScheme.primary,
+                                            ),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    );
+                                  }
+                                  // Último item: disclaimer de copyright
+                                  if (idx == state.verses.length + 1) {
+                                    if (state.selectedVersion == null) {
+                                      return const SizedBox.shrink();
+                                    }
+                                    return Padding(
+                                      padding: const EdgeInsets.only(top: 24),
+                                      child: Text(
+                                        CopyrightUtils.getCopyrightText(
+                                            state.selectedVersion!.languageCode,
+                                            state.selectedVersion!.name),
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodySmall
+                                            ?.copyWith(
+                                                color: colorScheme.onSurface
+                                                    .withValues(alpha: 153)),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    );
+                                  }
+                                  // Versos
+                                  final verse = state.verses[idx - 1];
+                                  final verseNumber = verse['verse'];
+                                  final key =
+                                      "${state.selectedBookName}|${state.selectedChapter}|$verseNumber";
+                                  final isSelected =
+                                      state.selectedVerses.contains(key);
+                                  final isPersistentlyMarked = state
+                                      .persistentlyMarkedVerses
+                                      .contains(key);
+                                  return GestureDetector(
+                                    onTap: () => _onVerseTap(verseNumber),
+                                    onLongPress: () =>
+                                        _controller!.togglePersistentMark(key),
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 8, horizontal: 4),
+                                      decoration: isSelected
+                                          ? BoxDecoration(
+                                              color: colorScheme
+                                                  .primaryContainer
+                                                  .withValues(alpha: 0.3),
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                              border: Border.all(
+                                                color: colorScheme.primary,
+                                                width: 2,
+                                              ),
+                                            )
+                                          : null,
+                                      child: RichText(
+                                        text: TextSpan(
+                                          style: TextStyle(
+                                            fontSize: state.fontSize,
+                                            color: colorScheme.onSurface,
+                                            height: 1.6,
+                                          ),
+                                          children: [
+                                            TextSpan(
+                                              text: "${verse['verse']} ",
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                color: colorScheme.primary,
+                                                fontSize: 14,
+                                              ),
+                                            ),
+                                            TextSpan(
+                                              text: _cleanVerseText(
+                                                  verse['text']),
+                                              style: isPersistentlyMarked
+                                                  ? TextStyle(
+                                                      backgroundColor:
+                                                          colorScheme.secondary
+                                                              .withValues(
+                                                                  alpha: 0.25),
+                                                      fontWeight:
+                                                          FontWeight.w500,
+                                                    )
+                                                  : null,
+                                            )
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                      ),
+                    ],
                   ),
                 ),
-            ],
-          ),
-        ),
-        body: Stack(
-          children: [
-            SafeArea(
-              child: Column(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(16),
+                if (state.showFontControls)
+                  FloatingFontControlButtons(
+                    currentFontSize: state.fontSize,
+                    onIncrease: _controller!.increaseFontSize,
+                    onDecrease: _controller!.decreaseFontSize,
+                    onClose: () =>
+                        _controller!.setFontControlsVisibility(false),
+                  ),
+              ],
+            ),
+            bottomNavigationBar: !state.isLoading &&
+                    state.selectedBookName != null
+                ? Container(
                     decoration: BoxDecoration(
                       color: colorScheme.surface,
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black.withValues(alpha: 0.1),
                           blurRadius: 4,
-                          offset: const Offset(0, 2),
+                          offset: const Offset(0, -2),
                         ),
                       ],
                     ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          flex: 2,
-                          child: InkWell(
-                            onTap: _showBookSelector,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 12, vertical: 12),
-                              decoration: BoxDecoration(
-                                border: Border.all(
-                                  color: Theme.of(context)
-                                          .outlinedButtonTheme
-                                          .style
-                                          ?.side
-                                          ?.resolve({})?.color ??
-                                      colorScheme.outline,
-                                  width: 1.0,
-                                ),
-                                borderRadius: BorderRadius.circular(25),
-                              ),
-                              child: Row(
-                                children: [
-                                  Icon(Icons.auto_stories_outlined,
-                                      size: 20, color: colorScheme.primary),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Text(
-                                      _controller!.state.selectedBookName !=
-                                              null
-                                          ? _controller!.state.books.firstWhere(
-                                                  (b) =>
-                                                      b['short_name'] ==
-                                                      _controller!.state
-                                                          .selectedBookName)[
-                                              'long_name']
-                                          : 'Seleccionar libro',
-                                      overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        color: colorScheme.onSurface,
-                                      ),
+                    child: SafeArea(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 12),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            IconButton(
+                              icon: Icon(Icons.arrow_back_ios,
+                                  color: colorScheme.primary),
+                              tooltip: 'bible.previous_chapter'.tr(),
+                              onPressed: () async {
+                                await _controller!.goToPreviousChapter();
+                                _scrollToTop();
+                              },
+                            ),
+                            Expanded(
+                              child: Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 8.0),
+                                child: ElevatedButton(
+                                  onPressed: _showBookSelector,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor:
+                                        colorScheme.primaryContainer,
+                                    foregroundColor:
+                                        colorScheme.onPrimaryContainer,
+                                    elevation: 2,
+                                    shadowColor: colorScheme.primary
+                                        .withValues(alpha: 0.3),
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 10.0, horizontal: 16.0),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(30),
                                     ),
                                   ),
-                                  Icon(Icons.arrow_drop_down,
-                                      color: colorScheme.onSurface),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: OutlinedButton.icon(
-                            onPressed: _showChapterGridSelector,
-                            icon: Icon(Icons.format_list_numbered,
-                                size: 18, color: colorScheme.primary),
-                            label: Text(
-                              'C. ${_controller!.state.selectedChapter ?? 1}',
-                              style: const TextStyle(fontSize: 14),
-                            ),
-                            style: OutlinedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: OutlinedButton.icon(
-                            onPressed: _showVerseGridSelector,
-                            icon: const Icon(Icons.format_list_numbered,
-                                size: 18),
-                            label: Text(
-                              'V. ${_controller!.state.selectedVerse ?? 1}',
-                              style: const TextStyle(fontSize: 14),
-                            ),
-                            style: OutlinedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Expanded(
-                    child: _controller!.state.verses.isEmpty
-                        ? Center(child: Text('bible.no_verses'.tr()))
-                        : ScrollablePositionedList.builder(
-                            itemScrollController: _itemScrollController,
-                            itemPositionsListener: _itemPositionsListener,
-                            padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
-                            itemCount: _controller!.state.verses.length + 2,
-                            // +1 título, +1 disclaimer
-                            itemBuilder: (context, idx) {
-                              if (idx == 0) {
-                                // Título como primer elemento scrollable
-                                return Padding(
-                                  padding: const EdgeInsets.only(bottom: 8),
-                                  child: Text(
-                                    _controller!.state.selectedBookName !=
-                                                null &&
-                                            _controller!
-                                                    .state.selectedChapter !=
-                                                null
-                                        ? '${_controller!.state.books.firstWhere((b) => b['short_name'] == _controller!.state.selectedBookName, orElse: () => {
-                                              'long_name': _controller!
-                                                  .state.selectedBookName
-                                            })['long_name']} ${_controller!.state.selectedChapter}'
+                                  child: AutoSizeText(
+                                    state.selectedBookName != null
+                                        ? '${state.books.firstWhere((b) => b['short_name'] == state.selectedBookName, orElse: () => {
+                                              'long_name':
+                                                  state.selectedBookName
+                                            })['long_name']} ${state.selectedChapter}'
                                         : '',
+                                    textAlign: TextAlign.center,
                                     style: Theme.of(context)
                                         .textTheme
-                                        .titleLarge
+                                        .titleSmall
                                         ?.copyWith(
-                                          fontWeight: FontWeight.bold,
-                                          color: colorScheme.primary,
+                                          fontWeight: FontWeight.w600,
+                                          color: colorScheme.onPrimaryContainer,
                                         ),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                );
-                              }
-                              // Último item: disclaimer de copyright
-                              if (idx == _controller!.state.verses.length + 1) {
-                                if (_controller!.state.selectedVersion ==
-                                    null) {
-                                  return const SizedBox.shrink();
-                                }
-                                return Padding(
-                                  padding: const EdgeInsets.only(top: 24),
-                                  child: Text(
-                                    CopyrightUtils.getCopyrightText(
-                                        _controller!.state.selectedVersion!
-                                            .languageCode,
-                                        _controller!
-                                            .state.selectedVersion!.name),
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodySmall
-                                        ?.copyWith(
-                                            color: colorScheme.onSurface
-                                                .withValues(alpha: 153)),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                );
-                              }
-                              // Versos
-                              final verse = _controller!.state.verses[idx - 1];
-                              final verseNumber = verse['verse'];
-                              final key =
-                                  "${_controller!.state.selectedBookName}|${_controller!.state.selectedChapter}|$verseNumber";
-                              final isSelected = _controller!
-                                  .state.selectedVerses
-                                  .contains(key);
-                              final isPersistentlyMarked = _controller!
-                                  .state.persistentlyMarkedVerses
-                                  .contains(key);
-                              return GestureDetector(
-                                onTap: () => _onVerseTap(verseNumber),
-                                onLongPress: () =>
-                                    _controller!.togglePersistentMark(key),
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      vertical: 8, horizontal: 4),
-                                  decoration: isSelected
-                                      ? BoxDecoration(
-                                          color: colorScheme.primaryContainer
-                                              .withValues(alpha: 0.3),
-                                          borderRadius:
-                                              BorderRadius.circular(8),
-                                          border: Border.all(
-                                            color: colorScheme.primary,
-                                            width: 2,
-                                          ),
-                                        )
-                                      : null,
-                                  child: RichText(
-                                    text: TextSpan(
-                                      style: TextStyle(
-                                        fontSize: _controller!.state.fontSize,
-                                        color: colorScheme.onSurface,
-                                        height: 1.6,
-                                      ),
-                                      children: [
-                                        TextSpan(
-                                          text: "${verse['verse']} ",
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            color: colorScheme.primary,
-                                            fontSize: 14,
-                                          ),
-                                        ),
-                                        TextSpan(
-                                          text: _cleanVerseText(verse['text']),
-                                          style: isPersistentlyMarked
-                                              ? TextStyle(
-                                                  backgroundColor: colorScheme
-                                                      .secondary
-                                                      .withValues(alpha: 0.25),
-                                                  fontWeight: FontWeight.w500,
-                                                )
-                                              : null,
-                                        )
-                                      ],
-                                    ),
+                                    maxLines: 1,
+                                    minFontSize: 11,
+                                    maxFontSize: 15,
+                                    overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
-                              );
-                            },
-                          ),
-                  ),
-                ],
-              ),
-            ),
-            if (_controller!.state.showFontControls)
-              FloatingFontControlButtons(
-                currentFontSize: _controller!.state.fontSize,
-                onIncrease: _controller!.increaseFontSize,
-                onDecrease: _controller!.decreaseFontSize,
-                onClose: () => _controller!.setFontControlsVisibility(false),
-              ),
-          ],
-        ),
-        bottomNavigationBar: !_controller!.state.isLoading &&
-                _controller!.state.selectedBookName != null
-            ? Container(
-                decoration: BoxDecoration(
-                  color: colorScheme.surface,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.1),
-                      blurRadius: 4,
-                      offset: const Offset(0, -2),
-                    ),
-                  ],
-                ),
-                child: SafeArea(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 12),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        IconButton(
-                          icon: Icon(Icons.arrow_back_ios,
-                              color: colorScheme.primary),
-                          tooltip: 'bible.previous_chapter'.tr(),
-                          onPressed: () async {
-                            await _controller!.goToPreviousChapter();
-                            _scrollToTop();
-                          },
-                        ),
-                        Expanded(
-                          child: Padding(
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 8.0),
-                            child: ElevatedButton(
-                              onPressed: _showBookSelector,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: colorScheme.primaryContainer,
-                                foregroundColor: colorScheme.onPrimaryContainer,
-                                elevation: 2,
-                                shadowColor:
-                                    colorScheme.primary.withValues(alpha: 0.3),
-                                padding: const EdgeInsets.symmetric(
-                                    vertical: 10.0, horizontal: 16.0),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(30),
-                                ),
-                              ),
-                              child: AutoSizeText(
-                                _controller!.state.selectedBookName != null
-                                    ? '${_controller!.state.books.firstWhere((b) => b['short_name'] == _controller!.state.selectedBookName, orElse: () => {
-                                          'long_name': _controller!
-                                              .state.selectedBookName
-                                        })['long_name']} ${_controller!.state.selectedChapter}'
-                                    : '',
-                                textAlign: TextAlign.center,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .titleSmall
-                                    ?.copyWith(
-                                      fontWeight: FontWeight.w600,
-                                      color: colorScheme.onPrimaryContainer,
-                                    ),
-                                maxLines: 1,
-                                minFontSize: 11,
-                                maxFontSize: 15,
-                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
-                          ),
+                            IconButton(
+                              icon: Icon(Icons.arrow_forward_ios,
+                                  color: colorScheme.primary),
+                              tooltip: 'bible.next_chapter'.tr(),
+                              onPressed: () async {
+                                await _controller!.goToNextChapter();
+                                _itemScrollController.jumpTo(index: 0);
+                                _scrollToTop();
+                              },
+                            ),
+                          ],
                         ),
-                        IconButton(
-                          icon: Icon(Icons.arrow_forward_ios,
-                              color: colorScheme.primary),
-                          tooltip: 'bible.next_chapter'.tr(),
-                          onPressed: () async {
-                            await _controller!.goToNextChapter();
-                            _itemScrollController.jumpTo(index: 0);
-                            _scrollToTop();
-                          },
-                        ),
-                      ],
+                      ),
                     ),
-                  ),
-                ),
-              )
-            : null,
-      ),
+                  )
+                : null,
+          ),
+        );
+      },
     );
   }
 }
