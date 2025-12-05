@@ -256,7 +256,8 @@ void main() {
         expect(versions.any((v) => v.id == 'en-NIV'), true);
 
         final kjv = versions.firstWhere((v) => v.id == 'en-KJV');
-        expect(kjv.name, 'King James Version');
+        expect(kjv.name, 'KJV'); // Short code for matching in BibleSelectedVersionProvider
+        expect(kjv.description, 'King James Version'); // Display name in description
         expect(kjv.language, 'en');
         expect(kjv.languageName, 'English');
       });
@@ -353,7 +354,8 @@ void main() {
         // Then: User sees French versions
         expect(versions, hasLength(1));
         expect(versions.first.id, 'fr-LSG1910');
-        expect(versions.first.name, 'Louis Segond 1910');
+        expect(versions.first.name, 'LSG1910'); // Short code
+        expect(versions.first.description, 'Louis Segond 1910'); // Display name
         expect(versions.first.languageName, 'Français');
       });
     });

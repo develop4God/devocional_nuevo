@@ -300,7 +300,8 @@ class BibleVersionRepository {
       versions.add(
         BibleVersionMetadata(
           id: id,
-          name: _getVersionDisplayName(versionName, languageCode),
+          // Use short code (e.g., 'KJV', 'RVR1960') as name so BibleSelectedVersionProvider can find it
+          name: versionName,
           language: languageCode,
           languageName: languageNames[languageCode] ?? languageCode,
           filename: name,
@@ -310,7 +311,8 @@ class BibleVersionRepository {
           uncompressedSizeBytes: sizeBytes,
           // Actual size for uncompressed files
           version: '1.0.0',
-          description: _getVersionDescription(versionName, languageCode),
+          // Store display name in description
+          description: _getVersionDisplayName(versionName, languageCode),
           license: 'Public Domain',
         ),
       );
