@@ -83,7 +83,9 @@ void main() {
         expect(version.language, isNotEmpty);
         expect(version.languageCode, isNotEmpty);
         expect(version.dbFileName, isNotEmpty);
-        expect(version.dbFileName, contains('.SQLite3'));
+        // dbFileName now uses the new format: bibles/{versionId}/bible.db
+        expect(version.dbFileName, startsWith('bibles/'));
+        expect(version.dbFileName, endsWith('/bible.db'));
       }
     });
   });

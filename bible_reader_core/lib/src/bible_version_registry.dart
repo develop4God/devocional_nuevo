@@ -14,25 +14,27 @@ class BibleVersionRegistry {
     'ja': '日本語',
   };
 
+  /// Version info by language.
+  /// NOTE: dbFile now matches the download path format: bibles/{language}-{versionName}/bible.db
   static const Map<String, List<Map<String, String>>> _versionsByLanguage = {
     'es': [
-      {'name': 'RVR1960', 'dbFile': 'RVR1960_es.SQLite3'},
-      {'name': 'NVI', 'dbFile': 'NVI_es.SQLite3'},
+      {'name': 'RVR1960', 'id': 'es-RVR1960'},
+      {'name': 'NVI', 'id': 'es-NVI'},
     ],
     'en': [
-      {'name': 'KJV', 'dbFile': 'KJV_en.SQLite3'},
-      {'name': 'NIV', 'dbFile': 'NIV_en.SQLite3'},
+      {'name': 'KJV', 'id': 'en-KJV'},
+      {'name': 'NIV', 'id': 'en-NIV'},
     ],
     'pt': [
-      {'name': 'ARC', 'dbFile': 'ARC_pt.SQLite3'},
-      {'name': 'NVI', 'dbFile': 'NVI_pt.SQLite3'},
+      {'name': 'ARC', 'id': 'pt-ARC'},
+      {'name': 'NVI', 'id': 'pt-NVI'},
     ],
     'fr': [
-      {'name': 'LSG1910', 'dbFile': 'LSG1910_fr.SQLite3'},
+      {'name': 'LSG1910', 'id': 'fr-LSG1910'},
     ],
     'ja': [
-      {'name': '新改訳2003', 'dbFile': 'SK2003_ja.SQLite3'},
-      {'name': '口語訳', 'dbFile': 'JCB_ja.SQLite3'},
+      {'name': 'SK2003', 'id': 'ja-SK2003'},
+      {'name': 'JCB', 'id': 'ja-JCB'},
     ],
   };
 
@@ -44,7 +46,9 @@ class BibleVersionRegistry {
     final List<BibleVersion> bibleVersions = [];
 
     for (final versionInfo in versions) {
-      final dbFileName = versionInfo['dbFile']!;
+      final versionId = versionInfo['id']!;
+      // Path matches the download path: bibles/{versionId}/bible.db
+      final dbFileName = 'bibles/$versionId/bible.db';
       final isDownloaded = await _isVersionDownloaded(dbFileName);
 
       bibleVersions.add(
