@@ -28,6 +28,7 @@ import 'package:devocional_nuevo/utils/constants.dart';
 import 'package:devocional_nuevo/utils/theme_constants.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_in_app_messaging/firebase_in_app_messaging.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -105,6 +106,8 @@ void main() async {
   developer.log('App: Función main() iniciada.', name: 'MainApp');
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+  // Habilita mensajes in-app
+  FirebaseInAppMessaging.instance.setMessagesSuppressed(false);
 
   // Setup dependency injection
   setupServiceLocator();
