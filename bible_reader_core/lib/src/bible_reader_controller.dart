@@ -126,7 +126,17 @@ class BibleReaderController {
     );
 
     await _initializeVersionService(savedVersion);
-
+    if (savedVersion.service == null) {
+      debugPrint(
+          '[BibleReaderController] ERROR: service no inicializada en _restoreLastPosition');
+      throw Exception(
+          'BibleDbService no inicializada para la versión seleccionada');
+    }
+    if (!savedVersion.service!.isInitialized) {
+      debugPrint(
+          '[BibleReaderController] ERROR: service inicializada pero _db no está abierto en _restoreLastPosition');
+      throw Exception('BibleDbService no tiene la base de datos abierta');
+    }
     // Load books
     final books = await savedVersion.service!.getAllBooks();
 
@@ -178,23 +188,22 @@ class BibleReaderController {
     // SOLUCIÓN: Obtener el directorio base exactamente igual que StorageAdapter
     final documents = await getApplicationDocumentsDirectory();
     final downloadedPath = '${documents.path}/${version.dbFileName}';
-
     debugPrint(
         '[BibleReaderController] Verificando archivo en: $downloadedPath');
     debugPrint(
         '[BibleReaderController] ¿Existe?: ${File(downloadedPath).existsSync()}');
-
     if (File(downloadedPath).existsSync()) {
       version.service = BibleDbService(customDatabasePath: downloadedPath);
       await version.service!.initDbFromPath();
       debugPrint(
           '[BibleReaderController] Base de datos inicializada correctamente');
+      // Actualiza la instancia de dbService en readerService para que siempre esté sincronizada
+      readerService.dbService = version.service!;
     } else {
       debugPrint(
           '[BibleReaderController] ERROR: No se encontró el archivo en $downloadedPath');
       throw Exception(
-        'La versión bíblica no está descargada. Descárguela desde el gestor de versiones.',
-      );
+          'La versión bíblica no está descargada. Descárguela desde el gestor de versiones.');
     }
   }
 
@@ -202,7 +211,17 @@ class BibleReaderController {
     if (_state.selectedBookNumber == null || _state.selectedChapter == null) {
       return;
     }
-
+    if (_state.selectedVersion?.service == null) {
+      debugPrint(
+          '[BibleReaderController] ERROR: service no inicializada en _loadChapterData');
+      throw Exception(
+          'BibleDbService no inicializada para la versión seleccionada');
+    }
+    if (!_state.selectedVersion!.service!.isInitialized) {
+      debugPrint(
+          '[BibleReaderController] ERROR: service inicializada pero _db no está abierto en _loadChapterData');
+      throw Exception('BibleDbService no tiene la base de datos abierta');
+    }
     final maxChapter = await _state.selectedVersion!.service!.getMaxChapter(
       _state.selectedBookNumber!,
     );
@@ -246,7 +265,17 @@ class BibleReaderController {
     _emit(_state.copyWith(isLoading: true));
 
     await _initializeVersionService(newVersion);
-
+    if (newVersion.service == null) {
+      debugPrint(
+          '[BibleReaderController] ERROR: service no inicializada en switchVersion');
+      throw Exception(
+          'BibleDbService no inicializada para la versión seleccionada');
+    }
+    if (!newVersion.service!.isInitialized) {
+      debugPrint(
+          '[BibleReaderController] ERROR: service inicializada pero _db no está abierto en switchVersion');
+      throw Exception('BibleDbService no tiene la base de datos abierta');
+    }
     final books = await newVersion.service!.getAllBooks();
 
     _emit(
@@ -340,7 +369,17 @@ class BibleReaderController {
     if (_state.selectedBookNumber == null || _state.selectedChapter == null) {
       return;
     }
-
+    if (_state.selectedVersion?.service == null) {
+      debugPrint(
+          '[BibleReaderController] ERROR: service no inicializada en goToPreviousChapter');
+      throw Exception(
+          'BibleDbService no inicializada para la versión seleccionada');
+    }
+    if (!_state.selectedVersion!.service!.isInitialized) {
+      debugPrint(
+          '[BibleReaderController] ERROR: service inicializada pero _db no está abierto en goToPreviousChapter');
+      throw Exception('BibleDbService no tiene la base de datos abierta');
+    }
     final result = await readerService.navigateToPreviousChapter(
       currentBookNumber: _state.selectedBookNumber!,
       currentChapter: _state.selectedChapter!,

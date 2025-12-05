@@ -1,12 +1,14 @@
 import 'package:bible_reader_core/src/bible_db_service.dart';
 import 'package:bible_reader_core/src/bible_reading_position_service.dart';
 import 'package:bible_reader_core/src/bible_reference_parser.dart';
+import 'package:logger/logger.dart';
 
 /// Service containing core business logic for Bible reading functionality
 /// This service is framework-agnostic and can be easily tested without Flutter dependencies
 class BibleReaderService {
-  final BibleDbService dbService;
+  BibleDbService dbService;
   final BibleReadingPositionService positionService;
+  final Logger _logger = Logger();
 
   BibleReaderService({required this.dbService, required this.positionService});
 
@@ -181,21 +183,26 @@ class BibleReaderService {
     required Map<String, dynamic> savedPosition,
     required List<Map<String, dynamic>> books,
   }) async {
+    _logger.i(
+        '[BibleReaderService] restorePosition: savedPosition=$savedPosition, books.length=${books.length}, dbService=$dbService, dbService.isInitialized=${dbService.isInitialized}');
     final bookNumber = savedPosition['bookNumber'] as int?;
     final chapter = savedPosition['chapter'] as int?;
-
     if (bookNumber == null || chapter == null) return null;
-
     // Verify book exists
     final bookIndex = books.indexWhere((b) => b['book_number'] == bookNumber);
     if (bookIndex == -1) return null;
-
     final book = books[bookIndex];
-
+    // Validación extra: asegurar que dbService está inicializada
+    if (!dbService.isInitialized) {
+      _logger.e(
+          '[BibleReaderService] ERROR: dbService no inicializada en restorePosition');
+      throw Exception('BibleDbService no inicializada en restorePosition');
+    }
     // Verify chapter is valid
     final maxChapter = await dbService.getMaxChapter(bookNumber);
     if (chapter < 1 || chapter > maxChapter) return null;
-
+    _logger.i(
+        '[BibleReaderService] restorePosition: bookNumber=$bookNumber, chapter=$chapter, maxChapter=$maxChapter, bookName=${book['short_name']}');
     return {
       'bookNumber': bookNumber,
       'bookName': book['short_name'],
