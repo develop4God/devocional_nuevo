@@ -336,22 +336,6 @@ class BibleVersionRepository {
     return displayNames[versionCode] ?? versionCode;
   }
 
-  /// Gets a description for a Bible version.
-  String _getVersionDescription(String versionCode, String language) {
-    const descriptions = {
-      'KJV': 'Traditional English translation from 1611',
-      'NIV': 'Modern English translation',
-      'NVI': 'Traducción moderna en español',
-      'RVR1960': 'Traducción tradicional en español',
-      'LSG1910': 'Traduction française classique',
-      'JCB': '現代日本語訳聖書',
-      'SK2003': '新改訳聖書 2003年版',
-      'ARC': 'Tradução portuguesa clássica',
-    };
-    return descriptions[versionCode] ??
-        'Bible version in ${languageNames[language] ?? language}';
-  }
-
   /// Downloads a Bible version to local storage.
   ///
   /// Progress can be monitored via [downloadProgress].
@@ -429,13 +413,15 @@ class BibleVersionRepository {
       _activeDownloads++;
       _updateQueuePositions();
 
-      _performDownloadWithRetry(download).then((_) {
-        _cleanupDownload(download);
-        download.completer.complete();
-      }).catchError((error) {
-        _cleanupDownload(download);
-        download.completer.completeError(error);
-      });
+      _performDownloadWithRetry(download)
+          .then((_) {
+            _cleanupDownload(download);
+            download.completer.complete();
+          })
+          .catchError((error) {
+            _cleanupDownload(download);
+            download.completer.completeError(error);
+          });
     }
   }
 
