@@ -276,7 +276,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     });
   }
 
-  /// Find the first unread devotional index, starting from the saved index
+  /// Find the first unread devotional index starting from the beginning
   int _findFirstUnreadDevocionalIndex(
     List<Devocional> devocionales,
     List<String> readDevocionalIds,
