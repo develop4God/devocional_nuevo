@@ -456,52 +456,55 @@ class _BibleDownloadDialogState extends State<_BibleDownloadDialog> {
 
     return ConstrainedBox(
       constraints: const BoxConstraints(maxHeight: 300),
-      child: ListView.builder(
-        shrinkWrap: true,
-        itemCount: allVersions.length,
-        itemBuilder: (context, index) {
-          final version = allVersions[index];
-          final isDownloading = version.state == DownloadState.downloading;
-          final isDownloaded = version.state == DownloadState.downloaded;
-          final isQueued = version.state == DownloadState.queued;
+      child: Material(
+        type: MaterialType.transparency,
+        child: ListView.builder(
+          shrinkWrap: true,
+          itemCount: allVersions.length,
+          itemBuilder: (context, index) {
+            final version = allVersions[index];
+            final isDownloading = version.state == DownloadState.downloading;
+            final isDownloaded = version.state == DownloadState.downloaded;
+            final isQueued = version.state == DownloadState.queued;
 
-          return ListTile(
-            dense: true,
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-            leading: Icon(
-              isDownloaded
-                  ? Icons.offline_pin
-                  : Icons.download_for_offline_outlined,
-              color: isDownloaded
-                  ? colorScheme.primary
-                  : colorScheme.onPrimary.withAlpha(180),
-              size: 22,
-            ),
-            title: Text(
-              '${version.metadata.name} (${version.metadata.languageName})',
-              style: textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onPrimary,
-                fontWeight: FontWeight.w500,
+            return ListTile(
+              dense: true,
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+              leading: Icon(
+                isDownloaded
+                    ? Icons.offline_pin
+                    : Icons.download_for_offline_outlined,
+                color: isDownloaded
+                    ? colorScheme.primary
+                    : colorScheme.onPrimary.withAlpha(180),
+                size: 22,
               ),
-            ),
-            subtitle: isDownloading
-                ? LinearProgressIndicator(
-                    value: version.progress > 0 ? version.progress : null,
-                    backgroundColor: colorScheme.onPrimary.withAlpha(50),
-                    valueColor:
-                        AlwaysStoppedAnimation<Color>(colorScheme.primary),
-                  )
-                : Text(
-                    _formatSize(version.metadata.sizeBytes),
-                    style: textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onPrimary.withAlpha(150),
+              title: Text(
+                '${version.metadata.name} (${version.metadata.languageName})',
+                style: textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onPrimary,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              subtitle: isDownloading
+                  ? LinearProgressIndicator(
+                      value: version.progress > 0 ? version.progress : null,
+                      backgroundColor: colorScheme.onPrimary.withAlpha(50),
+                      valueColor:
+                          AlwaysStoppedAnimation<Color>(colorScheme.primary),
+                    )
+                  : Text(
+                      _formatSize(version.metadata.sizeBytes),
+                      style: textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onPrimary.withAlpha(150),
+                      ),
                     ),
-                  ),
-            trailing: _buildTrailingAction(
-                context, version, isDownloading, isDownloaded, isQueued),
-          );
-        },
+              trailing: _buildTrailingAction(
+                  context, version, isDownloading, isDownloaded, isQueued),
+            );
+          },
+        ),
       ),
     );
   }

@@ -1,3 +1,4 @@
+import 'dart:developer' as developer;
 import 'dart:io';
 
 import 'package:bible_reader_core/bible_reader_core.dart';
@@ -64,11 +65,13 @@ class StorageAdapter implements BibleVersionStorage {
 
     await file.writeAsBytes(bytes, flush: true);
     final exists = await file.exists();
-    print(
-        '[StorageAdapter] writeFile: Guardado en $path, ¿existe?: $exists, tamaño: ${bytes.length} bytes');
+    developer.log(
+        '[StorageAdapter] writeFile: Guardado en $path, ¿existe?: $exists, tamaño: ${bytes.length} bytes',
+        name: 'StorageAdapter');
     if (!exists) {
-      print(
-          '[StorageAdapter] ERROR: El archivo no existe después de escribirlo.');
+      developer.log(
+          '[StorageAdapter] ERROR: El archivo no existe después de escribirlo.',
+          name: 'StorageAdapter');
     }
   }
 

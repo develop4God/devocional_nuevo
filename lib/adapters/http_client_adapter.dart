@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer' as developer;
 
 import 'package:bible_reader_core/bible_reader_core.dart';
 import 'package:http/http.dart' as http;
@@ -27,10 +28,12 @@ class HttpClientAdapter implements HttpClient {
       Uri.parse(url),
       headers: {'User-Agent': 'devocional_nuevo/1.0 (Flutter)'},
     );
-    print('[HttpClientAdapter] GET $url -> ${response.statusCode}');
-    print('[HttpClientAdapter] First 100 bytes: ' +
-        response.body.substring(
-            0, response.body.length > 100 ? 100 : response.body.length));
+    developer.log('[HttpClientAdapter] GET $url -> ${response.statusCode}',
+        name: 'HttpClientAdapter');
+    final preview = response.body
+        .substring(0, response.body.length > 100 ? 100 : response.body.length);
+    developer.log('[HttpClientAdapter] First 100 bytes: $preview',
+        name: 'HttpClientAdapter');
     return HttpResponse(
       statusCode: response.statusCode,
       body: response.body,
@@ -43,8 +46,9 @@ class HttpClientAdapter implements HttpClient {
     final request = http.Request('GET', Uri.parse(url));
     request.headers['User-Agent'] = 'devocional_nuevo/1.0 (Flutter)';
     final streamedResponse = await _client.send(request);
-    print(
-        '[HttpClientAdapter] downloadStream $url -> ${streamedResponse.statusCode}');
+    developer.log(
+        '[HttpClientAdapter] downloadStream $url -> ${streamedResponse.statusCode}',
+        name: 'HttpClientAdapter');
     int chunkCount = 0;
     final total = streamedResponse.contentLength;
     int downloaded = 0;
@@ -55,7 +59,9 @@ class HttpClientAdapter implements HttpClient {
       downloaded += chunk.length;
       if (chunkCount == 0) {
         final preview = String.fromCharCodes(chunk.take(100).toList());
-        print('[HttpClientAdapter] First chunk (max 100 bytes): $preview');
+        developer.log(
+            '[HttpClientAdapter] First chunk (max 100 bytes): $preview',
+            name: 'HttpClientAdapter');
       }
       chunkCount++;
       yield HttpDownloadProgress(

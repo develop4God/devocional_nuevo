@@ -464,6 +464,7 @@ class BibleVersionRepository {
       }
     }
 
+    _logMaxRetriesExceeded(versionId, retryConfig.maxRetries);
     throw MaxRetriesExceededException(
       versionId: versionId,
       attempts: retryConfig.maxRetries,
