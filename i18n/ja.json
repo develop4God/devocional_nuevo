@@ -12,7 +12,11 @@
     "yes": "はい",
     "no": "いいえ",
     "delete": "削除",
-    "skip": "スキップ"
+    "skip": "スキップ",
+    "voice_feature_title": "🎤✨ 新機能が利用可能になりました！ ✨🎤",
+    "voice_feature_description": "デボーションの読み上げにさまざまな声を選べるようになりました。体験をカスタマイズして、より快適でモダンな読み上げをお楽しみください。😃🔊",
+    "voice_feature_configure": "音声を設定",
+    "voice_feature_continue": "続ける"
   },
   "devotionals": {
       "modern_voice_title": "🎤✨ 新機能が利用可能になりました！ ✨🎤",
