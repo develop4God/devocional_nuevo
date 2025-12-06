@@ -1,11 +1,12 @@
 import 'package:devocional_nuevo/controllers/tts_audio_controller.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
+import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
-import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
 import 'package:devocional_nuevo/services/tts/bible_text_formatter.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../widgets/voice_selector_dialog.dart';
 import 'modern_voice_feature_dialog.dart';
@@ -124,7 +125,7 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
         if (state == TtsPlayerState.completed && !_hasRegisteredHeard) {
           _hasRegisteredHeard = true;
           _registerDevotionalHeard(
-              widget.devocional.id, widget.audioController);
+              widget.devocional.id, widget.audioController, context);
         }
 
         debugPrint('[TTS Widget] Renderizando IconButton, estado: $state');
@@ -271,19 +272,19 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
   void _registerDevotionalHeard(
     String devotionalId,
     TtsAudioController audioController,
+    BuildContext context,
   ) {
-    SpiritualStatsService()
-        .hasDevocionalBeenRead(devotionalId)
-        .then((alreadyRead) {
-      if (!alreadyRead) {
+    final provider = Provider.of<DevocionalProvider>(context, listen: false);
+    provider.recordDevocionalHeard(devotionalId, 0.8, context).then((result) {
+      if (result == 'guardado') {
         debugPrint(
             '[TTS Widget] Registrando devocional heard: id=$devotionalId, porcentaje=80%');
-        SpiritualStatsService().recordDevotionalHeard(
-          devocionalId: devotionalId,
-          listenedPercentage: 0.8,
-        );
+      } else if (result == 'ya_registrado') {
+        debugPrint(
+            '[TTS Widget] Ya registrado como leído/escuchado, no se duplica');
       } else {
-        debugPrint('[TTS Widget] Ya registrado como leído, no se duplica');
+        debugPrint(
+            '[TTS Widget] Error recording devotional heard: $devotionalId');
       }
       audioController.state.value = TtsPlayerState.idle;
     }).catchError((error) {
