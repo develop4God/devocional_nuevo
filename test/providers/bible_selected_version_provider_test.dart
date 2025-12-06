@@ -4,7 +4,10 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   group('BibleSelectedVersionProvider Tests', () {
     group('Default Version by Language Mapping', () {
-      // Access the internal default version map through testing
+      // This mapping mirrors the _defaultVersionByLanguage map in
+      // BibleSelectedVersionProvider. If that implementation changes,
+      // these tests should fail to alert us of the change.
+      // See: lib/providers/bible_selected_version_provider.dart
       const defaultVersionByLanguage = {
         'es': 'RVR1960',
         'en': 'KJV',

@@ -30,8 +30,9 @@ class HttpClientAdapter implements HttpClient {
     );
     developer.log('[HttpClientAdapter] GET $url -> ${response.statusCode}',
         name: 'HttpClientAdapter');
-    final preview = response.body
-        .substring(0, response.body.length > 100 ? 100 : response.body.length);
+    final previewLength =
+        response.body.length < 100 ? response.body.length : 100;
+    final preview = response.body.substring(0, previewLength);
     developer.log('[HttpClientAdapter] First 100 bytes: $preview',
         name: 'HttpClientAdapter');
     return HttpResponse(
