@@ -107,16 +107,15 @@ class BibleSelectedVersionProvider extends ChangeNotifier {
 
   Future<void> _updateAvailableVersions() async {
     await _repository.initialize();
-    final allVersions = await _repository.fetchAvailableVersions();
+    final allVersions =
+        await _repository.fetchVersionsByLanguage(_selectedLanguage);
     final downloadedIds = await _repository.getDownloadedVersionIds();
     _availableVersions = allVersions
-        .where((v) => v.language == _selectedLanguage)
         .map(
           (meta) => BibleVersion(
             name: meta.name,
             language: meta.languageName,
             languageCode: meta.language,
-            // Path uses original filename: bibles/{filename}
             dbFileName: 'bibles/${meta.filename}',
             isDownloaded: downloadedIds.contains(meta.id),
           ),
@@ -179,15 +178,15 @@ class BibleSelectedVersionProvider extends ChangeNotifier {
   Future<bool> _isVersionDownloaded(String lang, String version) async {
     await _repository.initialize();
     final downloadedIds = await _repository.getDownloadedVersionIds();
-    final allVersions = await _repository.fetchAvailableVersions();
+    final allVersions = await _repository.fetchVersionsByLanguage(lang);
     _logger.i(
-      '[BibleProvider] Versiones disponibles para $lang: ${allVersions.where((v) => v.language == lang).map((v) => v.name).join(', ')}',
+      '[BibleProvider] Versiones disponibles para $lang: ${allVersions.map((v) => v.name).join(', ')}',
     );
     BibleVersionMetadata versionObj;
     try {
       versionObj = allVersions.firstWhere(
-        (v) => v.language == lang && v.name == version,
-        orElse: () => allVersions.firstWhere((v) => v.language == lang),
+        (v) => v.name == version,
+        orElse: () => allVersions.first,
       );
     } catch (_) {
       _errorMessage =
@@ -197,13 +196,11 @@ class BibleSelectedVersionProvider extends ChangeNotifier {
       return false;
     }
     _selectedVersion = versionObj.name;
-    // SIMPLIFIED: Path uses original filename: bibles/{filename}
     final biblesDir = await _repository.storage.getBiblesDirectory();
     final dbPath = '$biblesDir/${versionObj.filename}';
     _logger.i('[BibleProvider] Verificando archivo en: $dbPath');
     final fileExists = await _repository.storage.fileExists(dbPath);
     if (!fileExists) {
-      // Si el archivo no existe, elimina el ID de la lista y fuerza descarga
       if (downloadedIds.contains(versionObj.id)) {
         downloadedIds.remove(versionObj.id);
         await _repository.storage.saveDownloadedVersions(downloadedIds);
@@ -216,15 +213,15 @@ class BibleSelectedVersionProvider extends ChangeNotifier {
 
   Future<bool> _downloadVersion(String lang, String version) async {
     await _repository.initialize();
-    final allVersions = await _repository.fetchAvailableVersions();
+    final allVersions = await _repository.fetchVersionsByLanguage(lang);
     _logger.i(
-      '[BibleProvider] Versiones disponibles para $lang: ${allVersions.where((v) => v.language == lang).map((v) => v.name).join(', ')}',
+      '[BibleProvider] Versiones disponibles para $lang: ${allVersions.map((v) => v.name).join(', ')}',
     );
     BibleVersionMetadata versionObj;
     try {
       versionObj = allVersions.firstWhere(
-        (v) => v.language == lang && v.name == version,
-        orElse: () => allVersions.firstWhere((v) => v.language == lang),
+        (v) => v.name == version,
+        orElse: () => allVersions.first,
       );
     } catch (_) {
       _errorMessage =
@@ -235,11 +232,10 @@ class BibleSelectedVersionProvider extends ChangeNotifier {
     }
     _selectedVersion = versionObj.name;
     _logger.i(
-      '[BibleProvider] URL de descarga para [1m${versionObj.name}[0m: ${versionObj.downloadUrl}',
+      '[BibleProvider] URL de descarga para ���[1m${versionObj.name}���[0m: ${versionObj.downloadUrl}',
     );
     try {
       await _repository.downloadVersion(versionObj.id);
-      // Log de la ruta donde se espera guardar el archivo
       final biblesDir = await _repository.storage.getBiblesDirectory();
       final dbPath = '$biblesDir/${versionObj.filename}';
       _logger.i('[BibleProvider] Intentando guardar archivo en: $dbPath');
@@ -250,7 +246,6 @@ class BibleSelectedVersionProvider extends ChangeNotifier {
       for (var file in filesAfterDownload) {
         _logger.i(' - $file');
       }
-      // Verificar si el archivo existe justo después de la descarga
       final fileExists = await _repository.storage.fileExists(dbPath);
       _logger.i(
         '[BibleProvider] ¿Archivo guardado correctamente?: $fileExists',
@@ -265,18 +260,16 @@ class BibleSelectedVersionProvider extends ChangeNotifier {
   Future<bool> _fetchVerses(String lang, String version) async {
     try {
       await _repository.initialize();
-      final allVersions = await _repository.fetchAvailableVersions();
+      final allVersions = await _repository.fetchVersionsByLanguage(lang);
       final versionObj = allVersions.firstWhere(
-        (v) => v.language == lang && v.name == version,
-        orElse: () => allVersions.firstWhere((v) => v.language == lang),
+        (v) => v.name == version,
+        orElse: () => allVersions.first,
       );
-      // SIMPLIFIED: Path uses original filename
       final biblesDir = await _repository.storage.getBiblesDirectory();
       final dbPath = '$biblesDir/${versionObj.filename}';
       _logger.i('[BibleProvider] Abriendo base de datos en: $dbPath');
       final dbService = BibleDbService(customDatabasePath: dbPath);
       await dbService.initDbFromPath();
-      // Obtener el primer libro y capítulo disponibles
       final books = await dbService.getAllBooks();
       if (books.isEmpty) return false;
       final firstBook = books.first;
