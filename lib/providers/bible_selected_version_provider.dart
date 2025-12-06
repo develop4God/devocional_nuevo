@@ -77,10 +77,21 @@ class BibleSelectedVersionProvider extends ChangeNotifier {
     await prefs.setString('selectedLanguage', languageCode);
     await prefs.setString('selectedBibleVersion', _selectedVersion);
     _logger.i(
-      '[BibleProvider] Nuevo idioma: $_selectedLanguage, versión: $_selectedVersion',
-    );
+        '[BibleProvider] Nuevo idioma: $_selectedLanguage, versión: $_selectedVersion');
+    // Validar si la versión está descargada y si no, descargarla automáticamente
     await _ensureVersionDownloaded();
+    // Actualizar la lista de versiones disponibles
     await _updateAvailableVersions();
+    // Log para depuración: mostrar estado final y cantidad de versículos
+    _logger.i(
+        '[BibleProvider] Estado tras cambio de idioma: $_state, Versículos cargados: ${_verses.length}');
+    if (_state == BibleProviderState.ready) {
+      _logger.i(
+          '[BibleProvider] ✅ Biblia lista para uso inmediato tras cambio de idioma');
+    } else if (_state == BibleProviderState.error) {
+      _logger
+          .e('[BibleProvider] ❌ Error tras cambio de idioma: $_errorMessage');
+    }
   }
 
   /// Cambia la versión bíblica seleccionada manualmente
@@ -128,48 +139,82 @@ class BibleSelectedVersionProvider extends ChangeNotifier {
   Future<void> _ensureVersionDownloaded() async {
     try {
       _logger.i(
-        '[BibleProvider] _ensureVersionDownloaded: $_selectedLanguage, $_selectedVersion',
-      );
+          '📖 [BibleProvider] _ensureVersionDownloaded: $_selectedLanguage, $_selectedVersion');
+      // 1. Verificación local directa antes de consultar la API
+      final biblesDir = await _repository.storage.getBiblesDirectory();
+      final filename = '${_selectedVersion}_${_selectedLanguage}.SQLite3';
+      final dbPath = '$biblesDir/$filename';
+      final fileExists = await _repository.storage.fileExists(dbPath);
+      final downloadedIds = await _repository.getDownloadedVersionIds();
+      final versionId = '${_selectedLanguage}-${_selectedVersion}';
+
+      if (fileExists && downloadedIds.contains(versionId)) {
+        _logger
+            .i('✅ [BibleProvider] Versión ya descargada y registrada: $dbPath');
+        final hasVerses =
+            await _fetchVerses(_selectedLanguage, _selectedVersion);
+        _logger.i('📄 [BibleProvider] ¿Hay versículos?: $hasVerses');
+        if (!hasVerses) {
+          _state = BibleProviderState.error;
+          _errorMessage =
+              '❌ No se encontraron versículos para la versión ($_selectedVersion)';
+          _logger.e('❌ [BibleProvider] ERROR fetch: $_errorMessage');
+          notifyListeners();
+          return;
+        }
+        _state = BibleProviderState.ready;
+        _errorMessage = null;
+        _logger.i('🎉 [BibleProvider] READY');
+        notifyListeners();
+        return;
+      }
+
+      // 2. Si no está, consulta la API y descarga
+      _logger.i(
+          '🌐 [BibleProvider] Archivo no encontrado o no registrado, consultando API...');
       final isDownloaded = await _isVersionDownloaded(
         _selectedLanguage,
         _selectedVersion,
       );
-      _logger.i('[BibleProvider] ¿Descargada?: $isDownloaded');
+      _logger.i('📥 [BibleProvider] ¿Descargada?: $isDownloaded');
       if (!isDownloaded) {
         _state = BibleProviderState.downloading;
         notifyListeners();
+        _logger.i('⬇️ [BibleProvider] Descargando versión...');
         final success = await _downloadVersion(
           _selectedLanguage,
           _selectedVersion,
         );
-        _logger.i('[BibleProvider] Descarga exitosa: $success');
+        _logger.i(success
+            ? '✅ [BibleProvider] Descarga exitosa'
+            : '❌ [BibleProvider] Descarga fallida');
         if (!success) {
           _state = BibleProviderState.error;
           _errorMessage =
-              'No se pudo descargar la versión bíblica ($_selectedVersion)';
-          _logger.e('[BibleProvider] ERROR descarga: $_errorMessage');
+              '❌ No se pudo descargar la versión bíblica ($_selectedVersion)';
+          _logger.e('❌ [BibleProvider] ERROR descarga: $_errorMessage');
           notifyListeners();
           return;
         }
       }
       final hasVerses = await _fetchVerses(_selectedLanguage, _selectedVersion);
-      _logger.i('[BibleProvider] ¿Hay versículos?: $hasVerses');
+      _logger.i('📄 [BibleProvider] ¿Hay versículos?: $hasVerses');
       if (!hasVerses) {
         _state = BibleProviderState.error;
         _errorMessage =
-            'No se encontraron versículos para la versión ($_selectedVersion)';
-        _logger.e('[BibleProvider] ERROR fetch: $_errorMessage');
+            '❌ No se encontraron versículos para la versión ($_selectedVersion)';
+        _logger.e('❌ [BibleProvider] ERROR fetch: $_errorMessage');
         notifyListeners();
         return;
       }
       _state = BibleProviderState.ready;
       _errorMessage = null;
-      _logger.i('[BibleProvider] READY');
+      _logger.i('🎉 [BibleProvider] READY');
       notifyListeners();
     } catch (e) {
       _state = BibleProviderState.error;
-      _errorMessage = 'Error: $e';
-      _logger.e('[BibleProvider] ERROR general: $e');
+      _errorMessage = '❌ Error: $e';
+      _logger.e('❌ [BibleProvider] ERROR general: $e');
       notifyListeners();
     }
   }
@@ -214,9 +259,7 @@ class BibleSelectedVersionProvider extends ChangeNotifier {
   Future<bool> _downloadVersion(String lang, String version) async {
     await _repository.initialize();
     final allVersions = await _repository.fetchVersionsByLanguage(lang);
-    _logger.i(
-      '[BibleProvider] Versiones disponibles para $lang: ${allVersions.map((v) => v.name).join(', ')}',
-    );
+    _logger.i('[BibleProvider] Iniciando descarga para $lang/$version');
     BibleVersionMetadata versionObj;
     try {
       versionObj = allVersions.firstWhere(
@@ -231,25 +274,14 @@ class BibleSelectedVersionProvider extends ChangeNotifier {
       return false;
     }
     _selectedVersion = versionObj.name;
-    _logger.i(
-      '[BibleProvider] URL de descarga para ���[1m${versionObj.name}���[0m: ${versionObj.downloadUrl}',
-    );
+    _logger.i('[BibleProvider] URL de descarga: ${versionObj.downloadUrl}');
     try {
       await _repository.downloadVersion(versionObj.id);
       final biblesDir = await _repository.storage.getBiblesDirectory();
       final dbPath = '$biblesDir/${versionObj.filename}';
-      _logger.i('[BibleProvider] Intentando guardar archivo en: $dbPath');
-      final filesAfterDownload = await _repository.storage.listFiles(biblesDir);
-      _logger.i(
-        '[BibleProvider] Archivos en el directorio de biblias después de la descarga:',
-      );
-      for (var file in filesAfterDownload) {
-        _logger.i(' - $file');
-      }
       final fileExists = await _repository.storage.fileExists(dbPath);
-      _logger.i(
-        '[BibleProvider] ¿Archivo guardado correctamente?: $fileExists',
-      );
+      _logger
+          .i('[BibleProvider] ¿Archivo guardado correctamente?: $fileExists');
       return fileExists;
     } catch (e) {
       _logger.e('[BibleProvider] Error al descargar: $e');
@@ -259,16 +291,27 @@ class BibleSelectedVersionProvider extends ChangeNotifier {
 
   Future<bool> _fetchVerses(String lang, String version) async {
     try {
-      await _repository.initialize();
-      final allVersions = await _repository.fetchVersionsByLanguage(lang);
-      final versionObj = allVersions.firstWhere(
-        (v) => v.name == version,
-        orElse: () => allVersions.first,
-      );
       final biblesDir = await _repository.storage.getBiblesDirectory();
-      final dbPath = '$biblesDir/${versionObj.filename}';
-      _logger.i('[BibleProvider] Abriendo base de datos en: $dbPath');
-      final dbService = BibleDbService(customDatabasePath: dbPath);
+      final filename = '${version}_${lang}.SQLite3';
+      final dbPath = '$biblesDir/$filename';
+      final fileExists = await _repository.storage.fileExists(dbPath);
+      String dbFilePath;
+      if (fileExists) {
+        _logger.i('💾 [BibleProvider] Usando archivo local existente: $dbPath');
+        dbFilePath = dbPath;
+      } else {
+        await _repository.initialize();
+        final allVersions = await _repository.fetchVersionsByLanguage(lang);
+        final versionObj = allVersions.firstWhere(
+          (v) => v.name == version,
+          orElse: () => allVersions.first,
+        );
+        dbFilePath = biblesDir + '/' + versionObj.filename;
+        _logger.i(
+            '🌐 [BibleProvider] Archivo no encontrado, usando metadata: $dbFilePath');
+      }
+      _logger.i('💡 [BibleProvider] Abriendo base de datos en: $dbFilePath');
+      final dbService = BibleDbService(customDatabasePath: dbFilePath);
       await dbService.initDbFromPath();
       final books = await dbService.getAllBooks();
       if (books.isEmpty) return false;
@@ -276,7 +319,7 @@ class BibleSelectedVersionProvider extends ChangeNotifier {
       final bookNumber = firstBook['book_number'] as int? ?? 1;
       final verses = await dbService.getChapterVerses(bookNumber, 1);
       _verses = verses;
-      _logger.i('[BibleProvider] Versículos cargados: ${_verses.length}');
+      _logger.i('💡 [BibleProvider] Versículos cargados: ${_verses.length}');
       return _verses.isNotEmpty;
     } catch (e) {
       _logger.e('[BibleProvider] ERROR al obtener versículos: $e');
