@@ -20,7 +20,7 @@ class ModernVoiceFeatureDialog extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            'app.voice_feature_title'.tr(),
+            'devotionals.modern_voice_title'.tr(),
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: colorScheme.onPrimary,
@@ -29,7 +29,7 @@ class ModernVoiceFeatureDialog extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            'app.voice_feature_description'.tr(),
+            'devotionals.modern_voice_description'.tr(),
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                   color: colorScheme.onSurface,
                 ),
@@ -50,7 +50,7 @@ class ModernVoiceFeatureDialog extends StatelessWidget {
                       const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
                 ),
                 icon: const Icon(Icons.settings_voice),
-                label: Text('app.voice_feature_configure'.tr()),
+                label: Text('devotionals.modern_voice_configure'.tr()),
                 onPressed: onConfigure,
               ),
               TextButton(

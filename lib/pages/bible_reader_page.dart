@@ -1,22 +1,23 @@
-//bible_reader_page.dart - Pure UI presentation layer
-import 'dart:ui' as ui;
+// bible_reader_page.dart - Pure UI presentation layer
 
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:bible_reader_core/bible_reader_core.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
+import 'package:devocional_nuevo/providers/bible_selected_version_provider.dart';
 import 'package:devocional_nuevo/utils/copyright_utils.dart';
 import 'package:devocional_nuevo/widgets/app_bar_constants.dart';
 import 'package:devocional_nuevo/widgets/bible_book_selector_dialog.dart';
 import 'package:devocional_nuevo/widgets/bible_chapter_grid_selector.dart';
 import 'package:devocional_nuevo/widgets/bible_reader_action_modal.dart';
+import 'package:devocional_nuevo/widgets/bible_reader_drawer.dart';
 import 'package:devocional_nuevo/widgets/bible_search_overlay.dart';
 import 'package:devocional_nuevo/widgets/bible_verse_grid_selector.dart';
 import 'package:devocional_nuevo/widgets/floating_font_control_buttons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:provider/provider.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:share_plus/share_plus.dart' show ShareParams, SharePlus;
 
@@ -39,46 +40,22 @@ class BibleReaderPage extends StatefulWidget {
 }
 
 class _BibleReaderPageState extends State<BibleReaderPage> {
-  late BibleReaderController _controller;
+  BibleReaderController? _controller;
   bool _bottomSheetOpen = false;
   final ItemScrollController _itemScrollController = ItemScrollController();
   final ItemPositionsListener _itemPositionsListener =
       ItemPositionsListener.create();
-
-  @override
-  void initState() {
-    super.initState();
-
-    // Initialize services with injection
-    final readerService = widget.readerService ??
-        BibleReaderService(
-          dbService: BibleDbService(),
-          positionService: BibleReadingPositionService(),
-        );
-    final preferencesService =
-        widget.preferencesService ?? BiblePreferencesService();
-
-    // Create controller with injected services
-    _controller = BibleReaderController(
-      allVersions: widget.versions,
-      readerService: readerService,
-      preferencesService: preferencesService,
-    );
-
-    // Initialize controller with device language
-    final deviceLanguage = ui.PlatformDispatcher.instance.locale.languageCode;
-    _controller.initialize(deviceLanguage);
-  }
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
   void dispose() {
-    _controller.dispose();
+    _controller?.dispose();
     super.dispose();
   }
 
   // UI helper methods
   void _scrollToVerse(int verseNumber) async {
-    final verses = _controller.state.verses;
+    final verses = _controller!.state.verses;
     if (verses.isEmpty) return;
 
     final index = verses.indexWhere((v) => v['verse'] == verseNumber);
@@ -102,7 +79,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
   }
 
   Future<void> _showVerseGridSelector() async {
-    final state = _controller.state;
+    final state = _controller!.state;
     if (state.selectedBookName == null || state.selectedChapter == null) return;
 
     await showDialog(
@@ -116,7 +93,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
           chapterNumber: state.selectedChapter!,
           onVerseSelected: (verseNumber) {
             Navigator.of(context).pop();
-            _controller.selectVerse(verseNumber);
+            _controller!.selectVerse(verseNumber);
             Future.delayed(const Duration(milliseconds: 100), () {
               _scrollToVerse(verseNumber);
             });
@@ -127,7 +104,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
   }
 
   Future<void> _showChapterGridSelector() async {
-    final state = _controller.state;
+    final state = _controller!.state;
     if (state.selectedBookName == null) return;
 
     await showDialog(
@@ -140,7 +117,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
               (b) => b['short_name'] == state.selectedBookName)['long_name'],
           onChapterSelected: (chapterNumber) async {
             Navigator.of(context).pop();
-            await _controller.selectChapter(chapterNumber);
+            await _controller!.selectChapter(chapterNumber);
             _scrollToTop(); // Always scroll to top after chapter change
           },
         );
@@ -149,7 +126,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
   }
 
   Future<void> _showBookSelector() async {
-    final state = _controller.state;
+    final state = _controller!.state;
     await showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -157,7 +134,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
           books: state.books,
           selectedBookName: state.selectedBookName,
           onBookSelected: (book) async {
-            await _controller.selectBook(book);
+            await _controller!.selectBook(book);
             _scrollToTop();
           },
         );
@@ -172,7 +149,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
       barrierColor: Colors.transparent,
       builder: (BuildContext context) {
         return BibleSearchOverlay(
-          controller: _controller,
+          controller: _controller!,
           onScrollToVerse: _scrollToVerse,
           cleanVerseText: _cleanVerseText,
         );
@@ -181,7 +158,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
   }
 
   void _onVerseTap(int verseNumber) {
-    final state = _controller.state;
+    final state = _controller!.state;
     final key =
         "${state.selectedBookName}|${state.selectedChapter}|$verseNumber";
     final wasSelected = state.selectedVerses.contains(key);
@@ -191,9 +168,9 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     debugPrint(
         '[BibleReader] Before tap: selectedVerses: ${state.selectedVerses}, selectedVerse: ${state.selectedVerse}, scroll attached: ${_itemScrollController.isAttached}');
 
-    _controller.toggleVerseSelection(key);
+    _controller!.toggleVerseSelection(key);
 
-    final afterState = _controller.state;
+    final afterState = _controller!.state;
     debugPrint(
         '[BibleReader] After tap: selectedVerses: ${afterState.selectedVerses}, selectedVerse: ${afterState.selectedVerse}');
 
@@ -217,8 +194,9 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     _bottomSheetOpen = true;
 
     // Check if all selected verses are already saved
-    final selectedVerses = _controller.state.selectedVerses.toList();
-    final persistentlyMarkedVerses = _controller.state.persistentlyMarkedVerses;
+    final selectedVerses = _controller!.state.selectedVerses.toList();
+    final persistentlyMarkedVerses =
+        _controller!.state.persistentlyMarkedVerses;
     final areVersesSaved =
         selectedVerses.every((key) => persistentlyMarkedVerses.contains(key));
 
@@ -235,7 +213,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
           onShare: () => _shareSelectedVerses(context),
           onImage: () {
             Navigator.pop(context);
-            _controller.clearSelectedVerses();
+            _controller!.clearSelectedVerses();
           },
           areVersesSaved: areVersesSaved,
           onDeleteSaved:
@@ -252,7 +230,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
   }
 
   String _getSelectedVersesText() {
-    final state = _controller.state;
+    final state = _controller!.state;
     return BibleVerseFormatter.formatVerses(
       selectedVerseKeys: state.selectedVerses,
       verses: state.verses,
@@ -263,7 +241,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
   }
 
   String _getSelectedVersesReference() {
-    final selectedVerses = _controller.state.selectedVerses;
+    final selectedVerses = _controller!.state.selectedVerses;
     if (selectedVerses.isEmpty) return '';
 
     final sortedVerses = selectedVerses.toList()..sort();
@@ -291,14 +269,14 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     final text = _getSelectedVersesText();
     SharePlus.instance.share(ShareParams(text: text));
     Navigator.pop(modalContext);
-    _controller.clearSelectedVerses();
+    _controller!.clearSelectedVerses();
   }
 
   void _copySelectedVerses(BuildContext modalContext) {
     final text = _getSelectedVersesText();
     Clipboard.setData(ClipboardData(text: text));
     Navigator.pop(modalContext);
-    _controller.clearSelectedVerses();
+    _controller!.clearSelectedVerses();
     final colorScheme = Theme.of(context).colorScheme;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -313,9 +291,9 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
   }
 
   void _saveSelectedVerses(BuildContext modalContext) async {
-    final selectedVerses = List.from(_controller.state.selectedVerses);
+    final selectedVerses = List.from(_controller!.state.selectedVerses);
     for (final verseKey in selectedVerses) {
-      await _controller.togglePersistentMark(verseKey);
+      await _controller!.togglePersistentMark(verseKey);
     }
 
     if (!mounted) return;
@@ -324,7 +302,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     if (modalContext.mounted) {
       Navigator.pop(modalContext);
     }
-    _controller.clearSelectedVerses();
+    _controller!.clearSelectedVerses();
 
     // Capture widget's context-dependent values immediately after mounted check
     final scaffoldMessenger = ScaffoldMessenger.of(context);
@@ -343,10 +321,10 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
   }
 
   void _deleteSelectedVerses(BuildContext modalContext) async {
-    final selectedVerses = List.from(_controller.state.selectedVerses);
+    final selectedVerses = List.from(_controller!.state.selectedVerses);
     for (final verseKey in selectedVerses) {
       // Toggle will remove the mark if it's already marked
-      await _controller.togglePersistentMark(verseKey);
+      await _controller!.togglePersistentMark(verseKey);
     }
 
     if (!mounted) return;
@@ -355,7 +333,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     if (modalContext.mounted) {
       Navigator.pop(modalContext);
     }
-    _controller.clearSelectedVerses();
+    _controller!.clearSelectedVerses();
 
     // Capture widget's context-dependent values immediately after mounted check
     final scaffoldMessenger = ScaffoldMessenger.of(context);
@@ -373,16 +351,93 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     );
   }
 
+  void _openVersionsDrawer() {
+    _scaffoldKey.currentState?.openEndDrawer();
+  }
+
   @override
   Widget build(BuildContext context) {
+    debugPrint('[BibleReaderPage] build() llamado. Provider state: '
+        '${Provider.of<BibleSelectedVersionProvider>(context).state}');
+    final bibleProvider = Provider.of<BibleSelectedVersionProvider>(context);
     final themeState = context.watch<ThemeBloc>().state as ThemeLoaded;
-    return StreamBuilder<BibleReaderState>(
-      stream: _controller.stateStream,
-      initialData: _controller.state,
-      builder: (context, snapshot) {
-        final state = snapshot.data ?? _controller.state;
-        final colorScheme = Theme.of(context).colorScheme;
+    final colorScheme = Theme.of(context).colorScheme;
 
+    // Loader amigable mientras carga o descarga
+    if (bibleProvider.state == BibleProviderState.loading ||
+        bibleProvider.state == BibleProviderState.downloading) {
+      return Scaffold(
+        key: _scaffoldKey,
+        appBar: AppBar(
+            title: Text('Cargando Biblia...'),
+            backgroundColor: colorScheme.primary),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+    // Error amigable
+    if (bibleProvider.state == BibleProviderState.error) {
+      final locale = Localizations.localeOf(context).languageCode;
+      String errorMsg = bibleProvider.errorMessage ??
+          (locale == 'es'
+              ? 'No se pudo descargar la Biblia en tu idioma. Puedes reintentar o cambiar de versión.'
+              : 'Could not download the Bible in your language. You can retry or change version.');
+      return Scaffold(
+        key: _scaffoldKey,
+        appBar:
+            AppBar(title: Text('Biblia'), backgroundColor: colorScheme.primary),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.error_outline, color: Colors.red, size: 48),
+              const SizedBox(height: 16),
+              Text(errorMsg,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: Colors.red, fontSize: 16)),
+              const SizedBox(height: 24),
+              ElevatedButton.icon(
+                icon: const Icon(Icons.refresh),
+                label: Text(locale == 'es' ? 'Reintentar' : 'Retry'),
+                onPressed: () => bibleProvider.fetchBibleInfo(),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+    // Solo inicializar el controlador cuando el provider esté listo
+    if (_controller == null &&
+        bibleProvider.state == BibleProviderState.ready) {
+      final readerService = widget.readerService ??
+          BibleReaderService(
+              dbService: BibleDbService(),
+              positionService: BibleReadingPositionService());
+      final preferencesService =
+          widget.preferencesService ?? BiblePreferencesService();
+      _controller = BibleReaderController(
+        allVersions: bibleProvider.availableVersions,
+        readerService: readerService,
+        preferencesService: preferencesService,
+      );
+      _controller!.initialize(bibleProvider.selectedLanguage);
+    }
+    if (_controller == null) {
+      // Safety: fallback loader si por alguna razón no hay controlador
+      return Scaffold(
+        key: _scaffoldKey,
+        appBar: AppBar(
+            title: Text('Cargando Biblia...'),
+            backgroundColor: colorScheme.primary),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    // StreamBuilder para escuchar el estado del controlador
+    return StreamBuilder<BibleReaderState>(
+      stream: _controller!.stateStream,
+      initialData: _controller!.state,
+      builder: (context, snapshot) {
+        final state = snapshot.data ?? _controller!.state;
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (state.selectedVerse != null &&
               state.verses.any((v) => v['verse'] == state.selectedVerse) &&
@@ -396,10 +451,17 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
             _scrollToTop();
           }
         });
-
         return AnnotatedRegion<SystemUiOverlayStyle>(
           value: themeState.systemUiOverlayStyle,
           child: Scaffold(
+            key: _scaffoldKey,
+            endDrawer: BibleReaderDrawer(
+              availableVersions: state.availableVersions,
+              selectedVersion: state.selectedVersion,
+              onVersionSelected: (version) async {
+                await _controller!.switchVersion(version);
+              },
+            ),
             appBar: PreferredSize(
               preferredSize: const Size.fromHeight(kToolbarHeight),
               child: Stack(
@@ -436,6 +498,37 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                       ],
                     ),
                   ),
+                  // Orden de iconos: menu_book (Drawer), text_increase, search, menú de versiones
+                  Positioned(
+                    right: state.availableVersions.length > 1 ? 192 : 144,
+                    top: 0,
+                    bottom: 0,
+                    child: SafeArea(
+                      child: IconButton(
+                        icon: Icon(
+                          Icons.menu_book,
+                          color: Theme.of(context).colorScheme.onPrimary,
+                        ),
+                        tooltip: 'Gestionar versiones bíblicas',
+                        onPressed: _openVersionsDrawer,
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    right: state.availableVersions.length > 1 ? 144 : 96,
+                    top: 0,
+                    bottom: 0,
+                    child: SafeArea(
+                      child: IconButton(
+                        icon: Icon(
+                          Icons.text_increase_outlined,
+                          color: Theme.of(context).colorScheme.onPrimary,
+                        ),
+                        tooltip: 'bible.adjust_font_size'.tr(),
+                        onPressed: () => _controller!.toggleFontControls(),
+                      ),
+                    ),
+                  ),
                   Positioned(
                     right: state.availableVersions.length > 1 ? 96 : 48,
                     top: 0,
@@ -451,24 +544,9 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                       ),
                     ),
                   ),
-                  Positioned(
-                    right: state.availableVersions.length > 1 ? 48 : 0,
-                    top: 0,
-                    bottom: 0,
-                    child: SafeArea(
-                      child: IconButton(
-                        icon: Icon(
-                          Icons.text_increase_outlined,
-                          color: Theme.of(context).colorScheme.onPrimary,
-                        ),
-                        tooltip: 'bible.adjust_font_size'.tr(),
-                        onPressed: () => _controller.toggleFontControls(),
-                      ),
-                    ),
-                  ),
                   if (state.availableVersions.length > 1)
                     Positioned(
-                      right: 0,
+                      right: 48,
                       top: 0,
                       bottom: 0,
                       child: SafeArea(
@@ -482,7 +560,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                             final scaffoldMessenger =
                                 ScaffoldMessenger.of(context);
                             final colorScheme = Theme.of(context).colorScheme;
-                            await _controller.switchVersion(version);
+                            await _controller!.switchVersion(version);
                             if (!mounted) return;
                             scaffoldMessenger.showSnackBar(
                               SnackBar(
@@ -692,7 +770,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                                   return GestureDetector(
                                     onTap: () => _onVerseTap(verseNumber),
                                     onLongPress: () =>
-                                        _controller.togglePersistentMark(key),
+                                        _controller!.togglePersistentMark(key),
                                     child: Container(
                                       padding: const EdgeInsets.symmetric(
                                           vertical: 8, horizontal: 4),
@@ -753,9 +831,10 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                 if (state.showFontControls)
                   FloatingFontControlButtons(
                     currentFontSize: state.fontSize,
-                    onIncrease: _controller.increaseFontSize,
-                    onDecrease: _controller.decreaseFontSize,
-                    onClose: () => _controller.setFontControlsVisibility(false),
+                    onIncrease: _controller!.increaseFontSize,
+                    onDecrease: _controller!.decreaseFontSize,
+                    onClose: () =>
+                        _controller!.setFontControlsVisibility(false),
                   ),
               ],
             ),
@@ -784,7 +863,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                                   color: colorScheme.primary),
                               tooltip: 'bible.previous_chapter'.tr(),
                               onPressed: () async {
-                                await _controller.goToPreviousChapter();
+                                await _controller!.goToPreviousChapter();
                                 _scrollToTop();
                               },
                             ),
@@ -836,7 +915,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                                   color: colorScheme.primary),
                               tooltip: 'bible.next_chapter'.tr(),
                               onPressed: () async {
-                                await _controller.goToNextChapter();
+                                await _controller!.goToNextChapter();
                                 _itemScrollController.jumpTo(index: 0);
                                 _scrollToTop();
                               },

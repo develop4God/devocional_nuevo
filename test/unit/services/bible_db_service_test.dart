@@ -9,9 +9,9 @@ void main() {
       expect(service, isA<BibleDbService>());
     });
 
-    test('should have initDb method', () {
+    test('should have initDbFromPath method', () {
       final service = BibleDbService();
-      expect(service.initDb, isA<Function>());
+      expect(service.initDbFromPath, isA<Function>());
     });
 
     test('should have getAllBooks method', () {

@@ -8,9 +8,11 @@ import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_event.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/controllers/audio_controller.dart';
+import 'package:devocional_nuevo/pages/bible_versions_manager_page.dart';
 import 'package:devocional_nuevo/pages/devocionales_page.dart';
 import 'package:devocional_nuevo/pages/onboarding/onboarding_flow.dart';
 import 'package:devocional_nuevo/pages/settings_page.dart';
+import 'package:devocional_nuevo/providers/bible_selected_version_provider.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/providers/localization_provider.dart';
 import 'package:devocional_nuevo/services/connectivity_service.dart';
@@ -26,6 +28,7 @@ import 'package:devocional_nuevo/utils/constants.dart';
 import 'package:devocional_nuevo/utils/theme_constants.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_in_app_messaging/firebase_in_app_messaging.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -103,6 +106,8 @@ void main() async {
   developer.log('App: Función main() iniciada.', name: 'MainApp');
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+  // Habilita mensajes in-app
+  FirebaseInAppMessaging.instance.setMessagesSuppressed(false);
 
   // Setup dependency injection
   setupServiceLocator();
@@ -110,7 +115,6 @@ void main() async {
       name: 'MainApp');
 
   // Configure system UI overlay style for consistent navigation bar appearance
-  // This ensures dark gray navigation bar with white buttons across all themes
   SystemChrome.setSystemUIOverlayStyle(systemUiOverlayStyle);
   developer.log(
     'App: System UI overlay style configured for consistent navigation bar.',
@@ -124,25 +128,32 @@ void main() async {
     name: 'MainApp',
   );
 
-  // Lanzar runApp lo antes posible (sin inicializaciones bloqueantes)
+  // Inicializar providers con idioma correcto antes de runApp
+  final localizationProvider = LocalizationProvider();
+  await localizationProvider.initialize();
+  final initialLocale = localizationProvider.currentLocale;
+  final bibleVersionProvider = BibleSelectedVersionProvider();
+  await bibleVersionProvider.initialize(
+      languageCode: initialLocale.languageCode);
+
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (context) => LocalizationProvider()),
+        ChangeNotifierProvider(create: (context) => localizationProvider),
         ChangeNotifierProvider(create: (context) => DevocionalProvider()),
+        ChangeNotifierProvider(create: (_) => bibleVersionProvider),
         BlocProvider(create: (context) => PrayerBloc()),
         BlocProvider(create: (context) => ThanksgivingBloc()),
         BlocProvider(
           create: (context) {
             final themeBloc = ThemeBloc();
-            themeBloc.add(const LoadTheme()); // Load theme on app start
+            themeBloc.add(const LoadTheme());
             return themeBloc;
           },
         ),
         ChangeNotifierProvider(
           create: (_) => AudioController(getService<ITtsService>()),
         ),
-        // Agregar BackupBloc
         BlocProvider(
           create: (context) => BackupBloc(
             backupService: GoogleDriveBackupService(
@@ -311,6 +322,8 @@ class _MyAppState extends State<MyApp> {
             routes: {
               '/settings': (context) => const SettingsPage(),
               '/devocionales': (context) => const DevocionalesPage(),
+              '/bible_versions_manager': (context) =>
+                  const BibleVersionsManagerPage(),
             },
           ),
         );

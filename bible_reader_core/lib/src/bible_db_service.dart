@@ -1,25 +1,140 @@
 import 'dart:io';
 
-import 'package:flutter/services.dart' show rootBundle;
-import 'package:path/path.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:logger/logger.dart';
 import 'package:sqflite/sqflite.dart';
 
+import 'exceptions/bible_version_exceptions.dart';
+
+/// Service for interacting with Bible SQLite databases.
+///
+/// Supports two modes:
+/// 1. Asset-based: Loads a database from the app's assets (default behavior)
+/// 2. Custom path: Opens a database from a custom file path (for downloaded versions)
+///
+/// Example usage with asset (existing behavior):
+/// ```dart
+/// final service = BibleDbService();
+/// await service.initDb('assets/biblia/RVR1960_es.SQLite3', 'RVR1960_es.db');
+/// ```
+///
+/// Example usage with custom path (downloaded version):
+/// ```dart
+/// final service = BibleDbService(customDatabasePath: '/path/to/downloaded/bible.db');
+/// await service.initDbFromPath();
+/// ```
 class BibleDbService {
   late Database _db;
 
-  Future<void> initDb(String dbAssetPath, String dbName) async {
-    final documentsDirectory = await getApplicationDocumentsDirectory();
-    final dbPath = join(documentsDirectory.path, dbName);
+  /// Optional custom database path for downloaded Bible versions.
+  /// When set, [initDbFromPath] will use this path instead of loading from assets.
+  final String? customDatabasePath;
 
-    if (!File(dbPath).existsSync()) {
-      // Read the asset correctly using rootBundle
-      final data = await rootBundle.load(dbAssetPath);
-      final bytes = data.buffer.asUint8List();
-      await File(dbPath).writeAsBytes(bytes, flush: true);
+  final Logger _logger = Logger();
+
+  /// Creates a BibleDbService instance.
+  ///
+  /// [customDatabasePath] - Optional path to a pre-existing database file.
+  /// If provided, use [initDbFromPath].
+  BibleDbService({this.customDatabasePath});
+
+  /// Initializes the database from a custom path.
+  ///
+  /// Use this method when [customDatabasePath] is set.
+  /// This is used for downloaded Bible versions.
+  ///
+  /// Performs validation:
+  /// 1. Schema version check (PRAGMA user_version)
+  /// 2. Database integrity check (PRAGMA integrity_check)
+  ///
+  /// Throws [StateError] if [customDatabasePath] is null.
+  /// Throws [FileSystemException] if the database file doesn't exist.
+  /// Throws [DatabaseSchemaException] if schema version doesn't match.
+  /// Throws [DatabaseCorruptedException] if integrity check fails.
+  Future<void> initDbFromPath({int? expectedSchemaVersion}) async {
+    _logger.i(
+      '[BibleDbService] Intentando abrir base de datos en: $customDatabasePath',
+    );
+    if (customDatabasePath == null) {
+      _logger.e('[BibleDbService] customDatabasePath es null');
+      throw StateError(
+        'customDatabasePath is null. Use a valid path for downloaded databases.',
+      );
     }
 
-    _db = await openDatabase(dbPath, readOnly: true);
+    if (!File(customDatabasePath!).existsSync()) {
+      _logger.e(
+        '[BibleDbService] Archivo de base de datos no encontrado: $customDatabasePath',
+      );
+      throw FileSystemException('Database file not found', customDatabasePath);
+    }
+
+    _db = await openDatabase(customDatabasePath!, readOnly: true);
+    _logger.i(
+      '[BibleDbService] Base de datos abierta correctamente: $customDatabasePath',
+    );
+
+    // Validate schema version if expected version is provided
+    if (expectedSchemaVersion != null) {
+      final versionResult = await _db.rawQuery('PRAGMA user_version');
+      if (versionResult.isEmpty) {
+        await _db.close();
+        _logger.e('[BibleDbService] No se pudo leer la versión de esquema');
+        throw DatabaseCorruptedException(
+          'Could not read schema version from database',
+        );
+      }
+      final actualVersion = versionResult.first['user_version'] as int? ?? 0;
+      if (actualVersion != expectedSchemaVersion) {
+        await _db.close();
+        _logger.e(
+          '[BibleDbService] Versión de esquema incorrecta: esperado $expectedSchemaVersion, obtenido $actualVersion',
+        );
+        throw DatabaseSchemaException(
+          'Schema version mismatch: expected $expectedSchemaVersion, got $actualVersion',
+          expectedVersion: expectedSchemaVersion,
+          actualVersion: actualVersion,
+        );
+      }
+    }
+
+    // Run integrity check
+    final integrityResult = await _db.rawQuery('PRAGMA integrity_check');
+    if (integrityResult.isEmpty) {
+      await _db.close();
+      _logger.e('[BibleDbService] No se pudo realizar el integrity_check');
+      throw DatabaseCorruptedException(
+        'Could not perform integrity check on database',
+      );
+    }
+    final integrityStatus = integrityResult.first['integrity_check'] as String?;
+    if (integrityStatus != 'ok') {
+      await _db.close();
+      _logger.e('[BibleDbService] Integrity check falló: $integrityStatus');
+      throw DatabaseCorruptedException(
+        'Database integrity check failed: $integrityStatus',
+      );
+    }
+    _logger.i(
+      '[BibleDbService] Base de datos validada correctamente: $customDatabasePath',
+    );
+  }
+
+  /// Returns true if the database has been initialized.
+  bool get isInitialized {
+    try {
+      return _db.isOpen;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// Closes the database connection.
+  ///
+  /// Call this when done using the service to release resources.
+  Future<void> close() async {
+    if (isInitialized) {
+      await _db.close();
+    }
   }
 
   // Get all books
@@ -41,11 +156,14 @@ class BibleDbService {
     int bookNumber,
     int chapter,
   ) async {
-    return await _db.query(
+    final results = await _db.query(
       'verses',
       where: 'book_number = ? AND chapter = ?',
       whereArgs: [bookNumber, chapter],
     );
+    _logger.i(
+        '[BibleDbService] getChapterVerses: bookNumber=$bookNumber, chapter=$chapter, results.length=${results.length}');
+    return results;
   }
 
   // (Optional) Get a chapter using the original method

@@ -29,9 +29,9 @@ class AppGradientDialog extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final gradColors = gradientColors ??
         [
-          colorScheme.primary.withAlpha(220),
-          colorScheme.secondary.withAlpha(230),
-          colorScheme.surface.withAlpha(240),
+          colorScheme.primary,
+          colorScheme.secondary,
+          colorScheme.surface,
         ];
     final bColor = borderColor ?? Colors.white.withAlpha(200);
     return SafeArea(

@@ -5,6 +5,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
 import 'package:devocional_nuevo/models/spiritual_stats_model.dart';
+import 'package:devocional_nuevo/services/service_locator.dart';
+import 'package:devocional_nuevo/services/localization_service.dart';
 
 void main() {
   group('SpiritualStatsService Working Tests', () {
@@ -15,8 +17,15 @@ void main() {
     });
 
     setUp(() {
+      // Reset ServiceLocator for clean test state
+      ServiceLocator().reset();
+
       // Reset SharedPreferences for each test
       SharedPreferences.setMockInitialValues({});
+
+      // Register LocalizationService (required by achievements)
+      ServiceLocator().registerLazySingleton<LocalizationService>(
+          () => LocalizationService());
 
       // Mock path_provider for file operations
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
@@ -38,6 +47,9 @@ void main() {
     });
 
     tearDown(() {
+      // Clean up ServiceLocator
+      ServiceLocator().reset();
+
       // Clean up method channel mocks
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(

@@ -82,10 +82,10 @@ void main() {
         expect(version.name, isNotEmpty);
         expect(version.language, isNotEmpty);
         expect(version.languageCode, isNotEmpty);
-        expect(version.assetPath, isNotEmpty);
         expect(version.dbFileName, isNotEmpty);
-        expect(version.assetPath, contains('assets/biblia/'));
-        expect(version.dbFileName, contains('.SQLite3'));
+        // dbFileName uses original filename: bibles/{VERSION}_{LANG}.SQLite3
+        expect(version.dbFileName, startsWith('bibles/'));
+        expect(version.dbFileName, endsWith('.SQLite3'));
       }
     });
   });

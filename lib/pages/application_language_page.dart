@@ -1,6 +1,7 @@
 import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
+import 'package:devocional_nuevo/providers/bible_selected_version_provider.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/providers/localization_provider.dart';
 import 'package:devocional_nuevo/utils/constants.dart';
@@ -335,7 +336,7 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
             languageCode, isDownloaded, isDownloading, progress, theme),
         onTap: (isDownloading || (isDownloaded && isCurrentLanguage))
             ? null
-            : () => _downloadLanguage(languageCode),
+            : () => _onChangeLanguage(languageCode),
       ),
     );
   }
@@ -439,5 +440,39 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
         ),
       ),
     );
+  }
+
+  void _onChangeLanguage(String languageCode) async {
+    final localizationProvider =
+        Provider.of<LocalizationProvider>(context, listen: false);
+    final devocionalProvider =
+        Provider.of<DevocionalProvider>(context, listen: false);
+    final bibleVersionProvider =
+        Provider.of<BibleSelectedVersionProvider>(context, listen: false);
+
+    // Cambiar el idioma en el provider de localización
+    await localizationProvider.changeLanguage(languageCode);
+
+    // Actualizar el idioma seleccionado en DevocionalProvider
+    devocionalProvider.setSelectedLanguage(languageCode);
+
+    // Establecer la versión predeterminada para el idioma
+    final defaultVersion = Constants.defaultVersionByLanguage[languageCode];
+    if (defaultVersion != null) {
+      devocionalProvider.setSelectedVersion(defaultVersion);
+    }
+
+    // Cambiar el contexto de TTS al idioma y versión seleccionados
+    devocionalProvider.audioController.ttsService
+        .setLanguageContext(languageCode, defaultVersion ?? '');
+    // Usar el metodo getTtsLocale del provider de localización
+    await devocionalProvider.audioController.ttsService
+        .setLanguage(localizationProvider.getTtsLocale());
+
+    // Hacer fetch de la información de la Biblia en el nuevo idioma y versión
+    await bibleVersionProvider.fetchBibleInfo();
+
+    // Volver a la pantalla anterior
+    Navigator.pop(context);
   }
 }

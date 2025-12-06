@@ -1,6 +1,9 @@
 // test/devocional_reading_logic_test.dart
 
 import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
+import 'package:devocional_nuevo/services/service_locator.dart';
+import 'package:devocional_nuevo/services/localization_service.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -9,8 +12,44 @@ void main() {
     setUp(() {
       // Initialize Flutter binding for tests
       TestWidgetsFlutterBinding.ensureInitialized();
+
+      // Reset ServiceLocator for clean test state
+      ServiceLocator().reset();
+
       // Initialize SharedPreferences mock for each test
       SharedPreferences.setMockInitialValues({});
+
+      // Register LocalizationService (required by achievements)
+      ServiceLocator().registerLazySingleton<LocalizationService>(
+          () => LocalizationService());
+
+      // Mock path_provider for file operations
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+        const MethodChannel('plugins.flutter.io/path_provider'),
+        (MethodCall methodCall) async {
+          switch (methodCall.method) {
+            case 'getApplicationDocumentsDirectory':
+              return '/mock_documents';
+            case 'getTemporaryDirectory':
+              return '/mock_temp';
+            default:
+              return null;
+          }
+        },
+      );
+    });
+
+    tearDown(() {
+      // Clean up ServiceLocator
+      ServiceLocator().reset();
+
+      // Clean up method channel mocks
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+        const MethodChannel('plugins.flutter.io/path_provider'),
+        null,
+      );
     });
 
     test('DevocionalProvider recordDevocionalRead works correctly', () async {

@@ -1,9 +1,26 @@
 // test/unit/widgets/bible_chapter_grid_selector_test.dart
+import 'package:devocional_nuevo/services/service_locator.dart';
+import 'package:devocional_nuevo/services/localization_service.dart';
 import 'package:devocional_nuevo/widgets/bible_chapter_grid_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  setUp(() {
+    TestWidgetsFlutterBinding.ensureInitialized();
+    // Reset ServiceLocator for clean test state
+    ServiceLocator().reset();
+    SharedPreferences.setMockInitialValues({});
+    // Register LocalizationService
+    ServiceLocator().registerLazySingleton<LocalizationService>(
+        () => LocalizationService());
+  });
+
+  tearDown(() {
+    ServiceLocator().reset();
+  });
+
   group('Bible Chapter Grid Selector Tests', () {
     testWidgets('Should display grid with correct number of chapters',
         (WidgetTester tester) async {
