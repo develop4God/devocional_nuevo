@@ -149,8 +149,8 @@ class BibleSelectedVersionProvider extends ChangeNotifier {
       final versionId = '${_selectedLanguage}-${_selectedVersion}';
 
       if (fileExists && downloadedIds.contains(versionId)) {
-        _logger
-            .i('✅ [BibleProvider] Versión ya descargada y registrada: $dbPath');
+        _logger.i(
+            '✅ [BibleProvider] Versión ya descargada y registrada: $dbPath. Se omite descarga y se avanza.');
         final hasVerses =
             await _fetchVerses(_selectedLanguage, _selectedVersion);
         _logger.i('📄 [BibleProvider] ¿Hay versículos?: $hasVerses');
