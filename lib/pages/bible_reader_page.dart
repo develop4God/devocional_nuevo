@@ -351,10 +351,6 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     );
   }
 
-  void _openVersionsDrawer() {
-    _scaffoldKey.currentState?.openEndDrawer();
-  }
-
   @override
   Widget build(BuildContext context) {
     debugPrint('[BibleReaderPage] build() llamado. Provider state: '
