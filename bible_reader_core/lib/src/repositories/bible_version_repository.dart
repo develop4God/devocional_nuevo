@@ -487,9 +487,7 @@ class BibleVersionRepository {
       }
 
       _logDownloadStart(versionId);
-      _logger.i(
-        '[BibleRepo] Downloading: [1m[36m${metadata.downloadUrl}[0m',
-      );
+      _logger.i('[BibleRepo] Downloading:  ${metadata.downloadUrl}');
 
       // Validate metadata
       final validationErrors = metadata.validate();
@@ -511,8 +509,7 @@ class BibleVersionRepository {
         );
       }
 
-      // Prepare paths - SIMPLIFIED: use original filename from GitHub
-      // Files are saved directly in bibles folder: bibles/KJV_en.SQLite3
+      // Prepare paths
       final biblesDir = await storage.getBiblesDirectory();
       final dbPath = '$biblesDir/${metadata.filename}';
       partialPath = '$dbPath.partial';
@@ -521,52 +518,63 @@ class BibleVersionRepository {
       // Emit initial progress
       controller?.add(0.0);
 
-      // Download the file
-      final downloadedBytes = <int>[];
-
-      await for (final progress in httpClient.downloadStream(
-        metadata.downloadUrl,
-      )) {
-        downloadedBytes.addAll(progress.data);
-        controller?.add(progress.progress);
-        _logDownloadProgress(versionId, progress.progress);
+      List<int> finalBytes;
+      if (metadata.uncompressedSizeBytes < 10 * 1024 * 1024) {
+        // Si el archivo es menor a 10MB, descargar de una vez
+        final response = await httpClient.get(metadata.downloadUrl);
+        if (!response.isSuccess) {
+          throw NetworkException('Failed to download file',
+              statusCode: response.statusCode);
+        }
+        if (response.bodyBytes != null) {
+          finalBytes = response.bodyBytes!;
+        } else {
+          // Fallback: si no hay bodyBytes, intentar convertir body a bytes (solo si es texto)
+          finalBytes = response.body.codeUnits;
+        }
+        controller?.add(1.0);
+        _logDownloadProgress(versionId, 1.0);
+      } else {
+        // Si es mayor, descargar por chunks
+        final downloadedBytes = <int>[];
+        await for (final progress
+            in httpClient.downloadStream(metadata.downloadUrl)) {
+          downloadedBytes.addAll(progress.data);
+          controller?.add(progress.progress);
+          _logDownloadProgress(versionId, progress.progress);
+        }
+        finalBytes = downloadedBytes;
       }
-      _logger.i(
-        '[BibleRepo] Downloaded bytes: [32m${downloadedBytes.length}[0m',
-      );
+      _logger.i('[BibleRepo] Downloaded bytes: ${finalBytes.length}');
 
       // Write partial file
-      await storage.writeFile(partialPath, downloadedBytes);
+      await storage.writeFile(partialPath, finalBytes);
 
       // Try to decompress if gzipped, otherwise use raw bytes
-      List<int> finalBytes;
+      List<int> bytesToValidate;
       try {
-        // Check if it's gzip compressed (gzip magic number: 0x1f 0x8b)
-        if (downloadedBytes.length >= 2 &&
-            downloadedBytes[0] == 0x1f &&
-            downloadedBytes[1] == 0x8b) {
-          finalBytes = gzip.decode(downloadedBytes);
+        if (finalBytes.length >= 2 &&
+            finalBytes[0] == 0x1f &&
+            finalBytes[1] == 0x8b) {
+          bytesToValidate = gzip.decode(finalBytes);
         } else {
-          // Raw SQLite file (not compressed)
-          finalBytes = downloadedBytes;
+          bytesToValidate = finalBytes;
         }
       } catch (e) {
-        // If gzip decode fails, try using raw bytes
-        finalBytes = downloadedBytes;
+        bytesToValidate = finalBytes;
       }
 
       // Validate the database (basic check: SQLite header)
-      if (!_isValidSqliteDatabase(finalBytes)) {
+      if (!_isValidSqliteDatabase(bytesToValidate)) {
         _logDatabaseCorruption(versionId);
         throw DatabaseCorruptedException.forVersion(versionId);
       }
 
       // Write final file
-      await storage.writeFile(dbPath, finalBytes);
+      await storage.writeFile(dbPath, bytesToValidate);
       final existsAfterWrite = await storage.fileExists(dbPath);
       _logger.i(
-        '[BibleRepo] Verificación tras guardar: $dbPath ¿existe?: $existsAfterWrite',
-      );
+          '[BibleRepo] Verificación tras guardar: $dbPath ¿existe?: $existsAfterWrite');
 
       // Remove partial file
       await storage.deleteFile(partialPath);
@@ -581,14 +589,10 @@ class BibleVersionRepository {
       _logDownloadComplete(versionId);
     } catch (e) {
       _logDownloadError(versionId, e);
-      // Clean up partial file on failure
       if (partialPath != null) {
         await storage.deleteFile(partialPath);
       }
-
-      // Remove from downloaded set
       _downloadedVersions.remove(versionId);
-
       rethrow;
     } finally {
       controller?.close();
