@@ -731,7 +731,11 @@ extension on BibleVersionRepository {
   }
 
   void _logDownloadProgress(String versionId, double progress) {
-    _logger.i('Download progress for $versionId: ${progress * 100}%');
+    // Eliminar log de progreso detallado para evitar spam en el log.
+    // Si se requiere, se puede mostrar solo al 100%:
+    if (progress >= 0.999) {
+      _logger.i('Download progress for $versionId: 100%');
+    }
   }
 
   void _logDownloadComplete(String versionId) {

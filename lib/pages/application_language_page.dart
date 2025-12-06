@@ -227,7 +227,7 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
         .setLanguage(localizationProvider.getTtsLocale());
 
     // Cambiar el idioma de la versión bíblica para ajustar automáticamente la versión por defecto
-    await bibleVersionProvider.setLanguage(languageCode);
+    await bibleVersionProvider.setLanguage(languageCode, fromSettings: true);
 
     // Volver a la pantalla anterior
     if (!mounted) return;
