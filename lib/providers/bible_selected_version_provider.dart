@@ -67,8 +67,14 @@ class BibleSelectedVersionProvider extends ChangeNotifier {
   }
 
   /// Cambia el idioma y selecciona la versión por defecto de ese idioma
-  Future<void> setLanguage(String languageCode) async {
-    _logger.i('[BibleProvider] setLanguage: $languageCode');
+  Future<void> setLanguage(String languageCode,
+      {bool fromSettings = false}) async {
+    if (fromSettings) {
+      _logger.i(
+          '[BibleProvider] ⚙️ Cambio de idioma solicitado desde Settings: $languageCode');
+    } else {
+      _logger.i('[BibleProvider] setLanguage: $languageCode');
+    }
     _state = BibleProviderState.loading;
     notifyListeners();
     _selectedLanguage = languageCode;
