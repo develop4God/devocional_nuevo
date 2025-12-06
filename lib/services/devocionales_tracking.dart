@@ -2,8 +2,6 @@ import 'dart:async';
 import 'dart:developer' as developer;
 
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
-import 'package:devocional_nuevo/services/in_app_review_service.dart';
-import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -147,7 +145,7 @@ class DevocionalesTracking {
     _autoCompletedDevocionals.add(devocionalId);
 
     // Registrar la lectura inmediatamente
-    devocionalProvider.recordDevocionalRead(devocionalId);
+    devocionalProvider.recordDevocionalRead(devocionalId, _context!);
     developer.log('[TRACKING] Devocional leído registrado: $devocionalId',
         name: 'DevocionalesTracking');
 
@@ -156,23 +154,6 @@ class DevocionalesTracking {
 
     debugPrint('📊 Stats updated automatically for: $devocionalId');
     debugPrint('🔄 UI update forced via provider notification');
-
-    // Check for in-app review opportunity - AUTOMATIC COMPLETION PATH
-    try {
-      // Add small delay to ensure stats are persisted before checking
-      await Future.delayed(const Duration(milliseconds: 100));
-
-      final stats = await SpiritualStatsService().getStats();
-      debugPrint(
-          '🎯 Auto-completion review check: ${stats.totalDevocionalesRead} devotionals');
-
-      if (_context?.mounted == true) {
-        await InAppReviewService.checkAndShow(stats, _context!);
-      }
-    } catch (e) {
-      debugPrint('❌ Error checking in-app review (auto-completion): $e');
-      // Fail silently - review errors should not affect devotional recording
-    }
   }
 
   /// Limpia el set de auto-completados para permitir nueva evaluación
@@ -237,25 +218,8 @@ class DevocionalesTracking {
     );
 
     // Registrar la lectura inmediatamente
-    devocionalProvider.recordDevocionalRead(devocionalId);
+    devocionalProvider.recordDevocionalRead(devocionalId, _context!);
     debugPrint('📊 Manual reading recorded for: $devocionalId');
-
-    // Check for in-app review opportunity - MANUAL COMPLETION PATH
-    try {
-      // Add delay to ensure stats are persisted before checking
-      await Future.delayed(const Duration(milliseconds: 100));
-
-      final stats = await SpiritualStatsService().getStats();
-      debugPrint(
-          '🎯 Manual completion review check: ${stats.totalDevocionalesRead} devotionals');
-
-      if (_context?.mounted == true) {
-        await InAppReviewService.checkAndShow(stats, _context!);
-      }
-    } catch (e) {
-      debugPrint('❌ Error checking in-app review (manual completion): $e');
-      // Fail silently - review errors should not affect devotional recording
-    }
   }
 
   /// Verifica si un devocional fue auto-completado

@@ -69,7 +69,13 @@ class _ProgressPageState extends State<ProgressPage>
       final devocionalProvider =
           Provider.of<DevocionalProvider>(context, listen: false);
       final favoritesCount = devocionalProvider.favoriteDevocionales.length;
-      final stats = await _statsService.updateFavoritesCount(favoritesCount);
+      // final stats = await _statsService.updateFavoritesCount(favoritesCount); // Comentado: método no existe
+      final stats = await _statsService.recordDevocionalCompletado(
+        devocionalId: '',
+        // No hay devocional específico, solo actualizar favoritos
+        favoritesCount: favoritesCount,
+        source: 'favorites_update',
+      );
 
       setState(() {
         _stats = stats;

@@ -9,6 +9,7 @@ import 'dart:ui';
 import 'package:devocional_nuevo/controllers/audio_controller.dart'; // NEW
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
+import 'package:devocional_nuevo/services/in_app_review_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
 import 'package:devocional_nuevo/services/tts/i_tts_service.dart';
@@ -241,26 +242,65 @@ class DevocionalProvider with ChangeNotifier {
     _readingTracker.resume();
   }
 
-  Future<void> recordDevocionalRead(String devocionalId) async {
+  Future<bool> recordDevocionalRead(
+      String devocionalId, BuildContext context) async {
     final trackingData = _readingTracker.finalize(devocionalId);
     developer.log(
-        '[PROVIDER] Finalizando tracking para: $devocionalId, tiempo: ${trackingData.readingTime}s, scroll: ${(trackingData.scrollPercentage * 100).toStringAsFixed(1)}%',
+        '[PROVIDER] Finalizando tracking para: $devocionalId, tiempo: \\${trackingData.readingTime}s, scroll: \\${(trackingData.scrollPercentage * 100).toStringAsFixed(1)}%',
         name: 'DevocionalProvider');
     try {
-      await _statsService.recordDevocionalRead(
+      final prevStats = await _statsService.getStats();
+      final stats = await _statsService.recordDevocionalRead(
         devocionalId: devocionalId,
         favoritesCount: _favoriteDevocionales.length,
         readingTimeSeconds: trackingData.readingTime,
         scrollPercentage: trackingData.scrollPercentage,
       );
-      developer.log('[PROVIDER] Devocional guardado en stats: $devocionalId',
-          name: 'DevocionalProvider');
-      debugPrint('✅ Recorded devotional read: $devocionalId');
+      final wasRegistered =
+          !prevStats.readDevocionalIds.contains(devocionalId) &&
+              stats.readDevocionalIds.contains(devocionalId);
+      if (wasRegistered) {
+        developer.log('[PROVIDER] Devocional guardado en stats: $devocionalId',
+            name: 'DevocionalProvider');
+        debugPrint('✅ Recorded devotional read: $devocionalId');
+        await InAppReviewService.checkAndShow(stats, context);
+      }
       notifyListeners();
+      return wasRegistered;
     } catch (e) {
       developer.log('[PROVIDER] Error guardando devocional: $e',
           name: 'DevocionalProvider');
       debugPrint('❌ Error recording devotional read: $e');
+      return false;
+    }
+  }
+
+  Future<bool> recordDevocionalHeard(String devocionalId,
+      double listenedPercentage, BuildContext context) async {
+    try {
+      final prevStats = await _statsService.getStats();
+      final stats = await _statsService.recordDevotionalHeard(
+        devocionalId: devocionalId,
+        listenedPercentage: listenedPercentage,
+        favoritesCount: _favoriteDevocionales.length,
+      );
+      final wasRegistered =
+          !prevStats.readDevocionalIds.contains(devocionalId) &&
+              stats.readDevocionalIds.contains(devocionalId);
+      if (wasRegistered) {
+        developer.log(
+            '[PROVIDER] Devocional escuchado guardado en stats: $devocionalId',
+            name: 'DevocionalProvider');
+        debugPrint('✅ Recorded devotional heard: $devocionalId');
+        await InAppReviewService.checkAndShow(stats, context);
+      }
+      notifyListeners();
+      return wasRegistered;
+    } catch (e) {
+      developer.log('[PROVIDER] Error guardando devocional escuchado: $e',
+          name: 'DevocionalProvider');
+      debugPrint('❌ Error recording devotional heard: $e');
+      return false;
     }
   }
 
@@ -483,7 +523,6 @@ class DevocionalProvider with ChangeNotifier {
     }
 
     _saveFavorites();
-    _statsService.updateFavoritesCount(_favoriteDevocionales.length);
     notifyListeners();
   }
 
