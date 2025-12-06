@@ -74,6 +74,9 @@ class DevocionalesTracking {
       scrollController: scrollController,
     );
 
+    // Start criteria check timer when tracking begins
+    startCriteriaCheckTimer();
+
     debugPrint('📖 Started tracking for devotional: $devocionalId');
 
     debugPrint(
