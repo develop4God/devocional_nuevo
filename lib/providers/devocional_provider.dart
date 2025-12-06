@@ -242,11 +242,11 @@ class DevocionalProvider with ChangeNotifier {
     _readingTracker.resume();
   }
 
-  Future<bool> recordDevocionalRead(
+  Future<String> recordDevocionalRead(
       String devocionalId, BuildContext context) async {
     final trackingData = _readingTracker.finalize(devocionalId);
     developer.log(
-        '[PROVIDER] Finalizando tracking para: $devocionalId, tiempo: \\${trackingData.readingTime}s, scroll: \\${(trackingData.scrollPercentage * 100).toStringAsFixed(1)}%',
+        '[PROVIDER] Finalizando tracking para: $devocionalId, tiempo: ${trackingData.readingTime}s, scroll: ${(trackingData.scrollPercentage * 100).toStringAsFixed(1)}%',
         name: 'DevocionalProvider');
     try {
       final prevStats = await _statsService.getStats();
@@ -262,20 +262,27 @@ class DevocionalProvider with ChangeNotifier {
       if (wasRegistered) {
         developer.log('[PROVIDER] Devocional guardado en stats: $devocionalId',
             name: 'DevocionalProvider');
-        debugPrint('✅ Recorded devotional read: $devocionalId');
-        await InAppReviewService.checkAndShow(stats, context);
+        debugPrint('✅ Devocional guardado: $devocionalId');
+      } else {
+        developer.log(
+            '[PROVIDER] Devocional ya estaba registrado: $devocionalId',
+            name: 'DevocionalProvider');
+        debugPrint('ℹ️ Devocional ya estaba registrado: $devocionalId');
       }
+      // Siempre llamar a la revisión de app
+      debugPrint('🎯 App review check tras registro (read/heard)');
+      await InAppReviewService.checkAndShow(stats, context);
       notifyListeners();
-      return wasRegistered;
+      return wasRegistered ? 'guardado' : 'ya_registrado';
     } catch (e) {
       developer.log('[PROVIDER] Error guardando devocional: $e',
           name: 'DevocionalProvider');
       debugPrint('❌ Error recording devotional read: $e');
-      return false;
+      return 'error';
     }
   }
 
-  Future<bool> recordDevocionalHeard(String devocionalId,
+  Future<String> recordDevocionalHeard(String devocionalId,
       double listenedPercentage, BuildContext context) async {
     try {
       final prevStats = await _statsService.getStats();
@@ -291,16 +298,24 @@ class DevocionalProvider with ChangeNotifier {
         developer.log(
             '[PROVIDER] Devocional escuchado guardado en stats: $devocionalId',
             name: 'DevocionalProvider');
-        debugPrint('✅ Recorded devotional heard: $devocionalId');
-        await InAppReviewService.checkAndShow(stats, context);
+        debugPrint('✅ Devocional guardado (escuchado): $devocionalId');
+      } else {
+        developer.log(
+            '[PROVIDER] Devocional ya estaba registrado (escuchado): $devocionalId',
+            name: 'DevocionalProvider');
+        debugPrint(
+            'ℹ️ Devocional ya estaba registrado (escuchado): $devocionalId');
       }
+      // Siempre llamar a la revisión de app
+      debugPrint('🎯 App review check tras registro (read/heard)');
+      await InAppReviewService.checkAndShow(stats, context);
       notifyListeners();
-      return wasRegistered;
+      return wasRegistered ? 'guardado' : 'ya_registrado';
     } catch (e) {
       developer.log('[PROVIDER] Error guardando devocional escuchado: $e',
           name: 'DevocionalProvider');
       debugPrint('❌ Error recording devotional heard: $e');
-      return false;
+      return 'error';
     }
   }
 
