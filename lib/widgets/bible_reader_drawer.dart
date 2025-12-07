@@ -242,64 +242,83 @@ class _BibleReaderDrawerContentState extends State<_BibleReaderDrawerContent> {
     final bibleProvider =
         Provider.of<BibleSelectedVersionProvider>(context, listen: false);
 
-    // Group versions by language
+    // Agrupar versiones por idioma
     final versionsByLanguage = <String, List<BibleVersionWithState>>{};
     for (final version in state.versions) {
       final lang = version.metadata.language;
       versionsByLanguage.putIfAbsent(lang, () => []).add(version);
     }
 
-    // Sort languages: current language first, then alphabetically
-    final sortedLanguages = versionsByLanguage.keys.toList()
-      ..sort((a, b) {
-        if (a == bibleProvider.selectedLanguage) return -1;
-        if (b == bibleProvider.selectedLanguage) return 1;
-        return a.compareTo(b);
-      });
+    // Solo mostrar el idioma actual
+    final currentLanguage = bibleProvider.selectedLanguage;
+    final versions = versionsByLanguage[currentLanguage] ?? [];
+    final languageName =
+        BibleVersionRepository.languageNames[currentLanguage] ??
+            currentLanguage;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: sortedLanguages.expand((language) {
-        final languageName =
-            BibleVersionRepository.languageNames[language] ?? language;
-        final versions = versionsByLanguage[language]!;
-
-        return [
-          // Language header
-          Padding(
-            padding: const EdgeInsets.only(top: 8, bottom: 4),
-            child: Text(
-              languageName,
-              style: textTheme.titleSmall?.copyWith(
-                color: colorScheme.primary,
-                fontWeight: FontWeight.w600,
-              ),
+      children: [
+        // Encabezado de idioma
+        Padding(
+          padding: const EdgeInsets.only(top: 8, bottom: 4),
+          child: Text(
+            languageName,
+            style: textTheme.titleSmall?.copyWith(
+              color: colorScheme.primary,
+              fontWeight: FontWeight.w600,
             ),
           ),
-          // Versions for this language
-          ...versions.map((version) {
-            final isSelected =
-                version.metadata.name == widget.selectedVersion?.name;
-            final isDownloaded = version.state == DownloadState.downloaded;
-            final isDownloading = version.state == DownloadState.downloading;
-            final isQueued = version.state == DownloadState.queued;
+        ),
+        // Mostrar solo versiones válidas (descartando corruptas)
+        ...versions
+            .where((version) => version.state != 'corrupted')
+            .map((version) {
+          final isSelected =
+              version.metadata.name == widget.selectedVersion?.name;
+          final isDownloaded = version.state == DownloadState.downloaded;
+          final isDownloading = version.state == DownloadState.downloading;
+          final isQueued = version.state == DownloadState.queued;
 
-            return _VersionTileWithDownload(
-              version: version,
-              isSelected: isSelected,
-              isDownloaded: isDownloaded,
-              isDownloading: isDownloading,
-              isQueued: isQueued,
-              onTap: () => _handleVersionTap(
-                context,
-                version,
-                isDownloaded,
-                isDownloading,
-              ),
-            );
-          }),
-        ];
-      }).toList(),
+          return _VersionTileWithDownload(
+            version: version,
+            isSelected: isSelected,
+            isDownloaded: isDownloaded,
+            isDownloading: isDownloading,
+            isQueued: isQueued,
+            onTap: () => _handleVersionTap(
+              context,
+              version,
+              isDownloaded,
+              isDownloading,
+            ),
+          );
+        }),
+        // Mostrar mensaje en versiones corruptas
+        ...versions
+            .where((version) => version.state == 'corrupted')
+            .map((version) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Row(
+              children: [
+                Icon(Icons.error_outline, color: colorScheme.error, size: 22),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: AutoSizeText(
+                    '${version.metadata.name} - ${'bible.version_corrupted'.tr()}',
+                    style: textTheme.bodyMedium?.copyWith(
+                      color: colorScheme.error,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    maxLines: 1,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }),
+      ],
     );
   }
 
@@ -555,13 +574,7 @@ class _VersionTileWithDownload extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 4),
-          Text(
-            '#${version.queuePosition}',
-            style: TextStyle(
-              color: colorScheme.onSurface.withAlpha(150),
-              fontSize: 12,
-            ),
-          ),
+          // Elimina el número de posición de la cola
         ],
       );
     }
@@ -587,6 +600,7 @@ class _DrawerRow extends StatelessWidget {
   final IconData icon;
   final Color iconColor;
   final Widget label;
+
   // ignore: unused_element_parameter - kept for potential future use
   final Widget? subtitle;
   final VoidCallback? onTap;

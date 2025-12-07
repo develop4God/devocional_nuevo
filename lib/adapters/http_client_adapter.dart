@@ -42,35 +42,75 @@ class HttpClientAdapter implements HttpClient {
     );
   }
 
+  /// Descarga optimizada: menos logs, descarga en memoria si es pequeño, throttling de logs en streaming.
   @override
-  Stream<HttpDownloadProgress> downloadStream(String url) async* {
+  Stream<HttpDownloadProgress> downloadStream(String url,
+      {int thresholdBytes = 10 * 1024 * 1024,
+      int percentStep = 10, // Solo log cada 10%
+      int throttleMs = 500}) async* {
     final request = http.Request('GET', Uri.parse(url));
     request.headers['User-Agent'] = 'devocional_nuevo/1.0 (Flutter)';
     final streamedResponse = await _client.send(request);
     developer.log(
         '[HttpClientAdapter] downloadStream $url -> ${streamedResponse.statusCode}',
         name: 'HttpClientAdapter');
-    int chunkCount = 0;
     final total = streamedResponse.contentLength;
     int downloaded = 0;
+    int chunkCount = 0;
+    int lastLoggedPercent = -1;
+    DateTime lastLogTime = DateTime.now();
     final chunks = <int>[];
 
+    // Si el archivo es pequeño y el tamaño es conocido, descargar todo y emitir un solo progreso
+    if (total != null && total > 0 && total <= thresholdBytes) {
+      developer.log(
+          '[HttpClientAdapter] Descargando en memoria (size=$total bytes) -> escribir de una vez',
+          name: 'HttpClientAdapter');
+      await for (final chunk in streamedResponse.stream) {
+        chunks.addAll(chunk);
+        downloaded += chunk.length;
+      }
+      yield HttpDownloadProgress(
+        downloaded: downloaded,
+        total: total,
+        data: chunks,
+      );
+      developer.log('[HttpClientAdapter] Guardado completo ($downloaded bytes)',
+          name: 'HttpClientAdapter');
+      return;
+    }
+
+    // Streaming con throttled progress
     await for (final chunk in streamedResponse.stream) {
-      chunks.addAll(chunk);
       downloaded += chunk.length;
-      if (chunkCount == 0) {
+      chunkCount++;
+      // Log preview solo en el primer chunk
+      if (chunkCount == 1) {
         final preview = String.fromCharCodes(chunk.take(100).toList());
         developer.log(
             '[HttpClientAdapter] First chunk (max 100 bytes): $preview',
             name: 'HttpClientAdapter');
       }
-      chunkCount++;
+      // Calcular porcentaje si contentLength conocido
+      if (total != null && total > 0) {
+        final percent = ((downloaded / total) * 100).floor();
+        final now = DateTime.now();
+        if (percent - lastLoggedPercent >= percentStep || percent == 100) {
+          lastLoggedPercent = percent;
+          lastLogTime = now;
+          developer.log(
+              '[HttpClientAdapter] Download progress for ${request.url.pathSegments.last}: $percent%',
+              name: 'HttpClientAdapter');
+        }
+      }
       yield HttpDownloadProgress(
         downloaded: downloaded,
         total: total,
         data: chunk,
       );
     }
+    developer.log('[HttpClientAdapter] Guardado completo ($downloaded bytes)',
+        name: 'HttpClientAdapter');
   }
 
   /// Creates a new adapter with a fresh HTTP client.
