@@ -148,11 +148,11 @@ class BibleSelectedVersionProvider extends ChangeNotifier {
           '📖 [BibleProvider] _ensureVersionDownloaded: $_selectedLanguage, $_selectedVersion');
       // 1. Verificación local directa antes de consultar la API
       final biblesDir = await _repository.storage.getBiblesDirectory();
-      final filename = '${_selectedVersion}_${_selectedLanguage}.SQLite3';
+      final filename = '${_selectedVersion}_$_selectedLanguage.SQLite3';
       final dbPath = '$biblesDir/$filename';
       final fileExists = await _repository.storage.fileExists(dbPath);
       final downloadedIds = await _repository.getDownloadedVersionIds();
-      final versionId = '${_selectedLanguage}-${_selectedVersion}';
+      final versionId = '$_selectedLanguage-$_selectedVersion';
 
       if (fileExists && downloadedIds.contains(versionId)) {
         _logger.i(
@@ -298,7 +298,7 @@ class BibleSelectedVersionProvider extends ChangeNotifier {
   Future<bool> _fetchVerses(String lang, String version) async {
     try {
       final biblesDir = await _repository.storage.getBiblesDirectory();
-      final filename = '${version}_${lang}.SQLite3';
+      final filename = '${version}_$lang.SQLite3';
       final dbPath = '$biblesDir/$filename';
       final fileExists = await _repository.storage.fileExists(dbPath);
       String dbFilePath;
@@ -312,7 +312,7 @@ class BibleSelectedVersionProvider extends ChangeNotifier {
           (v) => v.name == version,
           orElse: () => allVersions.first,
         );
-        dbFilePath = biblesDir + '/' + versionObj.filename;
+        dbFilePath = '$biblesDir/${versionObj.filename}';
         _logger.i(
             '🌐 [BibleProvider] Archivo no encontrado, usando metadata: $dbFilePath');
       }

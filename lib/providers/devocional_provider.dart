@@ -271,7 +271,9 @@ class DevocionalProvider with ChangeNotifier {
       }
       // Siempre llamar a la revisión de app
       debugPrint('🎯 App review check tras registro (read/heard)');
-      await InAppReviewService.checkAndShow(stats, context);
+      if (context.mounted) {
+        await InAppReviewService.checkAndShow(stats, context);
+      }
       notifyListeners();
       return wasRegistered ? 'guardado' : 'ya_registrado';
     } catch (e) {
@@ -308,7 +310,9 @@ class DevocionalProvider with ChangeNotifier {
       }
       // Siempre llamar a la revisión de app
       debugPrint('🎯 App review check tras registro (read/heard)');
-      await InAppReviewService.checkAndShow(stats, context);
+      if (context.mounted) {
+        await InAppReviewService.checkAndShow(stats, context);
+      }
       notifyListeners();
       return wasRegistered ? 'guardado' : 'ya_registrado';
     } catch (e) {

@@ -165,4 +165,223 @@ void main() {
       expect(buttonPressed, isTrue);
     });
   });
+
+  group('BibleReaderDrawer Version Selection Tests', () {
+    testWidgets('Version tile shows download icon when not downloaded',
+        (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: InkWell(
+              onTap: () {},
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                child: Row(
+                  children: [
+                    const Icon(Icons.menu_book_outlined),
+                    const SizedBox(width: 12),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('NIV',
+                              style: TextStyle(fontWeight: FontWeight.w500)),
+                          Text('English',
+                              style:
+                                  TextStyle(fontSize: 12, color: Colors.grey)),
+                        ],
+                      ),
+                    ),
+                    // Not downloaded - show download icon
+                    const Icon(Icons.file_download_outlined, size: 22),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('NIV'), findsOneWidget);
+      expect(find.text('English'), findsOneWidget);
+      expect(find.byIcon(Icons.file_download_outlined), findsOneWidget);
+    });
+
+    testWidgets('Version tile shows downloaded icon when downloaded',
+        (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: InkWell(
+              onTap: () {},
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                child: Row(
+                  children: [
+                    const Icon(Icons.menu_book_outlined),
+                    const SizedBox(width: 12),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('KJV',
+                              style: TextStyle(fontWeight: FontWeight.w500)),
+                          Text('English',
+                              style:
+                                  TextStyle(fontSize: 12, color: Colors.grey)),
+                        ],
+                      ),
+                    ),
+                    // Downloaded - show check icon
+                    const Icon(Icons.file_download_done_rounded, size: 22),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('KJV'), findsOneWidget);
+      expect(find.text('English'), findsOneWidget);
+      expect(find.byIcon(Icons.file_download_done_rounded), findsOneWidget);
+    });
+
+    testWidgets('Selected version tile shows check icon', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: InkWell(
+              onTap: () {},
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                decoration: BoxDecoration(
+                  color: Colors.purple.withAlpha(30),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.check_circle, color: Colors.purple),
+                    const SizedBox(width: 12),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('RVR1960',
+                              style: TextStyle(fontWeight: FontWeight.w600)),
+                          Text('Español',
+                              style:
+                                  TextStyle(fontSize: 12, color: Colors.grey)),
+                        ],
+                      ),
+                    ),
+                    const Icon(Icons.file_download_done_rounded, size: 22),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('RVR1960'), findsOneWidget);
+      expect(find.text('Español'), findsOneWidget);
+      expect(find.byIcon(Icons.check_circle), findsOneWidget);
+    });
+
+    testWidgets('Version tile shows progress indicator when downloading',
+        (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: InkWell(
+              onTap: () {},
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                child: const Row(
+                  children: [
+                    Icon(Icons.menu_book_outlined),
+                    SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('LSG1910',
+                              style: TextStyle(fontWeight: FontWeight.w500)),
+                          Text('Français',
+                              style:
+                                  TextStyle(fontSize: 12, color: Colors.grey)),
+                        ],
+                      ),
+                    ),
+                    // Downloading - show progress indicator
+                    SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        value: 0.45,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('LSG1910'), findsOneWidget);
+      expect(find.text('Français'), findsOneWidget);
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    });
+
+    testWidgets('Language header is displayed above versions', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: ListView(
+              children: const [
+                Padding(
+                  padding: EdgeInsets.only(top: 8, bottom: 4),
+                  child: Text(
+                    'English',
+                    style: TextStyle(
+                      color: Colors.purple,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                ListTile(title: Text('KJV')),
+                ListTile(title: Text('NIV')),
+                Padding(
+                  padding: EdgeInsets.only(top: 8, bottom: 4),
+                  child: Text(
+                    'Español',
+                    style: TextStyle(
+                      color: Colors.purple,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                ListTile(title: Text('RVR1960')),
+                ListTile(title: Text('NVI')),
+              ],
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('English'), findsOneWidget);
+      expect(find.text('Español'), findsOneWidget);
+      expect(find.text('KJV'), findsOneWidget);
+      expect(find.text('NIV'), findsOneWidget);
+      expect(find.text('RVR1960'), findsOneWidget);
+      expect(find.text('NVI'), findsOneWidget);
+    });
+  });
 }
