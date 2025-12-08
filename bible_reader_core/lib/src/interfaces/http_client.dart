@@ -46,6 +46,9 @@ class HttpResponse {
   /// Response body as a string.
   final String body;
 
+  /// Response body as bytes (for binary files).
+  final List<int>? bodyBytes;
+
   /// Response headers as a key-value map.
   final Map<String, String> headers;
 
@@ -53,6 +56,7 @@ class HttpResponse {
   const HttpResponse({
     required this.statusCode,
     required this.body,
+    this.bodyBytes,
     required this.headers,
   });
 

@@ -233,23 +233,20 @@ class _DevocionalesPageState extends State<DevocionalesPage>
         final spiritualStatsService = SpiritualStatsService();
         await spiritualStatsService.recordDailyAppVisit();
 
-        final prefs = await SharedPreferences.getInstance();
-        final int? savedIndex = prefs.getInt(_lastDevocionalIndexKey);
+        // Get read devotional IDs to filter already completed ones
+        final stats = await spiritualStatsService.getStats();
+        final readDevocionalIds = stats.readDevocionalIds;
 
         if (mounted) {
           setState(() {
-            if (savedIndex != null) {
-              _currentDevocionalIndex =
-                  (savedIndex + 1) % devocionalProvider.devocionales.length;
-              developer.log(
-                'Devocional cargado al inicio (índice siguiente): $_currentDevocionalIndex',
-              );
-            } else {
-              _currentDevocionalIndex = 0;
-              developer.log(
-                'No hay índice guardado. Iniciando en el primer devocional (índice 0).',
-              );
-            }
+            // Find the first unread devotional
+            _currentDevocionalIndex = _findFirstUnreadDevocionalIndex(
+              devocionalProvider.devocionales,
+              readDevocionalIds,
+            );
+            developer.log(
+              'Devocional cargado al inicio (primer no leído): $_currentDevocionalIndex',
+            );
           });
           _startTrackingCurrentDevocional();
         }
@@ -277,6 +274,30 @@ class _DevocionalesPageState extends State<DevocionalesPage>
         }
       }
     });
+  }
+
+  /// Find the first unread devotional index starting from the beginning
+  int _findFirstUnreadDevocionalIndex(
+    List<Devocional> devocionales,
+    List<String> readDevocionalIds,
+  ) {
+    if (devocionales.isEmpty) return 0;
+
+    // Start from index 0 and find the first unread devotional
+    for (int i = 0; i < devocionales.length; i++) {
+      if (!readDevocionalIds.contains(devocionales[i].id)) {
+        developer.log(
+          'Primer devocional no leído encontrado en índice: $i (ID: ${devocionales[i].id})',
+        );
+        return i;
+      }
+    }
+
+    // If all devotionals are read, start from the beginning
+    developer.log(
+      'Todos los devocionales han sido leídos, iniciando desde el principio',
+    );
+    return 0;
   }
 
   void _startTrackingCurrentDevocional() {

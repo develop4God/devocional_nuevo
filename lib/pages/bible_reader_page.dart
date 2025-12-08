@@ -351,10 +351,6 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     );
   }
 
-  void _openVersionsDrawer() {
-    _scaffoldKey.currentState?.openEndDrawer();
-  }
-
   @override
   Widget build(BuildContext context) {
     debugPrint('[BibleReaderPage] build() llamado. Provider state: '
@@ -498,22 +494,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                       ],
                     ),
                   ),
-                  // Orden de iconos: menu_book (Drawer), text_increase, search, menú de versiones
-                  Positioned(
-                    right: state.availableVersions.length > 1 ? 192 : 144,
-                    top: 0,
-                    bottom: 0,
-                    child: SafeArea(
-                      child: IconButton(
-                        icon: Icon(
-                          Icons.menu_book,
-                          color: Theme.of(context).colorScheme.onPrimary,
-                        ),
-                        tooltip: 'Gestionar versiones bíblicas',
-                        onPressed: _openVersionsDrawer,
-                      ),
-                    ),
-                  ),
+                  // Removed menu_book icon (version management now in drawer)
                   Positioned(
                     right: state.availableVersions.length > 1 ? 144 : 96,
                     top: 0,
@@ -544,61 +525,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                       ),
                     ),
                   ),
-                  if (state.availableVersions.length > 1)
-                    Positioned(
-                      right: 48,
-                      top: 0,
-                      bottom: 0,
-                      child: SafeArea(
-                        child: PopupMenuButton<BibleVersion>(
-                          icon: Icon(
-                            Icons.menu,
-                            color: Theme.of(context).colorScheme.onPrimary,
-                          ),
-                          tooltip: 'bible.select_version'.tr(),
-                          onSelected: (version) async {
-                            final scaffoldMessenger =
-                                ScaffoldMessenger.of(context);
-                            final colorScheme = Theme.of(context).colorScheme;
-                            await _controller!.switchVersion(version);
-                            if (!mounted) return;
-                            scaffoldMessenger.showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  'bible.loading_version'
-                                      .tr({'version': version.name}),
-                                  style:
-                                      TextStyle(color: colorScheme.onSecondary),
-                                ),
-                                backgroundColor: colorScheme.secondary,
-                                duration: const Duration(seconds: 1),
-                              ),
-                            );
-                          },
-                          itemBuilder: (context) =>
-                              state.availableVersions.map((version) {
-                            return PopupMenuItem<BibleVersion>(
-                              value: version,
-                              child: Row(
-                                children: [
-                                  if (version.name ==
-                                      state.selectedVersion?.name)
-                                    Icon(Icons.check,
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .primary,
-                                        size: 20)
-                                  else
-                                    const SizedBox(width: 20),
-                                  const SizedBox(width: 8),
-                                  Text(version.name),
-                                ],
-                              ),
-                            );
-                          }).toList(),
-                        ),
-                      ),
-                    ),
+                  // Removed PopupMenuButton for version selection (now in drawer)
                 ],
               ),
             ),
