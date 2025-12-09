@@ -211,10 +211,10 @@ void main() {
         scrollPercentage: 0.8,
       );
 
-      // Check initial streak (note: reading devotionals doesn't affect streak in this implementation)
+      // Check initial streak (reading devotionals updates streak by day)
       var stats = await statsService.getStats();
-      expect(stats.currentStreak, 0); // Reading devotionals doesn't set streak
-      expect(stats.longestStreak, 0);
+      expect(stats.currentStreak, 1);
+      expect(stats.longestStreak, 1);
 
       // Record another devotional (same day)
       await statsService.recordDevocionalRead(
@@ -225,8 +225,7 @@ void main() {
 
       stats = await statsService.getStats();
       expect(stats.totalDevocionalesRead, 2);
-      expect(stats.currentStreak,
-          0); // Still 0, as reading devotionals doesn't affect streak
+      expect(stats.currentStreak, 1); // Same day keeps streak at 1
     });
 
     test('Service handles malformed data gracefully', () async {

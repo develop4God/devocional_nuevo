@@ -272,7 +272,8 @@ class _BibleReaderDrawerContentState extends State<_BibleReaderDrawerContent> {
         ),
         // Mostrar solo versiones válidas (descartando corruptas)
         ...versions
-            .where((version) => version.state != 'corrupted')
+            .where((version) =>
+                version.errorCode != BibleVersionErrorCode.corrupted)
             .map((version) {
           final isSelected =
               version.metadata.name == widget.selectedVersion?.name;
@@ -296,7 +297,8 @@ class _BibleReaderDrawerContentState extends State<_BibleReaderDrawerContent> {
         }),
         // Mostrar mensaje en versiones corruptas
         ...versions
-            .where((version) => version.state == 'corrupted')
+            .where((version) =>
+                version.errorCode == BibleVersionErrorCode.corrupted)
             .map((version) {
           return Padding(
             padding: const EdgeInsets.symmetric(vertical: 8),
