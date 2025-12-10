@@ -58,7 +58,6 @@ class HttpClientAdapter implements HttpClient {
     int downloaded = 0;
     int chunkCount = 0;
     int lastLoggedPercent = -1;
-    DateTime lastLogTime = DateTime.now();
     final chunks = <int>[];
 
     // Si el archivo es pequeño y el tamaño es conocido, descargar todo y emitir un solo progreso
@@ -94,10 +93,8 @@ class HttpClientAdapter implements HttpClient {
       // Calcular porcentaje si contentLength conocido
       if (total != null && total > 0) {
         final percent = ((downloaded / total) * 100).floor();
-        final now = DateTime.now();
         if (percent - lastLoggedPercent >= percentStep || percent == 100) {
           lastLoggedPercent = percent;
-          lastLogTime = now;
           developer.log(
               '[HttpClientAdapter] Download progress for ${request.url.pathSegments.last}: $percent%',
               name: 'HttpClientAdapter');

@@ -29,6 +29,16 @@ class MockHttpClient implements HttpClient {
 
   @override
   Future<HttpResponse> get(String url) async {
+    final downloadBytes = _downloadData[url];
+    if (downloadBytes != null) {
+      return HttpResponse(
+        statusCode: 200,
+        body: '',
+        bodyBytes: downloadBytes,
+        headers: {},
+      );
+    }
+
     final response = _responses[url];
     if (response != null) {
       return HttpResponse(
