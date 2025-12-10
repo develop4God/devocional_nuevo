@@ -386,7 +386,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
               SizedBox(
                 height: 180,
                 child: Lottie.asset(
-                  'assets/bible_loading_stars.json',
+                  'assets/lottie/bible_loading_stars.json',
                   repeat: true,
                   animate: true,
                 ),
@@ -651,7 +651,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                                     SizedBox(
                                       height: 180,
                                       child: Lottie.asset(
-                                        'assets/bible_loading_stars.json',
+                                        'assets/lottie/bible_loading_stars.json',
                                         repeat: true,
                                         animate: true,
                                       ),

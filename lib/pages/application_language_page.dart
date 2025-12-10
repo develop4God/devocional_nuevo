@@ -202,7 +202,7 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
                 SizedBox(
                   height: 180,
                   child: Lottie.asset(
-                    'assets/language_translation.json',
+                    'assets/lottie/language_translation.json',
                     repeat: true,
                     animate: true,
                   ),
@@ -278,20 +278,28 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
       _isDownloading[languageCode] = true;
       _downloadProgress[languageCode] = 0.0;
     });
+    // Capturar dependencias de context antes de cualquier await
+    final navigator = Navigator.of(context);
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+    final localizationProvider =
+        Provider.of<LocalizationProvider>(context, listen: false);
+    final devocionalProvider =
+        Provider.of<DevocionalProvider>(context, listen: false);
+    final bibleVersionProvider =
+        Provider.of<BibleSelectedVersionProvider>(context, listen: false);
+    final snackBarBackground = Theme.of(context).appBarTheme.backgroundColor ??
+        Theme.of(context).colorScheme.primary;
+    final snackBarText = 'application_language.current_language'.tr();
+    final errorText = 'application_language.download_failed'.tr();
     try {
       // Simular progreso real (puedes conectar aquí el callback real si lo tienes)
       for (int i = 1; i <= 10; i++) {
         await Future.delayed(const Duration(milliseconds: 120));
+        if (!context.mounted) return;
         setState(() {
           _globalProgress = i / 10.0;
         });
       }
-      final localizationProvider =
-          Provider.of<LocalizationProvider>(context, listen: false);
-      final devocionalProvider =
-          Provider.of<DevocionalProvider>(context, listen: false);
-      final bibleVersionProvider =
-          Provider.of<BibleSelectedVersionProvider>(context, listen: false);
       await localizationProvider.changeLanguage(languageCode);
       devocionalProvider.setSelectedLanguage(languageCode);
       final defaultVersion = Constants.defaultVersionByLanguage[languageCode];
@@ -303,7 +311,7 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
       await devocionalProvider.audioController.ttsService
           .setLanguage(localizationProvider.getTtsLocale());
       await bibleVersionProvider.setLanguage(languageCode, fromSettings: true);
-      if (!mounted) return;
+      if (!context.mounted) return;
       setState(() {
         _currentLanguage = languageCode;
         _downloadStatus[languageCode] = true;
@@ -312,12 +320,11 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
         _globalLoading = false;
         _globalProgress = 1.0;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
+      scaffoldMessenger.showSnackBar(
         SnackBar(
-          backgroundColor: Theme.of(context).appBarTheme.backgroundColor ??
-              Theme.of(context).colorScheme.primary,
+          backgroundColor: snackBarBackground,
           content: Text(
-            'application_language.current_language'.tr(),
+            snackBarText,
             style: const TextStyle(
               color: Colors.white,
               fontWeight: FontWeight.w500,
@@ -329,10 +336,11 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
           ),
         ),
       );
-      Navigator.pop(context);
+      navigator.pop(context);
     } catch (e) {
+      if (!context.mounted) return;
       setState(() {
-        _globalError = 'Error al cambiar el idioma. Intenta nuevamente.';
+        _globalError = errorText;
         _globalLoading = true;
       });
     }
