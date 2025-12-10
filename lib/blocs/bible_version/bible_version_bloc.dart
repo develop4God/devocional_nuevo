@@ -70,7 +70,14 @@ class BibleVersionBloc extends Bloc<BibleVersionEvent, BibleVersionState> {
       await repository.initialize();
 
       // Fetch available versions
-      final metadata = await repository.fetchAvailableVersions();
+      late final List<BibleVersionMetadata> metadata;
+      if (event.languageCode != null) {
+        // Only fetch the requested language to avoid unnecessary API calls
+        metadata =
+            await repository.fetchVersionsByLanguage(event.languageCode!);
+      } else {
+        metadata = await repository.fetchAvailableVersions();
+      }
       final downloadedIds = await repository.getDownloadedVersionIds();
 
       // Convert to versions with state

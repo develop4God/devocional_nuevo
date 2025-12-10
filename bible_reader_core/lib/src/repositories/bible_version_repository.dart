@@ -184,7 +184,11 @@ class BibleVersionRepository {
   /// Returns a list of [BibleVersionMetadata] with information about each version.
   /// Throws [NetworkException] if the fetch fails.
   /// Throws [MetadataParsingException] if the JSON is malformed.
-  Future<List<BibleVersionMetadata>> fetchAvailableVersions() async {
+  /// Fetches available versions. Optionally restrict to a subset of languages
+  /// to avoid unnecessary GitHub API calls when the caller only needs certain
+  /// language folders (e.g., when the app is running in a single locale).
+  Future<List<BibleVersionMetadata>> fetchAvailableVersions(
+      {List<String>? languages}) async {
     if (_cachedMetadata != null) {
       return _cachedMetadata!;
     }
@@ -195,8 +199,8 @@ class BibleVersionRepository {
         return await _fetchFromMetadataJson();
       }
 
-      // Otherwise, fetch from GitHub API by language folders
-      return await _fetchFromGitHubApi();
+      // Otherwise, fetch from GitHub API by language folders; restrict to `languages` if provided
+      return await _fetchFromGitHubApi(languages: languages);
     } on BibleVersionException {
       rethrow;
     } on FormatException catch (e) {
@@ -235,10 +239,13 @@ class BibleVersionRepository {
   }
 
   /// Fetches versions from GitHub API by scanning language folders.
-  Future<List<BibleVersionMetadata>> _fetchFromGitHubApi() async {
+  Future<List<BibleVersionMetadata>> _fetchFromGitHubApi(
+      {List<String>? languages}) async {
     final versions = <BibleVersionMetadata>[];
 
-    for (final language in supportedLanguages) {
+    final langsToFetch = languages ?? supportedLanguages;
+
+    for (final language in langsToFetch) {
       try {
         final languageVersions = await fetchVersionsByLanguage(language);
         versions.addAll(languageVersions);
@@ -538,8 +545,11 @@ class BibleVersionRepository {
       final httpTimer = Stopwatch()..start();
 
       List<int> finalBytes;
-      if (metadata.uncompressedSizeBytes < 10 * 1024 * 1024) {
-        // Si el archivo es menor a 10MB, descargar de una vez
+      // If the file is small (<10MB), download in-memory with a single request for speed.
+      // For larger files, use streaming to provide progress updates.
+      const smallFileThreshold = 10 * 1024 * 1024;
+      if (metadata.uncompressedSizeBytes > 0 &&
+          metadata.uncompressedSizeBytes <= smallFileThreshold) {
         final response = await httpClient.get(metadata.downloadUrl);
         if (!response.isSuccess) {
           throw NetworkException('Failed to download file',
@@ -548,7 +558,7 @@ class BibleVersionRepository {
         if (response.bodyBytes != null) {
           finalBytes = response.bodyBytes!;
         } else {
-          // Fallback: si no hay bodyBytes, intentar convertir body a bytes (solo si es texto)
+          // Fallback: if no bodyBytes, convert body to bytes (only for text responses)
           finalBytes = response.body.codeUnits;
         }
         httpTimer.stop();
@@ -557,12 +567,11 @@ class BibleVersionRepository {
         controller?.add(1.0);
         _logDownloadProgress(versionId, 1.0);
       } else {
-        // Si es mayor, descargar por chunks
         final downloadedBytes = <int>[];
         final httpStreamTimer = Stopwatch()..start();
         await for (final progress
             in httpClient.downloadStream(metadata.downloadUrl)) {
-          downloadedBytes.addAll(progress.data);
+          if (progress.data.isNotEmpty) downloadedBytes.addAll(progress.data);
           controller?.add(progress.progress);
           _logDownloadProgress(versionId, progress.progress);
         }
@@ -596,7 +605,6 @@ class BibleVersionRepository {
       }
 
       // If the file is small enough we can write it directly (avoid .partial cycle)
-      const smallFileThreshold = 10 * 1024 * 1024;
       if (bytesToValidate.length <= smallFileThreshold) {
         await storage.writeFile(dbPath, bytesToValidate);
         final existsAfterWrite = await storage.fileExists(dbPath);

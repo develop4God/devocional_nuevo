@@ -28,10 +28,13 @@ class BibleReaderDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final selectedLanguage =
+        Provider.of<BibleSelectedVersionProvider>(context, listen: false)
+            .selectedLanguage;
     return BlocProvider(
-      create: (_) => BibleVersionBloc(
+      create: (context) => BibleVersionBloc(
         repository: getService<BibleVersionRepository>(),
-      )..add(const LoadBibleVersionsEvent()),
+      )..add(LoadBibleVersionsEvent(languageCode: selectedLanguage)),
       child: _BibleReaderDrawerContent(
         availableVersions: availableVersions,
         selectedVersion: selectedVersion,
