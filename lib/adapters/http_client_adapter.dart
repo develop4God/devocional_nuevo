@@ -49,7 +49,7 @@ class HttpClientAdapter implements HttpClient {
           .join(' ');
     }
     developer.log(
-        '[HttpClientAdapter] First ${previewCount} bytes (preview): $preview',
+        '[HttpClientAdapter] First $previewCount bytes (preview): $preview',
         name: 'HttpClientAdapter');
 
     return HttpResponse(
