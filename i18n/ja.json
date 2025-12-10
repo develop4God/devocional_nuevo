@@ -19,9 +19,9 @@
     "voice_feature_continue": "続ける"
   },
   "devotionals": {
-      "modern_voice_title": "🎤✨ 新機能が利用可能になりました！ ✨🎤",
-      "modern_voice_description": "今後はデボーションの朗読にさまざまな声を選択できます。体験をカスタマイズして、より快適で現代的な朗読をお楽しみください。😃🔊",
-      "modern_voice_configure": "声を設定する",
+    "modern_voice_title": "🎤✨ 新機能が利用可能になりました！ ✨🎤",
+    "modern_voice_description": "今後はデボーションの朗読にさまざまな声を選択できます。体験をカスタマイズして、より快適で現代的な朗読をお楽しみください。😃🔊",
+    "modern_voice_configure": "声を設定する",
     "app_title": "毎日のデボーション",
     "my_intimate_space_with_god": "神様との親密な時間",
     "devotional_of_the_day": "今日のデボーション",
@@ -235,7 +235,8 @@
     "understood": "理解しました",
     "reset_stats": "統計をリセット",
     "reset_confirmation": "すべての統計をリセットしてもよろしいですか？",
-    "stats_reset": "統計がリセットされました"
+    "stats_reset": "統計がリセットされました",
+    "streak": "連続記録"
   },
   "errors": {
     "network_error": "接続エラー",

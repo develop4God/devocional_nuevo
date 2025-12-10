@@ -14,10 +14,13 @@ class LoadBibleVersionsEvent extends BibleVersionEvent {
   /// If true, forces a refresh from the server.
   final bool forceRefresh;
 
-  const LoadBibleVersionsEvent({this.forceRefresh = false});
+  /// Optional language code to fetch only that language's versions (e.g., 'fr').
+  final String? languageCode;
+
+  const LoadBibleVersionsEvent({this.forceRefresh = false, this.languageCode});
 
   @override
-  List<Object?> get props => [forceRefresh];
+  List<Object?> get props => [forceRefresh, languageCode];
 }
 
 /// Event to download a Bible version.

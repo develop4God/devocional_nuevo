@@ -117,6 +117,9 @@ class BibleVersionRepository {
   /// Cached metadata for available versions.
   List<BibleVersionMetadata>? _cachedMetadata;
 
+  /// Per-language cache to avoid repeated GitHub API calls for the same language.
+  final Map<String, List<BibleVersionMetadata>> _languageCache = {};
+
   /// Set of currently downloaded version IDs.
   final Set<String> _downloadedVersions = {};
 
@@ -181,7 +184,11 @@ class BibleVersionRepository {
   /// Returns a list of [BibleVersionMetadata] with information about each version.
   /// Throws [NetworkException] if the fetch fails.
   /// Throws [MetadataParsingException] if the JSON is malformed.
-  Future<List<BibleVersionMetadata>> fetchAvailableVersions() async {
+  /// Fetches available versions. Optionally restrict to a subset of languages
+  /// to avoid unnecessary GitHub API calls when the caller only needs certain
+  /// language folders (e.g., when the app is running in a single locale).
+  Future<List<BibleVersionMetadata>> fetchAvailableVersions(
+      {List<String>? languages}) async {
     if (_cachedMetadata != null) {
       return _cachedMetadata!;
     }
@@ -192,8 +199,8 @@ class BibleVersionRepository {
         return await _fetchFromMetadataJson();
       }
 
-      // Otherwise, fetch from GitHub API by language folders
-      return await _fetchFromGitHubApi();
+      // Otherwise, fetch from GitHub API by language folders; restrict to `languages` if provided
+      return await _fetchFromGitHubApi(languages: languages);
     } on BibleVersionException {
       rethrow;
     } on FormatException catch (e) {
@@ -232,10 +239,13 @@ class BibleVersionRepository {
   }
 
   /// Fetches versions from GitHub API by scanning language folders.
-  Future<List<BibleVersionMetadata>> _fetchFromGitHubApi() async {
+  Future<List<BibleVersionMetadata>> _fetchFromGitHubApi(
+      {List<String>? languages}) async {
     final versions = <BibleVersionMetadata>[];
 
-    for (final language in supportedLanguages) {
+    final langsToFetch = languages ?? supportedLanguages;
+
+    for (final language in langsToFetch) {
       try {
         final languageVersions = await fetchVersionsByLanguage(language);
         versions.addAll(languageVersions);
@@ -262,6 +272,10 @@ class BibleVersionRepository {
   Future<List<BibleVersionMetadata>> fetchVersionsByLanguage(
     String languageCode,
   ) async {
+    // Return cached if present
+    if (_languageCache.containsKey(languageCode)) {
+      return _languageCache[languageCode]!;
+    }
     final url = '$githubApiBaseUrl/$languageCode';
     debugPrint('[BibleRepo] Fetching versions for $languageCode: $url');
     final response = await httpClient.get(url);
@@ -319,6 +333,9 @@ class BibleVersionRepository {
       );
     }
 
+    // Cache the result per language
+    _languageCache[languageCode] = versions;
+
     return versions;
   }
 
@@ -330,8 +347,8 @@ class BibleVersionRepository {
       'NVI': 'Nueva Versión Internacional',
       'RVR1960': 'Reina Valera 1960',
       'LSG1910': 'Louis Segond 1910',
-      'JCB': 'Japanese Contemporary Bible',
-      'SK2003': 'Shinkaiyaku 2003',
+      'リビングバイブル': 'Living Bible (Japanese)',
+      '新改訳2003': 'Shinkaiyaku 2003',
       'ARC': 'Almeida Revista e Corrigida',
     };
     return displayNames[versionCode] ?? versionCode;
@@ -477,8 +494,9 @@ class BibleVersionRepository {
     String? partialPath;
 
     try {
-      // Get version metadata
-      final versions = await fetchAvailableVersions();
+      // Get version metadata: fetch only the language folder for this version to avoid scanning all languages.
+      final languageCode = versionId.split('-').first;
+      final versions = await fetchVersionsByLanguage(languageCode);
       final metadata = versions.where((v) => v.id == versionId).firstOrNull;
 
       if (metadata == null) {
@@ -488,6 +506,11 @@ class BibleVersionRepository {
 
       _logDownloadStart(versionId);
       _logger.i('[BibleRepo] Downloading:  ${metadata.downloadUrl}');
+
+      // Instrumentation: measure durations for diagnosis
+      final totalTimer = Stopwatch()..start();
+
+      // Measure metadata fetch time already happened above — continue with download timings below.
 
       // Validate metadata
       final validationErrors = metadata.validate();
@@ -518,9 +541,15 @@ class BibleVersionRepository {
       // Emit initial progress
       controller?.add(0.0);
 
+      // Measure HTTP fetch time
+      final httpTimer = Stopwatch()..start();
+
       List<int> finalBytes;
-      if (metadata.uncompressedSizeBytes < 10 * 1024 * 1024) {
-        // Si el archivo es menor a 10MB, descargar de una vez
+      // If the file is small (<10MB), download in-memory with a single request for speed.
+      // For larger files, use streaming to provide progress updates.
+      const smallFileThreshold = 10 * 1024 * 1024;
+      if (metadata.uncompressedSizeBytes > 0 &&
+          metadata.uncompressedSizeBytes <= smallFileThreshold) {
         final response = await httpClient.get(metadata.downloadUrl);
         if (!response.isSuccess) {
           throw NetworkException('Failed to download file',
@@ -529,27 +558,32 @@ class BibleVersionRepository {
         if (response.bodyBytes != null) {
           finalBytes = response.bodyBytes!;
         } else {
-          // Fallback: si no hay bodyBytes, intentar convertir body a bytes (solo si es texto)
+          // Fallback: if no bodyBytes, convert body to bytes (only for text responses)
           finalBytes = response.body.codeUnits;
         }
+        httpTimer.stop();
+        _logger.i(
+            '[BibleRepo] HTTP fetch time: ${httpTimer.elapsedMilliseconds}ms for ${finalBytes.length} bytes');
         controller?.add(1.0);
         _logDownloadProgress(versionId, 1.0);
       } else {
-        // Si es mayor, descargar por chunks
         final downloadedBytes = <int>[];
+        final httpStreamTimer = Stopwatch()..start();
         await for (final progress
             in httpClient.downloadStream(metadata.downloadUrl)) {
-          downloadedBytes.addAll(progress.data);
+          if (progress.data.isNotEmpty) downloadedBytes.addAll(progress.data);
           controller?.add(progress.progress);
           _logDownloadProgress(versionId, progress.progress);
         }
+        httpStreamTimer.stop();
+        _logger.i(
+            '[BibleRepo] HTTP streaming time: ${httpStreamTimer.elapsedMilliseconds}ms for ${downloadedBytes.length} bytes');
         finalBytes = downloadedBytes;
       }
       _logger.i('[BibleRepo] Downloaded bytes: ${finalBytes.length}');
 
-      // Write partial file
-      await storage.writeFile(partialPath, finalBytes);
-
+      // Measure write time and validation
+      final writeTimer = Stopwatch()..start();
       // Try to decompress if gzipped, otherwise use raw bytes
       List<int> bytesToValidate;
       try {
@@ -570,15 +604,29 @@ class BibleVersionRepository {
         throw DatabaseCorruptedException.forVersion(versionId);
       }
 
-      // Write final file
-      await storage.writeFile(dbPath, bytesToValidate);
-      final existsAfterWrite = await storage.fileExists(dbPath);
+      // If the file is small enough we can write it directly (avoid .partial cycle)
+      if (bytesToValidate.length <= smallFileThreshold) {
+        await storage.writeFile(dbPath, bytesToValidate);
+        final existsAfterWrite = await storage.fileExists(dbPath);
+        _logger.i(
+            '[BibleRepo] Verificación tras guardar (directo): $dbPath ¿existe?: $existsAfterWrite');
+      } else {
+        // For large files, keep the partial -> final flow
+        await storage.writeFile(partialPath, finalBytes);
+        await storage.writeFile(dbPath, bytesToValidate);
+        final existsAfterWrite = await storage.fileExists(dbPath);
+        _logger.i(
+            '[BibleRepo] Verificación tras guardar: $dbPath ¿existe?: $existsAfterWrite');
+        await storage.deleteFile(partialPath);
+        partialPath = null;
+      }
+      writeTimer.stop();
       _logger.i(
-          '[BibleRepo] Verificación tras guardar: $dbPath ¿existe?: $existsAfterWrite');
+          '[BibleRepo] Write/flush time: ${writeTimer.elapsedMilliseconds}ms');
 
-      // Remove partial file
-      await storage.deleteFile(partialPath);
-      partialPath = null;
+      totalTimer.stop();
+      _logger.i(
+          '[BibleRepo] Total download flow time: ${totalTimer.elapsedMilliseconds}ms');
 
       // Update downloaded versions
       _downloadedVersions.add(versionId);
@@ -700,6 +748,15 @@ class BibleVersionRepository {
   /// Clears the cached metadata, forcing a refresh on the next fetch.
   void clearMetadataCache() {
     _cachedMetadata = null;
+  }
+
+  /// Clears per-language cache (optional). Useful after downloads or metadata changes.
+  void clearLanguageCache([String? languageCode]) {
+    if (languageCode == null) {
+      _languageCache.clear();
+    } else {
+      _languageCache.remove(languageCode);
+    }
   }
 
   /// Disposes of resources used by the repository.
