@@ -533,6 +533,15 @@ class _VersionTileWithDownload extends StatelessWidget {
                     maxLines: 1,
                   ),
                   AutoSizeText(
+                    version.metadata.description,
+                    style: textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurface.withAlpha(180),
+                      fontWeight:
+                          isSelected ? FontWeight.w600 : FontWeight.w400,
+                    ),
+                    maxLines: 1,
+                  ),
+                  AutoSizeText(
                     version.metadata.languageName,
                     style: textTheme.bodySmall?.copyWith(
                       color: colorScheme.onSurface.withAlpha(150),

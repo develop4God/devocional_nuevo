@@ -12,6 +12,11 @@ class TtsAudioController {
   String? _currentText;
 
   TtsAudioController({required this.flutterTts}) {
+    flutterTts.setStartHandler(() {
+      debugPrint(
+          '[TTS Controller] Inicio de reproducción recibido, cambiando estado a PLAYING');
+      state.value = TtsPlayerState.playing;
+    });
     flutterTts.setCompletionHandler(() {
       debugPrint(
           '[TTS Controller] Audio completado, cambiando estado a COMPLETED');
@@ -38,8 +43,10 @@ class TtsAudioController {
         await getService<VoiceSettingsService>().getSavedSpeechRate();
     debugPrint('[TTS Controller] Aplicando velocidad TTS: $rate');
     await flutterTts.setSpeechRate(rate);
-    state.value = TtsPlayerState.playing;
     await flutterTts.speak(_currentText!);
+    if (state.value == TtsPlayerState.loading) {
+      state.value = TtsPlayerState.playing;
+    }
     debugPrint('[TTS Controller] estado actual: \x1B[32m${state.value}\x1B[0m');
   }
 

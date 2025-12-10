@@ -365,7 +365,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
       return Scaffold(
         key: _scaffoldKey,
         appBar: AppBar(
-            title: Text('Cargando Biblia...'),
+            title: Text('bible.loading_title'.tr()),
             backgroundColor: colorScheme.primary),
         body: const Center(child: CircularProgressIndicator()),
       );
@@ -373,14 +373,13 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     // Error amigable
     if (bibleProvider.state == BibleProviderState.error) {
       final locale = Localizations.localeOf(context).languageCode;
-      String errorMsg = bibleProvider.errorMessage ??
-          (locale == 'es'
-              ? 'No se pudo descargar la Biblia en tu idioma. Puedes reintentar o cambiar de versión.'
-              : 'Could not download the Bible in your language. You can retry or change version.');
+      String errorMsg =
+          bibleProvider.errorMessage ?? 'bible.download_error_message'.tr();
       return Scaffold(
         key: _scaffoldKey,
-        appBar:
-            AppBar(title: Text('Biblia'), backgroundColor: colorScheme.primary),
+        appBar: AppBar(
+            title: Text('bible.title'.tr()),
+            backgroundColor: colorScheme.primary),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -422,7 +421,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
       return Scaffold(
         key: _scaffoldKey,
         appBar: AppBar(
-            title: Text('Cargando Biblia...'),
+            title: Text('bible.loading_title'.tr()),
             backgroundColor: colorScheme.primary),
         body: const Center(child: CircularProgressIndicator()),
       );
