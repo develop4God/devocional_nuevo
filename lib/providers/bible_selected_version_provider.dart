@@ -62,8 +62,9 @@ class BibleSelectedVersionProvider extends ChangeNotifier {
     _logger.i(
       '[BibleProvider] Idioma: $_selectedLanguage, Versión: $_selectedVersion',
     );
-    await _ensureVersionDownloaded();
+    // Fetch available versions first (cached per-language) to avoid redundant network calls during download
     await _updateAvailableVersions();
+    await _ensureVersionDownloaded();
   }
 
   /// Cambia el idioma y selecciona la versión por defecto de ese idioma
