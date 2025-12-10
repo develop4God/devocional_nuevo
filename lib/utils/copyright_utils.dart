@@ -36,7 +36,7 @@ class CopyrightUtils {
         'BDS':
             'Nouvelle Bible Segond © 2002, Société biblique française. Avec autorisation. Tous droits réservés.',
         // La Bible du Semeur (2015) - copyright line in French
-        'Semeur': 'La Bible du Semeur © 1992, 1999, 2015 par Biblica, Inc.®',
+        'NBS': 'La Bible du Semeur © 1992, 1999, 2015 par Biblica, Inc.®',
         'default': 'Le texte biblique Louis Segond 1910® Domaine Public.',
       },
       'ja': {
