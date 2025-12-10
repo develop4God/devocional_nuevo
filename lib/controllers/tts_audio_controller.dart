@@ -14,7 +14,7 @@ class TtsAudioController {
   TtsAudioController({required this.flutterTts}) {
     flutterTts.setStartHandler(() {
       debugPrint(
-          '[TTS Controller] Inicio de reproducción recibido, cambiando estado a PLAYING');
+          '[TTS Controller] Playback start received, switching state to PLAYING');
       state.value = TtsPlayerState.playing;
     });
     flutterTts.setCompletionHandler(() {
@@ -44,6 +44,8 @@ class TtsAudioController {
     debugPrint('[TTS Controller] Aplicando velocidad TTS: $rate');
     await flutterTts.setSpeechRate(rate);
     await flutterTts.speak(_currentText!);
+    // Some TTS engines (especially in tests) may not trigger startHandler;
+    // ensure transition to playing after the initial speak call if still loading.
     if (state.value == TtsPlayerState.loading) {
       state.value = TtsPlayerState.playing;
     }
