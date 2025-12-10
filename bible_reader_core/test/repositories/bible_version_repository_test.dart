@@ -400,12 +400,15 @@ void main() {
             language: 'fr',
             languageName: 'Français'),
         createVersionMetadata(
-            id: 'ja-SK2003',
-            name: '新改訳2003',
+            id: 'ja-新改訳2003',
+            name: '\u65b0\u6539\u8a332003',
+            language: 'ja',
+            languageName: '\u65e5\u672c\u8a9e'),
+        createVersionMetadata(
+            id: 'ja-リビングバイブル',
+            name: 'リビングバイブル',
             language: 'ja',
             languageName: '日本語'),
-        createVersionMetadata(
-            id: 'ja-JCB', name: '口語訳', language: 'ja', languageName: '日本語'),
       ]);
 
       // When: User opens version manager
@@ -757,7 +760,8 @@ void main() {
           name: 'Reina Valera 1960',
           language: 'es',
           languageName: 'Español',
-          sizeBytes: 100 * 1024, // 100KB compressed
+          sizeBytes: 100 * 1024,
+          // 100KB compressed
           uncompressedSizeBytes: 200 * 1024, // 200KB uncompressed
         ),
       ]);
