@@ -1,0 +1,632 @@
+90e5c24|Merge pull request #134 from develop4God/copilot/fix-failing-tests|develop4God|2025-12-10
+a4129c0|Refactor: Standardize loading text in Bible reader|develop4God|2025-12-10
+lib/pages/bible_reader_page.dart
+
+8c4470d|Chore: Remove Non-SDK API check workflow and update loading text|develop4God|2025-12-10
+.github/agents/workspace-copilot-agent-instructions.md.agent.md
+.github/workflows/Flutter Quick Non-SDK API Check.yml
+lib/pages/bible_reader_page.dart
+
+403ac50|Chore: Comment out code snippet in Copilot instructions|develop4God|2025-12-10
+.github/workspace-copilot-agent-instructions.md
+
+1dac647|Feat: Add Copilot instructions and fix async gap warnings|develop4God|2025-12-10
+.github/workspace-copilot-agent-instructions.md
+lib/pages/application_language_page.dart
+
+5b149f8|🧹 Remove unused imports and auto-fix code [skip ci]|GitHub Action [bot]|2025-12-11
+pubspec.lock
+
+ee653e2|Merge 60a6e3c3c62fb9512de793ef5b352be83bf455fb into e58e13f3c95954927ea55e20c609820a5b249af8|Copilot|2025-12-11
+60a6e3c|fix: Implement permanent merge=ours strategy for pubspec.lock and stage local changes|develop4God|2025-12-10
+.gitattributes
+
+78c052f|Refactor: Improve error handling for downloaded Bible versions|develop4God|2025-12-10
+lib/pages/bible_reader_page.dart
+lib/providers/bible_selected_version_provider.dart
+pubspec.lock
+
+7787bcf|Merge branch 'copilot/fix-failing-tests' of https://github.com/develop4God/Devocional_nuevo into copilot/fix-failing-tests|develop4God|2025-12-10
+b893a31|Refactor: Use utility function for Bible version display name|develop4God|2025-12-10
+lib/widgets/bible_reader_drawer.dart
+
+2818ad9|🧹 Remove unused imports and auto-fix code [skip ci]|GitHub Action [bot]|2025-12-11
+pubspec.lock
+
+6bd70e1|Merge a24b30e92db9258024282309979a226c6e9aab53 into e58e13f3c95954927ea55e20c609820a5b249af8|Copilot|2025-12-11
+a24b30e|Chore: Add pubspec.lock file|develop4God|2025-12-10
+pubspec.lock
+
+c34bbc4|Merge branch 'copilot/fix-failing-tests' of https://github.com/develop4God/Devocional_nuevo into copilot/fix-failing-tests|develop4God|2025-12-10
+0a18ea3|Delete pubspec.lock|develop4God|2025-12-10
+pubspec.lock
+
+f2aa925|Fix: Hide selected Bible version from the available versions list|develop4God|2025-12-10
+lib/widgets/bible_reader_drawer.dart
+
+ed17499|🧹 Remove unused imports and auto-fix code [skip ci]|GitHub Action [bot]|2025-12-11
+pubspec.lock
+
+c80fd96|Merge 29340d131d2f28380a09393a857c828dee807ac5 into e58e13f3c95954927ea55e20c609820a5b249af8|Copilot|2025-12-11
+29340d1|Refactor: Remove unused widgets from Bible reader drawer|develop4God|2025-12-10
+lib/widgets/bible_reader_drawer.dart
+
+616b3a9|Refactor: Integrate Bible version management into the drawer|develop4God|2025-12-10
+lib/main.dart
+lib/pages/bible_versions_manager_page.dart
+lib/widgets/bible_reader_drawer.dart
+
+8fc50bb|Feat: Prioritize selected Bible version in manager list|develop4God|2025-12-10
+lib/pages/bible_versions_manager_page.dart
+
+9a52b34|Refactor: Improve Bible version deletion flow and error handling|develop4God|2025-12-10
+i18n/en.json
+i18n/es.json
+i18n/fr.json
+i18n/ja.json
+i18n/pt.json
+lib/pages/bible_versions_manager_page.dart
+
+3527193|Chore: Downgrade test-related dependencies|develop4God|2025-12-10
+pubspec.lock
+
+fabfa0d|Merge branch 'copilot/fix-failing-tests' of https://github.com/develop4God/Devocional_nuevo into copilot/fix-failing-tests|develop4God|2025-12-10
+a9a32f7|Fix: Prevent deletion of the last downloaded Bible version and ensure an active version is always selected|develop4God|2025-12-10
+lib/pages/bible_versions_manager_page.dart
+lib/providers/bible_selected_version_provider.dart
+
+472b009|Fix: Add blocking overlay during Bible version download and adjust shadow|develop4God|2025-12-10
+lib/pages/devocionales_page.dart
+lib/widgets/bible_reader_drawer.dart
+
+a7efc9e|🧹 Remove unused imports and auto-fix code [skip ci]|GitHub Action [bot]|2025-12-10
+lib/providers/bible_selected_version_provider.dart
+pubspec.lock
+
+18ffc39|Merge 45d4eb682444052f9af4be0c43bb3c87f4b16c18 into e58e13f3c95954927ea55e20c609820a5b249af8|Copilot|2025-12-10
+45d4eb6|Fix: Downgrade dependencies to resolve conflicts|develop4God|2025-12-10
+pubspec.lock
+
+4defb69|Merge branch 'copilot/fix-failing-tests' of https://github.com/develop4God/Devocional_nuevo into copilot/fix-failing-tests|develop4God|2025-12-10
+3213858|Refactor: Improve context handling and Bible loading logic|develop4God|2025-12-10
+lib/pages/application_language_page.dart
+lib/providers/bible_selected_version_provider.dart
+lib/utils/copyright_utils.dart
+
+69c1d73|Fix: Prevent stream errors during Bible version downloads|develop4God|2025-12-10
+bible_reader_core/lib/src/repositories/bible_version_repository.dart
+
+fa1191a|🧹 Remove unused imports and auto-fix code [skip ci]|GitHub Action [bot]|2025-12-10
+pubspec.lock
+
+9fd25db|Merge dae5e1bdc963d6cb03747969715a23bf50627efa into e58e13f3c95954927ea55e20c609820a5b249af8|Copilot|2025-12-10
+dae5e1b|Fix: Update copyright strings and downgrade dependencies|develop4God|2025-12-10
+lib/utils/copyright_utils.dart
+pubspec.lock
+
+ad95f16|Merge branch 'copilot/fix-failing-tests' of https://github.com/develop4God/Devocional_nuevo into copilot/fix-failing-tests|develop4God|2025-12-10
+3f0e4b5|Fix: Correct copyright key for 'La Bible du Semeur'|develop4God|2025-12-10
+lib/utils/copyright_utils.dart
+
+aaca833|Fix: Correct Bible version name for BDS in French|develop4God|2025-12-10
+lib/utils/copyright_utils.dart
+
+67b54ad|🧹 Remove unused imports and auto-fix code [skip ci]|GitHub Action [bot]|2025-12-10
+pubspec.lock
+
+38ff849|Merge 3d21819c6b77b78b50f495664f652cf66cc88b8a into e58e13f3c95954927ea55e20c609820a5b249af8|Copilot|2025-12-10
+3d21819|Feat: Add new Bible versions and update copyrights|develop4God|2025-12-10
+lib/utils/copyright_utils.dart
+
+5c3d565|Refactor: Optimize Bible version fetching and download logic|develop4God|2025-12-10
+bible_reader_core/lib/src/repositories/bible_version_repository.dart
+lib/adapters/http_client_adapter.dart
+lib/blocs/bible_version/bible_version_bloc.dart
+lib/blocs/bible_version/bible_version_event.dart
+lib/providers/bible_selected_version_provider.dart
+lib/widgets/bible_reader_drawer.dart
+
+8ec14fc|Refactor: Move Lottie assets to a dedicated folder and improve context handling|develop4God|2025-12-10
+assets/lottie/bible_loading_stars.json
+lib/pages/application_language_page.dart
+lib/pages/bible_reader_page.dart
+pubspec.lock
+
+ef4d193|Feat: Add global loading screen for language changes|develop4God|2025-12-10
+assets/lottie/language_translation.json
+lib/pages/application_language_page.dart
+lib/pages/bible_reader_page.dart
+
+7705aa6|Feat: Display user-friendly Bible version names|develop4God|2025-12-10
+assets/bible_loading_stars.json
+lib/pages/bible_versions_manager_page.dart
+lib/widgets/bible_reader_drawer.dart
+
+f7ff07a|Feat: Add copyright and name for NTV Bible version|develop4God|2025-12-10
+lib/utils/copyright_utils.dart
+
+b65dc5a|Merge branch 'copilot/fix-failing-tests' of https://github.com/develop4God/Devocional_nuevo into copilot/fix-failing-tests|develop4God|2025-12-10
+5eea220|Refactor: Update i18n key for streak display|develop4God|2025-12-10
+i18n/en.json
+i18n/es.json
+i18n/fr.json
+i18n/ja.json
+i18n/pt.json
+lib/pages/devocionales_page.dart
+
+74effaf|🧹 Remove unused imports and auto-fix code [skip ci]|GitHub Action [bot]|2025-12-10
+lib/adapters/http_client_adapter.dart
+pubspec.lock
+
+cd7a4dd|Merge 5a6eb85254410a451abc0d9c9400fbaa3ef8d37a into e58e13f3c95954927ea55e20c609820a5b249af8|Copilot|2025-12-10
+5a6eb85|Refactor: Optimize Bible download and improve diagnostics|develop4God|2025-12-10
+pubspec.lock
+
+69f207e|Merge branch 'copilot/fix-failing-tests' of https://github.com/develop4God/Devocional_nuevo into copilot/fix-failing-tests|develop4God|2025-12-10
+24b2ca0|Merge branch 'main' of https://github.com/develop4God/Devocional_nuevo into copilot/fix-failing-tests|develop4God|2025-12-10
+05d913d|Refactor: Optimize Bible download and improve diagnostics|develop4God|2025-12-10
+pubspec.lock
+
+24cf4b2|Refactor: Optimize Bible download and improve diagnostics|develop4God|2025-12-10
+bible_reader_core/lib/src/repositories/bible_version_repository.dart
+lib/adapters/http_client_adapter.dart
+lib/providers/bible_selected_version_provider.dart
+
+4a698d8|🧹 Remove unused imports and auto-fix code [skip ci]|GitHub Action [bot]|2025-12-10
+pubspec.lock
+
+69cd5c9|Merge 71bcd2e141a6805ec31ca3eef1a62c8c8e3913a6 into e58e13f3c95954927ea55e20c609820a5b249af8|Copilot|2025-12-10
+71bcd2e|Refactor: Unify Japanese Bible version naming and remove asset files|develop4God|2025-12-10
+assets/biblia/ARC_pt.SQLite3
+assets/biblia/JCB_ja.SQLite3
+assets/biblia/KJV_en.SQLite3
+assets/biblia/LSG1910_fr.SQLite3
+assets/biblia/NIV_en.SQLite3
+assets/biblia/NVI_es.SQLite3
+assets/biblia/NVI_pt.SQLite3
+assets/biblia/RVR1960_es.SQLite3
+assets/biblia/SK2003_ja.SQLite3
+bible_reader_core/lib/src/bible_version_registry.dart
+bible_reader_core/lib/src/repositories/bible_version_repository.dart
+bible_reader_core/test/repositories/bible_version_repository_test.dart
+lib/providers/bible_selected_version_provider.dart
+lib/utils/constants.dart
+lib/utils/copyright_utils.dart
+lib/widgets/devocionales_page_drawer.dart
+pubspec.lock
+pubspec.yaml
+test/critical_coverage/bible_version_language_download_test.dart
+test/providers/bible_selected_version_provider_test.dart
+
+c4ea708|Use existing translation keys and confirm language change|copilot-swe-agent[bot]|2025-12-10
+lib/pages/application_language_page.dart
+lib/pages/bible_reader_page.dart
+lib/pages/devocionales_page.dart
+
+ca8c852|Refine streak badge constants and English TTS logs|copilot-swe-agent[bot]|2025-12-10
+lib/controllers/tts_audio_controller.dart
+lib/pages/devocionales_page.dart
+
+3e0a626|Address review feedback for streak badge and TTS fallback|copilot-swe-agent[bot]|2025-12-10
+lib/controllers/tts_audio_controller.dart
+lib/pages/devocionales_page.dart
+
+7b47bf2|Implement UI and UX fixes from checklist|copilot-swe-agent[bot]|2025-12-10
+lib/controllers/tts_audio_controller.dart
+lib/pages/application_language_page.dart
+lib/pages/bible_reader_page.dart
+lib/pages/bible_versions_manager_page.dart
+lib/pages/contact_page.dart
+lib/pages/devocionales_page.dart
+lib/widgets/app_bar_constants.dart
+lib/widgets/bible_reader_drawer.dart
+pubspec.lock
+
+9d0d1fc|Add files via upload|develop4God|2025-12-10
+assets/lottie/fire.json
+
+f966101|Enhance CI with google-services.json installation|develop4God|2025-12-09
+".github/workflows/\360\237\232\200Flutter CI.yml"
+
+e58e13f|Enhance CI to install google-services.json|develop4God|2025-12-09
+".github/workflows/\360\237\232\200Flutter CI.yml"
+
+988879c|🧹 Remove unused imports and auto-fix code [skip ci]|GitHub Action [bot]|2025-12-10
+pubspec.lock
+
+1ad8c05|Merge d15b61f4b3472f307838af1654f47322d5753b54 into 4435f060dfab3c55d118099577c6975a6a9e9ab8|Copilot|2025-12-10
+d15b61f|Enhance CI workflow for branch handling and pushes|develop4God|2025-12-09
+".github/workflows/\360\237\232\200Flutter CI.yml"
+
+4435f06|Enhance CI workflow for branch handling and error management|develop4God|2025-12-09
+".github/workflows/\360\237\232\200Flutter CI.yml"
+
+925feb1|Enhance CI workflow with branch handling and permissions|develop4God|2025-12-09
+".github/workflows/\360\237\232\200Flutter CI.yml"
+
+f075f85|Update CI workflow with permissions and checkout logic|develop4God|2025-12-09
+".github/workflows/\360\237\232\200Flutter CI.yml"
+
+426d244|Chore: Update dependencies|develop4God|2025-12-09
+pubspec.lock
+
+27088d3|Fix bible download mocks and streak test expectations|copilot-swe-agent[bot]|2025-12-09
+lib/adapters/http_client_adapter.dart
+lib/widgets/bible_reader_drawer.dart
+test/critical_coverage/bible_version_language_download_test.dart
+test/devocional_reading_logic_test.dart
+
+fd45c5e|Initial plan|copilot-swe-agent[bot]|2025-12-09
+9911843|Merge pull request #132 from develop4God/copilot/fix-bible-reader-issues|develop4God|2025-12-08
+be67849|Feat: Add utility to fetch Bible disclaimer from database|develop4God|2025-12-07
+lib/utils/bible_disclaimer_utils.dart
+
+3372ab9|Refactor: Optimize Bible version downloads and drawer UI|develop4God|2025-12-07
+lib/adapters/http_client_adapter.dart
+lib/widgets/bible_reader_drawer.dart
+
+071e512|Fix memory leak in BibleReaderDrawer by using BlocListener instead of manual stream listener|copilot-swe-agent[bot]|2025-12-07
+lib/widgets/bible_reader_drawer.dart
+
+bcbf4a3|Refactor Bible reader drawer: remove Download More Versions option, add inline download icons|copilot-swe-agent[bot]|2025-12-07
+lib/providers/bible_selected_version_provider.dart
+lib/providers/devocional_provider.dart
+lib/widgets/bible_reader_drawer.dart
+pubspec.lock
+test/critical_coverage/devocional_provider_working_test.dart
+test/widget/bible_reader_drawer_test.dart
+
+6327afe|Refactor: Optimize Bible version download strategy //***previous version functional***|develop4God|2025-12-06
+bible_reader_core/lib/src/interfaces/http_client.dart
+bible_reader_core/lib/src/repositories/bible_version_repository.dart
+
+7679a53|Refactor: Improve Bible version language switching and logging|develop4God|2025-12-06
+bible_reader_core/lib/src/repositories/bible_version_repository.dart
+lib/pages/application_language_page.dart
+
+253940a|Refactor: Simplify log message for downloaded versions|develop4God|2025-12-06
+lib/providers/bible_selected_version_provider.dart
+
+1e2a0d4|Refactor: Simplify log message for downloaded versions|develop4God|2025-12-06
+lib/providers/bible_selected_version_provider.dart
+
+1c5534c|Refactor: Improve Bible version download logic and logging|develop4God|2025-12-06
+lib/providers/bible_selected_version_provider.dart
+
+d88c63f|Refactor: Optimize Bible version fetching and simplify logic|develop4God|2025-12-06
+lib/providers/bible_selected_version_provider.dart
+
+5726258|Refactor: Use DevocionalProvider to record heard devotionals|develop4God|2025-12-06
+lib/widgets/tts_player_widget.dart
+
+0ab5632|Refactor: Improve devotional recording logic and return values|develop4God|2025-12-06
+lib/providers/devocional_provider.dart
+
+278c352|Refactor: Remove unused `_openVersionsDrawer` method|develop4God|2025-12-06
+lib/pages/bible_reader_page.dart
+
+82f20e6|Refactor: Centralize stats updates and in-app review logic|develop4God|2025-12-06
+lib/pages/bible_reader_page.dart
+lib/pages/progress_page.dart
+lib/providers/devocional_provider.dart
+lib/services/devocionales_tracking.dart
+
+9c72849|Refactor: Consolidate devotional tracking and update dependencies|develop4God|2025-12-06
+lib/services/spiritual_stats_service.dart
+pubspec.lock
+
+9f30e97|Fix misleading comment in _findFirstUnreadDevocionalIndex method|copilot-swe-agent[bot]|2025-12-06
+lib/pages/devocionales_page.dart
+
+5077a86|Fix devotional tracking: start timer on tracking begin and filter read devotionals|copilot-swe-agent[bot]|2025-12-06
+lib/pages/devocionales_page.dart
+lib/services/devocionales_tracking.dart
+test/services/devocionales_tracking_test.dart
+
+95b2706|Address code review feedback: improve readability and add documentation|copilot-swe-agent[bot]|2025-12-06
+lib/adapters/http_client_adapter.dart
+test/providers/bible_selected_version_provider_test.dart
+
+00f53b0|Fix Bible reader drawer issues and analyzer warnings|copilot-swe-agent[bot]|2025-12-06
+bible_reader_core/lib/src/repositories/bible_version_repository.dart
+lib/adapters/http_client_adapter.dart
+lib/adapters/storage_adapter.dart
+lib/pages/application_language_page.dart
+lib/pages/settings_page.dart
+lib/widgets/bible_reader_drawer.dart
+test/providers/bible_selected_version_provider_test.dart
+test/widget/bible_reader_drawer_test.dart
+
+d77f4fb|Initial analysis of Bible reader fixes issue|copilot-swe-agent[bot]|2025-12-06
+pubspec.lock
+
+d87ed53|Initial plan|copilot-swe-agent[bot]|2025-12-06
+7efca0d|Merge pull request #129 from develop4God/copilot/implement-bible-version-repository|develop4God|2025-12-05
+4e21c5b|Merge branch 'main' into copilot/implement-bible-version-repository|develop4God|2025-12-05
+eac4e8c|Refactor: Use StreamBuilder for reactive UI in BibleReaderPage|develop4God|2025-12-05
+bible_reader_core/lib/src/bible_reader_controller.dart
+lib/pages/bible_reader_page.dart
+
+0a62f50|Feat: Add logging for `getChapterVerses` results|develop4God|2025-12-05
+bible_reader_core/lib/src/bible_db_service.dart
+
+8b5dea8|Refactor: Ensure `dbService` consistency and add robust checks|develop4God|2025-12-05
+bible_reader_core/lib/src/bible_reader_controller.dart
+bible_reader_core/lib/src/bible_reader_service.dart
+
+23736f7|Feat: Enable Firebase In-App Messaging|develop4God|2025-12-05
+lib/main.dart
+
+85ed464|Feat: Add Firebase In-App Messaging|develop4God|2025-12-05
+pubspec.lock
+pubspec.yaml
+
+97ff4ba|Refactor: Improve initial version selection and path handling|develop4God|2025-12-05
+bible_reader_core/lib/src/bible_reader_controller.dart
+
+ac4fec1|Chore: Update logger dependency|develop4God|2025-12-05
+bible_reader_core/pubspec.yaml
+pubspec.lock
+pubspec.yaml
+
+36af6e7|Refactor: Internationalize voice feature dialog and update dependencies|develop4God|2025-12-05
+full_logcat.txt
+
+21240d0|Refactor: Internationalize voice feature dialog and update dependencies|develop4God|2025-12-05
+i18n/en.json
+i18n/es.json
+i18n/fr.json
+i18n/ja.json
+i18n/pt.json
+lib/widgets/app_gradient_dialog.dart
+lib/widgets/modern_voice_feature_dialog.dart
+pubspec.lock
+
+2f4537a|Simplify Bible file storage: use original GitHub filename|copilot-swe-agent[bot]|2025-12-05
+bible_reader_core/lib/src/bible_version_registry.dart
+bible_reader_core/lib/src/repositories/bible_version_repository.dart
+lib/providers/bible_selected_version_provider.dart
+pubspec.lock
+test/critical_coverage/bible_version_language_download_test.dart
+test/unit/utils/bible_version_registry_test.dart
+
+a8a1fa6|Refactor: Integrate logger for improved debugging|develop4God|2025-12-05
+bible_reader_core/lib/src/bible_db_service.dart
+bible_reader_core/lib/src/repositories/bible_version_repository.dart
+bible_reader_core/pubspec.yaml
+lib/providers/bible_selected_version_provider.dart
+pubspec.lock
+pubspec.yaml
+
+057db49|Refactor: Remove unused Bible version description logic|develop4God|2025-12-05
+bible_reader_core/lib/src/repositories/bible_version_repository.dart
+
+6ea3a6f|Fix BibleVersionRepository to use short code as name for matching|copilot-swe-agent[bot]|2025-12-05
+bible_reader_core/lib/src/repositories/bible_version_repository.dart
+test/critical_coverage/bible_version_language_download_test.dart
+
+14aa146|Fix BibleVersionRegistry to use new path format matching repository downloads|copilot-swe-agent[bot]|2025-12-05
+bible_reader_core/lib/src/bible_version_registry.dart
+test/unit/utils/bible_version_registry_test.dart
+
+efca32a|Fix Bible version download path mismatch|copilot-swe-agent[bot]|2025-12-05
+bible_reader_core/lib/src/bible_reader_controller.dart
+bible_reader_core/lib/src/repositories/bible_version_repository.dart
+lib/providers/bible_selected_version_provider.dart
+pubspec.lock
+
+bdcaf2f|Chore: Add logging to debug file write operations|develop4God|2025-12-04
+bible_reader_core/lib/src/repositories/bible_version_repository.dart
+lib/adapters/storage_adapter.dart
+
+0d9b3b6|Feat: Update Bible version handling and add debugging|develop4God|2025-12-04
+bible_reader_core/lib/src/bible_reader_controller.dart
+lib/providers/bible_selected_version_provider.dart
+
+37e1b76|Fix: Correct database path construction to use version ID|develop4God|2025-12-04
+lib/providers/bible_selected_version_provider.dart
+
+49de511|Add modern voice feature localization and update dialog|develop4God|2025-12-04
+i18n/en.json
+i18n/es.json
+i18n/fr.json
+i18n/ja.json
+i18n/pt.json
+lib/adapters/storage_adapter.dart
+lib/widgets/modern_voice_feature_dialog.dart
+
+d33ebf0|Refactor: Update gradient colors in AppGradientDialog and improve download logging in BibleSelectedVersionProvider|develop4God|2025-12-04
+lib/providers/bible_selected_version_provider.dart
+lib/widgets/app_gradient_dialog.dart
+
+84a3f0b|Refactor: Defer `BibleReaderController` initialization|develop4God|2025-12-04
+full_logcat.txt
+lib/providers/bible_selected_version_provider.dart
+pubspec.lock
+
+a053406|Address code review feedback|copilot-swe-agent[bot]|2025-12-04
+bible_reader_core/lib/src/repositories/bible_version_repository.dart
+lib/widgets/bible_reader_drawer.dart
+
+7025926|Add modern Bible Reader Drawer with download dialog|copilot-swe-agent[bot]|2025-12-04
+i18n/en.json
+i18n/es.json
+i18n/fr.json
+i18n/ja.json
+i18n/pt.json
+lib/pages/bible_reader_page.dart
+lib/widgets/bible_reader_drawer.dart
+
+0beeade|Fix Bible version download URL and test failures|copilot-swe-agent[bot]|2025-12-04
+bible_reader_core/lib/src/bible_db_service.dart
+bible_reader_core/lib/src/bible_reader_controller.dart
+bible_reader_core/lib/src/repositories/bible_version_repository.dart
+test/unit/pages/bible_reader_page_test.dart
+test/unit/services/bible_db_service_test.dart
+
+508d22c|Refactor: Defer `BibleReaderController` initialization|develop4God|2025-12-04
+lib/pages/bible_reader_page.dart
+lib/providers/bible_selected_version_provider.dart
+
+c1bc794|Feat: Add HTTP logging and User-Agent|develop4God|2025-12-04
+lib/adapters/http_client_adapter.dart
+lib/main.dart
+
+472741e|Fix: Correct bible version download URL|develop4God|2025-12-04
+bible_reader_core/lib/src/repositories/bible_version_repository.dart
+
+1ade5ea|Refactor: Improve loading and error states in Bible reader|develop4God|2025-12-04
+bible_reader_core/lib/src/repositories/bible_version_repository.dart
+lib/pages/bible_reader_page.dart
+
+0bb3a32|Fix: Update GitHub raw URL and improve Bible download logic|develop4God|2025-12-04
+bible_reader_core/lib/src/repositories/bible_version_repository.dart
+lib/providers/bible_selected_version_provider.dart
+
+8263f0c|Refactor: Inject dependencies and improve logging in BibleProvider|develop4God|2025-12-04
+lib/providers/bible_selected_version_provider.dart
+
+56ee216|Refactor: Centralize Bible version management with a provider|develop4God|2025-12-04
+lib/main.dart
+lib/pages/application_language_page.dart
+lib/pages/bible_reader_page.dart
+lib/pages/settings_page.dart
+lib/providers/bible_selected_version_provider.dart
+
+0f5975d|Refactor: Remove asset-based database loading and `assetPath`|develop4God|2025-12-04
+bible_reader_core/lib/src/bible_db_service.dart
+bible_reader_core/lib/src/bible_reader_controller.dart
+bible_reader_core/lib/src/bible_version.dart
+bible_reader_core/lib/src/bible_version_registry.dart
+bible_reader_core/test/bible_reader_controller_test.dart
+test/unit/models/bible_version_test.dart
+test/unit/pages/bible_reader_page_test.dart
+test/unit/utils/bible_version_registry_test.dart
+
+e1929e8|Implement Bible version download by language from GitHub repo|copilot-swe-agent[bot]|2025-12-04
+bible_reader_core/lib/src/repositories/bible_version_repository.dart
+test/critical_coverage/bible_version_language_download_test.dart
+
+20451b9|Add 133 high-value tests for critical services|copilot-swe-agent[bot]|2025-12-04
+test/critical_coverage/bible_text_formatter_test.dart
+test/critical_coverage/devocionales_bloc_test.dart
+test/critical_coverage/onboarding_service_test.dart
+test/critical_coverage/spiritual_stats_model_test.dart
+test/critical_coverage/voice_settings_service_test.dart
+
+067a16b|Add 135 high-value user flow tests for critical services|copilot-swe-agent[bot]|2025-12-04
+test/critical_coverage/devocionales_tracking_test.dart
+test/critical_coverage/in_app_review_service_test.dart
+test/critical_coverage/localization_service_user_flows_test.dart
+test/critical_coverage/remote_badge_service_test.dart
+test/critical_coverage/update_service_test.dart
+
+5ad42d8|Add 37 more tests for ThemeBloc and OnboardingBloc user flows|copilot-swe-agent[bot]|2025-12-04
+test/critical_coverage/onboarding_bloc_user_flows_test.dart
+test/critical_coverage/theme_bloc_user_flows_test.dart
+
+ba992da|Add 80 more high-value user flow tests for models and audio controller|copilot-swe-agent[bot]|2025-12-04
+.gitignore
+coverage/lcov.info
+test/critical_coverage/audio_controller_user_flows_test.dart
+test/critical_coverage/devocional_model_user_flows_test.dart
+test/critical_coverage/prayer_user_flows_test.dart
+test/critical_coverage/thanksgiving_user_flows_test.dart
+
+e6c84d2|Add 43 high-value tests for critical services (coverage improvement)|copilot-swe-agent[bot]|2025-12-04
+coverage/lcov.info
+test/critical_coverage/compression_service_working_test.dart
+test/critical_coverage/connectivity_service_working_test.dart
+test/critical_coverage/google_drive_backup_service_working_test.dart
+
+d852126|P0: Fix all 110 failing tests and ensure 100% clean code|copilot-swe-agent[bot]|2025-12-04
+bible_reader_core/lib/src/exceptions/bible_version_exceptions.dart
+bible_reader_core/lib/src/interfaces/http_client.dart
+bible_reader_core/lib/src/models/bible_version_model.dart
+bible_reader_core/lib/src/repositories/bible_version_repository.dart
+bible_reader_core/test/repositories/bible_version_repository_test.dart
+lib/adapters/storage_adapter.dart
+lib/blocs/bible_version/bible_version_bloc.dart
+lib/blocs/bible_version/bible_version_state.dart
+lib/pages/bible_versions_manager_page.dart
+lib/widgets/tts_player_widget.dart
+test/controllers/tts_audio_controller_test.dart
+test/critical_coverage/audio_controller_working_test.dart
+test/critical_coverage/spiritual_stats_service_working_test.dart
+test/devocional_reading_logic_test.dart
+test/integration/tts_di_integration_test.dart
+test/unit/pages/bible_reader_page_test.dart
+test/unit/services/tts_service_behavior_test.dart
+test/unit/translations/drawer_and_url_test.dart
+test/unit/widgets/bible_chapter_grid_selector_test.dart
+test/unit/widgets/bible_verse_grid_selector_test.dart
+test/unit/widgets/prayers_page_badges_test.dart
+test/widget/add_thanksgiving_modal_test.dart
+test/widget/answer_prayer_modal_test.dart
+test/widget/tts_player_widget_user_flow_test.dart
+
+30d31ec|Fix code review issues in database validation|copilot-swe-agent[bot]|2025-12-04
+bible_reader_core/lib/src/bible_db_service.dart
+bible_reader_core/test/repositories/bible_version_repository_test.dart
+
+ac7c577|GAP-003 & GAP-008: Add database validation and edge case tests|copilot-swe-agent[bot]|2025-12-04
+bible_reader_core/lib/src/bible_db_service.dart
+bible_reader_core/lib/src/exceptions/bible_version_exceptions.dart
+bible_reader_core/lib/src/repositories/bible_version_repository.dart
+bible_reader_core/test/repositories/bible_version_repository_test.dart
+
+9dccde3|Fix code review issues: extract shared utilities and localize all strings|copilot-swe-agent[bot]|2025-12-04
+lib/pages/bible_versions_manager_page.dart
+
+3275a7f|GAP-009: Add localized error messages for Bible version operations|copilot-swe-agent[bot]|2025-12-04
+bible_reader_core/lib/bible_reader_core.dart
+bible_reader_core/lib/src/exceptions/bible_version_error_code.dart
+bible_reader_core/lib/src/models/bible_version_model.dart
+bible_reader_core/lib/src/repositories/bible_version_repository.dart
+bible_reader_core/test/repositories/bible_version_repository_test.dart
+i18n/en.json
+i18n/es.json
+i18n/fr.json
+i18n/ja.json
+i18n/pt.json
+lib/blocs/bible_version/bible_version_bloc.dart
+lib/blocs/bible_version/bible_version_event.dart
+lib/blocs/bible_version/bible_version_state.dart
+lib/pages/bible_versions_manager_page.dart
+
+7484b88|Address PR gaps: Add retry logic, download queue, metadata validation, and new states|copilot-swe-agent[bot]|2025-12-04
+bible_reader_core/lib/src/exceptions/bible_version_exceptions.dart
+bible_reader_core/lib/src/models/bible_version_model.dart
+bible_reader_core/lib/src/repositories/bible_version_repository.dart
+bible_reader_core/test/repositories/bible_version_repository_test.dart
+lib/blocs/bible_version/bible_version_bloc.dart
+lib/blocs/bible_version/bible_version_event.dart
+lib/blocs/bible_version/bible_version_state.dart
+lib/pages/bible_versions_manager_page.dart
+
+ea74216|Add test for clearError functionality in BibleVersionWithState.copyWith|copilot-swe-agent[bot]|2025-12-04
+bible_reader_core/test/repositories/bible_version_repository_test.dart
+
+25d7ca3|Address code review feedback|copilot-swe-agent[bot]|2025-12-04
+bible_reader_core/lib/src/models/bible_version_model.dart
+lib/adapters/storage_adapter.dart
+lib/blocs/bible_version/bible_version_bloc.dart
+
+0058b4d|Implement framework-agnostic Bible version repository in bible_reader_core|copilot-swe-agent[bot]|2025-12-04
+bible_reader_core/lib/bible_reader_core.dart
+bible_reader_core/lib/src/bible_db_service.dart
+bible_reader_core/lib/src/exceptions/bible_version_exceptions.dart
+bible_reader_core/lib/src/interfaces/bible_version_storage.dart
+bible_reader_core/lib/src/interfaces/http_client.dart
+bible_reader_core/lib/src/models/bible_version_model.dart
+bible_reader_core/lib/src/repositories/bible_version_repository.dart
+bible_reader_core/test/repositories/bible_version_repository_test.dart
+lib/adapters/http_client_adapter.dart
+lib/adapters/storage_adapter.dart
+lib/blocs/bible_version/bible_version_bloc.dart
+lib/blocs/bible_version/bible_version_event.dart
+lib/blocs/bible_version/bible_version_state.dart
+lib/pages/bible_versions_manager_page.dart
+lib/services/service_locator.dart
+
+6403e7d|Initial plan|copilot-swe-agent[bot]|2025-12-04
