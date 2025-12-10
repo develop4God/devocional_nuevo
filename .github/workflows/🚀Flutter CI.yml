@@ -1,4 +1,5 @@
-name: 🚀Flutter CI
+permissions:
+  contents: write
 
 on:
   workflow_dispatch:
@@ -26,12 +27,27 @@ jobs:
     name: 📊 Static Analysis
     runs-on: ubuntu-latest
 
+    # Compute the branch name to use for pushes (if needed)
+    env:
+      TARGET_BRANCH_NAME: ${{ github.event.inputs.target_branch != '' && github.event.inputs.target_branch || (github.event_name == 'pull_request' && github.event.pull_request.head.ref) || github.ref_name }}
+
     steps:
-      - name: 📥 Checkout code
+      - name: 📥 Checkout for workflow_dispatch target branch
+        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.target_branch != '' }}
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          ref: ${{ github.event.inputs.target_branch || github.ref_name }}
+          ref: ${{ format('refs/heads/{0}', github.event.inputs.target_branch) }}
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: 📥 Default checkout
+        if: ${{ !(github.event_name == 'workflow_dispatch' && github.event.inputs.target_branch != '') }}
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+          persist-credentials: true
 
       - name: ☕ Setup Java
         uses: actions/setup-java@v4
@@ -63,8 +79,13 @@ jobs:
                 git diff --name-only
                 git add .
                 git commit -m "🎨 Auto-format code with dart format [skip ci]"
-                BRANCH="${{ github.event.inputs.target_branch || github.ref_name }}"
-                git push origin "$BRANCH"
+                BRANCH="$TARGET_BRANCH_NAME"
+                if [ -n "$BRANCH" ]; then
+                  echo "Pushing formatted changes to origin/$BRANCH"
+                  git push origin "$BRANCH"
+                else
+                  echo "⚠️ No branch name available to push formatted changes."
+                fi
                 echo "✅ Code has been automatically formatted and committed!"
                 echo "🔄 Contributors should pull the latest changes."
                 echo "## 🎨 Auto-Format Summary" >> $GITHUB_STEP_SUMMARY
@@ -104,8 +125,13 @@ jobs:
             git config --local user.name "GitHub Action [bot]"
             git add .
             git commit -m "🧹 Remove unused imports and auto-fix code [skip ci]"
-            BRANCH="${{ github.event.inputs.target_branch || github.ref_name }}"
-            git push origin "$BRANCH"
+            BRANCH="$TARGET_BRANCH_NAME"
+            if [ -n "$BRANCH" ]; then
+              echo "Pushing fixes to origin/$BRANCH"
+              git push origin "$BRANCH"
+            else
+              echo "⚠️ No branch name available to push fixes."
+            fi
             echo "✅ Imports limpios y fixes aplicados!"
             echo "## 🧹 Import Cleanup Summary" >> $GITHUB_STEP_SUMMARY
             echo "✅ Unused imports and automatic fixes were applied." >> $GITHUB_STEP_SUMMARY
@@ -133,6 +159,9 @@ jobs:
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
 
       - name: ☕ Setup Java
         uses: actions/setup-java@v4
@@ -201,6 +230,9 @@ jobs:
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
 
       - name: ☕ Setup Java
         uses: actions/setup-java@v4
@@ -355,6 +387,9 @@ jobs:
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
 
       - name: 🔍 Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
