@@ -1,4 +1,5 @@
 import 'package:bible_reader_core/bible_reader_core.dart';
+import 'package:devocional_nuevo/utils/copyright_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -236,9 +237,13 @@ class _VersionTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final metadata = version.metadata;
     final colorScheme = Theme.of(context).colorScheme;
-
+    // Obtener nombre amigable
+    final displayName = CopyrightUtils.getBibleVersionDisplayName(
+      metadata.language,
+      metadata.name,
+    );
     return ListTile(
-      title: Text(metadata.name),
+      title: Text(displayName),
       subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -258,9 +263,7 @@ class _VersionTile extends StatelessWidget {
               version.errorCode != null)
             Text(
               _getLocalizedError(version.errorCode!, version.errorContext),
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: colorScheme.error,
-                  ),
+              style: TextStyle(color: colorScheme.error),
             ),
         ],
       ),
@@ -376,7 +379,10 @@ class _VersionTile extends StatelessWidget {
       builder: (dialogContext) => AlertDialog(
         title: Text('bible_version.delete_confirmation'.tr()),
         content: Text(
-          version.metadata.name,
+          CopyrightUtils.getBibleVersionDisplayName(
+            version.metadata.language,
+            version.metadata.name,
+          ),
         ),
         actions: [
           TextButton(
