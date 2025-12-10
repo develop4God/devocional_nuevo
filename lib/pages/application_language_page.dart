@@ -278,19 +278,6 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
       _isDownloading[languageCode] = true;
       _downloadProgress[languageCode] = 0.0;
     });
-    // Capturar dependencias de context antes de cualquier await
-    final navigator = Navigator.of(context);
-    final scaffoldMessenger = ScaffoldMessenger.of(context);
-    final localizationProvider =
-        Provider.of<LocalizationProvider>(context, listen: false);
-    final devocionalProvider =
-        Provider.of<DevocionalProvider>(context, listen: false);
-    final bibleVersionProvider =
-        Provider.of<BibleSelectedVersionProvider>(context, listen: false);
-    final snackBarBackground = Theme.of(context).appBarTheme.backgroundColor ??
-        Theme.of(context).colorScheme.primary;
-    final snackBarText = 'application_language.current_language'.tr();
-    final errorText = 'application_language.download_failed'.tr();
     try {
       // Simular progreso real (puedes conectar aquí el callback real si lo tienes)
       for (int i = 1; i <= 10; i++) {
@@ -300,6 +287,12 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
           _globalProgress = i / 10.0;
         });
       }
+      final localizationProvider =
+          Provider.of<LocalizationProvider>(context, listen: false);
+      final devocionalProvider =
+          Provider.of<DevocionalProvider>(context, listen: false);
+      final bibleVersionProvider =
+          Provider.of<BibleSelectedVersionProvider>(context, listen: false);
       await localizationProvider.changeLanguage(languageCode);
       devocionalProvider.setSelectedLanguage(languageCode);
       final defaultVersion = Constants.defaultVersionByLanguage[languageCode];
@@ -311,7 +304,7 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
       await devocionalProvider.audioController.ttsService
           .setLanguage(localizationProvider.getTtsLocale());
       await bibleVersionProvider.setLanguage(languageCode, fromSettings: true);
-      if (!context.mounted) return;
+      if (!mounted) return;
       setState(() {
         _currentLanguage = languageCode;
         _downloadStatus[languageCode] = true;
@@ -320,11 +313,16 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
         _globalLoading = false;
         _globalProgress = 1.0;
       });
+      // Usar context de forma segura tras awaits
+      final scaffoldMessenger = ScaffoldMessenger.of(context);
+      final snackBarBackground =
+          Theme.of(context).appBarTheme.backgroundColor ??
+              Theme.of(context).colorScheme.primary;
       scaffoldMessenger.showSnackBar(
         SnackBar(
           backgroundColor: snackBarBackground,
           content: Text(
-            snackBarText,
+            'application_language.current_language'.tr(),
             style: const TextStyle(
               color: Colors.white,
               fontWeight: FontWeight.w500,
@@ -336,11 +334,11 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
           ),
         ),
       );
-      navigator.pop(context);
+      Navigator.of(context).pop();
     } catch (e) {
-      if (!context.mounted) return;
+      if (!mounted) return;
       setState(() {
-        _globalError = errorText;
+        _globalError = 'application_language.download_failed'.tr();
         _globalLoading = true;
       });
     }

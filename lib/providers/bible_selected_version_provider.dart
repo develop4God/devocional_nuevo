@@ -63,9 +63,33 @@ class BibleSelectedVersionProvider extends ChangeNotifier {
       _logger.i(
         '[BibleProvider] Idioma: $_selectedLanguage, Versión: $_selectedVersion',
       );
-      // Fetch available versions primero; si falla por red, atrapamos abajo
-      await _updateAvailableVersions();
-      await _ensureVersionDownloaded();
+      // Comprobación local rápida: si la versión ya existe localmente, cargamos
+      // los versículos y devolvemos READY inmediatamente para no bloquear el UI.
+      final biblesDir = await _repository.storage.getBiblesDirectory();
+      final filename = '${_selectedVersion}_$_selectedLanguage.SQLite3';
+      final dbPath = '$biblesDir/$filename';
+      final fileExists = await _repository.storage.fileExists(dbPath);
+      if (fileExists) {
+        final hasVerses =
+            await _fetchVerses(_selectedLanguage, _selectedVersion);
+        if (hasVerses) {
+          _state = BibleProviderState.ready;
+          _errorMessage = null;
+          _logger.i('🎉 [BibleProvider] READY (local)');
+          notifyListeners();
+        }
+      }
+
+      // Lanzar actualización y descarga en background. No await para no bloquear el inicio.
+      // ignore: unawaited_futures
+      Future(() async {
+        try {
+          await _updateAvailableVersions();
+          await _ensureVersionDownloaded();
+        } catch (e, st) {
+          _logger.w('[BibleProvider] Background init error: $e');
+        }
+      });
     } catch (e, st) {
       // No debemos bloquear el arranque de la app por un fallo de red.
       _logger.e(

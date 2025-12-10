@@ -25,6 +25,8 @@ class CopyrightUtils {
         'ARC': 'O texto bíblico Almeida Revista e Corrigida® Domínio Público.',
         'NVI':
             'O texto bíblico Nova Versão Internacional® © 2000 Biblica, Inc. Todos os direitos reservados.',
+        'NTLH':
+            'O texto bíblico Nova Tradução na Linguagem de Hoje® ©, 2000 Sociedade Bíblica do Brasil. Todos os direitos reservados.',
         'default':
             'O texto bíblico Almeida Revista e Corrigida® Domínio Público.',
       },
@@ -79,6 +81,7 @@ class CopyrightUtils {
       'pt': {
         'ARC': 'Almeida Revista e Corrigida',
         'NVI': 'Nova Versão Internacional',
+        'NTL': 'HNova Tradução na Linguagem de Hoje',
       },
       'fr': {
         'BDS': 'Nouvelle Bible Segond, 2002',
