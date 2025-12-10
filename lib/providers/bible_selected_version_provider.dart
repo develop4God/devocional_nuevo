@@ -86,7 +86,7 @@ class BibleSelectedVersionProvider extends ChangeNotifier {
         try {
           await _updateAvailableVersions();
           await _ensureVersionDownloaded();
-        } catch (e, st) {
+        } catch (e) {
           _logger.w('[BibleProvider] Background init error: $e');
         }
       });
