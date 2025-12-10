@@ -136,6 +136,11 @@ class BibleVersionRepository {
   final _queuePositionController =
       StreamController<Map<String, int>>.broadcast();
 
+  /// Threshold under which files are considered "small" and can be downloaded
+  /// in-memory in a single GET request. Moved to a class-level constant to
+  /// avoid duplication and make it easy to tune.
+  static const int _smallFileThreshold = 10 * 1024 * 1024; // 10 MB
+
   /// Creates a Bible version repository.
   ///
   /// [httpClient] - HTTP client implementation for network operations.
@@ -171,9 +176,16 @@ class BibleVersionRepository {
   /// Progress is a value between 0.0 and 1.0.
   /// The stream completes when the download finishes or fails.
   Stream<double> downloadProgress(String versionId) {
-    _progressControllers[versionId]?.close();
-    _progressControllers[versionId] = StreamController<double>.broadcast();
-    return _progressControllers[versionId]!.stream;
+    // Ensure we reuse an existing controller for the version if present to
+    // avoid closing a controller while a download is in progress (which
+    // previously caused `Bad state: Cannot add new events after calling close`).
+    if (_progressControllers.containsKey(versionId)) {
+      return _progressControllers[versionId]!.stream;
+    }
+
+    final controller = StreamController<double>.broadcast();
+    _progressControllers[versionId] = controller;
+    return controller.stream;
   }
 
   /// Fetches the list of available Bible versions from the remote catalog.
@@ -418,7 +430,14 @@ class BibleVersionRepository {
     for (var i = 0; i < _downloadQueue.length; i++) {
       positions[_downloadQueue[i].versionId] = i + 1;
     }
-    _queuePositionController.add(positions);
+    // Protect against adding to a closed controller.
+    try {
+      if (!_queuePositionController.isClosed) {
+        _queuePositionController.add(positions);
+      }
+    } catch (_) {
+      // If the controller is closed concurrently, ignore the update.
+    }
   }
 
   void _processQueue() {
@@ -547,9 +566,8 @@ class BibleVersionRepository {
       List<int> finalBytes;
       // If the file is small (<10MB), download in-memory with a single request for speed.
       // For larger files, use streaming to provide progress updates.
-      const smallFileThreshold = 10 * 1024 * 1024;
       if (metadata.uncompressedSizeBytes > 0 &&
-          metadata.uncompressedSizeBytes <= smallFileThreshold) {
+          metadata.uncompressedSizeBytes <= _smallFileThreshold) {
         final response = await httpClient.get(metadata.downloadUrl);
         if (!response.isSuccess) {
           throw NetworkException('Failed to download file',
@@ -605,7 +623,7 @@ class BibleVersionRepository {
       }
 
       // If the file is small enough we can write it directly (avoid .partial cycle)
-      if (bytesToValidate.length <= smallFileThreshold) {
+      if (bytesToValidate.length <= _smallFileThreshold) {
         await storage.writeFile(dbPath, bytesToValidate);
         final existsAfterWrite = await storage.fileExists(dbPath);
         _logger.i(
@@ -762,10 +780,14 @@ class BibleVersionRepository {
   /// Disposes of resources used by the repository.
   void dispose() {
     for (final controller in _progressControllers.values) {
-      controller.close();
+      try {
+        if (!controller.isClosed) controller.close();
+      } catch (_) {}
     }
     _progressControllers.clear();
-    _queuePositionController.close();
+    try {
+      if (!_queuePositionController.isClosed) _queuePositionController.close();
+    } catch (_) {}
   }
 
   /// Construye la URL de descarga para una versión bíblica, igual que DevocionalProvider
