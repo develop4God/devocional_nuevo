@@ -81,6 +81,12 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     'assets/lottie/plant.json',
   ];
   String? _selectedLottieAsset;
+  static const BoxShadow _streakBadgeShadow = BoxShadow(
+    color: Color.fromRGBO(0, 0, 0, 0.1),
+    blurRadius: 8,
+    offset: Offset(0, 4),
+  );
+  static const String _streakFireAsset = 'assets/lottie/fire.json';
 
   @override
   void initState() {
@@ -554,13 +560,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       decoration: BoxDecoration(
         color: backgroundColor,
         borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: const Color.fromRGBO(0, 0, 0, 0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        boxShadow: const [_streakBadgeShadow],
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -571,7 +571,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
               width: 28,
               height: 28,
               child: Lottie.asset(
-                'assets/lottie/fire.json',
+                _streakFireAsset,
                 repeat: true,
                 animate: true,
               ),
