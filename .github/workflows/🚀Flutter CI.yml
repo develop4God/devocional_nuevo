@@ -26,10 +26,11 @@ jobs:
   analyze:
     name: 📊 Static Analysis
     runs-on: ubuntu-latest
-
-    # Compute the branch name to use for pushes (if needed)
     env:
+      # Compute a branch name to use when pushing fixes (supports workflow_dispatch target, PR head, or fallback to ref_name)
       TARGET_BRANCH_NAME: ${{ github.event.inputs.target_branch != '' && github.event.inputs.target_branch || (github.event_name == 'pull_request' && github.event.pull_request.head.ref) || github.ref_name }}
+      # Detect if PR comes from a fork (can't push back using GITHUB_TOKEN)
+      IS_FORK: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository }}
 
     steps:
       - name: 📥 Checkout for workflow_dispatch target branch
@@ -78,11 +79,16 @@ jobs:
                 echo "📋 Files that were formatted:"
                 git diff --name-only
                 git add .
-                git commit -m "🎨 Auto-format code with dart format [skip ci]"
+                # allow commit to succeed even if nothing to commit (avoid failing)
+                git commit -m "🎨 Auto-format code with dart format [skip ci]" || true
                 BRANCH="$TARGET_BRANCH_NAME"
                 if [ -n "$BRANCH" ]; then
-                  echo "Pushing formatted changes to origin/$BRANCH"
-                  git push origin "$BRANCH"
+                  if [ "$IS_FORK" = "true" ]; then
+                    echo "⚠️ PR from a fork; cannot push using GITHUB_TOKEN. Skipping push of formatted changes."
+                  else
+                    echo "Pushing formatted changes to origin/$BRANCH (push HEAD -> refs/heads/$BRANCH)"
+                    git push origin "HEAD:refs/heads/$BRANCH"
+                  fi
                 else
                   echo "⚠️ No branch name available to push formatted changes."
                 fi
@@ -91,7 +97,7 @@ jobs:
                 echo "## 🎨 Auto-Format Summary" >> $GITHUB_STEP_SUMMARY
                 echo "✅ Code formatting issues were automatically fixed" >> $GITHUB_STEP_SUMMARY
                 echo "📝 Files formatted:" >> $GITHUB_STEP_SUMMARY
-                git diff --name-only HEAD~1 | sed 's/^/- /' >> $GITHUB_STEP_SUMMARY
+                git diff --name-only HEAD~1 | sed 's/^/- /' >> $GITHUB_STEP_SUMMARY || true
                 echo "" >> $GITHUB_STEP_SUMMARY
                 echo "🔄 **Action Required**: Pull the latest changes to your local branch:" >> $GITHUB_STEP_SUMMARY
                 echo '```bash' >> $GITHUB_STEP_SUMMARY
@@ -124,11 +130,15 @@ jobs:
             git config --local user.email "action@github.com"
             git config --local user.name "GitHub Action [bot]"
             git add .
-            git commit -m "🧹 Remove unused imports and auto-fix code [skip ci]"
+            git commit -m "🧹 Remove unused imports and auto-fix code [skip ci]" || true
             BRANCH="$TARGET_BRANCH_NAME"
             if [ -n "$BRANCH" ]; then
-              echo "Pushing fixes to origin/$BRANCH"
-              git push origin "$BRANCH"
+              if [ "$IS_FORK" = "true" ]; then
+                echo "⚠️ PR from a fork; cannot push using GITHUB_TOKEN. Skipping push of fixes."
+              else
+                echo "Pushing fixes to origin/$BRANCH (push HEAD -> refs/heads/$BRANCH)"
+                git push origin "HEAD:refs/heads/$BRANCH"
+              fi
             else
               echo "⚠️ No branch name available to push fixes."
             fi
@@ -136,7 +146,7 @@ jobs:
             echo "## 🧹 Import Cleanup Summary" >> $GITHUB_STEP_SUMMARY
             echo "✅ Unused imports and automatic fixes were applied." >> $GITHUB_STEP_SUMMARY
             echo "📝 Files fixed:" >> $GITHUB_STEP_SUMMARY
-            git diff --name-only HEAD~1 | sed 's/^/- /' >> $GITHUB_STEP_SUMMARY
+            git diff --name-only HEAD~1 | sed 's/^/- /' >> $GITHUB_STEP_SUMMARY || true
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "🔄 **Action Required**: Pull the latest changes to your local branch:" >> $GITHUB_STEP_SUMMARY
             echo '```bash' >> $GITHUB_STEP_SUMMARY
@@ -162,6 +172,7 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
+          persist-credentials: true
 
       - name: ☕ Setup Java
         uses: actions/setup-java@v4
@@ -233,6 +244,7 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
+          persist-credentials: true
 
       - name: ☕ Setup Java
         uses: actions/setup-java@v4
@@ -390,6 +402,7 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
+          persist-credentials: true
 
       - name: 🔍 Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
