@@ -44,6 +44,8 @@ class TtsAudioController {
     debugPrint('[TTS Controller] Aplicando velocidad TTS: $rate');
     await flutterTts.setSpeechRate(rate);
     await flutterTts.speak(_currentText!);
+    // Algunos motores TTS no disparan el startHandler en tests; aseguramos
+    // transición a playing después del speak inicial si aún está en loading.
     if (state.value == TtsPlayerState.loading) {
       state.value = TtsPlayerState.playing;
     }
