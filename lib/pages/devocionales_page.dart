@@ -60,6 +60,8 @@ class _DevocionalesPageState extends State<DevocionalesPage>
   late final TtsAudioController _ttsAudioController;
   AudioController? _audioController;
   bool _routeSubscribed = false;
+  int _currentStreak = 0;
+  late Future<int> _streakFuture;
 
   // Font control variables
   bool _showFontControls = false;
@@ -79,6 +81,12 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     'assets/lottie/plant.json',
   ];
   String? _selectedLottieAsset;
+  static const BoxShadow _streakBadgeShadow = BoxShadow(
+    color: Color.fromRGBO(0, 0, 0, 0.1),
+    blurRadius: 8,
+    offset: Offset(0, 4),
+  );
+  static const String _streakFireAsset = 'assets/lottie/fire.json';
 
   @override
   void initState() {
@@ -95,6 +103,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       UpdateService.checkForUpdate();
     });
     _pickRandomLottie();
+    _streakFuture = _loadStreak();
     if (!_postSplashAnimationShown) {
       _showPostSplashAnimation = true;
       _postSplashAnimationShown = true;
@@ -102,6 +111,16 @@ class _DevocionalesPageState extends State<DevocionalesPage>
         if (mounted) setState(() => _showPostSplashAnimation = false);
       });
     }
+  }
+
+  Future<int> _loadStreak() async {
+    final stats = await SpiritualStatsService().getStats();
+    if (mounted) {
+      setState(() {
+        _currentStreak = stats.currentStreak;
+      });
+    }
+    return stats.currentStreak;
   }
 
   void _pickRandomLottie() {
@@ -532,6 +551,46 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     }
   }
 
+  Widget _buildStreakBadge(bool isDark, int streak) {
+    final textColor = isDark ? Colors.black87 : Colors.white;
+    final backgroundColor = isDark ? Colors.white24 : Colors.black12;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: const [_streakBadgeShadow],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(bottom: 6),
+            child: SizedBox(
+              width: 28,
+              height: 28,
+              child: Lottie.asset(
+                _streakFireAsset,
+                repeat: true,
+                animate: true,
+              ),
+            ),
+          ),
+          const SizedBox(width: 4),
+          Text(
+            '${'progress.streak'.tr()} $streak',
+            style: TextStyle(
+              color: textColor,
+              fontWeight: FontWeight.w500,
+              fontSize: 14,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _shareAsText(Devocional devocional) async {
     final meditationsText =
         devocional.paraMeditar.map((p) => '${p.cita}: ${p.texto}').join('\n');
@@ -804,16 +863,51 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                               children: [
                                 Padding(
                                   padding: const EdgeInsets.only(bottom: 12.0),
-                                  child: Center(
-                                    child: Text(
-                                      _getLocalizedDateFormat(context)
-                                          .format(DateTime.now()),
-                                      style: textTheme.titleMedium?.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                        color: colorScheme.primary,
+                                  child: Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    children: [
+                                      Expanded(
+                                        child: Center(
+                                          child: Text(
+                                            _getLocalizedDateFormat(context)
+                                                .format(DateTime.now()),
+                                            style:
+                                                textTheme.titleMedium?.copyWith(
+                                              fontWeight: FontWeight.bold,
+                                              color: colorScheme.primary,
+                                            ),
+                                            textAlign: TextAlign.center,
+                                          ),
+                                        ),
                                       ),
-                                      textAlign: TextAlign.center,
-                                    ),
+                                      const SizedBox(width: 12),
+                                      FutureBuilder<int>(
+                                        future: _streakFuture,
+                                        builder: (context, snapshot) {
+                                          if (snapshot.connectionState ==
+                                              ConnectionState.waiting) {
+                                            return const SizedBox(
+                                              width: 40,
+                                              height: 40,
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 2,
+                                              ),
+                                            );
+                                          }
+                                          final streak =
+                                              snapshot.data ?? _currentStreak;
+                                          if (streak <= 0) {
+                                            return const SizedBox.shrink();
+                                          }
+                                          final isDark =
+                                              Theme.of(context).brightness ==
+                                                  Brightness.dark;
+                                          return _buildStreakBadge(
+                                              isDark, streak);
+                                        },
+                                      ),
+                                    ],
                                   ),
                                 ),
                                 Container(

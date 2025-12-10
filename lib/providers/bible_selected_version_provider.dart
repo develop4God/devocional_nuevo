@@ -22,7 +22,7 @@ class BibleSelectedVersionProvider extends ChangeNotifier {
     'en': 'KJV',
     'pt': 'ARC',
     'fr': 'LSG1910',
-    'ja': 'SK2003',
+    'ja': '新改訳2003',
   };
 
   final BibleVersionRepository _repository = BibleVersionRepository(
@@ -49,21 +49,61 @@ class BibleSelectedVersionProvider extends ChangeNotifier {
   /// Inicializa el provider con idioma y versión guardados o por defecto
   Future<void> initialize({String? languageCode}) async {
     _logger.i(
-      '[BibleProvider] Inicializando con idioma: [1m$languageCode[0m',
+      '[BibleProvider] Inicializando con idioma: \u001b[1m$languageCode\u001b[0m',
     );
     _state = BibleProviderState.loading;
     notifyListeners();
-    final prefs = await SharedPreferences.getInstance();
-    _selectedLanguage =
-        languageCode ?? prefs.getString('selectedLanguage') ?? 'es';
-    _selectedVersion = prefs.getString('selectedBibleVersion') ??
-        _defaultVersionByLanguage[_selectedLanguage] ??
-        'RVR1960';
-    _logger.i(
-      '[BibleProvider] Idioma: $_selectedLanguage, Versión: $_selectedVersion',
-    );
-    await _ensureVersionDownloaded();
-    await _updateAvailableVersions();
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      _selectedLanguage =
+          languageCode ?? prefs.getString('selectedLanguage') ?? 'es';
+      _selectedVersion = prefs.getString('selectedBibleVersion') ??
+          _defaultVersionByLanguage[_selectedLanguage] ??
+          'RVR1960';
+      _logger.i(
+        '[BibleProvider] Idioma: $_selectedLanguage, Versión: $_selectedVersion',
+      );
+      // Comprobación local rápida: si la versión ya existe localmente, cargamos
+      // los versículos y devolvemos READY inmediatamente para no bloquear el UI.
+      final biblesDir = await _repository.storage.getBiblesDirectory();
+      final filename = '${_selectedVersion}_$_selectedLanguage.SQLite3';
+      final dbPath = '$biblesDir/$filename';
+      final fileExists = await _repository.storage.fileExists(dbPath);
+      if (fileExists) {
+        final hasVerses =
+            await _fetchVerses(_selectedLanguage, _selectedVersion);
+        if (hasVerses) {
+          _state = BibleProviderState.ready;
+          _errorMessage = null;
+          _logger.i('🎉 [BibleProvider] READY (local)');
+          notifyListeners();
+        }
+      }
+
+      // Lanzar actualización y descarga en background. No await para no bloquear el inicio.
+      // ignore: unawaited_futures
+      Future(() async {
+        try {
+          await _updateAvailableVersions();
+          await _ensureVersionDownloaded();
+        } catch (e, st) {
+          _logger.w('[BibleProvider] Background init error: $e');
+        }
+      });
+    } catch (e, st) {
+      // No debemos bloquear el arranque de la app por un fallo de red.
+      _logger.e(
+          '[BibleProvider] Error durante initialize (ignorando para no bloquear app): $e\n$st');
+      // Si ya hay alguna Biblia local, intentamos dejar el estado en ready; de lo contrario, marcamos error pero sin lanzar.
+      if (_verses.isNotEmpty) {
+        _state = BibleProviderState.ready;
+        _errorMessage = null;
+      } else {
+        _state = BibleProviderState.error;
+        _errorMessage = 'No se pudo inicializar la Biblia (sin conexión).';
+      }
+      notifyListeners();
+    }
   }
 
   /// Cambia el idioma y selecciona la versión por defecto de ese idioma

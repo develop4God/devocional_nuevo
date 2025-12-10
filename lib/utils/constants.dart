@@ -17,7 +17,8 @@ class Constants {
       return getDevocionalesApiUrl(year); // Use original method
     }
 
-    // New format for other languages/versions
+    // New format for other languages/versions - use versionCode directly in filename.
+    // Note: versionCode may contain non-ASCII characters (e.g., Japanese names).
     return 'https://raw.githubusercontent.com/develop4God/Devocionales-json/refs/heads/main/Devocional_year_${year}_${languageCode}_$versionCode.json';
   }
 
@@ -38,7 +39,7 @@ class Constants {
     'en': ['KJV', 'NIV'],
     'pt': ['ARC', 'NVI'],
     'fr': ['LSG1910', 'TOB'],
-    'ja': ['SK2003', 'JCB'], // Agrego JCB para japonés
+    'ja': ['新改訳2003', 'リビングバイブル'], // Reemplazado JCB por リビングバイブル
   };
 
   // Versión de Biblia por defecto por idioma
@@ -47,13 +48,15 @@ class Constants {
     'en': 'KJV',
     'pt': 'ARC',
     'fr': 'LSG1910',
-    'ja': 'SK2003', // Por defecto para japonés
+    'ja': '新改訳2003', // Por defecto para japonés
   };
 
   // Nombres japoneses para versiones de la Biblia
   static const Map<String, String> bibleJapaneseNames = {
-    'SK2003': '新改訳2003', // Shinkaiyaku 2003
-    'JCB': '新共同訳', // Shin Kyoudouyaku
+    '新改訳2003': '\u65b0\u6539\u8a332003',
+    // Shinkaiyaku 2003
+    'リビングバイブル': '\u30ea\u30d3\u30f3\u30b0\u30d0\u30a4\u30d6\u30eb',
+    // Living Bible (katakana)
   };
 
   /// PREFERENCIAS (SharedPreferences KEYS)

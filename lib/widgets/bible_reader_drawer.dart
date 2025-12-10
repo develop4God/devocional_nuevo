@@ -6,6 +6,7 @@ import 'package:devocional_nuevo/blocs/bible_version/bible_version_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/providers/bible_selected_version_provider.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
+import 'package:devocional_nuevo/utils/copyright_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
@@ -27,10 +28,13 @@ class BibleReaderDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final selectedLanguage =
+        Provider.of<BibleSelectedVersionProvider>(context, listen: false)
+            .selectedLanguage;
     return BlocProvider(
-      create: (_) => BibleVersionBloc(
+      create: (context) => BibleVersionBloc(
         repository: getService<BibleVersionRepository>(),
-      )..add(const LoadBibleVersionsEvent()),
+      )..add(LoadBibleVersionsEvent(languageCode: selectedLanguage)),
       child: _BibleReaderDrawerContent(
         availableVersions: availableVersions,
         selectedVersion: selectedVersion,
@@ -272,7 +276,8 @@ class _BibleReaderDrawerContentState extends State<_BibleReaderDrawerContent> {
         ),
         // Mostrar solo versiones válidas (descartando corruptas)
         ...versions
-            .where((version) => version.state != 'corrupted')
+            .where((version) =>
+                version.errorCode != BibleVersionErrorCode.corrupted)
             .map((version) {
           final isSelected =
               version.metadata.name == widget.selectedVersion?.name;
@@ -296,7 +301,8 @@ class _BibleReaderDrawerContentState extends State<_BibleReaderDrawerContent> {
         }),
         // Mostrar mensaje en versiones corruptas
         ...versions
-            .where((version) => version.state == 'corrupted')
+            .where((version) =>
+                version.errorCode == BibleVersionErrorCode.corrupted)
             .map((version) {
           return Padding(
             padding: const EdgeInsets.symmetric(vertical: 8),
@@ -417,7 +423,11 @@ class _VersionTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-
+    // Obtener nombre amigable
+    final displayName = CopyrightUtils.getBibleVersionDisplayName(
+      version.language,
+      version.name,
+    );
     return InkWell(
       borderRadius: BorderRadius.circular(8),
       onTap: onTap,
@@ -442,7 +452,7 @@ class _VersionTile extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   AutoSizeText(
-                    version.name,
+                    displayName,
                     style: textTheme.bodyMedium?.copyWith(
                       fontWeight:
                           isSelected ? FontWeight.w600 : FontWeight.w500,
@@ -495,7 +505,11 @@ class _VersionTileWithDownload extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-
+    // Obtener nombre amigable
+    final displayName = CopyrightUtils.getBibleVersionDisplayName(
+      version.metadata.language,
+      version.metadata.name,
+    );
     return InkWell(
       borderRadius: BorderRadius.circular(8),
       onTap: onTap,
@@ -522,11 +536,20 @@ class _VersionTileWithDownload extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   AutoSizeText(
-                    version.metadata.name,
+                    displayName,
                     style: textTheme.bodyMedium?.copyWith(
                       fontWeight:
                           isSelected ? FontWeight.w600 : FontWeight.w500,
                       color: colorScheme.onSurface,
+                    ),
+                    maxLines: 1,
+                  ),
+                  AutoSizeText(
+                    version.metadata.description,
+                    style: textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurface.withAlpha(180),
+                      fontWeight:
+                          isSelected ? FontWeight.w600 : FontWeight.w400,
                     ),
                     maxLines: 1,
                   ),
