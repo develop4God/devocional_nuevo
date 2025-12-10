@@ -579,7 +579,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
           ),
           const SizedBox(width: 4),
           Text(
-            '${'progress.current_streak'.tr()} $streak',
+            '${'progress.streak'.tr()} $streak',
             style: TextStyle(
               color: textColor,
               fontWeight: FontWeight.w500,
