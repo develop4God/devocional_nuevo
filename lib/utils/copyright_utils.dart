@@ -80,7 +80,7 @@ class CopyrightUtils {
         'NVI': 'Nova Versão Internacional',
       },
       'fr': {
-        'BDS': 'NBS Nouvelle Bible Segond ',
+        'BDS': 'Nouvelle Bible Segond ',
         'NBS': 'La Bible du Semeur',
         'LSG1910': 'Louis Segond 1910',
         'TOB': 'Traduction Oecuménique de la Bible',
