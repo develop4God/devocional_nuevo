@@ -246,6 +246,36 @@ jobs:
           fetch-depth: 0
           persist-credentials: true
 
+      # Install google-services.json from secret (only for non-fork runs to avoid exposing secrets)
+      - name: 🔐 Install google-services.json for Android builds
+        if: ${{ (matrix.platform == 'android-debug' || matrix.platform == 'android-bundle') && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
+        run: |
+          set -e
+          echo "Preparing android/app/google-services.json..."
+          mkdir -p android/app
+          if [ -f android/app/google-services.json ]; then
+            echo "android/app/google-services.json already present in repo — keeping it"
+            exit 0
+          fi
+
+          # Prefer raw JSON secret named GOOGLE_SERVICES_JSON
+          if [ -n "${{ secrets.GOOGLE_SERVICES_JSON }}" ]; then
+            printf '%s' "${{ secrets.GOOGLE_SERVICES_JSON }}" > android/app/google-services.json
+            echo "Wrote android/app/google-services.json from secret GOOGLE_SERVICES_JSON"
+            exit 0
+          fi
+
+          # Or support a base64 encoded secret GOOGLE_SERVICES_JSON_BASE64
+          if [ -n "${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}" ]; then
+            echo "${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}" | base64 -d > android/app/google-services.json
+            echo "Wrote android/app/google-services.json from secret GOOGLE_SERVICES_JSON_BASE64 (base64 decoded)"
+            exit 0
+          fi
+
+          echo "No GOOGLE_SERVICES_JSON or GOOGLE_SERVICES_JSON_BASE64 secret found — google-services.json not installed" >&2
+          echo "If your build requires firebase/google-services, add GOOGLE_SERVICES_JSON secret in repository Settings > Secrets" >&2
+          exit 1
+
       - name: ☕ Setup Java
         uses: actions/setup-java@v4
         with:
@@ -413,7 +443,7 @@ jobs:
           output: 'trivy-results.sarif'
 
       - name: 📤 Upload Trivy scan results
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         if: always()
         with:
           sarif_file: 'trivy-results.sarif'
