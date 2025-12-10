@@ -12,9 +12,16 @@
     "yes": "Sim",
     "no": "Não",
     "delete": "Excluir",
-    "skip": "Pular"
+    "skip": "Pular",
+    "voice_feature_title": "🎤✨ Novo recurso disponível! ✨🎤",
+    "voice_feature_description": "Agora você pode escolher entre diferentes vozes para a leitura devocional. Personalize sua experiência e aproveite uma leitura mais agradável e moderna. 😃🔊",
+    "voice_feature_configure": "Configurar vozes",
+    "voice_feature_continue": "Continuar"
   },
   "devotionals": {
+    "modern_voice_title": "🎤✨ Novo recurso disponível! ✨🎤",
+    "modern_voice_description": "Agora você pode escolher entre diferentes vozes para a leitura devocional. Personalize sua experiência e aproveite uma leitura mais agradável e moderna. 😃🔊",
+    "modern_voice_configure": "Configurar vozes",
     "app_title": "Devocionais Diários",
     "my_intimate_space_with_god": "Meu espaço íntimo com Deus",
     "devotional_of_the_day": "Devocional do dia",
@@ -228,7 +235,8 @@
     "understood": "Entendido",
     "reset_stats": "Redefinir estatísticas",
     "reset_confirmation": "Tem certeza de que deseja redefinir todas as estatísticas?",
-    "stats_reset": "Estatísticas redefinidas"
+    "stats_reset": "Estatísticas redefinidas",
+    "streak": "sequência"
   },
   "errors": {
     "network_error": "Erro de rede",
@@ -589,7 +597,44 @@
     "total_verses": "{count} versículos disponíveis",
     "select_chapter": "Selecionar capítulo",
     "total_chapters": "{count} capítulos disponíveis",
-    "close": "Fechar"
+    "close": "Fechar",
+    "drawer_title": "Versões da Bíblia",
+    "current_version": "Versão Atual",
+    "available_versions": "Versões Disponíveis",
+    "download_versions": "Baixar Mais Versões",
+    "download_versions_subtitle": "Obtenha versões bíblicas para uso offline",
+    "manage_versions": "Gerenciar Todas as Versões",
+    "download_dialog_title": "Baixar Versões da Bíblia",
+    "download_dialog_content": "Selecione versões para baixar para leitura offline. Os downloads ocorrem em segundo plano.",
+    "download_error": "Erro ao carregar versões disponíveis",
+    "no_versions_available": "Nenhuma versão disponível para download"
+  },
+  "bible_version": {
+    "title": "Versões da Bíblia",
+    "manager_title": "Gerenciar Versões",
+    "download": "Baixar",
+    "delete": "Excluir",
+    "downloaded": "Baixada",
+    "downloading": "Baixando...",
+    "queued": "Na fila",
+    "validating": "Validando...",
+    "retry": "Tentar novamente",
+    "available": "Disponível",
+    "download_complete": "Download concluído",
+    "delete_confirmation": "Tem certeza de que deseja excluir esta versão da Bíblia?",
+    "delete_success": "Versão da Bíblia excluída",
+    "storage_info": "Tamanho: {size}",
+    "language_filter": "Filtrar por idioma",
+    "all_languages": "Todos os idiomas",
+    "error_network": "Erro de rede. Verifique sua conexão.",
+    "error_storage": "Espaço insuficiente. Você precisa de {size}.",
+    "error_corrupted": "O arquivo baixado está corrompido. Tente novamente.",
+    "error_not_found": "Versão da Bíblia não encontrada.",
+    "error_metadata_parsing": "Erro ao ler dados do catálogo.",
+    "error_max_retries": "O download falhou após {attempts} tentativas. Tente mais tarde.",
+    "error_decompression": "Erro ao descompactar arquivo. Tente novamente.",
+    "error_metadata_validation": "Dados da versão inválidos.",
+    "error_unknown": "Ocorreu um erro inesperado."
   },
   "thanksgiving": {
     "thanksgiving": "Ação de graças",

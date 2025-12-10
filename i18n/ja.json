@@ -12,9 +12,16 @@
     "yes": "はい",
     "no": "いいえ",
     "delete": "削除",
-    "skip": "スキップ"
+    "skip": "スキップ",
+    "voice_feature_title": "🎤✨ 新機能が利用可能になりました！ ✨🎤",
+    "voice_feature_description": "デボーションの読み上げにさまざまな声を選べるようになりました。体験をカスタマイズして、より快適でモダンな読み上げをお楽しみください。😃🔊",
+    "voice_feature_configure": "音声を設定",
+    "voice_feature_continue": "続ける"
   },
   "devotionals": {
+    "modern_voice_title": "🎤✨ 新機能が利用可能になりました！ ✨🎤",
+    "modern_voice_description": "今後はデボーションの朗読にさまざまな声を選択できます。体験をカスタマイズして、より快適で現代的な朗読をお楽しみください。😃🔊",
+    "modern_voice_configure": "声を設定する",
     "app_title": "毎日のデボーション",
     "my_intimate_space_with_god": "神様との親密な時間",
     "devotional_of_the_day": "今日のデボーション",
@@ -228,7 +235,8 @@
     "understood": "理解しました",
     "reset_stats": "統計をリセット",
     "reset_confirmation": "すべての統計をリセットしてもよろしいですか？",
-    "stats_reset": "統計がリセットされました"
+    "stats_reset": "統計がリセットされました",
+    "streak": "連続記録"
   },
   "errors": {
     "network_error": "接続エラー",
@@ -589,7 +597,44 @@
     "search": "検索",
     "saved_verses": "保存された節",
     "delete_saved_verses": "保存された節を削除",
-    "deleted_marked_verses": "マークした節を削除しました"
+    "deleted_marked_verses": "マークした節を削除しました",
+    "drawer_title": "聖書のバージョン",
+    "current_version": "現在のバージョン",
+    "available_versions": "利用可能なバージョン",
+    "download_versions": "他のバージョンをダウンロード",
+    "download_versions_subtitle": "オフラインで使用する聖書のバージョンを取得",
+    "manage_versions": "すべてのバージョンを管理",
+    "download_dialog_title": "聖書のバージョンをダウンロード",
+    "download_dialog_content": "オフラインで読むためのバージョンを選択してください。ダウンロードはバックグラウンドで行われます。",
+    "download_error": "利用可能なバージョンの読み込みエラー",
+    "no_versions_available": "ダウンロードできるバージョンがありません"
+  },
+  "bible_version": {
+    "title": "聖書のバージョン",
+    "manager_title": "バージョン管理",
+    "download": "ダウンロード",
+    "delete": "削除",
+    "downloaded": "ダウンロード済み",
+    "downloading": "ダウンロード中...",
+    "queued": "待機中",
+    "validating": "検証中...",
+    "retry": "再試行",
+    "available": "利用可能",
+    "download_complete": "ダウンロード完了",
+    "delete_confirmation": "この聖書のバージョンを削除してもよろしいですか？",
+    "delete_success": "聖書のバージョンを削除しました",
+    "storage_info": "サイズ: {size}",
+    "language_filter": "言語でフィルタ",
+    "all_languages": "すべての言語",
+    "error_network": "ネットワークエラー。接続を確認してください。",
+    "error_storage": "ストレージ容量が不足しています。{size}が必要です。",
+    "error_corrupted": "ダウンロードしたファイルが破損しています。再試行してください。",
+    "error_not_found": "聖書のバージョンが見つかりません。",
+    "error_metadata_parsing": "カタログデータの読み取りエラー。",
+    "error_max_retries": "{attempts}回の試行後にダウンロードに失敗しました。後でもう一度お試しください。",
+    "error_decompression": "ファイルの解凍エラー。再試行してください。",
+    "error_metadata_validation": "バージョンデータが無効です。",
+    "error_unknown": "予期しないエラーが発生しました。"
   },
   "thanksgiving": {
     "thanksgiving": "感謝",
