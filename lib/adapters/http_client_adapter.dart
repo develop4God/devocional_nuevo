@@ -30,15 +30,34 @@ class HttpClientAdapter implements HttpClient {
     );
     developer.log('[HttpClientAdapter] GET $url -> ${response.statusCode}',
         name: 'HttpClientAdapter');
-    final previewLength =
-        response.body.length < 100 ? response.body.length : 100;
-    final preview = response.body.substring(0, previewLength);
-    developer.log('[HttpClientAdapter] First 100 bytes: $preview',
+
+    // Use bodyBytes to avoid decoding binary content to String (costly for binary files)
+    final bytes = response.bodyBytes;
+    final previewCount = bytes.length < 100 ? bytes.length : 100;
+    final previewBytes = bytes.take(previewCount).toList();
+    // Try to present a readable preview: if printable, show UTF8/latin1 decode, otherwise hex
+    String preview;
+    try {
+      preview = String.fromCharCodes(previewBytes);
+      // If contains replacement character, fallback to hex
+      if (preview.contains('\uFFFD')) {
+        throw const FormatException('Non-text bytes');
+      }
+    } catch (_) {
+      preview = previewBytes
+          .map((b) => b.toRadixString(16).padLeft(2, '0'))
+          .join(' ');
+    }
+    developer.log(
+        '[HttpClientAdapter] First ${previewCount} bytes (preview): $preview',
         name: 'HttpClientAdapter');
+
     return HttpResponse(
       statusCode: response.statusCode,
       body: response.body,
       headers: response.headers,
+      // expose bodyBytes so callers can avoid re-decoding if they need raw bytes
+      bodyBytes: bytes,
     );
   }
 
@@ -58,7 +77,6 @@ class HttpClientAdapter implements HttpClient {
     int downloaded = 0;
     int chunkCount = 0;
     int lastLoggedPercent = -1;
-    DateTime lastLogTime = DateTime.now();
     final chunks = <int>[];
 
     // Si el archivo es pequeño y el tamaño es conocido, descargar todo y emitir un solo progreso
@@ -94,10 +112,8 @@ class HttpClientAdapter implements HttpClient {
       // Calcular porcentaje si contentLength conocido
       if (total != null && total > 0) {
         final percent = ((downloaded / total) * 100).floor();
-        final now = DateTime.now();
         if (percent - lastLoggedPercent >= percentStep || percent == 100) {
           lastLoggedPercent = percent;
-          lastLogTime = now;
           developer.log(
               '[HttpClientAdapter] Download progress for ${request.url.pathSegments.last}: $percent%',
               name: 'HttpClientAdapter');

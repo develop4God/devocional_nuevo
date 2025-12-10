@@ -272,7 +272,8 @@ class _BibleReaderDrawerContentState extends State<_BibleReaderDrawerContent> {
         ),
         // Mostrar solo versiones válidas (descartando corruptas)
         ...versions
-            .where((version) => version.state != 'corrupted')
+            .where((version) =>
+                version.errorCode != BibleVersionErrorCode.corrupted)
             .map((version) {
           final isSelected =
               version.metadata.name == widget.selectedVersion?.name;
@@ -296,7 +297,8 @@ class _BibleReaderDrawerContentState extends State<_BibleReaderDrawerContent> {
         }),
         // Mostrar mensaje en versiones corruptas
         ...versions
-            .where((version) => version.state == 'corrupted')
+            .where((version) =>
+                version.errorCode == BibleVersionErrorCode.corrupted)
             .map((version) {
           return Padding(
             padding: const EdgeInsets.symmetric(vertical: 8),
@@ -527,6 +529,15 @@ class _VersionTileWithDownload extends StatelessWidget {
                       fontWeight:
                           isSelected ? FontWeight.w600 : FontWeight.w500,
                       color: colorScheme.onSurface,
+                    ),
+                    maxLines: 1,
+                  ),
+                  AutoSizeText(
+                    version.metadata.description,
+                    style: textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurface.withAlpha(180),
+                      fontWeight:
+                          isSelected ? FontWeight.w600 : FontWeight.w400,
                     ),
                     maxLines: 1,
                   ),

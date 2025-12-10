@@ -13,7 +13,7 @@ void main() {
         'en': 'KJV',
         'pt': 'ARC',
         'fr': 'LSG1910',
-        'ja': 'SK2003',
+        'ja': '新改訳2003',
       };
 
       test('Spanish (es) should default to RVR1960', () {
@@ -32,8 +32,8 @@ void main() {
         expect(defaultVersionByLanguage['fr'], equals('LSG1910'));
       });
 
-      test('Japanese (ja) should default to SK2003', () {
-        expect(defaultVersionByLanguage['ja'], equals('SK2003'));
+      test('Japanese (ja) should default to 新改訳2003', () {
+        expect(defaultVersionByLanguage['ja'], equals('新改訳2003'));
       });
 
       test('All 5 supported languages have default versions', () {

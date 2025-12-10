@@ -6,7 +6,10 @@ import '../blocs/bible_version/bible_version_bloc.dart';
 import '../blocs/bible_version/bible_version_event.dart';
 import '../blocs/bible_version/bible_version_state.dart';
 import '../extensions/string_extensions.dart';
+import '../providers/localization_provider.dart';
 import '../services/service_locator.dart';
+import '../utils/constants.dart';
+import '../widgets/app_bar_constants.dart';
 
 /// Page for managing Bible version downloads.
 ///
@@ -31,9 +34,15 @@ class _BibleVersionsManagerView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final currentLanguageCode =
+        context.watch<LocalizationProvider>().currentLocale.languageCode;
+    final currentLanguageName =
+        Constants.supportedLanguages[currentLanguageCode] ??
+            currentLanguageCode;
+
     return Scaffold(
-      appBar: AppBar(
-        title: Text('bible_version.manager_title'.tr()),
+      appBar: CustomAppBar(
+        titleText: 'bible_version.manager_title'.tr(),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -67,7 +76,13 @@ class _BibleVersionsManagerView extends StatelessWidget {
           }
 
           if (state is BibleVersionLoaded) {
-            return _VersionsList(state: state);
+            final filteredVersions = state.versions
+                .where((v) => v.metadata.language == currentLanguageCode)
+                .toList();
+            return _VersionsList(
+              versions: filteredVersions,
+              languageName: currentLanguageName,
+            );
           }
 
           return const SizedBox.shrink();
@@ -159,34 +174,24 @@ class _ErrorView extends StatelessWidget {
 }
 
 class _VersionsList extends StatelessWidget {
-  final BibleVersionLoaded state;
+  final List<BibleVersionWithState> versions;
+  final String languageName;
 
-  const _VersionsList({required this.state});
+  const _VersionsList({
+    required this.versions,
+    required this.languageName,
+  });
 
   @override
   Widget build(BuildContext context) {
-    // Group versions by language
-    final versionsByLanguage = <String, List<BibleVersionWithState>>{};
-    for (final version in state.versions) {
-      final lang = version.metadata.languageName;
-      versionsByLanguage.putIfAbsent(lang, () => []).add(version);
-    }
-
-    // Sort languages alphabetically
-    final languages = versionsByLanguage.keys.toList()..sort();
-
-    return ListView.builder(
+    return ListView(
       padding: const EdgeInsets.symmetric(vertical: 8),
-      itemCount: languages.length,
-      itemBuilder: (context, index) {
-        final language = languages[index];
-        final versions = versionsByLanguage[language]!;
-
-        return _LanguageSection(
-          language: language,
+      children: [
+        _LanguageSection(
+          language: languageName,
           versions: versions,
-        );
-      },
+        ),
+      ],
     );
   }
 }

@@ -241,14 +241,17 @@ class _ContactPageState extends State<ContactPage> {
                     filled: true,
                     fillColor: Theme.of(context).brightness == Brightness.dark
                         ? colorScheme.surfaceContainerHighest
-                        : colorScheme.surface,
+                        : colorScheme.surfaceContainerHighest,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide(color: colorScheme.outline),
+                      borderSide: BorderSide(color: colorScheme.outlineVariant),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide(color: colorScheme.outline),
+                      borderSide: BorderSide(
+                        color: colorScheme.outlineVariant,
+                        width: 1.2,
+                      ),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
