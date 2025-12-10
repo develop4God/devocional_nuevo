@@ -330,8 +330,8 @@ class BibleVersionRepository {
       'NVI': 'Nueva Versión Internacional',
       'RVR1960': 'Reina Valera 1960',
       'LSG1910': 'Louis Segond 1910',
-      'JCB': 'Japanese Contemporary Bible',
-      'SK2003': 'Shinkaiyaku 2003',
+      'リビングバイブル': 'Living Bible (Japanese)',
+      '新改訳2003': 'Shinkaiyaku 2003',
       'ARC': 'Almeida Revista e Corrigida',
     };
     return displayNames[versionCode] ?? versionCode;

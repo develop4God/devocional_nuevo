@@ -22,7 +22,7 @@ class BibleSelectedVersionProvider extends ChangeNotifier {
     'en': 'KJV',
     'pt': 'ARC',
     'fr': 'LSG1910',
-    'ja': 'SK2003',
+    'ja': '新改訳2003',
   };
 
   final BibleVersionRepository _repository = BibleVersionRepository(

@@ -33,8 +33,8 @@ class BibleVersionRegistry {
       {'name': 'LSG1910', 'filename': 'LSG1910_fr.SQLite3'},
     ],
     'ja': [
-      {'name': 'SK2003', 'filename': 'SK2003_ja.SQLite3'},
-      {'name': 'JCB', 'filename': 'JCB_ja.SQLite3'},
+      {'name': '新改訳2003', 'filename': '新改訳2003_ja.SQLite3'},
+      {'name': 'リビングバイブル', 'filename': 'リビングバイブル_ja.SQLite3'},
     ],
   };
 

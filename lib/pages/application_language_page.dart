@@ -24,6 +24,7 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
   final Map<String, double> _downloadProgress = {};
   final Map<String, bool> _isDownloading = {};
   String? _currentLanguage;
+  String? _languageInProgress;
 
   @override
   void initState() {
@@ -66,9 +67,15 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
     final isCurrentLanguage = languageCode == _currentLanguage;
     final isDownloading = _isDownloading[languageCode] ?? false;
     final progress = _downloadProgress[languageCode] ?? 0.0;
+    final isProcessing = _languageInProgress == languageCode;
+    final isLocked =
+        _languageInProgress != null && _languageInProgress != languageCode;
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      color: isProcessing
+          ? theme.colorScheme.primaryContainer.withAlpha(40)
+          : null,
       child: ListTile(
         leading: CircleAvatar(
           backgroundColor: isCurrentLanguage
@@ -90,10 +97,12 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
         subtitle: _buildLanguageSubtitle(
             languageCode, isCurrentLanguage, isDownloaded, theme),
         trailing: _buildTrailingWidget(
-            languageCode, isDownloaded, isDownloading, progress, theme),
-        onTap: (isDownloading || (isDownloaded && isCurrentLanguage))
-            ? null
-            : () => _onChangeLanguage(languageCode),
+            languageCode, isDownloaded, isDownloading, progress, theme,
+            isProcessing: isProcessing),
+        onTap:
+            (isDownloading || isLocked || (isDownloaded && isCurrentLanguage))
+                ? null
+                : () => _onChangeLanguage(languageCode),
       ),
     );
   }
@@ -119,8 +128,9 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
   }
 
   Widget _buildTrailingWidget(String languageCode, bool isDownloaded,
-      bool isDownloading, double progress, ThemeData theme) {
-    if (isDownloading) {
+      bool isDownloading, double progress, ThemeData theme,
+      {required bool isProcessing}) {
+    if (isDownloading || isProcessing) {
       return SizedBox(
         width: 60,
         child: Column(
@@ -200,12 +210,19 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
   }
 
   void _onChangeLanguage(String languageCode) async {
+    if (_languageInProgress != null) return;
     final localizationProvider =
         Provider.of<LocalizationProvider>(context, listen: false);
     final devocionalProvider =
         Provider.of<DevocionalProvider>(context, listen: false);
     final bibleVersionProvider =
         Provider.of<BibleSelectedVersionProvider>(context, listen: false);
+
+    setState(() {
+      _languageInProgress = languageCode;
+      _isDownloading[languageCode] = true;
+      _downloadProgress[languageCode] = 0.0;
+    });
 
     // Cambiar el idioma en el provider de localización
     await localizationProvider.changeLanguage(languageCode);
@@ -229,8 +246,22 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
     // Cambiar el idioma de la versión bíblica para ajustar automáticamente la versión por defecto
     await bibleVersionProvider.setLanguage(languageCode, fromSettings: true);
 
-    // Volver a la pantalla anterior
     if (!mounted) return;
+
+    setState(() {
+      _currentLanguage = languageCode;
+      _downloadStatus[languageCode] = true;
+      _isDownloading[languageCode] = false;
+      _languageInProgress = null;
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('application_language.current_language'.tr()),
+      ),
+    );
+
+    // Volver a la pantalla anterior
     Navigator.pop(context);
   }
 }
