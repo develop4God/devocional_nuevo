@@ -17,6 +17,7 @@ import 'package:devocional_nuevo/widgets/bible_verse_grid_selector.dart';
 import 'package:devocional_nuevo/widgets/floating_font_control_buttons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:share_plus/share_plus.dart' show ShareParams, SharePlus;
@@ -372,9 +373,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     }
     // Error amigable
     if (bibleProvider.state == BibleProviderState.error) {
-      final locale = Localizations.localeOf(context).languageCode;
-      String errorMsg =
-          bibleProvider.errorMessage ?? 'bible.download_error'.tr();
+      // Elimino variable local 'state' y uso solo bibleProvider
       return Scaffold(
         key: _scaffoldKey,
         appBar: AppBar(
@@ -384,15 +383,30 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.error_outline, color: Colors.red, size: 48),
-              const SizedBox(height: 16),
-              Text(errorMsg,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(color: Colors.red, fontSize: 16)),
+              SizedBox(
+                height: 180,
+                child: Lottie.asset(
+                  'assets/bible_loading_stars.json',
+                  repeat: true,
+                  animate: true,
+                ),
+              ),
+              const SizedBox(height: 24),
+              Text(
+                'loading_version'.tr({
+                  'version': CopyrightUtils.getBibleVersionDisplayName(
+                      bibleProvider.selectedLanguage,
+                      bibleProvider.selectedVersion)
+                }),
+                style: Theme.of(context).textTheme.titleMedium,
+                textAlign: TextAlign.center,
+              ),
               const SizedBox(height: 24),
               ElevatedButton.icon(
                 icon: const Icon(Icons.refresh),
-                label: Text(locale == 'es' ? 'Reintentar' : 'Retry'),
+                label: Text(Localizations.localeOf(context).languageCode == 'es'
+                    ? 'Reintentar'
+                    : 'Retry'),
                 onPressed: () => bibleProvider.fetchBibleInfo(),
               ),
             ],
@@ -630,7 +644,35 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                       ),
                       Expanded(
                         child: state.verses.isEmpty
-                            ? Center(child: Text('bible.no_verses'.tr()))
+                            ? Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    SizedBox(
+                                      height: 180,
+                                      child: Lottie.asset(
+                                        'assets/bible_loading_stars.json',
+                                        repeat: true,
+                                        animate: true,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 24),
+                                    Text(
+                                      'loading_version'.tr({
+                                        'version': CopyrightUtils
+                                            .getBibleVersionDisplayName(
+                                                bibleProvider.selectedLanguage,
+                                                state.selectedVersion?.name ??
+                                                    '')
+                                      }),
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleMedium,
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ],
+                                ),
+                              )
                             : ScrollablePositionedList.builder(
                                 itemScrollController: _itemScrollController,
                                 itemPositionsListener: _itemPositionsListener,
