@@ -365,7 +365,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
       return Scaffold(
         key: _scaffoldKey,
         appBar: AppBar(
-            title: Text('bible.loading_title'.tr()),
+            title: Text('bible.loading'.tr()),
             backgroundColor: colorScheme.primary),
         body: const Center(child: CircularProgressIndicator()),
       );
@@ -374,7 +374,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     if (bibleProvider.state == BibleProviderState.error) {
       final locale = Localizations.localeOf(context).languageCode;
       String errorMsg =
-          bibleProvider.errorMessage ?? 'bible.download_error_message'.tr();
+          bibleProvider.errorMessage ?? 'bible.download_error'.tr();
       return Scaffold(
         key: _scaffoldKey,
         appBar: AppBar(
@@ -421,7 +421,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
       return Scaffold(
         key: _scaffoldKey,
         appBar: AppBar(
-            title: Text('bible.loading_title'.tr()),
+            title: Text('bible.loading'.tr()),
             backgroundColor: colorScheme.primary),
         body: const Center(child: CircularProgressIndicator()),
       );

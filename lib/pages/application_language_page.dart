@@ -257,7 +257,7 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('application_language.language_updated'.tr()),
+        content: Text('application_language.current_language'.tr()),
       ),
     );
 
