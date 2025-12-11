@@ -178,6 +178,20 @@ class BibleSelectedVersionProvider extends ChangeNotifier {
           ),
         )
         .toList();
+    // --- NUEVO: Si no hay versión seleccionada pero hay alguna descargada, selecciona la primera descargada ---
+    if (_availableVersions.where((v) => v.isDownloaded).isNotEmpty) {
+      final downloaded =
+          _availableVersions.where((v) => v.isDownloaded).toList();
+      if (_selectedVersion.isEmpty ||
+          !_availableVersions
+              .any((v) => v.name == _selectedVersion && v.isDownloaded)) {
+        _selectedVersion = downloaded.first.name;
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('selectedBibleVersion', _selectedVersion);
+        _logger.i(
+            '[BibleProvider] No había versión activa, se selecciona automáticamente: $_selectedVersion');
+      }
+    }
     notifyListeners();
   }
 

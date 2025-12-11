@@ -275,7 +275,15 @@ class _VersionTile extends StatelessWidget {
   Widget _buildTrailing(BuildContext context) {
     final bloc = context.read<BibleVersionBloc>();
     final colorScheme = Theme.of(context).colorScheme;
-
+    // --- NUEVO: Bloquear eliminación de la última versión bíblica descargada y activa ---
+    final versionsList =
+        (context.findAncestorWidgetOfExactType<_LanguageSection>()?.versions) ??
+            [];
+    final downloaded =
+        versionsList.where((v) => v.state == DownloadState.downloaded).toList();
+    final isLastDownloaded = downloaded.length == 1 &&
+        downloaded.first.metadata.id == version.metadata.id;
+    // ---
     switch (version.state) {
       case DownloadState.notDownloaded:
         return IconButton(
@@ -356,8 +364,20 @@ class _VersionTile extends StatelessWidget {
             const SizedBox(width: 8),
             IconButton(
               icon: Icon(Icons.delete_outline, color: colorScheme.error),
-              onPressed: () => _showDeleteConfirmation(context),
-              tooltip: 'bible_version.delete'.tr(),
+              onPressed: isLastDownloaded
+                  ? () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                              'No puedes eliminar la última versión bíblica descargada. Debe haber al menos una disponible.'),
+                          backgroundColor: colorScheme.error,
+                        ),
+                      );
+                    }
+                  : () => _showDeleteConfirmation(context),
+              tooltip: isLastDownloaded
+                  ? 'No puedes eliminar la última versión descargada'
+                  : 'bible_version.delete'.tr(),
             ),
           ],
         );
