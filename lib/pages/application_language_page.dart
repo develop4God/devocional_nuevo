@@ -268,6 +268,9 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
 
   void _onChangeLanguage(String languageCode) async {
     if (_languageInProgress != null || _globalLoading) return;
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+    final theme = Theme.of(context);
+    final navigator = Navigator.of(context);
     setState(() {
       _globalLoading = true;
       _globalProgress = 0.0;
@@ -282,7 +285,7 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
       // Simular progreso real (puedes conectar aquí el callback real si lo tienes)
       for (int i = 1; i <= 10; i++) {
         await Future.delayed(const Duration(milliseconds: 120));
-        if (!context.mounted) return;
+        if (!mounted) return;
         setState(() {
           _globalProgress = i / 10.0;
         });
@@ -313,14 +316,11 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
         _globalLoading = false;
         _globalProgress = 1.0;
       });
-      // Usar context de forma segura tras awaits
-      final scaffoldMessenger = ScaffoldMessenger.of(context);
-      final snackBarBackground =
-          Theme.of(context).appBarTheme.backgroundColor ??
-              Theme.of(context).colorScheme.primary;
+      // Usar objetos capturados antes del await
       scaffoldMessenger.showSnackBar(
         SnackBar(
-          backgroundColor: snackBarBackground,
+          backgroundColor:
+              theme.appBarTheme.backgroundColor ?? theme.colorScheme.primary,
           content: Text(
             'application_language.current_language'.tr(),
             style: const TextStyle(
@@ -334,7 +334,7 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
           ),
         ),
       );
-      Navigator.of(context).pop();
+      navigator.pop();
     } catch (e) {
       if (!mounted) return;
       setState(() {
