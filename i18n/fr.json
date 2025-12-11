@@ -19,9 +19,9 @@
     "voice_feature_continue": "Continuer"
   },
   "devotionals": {
-      "modern_voice_title": "🎤✨ Nouvelle fonctionnalité disponible ! ✨🎤",
-      "modern_voice_description": "Vous pouvez désormais choisir différentes voix pour la lecture dévotionnelle. Personnalisez votre expérience et profitez d'une lecture plus agréable et moderne. 😃🔊",
-      "modern_voice_configure": "Configurer les voix",
+    "modern_voice_title": "🎤✨ Nouvelle fonctionnalité disponible ! ✨🎤",
+    "modern_voice_description": "Vous pouvez désormais choisir différentes voix pour la lecture dévotionnelle. Personnalisez votre expérience et profitez d'une lecture plus agréable et moderne. 😃🔊",
+    "modern_voice_configure": "Configurer les voix",
     "app_title": "Méditations Quotidiennes",
     "my_intimate_space_with_god": "Mon espace intime avec Dieu",
     "devotional_of_the_day": "Méditation du jour",
@@ -235,7 +235,8 @@
     "understood": "Compris",
     "reset_stats": "Réinitialiser les Stats",
     "reset_confirmation": "Êtes-vous sûr de vouloir réinitialiser toutes les statistiques ?",
-    "stats_reset": "Statistiques réinitialisées"
+    "stats_reset": "Statistiques réinitialisées",
+    "streak": "série"
   },
   "errors": {
     "network_error": "Erreur de connexion",
@@ -633,7 +634,8 @@
     "error_max_retries": "Le téléchargement a échoué après {attempts} tentatives. Réessayez plus tard.",
     "error_decompression": "Erreur de décompression du fichier. Veuillez réessayer.",
     "error_metadata_validation": "Données de version invalides.",
-    "error_unknown": "Une erreur inattendue s'est produite."
+    "error_unknown": "Une erreur inattendue s'est produite.",
+    "cannot_delete_last": "Impossible de supprimer la dernière version biblique"
   },
   "thanksgiving": {
     "thanksgiving": "Action de grâce",
