@@ -381,7 +381,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
           return Scaffold(
             key: _scaffoldKey,
             appBar: AppBar(
-                title: Text('bible.loading_version'.tr()),
+                title: Text('bible.loading'.tr()),
                 backgroundColor: colorScheme.primary),
             body: const Center(child: CircularProgressIndicator()),
           );
@@ -420,7 +420,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
           return Scaffold(
             key: _scaffoldKey,
             appBar: AppBar(
-                title: Text('bible.loading_version'.tr()),
+                title: Text('bible.loading'.tr()),
                 backgroundColor: colorScheme.primary),
             body: const Center(child: CircularProgressIndicator()),
           );
