@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io' show gzip;
 
 import 'package:bible_reader_core/bible_reader_core.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -23,6 +24,11 @@ class MockTimingHttpClient implements HttpClient {
 
   void givenDownloadData(String url, List<int> data) {
     _downloadData[url] = data;
+  }
+
+  /// Provides compressed (gzipped) download data at the given URL.
+  void givenCompressedDownloadData(String url, List<int> uncompressedData) {
+    _downloadData[url] = gzip.encode(uncompressedData);
   }
 
   @override
@@ -294,8 +300,9 @@ void main() {
                 'https://raw.githubusercontent.com/develop4God/bible_versions/main/es/NVI_es.SQLite3'
           },
         ]);
-        mockHttp.givenDownloadData(
-          'https://raw.githubusercontent.com/develop4God/bible_versions/main/es/NVI_es.SQLite3',
+        // Use compressed download data at .gz URL
+        mockHttp.givenCompressedDownloadData(
+          'https://raw.githubusercontent.com/develop4God/bible_versions/main/es/NVI_es.SQLite3.gz',
           createValidSqliteData(),
         );
 
