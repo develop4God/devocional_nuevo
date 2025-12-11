@@ -607,7 +607,10 @@
     "download_dialog_title": "Télécharger des Versions Bibliques",
     "download_dialog_content": "Sélectionnez des versions à télécharger pour la lecture hors ligne. Les téléchargements se font en arrière-plan.",
     "download_error": "Erreur lors du chargement des versions disponibles",
-    "no_versions_available": "Aucune version disponible à télécharger"
+    "no_versions_available": "Aucune version disponible à télécharger",
+    "downloading": "Téléchargement Bible...",
+    "download_progress": "Téléchargement de la version biblique...",
+    "initializing": "Initialisation..."
   },
   "bible_version": {
     "title": "Versions de la Bible",

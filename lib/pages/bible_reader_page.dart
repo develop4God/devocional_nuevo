@@ -363,12 +363,58 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     // Loader amigable mientras carga o descarga
     if (bibleProvider.state == BibleProviderState.loading ||
         bibleProvider.state == BibleProviderState.downloading) {
+      // Show download progress if available
+      final downloadProgress = bibleProvider.downloadProgress;
+      final isDownloading =
+          bibleProvider.state == BibleProviderState.downloading;
       return Scaffold(
         key: _scaffoldKey,
         appBar: AppBar(
-            title: Text('bible.loading'.tr()),
+            title: Text(isDownloading
+                ? 'bible.downloading'.tr()
+                : 'bible.loading'.tr()),
             backgroundColor: colorScheme.primary),
-        body: const Center(child: CircularProgressIndicator()),
+        body: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(
+                width: 80,
+                height: 80,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    CircularProgressIndicator(
+                      value: (isDownloading &&
+                              downloadProgress > 0 &&
+                              downloadProgress <= 1)
+                          ? downloadProgress
+                          : null,
+                      strokeWidth: 4,
+                    ),
+                    if (isDownloading &&
+                        downloadProgress > 0 &&
+                        downloadProgress <= 1)
+                      Text(
+                        '${(downloadProgress * 100).toStringAsFixed(0)}%',
+                        style:
+                            Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                      ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                isDownloading
+                    ? 'bible.download_progress'.tr()
+                    : 'bible.initializing'.tr(),
+                style: Theme.of(context).textTheme.bodyLarge,
+              ),
+            ],
+          ),
+        ),
       );
     }
     // Error amigable SOLO si no hay versión descargada ni seleccionada

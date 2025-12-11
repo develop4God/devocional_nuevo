@@ -607,7 +607,10 @@
     "download_dialog_title": "聖書のバージョンをダウンロード",
     "download_dialog_content": "オフラインで読むためのバージョンを選択してください。ダウンロードはバックグラウンドで行われます。",
     "download_error": "利用可能なバージョンの読み込みエラー",
-    "no_versions_available": "ダウンロードできるバージョンがありません"
+    "no_versions_available": "ダウンロードできるバージョンがありません",
+    "downloading": "聖書をダウンロード中...",
+    "download_progress": "聖書バージョンをダウンロード中...",
+    "initializing": "初期化中..."
   },
   "bible_version": {
     "title": "聖書のバージョン",

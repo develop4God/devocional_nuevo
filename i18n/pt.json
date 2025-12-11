@@ -607,7 +607,10 @@
     "download_dialog_title": "Baixar Versões da Bíblia",
     "download_dialog_content": "Selecione versões para baixar para leitura offline. Os downloads ocorrem em segundo plano.",
     "download_error": "Erro ao carregar versões disponíveis",
-    "no_versions_available": "Nenhuma versão disponível para download"
+    "no_versions_available": "Nenhuma versão disponível para download",
+    "downloading": "Baixando Bíblia...",
+    "download_progress": "Baixando versão bíblica...",
+    "initializing": "Inicializando..."
   },
   "bible_version": {
     "title": "Versões da Bíblia",

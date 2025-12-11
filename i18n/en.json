@@ -607,7 +607,10 @@
     "download_dialog_title": "Download Bible Versions",
     "download_dialog_content": "Select versions to download for offline reading. Downloads occur in the background.",
     "download_error": "Error loading available versions",
-    "no_versions_available": "No versions available to download"
+    "no_versions_available": "No versions available to download",
+    "downloading": "Downloading Bible...",
+    "download_progress": "Downloading Bible version...",
+    "initializing": "Initializing..."
   },
   "bible_version": {
     "title": "Bible Versions",
