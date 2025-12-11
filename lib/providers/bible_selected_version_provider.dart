@@ -1,8 +1,13 @@
+import 'dart:async';
+import 'dart:io';
+import 'dart:math';
+
 import 'package:bible_reader_core/bible_reader_core.dart';
 import 'package:devocional_nuevo/adapters/http_client_adapter.dart';
 import 'package:devocional_nuevo/adapters/storage_adapter.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -35,6 +40,9 @@ class BibleSelectedVersionProvider extends ChangeNotifier {
     'fr': 'LSG1910',
     'ja': '新改訳2003',
   };
+
+  // SharedPreferences key to track migrated versions (format: 'lang:version')
+  static const String _migratedVersionsKey = 'migrated_bible_versions';
 
   final BibleVersionRepository _repository = BibleVersionRepository(
     httpClient: HttpClientAdapter.create(),
@@ -71,9 +79,35 @@ class BibleSelectedVersionProvider extends ChangeNotifier {
       final prefs = await SharedPreferences.getInstance();
       _selectedLanguage =
           languageCode ?? prefs.getString('selectedLanguage') ?? 'es';
-      _selectedVersion = prefs.getString('selectedBibleVersion') ??
-          _defaultVersionByLanguage[_selectedLanguage] ??
-          'RVR1960';
+      // Read selectedBibleVersion preference. New format: 'lang:version'.
+      final rawSelected = prefs.getString('selectedBibleVersion');
+      if (rawSelected != null) {
+        if (rawSelected.contains(':')) {
+          // new format -> parse lang:version
+          final parts = rawSelected.split(':');
+          if (parts.length >= 2) {
+            // respect saved language only if languageCode not explicitly provided
+            if (languageCode == null) {
+              _selectedLanguage = parts[0];
+            }
+            _selectedVersion = parts.sublist(1).join(':');
+          } else {
+            // fallback to default mapping
+            _selectedVersion =
+                _defaultVersionByLanguage[_selectedLanguage] ?? 'RVR1960';
+          }
+        } else {
+          // legacy format (version only). Migrate to new format immediately.
+          _selectedVersion = rawSelected;
+          await prefs.setString(
+              'selectedBibleVersion', '$_selectedLanguage:$_selectedVersion');
+          _logger.i(
+              '[BibleProvider] Migrated preference selectedBibleVersion -> $_selectedLanguage:$_selectedVersion');
+        }
+      } else {
+        _selectedVersion =
+            _defaultVersionByLanguage[_selectedLanguage] ?? 'RVR1960';
+      }
       _logger.i(
         '[BibleProvider] Idioma: $_selectedLanguage, Versión: $_selectedVersion',
       );
@@ -96,16 +130,34 @@ class BibleSelectedVersionProvider extends ChangeNotifier {
         }
       }
 
-      // Lanzar actualización y descarga en background. No await para no bloquear el inicio.
-      // ignore: unawaited_futures
-      Future(() async {
+      // Si el usuario tenía una versión guardada explícitamente y no existe
+      // localmente, hacemos la descarga de forma síncrona aquí para evitar
+      // condiciones de carrera con el BibleReader que espera el archivo.
+      final bool userPreferredVersionExists =
+          prefs.containsKey('selectedBibleVersion');
+
+      if (!fileExists && userPreferredVersionExists) {
+        _logger.i(
+            '[BibleProvider] User preferred version ($_selectedVersion) not found locally - downloading now');
         try {
           await _updateAvailableVersions();
           await _ensureVersionDownloaded();
         } catch (e) {
-          _logger.w('[BibleProvider] Background init error: $e');
+          _logger.w(
+              '[BibleProvider] Failed to download user preferred version: $e');
         }
-      });
+      } else {
+        // Lanzar actualización y descarga en background. No await para no bloquear el inicio.
+        // ignore: unawaited_futures
+        Future(() async {
+          try {
+            await _updateAvailableVersions();
+            await _ensureVersionDownloaded();
+          } catch (e) {
+            _logger.w('[BibleProvider] Background init error: $e');
+          }
+        });
+      }
     } catch (e) {
       // No debemos bloquear el arranque de la app por un fallo de red.
       _logger.e(
@@ -141,7 +193,9 @@ class BibleSelectedVersionProvider extends ChangeNotifier {
     _selectedVersion = _defaultVersionByLanguage[languageCode] ?? 'RVR1960';
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('selectedLanguage', languageCode);
-    await prefs.setString('selectedBibleVersion', _selectedVersion);
+    // Save new preference format 'lang:version'
+    await prefs.setString(
+        'selectedBibleVersion', '$_selectedLanguage:$_selectedVersion');
     _logger.i(
       '[BibleProvider] Nuevo idioma: $_selectedLanguage, versión: $_selectedVersion',
     );
@@ -171,7 +225,8 @@ class BibleSelectedVersionProvider extends ChangeNotifier {
     notifyListeners();
     _selectedVersion = version;
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('selectedBibleVersion', version);
+    await prefs.setString(
+        'selectedBibleVersion', '$_selectedLanguage:$_selectedVersion');
     await _ensureVersionDownloaded();
     await _updateAvailableVersions();
   }
@@ -213,7 +268,9 @@ class BibleSelectedVersionProvider extends ChangeNotifier {
           )) {
         _selectedVersion = downloaded.first.name;
         final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('selectedBibleVersion', _selectedVersion);
+        // Save preference in new 'lang:version' format to keep consistency.
+        await prefs.setString(
+            'selectedBibleVersion', '$_selectedLanguage:$_selectedVersion');
         _logger.i(
           '[BibleProvider] No había versión activa, se selecciona automáticamente: $_selectedVersion',
         );
@@ -243,7 +300,7 @@ class BibleSelectedVersionProvider extends ChangeNotifier {
       final biblesDir = await _repository.storage.getBiblesDirectory();
       final filename = '${_selectedVersion}_$_selectedLanguage.SQLite3';
       final dbPath = '$biblesDir/$filename';
-      final fileExists = await _repository.storage.fileExists(dbPath);
+      var fileExists = await _repository.storage.fileExists(dbPath);
 
       if (fileExists) {
         _logger.i(
@@ -290,6 +347,27 @@ class BibleSelectedVersionProvider extends ChangeNotifier {
         );
         notifyListeners();
         return;
+      }
+
+      // 1.b Try migrating from bundled assets or legacy locations before downloading
+      final migrated =
+          await _tryMigrateFromAssets(_selectedLanguage, _selectedVersion);
+      if (migrated) {
+        _logger.i(
+            '[BibleProvider] Migration from assets succeeded for $_selectedVersion');
+        // Re-check file existence and proceed as ready if migration produced usable DB
+        final fileExistsAfter = await _repository.storage.fileExists(dbPath);
+        if (fileExistsAfter) {
+          final hasVerses =
+              await _fetchVerses(_selectedLanguage, _selectedVersion);
+          if (hasVerses) {
+            _state = BibleProviderState.ready;
+            _errorMessage = null;
+            _downloadProgress = 1.0;
+            notifyListeners();
+            return;
+          }
+        }
       }
 
       // 2. File not found locally - need to download
@@ -427,10 +505,24 @@ class BibleSelectedVersionProvider extends ChangeNotifier {
     });
 
     try {
-      await _repository.downloadVersion(versionObj.id);
-
+      // First attempt: try a direct streaming download + on-the-fly decompress
       final biblesDir = await _repository.storage.getBiblesDirectory();
       final dbPath = '$biblesDir/${versionObj.filename}';
+
+      final url = versionObj.downloadUrl;
+      bool directOk = false;
+      if (url.isNotEmpty) {
+        _logger.i('[BibleProvider] Attempting direct stream download...');
+        directOk = await _downloadDirectAndDecompress(url, dbPath);
+        _logger.i('[BibleProvider] Direct download result: $directOk');
+      }
+
+      if (!directOk) {
+        // Fallback to repository implementation (existing behavior)
+        _logger.i('[BibleProvider] Falling back to repository.downloadVersion');
+        await _repository.downloadVersion(versionObj.id);
+      }
+
       final fileExists = await _repository.storage.fileExists(dbPath);
 
       _logger.i(
@@ -445,6 +537,85 @@ class BibleSelectedVersionProvider extends ChangeNotifier {
     } finally {
       // Always cancel subscription to prevent memory leaks
       await progressSubscription.cancel();
+    }
+  }
+
+  /// Downloads and writes a (possibly gzipped) file by streaming it and
+  /// decoding gzip on-the-fly when appropriate. Reports progress using
+  /// `_downloadProgress` and notifies listeners.
+  Future<bool> _downloadDirectAndDecompress(
+      String url, String targetPath) async {
+    await _ensureRepositoryInitialized();
+
+    final adapter = HttpClientAdapter.create();
+    Stream<HttpDownloadProgress>? progressStream;
+    IOSink? sink;
+    StreamController<List<int>>? compressedController;
+    try {
+      progressStream = adapter.downloadStream(url, percentStep: 1);
+
+      final targetFile = File(targetPath);
+      await targetFile.create(recursive: true);
+      sink = targetFile.openWrite();
+
+      final bool gzByUrl = url.toLowerCase().endsWith('.gz');
+
+      // Controller that receives compressed chunks from adapter and, if gz, will
+      // be decoded using gzip.decoder; otherwise we will write chunks directly.
+      compressedController = StreamController<List<int>>();
+      final Stream<List<int>> decodedStream = gzByUrl
+          ? compressedController.stream.transform(gzip.decoder)
+          : compressedController.stream;
+
+      // Writer task: consumes decodedStream and writes to file
+      final writer = () async {
+        await for (final chunk in decodedStream) {
+          sink!.add(chunk);
+        }
+      }();
+
+      // Feed the compressed controller while reporting progress
+      await for (final event in progressStream) {
+        // update progress using compressed bytes info (adapter reports downloaded/total)
+        if (event.total != null && event.total! > 0) {
+          _downloadProgress = min(1.0, event.downloaded / event.total!);
+          notifyListeners();
+        }
+        // Push chunk into controller for decoding/writing
+        compressedController.add(event.data);
+      }
+
+      // Close controller to signal EOF to decoder, then wait writer
+      await compressedController.close();
+      await writer;
+
+      await sink.flush();
+      await sink.close();
+
+      // final progress set
+      _downloadProgress = 1.0;
+      notifyListeners();
+
+      // close adapter client
+      try {
+        adapter.close();
+      } catch (_) {}
+
+      return true;
+    } catch (e, st) {
+      _logger.e('[BibleProvider] Direct download exception: $e\n$st');
+      try {
+        await compressedController?.close();
+      } catch (_) {}
+      try {
+        await sink?.close();
+      } catch (_) {}
+      try {
+        adapter.close();
+      } catch (_) {}
+      _downloadProgress = 0.0;
+      notifyListeners();
+      return false;
     }
   }
 
@@ -493,5 +664,74 @@ class BibleSelectedVersionProvider extends ChangeNotifier {
       _selectedLanguage,
       _selectedVersion,
     );
+  }
+
+  /// Attempt to copy database file from bundled assets (legacy behavior) into storage.
+  /// Returns true if migration wrote a valid file to the bibles directory.
+  Future<bool> _tryMigrateFromAssets(String lang, String version) async {
+    final prefs = await SharedPreferences.getInstance();
+    final migrated = prefs.getStringList(_migratedVersionsKey) ?? <String>[];
+    final key = '$lang:$version';
+
+    try {
+      final biblesDir = await _repository.storage.getBiblesDirectory();
+      final filename = '${version}_$lang.SQLite3';
+      final assetPaths = <String>[
+        'assets/bibles/$filename',
+        // common location
+        'assets/$filename',
+        // alternative
+        'flutter_assets/assets/bibles/$filename',
+        // possible path in some builds
+        'flutter_assets/$filename',
+      ];
+
+      // If we've already migrated this version earlier, skip reattempt but verify file exists
+      if (migrated.contains(key)) {
+        final targetPath = '$biblesDir/$filename';
+        final exists = await _repository.storage.fileExists(targetPath);
+        _logger.i(
+            '[BibleProvider] Migration previously done for $key, fileExists: $exists');
+        return exists;
+      }
+
+      for (final assetPath in assetPaths) {
+        try {
+          final data = await rootBundle.load(assetPath);
+          final bytes = data.buffer.asUint8List();
+          final targetPath = '$biblesDir/$filename';
+          await _repository.storage.writeFile(targetPath, bytes);
+          final exists = await _repository.storage.fileExists(targetPath);
+          if (exists) {
+            _logger
+                .i('[BibleProvider] Migrated asset $assetPath -> $targetPath');
+            // Mark as migrated to avoid retrying
+            final updated = List<String>.from(migrated)..add(key);
+            await prefs.setStringList(_migratedVersionsKey, updated);
+            // Also register in repository downloaded list
+            try {
+              await _ensureRepositoryInitialized();
+              final downloadedIds = await _repository.getDownloadedVersionIds();
+              final versionId = '$lang-$version';
+              if (!downloadedIds.contains(versionId)) {
+                await _repository.storage
+                    .saveDownloadedVersions([...downloadedIds, versionId]);
+              }
+            } catch (e) {
+              _logger.w(
+                  '[BibleProvider] Warning registering migrated version: $e');
+            }
+            return true;
+          }
+        } catch (e) {
+          // Asset not found at this path or load failed — keep trying other candidates
+          _logger.t(
+              '[BibleProvider] Asset not found or failed to load: $assetPath ($e)');
+        }
+      }
+    } catch (e) {
+      _logger.w('[BibleProvider] Migration attempt failed: $e');
+    }
+    return false;
   }
 }

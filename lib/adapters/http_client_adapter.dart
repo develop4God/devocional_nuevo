@@ -4,6 +4,10 @@ import 'dart:developer' as developer;
 import 'package:bible_reader_core/bible_reader_core.dart';
 import 'package:http/http.dart' as http;
 
+/// Default timeout for HTTP operations. Tunable constant to control how
+/// long we wait before aborting network requests.
+const Duration _defaultTimeout = Duration(seconds: 5);
+
 /// HTTP client adapter that implements the framework-agnostic [HttpClient] interface
 /// using the `package:http` library.
 ///
@@ -27,7 +31,7 @@ class HttpClientAdapter implements HttpClient {
     try {
       final response = await _client.get(Uri.parse(url), headers: {
         'User-Agent': 'devocional_nuevo/1.0 (Flutter)'
-      }).timeout(const Duration(seconds: 30));
+      }).timeout(_defaultTimeout);
       developer.log('[HttpClientAdapter] GET $url -> ${response.statusCode}',
           name: 'HttpClientAdapter');
 
@@ -80,8 +84,7 @@ class HttpClientAdapter implements HttpClient {
     request.headers['User-Agent'] = 'devocional_nuevo/1.0 (Flutter)';
     http.StreamedResponse streamedResponse;
     try {
-      streamedResponse =
-          await _client.send(request).timeout(const Duration(seconds: 30));
+      streamedResponse = await _client.send(request).timeout(_defaultTimeout);
     } catch (e) {
       developer.log('[HttpClientAdapter] downloadStream send error: $e',
           name: 'HttpClientAdapter');
