@@ -35,18 +35,19 @@ Please follow these guidelines to ensure code quality, maintainability, and cons
 
 ```dart
 // Good (Flutter >= 3.7)
-await someAsync();if (!context.mounted) return;
-Navigator.of(context).push(...);
+//await someAsync();if (!context.mounted) return;
+//Navigator.of(context).push(...);
 
 // Good (any Flutter)
 final navigator = Navigator.of(context);
+
 await someAsync();
 navigator
-.
+    .
 push
-(
-...
-);
+//(
+//...
+//);
 ```
 
 ## When in Doubt
