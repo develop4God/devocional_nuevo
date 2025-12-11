@@ -1105,6 +1105,15 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                 onDecrease: _decreaseFontSize,
                 onClose: () => setState(() => _showFontControls = false),
               ),
+            // Precarga invisible fire.json
+            Positioned(
+              left: -1000, // Fuera de pantalla
+              child: SizedBox(
+                width: 1,
+                height: 1,
+                child: Lottie.asset(_streakFireAsset),
+              ),
+            ),
             if (_showPostSplashAnimation)
               Positioned(
                 top: MediaQuery.of(context).padding.top + kToolbarHeight,
