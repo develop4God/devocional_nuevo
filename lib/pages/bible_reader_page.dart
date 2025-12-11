@@ -521,11 +521,11 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                         Provider.of<BibleSelectedVersionProvider>(context,
                             listen: false);
                     await bibleProvider.setVersion(version.name);
-                    if (!mounted) return;
+                    if (!context.mounted) return;
                     final isDownloaded = bibleProvider.availableVersions
                         .any((v) => v.name == version.name && v.isDownloaded);
                     if (!isDownloaded) {
-                      if (!mounted) return;
+                      if (!context.mounted) return;
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(
