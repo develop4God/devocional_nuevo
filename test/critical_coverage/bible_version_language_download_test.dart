@@ -29,6 +29,16 @@ class MockHttpClient implements HttpClient {
 
   @override
   Future<HttpResponse> get(String url) async {
+    final downloadBytes = _downloadData[url];
+    if (downloadBytes != null) {
+      return HttpResponse(
+        statusCode: 200,
+        body: '',
+        bodyBytes: downloadBytes,
+        headers: {},
+      );
+    }
+
     final response = _responses[url];
     if (response != null) {
       return HttpResponse(
@@ -65,6 +75,7 @@ class MockHttpClient implements HttpClient {
 class MockHttpResponse {
   final int statusCode;
   final String body;
+
   MockHttpResponse({required this.statusCode, required this.body});
 }
 
@@ -291,16 +302,16 @@ void main() {
         // Given: GitHub API returns Japanese versions
         mockHttp.givenGitHubApiResponse('ja', [
           {
-            'name': 'JCB_ja.SQLite3',
+            'name': 'リビングバイブル_ja.SQLite3',
             'size': 6193152,
             'download_url':
-                'https://raw.githubusercontent.com/develop4God/bible_versions/main/ja/JCB_ja.SQLite3',
+                'https://raw.githubusercontent.com/develop4God/bible_versions/main/ja/リビングバイブル_ja.SQLite3',
           },
           {
-            'name': 'SK2003_ja.SQLite3',
+            'name': '新改訳2003_ja.SQLite3',
             'size': 2,
             'download_url':
-                'https://raw.githubusercontent.com/develop4God/bible_versions/main/ja/SK2003_ja.SQLite3',
+                'https://raw.githubusercontent.com/develop4God/bible_versions/main/ja/新改訳2003_ja.SQLite3',
           },
         ]);
 
@@ -309,31 +320,31 @@ void main() {
 
         // Then: User sees Japanese versions
         expect(versions, hasLength(2));
-        expect(versions.any((v) => v.id == 'ja-JCB'), true);
-        expect(versions.any((v) => v.id == 'ja-SK2003'), true);
-        expect(versions.first.languageName, '日本語');
+        expect(versions.any((v) => v.id == 'ja-リビングバイブル'), true);
+        expect(versions.any((v) => v.id == 'ja-新改訳2003'), true);
+        expect(versions.first.languageName, '\u65e5\u672c\u8a9e');
       });
 
-      test('user downloads JCB Japanese Bible', () async {
+      test('user downloads リビングバイブル Japanese Bible', () async {
         // Given: Japanese version is available
         mockHttp.givenGitHubApiResponse('ja', [
           {
-            'name': 'JCB_ja.SQLite3',
+            'name': 'リビングバイブル_ja.SQLite3',
             'size': 6193152,
             'download_url':
-                'https://raw.githubusercontent.com/develop4God/bible_versions/main/ja/JCB_ja.SQLite3',
+                'https://raw.githubusercontent.com/develop4God/bible_versions/main/ja/リビングバイブル_ja.SQLite3',
           },
         ]);
         mockHttp.givenDownloadData(
-          'https://raw.githubusercontent.com/develop4God/bible_versions/main/ja/JCB_ja.SQLite3',
+          'https://raw.githubusercontent.com/develop4God/bible_versions/main/ja/リビングバイブル_ja.SQLite3',
           createValidSqliteData(),
         );
 
         // When: User downloads JCB
-        await repository.downloadVersion('ja-JCB');
+        await repository.downloadVersion('ja-リビングバイブル');
 
         // Then: Version is downloaded
-        expect(repository.isVersionDownloaded('ja-JCB'), true);
+        expect(repository.isVersionDownloaded('ja-リビングバイブル'), true);
       });
     });
 
@@ -433,10 +444,10 @@ void main() {
         ]);
         mockHttp.givenGitHubApiResponse('ja', [
           {
-            'name': 'JCB_ja.SQLite3',
+            'name': 'リビングバイブル_ja.SQLite3',
             'size': 1000,
             'download_url':
-                'https://raw.githubusercontent.com/develop4God/bible_versions/main/ja/JCB_ja.SQLite3'
+                'https://raw.githubusercontent.com/develop4God/bible_versions/main/ja/リビングバイブル_ja.SQLite3'
           },
         ]);
         mockHttp.givenGitHubApiResponse('fr', []);
@@ -449,22 +460,22 @@ void main() {
             'https://raw.githubusercontent.com/develop4God/bible_versions/main/en/KJV_en.SQLite3',
             createValidSqliteData());
         mockHttp.givenDownloadData(
-            'https://raw.githubusercontent.com/develop4God/bible_versions/main/ja/JCB_ja.SQLite3',
+            'https://raw.githubusercontent.com/develop4God/bible_versions/main/ja/リビングバイブル_ja.SQLite3',
             createValidSqliteData());
 
         // When: User downloads versions from different languages
         await repository.downloadVersion('es-NVI');
         await repository.downloadVersion('en-KJV');
-        await repository.downloadVersion('ja-JCB');
+        await repository.downloadVersion('ja-リビングバイブル');
 
         // Then: All versions are downloaded
         expect(repository.isVersionDownloaded('es-NVI'), true);
         expect(repository.isVersionDownloaded('en-KJV'), true);
-        expect(repository.isVersionDownloaded('ja-JCB'), true);
+        expect(repository.isVersionDownloaded('ja-リビングバイブル'), true);
 
         // And: User can list all downloaded versions
         final downloaded = await repository.getDownloadedVersionIds();
-        expect(downloaded, containsAll(['es-NVI', 'en-KJV', 'ja-JCB']));
+        expect(downloaded, containsAll(['es-NVI', 'en-KJV', 'ja-リビングバイブル']));
       });
 
       test('user fetches all available versions across languages', () async {
@@ -495,10 +506,10 @@ void main() {
         ]);
         mockHttp.givenGitHubApiResponse('ja', [
           {
-            'name': 'JCB_ja.SQLite3',
+            'name': 'リビングバイブル_ja.SQLite3',
             'size': 1000,
             'download_url':
-                'https://raw.githubusercontent.com/develop4God/bible_versions/main/ja/JCB_ja.SQLite3'
+                'https://raw.githubusercontent.com/develop4God/bible_versions/main/ja/リビングバイブル_ja.SQLite3'
           },
         ]);
         mockHttp.givenGitHubApiResponse('pt', [
