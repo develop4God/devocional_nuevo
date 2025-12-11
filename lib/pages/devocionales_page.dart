@@ -79,6 +79,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     'assets/lottie/dog_walking.json',
     'assets/lottie/book_animation.json',
     'assets/lottie/plant.json',
+    'assets/lottie/fire.json',
   ];
   String? _selectedLottieAsset;
   static const BoxShadow _streakBadgeShadow = BoxShadow(
@@ -102,7 +103,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       UpdateService.checkForUpdate();
     });
-    _preloadFireLottie();
+
     _pickRandomLottie();
     _streakFuture = _loadStreak();
     if (!_postSplashAnimationShown) {
@@ -130,14 +131,6 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       _selectedLottieAsset =
           _lottieAssets[random.nextInt(_lottieAssets.length)];
     });
-  }
-
-  Future<void> _preloadFireLottie() async {
-    try {
-      await rootBundle.load(_streakFireAsset);
-    } catch (e) {
-      debugPrint('Error precargando fire.json: $e');
-    }
   }
 
   Future<void> _loadFontSize() async {

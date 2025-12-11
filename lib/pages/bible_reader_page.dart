@@ -22,6 +22,16 @@ import 'package:provider/provider.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:share_plus/share_plus.dart' show ShareParams, SharePlus;
 
+// --- Utilidad global para reemplazar firstWhereOrNull ---
+typedef Predicate<T> = bool Function(T);
+
+T? firstWhereOrNull<T>(Iterable<T> items, Predicate<T> test) {
+  for (var item in items) {
+    if (test(item)) return item;
+  }
+  return null;
+}
+
 /// Pure UI presentation layer for Bible Reader
 /// All business logic is handled by BibleReaderController
 class BibleReaderPage extends StatefulWidget {
@@ -119,6 +129,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
           onChapterSelected: (chapterNumber) async {
             Navigator.of(context).pop();
             await _controller!.selectChapter(chapterNumber);
+            if (!mounted) return;
             _scrollToTop(); // Always scroll to top after chapter change
           },
         );
@@ -136,6 +147,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
           selectedBookName: state.selectedBookName,
           onBookSelected: (book) async {
             await _controller!.selectBook(book);
+            if (!mounted) return;
             _scrollToTop();
           },
         );
@@ -295,6 +307,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     final selectedVerses = List.from(_controller!.state.selectedVerses);
     for (final verseKey in selectedVerses) {
       await _controller!.togglePersistentMark(verseKey);
+      if (!mounted) return;
     }
 
     if (!mounted) return;
@@ -326,6 +339,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     for (final verseKey in selectedVerses) {
       // Toggle will remove the mark if it's already marked
       await _controller!.togglePersistentMark(verseKey);
+      if (!mounted) return;
     }
 
     if (!mounted) return;
@@ -343,7 +357,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     scaffoldMessenger.showSnackBar(
       SnackBar(
         content: Text(
-          'bible.deleted_marked_verses'.tr(),
+          'bible.delete_marked_verses'.tr(),
           style: TextStyle(color: colorScheme.onSecondary),
         ),
         backgroundColor: colorScheme.secondary,
@@ -460,6 +474,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
             preferencesService: preferencesService,
           );
           _controller!.initialize(bibleProvider.selectedLanguage);
+          // _controller!.setVersion(firstWhereOrNull(bibleProvider.availableVersions, (v) => v.name == bibleProvider.selectedVersion));
         }
         if (_controller == null) {
           // Safety: fallback loader si por alguna razón no hay controlador
@@ -496,10 +511,46 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
               child: Scaffold(
                 key: _scaffoldKey,
                 endDrawer: BibleReaderDrawer(
-                  availableVersions: state.availableVersions,
-                  selectedVersion: state.selectedVersion,
+                  availableVersions: bibleProvider.availableVersions,
+                  selectedVersion: firstWhereOrNull(
+                    bibleProvider.availableVersions,
+                    (v) => v.name == bibleProvider.selectedVersion,
+                  ),
                   onVersionSelected: (version) async {
-                    await _controller!.switchVersion(version);
+                    final bibleProvider =
+                        Provider.of<BibleSelectedVersionProvider>(context,
+                            listen: false);
+                    await bibleProvider.setVersion(version.name);
+                    if (!mounted) return;
+                    final isDownloaded = bibleProvider.availableVersions
+                        .any((v) => v.name == version.name && v.isDownloaded);
+                    if (!isDownloaded) {
+                      if (!mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                              'La versión seleccionada no está descargada. Por favor, descárguela primero.'),
+                          backgroundColor: Theme.of(context).colorScheme.error,
+                        ),
+                      );
+                      return;
+                    }
+                    setState(() {
+                      _controller?.dispose();
+                      final readerService = widget.readerService ??
+                          BibleReaderService(
+                            dbService: BibleDbService(),
+                            positionService: BibleReadingPositionService(),
+                          );
+                      final preferencesService = widget.preferencesService ??
+                          BiblePreferencesService();
+                      _controller = BibleReaderController(
+                        allVersions: bibleProvider.availableVersions,
+                        readerService: readerService,
+                        preferencesService: preferencesService,
+                      );
+                      _controller!.initialize(bibleProvider.selectedLanguage);
+                    });
                   },
                 ),
                 appBar: PreferredSize(
