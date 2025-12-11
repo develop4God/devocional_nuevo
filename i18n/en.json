@@ -19,9 +19,9 @@
     "voice_feature_continue": "Continue"
   },
   "devotionals": {
-      "modern_voice_title": "🎤✨ New feature available! ✨🎤",
-      "modern_voice_description": "Now you can choose between different voices for devotional reading. Personalize your experience and enjoy a more pleasant and modern reading. 😃🔊",
-      "modern_voice_configure": "Configure voices",
+    "modern_voice_title": "🎤✨ New feature available! ✨🎤",
+    "modern_voice_description": "Now you can choose between different voices for devotional reading. Personalize your experience and enjoy a more pleasant and modern reading. 😃🔊",
+    "modern_voice_configure": "Configure voices",
     "app_title": "Daily Devotionals",
     "my_intimate_space_with_god": "My intimate space with God",
     "devotional_of_the_day": "Devotional of the day",
@@ -235,7 +235,8 @@
     "understood": "Understood",
     "reset_stats": "Reset Stats",
     "reset_confirmation": "Are you sure you want to reset all stats?",
-    "stats_reset": "Stats reset"
+    "stats_reset": "Stats reset",
+    "streak": "streak"
   },
   "errors": {
     "network_error": "Connection error",
@@ -633,7 +634,8 @@
     "error_max_retries": "Download failed after {attempts} attempts. Please try again later.",
     "error_decompression": "Error decompressing file. Please try again.",
     "error_metadata_validation": "Invalid version data.",
-    "error_unknown": "An unexpected error occurred."
+    "error_unknown": "An unexpected error occurred.",
+    "cannot_delete_last": "Cannot delete the last Bible version"
   },
   "thanksgiving": {
     "thanksgiving": "Thanksgiving",

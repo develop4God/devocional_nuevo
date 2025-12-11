@@ -19,9 +19,9 @@
     "voice_feature_continue": "Continuar"
   },
   "devotionals": {
-      "modern_voice_title": "🎤✨ Novo recurso disponível! ✨🎤",
-      "modern_voice_description": "Agora você pode escolher entre diferentes vozes para a leitura devocional. Personalize sua experiência e aproveite uma leitura mais agradável e moderna. 😃🔊",
-      "modern_voice_configure": "Configurar vozes",
+    "modern_voice_title": "🎤✨ Novo recurso disponível! ✨🎤",
+    "modern_voice_description": "Agora você pode escolher entre diferentes vozes para a leitura devocional. Personalize sua experiência e aproveite uma leitura mais agradável e moderna. 😃🔊",
+    "modern_voice_configure": "Configurar vozes",
     "app_title": "Devocionais Diários",
     "my_intimate_space_with_god": "Meu espaço íntimo com Deus",
     "devotional_of_the_day": "Devocional do dia",
@@ -235,7 +235,8 @@
     "understood": "Entendido",
     "reset_stats": "Redefinir estatísticas",
     "reset_confirmation": "Tem certeza de que deseja redefinir todas as estatísticas?",
-    "stats_reset": "Estatísticas redefinidas"
+    "stats_reset": "Estatísticas redefinidas",
+    "streak": "sequência"
   },
   "errors": {
     "network_error": "Erro de rede",
@@ -633,7 +634,8 @@
     "error_max_retries": "O download falhou após {attempts} tentativas. Tente mais tarde.",
     "error_decompression": "Erro ao descompactar arquivo. Tente novamente.",
     "error_metadata_validation": "Dados da versão inválidos.",
-    "error_unknown": "Ocorreu um erro inesperado."
+    "error_unknown": "Ocorreu um erro inesperado.",
+    "cannot_delete_last": "Não é possível excluir a última versão bíblica"
   },
   "thanksgiving": {
     "thanksgiving": "Ação de graças",
