@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io' show gzip;
 
 import 'package:bible_reader_core/bible_reader_core.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -19,8 +20,10 @@ class MockHttpClient implements HttpClient {
     );
   }
 
-  void givenDownloadData(String url, List<int> data) {
-    _downloadData[url] = data;
+  /// Provides compressed (gzipped) download data at the given URL.
+  /// The URL should end with .gz and the data will be automatically compressed.
+  void givenCompressedDownloadData(String url, List<int> uncompressedData) {
+    _downloadData[url] = gzip.encode(uncompressedData);
   }
 
   void givenNetworkError(String urlPattern) {
@@ -187,13 +190,13 @@ void main() {
             'name': 'NVI_es.SQLite3',
             'size': 6356992,
             'download_url':
-                'https://raw.githubusercontent.com/develop4God/bible_versions/main/es/NVI_es.SQLite3',
+                'https://raw.githubusercontent.com/develop4God/bible_versions/main/es/NVI_es.SQLite3.gz',
           },
           {
             'name': 'RVR1960_es.SQLite3',
             'size': 2,
             'download_url':
-                'https://raw.githubusercontent.com/develop4God/bible_versions/main/es/RVR1960_es.SQLite3',
+                'https://raw.githubusercontent.com/develop4God/bible_versions/main/es/RVR1960_es.SQLite3.gz',
           },
         ]);
 
@@ -215,11 +218,12 @@ void main() {
             'name': 'NVI_es.SQLite3',
             'size': 6356992,
             'download_url':
-                'https://raw.githubusercontent.com/develop4God/bible_versions/main/es/NVI_es.SQLite3',
+                'https://raw.githubusercontent.com/develop4God/bible_versions/main/es/NVI_es.SQLite3.gz',
           },
         ]);
-        mockHttp.givenDownloadData(
-          'https://raw.githubusercontent.com/develop4God/bible_versions/main/es/NVI_es.SQLite3',
+        // Use compressed download data for .gz URL
+        mockHttp.givenCompressedDownloadData(
+          'https://raw.githubusercontent.com/develop4God/bible_versions/main/es/NVI_es.SQLite3.gz',
           createValidSqliteData(),
         );
 
@@ -247,13 +251,13 @@ void main() {
             'name': 'KJV_en.SQLite3',
             'size': 2,
             'download_url':
-                'https://raw.githubusercontent.com/develop4God/bible_versions/main/en/KJV_en.SQLite3',
+                'https://raw.githubusercontent.com/develop4God/bible_versions/main/en/KJV_en.SQLite3.gz',
           },
           {
             'name': 'NIV_en.SQLite3',
             'size': 2,
             'download_url':
-                'https://raw.githubusercontent.com/develop4God/bible_versions/main/en/NIV_en.SQLite3',
+                'https://raw.githubusercontent.com/develop4God/bible_versions/main/en/NIV_en.SQLite3.gz',
           },
         ]);
 
@@ -281,11 +285,11 @@ void main() {
             'name': 'KJV_en.SQLite3',
             'size': 5000000,
             'download_url':
-                'https://raw.githubusercontent.com/develop4God/bible_versions/main/en/KJV_en.SQLite3',
+                'https://raw.githubusercontent.com/develop4God/bible_versions/main/en/KJV_en.SQLite3.gz',
           },
         ]);
-        mockHttp.givenDownloadData(
-          'https://raw.githubusercontent.com/develop4God/bible_versions/main/en/KJV_en.SQLite3',
+        mockHttp.givenCompressedDownloadData(
+          'https://raw.githubusercontent.com/develop4God/bible_versions/main/en/KJV_en.SQLite3.gz',
           createValidSqliteData(),
         );
 
@@ -305,13 +309,13 @@ void main() {
             'name': 'リビングバイブル_ja.SQLite3',
             'size': 6193152,
             'download_url':
-                'https://raw.githubusercontent.com/develop4God/bible_versions/main/ja/リビングバイブル_ja.SQLite3',
+                'https://raw.githubusercontent.com/develop4God/bible_versions/main/ja/リビングバイブル_ja.SQLite3.gz',
           },
           {
             'name': '新改訳2003_ja.SQLite3',
             'size': 2,
             'download_url':
-                'https://raw.githubusercontent.com/develop4God/bible_versions/main/ja/新改訳2003_ja.SQLite3',
+                'https://raw.githubusercontent.com/develop4God/bible_versions/main/ja/新改訳2003_ja.SQLite3.gz',
           },
         ]);
 
@@ -332,11 +336,11 @@ void main() {
             'name': 'リビングバイブル_ja.SQLite3',
             'size': 6193152,
             'download_url':
-                'https://raw.githubusercontent.com/develop4God/bible_versions/main/ja/リビングバイブル_ja.SQLite3',
+                'https://raw.githubusercontent.com/develop4God/bible_versions/main/ja/リビングバイブル_ja.SQLite3.gz',
           },
         ]);
-        mockHttp.givenDownloadData(
-          'https://raw.githubusercontent.com/develop4God/bible_versions/main/ja/リビングバイブル_ja.SQLite3',
+        mockHttp.givenCompressedDownloadData(
+          'https://raw.githubusercontent.com/develop4God/bible_versions/main/ja/リビングバイブル_ja.SQLite3.gz',
           createValidSqliteData(),
         );
 
@@ -356,7 +360,7 @@ void main() {
             'name': 'LSG1910_fr.SQLite3',
             'size': 2,
             'download_url':
-                'https://raw.githubusercontent.com/develop4God/bible_versions/main/fr/LSG1910_fr.SQLite3',
+                'https://raw.githubusercontent.com/develop4God/bible_versions/main/fr/LSG1910_fr.SQLite3.gz',
           },
         ]);
 
@@ -380,13 +384,13 @@ void main() {
             'name': 'ARC_pt.SQLite3',
             'size': 5636096,
             'download_url':
-                'https://raw.githubusercontent.com/develop4God/bible_versions/main/pt/ARC_pt.SQLite3',
+                'https://raw.githubusercontent.com/develop4God/bible_versions/main/pt/ARC_pt.SQLite3.gz',
           },
           {
             'name': 'NVI_pt.SQLite3',
             'size': 2,
             'download_url':
-                'https://raw.githubusercontent.com/develop4God/bible_versions/main/pt/NVI_pt.SQLite3',
+                'https://raw.githubusercontent.com/develop4God/bible_versions/main/pt/NVI_pt.SQLite3.gz',
           },
         ]);
 
@@ -407,11 +411,11 @@ void main() {
             'name': 'ARC_pt.SQLite3',
             'size': 5636096,
             'download_url':
-                'https://raw.githubusercontent.com/develop4God/bible_versions/main/pt/ARC_pt.SQLite3',
+                'https://raw.githubusercontent.com/develop4God/bible_versions/main/pt/ARC_pt.SQLite3.gz',
           },
         ]);
-        mockHttp.givenDownloadData(
-          'https://raw.githubusercontent.com/develop4God/bible_versions/main/pt/ARC_pt.SQLite3',
+        mockHttp.givenCompressedDownloadData(
+          'https://raw.githubusercontent.com/develop4God/bible_versions/main/pt/ARC_pt.SQLite3.gz',
           createValidSqliteData(),
         );
 
@@ -453,14 +457,14 @@ void main() {
         mockHttp.givenGitHubApiResponse('fr', []);
         mockHttp.givenGitHubApiResponse('pt', []);
 
-        mockHttp.givenDownloadData(
-            'https://raw.githubusercontent.com/develop4God/bible_versions/main/es/NVI_es.SQLite3',
+        mockHttp.givenCompressedDownloadData(
+            'https://raw.githubusercontent.com/develop4God/bible_versions/main/es/NVI_es.SQLite3.gz',
             createValidSqliteData());
-        mockHttp.givenDownloadData(
-            'https://raw.githubusercontent.com/develop4God/bible_versions/main/en/KJV_en.SQLite3',
+        mockHttp.givenCompressedDownloadData(
+            'https://raw.githubusercontent.com/develop4God/bible_versions/main/en/KJV_en.SQLite3.gz',
             createValidSqliteData());
-        mockHttp.givenDownloadData(
-            'https://raw.githubusercontent.com/develop4God/bible_versions/main/ja/リビングバイブル_ja.SQLite3',
+        mockHttp.givenCompressedDownloadData(
+            'https://raw.githubusercontent.com/develop4God/bible_versions/main/ja/リビングバイブル_ja.SQLite3.gz',
             createValidSqliteData());
 
         // When: User downloads versions from different languages
@@ -624,8 +628,8 @@ void main() {
                 'https://raw.githubusercontent.com/develop4God/bible_versions/main/es/NVI_es.SQLite3'
           },
         ]);
-        mockHttp.givenDownloadData(
-          'https://raw.githubusercontent.com/develop4God/bible_versions/main/es/NVI_es.SQLite3',
+        mockHttp.givenCompressedDownloadData(
+          'https://raw.githubusercontent.com/develop4God/bible_versions/main/es/NVI_es.SQLite3.gz',
           createValidSqliteData(),
         );
 
@@ -662,8 +666,8 @@ void main() {
                 'https://raw.githubusercontent.com/develop4God/bible_versions/main/es/NVI_es.SQLite3'
           },
         ]);
-        mockHttp.givenDownloadData(
-          'https://raw.githubusercontent.com/develop4God/bible_versions/main/es/NVI_es.SQLite3',
+        mockHttp.givenCompressedDownloadData(
+          'https://raw.githubusercontent.com/develop4God/bible_versions/main/es/NVI_es.SQLite3.gz',
           createValidSqliteData(),
         );
         await repository.downloadVersion('es-NVI');

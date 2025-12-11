@@ -104,14 +104,17 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 void main() async {
   developer.log('App: Función main() iniciada.', name: 'MainApp');
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
-  // Habilita mensajes in-app
-  FirebaseInAppMessaging.instance.setMessagesSuppressed(false);
+
+  // NOTA: No inicializamos Firebase ni otros servicios que puedan bloquear
+  // el primer frame aquí para evitar la pantalla negra prolongada.
+  // Inicializaciones pesadas se realizan en AppInitializer en background.
 
   // Setup dependency injection
   setupServiceLocator();
-  developer.log('App: Service locator initialized with DI container.',
-      name: 'MainApp');
+  developer.log(
+    'App: Service locator initialized with DI container.',
+    name: 'MainApp',
+  );
 
   // Configure system UI overlay style for consistent navigation bar appearance
   SystemChrome.setSystemUIOverlayStyle(systemUiOverlayStyle);
@@ -120,20 +123,19 @@ void main() async {
     name: 'MainApp',
   );
 
-  // Configurar el manejador de mensajes FCM en segundo plano
+  // Configurar el manejador de mensajes FCM en segundo plano (no requiere
+  // que Firebase esté inicializado en el main isolate ahora)
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   developer.log(
     'App: Manejador de mensajes FCM en segundo plano registrado.',
     name: 'MainApp',
   );
 
-  // Inicializar providers con idioma correcto antes de runApp
+  // Crear providers SIN bloquear el inicio de la app. La inicialización
+  // (que puede incluir IO/descargas) se hará en background desde
+  // AppInitializer para mantener el primer frame rápido.
   final localizationProvider = LocalizationProvider();
-  await localizationProvider.initialize();
-  final initialLocale = localizationProvider.currentLocale;
   final bibleVersionProvider = BibleSelectedVersionProvider();
-  await bibleVersionProvider.initialize(
-      languageCode: initialLocale.languageCode);
 
   runApp(
     MultiProvider(
@@ -352,11 +354,72 @@ class _AppInitializerState extends State<AppInitializer> {
       backupBloc = context.read<BackupBloc>();
     }
 
+    // --- Capturar providers antes de cualquier await para evitar usar BuildContext tras gaps async ---
+    final localizationProvider = Provider.of<LocalizationProvider>(
+      context,
+      listen: false,
+    );
+    final bibleVersionProvider = Provider.of<BibleSelectedVersionProvider>(
+      context,
+      listen: false,
+    );
+    // --- fin captura ---
+
     // Dar tiempo para que el SplashScreen se muestre
     await Future.delayed(const Duration(milliseconds: 900));
 
     // Inicialización completa de servicios y datos
     await _initServices();
+
+    // Check mounted after async gaps
+    if (!mounted) return;
+
+    // Inicializar providers/datos que no deben bloquear el runApp
+    try {
+      // Si la localización no está inicializada todavía, inicializarla aquí.
+      // Esto es rápido y necesario para conocer el idioma preferido.
+      try {
+        await localizationProvider.initialize();
+        developer.log(
+          'AppInitializer: Localization initialized during background init.',
+          name: 'MainApp',
+        );
+      } catch (e) {
+        developer.log(
+          'AppInitializer: Error inicializando localization en background: $e',
+          name: 'MainApp',
+          error: e,
+        );
+      }
+
+      // Lanzar la inicialización del provider de la Biblia en background y
+      // NO esperar para no bloquear la UI. El provider ya está diseñado para
+      // comprobar primero la cache local y continuar con descargas en background.
+      // ignore: unawaited_futures
+      Future(() async {
+        try {
+          final languageCode = localizationProvider.currentLocale.languageCode;
+          await bibleVersionProvider.initialize(languageCode: languageCode);
+          developer.log(
+            'AppInitializer: BibleVersionProvider initialization fired in background.',
+            name: 'MainApp',
+          );
+        } catch (e) {
+          developer.log(
+            'AppInitializer: Error al inicializar BibleVersionProvider en background: $e',
+            name: 'MainApp',
+            error: e,
+          );
+        }
+      });
+    } catch (e) {
+      developer.log(
+        'AppInitializer: Error lanzando inicialización de providers en background: $e',
+        name: 'MainApp',
+        error: e,
+      );
+    }
+
     await _initAppData();
 
     // Startup backup check cada 24h (non-blocking) - solo si está habilitado
@@ -384,11 +447,30 @@ class _AppInitializerState extends State<AppInitializer> {
 
   Future<void> _initServices() async {
     // Obtener el idioma ANTES de cualquier await para evitar usar context tras async gap
-    final localizationProvider =
-        Provider.of<LocalizationProvider>(context, listen: false);
+    final localizationProvider = Provider.of<LocalizationProvider>(
+      context,
+      listen: false,
+    );
     final languageCode = localizationProvider.currentLocale.languageCode;
     // Inicialización global
     try {
+      // Inicializar Firebase aquí para que no bloquee el primer frame
+      try {
+        await Firebase.initializeApp();
+        // Habilita mensajes in-app una vez Firebase está inicializado
+        FirebaseInAppMessaging.instance.setMessagesSuppressed(false);
+        developer.log(
+          'AppInitializer: Firebase inicializado en background.',
+          name: 'MainApp',
+        );
+      } catch (e) {
+        developer.log(
+          'AppInitializer: Error al inicializar Firebase en background: $e',
+          name: 'MainApp',
+          error: e,
+        );
+      }
+
       tzdata.initializeTimeZones();
       await initializeDateFormatting('es', null);
       developer.log(
@@ -398,7 +480,8 @@ class _AppInitializerState extends State<AppInitializer> {
       // Inicializar TTS proactivamente con el idioma del usuario
       await getService<ITtsService>().initializeTtsOnAppStart(languageCode);
       debugPrint(
-          '[MAIN] TTS inicializado proactivamente con idioma: $languageCode');
+        '[MAIN] TTS inicializado proactivamente con idioma: $languageCode',
+      );
     } catch (e) {
       developer.log(
         'ERROR en AppInitializer: Error al inicializar zona horaria, date formatting o TTS: $e',

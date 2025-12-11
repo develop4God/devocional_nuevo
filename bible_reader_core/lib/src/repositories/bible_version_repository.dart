@@ -790,9 +790,11 @@ class BibleVersionRepository {
     } catch (_) {}
   }
 
-  /// Construye la URL de descarga para una versión bíblica, igual que DevocionalProvider
+  /// Construye la URL de descarga para una versión bíblica comprimida (gzip).
+  /// Uses .gz compressed files to reduce download time from ~54s to ~22s.
   static String getBibleVersionDownloadUrl(String language, String filename) {
-    return 'https://raw.githubusercontent.com/develop4God/bible_versions/main/$language/$filename';
+    // Use compressed .gz file for faster downloads
+    return 'https://raw.githubusercontent.com/develop4God/bible_versions/main/$language/$filename.gz';
   }
 }
 
