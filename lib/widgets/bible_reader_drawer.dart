@@ -61,181 +61,277 @@ class _BibleReaderDrawerContent extends StatefulWidget {
 }
 
 class _BibleReaderDrawerContentState extends State<_BibleReaderDrawerContent> {
-  // Track the version that was tapped for download
   String? _pendingDownloadVersionId;
+  bool _isBlocking = false;
+
+  void _setBlocking(bool value) {
+    if (_isBlocking != value) {
+      setState(() {
+        _isBlocking = value;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    double? downloadProgress;
+    String? downloadVersionName;
+
+    // Obtener progreso real si hay descarga activa
+    final blocState = context.watch<BibleVersionBloc>().state;
+    if (_isBlocking &&
+        _pendingDownloadVersionId != null &&
+        blocState is BibleVersionLoaded) {
+      final targetVersion = blocState.versions.firstWhere(
+        (v) => v.metadata.id == _pendingDownloadVersionId,
+        orElse: () => blocState.versions.first,
+      );
+      downloadProgress = targetVersion.progress;
+      downloadVersionName = targetVersion.metadata.name;
+    }
 
     return Drawer(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       child: SafeArea(
         child: BlocListener<BibleVersionBloc, BibleVersionState>(
           listener: (context, state) {
-            // Handle download completion
+            // Detectar si hay descarga activa
+            bool downloading = false;
             if (state is BibleVersionLoaded &&
                 _pendingDownloadVersionId != null) {
               final targetVersion = state.versions.firstWhere(
                 (v) => v.metadata.id == _pendingDownloadVersionId,
                 orElse: () => state.versions.first,
               );
-
               if (targetVersion.state == DownloadState.downloaded) {
-                // Download completed, switch to version
                 _switchToVersion(context, targetVersion);
                 _pendingDownloadVersionId = null;
+                downloading = false;
+              } else if (targetVersion.state == DownloadState.downloading ||
+                  targetVersion.state == DownloadState.queued) {
+                downloading = true;
               }
             }
+            // Si hay error, desbloquear
+            if (state is BibleVersionError) {
+              downloading = false;
+              _pendingDownloadVersionId = null;
+            }
+            _setBlocking(downloading);
           },
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          child: Stack(
             children: [
-              // Header
-              Container(
-                height: 56,
-                width: double.infinity,
-                color: colorScheme.primary,
-                child: Stack(
+              AbsorbPointer(
+                absorbing: _isBlocking,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Center(
-                      child: AutoSizeText(
-                        'bible.drawer_title'.tr(),
-                        style: textTheme.titleMedium?.copyWith(
-                          fontSize: 18,
-                          color: colorScheme.onPrimary,
-                          fontWeight: FontWeight.w600,
-                        ),
-                        maxLines: 1,
+                    // Header
+                    Container(
+                      height: 56,
+                      width: double.infinity,
+                      color: colorScheme.primary,
+                      child: Stack(
+                        children: [
+                          Center(
+                            child: AutoSizeText(
+                              'bible.drawer_title'.tr(),
+                              style: textTheme.titleMedium?.copyWith(
+                                fontSize: 18,
+                                color: colorScheme.onPrimary,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              maxLines: 1,
+                            ),
+                          ),
+                          Positioned(
+                            right: 8,
+                            top: 0,
+                            bottom: 0,
+                            child: IconButton(
+                              icon: const Icon(Icons.close_outlined,
+                                  color: Colors.white),
+                              onPressed: _isBlocking
+                                  ? null
+                                  : () => Navigator.of(context).pop(),
+                              tooltip: 'drawer.close'.tr(),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    Positioned(
-                      right: 8,
-                      top: 0,
-                      bottom: 0,
-                      child: IconButton(
-                        icon: const Icon(Icons.close_outlined,
-                            color: Colors.white),
-                        onPressed: () => Navigator.of(context).pop(),
-                        tooltip: 'drawer.close'.tr(),
+                    // Content
+                    Expanded(
+                      child: BlocBuilder<BibleVersionBloc, BibleVersionState>(
+                        builder: (context, state) {
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 12),
+                            child: ListView(
+                              children: [
+                                const SizedBox(height: 15),
+                                // Selected version section
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 10),
+                                  child: Text(
+                                    'bible.current_version'.tr(),
+                                    style: textTheme.titleMedium?.copyWith(
+                                      color: colorScheme.onSurface,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                                // Current version chip
+                                if (widget.selectedVersion != null)
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 12, vertical: 8),
+                                    decoration: BoxDecoration(
+                                      color: colorScheme.primaryContainer,
+                                      borderRadius: BorderRadius.circular(10),
+                                      border: Border.all(
+                                        color:
+                                            colorScheme.primary.withAlpha(100),
+                                      ),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons.check_circle,
+                                            color: colorScheme.primary,
+                                            size: 20),
+                                        const SizedBox(width: 8),
+                                        Expanded(
+                                          child: AutoSizeText(
+                                            '${widget.selectedVersion!.name} (${widget.selectedVersion!.language})',
+                                            style:
+                                                textTheme.bodyMedium?.copyWith(
+                                              fontWeight: FontWeight.w600,
+                                              color: colorScheme
+                                                  .onPrimaryContainer,
+                                            ),
+                                            maxLines: 1,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                const SizedBox(height: 20),
+
+                                // Available versions grouped by language
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 10),
+                                  child: Text(
+                                    'bible.available_versions'.tr(),
+                                    style: textTheme.titleMedium?.copyWith(
+                                      color: colorScheme.onSurface,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+
+                                // Show loading indicator if bloc is still loading
+                                if (state is BibleVersionLoading)
+                                  const Center(
+                                    child: Padding(
+                                      padding: EdgeInsets.all(20),
+                                      child: CircularProgressIndicator(),
+                                    ),
+                                  )
+                                else if (state is BibleVersionLoaded)
+                                  _buildVersionsList(context, state)
+                                else if (state is BibleVersionError)
+                                  _buildLocalVersionsList(context)
+                                else
+                                  _buildLocalVersionsList(context),
+
+                                Divider(
+                                  height: 32,
+                                  color: colorScheme.outline.withAlpha(100),
+                                ),
+
+                                // Manage all versions option (kept for version deletion)
+                                _DrawerRow(
+                                  icon: Icons.settings_outlined,
+                                  iconColor: colorScheme.primary,
+                                  label: Text(
+                                    'bible.manage_versions'.tr(),
+                                    style: textTheme.bodyMedium?.copyWith(
+                                      fontSize: 16,
+                                      color: colorScheme.onSurface,
+                                    ),
+                                  ),
+                                  onTap: () {
+                                    Navigator.of(context).pop();
+                                    Navigator.of(context)
+                                        .pushNamed('/bible_versions_manager');
+                                  },
+                                ),
+                              ],
+                            ),
+                          );
+                        },
                       ),
                     ),
                   ],
                 ),
               ),
-              // Content
-              Expanded(
-                child: BlocBuilder<BibleVersionBloc, BibleVersionState>(
-                  builder: (context, state) {
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 12),
-                      child: ListView(
+              if (_isBlocking)
+                Positioned.fill(
+                  child: Container(
+                    color: Colors.black.withOpacity(0.35),
+                    child: Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          const SizedBox(height: 15),
-                          // Selected version section
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 10),
-                            child: Text(
-                              'bible.current_version'.tr(),
-                              style: textTheme.titleMedium?.copyWith(
-                                color: colorScheme.onSurface,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                          // Current version chip
-                          if (widget.selectedVersion != null)
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 12, vertical: 8),
-                              decoration: BoxDecoration(
-                                color: colorScheme.primaryContainer,
-                                borderRadius: BorderRadius.circular(10),
-                                border: Border.all(
-                                  color: colorScheme.primary.withAlpha(100),
+                          SizedBox(
+                            width: 64,
+                            height: 64,
+                            child: Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                CircularProgressIndicator(
+                                  value: (downloadProgress != null &&
+                                          downloadProgress > 0 &&
+                                          downloadProgress <= 1)
+                                      ? downloadProgress
+                                      : null,
+                                  strokeWidth: 5,
+                                  color: Colors.white,
                                 ),
-                              ),
-                              child: Row(
-                                children: [
-                                  Icon(Icons.check_circle,
-                                      color: colorScheme.primary, size: 20),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: AutoSizeText(
-                                      '${widget.selectedVersion!.name} (${widget.selectedVersion!.language})',
-                                      style: textTheme.bodyMedium?.copyWith(
-                                        fontWeight: FontWeight.w600,
-                                        color: colorScheme.onPrimaryContainer,
-                                      ),
-                                      maxLines: 1,
+                                if (downloadProgress != null &&
+                                    downloadProgress > 0 &&
+                                    downloadProgress <= 1)
+                                  Text(
+                                    '${(downloadProgress * 100).toStringAsFixed(0)}%',
+                                    style: textTheme.titleLarge?.copyWith(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
                                     ),
                                   ),
-                                ],
-                              ),
-                            ),
-                          const SizedBox(height: 20),
-
-                          // Available versions grouped by language
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 10),
-                            child: Text(
-                              'bible.available_versions'.tr(),
-                              style: textTheme.titleMedium?.copyWith(
-                                color: colorScheme.onSurface,
-                                fontWeight: FontWeight.w600,
-                              ),
+                              ],
                             ),
                           ),
-
-                          // Show loading indicator if bloc is still loading
-                          if (state is BibleVersionLoading)
-                            const Center(
-                              child: Padding(
-                                padding: EdgeInsets.all(20),
-                                child: CircularProgressIndicator(),
-                              ),
-                            )
-                          else if (state is BibleVersionLoaded)
-                            _buildVersionsList(context, state)
-                          else if (state is BibleVersionError)
-                            _buildLocalVersionsList(context)
-                          else
-                            _buildLocalVersionsList(context),
-
-                          Divider(
-                            height: 32,
-                            color: colorScheme.outline.withAlpha(100),
-                          ),
-
-                          // Manage all versions option (kept for version deletion)
-                          _DrawerRow(
-                            icon: Icons.settings_outlined,
-                            iconColor: colorScheme.primary,
-                            label: Text(
-                              'bible.manage_versions'.tr(),
-                              style: textTheme.bodyMedium?.copyWith(
-                                fontSize: 16,
-                                color: colorScheme.onSurface,
-                              ),
-                            ),
-                            onTap: () {
-                              Navigator.of(context).pop();
-                              Navigator.of(context)
-                                  .pushNamed('/bible_versions_manager');
-                            },
+                          const SizedBox(height: 18),
+                          Text(
+                            downloadVersionName != null
+                                ? 'Descargando "$downloadVersionName"...'
+                                : 'Descargando versión bíblica... Por favor espera.',
+                            style: textTheme.bodyLarge?.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold),
+                            textAlign: TextAlign.center,
                           ),
                         ],
                       ),
-                    );
-                  },
+                    ),
+                  ),
                 ),
-              ),
             ],
           ),
-        ), // closes BlocListener
-      ), // closes SafeArea
+        ),
+      ),
     ); // closes Drawer
   }
 

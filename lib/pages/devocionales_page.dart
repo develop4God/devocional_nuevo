@@ -82,8 +82,8 @@ class _DevocionalesPageState extends State<DevocionalesPage>
   ];
   String? _selectedLottieAsset;
   static const BoxShadow _streakBadgeShadow = BoxShadow(
-    color: Color.fromRGBO(0, 0, 0, 0.1),
-    blurRadius: 8,
+    color: Color.fromRGBO(0, 0, 0, 0.3),
+    blurRadius: 5,
     offset: Offset(0, 4),
   );
   static const String _streakFireAsset = 'assets/lottie/fire.json';
