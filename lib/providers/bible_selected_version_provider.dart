@@ -386,4 +386,9 @@ class BibleSelectedVersionProvider extends ChangeNotifier {
       return false;
     }
   }
+
+  /// Verifica si la versión está descargada para el idioma actual
+  Future<bool> isVersionDownloaded() async {
+    return await _isVersionDownloaded(_selectedLanguage, _selectedVersion);
+  }
 }
