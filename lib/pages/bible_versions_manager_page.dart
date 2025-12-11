@@ -7,6 +7,7 @@ import '../blocs/bible_version/bible_version_bloc.dart';
 import '../blocs/bible_version/bible_version_event.dart';
 import '../blocs/bible_version/bible_version_state.dart';
 import '../extensions/string_extensions.dart';
+import '../providers/bible_selected_version_provider.dart';
 import '../providers/localization_provider.dart';
 import '../services/service_locator.dart';
 import '../utils/constants.dart';
@@ -80,6 +81,14 @@ class _BibleVersionsManagerView extends StatelessWidget {
             final filteredVersions = state.versions
                 .where((v) => v.metadata.language == currentLanguageCode)
                 .toList();
+            // Ordenar: la versión seleccionada primero
+            final selectedVersion =
+                context.read<BibleSelectedVersionProvider>().selectedVersion;
+            filteredVersions.sort((a, b) {
+              if (a.metadata.id == selectedVersion) return -1;
+              if (b.metadata.id == selectedVersion) return 1;
+              return 0;
+            });
             return _VersionsList(
               versions: filteredVersions,
               languageName: currentLanguageName,
