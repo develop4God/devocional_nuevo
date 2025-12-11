@@ -579,10 +579,19 @@ class _DevocionalesPageState extends State<DevocionalesPage>
             child: SizedBox(
               width: 28,
               height: 28,
-              child: Lottie.asset(
+              child: LottieBuilder.asset(
                 _streakFireAsset,
                 repeat: true,
                 animate: true,
+                frameRate: FrameRate.max,
+                errorBuilder: (context, error, stackTrace) {
+                  debugPrint('🔥 Error loading fire.json: $error');
+                  return const Icon(
+                    Icons.local_fire_department,
+                    size: 28,
+                    color: Colors.orange,
+                  );
+                },
               ),
             ),
           ),
