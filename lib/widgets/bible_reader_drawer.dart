@@ -204,7 +204,12 @@ class _BibleReaderDrawerContentState extends State<_BibleReaderDrawerContent> {
                                         const SizedBox(width: 8),
                                         Expanded(
                                           child: AutoSizeText(
-                                            '${widget.selectedVersion!.name} (${widget.selectedVersion!.language})',
+                                            CopyrightUtils
+                                                .getBibleVersionDisplayName(
+                                              widget.selectedVersion!
+                                                  .languageCode,
+                                              widget.selectedVersion!.name,
+                                            ),
                                             style:
                                                 textTheme.bodyMedium?.copyWith(
                                               fontWeight: FontWeight.w600,
