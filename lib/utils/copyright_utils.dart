@@ -8,6 +8,8 @@ class CopyrightUtils {
             'El texto bíblico Reina-Valera 1960® Sociedades Bíblicas en América Latina, 1960. Derechos renovados 1988, Sociedades Bíblicas Unidas.',
         'NVI':
             'El texto bíblico Nueva Versión Internacional® © 1999 Biblica, Inc. Todos los derechos reservados.',
+        'NTV':
+            'Santa Biblia, Nueva Traducción Viviente, copyright © 2010 by Tyndale House Foundation.',
         'default':
             'El texto bíblico Reina-Valera 1960® Sociedades Bíblicas en América Latina, 1960. Derechos renovados 1988, Sociedades Bíblicas Unidas.',
       },
@@ -15,12 +17,16 @@ class CopyrightUtils {
         'KJV': 'The biblical text King James Version® Public Domain.',
         'NIV':
             'The biblical text New International Version® © 2011 Biblica, Inc. All rights reserved.',
+        'ESV':
+            'The Holy Bible, English Standard Version Copyright © 2001 by Crossway Bibles, a publishing ministry of Good News Publishers.',
         'default': 'The biblical text King James Version® Public Domain.',
       },
       'pt': {
         'ARC': 'O texto bíblico Almeida Revista e Corrigida® Domínio Público.',
         'NVI':
             'O texto bíblico Nova Versão Internacional® © 2000 Biblica, Inc. Todos os direitos reservados.',
+        'NTLH':
+            'O texto bíblico Nova Tradução na Linguagem de Hoje® ©, 2000 Sociedade Bíblica do Brasil. Todos os direitos reservados.',
         'default':
             'O texto bíblico Almeida Revista e Corrigida® Domínio Público.',
       },
@@ -28,15 +34,30 @@ class CopyrightUtils {
         'LSG1910': 'Le texte biblique Louis Segond 1910® Domaine Public.',
         'TOB':
             'Le texte biblique Traduction Oecuménique de la Bible® © Société Biblique Française et Éditions du Cerf.',
+        // Nouvelle Bible Segond (BDS) 2002 - texto exacto proporcionado
+        'BDS':
+            'Nouvelle Bible Segond, 2002. Copyright © 2002, Société biblique française. Avec autorisation. Tous droits réservés.',
+        // La Bible du Semeur (2015) - texto exacto proporcionado (incluye líneas en inglés/fr)
+        'NBS':
+            'La Bible du Semeur, 2015. Copyright © 1992, 1999, 2015 by Biblica, Inc.®\nCopyright © 1992, 1999, 2015 par Biblica, Inc.®',
         'default': 'Le texte biblique Louis Segond 1910® Domaine Public.',
       },
       'ja': {
-        'SK2003': '聖書本文 新改訳2003聖書® © 2003 新日本聖書刊行会。すべての権利が保護されています。',
-        'JCB': '聖書本文 JCB日本語共同訳聖書® © 2018 日本聖書協会。すべての権利が保護されています。',
-        'devocional': 'デボーション著作権 © 2025 develop4God. 無断転載・複製を禁じます。',
-        'KJV': '聖書本文 キング・ジェームズ版® パブリックドメイン。',
-        'NIV': '聖書本文 新国際版® © 2011 Biblica, Inc. すべての権利が保護されています。',
-        'default': '聖書本文 新改訳聖書® パブリックドメイン。',
+        '新改訳2003':
+            '\u8056\u66f8\u672c\u6587 \u65b0\u6539\u8a332003\u8056\u66f8\u00ae \u00a9 2003 \u65b0\u65e5\u672c\u8056\u66f8\u520a\u884c\u4f1a\u3002\u3059\u3079\u3066\u306e\u6a29\u5229\u304c\u4fdd\u8b77\u3055\u308c\u3066\u3044\u307e\u3059\u3002',
+        'リビングバイブル':
+            '\u8056\u66f8\u672c\u6587 \u30ea\u30d3\u30f3\u30b0\u30d0\u30a4\u30d6\u30eb\u65e5\u672c\u8a9e\u5171\u540c\u8a33\u8056\u66f8\u00ae \u00a9 2018 \u65e5\u672c\u8056\u66f8\u5354\u4f1a\u3002\u3059\u3079\u3066\u306e\u6a29\u5229\u304c\u4fdd\u8b77\u3055\u308c\u3066\u3044\u307e\u3059\u3002',
+        // 口語訳 (Kougo-yaku) — Colloquial Japanese, texto y nota solicitada
+        '口語訳':
+            '\u53e3\u8a9e\u8a33\u8056\u66f8 (\u30eb\u30d3\u3042\u308a) \u53e3\u8a9e\u8a33\u8056\u66f8\uff08\u30eb\u30d3\u3042\u308a\uff09 \u00a9 1954/1955. Colloquial Japanese - Kougo-yaku. 口語訳聖書(ルビあり).',
+        'devocional':
+            '\u30c7\u30dc\u30fc\u30b7\u30e7\u30f3\u8457\u4f5c\u6a29 \u00a9 2025 develop4God. \u7121\u65ad\u8ee2\u8f09\u30fb\u8907\u88fd\u3092\u7981\u3058\u307e\u3059\u3002',
+        'KJV':
+            '\u8056\u66f8\u672c\u6587 \u30ad\u30f3\u30b0\u30fb\u30b8\u30a7\u30fc\u30e0\u30ba\u7248\u00ae \u30d1\u30d6\u30ea\u30c3\u30af\u30c9\u30e1\u30a4\u30f3\u3002',
+        'NIV':
+            '\u8056\u66f8\u672c\u6587 \u65b0\u56fd\u969b\u7248\u00ae \u00a9 2011 Biblica, Inc. \u3059\u3079\u3066\u306e\u6a29\u5229\u304c\u4fdd\u8b77\u3055\u308c\u3066\u3044\u307e\u3059\u3002',
+        'default':
+            '\u8056\u66f8\u672c\u6587 \u65b0\u6539\u8a33\u8056\u66f8\u00ae \u30d1\u30d6\u30ea\u30c3\u30af\u30c9\u30e1\u30a4\u30f3\u3002',
       },
     };
 
@@ -50,24 +71,31 @@ class CopyrightUtils {
       'es': {
         'RVR1960': 'Reina Valera 1960',
         'NVI': 'Nueva Versión Internacional',
+        'NTV': 'Nueva Traducción Viviente',
       },
       'en': {
         'KJV': 'King James Version',
         'NIV': 'New International Version',
+        'ESV': 'English Standard Version',
       },
       'pt': {
         'ARC': 'Almeida Revista e Corrigida',
         'NVI': 'Nova Versão Internacional',
+        'NTL': 'HNova Tradução na Linguagem de Hoje',
       },
       'fr': {
+        'BDS': 'Nouvelle Bible Segond, 2002',
+        'NBS': 'La Bible du Semeur, 2015',
         'LSG1910': 'Louis Segond 1910',
         'TOB': 'Traduction Oecuménique de la Bible',
       },
       'ja': {
-        'SK2003': '新改訳2003聖書',
-        'JCB': '日本語共同訳聖書',
-        'KJV': 'キング・ジェームズ版',
-        'NIV': '新国際版',
+        '口語訳': '口語訳聖書(ルビあり), Colloquial Japanese - Kougo-yaku, 1954/1955',
+        '新改訳2003': '\u65b0\u6539\u8a332003\u8056\u66f8',
+        'リビングバイブル':
+            '\u30ea\u30d3\u30f3\u30b0\u30d0\u30a4\u30d6\u30eb\u65e5\u672c\u8a9e\u5171\u540c\u8a33\u8056\u66f8',
+        'KJV': '\u30ad\u30f3\u30b0\u30fb\u30b8\u30a7\u30fc\u30e0\u30ba\u7248',
+        'NIV': '\u65b0\u56fd\u969b\u7248',
       },
     };
 

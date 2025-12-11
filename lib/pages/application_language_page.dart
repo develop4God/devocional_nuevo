@@ -8,6 +8,7 @@ import 'package:devocional_nuevo/utils/constants.dart';
 import 'package:devocional_nuevo/widgets/app_bar_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -24,6 +25,12 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
   final Map<String, double> _downloadProgress = {};
   final Map<String, bool> _isDownloading = {};
   String? _currentLanguage;
+  String? _languageInProgress;
+
+  bool _globalLoading = false;
+  double _globalProgress = 0.0;
+  String? _globalLanguage;
+  String? _globalError;
 
   @override
   void initState() {
@@ -66,9 +73,15 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
     final isCurrentLanguage = languageCode == _currentLanguage;
     final isDownloading = _isDownloading[languageCode] ?? false;
     final progress = _downloadProgress[languageCode] ?? 0.0;
+    final isProcessing = _languageInProgress == languageCode;
+    final isLocked =
+        _languageInProgress != null && _languageInProgress != languageCode;
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      color: isProcessing
+          ? theme.colorScheme.primaryContainer.withAlpha(40)
+          : null,
       child: ListTile(
         leading: CircleAvatar(
           backgroundColor: isCurrentLanguage
@@ -90,10 +103,12 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
         subtitle: _buildLanguageSubtitle(
             languageCode, isCurrentLanguage, isDownloaded, theme),
         trailing: _buildTrailingWidget(
-            languageCode, isDownloaded, isDownloading, progress, theme),
-        onTap: (isDownloading || (isDownloaded && isCurrentLanguage))
-            ? null
-            : () => _onChangeLanguage(languageCode),
+            languageCode, isDownloaded, isDownloading, progress, theme,
+            isProcessing: isProcessing),
+        onTap:
+            (isDownloading || isLocked || (isDownloaded && isCurrentLanguage))
+                ? null
+                : () => _onChangeLanguage(languageCode),
       ),
     );
   }
@@ -119,8 +134,9 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
   }
 
   Widget _buildTrailingWidget(String languageCode, bool isDownloaded,
-      bool isDownloading, double progress, ThemeData theme) {
-    if (isDownloading) {
+      bool isDownloading, double progress, ThemeData theme,
+      {required bool isProcessing}) {
+    if (isDownloading || isProcessing) {
       return SizedBox(
         width: 60,
         child: Column(
@@ -171,6 +187,57 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
     final theme = Theme.of(context);
     final themeState = context.watch<ThemeBloc>().state as ThemeLoaded;
 
+    if (_globalLoading) {
+      return AnnotatedRegion<SystemUiOverlayStyle>(
+        value: themeState.systemUiOverlayStyle,
+        child: Scaffold(
+          appBar: CustomAppBar(
+            titleText: 'application_language.title'.tr(),
+          ),
+          backgroundColor: theme.colorScheme.surface,
+          body: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SizedBox(
+                  height: 180,
+                  child: Lottie.asset(
+                    'assets/lottie/language_translation.json',
+                    repeat: true,
+                    animate: true,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Text(
+                  'application_language.loading_language'
+                      .tr({'language': _globalLanguage ?? ''}),
+                  style: theme.textTheme.titleMedium,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+                Text('${(_globalProgress * 100).toInt()}%',
+                    style: theme.textTheme.bodyMedium),
+                if (_globalError != null) ...[
+                  const SizedBox(height: 16),
+                  Text(_globalError!, style: TextStyle(color: Colors.red)),
+                  ElevatedButton.icon(
+                    icon: const Icon(Icons.refresh),
+                    label: Text('Reintentar'),
+                    onPressed: () {
+                      setState(() {
+                        _globalLoading = false;
+                        _globalError = null;
+                      });
+                    },
+                  ),
+                ]
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: themeState.systemUiOverlayStyle,
       child: Scaffold(
@@ -200,37 +267,80 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
   }
 
   void _onChangeLanguage(String languageCode) async {
-    final localizationProvider =
-        Provider.of<LocalizationProvider>(context, listen: false);
-    final devocionalProvider =
-        Provider.of<DevocionalProvider>(context, listen: false);
-    final bibleVersionProvider =
-        Provider.of<BibleSelectedVersionProvider>(context, listen: false);
-
-    // Cambiar el idioma en el provider de localización
-    await localizationProvider.changeLanguage(languageCode);
-
-    // Actualizar el idioma seleccionado en DevocionalProvider
-    devocionalProvider.setSelectedLanguage(languageCode);
-
-    // Establecer la versión predeterminada para el idioma
-    final defaultVersion = Constants.defaultVersionByLanguage[languageCode];
-    if (defaultVersion != null) {
-      devocionalProvider.setSelectedVersion(defaultVersion);
+    if (_languageInProgress != null || _globalLoading) return;
+    setState(() {
+      _globalLoading = true;
+      _globalProgress = 0.0;
+      _globalLanguage =
+          Constants.supportedLanguages[languageCode] ?? languageCode;
+      _globalError = null;
+      _languageInProgress = languageCode;
+      _isDownloading[languageCode] = true;
+      _downloadProgress[languageCode] = 0.0;
+    });
+    try {
+      // Simular progreso real (puedes conectar aquí el callback real si lo tienes)
+      for (int i = 1; i <= 10; i++) {
+        await Future.delayed(const Duration(milliseconds: 120));
+        if (!context.mounted) return;
+        setState(() {
+          _globalProgress = i / 10.0;
+        });
+      }
+      final localizationProvider =
+          Provider.of<LocalizationProvider>(context, listen: false);
+      final devocionalProvider =
+          Provider.of<DevocionalProvider>(context, listen: false);
+      final bibleVersionProvider =
+          Provider.of<BibleSelectedVersionProvider>(context, listen: false);
+      await localizationProvider.changeLanguage(languageCode);
+      devocionalProvider.setSelectedLanguage(languageCode);
+      final defaultVersion = Constants.defaultVersionByLanguage[languageCode];
+      if (defaultVersion != null) {
+        devocionalProvider.setSelectedVersion(defaultVersion);
+      }
+      devocionalProvider.audioController.ttsService
+          .setLanguageContext(languageCode, defaultVersion ?? '');
+      await devocionalProvider.audioController.ttsService
+          .setLanguage(localizationProvider.getTtsLocale());
+      await bibleVersionProvider.setLanguage(languageCode, fromSettings: true);
+      if (!mounted) return;
+      setState(() {
+        _currentLanguage = languageCode;
+        _downloadStatus[languageCode] = true;
+        _isDownloading[languageCode] = false;
+        _languageInProgress = null;
+        _globalLoading = false;
+        _globalProgress = 1.0;
+      });
+      // Usar context de forma segura tras awaits
+      final scaffoldMessenger = ScaffoldMessenger.of(context);
+      final snackBarBackground =
+          Theme.of(context).appBarTheme.backgroundColor ??
+              Theme.of(context).colorScheme.primary;
+      scaffoldMessenger.showSnackBar(
+        SnackBar(
+          backgroundColor: snackBarBackground,
+          content: Text(
+            'application_language.current_language'.tr(),
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      );
+      Navigator.of(context).pop();
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _globalError = 'application_language.download_failed'.tr();
+        _globalLoading = true;
+      });
     }
-
-    // Cambiar el contexto de TTS al idioma y versión seleccionados
-    devocionalProvider.audioController.ttsService
-        .setLanguageContext(languageCode, defaultVersion ?? '');
-    // Usar el metodo getTtsLocale del provider de localización
-    await devocionalProvider.audioController.ttsService
-        .setLanguage(localizationProvider.getTtsLocale());
-
-    // Cambiar el idioma de la versión bíblica para ajustar automáticamente la versión por defecto
-    await bibleVersionProvider.setLanguage(languageCode, fromSettings: true);
-
-    // Volver a la pantalla anterior
-    if (!mounted) return;
-    Navigator.pop(context);
   }
 }

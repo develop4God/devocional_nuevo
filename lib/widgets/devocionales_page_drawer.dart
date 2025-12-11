@@ -319,10 +319,11 @@ class DevocionalesDrawer extends StatelessWidget {
                                   String displayText = itemValue;
                                   if (devocionalProvider.selectedLanguage ==
                                       'ja') {
-                                    if (itemValue == 'SK2003') {
-                                      displayText = '新改訳 2003';
-                                    } else if (itemValue == 'JCB') {
-                                      displayText = '新共同訳';
+                                    if (itemValue == '新改訳2003') {
+                                      displayText = '\u65b0\u6539\u8a33 2003';
+                                    } else if (itemValue == 'リビングバイブル') {
+                                      displayText =
+                                          '\u30ea\u30d3\u30f3\u30b0\u30d0\u30a4\u30d6\u30eb';
                                     }
                                   }
                                   return Row(
@@ -344,10 +345,11 @@ class DevocionalesDrawer extends StatelessWidget {
                                 String displayText = itemValue;
                                 if (devocionalProvider.selectedLanguage ==
                                     'ja') {
-                                  if (itemValue == 'SK2003') {
-                                    displayText = '新改訳 2003';
-                                  } else if (itemValue == 'JCB') {
-                                    displayText = '新共同訳';
+                                  if (itemValue == '新改訳2003') {
+                                    displayText = '\u65b0\u6539\u8a33 2003';
+                                  } else if (itemValue == 'リビングバイブル') {
+                                    displayText =
+                                        '\u30ea\u30d3\u30f3\u30b0\u30d0\u30a4\u30d6\u30eb';
                                   }
                                 }
                                 return DropdownMenuItem<String>(
