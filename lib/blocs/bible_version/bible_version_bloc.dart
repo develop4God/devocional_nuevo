@@ -80,14 +80,20 @@ class BibleVersionBloc extends Bloc<BibleVersionEvent, BibleVersionState> {
       }
       final downloadedIds = await repository.getDownloadedVersionIds();
 
-      // Convert to versions with state
+      // Obtener el id de la versión seleccionada (si está disponible)
+      final selectedVersionId = event.selectedVersionId;
+
+      // Convert to versions with state, marcando la seleccionada
       final versions = metadata.map((m) {
         final isDownloaded = downloadedIds.contains(m.id);
+        final isSelected =
+            selectedVersionId != null && m.id == selectedVersionId;
         return BibleVersionWithState(
           metadata: m,
           state: isDownloaded
               ? DownloadState.downloaded
               : DownloadState.notDownloaded,
+          isSelected: isSelected,
         );
       }).toList();
 

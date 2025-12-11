@@ -28,13 +28,20 @@ class BibleReaderDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final selectedLanguage =
-        Provider.of<BibleSelectedVersionProvider>(context, listen: false)
-            .selectedLanguage;
     return BlocProvider(
-      create: (context) => BibleVersionBloc(
-        repository: getService<BibleVersionRepository>(),
-      )..add(LoadBibleVersionsEvent(languageCode: selectedLanguage)),
+      create: (context) {
+        final selectedLanguage =
+            Provider.of<BibleSelectedVersionProvider>(context, listen: false)
+                .selectedLanguage;
+        final selectedVersionName = selectedVersion?.name;
+        return BibleVersionBloc(
+          repository: getService<BibleVersionRepository>(),
+        )..add(LoadBibleVersionsEvent(
+            languageCode: selectedLanguage,
+            selectedVersionId:
+                selectedVersionName, // Usar name como identificador
+          ));
+      },
       child: _BibleReaderDrawerContent(
         availableVersions: availableVersions,
         selectedVersion: selectedVersion,
@@ -343,11 +350,12 @@ class _BibleReaderDrawerContentState extends State<_BibleReaderDrawerContent> {
         BibleVersionRepository.languageNames[currentLanguage] ??
             currentLanguage;
 
-    // Ordenar: la versión seleccionada primero
-    final selectedVersionId = bibleProvider.selectedVersion;
+    // Obtener el id de la versión seleccionada (usamos name por compatibilidad)
+    final selectedVersionId = widget.selectedVersion?.name;
+
     // Filtrar la versión seleccionada para que NO aparezca en la lista de disponibles
     versions =
-        versions.where((v) => v.metadata.id != selectedVersionId).toList();
+        versions.where((v) => v.metadata.name != selectedVersionId).toList();
 
     // Contar cuántas versiones descargadas hay
     final downloaded =
@@ -373,7 +381,7 @@ class _BibleReaderDrawerContentState extends State<_BibleReaderDrawerContent> {
             .where((version) =>
                 version.errorCode != BibleVersionErrorCode.corrupted)
             .map((version) {
-          final isSelected = version.metadata.id == selectedVersionId;
+          final isSelected = version.metadata.name == selectedVersionId;
           final isDownloaded = version.state == DownloadState.downloaded;
           final isDownloading = version.state == DownloadState.downloading;
           final isQueued = version.state == DownloadState.queued;

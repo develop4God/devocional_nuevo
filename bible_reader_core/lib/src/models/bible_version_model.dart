@@ -1,5 +1,5 @@
-import '../exceptions/bible_version_exceptions.dart';
 import '../exceptions/bible_version_error_code.dart';
+import '../exceptions/bible_version_exceptions.dart';
 
 /// Valid ISO 639-1 language codes for Bible versions.
 const Set<String> _validLanguageCodes = {
@@ -315,6 +315,9 @@ class BibleVersionWithState {
   /// 0 means not in queue, 1 means next to download.
   final int queuePosition;
 
+  /// Flag to indicate if this version is currently selected.
+  final bool isSelected;
+
   /// Creates a version with state.
   const BibleVersionWithState({
     required this.metadata,
@@ -323,6 +326,7 @@ class BibleVersionWithState {
     this.errorCode,
     this.errorContext,
     this.queuePosition = 0,
+    this.isSelected = false,
   });
 
   /// Creates a copy with optionally modified fields.
@@ -336,6 +340,7 @@ class BibleVersionWithState {
     Map<String, dynamic>? errorContext,
     bool clearError = false,
     int? queuePosition,
+    bool? isSelected,
   }) {
     return BibleVersionWithState(
       metadata: metadata ?? this.metadata,
@@ -344,6 +349,7 @@ class BibleVersionWithState {
       errorCode: clearError ? null : (errorCode ?? this.errorCode),
       errorContext: clearError ? null : (errorContext ?? this.errorContext),
       queuePosition: queuePosition ?? this.queuePosition,
+      isSelected: isSelected ?? this.isSelected,
     );
   }
 
