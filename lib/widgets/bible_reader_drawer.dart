@@ -340,6 +340,7 @@ class _BibleReaderDrawerContentState extends State<_BibleReaderDrawerContent> {
 
     // Ordenar: la versión seleccionada primero
     final selectedVersionId = bibleProvider.selectedVersion;
+    // Filtrar la versión seleccionada para que NO aparezca en la lista de disponibles
     versions =
         versions.where((v) => v.metadata.id != selectedVersionId).toList();
 
@@ -561,9 +562,15 @@ class _BibleReaderDrawerContentState extends State<_BibleReaderDrawerContent> {
 
   /// Fallback: show local versions if BLoC fails
   Widget _buildLocalVersionsList(BuildContext context) {
+    // Filtrar la versión seleccionada para que NO aparezca en la lista de disponibles
+    final selectedVersionId = widget.selectedVersion?.name;
+    final filteredVersions = widget.availableVersions
+        .where((v) => v.name != selectedVersionId)
+        .toList();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: widget.availableVersions.map((version) {
+      children: filteredVersions.map((version) {
         final isSelected = version.name == widget.selectedVersion?.name;
         return _VersionTile(
           version: version,
