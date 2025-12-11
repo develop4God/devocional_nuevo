@@ -389,16 +389,15 @@ class BibleSelectedVersionProvider extends ChangeNotifier {
     _selectedVersion = versionObj.name;
     _logger.i('[BibleProvider] URL de descarga: ${versionObj.downloadUrl}');
 
-    try {
-      // Subscribe to progress updates
-      final progressSubscription =
-          _repository.downloadProgress(versionObj.id).listen((progress) {
-        _downloadProgress = progress;
-        notifyListeners();
-      });
+    // Subscribe to progress updates with proper cleanup
+    final progressSubscription =
+        _repository.downloadProgress(versionObj.id).listen((progress) {
+      _downloadProgress = progress;
+      notifyListeners();
+    });
 
+    try {
       await _repository.downloadVersion(versionObj.id);
-      await progressSubscription.cancel();
 
       final biblesDir = await _repository.storage.getBiblesDirectory();
       final dbPath = '$biblesDir/${versionObj.filename}';
@@ -412,6 +411,9 @@ class BibleSelectedVersionProvider extends ChangeNotifier {
       _logger.e('[BibleProvider] Error al descargar: $e');
       _downloadProgress = 0.0;
       return false;
+    } finally {
+      // Always cancel subscription to prevent memory leaks
+      await progressSubscription.cancel();
     }
   }
 
