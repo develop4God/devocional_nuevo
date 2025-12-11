@@ -634,7 +634,8 @@
     "error_max_retries": "O download falhou após {attempts} tentativas. Tente mais tarde.",
     "error_decompression": "Erro ao descompactar arquivo. Tente novamente.",
     "error_metadata_validation": "Dados da versão inválidos.",
-    "error_unknown": "Ocorreu um erro inesperado."
+    "error_unknown": "Ocorreu um erro inesperado.",
+    "cannot_delete_last": "Não é possível excluir a última versão bíblica"
   },
   "thanksgiving": {
     "thanksgiving": "Ação de graças",

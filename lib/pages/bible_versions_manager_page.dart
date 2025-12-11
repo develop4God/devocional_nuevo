@@ -262,7 +262,8 @@ class _VersionTile extends StatelessWidget {
           if (version.state == DownloadState.failed &&
               version.errorCode != null)
             Text(
-              _getLocalizedError(version.errorCode!, version.errorContext),
+              ('bible_version.${_getErrorKey(version.errorCode!)}')
+                  .tr(version.errorContext),
               style: TextStyle(color: colorScheme.error),
             ),
         ],
@@ -287,7 +288,7 @@ class _VersionTile extends StatelessWidget {
     switch (version.state) {
       case DownloadState.notDownloaded:
         return IconButton(
-          icon: Icon(Icons.download, color: colorScheme.primary),
+          icon: Icon(Icons.file_download_outlined, color: colorScheme.primary),
           onPressed: () {
             bloc.add(DownloadVersionEvent(version.metadata.id));
           },
@@ -305,7 +306,7 @@ class _VersionTile extends StatelessWidget {
             ),
             const SizedBox(width: 8),
             Text(
-              '#${version.queuePosition}',
+              '# 24{version.queuePosition}',
               style: Theme.of(context).textTheme.labelMedium,
             ),
           ],
@@ -357,27 +358,24 @@ class _VersionTile extends StatelessWidget {
         );
 
       case DownloadState.downloaded:
+        // --- UI intuitiva: si es la última versión descargada, solo mostrar el check, sin basurero ---
+        if (isLastDownloaded) {
+          return Tooltip(
+            message: 'bible_version.cannot_delete_last'.tr(),
+            child: Icon(Icons.file_download_done_rounded,
+                color: colorScheme.primary),
+          );
+        }
+        // Si hay más de una versión descargada, mostrar check y basurero normalmente
         return Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.check_circle, color: colorScheme.primary),
+            Icon(Icons.file_download_done_rounded, color: colorScheme.primary),
             const SizedBox(width: 8),
             IconButton(
               icon: Icon(Icons.delete_outline, color: colorScheme.error),
-              onPressed: isLastDownloaded
-                  ? () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                              'No puedes eliminar la última versión bíblica descargada. Debe haber al menos una disponible.'),
-                          backgroundColor: colorScheme.error,
-                        ),
-                      );
-                    }
-                  : () => _showDeleteConfirmation(context),
-              tooltip: isLastDownloaded
-                  ? 'No puedes eliminar la última versión descargada'
-                  : 'bible_version.delete'.tr(),
+              onPressed: () => _showDeleteConfirmation(context),
+              tooltip: 'bible_version.delete'.tr(),
             ),
           ],
         );
@@ -429,4 +427,44 @@ class _VersionTile extends StatelessWidget {
   String _formatSize(int bytes) {
     return _formatBytes(bytes);
   }
+
+  String _getErrorKey(BibleVersionErrorCode errorCode) {
+    switch (errorCode) {
+      case BibleVersionErrorCode.network:
+        return 'error_network';
+      case BibleVersionErrorCode.storage:
+        return 'error_storage';
+      case BibleVersionErrorCode.corrupted:
+        return 'error_corrupted';
+      case BibleVersionErrorCode.notFound:
+        return 'error_not_found';
+      case BibleVersionErrorCode.metadataParsing:
+        return 'error_metadata_parsing';
+      case BibleVersionErrorCode.maxRetriesExceeded:
+        return 'error_max_retries';
+      case BibleVersionErrorCode.decompression:
+        return 'error_decompression';
+      case BibleVersionErrorCode.metadataValidation:
+        return 'error_metadata_validation';
+      case BibleVersionErrorCode.unknown:
+        return 'error_unknown';
+    }
+  }
 }
+
+// Traducciones para el tooltip de eliminación bloqueada
+// Español
+// i18n/es.json
+// "bible_version.cannot_delete_last": "No se puede borrar la última versión bíblica",
+// Inglés
+// i18n/en.json
+// "bible_version.cannot_delete_last": "Cannot delete the last Bible version",
+// Francés
+// i18n/fr.json
+// "bible_version.cannot_delete_last": "Impossible de supprimer la dernière version biblique",
+// Portugués
+// i18n/pt.json
+// "bible_version.cannot_delete_last": "Não é possível excluir a última versão bíblica",
+// Japonés
+// i18n/ja.json
+// "bible_version.cannot_delete_last": "最後の聖書バージョンは削除できません",

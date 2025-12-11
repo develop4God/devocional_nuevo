@@ -634,7 +634,8 @@
     "error_max_retries": "Le téléchargement a échoué après {attempts} tentatives. Réessayez plus tard.",
     "error_decompression": "Erreur de décompression du fichier. Veuillez réessayer.",
     "error_metadata_validation": "Données de version invalides.",
-    "error_unknown": "Une erreur inattendue s'est produite."
+    "error_unknown": "Une erreur inattendue s'est produite.",
+    "cannot_delete_last": "Impossible de supprimer la dernière version biblique"
   },
   "thanksgiving": {
     "thanksgiving": "Action de grâce",

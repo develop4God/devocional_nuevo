@@ -634,7 +634,8 @@
     "error_max_retries": "Download failed after {attempts} attempts. Please try again later.",
     "error_decompression": "Error decompressing file. Please try again.",
     "error_metadata_validation": "Invalid version data.",
-    "error_unknown": "An unexpected error occurred."
+    "error_unknown": "An unexpected error occurred.",
+    "cannot_delete_last": "Cannot delete the last Bible version"
   },
   "thanksgiving": {
     "thanksgiving": "Thanksgiving",

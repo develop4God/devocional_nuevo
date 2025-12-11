@@ -634,7 +634,8 @@
     "error_max_retries": "{attempts}回の試行後にダウンロードに失敗しました。後でもう一度お試しください。",
     "error_decompression": "ファイルの解凍エラー。再試行してください。",
     "error_metadata_validation": "バージョンデータが無効です。",
-    "error_unknown": "予期しないエラーが発生しました。"
+    "error_unknown": "予期しないエラーが発生しました。",
+    "cannot_delete_last": "最後の聖書バージョンは削除できません"
   },
   "thanksgiving": {
     "thanksgiving": "感謝",
