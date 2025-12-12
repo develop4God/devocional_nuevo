@@ -1243,40 +1243,14 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                                     }
                                                   },
                                                   onCycleRate: () async {
-                                                    final provider = Provider
-                                                        .of<DevocionalProvider>(
-                                                            context,
-                                                            listen: false);
-                                                    final rates =
-                                                        _ttsAudioController
-                                                            .supportedRates;
-                                                    final current =
-                                                        _ttsAudioController
-                                                            .playbackRate.value;
-                                                    final idx =
-                                                        rates.indexOf(current);
-                                                    final next = rates[
-                                                        (idx + 1) %
-                                                            rates.length];
-                                                    try {
-                                                      await provider
-                                                          .setTtsSpeechRate(
-                                                              next);
-                                                    } catch (e) {
-                                                      debugPrint(
-                                                          '[DevocionalesPage] Failed to set speech rate via provider: $e');
-                                                    }
-                                                    // Sync local controller notifier and TTS engine
-                                                    _ttsAudioController
-                                                        .playbackRate
-                                                        .value = next;
+                                                    // Delegate cycling to the TTS controller so it
+                                                    // handles persistence and engine updates.
                                                     try {
                                                       await _ttsAudioController
-                                                          .flutterTts
-                                                          .setSpeechRate(next);
+                                                          .cyclePlaybackRate();
                                                     } catch (e) {
                                                       debugPrint(
-                                                          '[DevocionalesPage] Failed to apply speech rate to flutterTts: $e');
+                                                          '[DevocionalesPage] cyclePlaybackRate failed: $e');
                                                     }
                                                   },
                                                   onRateChanged:

@@ -36,6 +36,14 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    // Set initial TTS text after first frame to avoid notifying during build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        final language = Localizations.localeOf(context).languageCode;
+        final ttsText = _buildTtsText(language);
+        widget.audioController.setText(ttsText);
+      }
+    });
     // Listener para detectar cuando la reproducción completa y registrar 'heard'
     _stateListener = () {
       try {
@@ -79,6 +87,13 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
       widget.audioController.stop();
       // Resetear flag para permitir registro en el nuevo devocional
       _hasRegisteredHeard = false;
+      // Update text for new devocional after frame to avoid rebuild issues
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        final language = Localizations.localeOf(context).languageCode;
+        final ttsText = _buildTtsText(language);
+        widget.audioController.setText(ttsText);
+      });
     }
   }
 
@@ -153,7 +168,6 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
     final ttsText = _buildTtsText(language);
     debugPrint(
         '[TTS Widget] Texto TTS armado: ${ttsText.length > 80 ? '${ttsText.substring(0, 80)}...' : ttsText}');
-    widget.audioController.setText(ttsText);
 
     // Restore dynamic visuals: show spinner while loading, pause when playing, play otherwise.
     return ValueListenableBuilder<TtsPlayerState>(

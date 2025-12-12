@@ -590,18 +590,38 @@ class VoiceSettingsService {
     debugPrint('🔧 VoiceSettings: clearUserSavedVoiceFlag($language): removed');
   }
 
-  /// Obtiene la velocidad de reproducción TTS guardada
+  /// Obtiene la velocidad de reproducción TTS guardada (settings-scale 0.1..1.0)
   Future<double> getSavedSpeechRate() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getDouble('tts_rate') ?? 0.5;
+    final stored =
+        prefs.getDouble('tts_rate') ?? 0.5; // settings-scale (0.1..1.0)
+    return stored;
   }
 
-  /// Guarda la velocidad de reproducción TTS preferida
+  /// Devuelve la velocidad del miniplayer (display) basada en el valor guardado
+  Future<double> getSavedMiniRate() async {
+    final prefs = await SharedPreferences.getInstance();
+    final stored = prefs.getDouble('tts_rate') ?? 0.5;
+    return settingsToMini[stored] ?? getMiniPlayerRate(stored);
+  }
+
+  /// Guarda la velocidad en settings-scale (0.1..1.0). Si se pasa un mini-rate,
+  /// se convierte y persiste en escala de settings.
   Future<void> setSavedSpeechRate(double rate) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setDouble('tts_rate', rate);
-      debugPrint('🔧 VoiceSettings: Saved speech rate = $rate');
+      double toStore;
+      if (miniToSettings.containsKey(rate)) {
+        toStore = miniToSettings[rate]!;
+      } else if (rate >= 0.1 && rate <= 1.0) {
+        toStore = rate;
+      } else {
+        // Fallback: clamp to sensible default
+        toStore = 0.5;
+      }
+      await prefs.setDouble('tts_rate', toStore);
+      debugPrint(
+          '🔧 VoiceSettings: Saved speech rate (settings-scale) = $toStore');
     } catch (e) {
       debugPrint('❌ VoiceSettings: Failed to save speech rate: $e');
     }
@@ -617,35 +637,31 @@ class VoiceSettingsService {
   /// Rota la velocidad de reproducción (entre allowedPlaybackRates), la guarda y la aplica al TTS.
   /// Devuelve el nuevo playbackRate aplicado.
   Future<double> cyclePlaybackRate(
-      {double? currentRate, FlutterTts? ttsOverride}) async {
-    final rates = allowedPlaybackRates;
-    final current = (currentRate ?? await getSavedSpeechRate()).clamp(0.5, 2.0);
+      {double? currentMiniRate, FlutterTts? ttsOverride}) async {
+    final rates = miniPlayerRates;
+    final current = (currentMiniRate ?? await getSavedMiniRate());
 
-    // Buscar índice exacto o el más cercano
     int idx = rates.indexWhere((r) => (r - current).abs() < 0.001);
-    if (idx == -1) {
-      double minDiff = double.infinity;
-      for (int i = 0; i < rates.length; i++) {
-        final diff = (rates[i] - current).abs();
-        if (diff < minDiff) {
-          minDiff = diff;
-          idx = i;
-        }
-      }
-    }
+    if (idx == -1) idx = 0;
+    final nextMini = rates[(idx + 1) % rates.length];
+    final settingsValue = getSettingsRateForMini(nextMini);
 
-    final next = rates[(idx + 1) % rates.length];
-    final clampedNext = next.clamp(0.5, 2.0);
-    // Persistir
-    await setSavedSpeechRate(clampedNext);
-    // Aplicar al motor
+    // Persistir settings-scale
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setDouble('tts_rate', settingsValue);
+
+    // Aplicar al motor (usar settings-scale, que es lo que esperan los motores históricamente)
     final tts = ttsOverride ?? _flutterTts;
     try {
-      await tts.setSpeechRate(clampedNext);
+      await tts.setSpeechRate(settingsValue);
     } catch (e) {
-      debugPrint('VoiceSettingsService: Failed to set speech rate: $e');
+      debugPrint(
+          'VoiceSettingsService: Failed to set speech rate on engine: $e');
     }
-    return clampedNext;
+
+    debugPrint(
+        '🔄 VoiceSettingsService: cyclePlaybackRate -> nextMini=$nextMini settings=$settingsValue');
+    return nextMini;
   }
 
   /// Devuelve la lista de rates permitidos para el miniplayer (homologados)

@@ -255,8 +255,21 @@ class TtsService implements ITtsService {
       await _flutterTts.setLanguage('es-US');
     }
 
-    debugPrint('🔧 TTS: Setting speech rate to $rate');
-    await _flutterTts.setSpeechRate(rate.clamp(0.1, 3.0));
+    // Convert stored settings-scale (0.1..1.0) to mini-rate (0.5,1.0,2.0)
+    double engineRate;
+    try {
+      if (rate >= 0.1 && rate <= 1.0) {
+        engineRate = _voiceSettingsService.getMiniPlayerRate(rate);
+      } else {
+        // already likely a mini-rate
+        engineRate = rate;
+      }
+    } catch (e) {
+      engineRate = 1.0;
+    }
+    debugPrint(
+        '🔧 TTS: Setting speech rate (engine) to $engineRate (from stored $rate)');
+    await _flutterTts.setSpeechRate(engineRate.clamp(0.1, 3.0));
     await _flutterTts.setVolume(1.0);
     await _flutterTts.setPitch(1.0);
 
@@ -493,11 +506,36 @@ class TtsService implements ITtsService {
   @override
   Future<void> setSpeechRate(double rate) async {
     if (!_isInitialized) await _initialize();
-    final clampedRate = rate.clamp(0.1, 3.0);
+    final voiceService = getService<VoiceSettingsService>();
+    double miniRate;
+    double settingsScale;
+    // If caller passed a settings-scale (0.1..1.0), map to mini-rate
+    if (rate >= 0.1 && rate <= 1.0) {
+      settingsScale = rate;
+      miniRate = voiceService.getMiniPlayerRate(settingsScale);
+    } else {
+      // Otherwise assume mini-rate, find nearest allowed and map to settings-scale
+      final allowed = VoiceSettingsService.allowedPlaybackRates;
+      double nearest = allowed.first;
+      double minDiff = double.infinity;
+      for (final r in allowed) {
+        final diff = (r - rate).abs();
+        if (diff < minDiff) {
+          minDiff = diff;
+          nearest = r;
+        }
+      }
+      miniRate = nearest;
+      settingsScale = voiceService.getSettingsRateForMini(miniRate);
+    }
+
+    final clampedRate = miniRate.clamp(0.1, 3.0);
+    debugPrint(
+        '🔧 TTS Service: Applying speech rate mini=$miniRate (settings-scale=$settingsScale)');
     await _flutterTts.setSpeechRate(clampedRate);
 
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setDouble('tts_rate', clampedRate);
+    await prefs.setDouble('tts_rate', settingsScale);
   }
 
   @override
