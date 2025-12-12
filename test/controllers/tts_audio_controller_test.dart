@@ -5,6 +5,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../helpers/test_helpers.dart';
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -13,6 +15,7 @@ void main() {
     late FlutterTts mockFlutterTts;
 
     setUp(() {
+      registerTestServices();
       // Mock SharedPreferences
       SharedPreferences.setMockInitialValues({});
 

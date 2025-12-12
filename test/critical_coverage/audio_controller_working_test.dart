@@ -1,12 +1,14 @@
 // test/critical_coverage/audio_controller_working_test.dart
 // ✅ PERIPHERAL TESTING - Sin mocks, probando comportamiento observable
 
-import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter/services.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:devocional_nuevo/controllers/audio_controller.dart';
-import 'package:devocional_nuevo/services/tts_service.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
+import 'package:devocional_nuevo/services/tts_service.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../helpers/test_helpers.dart';
 
 void main() {
   group('AudioController - Peripheral Behavior Tests', () {
@@ -14,6 +16,7 @@ void main() {
 
     setUpAll(() {
       TestWidgetsFlutterBinding.ensureInitialized();
+      registerTestServices();
     });
 
     setUp(() {
