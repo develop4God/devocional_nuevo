@@ -556,7 +556,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: const Color.fromRGBO(0, 0, 0, 0.1),
+            color: const Color.fromRGBO(0, 0, 0, 0.3),
             blurRadius: 8,
             offset: const Offset(0, 4),
           ),
@@ -579,10 +579,10 @@ class _DevocionalesPageState extends State<DevocionalesPage>
           ),
           const SizedBox(width: 4),
           Text(
-            '${'discovery.streak'.tr()} $streak',
+            '${'progress.streak'.tr()} $streak',
             style: TextStyle(
               color: textColor,
-              fontWeight: FontWeight.w500,
+              fontWeight: FontWeight.w700,
               fontSize: 14,
             ),
           ),
