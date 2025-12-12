@@ -240,12 +240,80 @@ class TtsAudioController {
     try {
       final voiceService = getService<VoiceSettingsService>();
       debugPrint('🔁 [TTS Controller] Delegando ciclo a VoiceSettingsService');
+
+      // Guardamos estado previo para recalcular duraciones
+      final Duration previousFullDuration = _fullDuration;
+      final Duration previousPosition = currentPosition.value;
+
+      // cyclePlaybackRate aplicará el rate en el motor y devolverá el siguiente mini rate
       final next = await voiceService.cyclePlaybackRate(
           currentMiniRate: playbackRate.value, ttsOverride: flutterTts);
-      debugPrint(
-          '🔄 [TTS Controller] Rate cambiado: ${playbackRate.value} -> $next');
+
+      debugPrint('🔄 VoiceSettingsService devolvió nextMini=$next');
+
+      // Actualizamos el notifier del mini rate
+      final double oldMini = playbackRate.value;
       playbackRate.value = next;
-      // El motor ya lo aplica, pero sincronizamos el notifier
+
+      // Obtener el valor que se aplica al motor (settings-scale)
+      final double newSettingsRate = voiceService.getSettingsRateForMini(next);
+
+      // Recalcular duración total basada en número de palabras y nueva velocidad
+      if ((_fullText ?? '').isNotEmpty) {
+        final words =
+            _fullText!.split(RegExp(r"\s+")).where((w) => w.isNotEmpty).length;
+        final double wordsPerSecond =
+            150.0 / 60.0; // misma estimación usada en setText
+        final newEstimatedSeconds = (words / wordsPerSecond) / next;
+        final Duration newFullDuration =
+            Duration(seconds: newEstimatedSeconds.round());
+
+        // Calcular ratio de progreso actual (si había una duración previa)
+        double ratio = 0.0;
+        if (previousFullDuration.inSeconds > 0) {
+          ratio = previousPosition.inSeconds / previousFullDuration.inSeconds;
+          if (ratio < 0.0) ratio = 0.0;
+          if (ratio > 1.0) ratio = 1.0;
+        }
+
+        _fullDuration = newFullDuration;
+        totalDuration.value = newFullDuration;
+
+        // Ajustar posición relativa al nuevo total
+        final newPositionSeconds = (newFullDuration.inSeconds * ratio).round();
+        final Duration newPosition = Duration(seconds: newPositionSeconds);
+        currentPosition.value = newPosition;
+        _accumulatedPosition = newPosition;
+
+        debugPrint(
+            '🔧 [TTS Controller] Recalculo duracion: old=${previousFullDuration.inSeconds}s -> new=${newFullDuration.inSeconds}s, ratio=${(ratio * 100).toStringAsFixed(1)}%, pos=${newPosition.inSeconds}s');
+      }
+
+      // Si está reproduciendo, reiniciar el audio para aplicar nueva velocidad inmediatamente
+      if (state.value == TtsPlayerState.playing) {
+        debugPrint(
+            '[TTS Controller] Reiniciando reproducción para aplicar nueva velocidad: mini=$next (settings=$newSettingsRate)');
+        // Detener utterance actual
+        await flutterTts.stop();
+        // Asegurar que el motor use el nuevo settings-rate (aunque voiceService ya lo aplicó, lo reafirmamos)
+        try {
+          await flutterTts.setSpeechRate(newSettingsRate);
+        } catch (e) {
+          debugPrint('⚠️ [TTS Controller] setSpeechRate tras ciclo falló: $e');
+        }
+
+        // Hablar el texto restante (flutter_tts no soporta seek interno robusto)
+        if (_currentText != null && _currentText!.isNotEmpty) {
+          // Re-lanzar la reproducción desde el texto actual
+          await flutterTts.speak(_currentText!);
+          // Reiniciar temporizador de progreso
+          _playStartTime = DateTime.now();
+          _startProgressTimer();
+        }
+      }
+
+      debugPrint(
+          '🔄 [TTS Controller] Rate cambiado: ${oldMini} -> $next (aplicado settings=$newSettingsRate)');
     } catch (e) {
       debugPrint('❌ [TTS Controller] cyclePlaybackRate falló: $e');
     }

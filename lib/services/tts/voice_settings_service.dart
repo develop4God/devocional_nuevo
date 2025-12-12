@@ -671,12 +671,13 @@ class VoiceSettingsService {
     2.0
   ]; // 0.5x, 1.0x, 2.0x
   static final Map<double, double> miniToSettings = {
-    0.5: 0.1, // 0.5x → 10%
+    0.5: 0.25, // 0.5x → 25% (menos lento que 10%)
     1.0: 0.5, // 1.0x → 50%
     2.0: 1.0, // 2.0x → 100%
   };
   static final Map<double, double> settingsToMini = {
-    0.1: 0.5,
+    // Refleja el ajuste anterior: 0.25 settings → 0.5x miniplayer
+    0.25: 0.5,
     0.5: 1.0,
     1.0: 2.0,
   };
@@ -687,10 +688,10 @@ class VoiceSettingsService {
     if (settingsToMini.containsKey(settingsRate)) {
       return settingsToMini[settingsRate]!;
     }
-    // Si está cerca de 0.1, 0.5 o 1.0
-    if ((settingsRate - 0.1).abs() < 0.05) return 0.5;
-    if ((settingsRate - 0.5).abs() < 0.1) return 1.0;
-    if ((settingsRate - 1.0).abs() < 0.1) return 2.0;
+    // Si está cerca de 0.25, 0.5 o 1.0 (umbrales algo amplios para tolerar valores antiguos)
+    if ((settingsRate - 0.25).abs() < 0.08) return 0.5;
+    if ((settingsRate - 0.5).abs() < 0.12) return 1.0;
+    if ((settingsRate - 1.0).abs() < 0.12) return 2.0;
     // Por defecto, 1.0x
     return 1.0;
   }
