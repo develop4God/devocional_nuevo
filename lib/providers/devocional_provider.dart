@@ -275,9 +275,11 @@ class DevocionalProvider with ChangeNotifier {
       // Validar si ya fue registrado
       final stats = await _statsService.getStats();
       if (stats.readDevocionalIds.contains(devocionalId)) {
-        return 'guardado';
-      } else {
+        // Si ya está en la lista de leídos/escuchados => ya fue registrado
         return 'ya_registrado';
+      } else {
+        // Si no está, asumimos que el registro fue guardado correctamente
+        return 'guardado';
       }
     } catch (e) {
       debugPrint('❌ Error recording devotional heard: $e');

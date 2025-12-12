@@ -1197,8 +1197,9 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                               ValueListenableBuilder<TtsPlayerState>(
                                 valueListenable: _ttsAudioController.state,
                                 builder: (context, state, _) {
-                                  if (state == TtsPlayerState.idle)
+                                  if (state == TtsPlayerState.idle) {
                                     return const SizedBox.shrink();
+                                  }
                                   return Padding(
                                     padding: const EdgeInsets.only(top: 8.0),
                                     child: ValueListenableBuilder<Duration>(
