@@ -24,31 +24,33 @@ class TtsAudioController {
   DateTime? _playStartTime;
   Duration _accumulatedPosition = Duration.zero;
 
-  // No duplication of allowed rates here; use VoiceSettingsService.allowedPlaybackRates when needed.
-  // The controller will delegate cycling and persistence to VoiceSettingsService.
-  // Keep a local default for fallback.
+  // Solo usar los rates permitidos y lógica de VoiceSettingsService
   static const double _defaultMiniRate = 1.0;
 
   TtsAudioController({required this.flutterTts}) {
-    // Load saved playback rate early so the UI can show the persisted value
-    // and the TTS engine receives the value before speaking.
+    // Cargar el rate guardado usando VoiceSettingsService
     try {
-      getService<VoiceSettingsService>().getSavedSpeechRate().then((rate) {
-        final allowed = VoiceSettingsService.allowedPlaybackRates;
-        final validRate = allowed.contains(rate) ? rate : _defaultMiniRate;
+      getService<VoiceSettingsService>()
+          .getSavedSpeechRate()
+          .then((settingsRate) {
+        final miniRate = VoiceSettingsService.settingsToMini[settingsRate] ??
+            VoiceSettingsService().getMiniPlayerRate(settingsRate);
+        final allowed = VoiceSettingsService.miniPlayerRates;
+        final validRate =
+            allowed.contains(miniRate) ? miniRate : _defaultMiniRate;
         playbackRate.value = validRate;
-        flutterTts.setSpeechRate(validRate);
+        flutterTts.setSpeechRate(
+            VoiceSettingsService.miniToSettings[validRate] ?? 0.5);
         debugPrint(
-            '🔧 [TTS Controller] Initialized saved playback rate: $validRate');
-        if (!allowed.contains(rate)) {
+            '🔧 [TTS Controller] Inicializado playbackRate: mini=$validRate (settings=${VoiceSettingsService.miniToSettings[validRate] ?? 0.5})');
+        if (!allowed.contains(miniRate)) {
           debugPrint(
-              '⚠️ [TTS Controller] Saved rate $rate not allowed - reset to $validRate');
-          // Persist the normalized value
+              '⚠️ [TTS Controller] miniRate $miniRate no permitido - reset a $validRate');
           getService<VoiceSettingsService>().setSavedSpeechRate(validRate);
         }
       });
     } catch (e) {
-      debugPrint('[TTS Controller] Could not load saved playback rate: $e');
+      debugPrint('[TTS Controller] No se pudo cargar playbackRate: $e');
     }
     flutterTts.setStartHandler(() {
       debugPrint(
@@ -73,13 +75,11 @@ class TtsAudioController {
   void setText(String text) {
     _fullText = text;
     _currentText = text;
-    // Estimate full duration based on full text and current playbackRate
-    final words = _fullText!.split(RegExp(r"\s+")).length;
-    // average 150 wpm -> 2.5 words per second
+    // Estimar duración solo para UI
+    final words = _fullText!.split(RegExp(r"\\s+")).length;
     final double wordsPerSecond = 150.0 / 60.0;
     final estimatedSeconds = (words / wordsPerSecond) / playbackRate.value;
     _fullDuration = Duration(seconds: estimatedSeconds.round());
-    // By default totalDuration represents remaining duration (initially full)
     totalDuration.value = _fullDuration;
     currentPosition.value = Duration.zero;
     _accumulatedPosition = Duration.zero;
@@ -87,65 +87,75 @@ class TtsAudioController {
 
   Future<void> play() async {
     debugPrint(
-        '[TTS Controller] play() llamado, estado previo: \x1B[33m${state.value}\x1B[0m');
+        '[TTS Controller] play() llamado, estado previo: \\x1B[33m"+state.value.toString()+"\\x1B[0m');
     if (_currentText == null || _currentText!.isEmpty) {
       state.value = TtsPlayerState.error;
       return;
     }
     state.value = TtsPlayerState.loading;
     await Future.delayed(const Duration(milliseconds: 400));
-    // Obtener y aplicar la velocidad guardada antes de reproducir
-    final double rate =
+    // Obtener y aplicar la velocidad guardada usando VoiceSettingsService
+    final double settingsRate =
         await getService<VoiceSettingsService>().getSavedSpeechRate();
-    playbackRate.value = rate;
-    debugPrint('[TTS Controller] Aplicando velocidad TTS: $rate');
-    await flutterTts.setSpeechRate(rate);
+    final double miniRate = VoiceSettingsService.settingsToMini[settingsRate] ??
+        VoiceSettingsService().getMiniPlayerRate(settingsRate);
+    playbackRate.value = miniRate;
+    final double ttsEngineRate =
+        VoiceSettingsService.miniToSettings[miniRate] ?? 0.5;
+    debugPrint(
+        '[TTS Controller] Aplicando velocidad TTS: mini=$miniRate (settings=$ttsEngineRate)');
+    await flutterTts.setSpeechRate(ttsEngineRate);
     await flutterTts.speak(_currentText!);
     if (state.value == TtsPlayerState.loading) {
       state.value = TtsPlayerState.playing;
     }
-    debugPrint('[TTS Controller] estado actual: \x1B[32m${state.value}\x1B[0m');
+    debugPrint(
+        '[TTS Controller] estado actual: \\x1B[32m"+state.value.toString()+"\\x1B[0m');
   }
 
   Future<void> pause() async {
     debugPrint(
-        '[TTS Controller] pause() llamado, estado previo: \x1B[33m${state.value}\x1B[0m');
+        '[TTS Controller] pause() llamado, estado previo: \\x1B[33m"+state.value.toString()+"\\x1B[0m');
     await flutterTts.pause();
     state.value = TtsPlayerState.paused;
     _pauseProgressTimer();
-    debugPrint('[TTS Controller] estado actual: \x1B[32m${state.value}\x1B[0m');
+    debugPrint(
+        '[TTS Controller] estado actual: \\x1B[32m"+state.value.toString()+"\\x1B[0m');
   }
 
   Future<void> stop() async {
     debugPrint(
-        '[TTS Controller] stop() llamado, estado previo: \x1B[33m${state.value}\x1B[0m');
+        '[TTS Controller] stop() llamado, estado previo: \\x1B[33m"+state.value.toString()+"\\x1B[0m');
     await flutterTts.stop();
     state.value = TtsPlayerState.idle;
     _stopProgressTimer();
     currentPosition.value = Duration.zero;
     _accumulatedPosition = Duration.zero;
-    debugPrint('[TTS Controller] estado actual: \x1B[32m${state.value}\x1B[0m');
+    debugPrint(
+        '[TTS Controller] estado actual: \\x1B[32m"+state.value.toString()+"\\x1B[0m');
   }
 
   void complete() {
     debugPrint(
-        '[TTS Controller] complete() llamado, estado previo: \x1B[33m${state.value}\x1B[0m');
+        '[TTS Controller] complete() llamado, estado previo: \\x1B[33m"+state.value.toString()+"\\x1B[0m');
     _stopProgressTimer();
     state.value = TtsPlayerState.completed;
     currentPosition.value = totalDuration.value;
-    debugPrint('[TTS Controller] estado actual: \x1B[32m${state.value}\x1B[0m');
+    debugPrint(
+        '[TTS Controller] estado actual: \\x1B[32m")+state.value.toString()+"\\x1B[0m');
   }
 
   void error() {
     debugPrint(
-        '[TTS Controller] error() llamado, estado previo: \x1B[33m${state.value}\x1B[0m');
+        '[TTS Controller] error() llamado, estado previo: \\x1B[33m")+state.value.toString()+"\\x1B[0m');
     state.value = TtsPlayerState.error;
     _stopProgressTimer();
-    debugPrint('[TTS Controller] estado actual: \x1B[31m${state.value}\x1B[0m');
+    debugPrint(
+        '[TTS Controller] estado actual: \\x1B[31m")+state.value.toString()+"\\x1B[0m');
   }
 
-  /// Expose allowed playback rates from VoiceSettingsService to avoid duplication
-  List<double> get supportedRates => VoiceSettingsService.allowedPlaybackRates;
+  /// Exponer los rates permitidos desde VoiceSettingsService
+  List<double> get supportedRates => VoiceSettingsService.miniPlayerRates;
 
   // Progress timer helpers
   void _startProgressTimer() {
@@ -206,8 +216,6 @@ class TtsAudioController {
 
     // Update current text and durations
     _currentText = remainingText;
-    final remainingWordsCount = remainingWords.length;
-    final double wordsPerSecond = 150.0 / 60.0;
     // Keep totalDuration as the full duration for UI slider consistency
     totalDuration.value = _fullDuration;
     currentPosition.value = position;
@@ -227,23 +235,19 @@ class TtsAudioController {
     }
   }
 
-  // Cycle playback rate
+  // Cycle playback rate usando solo VoiceSettingsService
   Future<void> cyclePlaybackRate() async {
     try {
       final voiceService = getService<VoiceSettingsService>();
-      debugPrint(
-          '🔁 [TTS Controller] Delegating cycle to VoiceSettingsService');
+      debugPrint('🔁 [TTS Controller] Delegando ciclo a VoiceSettingsService');
       final next = await voiceService.cyclePlaybackRate(
-          currentRate: playbackRate.value, ttsOverride: flutterTts);
+          currentMiniRate: playbackRate.value, ttsOverride: flutterTts);
       debugPrint(
-          '🔄 [TTS Controller] Rate changed: ${playbackRate.value} -> $next');
+          '🔄 [TTS Controller] Rate cambiado: ${playbackRate.value} -> $next');
       playbackRate.value = next;
-      // ensure engine uses it (service already applied it, but keep in sync)
-      try {
-        await flutterTts.setSpeechRate(next);
-      } catch (_) {}
+      // El motor ya lo aplica, pero sincronizamos el notifier
     } catch (e) {
-      debugPrint('❌ [TTS Controller] cyclePlaybackRate failed: $e');
+      debugPrint('❌ [TTS Controller] cyclePlaybackRate falló: $e');
     }
   }
 
