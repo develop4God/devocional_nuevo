@@ -74,80 +74,110 @@ class _TtsMiniplayerWidgetState extends State<TtsMiniplayerWidget> {
             ? 0.0
             : widget.currentPosition.inSeconds /
                 widget.totalDuration.inSeconds);
-    return Material(
-      color: theme.colorScheme.surface,
-      elevation: 8,
-      borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        child: Row(
-          children: [
-            // Velocidad
-            GestureDetector(
-              onTap: () async {
-                // Si el padre proveyó un handler explícito, usarlo (preserva compatibilidad)
-                widget.onCycleRate();
-                return;
-              },
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primary.withAlpha(25),
-                  // 10% opacity aprox
-                  borderRadius: BorderRadius.circular(8),
+    // Modern gradient mini-player with rounded pill layout (darker tones)
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 260),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            // Más oscuro: usar alpha explícito
+            theme.colorScheme.primary.withAlpha(71), // 0.28 * 255 ≈ 71
+            theme.colorScheme.primary.withAlpha(31), // 0.12 * 255 ≈ 31
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(18),
+          topRight: Radius.circular(18),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withAlpha(31), // 0.12 * 255 ≈ 31
+            blurRadius: 14,
+            offset: const Offset(0, -5),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          // Speed pill
+          GestureDetector(
+            onTap: () async {
+              widget.onCycleRate();
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    // Pill más marcado (alpha explícito)
+                    theme.colorScheme.primary.withAlpha(87), // 0.34 * 255 ≈ 87
+                    theme.colorScheme.primary.withAlpha(46), // 0.18 * 255 ≈ 46
+                  ],
                 ),
-                child: Text(
-                  "${widget.playbackRate.toStringAsFixed(1)}x",
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.primary,
-                    fontWeight: FontWeight.bold,
-                  ),
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(
+                  color: theme.colorScheme.primary
+                      .withAlpha(71), // 0.28 * 255 ≈ 71
+                ),
+              ),
+              child: Text(
+                "${widget.playbackRate.toStringAsFixed(1)}x",
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.primary,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
             ),
-            const SizedBox(width: 8),
-            // Tiempo transcurrido
-            Text(
-              _formatDuration(widget.currentPosition),
-              style: theme.textTheme.bodySmall,
-            ),
-            const SizedBox(width: 8),
-            // Slider de progreso
-            Expanded(
+          ),
+          const SizedBox(width: 12),
+          // Elapsed time
+          Text(_formatDuration(widget.currentPosition),
+              style: theme.textTheme.bodySmall),
+          const SizedBox(width: 8),
+          // Slider with custom theme
+          Expanded(
+            child: SliderTheme(
+              data: SliderTheme.of(context).copyWith(
+                trackHeight: 4,
+                thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
+                overlayShape: const RoundSliderOverlayShape(overlayRadius: 14),
+                activeTrackColor: theme.colorScheme.primary,
+                inactiveTrackColor: theme.colorScheme.primary.withAlpha(64),
+                // 0.25 * 255 ≈ 63.75 -> 64
+                thumbColor: theme.colorScheme.primary,
+              ),
               child: Slider(
                 value: sliderValue.clamp(0.0, 1.0),
                 onChanged: _onSliderChange,
                 onChangeEnd: _onSliderChangeEnd,
                 min: 0.0,
                 max: 1.0,
-                activeColor: theme.colorScheme.primary,
-                inactiveColor: theme.colorScheme.primary
-                    .withAlpha(77), // 30% opacity aprox
               ),
             ),
-            const SizedBox(width: 8),
-            // Tiempo total
-            Text(
-              _formatDuration(widget.totalDuration),
-              style: theme.textTheme.bodySmall,
-            ),
-            const SizedBox(width: 8),
-            // Botón Stop
-            IconButton(
-              icon: const Icon(Icons.stop),
-              color: theme.colorScheme.error,
-              tooltip: 'Detener',
-              onPressed: widget.onStop,
-            ),
-            // Selector de voz (icono de persona)
-            IconButton(
-              icon: const Icon(Icons.person),
-              color: theme.colorScheme.primary,
-              tooltip: 'Seleccionar voz',
-              onPressed: widget.onVoiceSelector,
-            ),
-          ],
-        ),
+          ),
+          const SizedBox(width: 8),
+          // Total time
+          Text(_formatDuration(widget.totalDuration),
+              style: theme.textTheme.bodySmall),
+          const SizedBox(width: 8),
+          // Stop button (compact)
+          IconButton(
+            icon: const Icon(Icons.stop_rounded),
+            color: theme.colorScheme.error,
+            tooltip: 'Detener',
+            onPressed: widget.onStop,
+          ),
+          // Voice selector
+          IconButton(
+            icon: const Icon(Icons.person_outline),
+            color: theme.colorScheme.onSurface,
+            tooltip: 'Seleccionar voz',
+            onPressed: widget.onVoiceSelector,
+          ),
+        ],
       ),
     );
   }
