@@ -313,7 +313,7 @@ class TtsAudioController {
       }
 
       debugPrint(
-          '🔄 [TTS Controller] Rate cambiado: ${oldMini} -> $next (aplicado settings=$newSettingsRate)');
+          '🔄 [TTS Controller] Rate cambiado: $oldMini -> $next (aplicado settings=$newSettingsRate)');
     } catch (e) {
       debugPrint('❌ [TTS Controller] cyclePlaybackRate falló: $e');
     }
