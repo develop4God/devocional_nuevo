@@ -378,6 +378,12 @@ class _DevocionalesPageState extends State<DevocionalesPage>
 
       HapticFeedback.lightImpact();
 
+      if (devocionalProvider.showInvitationDialog) {
+        if (mounted) {
+          _showInvitation(context);
+        }
+      }
+
       _saveCurrentDevocionalIndex();
     }
   }
