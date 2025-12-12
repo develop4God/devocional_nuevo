@@ -244,13 +244,16 @@ class _ContactPageState extends State<ContactPage> {
                         : colorScheme.surfaceContainerHighest,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide(color: colorScheme.outlineVariant),
+                      borderSide: BorderSide(
+                        color: colorScheme.outline,
+                        width: 1.5,
+                      ),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                       borderSide: BorderSide(
-                        color: colorScheme.outlineVariant,
-                        width: 1.2,
+                        color: colorScheme.outline,
+                        width: 1.5,
                       ),
                     ),
                     focusedBorder: OutlineInputBorder(

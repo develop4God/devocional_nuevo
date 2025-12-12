@@ -162,7 +162,9 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
     if (!mounted) return;
 
     if (!hasSaved) {
+      if (!mounted) return;
       await showModalBottomSheet(
+        // ignore: use_build_context_synchronously
         context: context,
         isScrollControlled: true,
         backgroundColor: Colors.transparent,
@@ -176,6 +178,8 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
           child: ModernVoiceFeatureDialog(
             onConfigure: () async {
               Navigator.of(ctx).pop();
+              if (!mounted) return;
+              // ignore: use_build_context_synchronously
               await _showVoiceSelector(context, language, ttsText);
             },
             onContinue: () async {
@@ -279,6 +283,8 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
       if (result == 'guardado') {
         debugPrint(
             '[TTS Widget] Registrando devocional heard: id=$devotionalId, porcentaje=80%');
+        // Trigger onCompleted callback when devotional is first heard
+        widget.onCompleted?.call();
       } else if (result == 'ya_registrado') {
         debugPrint(
             '[TTS Widget] Ya registrado como leído/escuchado, no se duplica');
