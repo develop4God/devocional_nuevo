@@ -264,6 +264,26 @@ class DevocionalProvider with ChangeNotifier {
     }
   }
 
+  /// Registra que un devocional fue escuchado (para TTS)
+  Future<String> recordDevocionalHeard(String devocionalId,
+      double listenedPercentage, BuildContext context) async {
+    try {
+      final stats = await _statsService.recordDevocionalHeard(
+        devocionalId: devocionalId,
+        listenedPercentage: listenedPercentage,
+        favoritesCount: _favoriteDevocionales.length,
+      );
+      if (stats.readDevocionalIds.contains(devocionalId)) {
+        return 'guardado';
+      } else {
+        return 'ya_registrado';
+      }
+    } catch (e) {
+      debugPrint('❌ Error recording devotional heard: $e');
+      return 'error';
+    }
+  }
+
   // ========== DATA LOADING ==========
   Future<void> _fetchAllDevocionalesForLanguage() async {
     _isLoading = true;

@@ -383,12 +383,12 @@ class SpiritualStatsService {
     );
   }
 
-  Future<SpiritualStats> recordDevotionalHeard({
+  /// Registra que un devocional fue escuchado (para TTS)
+  Future<SpiritualStats> recordDevocionalHeard({
     required String devocionalId,
     required double listenedPercentage,
     int? favoritesCount,
   }) async {
-    debugPrint('🎯 [STATS] Registro por escuchado: $devocionalId');
     return await recordDevocionalCompletado(
       devocionalId: devocionalId,
       listenedPercentage: listenedPercentage,
@@ -508,7 +508,14 @@ class SpiritualStatsService {
     }
   }
 
-  // ... resto de métodos helper sin cambios ...
+  /// Actualiza el número de favoritos en las estadísticas espirituales
+  Future<SpiritualStats> updateFavoritesCount(int favoritesCount) async {
+    final stats = await getStats();
+    final updatedStats = stats.copyWith(favoritesCount: favoritesCount);
+    await saveStats(updatedStats);
+    debugPrint('✅ [STATS] favoritesCount actualizado: $favoritesCount');
+    return updatedStats;
+  }
 
   Future<List<String>> _getReadDatesAsStrings() async {
     final readDates = await _getReadDates();
