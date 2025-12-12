@@ -4,7 +4,6 @@ import 'dart:developer' as developer;
 import 'dart:io' show Platform;
 
 import 'package:devocional_nuevo/models/devocional_model.dart';
-import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -245,8 +244,13 @@ class TtsService {
       return;
     }
 
+    // NOTE: This integration_test file appears to be legacy implementation code
+    // that was misplaced in the integration_test directory. The actual TtsService
+    // is in lib/services/tts_service.dart. This call has been commented out because
+    // the method signature changed and this code is not used.
+    // TODO: Remove this entire file or move to lib/ if still needed
+    /*
     final progress = (_currentChunkIndex + 1) / _currentChunks.length;
-
     if (_currentDevocionalId != null && progress >= 0.8) {
       await SpiritualStatsService().recordDevotionalHeard(
         devocionalId: _currentDevocionalId!,
@@ -255,6 +259,7 @@ class TtsService {
       debugPrint(
           '📈 TTS: Devocional registrado en estadísticas por escucha con progreso ${progress * 100}%');
     }
+    */
 
     debugPrint(
         '🏁 TTS: Processing chunk ${_currentChunkIndex + 1}/${_currentChunks.length} completion at ${DateTime.now()}');

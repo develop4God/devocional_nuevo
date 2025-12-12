@@ -90,6 +90,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _audioController = Provider.of<AudioController>(context, listen: false);
       _tracking.initialize(context);
+      _precacheLottieAnimations();
     });
     _loadFontSize();
     _loadInitialData();
@@ -104,6 +105,20 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       Future.delayed(const Duration(seconds: 7), () {
         if (mounted) setState(() => _showPostSplashAnimation = false);
       });
+    }
+  }
+
+  Future<void> _precacheLottieAnimations() async {
+    try {
+      // Precache the fire.json animation to ensure it loads on first app start
+      await Future.wait([
+        rootBundle.load('assets/lottie/fire.json'),
+        // Precache other frequently used animations
+        ..._lottieAssets.map((asset) => rootBundle.load(asset)),
+      ]);
+      debugPrint('✅ Lottie animations precached successfully');
+    } catch (e) {
+      debugPrint('⚠️ Error precaching Lottie animations: $e');
     }
   }
 
@@ -1198,6 +1213,16 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                               'bottom_nav_tts_player'),
                                           devocional: currentDevocional,
                                           audioController: _ttsAudioController,
+                                          onCompleted: () {
+                                            // Show prayer dialog after TTS completes first audio
+                                            final provider =
+                                                Provider.of<DevocionalProvider>(
+                                                    context,
+                                                    listen: false);
+                                            if (provider.showInvitationDialog) {
+                                              _showInvitation(context);
+                                            }
+                                          },
                                         );
                                       },
                                     )
