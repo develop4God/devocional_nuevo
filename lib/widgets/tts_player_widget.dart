@@ -7,6 +7,7 @@ import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../providers/devocional_provider.dart';
 import '../widgets/voice_selector_dialog.dart';
 import 'modern_voice_feature_dialog.dart';
 

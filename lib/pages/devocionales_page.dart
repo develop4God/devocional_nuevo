@@ -1279,6 +1279,20 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                                           '[DevocionalesPage] Failed to apply speech rate to flutterTts: $e');
                                                     }
                                                   },
+                                                  onRateChanged:
+                                                      (newRate) async {
+                                                    // Reiniciar audio y recalcular duración
+                                                    await _ttsAudioController
+                                                        .stop();
+                                                    await _ttsAudioController
+                                                        .flutterTts
+                                                        .setSpeechRate(newRate);
+                                                    _ttsAudioController
+                                                        .playbackRate
+                                                        .value = newRate;
+                                                    await _ttsAudioController
+                                                        .play();
+                                                  },
                                                   onVoiceSelector: () async {
                                                     await showModalBottomSheet(
                                                       context: context,

@@ -607,6 +607,43 @@ class VoiceSettingsService {
     }
   }
 
+  /// Lista de velocidades permitidas (equivalentes a settings)
+  static const List<double> allowedPlaybackRates = [0.5, 1.0, 1.5, 2.0];
+
+  /// Rota la velocidad de reproducción (entre allowedPlaybackRates), la guarda y la aplica al TTS.
+  /// Devuelve el nuevo playbackRate aplicado.
+  Future<double> cyclePlaybackRate(
+      {double? currentRate, FlutterTts? ttsOverride}) async {
+    final rates = allowedPlaybackRates;
+    final current = (currentRate ?? await getSavedSpeechRate()).clamp(0.5, 2.0);
+
+    // Buscar índice exacto o el más cercano
+    int idx = rates.indexWhere((r) => (r - current).abs() < 0.001);
+    if (idx == -1) {
+      double minDiff = double.infinity;
+      for (int i = 0; i < rates.length; i++) {
+        final diff = (rates[i] - current).abs();
+        if (diff < minDiff) {
+          minDiff = diff;
+          idx = i;
+        }
+      }
+    }
+
+    final next = rates[(idx + 1) % rates.length];
+    final clampedNext = next.clamp(0.5, 2.0);
+    // Persistir
+    await setSavedSpeechRate(clampedNext);
+    // Aplicar al motor
+    final tts = ttsOverride ?? _flutterTts;
+    try {
+      await tts.setSpeechRate(clampedNext);
+    } catch (e) {
+      debugPrint('VoiceSettingsService: Failed to set speech rate: $e');
+    }
+    return clampedNext;
+  }
+
   // Mapeo amigable de voces con emoji y nombre
   static const Map<String, Map<String, String>> friendlyVoiceMap = {
     'es': {

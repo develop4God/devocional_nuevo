@@ -1,3 +1,5 @@
+import 'package:devocional_nuevo/services/service_locator.dart';
+import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 import 'package:flutter/material.dart';
 
 /// Miniplayer de audio para devocionales con barra de progreso, control de velocidad,
@@ -13,6 +15,8 @@ class TtsMiniplayerWidget extends StatefulWidget {
   final ValueChanged<Duration> onSeek;
   final VoidCallback onTogglePlay;
   final VoidCallback onCycleRate;
+  final ValueChanged<double>?
+      onRateChanged; // Notifica el nuevo playbackRate al padre (opcional)
   final VoidCallback onVoiceSelector;
 
   const TtsMiniplayerWidget({
@@ -27,6 +31,7 @@ class TtsMiniplayerWidget extends StatefulWidget {
     required this.onSeek,
     required this.onTogglePlay,
     required this.onCycleRate,
+    this.onRateChanged,
     required this.onVoiceSelector,
   });
 
@@ -81,7 +86,22 @@ class _TtsMiniplayerWidgetState extends State<TtsMiniplayerWidget> {
           children: [
             // Velocidad
             GestureDetector(
-              onTap: widget.onCycleRate,
+              onTap: () async {
+                // Si el padre proveyó un handler explícito, usarlo (preserva compatibilidad)
+                widget.onCycleRate();
+                return;
+
+                // Si no, usar la lógica centralizada en VoiceSettingsService
+                try {
+                  final voiceService = getService<VoiceSettingsService>();
+                  final next = await voiceService.cyclePlaybackRate(
+                      currentRate: widget.playbackRate);
+                  // Notificar al padre del nuevo rate si se suscribe
+                  widget.onRateChanged?.call(next);
+                } catch (e) {
+                  debugPrint('[TtsMiniplayer] Error cycling playback rate: $e');
+                }
+              },
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
