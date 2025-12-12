@@ -24,6 +24,7 @@ import 'package:devocional_nuevo/widgets/app_bar_constants.dart'
 import 'package:devocional_nuevo/widgets/app_bar_constants.dart';
 import 'package:devocional_nuevo/widgets/devocionales_page_drawer.dart';
 import 'package:devocional_nuevo/widgets/floating_font_control_buttons.dart';
+import 'package:devocional_nuevo/widgets/tts_miniplayer_widget.dart';
 import 'package:devocional_nuevo/widgets/tts_player_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -39,6 +40,7 @@ import '../controllers/audio_controller.dart';
 import '../controllers/tts_audio_controller.dart';
 import '../services/spiritual_stats_service.dart';
 import '../services/tts/bible_text_formatter.dart';
+import '../widgets/voice_selector_dialog.dart';
 
 class DevocionalesPage extends StatefulWidget {
   final String? initialDevocionalId;
@@ -793,6 +795,32 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     return expansions[version] ?? version;
   }
 
+  // Helper para construir el texto usado por el selector de voz
+  String _buildTtsTextForDevocional(Devocional devocional, String language) {
+    final verseLabel = 'devotionals.verse'.tr().replaceAll(':', '');
+    final reflectionLabel = 'devotionals.reflection'.tr().replaceAll(':', '');
+    final meditateLabel = 'devotionals.to_meditate'.tr().replaceAll(':', '');
+    final prayerLabel = 'devotionals.prayer'.tr().replaceAll(':', '');
+
+    final StringBuffer ttsBuffer = StringBuffer();
+    ttsBuffer.write('$verseLabel: ');
+    ttsBuffer.write(BibleTextFormatter.normalizeTtsText(
+        devocional.versiculo, language, devocional.version));
+    ttsBuffer.write('\n$reflectionLabel: ');
+    ttsBuffer.write(BibleTextFormatter.normalizeTtsText(
+        devocional.reflexion, language, devocional.version));
+    if (devocional.paraMeditar.isNotEmpty) {
+      ttsBuffer.write('\n$meditateLabel: ');
+      ttsBuffer.write(devocional.paraMeditar.map((m) {
+        return '${BibleTextFormatter.normalizeTtsText(m.cita, language, devocional.version)}: ${m.texto}';
+      }).join('\n'));
+    }
+    ttsBuffer.write('\n$prayerLabel: ');
+    ttsBuffer.write(BibleTextFormatter.normalizeTtsText(
+        devocional.oracion, language, devocional.version));
+    return ttsBuffer.toString();
+  }
+
   @override
   Widget build(BuildContext context) {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
@@ -1165,7 +1193,108 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                 backgroundColor: Colors.grey[300],
                                 color: colorScheme.primary,
                               ),
-                              // Eliminada la lógica condicional de chunks
+                              // TtsMiniplayer integrado en el bottom area
+                              ValueListenableBuilder<TtsPlayerState>(
+                                valueListenable: _ttsAudioController.state,
+                                builder: (context, state, _) {
+                                  if (state == TtsPlayerState.idle)
+                                    return const SizedBox.shrink();
+                                  return Padding(
+                                    padding: const EdgeInsets.only(top: 8.0),
+                                    child: ValueListenableBuilder<Duration>(
+                                      valueListenable:
+                                          _ttsAudioController.currentPosition,
+                                      builder: (context, currentPos, __) {
+                                        return ValueListenableBuilder<Duration>(
+                                          valueListenable:
+                                              _ttsAudioController.totalDuration,
+                                          builder: (context, totalDur, ___) {
+                                            return ValueListenableBuilder<
+                                                double>(
+                                              valueListenable:
+                                                  _ttsAudioController
+                                                      .playbackRate,
+                                              builder: (context, rate, ____) {
+                                                return TtsMiniplayerWidget(
+                                                  currentPosition: currentPos,
+                                                  totalDuration: totalDur,
+                                                  isPlaying: state ==
+                                                      TtsPlayerState.playing,
+                                                  playbackRate: rate,
+                                                  playbackRates:
+                                                      _ttsAudioController
+                                                          .supportedRates,
+                                                  onStop: () =>
+                                                      _ttsAudioController
+                                                          .stop(),
+                                                  onSeekStart: () {},
+                                                  onSeek: (d) =>
+                                                      _ttsAudioController
+                                                          .seek(d),
+                                                  onTogglePlay: () {
+                                                    if (state ==
+                                                        TtsPlayerState
+                                                            .playing) {
+                                                      _ttsAudioController
+                                                          .pause();
+                                                    } else {
+                                                      _ttsAudioController
+                                                          .play();
+                                                    }
+                                                  },
+                                                  onCycleRate: () =>
+                                                      _ttsAudioController
+                                                          .cyclePlaybackRate(),
+                                                  onVoiceSelector: () async {
+                                                    await showModalBottomSheet(
+                                                      context: context,
+                                                      isScrollControlled: true,
+                                                      shape:
+                                                          const RoundedRectangleBorder(
+                                                        borderRadius:
+                                                            BorderRadius.vertical(
+                                                                top: Radius
+                                                                    .circular(
+                                                                        28)),
+                                                      ),
+                                                      builder: (ctx) =>
+                                                          FractionallySizedBox(
+                                                        heightFactor: 0.8,
+                                                        child: Padding(
+                                                          padding: EdgeInsets.only(
+                                                              bottom: MediaQuery
+                                                                      .of(ctx)
+                                                                  .viewInsets
+                                                                  .bottom),
+                                                          child:
+                                                              VoiceSelectorDialog(
+                                                            language: Localizations
+                                                                    .localeOf(
+                                                                        context)
+                                                                .languageCode,
+                                                            sampleText: _buildTtsTextForDevocional(
+                                                                currentDevocional!,
+                                                                Localizations
+                                                                        .localeOf(
+                                                                            context)
+                                                                    .languageCode),
+                                                            onVoiceSelected: (name,
+                                                                locale) async {},
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    );
+                                                  },
+                                                );
+                                              },
+                                            );
+                                          },
+                                        );
+                                      },
+                                    ),
+                                  );
+                                },
+                              ),
                             ],
                           );
                         },
@@ -1208,21 +1337,28 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                               child: currentDevocional != null
                                   ? Builder(
                                       builder: (context) {
-                                        return TtsPlayerWidget(
-                                          key: const Key(
-                                              'bottom_nav_tts_player'),
-                                          devocional: currentDevocional,
-                                          audioController: _ttsAudioController,
-                                          onCompleted: () {
-                                            // Show prayer dialog after TTS completes first audio
-                                            final provider =
-                                                Provider.of<DevocionalProvider>(
+                                        return Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            // Original TtsPlayerWidget (unchanged)
+                                            TtsPlayerWidget(
+                                              key: const Key(
+                                                  'bottom_nav_tts_player'),
+                                              devocional: currentDevocional,
+                                              audioController:
+                                                  _ttsAudioController,
+                                              onCompleted: () {
+                                                final provider = Provider.of<
+                                                        DevocionalProvider>(
                                                     context,
                                                     listen: false);
-                                            if (provider.showInvitationDialog) {
-                                              _showInvitation(context);
-                                            }
-                                          },
+                                                if (provider
+                                                    .showInvitationDialog) {
+                                                  _showInvitation(context);
+                                                }
+                                              },
+                                            ),
+                                          ],
                                         );
                                       },
                                     )

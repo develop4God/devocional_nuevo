@@ -1,12 +1,10 @@
 import 'package:devocional_nuevo/controllers/tts_audio_controller.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
-import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/tts/bible_text_formatter.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 import '../widgets/voice_selector_dialog.dart';
 import 'modern_voice_feature_dialog.dart';
@@ -29,8 +27,6 @@ class TtsPlayerWidget extends StatefulWidget {
 
 class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
     with WidgetsBindingObserver {
-  bool _hasRegisteredHeard = false;
-
   @override
   void initState() {
     super.initState();
@@ -44,7 +40,6 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
       debugPrint(
           '[TTS Widget] Cambio de devocional detectado, deteniendo audio');
       widget.audioController.stop();
-      _hasRegisteredHeard = false;
     }
   }
 
@@ -117,29 +112,15 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
         '[TTS Widget] Texto TTS armado: ${ttsText.length > 80 ? '${ttsText.substring(0, 80)}...' : ttsText}');
     widget.audioController.setText(ttsText);
 
+    // Restore dynamic visuals: show spinner while loading, pause when playing, play otherwise.
     return ValueListenableBuilder<TtsPlayerState>(
       valueListenable: widget.audioController.state,
-      builder: (context, state, child) {
-        debugPrint('[TTS Widget] Estado actual: $state');
-
-        if (state == TtsPlayerState.completed && !_hasRegisteredHeard) {
-          _hasRegisteredHeard = true;
-          _registerDevotionalHeard(
-              widget.devocional.id, widget.audioController, context);
-        }
-
-        debugPrint('[TTS Widget] Renderizando IconButton, estado: $state');
+      builder: (context, state, _) {
         return Material(
           color: Colors.transparent,
           elevation: 0,
-          shape: state == TtsPlayerState.playing
-              ? RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))
-              : const CircleBorder(),
           child: InkWell(
-            customBorder: state == TtsPlayerState.playing
-                ? RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16))
-                : const CircleBorder(),
+            customBorder: const CircleBorder(),
             onTap: () => _handlePlayPause(context, state, language, ttsText),
             child: _buildButton(context, state),
           ),
@@ -148,12 +129,8 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
     );
   }
 
-  Future<void> _handlePlayPause(
-    BuildContext context,
-    TtsPlayerState state,
-    String language,
-    String ttsText,
-  ) async {
+  Future<void> _handlePlayPause(BuildContext context, TtsPlayerState state,
+      String language, String ttsText) async {
     debugPrint('[TTS Widget] Acción de usuario: $state');
 
     final voiceService = getService<VoiceSettingsService>();
@@ -162,35 +139,33 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
     if (!mounted) return;
 
     if (!hasSaved) {
-      if (!mounted) return;
-      await showModalBottomSheet(
-        // ignore: use_build_context_synchronously
+      await showModalBottomSheet<void>(
         context: context,
         isScrollControlled: true,
         backgroundColor: Colors.transparent,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
         ),
-        builder: (ctx) => Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
-          ),
-          child: ModernVoiceFeatureDialog(
-            onConfigure: () async {
-              Navigator.of(ctx).pop();
-              if (!mounted) return;
-              // ignore: use_build_context_synchronously
-              await _showVoiceSelector(context, language, ttsText);
-            },
-            onContinue: () async {
-              Navigator.of(ctx).pop();
-              await voiceService.setUserSavedVoice(language);
-              if (state != TtsPlayerState.loading) {
-                widget.audioController.play();
-              }
-            },
-          ),
-        ),
+        builder: (ctx) {
+          return Padding(
+            padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom),
+            child: ModernVoiceFeatureDialog(
+              onConfigure: () async {
+                Navigator.of(ctx).pop();
+                if (!mounted) return;
+                await _showVoiceSelector(context, language, ttsText);
+              },
+              onContinue: () async {
+                Navigator.of(ctx).pop();
+                await voiceService.setUserSavedVoice(language);
+                if (state != TtsPlayerState.loading) {
+                  widget.audioController.play();
+                }
+              },
+            ),
+          );
+        },
       );
       return;
     }
@@ -207,11 +182,7 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
   }
 
   Future<void> _showVoiceSelector(
-    BuildContext context,
-    String language,
-    String ttsText,
-  ) async {
-    // ignore: use_build_context_synchronously
+      BuildContext context, String language, String ttsText) async {
     await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -221,9 +192,8 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
       builder: (context) => FractionallySizedBox(
         heightFactor: 0.8,
         child: Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
-          ),
+          padding:
+              EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
           child: VoiceSelectorDialog(
             language: language,
             sampleText: ttsText,
@@ -243,8 +213,8 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
 
     if (state == TtsPlayerState.loading) {
       mainIcon = const SizedBox(
-        width: 32,
-        height: 32,
+        width: 28,
+        height: 28,
         child: CircularProgressIndicator(strokeWidth: 2),
       );
       decoration = BoxDecoration(
@@ -255,7 +225,7 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
       mainIcon = Icon(Icons.pause, size: 32, color: themeColor);
       decoration = BoxDecoration(
         border: Border.all(color: themeColor, width: borderWidth),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
       );
     } else {
       mainIcon = Icon(Icons.play_arrow, size: 32, color: themeColor);
@@ -271,31 +241,5 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
       height: 56,
       child: Center(child: mainIcon),
     );
-  }
-
-  void _registerDevotionalHeard(
-    String devotionalId,
-    TtsAudioController audioController,
-    BuildContext context,
-  ) {
-    final provider = Provider.of<DevocionalProvider>(context, listen: false);
-    provider.recordDevocionalHeard(devotionalId, 0.8, context).then((result) {
-      if (result == 'guardado') {
-        debugPrint(
-            '[TTS Widget] Registrando devocional heard: id=$devotionalId, porcentaje=80%');
-        // Trigger onCompleted callback when devotional is first heard
-        widget.onCompleted?.call();
-      } else if (result == 'ya_registrado') {
-        debugPrint(
-            '[TTS Widget] Ya registrado como leído/escuchado, no se duplica');
-      } else {
-        debugPrint(
-            '[TTS Widget] Error recording devotional heard: $devotionalId');
-      }
-      audioController.state.value = TtsPlayerState.idle;
-    }).catchError((error) {
-      debugPrint('[TTS Widget] Error recording devotional heard: $error');
-      audioController.state.value = TtsPlayerState.idle;
-    });
   }
 }
