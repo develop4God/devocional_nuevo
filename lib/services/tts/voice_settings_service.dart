@@ -596,6 +596,17 @@ class VoiceSettingsService {
     return prefs.getDouble('tts_rate') ?? 0.5;
   }
 
+  /// Guarda la velocidad de reproducción TTS preferida
+  Future<void> setSavedSpeechRate(double rate) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setDouble('tts_rate', rate);
+      debugPrint('🔧 VoiceSettings: Saved speech rate = $rate');
+    } catch (e) {
+      debugPrint('❌ VoiceSettings: Failed to save speech rate: $e');
+    }
+  }
+
   // Mapeo amigable de voces con emoji y nombre
   static const Map<String, Map<String, String>> friendlyVoiceMap = {
     'es': {

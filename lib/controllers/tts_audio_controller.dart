@@ -12,6 +12,8 @@ class TtsAudioController {
       ValueNotifier<TtsPlayerState>(TtsPlayerState.idle);
   final FlutterTts flutterTts;
   String? _currentText;
+  String? _fullText;
+  Duration _fullDuration = Duration.zero;
 
   // Progress notifiers for miniplayer
   final ValueNotifier<Duration> currentPosition = ValueNotifier(Duration.zero);
@@ -24,6 +26,17 @@ class TtsAudioController {
   Duration _accumulatedPosition = Duration.zero;
 
   TtsAudioController({required this.flutterTts}) {
+    // Load saved playback rate early so the UI can show the persisted value
+    // and the TTS engine receives the value before speaking.
+    try {
+      getService<VoiceSettingsService>().getSavedSpeechRate().then((rate) {
+        playbackRate.value = rate;
+        flutterTts.setSpeechRate(rate);
+        debugPrint('[TTS Controller] Initialized saved playback rate: $rate');
+      });
+    } catch (e) {
+      debugPrint('[TTS Controller] Could not load saved playback rate: $e');
+    }
     flutterTts.setStartHandler(() {
       debugPrint(
           '[TTS Controller] Inicio de reproducción recibido, cambiando estado a PLAYING');
@@ -45,13 +58,16 @@ class TtsAudioController {
   }
 
   void setText(String text) {
+    _fullText = text;
     _currentText = text;
-    // Estimate duration based on word count and playbackRate
-    final words = _currentText!.split(RegExp(r"\s+")).length;
+    // Estimate full duration based on full text and current playbackRate
+    final words = _fullText!.split(RegExp(r"\s+")).length;
     // average 150 wpm -> 2.5 words per second
     final double wordsPerSecond = 150.0 / 60.0;
     final estimatedSeconds = (words / wordsPerSecond) / playbackRate.value;
-    totalDuration.value = Duration(seconds: estimatedSeconds.round());
+    _fullDuration = Duration(seconds: estimatedSeconds.round());
+    // By default totalDuration represents remaining duration (initially full)
+    totalDuration.value = _fullDuration;
     currentPosition.value = Duration.zero;
     _accumulatedPosition = Duration.zero;
   }
@@ -149,11 +165,50 @@ class TtsAudioController {
   // Seek within estimated duration
   void seek(Duration position) {
     if (position < Duration.zero) position = Duration.zero;
-    if (position > totalDuration.value) position = totalDuration.value;
+    // If we have a full duration (from setText), ensure bounds against full duration
+    if (_fullDuration == Duration.zero) {
+      // nothing to seek
+      return;
+    }
+
+    if (position > _fullDuration) position = _fullDuration;
+
+    // Calculate proportion and estimate words to skip
+    final fullWords = (_fullText ?? '')
+        .split(RegExp(r"\s+"))
+        .where((w) => w.isNotEmpty)
+        .toList();
+    final fullSeconds =
+        _fullDuration.inSeconds > 0 ? _fullDuration.inSeconds : 1;
+    final ratio = position.inSeconds / fullSeconds;
+    final skipWords =
+        (fullWords.length * ratio).clamp(0, fullWords.length).round();
+
+    // Build remaining text from skipWords
+    final remainingWords = fullWords.skip(skipWords).toList();
+    final remainingText = remainingWords.join(' ');
+
+    // Update current text and durations
+    _currentText = remainingText;
+    final remainingWordsCount = remainingWords.length;
+    final double wordsPerSecond = 150.0 / 60.0;
+    // Keep totalDuration as the full duration for UI slider consistency
+    totalDuration.value = _fullDuration;
     currentPosition.value = position;
     _accumulatedPosition = position;
     _playStartTime = DateTime.now();
-    // Note: flutter_tts may not support native seek; this is a best-effort sync for UI
+
+    // If currently playing, restart TTS from the remaining text
+    if (state.value == TtsPlayerState.playing) {
+      // flutter_tts doesn't have robust seek; stop and speak remaining text
+      flutterTts.stop();
+      // apply current speech rate before speaking
+      flutterTts.setSpeechRate(playbackRate.value);
+      if (_currentText != null && _currentText!.isNotEmpty) {
+        flutterTts.speak(_currentText!);
+      }
+      // progress timer will sync from the start handler
+    }
   }
 
   // Cycle playback rate
@@ -162,6 +217,12 @@ class TtsAudioController {
     final nextIdx = (idx + 1) % supportedRates.length;
     playbackRate.value = supportedRates[nextIdx];
     flutterTts.setSpeechRate(playbackRate.value);
+    // Persist the selected rate in settings so UI and future play calls are consistent
+    try {
+      getService<VoiceSettingsService>().setSavedSpeechRate(playbackRate.value);
+    } catch (e) {
+      debugPrint('[TTS Controller] Failed to persist speech rate: $e');
+    }
   }
 
   void dispose() {

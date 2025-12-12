@@ -1242,9 +1242,43 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                                           .play();
                                                     }
                                                   },
-                                                  onCycleRate: () =>
-                                                      _ttsAudioController
-                                                          .cyclePlaybackRate(),
+                                                  onCycleRate: () async {
+                                                    final provider = Provider
+                                                        .of<DevocionalProvider>(
+                                                            context,
+                                                            listen: false);
+                                                    final rates =
+                                                        _ttsAudioController
+                                                            .supportedRates;
+                                                    final current =
+                                                        _ttsAudioController
+                                                            .playbackRate.value;
+                                                    final idx =
+                                                        rates.indexOf(current);
+                                                    final next = rates[
+                                                        (idx + 1) %
+                                                            rates.length];
+                                                    try {
+                                                      await provider
+                                                          .setTtsSpeechRate(
+                                                              next);
+                                                    } catch (e) {
+                                                      debugPrint(
+                                                          '[DevocionalesPage] Failed to set speech rate via provider: $e');
+                                                    }
+                                                    // Sync local controller notifier and TTS engine
+                                                    _ttsAudioController
+                                                        .playbackRate
+                                                        .value = next;
+                                                    try {
+                                                      await _ttsAudioController
+                                                          .flutterTts
+                                                          .setSpeechRate(next);
+                                                    } catch (e) {
+                                                      debugPrint(
+                                                          '[DevocionalesPage] Failed to apply speech rate to flutterTts: $e');
+                                                    }
+                                                  },
                                                   onVoiceSelector: () async {
                                                     await showModalBottomSheet(
                                                       context: context,

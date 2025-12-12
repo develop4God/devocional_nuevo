@@ -5,6 +5,7 @@ import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/tts/bible_text_formatter.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../widgets/voice_selector_dialog.dart';
 import 'modern_voice_feature_dialog.dart';
@@ -27,10 +28,45 @@ class TtsPlayerWidget extends StatefulWidget {
 
 class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
     with WidgetsBindingObserver {
+  bool _hasRegisteredHeard = false;
+  late VoidCallback _stateListener;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    // Listener para detectar cuando la reproducción completa y registrar 'heard'
+    _stateListener = () {
+      try {
+        final s = widget.audioController.state.value;
+        if (s == TtsPlayerState.completed && !_hasRegisteredHeard) {
+          _hasRegisteredHeard = true;
+          final provider =
+              Provider.of<DevocionalProvider>(context, listen: false);
+          // Usamos 0.8 (80%) como umbral consistente con implementaciones previas
+          provider
+              .recordDevocionalHeard(widget.devocional.id, 0.8, context)
+              .then((result) {
+            if (result == 'guardado') {
+              debugPrint(
+                  '[TTS Widget] Devocional marcado como heard: ${widget.devocional.id}');
+              widget.onCompleted?.call();
+            } else if (result == 'ya_registrado') {
+              debugPrint(
+                  '[TTS Widget] Devocional ya registrado anteriormente: ${widget.devocional.id}');
+            } else {
+              debugPrint(
+                  '[TTS Widget] recordDevocionalHeard result: $result for ${widget.devocional.id}');
+            }
+          }).catchError((e) {
+            debugPrint('[TTS Widget] Error registrando devocional heard: $e');
+          });
+        }
+      } catch (e) {
+        debugPrint('[TTS Widget] State listener error: $e');
+      }
+    };
+    widget.audioController.state.addListener(_stateListener);
   }
 
   @override
@@ -40,6 +76,8 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
       debugPrint(
           '[TTS Widget] Cambio de devocional detectado, deteniendo audio');
       widget.audioController.stop();
+      // Resetear flag para permitir registro en el nuevo devocional
+      _hasRegisteredHeard = false;
     }
   }
 
@@ -47,6 +85,10 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
   void dispose() {
     debugPrint('[TTS Widget] dispose() llamado, deteniendo audio');
     widget.audioController.stop();
+    // Remover listener agregado en initState
+    try {
+      widget.audioController.state.removeListener(_stateListener);
+    } catch (_) {}
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
