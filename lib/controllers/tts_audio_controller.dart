@@ -19,7 +19,7 @@ class TtsAudioController {
   final ValueNotifier<Duration> currentPosition = ValueNotifier(Duration.zero);
   final ValueNotifier<Duration> totalDuration = ValueNotifier(Duration.zero);
   final ValueNotifier<double> playbackRate = ValueNotifier(1.0);
-  final List<double> supportedRates = [0.5, 1.0, 1.25, 1.5, 2.0];
+  final List<double> supportedRates = [0.5, 1.0, 2.0];
 
   Timer? _progressTimer;
   DateTime? _playStartTime;
@@ -213,9 +213,14 @@ class TtsAudioController {
 
   // Cycle playback rate
   void cyclePlaybackRate() {
+    debugPrint('🔄 [TTS Controller] Rates disponibles: $supportedRates');
+    debugPrint('🔄 [TTS Controller] Valor actual: ${playbackRate.value}');
     final idx = supportedRates.indexOf(playbackRate.value);
+    debugPrint('🔄 [TTS Controller] Índice actual: $idx');
     final nextIdx = (idx + 1) % supportedRates.length;
+    debugPrint('🔄 [TTS Controller] Siguiente índice: $nextIdx');
     playbackRate.value = supportedRates[nextIdx];
+    debugPrint('🔄 [TTS Controller] Nuevo valor: ${playbackRate.value}');
     flutterTts.setSpeechRate(playbackRate.value);
     // Persist the selected rate in settings so UI and future play calls are consistent
     try {

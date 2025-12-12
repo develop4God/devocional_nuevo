@@ -607,8 +607,12 @@ class VoiceSettingsService {
     }
   }
 
-  /// Lista de velocidades permitidas (equivalentes a settings)
-  static const List<double> allowedPlaybackRates = [0.5, 1.0, 1.5, 2.0];
+  /// Lista de velocidades permitidas (homologadas para settings y miniplayer)
+  static const List<double> allowedPlaybackRates = [
+    0.5,
+    1.0,
+    2.0
+  ]; // 0.5x, 1.0x, 2.0x
 
   /// Rota la velocidad de reproducción (entre allowedPlaybackRates), la guarda y la aplica al TTS.
   /// Devuelve el nuevo playbackRate aplicado.
@@ -642,6 +646,49 @@ class VoiceSettingsService {
       debugPrint('VoiceSettingsService: Failed to set speech rate: $e');
     }
     return clampedNext;
+  }
+
+  /// Devuelve la lista de rates permitidos para el miniplayer (homologados)
+  static const List<double> miniPlayerRates = [
+    0.5,
+    1.0,
+    2.0
+  ]; // 0.5x, 1.0x, 2.0x
+  static final Map<double, double> miniToSettings = {
+    0.5: 0.1, // 0.5x → 10%
+    1.0: 0.5, // 1.0x → 50%
+    2.0: 1.0, // 2.0x → 100%
+  };
+  static final Map<double, double> settingsToMini = {
+    0.1: 0.5,
+    0.5: 1.0,
+    1.0: 2.0,
+  };
+
+  /// Dado un rate de settings, devuelve el rate homologado del miniplayer
+  double getMiniPlayerRate(double settingsRate) {
+    // Si coincide exactamente
+    if (settingsToMini.containsKey(settingsRate)) {
+      return settingsToMini[settingsRate]!;
+    }
+    // Si está cerca de 0.1, 0.5 o 1.0
+    if ((settingsRate - 0.1).abs() < 0.05) return 0.5;
+    if ((settingsRate - 0.5).abs() < 0.1) return 1.0;
+    if ((settingsRate - 1.0).abs() < 0.1) return 2.0;
+    // Por defecto, 1.0x
+    return 1.0;
+  }
+
+  /// Devuelve el siguiente rate del miniplayer, ciclando
+  double getNextMiniPlayerRate(double currentMiniRate) {
+    final idx = miniPlayerRates.indexOf(currentMiniRate);
+    if (idx == -1) return 1.0;
+    return miniPlayerRates[(idx + 1) % miniPlayerRates.length];
+  }
+
+  /// Dado un rate del miniplayer, devuelve el valor equivalente para settings
+  double getSettingsRateForMini(double miniRate) {
+    return miniToSettings[miniRate] ?? 0.5;
   }
 
   // Mapeo amigable de voces con emoji y nombre
