@@ -1,10 +1,15 @@
+import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
+import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/widgets/devocionales_page_drawer.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import '../test/helpers/test_helpers.dart';
 
 // Mock para DevocionalProvider
 class MockDevocionalProvider extends Mock implements DevocionalProvider {}
@@ -16,70 +21,57 @@ void main() {
     // Initialize Flutter binding for tests
     TestWidgetsFlutterBinding.ensureInitialized();
     // Initialize SharedPreferences mock for each test
-    // Inicializa SharedPreferences en modo mock
     SharedPreferences.setMockInitialValues({});
+
+    // Register all services including LocalizationService
+    registerTestServices();
 
     mockDevocionalProvider = MockDevocionalProvider();
 
     // Stubs para los getters requeridos
     when(() => mockDevocionalProvider.selectedVersion).thenReturn('RVR1960');
-    when(() => mockDevocionalProvider.availableVersions).thenReturn(['RVR1960', 'NVI', 'KJV']);
+    when(() => mockDevocionalProvider.availableVersions)
+        .thenReturn(['RVR1960', 'NVI', 'KJV']);
     when(() => mockDevocionalProvider.isOfflineMode).thenReturn(false);
     when(() => mockDevocionalProvider.downloadStatus).thenReturn(null);
+    when(() => mockDevocionalProvider.selectedLanguage).thenReturn('es');
   });
 
   Widget createWidgetUnderTest() {
-    return MaterialApp(
-      home: ChangeNotifierProvider<DevocionalProvider>.value(
-        value: mockDevocionalProvider,
-        child: Scaffold(
-          drawer: const DevocionalesDrawer(),
-          appBar: AppBar(),
-          body: Builder(
-            builder: (context) => ElevatedButton(
-              onPressed: () => Scaffold.of(context).openDrawer(),
-              child: const Text('Open Drawer'),
+    return BlocProvider(
+      create: (_) => ThemeBloc(),
+      child: Builder(
+        builder: (context) {
+          // Get theme from BLoC
+          final themeState = context.watch<ThemeBloc>().state;
+          final theme = themeState is ThemeLoaded
+              ? themeState.themeData
+              : ThemeData.light();
+
+          return MaterialApp(
+            theme: theme,
+            home: ChangeNotifierProvider<DevocionalProvider>.value(
+              value: mockDevocionalProvider,
+              child: Scaffold(
+                drawer: const DevocionalesDrawer(),
+                appBar: AppBar(),
+                body: Builder(
+                  builder: (context) => ElevatedButton(
+                    onPressed: () => Scaffold.of(context).openDrawer(),
+                    child: const Text('Open Drawer'),
+                  ),
+                ),
+              ),
             ),
-          ),
-        ),
+          );
+        },
       ),
     );
   }
 
-  // Helper function to debug what text widgets are actually present
-  void debugFoundTexts(WidgetTester tester) {
-    final allTexts = tester.widgetList(find.byType(Text));
-    debugPrint('\n=== DEBUG: Found Text Widgets ===');
-    for (final textWidget in allTexts) {
-      final text = textWidget as Text;
-      debugPrint('Text: "[0m${text.data}[0m"');
-    }
-    debugPrint('=== End Debug ===\n');
-  }
-
-  // Helper function to find text with flexible matching
-  Finder findTextFlexible(String expectedText, {bool exact = false}) {
-    if (exact) {
-      return find.text(expectedText);
-    }
-
-    // Try exact match first
-    var finder = find.text(expectedText);
-    if (finder.evaluate().isNotEmpty) {
-      return finder;
-    }
-
-    // Try case-insensitive partial match
-    return find.byWidgetPredicate((widget) {
-      if (widget is Text && widget.data != null) {
-        return widget.data!.toLowerCase().contains(expectedText.toLowerCase());
-      }
-      return false;
-    });
-  }
-
   group('DevocionalesDrawer Offline Integration', () {
-    testWidgets('should show "Descargar devocionales" when no local data',
+    testWidgets(
+        'should show "Descargar devocionales" with download icon when no local data',
         (WidgetTester tester) async {
       // Mock sin datos locales
       when(() => mockDevocionalProvider.hasTargetYearsLocalData())
@@ -91,41 +83,18 @@ void main() {
       await tester.tap(find.text('Open Drawer'));
       await tester.pumpAndSettle();
 
-      // Debug: Print what texts are actually found
-      debugFoundTexts(tester);
+      // Verify the main text "Descargar devocionales"
+      expect(find.text('Descargar devocionales'), findsOneWidget);
 
-      // Use flexible text matching
-      expect(
-          findTextFlexible('descargar devocionales'), findsAtLeastNWidgets(1));
+      // Verify subtitle text for offline use
+      expect(find.text('Para uso sin internet'), findsOneWidget);
 
-      // Look for download-related icons more flexibly
-      final downloadIcons = [
-        Icons.download_outlined,
-        Icons.download,
-        Icons.file_download,
-        Icons.get_app,
-        Icons.cloud_download,
-      ];
-
-      bool foundDownloadIcon = false;
-      for (var icon in downloadIcons) {
-        if (find.byIcon(icon).evaluate().isNotEmpty) {
-          expect(find.byIcon(icon), findsAtLeastNWidgets(1));
-          foundDownloadIcon = true;
-          break;
-        }
-      }
-
-      // If no specific icon found, just verify the drawer opened
-      if (!foundDownloadIcon) {
-        expect(find.byType(DevocionalesDrawer), findsOneWidget);
-        debugPrint(
-            'Note: No specific download icon found, but drawer is present');
-      }
+      // Verify download icon is present
+      expect(find.byIcon(Icons.download_for_offline_outlined), findsOneWidget);
     });
 
     testWidgets(
-        'should show "Devocionales descargados" with check icon when local data exists',
+        'should show "Disfruta contenido sin internet" with offline pin icon when local data exists',
         (WidgetTester tester) async {
       // Mock con datos locales
       when(() => mockDevocionalProvider.hasTargetYearsLocalData())
@@ -137,41 +106,23 @@ void main() {
       await tester.tap(find.text('Open Drawer'));
       await tester.pumpAndSettle();
 
-      // Debug: Print what texts are actually found
-      debugFoundTexts(tester);
+      // Verify the main text "Descargar devocionales"
+      expect(find.text('Descargar devocionales'), findsOneWidget);
 
-      // Use flexible text matching for downloaded status
-      expect(findTextFlexible('devocionales descargados'),
-          findsAtLeastNWidgets(1));
+      // Verify subtitle text indicating content is ready
+      expect(find.text('Disfruta contenido sin internet'), findsOneWidget);
 
-      // Look for check-related icons more flexibly
-      final checkIcons = [
-        Icons.check_circle,
-        Icons.check,
-        Icons.done,
-        Icons.check_circle_outline,
-        Icons.verified,
-      ];
-
-      bool foundCheckIcon = false;
-      for (var icon in checkIcons) {
-        if (find.byIcon(icon).evaluate().isNotEmpty) {
-          expect(find.byIcon(icon), findsAtLeastNWidgets(1));
-          foundCheckIcon = true;
-          break;
-        }
-      }
-
-      if (!foundCheckIcon) {
-        expect(find.byType(DevocionalesDrawer), findsOneWidget);
-        debugPrint('Note: No specific check icon found, but drawer is present');
-      }
+      // Verify offline pin icon is present
+      expect(find.byIcon(Icons.offline_pin_outlined), findsOneWidget);
     });
 
     testWidgets('should open download confirmation dialog when tapped',
         (WidgetTester tester) async {
       when(() => mockDevocionalProvider.hasTargetYearsLocalData())
           .thenAnswer((_) async => false);
+      when(() => mockDevocionalProvider.downloadDevocionalesWithProgress(
+            onProgress: any(named: 'onProgress'),
+          )).thenAnswer((_) async => true);
 
       await tester.pumpWidget(createWidgetUnderTest());
 
@@ -179,88 +130,27 @@ void main() {
       await tester.tap(find.text('Open Drawer'));
       await tester.pumpAndSettle();
 
-      // Debug: Print what texts are found after dialog opens
-      debugPrint('\n=== After Dialog Opens ===');
-      debugFoundTexts(tester);
+      // Find and tap the download devotionals option
+      final downloadButton =
+          find.byKey(const Key('drawer_download_devotionals'));
+      expect(downloadButton, findsOneWidget);
 
-      // Look for dialog elements with flexible matching
-      bool foundDialog = false;
+      await tester.tap(downloadButton);
+      await tester.pumpAndSettle();
 
-      // Try to find dialog by type first
-      if (find.byType(AlertDialog).evaluate().isNotEmpty) {
-        expect(find.byType(AlertDialog), findsOneWidget);
-        foundDialog = true;
-      } else if (find.byType(Dialog).evaluate().isNotEmpty) {
-        expect(find.byType(Dialog), findsOneWidget);
-        foundDialog = true;
-      }
+      // Verify dialog opened with expected content
+      // Look for the dialog title
+      expect(find.text('⬇️✨ Confirmar descarga'), findsOneWidget);
 
-      // Look for dialog title with flexible matching
-      final dialogTitleOptions = [
-        'Descarga de Devocionales',
-        'descarga de devocionales',
-        'Descargar Devocionales',
-        'descarga',
-        'devocionales',
-      ];
+      // Look for the dialog content
+      expect(
+        find.textContaining('Esta descarga se realiza una sola vez'),
+        findsOneWidget,
+      );
 
-      bool foundTitle = false;
-      for (var title in dialogTitleOptions) {
-        if (findTextFlexible(title).evaluate().isNotEmpty) {
-          expect(findTextFlexible(title), findsAtLeastNWidgets(1));
-          foundTitle = true;
-          break;
-        }
-      }
-
-      // Look for the long description text with more flexible matching
-      final longTextVariations = [
-        'Proceder con la descarga de Devocionales una sola vez, para uso sin internet (offline)',
-        'proceder con la descarga',
-        'uso sin internet',
-        'offline',
-        'sin internet',
-      ];
-
-      bool foundLongText = false;
-      for (var text in longTextVariations) {
-        if (findTextFlexible(text).evaluate().isNotEmpty) {
-          expect(findTextFlexible(text), findsAtLeastNWidgets(1));
-          foundLongText = true;
-          break;
-        }
-      }
-
-      // Look for action buttons
-      final cancelButtons = ['Cancelar', 'cancelar', 'Cancel', 'CANCELAR'];
-      bool foundCancel = false;
-      for (var cancel in cancelButtons) {
-        if (findTextFlexible(cancel).evaluate().isNotEmpty) {
-          expect(findTextFlexible(cancel), findsAtLeastNWidgets(1));
-          foundCancel = true;
-          break;
-        }
-      }
-
-      final acceptButtons = ['Aceptar', 'aceptar', 'Accept', 'OK', 'ACEPTAR'];
-      bool foundAccept = false;
-      for (var accept in acceptButtons) {
-        if (findTextFlexible(accept).evaluate().isNotEmpty) {
-          expect(findTextFlexible(accept), findsAtLeastNWidgets(1));
-          foundAccept = true;
-          break;
-        }
-      }
-
-      // At minimum, ensure some kind of dialog opened
-      if (!foundDialog && !foundTitle && !foundLongText) {
-        fail(
-            'Expected a dialog to open when tapping download option, but no dialog elements were found');
-      }
-
-      // CAMBIO: Se reemplaza print por debugPrint
-      debugPrint(
-          'Dialog verification: foundDialog=[0m$foundDialog[0m, foundTitle=[0m$foundTitle[0m, foundLongText=[0m$foundLongText[0m, foundCancel=[0m$foundCancel[0m, foundAccept=[0m$foundAccept[0m');
+      // Verify action buttons are present
+      expect(find.text('Cancelar'), findsOneWidget);
+      expect(find.text('Aceptar'), findsOneWidget);
     });
 
     testWidgets('should have proper drawer structure',
@@ -274,63 +164,25 @@ void main() {
       await tester.tap(find.text('Open Drawer'));
       await tester.pumpAndSettle();
 
-      // Debug: Print what texts are actually found
-      debugFoundTexts(tester);
-
       // Verify drawer is present
       expect(find.byType(DevocionalesDrawer), findsOneWidget);
 
-      // Check for expected sections with flexible matching
-      final expectedTexts = [
-        'tu biblia, tu estilo',
-        'versión bíblica',
-        'favoritos guardados',
-        'compartir esta app',
-        'descargar devocionales',
-      ];
+      // Check for key drawer elements
+      expect(find.text('Tu Biblia, tu estilo'), findsOneWidget); // Drawer title
 
-      // Count how many expected texts we find
-      int foundTexts = 0;
-      for (var expectedText in expectedTexts) {
-        if (findTextFlexible(expectedText).evaluate().isNotEmpty) {
-          expect(findTextFlexible(expectedText), findsAtLeastNWidgets(1));
-          foundTexts++;
-          debugPrint('✓ Found: $expectedText');
-        } else {
-          debugPrint('✗ Missing: $expectedText');
-        }
-      }
+      // Bible version selector
+      expect(find.byKey(const Key('drawer_bible_version_selector')),
+          findsOneWidget);
 
-      // Ensure we found at least most of the expected texts
-      expect(foundTexts, greaterThanOrEqualTo(3),
-          reason:
-              'Expected to find at least 3 of the 5 expected drawer sections, but only found $foundTexts');
+      // Check for main menu items
+      expect(find.text('Favoritos guardados'), findsOneWidget);
+      expect(find.text('Oraciones y agradecimientos'), findsOneWidget);
+      expect(find.text('Comparte app Devocionales Cristianos'), findsOneWidget);
+      expect(find.text('Descargar devocionales'), findsOneWidget);
+      expect(find.text('Configuración de notificaciones'), findsOneWidget);
 
-      // Special handling for dark mode text variations
-      final darkModeVariations = [
-        'luz baja (modo oscuro)',
-        'modo oscuro',
-        'tema oscuro',
-        'dark mode',
-        'oscuro',
-      ];
-
-      bool foundDarkMode = false;
-      for (var variation in darkModeVariations) {
-        if (findTextFlexible(variation).evaluate().isNotEmpty) {
-          expect(findTextFlexible(variation), findsAtLeastNWidgets(1));
-          foundDarkMode = true;
-          debugPrint('✓ Found dark mode text: $variation');
-          break;
-        }
-      }
-
-      if (!foundDarkMode) {
-        // CAMBIO: Se reemplaza print por debugPrint
-        debugPrint(
-            'Note: No dark mode text found, but drawer structure is otherwise valid');
-      }
+      // Theme selector text should be present
+      expect(find.text('Selecciona color de tema'), findsOneWidget);
     });
   });
 }
-
