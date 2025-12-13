@@ -343,7 +343,7 @@ void main() {
       });
 
       test('play() applies saved speech rate', () async {
-        // GIVEN: Custom speech rate is saved
+        // GIVEN: Custom speech rate is saved (settings-scale)
         final prefs = await SharedPreferences.getInstance();
         await prefs.setDouble('tts_rate', 0.8);
 
@@ -351,8 +351,10 @@ void main() {
         controller.setText('Test text');
         await controller.play();
 
-        // THEN: Speech rate is applied
-        expect(mockTts.lastSpeechRate, equals(0.8));
+        // THEN: Speech rate is converted and applied
+        // 0.8 settings-scale is mapped to 2.0 mini-rate by VoiceSettingsService
+        expect(mockTts.lastSpeechRate,
+            equals(0.8)); // Engine gets settings-scale value
       });
     });
 

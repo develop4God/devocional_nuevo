@@ -4,6 +4,7 @@ import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/widgets/tts_player_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -23,29 +24,55 @@ class TestDevocionalProvider extends DevocionalProvider {
   }
 }
 
-// Fake controller that exposes the minimal API needed by TtsPlayerWidget
-class FakeTtsAudioController {
-  final ValueNotifier<TtsPlayerState> state =
-      ValueNotifier<TtsPlayerState>(TtsPlayerState.idle);
-  final ValueNotifier<Duration> currentPosition = ValueNotifier(Duration.zero);
-  final ValueNotifier<Duration> totalDuration = ValueNotifier(Duration.zero);
-  final ValueNotifier<double> playbackRate = ValueNotifier(1.0);
+// Mock FlutterTts for testing
+class MockFlutterTts extends FlutterTts {
+  VoidCallback? _completionHandler;
 
-  void setText(String _) {}
+  @override
+  VoidCallback? get completionHandler => _completionHandler;
 
-  Future<void> play() async => state.value = TtsPlayerState.playing;
+  @override
+  Future<dynamic> speak(String text, {bool focus = false}) async {
+    return 1;
+  }
 
-  Future<void> pause() async => state.value = TtsPlayerState.paused;
+  @override
+  Future<dynamic> pause() async {
+    return 1;
+  }
 
-  Future<void> stop() async => state.value = TtsPlayerState.idle;
+  @override
+  Future<dynamic> stop() async {
+    return 1;
+  }
 
-  void seek(Duration _) {}
+  @override
+  Future<dynamic> setSpeechRate(double rate) async {
+    return 1;
+  }
 
-  void dispose() {
-    state.dispose();
-    currentPosition.dispose();
-    totalDuration.dispose();
-    playbackRate.dispose();
+  @override
+  Future<dynamic> setLanguage(String language) async {
+    return 1;
+  }
+
+  @override
+  Future<dynamic> setVolume(double volume) async {
+    return 1;
+  }
+
+  @override
+  Future<dynamic> setPitch(double pitch) async {
+    return 1;
+  }
+
+  @override
+  set setCompletionHandler(VoidCallback? value) {
+    _completionHandler = value;
+  }
+
+  void triggerCompletion() {
+    _completionHandler?.call();
   }
 }
 
@@ -68,7 +95,8 @@ void main() {
       date: DateTime.now(),
     );
 
-    final controller = FakeTtsAudioController();
+    final mockTts = MockFlutterTts();
+    final controller = TtsAudioController(flutterTts: mockTts);
 
     // Create provider and inject into tree
     final testProvider = TestDevocionalProvider();
@@ -82,7 +110,7 @@ void main() {
             body: Center(
               child: TtsPlayerWidget(
                 devocional: dev,
-                audioController: controller as dynamic,
+                audioController: controller,
                 onCompleted: () {},
               ),
             ),
@@ -92,13 +120,16 @@ void main() {
     );
 
     // Act: simulate TTS completed
-    controller.state.value = TtsPlayerState.completed;
+    controller.complete();
 
     // Allow async callbacks to run
-    await tester.pumpAndSettle(const Duration(milliseconds: 200));
+    await tester.pumpAndSettle(const Duration(milliseconds: 300));
 
     // Assert
     expect(testProvider.heardCalled, isTrue);
     expect(testProvider.lastId, equals('test_1'));
+
+    // Cleanup
+    controller.dispose();
   });
 }
