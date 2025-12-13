@@ -88,6 +88,8 @@ class _DevocionalesPageState extends State<DevocionalesPage>
   void initState() {
     super.initState();
     _ttsAudioController = TtsAudioController(flutterTts: _flutterTts);
+    // Listener para cerrar miniplayer automáticamente cuando el TTS complete
+    _ttsAudioController.state.addListener(_handleTtsStateChange);
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _audioController = Provider.of<AudioController>(context, listen: false);
@@ -183,7 +185,8 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       if (route is PageRoute) {
         routeObserver.subscribe(this, route);
         debugPrint(
-            '🔄 [DEBUG] Global RouteObserver subscribed for DevocionalesPage');
+          '🔄 [DEBUG] Global RouteObserver subscribed for DevocionalesPage',
+        );
         _routeSubscribed = true;
       }
     }
@@ -226,15 +229,13 @@ class _DevocionalesPageState extends State<DevocionalesPage>
 
   @override
   void dispose() {
-    final route = ModalRoute.of(context);
-    if (_routeSubscribed && route is PageRoute) {
-      routeObserver.unsubscribe(this);
-      debugPrint(
-          '🗑️ [DEBUG] Global RouteObserver unsubscribed for DevocionalesPage');
-      _routeSubscribed = false;
-    }
+    // Remover listener agregado en initState
+    try {
+      _ttsAudioController.state.removeListener(_handleTtsStateChange);
+    } catch (_) {}
+    _ttsAudioController.dispose();
     _tracking.dispose();
-    _stopSpeaking();
+    _scrollController.dispose();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -630,8 +631,10 @@ class _DevocionalesPageState extends State<DevocionalesPage>
   }
 
   void _goToBible() async {
-    final devocionalProvider =
-        Provider.of<DevocionalProvider>(context, listen: false);
+    final devocionalProvider = Provider.of<DevocionalProvider>(
+      context,
+      listen: false,
+    );
     final appLanguage = devocionalProvider.selectedLanguage;
 
     debugPrint('🟦 [Bible] Using app language instead of device: $appLanguage');
@@ -640,7 +643,8 @@ class _DevocionalesPageState extends State<DevocionalesPage>
         await BibleVersionRegistry.getVersionsForLanguage(appLanguage);
 
     debugPrint(
-        '🟩 [Bible] Versions for app language ($appLanguage): ${versions.map((v) => '${v.name} (${v.languageCode}) - downloaded: ${v.isDownloaded}').join(', ')}');
+      '🟩 [Bible] Versions for app language ($appLanguage): ${versions.map((v) => '${v.name} (${v.languageCode}) - downloaded: ${v.isDownloaded}').join(', ')}',
+    );
 
     if (versions.isEmpty) {
       versions = await BibleVersionRegistry.getVersionsForLanguage('es');
@@ -655,9 +659,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => BibleReaderPage(
-          versions: versions,
-        ),
+        builder: (context) => BibleReaderPage(versions: versions),
       ),
     );
   }
@@ -704,17 +706,12 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                       child: Container(
                         padding: const EdgeInsets.all(20),
                         decoration: BoxDecoration(
-                          border: Border.all(
-                            color: colorScheme.outline,
-                          ),
+                          border: Border.all(color: colorScheme.outline),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Column(
                           children: [
-                            const Text(
-                              '🙏',
-                              style: TextStyle(fontSize: 48),
-                            ),
+                            const Text('🙏', style: TextStyle(fontSize: 48)),
                             const SizedBox(height: 12),
                             Text(
                               'prayer.prayer'.tr(),
@@ -738,17 +735,12 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                       child: Container(
                         padding: const EdgeInsets.all(20),
                         decoration: BoxDecoration(
-                          border: Border.all(
-                            color: colorScheme.outline,
-                          ),
+                          border: Border.all(color: colorScheme.outline),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Column(
                           children: [
-                            const Text(
-                              '☺️',
-                              style: TextStyle(fontSize: 48),
-                            ),
+                            const Text('☺️', style: TextStyle(fontSize: 48)),
                             const SizedBox(height: 12),
                             Text(
                               'thanksgiving.thanksgiving'.tr(),
@@ -804,20 +796,37 @@ class _DevocionalesPageState extends State<DevocionalesPage>
 
     final StringBuffer ttsBuffer = StringBuffer();
     ttsBuffer.write('$verseLabel: ');
-    ttsBuffer.write(BibleTextFormatter.normalizeTtsText(
-        devocional.versiculo, language, devocional.version));
+    ttsBuffer.write(
+      BibleTextFormatter.normalizeTtsText(
+        devocional.versiculo,
+        language,
+        devocional.version,
+      ),
+    );
     ttsBuffer.write('\n$reflectionLabel: ');
-    ttsBuffer.write(BibleTextFormatter.normalizeTtsText(
-        devocional.reflexion, language, devocional.version));
+    ttsBuffer.write(
+      BibleTextFormatter.normalizeTtsText(
+        devocional.reflexion,
+        language,
+        devocional.version,
+      ),
+    );
     if (devocional.paraMeditar.isNotEmpty) {
       ttsBuffer.write('\n$meditateLabel: ');
-      ttsBuffer.write(devocional.paraMeditar.map((m) {
-        return '${BibleTextFormatter.normalizeTtsText(m.cita, language, devocional.version)}: ${m.texto}';
-      }).join('\n'));
+      ttsBuffer.write(
+        devocional.paraMeditar.map((m) {
+          return '${BibleTextFormatter.normalizeTtsText(m.cita, language, devocional.version)}: ${m.texto}';
+        }).join('\n'),
+      );
     }
     ttsBuffer.write('\n$prayerLabel: ');
-    ttsBuffer.write(BibleTextFormatter.normalizeTtsText(
-        devocional.oracion, language, devocional.version));
+    ttsBuffer.write(
+      BibleTextFormatter.normalizeTtsText(
+        devocional.oracion,
+        language,
+        devocional.version,
+      ),
+    );
     return ttsBuffer.toString();
   }
 
@@ -913,8 +922,9 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                       Expanded(
                                         child: Center(
                                           child: Text(
-                                            _getLocalizedDateFormat(context)
-                                                .format(DateTime.now()),
+                                            _getLocalizedDateFormat(
+                                              context,
+                                            ).format(DateTime.now()),
                                             style:
                                                 textTheme.titleMedium?.copyWith(
                                               fontWeight: FontWeight.bold,
@@ -947,7 +957,9 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                               Theme.of(context).brightness ==
                                                   Brightness.dark;
                                           return _buildStreakBadge(
-                                              isDark, streak);
+                                            isDark,
+                                            streak,
+                                          );
                                         },
                                       ),
                                     ],
@@ -1070,10 +1082,8 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                           currentDevocional.tags!.isNotEmpty)
                                         Text(
                                           'devotionals.topics'.tr({
-                                            'topics':
-                                                currentDevocional.tags!.join(
-                                              ', ',
-                                            ),
+                                            'topics': currentDevocional.tags!
+                                                .join(', '),
                                           }),
                                           style: textTheme.bodySmall?.copyWith(
                                             fontSize: 14,
@@ -1109,7 +1119,9 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                                     ?.copyWith(
                                                   fontSize: 12,
                                                   color: colorScheme.onSurface
-                                                      .withValues(alpha: 0.7),
+                                                      .withValues(
+                                                    alpha: 0.7,
+                                                  ),
                                                 ),
                                                 textAlign: TextAlign.center,
                                               );
@@ -1230,8 +1242,9 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                                           .stop(),
                                                   onSeekStart: () {},
                                                   onSeek: (d) =>
-                                                      _ttsAudioController
-                                                          .seek(d),
+                                                      _ttsAudioController.seek(
+                                                    d,
+                                                  ),
                                                   onTogglePlay: () {
                                                     if (state ==
                                                         TtsPlayerState
@@ -1251,7 +1264,8 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                                           .cyclePlaybackRate();
                                                     } catch (e) {
                                                       debugPrint(
-                                                          '[DevocionalesPage] cyclePlaybackRate failed: $e');
+                                                        '[DevocionalesPage] cyclePlaybackRate failed: $e',
+                                                      );
                                                     }
                                                   },
                                                   onRateChanged:
@@ -1275,34 +1289,43 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                                       shape:
                                                           const RoundedRectangleBorder(
                                                         borderRadius:
-                                                            BorderRadius.vertical(
-                                                                top: Radius
-                                                                    .circular(
-                                                                        28)),
+                                                            BorderRadius
+                                                                .vertical(
+                                                          top: Radius.circular(
+                                                            28,
+                                                          ),
+                                                        ),
                                                       ),
                                                       builder: (ctx) =>
                                                           FractionallySizedBox(
                                                         heightFactor: 0.8,
                                                         child: Padding(
-                                                          padding: EdgeInsets.only(
-                                                              bottom: MediaQuery
-                                                                      .of(ctx)
-                                                                  .viewInsets
-                                                                  .bottom),
+                                                          padding:
+                                                              EdgeInsets.only(
+                                                            bottom:
+                                                                MediaQuery.of(
+                                                              ctx,
+                                                            ).viewInsets.bottom,
+                                                          ),
                                                           child:
                                                               VoiceSelectorDialog(
-                                                            language: Localizations
-                                                                    .localeOf(
-                                                                        context)
-                                                                .languageCode,
-                                                            sampleText: _buildTtsTextForDevocional(
-                                                                currentDevocional!,
+                                                            language:
                                                                 Localizations
-                                                                        .localeOf(
-                                                                            context)
-                                                                    .languageCode),
-                                                            onVoiceSelected: (name,
-                                                                locale) async {},
+                                                                    .localeOf(
+                                                              context,
+                                                            ).languageCode,
+                                                            sampleText:
+                                                                _buildTtsTextForDevocional(
+                                                              currentDevocional!,
+                                                              Localizations
+                                                                  .localeOf(
+                                                                context,
+                                                              ).languageCode,
+                                                            ),
+                                                            onVoiceSelected: (
+                                                              name,
+                                                              locale,
+                                                            ) async {},
                                                           ),
                                                         ),
                                                       ),
@@ -1333,8 +1356,11 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                 onPressed: _currentDevocionalIndex > 0
                                     ? _goToPreviousDevocional
                                     : null,
-                                icon: Icon(Icons.arrow_back_ios,
-                                    size: 16, color: colorScheme.primary),
+                                icon: Icon(
+                                  Icons.arrow_back_ios,
+                                  size: 16,
+                                  color: colorScheme.primary,
+                                ),
                                 label: Text(
                                   'devotionals.previous'.tr(),
                                   style: TextStyle(
@@ -1345,7 +1371,9 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                 ),
                                 style: OutlinedButton.styleFrom(
                                   side: BorderSide(
-                                      color: colorScheme.primary, width: 1.5),
+                                    color: colorScheme.primary,
+                                    width: 1.5,
+                                  ),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(22),
                                   ),
@@ -1366,7 +1394,8 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                             // Original TtsPlayerWidget (unchanged)
                                             TtsPlayerWidget(
                                               key: const Key(
-                                                  'bottom_nav_tts_player'),
+                                                'bottom_nav_tts_player',
+                                              ),
                                               devocional: currentDevocional,
                                               audioController:
                                                   _ttsAudioController,
@@ -1400,7 +1429,9 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                     : null,
                                 style: OutlinedButton.styleFrom(
                                   side: BorderSide(
-                                      color: colorScheme.primary, width: 1.5),
+                                    color: colorScheme.primary,
+                                    width: 1.5,
+                                  ),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(22),
                                   ),
@@ -1418,8 +1449,11 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                       ),
                                     ),
                                     const SizedBox(width: 8),
-                                    Icon(Icons.arrow_forward_ios,
-                                        size: 16, color: colorScheme.primary),
+                                    Icon(
+                                      Icons.arrow_forward_ios,
+                                      size: 16,
+                                      color: colorScheme.primary,
+                                    ),
                                   ],
                                 ),
                               ),
@@ -1458,29 +1492,33 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                             ),
                           ),
                           IconButton(
-                              key: const Key('bottom_appbar_prayers_icon'),
-                              tooltip: 'tooltips.my_prayers'.tr(),
-                              onPressed: () async {
-                                await BubbleUtils.markAsShown(
-                                  BubbleUtils.getIconBubbleId(
-                                    Icons.local_fire_department_outlined,
-                                    'new',
-                                  ),
-                                );
-                                _goToPrayers();
-                              },
-                              icon: const Icon(
-                                Icons.local_fire_department_outlined,
-                                color: Colors.white,
-                                size: 35,
-                              )),
+                            key: const Key('bottom_appbar_prayers_icon'),
+                            tooltip: 'tooltips.my_prayers'.tr(),
+                            onPressed: () async {
+                              await BubbleUtils.markAsShown(
+                                BubbleUtils.getIconBubbleId(
+                                  Icons.local_fire_department_outlined,
+                                  'new',
+                                ),
+                              );
+                              _goToPrayers();
+                            },
+                            icon: const Icon(
+                              Icons.local_fire_department_outlined,
+                              color: Colors.white,
+                              size: 35,
+                            ),
+                          ),
                           IconButton(
                             key: const Key('bottom_appbar_bible_icon'),
                             tooltip: 'tooltips.bible'.tr(),
                             onPressed: () async {
                               await BubbleUtils.markAsShown(
-                                  BubbleUtils.getIconBubbleId(
-                                      Icons.auto_stories_outlined, 'new'));
+                                BubbleUtils.getIconBubbleId(
+                                  Icons.auto_stories_outlined,
+                                  'new',
+                                ),
+                              );
                               _goToBible();
                             },
                             icon: const Icon(
@@ -1553,5 +1591,23 @@ class _DevocionalesPageState extends State<DevocionalesPage>
         ),
       ),
     );
+  }
+
+  void _handleTtsStateChange() {
+    try {
+      final s = _ttsAudioController.state.value;
+      if (s == TtsPlayerState.completed) {
+        // Dar un breve margen para que otros listeners (p.ej. registro de 'heard') reaccionen
+        Future.delayed(const Duration(milliseconds: 220), () {
+          if (!mounted) return;
+          // Solo parar si sigue en completed para evitar cortar reproducciones nuevas
+          if (_ttsAudioController.state.value == TtsPlayerState.completed) {
+            _ttsAudioController.stop();
+          }
+        });
+      }
+    } catch (e) {
+      debugPrint('[DevocionalesPage] Error en _handleTtsStateChange: $e');
+    }
   }
 }
