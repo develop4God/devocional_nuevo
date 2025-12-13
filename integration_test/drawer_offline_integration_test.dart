@@ -1,5 +1,4 @@
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
-import 'package:devocional_nuevo/providers/theme_provider.dart';
 import 'package:devocional_nuevo/widgets/devocionales_page_drawer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -10,12 +9,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 // Mock para DevocionalProvider
 class MockDevocionalProvider extends Mock implements DevocionalProvider {}
 
-// Mock para ThemeProvider
-class MockThemeProvider extends Mock implements ThemeProvider {}
-
 void main() {
   late MockDevocionalProvider mockDevocionalProvider;
-  late MockThemeProvider mockThemeProvider;
 
   setUp(() {
     // Initialize Flutter binding for tests
@@ -25,34 +20,18 @@ void main() {
     SharedPreferences.setMockInitialValues({});
 
     mockDevocionalProvider = MockDevocionalProvider();
-    mockThemeProvider = MockThemeProvider();
 
     // Stubs para los getters requeridos
     when(() => mockDevocionalProvider.selectedVersion).thenReturn('RVR1960');
     when(() => mockDevocionalProvider.availableVersions).thenReturn(['RVR1960', 'NVI', 'KJV']);
     when(() => mockDevocionalProvider.isOfflineMode).thenReturn(false);
     when(() => mockDevocionalProvider.downloadStatus).thenReturn(null);
-    
-    when(() => mockThemeProvider.currentBrightness)
-        .thenReturn(Brightness.light);
-    when(() => mockThemeProvider.currentThemeFamily).thenReturn('default');
-    when(() => mockThemeProvider.dividerAdaptiveColor).thenReturn(Colors.grey);
-
-    // Stub para métodos que puedan ser llamados por ThemeProvider
-    when(() => mockThemeProvider.addListener(any())).thenAnswer((_) {});
-    when(() => mockThemeProvider.removeListener(any())).thenAnswer((_) {});
-    when(() => mockThemeProvider.dispose()).thenAnswer((_) {});
-    when(() => mockThemeProvider.notifyListeners()).thenAnswer((_) {});
   });
 
   Widget createWidgetUnderTest() {
     return MaterialApp(
-      home: MultiProvider(
-        providers: [
-          ChangeNotifierProvider<DevocionalProvider>.value(
-              value: mockDevocionalProvider),
-          ChangeNotifierProvider<ThemeProvider>.value(value: mockThemeProvider),
-        ],
+      home: ChangeNotifierProvider<DevocionalProvider>.value(
+        value: mockDevocionalProvider,
         child: Scaffold(
           drawer: const DevocionalesDrawer(),
           appBar: AppBar(),
@@ -73,7 +52,7 @@ void main() {
     debugPrint('\n=== DEBUG: Found Text Widgets ===');
     for (final textWidget in allTexts) {
       final text = textWidget as Text;
-      debugPrint('Text: "${text.data}"');
+      debugPrint('Text: "[0m${text.data}[0m"');
     }
     debugPrint('=== End Debug ===\n');
   }
@@ -281,7 +260,7 @@ void main() {
 
       // CAMBIO: Se reemplaza print por debugPrint
       debugPrint(
-          'Dialog verification: foundDialog=$foundDialog, foundTitle=$foundTitle, foundLongText=$foundLongText, foundCancel=$foundCancel, foundAccept=$foundAccept');
+          'Dialog verification: foundDialog=[0m$foundDialog[0m, foundTitle=[0m$foundTitle[0m, foundLongText=[0m$foundLongText[0m, foundCancel=[0m$foundCancel[0m, foundAccept=[0m$foundAccept[0m');
     });
 
     testWidgets('should have proper drawer structure',
@@ -354,3 +333,4 @@ void main() {
     });
   });
 }
+

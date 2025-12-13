@@ -5,7 +5,7 @@ import 'package:devocional_nuevo/models/prayer_model.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../helpers/test_helpers.dart';
+import '../test/helpers/test_helpers.dart';
 
 /// Integration tests for Prayer feature workflow
 /// Tests real user behavior: creating, answering, and managing prayers
