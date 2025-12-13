@@ -5,6 +5,7 @@ class TtsMiniplayerModal extends StatefulWidget {
   final Duration currentPosition;
   final Duration totalDuration;
   final bool isPlaying;
+  final bool isLoading;
   final double playbackRate;
   final List<double> playbackRates;
   final VoidCallback onStop;
@@ -18,6 +19,7 @@ class TtsMiniplayerModal extends StatefulWidget {
     required this.currentPosition,
     required this.totalDuration,
     required this.isPlaying,
+    this.isLoading = false,
     required this.playbackRate,
     required this.playbackRates,
     required this.onStop,
@@ -138,16 +140,23 @@ class _TtsMiniplayerModalState extends State<TtsMiniplayerModal> {
                     ),
                   ],
                 ),
-                child: IconButton(
-                  icon: Icon(
-                    widget.isPlaying
-                        ? Icons.pause_rounded
-                        : Icons.play_arrow_rounded,
-                    size: 40,
-                  ),
-                  color: Colors.white,
-                  onPressed: widget.onTogglePlay,
-                ),
+                child: widget.isLoading
+                    ? Center(
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 3,
+                        ),
+                      )
+                    : IconButton(
+                        icon: Icon(
+                          widget.isPlaying
+                              ? Icons.pause_rounded
+                              : Icons.play_arrow_rounded,
+                          size: 40,
+                        ),
+                        color: Colors.white,
+                        onPressed: widget.onTogglePlay,
+                      ),
               ),
               const SizedBox(height: 32),
               // Progress bar

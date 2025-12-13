@@ -1515,6 +1515,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                           currentPosition: currentPos,
                           totalDuration: totalDur,
                           isPlaying: state == TtsPlayerState.playing,
+                          isLoading: state == TtsPlayerState.loading,
                           playbackRate: rate,
                           playbackRates: _ttsAudioController.supportedRates,
                           onStop: () {
