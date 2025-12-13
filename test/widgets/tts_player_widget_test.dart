@@ -29,9 +29,6 @@ class MockFlutterTts extends FlutterTts {
   VoidCallback? _completionHandler;
 
   @override
-  VoidCallback? get completionHandler => _completionHandler;
-
-  @override
   Future<dynamic> speak(String text, {bool focus = false}) async {
     return 1;
   }
@@ -67,8 +64,8 @@ class MockFlutterTts extends FlutterTts {
   }
 
   @override
-  set setCompletionHandler(VoidCallback? value) {
-    _completionHandler = value;
+  void setCompletionHandler(VoidCallback callback) {
+    _completionHandler = callback;
   }
 
   void triggerCompletion() {

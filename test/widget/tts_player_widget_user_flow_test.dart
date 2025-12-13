@@ -352,9 +352,10 @@ void main() {
         await controller.play();
 
         // THEN: Speech rate is converted and applied
-        // 0.8 settings-scale is mapped to 2.0 mini-rate by VoiceSettingsService
+        // 0.8 settings-scale doesn't match any predefined mappings and falls to
+        // default 1.0 mini-rate, which maps to 0.5 settings-scale for the engine
         expect(mockTts.lastSpeechRate,
-            equals(0.8)); // Engine gets settings-scale value
+            equals(0.5)); // Engine gets normalized settings-scale value
       });
     });
 
