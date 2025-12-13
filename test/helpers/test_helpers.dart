@@ -1,8 +1,8 @@
 import 'package:devocional_nuevo/services/service_locator.dart';
-import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 
+/// Sets up all required services for testing
+/// This ensures tests have access to all necessary dependencies
 void registerTestServices() {
   ServiceLocator().reset();
-  ServiceLocator().registerLazySingleton<VoiceSettingsService>(
-      () => VoiceSettingsService());
+  setupServiceLocator();
 }

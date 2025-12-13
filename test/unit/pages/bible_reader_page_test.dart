@@ -6,9 +6,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../helpers/test_helpers.dart';
 
 void main() {
   group('BibleReaderPage Widget Tests', () {
+    setUp(() {
+      TestWidgetsFlutterBinding.ensureInitialized();
+      SharedPreferences.setMockInitialValues({});
+      registerTestServices();
+    });
+
     Widget buildTestableWidget(Widget child) {
       return MultiProvider(
         providers: [

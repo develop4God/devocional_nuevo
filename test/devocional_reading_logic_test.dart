@@ -4,6 +4,8 @@ import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'helpers/test_helpers.dart';
+
 void main() {
   group('Devotional Reading Logic Tests', () {
     setUp(() {
@@ -11,6 +13,8 @@ void main() {
       TestWidgetsFlutterBinding.ensureInitialized();
       // Initialize SharedPreferences mock for each test
       SharedPreferences.setMockInitialValues({});
+      // Setup service locator with all required services
+      registerTestServices();
     });
 
     test('DevocionalProvider recordDevocionalRead works correctly', () async {

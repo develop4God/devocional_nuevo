@@ -33,6 +33,9 @@ void main() {
       ServiceLocator().reset();
       SharedPreferences.setMockInitialValues({});
 
+      // Setup all required services
+      setupServiceLocator();
+
       // Mock flutter_tts platform channel
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(

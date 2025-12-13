@@ -225,17 +225,11 @@ void main() {
       // Given: Service locator is reset (no services registered)
       ServiceLocator().reset();
 
-      // When/Then: Requesting unregistered service should throw
+      // When/Then: Requesting unregistered service should throw StateError
       expect(
         () => getService<ITtsService>(),
-        throwsA(
-          isA<Exception>().having(
-            (e) => e.toString(),
-            'message',
-            contains('not registered'),
-          ),
-        ),
-        reason: 'Should throw clear error for unregistered service',
+        throwsStateError,
+        reason: 'Should throw StateError for unregistered service',
       );
     });
 
@@ -282,13 +276,16 @@ void main() {
     });
 
     test('Factory constructor creates functional TTS instance', () async {
-      // Given: We use the factory constructor directly (for legacy compatibility)
+      // Given: Service locator is setup for dependencies
+      setupServiceLocator();
+
+      // When: We use the factory constructor directly (for legacy compatibility)
       final service = TtsService();
 
-      // When: We initialize
+      // Then: Service should initialize
       await service.initialize();
 
-      // Then: Service should work
+      // And: Should work
       expect(service.currentState, TtsState.idle);
       expect(service.isDisposed, false);
 
