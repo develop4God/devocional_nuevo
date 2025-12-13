@@ -1,6 +1,9 @@
 import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:io';
+
+import '../../helpers/test_helpers.dart';
 
 /// Helper function to get drawer translations from JSON
 /// Handles different structures: 'drawer.my_prayers' or 'settings.drawer.my_prayers'
@@ -17,6 +20,12 @@ Map<String, dynamic>? getDrawer(Map<String, dynamic> json) {
 }
 
 void main() {
+  setUp(() {
+    TestWidgetsFlutterBinding.ensureInitialized();
+    SharedPreferences.setMockInitialValues({});
+    registerTestServices();
+  });
+
   group('Drawer Translation Tests', () {
     test('Spanish drawer label should say "Oraciones y agradecimientos"',
         () async {

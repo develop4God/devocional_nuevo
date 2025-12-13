@@ -5,6 +5,9 @@ import 'package:devocional_nuevo/widgets/tts_player_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../helpers/test_helpers.dart';
 
 // Test helper provider that overrides recordDevocionalHeard
 class TestDevocionalProvider extends DevocionalProvider {
@@ -47,7 +50,11 @@ class FakeTtsAudioController {
 }
 
 void main() {
-  TestWidgetsFlutterBinding.ensureInitialized();
+  setUp(() {
+    TestWidgetsFlutterBinding.ensureInitialized();
+    SharedPreferences.setMockInitialValues({});
+    registerTestServices();
+  });
 
   testWidgets('TtsPlayerWidget registers devotional as heard on completed',
       (WidgetTester tester) async {

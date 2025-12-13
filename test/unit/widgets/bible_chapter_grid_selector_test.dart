@@ -2,9 +2,18 @@
 import 'package:devocional_nuevo/widgets/bible_chapter_grid_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../helpers/test_helpers.dart';
 
 void main() {
   group('Bible Chapter Grid Selector Tests', () {
+    setUp(() {
+      TestWidgetsFlutterBinding.ensureInitialized();
+      SharedPreferences.setMockInitialValues({});
+      registerTestServices();
+    });
+
     testWidgets('Should display grid with correct number of chapters',
         (WidgetTester tester) async {
       const totalChapters = 24; // Use 24 to fit in 4 rows of 6 columns
