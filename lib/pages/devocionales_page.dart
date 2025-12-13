@@ -25,7 +25,6 @@ import 'package:devocional_nuevo/widgets/app_bar_constants.dart';
 import 'package:devocional_nuevo/widgets/devocionales_page_drawer.dart';
 import 'package:devocional_nuevo/widgets/floating_font_control_buttons.dart';
 import 'package:devocional_nuevo/widgets/tts_miniplayer_modal.dart';
-import 'package:devocional_nuevo/widgets/tts_miniplayer_widget.dart';
 import 'package:devocional_nuevo/widgets/tts_player_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -1199,151 +1198,11 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                         builder: (context, audioController, _) {
                           final progress = audioController.progress;
                           // Eliminados chunkIndex y totalChunks
-                          return Column(
-                            children: [
-                              LinearProgressIndicator(
-                                value: progress,
-                                minHeight: 4,
-                                backgroundColor: Colors.grey[300],
-                                color: colorScheme.primary,
-                              ),
-                              // TtsMiniplayer integrado en el bottom area
-                              ValueListenableBuilder<TtsPlayerState>(
-                                valueListenable: _ttsAudioController.state,
-                                builder: (context, state, _) {
-                                  if (state == TtsPlayerState.idle) {
-                                    return const SizedBox.shrink();
-                                  }
-                                  return Padding(
-                                    padding: const EdgeInsets.only(top: 8.0),
-                                    child: ValueListenableBuilder<Duration>(
-                                      valueListenable:
-                                          _ttsAudioController.currentPosition,
-                                      builder: (context, currentPos, __) {
-                                        return ValueListenableBuilder<Duration>(
-                                          valueListenable:
-                                              _ttsAudioController.totalDuration,
-                                          builder: (context, totalDur, ___) {
-                                            return ValueListenableBuilder<
-                                                double>(
-                                              valueListenable:
-                                                  _ttsAudioController
-                                                      .playbackRate,
-                                              builder: (context, rate, ____) {
-                                                return TtsMiniplayerWidget(
-                                                  currentPosition: currentPos,
-                                                  totalDuration: totalDur,
-                                                  isPlaying: state ==
-                                                      TtsPlayerState.playing,
-                                                  playbackRate: rate,
-                                                  playbackRates:
-                                                      _ttsAudioController
-                                                          .supportedRates,
-                                                  onStop: () =>
-                                                      _ttsAudioController
-                                                          .stop(),
-                                                  onSeekStart: () {},
-                                                  onSeek: (d) =>
-                                                      _ttsAudioController.seek(
-                                                    d,
-                                                  ),
-                                                  onTogglePlay: () {
-                                                    if (state ==
-                                                        TtsPlayerState
-                                                            .playing) {
-                                                      _ttsAudioController
-                                                          .pause();
-                                                    } else {
-                                                      _ttsAudioController
-                                                          .play();
-                                                    }
-                                                  },
-                                                  onCycleRate: () async {
-                                                    // Delegate cycling to the TTS controller so it
-                                                    // handles persistence and engine updates.
-                                                    try {
-                                                      await _ttsAudioController
-                                                          .cyclePlaybackRate();
-                                                    } catch (e) {
-                                                      debugPrint(
-                                                        '[DevocionalesPage] cyclePlaybackRate failed: $e',
-                                                      );
-                                                    }
-                                                  },
-                                                  onRateChanged:
-                                                      (newRate) async {
-                                                    // Reiniciar audio y recalcular duración
-                                                    await _ttsAudioController
-                                                        .stop();
-                                                    await _ttsAudioController
-                                                        .flutterTts
-                                                        .setSpeechRate(newRate);
-                                                    _ttsAudioController
-                                                        .playbackRate
-                                                        .value = newRate;
-                                                    await _ttsAudioController
-                                                        .play();
-                                                  },
-                                                  onVoiceSelector: () async {
-                                                    await showModalBottomSheet(
-                                                      context: context,
-                                                      isScrollControlled: true,
-                                                      shape:
-                                                          const RoundedRectangleBorder(
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .vertical(
-                                                          top: Radius.circular(
-                                                            28,
-                                                          ),
-                                                        ),
-                                                      ),
-                                                      builder: (ctx) =>
-                                                          FractionallySizedBox(
-                                                        heightFactor: 0.8,
-                                                        child: Padding(
-                                                          padding:
-                                                              EdgeInsets.only(
-                                                            bottom:
-                                                                MediaQuery.of(
-                                                              ctx,
-                                                            ).viewInsets.bottom,
-                                                          ),
-                                                          child:
-                                                              VoiceSelectorDialog(
-                                                            language:
-                                                                Localizations
-                                                                    .localeOf(
-                                                              context,
-                                                            ).languageCode,
-                                                            sampleText:
-                                                                _buildTtsTextForDevocional(
-                                                              currentDevocional!,
-                                                              Localizations
-                                                                  .localeOf(
-                                                                context,
-                                                              ).languageCode,
-                                                            ),
-                                                            onVoiceSelected: (
-                                                              name,
-                                                              locale,
-                                                            ) async {},
-                                                          ),
-                                                        ),
-                                                      ),
-                                                    );
-                                                  },
-                                                );
-                                              },
-                                            );
-                                          },
-                                        );
-                                      },
-                                    ),
-                                  );
-                                },
-                              ),
-                            ],
+                          return LinearProgressIndicator(
+                            value: progress,
+                            minHeight: 4,
+                            backgroundColor: Colors.grey[300],
+                            color: colorScheme.primary,
                           );
                         },
                       ),
