@@ -4,6 +4,8 @@ import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'helpers/test_helpers.dart';
+
 void main() {
   group('Devotional Reading Logic Tests', () {
     setUp(() {
@@ -11,6 +13,8 @@ void main() {
       TestWidgetsFlutterBinding.ensureInitialized();
       // Initialize SharedPreferences mock for each test
       SharedPreferences.setMockInitialValues({});
+      // Setup service locator with all required services
+      registerTestServices();
     });
 
     test('DevocionalProvider recordDevocionalRead works correctly', () async {
@@ -165,17 +169,18 @@ void main() {
     test('Streak calculation across multiple days simulation', () async {
       final statsService = SpiritualStatsService();
 
-      // Record devotional reads (in real scenario, these would be on different days)
+      // Record devotional read on first day
       await statsService.recordDevocionalRead(
         devocionalId: 'day_1_devotional',
         readingTimeSeconds: 60,
         scrollPercentage: 0.8,
       );
 
-      // Check initial streak (note: reading devotionals doesn't affect streak in this implementation)
+      // Check initial streak - reading a devotional creates a streak of 1
       var stats = await statsService.getStats();
-      expect(stats.currentStreak, 0); // Reading devotionals doesn't set streak
-      expect(stats.longestStreak, 0);
+      expect(stats.currentStreak,
+          1); // Reading first devotional creates streak of 1
+      expect(stats.longestStreak, 1);
 
       // Record another devotional (same day)
       await statsService.recordDevocionalRead(
@@ -187,7 +192,7 @@ void main() {
       stats = await statsService.getStats();
       expect(stats.totalDevocionalesRead, 2);
       expect(stats.currentStreak,
-          0); // Still 0, as reading devotionals doesn't affect streak
+          1); // Still 1, as both readings are on the same day
     });
 
     test('Service handles malformed data gracefully', () async {

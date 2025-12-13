@@ -1,12 +1,21 @@
 import 'package:devocional_nuevo/widgets/bible_verse_grid_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../helpers/test_helpers.dart';
 
 /// Test suite for Bible verse grid selector widget
 /// Tests grid-based verse selection with multiple books and chapters
 /// including Psalm 119 (176 verses) as requested
 void main() {
   group('Bible Verse Grid Selector Tests', () {
+    setUp(() {
+      TestWidgetsFlutterBinding.ensureInitialized();
+      SharedPreferences.setMockInitialValues({});
+      registerTestServices();
+    });
+
     testWidgets('Should display grid with correct number of verses',
         (WidgetTester tester) async {
       // Test with Genesis 1 (31 verses)

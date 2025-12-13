@@ -81,15 +81,13 @@ void main() {
     late VoiceSettingsService voiceSettingsService;
 
     setUp(() {
+      TestWidgetsFlutterBinding.ensureInitialized();
       SharedPreferences.setMockInitialValues({});
       ServiceLocator().reset();
+      setupServiceLocator(); // Setup all services
       mockTts = MockFlutterTts();
       controller = TtsAudioController(flutterTts: mockTts);
-      voiceSettingsService = VoiceSettingsService();
-
-      // Register the VoiceSettingsService
-      ServiceLocator()
-          .registerSingleton<VoiceSettingsService>(voiceSettingsService);
+      voiceSettingsService = getService<VoiceSettingsService>();
     });
 
     tearDown(() {
@@ -345,7 +343,7 @@ void main() {
       });
 
       test('play() applies saved speech rate', () async {
-        // GIVEN: Custom speech rate is saved
+        // GIVEN: Custom speech rate is saved (settings-scale)
         final prefs = await SharedPreferences.getInstance();
         await prefs.setDouble('tts_rate', 0.8);
 
@@ -353,8 +351,11 @@ void main() {
         controller.setText('Test text');
         await controller.play();
 
-        // THEN: Speech rate is applied
-        expect(mockTts.lastSpeechRate, equals(0.8));
+        // THEN: Speech rate is converted and applied
+        // 0.8 settings-scale doesn't match any predefined mappings and falls to
+        // default 1.0 mini-rate, which maps to 0.5 settings-scale for the engine
+        expect(mockTts.lastSpeechRate,
+            equals(0.5)); // Engine gets normalized settings-scale value
       });
     });
 

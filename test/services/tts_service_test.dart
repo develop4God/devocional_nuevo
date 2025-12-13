@@ -6,6 +6,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../helpers/test_helpers.dart';
+
 class MockFlutterTts extends FlutterTts {
   bool speakCalled = false;
   String? lastText;
@@ -62,6 +64,7 @@ void main() {
   WidgetsFlutterBinding.ensureInitialized();
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
+    registerTestServices();
   });
   test('speakDevotional llama a speak en FlutterTts con el texto normalizado',
       () async {

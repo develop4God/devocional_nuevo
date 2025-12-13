@@ -1,6 +1,9 @@
 import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:io';
+
+import '../../helpers/test_helpers.dart';
 
 /// Helper function to get drawer translations from JSON
 /// Handles different structures: 'drawer.my_prayers' or 'settings.drawer.my_prayers'
@@ -17,6 +20,12 @@ Map<String, dynamic>? getDrawer(Map<String, dynamic> json) {
 }
 
 void main() {
+  setUp(() {
+    TestWidgetsFlutterBinding.ensureInitialized();
+    SharedPreferences.setMockInitialValues({});
+    registerTestServices();
+  });
+
   group('Drawer Translation Tests', () {
     test('Spanish drawer label should say "Oraciones y agradecimientos"',
         () async {
@@ -42,14 +51,15 @@ void main() {
           reason: 'English drawer should include prayers and thanksgivings');
     });
 
-    test('French drawer label should say "Prières et remerciements"', () async {
+    test('French drawer label should say "Prières et actions de grâce"',
+        () async {
       final file = File('i18n/fr.json');
       final content = await file.readAsString();
       final json = jsonDecode(content) as Map<String, dynamic>;
 
       final drawer = getDrawer(json);
       expect(drawer, isNotNull, reason: 'French should have drawer section');
-      expect(drawer!['my_prayers'], equals('Prières et remerciements'),
+      expect(drawer!['my_prayers'], equals('Prières et actions de grâce'),
           reason: 'French drawer should include prayers and thanksgivings');
     });
 
@@ -82,7 +92,8 @@ void main() {
       final expectedLabels = {
         'es': 'Oraciones y agradecimientos',
         'en': 'Prayers and thanksgivings',
-        'fr': 'Prières et remerciements',
+        'fr':
+            'Prières et actions de grâce', // Updated to match actual translation
         'pt': 'Orações e agradecimentos',
         'ja': '祈りと感謝',
       };

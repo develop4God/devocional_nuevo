@@ -6,12 +6,16 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../helpers/test_helpers.dart';
+
 void main() {
   group('AddThanksgivingModal Widget Tests', () {
     late ThanksgivingBloc bloc;
 
     setUp(() {
+      TestWidgetsFlutterBinding.ensureInitialized();
       SharedPreferences.setMockInitialValues({});
+      registerTestServices();
       bloc = ThanksgivingBloc();
     });
 
