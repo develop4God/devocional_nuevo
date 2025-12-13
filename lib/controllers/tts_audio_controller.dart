@@ -75,10 +75,11 @@ class TtsAudioController {
   void setText(String text) {
     _fullText = text;
     _currentText = text;
-    // Estimar duración solo para UI
-    final words = _fullText!.split(RegExp(r"\\s+")).length;
+    // Estimar duración solo para UI - SIEMPRE a velocidad 1.0x (normal)
+    final words = _fullText!.split(RegExp(r"\s+")).length;
     final double wordsPerSecond = 150.0 / 60.0;
-    final estimatedSeconds = (words / wordsPerSecond) / playbackRate.value;
+    // FIX: Duración calculada a velocidad 1.0x, sin dividir por playbackRate
+    final estimatedSeconds = (words / wordsPerSecond);
     _fullDuration = Duration(seconds: estimatedSeconds.round());
     totalDuration.value = _fullDuration;
     currentPosition.value = Duration.zero;
@@ -87,7 +88,7 @@ class TtsAudioController {
 
   Future<void> play() async {
     debugPrint(
-        '[TTS Controller] play() llamado, estado previo: \\x1B[33m"+state.value.toString()+"\\x1B[0m');
+        '[TTS Controller] play() llamado, estado previo: ${state.value.toString()}');
     if (_currentText == null || _currentText!.isEmpty) {
       state.value = TtsPlayerState.error;
       return;
@@ -109,49 +110,44 @@ class TtsAudioController {
     if (state.value == TtsPlayerState.loading) {
       state.value = TtsPlayerState.playing;
     }
-    debugPrint(
-        '[TTS Controller] estado actual: \\x1B[32m"+state.value.toString()+"\\x1B[0m');
+    debugPrint('[TTS Controller] estado actual: ${state.value.toString()}');
   }
 
   Future<void> pause() async {
     debugPrint(
-        '[TTS Controller] pause() llamado, estado previo: \\x1B[33m"+state.value.toString()+"\\x1B[0m');
+        '[TTS Controller] pause() llamado, estado previo: ${state.value.toString()}');
     await flutterTts.pause();
     state.value = TtsPlayerState.paused;
     _pauseProgressTimer();
-    debugPrint(
-        '[TTS Controller] estado actual: \\x1B[32m"+state.value.toString()+"\\x1B[0m');
+    debugPrint('[TTS Controller] estado actual: ${state.value.toString()}');
   }
 
   Future<void> stop() async {
     debugPrint(
-        '[TTS Controller] stop() llamado, estado previo: \\x1B[33m"+state.value.toString()+"\\x1B[0m');
+        '[TTS Controller] stop() llamado, estado previo: ${state.value.toString()}');
     await flutterTts.stop();
     state.value = TtsPlayerState.idle;
     _stopProgressTimer();
     currentPosition.value = Duration.zero;
     _accumulatedPosition = Duration.zero;
-    debugPrint(
-        '[TTS Controller] estado actual: \\x1B[32m"+state.value.toString()+"\\x1B[0m');
+    debugPrint('[TTS Controller] estado actual: ${state.value.toString()}');
   }
 
   void complete() {
     debugPrint(
-        '[TTS Controller] complete() llamado, estado previo: \\x1B[33m"+state.value.toString()+"\\x1B[0m');
+        '[TTS Controller] complete() llamado, estado previo: ${state.value.toString()}');
     _stopProgressTimer();
     state.value = TtsPlayerState.completed;
     currentPosition.value = totalDuration.value;
-    debugPrint(
-        '[TTS Controller] estado actual: \\x1B[32m")+state.value.toString()+"\\x1B[0m');
+    debugPrint('[TTS Controller] estado actual: ${state.value.toString()}');
   }
 
   void error() {
     debugPrint(
-        '[TTS Controller] error() llamado, estado previo: \\x1B[33m")+state.value.toString()+"\\x1B[0m');
+        '[TTS Controller] error() llamado, estado previo: ${state.value.toString()}');
     state.value = TtsPlayerState.error;
     _stopProgressTimer();
-    debugPrint(
-        '[TTS Controller] estado actual: \\x1B[31m")+state.value.toString()+"\\x1B[0m');
+    debugPrint('[TTS Controller] estado actual: ${state.value.toString()}');
   }
 
   /// Exponer los rates permitidos desde VoiceSettingsService
@@ -226,8 +222,10 @@ class TtsAudioController {
     if (state.value == TtsPlayerState.playing) {
       // flutter_tts doesn't have robust seek; stop and speak remaining text
       flutterTts.stop();
-      // apply current speech rate before speaking
-      flutterTts.setSpeechRate(playbackRate.value);
+      // FIX: apply current speech rate from VoiceSettingsService (settings-scale, not mini)
+      final settingsRate =
+          VoiceSettingsService.miniToSettings[playbackRate.value] ?? 0.5;
+      flutterTts.setSpeechRate(settingsRate);
       if (_currentText != null && _currentText!.isNotEmpty) {
         flutterTts.speak(_currentText!);
       }
@@ -236,13 +234,13 @@ class TtsAudioController {
   }
 
   // Cycle playback rate usando solo VoiceSettingsService
+  // FIX: NO recalcular duración - mantener siempre a velocidad 1.0x
   Future<void> cyclePlaybackRate() async {
     try {
       final voiceService = getService<VoiceSettingsService>();
       debugPrint('🔁 [TTS Controller] Delegando ciclo a VoiceSettingsService');
 
-      // Guardamos estado previo para recalcular duraciones
-      final Duration previousFullDuration = _fullDuration;
+      // Guardamos posición actual para mantenerla después del cambio
       final Duration previousPosition = currentPosition.value;
 
       // cyclePlaybackRate aplicará el rate en el motor y devolverá el siguiente mini rate
@@ -258,36 +256,15 @@ class TtsAudioController {
       // Obtener el valor que se aplica al motor (settings-scale)
       final double newSettingsRate = voiceService.getSettingsRateForMini(next);
 
-      // Recalcular duración total basada en número de palabras y nueva velocidad
-      if ((_fullText ?? '').isNotEmpty) {
-        final words =
-            _fullText!.split(RegExp(r"\s+")).where((w) => w.isNotEmpty).length;
-        final double wordsPerSecond =
-            150.0 / 60.0; // misma estimación usada en setText
-        final newEstimatedSeconds = (words / wordsPerSecond) / next;
-        final Duration newFullDuration =
-            Duration(seconds: newEstimatedSeconds.round());
+      // FIX: NO recalcular duración - mantener _fullDuration sin cambios
+      // La duración siempre refleja tiempo a velocidad 1.0x
 
-        // Calcular ratio de progreso actual (si había una duración previa)
-        double ratio = 0.0;
-        if (previousFullDuration.inSeconds > 0) {
-          ratio = previousPosition.inSeconds / previousFullDuration.inSeconds;
-          if (ratio < 0.0) ratio = 0.0;
-          if (ratio > 1.0) ratio = 1.0;
-        }
+      // Mantener posición actual sin ajustes de ratio
+      currentPosition.value = previousPosition;
+      _accumulatedPosition = previousPosition;
 
-        _fullDuration = newFullDuration;
-        totalDuration.value = newFullDuration;
-
-        // Ajustar posición relativa al nuevo total
-        final newPositionSeconds = (newFullDuration.inSeconds * ratio).round();
-        final Duration newPosition = Duration(seconds: newPositionSeconds);
-        currentPosition.value = newPosition;
-        _accumulatedPosition = newPosition;
-
-        debugPrint(
-            '🔧 [TTS Controller] Recalculo duracion: old=${previousFullDuration.inSeconds}s -> new=${newFullDuration.inSeconds}s, ratio=${(ratio * 100).toStringAsFixed(1)}%, pos=${newPosition.inSeconds}s');
-      }
+      debugPrint(
+          '🔧 [TTS Controller] Duración FIJA: ${_fullDuration.inSeconds}s (no recalculada), pos=${previousPosition.inSeconds}s');
 
       // Si está reproduciendo, reiniciar el audio para aplicar nueva velocidad inmediatamente
       if (state.value == TtsPlayerState.playing) {
