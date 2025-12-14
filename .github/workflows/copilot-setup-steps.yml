@@ -40,6 +40,9 @@ jobs:
       - name: Install Flutter dependencies
         run: flutter pub get
 
+      - name: Accept Android Licenses
+        run: yes | flutter doctor --android-licenses
+
       - name: Install Linux/GTK+ 3, xvfb and Flutter desktop dependencies
         run: |
           sudo apt-get update
@@ -48,5 +51,4 @@ jobs:
       - name: Run flutter doctor
         run: flutter doctor -v
 
-      # --- Hasta aquí, solo prepara el entorno ---
-      # Si en el futuro quieres un step para test o build, agrégalo aquí.
+      # Hasta aquí: entorno completo, multiplataforma, sin ejecutar tests.
