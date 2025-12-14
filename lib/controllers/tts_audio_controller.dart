@@ -89,6 +89,7 @@ class TtsAudioController {
   Future<void> play() async {
     debugPrint(
         '[TTS Controller] play() llamado, estado previo: ${state.value.toString()}');
+    // Check _fullText (not _currentText) because we need the full text to calculate resume positions
     if (_fullText == null || _fullText!.isEmpty) {
       state.value = TtsPlayerState.error;
       return;
@@ -117,6 +118,9 @@ class TtsAudioController {
           '[TTS Controller] Resuming from accumulated position: ${_accumulatedPosition.inSeconds}s');
 
       // Calculate which words to skip based on accumulated position
+      // NOTE: This uses a linear approximation (time ∝ words) which may not be
+      // perfectly accurate since TTS engines have variable speaking rates for
+      // different words. However, it provides a reasonable resume point.
       final fullWords =
           _fullText!.split(RegExp(r"\s+")).where((w) => w.isNotEmpty).toList();
       final fullSeconds =
@@ -161,8 +165,11 @@ class TtsAudioController {
     state.value = TtsPlayerState.paused;
     _pauseProgressTimer();
 
-    // CRITICAL: Also capture current position value in case timer wasn't running
-    // This ensures position is preserved even if TTS handlers didn't fire properly
+    // CRITICAL: Fallback position capture for test environments or edge cases
+    // where TTS handlers may not fire properly. In normal operation,
+    // _pauseProgressTimer() accumulates position from the timer. This fallback
+    // ensures currentPosition is captured if it's ahead of accumulated position
+    // (e.g., in test environments or if user manually seeks before pausing).
     if (currentPosition.value > _accumulatedPosition) {
       _accumulatedPosition = currentPosition.value;
       debugPrint(
