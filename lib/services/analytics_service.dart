@@ -16,12 +16,39 @@ import 'package:flutter/foundation.dart';
 class AnalyticsService {
   final FirebaseAnalytics _analytics;
 
+  // Analytics error telemetry
+  static int _analyticsErrorCount = 0;
+  static int get analyticsErrorCount => _analyticsErrorCount;
+
   /// Constructor with optional FirebaseAnalytics instance (for testing)
   AnalyticsService({FirebaseAnalytics? analytics})
       : _analytics = analytics ?? FirebaseAnalytics.instance;
 
   /// Get the FirebaseAnalytics instance (for navigation observers, etc.)
   FirebaseAnalytics get analytics => _analytics;
+
+  /// Validates campaign tag format (Firebase requirements: alphanumeric + underscore)
+  static bool isValidCampaignTag(String tag) {
+    return tag.isNotEmpty && RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(tag);
+  }
+
+  /// Logs analytics errors for debugging/telemetry
+  static void _logAnalyticsError(String operation, dynamic error) {
+    _analyticsErrorCount++;
+    debugPrint(
+        '❌ Analytics error #$_analyticsErrorCount in $operation: $error');
+
+    if (_analyticsErrorCount > 10) {
+      debugPrint(
+          '⚠️ HIGH ANALYTICS ERROR RATE: $_analyticsErrorCount failures detected');
+    }
+  }
+
+  /// Resets error count (for testing purposes)
+  @visibleForTesting
+  static void resetErrorCount() {
+    _analyticsErrorCount = 0;
+  }
 
   /// Log TTS Play button press event
   ///
@@ -37,7 +64,7 @@ class AnalyticsService {
       );
       debugPrint('📊 Analytics: tts_play event logged');
     } catch (e) {
-      debugPrint('❌ Analytics error logging tts_play: $e');
+      _logAnalyticsError('tts_play', e);
       // Fail silently - analytics errors should not affect app functionality
     }
   }
@@ -64,6 +91,13 @@ class AnalyticsService {
     double? listenedPercentage,
   }) async {
     try {
+      // Validate campaign tag format
+      if (!isValidCampaignTag(campaignTag)) {
+        _logAnalyticsError('devotional_read_complete',
+            'Invalid campaign tag format: "$campaignTag"');
+        return;
+      }
+
       final parameters = <String, Object>{
         'campaign_tag': campaignTag,
         'devotional_id': devocionalId,
@@ -88,7 +122,7 @@ class AnalyticsService {
       debugPrint(
           '📊 Analytics: devotional_read_complete event logged for $devocionalId (campaign_tag: $campaignTag, source: $source)');
     } catch (e) {
-      debugPrint('❌ Analytics error logging devotional_read_complete: $e');
+      _logAnalyticsError('devotional_read_complete', e);
       // Fail silently - analytics errors should not affect app functionality
     }
   }
@@ -107,7 +141,7 @@ class AnalyticsService {
       );
       debugPrint('📊 Analytics: $eventName event logged');
     } catch (e) {
-      debugPrint('❌ Analytics error logging $eventName: $e');
+      _logAnalyticsError(eventName, e);
       // Fail silently
     }
   }
