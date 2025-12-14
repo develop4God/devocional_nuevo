@@ -160,6 +160,15 @@ class TtsAudioController {
     await flutterTts.pause();
     state.value = TtsPlayerState.paused;
     _pauseProgressTimer();
+
+    // CRITICAL: Also capture current position value in case timer wasn't running
+    // This ensures position is preserved even if TTS handlers didn't fire properly
+    if (currentPosition.value > _accumulatedPosition) {
+      _accumulatedPosition = currentPosition.value;
+      debugPrint(
+          '[TTS Controller] Captured current position on pause: ${_accumulatedPosition.inSeconds}s');
+    }
+
     debugPrint('[TTS Controller] estado actual: ${state.value.toString()}');
   }
 
