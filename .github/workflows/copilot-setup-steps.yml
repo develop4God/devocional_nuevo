@@ -22,9 +22,8 @@ jobs:
 
       - name: Free disk space
         run: |
-          echo "Reclaiming disk space..."
+          echo "Reclaiming disk space safely..."
           sudo rm -rf /usr/share/dotnet
-          sudo rm -rf /usr/local/lib/android
           sudo rm -rf /opt/ghc
           sudo rm -rf /opt/hostedtoolcache/CodeQL
           sudo docker image prune --all --force
@@ -52,7 +51,7 @@ jobs:
       - name: Run flutter doctor
         run: flutter doctor -v
 
-      # Opcional: build/test Linux desktop aquí
+      # (Aquí puedes agregar build/tests para Linux desktop si los deseas)
 
       - name: Start lightweight Android emulator
         uses: reactivecircus/android-emulator-runner@v2
@@ -67,5 +66,4 @@ jobs:
           disable-animations: true
           script: echo "Emulator started and ready"
 
-      # Aquí puedes agregar tus tests Android
-      
+      # (Aquí puedes agregar tus tests para Android si lo necesitas)
