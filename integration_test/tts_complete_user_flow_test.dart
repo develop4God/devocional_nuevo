@@ -125,6 +125,11 @@ void main() {
         await Future.delayed(const Duration(milliseconds: 500));
         expect(controller.state.value, TtsPlayerState.playing);
 
+        // CRITICAL NOTE: In production, UI should pause before changing speed
+        // This test simulates the controller behavior, but the UI layer
+        // (devocionales_page.dart) now pauses before calling cyclePlaybackRate()
+        // See: tts_pause_behavior_test.dart for pause-before-change tests
+
         // WHEN: User changes speed to 1.5x
         await controller.cyclePlaybackRate();
         await Future.delayed(const Duration(milliseconds: 200));
