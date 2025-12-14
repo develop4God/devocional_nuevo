@@ -6,6 +6,7 @@ import 'package:devocional_nuevo/services/analytics_service.dart';
 import 'package:devocional_nuevo/services/in_app_review_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
+import 'package:devocional_nuevo/utils/analytics_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -21,8 +22,21 @@ class DevocionalesTracking {
   // Context para acceder al provider
   BuildContext? _context;
 
-  // Cache analytics service to avoid repeated lookups
+  // Lazy-initialized analytics service
   AnalyticsService? _analyticsService;
+
+  // Getter with lazy initialization
+  AnalyticsService? get _analytics {
+    if (_analyticsService == null) {
+      try {
+        _analyticsService = getService<AnalyticsService>();
+      } catch (e) {
+        debugPrint('⚠️ Analytics service not available: $e');
+        return null;
+      }
+    }
+    return _analyticsService;
+  }
 
   // ScrollController del devocional actual
 
@@ -37,13 +51,6 @@ class DevocionalesTracking {
   /// Inicializa el servicio de tracking con el contexto necesario
   void initialize(BuildContext context) {
     _context = context;
-    // Initialize analytics service once during initialization
-    try {
-      _analyticsService = getService<AnalyticsService>();
-    } catch (e) {
-      debugPrint('⚠️ Analytics service not available: $e');
-      _analyticsService = null;
-    }
     debugPrint('🔄 DevocionalesTracking initialized');
   }
 
@@ -170,12 +177,14 @@ class DevocionalesTracking {
           '📊 [TRACKING] Stats actualizados para $devocionalId (source: $source)');
 
       // Firebase Analytics: Log devotional completion with campaign_tag
-      // Use cached analytics service to avoid repeated service locator calls
-      if (_analyticsService != null) {
+      // Use lazy getter instead of cached field for analytics service
+      final analytics = _analytics;
+      if (analytics != null) {
         try {
-          await _analyticsService!.logDevocionalComplete(
+          await analytics.logDevocionalComplete(
             devocionalId: devocionalId,
-            campaignTag: 'custom_1', // Custom label for audience segmentation
+            campaignTag:
+                AnalyticsConstants.getCampaignTag(devocionalId: devocionalId),
             source: source,
             readingTimeSeconds: readingTimeSeconds,
             scrollPercentage: scrollPercentage,
