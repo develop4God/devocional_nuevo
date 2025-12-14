@@ -89,12 +89,14 @@ class TtsAudioController {
   Future<void> play() async {
     debugPrint(
         '[TTS Controller] play() llamado, estado previo: ${state.value.toString()}');
-    if (_currentText == null || _currentText!.isEmpty) {
+    if (_fullText == null || _fullText!.isEmpty) {
       state.value = TtsPlayerState.error;
       return;
     }
+
     state.value = TtsPlayerState.loading;
     await Future.delayed(const Duration(milliseconds: 400));
+
     // Obtener y aplicar la velocidad guardada usando VoiceSettingsService
     final double settingsRate =
         await getService<VoiceSettingsService>().getSavedSpeechRate();
@@ -106,10 +108,49 @@ class TtsAudioController {
     debugPrint(
         '[TTS Controller] Aplicando velocidad TTS: mini=$miniRate (settings=$ttsEngineRate)');
     await flutterTts.setSpeechRate(ttsEngineRate);
-    await flutterTts.speak(_currentText!);
+
+    // CRITICAL FIX: If resuming from pause (accumulated position > 0),
+    // calculate which part of text to speak from accumulated position
+    if (_accumulatedPosition > Duration.zero &&
+        _accumulatedPosition < _fullDuration) {
+      debugPrint(
+          '[TTS Controller] Resuming from accumulated position: ${_accumulatedPosition.inSeconds}s');
+
+      // Calculate which words to skip based on accumulated position
+      final fullWords =
+          _fullText!.split(RegExp(r"\s+")).where((w) => w.isNotEmpty).toList();
+      final fullSeconds =
+          _fullDuration.inSeconds > 0 ? _fullDuration.inSeconds : 1;
+      final ratio = _accumulatedPosition.inSeconds / fullSeconds;
+      final skipWords =
+          (fullWords.length * ratio).clamp(0, fullWords.length).round();
+
+      // Build remaining text from skipWords
+      final remainingWords = fullWords.skip(skipWords).toList();
+      _currentText = remainingWords.join(' ');
+
+      // Update position tracking for resume (will be used by _startProgressTimer)
+      currentPosition.value = _accumulatedPosition;
+
+      debugPrint(
+          '[TTS Controller] Resuming from word $skipWords/${fullWords.length}, speaking ${remainingWords.length} remaining words');
+    } else {
+      // Starting fresh from beginning
+      debugPrint('[TTS Controller] Starting from beginning');
+      _currentText = _fullText;
+      _accumulatedPosition = Duration.zero;
+      currentPosition.value = Duration.zero;
+    }
+
+    // Speak the current text (either full or remaining after resume)
+    if (_currentText != null && _currentText!.isNotEmpty) {
+      await flutterTts.speak(_currentText!);
+    }
+
     if (state.value == TtsPlayerState.loading) {
       state.value = TtsPlayerState.playing;
     }
+
     debugPrint('[TTS Controller] estado actual: ${state.value.toString()}');
   }
 
@@ -159,6 +200,7 @@ class TtsAudioController {
     _playStartTime = DateTime.now();
     _progressTimer = Timer.periodic(const Duration(milliseconds: 500), (_) {
       final now = DateTime.now();
+      // Calculate elapsed time from when playback started, plus any accumulated position
       final elapsed = now.difference(_playStartTime!) + _accumulatedPosition;
       if (elapsed >= totalDuration.value) {
         currentPosition.value = totalDuration.value;
