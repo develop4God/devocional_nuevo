@@ -23,74 +23,44 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.32.8'  # ← Misma versión que funcionaba hace 1 semana
+          flutter-version: '3.32.8'  # O la versión que prefieras
           channel: stable
           cache: true
 
-      - name: Install dependencies
+      - name: Install Flutter dependencies
         run: flutter pub get
 
       - name: Accept Android Licenses
         run: yes | flutter doctor --android-licenses
 
-      - name: Run flutter doctor
-        run: flutter doctor -v
-
-      name: "Copilot Setup Steps"
-
-on:
-  workflow_dispatch:
-  push:
-    paths:
-      - .github/workflows/copilot-setup-steps.yml
-  pull_request:
-    paths:
-      - .github/workflows/copilot-setup-steps.yml
-
-jobs:
-  copilot-setup-steps:
-    runs-on: ubuntu-latest
-
-    permissions:
-      contents: read
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.32.8'  # ← Misma versión que funcionaba hace 1 semana
-          channel: stable
-          cache: true
-
-      - name: Install dependencies
-        run: flutter pub get
-
-      - name: Accept Android Licenses
-        run: yes | flutter doctor --android-licenses
-
-      - name: Run flutter doctor
-        run: flutter doctor -v
-            
-      - name: Install Linux/GTK+ 3 and dependencies
+      - name: Install Linux/GTK+ 3 and Flutter desktop dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y libgtk-3-dev
 
-      - name: Start Android emulator
+      - name: Run flutter doctor
+        run: flutter doctor -v
+
+      # ----------- Aquí puedes agregar steps para test/build Flutter Linux Desktop --------
+      # - name: Build for Linux (opcional)
+      #   run: flutter build linux
+
+      # - name: Test Linux integration (opcional)
+      #   run: xvfb-run --auto-servernum -- flutter test integration_test/
+
+      - name: Start lightweight Android emulator
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 33
+          api-level: 29                # ¡Menor api-level = menos recursos!
           target: google_apis
           arch: x86_64
+          ram-size: 1024               # 1GB RAM
+          disk-size: 2048M             # 2GB disco virtual
+          avd-name: test
+          disable-animations: true
           script: echo "Emulator started and ready"
 
-      - name: Start Android emulator
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: 33
-          target: google_apis
-          arch: x86_64
-          script: echo "Emulator started and ready"
+      # ----------- Aquí puedes agregar steps para test/build Flutter Android --------
+      # - name: Test Android integration (ejemplo)
+      #   run: flutter drive --target=test_driver/app.dart -d emulator-5554
+      
