@@ -38,8 +38,8 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
 
   // Mapeo de voces amigables para español
   static const Map<String, String> spanishVoiceMap = {
-    'es-us-x-esd-local': '🇲🇽',
-    'es-US-language': '🇲🇽',
+    'es-us-x-esd-local': '🌎',
+    'es-US-language': '🌎',
     'es-es-x-eed-local': '🇪🇸',
     'es-ES-language': '🇪🇸',
   };
