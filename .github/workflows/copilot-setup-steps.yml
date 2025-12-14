@@ -20,10 +20,21 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Free disk space
+        run: |
+          echo "Reclaiming disk space..."
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /opt/hostedtoolcache/CodeQL
+          sudo docker image prune --all --force
+          sudo docker builder prune -a --force
+          df -h
+
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.32.8'  # O la versión que prefieras
+          flutter-version: '3.32.8'
           channel: stable
           cache: true
 
@@ -41,25 +52,19 @@ jobs:
       - name: Run flutter doctor
         run: flutter doctor -v
 
-      # ----------- Aquí puedes agregar steps para test/build Flutter Linux Desktop --------
-      # - name: Build for Linux (opcional)
-      #   run: flutter build linux
-
-      # - name: Test Linux integration (opcional)
-      #   run: xvfb-run --auto-servernum -- flutter test integration_test/
+      # Opcional: build/test Linux desktop aquí
 
       - name: Start lightweight Android emulator
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 29                # ¡Menor api-level = menos recursos!
+          api-level: 29
           target: google_apis
           arch: x86_64
-          ram-size: 1024               # 1GB RAM
-          disk-size: 2048M             # 2GB disco virtual
+          ram-size: 1024
+          disk-size: 2048M
+          sdcard-path-or-size: 100M
           avd-name: test
           disable-animations: true
           script: echo "Emulator started and ready"
 
-      # ----------- Aquí puedes agregar steps para test/build Flutter Android --------
-      # - name: Test Android integration (ejemplo)
-      #   run: flutter drive --target=test_driver/app.dart -d emulator-5554
+      # Aquí puedes agregar tus tests Android
