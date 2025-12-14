@@ -21,6 +21,9 @@ class DevocionalesTracking {
   // Context para acceder al provider
   BuildContext? _context;
 
+  // Cache analytics service to avoid repeated lookups
+  AnalyticsService? _analyticsService;
+
   // ScrollController del devocional actual
 
   // Singleton pattern
@@ -34,6 +37,13 @@ class DevocionalesTracking {
   /// Inicializa el servicio de tracking con el contexto necesario
   void initialize(BuildContext context) {
     _context = context;
+    // Initialize analytics service once during initialization
+    try {
+      _analyticsService = getService<AnalyticsService>();
+    } catch (e) {
+      debugPrint('⚠️ Analytics service not available: $e');
+      _analyticsService = null;
+    }
     debugPrint('🔄 DevocionalesTracking initialized');
   }
 
@@ -160,19 +170,21 @@ class DevocionalesTracking {
           '📊 [TRACKING] Stats actualizados para $devocionalId (source: $source)');
 
       // Firebase Analytics: Log devotional completion with campaign_tag
-      try {
-        final analytics = getService<AnalyticsService>();
-        await analytics.logDevocionalComplete(
-          devocionalId: devocionalId,
-          campaignTag: 'custom_1', // Custom label for audience segmentation
-          source: source,
-          readingTimeSeconds: readingTimeSeconds,
-          scrollPercentage: scrollPercentage,
-          listenedPercentage: listenedPercentage,
-        );
-      } catch (e) {
-        debugPrint('❌ Error logging devotional complete analytics: $e');
-        // Fail silently - analytics should not block functionality
+      // Use cached analytics service to avoid repeated service locator calls
+      if (_analyticsService != null) {
+        try {
+          await _analyticsService!.logDevocionalComplete(
+            devocionalId: devocionalId,
+            campaignTag: 'custom_1', // Custom label for audience segmentation
+            source: source,
+            readingTimeSeconds: readingTimeSeconds,
+            scrollPercentage: scrollPercentage,
+            listenedPercentage: listenedPercentage,
+          );
+        } catch (e) {
+          debugPrint('❌ Error logging devotional complete analytics: $e');
+          // Fail silently - analytics should not block functionality
+        }
       }
 
       // Verificar milestone para review
@@ -309,6 +321,7 @@ class DevocionalesTracking {
     _criteriaCheckTimer?.cancel();
     _autoCompletedDevocionals.clear();
     _context = null;
+    _analyticsService = null; // Clear analytics service cache
     debugPrint('🗑️ DevocionalesTracking disposed');
   }
 }
