@@ -53,17 +53,4 @@ jobs:
 
       # (Aquí puedes agregar build/tests para Linux desktop si los deseas)
 
-      - name: Start lightweight Android emulator
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: 29
-          target: google_apis
-          arch: x86_64
-          ram-size: 1024
-          disk-size: 2048M
-          sdcard-path-or-size: 100M
-          avd-name: test
-          disable-animations: true
-          script: echo "Emulator started and ready"
-
-      # (Aquí puedes agregar tus tests para Android si lo necesitas)
+      
