@@ -36,8 +36,10 @@ import 'package:screenshot/screenshot.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:devocional_nuevo/services/service_locator.dart';
 import '../controllers/audio_controller.dart';
 import '../controllers/tts_audio_controller.dart';
+import '../services/analytics_service.dart';
 import '../services/spiritual_stats_service.dart';
 import '../services/tts/bible_text_formatter.dart';
 import '../widgets/voice_selector_dialog.dart';
@@ -1530,6 +1532,14 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                             if (state == TtsPlayerState.playing) {
                               _ttsAudioController.pause();
                             } else {
+                              // Track TTS play button press with Firebase Analytics
+                              try {
+                                getService<AnalyticsService>().logTtsPlay();
+                              } catch (e) {
+                                debugPrint(
+                                    '❌ Error logging TTS play analytics: $e');
+                                // Fail silently - analytics should not block functionality
+                              }
                               _ttsAudioController.play();
                             }
                           },
