@@ -40,15 +40,13 @@ jobs:
       - name: Install Flutter dependencies
         run: flutter pub get
 
-      - name: Accept Android Licenses
-        run: yes | flutter doctor --android-licenses
-
-      - name: Install Linux/GTK+ 3 and Flutter desktop dependencies
+      - name: Install Linux/GTK+ 3, xvfb and Flutter desktop dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libgtk-3-dev
+          sudo apt-get install -y libgtk-3-dev xvfb
 
       - name: Run flutter doctor
         run: flutter doctor -v
 
-      # (Aquí puedes agregar build/tests para Linux desktop si los deseas)
+      # --- Hasta aquí, solo prepara el entorno ---
+      # Si en el futuro quieres un step para test o build, agrégalo aquí.
