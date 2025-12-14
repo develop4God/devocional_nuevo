@@ -1558,13 +1558,15 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                               currentDevocional,
                               languageCode,
                             );
-                            
+
                             // CRITICAL: Pause before opening voice selector to avoid playback issues
                             if (state == TtsPlayerState.playing) {
                               await _ttsAudioController.pause();
                             }
-                            
-                            // Safe to use ctx after async - it's from the builder context
+
+                            // Safe to use ctx here: ctx is from the outer builder scope (line 1514),
+                            // not the widget context. Builder-provided contexts remain valid across
+                            // async gaps within their scope, unlike widget contexts.
                             await showModalBottomSheet(
                               // ignore: use_build_context_synchronously
                               context: ctx,

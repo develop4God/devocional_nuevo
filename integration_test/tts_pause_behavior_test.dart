@@ -349,10 +349,10 @@ void main() {
         await Future.delayed(const Duration(milliseconds: 500));
         expect(controller.state.value, TtsPlayerState.playing);
 
-        // THE BUG: Changing speed while playing (DON'T DO THIS)
-        // await controller.cyclePlaybackRate(); // This caused issues!
+        // DOCUMENTED BUG: Previously, speed was changed while playing, causing
+        // audio engine conflicts and playback stuttering/failures.
 
-        // THE FIX: Always pause first
+        // THE FIX: Always pause first to avoid conflicts
         await controller.pause();
         expect(controller.state.value, TtsPlayerState.paused);
 
