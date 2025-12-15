@@ -2,8 +2,11 @@ import 'dart:async';
 import 'dart:developer' as developer;
 
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
+import 'package:devocional_nuevo/services/analytics_service.dart';
 import 'package:devocional_nuevo/services/in_app_review_service.dart';
+import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
+import 'package:devocional_nuevo/utils/analytics_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -18,6 +21,22 @@ class DevocionalesTracking {
 
   // Context para acceder al provider
   BuildContext? _context;
+
+  // Lazy-initialized analytics service
+  AnalyticsService? _analyticsService;
+
+  // Getter with lazy initialization
+  AnalyticsService? get _analytics {
+    if (_analyticsService == null) {
+      try {
+        _analyticsService = getService<AnalyticsService>();
+      } catch (e) {
+        debugPrint('⚠️ Analytics service not available: $e');
+        return null;
+      }
+    }
+    return _analyticsService;
+  }
 
   // ScrollController del devocional actual
 
@@ -156,6 +175,27 @@ class DevocionalesTracking {
       );
       debugPrint(
           '📊 [TRACKING] Stats actualizados para $devocionalId (source: $source)');
+
+      // Firebase Analytics: Log devotional completion with campaign_tag
+      // Use lazy getter instead of cached field for analytics service
+      final analytics = _analytics;
+      if (analytics != null) {
+        try {
+          await analytics.logDevocionalComplete(
+            devocionalId: devocionalId,
+            campaignTag:
+                AnalyticsConstants.getCampaignTag(devocionalId: devocionalId),
+            source: source,
+            readingTimeSeconds: readingTimeSeconds,
+            scrollPercentage: scrollPercentage,
+            listenedPercentage: listenedPercentage,
+          );
+        } catch (e) {
+          debugPrint('❌ Error logging devotional complete analytics: $e');
+          // Fail silently - analytics should not block functionality
+        }
+      }
+
       // Verificar milestone para review
       if (_context?.mounted == true) {
         await InAppReviewService.checkAndShow(stats, _context!);
@@ -290,6 +330,7 @@ class DevocionalesTracking {
     _criteriaCheckTimer?.cancel();
     _autoCompletedDevocionals.clear();
     _context = null;
+    _analyticsService = null; // Clear analytics service cache
     debugPrint('🗑️ DevocionalesTracking disposed');
   }
 }

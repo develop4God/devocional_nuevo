@@ -193,10 +193,13 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
     final voiceService = getService<VoiceSettingsService>();
     final hasSaved = await voiceService.hasUserSavedVoice(language);
 
+    // Check mounted after async operation and before using context
     if (!mounted) return;
 
     if (!hasSaved) {
+      // Safe to use context here - we just checked mounted right before this call
       await showModalBottomSheet<void>(
+        // ignore: use_build_context_synchronously
         context: context,
         isScrollControlled: true,
         backgroundColor: Colors.transparent,
