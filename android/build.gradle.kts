@@ -1,3 +1,7 @@
+import com.android.build.gradle.LibraryExtension
+import com.android.build.gradle.AppExtension
+import org.gradle.kotlin.dsl.configure
+
 buildscript {
     repositories {
         google()
@@ -28,4 +32,26 @@ subprojects {
 
 tasks.register<Delete>("clean") {
     delete(rootProject.layout.buildDirectory)
+}
+
+subprojects {
+    // Force enabling buildConfig for Android library and application modules
+    plugins.withId("com.android.library") {
+        configure<com.android.build.gradle.LibraryExtension> {
+            val ns = namespace
+            if (ns == null || ns.isBlank()) {
+                namespace = "com.develop4god.automatic.${project.name.replace('-', '_')}"
+            }
+            buildFeatures.buildConfig = true
+        }
+    }
+    plugins.withId("com.android.application") {
+        configure<com.android.build.gradle.AppExtension> {
+            val ns = namespace
+            if (ns == null || ns.isBlank()) {
+                namespace = "com.develop4god.${project.name.replace('-', '_')}"
+            }
+            buildFeatures.buildConfig = true
+        }
+    }
 }
