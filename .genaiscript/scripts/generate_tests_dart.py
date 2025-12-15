@@ -51,12 +51,19 @@ def get_priority_files(max_files: int = 3) -> List[str]:
     lib_path = ROOT / "lib"
     priority_folders = ["blocs", "services", "providers", "models"]
     
+    # Exclude event/state files - only test *_bloc.dart files
+    exclude_patterns = ['_event.dart', '_state.dart', '_models.dart', 
+                       '.g.dart', '.freezed.dart']
+    
     dart_files = []
     for folder in priority_folders:
         folder_path = lib_path / folder
         if folder_path.exists():
             for dart_file in folder_path.rglob("*.dart"):
                 rel_path = str(dart_file.relative_to(ROOT))
+                # Skip excluded patterns
+                if any(pattern in rel_path for pattern in exclude_patterns):
+                    continue
                 dart_files.append(rel_path)
                 if len(dart_files) >= max_files:
                     return dart_files
