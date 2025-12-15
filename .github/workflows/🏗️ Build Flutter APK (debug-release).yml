@@ -2,7 +2,7 @@ name: 🏗️ Build Flutter APK/AAB (debug-release)
 
 on:
   workflow_dispatch:
-    inputs:
+    inputs: 
       branch:
         description: 'Branch to build (default: main)'
         required: false
@@ -19,7 +19,7 @@ on:
           - aab-release
 
 jobs:
-  build:
+  build: 
     runs-on: ubuntu-latest
     
     steps:
@@ -35,16 +35,16 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: ${{ github.event.inputs.branch || 'main' }}
+          ref: ${{ github.event. inputs.branch || 'main' }}
 
-      - name: Create .env file with Gemini API Key
+      - name: Create . env file with Gemini API Key
         run: echo "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}" > .env
 
       - name: Create google-services.json
         run: |
           echo "${{ secrets.GOOGLE_SERVICES_JSON_B64 }}" | base64 -d > android/app/google-services.json
 
-      - name: 🔍 Debug build.gradle.kts content
+      - name: 🔍 Debug build. gradle. kts content
         run: |
           echo "🔍 Checking build.gradle.kts content..."
           echo "📁 Current directory: $(pwd)"
@@ -60,7 +60,7 @@ jobs:
           grep -n "minSdk\|minSdkVersion" android/app/build.gradle.kts || echo "No minSdk references found"
           echo ""
           echo "📋 SHA256 of build.gradle.kts:"
-          sha256sum android/app/build.gradle.kts
+          sha256sum android/app/build. gradle.kts
 
       - name: 🧹 Clear all caches
         run: |
@@ -68,7 +68,7 @@ jobs:
           rm -rf ~/.gradle/caches/
           rm -rf ~/.pub-cache/
           rm -rf build/
-          rm -rf android/.gradle/
+          rm -rf android/. gradle/
           rm -rf android/app/build/
           echo "✅ Caches cleared"
 
@@ -77,13 +77,13 @@ jobs:
           BRANCH_NAME="${{ github.event.inputs.branch || 'main' }}"
           CLEAN_BRANCH_NAME=$(echo "$BRANCH_NAME" | sed 's/[\/:"<>|*?\\]/-/g')
           echo "CLEAN_BRANCH_NAME=$CLEAN_BRANCH_NAME" >> $GITHUB_ENV
-          echo "✅ Original branch: $BRANCH_NAME"
+          echo "✅ Original branch:  $BRANCH_NAME"
           echo "✅ Sanitized branch: $CLEAN_BRANCH_NAME"
 
       - name: 📋 Verify complete branch content
         run: |
           echo "✅ Current branch: $(git branch --show-current)"
-          echo "📝 Latest commit: $(git log -1 --oneline)"
+          echo "📝 Latest commit:  $(git log -1 --oneline)"
           echo "👤 Commit author: $(git log -1 --pretty=format:'%an <%ae>')"
           echo "📅 Commit date: $(git log -1 --pretty=format:'%ad')"
           echo ""
@@ -97,19 +97,38 @@ jobs:
 
       - name: ☕ Set up Java
         uses: actions/setup-java@v4
-        with:
+        with: 
           distribution: 'temurin'
-          java-version: '17'
+          java-version:  '17'
 
-      - name: 🔧 Set up Flutter
+      - name:  🔧 Set up Flutter
         uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.32.8'  # ← Misma versión que funcionaba hace 1 semana
+        with: 
+          flutter-version: '3.32.8'
           channel: stable
           cache: true
 
       - name: 📊 Flutter doctor
         run: flutter doctor -v
+
+      - name: ⚙️ Configure Gradle for CI environment
+        run: |
+          echo "⚙️ Optimizing Gradle settings for GitHub Actions (7GB RAM limit)..."
+          cat > android/gradle.properties << EOF
+          # CI-optimized settings for GitHub Actions runners (7GB total RAM)
+          org.gradle.jvmargs=-Xmx1536m -XX:MaxMetaspaceSize=384m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8
+          org.gradle.daemon=false
+          org.gradle.parallel=true
+          org.gradle.configureondemand=true
+          android.useAndroidX=true
+          android.enableJetifier=true
+          android.enableR8=true
+          # Additional memory optimization
+          org.gradle. caching=true
+          org.gradle.vfs. watch=false
+          EOF
+          echo "✅ CI-optimized gradle.properties created:"
+          cat android/gradle.properties
 
       - name: 🛠️ Ensure Flutter properties are available
         run: |
@@ -118,7 +137,7 @@ jobs:
           
           echo "📋 Verifying local.properties..."
           if [ -f "android/local.properties" ]; then
-            echo "✅ local.properties generated:"
+            echo "✅ local. properties generated:"
             cat android/local.properties
           else
             echo "⚠️ Creating local.properties manually..."
@@ -126,12 +145,6 @@ jobs:
             cat > android/local.properties << EOF
           sdk.dir=$ANDROID_HOME
           flutter.sdk=$FLUTTER_ROOT
-          flutter.buildMode=release
-          flutter.versionName=1.0.0
-          flutter.versionCode=1
-          flutter.minSdkVersion=23
-          flutter.targetSdkVersion=34
-          flutter.compileSdkVersion=34
           EOF
             echo "✅ Manual local.properties created:"
             cat android/local.properties
@@ -148,7 +161,7 @@ jobs:
         run: |
           echo "🔑 Configurando keystore para firmado..."
           
-          echo "Debug: tamaño del secreto base64:"
+          echo "Debug:  tamaño del secreto base64:"
           echo -n "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | wc -c
           
           # Crear directorio para keystore
@@ -157,7 +170,7 @@ jobs:
           # Decodificar keystore desde secrets (base64)
           echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android/app/upload-keystore.p12
           
-          # Crear key.properties
+          # Crear key. properties
           cat > android/key.properties << EOF
           storePassword=${{ secrets.ANDROID_STORE_PASSWORD }}
           keyPassword=${{ secrets.ANDROID_KEY_PASSWORD }}
@@ -167,28 +180,32 @@ jobs:
           
           echo "✅ Keystore configurado"
           echo "📋 Verificando archivos de firmado:"
-          ls -la android/key.properties android/app/upload-keystore.p12
+          ls -la android/key.properties android/app/upload-keystore. p12
+
       - name: 🔍 Debug keystore access
         if: ${{ github.event.inputs.build_type == 'aab-release' || github.event.inputs.build_type == 'release' }}
-        run: |
+        run:  |
           echo "Testing keystore access..."
-          keytool -list -keystore android/app/upload-keystore.p12 -storetype PKCS12 -storepass "${{ secrets.KEYSTORE_PASSWORD }}"
-      - name: 🔧 Configure build.gradle for signing
-        if: ${{ github.event.inputs.build_type == 'aab-release' || github.event.inputs.build_type == 'release' }}
+          keytool -list -keystore android/app/upload-keystore.p12 -storetype PKCS12 -storepass "${{ secrets.ANDROID_STORE_PASSWORD }}"
+
+      - name: 🔧 Configure build. gradle for signing
+        if: ${{ github. event.inputs.build_type == 'aab-release' || github.event.inputs.build_type == 'release' }}
         run: |
-          echo "🔧 Verificando configuración de firmado en build.gradle.kts..."
+          echo "🔧 Verificando configuración de firmado en build.gradle. kts..."
           
           # Verificar si ya tiene configuración de firmado
-          if ! grep -q "signingConfigs" android/app/build.gradle.kts; then
+          if !  grep -q "signingConfigs" android/app/build.gradle. kts; then
             echo "⚠️ build.gradle.kts no tiene configuración de firmado"
             echo "📋 Para firmar correctamente, asegúrate de tener en android/app/build.gradle.kts:"
-            echo "   - signingConfigs { release { ... } }"
-            echo "   - buildTypes { release { signingConfig = signingConfigs.getByName(\"release\") } }"
+            echo "   - signingConfigs { release { ...  } }"
+            echo "   - buildTypes { release { signingConfig = signingConfigs. getByName(\"release\") } }"
           else
             echo "✅ Configuración de firmado encontrada en build.gradle.kts"
           fi
 
       - name: 🏗️ Build APK/AAB (${{ github.event.inputs.build_type || 'debug' }})
+        env:
+          GRADLE_OPTS: '-Dorg.gradle.jvmargs="-Xmx1536m -XX:MaxMetaspaceSize=384m"'
         run: |
           BUILD_TYPE="${{ github.event.inputs.build_type || 'debug' }}"
           
@@ -201,7 +218,7 @@ jobs:
           elif [ "$BUILD_TYPE" = "release" ]; then
             echo "🚀 Building release APK..."
             flutter build apk --release
-            APK_PATH="build/app/outputs/flutter-apk/app-release.apk"
+            APK_PATH="build/app/outputs/flutter-apk/app-release. apk"
             APK_TYPE="release-apk"
             
           else
@@ -216,20 +233,18 @@ jobs:
 
       - name: 🔍 Verify signing (for release builds)
         if: ${{ github.event.inputs.build_type == 'aab-release' || github.event.inputs.build_type == 'release' }}
-        run: |
+        run:  |
           echo "🔍 Verificando si el archivo está firmado correctamente..."
           
           if [ -f "$APK_PATH" ]; then
             # Para AAB files
             if [[ "$APK_PATH" == *.aab ]]; then
               echo "📦 Verificando AAB firmado..."
-              # Los AAB no se pueden verificar con jarsigner, pero podemos verificar que se creó con el keystore
               echo "✅ AAB generado - El firmado se verifica en el upload al Play Store"
               
             # Para APK files
             elif [[ "$APK_PATH" == *.apk ]]; then
               echo "📱 Verificando APK firmado..."
-              # Verificar firmado con jarsigner (viene con Java)
               if jarsigner -verify -verbose -certs "$APK_PATH"; then
                 echo "✅ APK está correctamente firmado"
               else
@@ -242,7 +257,7 @@ jobs:
             exit 1
           fi
 
-      - name: 📋 APK/AAB Info
+      - name:  📋 APK/AAB Info
         run: |
           if [ -f "$APK_PATH" ]; then
             echo "✅ Build completed successfully!"
@@ -250,14 +265,12 @@ jobs:
             echo "📏 Size: $(ls -lh $APK_PATH | awk '{print $5}')"
             echo "🔍 SHA256: $(sha256sum $APK_PATH | cut -d' ' -f1)"
             
-            # Información adicional para AAB
             if [[ "$APK_PATH" == *.aab ]]; then
               echo ""
               echo "📦 AAB Info:"
               echo "✅ Ready for Google Play Store upload"
               echo "🔧 This is an Android App Bundle (AAB) file"
               echo "🔑 Signed with upload keystore"
-            # Información adicional para APK release
             elif [[ "$APK_PATH" == *release.apk ]]; then
               echo ""
               echo "📱 Release APK Info:"
@@ -270,16 +283,17 @@ jobs:
             find build -name "*.apk" -o -name "*.aab" -type f 2>/dev/null || echo "No APK or AAB files found"
             exit 1
           fi
+
       - name: 📋 Get app version
         run: |
           VERSION=$(grep "version:" pubspec.yaml | sed 's/version: //' | tr -d ' ')
           echo "APP_VERSION=$VERSION" >> $GITHUB_ENV
-          echo "✅ App version: $VERSION"
+          echo "✅ App version:  $VERSION"
 
-      - name: 📤 Upload build artifact
+      - name:  📤 Upload build artifact
         uses: actions/upload-artifact@v4
-        with:
-          name: app-${{ env.APK_TYPE }}-${{ env.CLEAN_BRANCH_NAME }}-v${{ env.APP_VERSION }}-${{ github.run_number }}
+        with: 
+          name: app-${{ env.APK_TYPE }}-${{ env. CLEAN_BRANCH_NAME }}-v${{ env.APP_VERSION }}-${{ github.run_number }}
           path: ${{ env.APK_PATH }}
           retention-days: 30
 
@@ -288,23 +302,21 @@ jobs:
           echo "## 🎉 Build Completed Successfully!" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### 📋 Build Details:" >> $GITHUB_STEP_SUMMARY
-          echo "- **Branch**: \`${{ github.event.inputs.branch || 'main' }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Branch**:  \`${{ github.event.inputs.branch || 'main' }}\`" >> $GITHUB_STEP_SUMMARY
           echo "- **Build Type**: \`${{ env.APK_TYPE }}\`" >> $GITHUB_STEP_SUMMARY
           echo "- **File Size**: \`$(ls -lh $APK_PATH | awk '{print $5}')\`" >> $GITHUB_STEP_SUMMARY
           echo "- **Commit**: \`$(git log -1 --oneline)\`" >> $GITHUB_STEP_SUMMARY
           echo "- **Build Number**: \`#${{ github.run_number }}\`" >> $GITHUB_STEP_SUMMARY
           
-          # Agregar info de firmado para builds release
-          BUILD_TYPE="${{ github.event.inputs.build_type || 'debug' }}"
+          BUILD_TYPE="${{ github.event.inputs. build_type || 'debug' }}"
           if [ "$BUILD_TYPE" = "aab-release" ] || [ "$BUILD_TYPE" = "release" ]; then
             echo "- **🔑 Signing**: \`Signed with upload keystore\`" >> $GITHUB_STEP_SUMMARY
           fi
           
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### 📦 Artifact:" >> $GITHUB_STEP_SUMMARY
-          echo "The build artifact is available as: \`app-${{ env.APK_TYPE }}-${{ env.CLEAN_BRANCH_NAME }}-${{ github.run_number }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "The build artifact is available as: \`app-${{ env.APK_TYPE }}-${{ env. CLEAN_BRANCH_NAME }}-v${{ env.APP_VERSION }}-${{ github.run_number }}\`" >> $GITHUB_STEP_SUMMARY
           
-          # Información adicional para AAB
           if [[ "${{ env.APK_PATH }}" == *.aab ]]; then
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "### 🏪 Google Play Store:" >> $GITHUB_STEP_SUMMARY
@@ -318,7 +330,6 @@ jobs:
             echo "🔑 Properly signed with upload keystore" >> $GITHUB_STEP_SUMMARY
           fi
 
-  # Job adicional para verificar diferencias entre ramas
   branch-comparison:
     runs-on: ubuntu-latest
     if: github.event.inputs.branch != 'main' && github.event.inputs.branch != ''
@@ -326,7 +337,7 @@ jobs:
     steps:
       - name: 📥 Checkout target branch
         uses: actions/checkout@v4
-        with:
+        with: 
           fetch-depth: 0
           ref: ${{ github.event.inputs.branch }}
 
@@ -337,31 +348,26 @@ jobs:
           
           TARGET_BRANCH="${{ github.event.inputs.branch }}"
           
-          # Información de la rama actual
           echo "### 📋 Target Branch: \`$TARGET_BRANCH\`" >> $GITHUB_STEP_SUMMARY
           echo "- **Latest commit**: \`$(git log -1 --oneline)\`" >> $GITHUB_STEP_SUMMARY
           echo "- **Author**: \`$(git log -1 --pretty=format:'%an')\`" >> $GITHUB_STEP_SUMMARY
           echo "- **Date**: \`$(git log -1 --pretty=format:'%ad' --date=short)\`" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
-          # Comparación con main si no es main
           if [ "$TARGET_BRANCH" != "main" ]; then
             echo "### 🔄 Comparison with main:" >> $GITHUB_STEP_SUMMARY
             
-            # Obtener main para comparar
             git fetch origin main:main 2>/dev/null || git fetch origin main 2>/dev/null || echo "Could not fetch main branch"
             
             if git show-ref --verify --quiet refs/heads/main || git show-ref --verify --quiet refs/remotes/origin/main; then
               MAIN_REF=$(git show-ref --verify --quiet refs/heads/main && echo "main" || echo "origin/main")
               
-              # Commits ahead/behind
-              AHEAD=$(git rev-list --count $MAIN_REF..$TARGET_BRANCH 2>/dev/null || echo "N/A")
+              AHEAD=$(git rev-list --count $MAIN_REF. .$TARGET_BRANCH 2>/dev/null || echo "N/A")
               BEHIND=$(git rev-list --count $TARGET_BRANCH..$MAIN_REF 2>/dev/null || echo "N/A")
               
               echo "- **Commits ahead of main**: $AHEAD" >> $GITHUB_STEP_SUMMARY
-              echo "- **Commits behind main**: $BEHIND" >> $GITHUB_STEP_SUMMARY
+              echo "- **Commits behind main**:  $BEHIND" >> $GITHUB_STEP_SUMMARY
               
-              # Últimos commits únicos en esta rama
               echo "" >> $GITHUB_STEP_SUMMARY
               echo "### 📝 Recent commits in \`$TARGET_BRANCH\`:" >> $GITHUB_STEP_SUMMARY
               echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
