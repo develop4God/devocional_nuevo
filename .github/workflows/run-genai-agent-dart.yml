@@ -33,7 +33,7 @@ jobs:
           GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
           GENAI_MODEL: 'gemini-2.0-flash-lite'
         run: |
-          python .genaiscript/scripts/generate_tests_dart_optimized.py
+          python .genaiscript/scripts/generate_tests_dart.py
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
