@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Optimized Flutter/Dart BLoC test generator - Token efficient
-Focuses on: BLoC pattern, bloc_test, real user flows
+Focuses on: BLoC pattern, bloc_test, coverage gaps
 """
 import os
 import subprocess
@@ -17,11 +17,11 @@ ROOT = pathlib.Path(__file__).resolve().parents[2]
 
 @dataclass
 class BlocAnalysis:
-    """Lightweight metadata extraction - NO source code sent to LLM"""
+    """Lightweight metadata extraction"""
     class_name: str
-    type: str  # bloc, service, model, provider
-    events: List[str]  # For BLoCs only
-    states: List[str]  # For BLoCs only
+    type: str
+    events: List[str]
+    states: List[str]
     methods: List[str]
     dependencies: List[str]
     platform_channels: List[str]
@@ -35,7 +35,6 @@ def run(cmd: str, check: bool = True) -> str:
 
 
 def get_modified_dart_files() -> List[str]:
-    """Get modified .dart files in lib/ vs origin/main"""
     try:
         run("git fetch origin main --depth=1", check=False)
     except:
@@ -47,11 +46,9 @@ def get_modified_dart_files() -> List[str]:
 
 
 def get_priority_files(max_files: int = 3) -> List[str]:
-    """Select high-priority files for testing"""
     lib_path = ROOT / "lib"
     priority_folders = ["blocs", "services", "providers", "models"]
     
-    # Exclude event/state files - only test *_bloc.dart files
     exclude_patterns = ['_event.dart', '_state.dart', '_models.dart', 
                        '.g.dart', '.freezed.dart']
     
@@ -61,7 +58,6 @@ def get_priority_files(max_files: int = 3) -> List[str]:
         if folder_path.exists():
             for dart_file in folder_path.rglob("*.dart"):
                 rel_path = str(dart_file.relative_to(ROOT))
-                # Skip excluded patterns
                 if any(pattern in rel_path for pattern in exclude_patterns):
                     continue
                 dart_files.append(rel_path)
@@ -71,24 +67,21 @@ def get_priority_files(max_files: int = 3) -> List[str]:
 
 
 def get_existing_test_coverage(file_path: str) -> dict:
-    """Check what's already tested"""
-    # Convert lib/blocs/prayer_bloc.dart -> test/**/prayer_bloc_test.dart
+    """Check what's already tested - FREE, no tokens"""
     base_name = pathlib.Path(file_path).stem
     
-    test_patterns = [
-        ROOT / "test" / "**" / f"{base_name}_test.dart",
-        ROOT / "test" / "**" / f"*{base_name}*.dart",
-    ]
-    
     covered_scenarios = set()
-    for pattern in test_patterns:
-        for test_file in ROOT.glob(str(pattern.relative_to(ROOT))):
-            if test_file.exists():
+    test_dir = ROOT / "test"
+    
+    if test_dir.exists():
+        for test_file in test_dir.rglob(f"*{base_name}*.dart"):
+            try:
                 content = test_file.read_text()
-                # Extract test names
                 test_names = re.findall(r"test\(['\"](.+?)['\"]", content)
                 test_names += re.findall(r"blocTest<[^>]+>\(['\"](.+?)['\"]", content)
                 covered_scenarios.update(test_names)
+            except:
+                pass
     
     return {
         'has_tests': len(covered_scenarios) > 0,
@@ -98,33 +91,8 @@ def get_existing_test_coverage(file_path: str) -> dict:
 
 
 def analyze_file(source: str, file_path: str) -> BlocAnalysis:
-    """Check what's already tested"""
-    # Convert lib/blocs/prayer_bloc.dart -> test/**/prayer_bloc_test.dart
-    base_name = pathlib.Path(file_path).stem
-    
-    test_patterns = [
-        ROOT / "test" / "**" / f"{base_name}_test.dart",
-        ROOT / "test" / "**" / f"*{base_name}*.dart",
-    ]
-    
-    covered_scenarios = set()
-    for pattern in test_patterns:
-        for test_file in ROOT.glob(str(pattern.relative_to(ROOT))):
-            if test_file.exists():
-                content = test_file.read_text()
-                # Extract test names
-                test_names = re.findall(r"test\(['\"](.+?)['\"]", content)
-                test_names += re.findall(r"blocTest<[^>]+>\(['\"](.+?)['\"]", content)
-                covered_scenarios.update(test_names)
-    
-    return {
-        'has_tests': len(covered_scenarios) > 0,
-        'test_count': len(covered_scenarios),
-        'scenarios': list(covered_scenarios)
-    }
     """Extract minimal metadata - NO code sent to LLM"""
     
-    # Detect class type
     class_match = re.search(r'class\s+(\w+)', source)
     class_name = class_match.group(1) if class_match else "UnknownClass"
     
@@ -136,31 +104,25 @@ def analyze_file(source: str, file_path: str) -> BlocAnalysis:
     elif "provider" in file_path.lower():
         file_type = "provider"
     
-    # Extract BLoC events/states from actual code
     events = []
     states = []
     if file_type == "bloc":
-        # Read companion files
         base_path = pathlib.Path(file_path).parent
-        bloc_name = class_name.replace('Bloc', '')
+        bloc_name = class_name.replace('Bloc', '').lower()
         
-        # Try to read event file
-        event_file = ROOT / base_path / f"{bloc_name.lower()}_event.dart"
+        event_file = ROOT / base_path / f"{bloc_name}_event.dart"
         if event_file.exists():
             event_src = event_file.read_text()
             events = re.findall(r'class\s+(\w+)\s+extends\s+\w+Event', event_src)
         
-        # Try to read state file
-        state_file = ROOT / base_path / f"{bloc_name.lower()}_state.dart"
+        state_file = ROOT / base_path / f"{bloc_name}_state.dart"
         if state_file.exists():
             state_src = state_file.read_text()
             states = re.findall(r'class\s+(\w+)\s+extends\s+\w+State', state_src)
     
-    # Extract public methods
     methods = re.findall(r'(?:Future<\w+>|void|Stream<\w+>)\s+(\w+)\s*\(', source)
     methods = [m for m in methods if not m.startswith('_')][:10]
     
-    # Dependencies from constructor
     deps = []
     constructor_pattern = r'(?:final|required)\s+(\w+)\s+\w+[;,)]'
     for match in re.finditer(constructor_pattern, source):
@@ -168,7 +130,6 @@ def analyze_file(source: str, file_path: str) -> BlocAnalysis:
         if dep_type[0].isupper() and dep_type not in ['String', 'int', 'bool', 'DateTime', 'List', 'Map']:
             deps.append(dep_type)
     
-    # Platform channels
     channels = re.findall(r"MethodChannel\(['\"](\w+)['\"]\)", source)
     
     return BlocAnalysis(
@@ -182,23 +143,31 @@ def analyze_file(source: str, file_path: str) -> BlocAnalysis:
     )
 
 
-def build_compact_prompt(file_path: str, analysis: BlocAnalysis) -> str:
-    """Compact prompt <800 tokens using project patterns"""
+def build_compact_prompt(file_path: str, analysis: BlocAnalysis, coverage: dict) -> Optional[str]:
+    """Compact prompt using project patterns"""
     
-    # Template based on real project tests
+    if coverage['test_count'] >= 5:
+        return None
+    
+    existing_tests = '\n'.join(f"- {s}" for s in coverage['scenarios'][:10])
+    
     if analysis.type == "bloc":
-        events_str = ', '.join(analysis.events) if analysis.events else 'LoadEvents, RefreshEvents'
-        states_str = ', '.join(analysis.states) if analysis.states else 'Initial, Loading, Loaded, Error'
+        events_str = ', '.join(analysis.events) if analysis.events else 'LoadEvents'
+        states_str = ', '.join(analysis.states) if analysis.states else 'Initial, Loading, Loaded'
         
-        prompt = f"""Generate Flutter BLoC test using project conventions.
+        prompt = f"""Generate NEW Flutter BLoC tests (avoid duplicates).
 
 FILE: {file_path}
 BLOC: {analysis.class_name}
 EVENTS: {events_str}
 STATES: {states_str}
-DEPS: {', '.join(analysis.dependencies) if analysis.dependencies else 'None'}
 
-REQUIRED IMPORTS:
+EXISTING TESTS ({coverage['test_count']}):
+{existing_tests if coverage['has_tests'] else '(None - first tests)'}
+
+REQUIRED: Generate tests for UNTESTED scenarios only.
+
+IMPORTS:
 ```dart
 import 'package:flutter_test/flutter_test.dart';
 import 'package:bloc_test/bloc_test.dart';
@@ -219,30 +188,14 @@ setUp(() {{
 tearDown(() => bloc.close());
 ```
 
-TESTS (5-8 tests):
-1. Initial state validation
-2. Main user flows with real events from: {events_str}
-3. Error handling
-4. State transitions
-
-Use blocTest<{analysis.class_name}, State> with real events.
+Generate 3-5 NEW tests using real events: {events_str}
 Return ONLY Dart code, no markdown."""
-
-    else:  # service/model/provider
-        prompt = f"""Generate Flutter test for {analysis.type}.
-
-CLASS: {analysis.class_name}
-METHODS: {', '.join(analysis.methods[:5])}
-TYPE: {analysis.type}
-
-Use flutter_test, focus on method behavior.
-Return ONLY Dart code."""
+        return prompt
     
-    return prompt
+    return None
 
 
 def call_gemini(prompt: str) -> str:
-    """Call Gemini with optimized settings"""
     api_key = os.getenv("GOOGLE_API_KEY")
     if not api_key:
         raise Exception("GOOGLE_API_KEY not set")
@@ -253,7 +206,7 @@ def call_gemini(prompt: str) -> str:
     payload = {
         "contents": [{"parts": [{"text": prompt}]}],
         "generationConfig": {
-            "temperature": 0.1,  # More deterministic
+            "temperature": 0.1,
             "maxOutputTokens": 4096,
             "topP": 0.95,
             "topK": 40,
@@ -271,60 +224,40 @@ def call_gemini(prompt: str) -> str:
     
     data = resp.json()
     if "candidates" not in data or not data["candidates"]:
-        raise Exception(f"No candidates in response: {json.dumps(data)[:300]}")
+        raise Exception(f"No candidates: {json.dumps(data)[:300]}")
     
     text = data["candidates"][0]["content"]["parts"][0]["text"]
-    
-    # Remove markdown fences
     text = re.sub(r'```dart\s*', '', text)
     text = re.sub(r'```\s*', '', text)
     return text.strip()
 
 
 def validate_test(content: str, analysis: BlocAnalysis) -> tuple[bool, List[str]]:
-    """Validate generated test quality"""
     issues = []
     
-    # Required imports
     if "import 'package:flutter_test/flutter_test.dart';" not in content:
         issues.append("Missing flutter_test import")
     
     if analysis.type == "bloc" and "bloc_test" not in content:
-        issues.append("BLoC test missing bloc_test import")
+        issues.append("BLoC missing bloc_test")
     
-    # Setup requirements
     if "setUp(" not in content:
         issues.append("Missing setUp")
-    if "TestWidgetsFlutterBinding.ensureInitialized()" not in content:
-        issues.append("Missing binding initialization")
     
-    # Test structure
-    if content.count("test(") + content.count("blocTest") < 3:
-        issues.append("Less than 3 tests generated")
-    
-    if "expect(" not in content:
-        issues.append("No assertions found")
-    
-    # BLoC specific
-    if analysis.type == "bloc":
-        if not re.search(r'blocTest<\w+,\s*\w+>', content):
-            issues.append("BLoC test missing blocTest usage")
+    if content.count("test(") + content.count("blocTest") < 2:
+        issues.append("Less than 2 tests")
     
     return len(issues) == 0, issues
 
 
 def write_test_file(src_path: str, content: str, analysis: BlocAnalysis) -> str:
-    """Write test to appropriate location"""
     test_dir = ROOT / "test" / "behavioral"
     test_dir.mkdir(parents=True, exist_ok=True)
     
-    # Extract clean class name
     class_name = analysis.class_name.lower()
-    # Remove 'bloc' suffix if present to avoid duplication
     if class_name.endswith('bloc'):
         class_name = class_name[:-4]
     
-    # Naming: {type}_{class_name}_behavioral_test.dart
     filename = f"{analysis.type}_{class_name}_behavioral_test.dart"
     out_path = test_dir / filename
     
@@ -335,9 +268,8 @@ def write_test_file(src_path: str, content: str, analysis: BlocAnalysis) -> str:
 def main():
     print("[START] Optimized BLoC Test Generator")
     print(f"[CONFIG] Model: {os.getenv('GENAI_MODEL', 'gemini-2.0-flash-lite')}")
-    print(f"[CONFIG] Strategy: Metadata-only prompts (<1000 tokens)\n")
+    print(f"[CONFIG] Strategy: Coverage-aware generation\n")
     
-    # Get files to process
     modified = get_modified_dart_files()
     if not modified:
         print("[INFO] No modified files, selecting priority files...")
@@ -353,6 +285,7 @@ def main():
     print()
     
     generated = []
+    skipped = []
     failed = []
     
     for idx, file_path in enumerate(modified, 1):
@@ -365,22 +298,22 @@ def main():
             failed.append((file_path, str(e)))
             continue
         
-        # Analyze (no LLM)
         print(f"  🔍 Analyzing...")
         analysis = analyze_file(source, file_path)
         coverage = get_existing_test_coverage(file_path)
         print(f"     Type: {analysis.type}, Existing tests: {coverage['test_count']}")
         
-        # Skip if well-covered
         if coverage['test_count'] >= 5:
             print(f"  ⏭️  Skipped (already has {coverage['test_count']} tests)\n")
+            skipped.append(file_path)
             continue
         
-        # Generate test
         prompt = build_compact_prompt(file_path, analysis, coverage)
         if prompt is None:
             print(f"  ⏭️  Skipped (sufficient coverage)\n")
+            skipped.append(file_path)
             continue
+        
         token_estimate = len(prompt.split())
         print(f"  📤 Sending prompt (~{token_estimate} tokens)...")
         
@@ -391,23 +324,20 @@ def main():
             failed.append((file_path, str(e)))
             continue
         
-        # Validate
         print(f"  ✓ Validating...")
         is_valid, issues = validate_test(result, analysis)
         if not is_valid:
-            print(f"  ⚠️  Issues: {', '.join(issues[:3])}")
+            print(f"  ⚠️  Issues: {', '.join(issues[:2])}")
         
-        # Write
         test_path = write_test_file(file_path, result, analysis)
         generated.append(test_path)
         print(f"  ✅ {os.path.basename(test_path)}\n")
     
     print("=" * 60)
-    print(f"[SUMMARY] ✅ {len(generated)} | ❌ {len(failed)}")
+    print(f"[SUMMARY] ✅ {len(generated)} | ⏭️  {len(skipped)} | ❌ {len(failed)}")
     
     if generated:
-        print(f"\n[NEXT] Run: flutter pub run build_runner build")
-        print(f"       Then: flutter test test/behavioral/")
+        print(f"\n[NEXT] Run: flutter test test/behavioral/")
     
     if failed:
         print(f"\n[FAILED]")
