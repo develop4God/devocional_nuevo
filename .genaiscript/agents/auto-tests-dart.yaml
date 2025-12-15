@@ -3,7 +3,7 @@ description: "Generates behavioral Flutter/Dart tests based on real user interac
 entrypoint: .genaiscript/scripts/generate_tests_dart.py
 llm:
   provider: "gemini"
-  model: "gemini-2.0-flash-exp"
+  model: "gemini-2.0-flash-lite"
   temperature: 0.0
   max_tokens: 8192
   top_p: 0.95
@@ -14,7 +14,7 @@ permissions:
     - "test/integration/**"
     - "test/widget/**"
   write:
-    - "test/behavioral/**"
+    - "test/genaiscript/**"
 commit:
   enabled: false
   message: "test: add behavioral tests based on user interaction patterns"
