@@ -1,0 +1,69 @@
+{
+  "model": "gemini-2.0-flash-lite",
+  "temperature": 0.1,
+  "max_tokens": 4096,
+  
+  "priority_folders": [
+    "blocs",
+    "services", 
+    "providers",
+    "models"
+  ],
+  
+  "excluded_files": [
+    "*_generated.dart",
+    "*.g.dart",
+    "*.freezed.dart"
+  ],
+  
+  "test_patterns": {
+    "bloc": {
+      "min_tests": 5,
+      "required_imports": [
+        "bloc_test",
+        "shared_preferences"
+      ],
+      "focus_areas": [
+        "initial_state",
+        "user_flows", 
+        "error_handling",
+        "state_transitions"
+      ]
+    },
+    "service": {
+      "min_tests": 3,
+      "required_imports": [
+        "flutter_test"
+      ],
+      "focus_areas": [
+        "method_calls",
+        "error_handling",
+        "platform_channels"
+      ]
+    },
+    "model": {
+      "min_tests": 3,
+      "required_imports": [
+        "flutter_test"
+      ],
+      "focus_areas": [
+        "serialization",
+        "validation",
+        "edge_cases"
+      ]
+    }
+  },
+  
+  "validation": {
+    "require_setup": true,
+    "require_teardown": true,
+    "require_binding_init": true,
+    "min_assertions": 1,
+    "require_user_scenarios": true
+  },
+  
+  "output": {
+    "directory": "test/behavioral",
+    "naming_pattern": "{type}_{class_name}_test.dart"
+  }
+}
