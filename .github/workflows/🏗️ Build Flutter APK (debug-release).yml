@@ -2,7 +2,7 @@ name: 🏗️ Build Flutter APK/AAB (debug-release)
 
 on:
   workflow_dispatch:
-    inputs: 
+    inputs:
       branch:
         description: 'Branch to build (default: main)'
         required: false
@@ -150,6 +150,7 @@ jobs:
             cat android/local.properties
           fi
           echo "flutter.minSdkVersion=23" >> android/local.properties
+          echo "flutter.compileSdkVersion=36" >> android/local.properties
 
       - name: 📦 Install dependencies
         run: flutter pub get
@@ -276,7 +277,7 @@ jobs:
 
       - name: 📤 Upload build artifact
         uses: actions/upload-artifact@v4
-        with: 
+        with:
           name: app-${{ env.APK_TYPE }}-${{ env.CLEAN_BRANCH_NAME }}-v${{ env.APP_VERSION }}-${{ github.run_number }}
           path: ${{ env.APK_PATH }}
           retention-days: 30
