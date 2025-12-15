@@ -70,6 +70,33 @@ def get_priority_files(max_files: int = 3) -> List[str]:
     return dart_files
 
 
+def get_existing_test_coverage(file_path: str) -> dict:
+    """Check what's already tested"""
+    # Convert lib/blocs/prayer_bloc.dart -> test/**/prayer_bloc_test.dart
+    base_name = pathlib.Path(file_path).stem
+    
+    test_patterns = [
+        ROOT / "test" / "**" / f"{base_name}_test.dart",
+        ROOT / "test" / "**" / f"*{base_name}*.dart",
+    ]
+    
+    covered_scenarios = set()
+    for pattern in test_patterns:
+        for test_file in ROOT.glob(str(pattern.relative_to(ROOT))):
+            if test_file.exists():
+                content = test_file.read_text()
+                # Extract test names
+                test_names = re.findall(r"test\(['\"](.+?)['\"]", content)
+                test_names += re.findall(r"blocTest<[^>]+>\(['\"](.+?)['\"]", content)
+                covered_scenarios.update(test_names)
+    
+    return {
+        'has_tests': len(covered_scenarios) > 0,
+        'test_count': len(covered_scenarios),
+        'scenarios': list(covered_scenarios)
+    }
+
+
 def analyze_file(source: str, file_path: str) -> BlocAnalysis:
     """Check what's already tested"""
     # Convert lib/blocs/prayer_bloc.dart -> test/**/prayer_bloc_test.dart
