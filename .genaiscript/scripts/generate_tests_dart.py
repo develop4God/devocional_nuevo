@@ -71,6 +71,30 @@ def get_priority_files(max_files: int = 3) -> List[str]:
 
 
 def analyze_file(source: str, file_path: str) -> BlocAnalysis:
+    """Check what's already tested"""
+    # Convert lib/blocs/prayer_bloc.dart -> test/**/prayer_bloc_test.dart
+    base_name = pathlib.Path(file_path).stem
+    
+    test_patterns = [
+        ROOT / "test" / "**" / f"{base_name}_test.dart",
+        ROOT / "test" / "**" / f"*{base_name}*.dart",
+    ]
+    
+    covered_scenarios = set()
+    for pattern in test_patterns:
+        for test_file in ROOT.glob(str(pattern.relative_to(ROOT))):
+            if test_file.exists():
+                content = test_file.read_text()
+                # Extract test names
+                test_names = re.findall(r"test\(['\"](.+?)['\"]", content)
+                test_names += re.findall(r"blocTest<[^>]+>\(['\"](.+?)['\"]", content)
+                covered_scenarios.update(test_names)
+    
+    return {
+        'has_tests': len(covered_scenarios) > 0,
+        'test_count': len(covered_scenarios),
+        'scenarios': list(covered_scenarios)
+    }
     """Extract minimal metadata - NO code sent to LLM"""
     
     # Detect class type
@@ -78,30 +102,43 @@ def analyze_file(source: str, file_path: str) -> BlocAnalysis:
     class_name = class_match.group(1) if class_match else "UnknownClass"
     
     file_type = "model"
-    if "bloc" in file_path.lower():
+    if "bloc" in file_path.lower() and not any(x in file_path for x in ['_event', '_state']):
         file_type = "bloc"
     elif "service" in file_path.lower():
         file_type = "service"
     elif "provider" in file_path.lower():
         file_type = "provider"
     
-    # Extract BLoC events (only for BLoCs)
+    # Extract BLoC events/states from actual code
     events = []
     states = []
     if file_type == "bloc":
-        events = re.findall(r'class\s+(\w+Event)\s+extends', source)
-        states = re.findall(r'class\s+(\w+State)\s+extends', source)
+        # Read companion files
+        base_path = pathlib.Path(file_path).parent
+        bloc_name = class_name.replace('Bloc', '')
+        
+        # Try to read event file
+        event_file = ROOT / base_path / f"{bloc_name.lower()}_event.dart"
+        if event_file.exists():
+            event_src = event_file.read_text()
+            events = re.findall(r'class\s+(\w+)\s+extends\s+\w+Event', event_src)
+        
+        # Try to read state file
+        state_file = ROOT / base_path / f"{bloc_name.lower()}_state.dart"
+        if state_file.exists():
+            state_src = state_file.read_text()
+            states = re.findall(r'class\s+(\w+)\s+extends\s+\w+State', state_src)
     
     # Extract public methods
     methods = re.findall(r'(?:Future<\w+>|void|Stream<\w+>)\s+(\w+)\s*\(', source)
-    methods = [m for m in methods if not m.startswith('_')][:10]  # Limit
+    methods = [m for m in methods if not m.startswith('_')][:10]
     
     # Dependencies from constructor
     deps = []
-    constructor_pattern = r'(?:final|required)\s+(\w+)\s+\w+[;,]'
+    constructor_pattern = r'(?:final|required)\s+(\w+)\s+\w+[;,)]'
     for match in re.finditer(constructor_pattern, source):
         dep_type = match.group(1)
-        if dep_type[0].isupper() and dep_type not in ['String', 'int', 'bool', 'DateTime']:
+        if dep_type[0].isupper() and dep_type not in ['String', 'int', 'bool', 'DateTime', 'List', 'Map']:
             deps.append(dep_type)
     
     # Platform channels
@@ -121,81 +158,58 @@ def analyze_file(source: str, file_path: str) -> BlocAnalysis:
 def build_compact_prompt(file_path: str, analysis: BlocAnalysis) -> str:
     """Compact prompt <800 tokens using project patterns"""
     
-    # Template selection based on type
+    # Template based on real project tests
     if analysis.type == "bloc":
-        template = """
-test('initial state is correct', () {
-  expect(bloc.state, isA<{StateInitial}>());
-});
-
-blocTest<{ClassName}, {StateName}>(
-  'user scenario: [describe user action]',
-  build: () => bloc,
-  act: (bloc) => bloc.add([EventName]()),
-  expect: () => [
-    isA<{StateLoading}>(),
-    isA<{StateLoaded}>(),
-  ],
-  verify: (bloc) {
-    final state = bloc.state as {StateLoaded};
-    expect(state.data, isNotEmpty);
-  },
-);"""
-    else:
-        template = """
-test('service method works correctly', () async {
-  final result = await service.method();
-  expect(result, isNotNull);
-});"""
-    
-    prompt = f"""Generate BLoC test for Flutter app using existing patterns.
+        events_str = ', '.join(analysis.events) if analysis.events else 'LoadEvents, RefreshEvents'
+        states_str = ', '.join(analysis.states) if analysis.states else 'Initial, Loading, Loaded, Error'
+        
+        prompt = f"""Generate Flutter BLoC test using project conventions.
 
 FILE: {file_path}
-CLASS: {analysis.class_name}
-TYPE: {analysis.type}
+BLOC: {analysis.class_name}
+EVENTS: {events_str}
+STATES: {states_str}
+DEPS: {', '.join(analysis.dependencies) if analysis.dependencies else 'None'}
 
-METADATA:
-- Events: {', '.join(analysis.events) if analysis.events else 'N/A'}
-- States: {', '.join(analysis.states) if analysis.states else 'N/A'}  
-- Methods: {', '.join(analysis.methods[:5])}
-- Dependencies: {', '.join(analysis.dependencies)}
-- Channels: {', '.join(analysis.platform_channels) if analysis.platform_channels else 'None'}
-
-REQUIREMENTS:
-1. Use bloc_test for BLoCs
-2. Mock SharedPreferences: SharedPreferences.setMockInitialValues({{}})
-3. Mock platform channels if needed
-4. Focus on user scenarios, not code coverage
-5. Use stream.firstWhere for async validation
-
-IMPORTS REQUIRED:
+REQUIRED IMPORTS:
 ```dart
 import 'package:flutter_test/flutter_test.dart';
-{"import 'package:bloc_test/bloc_test.dart';" if analysis.type == "bloc" else ""}
+import 'package:bloc_test/bloc_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:devocional_nuevo/{file_path.replace('lib/', '')}';
 ```
 
-SETUP PATTERN:
+SETUP:
 ```dart
+late {analysis.class_name} bloc;
+
 setUp(() {{
   TestWidgetsFlutterBinding.ensureInitialized();
   SharedPreferences.setMockInitialValues({{}});
-  {"// Mock platform channels" if analysis.platform_channels else ""}
-  {f"// Mock dependencies: {', '.join(analysis.dependencies[:3])}" if analysis.dependencies else ""}
+  bloc = {analysis.class_name}();
 }});
+
+tearDown(() => bloc.close());
 ```
 
-TEMPLATE:
-{template}
+TESTS (5-8 tests):
+1. Initial state validation
+2. Main user flows with real events from: {events_str}
+3. Error handling
+4. State transitions
 
-Generate 5-8 focused tests covering:
-- Initial state
-- Main user flows (2-3 tests)
-- Error handling (1 test)
-- Edge cases (1-2 tests)
+Use blocTest<{analysis.class_name}, State> with real events.
+Return ONLY Dart code, no markdown."""
 
-Return ONLY valid Dart code, no markdown."""
+    else:  # service/model/provider
+        prompt = f"""Generate Flutter test for {analysis.type}.
+
+CLASS: {analysis.class_name}
+METHODS: {', '.join(analysis.methods[:5])}
+TYPE: {analysis.type}
+
+Use flutter_test, focus on method behavior.
+Return ONLY Dart code."""
     
     return prompt
 
@@ -277,8 +291,14 @@ def write_test_file(src_path: str, content: str, analysis: BlocAnalysis) -> str:
     test_dir = ROOT / "test" / "behavioral"
     test_dir.mkdir(parents=True, exist_ok=True)
     
-    # Naming: {type}_{class_name}_test.dart
-    filename = f"{analysis.type}_{analysis.class_name.lower()}_test.dart"
+    # Extract clean class name
+    class_name = analysis.class_name.lower()
+    # Remove 'bloc' suffix if present to avoid duplication
+    if class_name.endswith('bloc'):
+        class_name = class_name[:-4]
+    
+    # Naming: {type}_{class_name}_behavioral_test.dart
+    filename = f"{analysis.type}_{class_name}_behavioral_test.dart"
     out_path = test_dir / filename
     
     out_path.write_text(content, encoding="utf-8")
@@ -321,10 +341,19 @@ def main():
         # Analyze (no LLM)
         print(f"  🔍 Analyzing...")
         analysis = analyze_file(source, file_path)
-        print(f"     Type: {analysis.type}, Methods: {len(analysis.methods)}")
+        coverage = get_existing_test_coverage(file_path)
+        print(f"     Type: {analysis.type}, Existing tests: {coverage['test_count']}")
+        
+        # Skip if well-covered
+        if coverage['test_count'] >= 5:
+            print(f"  ⏭️  Skipped (already has {coverage['test_count']} tests)\n")
+            continue
         
         # Generate test
-        prompt = build_compact_prompt(file_path, analysis)
+        prompt = build_compact_prompt(file_path, analysis, coverage)
+        if prompt is None:
+            print(f"  ⏭️  Skipped (sufficient coverage)\n")
+            continue
         token_estimate = len(prompt.split())
         print(f"  📤 Sending prompt (~{token_estimate} tokens)...")
         
