@@ -113,12 +113,20 @@ def analyze_file(source: str, file_path: str) -> BlocAnalysis:
         event_file = ROOT / base_path / f"{bloc_name}_event.dart"
         if event_file.exists():
             event_src = event_file.read_text()
-            events = re.findall(r'class\s+(\w+)\s+extends\s+\w+Event', event_src)
+            # Match: class X extends BackupEvent
+            events = re.findall(r'class\s+(\w+)\s+extends\s+\w*Event', event_src)
         
         state_file = ROOT / base_path / f"{bloc_name}_state.dart"
         if state_file.exists():
             state_src = state_file.read_text()
-            states = re.findall(r'class\s+(\w+)\s+extends\s+\w+State', state_src)
+            # Match: class X extends BackupState  
+            states = re.findall(r'class\s+(\w+)\s+extends\s+\w*State', state_src)
+        
+        # Also extract from imports if files found
+        if events:
+            imports_needed = f"import 'package:devocional_nuevo/blocs/{bloc_name}_event.dart';"
+        if states:
+            imports_needed += f"\nimimport 'package:devocional_nuevo/blocs/{bloc_name}_state.dart';"
     
     methods = re.findall(r'(?:Future<\w+>|void|Stream<\w+>)\s+(\w+)\s*\(', source)
     methods = [m for m in methods if not m.startswith('_')][:10]
@@ -152,44 +160,55 @@ def build_compact_prompt(file_path: str, analysis: BlocAnalysis, coverage: dict)
     existing_tests = '\n'.join(f"- {s}" for s in coverage['scenarios'][:10])
     
     if analysis.type == "bloc":
-        events_str = ', '.join(analysis.events) if analysis.events else 'LoadEvents'
-        states_str = ', '.join(analysis.states) if analysis.states else 'Initial, Loading, Loaded'
+        if not analysis.events:
+            return None  # Can't test without knowing events
         
-        prompt = f"""Generate NEW Flutter BLoC tests (avoid duplicates).
+        events_list = '\n'.join(f"- {e}" for e in analysis.events)
+        states_list = '\n'.join(f"- {s}" for s in analysis.states) if analysis.states else "(read from imports)"
+        
+        # Extract bloc base name for imports
+        bloc_base = analysis.class_name.replace('Bloc', '').lower()
+        
+        prompt = f"""Generate Flutter BLoC tests. Use ONLY these real events/states.
 
-FILE: {file_path}
 BLOC: {analysis.class_name}
-EVENTS: {events_str}
-STATES: {states_str}
+
+REAL EVENTS (use these exactly):
+{events_list}
+
+REAL STATES (use these exactly):
+{states_list}
 
 EXISTING TESTS ({coverage['test_count']}):
-{existing_tests if coverage['has_tests'] else '(None - first tests)'}
+{existing_tests if coverage['has_tests'] else '(None)'}
 
-REQUIRED: Generate tests for UNTESTED scenarios only.
+CRITICAL: Import event/state files and use ONLY the events/states listed above.
 
-IMPORTS:
 ```dart
 import 'package:flutter_test/flutter_test.dart';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:devocional_nuevo/{file_path.replace('lib/', '')}';
+import 'package:devocional_nuevo/blocs/{bloc_base}_bloc.dart';
+import 'package:devocional_nuevo/blocs/{bloc_base}_event.dart';
+import 'package:devocional_nuevo/blocs/{bloc_base}_state.dart';
+
+void main() {{
+  late {analysis.class_name} bloc;
+
+  setUp(() {{
+    TestWidgetsFlutterBinding.ensureInitialized();
+    SharedPreferences.setMockInitialValues({{}});
+    bloc = {analysis.class_name}();
+  }});
+
+  tearDown(() => bloc.close());
+
+  // Generate 3-5 tests using events from list above
+  // Use isA<StateClass>() for state matching
+}}
 ```
 
-SETUP:
-```dart
-late {analysis.class_name} bloc;
-
-setUp(() {{
-  TestWidgetsFlutterBinding.ensureInitialized();
-  SharedPreferences.setMockInitialValues({{}});
-  bloc = {analysis.class_name}();
-}});
-
-tearDown(() => bloc.close());
-```
-
-Generate 3-5 NEW tests using real events: {events_str}
-Return ONLY Dart code, no markdown."""
+Return complete test file."""
         return prompt
     
     return None
