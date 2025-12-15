@@ -23,7 +23,7 @@ if (keystorePropertiesFile.exists()) {
 
 android {
     namespace = "com.develop4god.devocional_nuevo"
-    compileSdk = 36
+    compileSdk = flutter.compileSdkVersion
     ndkVersion = "28.2.13676358"
 
     compileOptions {
@@ -38,7 +38,7 @@ android {
 
     defaultConfig {
         applicationId = "com.develop4god.devocional_nuevo"
-        minSdk = 23
+        minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
