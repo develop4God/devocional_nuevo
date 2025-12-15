@@ -57,7 +57,7 @@ dependencies:
   synchronized: ^3.1.0+1  # For thread safety and mutex protection
 
   # Google Drive Backup dependencies
-  googleapis: ^13.2.0
+  googleapis: ^15.0.0
   google_sign_in: ^6.2.1
   extension_google_sign_in_as_googleapis_auth: ^2.0.12
   connectivity_plus: ^6.0.5
