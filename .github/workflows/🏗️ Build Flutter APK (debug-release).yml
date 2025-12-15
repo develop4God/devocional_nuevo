@@ -149,6 +149,7 @@ jobs:
             echo "✅ Manual local.properties created:"
             cat android/local.properties
           fi
+          echo "flutter.minSdkVersion=23" >> android/local.properties
 
       - name: 📦 Install dependencies
         run: flutter pub get
