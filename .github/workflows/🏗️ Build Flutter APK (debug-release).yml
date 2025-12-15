@@ -212,13 +212,13 @@ jobs:
             APK_PATH="build/app/outputs/bundle/release/app-release.aab"
             APK_TYPE="release-aab"
           elif [ "$BUILD_TYPE" = "release" ]; then
-            echo "🚀 Building release APK..."
-            flutter build apk --release
+            echo "🚀 Building release APK solo para arm64-v8a..."
+            flutter build apk --release --target-platform=android-arm64
             APK_PATH="build/app/outputs/flutter-apk/app-release.apk"
             APK_TYPE="release-apk"
           else
-            echo "🔧 Building debug APK..."
-            flutter build apk --debug
+            echo "🔧 Building debug APK solo para arm64-v8a..."
+            flutter build apk --debug --target-platform=android-arm64
             APK_PATH="build/app/outputs/flutter-apk/app-debug.apk"
             APK_TYPE="debug-apk"
           fi
