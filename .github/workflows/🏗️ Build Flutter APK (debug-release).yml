@@ -122,7 +122,7 @@ jobs:
           echo "⚙️ Optimizing Gradle settings for GitHub Actions (7GB RAM limit)..."
           cat > android/gradle.properties << EOF
           # CI-optimized settings for GitHub Actions runners (7GB total RAM)
-          org.gradle.jvmargs=-Xmx1536m -XX:MaxMetaspaceSize=384m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8
+          org.gradle.jvmargs=-Xmx4096m -XX:MaxMetaspaceSize=1024m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8
           org.gradle.daemon=false
           org.gradle.parallel=true
           org.gradle.configureondemand=true
