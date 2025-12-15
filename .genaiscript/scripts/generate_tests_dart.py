@@ -199,7 +199,7 @@ def call_gemini(prompt: str) -> str:
     if not api_key:
         raise Exception("GOOGLE_API_KEY not set")
     
-    model = os.getenv("GENAI_MODEL", "gemini-2.0-flash-exp")
+    model = os.getenv("GENAI_MODEL", "gemini-2.0-flash-lite")
     url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
     
     payload = {
@@ -280,7 +280,7 @@ def write_test_file(src_path: str, content: str, analysis: BlocAnalysis) -> str:
 
 def main():
     print("[START] Optimized BLoC Test Generator")
-    print(f"[CONFIG] Model: {os.getenv('GENAI_MODEL', 'gemini-2.0-flash-exp')}")
+    print(f"[CONFIG] Model: {os.getenv('GENAI_MODEL', 'gemini-2.0-flash-lite')}")
     print(f"[CONFIG] Strategy: Metadata-only prompts (<1000 tokens)\n")
     
     # Get files to process
