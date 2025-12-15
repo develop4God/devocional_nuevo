@@ -33,8 +33,11 @@ class AnalyticsConstants {
   ///   return defaultCampaignTag;
   /// }
   /// ```
-  static String getCampaignTag({String? devocionalId}) {
-    // Future: Add conditional logic based on devocionalId, categories, etc.
-    return defaultCampaignTag;
+  static String getCampaignTag({String? devocionalId, int? totalDevocionalesRead}) {
+    // Solo retorna 'custom_1' si el usuario ha completado 7 o más devocionales
+    if (totalDevocionalesRead != null && totalDevocionalesRead >= 7) {
+      return defaultCampaignTag;
+    }
+    return '';
   }
 }

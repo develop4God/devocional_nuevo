@@ -177,14 +177,18 @@ class DevocionalesTracking {
           '📊 [TRACKING] Stats actualizados para $devocionalId (source: $source)');
 
       // Firebase Analytics: Log devotional completion with campaign_tag
-      // Use lazy getter instead of cached field for analytics service
       final analytics = _analytics;
+      final campaignTag = AnalyticsConstants.getCampaignTag(
+        devocionalId: devocionalId,
+        totalDevocionalesRead: stats.totalDevocionalesRead,
+      );
+      debugPrint('🟢 [ANALYTICS] Validando milestone: totalDevocionalesRead=${stats.totalDevocionalesRead}, campaignTag="$campaignTag"');
       if (analytics != null) {
         try {
+          debugPrint('🚀 [ANALYTICS] Enviando evento devotional_read_complete a Firebase con campaignTag="$campaignTag" para devocionalId="$devocionalId"');
           await analytics.logDevocionalComplete(
             devocionalId: devocionalId,
-            campaignTag:
-                AnalyticsConstants.getCampaignTag(devocionalId: devocionalId),
+            campaignTag: campaignTag,
             source: source,
             readingTimeSeconds: readingTimeSeconds,
             scrollPercentage: scrollPercentage,
