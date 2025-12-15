@@ -44,23 +44,23 @@ jobs:
         run: |
           echo "${{ secrets.GOOGLE_SERVICES_JSON_B64 }}" | base64 -d > android/app/google-services.json
 
-      - name: 🔍 Debug build. gradle.kts content
+      - name: 🔍 Debug build.gradle content
         run: |
-          echo "🔍 Checking build.gradle.kts content..."
+          echo "🔍 Checking build.gradle content..."
           echo "📁 Current directory: $(pwd)"
           echo "📋 Files in android/app/:"
           ls -la android/app/
           echo ""
-          echo "📝 Content around line 40 in build.gradle.kts:"
+          echo "📝 Content around line 40 in build.gradle:"
           echo "=========================================="
-          head -n 45 android/app/build.gradle.kts | tail -n 10
+          head -n 45 android/app/build.gradle | tail -n 10
           echo "=========================================="
           echo ""
           echo "🔍 Looking for minSdk or minSdkVersion:"
-          grep -n "minSdk\|minSdkVersion" android/app/build.gradle.kts || echo "No minSdk references found"
+          grep -n "minSdk\|minSdkVersion" android/app/build.gradle || echo "No minSdk references found"
           echo ""
-          echo "📋 SHA256 of build.gradle.kts:"
-          sha256sum android/app/build. gradle.kts
+          echo "📋 SHA256 of build.gradle:"
+          sha256sum android/app/build.gradle
 
       - name: 🧹 Clear all caches
         run: |
@@ -188,19 +188,19 @@ jobs:
           echo "Testing keystore access..."
           keytool -list -keystore android/app/upload-keystore.p12 -storetype PKCS12 -storepass "${{ secrets.ANDROID_STORE_PASSWORD }}"
 
-      - name: 🔧 Configure build. gradle for signing
+      - name: 🔧 Configure build.gradle for signing
         if: ${{ github. event.inputs.build_type == 'aab-release' || github.event.inputs.build_type == 'release' }}
         run: |
-          echo "🔧 Verificando configuración de firmado en build.gradle. kts..."
+          echo "🔧 Verificando configuración de firmado en build.gradle..."
           
           # Verificar si ya tiene configuración de firmado
-          if !  grep -q "signingConfigs" android/app/build.gradle.kts; then
-            echo "⚠️ build.gradle.kts no tiene configuración de firmado"
-            echo "📋 Para firmar correctamente, asegúrate de tener en android/app/build.gradle.kts:"
+          if !  grep -q "signingConfigs" android/app/build.gradle; then
+            echo "⚠️ build.gradle no tiene configuración de firmado"
+            echo "📋 Para firmar correctamente, asegúrate de tener en android/app/build.gradle:"
             echo "   - signingConfigs { release { ...  } }"
-            echo "   - buildTypes { release { signingConfig = signingConfigs. getByName(\"release\") } }"
+            echo "   - buildTypes { release { signingConfig signingConfigs.release } }"
           else
-            echo "✅ Configuración de firmado encontrada en build.gradle.kts"
+            echo "✅ Configuración de firmado encontrada en build.gradle"
           fi
 
       - name: 🏗️ Build APK/AAB (${{ github.event.inputs.build_type || 'debug' }})
