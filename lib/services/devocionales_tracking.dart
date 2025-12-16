@@ -182,10 +182,12 @@ class DevocionalesTracking {
         devocionalId: devocionalId,
         totalDevocionalesRead: stats.totalDevocionalesRead,
       );
-      debugPrint('🟢 [ANALYTICS] Validando milestone: totalDevocionalesRead=${stats.totalDevocionalesRead}, campaignTag="$campaignTag"');
+      debugPrint(
+          '🟢 [ANALYTICS] Validando milestone: totalDevocionalesRead=${stats.totalDevocionalesRead}, campaignTag="$campaignTag"');
       if (analytics != null) {
         try {
-          debugPrint('🚀 [ANALYTICS] Enviando evento devotional_read_complete a Firebase con campaignTag="$campaignTag" para devocionalId="$devocionalId"');
+          debugPrint(
+              '🚀 [ANALYTICS] Enviando evento devotional_read_complete a Firebase con campaignTag="$campaignTag" para devocionalId="$devocionalId"');
           await analytics.logDevocionalComplete(
             devocionalId: devocionalId,
             campaignTag: campaignTag,

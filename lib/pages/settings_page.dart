@@ -533,7 +533,8 @@ class _SettingsPageState extends State<SettingsPage> {
                     padding: const EdgeInsets.symmetric(vertical: 8.0),
                     child: OutlinedButton.icon(
                       icon: const Icon(Icons.analytics, color: Colors.blue),
-                      label: const Text('Enviar evento custom a Firebase', style: TextStyle(color: Colors.blue)),
+                      label: const Text('Enviar evento custom a Firebase',
+                          style: TextStyle(color: Colors.blue)),
                       style: OutlinedButton.styleFrom(
                         side: const BorderSide(color: Colors.blue, width: 2.0),
                         shape: RoundedRectangleBorder(
@@ -542,12 +543,15 @@ class _SettingsPageState extends State<SettingsPage> {
                       ),
                       onPressed: () async {
                         final analytics = getService<AnalyticsService>();
-                        debugPrint('🟢 [ANALYTICS] Botón de prueba presionado: enviando evento custom_test_event a Firebase');
-                        await analytics.logCustomEvent(eventName: 'custom_test_event');
+                        debugPrint(
+                            '🟢 [ANALYTICS] Botón de prueba presionado: enviando evento custom_test_event a Firebase');
+                        await analytics.logCustomEvent(
+                            eventName: 'custom_test_event');
                         if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                              content: Text('Evento custom_test_event enviado a Firebase'),
+                              content: Text(
+                                  'Evento custom_test_event enviado a Firebase'),
                               backgroundColor: Colors.blue,
                             ),
                           );
@@ -562,8 +566,10 @@ class _SettingsPageState extends State<SettingsPage> {
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 8.0),
                     child: OutlinedButton.icon(
-                      icon: const Icon(Icons.perm_identity, color: Colors.green),
-                      label: const Text('Obtener FID Firebase', style: TextStyle(color: Colors.green)),
+                      icon:
+                          const Icon(Icons.perm_identity, color: Colors.green),
+                      label: const Text('Obtener FID Firebase',
+                          style: TextStyle(color: Colors.green)),
                       style: OutlinedButton.styleFrom(
                         side: const BorderSide(color: Colors.green, width: 2.0),
                         shape: RoundedRectangleBorder(
@@ -582,7 +588,8 @@ class _SettingsPageState extends State<SettingsPage> {
                                 content: SelectableText(fid ?? 'No disponible'),
                                 actions: [
                                   TextButton(
-                                    onPressed: () => Navigator.of(context).pop(),
+                                    onPressed: () =>
+                                        Navigator.of(context).pop(),
                                     child: const Text('OK'),
                                   ),
                                 ],
