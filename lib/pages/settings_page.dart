@@ -19,6 +19,8 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:devocional_nuevo/services/analytics_service.dart';
+import 'package:firebase_installations/firebase_installations.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -521,6 +523,84 @@ class _SettingsPageState extends State<SettingsPage> {
                           ),
                         ],
                       ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // Botón de prueba para enviar evento custom a Firebase Analytics
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: OutlinedButton.icon(
+                      icon: const Icon(Icons.analytics, color: Colors.blue),
+                      label: const Text('Enviar evento custom a Firebase', style: TextStyle(color: Colors.blue)),
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Colors.blue, width: 2.0),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20.0),
+                        ),
+                      ),
+                      onPressed: () async {
+                        final analytics = getService<AnalyticsService>();
+                        debugPrint('🟢 [ANALYTICS] Botón de prueba presionado: enviando evento custom_test_event a Firebase');
+                        await analytics.logCustomEvent(eventName: 'custom_test_event');
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Evento custom_test_event enviado a Firebase'),
+                              backgroundColor: Colors.blue,
+                            ),
+                          );
+                        }
+                      },
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // Botón para obtener el FID de Firebase Installation
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: OutlinedButton.icon(
+                      icon: const Icon(Icons.perm_identity, color: Colors.green),
+                      label: const Text('Obtener FID Firebase', style: TextStyle(color: Colors.green)),
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Colors.green, width: 2.0),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20.0),
+                        ),
+                      ),
+                      onPressed: () async {
+                        try {
+                          final fid = await FirebaseInstallations.id;
+                          debugPrint('🟢 [FIREBASE] FID obtenido: $fid');
+                          if (context.mounted) {
+                            await showDialog(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                title: const Text('Firebase Installation ID'),
+                                content: SelectableText(fid ?? 'No disponible'),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.of(context).pop(),
+                                    child: const Text('OK'),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }
+                        } catch (e) {
+                          debugPrint('❌ [FIREBASE] Error obteniendo FID: $e');
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Error obteniendo FID: $e'),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          }
+                        }
+                      },
                     ),
                   ),
                 ],

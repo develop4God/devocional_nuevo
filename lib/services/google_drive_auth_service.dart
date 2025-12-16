@@ -1,7 +1,7 @@
 // lib/services/google_drive_auth_service.dart
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:googleapis/drive/v3.dart' as drive;
+import 'package:googleapis/drive/v3.dart' as drive show DriveApi;
 import 'package:extension_google_sign_in_as_googleapis_auth/extension_google_sign_in_as_googleapis_auth.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -30,8 +30,8 @@ class GoogleDriveAuthService {
   }
 
   static const List<String> _scopes = [
-    drive.DriveApi.driveFileScope,
-    drive.DriveApi.driveScope,
+    'https://www.googleapis.com/auth/drive.file',
+    'https://www.googleapis.com/auth/drive',
   ];
 
   static const String _isSignedInKey = 'google_drive_signed_in';

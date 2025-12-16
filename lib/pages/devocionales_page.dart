@@ -19,8 +19,6 @@ import 'package:devocional_nuevo/utils/bubble_constants.dart';
 import 'package:devocional_nuevo/utils/copyright_utils.dart';
 import 'package:devocional_nuevo/widgets/add_prayer_modal.dart';
 import 'package:devocional_nuevo/widgets/add_thanksgiving_modal.dart';
-import 'package:devocional_nuevo/widgets/app_bar_constants.dart'
-    show CustomAppBar;
 import 'package:devocional_nuevo/widgets/app_bar_constants.dart';
 import 'package:devocional_nuevo/widgets/devocionales_page_drawer.dart';
 import 'package:devocional_nuevo/widgets/floating_font_control_buttons.dart';
@@ -36,8 +34,10 @@ import 'package:screenshot/screenshot.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:devocional_nuevo/services/service_locator.dart';
 import '../controllers/audio_controller.dart';
 import '../controllers/tts_audio_controller.dart';
+import '../services/analytics_service.dart';
 import '../services/spiritual_stats_service.dart';
 import '../services/tts/bible_text_formatter.dart';
 import '../widgets/voice_selector_dialog.dart';
@@ -1530,10 +1530,22 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                             if (state == TtsPlayerState.playing) {
                               _ttsAudioController.pause();
                             } else {
+                              // Track TTS play button press with Firebase Analytics
+                              try {
+                                getService<AnalyticsService>().logTtsPlay();
+                              } catch (e) {
+                                debugPrint(
+                                    '❌ Error logging TTS play analytics: $e');
+                                // Fail silently - analytics should not block functionality
+                              }
                               _ttsAudioController.play();
                             }
                           },
                           onCycleRate: () async {
+                            // CRITICAL: Pause before changing speed to avoid playback issues
+                            if (state == TtsPlayerState.playing) {
+                              await _ttsAudioController.pause();
+                            }
                             try {
                               await _ttsAudioController.cyclePlaybackRate();
                             } catch (e) {
@@ -1543,11 +1555,28 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                             }
                           },
                           onVoiceSelector: () async {
+                            // Capture context-dependent values BEFORE async gap
+                            final languageCode =
+                                Localizations.localeOf(context).languageCode;
                             final currentDevocional =
                                 Provider.of<DevocionalProvider>(context,
                                         listen: false)
                                     .devocionales[_currentDevocionalIndex];
+                            final sampleText = _buildTtsTextForDevocional(
+                              currentDevocional,
+                              languageCode,
+                            );
+
+                            // CRITICAL: Pause before opening voice selector to avoid playback issues
+                            if (state == TtsPlayerState.playing) {
+                              await _ttsAudioController.pause();
+                            }
+
+                            // Safe to use ctx here: ctx is from the outer builder scope (line 1514),
+                            // not the widget context. Builder-provided contexts remain valid across
+                            // async gaps within their scope, unlike widget contexts.
                             await showModalBottomSheet(
+                              // ignore: use_build_context_synchronously
                               context: ctx,
                               isScrollControlled: true,
                               shape: const RoundedRectangleBorder(
@@ -1564,13 +1593,8 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                         .bottom,
                                   ),
                                   child: VoiceSelectorDialog(
-                                    language: Localizations.localeOf(context)
-                                        .languageCode,
-                                    sampleText: _buildTtsTextForDevocional(
-                                      currentDevocional,
-                                      Localizations.localeOf(context)
-                                          .languageCode,
-                                    ),
+                                    language: languageCode,
+                                    sampleText: sampleText,
                                     onVoiceSelected: (name, locale) async {},
                                   ),
                                 ),

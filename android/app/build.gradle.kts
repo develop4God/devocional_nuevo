@@ -36,6 +36,11 @@ android {
         jvmTarget = JavaVersion.VERSION_11.toString()
     }
 
+    // Habilitar BuildConfig para permitir campos personalizados usados por plugins
+    buildFeatures {
+        buildConfig = true
+    }
+
     defaultConfig {
         applicationId = "com.develop4god.devocional_nuevo"
         minSdk = flutter.minSdkVersion
@@ -83,7 +88,7 @@ android {
             proguardFiles(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro")
 
             ndk {
-                abiFilters.addAll(listOf("armeabi-v7a", "arm64-v8a", "x86_64"))
+                abiFilters.addAll(listOf("arm64-v8a"))
             }
         }
         debug {
