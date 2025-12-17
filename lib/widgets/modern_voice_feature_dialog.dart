@@ -39,20 +39,6 @@ class ModernVoiceFeatureDialog extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: colorScheme.primary,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(18),
-                  ),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-                ),
-                icon: const Icon(Icons.settings_voice),
-                label: Text('app.voice_feature_configure'.tr()),
-                onPressed: onConfigure,
-              ),
               TextButton(
                 style: TextButton.styleFrom(
                   foregroundColor: colorScheme.secondary,
@@ -61,7 +47,7 @@ class ModernVoiceFeatureDialog extends StatelessWidget {
                 ),
                 onPressed: onContinue,
                 child: Text(
-                  'app.voice_feature_continue'.tr(),
+                  'app.skip'.tr(),
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.normal,
                         fontSize:
@@ -75,6 +61,20 @@ class ModernVoiceFeatureDialog extends StatelessWidget {
                                 : 20,
                       ),
                 ),
+              ),
+              ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: colorScheme.primary,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                ),
+                icon: const Icon(Icons.settings_voice),
+                label: Text('app.voice_feature_configure'.tr()),
+                onPressed: onConfigure,
               ),
             ],
           ),
