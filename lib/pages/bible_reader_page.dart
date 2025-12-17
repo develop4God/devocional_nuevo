@@ -19,6 +19,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:share_plus/share_plus.dart' show ShareParams, SharePlus;
+import 'package:lottie/lottie.dart';
 
 /// Pure UI presentation layer for Bible Reader
 /// All business logic is handled by BibleReaderController
@@ -627,10 +628,24 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                       Expanded(
                         child: state.verses.isEmpty
                             ? Center(
-                                child: Text(
-                                  'bible.loading_version'.tr({
-                                    'version': state.selectedVersion?.name ?? ''
-                                  }),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    // Lottie animation shown while loading the Bible version
+                                    Lottie.asset(
+                                      'assets/lottie/book_stars.json',
+                                      width: 120,
+                                      height: 120,
+                                      fit: BoxFit.contain,
+                                      repeat: true,
+                                    ),
+                                    const SizedBox(height: 12),
+                                    Text(
+                                      'bible.loading_version'.tr({
+                                        'version': state.selectedVersion?.name ?? ''
+                                      }),
+                                    ),
+                                  ],
                                 ),
                               )
                             : ScrollablePositionedList.builder(
