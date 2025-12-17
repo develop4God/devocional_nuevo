@@ -13,14 +13,12 @@ import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 import 'package:devocional_nuevo/utils/constants.dart';
 import 'package:devocional_nuevo/widgets/app_bar_constants.dart';
-import 'package:devocional_nuevo/widgets/voice_selector_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:devocional_nuevo/services/analytics_service.dart';
-import 'package:firebase_installations/firebase_installations.dart';
+// Removed analytics and firebase_installations imports: related debug buttons removed for production.
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -303,93 +301,6 @@ class _SettingsPageState extends State<SettingsPage> {
 
                   const SizedBox(height: 20),
 
-                  // Botón para abrir el diálogo moderno de selección de voz
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
-                    child: ElevatedButton.icon(
-                      icon: const Icon(Icons.record_voice_over),
-                      label: const Text('Seleccionar voz TTS'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: colorScheme.primary,
-                        foregroundColor: colorScheme.onPrimary,
-                        minimumSize: const Size(180, 48),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16)),
-                      ),
-                      onPressed: () async {
-                        final language =
-                            localizationProvider.currentLocale.languageCode;
-                        final sampleText = 'settings.voice_sample_text'.tr();
-                        await showModalBottomSheet(
-                          context: context,
-                          isScrollControlled: true,
-                          shape: const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.vertical(
-                              top: Radius.circular(28),
-                            ),
-                          ),
-                          builder: (context) {
-                            return FractionallySizedBox(
-                              heightFactor: 0.8,
-                              child: Padding(
-                                padding: EdgeInsets.only(
-                                  bottom:
-                                      MediaQuery.of(context).viewInsets.bottom,
-                                ),
-                                child: VoiceSelectorDialog(
-                                  language: language,
-                                  sampleText: sampleText,
-                                  onVoiceSelected: (name, locale) async {
-                                    debugPrint(
-                                        '🔊 Voz seleccionada en Settings: $name ($locale)');
-                                    await _voiceSettingsService.playVoiceSample(
-                                        name, locale, sampleText);
-                                  },
-                                ),
-                              ),
-                            );
-                          },
-                        );
-                      },
-                    ),
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  // Botón para borrar el flag de voz guardada (pruebas)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
-                    child: OutlinedButton.icon(
-                      icon: const Icon(Icons.delete_forever, color: Colors.red),
-                      label: const Text('Borrar flag de voz (pruebas)',
-                          style: TextStyle(color: Colors.red)),
-                      style: OutlinedButton.styleFrom(
-                        side: BorderSide(color: Colors.red, width: 2.0),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20.0),
-                        ),
-                      ),
-                      onPressed: () async {
-                        final language =
-                            localizationProvider.currentLocale.languageCode;
-                        // Use DI to clear the voice flag
-                        await _voiceSettingsService
-                            .clearUserSavedVoiceFlag(language);
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text(
-                                  'Flag de voz borrado. Puedes probar el diálogo de selección de voz.'),
-                              backgroundColor: Colors.red,
-                            ),
-                          );
-                        }
-                      },
-                    ),
-                  ),
-
-                  const SizedBox(height: 20),
-
                   // Backup Settings - conditional display (ahora habilitado)
                   // if (_showBackupSection) ...[
                   //   InkWell(
@@ -527,89 +438,6 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
 
                   const SizedBox(height: 20),
-
-                  // Botón de prueba para enviar evento custom a Firebase Analytics
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
-                    child: OutlinedButton.icon(
-                      icon: const Icon(Icons.analytics, color: Colors.blue),
-                      label: const Text('Enviar evento custom a Firebase',
-                          style: TextStyle(color: Colors.blue)),
-                      style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: Colors.blue, width: 2.0),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20.0),
-                        ),
-                      ),
-                      onPressed: () async {
-                        final analytics = getService<AnalyticsService>();
-                        debugPrint(
-                            '🟢 [ANALYTICS] Botón de prueba presionado: enviando evento custom_test_event a Firebase');
-                        await analytics.logCustomEvent(
-                            eventName: 'custom_test_event');
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text(
-                                  'Evento custom_test_event enviado a Firebase'),
-                              backgroundColor: Colors.blue,
-                            ),
-                          );
-                        }
-                      },
-                    ),
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  // Botón para obtener el FID de Firebase Installation
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
-                    child: OutlinedButton.icon(
-                      icon:
-                          const Icon(Icons.perm_identity, color: Colors.green),
-                      label: const Text('Obtener FID Firebase',
-                          style: TextStyle(color: Colors.green)),
-                      style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: Colors.green, width: 2.0),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20.0),
-                        ),
-                      ),
-                      onPressed: () async {
-                        try {
-                          final fid = await FirebaseInstallations.id;
-                          debugPrint('🟢 [FIREBASE] FID obtenido: $fid');
-                          if (context.mounted) {
-                            await showDialog(
-                              context: context,
-                              builder: (context) => AlertDialog(
-                                title: const Text('Firebase Installation ID'),
-                                content: SelectableText(fid ?? 'No disponible'),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () =>
-                                        Navigator.of(context).pop(),
-                                    child: const Text('OK'),
-                                  ),
-                                ],
-                              ),
-                            );
-                          }
-                        } catch (e) {
-                          debugPrint('❌ [FIREBASE] Error obteniendo FID: $e');
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Error obteniendo FID: $e'),
-                                backgroundColor: Colors.red,
-                              ),
-                            );
-                          }
-                        }
-                      },
-                    ),
-                  ),
                 ],
               ),
             ),
