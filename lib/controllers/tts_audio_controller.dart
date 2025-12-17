@@ -226,7 +226,7 @@ class TtsAudioController {
     _playStartTime = DateTime.now();
     debugPrint(
         '[TTS Controller] Starting progress timer at ${_playStartTime!.toIso8601String()}, accumulated: ${_accumulatedPosition.inSeconds}s');
-    
+
     _progressTimer = Timer.periodic(const Duration(milliseconds: 500), (_) {
       final now = DateTime.now();
       // Calculate elapsed time from when playback started, plus any accumulated position

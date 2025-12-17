@@ -61,7 +61,8 @@
     "download_error": "Error en la descarga",
     "offline_mode": "Modo sin conexión",
     "online_mode": "Modo en línea",
-    "choose_option": "Elige una opción"
+    "choose_option": "Elige una opción",
+    "no_devotionals": "TODO_TRANSLATE"
   },
   "prayer": {
     "invitation_title": "Invitación a Orar",
