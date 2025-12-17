@@ -626,7 +626,13 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                       ),
                       Expanded(
                         child: state.verses.isEmpty
-                            ? Center(child: Text('bible.no_verses'.tr()))
+                            ? Center(
+                                child: Text(
+                                  'bible.loading_version'.tr({
+                                    'version': state.selectedVersion?.name ?? ''
+                                  }),
+                                ),
+                              )
                             : ScrollablePositionedList.builder(
                                 itemScrollController: _itemScrollController,
                                 itemPositionsListener: _itemPositionsListener,

@@ -155,7 +155,9 @@ class _PrayersPageState extends State<PrayersPage>
                                         right: -8,
                                         top: -4,
                                         child: _buildCountBadge(
-                                            count, colorScheme.primary.withValues(alpha: 0.4)),
+                                            count,
+                                            colorScheme.primary
+                                                .withValues(alpha: 0.4)),
                                       ),
                                   ],
                                 );
