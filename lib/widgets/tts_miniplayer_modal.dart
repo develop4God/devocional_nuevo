@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../extensions/string_extensions.dart';
 
@@ -5,6 +7,10 @@ import '../extensions/string_extensions.dart';
 class TtsMiniplayerModal extends StatefulWidget {
   final Duration currentPosition;
   final Duration totalDuration;
+  // Optional: provide a listenable (e.g., from player) to receive real-time updates
+  final ValueListenable<Duration>? positionListenable;
+  // Debug flag to enable emoji logs
+  final bool debug;
   final bool isPlaying;
   final bool isLoading;
   final double playbackRate;
@@ -28,6 +34,8 @@ class TtsMiniplayerModal extends StatefulWidget {
     required this.onTogglePlay,
     required this.onCycleRate,
     required this.onVoiceSelector,
+    this.positionListenable,
+    this.debug = false,
   });
 
   @override
@@ -37,6 +45,8 @@ class TtsMiniplayerModal extends StatefulWidget {
 class _TtsMiniplayerModalState extends State<TtsMiniplayerModal> {
   double? _sliderValue;
   bool _isSeeking = false;
+  Duration? _listenedPosition;
+  VoidCallback? _listenableListener;
 
   String _formatDuration(Duration d) {
     final m = d.inMinutes.remainder(60).toString().padLeft(2, '0');
@@ -45,21 +55,80 @@ class _TtsMiniplayerModalState extends State<TtsMiniplayerModal> {
   }
 
   void _onSliderChange(double value) {
+    if (widget.debug) print('🖐️ [tts] onChanged dragging value=${value.toStringAsFixed(3)}');
     setState(() {
-      _sliderValue = value;
+      _sliderValue = value.clamp(0.0, 1.0);
       _isSeeking = true;
     });
   }
 
-  void _onSliderChangeEnd(double value) {
-    final newPosition = Duration(
-      seconds: (widget.totalDuration.inSeconds * value).round(),
-    );
-    widget.onSeek(newPosition);
-    setState(() {
-      _isSeeking = false;
-      _sliderValue = null;
-    });
+  @override
+  void didUpdateWidget(covariant TtsMiniplayerModal oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.debug) {
+      print('🔄 [tts] didUpdateWidget: oldTotal=${oldWidget.totalDuration.inMilliseconds}ms newTotal=${widget.totalDuration.inMilliseconds}ms');
+      print('🔄 [tts] didUpdateWidget: oldPos=${oldWidget.currentPosition.inMilliseconds}ms newPos=${widget.currentPosition.inMilliseconds}ms');
+    }
+    // Si el totalDuration cambió, resetear el sliderValue
+    if (oldWidget.totalDuration != widget.totalDuration) {
+      setState(() {
+        _sliderValue = null;
+        _isSeeking = false;
+      });
+    } else if (!_isSeeking && oldWidget.currentPosition != widget.currentPosition) {
+      // Cuando el padre actualiza currentPosition y no estamos en seek, refrescar
+      if (widget.debug) print('🔔 [tts] parent updated currentPosition and not seeking -> rebuild');
+      setState(() {});
+    }
+    // Handle listenable swap
+    if (oldWidget.positionListenable != widget.positionListenable) {
+      if (widget.debug) print('🔁 [tts] positionListenable changed -> reattach');
+      _detachListenable(oldWidget.positionListenable);
+      _attachListenable(widget.positionListenable);
+    }
+  }
+
+  void _attachListenable(ValueListenable<Duration>? l) {
+    if (l == null) return;
+    _listenableListener = () {
+      final pos = l.value;
+      if (widget.debug) print('🔁 [tts] listen pos=${pos.inMilliseconds}ms isSeeking=$_isSeeking');
+      // Only update UI when not actively dragging/ seeking
+      if (!_isSeeking) {
+        setState(() {
+          _listenedPosition = pos;
+        });
+      } else {
+        // still update cached position so when user releases we reflect accurate value
+        _listenedPosition = pos;
+      }
+    };
+    if (widget.debug) print('🔗 [tts] attaching positionListenable');
+    l.addListener(_listenableListener!);
+  }
+
+  void _detachListenable(ValueListenable<Duration>? l) {
+    if (l == null || _listenableListener == null) return;
+    if (widget.debug) print('❌ [tts] detaching previous positionListenable');
+    try {
+      l.removeListener(_listenableListener!);
+    } catch (_) {}
+    _listenableListener = null;
+    _listenedPosition = null;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.debug) print('🚀 [tts] initState total=${widget.totalDuration.inMilliseconds}ms current=${widget.currentPosition.inMilliseconds}ms hasListenable=${widget.positionListenable!=null}');
+    _attachListenable(widget.positionListenable);
+  }
+
+  @override
+  void dispose() {
+    if (widget.debug) print('🗑️ [tts] dispose - removing listenable');
+    _detachListenable(widget.positionListenable);
+    super.dispose();
   }
 
   @override
@@ -67,12 +136,17 @@ class _TtsMiniplayerModalState extends State<TtsMiniplayerModal> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
+    final totalMs = widget.totalDuration.inMilliseconds;
+    final sourcePosition = _listenedPosition ?? widget.currentPosition;
+    final currentMs = math.min(sourcePosition.inMilliseconds, totalMs);
+
     final sliderValue = _isSeeking
-        ? _sliderValue!
-        : (widget.totalDuration.inSeconds == 0
-            ? 0.0
-            : widget.currentPosition.inSeconds /
-                widget.totalDuration.inSeconds);
+        ? (_sliderValue ?? 0.0)
+        : (totalMs == 0 ? 0.0 : currentMs / totalMs);
+
+    if (widget.debug) {
+      print('🧭 [tts] build slider=$sliderValue currentMs=$currentMs totalMs=$totalMs isSeeking=$_isSeeking sliderCache=$_sliderValue listened=${_listenedPosition?.inMilliseconds}');
+    }
 
     return Container(
       decoration: BoxDecoration(
@@ -181,9 +255,20 @@ class _TtsMiniplayerModalState extends State<TtsMiniplayerModal> {
                       thumbColor: Colors.white,
                     ),
                     child: Slider(
-                      value: sliderValue.clamp(0.0, 1.0),
+                      value: sliderValue.clamp(0.0, 1.0).toDouble(),
                       onChanged: _onSliderChange,
-                      onChangeEnd: _onSliderChangeEnd,
+                      onChangeEnd: (value) {
+                        final totalMs = widget.totalDuration.inMilliseconds;
+                        int millis = (totalMs * value).round();
+                        millis = math.max(0, math.min(totalMs, millis));
+                        final newPosition = Duration(milliseconds: millis);
+                        if (widget.debug) print('⏯️ [tts] onChangeEnd user seek to ${millis}ms (fraction=${value.toStringAsFixed(3)})');
+                        widget.onSeek(newPosition);
+                        setState(() {
+                          _isSeeking = false;
+                          _sliderValue = null;
+                        });
+                      },
                       min: 0.0,
                       max: 1.0,
                     ),
