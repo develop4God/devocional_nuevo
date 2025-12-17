@@ -302,12 +302,18 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
     );
   }
 
+  bool get _isAnyDownloading => _isDownloading.values.any((v) => v == true);
+
   Widget _buildLanguageItem(String languageCode, String languageName) {
     final theme = Theme.of(context);
     final isDownloaded = _downloadStatus[languageCode] ?? false;
     final isCurrentLanguage = languageCode == _currentLanguage;
     final isDownloading = _isDownloading[languageCode] ?? false;
     final progress = _downloadProgress[languageCode] ?? 0.0;
+
+    final bool disableTap = _isAnyDownloading ||
+        (isDownloaded && isCurrentLanguage) ||
+        isDownloading;
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -333,9 +339,7 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
             languageCode, isCurrentLanguage, isDownloaded, theme),
         trailing: _buildTrailingWidget(
             languageCode, isDownloaded, isDownloading, progress, theme),
-        onTap: (isDownloading || (isDownloaded && isCurrentLanguage))
-            ? null
-            : () => _downloadLanguage(languageCode),
+        onTap: disableTap ? null : () => _downloadLanguage(languageCode),
       ),
     );
   }
