@@ -72,15 +72,23 @@ class TtsAudioController {
     });
   }
 
-  void setText(String text) {
+  void setText(String text, {String languageCode = 'es'}) {
     _fullText = text;
     _currentText = text;
-    // Estimar duración solo para UI - SIEMPRE a velocidad 1.0x (normal)
-    final words = _fullText!.split(RegExp(r"\s+")).length;
-    final double wordsPerSecond = 150.0 / 60.0;
-    // FIX: Duración calculada a velocidad 1.0x, sin dividir por playbackRate
-    final estimatedSeconds = (words / wordsPerSecond);
-    _fullDuration = Duration(seconds: estimatedSeconds.round());
+    // Estimar duración solo para UI
+    int estimatedSeconds;
+    if (languageCode == 'ja') {
+      // Japonés: estimar por caracteres (7 chars/segundo típico)
+      final chars = _fullText!.replaceAll(RegExp(r'\s+'), '').length;
+      const charsPerSecond = 7.0;
+      estimatedSeconds = (chars / charsPerSecond).round();
+    } else {
+      // Otros idiomas: estimar por palabras
+      final words = _fullText!.split(RegExp(r"\\s+")).length;
+      final double wordsPerSecond = 150.0 / 60.0;
+      estimatedSeconds = (words / wordsPerSecond).round();
+    }
+    _fullDuration = Duration(seconds: estimatedSeconds);
     totalDuration.value = _fullDuration;
     currentPosition.value = Duration.zero;
     _accumulatedPosition = Duration.zero;
@@ -213,7 +221,12 @@ class TtsAudioController {
   // Progress timer helpers
   void _startProgressTimer() {
     _progressTimer?.cancel();
+    // CRITICAL FIX: Reset play start time to NOW when starting/resuming timer
+    // This ensures we calculate elapsed time correctly from this point forward
     _playStartTime = DateTime.now();
+    debugPrint(
+        '[TTS Controller] Starting progress timer at ${_playStartTime!.toIso8601String()}, accumulated: ${_accumulatedPosition.inSeconds}s');
+
     _progressTimer = Timer.periodic(const Duration(milliseconds: 500), (_) {
       final now = DateTime.now();
       // Calculate elapsed time from when playback started, plus any accumulated position
@@ -230,9 +243,17 @@ class TtsAudioController {
 
   void _pauseProgressTimer() {
     _progressTimer?.cancel();
+    // CRITICAL FIX: Accumulate the elapsed time from current session
+    // This preserves the playback position for resume
     if (_playStartTime != null) {
-      _accumulatedPosition += DateTime.now().difference(_playStartTime!);
+      final sessionElapsed = DateTime.now().difference(_playStartTime!);
+      _accumulatedPosition += sessionElapsed;
+      debugPrint(
+          '[TTS Controller] Pausing timer - session elapsed: ${sessionElapsed.inSeconds}s, total accumulated: ${_accumulatedPosition.inSeconds}s');
       _playStartTime = null;
+    } else {
+      debugPrint(
+          '[TTS Controller] Pausing timer - no active session, accumulated remains: ${_accumulatedPosition.inSeconds}s');
     }
   }
 

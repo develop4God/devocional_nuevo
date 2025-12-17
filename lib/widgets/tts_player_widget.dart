@@ -41,7 +41,7 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
       if (mounted) {
         final language = Localizations.localeOf(context).languageCode;
         final ttsText = _buildTtsText(language);
-        widget.audioController.setText(ttsText);
+        widget.audioController.setText(ttsText, languageCode: language);
       }
     });
     // Listener para detectar cuando la reproducción completa y registrar 'heard'
@@ -92,7 +92,7 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
         if (!mounted) return;
         final language = Localizations.localeOf(context).languageCode;
         final ttsText = _buildTtsText(language);
-        widget.audioController.setText(ttsText);
+        widget.audioController.setText(ttsText, languageCode: language);
       });
     }
   }

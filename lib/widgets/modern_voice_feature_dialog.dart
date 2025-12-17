@@ -20,7 +20,7 @@ class ModernVoiceFeatureDialog extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            '🎤✨ ¡Nueva función disponible! ✨🎤',
+            'app.voice_feature_title'.tr(),
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: colorScheme.onPrimary,
@@ -29,7 +29,7 @@ class ModernVoiceFeatureDialog extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            'Ahora puedes elegir entre distintas voces para la lectura devocional. Personaliza tu experiencia y disfruta de una lectura más agradable y moderna. 😃🔊',
+            'app.voice_feature_description'.tr(),
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                   color: colorScheme.onSurface,
                 ),
@@ -50,7 +50,7 @@ class ModernVoiceFeatureDialog extends StatelessWidget {
                       const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
                 ),
                 icon: const Icon(Icons.settings_voice),
-                label: const Text('Configurar voces'),
+                label: Text('app.voice_feature_configure'.tr()),
                 onPressed: onConfigure,
               ),
               TextButton(
@@ -61,7 +61,7 @@ class ModernVoiceFeatureDialog extends StatelessWidget {
                 ),
                 onPressed: onContinue,
                 child: Text(
-                  'app.skip'.tr(),
+                  'app.voice_feature_continue'.tr(),
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.normal,
                         fontSize:

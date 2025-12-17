@@ -38,7 +38,7 @@ class Constants {
     'en': ['KJV', 'NIV'],
     'pt': ['ARC', 'NVI'],
     'fr': ['LSG1910', 'TOB'],
-    'ja': ['SK2003', 'JCB'], // Agrego JCB para japonés
+    'ja': ['新改訳2003', 'リビングバイブル'], // Japanese versions
   };
 
   // Versión de Biblia por defecto por idioma
@@ -47,13 +47,13 @@ class Constants {
     'en': 'KJV',
     'pt': 'ARC',
     'fr': 'LSG1910',
-    'ja': 'SK2003', // Por defecto para japonés
+    'ja': '新改訳2003', // Default Japanese version
   };
 
-  // Nombres japoneses para versiones de la Biblia
+  // Nombres japoneses para versiones de la Biblia (deprecated - versions now use Japanese names directly)
   static const Map<String, String> bibleJapaneseNames = {
-    'SK2003': '新改訳2003', // Shinkaiyaku 2003
-    'JCB': '新共同訳', // Shin Kyoudouyaku
+    '新改訳2003': '新改訳2003', // Shinkaiyaku 2003
+    'リビングバイブル': 'リビングバイブル', // Living Bible
   };
 
   /// PREFERENCIAS (SharedPreferences KEYS)
