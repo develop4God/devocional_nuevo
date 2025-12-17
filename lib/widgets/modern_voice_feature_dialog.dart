@@ -27,12 +27,12 @@ class ModernVoiceFeatureDialog extends StatelessWidget {
                 ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 12),
-          Text(
-            'app.voice_feature_description'.tr(),
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: colorScheme.onSurface,
-                ),
+          const SizedBox(height: 12),Text(
+          'app.voice_feature_description'.tr(),
+          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+          color: colorScheme.onSurface,
+          fontWeight: FontWeight.w500, // Peso medio para dar presencia sin ser Bold
+          ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 24),
