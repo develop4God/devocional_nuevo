@@ -112,22 +112,11 @@ class _TtsMiniplayerModalState extends State<TtsMiniplayerModal> {
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
-              // Title animado
+              // Solo mostrar el texto sin animación
               SizedBox(
                 height: 32,
-                child: TweenAnimationBuilder<double>(
-                  tween: Tween(begin: -20.0, end: 20.0),
-                  duration: const Duration(seconds: 2),
-                  curve: Curves.easeInOut,
-                  builder: (context, value, child) {
-                    return Transform.translate(
-                      offset: Offset(value, 0),
-                      child: child,
-                    );
-                  },
-                  onEnd: () {
-                    setState(() {}); // reinicia la animación
-                  },
+                child: Align(
+                  alignment: Alignment.center,
                   child: Text(
                     'app.audio_playing'.tr(),
                     style: theme.textTheme.titleMedium?.copyWith(
