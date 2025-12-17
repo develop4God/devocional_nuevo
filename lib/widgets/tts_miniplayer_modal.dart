@@ -107,8 +107,9 @@ class _TtsMiniplayerModalState extends State<TtsMiniplayerModal> {
       widget.stateListenable.removeListener(_combinedListener);
       widget.playbackRateListenable.removeListener(_combinedListener);
     } catch (e) {
-      if (widget.debug)
+      if (widget.debug) {
         debugPrint('⚠️ [TTS Modal] Error removing listeners: $e');
+      }
     }
   }
 
@@ -329,13 +330,15 @@ class _TtsMiniplayerModalState extends State<TtsMiniplayerModal> {
               Text(
                 _formatDuration(snapshot.position),
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: colorScheme.onSurface.withAlpha(200),
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold,
                     ),
               ),
               Text(
                 _formatDuration(snapshot.totalDuration),
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: colorScheme.onSurface.withAlpha(200),
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold,
                     ),
               ),
             ],
@@ -380,13 +383,13 @@ class _TtsMiniplayerModalState extends State<TtsMiniplayerModal> {
                 Icon(
                   Icons.speed_rounded,
                   size: 20,
-                  color: colorScheme.primary,
+                  color: Colors.black,
                 ),
                 const SizedBox(width: 8),
                 Text(
                   "${snapshot.playbackRate.toStringAsFixed(1)}x",
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: colorScheme.primary,
+                        color: Colors.black,
                         fontWeight: FontWeight.bold,
                       ),
                 ),
@@ -399,7 +402,7 @@ class _TtsMiniplayerModalState extends State<TtsMiniplayerModal> {
         IconButton(
           icon: const Icon(Icons.person_outline),
           iconSize: 32,
-          color: colorScheme.onSurface,
+          color: Colors.black,
           tooltip: 'Seleccionar voz',
           onPressed: widget.onVoiceSelector,
         ),
