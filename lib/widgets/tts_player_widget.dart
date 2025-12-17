@@ -41,7 +41,10 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
       if (mounted) {
         final language = Localizations.localeOf(context).languageCode;
         final ttsText = _buildTtsText(language);
+        debugPrint(
+            '[TTS Widget] 📝 Configurando texto inicial - Idioma: $language, Longitud: ${ttsText.length} caracteres');
         widget.audioController.setText(ttsText, languageCode: language);
+        debugPrint('[TTS Widget] ✅ Texto configurado correctamente');
       }
     });
     // Listener para detectar cuando la reproducción completa y registrar 'heard'
@@ -188,15 +191,18 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
 
   Future<void> _handlePlayPause(BuildContext context, TtsPlayerState state,
       String language, String ttsText) async {
-    debugPrint('[TTS Widget] Acción de usuario: $state');
+    debugPrint('[TTS Widget] ========== HANDLE PLAY/PAUSE ==========');
+    debugPrint('[TTS Widget] Estado actual: $state');
 
     final voiceService = getService<VoiceSettingsService>();
     final hasSaved = await voiceService.hasUserSavedVoice(language);
+    debugPrint('[TTS Widget] ¿Tiene voz guardada?: $hasSaved');
 
     // Check mounted after async operation and before using context
     if (!mounted) return;
 
     if (!hasSaved) {
+      debugPrint('[TTS Widget] Mostrando diálogo de configuración de voz...');
       // Safe to use context here - we just checked mounted right before this call
       await showModalBottomSheet<void>(
         // ignore: use_build_context_synchronously
@@ -217,9 +223,12 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
                 await _showVoiceSelector(context, language, ttsText);
               },
               onContinue: () async {
+                debugPrint('[TTS Widget] Usuario continuó sin configurar voz');
                 Navigator.of(ctx).pop();
                 await voiceService.setUserSavedVoice(language);
                 if (state != TtsPlayerState.loading) {
+                  debugPrint(
+                      '[TTS Widget] ▶️ Llamando widget.audioController.play()');
                   widget.audioController.play();
                 }
               },
@@ -232,13 +241,20 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
 
     final friendlyName = await voiceService.loadSavedVoice(language);
     debugPrint(
-        '🗂️🔊 [TTS Widget] Voz aplicada antes de reproducir: $friendlyName');
+        '[TTS Widget] 🗂️🔊 Voz aplicada antes de reproducir: $friendlyName');
 
     if (state == TtsPlayerState.playing) {
+      debugPrint('[TTS Widget] ⏸️ Estado es PLAYING, llamando pause()');
       widget.audioController.pause();
     } else if (state != TtsPlayerState.loading) {
+      debugPrint(
+          '[TTS Widget] ▶️ Estado NO es playing ni loading, llamando play()');
       widget.audioController.play();
+    } else {
+      debugPrint('[TTS Widget] ⚠️ Estado es LOADING, no se hace nada');
     }
+
+    debugPrint('[TTS Widget] ========== FIN HANDLE PLAY/PAUSE ==========');
   }
 
   Future<void> _showVoiceSelector(

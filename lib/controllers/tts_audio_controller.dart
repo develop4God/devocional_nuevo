@@ -54,25 +54,31 @@ class TtsAudioController {
     }
     flutterTts.setStartHandler(() {
       debugPrint(
-          '[TTS Controller] Inicio de reproducción recibido, cambiando estado a PLAYING');
+          '🎬 [TTS Controller] ▶️ START HANDLER LLAMADO - Inicio de reproducción recibido');
+      debugPrint(
+          '🎬 [TTS Controller] Estado previo: ${state.value}, cambiando a PLAYING');
       state.value = TtsPlayerState.playing;
+      debugPrint('🎬 [TTS Controller] Iniciando timer de progreso...');
       _startProgressTimer();
+      debugPrint('🎬 [TTS Controller] Timer iniciado correctamente');
     });
     flutterTts.setCompletionHandler(() {
       debugPrint(
-          '[TTS Controller] Audio completado, cambiando estado a COMPLETED');
+          '🏁 [TTS Controller] COMPLETION HANDLER - Audio completado, cambiando estado a COMPLETED');
       _stopProgressTimer();
       currentPosition.value = totalDuration.value;
       state.value = TtsPlayerState.completed;
     });
     flutterTts.setCancelHandler(() {
-      debugPrint('[TTS Controller] Audio cancelado');
+      debugPrint('❌ [TTS Controller] CANCEL HANDLER - Audio cancelado');
       _stopProgressTimer();
       state.value = TtsPlayerState.idle;
     });
   }
 
   void setText(String text, {String languageCode = 'es'}) {
+    debugPrint(
+        '📝 [TTS Controller] setText llamado con ${text.length} caracteres, idioma: $languageCode');
     _fullText = text;
     _currentText = text;
     // Estimar duración solo para UI
@@ -82,27 +88,41 @@ class TtsAudioController {
       final chars = _fullText!.replaceAll(RegExp(r'\s+'), '').length;
       const charsPerSecond = 7.0;
       estimatedSeconds = (chars / charsPerSecond).round();
+      debugPrint(
+          '📝 [TTS Controller] Idioma japonés: $chars caracteres -> $estimatedSeconds segundos estimados');
     } else {
       // Otros idiomas: estimar por palabras
-      final words = _fullText!.split(RegExp(r"\\s+")).length;
+      final words = _fullText!.split(RegExp(r"\s+")).length;
       final double wordsPerSecond = 150.0 / 60.0;
       estimatedSeconds = (words / wordsPerSecond).round();
+      debugPrint(
+          '📝 [TTS Controller] Palabras: $words -> $estimatedSeconds segundos estimados');
     }
     _fullDuration = Duration(seconds: estimatedSeconds);
     totalDuration.value = _fullDuration;
     currentPosition.value = Duration.zero;
     _accumulatedPosition = Duration.zero;
+    debugPrint(
+        '📝 [TTS Controller] Duración total estimada: ${_fullDuration.inSeconds}s');
+    debugPrint('📝 [TTS Controller] Posición inicializada a 0:00');
   }
 
   Future<void> play() async {
+    debugPrint('▶️ [TTS Controller] ========== PLAY() LLAMADO ==========');
+    debugPrint('▶️ [TTS Controller] Estado previo: ${state.value.toString()}');
     debugPrint(
-        '[TTS Controller] play() llamado, estado previo: ${state.value.toString()}');
+        '▶️ [TTS Controller] Posición acumulada: ${_accumulatedPosition.inSeconds}s');
+    debugPrint(
+        '▶️ [TTS Controller] Texto completo: ${_fullText?.length ?? 0} caracteres');
+
     // Check _fullText (not _currentText) because we need the full text to calculate resume positions
     if (_fullText == null || _fullText!.isEmpty) {
+      debugPrint('❌ [TTS Controller] ERROR: No hay texto para reproducir');
       state.value = TtsPlayerState.error;
       return;
     }
 
+    debugPrint('⏳ [TTS Controller] Cambiando estado a LOADING');
     state.value = TtsPlayerState.loading;
     await Future.delayed(const Duration(milliseconds: 400));
 
@@ -115,7 +135,7 @@ class TtsAudioController {
     final double ttsEngineRate =
         VoiceSettingsService.miniToSettings[miniRate] ?? 0.5;
     debugPrint(
-        '[TTS Controller] Aplicando velocidad TTS: mini=$miniRate (settings=$ttsEngineRate)');
+        '🎚️ [TTS Controller] Velocidad aplicada: mini=$miniRate (settings=$ttsEngineRate)');
     await flutterTts.setSpeechRate(ttsEngineRate);
 
     // CRITICAL FIX: If resuming from pause (accumulated position > 0),
@@ -123,12 +143,9 @@ class TtsAudioController {
     if (_accumulatedPosition > Duration.zero &&
         _accumulatedPosition < _fullDuration) {
       debugPrint(
-          '[TTS Controller] Resuming from accumulated position: ${_accumulatedPosition.inSeconds}s');
+          '▶️ [TTS Controller] REANUDANDO desde posición: ${_accumulatedPosition.inSeconds}s');
 
       // Calculate which words to skip based on accumulated position
-      // NOTE: This uses a linear approximation (time ∝ words) which may not be
-      // perfectly accurate since TTS engines have variable speaking rates for
-      // different words. However, it provides a reasonable resume point.
       final fullWords =
           _fullText!.split(RegExp(r"\s+")).where((w) => w.isNotEmpty).toList();
       final fullSeconds =
@@ -145,46 +162,58 @@ class TtsAudioController {
       currentPosition.value = _accumulatedPosition;
 
       debugPrint(
-          '[TTS Controller] Resuming from word $skipWords/${fullWords.length}, speaking ${remainingWords.length} remaining words');
+          '▶️ [TTS Controller] Saltando $skipWords/${fullWords.length} palabras, quedan ${remainingWords.length} palabras');
     } else {
       // Starting fresh from beginning
-      debugPrint('[TTS Controller] Starting from beginning');
+      debugPrint('▶️ [TTS Controller] INICIANDO desde el principio');
       _currentText = _fullText;
       _accumulatedPosition = Duration.zero;
       currentPosition.value = Duration.zero;
     }
 
     // Speak the current text (either full or remaining after resume)
+    debugPrint(
+        '🎤 [TTS Controller] Llamando flutterTts.speak() con ${_currentText!.length} caracteres');
     if (_currentText != null && _currentText!.isNotEmpty) {
       await flutterTts.speak(_currentText!);
+      debugPrint('🎤 [TTS Controller] flutterTts.speak() completado (async)');
     }
 
     if (state.value == TtsPlayerState.loading) {
+      debugPrint('▶️ [TTS Controller] Cambiando estado de LOADING a PLAYING');
       state.value = TtsPlayerState.playing;
+
+      // CRITICAL FIX: Iniciar el timer manualmente ya que el START HANDLER
+      // no siempre se dispara en todas las plataformas al reanudar
+      debugPrint('⏱️ [TTS Controller] Iniciando timer manualmente (fallback)');
+      _startProgressTimer();
     }
 
-    debugPrint('[TTS Controller] estado actual: ${state.value.toString()}');
+    debugPrint('▶️ [TTS Controller] Estado final: ${state.value.toString()}');
+    debugPrint('▶️ [TTS Controller] ========== FIN PLAY() ==========');
   }
 
   Future<void> pause() async {
+    debugPrint('⏸️ [TTS Controller] ========== PAUSE() LLAMADO ==========');
+    debugPrint('⏸️ [TTS Controller] Estado previo: ${state.value.toString()}');
     debugPrint(
-        '[TTS Controller] pause() llamado, estado previo: ${state.value.toString()}');
+        '⏸️ [TTS Controller] Posición actual antes de pausar: ${currentPosition.value.inSeconds}s');
+
     await flutterTts.pause();
     state.value = TtsPlayerState.paused;
     _pauseProgressTimer();
 
     // CRITICAL: Fallback position capture for test environments or edge cases
-    // where TTS handlers may not fire properly. In normal operation,
-    // _pauseProgressTimer() accumulates position from the timer. This fallback
-    // ensures currentPosition is captured if it's ahead of accumulated position
-    // (e.g., in test environments or if user manually seeks before pausing).
     if (currentPosition.value > _accumulatedPosition) {
       _accumulatedPosition = currentPosition.value;
       debugPrint(
-          '[TTS Controller] Captured current position on pause: ${_accumulatedPosition.inSeconds}s');
+          '⏸️ [TTS Controller] Capturada posición actual en pause: ${_accumulatedPosition.inSeconds}s');
     }
 
-    debugPrint('[TTS Controller] estado actual: ${state.value.toString()}');
+    debugPrint('⏸️ [TTS Controller] Estado final: ${state.value.toString()}');
+    debugPrint(
+        '⏸️ [TTS Controller] Posición acumulada guardada: ${_accumulatedPosition.inSeconds}s');
+    debugPrint('⏸️ [TTS Controller] ========== FIN PAUSE() ==========');
   }
 
   Future<void> stop() async {
@@ -220,18 +249,39 @@ class TtsAudioController {
 
   // Progress timer helpers
   void _startProgressTimer() {
+    debugPrint(
+        '⏱️ [TTS Controller] ========== INICIANDO TIMER DE PROGRESO ==========');
+
+    // Si el timer ya está corriendo, no reiniciarlo
+    if (_progressTimer != null && _progressTimer!.isActive) {
+      debugPrint(
+          '⏱️ [TTS Controller] ⚠️ Timer ya está activo, saltando reinicio');
+      return;
+    }
+
     _progressTimer?.cancel();
+    debugPrint('⏱️ [TTS Controller] Timer anterior cancelado (si existía)');
+
     // CRITICAL FIX: Reset play start time to NOW when starting/resuming timer
     // This ensures we calculate elapsed time correctly from this point forward
     _playStartTime = DateTime.now();
     debugPrint(
-        '[TTS Controller] Starting progress timer at ${_playStartTime!.toIso8601String()}, accumulated: ${_accumulatedPosition.inSeconds}s');
+        '⏱️ [TTS Controller] Hora de inicio: ${_playStartTime!.toIso8601String()}');
+    debugPrint(
+        '⏱️ [TTS Controller] Posición acumulada: ${_accumulatedPosition.inSeconds}s');
+    debugPrint(
+        '⏱️ [TTS Controller] Duración total: ${totalDuration.value.inSeconds}s');
 
     _progressTimer = Timer.periodic(const Duration(milliseconds: 500), (_) {
       final now = DateTime.now();
       // Calculate elapsed time from when playback started, plus any accumulated position
       final elapsed = now.difference(_playStartTime!) + _accumulatedPosition;
+
+      debugPrint(
+          '⏱️ [TTS Controller] TICK - Posición: ${elapsed.inSeconds}s / ${totalDuration.value.inSeconds}s');
+
       if (elapsed >= totalDuration.value) {
+        debugPrint('⏱️ [TTS Controller] Llegó al final - deteniendo timer');
         currentPosition.value = totalDuration.value;
         _stopProgressTimer();
         // Let completion handler manage state
@@ -239,6 +289,9 @@ class TtsAudioController {
         currentPosition.value = elapsed;
       }
     });
+
+    debugPrint('⏱️ [TTS Controller] Timer creado y corriendo cada 500ms');
+    debugPrint('⏱️ [TTS Controller] ========== TIMER INICIADO ==========');
   }
 
   void _pauseProgressTimer() {
