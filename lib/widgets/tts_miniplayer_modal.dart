@@ -107,7 +107,8 @@ class _TtsMiniplayerModalState extends State<TtsMiniplayerModal> {
       widget.stateListenable.removeListener(_combinedListener);
       widget.playbackRateListenable.removeListener(_combinedListener);
     } catch (e) {
-      if (widget.debug) debugPrint('⚠️ [TTS Modal] Error removing listeners: $e');
+      if (widget.debug)
+        debugPrint('⚠️ [TTS Modal] Error removing listeners: $e');
     }
   }
 
@@ -122,7 +123,8 @@ class _TtsMiniplayerModalState extends State<TtsMiniplayerModal> {
 
   void _onSliderChange(double value) {
     if (widget.debug) {
-      debugPrint('🖐️ [TTS Modal] Slider dragging: ${value.toStringAsFixed(3)}');
+      debugPrint(
+          '🖐️ [TTS Modal] Slider dragging: ${value.toStringAsFixed(3)}');
     }
     setState(() {
       _sliderValue = value.clamp(0.0, 1.0);
@@ -137,7 +139,8 @@ class _TtsMiniplayerModalState extends State<TtsMiniplayerModal> {
     final newPosition = Duration(milliseconds: millis);
 
     if (widget.debug) {
-      debugPrint('⏯️ [TTS Modal] Seek to ${millis}ms (${value.toStringAsFixed(3)})');
+      debugPrint(
+          '⏯️ [TTS Modal] Seek to ${millis}ms (${value.toStringAsFixed(3)})');
     }
 
     widget.onSeek(newPosition);
@@ -162,11 +165,9 @@ class _TtsMiniplayerModalState extends State<TtsMiniplayerModal> {
         : (totalMs == 0 ? 0.0 : currentMs / totalMs);
 
     if (widget.debug) {
-      debugPrint(
-          '🧭 [TTS Modal] Build - slider: $sliderValue, '
-              'pos: ${currentMs}ms, total: ${totalMs}ms, '
-              'seeking: $_isSeeking, state: ${snapshot.state}'
-      );
+      debugPrint('🧭 [TTS Modal] Build - slider: $sliderValue, '
+          'pos: ${currentMs}ms, total: ${totalMs}ms, '
+          'seeking: $_isSeeking, state: ${snapshot.state}');
     }
 
     final theme = Theme.of(context);
@@ -251,10 +252,10 @@ class _TtsMiniplayerModalState extends State<TtsMiniplayerModal> {
   }
 
   Widget _buildPlayPauseButton(
-      BuildContext context,
-      ColorScheme colorScheme,
-      _TtsPlayerSnapshot snapshot,
-      ) {
+    BuildContext context,
+    ColorScheme colorScheme,
+    _TtsPlayerSnapshot snapshot,
+  ) {
     return Container(
       width: 80,
       height: 80,
@@ -276,30 +277,30 @@ class _TtsMiniplayerModalState extends State<TtsMiniplayerModal> {
       ),
       child: snapshot.isLoading
           ? const Center(
-        child: CircularProgressIndicator(
-          color: Colors.white,
-          strokeWidth: 3,
-        ),
-      )
+              child: CircularProgressIndicator(
+                color: Colors.white,
+                strokeWidth: 3,
+              ),
+            )
           : IconButton(
-        icon: Icon(
-          snapshot.isPlaying
-              ? Icons.pause_rounded
-              : Icons.play_arrow_rounded,
-          size: 40,
-        ),
-        color: Colors.white,
-        onPressed: widget.onTogglePlay,
-      ),
+              icon: Icon(
+                snapshot.isPlaying
+                    ? Icons.pause_rounded
+                    : Icons.play_arrow_rounded,
+                size: 40,
+              ),
+              color: Colors.white,
+              onPressed: widget.onTogglePlay,
+            ),
     );
   }
 
   Widget _buildProgressBar(
-      BuildContext context,
-      ColorScheme colorScheme,
-      _TtsPlayerSnapshot snapshot,
-      double sliderValue,
-      ) {
+    BuildContext context,
+    ColorScheme colorScheme,
+    _TtsPlayerSnapshot snapshot,
+    double sliderValue,
+  ) {
     return Column(
       children: [
         SliderTheme(
@@ -314,7 +315,8 @@ class _TtsMiniplayerModalState extends State<TtsMiniplayerModal> {
           child: Slider(
             value: sliderValue.clamp(0.0, 1.0).toDouble(),
             onChanged: _onSliderChange,
-            onChangeEnd: (value) => _onSliderChangeEnd(value, snapshot.totalDuration),
+            onChangeEnd: (value) =>
+                _onSliderChangeEnd(value, snapshot.totalDuration),
             min: 0.0,
             max: 1.0,
           ),
@@ -327,14 +329,14 @@ class _TtsMiniplayerModalState extends State<TtsMiniplayerModal> {
               Text(
                 _formatDuration(snapshot.position),
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.onSurface.withAlpha(200),
-                ),
+                      color: colorScheme.onSurface.withAlpha(200),
+                    ),
               ),
               Text(
                 _formatDuration(snapshot.totalDuration),
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.onSurface.withAlpha(200),
-                ),
+                      color: colorScheme.onSurface.withAlpha(200),
+                    ),
               ),
             ],
           ),
@@ -344,10 +346,10 @@ class _TtsMiniplayerModalState extends State<TtsMiniplayerModal> {
   }
 
   Widget _buildControlsRow(
-      BuildContext context,
-      ColorScheme colorScheme,
-      _TtsPlayerSnapshot snapshot,
-      ) {
+    BuildContext context,
+    ColorScheme colorScheme,
+    _TtsPlayerSnapshot snapshot,
+  ) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
@@ -384,9 +386,9 @@ class _TtsMiniplayerModalState extends State<TtsMiniplayerModal> {
                 Text(
                   "${snapshot.playbackRate.toStringAsFixed(1)}x",
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: colorScheme.primary,
-                    fontWeight: FontWeight.bold,
-                  ),
+                        color: colorScheme.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
                 ),
               ],
             ),

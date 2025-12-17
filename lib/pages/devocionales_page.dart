@@ -1382,11 +1382,11 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                               );
                               _goToBible();
                             },
-                            icon: const Icon(
+                            icon: (Icon(
                               Icons.auto_stories_outlined,
                               color: Colors.white,
                               size: 32,
-                            ).newIconBadge,
+                            )).newIconBadge,
                           ),
                           IconButton(
                             key: const Key('bottom_appbar_share_icon'),
@@ -1512,11 +1512,13 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                       valueListenable: _ttsAudioController.playbackRate,
                       builder: (context, rate, ____) {
                         return TtsMiniplayerModal(
-                          currentPosition: currentPos,
-                          totalDuration: totalDur,
-                          isPlaying: state == TtsPlayerState.playing,
-                          isLoading: state == TtsPlayerState.loading,
-                          playbackRate: rate,
+                          positionListenable:
+                              _ttsAudioController.currentPosition,
+                          totalDurationListenable:
+                              _ttsAudioController.totalDuration,
+                          stateListenable: _ttsAudioController.state,
+                          playbackRateListenable:
+                              _ttsAudioController.playbackRate,
                           playbackRates: _ttsAudioController.supportedRates,
                           onStop: () {
                             _ttsAudioController.stop();

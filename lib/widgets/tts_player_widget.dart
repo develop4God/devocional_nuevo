@@ -288,7 +288,16 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
         borderRadius: BorderRadius.circular(12),
       );
     } else {
-      mainIcon = Icon(Icons.play_arrow, size: 32, color: themeColor);
+      mainIcon = TweenAnimationBuilder<double>(
+        tween: Tween(begin: 0.7, end: 1.3),
+        duration: const Duration(milliseconds: 800),
+        builder: (context, scale, child) {
+          return Transform.scale(
+            scale: scale,
+            child: Icon(Icons.play_arrow, size: 32, color: themeColor),
+          );
+        },
+      );
       decoration = BoxDecoration(
         shape: BoxShape.circle,
         border: Border.all(color: themeColor, width: borderWidth),
