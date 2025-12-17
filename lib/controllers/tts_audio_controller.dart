@@ -72,15 +72,23 @@ class TtsAudioController {
     });
   }
 
-  void setText(String text) {
+  void setText(String text, {String languageCode = 'es'}) {
     _fullText = text;
     _currentText = text;
-    // Estimar duración solo para UI - SIEMPRE a velocidad 1.0x (normal)
-    final words = _fullText!.split(RegExp(r"\s+")).length;
-    final double wordsPerSecond = 150.0 / 60.0;
-    // FIX: Duración calculada a velocidad 1.0x, sin dividir por playbackRate
-    final estimatedSeconds = (words / wordsPerSecond);
-    _fullDuration = Duration(seconds: estimatedSeconds.round());
+    // Estimar duración solo para UI
+    int estimatedSeconds;
+    if (languageCode == 'ja') {
+      // Japonés: estimar por caracteres (7 chars/segundo típico)
+      final chars = _fullText!.replaceAll(RegExp(r'\s+'), '').length;
+      const charsPerSecond = 7.0;
+      estimatedSeconds = (chars / charsPerSecond).round();
+    } else {
+      // Otros idiomas: estimar por palabras
+      final words = _fullText!.split(RegExp(r"\\s+")).length;
+      final double wordsPerSecond = 150.0 / 60.0;
+      estimatedSeconds = (words / wordsPerSecond).round();
+    }
+    _fullDuration = Duration(seconds: estimatedSeconds);
     totalDuration.value = _fullDuration;
     currentPosition.value = Duration.zero;
     _accumulatedPosition = Duration.zero;
