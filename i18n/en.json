@@ -16,7 +16,8 @@
     "voice_feature_title": "🎤✨ New feature available! ✨🎤",
     "voice_feature_description": "You can now choose between different voices for devotional reading. Personalize your experience and enjoy a more pleasant and modern reading. 😃🔊",
     "voice_feature_configure": "Configure voices",
-    "voice_feature_continue": "Continue"
+    "voice_feature_continue": "Continue",
+    "audio_playing": "Playing audio"
   },
   "devotionals": {
     "modern_voice_title": "🎤✨ New feature available! ✨🎤",

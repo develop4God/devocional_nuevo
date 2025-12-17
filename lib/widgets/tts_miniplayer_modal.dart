@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../extensions/string_extensions.dart';
 
 /// Bottom modal sheet for TTS audio playback with modern gradient UI
 class TtsMiniplayerModal extends StatefulWidget {
@@ -111,12 +112,29 @@ class _TtsMiniplayerModalState extends State<TtsMiniplayerModal> {
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
-              // Title
-              Text(
-                'Reproduciendo Audio',
-                style: theme.textTheme.titleMedium?.copyWith(
-                  color: colorScheme.onSurface,
-                  fontWeight: FontWeight.bold,
+              // Title animado
+              SizedBox(
+                height: 32,
+                child: TweenAnimationBuilder<double>(
+                  tween: Tween(begin: -20.0, end: 20.0),
+                  duration: const Duration(seconds: 2),
+                  curve: Curves.easeInOut,
+                  builder: (context, value, child) {
+                    return Transform.translate(
+                      offset: Offset(value, 0),
+                      child: child,
+                    );
+                  },
+                  onEnd: () {
+                    setState(() {}); // reinicia la animación
+                  },
+                  child: Text(
+                    'app.audio_playing'.tr(),
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      color: colorScheme.onSurface,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(height: 24),
