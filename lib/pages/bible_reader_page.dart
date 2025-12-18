@@ -642,7 +642,8 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                                     const SizedBox(height: 12),
                                     Text(
                                       'bible.loading_version'.tr({
-                                        'version': state.selectedVersion?.name ?? ''
+                                        'version':
+                                            state.selectedVersion?.name ?? ''
                                       }),
                                     ),
                                   ],

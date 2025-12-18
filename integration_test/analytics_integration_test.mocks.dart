@@ -2,8 +2,8 @@
 // in integration_test/analytics_integration_test.dart.
 // Do not manually edit this file.
 
-import 'package:firebase_analytics/firebase_analytics.dart' as _i1;
-import 'package:mockito/mockito.dart' as _i2;
+import 'package:firebase_analytics/firebase_analytics.dart' as i1;
+import 'package:mockito/mockito.dart' as i2;
 
 // ignore_for_file: avoid_redundant_argument_values
 // ignore_for_file: avoid_setters_without_getters
@@ -18,4 +18,4 @@ import 'package:mockito/mockito.dart' as _i2;
 /// A class which mocks [FirebaseAnalytics].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockFirebaseAnalytics extends _i2.Mock implements _i1.FirebaseAnalytics {}
+class MockFirebaseAnalytics extends i2.Mock implements i1.FirebaseAnalytics {}
