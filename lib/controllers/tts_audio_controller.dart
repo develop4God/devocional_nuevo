@@ -15,6 +15,10 @@ class TtsAudioController {
   String? _fullText;
   Duration _fullDuration = Duration.zero;
 
+  /// Flag to prevent state changes from voice sample playback
+  /// Set to true when playing voice samples in VoiceSelector dialog
+  bool _isPlayingSample = false;
+
   // Progress notifiers for miniplayer
   final ValueNotifier<Duration> currentPosition = ValueNotifier(Duration.zero);
   final ValueNotifier<Duration> totalDuration = ValueNotifier(Duration.zero);
@@ -26,6 +30,14 @@ class TtsAudioController {
 
   // Solo usar los rates permitidos y lógica de VoiceSettingsService
   static const double _defaultMiniRate = 1.0;
+
+  /// Check if currently playing a voice sample (not full content)
+  bool get isPlayingSample => _isPlayingSample;
+
+  /// Set sample playback mode
+  void setPlayingSample(bool value) {
+    _isPlayingSample = value;
+  }
 
   TtsAudioController({required this.flutterTts}) {
     // Cargar el rate guardado usando VoiceSettingsService
@@ -56,7 +68,17 @@ class TtsAudioController {
       debugPrint(
           '🎬 [TTS Controller] ▶️ START HANDLER LLAMADO - Inicio de reproducción recibido');
       debugPrint(
-          '🎬 [TTS Controller] Estado previo: ${state.value}, cambiando a PLAYING');
+          '🎬 [TTS Controller] Estado previo: ${state.value}, _isPlayingSample: $_isPlayingSample');
+
+      // CRITICAL: Don't change state when playing voice samples
+      // This prevents the mini-player modal from opening during voice selection
+      if (_isPlayingSample) {
+        debugPrint('🎬 [TTS Controller] ⏭️ Ignorando cambio de estado (es un sample de voz)');
+        return;
+      }
+
+      debugPrint(
+          '🎬 [TTS Controller] Cambiando a PLAYING');
       state.value = TtsPlayerState.playing;
       debugPrint('🎬 [TTS Controller] Iniciando timer de progreso...');
       _startProgressTimer();

@@ -340,10 +340,10 @@ class _SettingsPageState extends State<SettingsPage> {
                                   language: language,
                                   sampleText: sampleText,
                                   onVoiceSelected: (name, locale) async {
+                                    // Sample is already played internally by VoiceSelectorDialog
+                                    // No need to call playVoiceSample here
                                     debugPrint(
                                         '🔊 Voz seleccionada en Settings: $name ($locale)');
-                                    await _voiceSettingsService.playVoiceSample(
-                                        name, locale, sampleText);
                                   },
                                 ),
                               ),

@@ -25,7 +25,19 @@ class VoiceSettingsService {
   // FlutterTts instance - initialized lazily or injected for testing
   FlutterTts? _flutterTtsInstance;
 
+  // Dedicated TTS instance ONLY for voice samples (no handlers, no state changes)
+  FlutterTts? _sampleTtsInstance;
+
   FlutterTts get _flutterTts => _flutterTtsInstance ??= FlutterTts();
+
+  /// Get dedicated TTS instance for samples (isolated from main playback)
+  FlutterTts get _sampleTts {
+    if (_sampleTtsInstance == null) {
+      _sampleTtsInstance = FlutterTts();
+      debugPrint('🔊 VoiceSettings: Created dedicated TTS instance for samples');
+    }
+    return _sampleTtsInstance!;
+  }
 
   /// Asigna automáticamente una voz válida por defecto para un idioma si no hay ninguna guardada o la guardada es inválida
   /// Asigna automáticamente una voz válida por defecto para un idioma si no hay ninguna guardada o la guardada es inválida
@@ -184,16 +196,16 @@ class VoiceSettingsService {
   Future<void> playVoiceSample(
       String voiceName, String locale, String sampleText) async {
     try {
-      // CRITICAL: Stop any previous sample before playing new one
-      // This prevents overlapping audio and modal confusion
-      await _flutterTts.stop();
+      // CRITICAL: Use dedicated sample TTS instance to prevent interference
+      // with main playback and avoid triggering the mini-player modal
+      await _sampleTts.stop();
 
-      await _flutterTts.setVoice({
+      await _sampleTts.setVoice({
         'name': voiceName,
         'locale': locale,
       });
-      await _flutterTts.speak(sampleText);
-      debugPrint('🔊🔬 VoiceSettings: Played sample for $voiceName ($locale)');
+      await _sampleTts.speak(sampleText);
+      debugPrint('🔊🔬 VoiceSettings: Played sample for $voiceName ($locale) using dedicated TTS instance');
     } catch (e) {
       debugPrint('❌ VoiceSettings: Failed to play sample: $e');
     }
@@ -202,7 +214,8 @@ class VoiceSettingsService {
   /// Stops any playing voice sample
   Future<void> stopVoiceSample() async {
     try {
-      await _flutterTts.stop();
+      // Use dedicated sample TTS instance
+      await _sampleTts.stop();
       debugPrint('🛑 VoiceSettings: Stopped voice sample');
     } catch (e) {
       debugPrint('❌ VoiceSettings: Failed to stop sample: $e');
