@@ -19,7 +19,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:devocional_nuevo/pages/debug_voice_flag_page.dart';
+import 'package:devocional_nuevo/pages/debug_flag_page.dart';
 // Removed analytics and firebase_installations imports: related debug buttons removed for production.
 
 class SettingsPage extends StatefulWidget {

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:provider/provider.dart';
-import 'package:devocional_nuevo/pages/debug_voice_flag_page.dart' as debug_page;
+import 'package:devocional_nuevo/pages/debug_flag_page.dart' as debug_page;
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 import 'package:devocional_nuevo/providers/localization_provider.dart';
 
