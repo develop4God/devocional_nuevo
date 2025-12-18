@@ -13,11 +13,13 @@ import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 import 'package:devocional_nuevo/utils/constants.dart';
 import 'package:devocional_nuevo/widgets/app_bar_constants.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:devocional_nuevo/pages/debug_voice_flag_page.dart';
 // Removed analytics and firebase_installations imports: related debug buttons removed for production.
 
 class SettingsPage extends StatefulWidget {
@@ -438,6 +440,31 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
 
                   const SizedBox(height: 20),
+                  // Solo visible en modo debug: acceso a DebugFlagPage
+                  if (kDebugMode)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: OutlinedButton.icon(
+                        icon: const Icon(Icons.flag, color: Colors.deepPurple),
+                        label: const Text('Debug: Flags y opciones',
+                            style: TextStyle(color: Colors.deepPurple)),
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(
+                              color: Colors.deepPurple, width: 2.0),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20.0),
+                          ),
+                        ),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const DebugFlagPage(),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
                 ],
               ),
             ),
