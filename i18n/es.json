@@ -109,6 +109,7 @@
     "days_old_plural": "({days} días)",
     "prayer_updated": "Oración actualizada exitosamente",
     "prayer_created": "Oración creada exitosamente",
+    "prayer_update_error": "Error al actualizar la oración",
     "prayer": "Oración",
     "prayers": "Oraciones",
     "edit_answered_comment": "Editar Respuesta",

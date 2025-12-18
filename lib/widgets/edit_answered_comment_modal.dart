@@ -249,7 +249,7 @@ class _EditAnsweredCommentModalState extends State<EditAnsweredCommentModal> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error updating answered comment'),
+            content: Text('prayer.prayer_update_error'.tr()),
             backgroundColor: Colors.red,
             behavior: SnackBarBehavior.floating,
           ),
