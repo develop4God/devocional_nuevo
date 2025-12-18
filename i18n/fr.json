@@ -110,7 +110,10 @@
     "prayer_updated": "Prière mise à jour avec succès",
     "prayer_created": "Prière créée avec succès",
     "prayer": "Prière",
-    "prayers": "Prières"
+    "prayers": "Prières",
+    "edit_answered_comment": "Modifier la Réponse",
+    "edit_answered_comment_description": "Modifiez le commentaire sur la façon dont cette prière a été exaucée.",
+    "edit_answered_placeholder": "Dieu a répondu à cette prière en...\n\nJe suis reconnaissant pour..."
   },
   "settings": {
     "title": "Paramètres",

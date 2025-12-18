@@ -110,7 +110,10 @@
     "prayer_updated": "Oración actualizada exitosamente",
     "prayer_created": "Oración creada exitosamente",
     "prayer": "Oración",
-    "prayers": "Oraciones"
+    "prayers": "Oraciones",
+    "edit_answered_comment": "Editar Respuesta",
+    "edit_answered_comment_description": "Edita el comentario sobre cómo fue respondida esta oración.",
+    "edit_answered_placeholder": "Dios respondió esta oración mediante...\n\nEstoy agradecido por..."
   },
   "settings": {
     "title": "Configuración",

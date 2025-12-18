@@ -184,6 +184,10 @@ class VoiceSettingsService {
   Future<void> playVoiceSample(
       String voiceName, String locale, String sampleText) async {
     try {
+      // CRITICAL: Stop any previous sample before playing new one
+      // This prevents overlapping audio and modal confusion
+      await _flutterTts.stop();
+
       await _flutterTts.setVoice({
         'name': voiceName,
         'locale': locale,
@@ -192,6 +196,16 @@ class VoiceSettingsService {
       debugPrint('🔊🔬 VoiceSettings: Played sample for $voiceName ($locale)');
     } catch (e) {
       debugPrint('❌ VoiceSettings: Failed to play sample: $e');
+    }
+  }
+
+  /// Stops any playing voice sample
+  Future<void> stopVoiceSample() async {
+    try {
+      await _flutterTts.stop();
+      debugPrint('🛑 VoiceSettings: Stopped voice sample');
+    } catch (e) {
+      debugPrint('❌ VoiceSettings: Failed to stop sample: $e');
     }
   }
 

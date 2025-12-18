@@ -48,6 +48,9 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
   static const Map<String, String> englishVoiceMap = {
     'en-us-x-tpd-network': '🇺🇸',
     'en-us-x-tpf-local': '🇺🇸',
+    'en-us-x-iob-local':
+        '🇺🇸', // Alternative female US voice for Firebase Test Lab
+    'en-US-language': '🇺🇸', // Another fallback female US voice
     'en-gb-x-gbb-local': '🇬🇧',
     'en-GB-language': '🇬🇧',
   };
@@ -154,6 +157,14 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
   }
 
   @override
+  void dispose() {
+    // CRITICAL: Stop any playing voice sample when dialog closes
+    // This prevents audio from continuing after modal is dismissed
+    _voiceSettingsService.stopVoiceSample();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -238,6 +249,8 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
                       borderRadius: BorderRadius.circular(32),
                       onTap: () async {
                         final navigator = Navigator.of(context);
+                        // CRITICAL: Stop voice sample before saving and closing
+                        await _voiceSettingsService.stopVoiceSample();
                         await _voiceSettingsService.saveVoice(
                           widget.language,
                           _selectedVoiceName!,
@@ -452,8 +465,11 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
                                                             color: colorScheme
                                                                 .primary,
                                                             size: 38),
-                                                      if (voice['name'] ==
-                                                              'en-us-x-tpf-local' ||
+                                                      if (voice['name'] == 'en-us-x-tpf-local' ||
+                                                          voice['name'] ==
+                                                              'en-us-x-iob-local' ||
+                                                          voice['name'] ==
+                                                              'en-US-language' ||
                                                           voice['name'] ==
                                                               'en-GB-language')
                                                         Icon(
@@ -663,6 +679,32 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
                                                     ),
                                                   if (voice['name'] ==
                                                       'en-us-x-tpf-local')
+                                                    Padding(
+                                                      padding:
+                                                          const EdgeInsets.only(
+                                                              left: 36, top: 2),
+                                                      child: Text(
+                                                          'Female United States',
+                                                          style: TextStyle(
+                                                              fontSize: 13,
+                                                              color: colorScheme
+                                                                  .onSurface)),
+                                                    ),
+                                                  if (voice['name'] ==
+                                                      'en-us-x-iob-local')
+                                                    Padding(
+                                                      padding:
+                                                          const EdgeInsets.only(
+                                                              left: 36, top: 2),
+                                                      child: Text(
+                                                          'Female United States',
+                                                          style: TextStyle(
+                                                              fontSize: 13,
+                                                              color: colorScheme
+                                                                  .onSurface)),
+                                                    ),
+                                                  if (voice['name'] ==
+                                                      'en-US-language')
                                                     Padding(
                                                       padding:
                                                           const EdgeInsets.only(
