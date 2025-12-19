@@ -269,7 +269,7 @@ class _TtsMiniplayerModalState extends State<TtsMiniplayerModal> {
           ],
         ),
         border: Border.all(
-          color: Colors.grey[400]!, // Borde gris claro
+          color: Colors.grey[500]!, // Borde gris claro
           width: 3,
         ),
         boxShadow: [
@@ -377,7 +377,7 @@ class _TtsMiniplayerModalState extends State<TtsMiniplayerModal> {
               ),
               borderRadius: BorderRadius.circular(24),
               border: Border.all(
-                color: Colors.grey[400]!, // Borde gris claro igual al botón central
+                color: Colors.grey[500]!, // Borde gris claro igual al botón central
                 width: 3,
               ),
             ),
@@ -403,21 +403,43 @@ class _TtsMiniplayerModalState extends State<TtsMiniplayerModal> {
         ),
 
         // Voice selector
-        IconButton(
-          icon: const Icon(Icons.person_outline),
-          iconSize: 32,
-          color: Colors.black,
-          tooltip: 'Seleccionar voz',
-          onPressed: widget.onVoiceSelector,
+        Container(
+          width: 56,
+          height: 56,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: Colors.grey[500]!, // Borde gris claro
+              width: 3,
+            ),
+          ),
+          child: IconButton(
+            icon: const Icon(Icons.person_outline),
+            iconSize: 32,
+            color: Colors.black,
+            tooltip: 'Seleccionar voz',
+            onPressed: widget.onVoiceSelector,
+          ),
         ),
 
         // Stop button
-        IconButton(
-          icon: const Icon(Icons.stop_rounded),
-          iconSize: 32,
-          color: colorScheme.error,
-          tooltip: 'Detener',
-          onPressed: widget.onStop,
+        Container(
+          width: 56,
+          height: 56,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: Colors.grey[500]!, // Borde gris claro
+              width: 3,
+            ),
+          ),
+          child: IconButton(
+            icon: const Icon(Icons.stop_rounded),
+            iconSize: 32,
+            color: colorScheme.error,
+            tooltip: 'Detener',
+            onPressed: widget.onStop,
+          ),
         ),
       ],
     );
