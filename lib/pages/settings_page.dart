@@ -233,7 +233,6 @@ class _SettingsPageState extends State<SettingsPage> {
 
                   const SizedBox(height: 20),
 
-
                   // Contact
                   InkWell(
                     onTap: () {

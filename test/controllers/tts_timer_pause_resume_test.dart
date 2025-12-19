@@ -69,11 +69,13 @@ void main() {
       controller = TtsAudioController(flutterTts: mockTts);
     });
 
-    tearDown(() {
-      controller.currentPosition.dispose();
-      controller.totalDuration.dispose();
-      controller.playbackRate.dispose();
-      controller.state.dispose();
+    tearDown(() async {
+      // Stop any ongoing playback and cancel timers before disposing
+      await controller.stop();
+      // Give time for async operations to complete
+      await Future.delayed(const Duration(milliseconds: 100));
+      // Now safely dispose the controller
+      controller.dispose();
     });
 
     test('should maintain accumulated time after pause and resume', () async {
