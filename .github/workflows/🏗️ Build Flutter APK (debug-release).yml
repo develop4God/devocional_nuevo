@@ -41,7 +41,7 @@ jobs:
         run: |
           sed -i -E 's/compileSdk = (flutter\.compileSdkVersion|[0-9]+)/compileSdk = 36/' android/app/build.gradle.kts
           sed -i -E 's/targetSdk = (flutter\.targetSdkVersion|[0-9]+)/targetSdk = 36/' android/app/build.gradle.kts
-          sed -i -E 's/minSdk = (flutter\.minSdkVersion|[0-9]+)/minSdk = 23/' android/app/build.gradle.kts
+          sed -i -E 's/minSdk = (flutter\.minSdkVersion|[0-9]+)/minSdk = 21/' android/app/build.gradle.kts
 
       - name: Create .env file with Gemini API Key
         run: echo "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}" > .env
