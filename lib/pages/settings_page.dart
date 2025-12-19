@@ -33,7 +33,7 @@ class _SettingsPageState extends State<SettingsPage> {
   double _ttsSpeed = 0.4;
   // Get VoiceSettingsService instance from the Service Locator
   late final VoiceSettingsService _voiceSettingsService =
-  getService<VoiceSettingsService>();
+      getService<VoiceSettingsService>();
 
   // Feature flag state - simple and direct
   String _donationMode = 'paypal'; // Hardcoded to PayPal
@@ -92,7 +92,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Future<void> _loadSavedVoices() async {
     final localizationProvider =
-    Provider.of<LocalizationProvider>(context, listen: false);
+        Provider.of<LocalizationProvider>(context, listen: false);
     final language = localizationProvider.currentLocale.languageCode;
     final prefs = await SharedPreferences.getInstance();
     // Load saved voice name for the current language (used by VoiceSelectorDialog)
@@ -242,8 +242,8 @@ class _SettingsPageState extends State<SettingsPage> {
                                 const SizedBox(height: 4),
                                 Text(
                                   Constants.supportedLanguages[
-                                  localizationProvider
-                                      .currentLocale.languageCode] ??
+                                          localizationProvider
+                                              .currentLocale.languageCode] ??
                                       localizationProvider
                                           .currentLocale.languageCode,
                                   style: textTheme.bodySmall?.copyWith(
@@ -334,7 +334,7 @@ class _SettingsPageState extends State<SettingsPage> {
                               child: Padding(
                                 padding: EdgeInsets.only(
                                   bottom:
-                                  MediaQuery.of(context).viewInsets.bottom,
+                                      MediaQuery.of(context).viewInsets.bottom,
                                 ),
                                 child: VoiceSelectorDialog(
                                   language: language,
@@ -567,7 +567,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     padding: const EdgeInsets.symmetric(vertical: 8.0),
                     child: OutlinedButton.icon(
                       icon:
-                      const Icon(Icons.perm_identity, color: Colors.green),
+                          const Icon(Icons.perm_identity, color: Colors.green),
                       label: const Text('Obtener FID Firebase',
                           style: TextStyle(color: Colors.green)),
                       style: OutlinedButton.styleFrom(

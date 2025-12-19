@@ -30,13 +30,14 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
   late String _translatedSampleText;
 
   late final VoiceSettingsService _voiceSettingsService =
-  getService<VoiceSettingsService>();
+      getService<VoiceSettingsService>();
 
   String? _initialVoiceName;
   String? _initialVoiceLocale;
 
   // Flag para forzar fallback en testing (SOLO activo en debug mode)
-  static const bool _forceFallbackForTesting = false; // ← Cambiar a true para probar fallback
+  static const bool _forceFallbackForTesting =
+      false; // ← Cambiar a true para probar fallback
 
   // Getter seguro: solo funciona en debug mode
   bool get _shouldForceFallback => kDebugMode && _forceFallbackForTesting;
@@ -87,7 +88,8 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
   }
 
   String _getSampleTextByLanguage(String language) {
-    const template = 'Puede guardar esta voz o seleccionar otra, de su preferencia';
+    const template =
+        'Puede guardar esta voz o seleccionar otra, de su preferencia';
     switch (language) {
       case 'es':
         return template;
@@ -106,14 +108,16 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
 
   String _getCountryFlag(String locale) {
     // Normalizar locale a formato xx-XX (tomar solo primeros 5 caracteres)
-    final normalizedLocale = locale.length >= 5 ? locale.substring(0, 5) : locale;
+    final normalizedLocale =
+        locale.length >= 5 ? locale.substring(0, 5) : locale;
 
     // Extrae los últimos 2 caracteres del locale normalizado
     final parts = normalizedLocale.split('-');
     if (parts.length >= 2) {
       final countryCode = parts[1].toUpperCase();
       // Validar que sea código de país de 2 letras
-      if (countryCode.length == 2 && RegExp(r'^[A-Z]{2}\$').hasMatch(countryCode)) {
+      if (countryCode.length == 2 &&
+          RegExp(r'^[A-Z]{2}\$').hasMatch(countryCode)) {
         // Conversión de código de país a emoji de bandera
         final flag = countryCode.codeUnits
             .map((c) => String.fromCharCode(0x1F1E6 + c - 0x41))
@@ -154,19 +158,24 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
     // Si es voz premium, usa el mapa correspondiente
     switch (language) {
       case 'es':
-        if (spanishVoiceMap.containsKey(voiceName)) return spanishVoiceMap[voiceName]!;
+        if (spanishVoiceMap.containsKey(voiceName))
+          return spanishVoiceMap[voiceName]!;
         break;
       case 'en':
-        if (englishVoiceMap.containsKey(voiceName)) return englishVoiceMap[voiceName]!;
+        if (englishVoiceMap.containsKey(voiceName))
+          return englishVoiceMap[voiceName]!;
         break;
       case 'pt':
-        if (portugueseVoiceMap.containsKey(voiceName)) return portugueseVoiceMap[voiceName]!;
+        if (portugueseVoiceMap.containsKey(voiceName))
+          return portugueseVoiceMap[voiceName]!;
         break;
       case 'ja':
-        if (japaneseVoiceMap.containsKey(voiceName)) return japaneseVoiceMap[voiceName]!;
+        if (japaneseVoiceMap.containsKey(voiceName))
+          return japaneseVoiceMap[voiceName]!;
         break;
       case 'fr':
-        if (frenchVoiceMap.containsKey(voiceName)) return frenchVoiceMap[voiceName]!;
+        if (frenchVoiceMap.containsKey(voiceName))
+          return frenchVoiceMap[voiceName]!;
         break;
     }
     // Si es fallback, extrae la bandera del locale
@@ -174,7 +183,8 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
   }
 
   Future<void> _loadVoices() async {
-    final voices = await _voiceSettingsService.getAvailableVoicesForLanguage(widget.language);
+    final voices = await _voiceSettingsService
+        .getAvailableVoicesForLanguage(widget.language);
 
     List<Map<String, String>> premiumVoices = [];
     List<Map<String, String>> fallbackVoices = [];
@@ -207,12 +217,13 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
 
       // Ordenar según el orden del mapa
       premiumVoices.sort((a, b) =>
-      premiumMap!.keys.toList().indexOf(a['name']!) -
+          premiumMap!.keys.toList().indexOf(a['name']!) -
           premiumMap.keys.toList().indexOf(b['name']!));
 
       // Si no hay suficientes voces premium (menos de 2), agregar fallback
       if (premiumVoices.length < 2 || _shouldForceFallback) {
-        debugPrint('[VoiceSelector] 🔄 Activando fallback para ${widget.language}: '
+        debugPrint(
+            '[VoiceSelector] 🔄 Activando fallback para ${widget.language}: '
             'premium=${premiumVoices.length}, forced=$_shouldForceFallback');
 
         // Definir locales prioritarios por idioma (los más comunes)
@@ -241,7 +252,8 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
 
           // Solo incluir si el locale normalizado está en la lista prioritaria
           final matchingPriority = priorities.firstWhere(
-                (priority) => normalizedLocale.toLowerCase() == priority.toLowerCase(),
+            (priority) =>
+                normalizedLocale.toLowerCase() == priority.toLowerCase(),
             orElse: () => '',
           );
 
@@ -261,7 +273,8 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
           }
         }
 
-        debugPrint('[VoiceSelector] ✅ Fallback encontró ${fallbackVoices.length} voces '
+        debugPrint(
+            '[VoiceSelector] ✅ Fallback encontró ${fallbackVoices.length} voces '
             'distribuidas en ${voicesByLocale.length} locales (máx 2 por locale)');
       }
     }
@@ -297,7 +310,8 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
     super.dispose();
   }
 
-  Widget _buildVoiceIcon(String voiceName, String language, ColorScheme colorScheme) {
+  Widget _buildVoiceIcon(
+      String voiceName, String language, ColorScheme colorScheme) {
     final isPremium = _isPremiumVoice(voiceName, language);
 
     if (!isPremium) {
@@ -307,41 +321,57 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
     // Lógica para voces premium con género conocido
     switch (language) {
       case 'es':
-        if (voiceName == 'es-us-x-esd-local' || voiceName == 'es-es-x-eed-local') {
-          return Icon(Icons.man_3_outlined, color: colorScheme.primary, size: 38);
+        if (voiceName == 'es-us-x-esd-local' ||
+            voiceName == 'es-es-x-eed-local') {
+          return Icon(Icons.man_3_outlined,
+              color: colorScheme.primary, size: 38);
         } else {
-          return Icon(Icons.woman_outlined, color: colorScheme.primary, size: 38);
+          return Icon(Icons.woman_outlined,
+              color: colorScheme.primary, size: 38);
         }
       case 'en':
-        if (voiceName == 'en-us-x-tpd-network' || voiceName == 'en-gb-x-gbb-local') {
-          return Icon(Icons.man_3_outlined, color: colorScheme.primary, size: 38);
+        if (voiceName == 'en-us-x-tpd-network' ||
+            voiceName == 'en-gb-x-gbb-local') {
+          return Icon(Icons.man_3_outlined,
+              color: colorScheme.primary, size: 38);
         } else {
-          return Icon(Icons.woman_outlined, color: colorScheme.primary, size: 38);
+          return Icon(Icons.woman_outlined,
+              color: colorScheme.primary, size: 38);
         }
       case 'pt':
-        if (voiceName == 'pt-br-x-ptd-network' || voiceName == 'pt-pt-x-pmj-local') {
-          return Icon(Icons.man_3_outlined, color: colorScheme.primary, size: 38);
+        if (voiceName == 'pt-br-x-ptd-network' ||
+            voiceName == 'pt-pt-x-pmj-local') {
+          return Icon(Icons.man_3_outlined,
+              color: colorScheme.primary, size: 38);
         } else {
-          return Icon(Icons.woman_outlined, color: colorScheme.primary, size: 38);
+          return Icon(Icons.woman_outlined,
+              color: colorScheme.primary, size: 38);
         }
       case 'ja':
-        if (voiceName == 'ja-jp-x-jac-local' || voiceName == 'ja-jp-x-jad-local') {
-          return Icon(Icons.man_3_outlined, color: colorScheme.primary, size: 38);
+        if (voiceName == 'ja-jp-x-jac-local' ||
+            voiceName == 'ja-jp-x-jad-local') {
+          return Icon(Icons.man_3_outlined,
+              color: colorScheme.primary, size: 38);
         } else {
-          return Icon(Icons.woman_outlined, color: colorScheme.primary, size: 38);
+          return Icon(Icons.woman_outlined,
+              color: colorScheme.primary, size: 38);
         }
       case 'fr':
-        if (voiceName == 'fr-fr-x-frd-network' || voiceName == 'fr-ca-x-cab-network') {
-          return Icon(Icons.man_3_outlined, color: colorScheme.primary, size: 38);
+        if (voiceName == 'fr-fr-x-frd-network' ||
+            voiceName == 'fr-ca-x-cab-network') {
+          return Icon(Icons.man_3_outlined,
+              color: colorScheme.primary, size: 38);
         } else {
-          return Icon(Icons.woman_outlined, color: colorScheme.primary, size: 38);
+          return Icon(Icons.woman_outlined,
+              color: colorScheme.primary, size: 38);
         }
       default:
         return Icon(Icons.person, color: colorScheme.primary, size: 38);
     }
   }
 
-  String _getVoiceDescription(String voiceName, String locale, String language) {
+  String _getVoiceDescription(
+      String voiceName, String locale, String language) {
     final isPremium = _isPremiumVoice(voiceName, language);
 
     if (!isPremium) {
@@ -538,162 +568,162 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
                 child: _isLoading
                     ? const Center(child: CircularProgressIndicator())
                     : LayoutBuilder(
-                  builder: (context, constraints) {
-                    final maxHeight =
-                        MediaQuery.of(context).size.height * 0.8;
-                    final maxWidth =
-                        MediaQuery.of(context).size.width * 0.95;
-                    return ConstrainedBox(
-                      constraints: BoxConstraints(
-                        maxHeight: maxHeight,
-                        maxWidth: maxWidth,
-                      ),
-                      child: SingleChildScrollView(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const SizedBox(height: 12),
-                            Text(
-                              'settings.voice_sample_text'.tr(),
-                              style:
-                              Theme.of(context).textTheme.bodyMedium,
-                              textAlign: TextAlign.center,
+                        builder: (context, constraints) {
+                          final maxHeight =
+                              MediaQuery.of(context).size.height * 0.8;
+                          final maxWidth =
+                              MediaQuery.of(context).size.width * 0.95;
+                          return ConstrainedBox(
+                            constraints: BoxConstraints(
+                              maxHeight: maxHeight,
+                              maxWidth: maxWidth,
                             ),
-                            const SizedBox(height: 18),
-                            ListView.separated(
-                              shrinkWrap: true,
-                              physics:
-                              const NeverScrollableScrollPhysics(),
-                              itemCount: _voices.length,
-                              separatorBuilder: (_, __) =>
-                              const SizedBox(height: 8),
-                              itemBuilder: (context, index) {
-                                final voice = _voices[index];
-                                final isSelected =
-                                    _selectedVoiceName == voice['name'] &&
-                                        _selectedVoiceLocale ==
-                                            voice['locale'];
-                                final isPlaying = _playingIndex == index;
-                                return InkWell(
-                                  borderRadius: BorderRadius.circular(14),
-                                  onTap: () async {
-                                    setState(() {
-                                      _selectedVoiceName = voice['name'];
-                                      _selectedVoiceLocale =
-                                      voice['locale'];
-                                    });
-                                    widget.onVoiceSelected(
-                                        voice['name']!, voice['locale']!);
-                                    await _playSample(voice['name']!,
-                                        voice['locale']!, index);
-                                  },
-                                  onDoubleTap: () async {
-                                    await _playSample(voice['name']!,
-                                        voice['locale']!, index);
-                                  },
-                                  child: AnimatedContainer(
-                                    duration:
-                                    const Duration(milliseconds: 250),
-                                    curve: Curves.easeInOut,
-                                    decoration: BoxDecoration(
-                                      color: isSelected
-                                          ? colorScheme.primary
-                                          .withAlpha(60)
-                                          : colorScheme.surface,
-                                      borderRadius:
-                                      BorderRadius.circular(14),
-                                      border: Border.all(
-                                        color: isSelected
-                                            ? colorScheme.primary
-                                            : colorScheme.outline
-                                            .withAlpha(80),
-                                        width: isSelected ? 2 : 1,
-                                      ),
-                                      boxShadow: isSelected
-                                          ? [
-                                        BoxShadow(
-                                            color: colorScheme
-                                                .primary
-                                                .withAlpha(40),
-                                            blurRadius: 8,
-                                            offset: Offset(0, 2))
-                                      ]
-                                          : [],
-                                    ),
-                                    child: ListTile(
-                                      title: Column(
-                                        crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                        children: [
-                                          Row(
-                                            children: [
-                                              _buildVoiceIcon(
-                                                  voice['name']!,
-                                                  widget.language,
-                                                  colorScheme),
-                                              const SizedBox(width: 10),
-                                              Text(
-                                                _getVoiceEmoji(
-                                                    voice['name']!,
-                                                    voice['locale']!,
-                                                    widget.language),
-                                                style: TextStyle(
-                                                    fontWeight:
-                                                    FontWeight.w900,
-                                                    fontSize: 32,
-                                                    color: colorScheme
-                                                        .primary),
-                                              ),
-                                            ],
-                                          ),
-                                          Padding(
-                                            padding:
-                                            const EdgeInsets.only(
-                                                left: 36, top: 2),
-                                            child: Text(
-                                              _getVoiceDescription(
-                                                  voice['name']!,
-                                                  voice['locale']!,
-                                                  widget.language),
-                                              style: TextStyle(
-                                                  fontSize: 13,
-                                                  color: colorScheme
-                                                      .onSurface),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      trailing: isPlaying
-                                          ? const SizedBox(
-                                          width: 32,
-                                          height: 32,
-                                          child:
-                                          CircularProgressIndicator(
-                                              strokeWidth: 2))
-                                          : isSelected
-                                          ? Icon(
-                                          Icons
-                                              .speaker_phone_outlined,
-                                          color:
-                                          colorScheme.primary,
-                                          size: 32)
-                                          : Icon(Icons.volume_up,
-                                          color:
-                                          colorScheme.primary,
-                                          size: 32),
-                                      selected: isSelected,
-                                    ),
+                            child: SingleChildScrollView(
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    'settings.voice_sample_text'.tr(),
+                                    style:
+                                        Theme.of(context).textTheme.bodyMedium,
+                                    textAlign: TextAlign.center,
                                   ),
-                                );
-                              },
+                                  const SizedBox(height: 18),
+                                  ListView.separated(
+                                    shrinkWrap: true,
+                                    physics:
+                                        const NeverScrollableScrollPhysics(),
+                                    itemCount: _voices.length,
+                                    separatorBuilder: (_, __) =>
+                                        const SizedBox(height: 8),
+                                    itemBuilder: (context, index) {
+                                      final voice = _voices[index];
+                                      final isSelected =
+                                          _selectedVoiceName == voice['name'] &&
+                                              _selectedVoiceLocale ==
+                                                  voice['locale'];
+                                      final isPlaying = _playingIndex == index;
+                                      return InkWell(
+                                        borderRadius: BorderRadius.circular(14),
+                                        onTap: () async {
+                                          setState(() {
+                                            _selectedVoiceName = voice['name'];
+                                            _selectedVoiceLocale =
+                                                voice['locale'];
+                                          });
+                                          widget.onVoiceSelected(
+                                              voice['name']!, voice['locale']!);
+                                          await _playSample(voice['name']!,
+                                              voice['locale']!, index);
+                                        },
+                                        onDoubleTap: () async {
+                                          await _playSample(voice['name']!,
+                                              voice['locale']!, index);
+                                        },
+                                        child: AnimatedContainer(
+                                          duration:
+                                              const Duration(milliseconds: 250),
+                                          curve: Curves.easeInOut,
+                                          decoration: BoxDecoration(
+                                            color: isSelected
+                                                ? colorScheme.primary
+                                                    .withAlpha(60)
+                                                : colorScheme.surface,
+                                            borderRadius:
+                                                BorderRadius.circular(14),
+                                            border: Border.all(
+                                              color: isSelected
+                                                  ? colorScheme.primary
+                                                  : colorScheme.outline
+                                                      .withAlpha(80),
+                                              width: isSelected ? 2 : 1,
+                                            ),
+                                            boxShadow: isSelected
+                                                ? [
+                                                    BoxShadow(
+                                                        color: colorScheme
+                                                            .primary
+                                                            .withAlpha(40),
+                                                        blurRadius: 8,
+                                                        offset: Offset(0, 2))
+                                                  ]
+                                                : [],
+                                          ),
+                                          child: ListTile(
+                                            title: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Row(
+                                                  children: [
+                                                    _buildVoiceIcon(
+                                                        voice['name']!,
+                                                        widget.language,
+                                                        colorScheme),
+                                                    const SizedBox(width: 10),
+                                                    Text(
+                                                      _getVoiceEmoji(
+                                                          voice['name']!,
+                                                          voice['locale']!,
+                                                          widget.language),
+                                                      style: TextStyle(
+                                                          fontWeight:
+                                                              FontWeight.w900,
+                                                          fontSize: 32,
+                                                          color: colorScheme
+                                                              .primary),
+                                                    ),
+                                                  ],
+                                                ),
+                                                Padding(
+                                                  padding:
+                                                      const EdgeInsets.only(
+                                                          left: 36, top: 2),
+                                                  child: Text(
+                                                    _getVoiceDescription(
+                                                        voice['name']!,
+                                                        voice['locale']!,
+                                                        widget.language),
+                                                    style: TextStyle(
+                                                        fontSize: 13,
+                                                        color: colorScheme
+                                                            .onSurface),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            trailing: isPlaying
+                                                ? const SizedBox(
+                                                    width: 32,
+                                                    height: 32,
+                                                    child:
+                                                        CircularProgressIndicator(
+                                                            strokeWidth: 2))
+                                                : isSelected
+                                                    ? Icon(
+                                                        Icons
+                                                            .speaker_phone_outlined,
+                                                        color:
+                                                            colorScheme.primary,
+                                                        size: 32)
+                                                    : Icon(Icons.volume_up,
+                                                        color:
+                                                            colorScheme.primary,
+                                                        size: 32),
+                                            selected: isSelected,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                  const SizedBox(height: 32),
+                                ],
+                              ),
                             ),
-                            const SizedBox(height: 32),
-                          ],
-                        ),
+                          );
+                        },
                       ),
-                    );
-                  },
-                ),
               ),
             ],
           ),
@@ -702,4 +732,3 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
     );
   }
 }
-

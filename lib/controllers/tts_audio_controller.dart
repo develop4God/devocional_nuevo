@@ -73,12 +73,12 @@ class TtsAudioController {
       // CRITICAL: Don't change state when playing voice samples
       // This prevents the mini-player modal from opening during voice selection
       if (_isPlayingSample) {
-        debugPrint('🎬 [TTS Controller] ⏭️ Ignorando cambio de estado (es un sample de voz)');
+        debugPrint(
+            '🎬 [TTS Controller] ⏭️ Ignorando cambio de estado (es un sample de voz)');
         return;
       }
 
-      debugPrint(
-          '🎬 [TTS Controller] Cambiando a PLAYING');
+      debugPrint('🎬 [TTS Controller] Cambiando a PLAYING');
       state.value = TtsPlayerState.playing;
       debugPrint('🎬 [TTS Controller] Iniciando timer de progreso...');
       _startProgressTimer();

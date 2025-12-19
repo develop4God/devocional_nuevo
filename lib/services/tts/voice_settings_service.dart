@@ -34,7 +34,8 @@ class VoiceSettingsService {
   FlutterTts get _sampleTts {
     if (_sampleTtsInstance == null) {
       _sampleTtsInstance = FlutterTts();
-      debugPrint('🔊 VoiceSettings: Created dedicated TTS instance for samples');
+      debugPrint(
+          '🔊 VoiceSettings: Created dedicated TTS instance for samples');
     }
     return _sampleTtsInstance!;
   }
@@ -206,7 +207,8 @@ class VoiceSettingsService {
       // Siempre aplicar rate 1.0 para samples (voz natural)
       await _sampleTts.setSpeechRate(0.6);
       await _sampleTts.speak(sampleText);
-      debugPrint('🔊🔬 VoiceSettings: Played sample for $voiceName ($locale) using dedicated TTS instance');
+      debugPrint(
+          '🔊🔬 VoiceSettings: Played sample for $voiceName ($locale) using dedicated TTS instance');
     } catch (e) {
       debugPrint('❌ VoiceSettings: Failed to play sample: $e');
     }
