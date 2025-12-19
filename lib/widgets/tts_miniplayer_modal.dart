@@ -309,8 +309,8 @@ class _TtsMiniplayerModalState extends State<TtsMiniplayerModal> {
             trackHeight: 6,
             thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10),
             overlayShape: const RoundSliderOverlayShape(overlayRadius: 18),
-            activeTrackColor: colorScheme.primary,
-            inactiveTrackColor: colorScheme.primary.withAlpha(80),
+            activeTrackColor: Colors.grey[800], // Gris oscuro
+            inactiveTrackColor: Colors.grey[400], // Gris claro
             thumbColor: Colors.white,
           ),
           child: Slider(
