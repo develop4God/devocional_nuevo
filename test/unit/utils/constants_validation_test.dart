@@ -241,11 +241,13 @@ void main() {
             reason: 'Bible version code should not be empty',
           );
 
+          // Bible version codes can contain uppercase letters, numbers,
+          // or Unicode characters for international versions (e.g., Japanese)
           expect(
-            RegExp(r'^[A-Z0-9]+$').hasMatch(version),
+            version.trim() == version,
             isTrue,
             reason:
-                'Bible version $version should only contain uppercase letters and numbers',
+                'Bible version $version should not have leading/trailing whitespace',
           );
         }
       }

@@ -377,7 +377,8 @@ class _TtsMiniplayerModalState extends State<TtsMiniplayerModal> {
               ),
               borderRadius: BorderRadius.circular(24),
               border: Border.all(
-                color: Colors.grey[400]!, // Borde gris claro igual al botón central
+                color: Colors
+                    .grey[400]!, // Borde gris claro igual al botón central
                 width: 3,
               ),
             ),

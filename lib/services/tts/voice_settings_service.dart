@@ -22,6 +22,12 @@ class VoiceSettingsService {
   @visibleForTesting
   VoiceSettingsService.withTts(FlutterTts tts) : _flutterTtsInstance = tts;
 
+  /// Test constructor for injecting both main and sample TTS instances.
+  @visibleForTesting
+  VoiceSettingsService.withBothTts(FlutterTts mainTts, FlutterTts sampleTts)
+      : _flutterTtsInstance = mainTts,
+        _sampleTtsInstance = sampleTts;
+
   // FlutterTts instance - initialized lazily or injected for testing
   FlutterTts? _flutterTtsInstance;
 

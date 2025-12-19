@@ -158,24 +158,29 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
     // Si es voz premium, usa el mapa correspondiente
     switch (language) {
       case 'es':
-        if (spanishVoiceMap.containsKey(voiceName))
+        if (spanishVoiceMap.containsKey(voiceName)) {
           return spanishVoiceMap[voiceName]!;
+        }
         break;
       case 'en':
-        if (englishVoiceMap.containsKey(voiceName))
+        if (englishVoiceMap.containsKey(voiceName)) {
           return englishVoiceMap[voiceName]!;
+        }
         break;
       case 'pt':
-        if (portugueseVoiceMap.containsKey(voiceName))
+        if (portugueseVoiceMap.containsKey(voiceName)) {
           return portugueseVoiceMap[voiceName]!;
+        }
         break;
       case 'ja':
-        if (japaneseVoiceMap.containsKey(voiceName))
+        if (japaneseVoiceMap.containsKey(voiceName)) {
           return japaneseVoiceMap[voiceName]!;
+        }
         break;
       case 'fr':
-        if (frenchVoiceMap.containsKey(voiceName))
+        if (frenchVoiceMap.containsKey(voiceName)) {
           return frenchVoiceMap[voiceName]!;
+        }
         break;
     }
     // Si es fallback, extrae la bandera del locale

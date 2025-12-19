@@ -25,18 +25,25 @@ void main() {
     });
 
     group('getCampaignTag', () {
-      test('should return default tag when no devotional ID provided', () {
+      test('should return empty string when totalDevocionalesRead is null', () {
         final tag = AnalyticsConstants.getCampaignTag();
-        expect(tag, AnalyticsConstants.defaultCampaignTag);
+        expect(tag, '');
       });
 
-      test('should return default tag when devotional ID is null', () {
-        final tag = AnalyticsConstants.getCampaignTag(devocionalId: null);
+      test('should return empty string when totalDevocionalesRead < 7', () {
+        final tag =
+            AnalyticsConstants.getCampaignTag(totalDevocionalesRead: 6);
+        expect(tag, '');
+      });
+
+      test('should return default tag when totalDevocionalesRead >= 7', () {
+        final tag =
+            AnalyticsConstants.getCampaignTag(totalDevocionalesRead: 7);
         expect(tag, AnalyticsConstants.defaultCampaignTag);
       });
 
       test(
-          'should return default tag for any devotional ID (current implementation)',
+          'should return default tag for any devotional ID when totalDevocionalesRead >= 7',
           () {
         final testIds = [
           'dev_001',
@@ -47,41 +54,54 @@ void main() {
         ];
 
         for (final id in testIds) {
-          final tag = AnalyticsConstants.getCampaignTag(devocionalId: id);
+          final tag = AnalyticsConstants.getCampaignTag(
+              devocionalId: id, totalDevocionalesRead: 7);
           expect(tag, AnalyticsConstants.defaultCampaignTag,
-              reason: 'All devotionals should currently use default tag: $id');
+              reason:
+                  'Should return default tag when totalDevocionalesRead >= 7 for ID: $id');
         }
       });
 
-      test('should return consistent value for same devotional ID', () {
+      test('should return consistent value for same inputs', () {
         const testId = 'dev_123';
-        final tag1 = AnalyticsConstants.getCampaignTag(devocionalId: testId);
-        final tag2 = AnalyticsConstants.getCampaignTag(devocionalId: testId);
+        final tag1 = AnalyticsConstants.getCampaignTag(
+            devocionalId: testId, totalDevocionalesRead: 7);
+        final tag2 = AnalyticsConstants.getCampaignTag(
+            devocionalId: testId, totalDevocionalesRead: 7);
 
         expect(tag1, tag2,
-            reason: 'Same devotional ID should always return same tag');
+            reason: 'Same inputs should always return same tag');
       });
 
-      test('should never return null or empty string', () {
-        final testCases = [
-          null,
-          '',
-          'dev_001',
-          'special_devotional',
-        ];
+      test('should handle milestone threshold correctly', () {
+        // Below threshold
+        expect(
+            AnalyticsConstants.getCampaignTag(totalDevocionalesRead: 0), '');
+        expect(
+            AnalyticsConstants.getCampaignTag(totalDevocionalesRead: 1), '');
+        expect(
+            AnalyticsConstants.getCampaignTag(totalDevocionalesRead: 6), '');
 
-        for (final id in testCases) {
-          final tag = AnalyticsConstants.getCampaignTag(devocionalId: id);
-          expect(tag.isNotEmpty, true,
-              reason: 'Campaign tag should never be empty for ID: $id');
-        }
+        // At threshold
+        expect(
+            AnalyticsConstants.getCampaignTag(totalDevocionalesRead: 7),
+            AnalyticsConstants.defaultCampaignTag);
+
+        // Above threshold
+        expect(
+            AnalyticsConstants.getCampaignTag(totalDevocionalesRead: 8),
+            AnalyticsConstants.defaultCampaignTag);
+        expect(
+            AnalyticsConstants.getCampaignTag(totalDevocionalesRead: 100),
+            AnalyticsConstants.defaultCampaignTag);
       });
     });
 
     group('Edge Cases', () {
       test('should handle very long devotional IDs', () {
         final longId = 'dev_${'x' * 1000}';
-        final tag = AnalyticsConstants.getCampaignTag(devocionalId: longId);
+        final tag = AnalyticsConstants.getCampaignTag(
+            devocionalId: longId, totalDevocionalesRead: 7);
         expect(tag, AnalyticsConstants.defaultCampaignTag);
       });
 
@@ -95,7 +115,8 @@ void main() {
         ];
 
         for (final id in specialIds) {
-          final tag = AnalyticsConstants.getCampaignTag(devocionalId: id);
+          final tag = AnalyticsConstants.getCampaignTag(
+              devocionalId: id, totalDevocionalesRead: 7);
           expect(tag, AnalyticsConstants.defaultCampaignTag,
               reason: 'Should handle special characters in ID: $id');
         }
@@ -109,10 +130,21 @@ void main() {
         ];
 
         for (final id in unicodeIds) {
-          final tag = AnalyticsConstants.getCampaignTag(devocionalId: id);
+          final tag = AnalyticsConstants.getCampaignTag(
+              devocionalId: id, totalDevocionalesRead: 7);
           expect(tag, AnalyticsConstants.defaultCampaignTag,
               reason: 'Should handle unicode in ID: $id');
         }
+      });
+
+      test('should handle negative totalDevocionalesRead', () {
+        final tag = AnalyticsConstants.getCampaignTag(totalDevocionalesRead: -1);
+        expect(tag, '');
+      });
+
+      test('should handle zero totalDevocionalesRead', () {
+        final tag = AnalyticsConstants.getCampaignTag(totalDevocionalesRead: 0);
+        expect(tag, '');
       });
     });
 
