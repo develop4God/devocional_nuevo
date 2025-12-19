@@ -36,7 +36,7 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
   String? _initialVoiceLocale;
 
   // Flag para forzar fallback en testing (SOLO activo en debug mode)
-  static const bool _forceFallbackForTesting = true; // ← Cambiar a true para probar fallback
+  static const bool _forceFallbackForTesting = false; // ← Cambiar a true para probar fallback
 
   // Getter seguro: solo funciona en debug mode
   bool get _shouldForceFallback => kDebugMode && _forceFallbackForTesting;
