@@ -63,7 +63,7 @@
     "offline_mode": "Modo sin conexión",
     "online_mode": "Modo en línea",
     "choose_option": "Elige una opción",
-    "no_devotionals": "TODO_TRANSLATE"
+    "no_devotionals": "No hay devocionales disponibles"
   },
   "prayer": {
     "invitation_title": "Invitación a Orar",
@@ -196,7 +196,7 @@
     "dark_mode": "Luz baja (modo oscuro)",
     "notifications_config": "Configuración de notificaciones",
     "share_app": "Comparte app Devocionales Cristianos",
-    "download_devotionals": "Descargar devocionales",
+    "download_devocionales": "Descargar devocionales",
     "downloaded_devotionals": "Devocionales descargados",
     "for_offline_use": "Para uso sin internet",
     "offline_content_ready": "Disfruta contenido sin internet",
