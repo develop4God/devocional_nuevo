@@ -1049,9 +1049,12 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                         begin: Alignment.topLeft,
                                         end: Alignment.bottomRight,
                                         colors: [
-                                          colorScheme.primary.withAlpha((0.25 * 255).round()),
-                                          colorScheme.primary.withAlpha((0.08 * 255).round()),
-                                          colorScheme.secondary.withAlpha((0.06 * 255).round()),
+                                          colorScheme.primary
+                                              .withAlpha((0.25 * 255).round()),
+                                          colorScheme.primary
+                                              .withAlpha((0.08 * 255).round()),
+                                          colorScheme.secondary
+                                              .withAlpha((0.06 * 255).round()),
                                         ],
                                         stops: const [0.0, 0.6, 1.0],
                                       ),
@@ -1059,13 +1062,15 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                       // Multi-layer shadows for depth
                                       boxShadow: [
                                         BoxShadow(
-                                          color: colorScheme.primary.withAlpha((0.2 * 255).round()),
+                                          color: colorScheme.primary
+                                              .withAlpha((0.2 * 255).round()),
                                           blurRadius: 20,
                                           offset: const Offset(0, 8),
                                           spreadRadius: -4,
                                         ),
                                         BoxShadow(
-                                          color: Colors.black.withAlpha((0.05 * 255).round()),
+                                          color: Colors.black
+                                              .withAlpha((0.05 * 255).round()),
                                           blurRadius: 40,
                                           offset: const Offset(0, 16),
                                           spreadRadius: -8,
@@ -1480,11 +1485,11 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                               );
                               _goToBible();
                             },
-                            icon: Icon(
+                            icon: const Icon(
                               Icons.auto_stories_outlined,
                               color: Colors.white,
                               size: 32,
-                            ),
+                            ).newIconBadge,
                           ), // <-- Properly close the IconButton here
                           IconButton(
                             key: const Key('bottom_appbar_share_icon'),
