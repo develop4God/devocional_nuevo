@@ -1014,6 +1014,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                           text: currentDevocional.versiculo,
                                         ),
                                       );
+                                      if (!context.mounted) return;
                                       HapticFeedback.selectionClick();
                                       // Show SnackBar with theme colors
                                       final messenger =
