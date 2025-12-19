@@ -810,46 +810,43 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                                 _scrollToTop();
                               },
                             ),
-                            Expanded(
-                              child: Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 8.0),
-                                child: ElevatedButton(
-                                  onPressed: _showBookSelector,
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor:
-                                        colorScheme.primaryContainer,
-                                    foregroundColor:
-                                        colorScheme.onPrimaryContainer,
-                                    elevation: 2,
-                                    shadowColor: colorScheme.primary
-                                        .withValues(alpha: 0.3),
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 10.0, horizontal: 16.0),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(30),
-                                    ),
+                            // Button sizes to its content; avoid IntrinsicWidth to prevent intrinsic-measurement errors
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                              child: ElevatedButton(
+                                onPressed: _showBookSelector,
+                                style: ElevatedButton.styleFrom(
+                                  // allow the button to shrink to fit content
+                                  minimumSize: const Size(0, 0),
+                                  backgroundColor: colorScheme.primaryContainer,
+                                  foregroundColor: colorScheme.onPrimaryContainer,
+                                  elevation: 2,
+                                  shadowColor:
+                                      colorScheme.primary.withValues(alpha: 0.3),
+                                  padding: const EdgeInsets.symmetric(
+                                      vertical: 10.0, horizontal: 16.0),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(30),
                                   ),
-                                  child: AutoSizeText(
-                                    state.selectedBookName != null
-                                        ? '${state.books.firstWhere((b) => b['short_name'] == state.selectedBookName, orElse: () => {
-                                              'long_name':
-                                                  state.selectedBookName
-                                            })['long_name']} ${state.selectedChapter}'
-                                        : '',
-                                    textAlign: TextAlign.center,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .titleSmall
-                                        ?.copyWith(
-                                          fontWeight: FontWeight.w600,
-                                          color: colorScheme.onPrimaryContainer,
-                                        ),
-                                    maxLines: 1,
-                                    minFontSize: 11,
-                                    maxFontSize: 15,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
+                                ),
+                                child: AutoSizeText(
+                                  state.selectedBookName != null
+                                      ? '${state.books.firstWhere((b) => b['short_name'] == state.selectedBookName, orElse: () => {
+                                            'long_name': state.selectedBookName
+                                          })['long_name']} ${state.selectedChapter}'
+                                      : '',
+                                  textAlign: TextAlign.center,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleSmall
+                                      ?.copyWith(
+                                        fontWeight: FontWeight.w600,
+                                        color: colorScheme.onPrimaryContainer,
+                                      ),
+                                  maxLines: 1,
+                                  minFontSize: 11,
+                                  maxFontSize: 15,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ),
                             ),
