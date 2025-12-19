@@ -2,10 +2,10 @@ import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 
-/// Utilidad para validar y completar traducciones entre el archivo de referencia es.json y cualquier archivo de idioma
+/// Utilidad para validar y completar traducciones entre el archivo de referencia en.json y cualquier archivo de idioma
 /// Uso: dart run lib/utils/translation_validator.dart [lang]
 void main(List<String> args) async {
-  final referencePath = 'i18n/es.json';
+  final referencePath = 'i18n/en.json'; // Usar inglés como template
   final lang = args.isNotEmpty ? args[0] : 'ja';
   final targetPath = 'i18n/$lang.json';
 
