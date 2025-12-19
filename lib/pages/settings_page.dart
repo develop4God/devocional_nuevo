@@ -233,17 +233,6 @@ class _SettingsPageState extends State<SettingsPage> {
 
                   const SizedBox(height: 20),
 
-                  // Audio Settings
-                  Text(
-                    'settings.audio_settings'.tr(),
-                    style: textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: colorScheme.primary,
-                    ),
-                  ),
-                  const SizedBox(height: 15),
-
-                  const SizedBox(height: 20),
 
                   // Contact
                   InkWell(
