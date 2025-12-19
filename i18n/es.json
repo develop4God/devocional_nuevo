@@ -163,7 +163,13 @@
     "enable_notifications": "Activar/Desactivar notificaciones",
     "notification_time": "Hora de notificación diaria",
     "notification_confirm": "Confirmar la hora",
-    "notification_set": "Hora de confirmación ajustada a"
+    "notification_set": "Hora de confirmación ajustada a",
+    "user_not_authenticated": "Debes iniciar sesión para administrar las notificaciones.",
+    "notifications_enabled": "Notificaciones activadas",
+    "notifications_disabled": "Notificaciones desactivadas",
+    "error_changing_state": "Error al cambiar el estado de notificaciones: {error}",
+    "time_not_changed": "La hora no ha cambiado",
+    "error_setting_time": "Error al establecer la hora de notificación: {error}"
   },
   "application_language": {
     "title": "Idioma de la Aplicación",

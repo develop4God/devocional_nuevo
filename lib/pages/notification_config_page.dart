@@ -57,7 +57,7 @@ class _NotificationConfigPageState extends State<NotificationConfigPage> {
             backgroundColor:
                 colorScheme.secondary, // Fondo del SnackBar usando secondary
             content: Text(
-              'Error: Usuario no autenticado. Por favor, reinicia la aplicación.',
+              'notifications_config_page.user_not_authenticated'.tr(),
               // TEXTO TRADUCIDO
               style: TextStyle(
                   color: colorScheme
@@ -164,7 +164,8 @@ class _NotificationConfigPageState extends State<NotificationConfigPage> {
           SnackBar(
             backgroundColor: colorScheme.secondary,
             content: Text(
-              'Error al cargar la configuración: $e',
+              'notifications_config_page.error_loading_settings'
+                  .tr({'error': e.toString()}),
               // Corregido el mensaje de error para mostrar 'e'
               style: TextStyle(color: colorScheme.onSecondary),
             ),
@@ -211,8 +212,8 @@ class _NotificationConfigPageState extends State<NotificationConfigPage> {
           backgroundColor: colorScheme.secondary,
           content: Text(
             _notificationsEnabled
-                ? 'Notificaciones activadas.'
-                : 'Notificaciones desactivadas.',
+                ? 'notifications_config_page.notifications_enabled'.tr()
+                : 'notifications_config_page.notifications_disabled'.tr(),
             // Usando _notificationsEnabled
             style: TextStyle(color: colorScheme.onSecondary),
           ),
@@ -230,7 +231,8 @@ class _NotificationConfigPageState extends State<NotificationConfigPage> {
           SnackBar(
             backgroundColor: colorScheme.secondary,
             content: Text(
-              'Error al cambiar estado: $e', // TEXTO TRADUCIDO
+              'notifications_config_page.error_changing_state'
+                  .tr({'error': e.toString()}), // TEXTO TRADUCIDO
               style: TextStyle(color: colorScheme.onSecondary),
             ),
           ),
@@ -285,7 +287,7 @@ class _NotificationConfigPageState extends State<NotificationConfigPage> {
           SnackBar(
             backgroundColor: colorScheme.secondary,
             content: Text(
-              'La hora no ha cambiado.', // MENSAJE SI HORA NO CAMBIA
+              'notifications_config_page.time_not_changed'.tr(), // MENSAJE SI HORA NO CAMBIA
               style: TextStyle(color: colorScheme.onSecondary),
             ),
           ),
@@ -341,7 +343,8 @@ class _NotificationConfigPageState extends State<NotificationConfigPage> {
           SnackBar(
             backgroundColor: colorScheme.secondary,
             content: Text(
-              'Error al ajustar la hora: $e', // TEXTO TRADUCIDO
+              'notifications_config_page.error_setting_time'
+                  .tr({'error': e.toString()}), // TEXTO TRADUCIDO
               style: TextStyle(color: colorScheme.onSecondary),
             ),
           ),

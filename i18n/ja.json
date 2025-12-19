@@ -159,11 +159,17 @@
     "backup_subtitle": "データを安全にバックアップして復元"
   },
   "notifications_config_page": {
-    "notifications_config": "通知設定",
+    "notifications_config": "通知の設定",
     "enable_notifications": "通知を有効/無効にする",
     "notification_time": "毎日の通知時間",
     "notification_confirm": "時間を確認",
-    "notification_set": "確認時間が設定されました"
+    "notification_set": "通知時間が設定されました",
+    "user_not_authenticated": "通知設定を管理するにはサインインが必要です。",
+    "notifications_enabled": "通知が有効になりました",
+    "notifications_disabled": "通知が無効になりました",
+    "error_changing_state": "通知状態の変更中にエラーが発生しました: {error}",
+    "time_not_changed": "時間は変更されていません",
+    "error_setting_time": "通知時間の設定中にエラーが発生しました: {error}"
   },
   "application_language": {
     "title": "アプリケーション言語",

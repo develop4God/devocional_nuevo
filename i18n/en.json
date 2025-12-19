@@ -163,7 +163,13 @@
     "enable_notifications": "Enable/Disable notifications",
     "notification_time": "Daily notification time",
     "notification_confirm": "Confirm the time",
-    "notification_set": "Confirmation time adjusted to"
+    "notification_set": "Confirmation time adjusted to",
+    "user_not_authenticated": "You must be signed in to manage notification settings.",
+    "notifications_enabled": "Notifications enabled",
+    "notifications_disabled": "Notifications disabled",
+    "error_changing_state": "Error changing notification state: {error}",
+    "time_not_changed": "Time not changed",
+    "error_setting_time": "Error setting notification time: {error}"
   },
   "application_language": {
     "title": "Application Language",
