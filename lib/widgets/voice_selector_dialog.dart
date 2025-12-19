@@ -1,6 +1,7 @@
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 
@@ -33,6 +34,12 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
 
   String? _initialVoiceName;
   String? _initialVoiceLocale;
+
+  // Flag para forzar fallback en testing (SOLO activo en debug mode)
+  static const bool _forceFallbackForTesting = true; // ← Cambiar a true para probar fallback
+
+  // Getter seguro: solo funciona en debug mode
+  bool get _shouldForceFallback => kDebugMode && _forceFallbackForTesting;
 
   // Mapeo de voces premium (con género conocido)
   static const Map<String, String> spanishVoiceMap = {
@@ -98,17 +105,32 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
   }
 
   String _getCountryFlag(String locale) {
-    // Extrae los últimos 2 caracteres del locale para obtener el código del país
-    final parts = locale.toLowerCase().split('-');
+    // Normalizar locale a formato xx-XX (tomar solo primeros 5 caracteres)
+    final normalizedLocale = locale.length >= 5 ? locale.substring(0, 5) : locale;
+
+    // Extrae los últimos 2 caracteres del locale normalizado
+    final parts = normalizedLocale.split('-');
     if (parts.length >= 2) {
-      final countryCode = parts.last.toUpperCase();
-      // Conversión de código de país a emoji de bandera
-      final flag = countryCode.codeUnits
-          .map((c) => String.fromCharCode(0x1F1E6 + c - 0x41))
-          .join();
-      return flag;
+      final countryCode = parts[1].toUpperCase();
+      // Validar que sea código de país de 2 letras
+      if (countryCode.length == 2 && RegExp(r'^[A-Z]{2}\$').hasMatch(countryCode)) {
+        // Conversión de código de país a emoji de bandera
+        final flag = countryCode.codeUnits
+            .map((c) => String.fromCharCode(0x1F1E6 + c - 0x41))
+            .join();
+        return flag;
+      }
     }
     return '🌐'; // Fallback global
+  }
+
+  String _normalizeLocale(String locale) {
+    // Normalizar locale a formato xx-XX (5 caracteres)
+
+    if (locale.length >= 5) {
+      return locale.substring(0, 5);
+    }
+    return locale;
   }
 
   bool _isPremiumVoice(String voiceName, String language) {
@@ -152,8 +174,7 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
   }
 
   Future<void> _loadVoices() async {
-    final voices = await _voiceSettingsService
-        .getAvailableVoicesForLanguage(widget.language);
+    final voices = await _voiceSettingsService.getAvailableVoicesForLanguage(widget.language);
 
     List<Map<String, String>> premiumVoices = [];
     List<Map<String, String>> fallbackVoices = [];
@@ -190,20 +211,58 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
           premiumMap.keys.toList().indexOf(b['name']!));
 
       // Si no hay suficientes voces premium (menos de 2), agregar fallback
-      if (premiumVoices.length < 2) {
-        // Buscar voces por locale base
-        final languagePrefix = widget.language.toLowerCase();
-        fallbackVoices = voices
-            .where((voice) {
+      if (premiumVoices.length < 2 || _shouldForceFallback) {
+        debugPrint('[VoiceSelector] 🔄 Activando fallback para ${widget.language}: '
+            'premium=${premiumVoices.length}, forced=$_shouldForceFallback');
+
+        // Definir locales prioritarios por idioma (los más comunes)
+        final priorityLocales = <String, List<String>>{
+          'es': ['es-ES', 'es-MX', 'es-US', 'es-AR'],
+          'en': ['en-US', 'en-GB', 'en-AU', 'en-CA'],
+          'pt': ['pt-BR', 'pt-PT'],
+          'fr': ['fr-FR', 'fr-CA'],
+          'ja': ['ja-JP'],
+        };
+
+        final priorities = priorityLocales[widget.language] ?? [];
+
+        // Agrupar voces por locale y limitar a 2 por locale
+        final voicesByLocale = <String, List<Map<String, String>>>{};
+
+        for (final voice in voices) {
           final name = voice['name'] ?? '';
           final locale = voice['locale'] ?? '';
+
           // No incluir voces que ya están en premium
-          if (premiumMap!.containsKey(name)) return false;
-          // Incluir voces que coincidan con el idioma
-          return name.toLowerCase().startsWith(languagePrefix) ||
-              locale.toLowerCase().startsWith(languagePrefix);
-        })
-            .toList();
+          if (premiumMap.containsKey(name)) continue;
+
+          // Normalizar locale a formato xx-XX
+          final normalizedLocale = _normalizeLocale(locale);
+
+          // Solo incluir si el locale normalizado está en la lista prioritaria
+          final matchingPriority = priorities.firstWhere(
+                (priority) => normalizedLocale.toLowerCase() == priority.toLowerCase(),
+            orElse: () => '',
+          );
+
+          if (matchingPriority.isNotEmpty) {
+            voicesByLocale.putIfAbsent(matchingPriority, () => []);
+            // Limitar a 2 voces por locale
+            if (voicesByLocale[matchingPriority]!.length < 2) {
+              voicesByLocale[matchingPriority]!.add(voice);
+            }
+          }
+        }
+
+        // Aplanar el mapa manteniendo el orden de prioridad
+        for (final priority in priorities) {
+          if (voicesByLocale.containsKey(priority)) {
+            fallbackVoices.addAll(voicesByLocale[priority]!);
+          }
+        }
+
+        debugPrint('[VoiceSelector] ✅ Fallback encontró ${fallbackVoices.length} voces '
+            'distribuidas en ${voicesByLocale.length} locales (máx 2 por locale)');
       }
     }
 
@@ -214,6 +273,9 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
       _selectedVoiceLocale = null;
       _initialVoiceName = null;
       _initialVoiceLocale = null;
+
+      debugPrint('[VoiceSelector] 📋 Total voces cargadas: ${_voices.length} '
+          '(premium: ${premiumVoices.length}, fallback: ${fallbackVoices.length})');
     });
   }
 
@@ -283,7 +345,8 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
     final isPremium = _isPremiumVoice(voiceName, language);
 
     if (!isPremium) {
-      return locale; // Fallback: mostrar solo el locale
+      // Para fallback: mostrar solo el locale normalizado (xx-XX)
+      return _normalizeLocale(locale);
     }
 
     // Descripciones para voces premium
@@ -639,3 +702,4 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
     );
   }
 }
+
