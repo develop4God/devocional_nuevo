@@ -1480,12 +1480,12 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                               );
                               _goToBible();
                             },
-                            icon: Icon(
+                            icon: (Icon(
                               Icons.auto_stories_outlined,
                               color: Colors.white,
                               size: 32,
-                            ),
-                          ), // <-- Properly close the IconButton here
+                            )).newIconBadge,
+                          ),
                           IconButton(
                             key: const Key('bottom_appbar_share_icon'),
                             tooltip: 'devotionals.share_devotional'.tr(),

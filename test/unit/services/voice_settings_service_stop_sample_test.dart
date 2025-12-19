@@ -10,12 +10,15 @@ import 'voice_settings_service_stop_sample_test.mocks.dart';
 
 @GenerateMocks([FlutterTts])
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   late VoiceSettingsService voiceSettingsService;
   late MockFlutterTts mockFlutterTts;
 
   setUp(() {
     mockFlutterTts = MockFlutterTts();
-    voiceSettingsService = VoiceSettingsService.withTts(mockFlutterTts);
+    voiceSettingsService =
+        VoiceSettingsService.withBothTts(mockFlutterTts, mockFlutterTts);
   });
 
   group('VoiceSettingsService - Voice Sample Playback', () {
@@ -24,6 +27,7 @@ void main() {
       // Arrange
       when(mockFlutterTts.stop()).thenAnswer((_) async => 1);
       when(mockFlutterTts.setVoice(any)).thenAnswer((_) async => 1);
+      when(mockFlutterTts.setSpeechRate(any)).thenAnswer((_) async => 1);
       when(mockFlutterTts.speak(any)).thenAnswer((_) async => 1);
 
       // Act
@@ -36,6 +40,7 @@ void main() {
       // Assert
       verify(mockFlutterTts.stop()).called(1);
       verify(mockFlutterTts.setVoice(any)).called(1);
+      verify(mockFlutterTts.setSpeechRate(any)).called(1);
       verify(mockFlutterTts.speak(any)).called(1);
     });
 
@@ -43,6 +48,7 @@ void main() {
       // Arrange
       when(mockFlutterTts.stop()).thenAnswer((_) async => 1);
       when(mockFlutterTts.setVoice(any)).thenAnswer((_) async => 1);
+      when(mockFlutterTts.setSpeechRate(any)).thenAnswer((_) async => 1);
       when(mockFlutterTts.speak(any)).thenAnswer((_) async => 1);
 
       // Act - Simulate double tap (play sample twice)
@@ -60,6 +66,7 @@ void main() {
       // Assert - Stop should be called twice (once for each play)
       verify(mockFlutterTts.stop()).called(2);
       verify(mockFlutterTts.setVoice(any)).called(2);
+      verify(mockFlutterTts.setSpeechRate(any)).called(2);
       verify(mockFlutterTts.speak(any)).called(2);
     });
 
