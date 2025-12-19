@@ -50,57 +50,6 @@ jobs:
         run: |
           echo "${{ secrets.GOOGLE_SERVICES_JSON_B64 }}" | base64 -d > android/app/google-services.json
 
-      - name: 🔍 Debug build.gradle.kts content
-        run: |
-          echo "🔍 Checking build.gradle.kts content..."
-          echo "📁 Current directory: $(pwd)"
-          echo "📋 Files in android/app/:"
-          ls -la android/app/
-          echo ""
-          echo "📝 Content around line 40 in build.gradle.kts:"
-          echo "=========================================="
-          head -n 45 android/app/build.gradle.kts | tail -n 10
-          echo "=========================================="
-          echo ""
-          echo "🔍 Looking for minSdk or minSdkVersion:"
-          grep -n "minSdk\|minSdkVersion" android/app/build.gradle.kts || echo "No minSdk references found"
-          echo ""
-          echo "📋 SHA256 of build.gradle.kts:"
-          sha256sum android/app/build.gradle.kts
-
-      - name: 🧹 Clear all caches
-        run: |
-          echo "🧹 Clearing Flutter and Gradle caches..."
-          rm -rf ~/.gradle/caches/
-          rm -rf ~/.pub-cache/
-          rm -rf build/
-          rm -rf android/.gradle/
-          rm -rf android/app/build/
-          echo "✅ Caches cleared"
-
-      - name: 🧹 Sanitize branch name for artifact
-        run: |
-          BRANCH_NAME="${{ github.event.inputs.branch || 'main' }}"
-          CLEAN_BRANCH_NAME=$(echo "$BRANCH_NAME" | sed 's/[\/:"<>|*?\\]/-/g')
-          echo "CLEAN_BRANCH_NAME=$CLEAN_BRANCH_NAME" >> $GITHUB_ENV
-          echo "✅ Original branch:  $BRANCH_NAME"
-          echo "✅ Sanitized branch: $CLEAN_BRANCH_NAME"
-
-      - name: 📋 Verify complete branch content
-        run: |
-          echo "✅ Current branch: $(git branch --show-current)"
-          echo "📝 Latest commit: $(git log -1 --oneline)"
-          echo "👤 Commit author: $(git log -1 --pretty=format:'%an <%ae>')"
-          echo "📅 Commit date: $(git log -1 --pretty=format:'%ad')"
-          echo ""
-          echo "📊 Branch statistics:"
-          echo "🔢 Total commits in branch: $(git rev-list --count HEAD)"
-          echo "📁 Files changed in last 5 commits:"
-          git log --name-only --pretty=format: -5 | sort | uniq | grep -v '^$' | head -10
-          echo ""
-          echo "🔍 Last 3 commits in this branch:"
-          git log --oneline -3
-
       - name: ☕ Set up Java
         uses: actions/setup-java@v4
         with:
@@ -119,22 +68,45 @@ jobs:
 
       - name: ⚙️ Configure Gradle for CI environment
         run: |
-          echo "⚙️ Optimizing Gradle settings for GitHub Actions (7GB RAM limit)..."
+          echo "⚙️ Optimizing Gradle settings for GitHub Actions (Java heap space)..."
           cat > android/gradle.properties << EOF
-          # CI-optimized settings for GitHub Actions runners (7GB total RAM)
-          org.gradle.jvmargs=-Xmx6g -XX:MaxMetaspaceSize=2048m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8
+          org.gradle.jvmargs=-Xmx4096m -XX:MaxMetaspaceSize=1024m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8
           org.gradle.daemon=false
           org.gradle.parallel=true
           org.gradle.configureondemand=true
           android.useAndroidX=true
-          android.enableJetifier=true
+          android.enableJetifier=false
           android.enableR8=true
-          # Additional memory optimization
           org.gradle.caching=true
           org.gradle.vfs.watch=false
           EOF
-          echo "✅ CI-optimized gradle.properties created:"
+          echo "✅ gradle.properties for CI created:"
           cat android/gradle.properties
+
+      - name: Create .env file with Gemini API Key
+        run: echo "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}" > .env
+
+      - name: Create google-services.json
+        run: |
+          echo "${{ secrets.GOOGLE_SERVICES_JSON_B64 }}" | base64 -d > android/app/google-services.json
+
+      - name: 🧹 Clear all caches
+        run: |
+          echo "🧹 Clearing Flutter and Gradle caches..."
+          rm -rf ~/.gradle/caches/
+          rm -rf ~/.pub-cache/
+          rm -rf build/
+          rm -rf android/.gradle/
+          rm -rf android/app/build/
+          echo "✅ Caches cleared"
+
+      - name: 🧹 Sanitize branch name for artifact
+        run: |
+          BRANCH_NAME="${{ github.event.inputs.branch || 'main' }}"
+          CLEAN_BRANCH_NAME=$(echo "$BRANCH_NAME" | sed 's/[\/:"<>|*?\\]/-/g')
+          echo "CLEAN_BRANCH_NAME=$CLEAN_BRANCH_NAME" >> $GITHUB_ENV
+          echo "✅ Original branch:  $BRANCH_NAME"
+          echo "✅ Sanitized branch: $CLEAN_BRANCH_NAME"
 
       - name: 🛠️ Ensure Flutter properties are available
         run: |
@@ -182,12 +154,6 @@ jobs:
           echo "📋 Verificando archivos de firmado:"
           ls -la android/key.properties android/app/upload-keystore.p12
 
-      - name: 🔍 Debug keystore access
-        if: ${{ github.event.inputs.build_type == 'aab-release' || github.event.inputs.build_type == 'release' }}
-        run: |
-          echo "Testing keystore access..."
-          keytool -list -keystore android/app/upload-keystore.p12 -storetype PKCS12 -storepass "${{ secrets.ANDROID_STORE_PASSWORD }}"
-
       - name: 🔧 Configure build.gradle.kts for signing
         if: ${{ github.event.inputs.build_type == 'aab-release' || github.event.inputs.build_type == 'release' }}
         run: |
@@ -203,7 +169,7 @@ jobs:
 
       - name: 🏗️ Build APK/AAB (${{ github.event.inputs.build_type || 'debug' }})
         env:
-          GRADLE_OPTS: '-Dorg.gradle.jvmargs="-Xmx1536m -XX:MaxMetaspaceSize=384m"'
+          GRADLE_OPTS: '-Dorg.gradle.jvmargs="-Xmx4096m -XX:MaxMetaspaceSize=1024m"'
         run: |
           BUILD_TYPE="${{ github.event.inputs.build_type || 'debug' }}"
           if [ "$BUILD_TYPE" = "aab-release" ]; then
