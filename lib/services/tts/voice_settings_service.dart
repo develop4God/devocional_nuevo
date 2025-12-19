@@ -199,11 +199,12 @@ class VoiceSettingsService {
       // CRITICAL: Use dedicated sample TTS instance to prevent interference
       // with main playback and avoid triggering the mini-player modal
       await _sampleTts.stop();
-
       await _sampleTts.setVoice({
         'name': voiceName,
         'locale': locale,
       });
+      // Siempre aplicar rate 1.0 para samples (voz natural)
+      await _sampleTts.setSpeechRate(0.6);
       await _sampleTts.speak(sampleText);
       debugPrint('🔊🔬 VoiceSettings: Played sample for $voiceName ($locale) using dedicated TTS instance');
     } catch (e) {
