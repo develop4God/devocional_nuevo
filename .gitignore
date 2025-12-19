@@ -21,7 +21,6 @@ ios/Runner.xcodeproj/project.xcworkspace/
 ios/Runner.xcodeproj/xcuserdata/
 ios/Runner.xcworkspace/xcuserdata/
 ios/Runner.xcworkspace/xcshareddata/
-ios/Flutter/flutter_export_environment.sh
 ios/Flutter/Flutter.framework/
 ios/Flutter/Flutter.podspec
 ios/Flutter.podspec
@@ -29,21 +28,13 @@ ios/Runner.xcodeproj/project.pbxproj.before_merge
 ios/Runner.xcodeproj/project.pbxproj.orig
 ios/Runner.xcodeproj/project.pbxproj.rej
 ios/Runner.xcodeproj/xcshareddata/
-ios/Runner.xcodeproj/xcuserdata/
 ios/Runner.xcworkspace/contents.xcworkspacedata
 ios/Flutter/Flutter.xcconfig
-ios/Flutter/Generated.xcconfig
-ios/Flutter/flutter_export_environment.sh
 ios/Pods/Manifest.lock
 ios/Runner.xcodeproj/xcshareddata/xcschemes/
-ios/Runner.xcworkspace/contents.xcworkspacedata
-ios/Runner.xcworkspace/xcuserdata/
 ios/Runner/Runner.entitlements # Si tienes configurado automáticamente entitlements, a veces se puede ignorar, pero cuidado.
 ios/Runner/Runner.xctest/
 ios/Flutter/App.framework/
-ios/Flutter/Flutter.framework/
-ios/Flutter/Generated.xcconfig
-ios/Flutter/flutter_export_environment.sh
 
 # Archivos específicos del sistema operativo
 .DS_Store # macOS
