@@ -12,6 +12,7 @@ import 'package:devocional_nuevo/models/thanksgiving_model.dart';
 import 'package:devocional_nuevo/widgets/add_prayer_modal.dart';
 import 'package:devocional_nuevo/widgets/add_thanksgiving_modal.dart';
 import 'package:devocional_nuevo/widgets/answer_prayer_modal.dart';
+import 'package:devocional_nuevo/widgets/edit_answered_comment_modal.dart';
 import 'package:devocional_nuevo/widgets/app_bar_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -549,6 +550,9 @@ class _PrayersPageState extends State<PrayersPage>
                         case 'edit':
                           _showEditPrayerModal(context, prayer);
                           break;
+                        case 'edit_answer':
+                          _showEditAnsweredCommentModal(context, prayer);
+                          break;
                         case 'delete':
                           _showDeleteConfirmation(context, prayer);
                           break;
@@ -574,16 +578,34 @@ class _PrayersPageState extends State<PrayersPage>
                           ],
                         ),
                       ),
-                      PopupMenuItem(
-                        value: 'edit',
-                        child: Row(
-                          children: [
-                            const Icon(Icons.edit, size: 20),
-                            const SizedBox(width: 12),
-                            Text('prayer.edit_prayer'.tr()),
-                          ],
+                      // Show "Edit" option for active prayers OR answered prayers WITHOUT comment
+                      if (isActive ||
+                          (prayer.answeredComment == null ||
+                              prayer.answeredComment!.isEmpty))
+                        PopupMenuItem(
+                          value: 'edit',
+                          child: Row(
+                            children: [
+                              const Icon(Icons.edit, size: 20),
+                              const SizedBox(width: 12),
+                              Text('prayer.edit_prayer'.tr()),
+                            ],
+                          ),
                         ),
-                      ),
+                      // Show "Edit Answer" option for answered prayers WITH comment
+                      if (!isActive &&
+                          prayer.answeredComment != null &&
+                          prayer.answeredComment!.isNotEmpty)
+                        PopupMenuItem(
+                          value: 'edit_answer',
+                          child: Row(
+                            children: [
+                              Icon(Icons.edit, size: 20, color: Colors.green),
+                              const SizedBox(width: 12),
+                              Text('prayer.edit_answered_comment'.tr()),
+                            ],
+                          ),
+                        ),
                       PopupMenuItem(
                         value: 'delete',
                         child: Row(
@@ -736,6 +758,20 @@ class _PrayersPageState extends State<PrayersPage>
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => AnswerPrayerModal(
+        prayer: prayer,
+      ),
+    );
+  }
+
+  void _showEditAnsweredCommentModal(
+    BuildContext context,
+    Prayer prayer,
+  ) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => EditAnsweredCommentModal(
         prayer: prayer,
       ),
     );

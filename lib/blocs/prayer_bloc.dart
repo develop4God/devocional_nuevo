@@ -22,6 +22,7 @@ class PrayerBloc extends Bloc<PrayerEvent, PrayerState> {
     on<DeletePrayer>(_onDeletePrayer);
     on<MarkPrayerAsAnswered>(_onMarkPrayerAsAnswered);
     on<MarkPrayerAsActive>(_onMarkPrayerAsActive);
+    on<UpdateAnsweredComment>(_onUpdateAnsweredComment);
     on<RefreshPrayers>(_onRefreshPrayers);
     on<ClearPrayerError>(_onClearPrayerError);
   }
@@ -213,6 +214,37 @@ class PrayerBloc extends Bloc<PrayerEvent, PrayerState> {
             errorMessage: 'Error al marcar la oración como activa: $e'));
       }
       debugPrint('Error marking prayer as active: $e');
+    }
+  }
+
+  /// Handles updating the answered comment of a prayer
+  Future<void> _onUpdateAnsweredComment(
+    UpdateAnsweredComment event,
+    Emitter<PrayerState> emit,
+  ) async {
+    try {
+      final currentState = state;
+      if (currentState is! PrayerLoaded) return;
+
+      final updatedPrayers = currentState.prayers.map((prayer) {
+        if (prayer.id == event.prayerId) {
+          return prayer.copyWith(
+            answeredComment: event.comment,
+          );
+        }
+        return prayer;
+      }).toList();
+
+      await _savePrayersToStorage(updatedPrayers);
+      emit(currentState.copyWith(prayers: updatedPrayers));
+    } catch (e) {
+      final currentState = state;
+      if (currentState is PrayerLoaded) {
+        emit(currentState.copyWith(
+            errorMessage:
+                'Error al actualizar el comentario de respuesta: $e'));
+      }
+      debugPrint('Error updating answered comment: $e');
     }
   }
 

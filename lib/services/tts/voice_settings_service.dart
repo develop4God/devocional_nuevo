@@ -25,7 +25,20 @@ class VoiceSettingsService {
   // FlutterTts instance - initialized lazily or injected for testing
   FlutterTts? _flutterTtsInstance;
 
+  // Dedicated TTS instance ONLY for voice samples (no handlers, no state changes)
+  FlutterTts? _sampleTtsInstance;
+
   FlutterTts get _flutterTts => _flutterTtsInstance ??= FlutterTts();
+
+  /// Get dedicated TTS instance for samples (isolated from main playback)
+  FlutterTts get _sampleTts {
+    if (_sampleTtsInstance == null) {
+      _sampleTtsInstance = FlutterTts();
+      debugPrint(
+          '🔊 VoiceSettings: Created dedicated TTS instance for samples');
+    }
+    return _sampleTtsInstance!;
+  }
 
   /// Asigna automáticamente una voz válida por defecto para un idioma si no hay ninguna guardada o la guardada es inválida
   /// Asigna automáticamente una voz válida por defecto para un idioma si no hay ninguna guardada o la guardada es inválida
@@ -184,14 +197,31 @@ class VoiceSettingsService {
   Future<void> playVoiceSample(
       String voiceName, String locale, String sampleText) async {
     try {
-      await _flutterTts.setVoice({
+      // CRITICAL: Use dedicated sample TTS instance to prevent interference
+      // with main playback and avoid triggering the mini-player modal
+      await _sampleTts.stop();
+      await _sampleTts.setVoice({
         'name': voiceName,
         'locale': locale,
       });
-      await _flutterTts.speak(sampleText);
-      debugPrint('🔊🔬 VoiceSettings: Played sample for $voiceName ($locale)');
+      // Siempre aplicar rate 1.0 para samples (voz natural)
+      await _sampleTts.setSpeechRate(0.6);
+      await _sampleTts.speak(sampleText);
+      debugPrint(
+          '🔊🔬 VoiceSettings: Played sample for $voiceName ($locale) using dedicated TTS instance');
     } catch (e) {
       debugPrint('❌ VoiceSettings: Failed to play sample: $e');
+    }
+  }
+
+  /// Stops any playing voice sample
+  Future<void> stopVoiceSample() async {
+    try {
+      // Use dedicated sample TTS instance
+      await _sampleTts.stop();
+      debugPrint('🛑 VoiceSettings: Stopped voice sample');
+    } catch (e) {
+      debugPrint('❌ VoiceSettings: Failed to stop sample: $e');
     }
   }
 

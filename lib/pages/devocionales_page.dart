@@ -568,7 +568,8 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     final colorScheme = Theme.of(context).colorScheme;
     final textColor = colorScheme.onSurface;
     // Slight background for the whole badge using theme surfaceContainerHighest
-    final backgroundColor = colorScheme.surfaceContainerHighest.withValues(alpha: 0.06);
+    final backgroundColor =
+        colorScheme.surfaceContainerHighest.withValues(alpha: 0.06);
 
     return Material(
       color: Colors.transparent,

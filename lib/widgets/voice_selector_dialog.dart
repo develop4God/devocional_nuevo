@@ -1,6 +1,7 @@
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 
@@ -28,15 +29,20 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
   int? _playingIndex;
   late String _translatedSampleText;
 
-  // Get VoiceSettingsService instance from the Service Locator
   late final VoiceSettingsService _voiceSettingsService =
       getService<VoiceSettingsService>();
 
-  // Variables para guardar la selección inicial
   String? _initialVoiceName;
   String? _initialVoiceLocale;
 
-  // Mapeo de voces amigables para español
+  // Flag para forzar fallback en testing (SOLO activo en debug mode)
+  static const bool _forceFallbackForTesting =
+      false; // ← Cambiar a true para probar fallback
+
+  // Getter seguro: solo funciona en debug mode
+  bool get _shouldForceFallback => kDebugMode && _forceFallbackForTesting;
+
+  // Mapeo de voces premium (con género conocido)
   static const Map<String, String> spanishVoiceMap = {
     'es-us-x-esd-local': '🌎',
     'es-US-language': '🌎',
@@ -44,30 +50,34 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
     'es-ES-language': '🇪🇸',
   };
 
-  // Mapeo de voces amigables para inglés
   static const Map<String, String> englishVoiceMap = {
     'en-us-x-tpd-network': '🇺🇸',
     'en-us-x-tpf-local': '🇺🇸',
+    'en-us-x-iob-local': '🇺🇸',
+    'en-US-language': '🇺🇸',
     'en-gb-x-gbb-local': '🇬🇧',
     'en-GB-language': '🇬🇧',
   };
 
-  // Mapeo de voces amigables para portugués
   static const Map<String, String> portugueseVoiceMap = {
-    // Brasil
-    'pt-br-x-ptd-network': '🇧🇷', // Hombre Brasil
-    'pt-br-x-afs-network': '🇧🇷', // Mujer Brasil
-    // Portugal
-    'pt-pt-x-pmj-local': '🇵🇹', // Hombre Portugal
-    'pt-PT-language': '🇵🇹', // Mujer Portugal (solo mayúsculas)
+    'pt-br-x-ptd-network': '🇧🇷',
+    'pt-br-x-afs-network': '🇧🇷',
+    'pt-pt-x-pmj-local': '🇵🇹',
+    'pt-PT-language': '🇵🇹',
   };
 
-  // Mapeo de voces amigables para japonés
   static const Map<String, String> japaneseVoiceMap = {
-    'ja-jp-x-jac-local': '🇯🇵', // Hombre Voz 1
-    'ja-jp-x-jab-local': '🇯🇵', // Mujer Voz 1
-    'ja-jp-x-jad-local': '🇯🇵', // Hombre Voz 2
-    'ja-jp-x-htm-local': '🇯🇵', // Mujer Voz 2
+    'ja-jp-x-jac-local': '🇯🇵',
+    'ja-jp-x-jab-local': '🇯🇵',
+    'ja-jp-x-jad-local': '🇯🇵',
+    'ja-jp-x-htm-local': '🇯🇵',
+  };
+
+  static const Map<String, String> frenchVoiceMap = {
+    'fr-fr-x-frd-network': '🇫🇷',
+    'fr-FR-language': '🇫🇷',
+    'fr-ca-x-cab-network': '🇨🇦',
+    'fr-CA-language': '🇨🇦',
   };
 
   @override
@@ -78,7 +88,6 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
   }
 
   String _getSampleTextByLanguage(String language) {
-    // Plantilla base tomada de español
     const template =
         'Puede guardar esta voz o seleccionar otra, de su preferencia';
     switch (language) {
@@ -97,47 +106,189 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
     }
   }
 
+  String _getCountryFlag(String locale) {
+    // Normalizar locale a formato xx-XX (tomar solo primeros 5 caracteres)
+    final normalizedLocale =
+        locale.length >= 5 ? locale.substring(0, 5) : locale;
+
+    // Extrae los últimos 2 caracteres del locale normalizado
+    final parts = normalizedLocale.split('-');
+    if (parts.length >= 2) {
+      final countryCode = parts[1].toUpperCase();
+      // Validar que sea código de país de 2 letras
+      if (countryCode.length == 2 &&
+          RegExp(r'^[A-Z]{2}\$').hasMatch(countryCode)) {
+        // Conversión de código de país a emoji de bandera
+        final flag = countryCode.codeUnits
+            .map((c) => String.fromCharCode(0x1F1E6 + c - 0x41))
+            .join();
+        return flag;
+      }
+    }
+    return '🌐'; // Fallback global
+  }
+
+  String _normalizeLocale(String locale) {
+    // Normalizar locale a formato xx-XX (5 caracteres)
+
+    if (locale.length >= 5) {
+      return locale.substring(0, 5);
+    }
+    return locale;
+  }
+
+  bool _isPremiumVoice(String voiceName, String language) {
+    switch (language) {
+      case 'es':
+        return spanishVoiceMap.containsKey(voiceName);
+      case 'en':
+        return englishVoiceMap.containsKey(voiceName);
+      case 'pt':
+        return portugueseVoiceMap.containsKey(voiceName);
+      case 'ja':
+        return japaneseVoiceMap.containsKey(voiceName);
+      case 'fr':
+        return frenchVoiceMap.containsKey(voiceName);
+      default:
+        return false;
+    }
+  }
+
+  String _getVoiceEmoji(String voiceName, String locale, String language) {
+    // Si es voz premium, usa el mapa correspondiente
+    switch (language) {
+      case 'es':
+        if (spanishVoiceMap.containsKey(voiceName))
+          return spanishVoiceMap[voiceName]!;
+        break;
+      case 'en':
+        if (englishVoiceMap.containsKey(voiceName))
+          return englishVoiceMap[voiceName]!;
+        break;
+      case 'pt':
+        if (portugueseVoiceMap.containsKey(voiceName))
+          return portugueseVoiceMap[voiceName]!;
+        break;
+      case 'ja':
+        if (japaneseVoiceMap.containsKey(voiceName))
+          return japaneseVoiceMap[voiceName]!;
+        break;
+      case 'fr':
+        if (frenchVoiceMap.containsKey(voiceName))
+          return frenchVoiceMap[voiceName]!;
+        break;
+    }
+    // Si es fallback, extrae la bandera del locale
+    return _getCountryFlag(locale);
+  }
+
   Future<void> _loadVoices() async {
     final voices = await _voiceSettingsService
         .getAvailableVoicesForLanguage(widget.language);
-    List<Map<String, String>> filteredVoices = voices;
-    if (widget.language == 'es') {
-      filteredVoices = voices
-          .where((voice) => spanishVoiceMap.containsKey(voice['name']))
-          .toList();
-      filteredVoices.sort((a, b) =>
-          spanishVoiceMap.keys.toList().indexOf(a['name']!) -
-          spanishVoiceMap.keys.toList().indexOf(b['name']!));
-    } else if (widget.language == 'en') {
-      filteredVoices = voices
-          .where((voice) => englishVoiceMap.containsKey(voice['name']))
-          .toList();
-      filteredVoices.sort((a, b) =>
-          englishVoiceMap.keys.toList().indexOf(a['name']!) -
-          englishVoiceMap.keys.toList().indexOf(b['name']!));
-    } else if (widget.language == 'pt') {
-      filteredVoices = voices
-          .where((voice) => portugueseVoiceMap.containsKey(voice['name']))
-          .toList();
-      filteredVoices.sort((a, b) =>
-          portugueseVoiceMap.keys.toList().indexOf(a['name']!) -
-          portugueseVoiceMap.keys.toList().indexOf(b['name']!));
-    } else if (widget.language == 'ja') {
-      filteredVoices = voices
-          .where((voice) => japaneseVoiceMap.containsKey(voice['name']))
-          .toList();
-      filteredVoices.sort((a, b) =>
-          japaneseVoiceMap.keys.toList().indexOf(a['name']!) -
-          japaneseVoiceMap.keys.toList().indexOf(b['name']!));
+
+    List<Map<String, String>> premiumVoices = [];
+    List<Map<String, String>> fallbackVoices = [];
+
+    // Seleccionar mapa premium según idioma
+    Map<String, String>? premiumMap;
+    switch (widget.language) {
+      case 'es':
+        premiumMap = spanishVoiceMap;
+        break;
+      case 'en':
+        premiumMap = englishVoiceMap;
+        break;
+      case 'pt':
+        premiumMap = portugueseVoiceMap;
+        break;
+      case 'ja':
+        premiumMap = japaneseVoiceMap;
+        break;
+      case 'fr':
+        premiumMap = frenchVoiceMap;
+        break;
     }
+
+    if (premiumMap != null) {
+      // Filtrar voces premium
+      premiumVoices = voices
+          .where((voice) => premiumMap!.containsKey(voice['name']))
+          .toList();
+
+      // Ordenar según el orden del mapa
+      premiumVoices.sort((a, b) =>
+          premiumMap!.keys.toList().indexOf(a['name']!) -
+          premiumMap.keys.toList().indexOf(b['name']!));
+
+      // Si no hay suficientes voces premium (menos de 2), agregar fallback
+      if (premiumVoices.length < 2 || _shouldForceFallback) {
+        debugPrint(
+            '[VoiceSelector] 🔄 Activando fallback para ${widget.language}: '
+            'premium=${premiumVoices.length}, forced=$_shouldForceFallback');
+
+        // Definir locales prioritarios por idioma (los más comunes)
+        final priorityLocales = <String, List<String>>{
+          'es': ['es-ES', 'es-MX', 'es-US', 'es-AR'],
+          'en': ['en-US', 'en-GB', 'en-AU', 'en-CA'],
+          'pt': ['pt-BR', 'pt-PT'],
+          'fr': ['fr-FR', 'fr-CA'],
+          'ja': ['ja-JP'],
+        };
+
+        final priorities = priorityLocales[widget.language] ?? [];
+
+        // Agrupar voces por locale y limitar a 2 por locale
+        final voicesByLocale = <String, List<Map<String, String>>>{};
+
+        for (final voice in voices) {
+          final name = voice['name'] ?? '';
+          final locale = voice['locale'] ?? '';
+
+          // No incluir voces que ya están en premium
+          if (premiumMap.containsKey(name)) continue;
+
+          // Normalizar locale a formato xx-XX
+          final normalizedLocale = _normalizeLocale(locale);
+
+          // Solo incluir si el locale normalizado está en la lista prioritaria
+          final matchingPriority = priorities.firstWhere(
+            (priority) =>
+                normalizedLocale.toLowerCase() == priority.toLowerCase(),
+            orElse: () => '',
+          );
+
+          if (matchingPriority.isNotEmpty) {
+            voicesByLocale.putIfAbsent(matchingPriority, () => []);
+            // Limitar a 2 voces por locale
+            if (voicesByLocale[matchingPriority]!.length < 2) {
+              voicesByLocale[matchingPriority]!.add(voice);
+            }
+          }
+        }
+
+        // Aplanar el mapa manteniendo el orden de prioridad
+        for (final priority in priorities) {
+          if (voicesByLocale.containsKey(priority)) {
+            fallbackVoices.addAll(voicesByLocale[priority]!);
+          }
+        }
+
+        debugPrint(
+            '[VoiceSelector] ✅ Fallback encontró ${fallbackVoices.length} voces '
+            'distribuidas en ${voicesByLocale.length} locales (máx 2 por locale)');
+      }
+    }
+
     setState(() {
-      _voices = filteredVoices;
+      _voices = [...premiumVoices, ...fallbackVoices];
       _isLoading = false;
-      // Elimino la selección por defecto, el usuario debe seleccionar manualmente
       _selectedVoiceName = null;
       _selectedVoiceLocale = null;
       _initialVoiceName = null;
       _initialVoiceLocale = null;
+
+      debugPrint('[VoiceSelector] 📋 Total voces cargadas: ${_voices.length} '
+          '(premium: ${premiumVoices.length}, fallback: ${fallbackVoices.length})');
     });
   }
 
@@ -151,6 +302,150 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
     setState(() {
       _playingIndex = null;
     });
+  }
+
+  @override
+  void dispose() {
+    _voiceSettingsService.stopVoiceSample();
+    super.dispose();
+  }
+
+  Widget _buildVoiceIcon(
+      String voiceName, String language, ColorScheme colorScheme) {
+    final isPremium = _isPremiumVoice(voiceName, language);
+
+    if (!isPremium) {
+      return Icon(Icons.person, color: colorScheme.primary, size: 38);
+    }
+
+    // Lógica para voces premium con género conocido
+    switch (language) {
+      case 'es':
+        if (voiceName == 'es-us-x-esd-local' ||
+            voiceName == 'es-es-x-eed-local') {
+          return Icon(Icons.man_3_outlined,
+              color: colorScheme.primary, size: 38);
+        } else {
+          return Icon(Icons.woman_outlined,
+              color: colorScheme.primary, size: 38);
+        }
+      case 'en':
+        if (voiceName == 'en-us-x-tpd-network' ||
+            voiceName == 'en-gb-x-gbb-local') {
+          return Icon(Icons.man_3_outlined,
+              color: colorScheme.primary, size: 38);
+        } else {
+          return Icon(Icons.woman_outlined,
+              color: colorScheme.primary, size: 38);
+        }
+      case 'pt':
+        if (voiceName == 'pt-br-x-ptd-network' ||
+            voiceName == 'pt-pt-x-pmj-local') {
+          return Icon(Icons.man_3_outlined,
+              color: colorScheme.primary, size: 38);
+        } else {
+          return Icon(Icons.woman_outlined,
+              color: colorScheme.primary, size: 38);
+        }
+      case 'ja':
+        if (voiceName == 'ja-jp-x-jac-local' ||
+            voiceName == 'ja-jp-x-jad-local') {
+          return Icon(Icons.man_3_outlined,
+              color: colorScheme.primary, size: 38);
+        } else {
+          return Icon(Icons.woman_outlined,
+              color: colorScheme.primary, size: 38);
+        }
+      case 'fr':
+        if (voiceName == 'fr-fr-x-frd-network' ||
+            voiceName == 'fr-ca-x-cab-network') {
+          return Icon(Icons.man_3_outlined,
+              color: colorScheme.primary, size: 38);
+        } else {
+          return Icon(Icons.woman_outlined,
+              color: colorScheme.primary, size: 38);
+        }
+      default:
+        return Icon(Icons.person, color: colorScheme.primary, size: 38);
+    }
+  }
+
+  String _getVoiceDescription(
+      String voiceName, String locale, String language) {
+    final isPremium = _isPremiumVoice(voiceName, language);
+
+    if (!isPremium) {
+      // Para fallback: mostrar solo el locale normalizado (xx-XX)
+      return _normalizeLocale(locale);
+    }
+
+    // Descripciones para voces premium
+    switch (language) {
+      case 'es':
+        switch (voiceName) {
+          case 'es-us-x-esd-local':
+            return 'Hombre Latinoamérica';
+          case 'es-US-language':
+            return 'Mujer Latinoamérica';
+          case 'es-es-x-eed-local':
+            return 'Hombre España';
+          case 'es-ES-language':
+            return 'Mujer España';
+        }
+        break;
+      case 'en':
+        switch (voiceName) {
+          case 'en-us-x-tpd-network':
+            return 'Male United States';
+          case 'en-us-x-tpf-local':
+          case 'en-us-x-iob-local':
+          case 'en-US-language':
+            return 'Female United States';
+          case 'en-gb-x-gbb-local':
+            return 'Male United Kingdom';
+          case 'en-GB-language':
+            return 'Female United Kingdom';
+        }
+        break;
+      case 'pt':
+        switch (voiceName) {
+          case 'pt-br-x-ptd-network':
+            return 'Homem Brasil';
+          case 'pt-br-x-afs-network':
+            return 'Mulher Brasil';
+          case 'pt-pt-x-pmj-local':
+            return 'Homem Portugal';
+          case 'pt-PT-language':
+            return 'Mulher Portugal';
+        }
+        break;
+      case 'ja':
+        switch (voiceName) {
+          case 'ja-jp-x-jac-local':
+            return '男性 声 1';
+          case 'ja-jp-x-jad-local':
+            return '男性 声 2';
+          case 'ja-jp-x-jab-local':
+            return '女性 声 1';
+          case 'ja-jp-x-htm-local':
+            return '女性 声 2';
+        }
+        break;
+      case 'fr':
+        switch (voiceName) {
+          case 'fr-fr-x-frd-network':
+            return 'Homme France';
+          case 'fr-FR-language':
+            return 'Femme France';
+          case 'fr-ca-x-cab-network':
+            return 'Homme Canada';
+          case 'fr-CA-language':
+            return 'Femme Canada';
+        }
+        break;
+    }
+
+    return locale; // Fallback genérico
   }
 
   @override
@@ -185,7 +480,6 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
           padding: const EdgeInsets.all(24.0),
           child: Stack(
             children: [
-              // Botón de cerrar en la esquina superior izquierda, siempre visible
               Positioned(
                 top: 8,
                 left: 8,
@@ -203,7 +497,6 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
                   ),
                 ),
               ),
-              // Mostrar Lottie de tap si no hay selección nueva
               if (!(_selectedVoiceName != null &&
                   _selectedVoiceLocale != null &&
                   (_selectedVoiceName != _initialVoiceName ||
@@ -215,7 +508,7 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
                     width: 48,
                     height: 48,
                     child: Transform.rotate(
-                      angle: 3.92699, // 225 grados en radianes
+                      angle: 3.92699,
                       child: Lottie.asset(
                         'assets/lottie/tap_screen.json',
                         repeat: true,
@@ -224,7 +517,6 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
                     ),
                   ),
                 ),
-              // Botón de guardar en la esquina superior derecha
               if (_selectedVoiceName != null &&
                   _selectedVoiceLocale != null &&
                   (_selectedVoiceName != _initialVoiceName ||
@@ -238,6 +530,7 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
                       borderRadius: BorderRadius.circular(32),
                       onTap: () async {
                         final navigator = Navigator.of(context);
+                        await _voiceSettingsService.stopVoiceSample();
                         await _voiceSettingsService.saveVoice(
                           widget.language,
                           _selectedVoiceName!,
@@ -364,393 +657,40 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
                                               children: [
                                                 Row(
                                                   children: [
-                                                    // Icono y emoji para portugués
-                                                    if (widget.language ==
-                                                        'pt') ...[
-                                                      if (voice['name'] ==
-                                                              'pt-br-x-ptd-network' ||
-                                                          voice['name'] ==
-                                                              'pt-pt-x-pmj-local')
-                                                        Icon(
-                                                            Icons
-                                                                .man_3_outlined,
-                                                            color: colorScheme
-                                                                .primary,
-                                                            size: 38),
-                                                      if (voice['name'] ==
-                                                              'pt-br-x-afs-network' ||
-                                                          voice['name'] ==
-                                                              'pt-PT-language')
-                                                        Icon(
-                                                            Icons
-                                                                .woman_outlined,
-                                                            color: colorScheme
-                                                                .primary,
-                                                            size: 38),
-                                                      const SizedBox(width: 10),
-                                                      Text(
-                                                        portugueseVoiceMap[
-                                                                voice['name'] ??
-                                                                    ''] ??
-                                                            (voice['name'] ??
-                                                                ''),
-                                                        style: TextStyle(
-                                                            fontWeight:
-                                                                FontWeight.w900,
-                                                            fontSize: 32,
-                                                            color: colorScheme
-                                                                .primary),
-                                                      ),
-                                                    ]
-                                                    // ...existing code para es/en...
-                                                    else if (widget.language ==
-                                                        'es') ...[
-                                                      if (voice['name'] ==
-                                                              'es-us-x-esd-local' ||
-                                                          voice['name'] ==
-                                                              'es-es-x-eed-local')
-                                                        Icon(
-                                                            Icons
-                                                                .man_3_outlined,
-                                                            color: colorScheme
-                                                                .primary,
-                                                            size: 38),
-                                                      if (voice['name'] ==
-                                                              'es-US-language' ||
-                                                          voice['name'] ==
-                                                              'es-ES-language')
-                                                        Icon(
-                                                            Icons
-                                                                .woman_outlined,
-                                                            color: colorScheme
-                                                                .primary,
-                                                            size: 38),
-                                                      const SizedBox(width: 10),
-                                                      Text(
-                                                        spanishVoiceMap[
-                                                                voice['name'] ??
-                                                                    ''] ??
-                                                            (voice['name'] ??
-                                                                ''),
-                                                        style: TextStyle(
-                                                            fontWeight:
-                                                                FontWeight.w900,
-                                                            fontSize: 32,
-                                                            color: colorScheme
-                                                                .primary),
-                                                      ),
-                                                    ] else if (widget
-                                                            .language ==
-                                                        'en') ...[
-                                                      if (voice['name'] ==
-                                                              'en-us-x-tpd-network' ||
-                                                          voice['name'] ==
-                                                              'en-gb-x-gbb-local')
-                                                        Icon(
-                                                            Icons
-                                                                .man_3_outlined,
-                                                            color: colorScheme
-                                                                .primary,
-                                                            size: 38),
-                                                      if (voice['name'] ==
-                                                              'en-us-x-tpf-local' ||
-                                                          voice['name'] ==
-                                                              'en-GB-language')
-                                                        Icon(
-                                                            Icons
-                                                                .woman_outlined,
-                                                            color: colorScheme
-                                                                .primary,
-                                                            size: 38),
-                                                      const SizedBox(width: 10),
-                                                      Text(
-                                                        englishVoiceMap[
-                                                                voice['name'] ??
-                                                                    ''] ??
-                                                            (voice['name'] ??
-                                                                ''),
-                                                        style: TextStyle(
-                                                            fontWeight:
-                                                                FontWeight.w900,
-                                                            fontSize: 32,
-                                                            color: colorScheme
-                                                                .primary),
-                                                      ),
-                                                    ] else if (widget
-                                                            .language ==
-                                                        'ja') ...[
-                                                      if (voice['name'] ==
-                                                              'ja-jp-x-jac-local' ||
-                                                          voice['name'] ==
-                                                              'ja-jp-x-jad-local')
-                                                        Icon(
-                                                            Icons
-                                                                .man_3_outlined,
-                                                            color: colorScheme
-                                                                .primary,
-                                                            size: 38),
-                                                      if (voice['name'] ==
-                                                              'ja-jp-x-jab-local' ||
-                                                          voice['name'] ==
-                                                              'ja-jp-x-htm-local')
-                                                        Icon(
-                                                            Icons
-                                                                .woman_outlined,
-                                                            color: colorScheme
-                                                                .primary,
-                                                            size: 38),
-                                                      const SizedBox(width: 10),
-                                                      Text(
-                                                        japaneseVoiceMap[
-                                                                voice['name'] ??
-                                                                    ''] ??
-                                                            (voice['name'] ??
-                                                                ''),
-                                                        style: TextStyle(
-                                                            fontWeight:
-                                                                FontWeight.w900,
-                                                            fontSize: 32,
-                                                            color: colorScheme
-                                                                .primary),
-                                                      ),
-                                                    ] else if (widget
-                                                            .language ==
-                                                        'fr') ...[
-                                                      Icon(
-                                                          Icons
-                                                              .record_voice_over,
+                                                    _buildVoiceIcon(
+                                                        voice['name']!,
+                                                        widget.language,
+                                                        colorScheme),
+                                                    const SizedBox(width: 10),
+                                                    Text(
+                                                      _getVoiceEmoji(
+                                                          voice['name']!,
+                                                          voice['locale']!,
+                                                          widget.language),
+                                                      style: TextStyle(
+                                                          fontWeight:
+                                                              FontWeight.w900,
+                                                          fontSize: 32,
                                                           color: colorScheme
-                                                              .primary,
-                                                          size: 38),
-                                                      const SizedBox(width: 10),
-                                                      Text(
-                                                        '🇫🇷 ${voice['name'] ?? ''}',
-                                                        style: TextStyle(
-                                                            fontWeight:
-                                                                FontWeight.w900,
-                                                            fontSize: 22,
-                                                            color: colorScheme
-                                                                .primary),
-                                                      ),
-                                                    ]
+                                                              .primary),
+                                                    ),
                                                   ],
                                                 ),
-                                                // Explicación debajo de cada voz
-                                                if (widget.language ==
-                                                    'pt') ...[
-                                                  if (voice['name'] ==
-                                                      'pt-br-x-ptd-network')
-                                                    Padding(
-                                                      padding:
-                                                          const EdgeInsets.only(
-                                                              left: 36, top: 2),
-                                                      child: Text(
-                                                          'Homem Brasil',
-                                                          style: TextStyle(
-                                                              fontSize: 13,
-                                                              color: colorScheme
-                                                                  .onSurface)),
-                                                    ),
-                                                  if (voice['name'] ==
-                                                      'pt-br-x-afs-network')
-                                                    Padding(
-                                                      padding:
-                                                          const EdgeInsets.only(
-                                                              left: 36, top: 2),
-                                                      child: Text(
-                                                          'Mulher Brasil',
-                                                          style: TextStyle(
-                                                              fontSize: 13,
-                                                              color: colorScheme
-                                                                  .onSurface)),
-                                                    ),
-                                                  if (voice['name'] ==
-                                                      'pt-pt-x-pmj-local')
-                                                    Padding(
-                                                      padding:
-                                                          const EdgeInsets.only(
-                                                              left: 36, top: 2),
-                                                      child: Text(
-                                                          'Homem Portugal',
-                                                          style: TextStyle(
-                                                              fontSize: 13,
-                                                              color: colorScheme
-                                                                  .onSurface)),
-                                                    ),
-                                                  if (voice['name'] ==
-                                                      'pt-PT-language')
-                                                    Padding(
-                                                      padding:
-                                                          const EdgeInsets.only(
-                                                              left: 36, top: 2),
-                                                      child: Text(
-                                                          'Mulher Portugal',
-                                                          style: TextStyle(
-                                                              fontSize: 13,
-                                                              color: colorScheme
-                                                                  .onSurface)),
-                                                    ),
-                                                ]
-                                                // ...existing code para es/en...
-                                                else if (widget.language ==
-                                                    'es') ...[
-                                                  if (voice['name'] ==
-                                                      'es-us-x-esd-local')
-                                                    Padding(
-                                                      padding:
-                                                          const EdgeInsets.only(
-                                                              left: 36, top: 2),
-                                                      child: Text(
-                                                          'Hombre Latinoamérica',
-                                                          style: TextStyle(
-                                                              fontSize: 13,
-                                                              color: colorScheme
-                                                                  .onSurface)),
-                                                    ),
-                                                  if (voice['name'] ==
-                                                      'es-US-language')
-                                                    Padding(
-                                                      padding:
-                                                          const EdgeInsets.only(
-                                                              left: 36, top: 2),
-                                                      child: Text(
-                                                          'Mujer Latinoamérica',
-                                                          style: TextStyle(
-                                                              fontSize: 13,
-                                                              color: colorScheme
-                                                                  .onSurface)),
-                                                    ),
-                                                  if (voice['name'] ==
-                                                      'es-es-x-eed-local')
-                                                    Padding(
-                                                      padding:
-                                                          const EdgeInsets.only(
-                                                              left: 36, top: 2),
-                                                      child: Text(
-                                                          'Hombre España',
-                                                          style: TextStyle(
-                                                              fontSize: 13,
-                                                              color: colorScheme
-                                                                  .onSurface)),
-                                                    ),
-                                                  if (voice['name'] ==
-                                                      'es-ES-language')
-                                                    Padding(
-                                                      padding:
-                                                          const EdgeInsets.only(
-                                                              left: 36, top: 2),
-                                                      child: Text(
-                                                          'Mujer España',
-                                                          style: TextStyle(
-                                                              fontSize: 13,
-                                                              color: colorScheme
-                                                                  .onSurface)),
-                                                    ),
-                                                ] else if (widget.language ==
-                                                    'en') ...[
-                                                  if (voice['name'] ==
-                                                      'en-us-x-tpd-network')
-                                                    Padding(
-                                                      padding:
-                                                          const EdgeInsets.only(
-                                                              left: 36, top: 2),
-                                                      child: Text(
-                                                          'Male United States',
-                                                          style: TextStyle(
-                                                              fontSize: 13,
-                                                              color: colorScheme
-                                                                  .onSurface)),
-                                                    ),
-                                                  if (voice['name'] ==
-                                                      'en-us-x-tpf-local')
-                                                    Padding(
-                                                      padding:
-                                                          const EdgeInsets.only(
-                                                              left: 36, top: 2),
-                                                      child: Text(
-                                                          'Female United States',
-                                                          style: TextStyle(
-                                                              fontSize: 13,
-                                                              color: colorScheme
-                                                                  .onSurface)),
-                                                    ),
-                                                  if (voice['name'] ==
-                                                      'en-gb-x-gbb-local')
-                                                    Padding(
-                                                      padding:
-                                                          const EdgeInsets.only(
-                                                              left: 36, top: 2),
-                                                      child: Text(
-                                                          'Male United Kingdom',
-                                                          style: TextStyle(
-                                                              fontSize: 13,
-                                                              color: colorScheme
-                                                                  .onSurface)),
-                                                    ),
-                                                  if (voice['name'] ==
-                                                      'en-GB-language')
-                                                    Padding(
-                                                      padding:
-                                                          const EdgeInsets.only(
-                                                              left: 36, top: 2),
-                                                      child: Text(
-                                                          'Female United Kingdom',
-                                                          style: TextStyle(
-                                                              fontSize: 13,
-                                                              color: colorScheme
-                                                                  .onSurface)),
-                                                    ),
-                                                ] else if (widget.language ==
-                                                    'ja') ...[
-                                                  if (voice['name'] ==
-                                                      'ja-jp-x-jac-local')
-                                                    Padding(
-                                                      padding:
-                                                          const EdgeInsets.only(
-                                                              left: 36, top: 2),
-                                                      child: Text('男性 声 1',
-                                                          style: TextStyle(
-                                                              fontSize: 13,
-                                                              color: colorScheme
-                                                                  .onSurface)),
-                                                    ),
-                                                  if (voice['name'] ==
-                                                      'ja-jp-x-jad-local')
-                                                    Padding(
-                                                      padding:
-                                                          const EdgeInsets.only(
-                                                              left: 36, top: 2),
-                                                      child: Text('男性 声 2',
-                                                          style: TextStyle(
-                                                              fontSize: 13,
-                                                              color: colorScheme
-                                                                  .onSurface)),
-                                                    ),
-                                                  if (voice['name'] ==
-                                                      'ja-jp-x-jab-local')
-                                                    Padding(
-                                                      padding:
-                                                          const EdgeInsets.only(
-                                                              left: 36, top: 2),
-                                                      child: Text('女性 声 1',
-                                                          style: TextStyle(
-                                                              fontSize: 13,
-                                                              color: colorScheme
-                                                                  .onSurface)),
-                                                    ),
-                                                  if (voice['name'] ==
-                                                      'ja-jp-x-htm-local')
-                                                    Padding(
-                                                      padding:
-                                                          const EdgeInsets.only(
-                                                              left: 36, top: 2),
-                                                      child: Text('女性 声 2',
-                                                          style: TextStyle(
-                                                              fontSize: 13,
-                                                              color: colorScheme
-                                                                  .onSurface)),
-                                                    ),
-                                                ]
+                                                Padding(
+                                                  padding:
+                                                      const EdgeInsets.only(
+                                                          left: 36, top: 2),
+                                                  child: Text(
+                                                    _getVoiceDescription(
+                                                        voice['name']!,
+                                                        voice['locale']!,
+                                                        widget.language),
+                                                    style: TextStyle(
+                                                        fontSize: 13,
+                                                        color: colorScheme
+                                                            .onSurface),
+                                                  ),
+                                                ),
                                               ],
                                             ),
                                             trailing: isPlaying

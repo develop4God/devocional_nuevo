@@ -63,7 +63,8 @@
     "offline_mode": "Modo offline",
     "online_mode": "Modo online",
     "choose_option": "Escolha uma opção",
-    "no_devocionales": "Nenhum devocional disponível"
+    "no_devocionales": "Nenhum devocional disponível",
+    "no_devotionals_available": "Nenhum devocional disponível para o idioma/versão selecionados."
   },
   "prayer": {
     "invitation_title": "Convite à Oração",
@@ -109,8 +110,12 @@
     "days_old_plural": "({days} dias)",
     "prayer_updated": "Oração atualizada com sucesso",
     "prayer_created": "Oração criada com sucesso",
+    "prayer_update_error": "Erro ao atualizar a oração",
     "prayer": "Oração",
-    "prayers": "Orações"
+    "prayers": "Orações",
+    "edit_answered_comment": "Editar Resposta",
+    "edit_answered_comment_description": "Edite o comentário sobre como esta oração foi respondida.",
+    "edit_answered_placeholder": "Deus respondeu esta oração através de...\n\nSou grato por..."
   },
   "settings": {
     "title": "Configurações",

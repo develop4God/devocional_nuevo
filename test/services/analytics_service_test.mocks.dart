@@ -24,7 +24,6 @@ import 'package:mockito/mockito.dart' as _i1;
 // ignore_for_file: unnecessary_parenthesis
 // ignore_for_file: camel_case_types
 // ignore_for_file: subtype_of_sealed_class
-// ignore_for_file: invalid_use_of_internal_member
 
 class _FakeFirebaseApp_0 extends _i1.SmartFake implements _i2.FirebaseApp {
   _FakeFirebaseApp_0(
@@ -60,10 +59,10 @@ class MockFirebaseAnalytics extends _i1.Mock implements _i3.FirebaseAnalytics {
       ) as _i4.Future<String?>);
 
   @override
-  set app(_i2.FirebaseApp? value) => super.noSuchMethod(
+  set app(_i2.FirebaseApp? _app) => super.noSuchMethod(
         Invocation.setter(
           #app,
-          value,
+          _app,
         ),
         returnValueForMissingStub: null,
       );

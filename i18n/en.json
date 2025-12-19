@@ -109,8 +109,12 @@
     "days_old_plural": "({days} days)",
     "prayer_updated": "Prayer updated successfully",
     "prayer_created": "Prayer created successfully",
+    "prayer_update_error": "Error updating prayer",
     "prayer": "Prayer",
-    "prayers": "Prayers"
+    "prayers": "Prayers",
+    "edit_answered_comment": "Edit Answer",
+    "edit_answered_comment_description": "Edit the comment about how this prayer was answered.",
+    "edit_answered_placeholder": "God answered this prayer by...\n\nI am grateful for..."
   },
   "settings": {
     "title": "Settings",
