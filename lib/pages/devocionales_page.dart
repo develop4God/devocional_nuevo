@@ -1044,21 +1044,39 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                       vertical: 6,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: colorScheme.primary.withAlpha(
-                                        (0.1 * 255).round(),
+                                      // Three-color gradient for depth
+                                      gradient: LinearGradient(
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
+                                        colors: [
+                                          colorScheme.primary.withAlpha((0.25 * 255).round()),
+                                          colorScheme.primary.withAlpha((0.08 * 255).round()),
+                                          colorScheme.secondary.withAlpha((0.06 * 255).round()),
+                                        ],
+                                        stops: const [0.0, 0.6, 1.0],
                                       ),
-                                      borderRadius: BorderRadius.circular(10),
-                                      border: Border.all(
-                                        color: colorScheme.primary.withAlpha(
-                                          (0.3 * 255).round(),
+                                      borderRadius: BorderRadius.circular(20),
+                                      // Multi-layer shadows for depth
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: colorScheme.primary.withAlpha((0.2 * 255).round()),
+                                          blurRadius: 20,
+                                          offset: const Offset(0, 8),
+                                          spreadRadius: -4,
                                         ),
-                                      ),
+                                        BoxShadow(
+                                          color: Colors.black.withAlpha((0.05 * 255).round()),
+                                          blurRadius: 40,
+                                          offset: const Offset(0, 16),
+                                          spreadRadius: -8,
+                                        ),
+                                      ],
                                     ),
                                     child: AutoSizeText(
                                       currentDevocional.versiculo,
                                       textAlign: TextAlign.center,
                                       style: GoogleFonts.playfairDisplay(
-                                        fontSize: 24,
+                                        fontSize: 22,
                                         fontWeight: FontWeight.w600,
                                         height: 1.4,
                                         letterSpacing: 0.3,
@@ -1252,9 +1270,6 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                 ? devocionalProvider.isFavorite(currentDevocional)
                 : false;
 
-            final Color appBarForegroundColor =
-                Theme.of(context).appBarTheme.foregroundColor ??
-                    colorScheme.onPrimary;
             final Color? appBarBackgroundColor = Theme.of(
               context,
             ).appBarTheme.backgroundColor;
@@ -1465,12 +1480,12 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                               );
                               _goToBible();
                             },
-                            icon: (Icon(
+                            icon: Icon(
                               Icons.auto_stories_outlined,
                               color: Colors.white,
                               size: 32,
-                            )).newIconBadge,
-                          ),
+                            ),
+                          ), // <-- Properly close the IconButton here
                           IconButton(
                             key: const Key('bottom_appbar_share_icon'),
                             tooltip: 'devotionals.share_devotional'.tr(),
@@ -1479,7 +1494,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                 : null,
                             icon: Icon(
                               Icons.share_outlined,
-                              color: appBarForegroundColor,
+                              color: colorScheme.onPrimary,
                               size: 30,
                             ),
                           ),
@@ -1505,7 +1520,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                             },
                             icon: Icon(
                               Icons.emoji_events_outlined,
-                              color: appBarForegroundColor,
+                              color: colorScheme.onPrimary,
                               size: 30,
                             ),
                           ),
@@ -1538,9 +1553,9 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                             },
                             icon: Icon(
                               Icons.app_settings_alt_outlined,
-                              color: appBarForegroundColor,
+                              color: colorScheme.onPrimary,
                               size: 30,
-                            ).newIconBadge,
+                            ),
                           ),
                         ],
                       ),
