@@ -57,6 +57,12 @@ google-services.json
 .classpath
 .settings/
 
+# Almacenes de llaves (Keystores)
+*.jks
+*.keystore
+*.p12
+*.pem
+
 # Archivos de compilación específicos de la plataforma (adicionales a 'build/')
 **/android/*.apk
 **/android/*.aab
