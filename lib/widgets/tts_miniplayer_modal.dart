@@ -268,6 +268,10 @@ class _TtsMiniplayerModalState extends State<TtsMiniplayerModal> {
             colorScheme.primary.withAlpha(200),
           ],
         ),
+        border: Border.all(
+          color: Colors.grey[400]!, // Borde gris claro
+          width: 3,
+        ),
         boxShadow: [
           BoxShadow(
             color: colorScheme.primary.withAlpha(100),
@@ -373,8 +377,8 @@ class _TtsMiniplayerModalState extends State<TtsMiniplayerModal> {
               ),
               borderRadius: BorderRadius.circular(24),
               border: Border.all(
-                color: colorScheme.primary.withAlpha(150),
-                width: 2,
+                color: Colors.grey[400]!, // Borde gris claro igual al botón central
+                width: 3,
               ),
             ),
             child: Row(
