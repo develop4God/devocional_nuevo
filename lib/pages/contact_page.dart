@@ -176,7 +176,8 @@ class _ContactPageState extends State<ContactPage> {
                           Text(
                             'contact.select_option'.tr(),
                             style: TextStyle(
-                              color: Theme.of(context).brightness == Brightness.dark
+                              color: Theme.of(context).brightness ==
+                                      Brightness.dark
                                   ? colorScheme.onSurfaceVariant
                                   : colorScheme.primary,
                             ),
@@ -221,7 +222,8 @@ class _ContactPageState extends State<ContactPage> {
                                 child: Text(
                                   option,
                                   style: TextStyle(
-                                    color: Theme.of(context).brightness == Brightness.dark
+                                    color: Theme.of(context).brightness ==
+                                            Brightness.dark
                                         ? colorScheme.onSurface
                                         : colorScheme.primary,
                                   ),

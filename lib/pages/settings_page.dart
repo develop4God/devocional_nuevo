@@ -7,7 +7,6 @@ import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/pages/about_page.dart';
 import 'package:devocional_nuevo/pages/application_language_page.dart';
 import 'package:devocional_nuevo/pages/contact_page.dart';
-import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/providers/localization_provider.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
@@ -27,7 +26,6 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
-  double _ttsSpeed = 0.4;
   // Get VoiceSettingsService instance from the Service Locator
   late final VoiceSettingsService _voiceSettingsService =
       getService<VoiceSettingsService>();
@@ -54,15 +52,6 @@ class _SettingsPageState extends State<SettingsPage> {
     try {
       final currentLanguage = localizationProvider.currentLocale.languageCode;
       await _voiceSettingsService.autoAssignDefaultVoice(currentLanguage);
-
-      final prefs = await SharedPreferences.getInstance();
-      final savedRate = prefs.getDouble('tts_rate') ?? 0.5;
-
-      if (mounted) {
-        setState(() {
-          _ttsSpeed = savedRate;
-        });
-      }
     } catch (e) {
       developer.log('Error loading TTS settings: $e');
       if (mounted) {
@@ -94,21 +83,6 @@ class _SettingsPageState extends State<SettingsPage> {
     final prefs = await SharedPreferences.getInstance();
     // Load saved voice name for the current language (used by VoiceSelectorDialog)
     prefs.getString('tts_voice_name_$language');
-  }
-
-  Future<void> _onSpeedChanged(double value) async {
-    try {
-      final devocionalProvider = Provider.of<DevocionalProvider>(
-        context,
-        listen: false,
-      );
-      await devocionalProvider.setTtsSpeechRate(value);
-    } catch (e) {
-      developer.log('Error setting TTS speed: $e');
-      if (mounted) {
-        _showErrorSnackBar('Error setting speech rate: $e');
-      }
-    }
   }
 
   // Original PayPal method - preserved exactly
@@ -268,35 +242,6 @@ class _SettingsPageState extends State<SettingsPage> {
                     ),
                   ),
                   const SizedBox(height: 15),
-
-                  Row(
-                    children: [
-                      Icon(Icons.speed, color: colorScheme.primary),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Text(
-                          'settings.tts_speed'.tr(),
-                          style: textTheme.bodyMedium?.copyWith(
-                            fontSize: 16,
-                            color: colorScheme.onSurface,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  Slider(
-                    value: _ttsSpeed,
-                    min: 0.1,
-                    max: 1.0,
-                    divisions: 9,
-                    label: '${(_ttsSpeed * 100).round()}%',
-                    onChanged: (double value) {
-                      setState(() {
-                        _ttsSpeed = value;
-                      });
-                    },
-                    onChangeEnd: _onSpeedChanged,
-                  ),
 
                   const SizedBox(height: 20),
 
