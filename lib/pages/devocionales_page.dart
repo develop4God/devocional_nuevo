@@ -656,7 +656,8 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     Navigator.push(
       context,
       PageRouteBuilder(
-        pageBuilder: (context, animation, secondaryAnimation) => const PrayersPage(),
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            const PrayersPage(),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           return FadeTransition(opacity: animation, child: child);
         },
@@ -694,7 +695,8 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     Navigator.push(
       context,
       PageRouteBuilder(
-        pageBuilder: (context, animation, secondaryAnimation) => BibleReaderPage(versions: versions),
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            BibleReaderPage(versions: versions),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           return FadeTransition(opacity: animation, child: child);
         },
@@ -1004,33 +1006,65 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                     ],
                                   ),
                                 ),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 6,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: colorScheme.primary.withAlpha(
-                                      (0.1 * 255).round(),
+                                GestureDetector(
+                                  onTap: () async {
+                                    try {
+                                      await Clipboard.setData(
+                                        ClipboardData(
+                                          text: currentDevocional.versiculo,
+                                        ),
+                                      );
+                                      HapticFeedback.selectionClick();
+                                      // Show SnackBar with theme colors
+                                      final messenger =
+                                          ScaffoldMessenger.of(context);
+                                      final ColorScheme colorScheme =
+                                          Theme.of(context).colorScheme;
+                                      messenger.showSnackBar(
+                                        SnackBar(
+                                          backgroundColor:
+                                              colorScheme.secondary,
+                                          duration: const Duration(seconds: 2),
+                                          content: Text(
+                                            'share.copied_to_clipboard'.tr(),
+                                            style: TextStyle(
+                                                color: colorScheme.onSecondary),
+                                          ),
+                                        ),
+                                      );
+                                    } catch (e) {
+                                      debugPrint(
+                                          '[DevocionalesPage] Error copying verse to clipboard: $e');
+                                    }
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 6,
                                     ),
-                                    borderRadius: BorderRadius.circular(10),
-                                    border: Border.all(
+                                    decoration: BoxDecoration(
                                       color: colorScheme.primary.withAlpha(
-                                        (0.3 * 255).round(),
+                                        (0.1 * 255).round(),
+                                      ),
+                                      borderRadius: BorderRadius.circular(10),
+                                      border: Border.all(
+                                        color: colorScheme.primary.withAlpha(
+                                          (0.3 * 255).round(),
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                  child: AutoSizeText(
-                                    currentDevocional.versiculo,
-                                    textAlign: TextAlign.center,
-                                    style: GoogleFonts.playfairDisplay(
-                                      fontSize: 24,
-                                      fontWeight: FontWeight.w600,
-                                      height: 1.4,
-                                      letterSpacing: 0.3,
-                                      color: colorScheme.onSurface,
+                                    child: AutoSizeText(
+                                      currentDevocional.versiculo,
+                                      textAlign: TextAlign.center,
+                                      style: GoogleFonts.playfairDisplay(
+                                        fontSize: 24,
+                                        fontWeight: FontWeight.w600,
+                                        height: 1.4,
+                                        letterSpacing: 0.3,
+                                        color: colorScheme.onSurface,
+                                      ),
+                                      maxLines: 12,
                                     ),
-                                    maxLines: 12,
                                   ),
                                 ),
                                 const SizedBox(height: 20),
@@ -1281,7 +1315,8 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                     borderRadius: BorderRadius.circular(22),
                                   ),
                                   foregroundColor: colorScheme.primary,
-                                  overlayColor: colorScheme.primary.withAlpha((0.1 * 255).round()), // Added feedback
+                                  overlayColor: colorScheme.primary.withAlpha(
+                                      (0.1 * 255).round()), // Added feedback
                                 ),
                               ),
                             ),
@@ -1340,7 +1375,8 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                     borderRadius: BorderRadius.circular(22),
                                   ),
                                   foregroundColor: colorScheme.primary,
-                                  overlayColor: colorScheme.primary.withAlpha((0.1 * 255).round()), // Added feedback
+                                  overlayColor: colorScheme.primary.withAlpha(
+                                      (0.1 * 255).round()), // Added feedback
                                 ),
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
@@ -1400,7 +1436,8 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                             key: const Key('bottom_appbar_prayers_icon'),
                             tooltip: 'tooltips.my_prayers'.tr(),
                             onPressed: () async {
-                              HapticFeedback.mediumImpact(); // Added haptic feedback
+                              HapticFeedback
+                                  .mediumImpact(); // Added haptic feedback
                               await BubbleUtils.markAsShown(
                                 BubbleUtils.getIconBubbleId(
                                   Icons.local_fire_department_outlined,
@@ -1452,11 +1489,16 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                               Navigator.push(
                                 context,
                                 PageRouteBuilder(
-                                  pageBuilder: (context, animation, secondaryAnimation) => const ProgressPage(),
-                                  transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                                    return FadeTransition(opacity: animation, child: child);
+                                  pageBuilder: (context, animation,
+                                          secondaryAnimation) =>
+                                      const ProgressPage(),
+                                  transitionsBuilder: (context, animation,
+                                      secondaryAnimation, child) {
+                                    return FadeTransition(
+                                        opacity: animation, child: child);
                                   },
-                                  transitionDuration: const Duration(milliseconds: 250),
+                                  transitionDuration:
+                                      const Duration(milliseconds: 250),
                                 ),
                               );
                             },
@@ -1480,11 +1522,16 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                               Navigator.push(
                                 context,
                                 PageRouteBuilder(
-                                  pageBuilder: (context, animation, secondaryAnimation) => const SettingsPage(),
-                                  transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                                    return FadeTransition(opacity: animation, child: child);
+                                  pageBuilder: (context, animation,
+                                          secondaryAnimation) =>
+                                      const SettingsPage(),
+                                  transitionsBuilder: (context, animation,
+                                      secondaryAnimation, child) {
+                                    return FadeTransition(
+                                        opacity: animation, child: child);
                                   },
-                                  transitionDuration: const Duration(milliseconds: 250),
+                                  transitionDuration:
+                                      const Duration(milliseconds: 250),
                                 ),
                               );
                             },

@@ -31,14 +31,12 @@ void main() {
       });
 
       test('should return empty string when totalDevocionalesRead < 7', () {
-        final tag =
-            AnalyticsConstants.getCampaignTag(totalDevocionalesRead: 6);
+        final tag = AnalyticsConstants.getCampaignTag(totalDevocionalesRead: 6);
         expect(tag, '');
       });
 
       test('should return default tag when totalDevocionalesRead >= 7', () {
-        final tag =
-            AnalyticsConstants.getCampaignTag(totalDevocionalesRead: 7);
+        final tag = AnalyticsConstants.getCampaignTag(totalDevocionalesRead: 7);
         expect(tag, AnalyticsConstants.defaultCampaignTag);
       });
 
@@ -69,30 +67,23 @@ void main() {
         final tag2 = AnalyticsConstants.getCampaignTag(
             devocionalId: testId, totalDevocionalesRead: 7);
 
-        expect(tag1, tag2,
-            reason: 'Same inputs should always return same tag');
+        expect(tag1, tag2, reason: 'Same inputs should always return same tag');
       });
 
       test('should handle milestone threshold correctly', () {
         // Below threshold
-        expect(
-            AnalyticsConstants.getCampaignTag(totalDevocionalesRead: 0), '');
-        expect(
-            AnalyticsConstants.getCampaignTag(totalDevocionalesRead: 1), '');
-        expect(
-            AnalyticsConstants.getCampaignTag(totalDevocionalesRead: 6), '');
+        expect(AnalyticsConstants.getCampaignTag(totalDevocionalesRead: 0), '');
+        expect(AnalyticsConstants.getCampaignTag(totalDevocionalesRead: 1), '');
+        expect(AnalyticsConstants.getCampaignTag(totalDevocionalesRead: 6), '');
 
         // At threshold
-        expect(
-            AnalyticsConstants.getCampaignTag(totalDevocionalesRead: 7),
+        expect(AnalyticsConstants.getCampaignTag(totalDevocionalesRead: 7),
             AnalyticsConstants.defaultCampaignTag);
 
         // Above threshold
-        expect(
-            AnalyticsConstants.getCampaignTag(totalDevocionalesRead: 8),
+        expect(AnalyticsConstants.getCampaignTag(totalDevocionalesRead: 8),
             AnalyticsConstants.defaultCampaignTag);
-        expect(
-            AnalyticsConstants.getCampaignTag(totalDevocionalesRead: 100),
+        expect(AnalyticsConstants.getCampaignTag(totalDevocionalesRead: 100),
             AnalyticsConstants.defaultCampaignTag);
       });
     });
@@ -138,7 +129,8 @@ void main() {
       });
 
       test('should handle negative totalDevocionalesRead', () {
-        final tag = AnalyticsConstants.getCampaignTag(totalDevocionalesRead: -1);
+        final tag =
+            AnalyticsConstants.getCampaignTag(totalDevocionalesRead: -1);
         expect(tag, '');
       });
 
