@@ -9,6 +9,7 @@ import 'dart:ui';
 import 'package:devocional_nuevo/controllers/audio_controller.dart'; // NEW
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
+import 'package:devocional_nuevo/services/devocionales_tracking.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
 import 'package:devocional_nuevo/services/tts/i_tts_service.dart';
@@ -261,6 +262,28 @@ class DevocionalProvider with ChangeNotifier {
       developer.log('[PROVIDER] Error guardando devocional: $e',
           name: 'DevocionalProvider');
       debugPrint('❌ Error recording devotional read: $e');
+    }
+  }
+
+  /// Registra que un devocional fue escuchado (para TTS)
+  Future<String> recordDevocionalHeard(String devocionalId,
+      double listenedPercentage, BuildContext context) async {
+    try {
+      // Usar el tracking unificado para registrar y verificar milestone
+      await DevocionalesTracking()
+          .recordDevocionalHeard(devocionalId, listenedPercentage);
+      // Validar si ya fue registrado
+      final stats = await _statsService.getStats();
+      if (stats.readDevocionalIds.contains(devocionalId)) {
+        // Si ya está en la lista de leídos/escuchados => ya fue registrado
+        return 'ya_registrado';
+      } else {
+        // Si no está, asumimos que el registro fue guardado correctamente
+        return 'guardado';
+      }
+    } catch (e) {
+      debugPrint('❌ Error recording devotional heard: $e');
+      return 'error';
     }
   }
 

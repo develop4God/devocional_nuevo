@@ -20,7 +20,7 @@ class ModernVoiceFeatureDialog extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            '🎤✨ ¡Nueva función disponible! ✨🎤',
+            'app.voice_feature_title'.tr(),
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: colorScheme.onPrimary,
@@ -29,9 +29,11 @@ class ModernVoiceFeatureDialog extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            'Ahora puedes elegir entre distintas voces para la lectura devocional. Personaliza tu experiencia y disfruta de una lectura más agradable y moderna. 😃🔊',
+            'app.voice_feature_description'.tr(),
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                   color: colorScheme.onSurface,
+                  fontWeight: FontWeight
+                      .w500, // Peso medio para dar presencia sin ser Bold
                 ),
             textAlign: TextAlign.center,
           ),
@@ -39,20 +41,6 @@ class ModernVoiceFeatureDialog extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: colorScheme.primary,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(18),
-                  ),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-                ),
-                icon: const Icon(Icons.settings_voice),
-                label: const Text('Configurar voces'),
-                onPressed: onConfigure,
-              ),
               TextButton(
                 style: TextButton.styleFrom(
                   foregroundColor: colorScheme.secondary,
@@ -75,6 +63,20 @@ class ModernVoiceFeatureDialog extends StatelessWidget {
                                 : 20,
                       ),
                 ),
+              ),
+              ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: colorScheme.primary,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                ),
+                icon: const Icon(Icons.settings_voice),
+                label: Text('app.voice_feature_configure'.tr()),
+                onPressed: onConfigure,
               ),
             ],
           ),

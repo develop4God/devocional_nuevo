@@ -6,6 +6,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
 import 'package:devocional_nuevo/models/spiritual_stats_model.dart';
 
+import '../helpers/test_helpers.dart';
+
 void main() {
   group('SpiritualStatsService Working Tests', () {
     late SpiritualStatsService statsService;
@@ -17,6 +19,9 @@ void main() {
     setUp(() {
       // Reset SharedPreferences for each test
       SharedPreferences.setMockInitialValues({});
+
+      // Setup service locator with all required services
+      registerTestServices();
 
       // Mock path_provider for file operations
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger

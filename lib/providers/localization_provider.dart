@@ -6,8 +6,11 @@ import '../services/tts/voice_settings_service.dart';
 
 /// Provider for managing app localization state
 class LocalizationProvider extends ChangeNotifier {
-  final LocalizationService _localizationService =
-      getService<LocalizationService>();
+  final LocalizationService _localizationService;
+
+  LocalizationProvider({LocalizationService? localizationService})
+      : _localizationService =
+            localizationService ?? getService<LocalizationService>();
 
   Locale get currentLocale => _localizationService.currentLocale;
 

@@ -19,11 +19,10 @@ import 'package:devocional_nuevo/utils/bubble_constants.dart';
 import 'package:devocional_nuevo/utils/copyright_utils.dart';
 import 'package:devocional_nuevo/widgets/add_prayer_modal.dart';
 import 'package:devocional_nuevo/widgets/add_thanksgiving_modal.dart';
-import 'package:devocional_nuevo/widgets/app_bar_constants.dart'
-    show CustomAppBar;
 import 'package:devocional_nuevo/widgets/app_bar_constants.dart';
 import 'package:devocional_nuevo/widgets/devocionales_page_drawer.dart';
 import 'package:devocional_nuevo/widgets/floating_font_control_buttons.dart';
+import 'package:devocional_nuevo/widgets/tts_miniplayer_modal.dart';
 import 'package:devocional_nuevo/widgets/tts_player_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -35,10 +34,13 @@ import 'package:screenshot/screenshot.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:devocional_nuevo/services/service_locator.dart';
 import '../controllers/audio_controller.dart';
 import '../controllers/tts_audio_controller.dart';
+import '../services/analytics_service.dart';
 import '../services/spiritual_stats_service.dart';
 import '../services/tts/bible_text_formatter.dart';
+import '../widgets/voice_selector_dialog.dart';
 
 class DevocionalesPage extends StatefulWidget {
   final String? initialDevocionalId;
@@ -60,6 +62,8 @@ class _DevocionalesPageState extends State<DevocionalesPage>
   late final TtsAudioController _ttsAudioController;
   AudioController? _audioController;
   bool _routeSubscribed = false;
+  int _currentStreak = 0;
+  late Future<int> _streakFuture;
 
   // Font control variables
   bool _showFontControls = false;
@@ -68,6 +72,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
   static bool _postSplashAnimationShown =
       false; // Controla mostrar solo una vez
   bool _showPostSplashAnimation = false; // Estado local
+  bool _isTtsModalShowing = false; // Prevent multiple TTS modals
 
   // Lista de animaciones Lottie disponibles
   final List<String> _lottieAssets = [
@@ -84,10 +89,13 @@ class _DevocionalesPageState extends State<DevocionalesPage>
   void initState() {
     super.initState();
     _ttsAudioController = TtsAudioController(flutterTts: _flutterTts);
+    // Listener para cerrar miniplayer automáticamente cuando el TTS complete
+    _ttsAudioController.state.addListener(_handleTtsStateChange);
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _audioController = Provider.of<AudioController>(context, listen: false);
       _tracking.initialize(context);
+      _precacheLottieAnimations();
     });
     _loadFontSize();
     _loadInitialData();
@@ -95,6 +103,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       UpdateService.checkForUpdate();
     });
     _pickRandomLottie();
+    _streakFuture = _loadStreak();
     if (!_postSplashAnimationShown) {
       _showPostSplashAnimation = true;
       _postSplashAnimationShown = true;
@@ -102,6 +111,30 @@ class _DevocionalesPageState extends State<DevocionalesPage>
         if (mounted) setState(() => _showPostSplashAnimation = false);
       });
     }
+  }
+
+  Future<void> _precacheLottieAnimations() async {
+    try {
+      // Precache the fire.json animation to ensure it loads on first app start
+      await Future.wait([
+        rootBundle.load('assets/lottie/fire.json'),
+        // Precache other frequently used animations
+        ..._lottieAssets.map((asset) => rootBundle.load(asset)),
+      ]);
+      debugPrint('✅ Lottie animations precached successfully');
+    } catch (e) {
+      debugPrint('⚠️ Error precaching Lottie animations: $e');
+    }
+  }
+
+  Future<int> _loadStreak() async {
+    final stats = await SpiritualStatsService().getStats();
+    if (mounted) {
+      setState(() {
+        _currentStreak = stats.currentStreak;
+      });
+    }
+    return stats.currentStreak;
   }
 
   void _pickRandomLottie() {
@@ -153,7 +186,8 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       if (route is PageRoute) {
         routeObserver.subscribe(this, route);
         debugPrint(
-            '🔄 [DEBUG] Global RouteObserver subscribed for DevocionalesPage');
+          '🔄 [DEBUG] Global RouteObserver subscribed for DevocionalesPage',
+        );
         _routeSubscribed = true;
       }
     }
@@ -196,15 +230,13 @@ class _DevocionalesPageState extends State<DevocionalesPage>
 
   @override
   void dispose() {
-    final route = ModalRoute.of(context);
-    if (_routeSubscribed && route is PageRoute) {
-      routeObserver.unsubscribe(this);
-      debugPrint(
-          '🗑️ [DEBUG] Global RouteObserver unsubscribed for DevocionalesPage');
-      _routeSubscribed = false;
-    }
+    // Remover listener agregado en initState
+    try {
+      _ttsAudioController.state.removeListener(_handleTtsStateChange);
+    } catch (_) {}
+    _ttsAudioController.dispose();
     _tracking.dispose();
-    _stopSpeaking();
+    _scrollController.dispose();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -233,23 +265,20 @@ class _DevocionalesPageState extends State<DevocionalesPage>
         final spiritualStatsService = SpiritualStatsService();
         await spiritualStatsService.recordDailyAppVisit();
 
-        final prefs = await SharedPreferences.getInstance();
-        final int? savedIndex = prefs.getInt(_lastDevocionalIndexKey);
+        // Get read devotional IDs to filter already completed ones
+        final stats = await spiritualStatsService.getStats();
+        final readDevocionalIds = stats.readDevocionalIds;
 
         if (mounted) {
           setState(() {
-            if (savedIndex != null) {
-              _currentDevocionalIndex =
-                  (savedIndex + 1) % devocionalProvider.devocionales.length;
-              developer.log(
-                'Devocional cargado al inicio (índice siguiente): $_currentDevocionalIndex',
-              );
-            } else {
-              _currentDevocionalIndex = 0;
-              developer.log(
-                'No hay índice guardado. Iniciando en el primer devocional (índice 0).',
-              );
-            }
+            // Find the first unread devotional
+            _currentDevocionalIndex = _findFirstUnreadDevocionalIndex(
+              devocionalProvider.devocionales,
+              readDevocionalIds,
+            );
+            developer.log(
+              'Devocional cargado al inicio (primer no leído): $_currentDevocionalIndex',
+            );
           });
           _startTrackingCurrentDevocional();
         }
@@ -277,6 +306,30 @@ class _DevocionalesPageState extends State<DevocionalesPage>
         }
       }
     });
+  }
+
+  /// Find the first unread devotional index starting from the beginning
+  int _findFirstUnreadDevocionalIndex(
+    List<Devocional> devocionales,
+    List<String> readDevocionalIds,
+  ) {
+    if (devocionales.isEmpty) return 0;
+
+    // Start from index 0 and find the first unread devotional
+    for (int i = 0; i < devocionales.length; i++) {
+      if (!readDevocionalIds.contains(devocionales[i].id)) {
+        developer.log(
+          'Primer devocional no leído encontrado en índice: $i (ID: ${devocionales[i].id})',
+        );
+        return i;
+      }
+    }
+
+    // If all devotionals are read, start from the beginning
+    developer.log(
+      'Todos los devocionales han sido leídos, iniciando desde el principio',
+    );
+    return 0;
   }
 
   void _startTrackingCurrentDevocional() {
@@ -511,6 +564,79 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     }
   }
 
+  Widget _buildStreakBadge(bool isDark, int streak) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textColor = colorScheme.onSurface;
+    // Slight background for the whole badge using theme surfaceContainerHighest
+    final backgroundColor =
+        colorScheme.surfaceContainerHighest.withValues(alpha: 0.06);
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(20),
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const ProgressPage()),
+          );
+        },
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: backgroundColor,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: colorScheme.primary.withValues(alpha: 0.18),
+                blurRadius: 8,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Lottie with themed circular background
+              Padding(
+                padding: const EdgeInsets.only(bottom: 6),
+                child: Container(
+                  width: 28,
+                  height: 28,
+                  decoration: BoxDecoration(
+                    color: colorScheme.primary.withValues(alpha: 0.12),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Center(
+                    child: SizedBox(
+                      width: 40,
+                      height: 40,
+                      child: Lottie.asset(
+                        'assets/lottie/fire.json',
+                        repeat: true,
+                        animate: true,
+                        fit: BoxFit.contain,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                '${'progress.streak'.tr()} $streak',
+                style: TextStyle(
+                  color: textColor,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 14,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Future<void> _shareAsText(Devocional devocional) async {
     final meditationsText =
         devocional.paraMeditar.map((p) => '${p.cita}: ${p.texto}').join('\n');
@@ -533,8 +659,10 @@ class _DevocionalesPageState extends State<DevocionalesPage>
   }
 
   void _goToBible() async {
-    final devocionalProvider =
-        Provider.of<DevocionalProvider>(context, listen: false);
+    final devocionalProvider = Provider.of<DevocionalProvider>(
+      context,
+      listen: false,
+    );
     final appLanguage = devocionalProvider.selectedLanguage;
 
     debugPrint('🟦 [Bible] Using app language instead of device: $appLanguage');
@@ -543,7 +671,8 @@ class _DevocionalesPageState extends State<DevocionalesPage>
         await BibleVersionRegistry.getVersionsForLanguage(appLanguage);
 
     debugPrint(
-        '🟩 [Bible] Versions for app language ($appLanguage): ${versions.map((v) => '${v.name} (${v.languageCode}) - downloaded: ${v.isDownloaded}').join(', ')}');
+      '🟩 [Bible] Versions for app language ($appLanguage): ${versions.map((v) => '${v.name} (${v.languageCode}) - downloaded: ${v.isDownloaded}').join(', ')}',
+    );
 
     if (versions.isEmpty) {
       versions = await BibleVersionRegistry.getVersionsForLanguage('es');
@@ -558,9 +687,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => BibleReaderPage(
-          versions: versions,
-        ),
+        builder: (context) => BibleReaderPage(versions: versions),
       ),
     );
   }
@@ -607,17 +734,12 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                       child: Container(
                         padding: const EdgeInsets.all(20),
                         decoration: BoxDecoration(
-                          border: Border.all(
-                            color: colorScheme.outline,
-                          ),
+                          border: Border.all(color: colorScheme.outline),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Column(
                           children: [
-                            const Text(
-                              '🙏',
-                              style: TextStyle(fontSize: 48),
-                            ),
+                            const Text('🙏', style: TextStyle(fontSize: 48)),
                             const SizedBox(height: 12),
                             Text(
                               'prayer.prayer'.tr(),
@@ -641,17 +763,12 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                       child: Container(
                         padding: const EdgeInsets.all(20),
                         decoration: BoxDecoration(
-                          border: Border.all(
-                            color: colorScheme.outline,
-                          ),
+                          border: Border.all(color: colorScheme.outline),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Column(
                           children: [
-                            const Text(
-                              '☺️',
-                              style: TextStyle(fontSize: 48),
-                            ),
+                            const Text('☺️', style: TextStyle(fontSize: 48)),
                             const SizedBox(height: 12),
                             Text(
                               'thanksgiving.thanksgiving'.tr(),
@@ -696,6 +813,49 @@ class _DevocionalesPageState extends State<DevocionalesPage>
   String expandBibleVersion(String version, String language) {
     final expansions = BibleTextFormatter.getBibleVersionExpansions(language);
     return expansions[version] ?? version;
+  }
+
+  // Helper para construir el texto usado por el selector de voz
+  String _buildTtsTextForDevocional(Devocional devocional, String language) {
+    final verseLabel = 'devotionals.verse'.tr().replaceAll(':', '');
+    final reflectionLabel = 'devotionals.reflection'.tr().replaceAll(':', '');
+    final meditateLabel = 'devotionals.to_meditate'.tr().replaceAll(':', '');
+    final prayerLabel = 'devotionals.prayer'.tr().replaceAll(':', '');
+
+    final StringBuffer ttsBuffer = StringBuffer();
+    ttsBuffer.write('$verseLabel: ');
+    ttsBuffer.write(
+      BibleTextFormatter.normalizeTtsText(
+        devocional.versiculo,
+        language,
+        devocional.version,
+      ),
+    );
+    ttsBuffer.write('\n$reflectionLabel: ');
+    ttsBuffer.write(
+      BibleTextFormatter.normalizeTtsText(
+        devocional.reflexion,
+        language,
+        devocional.version,
+      ),
+    );
+    if (devocional.paraMeditar.isNotEmpty) {
+      ttsBuffer.write('\n$meditateLabel: ');
+      ttsBuffer.write(
+        devocional.paraMeditar.map((m) {
+          return '${BibleTextFormatter.normalizeTtsText(m.cita, language, devocional.version)}: ${m.texto}';
+        }).join('\n'),
+      );
+    }
+    ttsBuffer.write('\n$prayerLabel: ');
+    ttsBuffer.write(
+      BibleTextFormatter.normalizeTtsText(
+        devocional.oracion,
+        language,
+        devocional.version,
+      ),
+    );
+    return ttsBuffer.toString();
   }
 
   @override
@@ -783,16 +943,54 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                               children: [
                                 Padding(
                                   padding: const EdgeInsets.only(bottom: 12.0),
-                                  child: Center(
-                                    child: Text(
-                                      _getLocalizedDateFormat(context)
-                                          .format(DateTime.now()),
-                                      style: textTheme.titleMedium?.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                        color: colorScheme.primary,
+                                  child: Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    children: [
+                                      Expanded(
+                                        child: Center(
+                                          child: Text(
+                                            _getLocalizedDateFormat(
+                                              context,
+                                            ).format(DateTime.now()),
+                                            style:
+                                                textTheme.titleMedium?.copyWith(
+                                              fontWeight: FontWeight.bold,
+                                              color: colorScheme.primary,
+                                            ),
+                                            textAlign: TextAlign.center,
+                                          ),
+                                        ),
                                       ),
-                                      textAlign: TextAlign.center,
-                                    ),
+                                      const SizedBox(width: 12),
+                                      FutureBuilder<int>(
+                                        future: _streakFuture,
+                                        builder: (context, snapshot) {
+                                          if (snapshot.connectionState ==
+                                              ConnectionState.waiting) {
+                                            return const SizedBox(
+                                              width: 40,
+                                              height: 40,
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 2,
+                                              ),
+                                            );
+                                          }
+                                          final streak =
+                                              snapshot.data ?? _currentStreak;
+                                          if (streak <= 0) {
+                                            return const SizedBox.shrink();
+                                          }
+                                          final isDark =
+                                              Theme.of(context).brightness ==
+                                                  Brightness.dark;
+                                          return _buildStreakBadge(
+                                            isDark,
+                                            streak,
+                                          );
+                                        },
+                                      ),
+                                    ],
                                   ),
                                 ),
                                 Container(
@@ -912,10 +1110,8 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                           currentDevocional.tags!.isNotEmpty)
                                         Text(
                                           'devotionals.topics'.tr({
-                                            'topics':
-                                                currentDevocional.tags!.join(
-                                              ', ',
-                                            ),
+                                            'topics': currentDevocional.tags!
+                                                .join(', '),
                                           }),
                                           style: textTheme.bodySmall?.copyWith(
                                             fontSize: 14,
@@ -951,7 +1147,9 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                                     ?.copyWith(
                                                   fontSize: 12,
                                                   color: colorScheme.onSurface
-                                                      .withValues(alpha: 0.7),
+                                                      .withValues(
+                                                    alpha: 0.7,
+                                                  ),
                                                 ),
                                                 textAlign: TextAlign.center,
                                               );
@@ -1027,16 +1225,11 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                         builder: (context, audioController, _) {
                           final progress = audioController.progress;
                           // Eliminados chunkIndex y totalChunks
-                          return Column(
-                            children: [
-                              LinearProgressIndicator(
-                                value: progress,
-                                minHeight: 4,
-                                backgroundColor: Colors.grey[300],
-                                color: colorScheme.primary,
-                              ),
-                              // Eliminada la lógica condicional de chunks
-                            ],
+                          return LinearProgressIndicator(
+                            value: progress,
+                            minHeight: 4,
+                            backgroundColor: Colors.grey[300],
+                            color: colorScheme.primary,
                           );
                         },
                       ),
@@ -1051,8 +1244,11 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                 onPressed: _currentDevocionalIndex > 0
                                     ? _goToPreviousDevocional
                                     : null,
-                                icon: Icon(Icons.arrow_back_ios,
-                                    size: 16, color: colorScheme.primary),
+                                icon: Icon(
+                                  Icons.arrow_back_ios,
+                                  size: 16,
+                                  color: colorScheme.primary,
+                                ),
                                 label: Text(
                                   'devotionals.previous'.tr(),
                                   style: TextStyle(
@@ -1063,7 +1259,9 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                 ),
                                 style: OutlinedButton.styleFrom(
                                   side: BorderSide(
-                                      color: colorScheme.primary, width: 1.5),
+                                    color: colorScheme.primary,
+                                    width: 1.5,
+                                  ),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(22),
                                   ),
@@ -1078,11 +1276,29 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                               child: currentDevocional != null
                                   ? Builder(
                                       builder: (context) {
-                                        return TtsPlayerWidget(
-                                          key: const Key(
-                                              'bottom_nav_tts_player'),
-                                          devocional: currentDevocional,
-                                          audioController: _ttsAudioController,
+                                        return Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            // Original TtsPlayerWidget (unchanged)
+                                            TtsPlayerWidget(
+                                              key: const Key(
+                                                'bottom_nav_tts_player',
+                                              ),
+                                              devocional: currentDevocional,
+                                              audioController:
+                                                  _ttsAudioController,
+                                              onCompleted: () {
+                                                final provider = Provider.of<
+                                                        DevocionalProvider>(
+                                                    context,
+                                                    listen: false);
+                                                if (provider
+                                                    .showInvitationDialog) {
+                                                  _showInvitation(context);
+                                                }
+                                              },
+                                            ),
+                                          ],
                                         );
                                       },
                                     )
@@ -1101,7 +1317,9 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                     : null,
                                 style: OutlinedButton.styleFrom(
                                   side: BorderSide(
-                                      color: colorScheme.primary, width: 1.5),
+                                    color: colorScheme.primary,
+                                    width: 1.5,
+                                  ),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(22),
                                   ),
@@ -1119,8 +1337,11 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                       ),
                                     ),
                                     const SizedBox(width: 8),
-                                    Icon(Icons.arrow_forward_ios,
-                                        size: 16, color: colorScheme.primary),
+                                    Icon(
+                                      Icons.arrow_forward_ios,
+                                      size: 16,
+                                      color: colorScheme.primary,
+                                    ),
                                   ],
                                 ),
                               ),
@@ -1159,36 +1380,40 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                             ),
                           ),
                           IconButton(
-                              key: const Key('bottom_appbar_prayers_icon'),
-                              tooltip: 'tooltips.my_prayers'.tr(),
-                              onPressed: () async {
-                                await BubbleUtils.markAsShown(
-                                  BubbleUtils.getIconBubbleId(
-                                    Icons.local_fire_department_outlined,
-                                    'new',
-                                  ),
-                                );
-                                _goToPrayers();
-                              },
-                              icon: const Icon(
-                                Icons.local_fire_department_outlined,
-                                color: Colors.white,
-                                size: 35,
-                              )),
+                            key: const Key('bottom_appbar_prayers_icon'),
+                            tooltip: 'tooltips.my_prayers'.tr(),
+                            onPressed: () async {
+                              await BubbleUtils.markAsShown(
+                                BubbleUtils.getIconBubbleId(
+                                  Icons.local_fire_department_outlined,
+                                  'new',
+                                ),
+                              );
+                              _goToPrayers();
+                            },
+                            icon: const Icon(
+                              Icons.local_fire_department_outlined,
+                              color: Colors.white,
+                              size: 35,
+                            ),
+                          ),
                           IconButton(
                             key: const Key('bottom_appbar_bible_icon'),
                             tooltip: 'tooltips.bible'.tr(),
                             onPressed: () async {
                               await BubbleUtils.markAsShown(
-                                  BubbleUtils.getIconBubbleId(
-                                      Icons.auto_stories_outlined, 'new'));
+                                BubbleUtils.getIconBubbleId(
+                                  Icons.auto_stories_outlined,
+                                  'new',
+                                ),
+                              );
                               _goToBible();
                             },
-                            icon: const Icon(
+                            icon: (Icon(
                               Icons.auto_stories_outlined,
                               color: Colors.white,
                               size: 32,
-                            ).newIconBadge,
+                            )).newIconBadge,
                           ),
                           IconButton(
                             key: const Key('bottom_appbar_share_icon'),
@@ -1254,5 +1479,169 @@ class _DevocionalesPageState extends State<DevocionalesPage>
         ),
       ),
     );
+  }
+
+  void _handleTtsStateChange() {
+    try {
+      final s = _ttsAudioController.state.value;
+
+      // Show modal when playback starts
+      if (s == TtsPlayerState.playing && mounted && !_isTtsModalShowing) {
+        // Check if modal is not already showing to avoid duplicates
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted || _isTtsModalShowing) return;
+          _showTtsModal();
+        });
+      }
+
+      if (s == TtsPlayerState.completed || s == TtsPlayerState.idle) {
+        // Mark modal as not showing when audio stops
+        _isTtsModalShowing = false;
+      }
+    } catch (e) {
+      debugPrint('[DevocionalesPage] Error en _handleTtsStateChange: $e');
+    }
+  }
+
+  void _showTtsModal() {
+    // Prevent showing multiple modals
+    if (!mounted || _isTtsModalShowing) return;
+
+    _isTtsModalShowing = true;
+
+    showModalBottomSheet(
+      context: context,
+      isDismissible: true,
+      enableDrag: true,
+      isScrollControlled: false,
+      backgroundColor: Colors.transparent,
+      builder: (BuildContext ctx) {
+        return ValueListenableBuilder<TtsPlayerState>(
+          valueListenable: _ttsAudioController.state,
+          builder: (context, state, _) {
+            // Auto-close modal when not playing/paused
+            if (state == TtsPlayerState.idle ||
+                state == TtsPlayerState.completed) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (Navigator.canPop(ctx)) {
+                  Navigator.of(ctx).pop();
+                }
+              });
+            }
+
+            return ValueListenableBuilder<Duration>(
+              valueListenable: _ttsAudioController.currentPosition,
+              builder: (context, currentPos, __) {
+                return ValueListenableBuilder<Duration>(
+                  valueListenable: _ttsAudioController.totalDuration,
+                  builder: (context, totalDur, ___) {
+                    return ValueListenableBuilder<double>(
+                      valueListenable: _ttsAudioController.playbackRate,
+                      builder: (context, rate, ____) {
+                        return TtsMiniplayerModal(
+                          positionListenable:
+                              _ttsAudioController.currentPosition,
+                          totalDurationListenable:
+                              _ttsAudioController.totalDuration,
+                          stateListenable: _ttsAudioController.state,
+                          playbackRateListenable:
+                              _ttsAudioController.playbackRate,
+                          playbackRates: _ttsAudioController.supportedRates,
+                          onStop: () {
+                            _ttsAudioController.stop();
+                            _isTtsModalShowing = false;
+                            if (Navigator.canPop(ctx)) {
+                              Navigator.of(ctx).pop();
+                            }
+                          },
+                          onSeek: (d) => _ttsAudioController.seek(d),
+                          onTogglePlay: () {
+                            if (state == TtsPlayerState.playing) {
+                              _ttsAudioController.pause();
+                            } else {
+                              // Track TTS play button press with Firebase Analytics
+                              try {
+                                getService<AnalyticsService>().logTtsPlay();
+                              } catch (e) {
+                                debugPrint(
+                                    '❌ Error logging TTS play analytics: $e');
+                                // Fail silently - analytics should not block functionality
+                              }
+                              _ttsAudioController.play();
+                            }
+                          },
+                          onCycleRate: () async {
+                            // CRITICAL: Pause before changing speed to avoid playback issues
+                            if (state == TtsPlayerState.playing) {
+                              await _ttsAudioController.pause();
+                            }
+                            try {
+                              await _ttsAudioController.cyclePlaybackRate();
+                            } catch (e) {
+                              debugPrint(
+                                '[DevocionalesPage] cyclePlaybackRate failed: $e',
+                              );
+                            }
+                          },
+                          onVoiceSelector: () async {
+                            // Capture context-dependent values BEFORE async gap
+                            final languageCode =
+                                Localizations.localeOf(context).languageCode;
+                            final currentDevocional =
+                                Provider.of<DevocionalProvider>(context,
+                                        listen: false)
+                                    .devocionales[_currentDevocionalIndex];
+                            final sampleText = _buildTtsTextForDevocional(
+                              currentDevocional,
+                              languageCode,
+                            );
+
+                            // CRITICAL: Pause before opening voice selector to avoid playback issues
+                            if (state == TtsPlayerState.playing) {
+                              await _ttsAudioController.pause();
+                            }
+
+                            // Safe to use ctx here: ctx is from the outer builder scope (line 1514),
+                            // not the widget context. Builder-provided contexts remain valid across
+                            // async gaps within their scope, unlike widget contexts.
+                            await showModalBottomSheet(
+                              // ignore: use_build_context_synchronously
+                              context: ctx,
+                              isScrollControlled: true,
+                              shape: const RoundedRectangleBorder(
+                                borderRadius: BorderRadius.vertical(
+                                  top: Radius.circular(28),
+                                ),
+                              ),
+                              builder: (voiceCtx) => FractionallySizedBox(
+                                heightFactor: 0.8,
+                                child: Padding(
+                                  padding: EdgeInsets.only(
+                                    bottom: MediaQuery.of(voiceCtx)
+                                        .viewInsets
+                                        .bottom,
+                                  ),
+                                  child: VoiceSelectorDialog(
+                                    language: languageCode,
+                                    sampleText: sampleText,
+                                    onVoiceSelected: (name, locale) async {},
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    );
+                  },
+                );
+              },
+            );
+          },
+        );
+      },
+    ).whenComplete(() {
+      _isTtsModalShowing = false;
+    });
   }
 }

@@ -292,5 +292,21 @@ void main() {
       );
       expect(success, isA<bool>());
     });
+
+    test('Japanese version codes are correctly configured', () async {
+      // Test that Japanese versions use the new version codes
+      provider.setSelectedLanguage('ja');
+      await Future.delayed(const Duration(milliseconds: 200));
+
+      expect(provider.selectedLanguage, 'ja');
+      expect(provider.availableVersions, contains('新改訳2003'));
+      expect(provider.availableVersions, contains('リビングバイブル'));
+      expect(provider.selectedVersion, '新改訳2003'); // Default version
+
+      // Test switching versions
+      provider.setSelectedVersion('リビングバイブル');
+      await Future.delayed(const Duration(milliseconds: 200));
+      expect(provider.selectedVersion, 'リビングバイブル');
+    });
   });
 }

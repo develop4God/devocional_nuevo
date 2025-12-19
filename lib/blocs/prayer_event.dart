@@ -42,6 +42,14 @@ class MarkPrayerAsActive extends PrayerEvent {
   MarkPrayerAsActive(this.prayerId);
 }
 
+/// Event to update the answered comment of a prayer
+class UpdateAnsweredComment extends PrayerEvent {
+  final String prayerId;
+  final String? comment;
+
+  UpdateAnsweredComment(this.prayerId, {this.comment});
+}
+
 /// Event to refresh prayers from storage
 class RefreshPrayers extends PrayerEvent {}
 

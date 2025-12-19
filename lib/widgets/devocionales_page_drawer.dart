@@ -316,19 +316,10 @@ class DevocionalesDrawer extends StatelessWidget {
                               },
                               selectedItemBuilder: (BuildContext context) {
                                 return versions.map<Widget>((String itemValue) {
-                                  String displayText = itemValue;
-                                  if (devocionalProvider.selectedLanguage ==
-                                      'ja') {
-                                    if (itemValue == 'SK2003') {
-                                      displayText = '新改訳 2003';
-                                    } else if (itemValue == 'JCB') {
-                                      displayText = '新共同訳';
-                                    }
-                                  }
                                   return Row(
                                     children: [
                                       Text(
-                                        displayText,
+                                        itemValue,
                                         style: TextStyle(
                                           color: colorScheme.onSurface,
                                           fontSize: 16,
@@ -341,19 +332,10 @@ class DevocionalesDrawer extends StatelessWidget {
                               items: versions.map<DropdownMenuItem<String>>((
                                 String itemValue,
                               ) {
-                                String displayText = itemValue;
-                                if (devocionalProvider.selectedLanguage ==
-                                    'ja') {
-                                  if (itemValue == 'SK2003') {
-                                    displayText = '新改訳 2003';
-                                  } else if (itemValue == 'JCB') {
-                                    displayText = '新共同訳';
-                                  }
-                                }
                                 return DropdownMenuItem<String>(
                                   value: itemValue,
                                   child: Text(
-                                    displayText,
+                                    itemValue,
                                     style:
                                         TextStyle(color: colorScheme.onSurface),
                                   ),

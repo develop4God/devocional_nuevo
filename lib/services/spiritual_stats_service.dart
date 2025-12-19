@@ -1,6 +1,5 @@
 // lib/services/spiritual_stats_service.dart - VERSIÓN CON AUTO-BACKUP
 import 'dart:convert';
-import 'dart:developer' as developer;
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -274,39 +273,33 @@ class SpiritualStatsService {
   }
 
   /// Record that a devotional was read - SOLO cuenta devocionales, NO afecta racha
-  Future<SpiritualStats> recordDevocionalRead({
+  Future<SpiritualStats> recordDevocionalCompletado({
     required String devocionalId,
-    int? favoritesCount,
     int readingTimeSeconds = 0,
     double scrollPercentage = 0.0,
+    double listenedPercentage = 0.0,
+    int? favoritesCount,
+    String source = 'unknown', // 'read', 'heard', etc.
   }) async {
+    debugPrint(
+        '🎯 [STATS] Iniciando registro de devocional: $devocionalId, fuente: $source');
     final prefs = await SharedPreferences.getInstance();
     final stats = await getStats();
 
-    // Check for empty or invalid devotional ID
     if (devocionalId.isEmpty) {
-      debugPrint('Empty devotional ID provided, not recording');
+      debugPrint('🎯 [STATS] DevocionalId vacío, no se registra');
       return stats;
     }
 
     final bool meetsReadingCriteria =
-        readingTimeSeconds >= 60 && scrollPercentage >= 0.8;
+        (readingTimeSeconds >= 60 && scrollPercentage >= 0.8) ||
+            (listenedPercentage >= 0.8);
 
-    debugPrint('Devotional read attempt: $devocionalId');
     debugPrint(
-      'Reading time: ${readingTimeSeconds}s, Scroll: ${(scrollPercentage * 100).toStringAsFixed(1)}%',
-    );
-    debugPrint('Meets criteria: $meetsReadingCriteria');
-    developer.log(
-        '[STATS] Intento de guardar devocional: $devocionalId, tiempo: ${readingTimeSeconds}s, scroll: ${(scrollPercentage * 100).toStringAsFixed(1)}%',
-        name: 'SpiritualStatsService');
-    developer.log('[STATS] ¿Cumple criterio?: $meetsReadingCriteria',
-        name: 'SpiritualStatsService');
+        '🎯 [STATS] Criterios: tiempo=$readingTimeSeconds, scroll=$scrollPercentage, escuchado=$listenedPercentage, cumple=$meetsReadingCriteria');
 
     if (stats.readDevocionalIds.contains(devocionalId)) {
-      developer.log('[STATS] Devocional ya registrado: $devocionalId',
-          name: 'SpiritualStatsService');
-      debugPrint('Devotional $devocionalId already counted in statistics');
+      debugPrint('🎯 [STATS] Devocional ya registrado: $devocionalId');
       if (favoritesCount != null) {
         final updatedStats = stats.copyWith(favoritesCount: favoritesCount);
         await saveStats(updatedStats);
@@ -316,15 +309,11 @@ class SpiritualStatsService {
     }
 
     if (!meetsReadingCriteria) {
-      developer.log(
-          '[STATS] Devocional no cumple criterio, no se suma: $devocionalId',
-          name: 'SpiritualStatsService');
       debugPrint(
-          'Devotional read but not counting for statistics (criteria not met)');
+          '🎯 [STATS] Devocional no cumple criterio, no se suma: $devocionalId');
       await prefs.setString(_lastReadDevocionalKey, devocionalId);
       await prefs.setInt(
           _lastReadTimeKey, DateTime.now().millisecondsSinceEpoch ~/ 1000);
-
       if (favoritesCount != null) {
         final updatedStats = stats.copyWith(favoritesCount: favoritesCount);
         await saveStats(updatedStats);
@@ -333,91 +322,26 @@ class SpiritualStatsService {
       return stats;
     }
 
-    // Solo registrar último devocional leído (para referencia)
     await prefs.setString(_lastReadDevocionalKey, devocionalId);
     await prefs.setInt(
         _lastReadTimeKey, DateTime.now().millisecondsSinceEpoch ~/ 1000);
 
-    final newReadDevocionalIds = List<String>.from(stats.readDevocionalIds);
-    newReadDevocionalIds.add(devocionalId);
-
-    final updatedStats = stats.copyWith(
-      totalDevocionalesRead: stats.totalDevocionalesRead + 1,
-      // NO tocar currentStreak ni longestStreak - se manejan en recordDailyAppVisit
-      lastActivityDate: DateTime.now(),
-      favoritesCount: favoritesCount ?? stats.favoritesCount,
-      readDevocionalIds: newReadDevocionalIds,
-      unlockedAchievements: _updateAchievements(
-        stats,
-        stats.currentStreak, // Usar racha actual sin modificar
-        stats.totalDevocionalesRead + 1,
-        favoritesCount ?? stats.favoritesCount,
-      ),
-    );
-
-    await saveStats(updatedStats);
-    developer.log(
-        '[STATS] Devocional guardado: $devocionalId, total ahora: ${updatedStats.totalDevocionalesRead}',
-        name: 'SpiritualStatsService');
-
-    debugPrint(
-        'Recorded devotional for statistics: $devocionalId, total: ${updatedStats.totalDevocionalesRead}');
-    return updatedStats;
-  }
-
-  Future<SpiritualStats> recordDevotionalHeard({
-    required String devocionalId,
-    required double listenedPercentage, // De 0.0 a 1.0
-    int? favoritesCount,
-  }) async {
-    debugPrint(
-        '[STATS] recordDevotionalHeard llamado con devocionalId: $devocionalId, listenedPercentage: $listenedPercentage, favoritesCount: $favoritesCount');
-    final prefs = await SharedPreferences.getInstance();
-    final stats = await getStats();
-
-    if (listenedPercentage < 0.8) {
-      debugPrint(
-          '[STATS] Escucha menor a 80%, no se cuenta: $listenedPercentage');
-      return stats;
-    }
-
-    // Si ya está registrado como leído o escuchado, no duplicar
-    if (stats.readDevocionalIds.contains(devocionalId)) {
-      debugPrint(
-          '[STATS] Devocional $devocionalId ya registrado como leído/escuchado');
-      if (favoritesCount != null) {
-        final updatedStats = stats.copyWith(favoritesCount: favoritesCount);
-        await saveStats(updatedStats);
-        debugPrint(
-            '[STATS] Favoritos actualizados para $devocionalId: $favoritesCount');
-        return updatedStats;
-      }
-      return stats;
-    }
-
     final today = DateTime.now();
     final todayDateOnly = DateTime(today.year, today.month, today.day);
     final readDates = await _getReadDates();
-
     final alreadyReadToday = readDates.any(
       (date) =>
           date.year == today.year &&
           date.month == today.month &&
           date.day == today.day,
     );
-
     if (!alreadyReadToday) {
       readDates.add(todayDateOnly);
       await _saveReadDates(readDates);
-      debugPrint('[STATS] Nueva fecha de lectura agregada: $todayDateOnly');
+      debugPrint('🎯 [STATS] Nueva fecha de lectura agregada: $todayDateOnly');
     }
-
-    await prefs.setString(_lastReadDevocionalKey, devocionalId);
-    await prefs.setInt(
-        _lastReadTimeKey, DateTime.now().millisecondsSinceEpoch ~/ 1000);
-    debugPrint('[STATS] Último devocional leído actualizado: $devocionalId');
-
     final newStreak = _calculateCurrentStreak(readDates);
+
     final newReadDevocionalIds = List<String>.from(stats.readDevocionalIds);
     newReadDevocionalIds.add(devocionalId);
 
@@ -438,26 +362,39 @@ class SpiritualStatsService {
     );
 
     await saveStats(updatedStats);
-
     debugPrint(
-        '[STATS] Devocional contado como escuchado: $devocionalId, total ahora: ${updatedStats.totalDevocionalesRead}');
+        '🎯 [STATS] Devocional guardado: $devocionalId, total ahora: ${updatedStats.totalDevocionalesRead}');
     return updatedStats;
   }
 
-  /// Update favorites count
-  Future<SpiritualStats> updateFavoritesCount(int favoritesCount) async {
-    final stats = await getStats();
-    final updatedStats = stats.copyWith(
+  Future<SpiritualStats> recordDevocionalRead({
+    required String devocionalId,
+    int? favoritesCount,
+    int readingTimeSeconds = 0,
+    double scrollPercentage = 0.0,
+  }) async {
+    debugPrint('🎯 [STATS] Registro por lectura: $devocionalId');
+    return await recordDevocionalCompletado(
+      devocionalId: devocionalId,
+      readingTimeSeconds: readingTimeSeconds,
+      scrollPercentage: scrollPercentage,
       favoritesCount: favoritesCount,
-      unlockedAchievements: _updateAchievements(
-        stats,
-        stats.currentStreak,
-        stats.totalDevocionalesRead,
-        favoritesCount,
-      ),
+      source: 'read',
     );
-    await saveStats(updatedStats);
-    return updatedStats;
+  }
+
+  /// Registra que un devocional fue escuchado (para TTS)
+  Future<SpiritualStats> recordDevocionalHeard({
+    required String devocionalId,
+    required double listenedPercentage,
+    int? favoritesCount,
+  }) async {
+    return await recordDevocionalCompletado(
+      devocionalId: devocionalId,
+      listenedPercentage: listenedPercentage,
+      favoritesCount: favoritesCount,
+      source: 'heard',
+    );
   }
 
   /// Crear backup JSON manual
@@ -571,7 +508,14 @@ class SpiritualStatsService {
     }
   }
 
-  // ... resto de métodos helper sin cambios ...
+  /// Actualiza el número de favoritos en las estadísticas espirituales
+  Future<SpiritualStats> updateFavoritesCount(int favoritesCount) async {
+    final stats = await getStats();
+    final updatedStats = stats.copyWith(favoritesCount: favoritesCount);
+    await saveStats(updatedStats);
+    debugPrint('✅ [STATS] favoritesCount actualizado: $favoritesCount');
+    return updatedStats;
+  }
 
   Future<List<String>> _getReadDatesAsStrings() async {
     final readDates = await _getReadDates();

@@ -4,8 +4,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:devocional_nuevo/blocs/prayer_bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../helpers/test_helpers.dart';
 
 void main() {
+  setUp(() {
+    TestWidgetsFlutterBinding.ensureInitialized();
+    SharedPreferences.setMockInitialValues({});
+    registerTestServices();
+  });
+
   testWidgets('AnswerPrayerModal allows up to 400 characters',
       (WidgetTester tester) async {
     final prayer = Prayer(

@@ -12,9 +12,17 @@
     "yes": "Oui",
     "no": "Non",
     "delete": "Supprimer",
-    "skip": "Ignorer"
+    "skip": "Ignorer",
+    "voice_feature_title": "🎤✨ Nouvelle fonctionnalité disponible ! ✨🎤",
+    "voice_feature_description": "Vous pouvez désormais choisir entre différentes voix pour la lecture des méditations. Personnalisez votre expérience et profitez d'une lecture plus agréable et moderne. 😃🔊",
+    "voice_feature_configure": "Configurer les voix",
+    "voice_feature_continue": "Continuer",
+    "audio_playing": "Lecture audio en cours"
   },
   "devotionals": {
+    "modern_voice_title": "🎤✨ Nouvelle fonctionnalité disponible ! ✨🎤",
+    "modern_voice_description": "Vous pouvez désormais choisir différentes voix pour la lecture dévotionnelle. Personnalisez votre expérience et profitez d'une lecture plus agréable et moderne. 😃🔊",
+    "modern_voice_configure": "Configurer les voix",
     "app_title": "Méditations Quotidiennes",
     "my_intimate_space_with_god": "Mon espace intime avec Dieu",
     "devotional_of_the_day": "Méditation du jour",
@@ -101,8 +109,12 @@
     "days_old_plural": "({days} jours)",
     "prayer_updated": "Prière mise à jour avec succès",
     "prayer_created": "Prière créée avec succès",
+    "prayer_update_error": "Erreur lors de la mise à jour de la prière",
     "prayer": "Prière",
-    "prayers": "Prières"
+    "prayers": "Prières",
+    "edit_answered_comment": "Modifier la Réponse",
+    "edit_answered_comment_description": "Modifiez le commentaire sur la façon dont cette prière a été exaucée.",
+    "edit_answered_placeholder": "Dieu a répondu à cette prière en...\n\nJe suis reconnaissant pour..."
   },
   "settings": {
     "title": "Paramètres",
@@ -228,7 +240,8 @@
     "understood": "Compris",
     "reset_stats": "Réinitialiser les Stats",
     "reset_confirmation": "Êtes-vous sûr de vouloir réinitialiser toutes les statistiques ?",
-    "stats_reset": "Statistiques réinitialisées"
+    "stats_reset": "Statistiques réinitialisées",
+    "streak": "série"
   },
   "errors": {
     "network_error": "Erreur de connexion",
@@ -589,7 +602,44 @@
     "total_verses": "{count} versets disponibles",
     "select_chapter": "Sélectionner le chapitre",
     "total_chapters": "{count} chapitres disponibles",
-    "close": "Fermer"
+    "close": "Fermer",
+    "drawer_title": "Versions de la Bible",
+    "current_version": "Version Actuelle",
+    "available_versions": "Versions Disponibles",
+    "download_versions": "Télécharger Plus de Versions",
+    "download_versions_subtitle": "Obtenez des versions bibliques pour une utilisation hors ligne",
+    "manage_versions": "Gérer Toutes les Versions",
+    "download_dialog_title": "Télécharger des Versions Bibliques",
+    "download_dialog_content": "Sélectionnez des versions à télécharger pour la lecture hors ligne. Les téléchargements se font en arrière-plan.",
+    "download_error": "Erreur lors du chargement des versions disponibles",
+    "no_versions_available": "Aucune version disponible à télécharger"
+  },
+  "bible_version": {
+    "title": "Versions de la Bible",
+    "manager_title": "Gérer les Versions",
+    "download": "Télécharger",
+    "delete": "Supprimer",
+    "downloaded": "Téléchargée",
+    "downloading": "Téléchargement...",
+    "queued": "En attente",
+    "validating": "Validation...",
+    "retry": "Réessayer",
+    "available": "Disponible",
+    "download_complete": "Téléchargement terminé",
+    "delete_confirmation": "Êtes-vous sûr de vouloir supprimer cette version de la Bible ?",
+    "delete_success": "Version de la Bible supprimée",
+    "storage_info": "Taille : {size}",
+    "language_filter": "Filtrer par langue",
+    "all_languages": "Toutes les langues",
+    "error_network": "Erreur réseau. Vérifiez votre connexion.",
+    "error_storage": "Espace insuffisant. Vous avez besoin de {size}.",
+    "error_corrupted": "Le fichier téléchargé est corrompu. Veuillez réessayer.",
+    "error_not_found": "Version de la Bible non trouvée.",
+    "error_metadata_parsing": "Erreur de lecture des données du catalogue.",
+    "error_max_retries": "Le téléchargement a échoué après {attempts} tentatives. Réessayez plus tard.",
+    "error_decompression": "Erreur de décompression du fichier. Veuillez réessayer.",
+    "error_metadata_validation": "Données de version invalides.",
+    "error_unknown": "Une erreur inattendue s'est produite."
   },
   "thanksgiving": {
     "thanksgiving": "Action de grâce",

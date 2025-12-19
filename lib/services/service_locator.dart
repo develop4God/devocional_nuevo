@@ -9,11 +9,12 @@
 /// - Access services via `ServiceLocator.get<ServiceType>()`
 /// - For testing, use `ServiceLocator.registerFactory()` to inject mocks
 ///
-/// Note: Services like LocalizationService, VoiceSettingsService, and TtsService
-/// are registered here instead of using static singletons to enable proper DI
-/// and testing.
+/// Note: Services like LocalizationService, VoiceSettingsService, TtsService,
+/// and AnalyticsService are registered here instead of using static singletons
+/// to enable proper DI and testing.
 library;
 
+import 'package:devocional_nuevo/services/analytics_service.dart';
 import 'package:devocional_nuevo/services/localization_service.dart';
 import 'package:devocional_nuevo/services/tts/i_tts_service.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
@@ -103,9 +104,12 @@ void setupServiceLocator() {
   // Register TTS service as a lazy singleton (created when first accessed)
   locator.registerLazySingleton<ITtsService>(() => TtsService());
 
+  // Register Analytics service as a lazy singleton (created when first accessed)
+  // This service tracks user events and behaviors using Firebase Analytics
+  locator.registerLazySingleton<AnalyticsService>(() => AnalyticsService());
+
   // Add more service registrations here as needed
   // Example:
-  // locator.registerLazySingleton<IAnalyticsService>(() => AnalyticsService());
   // locator.registerFactory<IApiClient>(() => ApiClient());
 }
 

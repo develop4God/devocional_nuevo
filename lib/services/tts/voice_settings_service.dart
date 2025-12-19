@@ -25,7 +25,20 @@ class VoiceSettingsService {
   // FlutterTts instance - initialized lazily or injected for testing
   FlutterTts? _flutterTtsInstance;
 
+  // Dedicated TTS instance ONLY for voice samples (no handlers, no state changes)
+  FlutterTts? _sampleTtsInstance;
+
   FlutterTts get _flutterTts => _flutterTtsInstance ??= FlutterTts();
+
+  /// Get dedicated TTS instance for samples (isolated from main playback)
+  FlutterTts get _sampleTts {
+    if (_sampleTtsInstance == null) {
+      _sampleTtsInstance = FlutterTts();
+      debugPrint(
+          '🔊 VoiceSettings: Created dedicated TTS instance for samples');
+    }
+    return _sampleTtsInstance!;
+  }
 
   /// Asigna automáticamente una voz válida por defecto para un idioma si no hay ninguna guardada o la guardada es inválida
   /// Asigna automáticamente una voz válida por defecto para un idioma si no hay ninguna guardada o la guardada es inválida
@@ -184,14 +197,31 @@ class VoiceSettingsService {
   Future<void> playVoiceSample(
       String voiceName, String locale, String sampleText) async {
     try {
-      await _flutterTts.setVoice({
+      // CRITICAL: Use dedicated sample TTS instance to prevent interference
+      // with main playback and avoid triggering the mini-player modal
+      await _sampleTts.stop();
+      await _sampleTts.setVoice({
         'name': voiceName,
         'locale': locale,
       });
-      await _flutterTts.speak(sampleText);
-      debugPrint('🔊🔬 VoiceSettings: Played sample for $voiceName ($locale)');
+      // Siempre aplicar rate 1.0 para samples (voz natural)
+      await _sampleTts.setSpeechRate(0.6);
+      await _sampleTts.speak(sampleText);
+      debugPrint(
+          '🔊🔬 VoiceSettings: Played sample for $voiceName ($locale) using dedicated TTS instance');
     } catch (e) {
       debugPrint('❌ VoiceSettings: Failed to play sample: $e');
+    }
+  }
+
+  /// Stops any playing voice sample
+  Future<void> stopVoiceSample() async {
+    try {
+      // Use dedicated sample TTS instance
+      await _sampleTts.stop();
+      debugPrint('🛑 VoiceSettings: Stopped voice sample');
+    } catch (e) {
+      debugPrint('❌ VoiceSettings: Failed to stop sample: $e');
     }
   }
 
@@ -590,10 +620,122 @@ class VoiceSettingsService {
     debugPrint('🔧 VoiceSettings: clearUserSavedVoiceFlag($language): removed');
   }
 
-  /// Obtiene la velocidad de reproducción TTS guardada
+  /// Obtiene la velocidad de reproducción TTS guardada (settings-scale 0.1..1.0)
   Future<double> getSavedSpeechRate() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getDouble('tts_rate') ?? 0.5;
+    final stored =
+        prefs.getDouble('tts_rate') ?? 0.5; // settings-scale (0.1..1.0)
+    return stored;
+  }
+
+  /// Devuelve la velocidad del miniplayer (display) basada en el valor guardado
+  Future<double> getSavedMiniRate() async {
+    final prefs = await SharedPreferences.getInstance();
+    final stored = prefs.getDouble('tts_rate') ?? 0.5;
+    return settingsToMini[stored] ?? getMiniPlayerRate(stored);
+  }
+
+  /// Guarda la velocidad en settings-scale (0.1..1.0). Si se pasa un mini-rate,
+  /// se convierte y persiste en escala de settings.
+  Future<void> setSavedSpeechRate(double rate) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      double toStore;
+      if (miniToSettings.containsKey(rate)) {
+        toStore = miniToSettings[rate]!;
+      } else if (rate >= 0.1 && rate <= 1.0) {
+        toStore = rate;
+      } else {
+        // Fallback: clamp to sensible default
+        toStore = 0.5;
+      }
+      await prefs.setDouble('tts_rate', toStore);
+      debugPrint(
+          '🔧 VoiceSettings: Saved speech rate (settings-scale) = $toStore');
+    } catch (e) {
+      debugPrint('❌ VoiceSettings: Failed to save speech rate: $e');
+    }
+  }
+
+  /// Lista de velocidades permitidas (homologadas para settings y miniplayer)
+  static const List<double> allowedPlaybackRates = [
+    0.5,
+    1.0,
+    2.0
+  ]; // 0.5x, 1.0x, 2.0x
+
+  /// Rota la velocidad de reproducción (entre allowedPlaybackRates), la guarda y la aplica al TTS.
+  /// Devuelve el nuevo playbackRate aplicado.
+  Future<double> cyclePlaybackRate(
+      {double? currentMiniRate, FlutterTts? ttsOverride}) async {
+    final rates = miniPlayerRates;
+    final current = (currentMiniRate ?? await getSavedMiniRate());
+
+    int idx = rates.indexWhere((r) => (r - current).abs() < 0.001);
+    if (idx == -1) idx = 0;
+    final nextMini = rates[(idx + 1) % rates.length];
+    final settingsValue = getSettingsRateForMini(nextMini);
+
+    // Persistir settings-scale
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setDouble('tts_rate', settingsValue);
+
+    // Aplicar al motor (usar settings-scale, que es lo que esperan los motores históricamente)
+    final tts = ttsOverride ?? _flutterTts;
+    try {
+      await tts.setSpeechRate(settingsValue);
+    } catch (e) {
+      debugPrint(
+          'VoiceSettingsService: Failed to set speech rate on engine: $e');
+    }
+
+    debugPrint(
+        '🔄 VoiceSettingsService: cyclePlaybackRate -> nextMini=$nextMini settings=$settingsValue');
+    return nextMini;
+  }
+
+  /// Devuelve la lista de rates permitidos para el miniplayer (homologados)
+  static const List<double> miniPlayerRates = [
+    0.5,
+    1.0,
+    2.0
+  ]; // 0.5x, 1.0x, 2.0x
+  static final Map<double, double> miniToSettings = {
+    0.5: 0.25, // 0.5x → 25% (menos lento que 10%)
+    1.0: 0.5, // 1.0x → 50%
+    2.0: 1.0, // 2.0x → 100%
+  };
+  static final Map<double, double> settingsToMini = {
+    // Refleja el ajuste anterior: 0.25 settings → 0.5x miniplayer
+    0.25: 0.5,
+    0.5: 1.0,
+    1.0: 2.0,
+  };
+
+  /// Dado un rate de settings, devuelve el rate homologado del miniplayer
+  double getMiniPlayerRate(double settingsRate) {
+    // Si coincide exactamente
+    if (settingsToMini.containsKey(settingsRate)) {
+      return settingsToMini[settingsRate]!;
+    }
+    // Si está cerca de 0.25, 0.5 o 1.0 (umbrales algo amplios para tolerar valores antiguos)
+    if ((settingsRate - 0.25).abs() < 0.08) return 0.5;
+    if ((settingsRate - 0.5).abs() < 0.12) return 1.0;
+    if ((settingsRate - 1.0).abs() < 0.12) return 2.0;
+    // Por defecto, 1.0x
+    return 1.0;
+  }
+
+  /// Devuelve el siguiente rate del miniplayer, ciclando
+  double getNextMiniPlayerRate(double currentMiniRate) {
+    final idx = miniPlayerRates.indexOf(currentMiniRate);
+    if (idx == -1) return 1.0;
+    return miniPlayerRates[(idx + 1) % miniPlayerRates.length];
+  }
+
+  /// Dado un rate del miniplayer, devuelve el valor equivalente para settings
+  double getSettingsRateForMini(double miniRate) {
+    return miniToSettings[miniRate] ?? 0.5;
   }
 
   // Mapeo amigable de voces con emoji y nombre

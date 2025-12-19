@@ -24,7 +24,7 @@ if (keystorePropertiesFile.exists()) {
 android {
     namespace = "com.develop4god.devocional_nuevo"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = "28.2.13676358" // Actualizado para compatibilidad con integration_test
+    ndkVersion = "28.2.13676358"
 
     compileOptions {
         isCoreLibraryDesugaringEnabled = true
@@ -34,6 +34,11 @@ android {
 
     kotlinOptions {
         jvmTarget = JavaVersion.VERSION_11.toString()
+    }
+
+    // Habilitar BuildConfig para permitir campos personalizados usados por plugins
+    buildFeatures {
+        buildConfig = true
     }
 
     defaultConfig {

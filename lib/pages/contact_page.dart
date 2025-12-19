@@ -157,7 +157,11 @@ class _ContactPageState extends State<ContactPage> {
                 // SOLUCIÓN: Cambio a Container con DropdownButton para eliminar inconsistencias
                 Container(
                   decoration: BoxDecoration(
-                    border: Border.all(color: colorScheme.outline),
+                    border: Border.all(
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? colorScheme.outline
+                          : colorScheme.primary.withValues(alpha: 0.7),
+                    ),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: DropdownButton<String>(
@@ -171,8 +175,12 @@ class _ContactPageState extends State<ContactPage> {
                           const SizedBox(width: 12),
                           Text(
                             'contact.select_option'.tr(),
-                            style:
-                                TextStyle(color: colorScheme.onSurfaceVariant),
+                            style: TextStyle(
+                              color: Theme.of(context).brightness ==
+                                      Brightness.dark
+                                  ? colorScheme.onSurfaceVariant
+                                  : colorScheme.primary,
+                            ),
                           ),
                         ],
                       ),
@@ -201,7 +209,6 @@ class _ContactPageState extends State<ContactPage> {
                         _selectedContactOption = newValue;
                       });
                     },
-                    // Estilizado personalizado
                     selectedItemBuilder: (BuildContext context) {
                       return _contactOptions.map((String option) {
                         return Padding(
@@ -214,8 +221,12 @@ class _ContactPageState extends State<ContactPage> {
                               Expanded(
                                 child: Text(
                                   option,
-                                  style:
-                                      TextStyle(color: colorScheme.onSurface),
+                                  style: TextStyle(
+                                    color: Theme.of(context).brightness ==
+                                            Brightness.dark
+                                        ? colorScheme.onSurface
+                                        : colorScheme.primary,
+                                  ),
                                 ),
                               ),
                             ],
@@ -233,22 +244,38 @@ class _ContactPageState extends State<ContactPage> {
                   style: TextStyle(color: colorScheme.onSurface),
                   decoration: InputDecoration(
                     labelText: 'contact_page.message_label'.tr(),
-                    labelStyle: TextStyle(color: colorScheme.onSurfaceVariant),
+                    labelStyle: TextStyle(
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? colorScheme.onSurfaceVariant
+                          : colorScheme.primary,
+                    ),
                     hintText: 'contact_page.message_hint'.tr(),
                     hintStyle: TextStyle(
-                      color: colorScheme.onSurface.withValues(alpha: 0.5),
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? colorScheme.onSurface.withValues(alpha: 0.5)
+                          : colorScheme.primary.withValues(alpha: 0.5),
                     ),
                     filled: true,
                     fillColor: Theme.of(context).brightness == Brightness.dark
                         ? colorScheme.surfaceContainerHighest
-                        : colorScheme.surface,
+                        : colorScheme.surfaceContainerLowest,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide(color: colorScheme.outline),
+                      borderSide: BorderSide(
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? colorScheme.outline
+                            : colorScheme.primary.withValues(alpha: 0.7),
+                        width: 1.5,
+                      ),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide(color: colorScheme.outline),
+                      borderSide: BorderSide(
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? colorScheme.outline
+                            : colorScheme.primary.withValues(alpha: 0.7),
+                        width: 1.5,
+                      ),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),

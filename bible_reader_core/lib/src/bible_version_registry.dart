@@ -33,7 +33,7 @@ class BibleVersionRegistry {
     ],
     'ja': [
       {'name': '新改訳2003', 'dbFile': 'SK2003_ja.SQLite3'},
-      {'name': '口語訳', 'dbFile': 'JCB_ja.SQLite3'}, // Agrego JCB japonesa
+      {'name': 'リビングバイブル', 'dbFile': 'JCB_ja.SQLite3'},
     ],
   };
 

@@ -13,6 +13,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../helpers/test_helpers.dart';
+
 // Mock classes
 class MockPrayerBloc extends Mock implements PrayerBloc {}
 
@@ -26,7 +28,9 @@ void main() {
   late MockThemeBloc mockThemeBloc;
 
   setUp(() {
+    TestWidgetsFlutterBinding.ensureInitialized();
     SharedPreferences.setMockInitialValues({});
+    registerTestServices();
     mockPrayerBloc = MockPrayerBloc();
     mockThanksgivingBloc = MockThanksgivingBloc();
     mockThemeBloc = MockThemeBloc();
