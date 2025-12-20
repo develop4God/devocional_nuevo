@@ -71,7 +71,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
   double _fontSize = 16.0;
 
   static bool _postSplashAnimationShown =
-  false; // Controla mostrar solo una vez
+      false; // Controla mostrar solo una vez
   bool _showPostSplashAnimation = false; // Estado local
   bool _isTtsModalShowing = false; // Prevent multiple TTS modals
 
@@ -142,7 +142,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     final random = Random();
     setState(() {
       _selectedLottieAsset =
-      _lottieAssets[random.nextInt(_lottieAssets.length)];
+          _lottieAssets[random.nextInt(_lottieAssets.length)];
     });
   }
 
@@ -295,7 +295,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       if (widget.initialDevocionalId != null &&
           devocionalProvider.devocionales.isNotEmpty) {
         final index = devocionalProvider.devocionales.indexWhere(
-              (d) => d.id == widget.initialDevocionalId,
+          (d) => d.id == widget.initialDevocionalId,
         );
         if (index != -1) {
           if (mounted) {
@@ -311,9 +311,9 @@ class _DevocionalesPageState extends State<DevocionalesPage>
 
   /// Find the first unread devotional index starting from the beginning
   int _findFirstUnreadDevocionalIndex(
-      List<Devocional> devocionales,
-      List<String> readDevocionalIds,
-      ) {
+    List<Devocional> devocionales,
+    List<String> readDevocionalIds,
+  ) {
     if (devocionales.isEmpty) return 0;
 
     // Start from index 0 and find the first unread devotional
@@ -341,7 +341,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     if (devocionalProvider.devocionales.isNotEmpty &&
         _currentDevocionalIndex < devocionalProvider.devocionales.length) {
       final currentDevocional =
-      devocionalProvider.devocionales[_currentDevocionalIndex];
+          devocionalProvider.devocionales[_currentDevocionalIndex];
       _tracking.clearAutoCompletedExcept(currentDevocional.id);
       _tracking.startDevocionalTracking(
         currentDevocional.id,
@@ -570,7 +570,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     final textColor = colorScheme.onSurface;
     // Slight background for the whole badge using theme surfaceContainerHighest
     final backgroundColor =
-    colorScheme.surfaceContainerHighest.withValues(alpha: 0.06);
+        colorScheme.surfaceContainerHighest.withValues(alpha: 0.06);
 
     return Material(
       color: Colors.transparent,
@@ -640,7 +640,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
 
   Future<void> _shareAsText(Devocional devocional) async {
     final meditationsText =
-    devocional.paraMeditar.map((p) => '${p.cita}: ${p.texto}').join('\n');
+        devocional.paraMeditar.map((p) => '${p.cita}: ${p.texto}').join('\n');
 
     final devotionalText = "devotionals.share_text_format".tr({
       'verse': devocional.versiculo,
@@ -657,7 +657,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       context,
       PageRouteBuilder(
         pageBuilder: (context, animation, secondaryAnimation) =>
-        const PrayersPage(),
+            const PrayersPage(),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           return FadeTransition(opacity: animation, child: child);
         },
@@ -676,7 +676,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     debugPrint('🟦 [Bible] Using app language instead of device: $appLanguage');
 
     List<BibleVersion> versions =
-    await BibleVersionRegistry.getVersionsForLanguage(appLanguage);
+        await BibleVersionRegistry.getVersionsForLanguage(appLanguage);
 
     debugPrint(
       '🟩 [Bible] Versions for app language ($appLanguage): ${versions.map((v) => '${v.name} (${v.languageCode}) - downloaded: ${v.isDownloaded}').join(', ')}',
@@ -939,7 +939,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                 }
 
                 final Devocional currentDevocional =
-                devocionales[_currentDevocionalIndex];
+                    devocionales[_currentDevocionalIndex];
 
                 return Column(
                   children: [
@@ -958,7 +958,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                   padding: const EdgeInsets.only(bottom: 12.0),
                                   child: Row(
                                     crossAxisAlignment:
-                                    CrossAxisAlignment.center,
+                                        CrossAxisAlignment.center,
                                     children: [
                                       Expanded(
                                         child: Center(
@@ -967,7 +967,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                               context,
                                             ).format(DateTime.now()),
                                             style:
-                                            textTheme.titleMedium?.copyWith(
+                                                textTheme.titleMedium?.copyWith(
                                               fontWeight: FontWeight.bold,
                                               color: colorScheme.primary,
                                             ),
@@ -1016,20 +1016,25 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                       );
                                       if (!context.mounted) return;
                                       HapticFeedback.selectionClick();
-                                      final messenger = ScaffoldMessenger.of(context);
-                                      final ColorScheme colorScheme = Theme.of(context).colorScheme;
+                                      final messenger =
+                                          ScaffoldMessenger.of(context);
+                                      final ColorScheme colorScheme =
+                                          Theme.of(context).colorScheme;
                                       messenger.showSnackBar(
                                         SnackBar(
-                                          backgroundColor: colorScheme.secondary,
+                                          backgroundColor:
+                                              colorScheme.secondary,
                                           duration: const Duration(seconds: 2),
                                           content: Text(
                                             'share.copied_to_clipboard'.tr(),
-                                            style: TextStyle(color: colorScheme.onSecondary),
+                                            style: TextStyle(
+                                                color: colorScheme.onSecondary),
                                           ),
                                         ),
                                       );
                                     } catch (e) {
-                                      debugPrint('[DevocionalesPage] Error copying verse to clipboard: $e');
+                                      debugPrint(
+                                          '[DevocionalesPage] Error copying verse to clipboard: $e');
                                     }
                                   },
                                   child: Container(
@@ -1043,28 +1048,34 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                         begin: Alignment.topLeft,
                                         end: Alignment.bottomRight,
                                         colors: [
-                                          colorScheme.primary.withAlpha((0.25 * 255).round()),
-                                          colorScheme.primary.withAlpha((0.08 * 255).round()),
-                                          colorScheme.secondary.withAlpha((0.06 * 255).round()),
+                                          colorScheme.primary
+                                              .withAlpha((0.25 * 255).round()),
+                                          colorScheme.primary
+                                              .withAlpha((0.08 * 255).round()),
+                                          colorScheme.secondary
+                                              .withAlpha((0.06 * 255).round()),
                                         ],
                                         stops: const [0.0, 0.6, 1.0],
                                       ),
                                       borderRadius: BorderRadius.circular(20),
                                       // NUEVO: Borde sutil que ayuda a definir el contenedor
                                       border: Border.all(
-                                        color: colorScheme.primary.withAlpha((0.3 * 255).round()),
+                                        color: colorScheme.primary
+                                            .withAlpha((0.3 * 255).round()),
                                         width: 1.5,
                                       ),
                                       // Sombras existentes
                                       boxShadow: [
                                         BoxShadow(
-                                          color: colorScheme.primary.withAlpha((0.2 * 255).round()),
+                                          color: colorScheme.primary
+                                              .withAlpha((0.2 * 255).round()),
                                           blurRadius: 20,
                                           offset: const Offset(0, 8),
                                           spreadRadius: -4,
                                         ),
                                         BoxShadow(
-                                          color: Colors.black.withAlpha((0.05 * 255).round()),
+                                          color: Colors.black
+                                              .withAlpha((0.05 * 255).round()),
                                           blurRadius: 40,
                                           offset: const Offset(0, 16),
                                           spreadRadius: -8,
@@ -1118,7 +1129,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                           TextSpan(
                                             text: '${item.cita}: ',
                                             style:
-                                            textTheme.bodyMedium?.copyWith(
+                                                textTheme.bodyMedium?.copyWith(
                                               fontWeight: FontWeight.bold,
                                               fontSize: _fontSize,
                                               color: colorScheme.primary,
@@ -1127,7 +1138,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                           TextSpan(
                                             text: item.texto,
                                             style:
-                                            textTheme.bodyMedium?.copyWith(
+                                                textTheme.bodyMedium?.copyWith(
                                               fontSize: _fontSize,
                                               color: colorScheme.onSurface,
                                             ),
@@ -1159,7 +1170,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                     currentDevocional.tags != null)
                                   Column(
                                     crossAxisAlignment:
-                                    CrossAxisAlignment.start,
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         'devotionals.details'.tr(),
@@ -1185,7 +1196,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                         Text(
                                           'devotionals.version'.tr({
                                             'version':
-                                            currentDevocional.version,
+                                                currentDevocional.version,
                                           }),
                                           style: textTheme.bodySmall?.copyWith(
                                             fontSize: 14,
@@ -1338,33 +1349,33 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                             child: Center(
                               child: currentDevocional != null
                                   ? Builder(
-                                builder: (context) {
-                                  return Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      // Original TtsPlayerWidget (unchanged)
-                                      TtsPlayerWidget(
-                                        key: const Key(
-                                          'bottom_nav_tts_player',
-                                        ),
-                                        devocional: currentDevocional,
-                                        audioController:
-                                        _ttsAudioController,
-                                        onCompleted: () {
-                                          final provider = Provider.of<
-                                              DevocionalProvider>(
-                                              context,
-                                              listen: false);
-                                          if (provider
-                                              .showInvitationDialog) {
-                                            _showInvitation(context);
-                                          }
-                                        },
-                                      ),
-                                    ],
-                                  );
-                                },
-                              )
+                                      builder: (context) {
+                                        return Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            // Original TtsPlayerWidget (unchanged)
+                                            TtsPlayerWidget(
+                                              key: const Key(
+                                                'bottom_nav_tts_player',
+                                              ),
+                                              devocional: currentDevocional,
+                                              audioController:
+                                                  _ttsAudioController,
+                                              onCompleted: () {
+                                                final provider = Provider.of<
+                                                        DevocionalProvider>(
+                                                    context,
+                                                    listen: false);
+                                                if (provider
+                                                    .showInvitationDialog) {
+                                                  _showInvitation(context);
+                                                }
+                                              },
+                                            ),
+                                          ],
+                                        );
+                                      },
+                                    )
                                   : const SizedBox(width: 56, height: 56),
                             ),
                           ),
@@ -1375,7 +1386,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                               child: OutlinedButton(
                                 key: const Key('bottom_nav_next_button'),
                                 onPressed: _currentDevocionalIndex <
-                                    devocionales.length - 1
+                                        devocionales.length - 1
                                     ? _goToNextDevocional
                                     : null,
                                 style: OutlinedButton.styleFrom(
@@ -1434,9 +1445,9 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                 : 'devotionals.save_as_favorite'.tr(),
                             onPressed: currentDevocional != null
                                 ? () => devocionalProvider.toggleFavorite(
-                              currentDevocional,
-                              context,
-                            )
+                                      currentDevocional,
+                                      context,
+                                    )
                                 : null,
                             icon: Icon(
                               isFavorite ? Icons.star : Icons.favorite_border,
@@ -1502,15 +1513,15 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                 context,
                                 PageRouteBuilder(
                                   pageBuilder: (context, animation,
-                                      secondaryAnimation) =>
-                                  const ProgressPage(),
+                                          secondaryAnimation) =>
+                                      const ProgressPage(),
                                   transitionsBuilder: (context, animation,
                                       secondaryAnimation, child) {
                                     return FadeTransition(
                                         opacity: animation, child: child);
                                   },
                                   transitionDuration:
-                                  const Duration(milliseconds: 250),
+                                      const Duration(milliseconds: 250),
                                 ),
                               );
                             },
@@ -1535,15 +1546,15 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                 context,
                                 PageRouteBuilder(
                                   pageBuilder: (context, animation,
-                                      secondaryAnimation) =>
-                                  const SettingsPage(),
+                                          secondaryAnimation) =>
+                                      const SettingsPage(),
                                   transitionsBuilder: (context, animation,
                                       secondaryAnimation, child) {
                                     return FadeTransition(
                                         opacity: animation, child: child);
                                   },
                                   transitionDuration:
-                                  const Duration(milliseconds: 250),
+                                      const Duration(milliseconds: 250),
                                 ),
                               );
                             },
@@ -1625,12 +1636,12 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                       builder: (context, rate, ____) {
                         return TtsMiniplayerModal(
                           positionListenable:
-                          _ttsAudioController.currentPosition,
+                              _ttsAudioController.currentPosition,
                           totalDurationListenable:
-                          _ttsAudioController.totalDuration,
+                              _ttsAudioController.totalDuration,
                           stateListenable: _ttsAudioController.state,
                           playbackRateListenable:
-                          _ttsAudioController.playbackRate,
+                              _ttsAudioController.playbackRate,
                           playbackRates: _ttsAudioController.supportedRates,
                           onStop: () {
                             _ttsAudioController.stop();
@@ -1673,9 +1684,9 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                             final languageCode =
                                 Localizations.localeOf(context).languageCode;
                             final currentDevocional =
-                            Provider.of<DevocionalProvider>(context,
-                                listen: false)
-                                .devocionales[_currentDevocionalIndex];
+                                Provider.of<DevocionalProvider>(context,
+                                        listen: false)
+                                    .devocionales[_currentDevocionalIndex];
                             final sampleText = _buildTtsTextForDevocional(
                               currentDevocional,
                               languageCode,

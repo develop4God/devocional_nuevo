@@ -27,6 +27,7 @@ import 'package:devocional_nuevo/utils/theme_constants.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:firebase_in_app_messaging/firebase_in_app_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -103,6 +104,19 @@ void main() async {
   developer.log('App: Función main() iniciada.', name: 'MainApp');
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+
+  // Inicializar Firebase In-App Messaging
+  final FirebaseInAppMessaging inAppMessaging = FirebaseInAppMessaging.instance;
+  // Opcional: habilitar mensajes automáticos (por defecto está habilitado)
+  await inAppMessaging.setAutomaticDataCollectionEnabled(true);
+  developer.log('App: Firebase In-App Messaging inicializado.',
+      name: 'MainApp');
+
+  // Lanzar triggers FIAM para campañas informativas
+  inAppMessaging.triggerEvent('app_launch');
+  developer.log('App: Trigger FIAM app_launch lanzado.', name: 'MainApp');
+  inAppMessaging.triggerEvent('on_foreground');
+  developer.log('App: Trigger FIAM on_foreground lanzado.', name: 'MainApp');
 
   // Setup dependency injection
   setupServiceLocator();

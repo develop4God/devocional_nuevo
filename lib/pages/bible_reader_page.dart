@@ -812,17 +812,19 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                             ),
                             // Button sizes to its content; avoid IntrinsicWidth to prevent intrinsic-measurement errors
                             Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 8.0),
                               child: ElevatedButton(
                                 onPressed: _showBookSelector,
                                 style: ElevatedButton.styleFrom(
                                   // allow the button to shrink to fit content
                                   minimumSize: const Size(0, 0),
                                   backgroundColor: colorScheme.primaryContainer,
-                                  foregroundColor: colorScheme.onPrimaryContainer,
+                                  foregroundColor:
+                                      colorScheme.onPrimaryContainer,
                                   elevation: 2,
-                                  shadowColor:
-                                      colorScheme.primary.withValues(alpha: 0.3),
+                                  shadowColor: colorScheme.primary
+                                      .withValues(alpha: 0.3),
                                   padding: const EdgeInsets.symmetric(
                                       vertical: 10.0, horizontal: 16.0),
                                   shape: RoundedRectangleBorder(

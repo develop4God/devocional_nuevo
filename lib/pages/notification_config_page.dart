@@ -287,7 +287,8 @@ class _NotificationConfigPageState extends State<NotificationConfigPage> {
           SnackBar(
             backgroundColor: colorScheme.secondary,
             content: Text(
-              'notifications_config_page.time_not_changed'.tr(), // MENSAJE SI HORA NO CAMBIA
+              'notifications_config_page.time_not_changed'
+                  .tr(), // MENSAJE SI HORA NO CAMBIA
               style: TextStyle(color: colorScheme.onSecondary),
             ),
           ),
