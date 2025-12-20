@@ -4,6 +4,7 @@ import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/tts/bible_text_formatter.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
+import 'package:firebase_in_app_messaging/firebase_in_app_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -249,6 +250,9 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
     } else if (state != TtsPlayerState.loading) {
       debugPrint(
           '[TTS Widget] ▶️ Estado NO es playing ni loading, llamando play()');
+      // Lanzar trigger FIAM tts_play
+      FirebaseInAppMessaging.instance.triggerEvent('tts_play');
+      debugPrint('[TTS Widget] Trigger FIAM tts_play lanzado');
       widget.audioController.play();
     } else {
       debugPrint('[TTS Widget] ⚠️ Estado es LOADING, no se hace nada');
