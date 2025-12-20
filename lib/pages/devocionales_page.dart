@@ -27,7 +27,7 @@ import 'package:devocional_nuevo/widgets/tts_player_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_tts/flutter_tts.dart';
-import 'package:google_fonts/google_fonts.dart';
+
 import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart'; // Re-agregado para animación post-splash
 import 'package:provider/provider.dart';
@@ -1016,26 +1016,20 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                       );
                                       if (!context.mounted) return;
                                       HapticFeedback.selectionClick();
-                                      // Show SnackBar with theme colors
-                                      final messenger =
-                                      ScaffoldMessenger.of(context);
-                                      final ColorScheme colorScheme =
-                                          Theme.of(context).colorScheme;
+                                      final messenger = ScaffoldMessenger.of(context);
+                                      final ColorScheme colorScheme = Theme.of(context).colorScheme;
                                       messenger.showSnackBar(
                                         SnackBar(
-                                          backgroundColor:
-                                          colorScheme.secondary,
+                                          backgroundColor: colorScheme.secondary,
                                           duration: const Duration(seconds: 2),
                                           content: Text(
                                             'share.copied_to_clipboard'.tr(),
-                                            style: TextStyle(
-                                                color: colorScheme.onSecondary),
+                                            style: TextStyle(color: colorScheme.onSecondary),
                                           ),
                                         ),
                                       );
                                     } catch (e) {
-                                      debugPrint(
-                                          '[DevocionalesPage] Error copying verse to clipboard: $e');
+                                      debugPrint('[DevocionalesPage] Error copying verse to clipboard: $e');
                                     }
                                   },
                                   child: Container(
@@ -1044,7 +1038,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                       vertical: 6,
                                     ),
                                     decoration: BoxDecoration(
-                                      // Three-color gradient for depth
+                                      // Gradiente existente
                                       gradient: LinearGradient(
                                         begin: Alignment.topLeft,
                                         end: Alignment.bottomRight,
@@ -1056,7 +1050,12 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                         stops: const [0.0, 0.6, 1.0],
                                       ),
                                       borderRadius: BorderRadius.circular(20),
-                                      // Multi-layer shadows for depth
+                                      // NUEVO: Borde sutil que ayuda a definir el contenedor
+                                      border: Border.all(
+                                        color: colorScheme.primary.withAlpha((0.3 * 255).round()),
+                                        width: 1.5,
+                                      ),
+                                      // Sombras existentes
                                       boxShadow: [
                                         BoxShadow(
                                           color: colorScheme.primary.withAlpha((0.2 * 255).round()),
@@ -1075,11 +1074,8 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                     child: AutoSizeText(
                                       currentDevocional.versiculo,
                                       textAlign: TextAlign.center,
-                                      style: GoogleFonts.playfairDisplay(
-                                        fontSize: 22,
+                                      style: textTheme.titleLarge?.copyWith(
                                         fontWeight: FontWeight.w600,
-                                        height: 1.4,
-                                        letterSpacing: 0.3,
                                         color: colorScheme.onSurface,
                                       ),
                                       maxLines: 12,
