@@ -132,7 +132,7 @@ class _AddThanksgivingModalState extends State<AddThanksgivingModal> {
             controller: _textController,
             focusNode: _focusNode,
             maxLines: 6,
-            maxLength: 500,
+            maxLength: 700,
             textCapitalization: TextCapitalization.sentences,
             style: textTheme.bodyMedium?.copyWith(
               color: colorScheme.onSurface,
