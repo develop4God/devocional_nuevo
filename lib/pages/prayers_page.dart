@@ -1005,20 +1005,34 @@ class _PrayersPageState extends State<PrayersPage>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header con acciones (sin emoji por línea)
+            // Header con icono, texto y acciones, igual que las otras tarjetas
             Row(
               children: [
-                Expanded(
-                  child: Text(
-                    thanksgiving.text,
-                    style: textTheme.bodyMedium?.copyWith(
-                      color: colorScheme.onSurface,
-                      fontSize: 15,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.pink.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text('☺️', style: TextStyle(fontSize: 16)),
+                      const SizedBox(width: 4),
+                      Text(
+                        'thanksgiving.thanksgiving'.tr(),
+                        style: textTheme.bodySmall?.copyWith(
+                          color: Colors.pink,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
+                const Spacer(),
                 Container(
                   padding: const EdgeInsets.all(4),
                   child: PopupMenuButton<String>(
