@@ -114,7 +114,8 @@
     "prayers": "Prayers",
     "edit_answered_comment": "Edit Answer",
     "edit_answered_comment_description": "Edit the comment about how this prayer was answered.",
-    "edit_answered_placeholder": "God answered this prayer by...\n\nI am grateful for..."
+    "edit_answered_placeholder": "God answered this prayer by...\n\nI am grateful for...",
+    "add_prayer_thanksgiving_hint": "Add prayer or thanksgiving"
   },
   "settings": {
     "title": "Settings",

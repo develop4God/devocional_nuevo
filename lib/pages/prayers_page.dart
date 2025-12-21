@@ -14,6 +14,7 @@ import 'package:devocional_nuevo/widgets/add_thanksgiving_modal.dart';
 import 'package:devocional_nuevo/widgets/answer_prayer_modal.dart';
 import 'package:devocional_nuevo/widgets/edit_answered_comment_modal.dart';
 import 'package:devocional_nuevo/widgets/app_bar_constants.dart';
+import 'package:devocional_nuevo/widgets/animated_fab_with_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -346,12 +347,19 @@ class _PrayersPageState extends State<PrayersPage>
               ),
             ],
           ),
-          floatingActionButton: FloatingActionButton(
-            onPressed: () {
-              _showAddPrayerOrThanksgivingChoice();
-            },
-            backgroundColor: Theme.of(context).colorScheme.primary,
-            child: const Icon(Icons.add),
+          floatingActionButton: AnimatedFabWithText(
+            onPressed: _showAddPrayerOrThanksgivingChoice,
+            text: 'prayer.add_prayer_thanksgiving_hint'.tr(),
+            gradient: LinearGradient(
+              colors: [
+                Theme.of(context).colorScheme.primary,
+                Theme.of(context).colorScheme.secondary,
+              ],
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
+            ),
+            textColor: Colors.white,
+            iconColor: Colors.white,
           ),
         ));
   }

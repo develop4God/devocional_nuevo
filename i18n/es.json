@@ -114,7 +114,8 @@
     "prayers": "Oraciones",
     "edit_answered_comment": "Editar Respuesta",
     "edit_answered_comment_description": "Edita el comentario sobre cómo fue respondida esta oración.",
-    "edit_answered_placeholder": "Dios respondió esta oración mediante...\n\nEstoy agradecido por..."
+    "edit_answered_placeholder": "Dios respondió esta oración mediante...\n\nEstoy agradecido por...",
+    "add_prayer_thanksgiving_hint": "Agregar oración o agradecimiento"
   },
   "settings": {
     "title": "Configuración",

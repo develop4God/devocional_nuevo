@@ -114,7 +114,8 @@
     "prayers": "祈り",
     "edit_answered_comment": "回答を編集",
     "edit_answered_comment_description": "この祈りがどのように答えられたかについてのコメントを編集します。",
-    "edit_answered_placeholder": "神はこの祈りに答えてくださいました...\n\n感謝しています..."
+    "edit_answered_placeholder": "神はこの祈りに答えてくださいました...\n\n感謝しています...",
+    "add_prayer_thanksgiving_hint": "祈りや感謝を追加"
   },
   "settings": {
     "title": "設定",

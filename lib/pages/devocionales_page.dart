@@ -42,6 +42,7 @@ import '../services/analytics_service.dart';
 import '../services/spiritual_stats_service.dart';
 import '../services/tts/bible_text_formatter.dart';
 import '../widgets/voice_selector_dialog.dart';
+import '../widgets/animated_fab_with_text.dart';
 
 class DevocionalesPage extends StatefulWidget {
   final String? initialDevocionalId;
@@ -906,12 +907,19 @@ class _DevocionalesPageState extends State<DevocionalesPage>
             ],
           ),
         ),
-        floatingActionButton: FloatingActionButton.small(
+        floatingActionButton: AnimatedFabWithText(
           onPressed: _showAddPrayerOrThanksgivingChoice,
-          backgroundColor: colorScheme.primary,
-          foregroundColor: colorScheme.onPrimary,
-          tooltip: 'tooltips.add_prayer_or_thanksgiving'.tr(),
-          child: const Icon(Icons.add, size: 30),
+          text: 'prayer.add_prayer_thanksgiving_hint'.tr(),
+          gradient: LinearGradient(
+            colors: [
+              colorScheme.primary,
+              colorScheme.secondary,
+            ],
+            begin: Alignment.centerLeft,
+            end: Alignment.centerRight,
+          ),
+          textColor: Colors.white,
+          iconColor: Colors.white,
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
         body: Stack(
