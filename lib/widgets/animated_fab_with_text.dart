@@ -45,12 +45,8 @@ class _AnimatedFabWithTextState extends State<AnimatedFabWithText> {
     // Calcular el ancho basado en el texto si no se especifica
     final screenWidth = MediaQuery.of(context).size.width;
 
-    // Estimar ancho necesario basado en la longitud del texto
-    final textLength = widget.text.length;
-    final estimatedWidth = (textLength * 8.5) + 70; // ~8.5px por carácter + padding + icono
-
-    // Usar el menor entre: estimado, 75% pantalla, o máximo 320px
-    final calculatedWidth = estimatedWidth.clamp(140.0, screenWidth * 0.75).clamp(140.0, 320.0);
+    // Usar el 95% del ancho disponible con un mínimo de 140px
+    final calculatedWidth = (screenWidth * 0.95).clamp(140.0, double.infinity);
     final maxWidth = widget.width ?? calculatedWidth;
 
     return AnimatedContainer(
