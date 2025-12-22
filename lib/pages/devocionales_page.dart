@@ -882,30 +882,22 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       value: themeState.systemUiOverlayStyle,
       child: Scaffold(
         drawer: const DevocionalesDrawer(),
-        appBar: PreferredSize(
-          preferredSize: const Size.fromHeight(kToolbarHeight),
-          child: Stack(
-            children: [
-              CustomAppBar(
-                titleText: 'devotionals.my_intimate_space_with_god'.tr(),
-              ),
-              Positioned(
-                right: 0,
-                top: 0,
-                bottom: 0,
-                child: SafeArea(
-                  child: IconButton(
-                    icon: const Icon(
-                      Icons.text_increase_outlined,
-                      color: Colors.white,
-                    ),
-                    tooltip: 'bible.adjust_font_size'.tr(),
-                    onPressed: _toggleFontControls,
-                  ),
-                ),
-              ),
-            ],
+        appBar: CustomAppBar(
+          titleWidget: AutoSizeText(
+            'devotionals.my_intimate_space_with_god'.tr(),
+            maxLines: 1,
+            minFontSize: 10,
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              color: Theme.of(context).colorScheme.onPrimary,
+            ),
           ),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.text_increase_outlined, color: Colors.white),
+              tooltip: 'bible.adjust_font_size'.tr(),
+              onPressed: _toggleFontControls,
+            ),
+          ],
         ),
         floatingActionButton: AnimatedFabWithText(
           onPressed: _showAddPrayerOrThanksgivingChoice,
@@ -1489,11 +1481,11 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                               );
                               _goToBible();
                             },
-                            icon: (Icon(
+                            icon: Icon(
                               Icons.auto_stories_outlined,
                               color: Colors.white,
                               size: 32,
-                            )).newIconBadge,
+                            ),
                           ),
                           IconButton(
                             key: const Key('bottom_appbar_share_icon'),
