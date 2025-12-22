@@ -34,7 +34,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
-import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
 import 'package:timezone/data/latest_all.dart' as tzdata;
 import 'package:timezone/timezone.dart' as tz;
@@ -43,7 +42,7 @@ import 'package:timezone/timezone.dart' as tz;
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 // ADD this global RouteObserver at the top level
 final RouteObserver<PageRoute<dynamic>> routeObserver =
-    RouteObserver<PageRoute<dynamic>>();
+RouteObserver<PageRoute<dynamic>>();
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -105,18 +104,14 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
 
-  // Inicializar Firebase In-App Messaging
-  final FirebaseInAppMessaging inAppMessaging = FirebaseInAppMessaging.instance;
-  // Opcional: habilitar mensajes automáticos (por defecto está habilitado)
-  await inAppMessaging.setAutomaticDataCollectionEnabled(true);
-  developer.log('App: Firebase In-App Messaging inicializado.',
-      name: 'MainApp');
-
-  // Lanzar triggers FIAM para campañas informativas
-  inAppMessaging.triggerEvent('app_launch');
-  developer.log('App: Trigger FIAM app_launch lanzado.', name: 'MainApp');
-  inAppMessaging.triggerEvent('on_foreground');
-  developer.log('App: Trigger FIAM on_foreground lanzado.', name: 'MainApp');
+  // Inicializar Firebase In-App Messaging en background (non-blocking)
+  Future.microtask(() async {
+    final FirebaseInAppMessaging inAppMessaging = FirebaseInAppMessaging.instance;
+    await inAppMessaging.setAutomaticDataCollectionEnabled(true);
+    inAppMessaging.triggerEvent('app_launch');
+    inAppMessaging.triggerEvent('on_foreground');
+    developer.log('App: Firebase In-App Messaging inicializado en background.', name: 'MainApp');
+  });
 
   // Setup dependency injection
   setupServiceLocator();
@@ -220,7 +215,7 @@ class _MyAppState extends State<MyApp> {
       // 2. Verificar si debe mostrar onboarding solo si la feature está habilitada
       if (Constants.enableOnboardingFeature) {
         final shouldShowOnboarding =
-            await OnboardingService.instance.shouldShowOnboarding();
+        await OnboardingService.instance.shouldShowOnboarding();
 
         // Check if widget is still mounted after second async operation
         if (!mounted) {
@@ -309,7 +304,7 @@ class _MyAppState extends State<MyApp> {
                         // INICIO: CAMBIO PARA TRANSICIÓN INSTANTÁNEA (SOLUCIONA EL FLICKER)
                         PageRouteBuilder(
                           pageBuilder: (context, a, b) =>
-                              const AppInitializer(),
+                          const AppInitializer(),
                           transitionDuration: Duration.zero,
                         ),
                         // FIN: CAMBIO PARA TRANSICIÓN INSTANTÁNEA
@@ -350,35 +345,25 @@ class _AppInitializerState extends State<AppInitializer> {
   }
 
   Future<void> _initializeInBackground() async {
-    // Capturar BLoC ANTES de cualquier await (solo si backup está habilitado)
-    BackupBloc? backupBloc;
-    if (Constants.enableBackupFeature) {
-      backupBloc = context.read<BackupBloc>();
-    }
+    // Reducir delay para mostrar contenido más rápido
+    await Future.delayed(const Duration(milliseconds: 500));
 
-    // Dar tiempo para que el SplashScreen se muestre
-    await Future.delayed(const Duration(milliseconds: 900));
-
-    // Inicialización completa de servicios y datos
-    await _initServices();
+    // Solo inicializar lo crítico primero
+    await _initCriticalServices();
     await _initAppData();
 
-    // Startup backup check cada 24h (non-blocking) - solo si está habilitado
-    if (Constants.enableBackupFeature && backupBloc != null) {
-      Future.delayed(const Duration(seconds: 2), () {
-        try {
-          backupBloc!.add(const CheckStartupBackup());
-          debugPrint('🌅 [MAIN] Startup backup check initiated');
-        } catch (e) {
-          debugPrint('❌ [MAIN] Error starting backup check: $e');
-        }
-      });
-    } else {
-      developer.log(
-        'AppInitializer: Backup feature deshabilitada por feature flag',
-        name: 'MainApp',
+    // Navegar a la página principal INMEDIATAMENTE
+    if (mounted) {
+      Navigator.of(context).pushReplacement(
+        PageRouteBuilder(
+          pageBuilder: (context, a, b) => const DevocionalesPage(),
+          transitionDuration: const Duration(milliseconds: 300),
+        ),
       );
     }
+
+    // Inicializar servicios no críticos DESPUÉS en background
+    _initNonCriticalServices();
 
     developer.log(
       'AppInitializer: Inicialización completa terminada.',
@@ -386,35 +371,8 @@ class _AppInitializerState extends State<AppInitializer> {
     );
   }
 
-  Future<void> _initServices() async {
-    // Obtener el idioma ANTES de cualquier await para evitar usar context tras async gap
-    final localizationProvider =
-        Provider.of<LocalizationProvider>(context, listen: false);
-    final languageCode = localizationProvider.currentLocale.languageCode;
-    // Inicialización global
-    try {
-      tzdata.initializeTimeZones();
-      await initializeDateFormatting('es', null);
-      developer.log(
-        'AppInitializer: Zona horaria y formateo de fechas inicializados.',
-        name: 'MainApp',
-      );
-      // Inicializar TTS proactivamente con el idioma del usuario
-      await getService<ITtsService>().initializeTtsOnAppStart(languageCode);
-      debugPrint(
-          '[MAIN] TTS inicializado proactivamente con idioma: $languageCode');
-    } catch (e) {
-      developer.log(
-        'ERROR en AppInitializer: Error al inicializar zona horaria, date formatting o TTS: $e',
-        name: 'MainApp',
-        error: e,
-      );
-    }
-
-    // Note: LocalizationProvider is already initialized in _initializeApp()
-    // No need to initialize it again here to avoid duplicate initialization
-
-    // Firebase Auth
+  Future<void> _initCriticalServices() async {
+    // Solo Firebase Auth (necesario para firestore)
     try {
       final FirebaseAuth auth = FirebaseAuth.instance;
       if (auth.currentUser == null) {
@@ -431,80 +389,116 @@ class _AppInitializerState extends State<AppInitializer> {
       }
     } catch (e) {
       developer.log(
-        'ERROR en AppInitializer: Error al inicializar Firebase Auth o autenticar anónimamente: $e',
+        'ERROR: Firebase Auth: $e',
         name: 'MainApp',
         error: e,
       );
     }
 
-    // Notification services
+    // Timezone (necesario para algunas features)
     try {
-      await NotificationService().initialize();
+      tzdata.initializeTimeZones();
       developer.log(
-        'AppInitializer: Servicios de notificación (FCM) registrados correctamente.',
+        'AppInitializer: Zona horaria inicializada.',
         name: 'MainApp',
       );
-
-      // Request notification permissions if not in debug mode
-      if (!kDebugMode) {
-        developer.log(
-          'Solicitando permiso de notificaciones...',
-          name: 'DebugFlow',
-        );
-        final settings = await FirebaseMessaging.instance.requestPermission();
-        developer.log(
-          'Permiso solicitado, estado: ${settings.authorizationStatus}',
-          name: 'DebugFlow',
-        );
-      } else {
-        developer.log(
-          'NO se solicita permiso de notificaciones en modo debug',
-          name: 'DebugFlow',
-        );
-      }
     } catch (e) {
-      debugPrint('Error al inicializar servicios de notificación: $e');
       developer.log(
-        'ERROR en AppInitializer: Error al inicializar servicios de notificación: $e',
+        'ERROR: Timezone: $e',
         name: 'MainApp',
         error: e,
       );
     }
+  }
 
-    // Spiritual stats service - solo si backup está habilitado
-    if (Constants.enableBackupFeature) {
+  void _initNonCriticalServices() {
+    // TTS - diferido 1 segundo
+    Future.delayed(const Duration(seconds: 1), () async {
+      if (!mounted) return;
       try {
-        final spiritualStatsService = SpiritualStatsService();
+        final localizationProvider = Provider.of<LocalizationProvider>(context, listen: false);
+        final languageCode = localizationProvider.currentLocale.languageCode;
+        await getService<ITtsService>().initializeTtsOnAppStart(languageCode);
+        debugPrint('[MAIN] TTS inicializado en background con idioma: $languageCode');
+      } catch (e) {
+        developer.log('ERROR: TTS initialization: $e', name: 'MainApp', error: e);
+      }
+    });
 
-        // Verificar integridad de datos al inicio
-        await spiritualStatsService.getStats();
-
-        // Habilitar auto-backup si no está configurado (primera vez)
-        if (!await spiritualStatsService.isAutoBackupEnabled()) {
-          await spiritualStatsService.setAutoBackupEnabled(true);
-          developer.log(
-            'AppInitializer: Auto-backup de estadísticas espirituales habilitado por defecto.',
-            name: 'MainApp',
-          );
-        }
-
-        // Obtener información de backup para logging
-        final backupInfo = await spiritualStatsService.getBackupInfo();
+    // Notifications - diferido 2 segundos
+    Future.delayed(const Duration(seconds: 2), () async {
+      try {
+        await NotificationService().initialize();
         developer.log(
-          'AppInitializer: Sistema de backup inicializado. Auto-backups: ${backupInfo['auto_backups_count']}, Último backup: ${backupInfo['last_auto_backup']}',
+          'AppInitializer: Servicios de notificación inicializados en background.',
           name: 'MainApp',
         );
+
+        // Request notification permissions if not in debug mode
+        if (!kDebugMode) {
+          final settings = await FirebaseMessaging.instance.requestPermission();
+          developer.log(
+            'Permiso de notificaciones solicitado en background: ${settings.authorizationStatus}',
+            name: 'MainApp',
+          );
+        } else {
+          developer.log(
+            'NO se solicita permiso de notificaciones en modo debug',
+            name: 'DebugFlow',
+          );
+        }
       } catch (e) {
         developer.log(
-          'ERROR en AppInitializer: Error al inicializar sistema de backup de estadísticas: $e',
+          'ERROR: Notification services: $e',
           name: 'MainApp',
           error: e,
         );
-        // No es crítico, la app puede continuar funcionando
       }
+    });
+
+    // Spiritual stats & backup - diferido 3 segundos
+    if (Constants.enableBackupFeature) {
+      Future.delayed(const Duration(seconds: 3), () async {
+        if (!mounted) return;
+        try {
+          final spiritualStatsService = SpiritualStatsService();
+
+          // Verificar integridad de datos
+          await spiritualStatsService.getStats();
+
+          // Habilitar auto-backup si no está configurado
+          if (!await spiritualStatsService.isAutoBackupEnabled()) {
+            await spiritualStatsService.setAutoBackupEnabled(true);
+            developer.log(
+              'AppInitializer: Auto-backup habilitado por defecto.',
+              name: 'MainApp',
+            );
+          }
+
+          // Backup check
+          try {
+            final backupBloc = context.read<BackupBloc>();
+            backupBloc.add(const CheckStartupBackup());
+            debugPrint('🌅 [MAIN] Startup backup check initiated');
+          } catch (e) {
+            debugPrint('❌ [MAIN] Error starting backup check: $e');
+          }
+
+          developer.log(
+            'AppInitializer: Sistema de backup inicializado en background.',
+            name: 'MainApp',
+          );
+        } catch (e) {
+          developer.log(
+            'ERROR: Spiritual stats/backup: $e',
+            name: 'MainApp',
+            error: e,
+          );
+        }
+      });
     } else {
       developer.log(
-        'AppInitializer: Sistema de backup de estadísticas deshabilitado por feature flag',
+        'AppInitializer: Backup feature deshabilitada por feature flag',
         name: 'MainApp',
       );
     }
@@ -526,7 +520,7 @@ class _AppInitializerState extends State<AppInitializer> {
       );
     } catch (e) {
       developer.log(
-        'ERROR en AppInitializer: Error al cargar datos del DevocionalProvider: $e',
+        'ERROR: DevocionalProvider data: $e',
         name: 'MainApp',
         error: e,
       );
@@ -540,3 +534,4 @@ class _AppInitializerState extends State<AppInitializer> {
     return const SplashScreen();
   }
 }
+
