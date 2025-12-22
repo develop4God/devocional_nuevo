@@ -42,7 +42,7 @@ import 'package:timezone/timezone.dart' as tz;
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 // ADD this global RouteObserver at the top level
 final RouteObserver<PageRoute<dynamic>> routeObserver =
-RouteObserver<PageRoute<dynamic>>();
+    RouteObserver<PageRoute<dynamic>>();
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -106,11 +106,13 @@ void main() async {
 
   // Inicializar Firebase In-App Messaging en background (non-blocking)
   Future.microtask(() async {
-    final FirebaseInAppMessaging inAppMessaging = FirebaseInAppMessaging.instance;
+    final FirebaseInAppMessaging inAppMessaging =
+        FirebaseInAppMessaging.instance;
     await inAppMessaging.setAutomaticDataCollectionEnabled(true);
     inAppMessaging.triggerEvent('app_launch');
     inAppMessaging.triggerEvent('on_foreground');
-    developer.log('App: Firebase In-App Messaging inicializado en background.', name: 'MainApp');
+    developer.log('App: Firebase In-App Messaging inicializado en background.',
+        name: 'MainApp');
   });
 
   // Setup dependency injection
@@ -215,7 +217,7 @@ class _MyAppState extends State<MyApp> {
       // 2. Verificar si debe mostrar onboarding solo si la feature está habilitada
       if (Constants.enableOnboardingFeature) {
         final shouldShowOnboarding =
-        await OnboardingService.instance.shouldShowOnboarding();
+            await OnboardingService.instance.shouldShowOnboarding();
 
         // Check if widget is still mounted after second async operation
         if (!mounted) {
@@ -304,7 +306,7 @@ class _MyAppState extends State<MyApp> {
                         // INICIO: CAMBIO PARA TRANSICIÓN INSTANTÁNEA (SOLUCIONA EL FLICKER)
                         PageRouteBuilder(
                           pageBuilder: (context, a, b) =>
-                          const AppInitializer(),
+                              const AppInitializer(),
                           transitionDuration: Duration.zero,
                         ),
                         // FIN: CAMBIO PARA TRANSICIÓN INSTANTÁNEA
@@ -353,14 +355,13 @@ class _AppInitializerState extends State<AppInitializer> {
     await _initAppData();
 
     // Navegar a la página principal INMEDIATAMENTE
-    if (mounted) {
-      Navigator.of(context).pushReplacement(
-        PageRouteBuilder(
-          pageBuilder: (context, a, b) => const DevocionalesPage(),
-          transitionDuration: const Duration(milliseconds: 300),
-        ),
-      );
-    }
+    if (!mounted) return;
+    Navigator.of(context).pushReplacement(
+      PageRouteBuilder(
+        pageBuilder: (context, a, b) => const DevocionalesPage(),
+        transitionDuration: const Duration(milliseconds: 300),
+      ),
+    );
 
     // Inicializar servicios no críticos DESPUÉS en background
     _initNonCriticalServices();
@@ -414,14 +415,17 @@ class _AppInitializerState extends State<AppInitializer> {
   void _initNonCriticalServices() {
     // TTS - diferido 1 segundo
     Future.delayed(const Duration(seconds: 1), () async {
-      if (!mounted) return;
       try {
-        final localizationProvider = Provider.of<LocalizationProvider>(context, listen: false);
+        if (!mounted) return;
+        final localizationProvider =
+            Provider.of<LocalizationProvider>(context, listen: false);
         final languageCode = localizationProvider.currentLocale.languageCode;
         await getService<ITtsService>().initializeTtsOnAppStart(languageCode);
-        debugPrint('[MAIN] TTS inicializado en background con idioma: $languageCode');
+        debugPrint(
+            '[MAIN] TTS inicializado en background con idioma: $languageCode');
       } catch (e) {
-        developer.log('ERROR: TTS initialization: $e', name: 'MainApp', error: e);
+        developer.log('ERROR: TTS initialization: $e',
+            name: 'MainApp', error: e);
       }
     });
 
@@ -459,8 +463,8 @@ class _AppInitializerState extends State<AppInitializer> {
     // Spiritual stats & backup - diferido 3 segundos
     if (Constants.enableBackupFeature) {
       Future.delayed(const Duration(seconds: 3), () async {
-        if (!mounted) return;
         try {
+          if (!mounted) return;
           final spiritualStatsService = SpiritualStatsService();
 
           // Verificar integridad de datos
@@ -476,6 +480,7 @@ class _AppInitializerState extends State<AppInitializer> {
           }
 
           // Backup check
+          if (!mounted) return;
           try {
             final backupBloc = context.read<BackupBloc>();
             backupBloc.add(const CheckStartupBackup());
@@ -534,4 +539,3 @@ class _AppInitializerState extends State<AppInitializer> {
     return const SplashScreen();
   }
 }
-
