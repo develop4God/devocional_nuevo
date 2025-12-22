@@ -1025,7 +1025,7 @@ class _PrayersPageState extends State<PrayersPage>
                       const Text('☺️', style: TextStyle(fontSize: 16)),
                       const SizedBox(width: 4),
                       Text(
-                        'thanksgiving.thanksgiving'.tr(),
+                        'thanksgiving.thankful_for'.tr(),
                         style: textTheme.bodySmall?.copyWith(
                           color: Colors.pink,
                           fontWeight: FontWeight.w500,
