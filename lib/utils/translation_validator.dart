@@ -22,6 +22,7 @@ void main(List<String> args) async {
 
   final missingKeys = <String>[];
   final incompleteKeys = <String>[];
+  int pendingCount = 0;
 
   /// Inserta claves faltantes en el JSON destino, usando el valor 'PENDING' por defecto
   void insertMissingKeys(dynamic reference, dynamic target) {
@@ -34,6 +35,7 @@ void main(List<String> args) async {
               insertMissingKeys(value, target[key]);
             } else {
               target[key] = 'PENDING';
+              pendingCount++;
             }
           } else {
             insertMissingKeys(value, target[key]);
@@ -84,5 +86,9 @@ void main(List<String> args) async {
   // Guarda el archivo destino actualizado con las claves faltantes
   await targetFile
       .writeAsString(JsonEncoder.withIndent('  ').convert(targetJson));
-  log('✅ Archivo $lang.json actualizado con claves faltantes marcadas como "PENDING".');
+  if (pendingCount > 0) {
+    log('✅ Archivo $lang.json actualizado: se agregaron $pendingCount claves nuevas marcadas como "PENDING".');
+  } else {
+    log('ℹ️ No se agregaron claves nuevas. El archivo $lang.json ya estaba completo.');
+  }
 }
