@@ -670,6 +670,7 @@
     "no_thanksgivings_title": "No hay agradecimientos",
     "no_thanksgivings_description": "Crea tu primer agradecimiento para expresar tu gratitud a Dios.",
     "days_old_single": "({days} día)",
-    "days_old_plural": "({days} días)"
+    "days_old_plural": "({days} días)",
+    "thankful_for": "Agradezco por:"
   }
 }
