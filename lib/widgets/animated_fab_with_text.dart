@@ -93,16 +93,29 @@ class _AnimatedFabWithTextState extends State<AnimatedFabWithText>
                           alignment: Alignment.centerLeft,
                           child: AnimatedOpacity(
                             opacity: _showText ? 1.0 : 0.0,
-                            duration: const Duration(milliseconds: 350),
-                            child: Text(
-                              widget.text,
-                              style: TextStyle(
-                                color: widget.textColor,
-                                fontWeight: FontWeight.w600,
-                                fontSize: 15,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
+                            duration: const Duration(milliseconds: 400),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.add_circle,
+                                  color: widget.textColor,
+                                  size: 50,
+                                ),
+                                const SizedBox(width: 8),
+                                Flexible(
+                                  child: Text(
+                                    widget.text,
+                                    style: TextStyle(
+                                      color: widget.textColor,
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 15,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ),
