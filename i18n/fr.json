@@ -115,7 +115,7 @@
     "edit_answered_comment": "Modifier la Réponse",
     "edit_answered_comment_description": "Modifiez le commentaire sur la façon dont cette prière a été exaucée.",
     "edit_answered_placeholder": "Dieu a répondu à cette prière en...\n\nJe suis reconnaissant pour...",
-    "add_prayer_thanksgiving_hint": "Ajouter une prière ou une action de grâce"
+    "add_prayer_thanksgiving_hint": "Prière ou gratitude"
   },
   "settings": {
     "title": "Paramètres",
