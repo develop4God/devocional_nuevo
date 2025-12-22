@@ -350,10 +350,10 @@ class _PrayersPageState extends State<PrayersPage>
           floatingActionButton: AnimatedFabWithText(
             onPressed: _showAddPrayerOrThanksgivingChoice,
             text: 'prayer.add_prayer_thanksgiving_hint'.tr(),
-            fabColor: colorScheme.primary,        // Color del círculo con el +
+            fabColor: colorScheme.primary, // Color del círculo con el +
             backgroundColor: colorScheme.secondary, // Color del fondo del texto
-            textColor: colorScheme.onPrimaryContainer,     // Color del texto
-            iconColor: colorScheme.onPrimary,              // Color del icono +
+            textColor: colorScheme.onPrimaryContainer, //Color del texto
+            iconColor: colorScheme.onPrimary, // Color del icono +
           ),
         ));
   }
