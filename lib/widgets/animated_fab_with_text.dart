@@ -4,7 +4,8 @@ class AnimatedFabWithText extends StatefulWidget {
   final VoidCallback onPressed;
   final String text;
   final Duration showDuration;
-  final Gradient gradient;
+  final Color fabColor;
+  final Color backgroundColor;
   final Color textColor;
   final Color iconColor;
   final double? width;
@@ -14,8 +15,9 @@ class AnimatedFabWithText extends StatefulWidget {
     super.key,
     required this.onPressed,
     required this.text,
-    this.showDuration = const Duration(seconds: 4),
-    required this.gradient,
+    this.showDuration = const Duration(seconds: 3),
+    required this.fabColor,
+    required this.backgroundColor,
     required this.textColor,
     required this.iconColor,
     this.width,
@@ -26,90 +28,125 @@ class AnimatedFabWithText extends StatefulWidget {
   State<AnimatedFabWithText> createState() => _AnimatedFabWithTextState();
 }
 
-class _AnimatedFabWithTextState extends State<AnimatedFabWithText> {
+class _AnimatedFabWithTextState extends State<AnimatedFabWithText>
+    with SingleTickerProviderStateMixin {
   bool _showText = false;
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      setState(() => _showText = true);
-      Future.delayed(widget.showDuration, () {
-        if (mounted) setState(() => _showText = false);
-      });
+    // Pequeño delay para que se vea primero solo el círculo
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (mounted) {
+        setState(() => _showText = true);
+        Future.delayed(widget.showDuration, () {
+          if (mounted) setState(() => _showText = false);
+        });
+      }
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    // Calcular el ancho basado en el texto si no se especifica
     final screenWidth = MediaQuery.of(context).size.width;
-
-    // Usar el 95% del ancho disponible con un mínimo de 140px
     final calculatedWidth = (screenWidth * 0.95).clamp(140.0, double.infinity);
     final maxWidth = widget.width ?? calculatedWidth;
 
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 400),
-      curve: Curves.easeOutCubic,
+    return SizedBox(
       height: widget.height,
-      constraints: BoxConstraints(
-        maxWidth: _showText ? maxWidth : widget.height,
-        minWidth: widget.height,
-      ),
-      decoration: BoxDecoration(
-        gradient: widget.gradient,
-        borderRadius: BorderRadius.circular(widget.height / 2),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.2),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: widget.onPressed,
-          borderRadius: BorderRadius.circular(widget.height / 2),
-          child: Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: _showText ? 16.0 : 0,
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                if (_showText && widget.text.isNotEmpty)
-                  Flexible(
-                    child: AnimatedOpacity(
-                      opacity: _showText ? 1.0 : 0.0,
-                      duration: const Duration(milliseconds: 200),
+      child: Stack(
+        alignment: Alignment.centerRight,
+        clipBehavior: Clip.none,
+        children: [
+          // Contenedor de texto expandible (detrás)
+          if (_showText)
+            Positioned(
+              right: 0,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 400),
+                curve: Curves.easeOutCubic,
+                height: widget.height,
+                width: _showText ? maxWidth : 0,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: widget.backgroundColor,
+                    borderRadius: BorderRadius.circular(widget.height / 2),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.1),
+                        blurRadius: 6,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: widget.onPressed,
+                      borderRadius: BorderRadius.circular(widget.height / 2),
                       child: Padding(
-                        padding: const EdgeInsets.only(right: 8.0),
-                        child: Text(
-                          widget.text,
-                          style: TextStyle(
-                            color: widget.textColor,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 15,
+                        padding: EdgeInsets.only(
+                          left: 20,
+                          right: widget.height + 4,
+                        ),
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: AnimatedOpacity(
+                            opacity: _showText ? 1.0 : 0.0,
+                            duration: const Duration(milliseconds: 350),
+                            child: Text(
+                              widget.text,
+                              style: TextStyle(
+                                color: widget.textColor,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 15,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ),
                   ),
-                Icon(
-                  Icons.add,
-                  color: widget.iconColor,
-                  size: 24,
                 ),
-              ],
+              ),
+            ),
+          // FAB circular (siempre visible, al frente)
+          Positioned(
+            right: 0,
+            child: Container(
+              width: widget.height,
+              height: widget.height,
+              decoration: BoxDecoration(
+                color: widget.fabColor,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.25),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: Material(
+                color: Colors.transparent,
+                shape: const CircleBorder(),
+                child: InkWell(
+                  onTap: widget.onPressed,
+                  customBorder: const CircleBorder(),
+                  child: Center(
+                    child: Icon(
+                      Icons.add,
+                      color: widget.iconColor,
+                      size: 28,
+                    ),
+                  ),
+                ),
+              ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }
