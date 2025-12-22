@@ -888,12 +888,13 @@ class _DevocionalesPageState extends State<DevocionalesPage>
             maxLines: 1,
             minFontSize: 10,
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              color: Theme.of(context).colorScheme.onPrimary,
-            ),
+                  color: Theme.of(context).colorScheme.onPrimary,
+                ),
           ),
           actions: [
             IconButton(
-              icon: const Icon(Icons.text_increase_outlined, color: Colors.white),
+              icon:
+                  const Icon(Icons.text_increase_outlined, color: Colors.white),
               tooltip: 'bible.adjust_font_size'.tr(),
               onPressed: _toggleFontControls,
             ),
