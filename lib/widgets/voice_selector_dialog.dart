@@ -80,6 +80,10 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
     'fr-CA-language': '🇨🇦',
   };
 
+  static const Map<String, String> chineseVoiceMap = {
+    'cmn-cn-x-cce-local': '🇨🇳', // Main Chinese male voice
+  };
+
   @override
   void initState() {
     super.initState();
@@ -101,6 +105,8 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
         return 'Vous pouvez enregistrer cette voix ou en choisir une autre, selon votre préférence';
       case 'ja':
         return 'この声を保存するか、別の声を選択することができます。お好みに合わせて';
+      case 'zh':
+        return '您可以保存此语音或选择其他语音，按您的喜好';
       default:
         return template;
     }
@@ -149,6 +155,8 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
         return japaneseVoiceMap.containsKey(voiceName);
       case 'fr':
         return frenchVoiceMap.containsKey(voiceName);
+      case 'zh':
+        return chineseVoiceMap.containsKey(voiceName);
       default:
         return false;
     }
@@ -182,6 +190,11 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
           return frenchVoiceMap[voiceName]!;
         }
         break;
+      case 'zh':
+        if (chineseVoiceMap.containsKey(voiceName)) {
+          return chineseVoiceMap[voiceName]!;
+        }
+        break;
     }
     // Si es fallback, extrae la bandera del locale
     return _getCountryFlag(locale);
@@ -212,6 +225,9 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
       case 'fr':
         premiumMap = frenchVoiceMap;
         break;
+      case 'zh':
+        premiumMap = chineseVoiceMap;
+        break;
     }
 
     if (premiumMap != null) {
@@ -238,6 +254,7 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
           'pt': ['pt-BR', 'pt-PT'],
           'fr': ['fr-FR', 'fr-CA'],
           'ja': ['ja-JP'],
+          'zh': ['zh-CN', 'zh-TW'],
         };
 
         final priorities = priorityLocales[widget.language] ?? [];
@@ -370,9 +387,16 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
           return Icon(Icons.woman_outlined,
               color: colorScheme.primary, size: 38);
         }
+      case 'zh':
+        if (voiceName == 'cmn-cn-x-cce-local') {
+          return Icon(Icons.man_3_outlined, color: colorScheme.primary, size: 38);
+        }
+        break;
       default:
         return Icon(Icons.person, color: colorScheme.primary, size: 38);
     }
+    // Always return a Widget
+    return Icon(Icons.person, color: colorScheme.primary, size: 38);
   }
 
   String _getVoiceDescription(
@@ -446,6 +470,12 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
             return 'Homme Canada';
           case 'fr-CA-language':
             return 'Femme Canada';
+        }
+        break;
+      case 'zh':
+        switch (voiceName) {
+          case 'cmn-cn-x-cce-local':
+            return 'Voice male';
         }
         break;
     }
