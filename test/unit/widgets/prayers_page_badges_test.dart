@@ -90,6 +90,9 @@ void main() {
 
       // Verify active prayers count (5) is displayed
       expect(find.text('5'), findsOneWidget);
+
+      // Wait for AnimatedFabWithText timer to complete
+      await tester.pump(const Duration(seconds: 4));
     });
 
     testWidgets('should display count badge for answered prayers',
@@ -114,6 +117,9 @@ void main() {
 
       // Verify answered prayers count (3) is displayed
       expect(find.text('3'), findsOneWidget);
+
+      // Wait for AnimatedFabWithText timer to complete
+      await tester.pump(const Duration(seconds: 4));
     });
 
     testWidgets('should display count badge for thanksgivings',
@@ -136,6 +142,9 @@ void main() {
 
       // Verify thanksgiving count (7) is displayed
       expect(find.text('7'), findsOneWidget);
+
+      // Wait for AnimatedFabWithText timer to complete
+      await tester.pump(const Duration(seconds: 4));
     });
 
     testWidgets('should not display badge when count is zero',
@@ -148,6 +157,9 @@ void main() {
 
       // Verify no count badges are displayed (0 should not show)
       expect(find.text('0'), findsNothing);
+
+      // Wait for AnimatedFabWithText timer to complete
+      await tester.pump(const Duration(seconds: 4));
     });
 
     testWidgets('should display 99+ for counts over 99',
@@ -171,6 +183,9 @@ void main() {
 
       // Verify 99+ is displayed instead of 100
       expect(find.text('99+'), findsOneWidget);
+
+      // Wait for AnimatedFabWithText timer to complete
+      await tester.pump(const Duration(seconds: 4));
     });
 
     testWidgets('should display multiple badges for different tabs',
@@ -217,6 +232,9 @@ void main() {
       expect(find.text('2'), findsOneWidget); // Active prayers
       expect(find.text('4'), findsOneWidget); // Answered prayers
       expect(find.text('6'), findsOneWidget); // Thanksgivings
+
+      // Wait for AnimatedFabWithText timer to complete
+      await tester.pump(const Duration(seconds: 4));
     });
   });
 }
