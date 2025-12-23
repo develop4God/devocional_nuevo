@@ -27,9 +27,16 @@ const NOTIFICATION_TRANSLATIONS = {
   ja: {
     title: "あなたの平和の空間が待っています",
     body: "今日、神の言葉とつながることを忘れないでください！",
-
-  },
-};
+   },
+  zh: {
+      title: "你的平安空间在等待",
+      body: "记得今天与神的话语连接！",
+    },
+    hi: {
+      title: "आपकी शांति का स्थान प्रतीक्षा कर रहा है",
+      body: "आज परमेश्वर के वचन से जुड़ना याद रखें!",
+    },
+  };
 
 const NOTIFICATION_IMAGE_URL = "https://cdn.jsdelivr.net/gh/develop4God/Devocional_nuevo@main/assets/images/notification_images/cross_sky_400x200.jpg";
 
