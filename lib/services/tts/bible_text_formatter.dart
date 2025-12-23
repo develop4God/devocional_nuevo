@@ -154,7 +154,7 @@ class BibleTextFormatter {
       case 'zh':
         return {
           '和合本1919': '和合本一九一九',
-          '新标点和合本': '新标点和合本',
+          '新译本': '新译本',
         };
       default:
         return {

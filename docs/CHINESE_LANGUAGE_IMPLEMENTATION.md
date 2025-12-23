@@ -13,7 +13,7 @@ Successfully implemented Chinese (zh) language support for the Devocional app, i
   
 - **Added Chinese Bible versions:**
   ```dart
-  'zh': ['和合本1919', '新标点和合本']
+  'zh': ['和合本1919', '新译本']
   ```
   
 - **Set default Chinese Bible version:**
@@ -46,7 +46,7 @@ Successfully implemented Chinese (zh) language support for the Devocional app, i
   ```dart
   'zh': {
     '和合本1919': '和合本一九一九',
-    '新标点和合本': '新标点和合本',
+    '新译本': '新译本',
   }
   ```
   
@@ -99,8 +99,8 @@ test/
    - Classic Chinese Union Version from 1919
    - TTS pronunciation: 和合本一九一九
    
-2. **新标点和合本** (New Punctuation Chinese Union Version)
-   - Modern punctuation variant
+2. **新译本** (New Chinese Version)
+   - Modern translation with updated language
    - Alternative version for users
 
 ### Text-to-Speech (TTS) Integration
@@ -135,7 +135,7 @@ All tests passing:
 ## Usage
 Users can now:
 1. Select Chinese (中文) from language settings
-2. Choose between 和合本1919 and 新标点和合本 Bible versions
+2. Choose between 和合本1919 and 新译本 Bible versions
 3. Read devotionals in Chinese
 4. Use TTS to listen to devotionals in Chinese
 5. View Chinese date formats

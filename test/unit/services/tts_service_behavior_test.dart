@@ -56,7 +56,24 @@ void main() {
             case 'getLanguages':
               return ['es-ES', 'en-US', 'pt-BR', 'fr-FR', 'ja-JP'];
             case 'getVoices':
-              return [];
+              return [
+                {
+                  'name': 'cmn-cn-x-cce-local',
+                  'locale': 'zh-CN',
+                },
+                {
+                  'name': 'cmn-cn-x-ccc-local',
+                  'locale': 'zh-CN',
+                },
+                {
+                  'name': 'cmn-tw-x-cte-network',
+                  'locale': 'zh-TW',
+                },
+                {
+                  'name': 'cmn-tw-x-ctc-network',
+                  'locale': 'zh-TW',
+                },
+              ];
             case 'isLanguageAvailable':
               return true;
             default:

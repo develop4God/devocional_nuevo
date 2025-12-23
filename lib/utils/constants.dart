@@ -40,7 +40,7 @@ class Constants {
     'pt': ['ARC', 'NVI'],
     'fr': ['LSG1910', 'TOB'],
     'ja': ['新改訳2003', 'リビングバイブル'], // Japanese versions
-    'zh': ['和合本1919', '新标点和合本'], // Chinese versions
+    'zh': ['和合本1919', '新译本'], // Chinese versions (fix: 新译本)
   };
 
   // Versión de Biblia por defecto por idioma

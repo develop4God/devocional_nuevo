@@ -158,6 +158,7 @@ void main() {
       final expansions = BibleTextFormatter.getBibleVersionExpansions('zh');
       expect(expansions['和合本1919'], '和合本一九一九');
       expect(expansions['新标点和合本'], '新标点和合本');
+      expect(expansions['新译本'], '新译本');
     });
 
     test('unknown language falls back to Spanish', () {
