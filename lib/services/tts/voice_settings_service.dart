@@ -373,6 +373,9 @@ class VoiceSettingsService {
         case 'ja':
           friendlyName = 'デフォルトの声';
           break;
+        case 'zh':
+          friendlyName = '默认语音';
+          break;
         default:
           friendlyName = 'Default Voice';
       }
@@ -412,6 +415,8 @@ class VoiceSettingsService {
         return gender == 'female' ? 'Voz Feminina$num' : 'Voz Masculina$num';
       case String s when s.startsWith('fr'):
         return gender == 'female' ? 'Voix Féminine$num' : 'Voix Masculine$num';
+      case String s when s.startsWith('zh'):
+        return gender == 'female' ? '女性声音$num' : '男性声音$num';
       default:
         return gender == 'female' ? 'Female Voice$num' : 'Male Voice$num';
     }
@@ -576,6 +581,8 @@ class VoiceSettingsService {
         return 'fr-FR';
       case 'ja':
         return 'ja-JP';
+      case 'zh':
+        return 'zh-CN';
       default:
         return 'es-ES';
     }
