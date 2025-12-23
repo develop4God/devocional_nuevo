@@ -245,7 +245,7 @@ class VoiceSettingsService {
   Future<String?> loadSavedVoice(String language) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final savedVoice = prefs.getString('tts_voice_$language');
+      final savedVoice = prefs.getString('tts_voice_' + language);
 
       if (savedVoice != null) {
         // Parse del formato legacy o nuevo
@@ -266,6 +266,18 @@ class VoiceSettingsService {
               ? voiceParts[1].replaceAll(')', '')
               : _getDefaultLocaleForLanguage(language);
         }
+
+        // --- NEW: Validate voice for zh ---
+        if (language == 'zh' &&
+            (voiceName.trim().isEmpty ||
+                !locale.toLowerCase().startsWith('zh'))) {
+          debugPrint(
+              '⚠️ [VoiceSettings] Invalid saved voice for zh detected (name: "$voiceName", locale: "$locale"). Clearing and re-assigning.');
+          await clearSavedVoice(language);
+          await autoAssignDefaultVoice(language);
+          return await loadSavedVoice(language); // Try again after fix
+        }
+        // --- END NEW ---
 
         // Aplicar la voz al TTS
         await _flutterTts.setVoice({
