@@ -68,13 +68,15 @@ class VoiceSettingsService {
     final voices = await _flutterTts.getVoices;
     if (voices is List) {
       if (language == 'zh') {
-        debugPrint('🎵 [autoAssignDefaultVoice] Listado de TODAS las voces técnicas para zh:');
+        debugPrint(
+            '🎵 [autoAssignDefaultVoice] Listado de TODAS las voces técnicas para zh:');
         for (final v in voices) {
           final n = v['name'] as String? ?? '';
           final l = v['locale'] as String? ?? '';
           debugPrint('    - name: "$n", locale: "$l"');
         }
-        debugPrint('⚠️ [autoAssignDefaultVoice] Selección automática deshabilitada para zh. Elige manualmente las voces a mapear.');
+        debugPrint(
+            '⚠️ [autoAssignDefaultVoice] Selección automática deshabilitada para zh. Elige manualmente las voces a mapear.');
         return;
       }
       debugPrint(
@@ -104,7 +106,11 @@ class VoiceSettingsService {
       // Try to find a preferred male voice first
       final preferredMaleVoices = {
         'es': ['es-us-x-esd-local', 'es-us-x-esd-network'],
-        'en': ['en-us-x-tpd-network', 'en-us-x-tpd-local', 'en-us-x-iom-network'],
+        'en': [
+          'en-us-x-tpd-network',
+          'en-us-x-tpd-local',
+          'en-us-x-iom-network'
+        ],
         'pt': ['pt-br-x-ptd-network', 'pt-br-x-ptd-local'],
         'fr': ['fr-fr-x-frd-local', 'fr-fr-x-frd-network', 'fr-fr-x-vlf-local'],
         'ja': ['ja-jp-x-jac-local', 'ja-jp-x-jad-local', 'ja-jp-x-jac-network'],
@@ -496,7 +502,9 @@ class VoiceSettingsService {
           filteredVoices = rawVoices.where((voice) {
             if (voice is Map) {
               final locale = voice['locale'] as String? ?? '';
-              return locale.toLowerCase().startsWith(targetLocale.toLowerCase());
+              return locale
+                  .toLowerCase()
+                  .startsWith(targetLocale.toLowerCase());
             }
             return false;
           }).toList();
@@ -551,8 +559,6 @@ class VoiceSettingsService {
     }
     return [];
   }
-
-
 
   /// Obtiene el locale por defecto para un idioma
   String _getDefaultLocaleForLanguage(String language) {
