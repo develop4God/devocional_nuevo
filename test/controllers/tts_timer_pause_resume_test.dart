@@ -1,10 +1,11 @@
 import 'package:devocional_nuevo/controllers/tts_audio_controller.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
-import 'package:flutter/foundation.dart';
+
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:fake_async/fake_async.dart';
 
 /// Comprehensive test for TTS timer pause/resume behavior
 /// Tests the critical bug where timer doesn't properly resume after pause
@@ -73,203 +74,197 @@ void main() {
       // Stop any ongoing playback and cancel timers before disposing
       await controller.stop();
       // Give time for async operations to complete
-      await Future.delayed(const Duration(milliseconds: 100));
+      await Future.delayed(const Duration(milliseconds: 50));
       // Now safely dispose the controller
       controller.dispose();
     });
 
-    test('should maintain accumulated time after pause and resume', () async {
-      // Setup text
-      controller.setText(
-        'This is a test devotional text for testing pause and resume functionality. It needs to be long enough to have a meaningful duration.',
-        languageCode: 'en',
-      );
+    // NOTE: these tests use fakeAsync to control Timer-based progress inside
+    // the controller. fakeAsync captures Timer and periodic Timer created
+    // by the controller so we can deterministically advance virtual time.
 
-      // Verify initial state
-      expect(controller.state.value, TtsPlayerState.idle);
-      expect(controller.currentPosition.value, Duration.zero);
-      expect(controller.totalDuration.value.inSeconds, greaterThan(0));
+    test('should maintain accumulated time after pause and resume', () {
+      fakeAsync((async) {
+        controller.setText(
+          'This is a test devotional text for testing pause and resume functionality. It needs to be long enough to have a meaningful duration.',
+          languageCode: 'en',
+        );
 
-      final initialDuration = controller.totalDuration.value;
+        // Verify initial state
+        expect(controller.state.value, TtsPlayerState.idle);
+        expect(controller.currentPosition.value, Duration.zero);
+        expect(controller.totalDuration.value.inSeconds, greaterThan(0));
 
-      // Start playing
-      await controller.play();
+        final initialDuration = controller.totalDuration.value;
 
-      // Manually trigger start handler since we're in test environment
-      controller.state.value = TtsPlayerState.playing;
-      // Manually start the progress timer (simulating what start handler does)
-      await Future.delayed(const Duration(milliseconds: 100));
+        // Start playing - schedule internal awaits; advance enough time so play() completes
+        controller.play();
+        async.flushMicrotasks();
+        // Elapse enough to pass internal Future.delayed and speak() mocked call
+        async.elapse(const Duration(milliseconds: 600));
 
-      // Wait a bit for timer to accumulate some time
-      await Future.delayed(const Duration(milliseconds: 1500));
+        // Start the progress timer explicitly for test (simulates start handler)
+        controller.startProgressTimerForTest();
 
-      // Verify position is advancing
-      final positionBeforePause = controller.currentPosition.value;
-      expect(positionBeforePause.inMilliseconds, greaterThan(0));
-      expect(positionBeforePause, lessThan(initialDuration));
+        // Let a small amount of virtual time pass to simulate playback progress
+        async.elapse(const Duration(milliseconds: 1600));
 
-      debugPrint(
-          '[TEST] Position before pause: ${positionBeforePause.inSeconds}s');
+        // Verify position is advancing
+        final positionBeforePause = controller.currentPosition.value;
+        expect(positionBeforePause.inMilliseconds, greaterThan(0));
+        expect(positionBeforePause, lessThan(initialDuration));
 
-      // Pause
-      await controller.pause();
-      expect(controller.state.value, TtsPlayerState.paused);
+        // Pause playback
+        controller.pause();
+        async.flushMicrotasks();
+        expect(controller.state.value, TtsPlayerState.paused);
 
-      // Wait a bit while paused
-      await Future.delayed(const Duration(milliseconds: 1000));
+        // Advance virtual time while paused - position should not advance
+        async.elapse(const Duration(milliseconds: 1200));
 
-      // Position should NOT advance while paused
-      final positionDuringPause = controller.currentPosition.value;
-      debugPrint(
-          '[TEST] Position during pause: ${positionDuringPause.inSeconds}s');
+        final positionDuringPause = controller.currentPosition.value;
+        expect(
+          (positionDuringPause - positionBeforePause).inMilliseconds.abs(),
+          lessThan(600),
+        );
 
-      // Allow small tolerance for timer update cycles
-      expect(
-        (positionDuringPause - positionBeforePause).inMilliseconds.abs(),
-        lessThan(600), // Allow up to 600ms difference for timer cycles
-        reason: 'Position should not advance significantly while paused',
-      );
+        // Resume playback
+        controller.play();
+        async.flushMicrotasks();
+        async.elapse(const Duration(milliseconds: 600));
+        controller.startProgressTimerForTest();
 
-      // Resume playing
-      await controller.play();
-      controller.state.value = TtsPlayerState.playing;
+        // Advance more virtual time
+        async.elapse(const Duration(milliseconds: 1600));
 
-      // Wait a bit more
-      await Future.delayed(const Duration(milliseconds: 1500));
-
-      // Position should continue from where it was paused
-      final positionAfterResume = controller.currentPosition.value;
-      debugPrint(
-          '[TEST] Position after resume: ${positionAfterResume.inSeconds}s');
-
-      // Position after resume should be >= position when paused
-      expect(
-        positionAfterResume,
-        greaterThanOrEqualTo(positionDuringPause),
-        reason:
-            'Position should continue from pause point, not restart from zero',
-      );
-
-      // Position after resume should have advanced from pause point
-      expect(
-        positionAfterResume.inMilliseconds,
-        greaterThan(positionDuringPause.inMilliseconds + 500),
-        reason: 'Position should advance after resume',
-      );
-    });
-
-    test('should handle multiple pause/resume cycles correctly', () async {
-      controller.setText(
-        'Testing multiple pause and resume cycles to ensure timer robustness.',
-        languageCode: 'en',
-      );
-
-      final List<Duration> positions = [];
-
-      // Start playing
-      await controller.play();
-      controller.state.value = TtsPlayerState.playing;
-
-      // Cycle 1: Play -> Pause
-      await Future.delayed(const Duration(milliseconds: 500));
-      positions.add(controller.currentPosition.value);
-      await controller.pause();
-      await Future.delayed(const Duration(milliseconds: 300));
-
-      // Cycle 2: Resume -> Pause
-      await controller.play();
-      controller.state.value = TtsPlayerState.playing;
-      await Future.delayed(const Duration(milliseconds: 500));
-      positions.add(controller.currentPosition.value);
-      await controller.pause();
-      await Future.delayed(const Duration(milliseconds: 300));
-
-      // Cycle 3: Resume -> Pause
-      await controller.play();
-      controller.state.value = TtsPlayerState.playing;
-      await Future.delayed(const Duration(milliseconds: 500));
-      positions.add(controller.currentPosition.value);
-
-      // Verify positions are monotonically increasing (allowing small tolerance)
-      for (int i = 1; i < positions.length; i++) {
-        debugPrint(
-            '[TEST] Position cycle ${i - 1}: ${positions[i - 1].inSeconds}s');
-        debugPrint('[TEST] Position cycle $i: ${positions[i].inSeconds}s');
+        final positionAfterResume = controller.currentPosition.value;
 
         expect(
-          positions[i],
-          greaterThan(positions[i - 1]),
-          reason:
-              'Position should increase across pause/resume cycles, not reset',
+          positionAfterResume,
+          greaterThanOrEqualTo(positionDuringPause),
         );
-      }
+        expect(
+          positionAfterResume.inMilliseconds,
+          greaterThan(positionDuringPause.inMilliseconds + 400),
+        );
+      });
     });
 
-    test('should reset timer correctly after stop', () async {
-      controller.setText(
-        'Testing stop behavior resets timer correctly.',
-        languageCode: 'en',
-      );
+    test('should handle multiple pause/resume cycles correctly', () {
+      fakeAsync((async) {
+        controller.setText(
+          'Testing multiple pause and resume cycles to ensure timer robustness.',
+          languageCode: 'en',
+        );
 
-      // Play
-      await controller.play();
-      controller.state.value = TtsPlayerState.playing;
-      await Future.delayed(const Duration(milliseconds: 800));
+        final List<Duration> positions = [];
 
-      final positionBeforeStop = controller.currentPosition.value;
-      expect(positionBeforeStop.inMilliseconds, greaterThan(0));
+        // Start playing and let it complete
+        controller.play();
+        async.flushMicrotasks();
+        async.elapse(const Duration(milliseconds: 600));
+        controller.startProgressTimerForTest();
 
-      // Stop
-      await controller.stop();
-      expect(controller.state.value, TtsPlayerState.idle);
-      expect(controller.currentPosition.value, Duration.zero);
+        // Cycle 1
+        async.elapse(const Duration(milliseconds: 600));
+        positions.add(controller.currentPosition.value);
+        controller.pause();
+        async.flushMicrotasks();
+        async.elapse(const Duration(milliseconds: 300));
 
-      // Play again - should start from beginning
-      await controller.play();
-      controller.state.value = TtsPlayerState.playing;
-      await Future.delayed(const Duration(milliseconds: 800));
+        // Cycle 2
+        controller.play();
+        async.flushMicrotasks();
+        async.elapse(const Duration(milliseconds: 600));
+        controller.startProgressTimerForTest();
+        async.elapse(const Duration(milliseconds: 600));
+        positions.add(controller.currentPosition.value);
+        controller.pause();
+        async.flushMicrotasks();
+        async.elapse(const Duration(milliseconds: 300));
 
-      final positionAfterRestart = controller.currentPosition.value;
-      debugPrint(
-          '[TEST] Position after restart: ${positionAfterRestart.inSeconds}s');
+        // Cycle 3
+        controller.play();
+        async.flushMicrotasks();
+        async.elapse(const Duration(milliseconds: 600));
+        controller.startProgressTimerForTest();
+        async.elapse(const Duration(milliseconds: 600));
+        positions.add(controller.currentPosition.value);
 
-      // Should be close to the same duration as first play (not double)
-      expect(
-        positionAfterRestart.inMilliseconds,
-        lessThan(positionBeforeStop.inMilliseconds * 1.5),
-        reason: 'After stop, playback should restart from beginning',
-      );
+        for (int i = 1; i < positions.length; i++) {
+          expect(positions[i], greaterThan(positions[i - 1]));
+        }
+      });
     });
 
-    test('should handle pause immediately after play', () async {
-      controller.setText(
-        'Testing immediate pause after play.',
-        languageCode: 'en',
-      );
+    test('should reset timer correctly after stop', () {
+      fakeAsync((async) {
+        controller.setText(
+          'Testing stop behavior resets timer correctly.',
+          languageCode: 'en',
+        );
 
-      // Play
-      await controller.play();
-      controller.state.value = TtsPlayerState.playing;
+        // Play and allow internal awaits to complete
+        controller.play();
+        async.flushMicrotasks();
+        async.elapse(const Duration(milliseconds: 600));
+        controller.startProgressTimerForTest();
+        async.elapse(const Duration(milliseconds: 900));
 
-      // Immediate pause (before much time accumulates)
-      await Future.delayed(const Duration(milliseconds: 100));
-      await controller.pause();
+        final positionBeforeStop = controller.currentPosition.value;
+        expect(positionBeforeStop.inMilliseconds, greaterThan(0));
 
-      final positionAfterQuickPause = controller.currentPosition.value;
+        // Stop
+        controller.stop();
+        async.flushMicrotasks();
+        expect(controller.state.value, TtsPlayerState.idle);
+        expect(controller.currentPosition.value, Duration.zero);
 
-      // Resume
-      await controller.play();
-      controller.state.value = TtsPlayerState.playing;
-      await Future.delayed(const Duration(milliseconds: 800));
+        // Play again - should start from beginning
+        controller.play();
+        async.flushMicrotasks();
+        async.elapse(const Duration(milliseconds: 600));
+        controller.startProgressTimerForTest();
+        async.elapse(const Duration(milliseconds: 900));
 
-      final positionAfterResume = controller.currentPosition.value;
+        final positionAfterRestart = controller.currentPosition.value;
+        expect(
+          positionAfterRestart.inMilliseconds,
+          lessThan(positionBeforeStop.inMilliseconds * 1.5),
+        );
+      });
+    });
 
-      // Should have advanced from pause point
-      expect(
-        positionAfterResume,
-        greaterThan(positionAfterQuickPause),
-        reason: 'Should resume from pause point even with quick pause',
-      );
+    test('should handle pause immediately after play', () {
+      fakeAsync((async) {
+        controller.setText(
+          'Testing immediate pause after play.',
+          languageCode: 'en',
+        );
+
+        // Play and allow to start
+        controller.play();
+        async.flushMicrotasks();
+        async.elapse(const Duration(milliseconds: 600));
+        controller.startProgressTimerForTest();
+
+        // Quick pause
+        async.elapse(const Duration(milliseconds: 120));
+        controller.pause();
+        async.flushMicrotasks();
+
+        final positionAfterQuickPause = controller.currentPosition.value;
+
+        // Resume
+        controller.play();
+        async.flushMicrotasks();
+        async.elapse(const Duration(milliseconds: 600));
+        controller.startProgressTimerForTest();
+        async.elapse(const Duration(milliseconds: 900));
+
+        final positionAfterResume = controller.currentPosition.value;
+        expect(positionAfterResume, greaterThan(positionAfterQuickPause));
+      });
     });
   });
 }

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:clock/clock.dart';
 
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
@@ -286,7 +287,7 @@ class TtsAudioController {
 
     // CRITICAL FIX: Reset play start time to NOW when starting/resuming timer
     // This ensures we calculate elapsed time correctly from this point forward
-    _playStartTime = DateTime.now();
+    _playStartTime = clock.now();
     debugPrint(
         '⏱️ [TTS Controller] Hora de inicio: ${_playStartTime!.toIso8601String()}');
     debugPrint(
@@ -295,7 +296,7 @@ class TtsAudioController {
         '⏱️ [TTS Controller] Duración total: ${totalDuration.value.inSeconds}s');
 
     _progressTimer = Timer.periodic(const Duration(milliseconds: 500), (_) {
-      final now = DateTime.now();
+      final now = clock.now();
       // Calculate elapsed time from when playback started, plus any accumulated position
       final elapsed = now.difference(_playStartTime!) + _accumulatedPosition;
 
@@ -316,12 +317,18 @@ class TtsAudioController {
     debugPrint('⏱️ [TTS Controller] ========== TIMER INICIADO ==========');
   }
 
+  @visibleForTesting
+  void startProgressTimerForTest() {
+    // Expose a safe helper for tests to start the internal timer deterministically
+    _startProgressTimer();
+  }
+
   void _pauseProgressTimer() {
     _progressTimer?.cancel();
     // CRITICAL FIX: Accumulate the elapsed time from current session
     // This preserves the playback position for resume
     if (_playStartTime != null) {
-      final sessionElapsed = DateTime.now().difference(_playStartTime!);
+      final sessionElapsed = clock.now().difference(_playStartTime!);
       _accumulatedPosition += sessionElapsed;
       debugPrint(
           '[TTS Controller] Pausing timer - session elapsed: ${sessionElapsed.inSeconds}s, total accumulated: ${_accumulatedPosition.inSeconds}s');
@@ -370,7 +377,7 @@ class TtsAudioController {
     totalDuration.value = _fullDuration;
     currentPosition.value = position;
     _accumulatedPosition = position;
-    _playStartTime = DateTime.now();
+    _playStartTime = clock.now();
 
     // If currently playing, restart TTS from the remaining text
     if (state.value == TtsPlayerState.playing) {
@@ -438,7 +445,7 @@ class TtsAudioController {
           // Re-lanzar la reproducción desde el texto actual
           await flutterTts.speak(_currentText!);
           // Reiniciar temporizador de progreso
-          _playStartTime = DateTime.now();
+          _playStartTime = clock.now();
           _startProgressTimer();
         }
       }
