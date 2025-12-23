@@ -139,17 +139,8 @@ void main() {
     });
 
     group('NotificationService Registration', () {
-      test('NotificationService can be registered as lazy singleton', () {
-        // Just test registration without instantiation
-        ServiceLocator().registerLazySingleton<NotificationService>(
-          () => NotificationService(),
-        );
-
-        expect(ServiceLocator().isRegistered<NotificationService>(), isTrue);
-      });
-
-      test('NotificationService registration can be verified', () {
-        // Register with a factory that won't be called during registration
+      test('NotificationService can be registered and verified', () {
+        // Register NotificationService as lazy singleton
         ServiceLocator().registerLazySingleton<NotificationService>(
           () => NotificationService(),
         );
@@ -157,7 +148,7 @@ void main() {
         // Verify it's registered
         expect(ServiceLocator().isRegistered<NotificationService>(), isTrue);
 
-        // Clean up to avoid instantiation issues
+        // Clean up to avoid instantiation issues (Firebase not initialized in test)
         ServiceLocator().unregister<NotificationService>();
         expect(ServiceLocator().isRegistered<NotificationService>(), isFalse);
       });

@@ -51,6 +51,14 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     name: 'BackgroundServiceCallback',
   );
   await Firebase.initializeApp();
+
+  // Setup ServiceLocator for background isolate
+  setupServiceLocator();
+  developer.log(
+    'BackgroundServiceCallback: ServiceLocator initialized in background isolate.',
+    name: 'BackgroundServiceCallback',
+  );
+
   tzdata.initializeTimeZones();
   try {
     final String currentTimeZone = await FlutterTimezone.getLocalTimezone();

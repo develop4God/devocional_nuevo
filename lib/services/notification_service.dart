@@ -3,6 +3,18 @@
 //notification_service.dart - Guardar lastLogin en Firestore
 //notification_service.dart (Ajuste FCM y Autenticación para que no haya usuario nulo)
 //notification_service.dart (Ajuste de Permisos)
+//
+// NotificationService - Migrated to Dependency Injection
+// This service manages Firebase Cloud Messaging (FCM), local notifications,
+// and notification settings. It is registered in ServiceLocator as a lazy
+// singleton for better testability and maintainability.
+//
+// Usage:
+//   final notificationService = getService<NotificationService>();
+//   await notificationService.initialize();
+//
+// DO NOT instantiate directly. Always use ServiceLocator.get<NotificationService>()
+// or the convenience function getService<NotificationService>().
 
 import 'dart:developer' as developer;
 
