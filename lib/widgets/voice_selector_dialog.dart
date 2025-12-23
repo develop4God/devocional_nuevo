@@ -82,6 +82,7 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
 
   static const Map<String, String> chineseVoiceMap = {
     'cmn-cn-x-cce-local': '🇨🇳', // Main Chinese male voice
+    'cmn-cn-x-ccc-local': '🇨🇳', // Main Chinese female voice (new)
   };
 
   @override
@@ -391,6 +392,9 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
         if (voiceName == 'cmn-cn-x-cce-local') {
           return Icon(Icons.man_3_outlined, color: colorScheme.primary, size: 38);
         }
+        if (voiceName == 'cmn-cn-x-ccc-local') {
+          return Icon(Icons.woman_outlined, color: colorScheme.primary, size: 38);
+        }
         break;
       default:
         return Icon(Icons.person, color: colorScheme.primary, size: 38);
@@ -475,7 +479,13 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
       case 'zh':
         switch (voiceName) {
           case 'cmn-cn-x-cce-local':
-            return 'Voice male';
+            // Use translation key for male, fallback to hardcoded Chinese
+            final desc = 'settings.voice_male_zh'.tr();
+            return (desc == 'settings.voice_male_zh') ? '男声 🇨🇳' : desc;
+          case 'cmn-cn-x-ccc-local':
+            // Use translation key for female, fallback to hardcoded Chinese
+            final desc = 'settings.voice_female_zh'.tr();
+            return (desc == 'settings.voice_female_zh') ? '女声 🇨🇳' : desc;
         }
         break;
     }
