@@ -5,6 +5,7 @@ import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 import 'package:devocional_nuevo/widgets/tts_player_widget.dart';
 import 'package:devocional_nuevo/widgets/voice_selector_dialog.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_tts/flutter_tts.dart';
@@ -83,6 +84,40 @@ void main() {
     setUp(() {
       TestWidgetsFlutterBinding.ensureInitialized();
       SharedPreferences.setMockInitialValues({});
+
+      // Mock Firebase Core
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+        const MethodChannel('plugins.flutter.io/firebase_core'),
+        (call) async {
+          if (call.method == 'Firebase#initializeCore') {
+            return [
+              {
+                'name': '[DEFAULT]',
+                'options': {
+                  'apiKey': 'test',
+                  'appId': 'test',
+                  'messagingSenderId': 'test',
+                  'projectId': 'test',
+                },
+                'pluginConstants': {},
+              }
+            ];
+          }
+          return null;
+        },
+      );
+
+      // Mock Firebase In App Messaging
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+        const MethodChannel('plugins.flutter.io/firebase_in_app_messaging'),
+        (call) async {
+          // Mock all Firebase In App Messaging methods
+          return null;
+        },
+      );
+
       ServiceLocator().reset();
       setupServiceLocator(); // Setup all services
       mockTts = MockFlutterTts();

@@ -390,10 +390,12 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
         }
       case 'zh':
         if (voiceName == 'cmn-cn-x-cce-local') {
-          return Icon(Icons.man_3_outlined, color: colorScheme.primary, size: 38);
+          return Icon(Icons.man_3_outlined,
+              color: colorScheme.primary, size: 38);
         }
         if (voiceName == 'cmn-cn-x-ccc-local') {
-          return Icon(Icons.woman_outlined, color: colorScheme.primary, size: 38);
+          return Icon(Icons.woman_outlined,
+              color: colorScheme.primary, size: 38);
         }
         break;
       default:

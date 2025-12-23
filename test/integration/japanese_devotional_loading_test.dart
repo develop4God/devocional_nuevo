@@ -167,7 +167,7 @@ void main() {
       await provider.initializeData();
 
       // Set to Japanese
-      provider.setSelectedLanguage('ja');
+      provider.setSelectedLanguage('ja', null);
       await Future.delayed(const Duration(milliseconds: 300));
 
       expect(provider.selectedLanguage, equals('ja'));
@@ -184,7 +184,7 @@ void main() {
       await provider.initializeData();
 
       // Set to Japanese
-      provider.setSelectedLanguage('ja');
+      provider.setSelectedLanguage('ja', null);
       await Future.delayed(const Duration(milliseconds: 300));
 
       expect(provider.selectedVersion, equals('新改訳2003'));
@@ -209,7 +209,7 @@ void main() {
       await provider.initializeData();
 
       // Start with Japanese
-      provider.setSelectedLanguage('ja');
+      provider.setSelectedLanguage('ja', null);
       await Future.delayed(const Duration(milliseconds: 300));
 
       // Verify default version is set
@@ -248,14 +248,14 @@ void main() {
       await provider.initializeData();
 
       // Start with English
-      provider.setSelectedLanguage('en');
+      provider.setSelectedLanguage('en', null);
       await Future.delayed(const Duration(milliseconds: 300));
 
       expect(provider.selectedLanguage, equals('en'));
       expect(provider.selectedVersion, isNotEmpty);
 
       // Switch to Japanese
-      provider.setSelectedLanguage('ja');
+      provider.setSelectedLanguage('ja', null);
       await Future.delayed(const Duration(milliseconds: 300));
 
       // Should use Japanese default version

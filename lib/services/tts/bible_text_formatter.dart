@@ -197,10 +197,18 @@ class BibleTextFormatter {
     final chapterWord = words.split('|')[0];
     final verseWord = words.split('|')[1];
 
+    // Different regex pattern for CJK languages (Chinese, Japanese, Korean)
+    // to avoid word boundary issues with non-ASCII characters
+    final isCJK = language == 'zh' || language == 'ja';
+    final pattern = isCJK
+        ? RegExp(r'((?:\d+\s+)?[一-龯ぁ-んァ-ン]+)\s+(\d+):(\d+)(?:-(\d+))?',
+            caseSensitive: false)
+        : RegExp(
+            r'(\b(?:\d+\s+)?[A-Za-záéíóúÁÉÍÓÚñÑ]+)\s+(\d+):(\d+)(?:-(\d+))?',
+            caseSensitive: false);
+
     return text.replaceAllMapped(
-      RegExp(
-          r'(\b(?:\d+\s+)?[A-Za-záéíóúÁÉÍÓÚñÑ一-龯ぁ-んァ-ン]+)\s+(\d+):(\d+)(?:-(\d+))?',
-          caseSensitive: false),
+      pattern,
       (match) {
         final book = match.group(1)!;
         final chapter = match.group(2)!;
