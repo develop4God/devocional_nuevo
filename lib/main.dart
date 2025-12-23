@@ -52,12 +52,29 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   );
   await Firebase.initializeApp();
 
-  // Setup ServiceLocator for background isolate
-  setupServiceLocator();
-  developer.log(
-    'BackgroundServiceCallback: ServiceLocator initialized in background isolate.',
-    name: 'BackgroundServiceCallback',
-  );
+  // Setup ServiceLocator para el isolate de background con manejo de errores
+  try {
+    setupServiceLocator();
+    developer.log(
+      'BackgroundServiceCallback: ServiceLocator initialized in background isolate.',
+      name: 'BackgroundServiceCallback',
+    );
+  } catch (e, stack) {
+    developer.log(
+      'ServiceLocator setup failed in background isolate',
+      name: 'BackgroundServiceCallback',
+      error: e,
+      stackTrace: stack,
+    );
+    // Registrar solo NotificationService como fallback
+    final locator = ServiceLocator();
+    locator
+        .registerLazySingleton<NotificationService>(NotificationService.create);
+    developer.log(
+      'BackgroundServiceCallback: Solo NotificationService registrado como fallback en background isolate.',
+      name: 'BackgroundServiceCallback',
+    );
+  }
 
   tzdata.initializeTimeZones();
   try {
