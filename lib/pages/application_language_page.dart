@@ -279,6 +279,10 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
         return 'pt-BR';
       case 'fr':
         return 'fr-FR';
+      case 'ja':
+        return 'ja-JP';
+      case 'zh':
+        return 'zh-CN';
       default:
         return '$languageCode-${languageCode.toUpperCase()}';
     }

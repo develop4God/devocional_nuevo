@@ -105,13 +105,13 @@ class TtsAudioController {
     _currentText = text;
     // Estimar duración solo para UI
     int estimatedSeconds;
-    if (languageCode == 'ja') {
-      // Japonés: estimar por caracteres (7 chars/segundo típico)
+    if (languageCode == 'ja' || languageCode == 'zh') {
+      // Japonés y Chino: estimar por caracteres (7 chars/segundo típico)
       final chars = _fullText!.replaceAll(RegExp(r'\s+'), '').length;
       const charsPerSecond = 7.0;
       estimatedSeconds = (chars / charsPerSecond).round();
       debugPrint(
-          '📝 [TTS Controller] Idioma japonés: $chars caracteres -> $estimatedSeconds segundos estimados');
+          '📝 [TTS Controller] Idioma $languageCode (caracteres): $chars caracteres -> $estimatedSeconds segundos estimados');
     } else {
       // Otros idiomas: estimar por palabras
       final words = _fullText!.split(RegExp(r"\s+")).length;
