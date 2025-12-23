@@ -101,18 +101,18 @@ void main() {
       expect(provider.supportedLanguages, contains('en'));
       // Fallback language on unsupported input
       final currentLang = provider.selectedLanguage;
-      provider.setSelectedLanguage('unsupported');
+      provider.setSelectedLanguage('unsupported', null);
       // Should fallback to 'es' (the hardcoded fallback language)
       // Wait for async operations
       await Future.delayed(const Duration(milliseconds: 200));
       expect(provider.selectedLanguage, 'es');
       // Restore original language
-      provider.setSelectedLanguage(currentLang);
+      provider.setSelectedLanguage(currentLang, null);
       await Future.delayed(const Duration(milliseconds: 200));
     });
 
     test('changing language updates data and version defaults', () async {
-      provider.setSelectedLanguage('en');
+      provider.setSelectedLanguage('en', null);
       expect(provider.selectedLanguage, 'en');
       expect(provider.selectedVersion, isNotNull);
       // Devocionales will be empty due to HTTP 400, but API was called
@@ -295,7 +295,7 @@ void main() {
 
     test('Japanese version codes are correctly configured', () async {
       // Test that Japanese versions use the new version codes
-      provider.setSelectedLanguage('ja');
+      provider.setSelectedLanguage('ja', null);
       await Future.delayed(const Duration(milliseconds: 200));
 
       expect(provider.selectedLanguage, 'ja');
