@@ -112,6 +112,23 @@ void main() {
     });
   });
 
+  group('BibleTextFormatter - Chinese', () {
+    test('returns Chinese text unchanged (no ordinals)', () {
+      final result = BibleTextFormatter.formatBibleBook('彼得前书', 'zh');
+      expect(result, '彼得前书');
+    });
+
+    test('trims Chinese text', () {
+      final result = BibleTextFormatter.formatBibleBook('  约翰福音  ', 'zh');
+      expect(result, '约翰福音');
+    });
+
+    test('handles traditional Chinese characters', () {
+      final result = BibleTextFormatter.formatBibleBook('創世記', 'zh');
+      expect(result, '創世記');
+    });
+  });
+
   group('BibleTextFormatter - Bible Version Expansions', () {
     test('Spanish versions expand correctly', () {
       final expansions = BibleTextFormatter.getBibleVersionExpansions('es');
@@ -135,6 +152,12 @@ void main() {
       final expansions = BibleTextFormatter.getBibleVersionExpansions('fr');
       expect(expansions['LSG1910'], 'Louis Segond mille neuf cent dix');
       expect(expansions['TOB'], 'Traduction Oecuménique de la Bible');
+    });
+
+    test('Chinese versions expand correctly', () {
+      final expansions = BibleTextFormatter.getBibleVersionExpansions('zh');
+      expect(expansions['和合本1919'], '和合本一九一九');
+      expect(expansions['新标点和合本'], '新标点和合本');
     });
 
     test('unknown language falls back to Spanish', () {
@@ -181,6 +204,19 @@ void main() {
           BibleTextFormatter.formatBibleReferences('Psaumes 23:1-6', 'fr');
       expect(result, contains('au'));
     });
+
+    test('formats chapter:verse reference in Chinese', () {
+      final result =
+          BibleTextFormatter.formatBibleReferences('约翰福音 3:16', 'zh');
+      expect(result, contains('章'));
+      expect(result, contains('节'));
+    });
+
+    test('formats verse range in Chinese', () {
+      final result =
+          BibleTextFormatter.formatBibleReferences('诗篇 23:1-6', 'zh');
+      expect(result, contains('至'));
+    });
   });
 
   group('BibleTextFormatter - Normalize TTS Text', () {
@@ -196,6 +232,13 @@ void main() {
           BibleTextFormatter.normalizeTtsText('1 Peter 3:16 KJV', 'en');
       expect(result, contains('First Peter'));
       expect(result, contains('King James Version'));
+    });
+
+    test('normalizes complete Chinese reference', () {
+      final result =
+          BibleTextFormatter.normalizeTtsText('约翰福音 3:16 和合本1919', 'zh');
+      expect(result, contains('约翰福音'));
+      expect(result, contains('和合本一九一九'));
     });
 
     test('cleans up extra whitespace', () {

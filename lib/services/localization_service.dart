@@ -210,6 +210,8 @@ class LocalizationService {
         return 'fr-FR';
       case 'ja':
         return 'ja-JP';
+      case 'zh':
+        return 'zh-CN';
       default:
         return 'es-ES';
     }
@@ -228,6 +230,8 @@ class LocalizationService {
         return 'Français';
       case 'ja':
         return '日本語';
+      case 'zh':
+        return '中文';
       default:
         return languageCode;
     }
@@ -246,6 +250,8 @@ class LocalizationService {
         return DateFormat('EEEE, d ' 'de' ' MMMM', 'pt');
       case 'ja':
         return DateFormat('y年M月d日 EEEE', 'ja');
+      case 'zh':
+        return DateFormat('y年M月d日 EEEE', 'zh');
       default:
         return DateFormat('EEEE, MMMM d', 'en');
     }

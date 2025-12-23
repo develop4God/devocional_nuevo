@@ -27,6 +27,8 @@ class BibleTextFormatter {
         return _formatBibleBookFrench(reference);
       case 'ja':
         return _formatBibleBookJapanese(reference);
+      case 'zh':
+        return _formatBibleBookChinese(reference);
       default:
         debugPrint(
             '[BibleTextFormatter] Unknown language "$language", using Spanish as default');
@@ -120,6 +122,12 @@ class BibleTextFormatter {
     return reference.trim();
   }
 
+  /// Formato para libros bíblicos en chino (sin ordinales, solo limpieza básica)
+  static String _formatBibleBookChinese(String reference) {
+    // En chino, los libros bíblicos no usan ordinales, solo se devuelve el texto tal cual
+    return reference.trim();
+  }
+
   /// Get Bible version expansions based on language
   static Map<String, String> getBibleVersionExpansions(String language) {
     switch (language) {
@@ -142,6 +150,11 @@ class BibleTextFormatter {
         return {
           'LSG1910': 'Louis Segond mille neuf cent dix',
           'TOB': 'Traduction Oecuménique de la Bible',
+        };
+      case 'zh':
+        return {
+          '和合本1919': '和合本一九一九',
+          '新标点和合本': '新标点和合本',
         };
       default:
         return {
@@ -177,6 +190,7 @@ class BibleTextFormatter {
       'pt': 'capítulo|versículo',
       'fr': 'chapitre|verset',
       'ja': '章|節', // Japonés: capítulo=章, versículo=節
+      'zh': '章|节', // Chino: capítulo=章, versículo=节
     };
 
     final words = referenceWords[language] ?? referenceWords['es']!;
@@ -203,7 +217,9 @@ class BibleTextFormatter {
                       ? 'au'
                       : language == 'ja'
                           ? '～'
-                          : 'al';
+                          : language == 'zh'
+                              ? '至'
+                              : 'al';
           result += ' $toWord $verseEnd';
         }
         return result;
