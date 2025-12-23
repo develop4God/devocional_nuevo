@@ -31,7 +31,9 @@ jobs:
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          ref: ${{ github.event.inputs.target_branch || github.ref_name }}
+          ref: ${{ github.event_name == 'pull_request' && format('refs/heads/{0}', github.head_ref)
+            || (github.event.inputs.target_branch != '' && format('refs/heads/{0}', github.event.inputs.target_branch)
+            || github.ref) }}
 
       - name: ☕ Setup Java
         uses: actions/setup-java@v4
@@ -133,6 +135,9 @@ jobs:
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'pull_request' && format('refs/heads/{0}', github.head_ref)
+            || github.ref }}
 
       - name: ☕ Setup Java
         uses: actions/setup-java@v4
@@ -201,6 +206,9 @@ jobs:
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'pull_request' && format('refs/heads/{0}', github.head_ref)
+            || github.ref }}
 
       - name: ☕ Setup Java
         uses: actions/setup-java@v4
@@ -355,6 +363,9 @@ jobs:
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'pull_request' && format('refs/heads/{0}', github.head_ref)
+            || github.ref }}
 
       - name: 🔍 Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
