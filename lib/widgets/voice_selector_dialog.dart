@@ -81,8 +81,10 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
   };
 
   static const Map<String, String> chineseVoiceMap = {
-    'cmn-cn-x-cce-local': '🇨🇳', // Main Chinese male voice
-    'cmn-cn-x-ccc-local': '🇨🇳', // Main Chinese female voice (new)
+    'cmn-cn-x-cce-local': '🇨🇳', // Hombre China
+    'cmn-cn-x-ccc-local': '🇨🇳', // Mujer China
+    'cmn-tw-x-cte-network': '🇹🇼', // Hombre 2 Taiwán
+    'cmn-tw-x-ctc-network': '🇹🇼', // Mujer 2 Taiwán
   };
 
   @override
@@ -202,8 +204,7 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
   }
 
   Future<void> _loadVoices() async {
-    final voices = await _voiceSettingsService
-        .getAvailableVoicesForLanguage(widget.language);
+    final voices = await _voiceSettingsService.getAvailableVoicesForLanguage(widget.language);
 
     List<Map<String, String>> premiumVoices = [];
     List<Map<String, String>> fallbackVoices = [];
@@ -245,8 +246,8 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
       // Si no hay suficientes voces premium (menos de 2), agregar fallback
       if (premiumVoices.length < 2 || _shouldForceFallback) {
         debugPrint(
-            '[VoiceSelector] 🔄 Activando fallback para ${widget.language}: '
-            'premium=${premiumVoices.length}, forced=$_shouldForceFallback');
+            '[VoiceSelector] 🔄 Activando fallback para \\${widget.language}: '
+            'premium=\${premiumVoices.length}, forced=\$_shouldForceFallback');
 
         // Definir locales prioritarios por idioma (los más comunes)
         final priorityLocales = <String, List<String>>{
@@ -297,8 +298,8 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
         }
 
         debugPrint(
-            '[VoiceSelector] ✅ Fallback encontró ${fallbackVoices.length} voces '
-            'distribuidas en ${voicesByLocale.length} locales (máx 2 por locale)');
+            '[VoiceSelector] ✅ Fallback encontró \${fallbackVoices.length} voces '
+            'distribuidas en \${voicesByLocale.length} locales (máx 2 por locale)');
       }
     }
 
@@ -310,8 +311,8 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
       _initialVoiceName = null;
       _initialVoiceLocale = null;
 
-      debugPrint('[VoiceSelector] 📋 Total voces cargadas: ${_voices.length} '
-          '(premium: ${premiumVoices.length}, fallback: ${fallbackVoices.length})');
+      debugPrint('[VoiceSelector] 📋 Total voces cargadas: \${_voices.length} '
+          '(premium: \${premiumVoices.length}, fallback: \${fallbackVoices.length})');
     });
   }
 
@@ -481,13 +482,13 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
       case 'zh':
         switch (voiceName) {
           case 'cmn-cn-x-cce-local':
-            // Use translation key for male, fallback to hardcoded Chinese
-            final desc = 'settings.voice_male_zh'.tr();
-            return (desc == 'settings.voice_male_zh') ? '男声 🇨🇳' : desc;
+            return '男性 声 1'; // Hombre China
           case 'cmn-cn-x-ccc-local':
-            // Use translation key for female, fallback to hardcoded Chinese
-            final desc = 'settings.voice_female_zh'.tr();
-            return (desc == 'settings.voice_female_zh') ? '女声 🇨🇳' : desc;
+            return '女性 声 1'; // Mujer China
+          case 'cmn-tw-x-cte-network':
+            return '男性 声 2'; // Hombre 2 Taiwán
+          case 'cmn-tw-x-ctc-network':
+            return '女性 声 2'; // Mujer 2 Taiwán
         }
         break;
     }
