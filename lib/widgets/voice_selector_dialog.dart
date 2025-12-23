@@ -390,11 +390,11 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
               color: colorScheme.primary, size: 38);
         }
       case 'zh':
-        if (voiceName == 'cmn-cn-x-cce-local') {
+        if (voiceName == 'cmn-cn-x-cce-local' || voiceName == 'cmn-tw-x-cte-network') {
           return Icon(Icons.man_3_outlined,
               color: colorScheme.primary, size: 38);
         }
-        if (voiceName == 'cmn-cn-x-ccc-local') {
+        if (voiceName == 'cmn-cn-x-ccc-local' || voiceName == 'cmn-tw-x-ctc-network') {
           return Icon(Icons.woman_outlined,
               color: colorScheme.primary, size: 38);
         }
