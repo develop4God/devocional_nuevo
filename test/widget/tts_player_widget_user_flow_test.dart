@@ -84,42 +84,8 @@ void main() {
     setUp(() {
       TestWidgetsFlutterBinding.ensureInitialized();
       SharedPreferences.setMockInitialValues({});
-
-      // Mock Firebase Core
-      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(
-        const MethodChannel('plugins.flutter.io/firebase_core'),
-        (call) async {
-          if (call.method == 'Firebase#initializeCore') {
-            return [
-              {
-                'name': '[DEFAULT]',
-                'options': {
-                  'apiKey': 'test',
-                  'appId': 'test',
-                  'messagingSenderId': 'test',
-                  'projectId': 'test',
-                },
-                'pluginConstants': {},
-              }
-            ];
-          }
-          return null;
-        },
-      );
-
-      // Mock Firebase In App Messaging
-      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(
-        const MethodChannel('plugins.flutter.io/firebase_in_app_messaging'),
-        (call) async {
-          // Mock all Firebase In App Messaging methods
-          return null;
-        },
-      );
-
       ServiceLocator().reset();
-      setupServiceLocator(); // Setup all services
+      setupServiceLocator();
       mockTts = MockFlutterTts();
       controller = TtsAudioController(flutterTts: mockTts);
       voiceSettingsService = getService<VoiceSettingsService>();

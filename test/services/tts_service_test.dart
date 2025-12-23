@@ -64,7 +64,8 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   // Mock global para MethodChannel de flutter_tts
   const MethodChannel ttsChannel = MethodChannel('flutter_tts');
-  TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+  TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+      .setMockMethodCallHandler(
     ttsChannel,
     (MethodCall methodCall) async {
       switch (methodCall.method) {
