@@ -11,15 +11,10 @@ void main() {
     late LocalizationService localizationService;
 
     setUp(() async {
-      // Reset ServiceLocator and register LocalizationService for clean test state
       ServiceLocator().reset();
-      ServiceLocator().registerLazySingleton<LocalizationService>(
-          () => LocalizationService());
-
-      // Mock SharedPreferences
       SharedPreferences.setMockInitialValues({});
+      setupServiceLocator();
 
-      // Get fresh instance from ServiceLocator and initialize with real assets
       localizationService = getService<LocalizationService>();
       await localizationService.initialize();
     });

@@ -52,17 +52,17 @@ void main() {
       // Reset ServiceLocator for clean test state
       ServiceLocator().reset();
 
-      // Mock SharedPreferences
+      // Mock SharedPreferences before setting up the locator
       SharedPreferences.setMockInitialValues({});
 
-      // Create mock voice service
-      mockVoiceService = MockVoiceSettingsService();
+      // Use centralized setup for DI
+      setupServiceLocator();
 
-      // Register services in ServiceLocator
-      ServiceLocator().registerLazySingleton<LocalizationService>(
-          () => LocalizationService());
-      ServiceLocator()
-          .registerSingleton<VoiceSettingsService>(mockVoiceService);
+      // Create mock voice service and override registration
+      mockVoiceService = MockVoiceSettingsService();
+      // Replace the real VoiceSettingsService with our mock
+      ServiceLocator().unregister<VoiceSettingsService>();
+      ServiceLocator().registerSingleton<VoiceSettingsService>(mockVoiceService);
 
       // Create provider instance (uses DI internally)
       provider = LocalizationProvider();
@@ -125,11 +125,10 @@ void main() {
       // Reset and set up with persisted English locale
       ServiceLocator().reset();
       SharedPreferences.setMockInitialValues({'locale': 'en'});
+      setupServiceLocator();
       mockVoiceService = MockVoiceSettingsService();
-      ServiceLocator().registerLazySingleton<LocalizationService>(
-          () => LocalizationService());
-      ServiceLocator()
-          .registerSingleton<VoiceSettingsService>(mockVoiceService);
+      ServiceLocator().unregister<VoiceSettingsService>();
+      ServiceLocator().registerSingleton<VoiceSettingsService>(mockVoiceService);
 
       provider = LocalizationProvider();
       await provider.initialize();
@@ -257,11 +256,10 @@ void main() {
       // Reset and set up with unsupported locale
       ServiceLocator().reset();
       SharedPreferences.setMockInitialValues({'locale': 'xx'});
+      setupServiceLocator();
       mockVoiceService = MockVoiceSettingsService();
-      ServiceLocator().registerLazySingleton<LocalizationService>(
-          () => LocalizationService());
-      ServiceLocator()
-          .registerSingleton<VoiceSettingsService>(mockVoiceService);
+      ServiceLocator().unregister<VoiceSettingsService>();
+      ServiceLocator().registerSingleton<VoiceSettingsService>(mockVoiceService);
 
       provider = LocalizationProvider();
       await provider.initialize();
@@ -330,11 +328,10 @@ void main() {
       // Step 3: Simulate app restart - create new provider with same persisted data
       ServiceLocator().reset();
       // Do NOT reset SharedPreferences - persistence should survive
+      setupServiceLocator();
       mockVoiceService = MockVoiceSettingsService();
-      ServiceLocator().registerLazySingleton<LocalizationService>(
-          () => LocalizationService());
-      ServiceLocator()
-          .registerSingleton<VoiceSettingsService>(mockVoiceService);
+      ServiceLocator().unregister<VoiceSettingsService>();
+      ServiceLocator().registerSingleton<VoiceSettingsService>(mockVoiceService);
       final newProvider = LocalizationProvider();
       await newProvider.initialize();
 

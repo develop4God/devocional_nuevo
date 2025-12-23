@@ -5,14 +5,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:devocional_nuevo/models/spiritual_stats_model.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
-import 'package:devocional_nuevo/services/localization_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   setUpAll(() {
     TestWidgetsFlutterBinding.ensureInitialized();
     ServiceLocator().reset();
-    ServiceLocator().registerLazySingleton<LocalizationService>(
-        () => LocalizationService());
+    SharedPreferences.setMockInitialValues({});
+    setupServiceLocator();
   });
 
   tearDownAll(() {
