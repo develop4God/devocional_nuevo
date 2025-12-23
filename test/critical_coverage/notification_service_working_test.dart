@@ -18,7 +18,7 @@ void main() {
       // Reset and setup ServiceLocator for testing
       ServiceLocator().reset();
       ServiceLocator().registerLazySingleton<NotificationService>(
-        () => NotificationService(),
+        NotificationService.create,
       );
     });
 

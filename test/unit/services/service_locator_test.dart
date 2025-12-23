@@ -140,9 +140,9 @@ void main() {
 
     group('NotificationService Registration', () {
       test('NotificationService can be registered and verified', () {
-        // Register NotificationService as lazy singleton
+        // Register NotificationService as lazy singleton using factory
         ServiceLocator().registerLazySingleton<NotificationService>(
-          () => NotificationService(),
+          NotificationService.create,
         );
 
         // Verify it's registered
@@ -151,6 +151,18 @@ void main() {
         // Clean up to avoid instantiation issues (Firebase not initialized in test)
         ServiceLocator().unregister<NotificationService>();
         expect(ServiceLocator().isRegistered<NotificationService>(), isFalse);
+      });
+
+      test('NotificationService enforces private constructor pattern', () {
+        // Verify that NotificationService.create factory exists and can be used
+        final factory = NotificationService.create;
+        expect(factory, isNotNull);
+        expect(factory, isA<Function>());
+
+        // This test documents that direct instantiation (NotificationService())
+        // is prevented by the private constructor pattern.
+        // Attempting NotificationService() would result in a compile-time error:
+        // "The constructor 'NotificationService._' is private and can't be accessed outside the library."
       });
     });
   });

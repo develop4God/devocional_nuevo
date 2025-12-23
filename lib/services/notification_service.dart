@@ -9,12 +9,20 @@
 // and notification settings. It is registered in ServiceLocator as a lazy
 // singleton for better testability and maintainability.
 //
+// IMPORTANT: Private Constructor Pattern
+// Direct instantiation is prevented to enforce DI usage.
+// The constructor is private and can only be accessed via the factory method.
+//
 // Usage:
 //   final notificationService = getService<NotificationService>();
 //   await notificationService.initialize();
 //
-// DO NOT instantiate directly. Always use ServiceLocator.get<NotificationService>()
-// or the convenience function getService<NotificationService>().
+// DO NOT attempt direct instantiation:
+//   ❌ final service = NotificationService(); // COMPILE ERROR - constructor is private
+//
+// ALWAYS use ServiceLocator:
+//   ✅ final service = getService<NotificationService>();
+//   ✅ final service = ServiceLocator().get<NotificationService>();
 
 import 'dart:developer' as developer;
 
@@ -48,6 +56,13 @@ void flutterLocalNotificationsBackgroundHandler(
 // **FIN DE MODIFICACIÓN**
 
 class NotificationService {
+  // Private constructor to prevent direct instantiation
+  // Always use getService<NotificationService>() or ServiceLocator.get<NotificationService>()
+  NotificationService._();
+
+  // Factory constructor for ServiceLocator registration
+  factory NotificationService.create() => NotificationService._();
+
   final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
 

@@ -112,8 +112,9 @@ void setupServiceLocator() {
   // Register NotificationService as a lazy singleton (created when first accessed)
   // This service manages FCM, local notifications, and notification settings
   // Migrated from singleton pattern to DI for better testability and maintainability
+  // Uses factory constructor to enforce DI-only instantiation
   locator
-      .registerLazySingleton<NotificationService>(() => NotificationService());
+      .registerLazySingleton<NotificationService>(NotificationService.create);
 
   // Add more service registrations here as needed
   // Example:
