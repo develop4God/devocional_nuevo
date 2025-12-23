@@ -245,7 +245,7 @@ class VoiceSettingsService {
   Future<String?> loadSavedVoice(String language) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final savedVoice = prefs.getString('tts_voice_' + language);
+      final savedVoice = prefs.getString('tts_voice_$language');
 
       if (savedVoice != null) {
         // Parse del formato legacy o nuevo

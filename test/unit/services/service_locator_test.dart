@@ -1,3 +1,4 @@
+import 'package:devocional_nuevo/services/notification_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -134,6 +135,31 @@ void main() {
         ServiceLocator().registerSingleton<VoiceSettingsService>(mock);
 
         expect(identical(getService<VoiceSettingsService>(), mock), isTrue);
+      });
+    });
+
+    group('NotificationService Registration', () {
+      test('NotificationService can be registered as lazy singleton', () {
+        // Just test registration without instantiation
+        ServiceLocator().registerLazySingleton<NotificationService>(
+          () => NotificationService(),
+        );
+
+        expect(ServiceLocator().isRegistered<NotificationService>(), isTrue);
+      });
+
+      test('NotificationService registration can be verified', () {
+        // Register with a factory that won't be called during registration
+        ServiceLocator().registerLazySingleton<NotificationService>(
+          () => NotificationService(),
+        );
+
+        // Verify it's registered
+        expect(ServiceLocator().isRegistered<NotificationService>(), isTrue);
+
+        // Clean up to avoid instantiation issues
+        ServiceLocator().unregister<NotificationService>();
+        expect(ServiceLocator().isRegistered<NotificationService>(), isFalse);
       });
     });
   });

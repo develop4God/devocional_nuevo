@@ -71,7 +71,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
       name: 'BackgroundServiceCallback',
     );
   }
-  final NotificationService notificationService = NotificationService();
+  final notificationService = getService<NotificationService>();
   await notificationService.initialize();
   final String? title = message.notification?.title;
   final String? body = message.notification?.body;
@@ -432,7 +432,7 @@ class _AppInitializerState extends State<AppInitializer> {
     // Notifications - diferido 2 segundos
     Future.delayed(const Duration(seconds: 2), () async {
       try {
-        await NotificationService().initialize();
+        await getService<NotificationService>().initialize();
         developer.log(
           'AppInitializer: Servicios de notificación inicializados en background.',
           name: 'MainApp',
