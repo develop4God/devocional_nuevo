@@ -3,6 +3,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:devocional_nuevo/services/notification_service.dart';
+import 'package:devocional_nuevo/services/service_locator.dart';
 
 void main() {
   group('NotificationService Critical Business Logic Tests', () {
@@ -13,6 +14,17 @@ void main() {
     setUp(() {
       // Initialize SharedPreferences mock
       SharedPreferences.setMockInitialValues({});
+
+      // Reset and setup ServiceLocator for testing
+      ServiceLocator().reset();
+      ServiceLocator().registerLazySingleton<NotificationService>(
+        NotificationService.create,
+      );
+    });
+
+    tearDown(() {
+      // Clean up ServiceLocator after each test
+      ServiceLocator().reset();
     });
 
     test('should validate notification time format correctly', () {

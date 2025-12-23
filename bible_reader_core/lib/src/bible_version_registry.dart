@@ -38,7 +38,7 @@ class BibleVersionRegistry {
     ],
     'zh': [
       {'name': '和合本1919', 'dbFile': 'CUVS1919_zh.SQLite3'},
-      {'name': '新标点和合本', 'dbFile': 'CNVS_zh.SQLite3'},
+      {'name': '新译本', 'dbFile': 'CNVS_zh.SQLite3'},
     ], // Add Chinese
   };
 

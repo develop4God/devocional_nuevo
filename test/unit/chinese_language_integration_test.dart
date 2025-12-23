@@ -16,7 +16,7 @@ void main() {
       expect(Constants.bibleVersionsByLanguage.containsKey('zh'), isTrue);
       expect(Constants.bibleVersionsByLanguage['zh'], isNotEmpty);
       expect(Constants.bibleVersionsByLanguage['zh'], contains('和合本1919'));
-      expect(Constants.bibleVersionsByLanguage['zh'], contains('新标点和合本'));
+      expect(Constants.bibleVersionsByLanguage['zh'], contains('新译本'));
     });
 
     test('Chinese has default Bible version', () {
@@ -41,7 +41,7 @@ void main() {
     test('Chinese Bible versions expand correctly for TTS', () {
       final expansions = BibleTextFormatter.getBibleVersionExpansions('zh');
       expect(expansions['和合本1919'], '和合本一九一九');
-      expect(expansions['新标点和合本'], '新标点和合本');
+      expect(expansions['新译本'], '新译本');
     });
 
     test('Chinese reference formatting includes chapter and verse words', () {

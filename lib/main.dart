@@ -51,6 +51,31 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     name: 'BackgroundServiceCallback',
   );
   await Firebase.initializeApp();
+
+  // Setup ServiceLocator para el isolate de background con manejo de errores
+  try {
+    setupServiceLocator();
+    developer.log(
+      'BackgroundServiceCallback: ServiceLocator initialized in background isolate.',
+      name: 'BackgroundServiceCallback',
+    );
+  } catch (e, stack) {
+    developer.log(
+      'ServiceLocator setup failed in background isolate',
+      name: 'BackgroundServiceCallback',
+      error: e,
+      stackTrace: stack,
+    );
+    // Registrar solo NotificationService como fallback
+    final locator = ServiceLocator();
+    locator
+        .registerLazySingleton<NotificationService>(NotificationService.create);
+    developer.log(
+      'BackgroundServiceCallback: Solo NotificationService registrado como fallback en background isolate.',
+      name: 'BackgroundServiceCallback',
+    );
+  }
+
   tzdata.initializeTimeZones();
   try {
     final String currentTimeZone = await FlutterTimezone.getLocalTimezone();
@@ -71,7 +96,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
       name: 'BackgroundServiceCallback',
     );
   }
-  final NotificationService notificationService = NotificationService();
+  final notificationService = getService<NotificationService>();
   await notificationService.initialize();
   final String? title = message.notification?.title;
   final String? body = message.notification?.body;
@@ -432,7 +457,7 @@ class _AppInitializerState extends State<AppInitializer> {
     // Notifications - diferido 2 segundos
     Future.delayed(const Duration(seconds: 2), () async {
       try {
-        await NotificationService().initialize();
+        await getService<NotificationService>().initialize();
         developer.log(
           'AppInitializer: Servicios de notificación inicializados en background.',
           name: 'MainApp',

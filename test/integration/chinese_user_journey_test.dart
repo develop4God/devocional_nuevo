@@ -1,12 +1,9 @@
 import 'package:devocional_nuevo/providers/localization_provider.dart';
-import 'package:devocional_nuevo/services/localization_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/tts/bible_text_formatter.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import '../helpers/test_helpers.dart';
 
 void main() {
   group('Chinese Language - Complete User Journey Tests', () {
