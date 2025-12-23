@@ -31,6 +31,7 @@ class LocalizationService {
     Locale('pt', ''), // Portuguese
     Locale('fr', ''), // French
     Locale('ja', ''), // Japanese
+    Locale('zh', ''), // Chinese
   ];
 
   // Default locale

@@ -428,7 +428,8 @@ class DevocionalProvider with ChangeNotifier {
 
       // Update UI locale/translations via LocalizationProvider
       if (context != null && context.mounted) {
-        final localizationProvider = Provider.of<LocalizationProvider>(context, listen: false);
+        final localizationProvider =
+            Provider.of<LocalizationProvider>(context, listen: false);
         await localizationProvider.changeLanguage(supportedLanguage);
       }
 
