@@ -1,4 +1,3 @@
-
 name: 🚀Flutter CI
 
 on:
@@ -139,15 +138,9 @@ jobs:
           key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.yaml') }}
           restore-keys: ${{ runner.os }}-pub-
 
-      - name: 🧪 Run unit tests and generate JUnit XML
+      - name: 🧪 Run unit tests
         run: |
           flutter test --machine --coverage > test_output.json
-          dart run junitreport:parse -i test_output.json -o test-results.xml
-
-      - name: ⬆️ Publish Test Results
-        uses: EnricoMi/publish-unit-test-result-action@v2
-        with:
-          files: test-results.xml
 
       - name: 📊 Upload coverage to Codecov
         uses: codecov/codecov-action@v3
