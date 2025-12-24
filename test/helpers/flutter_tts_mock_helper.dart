@@ -4,6 +4,9 @@ import 'package:flutter_test/flutter_test.dart';
 /// Helper class to set up flutter_tts plugin mocking for tests
 /// This avoids MissingPluginException in tests that interact with TTS functionality
 class FlutterTtsMockHelper {
+  /// The flutter_tts MethodChannel - shared across all mock methods
+  static const MethodChannel _ttsChannel = MethodChannel('flutter_tts');
+
   /// Sets up mock method call handler for flutter_tts plugin
   ///
   /// This should be called in setUp() of tests that use TTS features.
@@ -19,10 +22,9 @@ class FlutterTtsMockHelper {
   /// });
   /// ```
   static void setupMockFlutterTts() {
-    const MethodChannel ttsChannel = MethodChannel('flutter_tts');
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
-      ttsChannel,
+      _ttsChannel,
       (MethodCall methodCall) async {
         switch (methodCall.method) {
           case 'getVoices':
@@ -88,8 +90,7 @@ class FlutterTtsMockHelper {
   /// Cleans up the mock handler
   /// Call this in tearDown() if you need to reset the mock state
   static void tearDownMockFlutterTts() {
-    const MethodChannel ttsChannel = MethodChannel('flutter_tts');
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(ttsChannel, null);
+        .setMockMethodCallHandler(_ttsChannel, null);
   }
 }
