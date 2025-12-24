@@ -138,9 +138,15 @@ jobs:
           key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.yaml') }}
           restore-keys: ${{ runner.os }}-pub-
 
-      - name: 🧪 Run unit tests
+      - name: 🧪 Run unit tests (expanded)
         run: |
-          flutter test --machine --coverage > test_output.json
+          flutter test --coverage --reporter=expanded | tee test_output.txt
+
+      - name: 📋 Upload test output
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-output
+          path: test_output.txt
 
       - name: 📊 Upload coverage to Codecov
         uses: codecov/codecov-action@v3
