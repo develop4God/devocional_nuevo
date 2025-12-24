@@ -62,7 +62,8 @@ void main() {
       mockVoiceService = MockVoiceSettingsService();
       // Replace the real VoiceSettingsService with our mock
       ServiceLocator().unregister<VoiceSettingsService>();
-      ServiceLocator().registerSingleton<VoiceSettingsService>(mockVoiceService);
+      ServiceLocator()
+          .registerSingleton<VoiceSettingsService>(mockVoiceService);
 
       // Create provider instance (uses DI internally)
       provider = LocalizationProvider();
@@ -128,7 +129,8 @@ void main() {
       setupServiceLocator();
       mockVoiceService = MockVoiceSettingsService();
       ServiceLocator().unregister<VoiceSettingsService>();
-      ServiceLocator().registerSingleton<VoiceSettingsService>(mockVoiceService);
+      ServiceLocator()
+          .registerSingleton<VoiceSettingsService>(mockVoiceService);
 
       provider = LocalizationProvider();
       await provider.initialize();
@@ -259,7 +261,8 @@ void main() {
       setupServiceLocator();
       mockVoiceService = MockVoiceSettingsService();
       ServiceLocator().unregister<VoiceSettingsService>();
-      ServiceLocator().registerSingleton<VoiceSettingsService>(mockVoiceService);
+      ServiceLocator()
+          .registerSingleton<VoiceSettingsService>(mockVoiceService);
 
       provider = LocalizationProvider();
       await provider.initialize();
@@ -331,7 +334,8 @@ void main() {
       setupServiceLocator();
       mockVoiceService = MockVoiceSettingsService();
       ServiceLocator().unregister<VoiceSettingsService>();
-      ServiceLocator().registerSingleton<VoiceSettingsService>(mockVoiceService);
+      ServiceLocator()
+          .registerSingleton<VoiceSettingsService>(mockVoiceService);
       final newProvider = LocalizationProvider();
       await newProvider.initialize();
 
