@@ -1,3 +1,4 @@
+
 name: 🚀Flutter CI
 
 on:
@@ -140,7 +141,7 @@ jobs:
 
       - name: 🧪 Run unit tests and generate JUnit XML
         run: |
-          flutter test --machine > test_output.json
+          flutter test --machine --coverage > test_output.json
           dart run junitreport:parse -i test_output.json -o test-results.xml
 
       - name: ⬆️ Publish Test Results
