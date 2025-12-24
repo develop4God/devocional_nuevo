@@ -94,7 +94,9 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
       await localizationProvider.changeLanguage(languageCode);
 
       // Update DevocionalProvider with new language (pass context for UI locale update)
-      devocionalProvider.setSelectedLanguage(languageCode, context);
+      if (mounted) {
+        devocionalProvider.setSelectedLanguage(languageCode, context);
+      }
 
       // Set default version for the language
       final defaultVersion = Constants.defaultVersionByLanguage[languageCode];
