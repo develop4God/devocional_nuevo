@@ -3,6 +3,26 @@
 //notification_service.dart - Guardar lastLogin en Firestore
 //notification_service.dart (Ajuste FCM y Autenticación para que no haya usuario nulo)
 //notification_service.dart (Ajuste de Permisos)
+//
+// NotificationService - Migrated to Dependency Injection
+// This service manages Firebase Cloud Messaging (FCM), local notifications,
+// and notification settings. It is registered in ServiceLocator as a lazy
+// singleton for better testability and maintainability.
+//
+// IMPORTANT: Private Constructor Pattern
+// Direct instantiation is prevented to enforce DI usage.
+// The constructor is private and can only be accessed via the factory method.
+//
+// Usage:
+//   final notificationService = getService<NotificationService>();
+//   await notificationService.initialize();
+//
+// DO NOT attempt direct instantiation:
+//   ❌ final service = NotificationService(); // COMPILE ERROR - constructor is private
+//
+// ALWAYS use ServiceLocator:
+//   ✅ final service = getService<NotificationService>();
+//   ✅ final service = ServiceLocator().get<NotificationService>();
 
 import 'dart:developer' as developer;
 
@@ -36,11 +56,12 @@ void flutterLocalNotificationsBackgroundHandler(
 // **FIN DE MODIFICACIÓN**
 
 class NotificationService {
-  static final NotificationService _instance = NotificationService._internal();
+  // Private constructor to prevent direct instantiation
+  // Always use getService<NotificationService>() or ServiceLocator.get<NotificationService>()
+  NotificationService._();
 
-  factory NotificationService() => _instance;
-
-  NotificationService._internal();
+  // Factory constructor for ServiceLocator registration
+  factory NotificationService.create() => NotificationService._();
 
   final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();

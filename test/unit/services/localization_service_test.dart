@@ -11,15 +11,17 @@ void main() {
     late LocalizationService localizationService;
 
     setUp(() async {
-      // Reset ServiceLocator and register LocalizationService for clean test state
+      // Reset ServiceLocator and register default services using the app setup
       ServiceLocator().reset();
-      ServiceLocator().registerLazySingleton<LocalizationService>(
-          () => LocalizationService());
 
-      // Mock SharedPreferences
+      // Mock SharedPreferences BEFORE setting up the locator so services
+      // that read prefs during initialization get the mocked values.
       SharedPreferences.setMockInitialValues({});
 
-      // Get fresh instance from ServiceLocator and initialize with real assets
+      // Use the centralized setup to register all services (DI approach)
+      setupServiceLocator();
+
+      // Acquire the localization service and initialize translations
       localizationService = getService<LocalizationService>();
       await localizationService.initialize();
     });
@@ -118,9 +120,9 @@ void main() {
     });
 
     test('should support all required locales', () {
-      expect(LocalizationService.supportedLocales.length, equals(5));
+      expect(LocalizationService.supportedLocales.length, equals(6));
       expect(LocalizationService.supportedLocales.map((l) => l.languageCode),
-          containsAll(['es', 'en', 'pt', 'fr', 'ja']));
+          containsAll(['es', 'en', 'pt', 'fr', 'ja', 'zh']));
     });
 
     test('should return correct Japanese TTS locale', () async {
@@ -147,8 +149,7 @@ void main() {
     setUp(() async {
       ServiceLocator().reset();
       SharedPreferences.setMockInitialValues({});
-      ServiceLocator().registerLazySingleton<LocalizationService>(
-          () => LocalizationService());
+      setupServiceLocator();
       localizationService = getService<LocalizationService>();
     });
 
@@ -161,8 +162,8 @@ void main() {
       // Set up with persisted English locale
       ServiceLocator().reset();
       SharedPreferences.setMockInitialValues({'locale': 'en'});
-      ServiceLocator().registerLazySingleton<LocalizationService>(
-          () => LocalizationService());
+      // Use centralized setup so all dependent services are registered
+      setupServiceLocator();
 
       localizationService = getService<LocalizationService>();
       await localizationService.initialize();
@@ -176,9 +177,7 @@ void main() {
       // Set up with unsupported locale
       ServiceLocator().reset();
       SharedPreferences.setMockInitialValues({'locale': 'xx'});
-      ServiceLocator().registerLazySingleton<LocalizationService>(
-          () => LocalizationService());
-
+      setupServiceLocator();
       localizationService = getService<LocalizationService>();
       await localizationService.initialize();
 
@@ -303,8 +302,8 @@ void main() {
       // Step 3: Simulate app restart with new service instance
       ServiceLocator().reset();
       // Do NOT reset SharedPreferences - persistence should survive
-      ServiceLocator().registerLazySingleton<LocalizationService>(
-          () => LocalizationService());
+      // Re-create the full locator as the app would on startup
+      setupServiceLocator();
       final newService = getService<LocalizationService>();
       await newService.initialize();
 

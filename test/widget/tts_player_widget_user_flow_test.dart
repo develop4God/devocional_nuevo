@@ -84,7 +84,7 @@ void main() {
       TestWidgetsFlutterBinding.ensureInitialized();
       SharedPreferences.setMockInitialValues({});
       ServiceLocator().reset();
-      setupServiceLocator(); // Setup all services
+      setupServiceLocator();
       mockTts = MockFlutterTts();
       controller = TtsAudioController(flutterTts: mockTts);
       voiceSettingsService = getService<VoiceSettingsService>();

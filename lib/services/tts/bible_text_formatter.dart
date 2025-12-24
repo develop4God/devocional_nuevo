@@ -27,6 +27,8 @@ class BibleTextFormatter {
         return _formatBibleBookFrench(reference);
       case 'ja':
         return _formatBibleBookJapanese(reference);
+      case 'zh':
+        return _formatBibleBookChinese(reference);
       default:
         debugPrint(
             '[BibleTextFormatter] Unknown language "$language", using Spanish as default');
@@ -120,6 +122,12 @@ class BibleTextFormatter {
     return reference.trim();
   }
 
+  /// Formato para libros bíblicos en chino (sin ordinales, solo limpieza básica)
+  static String _formatBibleBookChinese(String reference) {
+    // En chino, los libros bíblicos no usan ordinales, solo se devuelve el texto tal cual
+    return reference.trim();
+  }
+
   /// Get Bible version expansions based on language
   static Map<String, String> getBibleVersionExpansions(String language) {
     switch (language) {
@@ -142,6 +150,11 @@ class BibleTextFormatter {
         return {
           'LSG1910': 'Louis Segond mille neuf cent dix',
           'TOB': 'Traduction Oecuménique de la Bible',
+        };
+      case 'zh':
+        return {
+          '和合本1919': '和合本一九一九',
+          '新译本': '新译本',
         };
       default:
         return {
@@ -177,16 +190,25 @@ class BibleTextFormatter {
       'pt': 'capítulo|versículo',
       'fr': 'chapitre|verset',
       'ja': '章|節', // Japonés: capítulo=章, versículo=節
+      'zh': '章|节', // Chino: capítulo=章, versículo=节
     };
 
     final words = referenceWords[language] ?? referenceWords['es']!;
     final chapterWord = words.split('|')[0];
     final verseWord = words.split('|')[1];
 
+    // Different regex pattern for CJK languages (Chinese, Japanese, Korean)
+    // to avoid word boundary issues with non-ASCII characters
+    final isCJK = language == 'zh' || language == 'ja';
+    final pattern = isCJK
+        ? RegExp(r'((?:\d+\s+)?[一-龯ぁ-んァ-ン]+)\s+(\d+):(\d+)(?:-(\d+))?',
+            caseSensitive: false)
+        : RegExp(
+            r'(\b(?:\d+\s+)?[A-Za-záéíóúÁÉÍÓÚñÑ]+)\s+(\d+):(\d+)(?:-(\d+))?',
+            caseSensitive: false);
+
     return text.replaceAllMapped(
-      RegExp(
-          r'(\b(?:\d+\s+)?[A-Za-záéíóúÁÉÍÓÚñÑ一-龯ぁ-んァ-ン]+)\s+(\d+):(\d+)(?:-(\d+))?',
-          caseSensitive: false),
+      pattern,
       (match) {
         final book = match.group(1)!;
         final chapter = match.group(2)!;
@@ -203,7 +225,9 @@ class BibleTextFormatter {
                       ? 'au'
                       : language == 'ja'
                           ? '～'
-                          : 'al';
+                          : language == 'zh'
+                              ? '至'
+                              : 'al';
           result += ' $toWord $verseEnd';
         }
         return result;

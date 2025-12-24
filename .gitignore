@@ -77,3 +77,4 @@ __pycache__/
 
 # Coverage reports
 coverage/
+full_test.txt

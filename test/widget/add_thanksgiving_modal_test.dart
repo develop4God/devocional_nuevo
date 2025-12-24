@@ -159,7 +159,7 @@ void main() {
       await tester.pumpAndSettle();
 
       final textField = tester.widget<TextField>(find.byType(TextField));
-      expect(textField.maxLength, equals(500));
+      expect(textField.maxLength, equals(700));
     });
 
     testWidgets('should have 6 lines for text input',

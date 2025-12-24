@@ -80,6 +80,13 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
     'fr-CA-language': '🇨🇦',
   };
 
+  static const Map<String, String> chineseVoiceMap = {
+    'cmn-cn-x-cce-local': '🇨🇳', // Hombre China
+    'cmn-cn-x-ccc-local': '🇨🇳', // Mujer China
+    'cmn-tw-x-cte-network': '🇹🇼', // Hombre 2 Taiwán
+    'cmn-tw-x-ctc-network': '🇹🇼', // Mujer 2 Taiwán
+  };
+
   @override
   void initState() {
     super.initState();
@@ -101,6 +108,8 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
         return 'Vous pouvez enregistrer cette voix ou en choisir une autre, selon votre préférence';
       case 'ja':
         return 'この声を保存するか、別の声を選択することができます。お好みに合わせて';
+      case 'zh':
+        return '您可以保存此语音或选择其他语音，按您的喜好';
       default:
         return template;
     }
@@ -149,6 +158,8 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
         return japaneseVoiceMap.containsKey(voiceName);
       case 'fr':
         return frenchVoiceMap.containsKey(voiceName);
+      case 'zh':
+        return chineseVoiceMap.containsKey(voiceName);
       default:
         return false;
     }
@@ -182,6 +193,11 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
           return frenchVoiceMap[voiceName]!;
         }
         break;
+      case 'zh':
+        if (chineseVoiceMap.containsKey(voiceName)) {
+          return chineseVoiceMap[voiceName]!;
+        }
+        break;
     }
     // Si es fallback, extrae la bandera del locale
     return _getCountryFlag(locale);
@@ -212,6 +228,9 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
       case 'fr':
         premiumMap = frenchVoiceMap;
         break;
+      case 'zh':
+        premiumMap = chineseVoiceMap;
+        break;
     }
 
     if (premiumMap != null) {
@@ -228,8 +247,8 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
       // Si no hay suficientes voces premium (menos de 2), agregar fallback
       if (premiumVoices.length < 2 || _shouldForceFallback) {
         debugPrint(
-            '[VoiceSelector] 🔄 Activando fallback para ${widget.language}: '
-            'premium=${premiumVoices.length}, forced=$_shouldForceFallback');
+            '[VoiceSelector] 🔄 Activando fallback para \\${widget.language}: '
+            'premium=\${premiumVoices.length}, forced=\$_shouldForceFallback');
 
         // Definir locales prioritarios por idioma (los más comunes)
         final priorityLocales = <String, List<String>>{
@@ -238,6 +257,7 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
           'pt': ['pt-BR', 'pt-PT'],
           'fr': ['fr-FR', 'fr-CA'],
           'ja': ['ja-JP'],
+          'zh': ['zh-CN', 'zh-TW'],
         };
 
         final priorities = priorityLocales[widget.language] ?? [];
@@ -279,8 +299,8 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
         }
 
         debugPrint(
-            '[VoiceSelector] ✅ Fallback encontró ${fallbackVoices.length} voces '
-            'distribuidas en ${voicesByLocale.length} locales (máx 2 por locale)');
+            '[VoiceSelector] ✅ Fallback encontró \${fallbackVoices.length} voces '
+            'distribuidas en \${voicesByLocale.length} locales (máx 2 por locale)');
       }
     }
 
@@ -292,8 +312,8 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
       _initialVoiceName = null;
       _initialVoiceLocale = null;
 
-      debugPrint('[VoiceSelector] 📋 Total voces cargadas: ${_voices.length} '
-          '(premium: ${premiumVoices.length}, fallback: ${fallbackVoices.length})');
+      debugPrint('[VoiceSelector] 📋 Total voces cargadas: \${_voices.length} '
+          '(premium: \${premiumVoices.length}, fallback: \${fallbackVoices.length})');
     });
   }
 
@@ -370,9 +390,23 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
           return Icon(Icons.woman_outlined,
               color: colorScheme.primary, size: 38);
         }
+      case 'zh':
+        if (voiceName == 'cmn-cn-x-cce-local' ||
+            voiceName == 'cmn-tw-x-cte-network') {
+          return Icon(Icons.man_3_outlined,
+              color: colorScheme.primary, size: 38);
+        }
+        if (voiceName == 'cmn-cn-x-ccc-local' ||
+            voiceName == 'cmn-tw-x-ctc-network') {
+          return Icon(Icons.woman_outlined,
+              color: colorScheme.primary, size: 38);
+        }
+        break;
       default:
         return Icon(Icons.person, color: colorScheme.primary, size: 38);
     }
+    // Always return a Widget
+    return Icon(Icons.person, color: colorScheme.primary, size: 38);
   }
 
   String _getVoiceDescription(
@@ -446,6 +480,18 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
             return 'Homme Canada';
           case 'fr-CA-language':
             return 'Femme Canada';
+        }
+        break;
+      case 'zh':
+        switch (voiceName) {
+          case 'cmn-cn-x-cce-local':
+            return '男性 声 1'; // Hombre China
+          case 'cmn-cn-x-ccc-local':
+            return '女性 声 1'; // Mujer China
+          case 'cmn-tw-x-cte-network':
+            return '男性 声 2'; // Hombre 2 Taiwán
+          case 'cmn-tw-x-ctc-network':
+            return '女性 声 2'; // Mujer 2 Taiwán
         }
         break;
     }

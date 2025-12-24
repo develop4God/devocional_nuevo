@@ -1,19 +1,20 @@
 import 'dart:convert';
 import 'dart:io';
 
-/// Lista de idiomas soportados (extraída de Constants)
+/// List of supported languages (now includes zh for Chinese)
 const supportedLanguages = [
   'es',
   'en',
   'pt',
   'fr',
   'ja',
+  'zh', // Added Chinese
 ];
 
-/// Utilidad para validar y completar traducciones entre el archivo de referencia en.json y cualquier archivo de idioma
-/// Uso: dart run lib/utils/translation_validator.dart [lang]
+/// Utility to validate and complete translations between the reference file in.json and any language file
+/// Usage: dart run lib/utils/translation_validator.dart [lang]
 void main(List<String> args) async {
-  stdout.writeln('Iniciando validación de idiomas...');
+  stdout.writeln('Starting language validation...');
   final languages = args.isNotEmpty ? args : supportedLanguages;
   final procesados = <String>[];
   final noEncontrados = <String>[];
@@ -26,7 +27,7 @@ void main(List<String> args) async {
     final targetFile = File(targetPath);
 
     if (!referenceFile.existsSync() || !targetFile.existsSync()) {
-      stdout.writeln('❌ No se encontró el archivo de referencia o el de traducción ($lang).');
+      stdout.writeln('❌ Reference or translation file not found ($lang).');
       noEncontrados.add(lang);
       continue;
     }
@@ -80,38 +81,41 @@ void main(List<String> args) async {
     compareKeys(referenceJson, targetJson, '');
     insertMissingKeys(referenceJson, targetJson);
 
-    stdout.writeln('==== REPORTE DE VALIDACIÓN Y COMPLETADO DE TRADUCCIÓN ($lang) ====');
+    stdout.writeln(
+        '==== TRANSLATION VALIDATION AND COMPLETION REPORT ($lang) ====');
     if (missingKeys.isEmpty && incompleteKeys.isEmpty) {
-      stdout.writeln('✅ Todas las claves están presentes y completas.');
+      stdout.writeln('✅ All keys are present and complete.');
     } else {
       if (missingKeys.isNotEmpty) {
-        stdout.writeln('❌ Claves faltantes en $lang.json:');
+        stdout.writeln('❌ Missing keys in $lang.json:');
         for (final k in missingKeys) {
           stdout.writeln('  - $k');
         }
       }
       if (incompleteKeys.isNotEmpty) {
-        stdout.writeln('⚠️ Claves incompletas o vacías en $lang.json:');
+        stdout.writeln('⚠️ Incomplete or empty keys in $lang.json:');
         for (final k in incompleteKeys) {
           stdout.writeln('  - $k');
         }
       }
     }
 
-    // Guarda el archivo destino actualizado con las claves faltantes
-    await targetFile.writeAsString(JsonEncoder.withIndent('  ').convert(targetJson));
+    // Save the updated target file with missing keys
+    await targetFile
+        .writeAsString(JsonEncoder.withIndent('  ').convert(targetJson));
     if (pendingCount > 0) {
-      stdout.writeln('✅ Archivo $lang.json actualizado: se agregaron $pendingCount claves nuevas marcadas como "PENDING".');
+      stdout.writeln(
+          '✅ $lang.json updated: $pendingCount new keys added as "PENDING".');
     } else {
-      stdout.writeln('ℹ️ No se agregaron claves nuevas. El archivo $lang.json ya estaba completo.');
+      stdout.writeln('ℹ️ No new keys added. $lang.json was already complete.');
     }
     stdout.writeln('');
   }
-  stdout.writeln('--- RESUMEN FINAL ---');
-  stdout.writeln('Idiomas procesados correctamente: ${procesados.join(", ")}');
+  stdout.writeln('--- FINAL SUMMARY ---');
+  stdout.writeln('Languages processed successfully: ${procesados.join(", ")}');
   if (noEncontrados.isNotEmpty) {
-    stdout.writeln('Idiomas no encontrados: ${noEncontrados.join(", ")}');
+    stdout.writeln('Languages not found: ${noEncontrados.join(", ")}');
   } else {
-    stdout.writeln('Todos los archivos de idioma fueron encontrados y validados.');
+    stdout.writeln('All language files were found and validated.');
   }
 }
