@@ -1,3 +1,4 @@
+
 name: 🚀Flutter CI
 
 on:
@@ -60,12 +61,21 @@ jobs:
               dart format .
               git config --local user.email "action@github.com"
               git config --local user.name "GitHub Action [bot]"
+
+              # FIXED BRANCH LOGIC ↓
+              if [ "${{ github.event_name }}" = "pull_request" ]; then
+                BRANCH="${{ github.head_ref }}"
+              elif [ -n "${{ github.event.inputs.target_branch }}" ]; then
+                BRANCH="${{ github.event.inputs.target_branch }}"
+              else
+                BRANCH="${{ github.ref_name }}"
+              fi
+
               if ! git diff --quiet; then
                 echo "📋 Files that were formatted:"
                 git diff --name-only
                 git add .
                 git commit -m "🎨 Auto-format code with dart format [skip ci]"
-                BRANCH="${{ github.event.inputs.target_branch || github.ref_name }}"
                 git push origin "$BRANCH"
                 echo "✅ Code has been automatically formatted and committed!"
                 echo "🔄 Contributors should pull the latest changes."
@@ -101,12 +111,21 @@ jobs:
         run: |
           echo "🧹 Eliminando imports no usados y aplicando fixes automáticos..."
           dart fix --apply
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action [bot]"
+
+          # FIXED BRANCH LOGIC ↓
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BRANCH="${{ github.head_ref }}"
+          elif [ -n "${{ github.event.inputs.target_branch }}" ]; then
+            BRANCH="${{ github.event.inputs.target_branch }}"
+          else
+            BRANCH="${{ github.ref_name }}"
+          fi
+
           if ! git diff --quiet; then
-            git config --local user.email "action@github.com"
-            git config --local user.name "GitHub Action [bot]"
             git add .
             git commit -m "🧹 Remove unused imports and auto-fix code [skip ci]"
-            BRANCH="${{ github.event.inputs.target_branch || github.ref_name }}"
             git push origin "$BRANCH"
             echo "✅ Imports limpios y fixes aplicados!"
             echo "## 🧹 Import Cleanup Summary" >> $GITHUB_STEP_SUMMARY
