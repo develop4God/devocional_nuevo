@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 
 class AnimatedFabWithText extends StatefulWidget {
@@ -31,19 +32,28 @@ class AnimatedFabWithText extends StatefulWidget {
 class _AnimatedFabWithTextState extends State<AnimatedFabWithText>
     with SingleTickerProviderStateMixin {
   bool _showText = false;
+  Timer? _initialDelayTimer;
+  Timer? _hideTextTimer;
 
   @override
   void initState() {
     super.initState();
     // Pequeño delay para que se vea primero solo el círculo
-    Future.delayed(const Duration(milliseconds: 100), () {
+    _initialDelayTimer = Timer(const Duration(milliseconds: 100), () {
       if (mounted) {
         setState(() => _showText = true);
-        Future.delayed(widget.showDuration, () {
+        _hideTextTimer = Timer(widget.showDuration, () {
           if (mounted) setState(() => _showText = false);
         });
       }
     });
+  }
+
+  @override
+  void dispose() {
+    _initialDelayTimer?.cancel();
+    _hideTextTimer?.cancel();
+    super.dispose();
   }
 
   @override

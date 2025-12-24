@@ -5,13 +5,21 @@ import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../helpers/flutter_tts_mock_helper.dart';
+
 void main() {
   group('Chinese Language - Complete User Journey Tests', () {
     late LocalizationProvider provider;
 
     setUp(() {
       TestWidgetsFlutterBinding.ensureInitialized();
-      SharedPreferences.setMockInitialValues({});
+
+      // Use helper to mock flutter_tts plugin channel
+      FlutterTtsMockHelper.setupMockFlutterTts();
+
+      // Initialize SharedPreferences with Spanish as default locale
+      // to simulate app starting in Spanish for user journey tests
+      SharedPreferences.setMockInitialValues({'locale': 'es'});
       ServiceLocator().reset();
       setupServiceLocator();
       provider = LocalizationProvider();
@@ -19,6 +27,7 @@ void main() {
 
     tearDown(() {
       ServiceLocator().reset();
+      FlutterTtsMockHelper.tearDownMockFlutterTts();
     });
 
     test('User switches to Chinese and gets proper TTS configuration',
