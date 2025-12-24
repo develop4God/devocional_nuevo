@@ -27,6 +27,7 @@ void main() {
 
     tearDown(() {
       ServiceLocator().reset();
+      FlutterTtsMockHelper.tearDownMockFlutterTts();
     });
 
     test('User switches to Chinese and gets proper TTS configuration',
