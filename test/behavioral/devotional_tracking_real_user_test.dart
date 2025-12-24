@@ -1,4 +1,3 @@
-import 'package:devocional_nuevo/models/spiritual_stats_model.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -277,7 +276,7 @@ void main() {
 
       test('Should handle very long devotional IDs', () async {
         // GIVEN: Extremely long devotional ID
-        final longId = 'devotional_' + 'x' * 500;
+        final longId = 'devotional_${'x' * 500}';
 
         // WHEN: Recording devotional with long ID
         final stats = await statsService.recordDevocionalCompletado(
