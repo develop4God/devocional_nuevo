@@ -296,14 +296,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.15.0"
-  coverde:
-    dependency: "direct dev"
-    description:
-      name: coverde
-      sha256: "09d909f35accb2f1add449eba33b4afd835aad30ef039b34d6db65e52fe8fca8"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.2.0+2"
   cross_file:
     dependency: transitive
     description:
@@ -1139,14 +1131,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.2.0"
-  pub_updater:
-    dependency: transitive
-    description:
-      name: pub_updater
-      sha256: b06600619c8c219065a548f8f7c192b3e080beff95488ed692780f48f69c0625
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.3.1"
   pubspec_parse:
     dependency: transitive
     description:
