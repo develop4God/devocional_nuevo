@@ -12,11 +12,6 @@ on:
         required: false
         default: true
         type: boolean
-      build_signed:
-        description: 'Build signed App Bundle (requires secrets)'
-        required: false
-        default: false
-        type: boolean
 
   pull_request:
     branches: [ "main", "develop" ]
@@ -25,7 +20,6 @@ jobs:
   analyze:
     name: 📊 Static Analysis
     runs-on: ubuntu-latest
-
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
@@ -61,7 +55,6 @@ jobs:
               git config --local user.email "action@github.com"
               git config --local user.name "GitHub Action [bot]"
 
-              # FIXED BRANCH LOGIC ↓
               if [ "${{ github.event_name }}" = "pull_request" ]; then
                 BRANCH="${{ github.head_ref }}"
               elif [ -n "${{ github.event.inputs.target_branch }}" ]; then
@@ -71,35 +64,13 @@ jobs:
               fi
 
               if ! git diff --quiet; then
-                echo "📋 Files that were formatted:"
-                git diff --name-only
                 git add .
                 git commit -m "🎨 Auto-format code with dart format [skip ci]"
                 git push origin "$BRANCH"
-                echo "✅ Code has been automatically formatted and committed!"
-                echo "🔄 Contributors should pull the latest changes."
-                echo "## 🎨 Auto-Format Summary" >> $GITHUB_STEP_SUMMARY
-                echo "✅ Code formatting issues were automatically fixed" >> $GITHUB_STEP_SUMMARY
-                echo "📝 Files formatted:" >> $GITHUB_STEP_SUMMARY
-                git diff --name-only HEAD~1 | sed 's/^/- /' >> $GITHUB_STEP_SUMMARY
-                echo "" >> $GITHUB_STEP_SUMMARY
-                echo "🔄 **Action Required**: Pull the latest changes to your local branch:" >> $GITHUB_STEP_SUMMARY
-                echo '```bash' >> $GITHUB_STEP_SUMMARY
-                echo "git pull origin $BRANCH" >> $GITHUB_STEP_SUMMARY
-                echo '```' >> $GITHUB_STEP_SUMMARY
-              else
-                echo "ℹ️ No changes were needed after formatting."
               fi
             else
               echo "❌ Auto-formatting is disabled. Please format manually:"
-              echo ""
-              echo "Files that need formatting:"
               dart format --show-all .
-              echo ""
-              echo "To fix these issues, run:"
-              echo "  dart format ."
-              echo ""
-              echo "Or trigger this workflow with auto-format enabled."
               exit 1
             fi
           else
@@ -113,7 +84,6 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action [bot]"
 
-          # FIXED BRANCH LOGIC ↓
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             BRANCH="${{ github.head_ref }}"
           elif [ -n "${{ github.event.inputs.target_branch }}" ]; then
@@ -126,22 +96,13 @@ jobs:
             git add .
             git commit -m "🧹 Remove unused imports and auto-fix code [skip ci]"
             git push origin "$BRANCH"
-            echo "✅ Imports limpios y fixes aplicados!"
-            echo "## 🧹 Import Cleanup Summary" >> $GITHUB_STEP_SUMMARY
-            echo "✅ Unused imports and automatic fixes were applied." >> $GITHUB_STEP_SUMMARY
-            echo "📝 Files fixed:" >> $GITHUB_STEP_SUMMARY
-            git diff --name-only HEAD~1 | sed 's/^/- /' >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "🔄 **Action Required**: Pull the latest changes to your local branch:" >> $GITHUB_STEP_SUMMARY
-            echo '```bash' >> $GITHUB_STEP_SUMMARY
-            echo "git pull origin $BRANCH" >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-          else
-            echo "ℹ️ No unused imports or fixes applied."
           fi
 
       - name: 🔍 Analyze code
         run: flutter analyze --fatal-infos
+
+      - name: 📚 Check Dartdoc
+        run: dart doc --validate-links
 
       - name: 📋 Check pub.dev score
         run: dart pub deps
@@ -149,13 +110,9 @@ jobs:
   test:
     name: 🧪 Testing
     runs-on: ubuntu-latest
-
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event_name == 'pull_request' && format('refs/heads/{0}', github.head_ref)
-            || github.ref }}
 
       - name: ☕ Setup Java
         uses: actions/setup-java@v4
@@ -169,6 +126,9 @@ jobs:
           channel: stable
           cache: true
 
+      - name: 📦 Get dependencies
+        run: flutter pub get
+
       - name: 📦 Cache dependencies
         uses: actions/cache@v4
         with:
@@ -178,11 +138,15 @@ jobs:
           key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.yaml') }}
           restore-keys: ${{ runner.os }}-pub-
 
-      - name: 📦 Get dependencies
-        run: flutter pub get
+      - name: 🧪 Run unit tests and generate JUnit XML
+        run: |
+          flutter test --machine > test_output.json
+          dart run junitreport:parse -i test_output.json -o test-results.xml
 
-      - name: 🧪 Run unit tests
-        run: flutter test --coverage
+      - name: ⬆️ Publish Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        with:
+          files: test-results.xml
 
       - name: 📊 Upload coverage to Codecov
         uses: codecov/codecov-action@v3
@@ -203,112 +167,16 @@ jobs:
           name: coverage-report
           path: coverage/
 
-  build:
-    name: 🏗️ Build Apps
-    runs-on: ubuntu-latest
-    needs: [analyze, test]
-
-    strategy:
-      matrix:
-        include:
-          - platform: android-debug
-            build-cmd: flutter build apk --debug
-            artifact-path: build/app/outputs/flutter-apk/app-debug.apk
-            artifact-name: android-apk-debug
-
-          - platform: android-bundle
-            build-cmd: flutter build appbundle --release
-            artifact-path: build/app/outputs/bundle/release/app-release.aab
-            artifact-name: android-app-bundle
-
-    steps:
-      - name: 📥 Checkout code
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event_name == 'pull_request' && format('refs/heads/{0}', github.head_ref)
-            || github.ref }}
-
-      - name: ☕ Setup Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-
-      - name: 🔧 Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          channel: stable
-          cache: true
-
-      - name: 📦 Get dependencies
-        run: flutter pub get
-
-      - name: 🔐 Setup Android signing (for App Bundle)
-        if: matrix.platform == 'android-bundle' && (github.event.inputs.build_signed == 'true' || github.ref == 'refs/heads/main')
+      - name: 🚨 Enforce Coverage Minimum
         run: |
-          echo "🔐 Setting up Android signing configuration..."
-          mkdir -p android
-          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android/keystore.jks
-          cat << EOF > android/key.properties
-          storePassword=${{ secrets.ANDROID_STORE_PASSWORD }}
-          keyPassword=${{ secrets.ANDROID_KEY_PASSWORD }}
-          keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}
-          storeFile=keystore.jks
-          EOF
-          echo "✅ Android signing configured successfully!"
-
-      - name: 🏗️ Build ${{ matrix.platform }}
-        run: |
-          if [[ "${{ matrix.platform }}" == "android-bundle" && -f "android/key.properties" ]]; then
-            echo "🏗️ Building signed App Bundle..."
-            ${{ matrix.build-cmd }}
-          elif [[ "${{ matrix.platform }}" == "android-bundle" ]]; then
-            echo "⚠️ Building unsigned App Bundle (signing keys not available)"
-            flutter build appbundle --release
-          else
-            echo "🏗️ Building ${{ matrix.platform }}..."
-            ${{ matrix.build-cmd }}
-          fi
-
-      - name: 📋 Verify build output
-        run: |
-          if [ -f "${{ matrix.artifact-path }}" ]; then
-            echo "✅ Build successful: ${{ matrix.artifact-path }}"
-            ls -la "${{ matrix.artifact-path }}"
-            if [[ "${{ matrix.platform }}" == "android-bundle" ]]; then
-              echo "📦 App Bundle details:"
-              file "${{ matrix.artifact-path }}"
-              if [ -f "android/key.properties" ]; then
-                echo "🔐 Verifying App Bundle signature..."
-                echo "App Bundle is signed and ready for Play Store!"
-              fi
-            fi
-          else
-            echo "❌ Build failed: ${{ matrix.artifact-path }} not found"
-            exit 1
-          fi
-
-      - name: 📤 Upload ${{ matrix.platform }} artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ matrix.artifact-name }}
-          path: ${{ matrix.artifact-path }}
-          retention-days: 30
-
-      - name: 🧹 Cleanup sensitive files
-        if: matrix.platform == 'android-bundle' && always()
-        run: |
-          echo "🧹 Cleaning up sensitive files..."
-          rm -f android/keystore.jks
-          rm -f android/key.properties
-          echo "✅ Cleanup completed"
+          dart pub global activate coverde
+          coverde value --min 80
 
   comment:
     name: 💬 PR Comment
     runs-on: ubuntu-latest
-    needs: [analyze, test, build]
+    needs: [analyze, test]
     if: github.event_name == 'pull_request' && always()
-
     steps:
       - name: 📥 Download coverage
         uses: actions/download-artifact@v4
@@ -320,10 +188,8 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const fs = require('fs');
             const analyzeStatus = '${{ needs.analyze.result }}';
             const testStatus = '${{ needs.test.result }}';
-            const buildStatus = '${{ needs.build.result }}';
             const getStatusEmoji = (status) => {
               switch (status) {
                 case 'success': return '✅';
@@ -333,38 +199,19 @@ jobs:
                 default: return '🔄';
               }
             };
-            let coverageInfo = 'Coverage info not available';
-            try {
-              const files = fs.readdirSync('.');
-              if (fs.existsSync('lcov.info')) {
-                coverageInfo = '📊 Coverage report generated successfully';
-              }
-            } catch (e) {
-              console.log('Error reading coverage:', e.message);
-            }
             const autoFormatEnabled = '${{ github.event.inputs.auto_format }}' === 'true';
             const formatNote = autoFormatEnabled ? '🎨 Auto-format: Enabled' : '⚠️ Auto-format: Disabled';
-            const buildSigned = '${{ github.event.inputs.build_signed }}' === 'true';
-            const signingNote = buildSigned ? '🔐 Signed builds: Enabled' : '⚠️ Signed builds: Disabled';
             const comment = `## 🎉 CI Results for PR #${{ github.event.number }}
-            
+
             ${getStatusEmoji(analyzeStatus)} **Static Analysis**: ${analyzeStatus}
-            ${getStatusEmoji(testStatus)} **Tests**: ${testStatus}  
-            ${getStatusEmoji(buildStatus)} **Build**: ${buildStatus}
-            
+            ${getStatusEmoji(testStatus)} **Tests**: ${testStatus}
+
             ${formatNote}
-            ${signingNote}
-            ${coverageInfo}
-            
-            ### 📦 Artifacts Available:
-            ${buildStatus === 'success' ? '- 📱 Android APK (Debug)\n- 📦 Android App Bundle (Release)' : 'No artifacts (build failed)'}
-            
-            ### ${analyzeStatus === 'success' && testStatus === 'success' && buildStatus === 'success' ? '🚀 Ready to merge!' : '⚠️ Issues found - check the logs'}
-            
+
+            ### ${analyzeStatus === 'success' && testStatus === 'success' ? '🚀 Ready to merge!' : '⚠️ Issues found - check the logs'}
+
             ${analyzeStatus === 'failure' && !autoFormatEnabled ? '\n💡 **Tip**: Enable auto-format when running the workflow to automatically fix formatting issues!' : ''}
-            
-            ${buildStatus === 'success' && !buildSigned ? '\n🔐 **Note**: To generate signed App Bundle, enable "Build signed App Bundle" option when running manually.' : ''}
-            
+
             ---
             *Generated by GitHub Actions*`;
             github.rest.issues.createComment({
@@ -377,13 +224,9 @@ jobs:
   security:
     name: 🔒 Security Scan
     runs-on: ubuntu-latest
-
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event_name == 'pull_request' && format('refs/heads/{0}', github.head_ref)
-            || github.ref }}
 
       - name: 🔍 Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
@@ -394,7 +237,7 @@ jobs:
           output: 'trivy-results.sarif'
 
       - name: 📤 Upload Trivy scan results
-        uses: github/codeql-action/upload-sarif@v4
+        uses: github/codeql-action/upload-sarif@v3
         if: always()
         with:
           sarif_file: 'trivy-results.sarif'
