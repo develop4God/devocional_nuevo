@@ -4,6 +4,7 @@ import 'package:devocional_nuevo/services/tts/bible_text_formatter.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/services.dart';
 
 void main() {
   group('Chinese Language - Complete User Journey Tests', () {
@@ -11,7 +12,52 @@ void main() {
 
     setUp(() {
       TestWidgetsFlutterBinding.ensureInitialized();
-      SharedPreferences.setMockInitialValues({});
+
+      // Mock flutter_tts plugin channel to avoid MissingPluginException
+      const MethodChannel ttsChannel = MethodChannel('flutter_tts');
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+        ttsChannel,
+        (MethodCall methodCall) async {
+          switch (methodCall.method) {
+            case 'getVoices':
+              // Return comprehensive list of voices for all supported languages
+              return [
+                {'name': 'es-es-x-eee-local', 'locale': 'es-ES'},
+                {'name': 'es-es-x-eef-local', 'locale': 'es-ES'},
+                {'name': 'en-us-x-iom-local', 'locale': 'en-US'},
+                {'name': 'en-us-x-iog-local', 'locale': 'en-US'},
+                {'name': 'pt-br-x-afs-local', 'locale': 'pt-BR'},
+                {'name': 'pt-br-x-afe-local', 'locale': 'pt-BR'},
+                {'name': 'fr-fr-x-vlf-local', 'locale': 'fr-FR'},
+                {'name': 'fr-fr-x-fre-local', 'locale': 'fr-FR'},
+                {'name': 'ja-jp-x-jab-local', 'locale': 'ja-JP'},
+                {'name': 'ja-jp-x-jac-local', 'locale': 'ja-JP'},
+                {'name': 'cmn-cn-x-cce-local', 'locale': 'zh-CN'},
+                {'name': 'cmn-cn-x-ccc-local', 'locale': 'zh-CN'},
+                {'name': 'cmn-tw-x-cte-network', 'locale': 'zh-TW'},
+                {'name': 'cmn-tw-x-ctc-network', 'locale': 'zh-TW'},
+              ];
+            case 'setLanguage':
+            case 'setSpeechRate':
+            case 'speak':
+            case 'stop':
+            case 'pause':
+            case 'setVolume':
+            case 'setPitch':
+            case 'setQueueMode':
+            case 'awaitSpeakCompletion':
+            case 'setVoice':
+              return Future.value(1);
+            default:
+              return Future.value();
+          }
+        },
+      );
+
+      // Initialize SharedPreferences with Spanish as default locale
+      // to simulate app starting in Spanish for user journey tests
+      SharedPreferences.setMockInitialValues({'locale': 'es'});
       ServiceLocator().reset();
       setupServiceLocator();
       provider = LocalizationProvider();
