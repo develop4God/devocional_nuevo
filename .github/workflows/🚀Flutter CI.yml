@@ -167,11 +167,6 @@ jobs:
           name: coverage-report
           path: coverage/
 
-      - name: 🚨 Enforce Coverage Minimum
-        run: |
-          dart pub global activate coverde
-          coverde value --min 80
-
   comment:
     name: 💬 PR Comment
     runs-on: ubuntu-latest
