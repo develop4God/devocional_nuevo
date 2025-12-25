@@ -7,7 +7,8 @@ import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/localization_service.dart';
 
-class FakeDevocionalProvider extends ChangeNotifier implements DevocionalProvider {
+class FakeDevocionalProvider extends ChangeNotifier
+    implements DevocionalProvider {
   @override
   String get selectedLanguage => 'es';
   @override
@@ -61,7 +62,8 @@ void main() {
       streakTapped = false;
     });
 
-    Widget buildWidget({int streak = 5, String? formattedDate, Future<int>? streakFuture}) {
+    Widget buildWidget(
+        {int streak = 5, String? formattedDate, Future<int>? streakFuture}) {
       return MaterialApp(
         home: ChangeNotifierProvider<DevocionalProvider>.value(
           value: fakeProvider,
@@ -72,7 +74,8 @@ void main() {
             onStreakBadgeTap: () => streakTapped = true,
             currentStreak: streak,
             streakFuture: streakFuture ?? Future.value(streak),
-            getLocalizedDateFormat: (_) => formattedDate ?? '25 de diciembre de 2025',
+            getLocalizedDateFormat: (_) =>
+                formattedDate ?? '25 de diciembre de 2025',
           ),
         ),
       );
@@ -95,7 +98,8 @@ void main() {
       expect(verseCopied, isTrue);
     });
 
-    testWidgets('calls onStreakBadgeTap when streak badge tapped', (tester) async {
+    testWidgets('calls onStreakBadgeTap when streak badge tapped',
+        (tester) async {
       await tester.pumpWidget(buildWidget());
       await tester.pump();
       final badges = find.byType(InkWell);
@@ -113,7 +117,8 @@ void main() {
       expect(find.byType(InkWell), findsNothing);
     });
 
-    testWidgets('handles empty meditations and tags gracefully', (tester) async {
+    testWidgets('handles empty meditations and tags gracefully',
+        (tester) async {
       devocional = Devocional(
         id: 'test-id-2',
         versiculo: 'Juan 3:16',
