@@ -87,7 +87,10 @@ dev_dependencies:
 
   path_provider_platform_interface: any
   test: ^1.25.7
-  # coverde: ^0.2.0+2  # Temporarily commented due to file version conflict
+  # coverde: ^0.2.0+2  # Temporarily commented due to file package version conflict
+  # coverde 0.2.0+2 requires process ^4.2.4 which depends on file ^6.0.0
+  # integration_test from SDK requires file 7.0.1
+  # This creates an incompatible dependency chain
 
   firebase_analytics_platform_interface: any
 flutter:

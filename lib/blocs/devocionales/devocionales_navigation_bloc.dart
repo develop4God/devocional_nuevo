@@ -117,6 +117,10 @@ class DevocionalesNavigationBloc
   }
 
   /// Navigate to the first unread devotional
+  /// Note: The actual logic is handled by the static helper method
+  /// findFirstUnreadDevocionalIndex which should be called from the UI layer
+  /// that has access to the full devotionals list. This event is reserved
+  /// for future integration when the BLoC might directly manage the devotionals.
   Future<void> _onNavigateToFirstUnread(
     NavigateToFirstUnread event,
     Emitter<DevocionalesNavigationState> emit,
@@ -125,13 +129,10 @@ class DevocionalesNavigationBloc
 
     final currentState = state as NavigationReady;
 
-    // This method needs access to the devotionals list to find the first unread
-    // For now, we'll just emit the current state
-    // The actual logic should be handled in the UI or a service layer
-    // that has access to both the devotionals and the read IDs
-
-    // This is a placeholder - the actual implementation would require
-    // the devotionals list to be passed in the event
+    // Currently, this event doesn't perform navigation because the BLoC
+    // doesn't have direct access to the devotionals list.
+    // Use the static helper method findFirstUnreadDevocionalIndex in the UI layer,
+    // then call NavigateToIndex with the result.
     emit(currentState);
   }
 
@@ -180,7 +181,8 @@ class DevocionalesNavigationBloc
       await prefs.setInt(_lastDevocionalIndexKey, index);
     } catch (e) {
       // Fail silently - navigation should continue to work even if persistence fails
-      // In a production app, you might want to log this error
+      // Error is not logged to avoid console spam during tests
+      // In production, consider integrating with your analytics/logging service
     }
   }
 
