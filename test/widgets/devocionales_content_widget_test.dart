@@ -61,7 +61,7 @@ void main() {
       streakTapped = false;
     });
 
-    Widget buildWidget({int streak = 5, String? formattedDate}) {
+    Widget buildWidget({int streak = 5, String? formattedDate, Future<int>? streakFuture}) {
       return MaterialApp(
         home: ChangeNotifierProvider<DevocionalProvider>.value(
           value: fakeProvider,
@@ -71,6 +71,7 @@ void main() {
             onVerseCopy: () => verseCopied = true,
             onStreakBadgeTap: () => streakTapped = true,
             currentStreak: streak,
+            streakFuture: streakFuture ?? Future.value(streak),
             getLocalizedDateFormat: (_) => formattedDate ?? '25 de diciembre de 2025',
           ),
         ),
