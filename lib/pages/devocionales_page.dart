@@ -16,10 +16,10 @@ import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/services/devocionales_tracking.dart';
 import 'package:devocional_nuevo/services/update_service.dart';
 import 'package:devocional_nuevo/utils/bubble_constants.dart';
-import 'package:devocional_nuevo/utils/copyright_utils.dart';
 import 'package:devocional_nuevo/widgets/add_prayer_modal.dart';
 import 'package:devocional_nuevo/widgets/add_thanksgiving_modal.dart';
 import 'package:devocional_nuevo/widgets/app_bar_constants.dart';
+import 'package:devocional_nuevo/widgets/devocionales/devocionales_content_widget.dart';
 import 'package:devocional_nuevo/widgets/devocionales_page_drawer.dart';
 import 'package:devocional_nuevo/widgets/floating_font_control_buttons.dart';
 import 'package:devocional_nuevo/widgets/tts_miniplayer_modal.dart';
@@ -566,79 +566,6 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     }
   }
 
-  Widget _buildStreakBadge(bool isDark, int streak) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textColor = colorScheme.onSurface;
-    // Slight background for the whole badge using theme surfaceContainerHighest
-    final backgroundColor =
-        colorScheme.surfaceContainerHighest.withValues(alpha: 0.06);
-
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(20),
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const ProgressPage()),
-          );
-        },
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            color: backgroundColor,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: colorScheme.primary.withValues(alpha: 0.18),
-                blurRadius: 8,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Lottie with themed circular background
-              Padding(
-                padding: const EdgeInsets.only(bottom: 6),
-                child: Container(
-                  width: 28,
-                  height: 28,
-                  decoration: BoxDecoration(
-                    color: colorScheme.primary.withValues(alpha: 0.12),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Center(
-                    child: SizedBox(
-                      width: 40,
-                      height: 40,
-                      child: Lottie.asset(
-                        'assets/lottie/fire.json',
-                        repeat: true,
-                        animate: true,
-                        fit: BoxFit.contain,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                '${'progress.streak'.tr()} $streak',
-                style: TextStyle(
-                  color: textColor,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 14,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
   Future<void> _shareAsText(Devocional devocional) async {
     final meditationsText =
         devocional.paraMeditar.map((p) => '${p.cita}: ${p.texto}').join('\n');
@@ -943,294 +870,50 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                         controller: screenshotController,
                         child: Container(
                           color: Theme.of(context).scaffoldBackgroundColor,
-                          child: SingleChildScrollView(
-                            controller: _scrollController,
-                            padding: const EdgeInsets.all(16.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.only(bottom: 12.0),
-                                  child: Row(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.center,
-                                    children: [
-                                      Expanded(
-                                        child: Center(
-                                          child: Text(
-                                            _getLocalizedDateFormat(
-                                              context,
-                                            ).format(DateTime.now()),
-                                            style:
-                                                textTheme.titleMedium?.copyWith(
-                                              fontWeight: FontWeight.bold,
-                                              color: colorScheme.primary,
-                                            ),
-                                            textAlign: TextAlign.center,
-                                          ),
-                                        ),
-                                      ),
-                                      const SizedBox(width: 12),
-                                      FutureBuilder<int>(
-                                        future: _streakFuture,
-                                        builder: (context, snapshot) {
-                                          if (snapshot.connectionState ==
-                                              ConnectionState.waiting) {
-                                            return const SizedBox(
-                                              width: 40,
-                                              height: 40,
-                                              child: CircularProgressIndicator(
-                                                strokeWidth: 2,
-                                              ),
-                                            );
-                                          }
-                                          final streak =
-                                              snapshot.data ?? _currentStreak;
-                                          if (streak <= 0) {
-                                            return const SizedBox.shrink();
-                                          }
-                                          final isDark =
-                                              Theme.of(context).brightness ==
-                                                  Brightness.dark;
-                                          return _buildStreakBadge(
-                                            isDark,
-                                            streak,
-                                          );
-                                        },
-                                      ),
-                                    ],
+                          child: DevocionalesContentWidget(
+                            devocional: currentDevocional,
+                            fontSize: _fontSize,
+                            scrollController: _scrollController,
+                            onVerseCopy: () async {
+                              try {
+                                await Clipboard.setData(
+                                  ClipboardData(
+                                    text: currentDevocional.versiculo,
                                   ),
-                                ),
-                                GestureDetector(
-                                  onTap: () async {
-                                    try {
-                                      await Clipboard.setData(
-                                        ClipboardData(
-                                          text: currentDevocional.versiculo,
-                                        ),
-                                      );
-                                      if (!context.mounted) return;
-                                      HapticFeedback.selectionClick();
-                                      final messenger =
-                                          ScaffoldMessenger.of(context);
-                                      final ColorScheme colorScheme =
-                                          Theme.of(context).colorScheme;
-                                      messenger.showSnackBar(
-                                        SnackBar(
-                                          backgroundColor:
-                                              colorScheme.secondary,
-                                          duration: const Duration(seconds: 2),
-                                          content: Text(
-                                            'share.copied_to_clipboard'.tr(),
-                                            style: TextStyle(
-                                                color: colorScheme.onSecondary),
-                                          ),
-                                        ),
-                                      );
-                                    } catch (e) {
-                                      debugPrint(
-                                          '[DevocionalesPage] Error copying verse to clipboard: $e');
-                                    }
-                                  },
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 12,
-                                      vertical: 6,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      // Gradiente existente
-                                      gradient: LinearGradient(
-                                        begin: Alignment.topLeft,
-                                        end: Alignment.bottomRight,
-                                        colors: [
-                                          colorScheme.primary
-                                              .withAlpha((0.25 * 255).round()),
-                                          colorScheme.primary
-                                              .withAlpha((0.08 * 255).round()),
-                                          colorScheme.secondary
-                                              .withAlpha((0.06 * 255).round()),
-                                        ],
-                                        stops: const [0.0, 0.6, 1.0],
-                                      ),
-                                      borderRadius: BorderRadius.circular(20),
-                                      // NUEVO: Borde sutil que ayuda a definir el contenedor
-                                      border: Border.all(
-                                        color: colorScheme.primary
-                                            .withAlpha((0.3 * 255).round()),
-                                        width: 1.5,
-                                      ),
-                                      // Sombras existentes
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: colorScheme.primary
-                                              .withAlpha((0.2 * 255).round()),
-                                          blurRadius: 20,
-                                          offset: const Offset(0, 8),
-                                          spreadRadius: -4,
-                                        ),
-                                        BoxShadow(
-                                          color: Colors.black
-                                              .withAlpha((0.05 * 255).round()),
-                                          blurRadius: 40,
-                                          offset: const Offset(0, 16),
-                                          spreadRadius: -8,
-                                        ),
-                                      ],
-                                    ),
-                                    child: AutoSizeText(
-                                      currentDevocional.versiculo,
-                                      textAlign: TextAlign.center,
-                                      style: textTheme.titleLarge?.copyWith(
-                                        fontWeight: FontWeight.w600,
-                                        color: colorScheme.onSurface,
-                                      ),
-                                      maxLines: 12,
+                                );
+                                if (!context.mounted) return;
+                                HapticFeedback.selectionClick();
+                                final messenger = ScaffoldMessenger.of(context);
+                                final ColorScheme colorScheme =
+                                    Theme.of(context).colorScheme;
+                                messenger.showSnackBar(
+                                  SnackBar(
+                                    backgroundColor: colorScheme.secondary,
+                                    duration: const Duration(seconds: 2),
+                                    content: Text(
+                                      'share.copied_to_clipboard'.tr(),
+                                      style: TextStyle(
+                                          color: colorScheme.onSecondary),
                                     ),
                                   ),
-                                ),
-                                const SizedBox(height: 20),
-                                Text(
-                                  'devotionals.reflection'.tr(),
-                                  style: textTheme.titleLarge?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    color: colorScheme.primary,
-                                  ),
-                                ),
-                                const SizedBox(height: 10),
-                                Text(
-                                  currentDevocional.reflexion,
-                                  style: textTheme.bodyMedium?.copyWith(
-                                    fontSize: _fontSize,
-                                    color: colorScheme.onSurface,
-                                  ),
-                                ),
-                                const SizedBox(height: 20),
-                                Text(
-                                  'devotionals.to_meditate'.tr(),
-                                  style: textTheme.titleLarge?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    color: colorScheme.primary,
-                                  ),
-                                ),
-                                const SizedBox(height: 10),
-                                ...currentDevocional.paraMeditar.map((item) {
-                                  return Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 4.0,
-                                    ),
-                                    child: Text.rich(
-                                      TextSpan(
-                                        children: [
-                                          TextSpan(
-                                            text: '${item.cita}: ',
-                                            style:
-                                                textTheme.bodyMedium?.copyWith(
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: _fontSize,
-                                              color: colorScheme.primary,
-                                            ),
-                                          ),
-                                          TextSpan(
-                                            text: item.texto,
-                                            style:
-                                                textTheme.bodyMedium?.copyWith(
-                                              fontSize: _fontSize,
-                                              color: colorScheme.onSurface,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  );
-                                }),
-                                const SizedBox(height: 20),
-                                Text(
-                                  'devotionals.prayer'.tr(),
-                                  style: textTheme.titleLarge?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    color: colorScheme.primary,
-                                  ),
-                                ),
-                                const SizedBox(height: 10),
-                                Text(
-                                  currentDevocional.oracion,
-                                  style: textTheme.bodyMedium?.copyWith(
-                                    fontSize: _fontSize,
-                                    color: colorScheme.onSurface,
-                                  ),
-                                ),
-                                const SizedBox(height: 20),
-                                if (currentDevocional.version != null ||
-                                    currentDevocional.language != null ||
-                                    currentDevocional.tags != null)
-                                  Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'devotionals.details'.tr(),
-                                        style: textTheme.titleLarge?.copyWith(
-                                          fontWeight: FontWeight.bold,
-                                          color: colorScheme.primary,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 10),
-                                      if (currentDevocional.tags != null &&
-                                          currentDevocional.tags!.isNotEmpty)
-                                        Text(
-                                          'devotionals.topics'.tr({
-                                            'topics': currentDevocional.tags!
-                                                .join(', '),
-                                          }),
-                                          style: textTheme.bodySmall?.copyWith(
-                                            fontSize: 14,
-                                            color: colorScheme.onSurface,
-                                          ),
-                                        ),
-                                      if (currentDevocional.version != null)
-                                        Text(
-                                          'devotionals.version'.tr({
-                                            'version':
-                                                currentDevocional.version,
-                                          }),
-                                          style: textTheme.bodySmall?.copyWith(
-                                            fontSize: 14,
-                                            color: colorScheme.onSurface,
-                                          ),
-                                        ),
-                                      const SizedBox(height: 10),
-                                      Center(
-                                        child: Padding(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 20,
-                                          ),
-                                          child: Consumer<DevocionalProvider>(
-                                            builder:
-                                                (context, provider, child) {
-                                              return Text(
-                                                CopyrightUtils.getCopyrightText(
-                                                  provider.selectedLanguage,
-                                                  provider.selectedVersion,
-                                                ),
-                                                style: textTheme.bodySmall
-                                                    ?.copyWith(
-                                                  fontSize: 12,
-                                                  color: colorScheme.onSurface
-                                                      .withValues(
-                                                    alpha: 0.7,
-                                                  ),
-                                                ),
-                                                textAlign: TextAlign.center,
-                                              );
-                                            },
-                                          ),
-                                        ),
-                                      ),
-                                      const SizedBox(height: 20),
-                                    ],
-                                  ),
-                              ],
-                            ),
+                                );
+                              } catch (e) {
+                                debugPrint(
+                                    '[DevocionalesPage] Error copying verse to clipboard: $e');
+                              }
+                            },
+                            onStreakBadgeTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => const ProgressPage()),
+                              );
+                            },
+                            currentStreak: _currentStreak,
+                            streakFuture: _streakFuture,
+                            getLocalizedDateFormat: (context) =>
+                                _getLocalizedDateFormat(context)
+                                    .format(DateTime.now()),
                           ),
                         ),
                       ),
