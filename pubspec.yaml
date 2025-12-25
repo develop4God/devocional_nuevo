@@ -87,7 +87,7 @@ dev_dependencies:
 
   path_provider_platform_interface: any
   test: ^1.25.7
-  coverde: ^0.2.0+2
+  # coverde: ^0.2.0+2  # Temporarily commented due to file version conflict
 
   firebase_analytics_platform_interface: any
 flutter:
