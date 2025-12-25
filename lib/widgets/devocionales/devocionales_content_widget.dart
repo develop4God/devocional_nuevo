@@ -23,7 +23,6 @@ class DevocionalesContentWidget extends StatelessWidget {
   final VoidCallback onVerseCopy;
   final VoidCallback onStreakBadgeTap;
   final int currentStreak;
-  final Future<int> streakFuture;
   final String Function(BuildContext) getLocalizedDateFormat;
   final ScrollController? scrollController;
 
@@ -34,7 +33,6 @@ class DevocionalesContentWidget extends StatelessWidget {
     required this.onVerseCopy,
     required this.onStreakBadgeTap,
     required this.currentStreak,
-    required this.streakFuture,
     required this.getLocalizedDateFormat,
     this.scrollController,
   });
@@ -68,27 +66,8 @@ class DevocionalesContentWidget extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 12),
-                FutureBuilder<int>(
-                  future: streakFuture,
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const SizedBox(
-                        width: 40,
-                        height: 40,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                        ),
-                      );
-                    }
-                    final streak = snapshot.data ?? currentStreak;
-                    if (streak <= 0) {
-                      return const SizedBox.shrink();
-                    }
-                    final isDark =
-                        Theme.of(context).brightness == Brightness.dark;
-                    return _buildStreakBadge(context, isDark, streak);
-                  },
-                ),
+                if (currentStreak > 0)
+                  _buildStreakBadge(context, Theme.of(context).brightness == Brightness.dark, currentStreak),
               ],
             ),
           ),
