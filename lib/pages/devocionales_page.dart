@@ -453,6 +453,8 @@ class _DevocionalesPageState extends State<DevocionalesPage>
         await _stopSpeaking();
       }
 
+      if (!mounted) return;
+
       // Dispatch navigation event
       _navigationBloc!.add(const NavigateToNext());
 
@@ -468,9 +470,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
         listen: false,
       );
       if (devocionalProvider.showInvitationDialog) {
-        if (mounted) {
-          _showInvitation(context);
-        }
+        _showInvitation(context);
       }
     } else {
       _goToNextDevocionalLegacy();
@@ -966,195 +966,220 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     final TextTheme textTheme = Theme.of(context).textTheme;
     final themeState = context.watch<ThemeBloc>().state as ThemeLoaded;
 
+    // Show loading spinner if BLoC not initialized yet
     if (_navigationBloc == null) {
       return Scaffold(
         body: Center(
-          child: Text(
-            'devotionals.initializing'.tr(),
-            style: textTheme.bodyMedium,
-          ),
+          child: CircularProgressIndicator(color: colorScheme.primary),
         ),
       );
     }
 
-    return BlocListener<DevocionalesNavigationBloc,
-        DevocionalesNavigationState>(
-      bloc: _navigationBloc,
-      listener: (context, state) {
-        if (state is NavigationReady) {
-          // Start tracking when navigation state changes
-          _tracking.clearAutoCompletedExcept(state.currentDevocional.id);
-          _tracking.startDevocionalTracking(
-            state.currentDevocional.id,
-            _scrollController,
-          );
-        }
-      },
-      child:
-          BlocBuilder<DevocionalesNavigationBloc, DevocionalesNavigationState>(
-        bloc: _navigationBloc,
-        builder: (context, state) {
-          if (state is NavigationError) {
-            return Scaffold(
-              appBar: AppBar(title: Text('devotionals.error'.tr())),
-              body: Center(
-                child: Text(
-                  state.message,
-                  style:
-                      textTheme.bodyMedium?.copyWith(color: colorScheme.error),
-                ),
-              ),
-            );
+    // Listen to DevocionalProvider changes to update BLoC when bible version or language changes
+    return Consumer<DevocionalProvider>(
+      builder: (context, devocionalProvider, child) {
+        // When devotionals change (language/version change), update BLoC
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (_navigationBloc != null &&
+              devocionalProvider.devocionales.isNotEmpty) {
+            final currentState = _navigationBloc!.state;
+            if (currentState is NavigationReady) {
+              // Check if devotionals list changed (by reference or length)
+              if (currentState.devocionales !=
+                      devocionalProvider.devocionales ||
+                  currentState.totalDevocionales !=
+                      devocionalProvider.devocionales.length) {
+                // Update BLoC with new devotionals list
+                // The BLoC will automatically clamp the current index
+                _navigationBloc!.add(
+                  UpdateDevocionales(devocionalProvider.devocionales),
+                );
+              }
+            }
           }
+        });
 
-          if (state is! NavigationReady) {
-            return Scaffold(
-              body: Center(
-                child: CircularProgressIndicator(color: colorScheme.primary),
-              ),
-            );
-          }
-
-          final currentDevocional = state.currentDevocional;
-          final canNavigateNext = state.canNavigateNext;
-          final canNavigatePrevious = state.canNavigatePrevious;
-
-          // Get devocionalProvider for isFavorite check
-          final devocionalProvider = Provider.of<DevocionalProvider>(
-            context,
-            listen: false,
-          );
-          final bool isFavorite =
-              devocionalProvider.isFavorite(currentDevocional);
-
-          return AnnotatedRegion<SystemUiOverlayStyle>(
-            value: themeState.systemUiOverlayStyle,
-            child: Scaffold(
-              drawer: const DevocionalesDrawer(),
-              appBar: CustomAppBar(
-                titleWidget: AutoSizeText(
-                  'devotionals.my_intimate_space_with_god'.tr(),
-                  maxLines: 1,
-                  minFontSize: 10,
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        color: Theme.of(context).colorScheme.onPrimary,
-                      ),
-                ),
-                actions: [
-                  IconButton(
-                    icon: const Icon(Icons.text_increase_outlined,
-                        color: Colors.white),
-                    tooltip: 'bible.adjust_font_size'.tr(),
-                    onPressed: _toggleFontControls,
+        return BlocListener<DevocionalesNavigationBloc,
+            DevocionalesNavigationState>(
+          bloc: _navigationBloc,
+          listener: (context, state) {
+            if (state is NavigationReady) {
+              // Start tracking when navigation state changes
+              _tracking.clearAutoCompletedExcept(state.currentDevocional.id);
+              _tracking.startDevocionalTracking(
+                state.currentDevocional.id,
+                _scrollController,
+              );
+            }
+          },
+          child: BlocBuilder<DevocionalesNavigationBloc,
+              DevocionalesNavigationState>(
+            bloc: _navigationBloc,
+            builder: (context, state) {
+              if (state is NavigationError) {
+                return Scaffold(
+                  appBar: AppBar(title: Text('devotionals.error'.tr())),
+                  body: Center(
+                    child: Text(
+                      state.message,
+                      style: textTheme.bodyMedium
+                          ?.copyWith(color: colorScheme.error),
+                    ),
                   ),
-                ],
-              ),
-              floatingActionButton: AnimatedFabWithText(
-                onPressed: _showAddPrayerOrThanksgivingChoice,
-                text: 'prayer.add_prayer_thanksgiving_hint'.tr(),
-                fabColor: colorScheme.primary,
-                backgroundColor: colorScheme.secondary,
-                textColor: colorScheme.onPrimaryContainer,
-                iconColor: colorScheme.onPrimary,
-              ),
-              floatingActionButtonLocation:
-                  FloatingActionButtonLocation.endFloat,
-              body: Stack(
-                children: [
-                  Column(
-                    children: [
-                      Expanded(
-                        child: Screenshot(
-                          controller: screenshotController,
-                          child: Container(
-                            color: Theme.of(context).scaffoldBackgroundColor,
-                            child: DevocionalesContentWidget(
-                              devocional: currentDevocional,
-                              fontSize: _fontSize,
-                              scrollController: _scrollController,
-                              onVerseCopy: () async {
-                                try {
-                                  await Clipboard.setData(
-                                    ClipboardData(
-                                      text: currentDevocional.versiculo,
-                                    ),
-                                  );
-                                  if (!context.mounted) return;
-                                  HapticFeedback.selectionClick();
-                                  final messenger =
-                                      ScaffoldMessenger.of(context);
-                                  final ColorScheme colorScheme =
-                                      Theme.of(context).colorScheme;
-                                  messenger.showSnackBar(
-                                    SnackBar(
-                                      backgroundColor: colorScheme.secondary,
-                                      duration: const Duration(seconds: 2),
-                                      content: Text(
-                                        'share.copied_to_clipboard'.tr(),
-                                        style: TextStyle(
-                                            color: colorScheme.onSecondary),
-                                      ),
-                                    ),
-                                  );
-                                } catch (e) {
-                                  debugPrint(
-                                      '[DevocionalesPage] Error copying verse to clipboard: $e');
-                                }
-                              },
-                              onStreakBadgeTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) =>
-                                          const ProgressPage()),
-                                );
-                              },
-                              currentStreak: _currentStreak,
-                              streakFuture: _streakFuture,
-                              getLocalizedDateFormat: (context) =>
-                                  _getLocalizedDateFormat(context)
-                                      .format(DateTime.now()),
-                            ),
+                );
+              }
+
+              if (state is! NavigationReady) {
+                return Scaffold(
+                  body: Center(
+                    child:
+                        CircularProgressIndicator(color: colorScheme.primary),
+                  ),
+                );
+              }
+
+              final currentDevocional = state.currentDevocional;
+              final canNavigateNext = state.canNavigateNext;
+              final canNavigatePrevious = state.canNavigatePrevious;
+
+              // Listen to provider for isFavorite to rebuild when favorites change
+              final bool isFavorite =
+                  devocionalProvider.isFavorite(currentDevocional);
+
+              return AnnotatedRegion<SystemUiOverlayStyle>(
+                value: themeState.systemUiOverlayStyle,
+                child: Scaffold(
+                  drawer: const DevocionalesDrawer(),
+                  appBar: CustomAppBar(
+                    titleWidget: AutoSizeText(
+                      'devotionals.my_intimate_space_with_god'.tr(),
+                      maxLines: 1,
+                      minFontSize: 10,
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            color: Theme.of(context).colorScheme.onPrimary,
                           ),
-                        ),
+                    ),
+                    actions: [
+                      IconButton(
+                        icon: const Icon(Icons.text_increase_outlined,
+                            color: Colors.white),
+                        tooltip: 'bible.adjust_font_size'.tr(),
+                        onPressed: _toggleFontControls,
                       ),
                     ],
                   ),
-                  if (_showFontControls)
-                    FloatingFontControlButtons(
-                      currentFontSize: _fontSize,
-                      onIncrease: _increaseFontSize,
-                      onDecrease: _decreaseFontSize,
-                      onClose: () => setState(() => _showFontControls = false),
-                    ),
-                  if (_showPostSplashAnimation)
-                    Positioned(
-                      top: MediaQuery.of(context).padding.top + kToolbarHeight,
-                      right: 0,
-                      child: IgnorePointer(
-                        child: Lottie.asset(
-                          _selectedLottieAsset ??
-                              'assets/lottie/happy_bird.json',
-                          width: 200,
-                          repeat: true,
-                          fit: BoxFit.contain,
-                        ),
+                  floatingActionButton: AnimatedFabWithText(
+                    onPressed: _showAddPrayerOrThanksgivingChoice,
+                    text: 'prayer.add_prayer_thanksgiving_hint'.tr(),
+                    fabColor: colorScheme.primary,
+                    backgroundColor: colorScheme.secondary,
+                    textColor: colorScheme.onPrimaryContainer,
+                    iconColor: colorScheme.onPrimary,
+                  ),
+                  floatingActionButtonLocation:
+                      FloatingActionButtonLocation.endFloat,
+                  body: Stack(
+                    children: [
+                      Column(
+                        children: [
+                          Expanded(
+                            child: Screenshot(
+                              controller: screenshotController,
+                              child: Container(
+                                color:
+                                    Theme.of(context).scaffoldBackgroundColor,
+                                child: DevocionalesContentWidget(
+                                  devocional: currentDevocional,
+                                  fontSize: _fontSize,
+                                  scrollController: _scrollController,
+                                  onVerseCopy: () async {
+                                    try {
+                                      await Clipboard.setData(
+                                        ClipboardData(
+                                          text: currentDevocional.versiculo,
+                                        ),
+                                      );
+                                      if (!context.mounted) return;
+                                      HapticFeedback.selectionClick();
+                                      final messenger =
+                                          ScaffoldMessenger.of(context);
+                                      final ColorScheme colorScheme =
+                                          Theme.of(context).colorScheme;
+                                      messenger.showSnackBar(
+                                        SnackBar(
+                                          backgroundColor:
+                                              colorScheme.secondary,
+                                          duration: const Duration(seconds: 2),
+                                          content: Text(
+                                            'share.copied_to_clipboard'.tr(),
+                                            style: TextStyle(
+                                                color: colorScheme.onSecondary),
+                                          ),
+                                        ),
+                                      );
+                                    } catch (e) {
+                                      debugPrint(
+                                          '[DevocionalesPage] Error copying verse to clipboard: $e');
+                                    }
+                                  },
+                                  onStreakBadgeTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) =>
+                                              const ProgressPage()),
+                                    );
+                                  },
+                                  currentStreak: _currentStreak,
+                                  streakFuture: _streakFuture,
+                                  getLocalizedDateFormat: (context) =>
+                                      _getLocalizedDateFormat(context)
+                                          .format(DateTime.now()),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                ],
-              ),
-              bottomNavigationBar: _buildBottomNavigationBar(
-                context,
-                currentDevocional,
-                isFavorite,
-                canNavigateNext,
-                canNavigatePrevious,
-                colorScheme,
-              ),
-            ),
-          );
-        },
-      ),
+                      if (_showFontControls)
+                        FloatingFontControlButtons(
+                          currentFontSize: _fontSize,
+                          onIncrease: _increaseFontSize,
+                          onDecrease: _decreaseFontSize,
+                          onClose: () =>
+                              setState(() => _showFontControls = false),
+                        ),
+                      if (_showPostSplashAnimation)
+                        Positioned(
+                          top: MediaQuery.of(context).padding.top +
+                              kToolbarHeight,
+                          right: 0,
+                          child: IgnorePointer(
+                            child: Lottie.asset(
+                              _selectedLottieAsset ??
+                                  'assets/lottie/happy_bird.json',
+                              width: 200,
+                              repeat: true,
+                              fit: BoxFit.contain,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                  bottomNavigationBar: _buildBottomNavigationBar(
+                    context,
+                    currentDevocional,
+                    isFavorite,
+                    canNavigateNext,
+                    canNavigatePrevious,
+                    colorScheme,
+                  ),
+                ),
+              );
+            },
+          ),
+        );
+      },
     );
   }
 
