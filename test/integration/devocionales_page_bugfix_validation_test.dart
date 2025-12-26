@@ -1,17 +1,11 @@
 // test/integration/devocionales_page_bugfix_validation_test.dart
 
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:provider/provider.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:devocional_nuevo/blocs/devocionales/devocionales_navigation_bloc.dart';
 import 'package:devocional_nuevo/blocs/devocionales/devocionales_navigation_event.dart';
 import 'package:devocional_nuevo/blocs/devocionales/devocionales_navigation_state.dart';
-import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
-import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
-import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/repositories/navigation_repository.dart';
 import 'package:devocional_nuevo/repositories/devocional_repository.dart';
 
@@ -20,16 +14,10 @@ class MockNavigationRepository extends Mock implements NavigationRepository {}
 
 class MockDevocionalRepository extends Mock implements DevocionalRepository {}
 
-class MockDevocionalProvider extends Mock implements DevocionalProvider {}
-
-class MockThemeBloc extends Mock implements ThemeBloc {}
-
 void main() {
   group('DevocionalesPage Bug Fix Validation - Real User Behavior', () {
     late MockNavigationRepository mockNavigationRepository;
     late MockDevocionalRepository mockDevocionalRepository;
-    late MockDevocionalProvider mockDevocionalProvider;
-    late MockThemeBloc mockThemeBloc;
     late DevocionalesNavigationBloc bloc;
 
     // Helper to create test devotionals
@@ -52,8 +40,6 @@ void main() {
     setUp(() {
       mockNavigationRepository = MockNavigationRepository();
       mockDevocionalRepository = MockDevocionalRepository();
-      mockDevocionalProvider = MockDevocionalProvider();
-      mockThemeBloc = MockThemeBloc();
 
       when(() => mockNavigationRepository.saveCurrentIndex(any()))
           .thenAnswer((_) async => {});
