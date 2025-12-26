@@ -979,16 +979,17 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     return Consumer<DevocionalProvider>(
       builder: (context, devocionalProvider, child) {
         // When devotionals change (language/version change), update BLoC
+        // Use hashCode comparison for O(1) performance instead of list comparison
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (_navigationBloc != null &&
               devocionalProvider.devocionales.isNotEmpty) {
             final currentState = _navigationBloc!.state;
             if (currentState is NavigationReady) {
-              // Check if devotionals list changed (by reference or length)
-              if (currentState.devocionales !=
-                      devocionalProvider.devocionales ||
-                  currentState.totalDevocionales !=
-                      devocionalProvider.devocionales.length) {
+              // Efficient check: compare list length and hashCode
+              final currentList = currentState.devocionales;
+              final newList = devocionalProvider.devocionales;
+              if (currentList.length != newList.length ||
+                  currentList.hashCode != newList.hashCode) {
                 // Update BLoC with new devotionals list
                 // The BLoC will automatically clamp the current index
                 _navigationBloc!.add(
