@@ -29,6 +29,7 @@ import 'package:devocional_nuevo/widgets/devocionales_page_drawer.dart';
 import 'package:devocional_nuevo/widgets/floating_font_control_buttons.dart';
 import 'package:devocional_nuevo/widgets/tts_miniplayer_modal.dart';
 import 'package:devocional_nuevo/widgets/tts_player_widget.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -62,6 +63,12 @@ class DevocionalesPage extends StatefulWidget {
 class _DevocionalesPageState extends State<DevocionalesPage>
     with WidgetsBindingObserver, RouteAware {
   // Feature flag: Master switch to enable/disable Navigation BLoC
+  // Timeline: 30 days monitoring, then remove legacy code if stable
+  // Days 1-7: Monitor Crashlytics for BLoC errors
+  // Days 8-14: Analyze analytics data, verify BLoC adoption
+  // Days 15-21: Gradual rollout to 50%, 75%, 100% (if no issues)
+  // Days 22-30: Stability monitoring
+  // After Day 30: Remove legacy code (separate PR)
   static const bool _useNavigationBloc = true;
 
   final ScreenshotController screenshotController = ScreenshotController();
@@ -122,6 +129,11 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       );
       // Initialize asynchronously in background
       _initializeNavigationBloc();
+
+      // Log analytics event for app initialization with BLoC
+      _logAnalyticsEvent('app_init', parameters: {
+        'use_navigation_bloc': true,
+      });
     } else {
       _loadInitialDataLegacy();
     }
@@ -439,38 +451,80 @@ class _DevocionalesPageState extends State<DevocionalesPage>
 
   void _goToNextDevocional() async {
     if (_useNavigationBloc) {
-      // BLoC mode: Dispatch NavigateToNext event
+      // BLoC mode: Dispatch NavigateToNext event with error handling and fallback
       if (_navigationBloc == null) return;
 
-      // Stop audio/TTS before navigation
-      if (_audioController != null && _audioController!.isActive) {
-        debugPrint(
-          'DevocionalesPage: Stopping AudioController before navigation',
+      try {
+        // Stop audio/TTS before navigation
+        if (_audioController != null && _audioController!.isActive) {
+          debugPrint(
+            'DevocionalesPage: Stopping AudioController before navigation',
+          );
+          await _audioController!.stop();
+          await Future.delayed(const Duration(milliseconds: 100));
+        } else {
+          await _stopSpeaking();
+        }
+
+        if (!mounted) return;
+
+        // Get current state for analytics
+        final currentState = _navigationBloc!.state;
+        final currentIndex =
+            currentState is NavigationReady ? currentState.currentIndex : 0;
+        final totalDevocionales = currentState is NavigationReady
+            ? currentState.totalDevocionales
+            : 0;
+
+        // Dispatch navigation event
+        _navigationBloc!.add(const NavigateToNext());
+
+        // Scroll to top
+        _scrollToTop();
+
+        // Trigger haptic feedback
+        HapticFeedback.mediumImpact();
+
+        // Log analytics event (BLoC path)
+        await _logAnalyticsEvent('navigation_next', parameters: {
+          'current_index': currentIndex,
+          'total_devotionals': totalDevocionales,
+          'via_bloc': true,
+        });
+
+        // Check if we should show invitation dialog
+        if (!mounted) return;
+        final devocionalProvider = Provider.of<DevocionalProvider>(
+          context,
+          listen: false,
         );
-        await _audioController!.stop();
-        await Future.delayed(const Duration(milliseconds: 100));
-      } else {
-        await _stopSpeaking();
-      }
+        if (devocionalProvider.showInvitationDialog) {
+          _showInvitation(context);
+        }
+      } catch (e, stackTrace) {
+        // Log error to Crashlytics
+        debugPrint('❌ BLoC navigation error, falling back to legacy: $e');
+        await FirebaseCrashlytics.instance.recordError(
+          e,
+          stackTrace,
+          reason: 'NavigationBloc.NavigateToNext failed',
+          information: [
+            'Feature: Navigation BLoC',
+            'Action: Navigate to next devotional',
+            'Fallback: Legacy navigation activated',
+          ],
+          fatal: false,
+        );
 
-      if (!mounted) return;
+        // Fallback to legacy navigation
+        _goToNextDevocionalLegacy();
 
-      // Dispatch navigation event
-      _navigationBloc!.add(const NavigateToNext());
-
-      // Scroll to top
-      _scrollToTop();
-
-      // Trigger haptic feedback
-      HapticFeedback.mediumImpact();
-
-      // Check if we should show invitation dialog
-      final devocionalProvider = Provider.of<DevocionalProvider>(
-        context,
-        listen: false,
-      );
-      if (devocionalProvider.showInvitationDialog) {
-        _showInvitation(context);
+        // Log analytics event (fallback path)
+        await _logAnalyticsEvent('navigation_next', parameters: {
+          'current_index': _currentDevocionalIndex,
+          'via_bloc': false,
+          'fallback_reason': 'bloc_error',
+        });
       }
     } else {
       _goToNextDevocionalLegacy();
@@ -522,28 +576,69 @@ class _DevocionalesPageState extends State<DevocionalesPage>
 
   void _goToPreviousDevocional() async {
     if (_useNavigationBloc) {
-      // BLoC mode: Dispatch NavigateToPrevious event
+      // BLoC mode: Dispatch NavigateToPrevious event with error handling and fallback
       if (_navigationBloc == null) return;
 
-      // Stop audio/TTS before navigation
-      if (_audioController != null && _audioController!.isActive) {
-        debugPrint(
-          'DevocionalesPage: Stopping AudioController before navigation',
+      try {
+        // Stop audio/TTS before navigation
+        if (_audioController != null && _audioController!.isActive) {
+          debugPrint(
+            'DevocionalesPage: Stopping AudioController before navigation',
+          );
+          await _audioController!.stop();
+          await Future.delayed(const Duration(milliseconds: 100));
+        } else {
+          await _stopSpeaking();
+        }
+
+        // Get current state for analytics
+        final currentState = _navigationBloc!.state;
+        final currentIndex =
+            currentState is NavigationReady ? currentState.currentIndex : 0;
+        final totalDevocionales = currentState is NavigationReady
+            ? currentState.totalDevocionales
+            : 0;
+
+        // Dispatch navigation event
+        _navigationBloc!.add(const NavigateToPrevious());
+
+        // Scroll to top
+        _scrollToTop();
+
+        // Trigger haptic feedback
+        HapticFeedback.mediumImpact();
+
+        // Log analytics event (BLoC path)
+        await _logAnalyticsEvent('navigation_previous', parameters: {
+          'current_index': currentIndex,
+          'total_devotionals': totalDevocionales,
+          'via_bloc': true,
+        });
+      } catch (e, stackTrace) {
+        // Log error to Crashlytics
+        debugPrint('❌ BLoC navigation error, falling back to legacy: $e');
+        await FirebaseCrashlytics.instance.recordError(
+          e,
+          stackTrace,
+          reason: 'NavigationBloc.NavigateToPrevious failed',
+          information: [
+            'Feature: Navigation BLoC',
+            'Action: Navigate to previous devotional',
+            'Fallback: Legacy navigation activated',
+          ],
+          fatal: false,
         );
-        await _audioController!.stop();
-        await Future.delayed(const Duration(milliseconds: 100));
-      } else {
-        await _stopSpeaking();
+
+        // Fallback to legacy navigation
+        _goToPreviousDevocionalLegacy();
+
+        // Log analytics event (fallback path)
+        await _logAnalyticsEvent('navigation_previous', parameters: {
+          'current_index': _currentDevocionalIndex,
+          'via_bloc': false,
+          'fallback_reason': 'bloc_error',
+        });
       }
-
-      // Dispatch navigation event
-      _navigationBloc!.add(const NavigateToPrevious());
-
-      // Scroll to top
-      _scrollToTop();
-
-      // Trigger haptic feedback
-      HapticFeedback.mediumImpact();
     } else {
       _goToPreviousDevocionalLegacy();
     }
@@ -572,6 +667,24 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       });
 
       HapticFeedback.mediumImpact(); // Changed from lightImpact
+    }
+  }
+
+  /// Helper method to log analytics events safely
+  /// Falls back silently if analytics service is not available
+  Future<void> _logAnalyticsEvent(
+    String eventName, {
+    Map<String, Object>? parameters,
+  }) async {
+    try {
+      final analytics = getService<AnalyticsService>();
+      await analytics.logCustomEvent(
+        eventName: eventName,
+        parameters: parameters,
+      );
+    } catch (e) {
+      // Fail silently - analytics errors should not affect app functionality
+      debugPrint('⚠️ Analytics error in $eventName: $e');
     }
   }
 
