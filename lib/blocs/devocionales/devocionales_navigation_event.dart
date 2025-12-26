@@ -1,6 +1,7 @@
 // lib/blocs/devocionales/devocionales_navigation_event.dart
 
 import 'package:equatable/equatable.dart';
+import 'package:devocional_nuevo/models/devocional_model.dart';
 
 /// Events for devotional navigation functionality
 abstract class DevocionalesNavigationEvent extends Equatable {
@@ -40,26 +41,26 @@ class NavigateToFirstUnread extends DevocionalesNavigationEvent {
   List<Object?> get props => [readDevocionalIds];
 }
 
-/// Initialize navigation with a specific index (e.g., from deep link)
+/// Initialize navigation with a list of devotionals
 class InitializeNavigation extends DevocionalesNavigationEvent {
   final int initialIndex;
-  final int totalDevocionales;
+  final List<Devocional> devocionales;
 
   const InitializeNavigation({
     required this.initialIndex,
-    required this.totalDevocionales,
+    required this.devocionales,
   });
 
   @override
-  List<Object?> get props => [initialIndex, totalDevocionales];
+  List<Object?> get props => [initialIndex, devocionales];
 }
 
-/// Update total devotionals count (when list changes)
-class UpdateTotalDevocionales extends DevocionalesNavigationEvent {
-  final int totalDevocionales;
+/// Update devotionals list (when list changes)
+class UpdateDevocionales extends DevocionalesNavigationEvent {
+  final List<Devocional> devocionales;
 
-  const UpdateTotalDevocionales(this.totalDevocionales);
+  const UpdateDevocionales(this.devocionales);
 
   @override
-  List<Object?> get props => [totalDevocionales];
+  List<Object?> get props => [devocionales];
 }

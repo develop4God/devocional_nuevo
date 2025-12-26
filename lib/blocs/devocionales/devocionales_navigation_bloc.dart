@@ -29,25 +29,26 @@ class DevocionalesNavigationBloc
     on<NavigateToPrevious>(_onNavigateToPrevious);
     on<NavigateToIndex>(_onNavigateToIndex);
     on<NavigateToFirstUnread>(_onNavigateToFirstUnread);
-    on<UpdateTotalDevocionales>(_onUpdateTotalDevocionales);
+    on<UpdateDevocionales>(_onUpdateDevocionales);
   }
 
-  /// Initialize navigation with a specific index
+  /// Initialize navigation with a list of devotionals
   Future<void> _onInitializeNavigation(
     InitializeNavigation event,
     Emitter<DevocionalesNavigationState> emit,
   ) async {
-    if (event.totalDevocionales <= 0) {
+    if (event.devocionales.isEmpty) {
       emit(const NavigationError('No devotionals available'));
       return;
     }
 
     // Validate and clamp the initial index
-    final validIndex = _clampIndex(event.initialIndex, event.totalDevocionales);
+    final validIndex =
+        _clampIndex(event.initialIndex, event.devocionales.length);
 
     emit(NavigationReady.calculate(
       currentIndex: validIndex,
-      totalDevocionales: event.totalDevocionales,
+      devocionales: event.devocionales,
     ));
 
     // Save the index via repository
@@ -72,7 +73,7 @@ class DevocionalesNavigationBloc
 
     emit(NavigationReady.calculate(
       currentIndex: newIndex,
-      totalDevocionales: currentState.totalDevocionales,
+      devocionales: currentState.devocionales,
     ));
 
     await _navigationRepository.saveCurrentIndex(newIndex);
@@ -96,7 +97,7 @@ class DevocionalesNavigationBloc
 
     emit(NavigationReady.calculate(
       currentIndex: newIndex,
-      totalDevocionales: currentState.totalDevocionales,
+      devocionales: currentState.devocionales,
     ));
 
     await _navigationRepository.saveCurrentIndex(newIndex);
@@ -112,7 +113,8 @@ class DevocionalesNavigationBloc
     final currentState = state as NavigationReady;
 
     // Validate the index
-    final validIndex = _clampIndex(event.index, currentState.totalDevocionales);
+    final validIndex =
+        _clampIndex(event.index, currentState.devocionales.length);
 
     // Don't emit if we're already at this index
     if (validIndex == currentState.currentIndex) {
@@ -121,17 +123,13 @@ class DevocionalesNavigationBloc
 
     emit(NavigationReady.calculate(
       currentIndex: validIndex,
-      totalDevocionales: currentState.totalDevocionales,
+      devocionales: currentState.devocionales,
     ));
 
     await _navigationRepository.saveCurrentIndex(validIndex);
   }
 
   /// Navigate to the first unread devotional
-  /// Note: The actual logic is handled by the static helper method
-  /// findFirstUnreadDevocionalIndex which should be called from the UI layer
-  /// that has access to the full devotionals list. This event is reserved
-  /// for future integration when the BLoC might directly manage the devotionals.
   Future<void> _onNavigateToFirstUnread(
     NavigateToFirstUnread event,
     Emitter<DevocionalesNavigationState> emit,
@@ -140,36 +138,49 @@ class DevocionalesNavigationBloc
 
     final currentState = state as NavigationReady;
 
-    // Currently, this event doesn't perform navigation because the BLoC
-    // doesn't have direct access to the devotionals list.
-    // Use the static helper method findFirstUnreadDevocionalIndex in the UI layer,
-    // then call NavigateToIndex with the result.
-    emit(currentState);
+    // Find the first unread devotional using the repository
+    final firstUnreadIndex =
+        _devocionalRepository.findFirstUnreadDevocionalIndex(
+      currentState.devocionales,
+      event.readDevocionalIds,
+    );
+
+    // Don't emit if we're already at this index
+    if (firstUnreadIndex == currentState.currentIndex) {
+      return;
+    }
+
+    emit(NavigationReady.calculate(
+      currentIndex: firstUnreadIndex,
+      devocionales: currentState.devocionales,
+    ));
+
+    await _navigationRepository.saveCurrentIndex(firstUnreadIndex);
   }
 
-  /// Update total devotionals count
-  Future<void> _onUpdateTotalDevocionales(
-    UpdateTotalDevocionales event,
+  /// Update devotionals list
+  Future<void> _onUpdateDevocionales(
+    UpdateDevocionales event,
     Emitter<DevocionalesNavigationState> emit,
   ) async {
     if (state is! NavigationReady) return;
 
     final currentState = state as NavigationReady;
 
-    if (event.totalDevocionales <= 0) {
+    if (event.devocionales.isEmpty) {
       emit(const NavigationError('No devotionals available'));
       return;
     }
 
-    // Ensure current index is still valid with the new total
+    // Ensure current index is still valid with the new list
     final validIndex = _clampIndex(
       currentState.currentIndex,
-      event.totalDevocionales,
+      event.devocionales.length,
     );
 
     emit(NavigationReady.calculate(
       currentIndex: validIndex,
-      totalDevocionales: event.totalDevocionales,
+      devocionales: event.devocionales,
     ));
 
     if (validIndex != currentState.currentIndex) {
