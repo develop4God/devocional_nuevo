@@ -2,16 +2,27 @@
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:devocional_nuevo/repositories/navigation_repository.dart';
+import 'package:devocional_nuevo/repositories/navigation_repository_impl.dart';
+import 'package:devocional_nuevo/repositories/devocional_repository.dart';
+import 'package:devocional_nuevo/repositories/devocional_repository_impl.dart';
 import 'devocionales_navigation_event.dart';
 import 'devocionales_navigation_state.dart';
 
 /// BLoC for managing devotional navigation state
 class DevocionalesNavigationBloc
     extends Bloc<DevocionalesNavigationEvent, DevocionalesNavigationState> {
-  static const String _lastDevocionalIndexKey = 'lastDevocionalIndex';
+  final NavigationRepository _navigationRepository;
+  final DevocionalRepository _devocionalRepository;
 
-  DevocionalesNavigationBloc() : super(const NavigationInitial()) {
+  DevocionalesNavigationBloc({
+    NavigationRepository? navigationRepository,
+    DevocionalRepository? devocionalRepository,
+  })  : _navigationRepository =
+            navigationRepository ?? NavigationRepositoryImpl(),
+        _devocionalRepository =
+            devocionalRepository ?? DevocionalRepositoryImpl(),
+        super(const NavigationInitial()) {
     // Register event handlers
     on<InitializeNavigation>(_onInitializeNavigation);
     on<NavigateToNext>(_onNavigateToNext);
@@ -39,8 +50,8 @@ class DevocionalesNavigationBloc
       totalDevocionales: event.totalDevocionales,
     ));
 
-    // Save the index to SharedPreferences
-    await _saveCurrentIndex(validIndex);
+    // Save the index via repository
+    await _navigationRepository.saveCurrentIndex(validIndex);
   }
 
   /// Navigate to the next devotional
@@ -64,7 +75,7 @@ class DevocionalesNavigationBloc
       totalDevocionales: currentState.totalDevocionales,
     ));
 
-    await _saveCurrentIndex(newIndex);
+    await _navigationRepository.saveCurrentIndex(newIndex);
   }
 
   /// Navigate to the previous devotional
@@ -88,7 +99,7 @@ class DevocionalesNavigationBloc
       totalDevocionales: currentState.totalDevocionales,
     ));
 
-    await _saveCurrentIndex(newIndex);
+    await _navigationRepository.saveCurrentIndex(newIndex);
   }
 
   /// Navigate to a specific index
@@ -113,7 +124,7 @@ class DevocionalesNavigationBloc
       totalDevocionales: currentState.totalDevocionales,
     ));
 
-    await _saveCurrentIndex(validIndex);
+    await _navigationRepository.saveCurrentIndex(validIndex);
   }
 
   /// Navigate to the first unread devotional
@@ -162,7 +173,7 @@ class DevocionalesNavigationBloc
     ));
 
     if (validIndex != currentState.currentIndex) {
-      await _saveCurrentIndex(validIndex);
+      await _navigationRepository.saveCurrentIndex(validIndex);
     }
   }
 
@@ -174,44 +185,15 @@ class DevocionalesNavigationBloc
     return index;
   }
 
-  /// Save the current index to SharedPreferences
-  Future<void> _saveCurrentIndex(int index) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setInt(_lastDevocionalIndexKey, index);
-    } catch (e) {
-      // Fail silently - navigation should continue to work even if persistence fails
-      // Error is not logged to avoid console spam during tests
-      // In production, consider integrating with your analytics/logging service
-    }
-  }
-
-  /// Load the last saved index from SharedPreferences
-  static Future<int> loadSavedIndex() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      return prefs.getInt(_lastDevocionalIndexKey) ?? 0;
-    } catch (e) {
-      return 0; // Default to first devotional
-    }
-  }
-
   /// Helper method to find first unread devotional index
-  /// This is a utility method that can be called from outside the BLoC
-  static int findFirstUnreadDevocionalIndex(
+  /// Delegates to the DevocionalRepository
+  int findFirstUnreadDevocionalIndex(
     List<Devocional> devocionales,
     List<String> readDevocionalIds,
   ) {
-    if (devocionales.isEmpty) return 0;
-
-    // Start from index 0 and find the first unread devotional
-    for (int i = 0; i < devocionales.length; i++) {
-      if (!readDevocionalIds.contains(devocionales[i].id)) {
-        return i;
-      }
-    }
-
-    // If all devotionals are read, start from the beginning
-    return 0;
+    return _devocionalRepository.findFirstUnreadDevocionalIndex(
+      devocionales,
+      readDevocionalIds,
+    );
   }
 }

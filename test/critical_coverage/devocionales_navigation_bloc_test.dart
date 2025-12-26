@@ -6,19 +6,37 @@ import 'package:devocional_nuevo/blocs/devocionales/devocionales_navigation_bloc
 import 'package:devocional_nuevo/blocs/devocionales/devocionales_navigation_event.dart';
 import 'package:devocional_nuevo/blocs/devocionales/devocionales_navigation_state.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
+import 'package:devocional_nuevo/repositories/navigation_repository.dart';
+import 'package:devocional_nuevo/repositories/devocional_repository.dart';
 import 'package:bloc_test/bloc_test.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:mocktail/mocktail.dart';
+
+// Mock classes for testing
+class MockNavigationRepository extends Mock implements NavigationRepository {}
+
+class MockDevocionalRepository extends Mock implements DevocionalRepository {}
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
+  late MockNavigationRepository mockNavigationRepository;
+  late MockDevocionalRepository mockDevocionalRepository;
+
   setUp(() {
-    SharedPreferences.setMockInitialValues({});
+    mockNavigationRepository = MockNavigationRepository();
+    mockDevocionalRepository = MockDevocionalRepository();
+
+    // Default stub for saveCurrentIndex to prevent errors
+    when(() => mockNavigationRepository.saveCurrentIndex(any()))
+        .thenAnswer((_) async => {});
   });
 
   group('DevocionalesNavigationBloc - Initial State', () {
     test('initial state is NavigationInitial', () {
-      final bloc = DevocionalesNavigationBloc();
+      final bloc = DevocionalesNavigationBloc(
+        navigationRepository: mockNavigationRepository,
+        devocionalRepository: mockDevocionalRepository,
+      );
       expect(bloc.state, isA<NavigationInitial>());
       bloc.close();
     });
@@ -27,7 +45,10 @@ void main() {
   group('DevocionalesNavigationBloc - Initialize Navigation', () {
     blocTest<DevocionalesNavigationBloc, DevocionalesNavigationState>(
       'emits NavigationReady when initialized with valid values',
-      build: () => DevocionalesNavigationBloc(),
+      build: () => DevocionalesNavigationBloc(
+        navigationRepository: mockNavigationRepository,
+        devocionalRepository: mockDevocionalRepository,
+      ),
       act: (bloc) => bloc.add(
         const InitializeNavigation(initialIndex: 0, totalDevocionales: 10),
       ),
@@ -38,11 +59,17 @@ void main() {
             .having((s) => s.canNavigateNext, 'canNavigateNext', true)
             .having((s) => s.canNavigatePrevious, 'canNavigatePrevious', false),
       ],
+      verify: (_) {
+        verify(() => mockNavigationRepository.saveCurrentIndex(0)).called(1);
+      },
     );
 
     blocTest<DevocionalesNavigationBloc, DevocionalesNavigationState>(
       'emits NavigationError when initialized with zero devotionals',
-      build: () => DevocionalesNavigationBloc(),
+      build: () => DevocionalesNavigationBloc(
+        navigationRepository: mockNavigationRepository,
+        devocionalRepository: mockDevocionalRepository,
+      ),
       act: (bloc) => bloc.add(
         const InitializeNavigation(initialIndex: 0, totalDevocionales: 0),
       ),
@@ -53,11 +80,17 @@ void main() {
           'No devotionals available',
         ),
       ],
+      verify: (_) {
+        verifyNever(() => mockNavigationRepository.saveCurrentIndex(any()));
+      },
     );
 
     blocTest<DevocionalesNavigationBloc, DevocionalesNavigationState>(
       'clamps initial index to valid range when too high',
-      build: () => DevocionalesNavigationBloc(),
+      build: () => DevocionalesNavigationBloc(
+        navigationRepository: mockNavigationRepository,
+        devocionalRepository: mockDevocionalRepository,
+      ),
       act: (bloc) => bloc.add(
         const InitializeNavigation(initialIndex: 100, totalDevocionales: 10),
       ),
@@ -66,24 +99,37 @@ void main() {
             .having((s) => s.currentIndex, 'currentIndex', 9) // Clamped to last
             .having((s) => s.totalDevocionales, 'totalDevocionales', 10),
       ],
+      verify: (_) {
+        verify(() => mockNavigationRepository.saveCurrentIndex(9)).called(1);
+      },
     );
 
     blocTest<DevocionalesNavigationBloc, DevocionalesNavigationState>(
       'clamps initial index to valid range when negative',
-      build: () => DevocionalesNavigationBloc(),
+      build: () => DevocionalesNavigationBloc(
+        navigationRepository: mockNavigationRepository,
+        devocionalRepository: mockDevocionalRepository,
+      ),
       act: (bloc) => bloc.add(
         const InitializeNavigation(initialIndex: -5, totalDevocionales: 10),
       ),
       expect: () => [
         isA<NavigationReady>()
-            .having((s) => s.currentIndex, 'currentIndex', 0) // Clamped to first
+            .having(
+                (s) => s.currentIndex, 'currentIndex', 0) // Clamped to first
             .having((s) => s.totalDevocionales, 'totalDevocionales', 10),
       ],
+      verify: (_) {
+        verify(() => mockNavigationRepository.saveCurrentIndex(0)).called(1);
+      },
     );
 
     blocTest<DevocionalesNavigationBloc, DevocionalesNavigationState>(
       'initializes at middle index correctly',
-      build: () => DevocionalesNavigationBloc(),
+      build: () => DevocionalesNavigationBloc(
+        navigationRepository: mockNavigationRepository,
+        devocionalRepository: mockDevocionalRepository,
+      ),
       act: (bloc) => bloc.add(
         const InitializeNavigation(initialIndex: 5, totalDevocionales: 10),
       ),
@@ -93,13 +139,19 @@ void main() {
             .having((s) => s.canNavigateNext, 'canNavigateNext', true)
             .having((s) => s.canNavigatePrevious, 'canNavigatePrevious', true),
       ],
+      verify: (_) {
+        verify(() => mockNavigationRepository.saveCurrentIndex(5)).called(1);
+      },
     );
   });
 
   group('DevocionalesNavigationBloc - Navigate Next', () {
     blocTest<DevocionalesNavigationBloc, DevocionalesNavigationState>(
       'navigates to next devotional successfully',
-      build: () => DevocionalesNavigationBloc(),
+      build: () => DevocionalesNavigationBloc(
+        navigationRepository: mockNavigationRepository,
+        devocionalRepository: mockDevocionalRepository,
+      ),
       seed: () => const NavigationReady(
         currentIndex: 5,
         totalDevocionales: 10,
@@ -112,11 +164,17 @@ void main() {
             .having((s) => s.currentIndex, 'currentIndex', 6)
             .having((s) => s.totalDevocionales, 'totalDevocionales', 10),
       ],
+      verify: (_) {
+        verify(() => mockNavigationRepository.saveCurrentIndex(6)).called(1);
+      },
     );
 
     blocTest<DevocionalesNavigationBloc, DevocionalesNavigationState>(
       'does not navigate next when at last devotional',
-      build: () => DevocionalesNavigationBloc(),
+      build: () => DevocionalesNavigationBloc(
+        navigationRepository: mockNavigationRepository,
+        devocionalRepository: mockDevocionalRepository,
+      ),
       seed: () => const NavigationReady(
         currentIndex: 9,
         totalDevocionales: 10,
@@ -125,11 +183,17 @@ void main() {
       ),
       act: (bloc) => bloc.add(const NavigateToNext()),
       expect: () => [], // No state change
+      verify: (_) {
+        verifyNever(() => mockNavigationRepository.saveCurrentIndex(any()));
+      },
     );
 
     blocTest<DevocionalesNavigationBloc, DevocionalesNavigationState>(
       'updates navigation capabilities when moving from first to second',
-      build: () => DevocionalesNavigationBloc(),
+      build: () => DevocionalesNavigationBloc(
+        navigationRepository: mockNavigationRepository,
+        devocionalRepository: mockDevocionalRepository,
+      ),
       seed: () => const NavigationReady(
         currentIndex: 0,
         totalDevocionales: 10,
@@ -143,20 +207,32 @@ void main() {
             .having((s) => s.canNavigateNext, 'canNavigateNext', true)
             .having((s) => s.canNavigatePrevious, 'canNavigatePrevious', true),
       ],
+      verify: (_) {
+        verify(() => mockNavigationRepository.saveCurrentIndex(1)).called(1);
+      },
     );
 
     blocTest<DevocionalesNavigationBloc, DevocionalesNavigationState>(
       'does not emit when not in NavigationReady state',
-      build: () => DevocionalesNavigationBloc(),
+      build: () => DevocionalesNavigationBloc(
+        navigationRepository: mockNavigationRepository,
+        devocionalRepository: mockDevocionalRepository,
+      ),
       act: (bloc) => bloc.add(const NavigateToNext()),
       expect: () => [], // No state change from Initial
+      verify: (_) {
+        verifyNever(() => mockNavigationRepository.saveCurrentIndex(any()));
+      },
     );
   });
 
   group('DevocionalesNavigationBloc - Navigate Previous', () {
     blocTest<DevocionalesNavigationBloc, DevocionalesNavigationState>(
       'navigates to previous devotional successfully',
-      build: () => DevocionalesNavigationBloc(),
+      build: () => DevocionalesNavigationBloc(
+        navigationRepository: mockNavigationRepository,
+        devocionalRepository: mockDevocionalRepository,
+      ),
       seed: () => const NavigationReady(
         currentIndex: 5,
         totalDevocionales: 10,
@@ -169,11 +245,17 @@ void main() {
             .having((s) => s.currentIndex, 'currentIndex', 4)
             .having((s) => s.totalDevocionales, 'totalDevocionales', 10),
       ],
+      verify: (_) {
+        verify(() => mockNavigationRepository.saveCurrentIndex(4)).called(1);
+      },
     );
 
     blocTest<DevocionalesNavigationBloc, DevocionalesNavigationState>(
       'does not navigate previous when at first devotional',
-      build: () => DevocionalesNavigationBloc(),
+      build: () => DevocionalesNavigationBloc(
+        navigationRepository: mockNavigationRepository,
+        devocionalRepository: mockDevocionalRepository,
+      ),
       seed: () => const NavigationReady(
         currentIndex: 0,
         totalDevocionales: 10,
@@ -182,11 +264,17 @@ void main() {
       ),
       act: (bloc) => bloc.add(const NavigateToPrevious()),
       expect: () => [], // No state change
+      verify: (_) {
+        verifyNever(() => mockNavigationRepository.saveCurrentIndex(any()));
+      },
     );
 
     blocTest<DevocionalesNavigationBloc, DevocionalesNavigationState>(
       'updates navigation capabilities when moving from last to second-to-last',
-      build: () => DevocionalesNavigationBloc(),
+      build: () => DevocionalesNavigationBloc(
+        navigationRepository: mockNavigationRepository,
+        devocionalRepository: mockDevocionalRepository,
+      ),
       seed: () => const NavigationReady(
         currentIndex: 9,
         totalDevocionales: 10,
@@ -200,13 +288,19 @@ void main() {
             .having((s) => s.canNavigateNext, 'canNavigateNext', true)
             .having((s) => s.canNavigatePrevious, 'canNavigatePrevious', true),
       ],
+      verify: (_) {
+        verify(() => mockNavigationRepository.saveCurrentIndex(8)).called(1);
+      },
     );
   });
 
   group('DevocionalesNavigationBloc - Navigate to Specific Index', () {
     blocTest<DevocionalesNavigationBloc, DevocionalesNavigationState>(
       'navigates to specific valid index',
-      build: () => DevocionalesNavigationBloc(),
+      build: () => DevocionalesNavigationBloc(
+        navigationRepository: mockNavigationRepository,
+        devocionalRepository: mockDevocionalRepository,
+      ),
       seed: () => const NavigationReady(
         currentIndex: 0,
         totalDevocionales: 10,
@@ -223,7 +317,10 @@ void main() {
 
     blocTest<DevocionalesNavigationBloc, DevocionalesNavigationState>(
       'clamps index when navigating to invalid high index',
-      build: () => DevocionalesNavigationBloc(),
+      build: () => DevocionalesNavigationBloc(
+        navigationRepository: mockNavigationRepository,
+        devocionalRepository: mockDevocionalRepository,
+      ),
       seed: () => const NavigationReady(
         currentIndex: 0,
         totalDevocionales: 10,
@@ -240,7 +337,10 @@ void main() {
 
     blocTest<DevocionalesNavigationBloc, DevocionalesNavigationState>(
       'clamps index when navigating to negative index',
-      build: () => DevocionalesNavigationBloc(),
+      build: () => DevocionalesNavigationBloc(
+        navigationRepository: mockNavigationRepository,
+        devocionalRepository: mockDevocionalRepository,
+      ),
       seed: () => const NavigationReady(
         currentIndex: 5,
         totalDevocionales: 10,
@@ -250,14 +350,18 @@ void main() {
       act: (bloc) => bloc.add(const NavigateToIndex(-1)),
       expect: () => [
         isA<NavigationReady>()
-            .having((s) => s.currentIndex, 'currentIndex', 0) // Clamped to first
+            .having(
+                (s) => s.currentIndex, 'currentIndex', 0) // Clamped to first
             .having((s) => s.totalDevocionales, 'totalDevocionales', 10),
       ],
     );
 
     blocTest<DevocionalesNavigationBloc, DevocionalesNavigationState>(
       'does not emit when navigating to same index',
-      build: () => DevocionalesNavigationBloc(),
+      build: () => DevocionalesNavigationBloc(
+        navigationRepository: mockNavigationRepository,
+        devocionalRepository: mockDevocionalRepository,
+      ),
       seed: () => const NavigationReady(
         currentIndex: 5,
         totalDevocionales: 10,
@@ -272,7 +376,10 @@ void main() {
   group('DevocionalesNavigationBloc - Update Total Devotionals', () {
     blocTest<DevocionalesNavigationBloc, DevocionalesNavigationState>(
       'updates total devotionals successfully when current index is still valid',
-      build: () => DevocionalesNavigationBloc(),
+      build: () => DevocionalesNavigationBloc(
+        navigationRepository: mockNavigationRepository,
+        devocionalRepository: mockDevocionalRepository,
+      ),
       seed: () => const NavigationReady(
         currentIndex: 5,
         totalDevocionales: 10,
@@ -289,7 +396,10 @@ void main() {
 
     blocTest<DevocionalesNavigationBloc, DevocionalesNavigationState>(
       'clamps current index when total devotionals decreases',
-      build: () => DevocionalesNavigationBloc(),
+      build: () => DevocionalesNavigationBloc(
+        navigationRepository: mockNavigationRepository,
+        devocionalRepository: mockDevocionalRepository,
+      ),
       seed: () => const NavigationReady(
         currentIndex: 8,
         totalDevocionales: 10,
@@ -299,14 +409,18 @@ void main() {
       act: (bloc) => bloc.add(const UpdateTotalDevocionales(5)),
       expect: () => [
         isA<NavigationReady>()
-            .having((s) => s.currentIndex, 'currentIndex', 4) // Clamped to new last
+            .having(
+                (s) => s.currentIndex, 'currentIndex', 4) // Clamped to new last
             .having((s) => s.totalDevocionales, 'totalDevocionales', 5),
       ],
     );
 
     blocTest<DevocionalesNavigationBloc, DevocionalesNavigationState>(
       'emits error when total devotionals becomes zero',
-      build: () => DevocionalesNavigationBloc(),
+      build: () => DevocionalesNavigationBloc(
+        navigationRepository: mockNavigationRepository,
+        devocionalRepository: mockDevocionalRepository,
+      ),
       seed: () => const NavigationReady(
         currentIndex: 5,
         totalDevocionales: 10,
@@ -327,9 +441,13 @@ void main() {
   group('DevocionalesNavigationBloc - Full User Flows', () {
     blocTest<DevocionalesNavigationBloc, DevocionalesNavigationState>(
       'complete flow: initialize -> next -> next -> previous',
-      build: () => DevocionalesNavigationBloc(),
+      build: () => DevocionalesNavigationBloc(
+        navigationRepository: mockNavigationRepository,
+        devocionalRepository: mockDevocionalRepository,
+      ),
       act: (bloc) async {
-        bloc.add(const InitializeNavigation(initialIndex: 0, totalDevocionales: 10));
+        bloc.add(
+            const InitializeNavigation(initialIndex: 0, totalDevocionales: 10));
         await Future.delayed(const Duration(milliseconds: 50));
         bloc.add(const NavigateToNext());
         await Future.delayed(const Duration(milliseconds: 50));
@@ -347,9 +465,13 @@ void main() {
 
     blocTest<DevocionalesNavigationBloc, DevocionalesNavigationState>(
       'user quickly navigates to end and back to start',
-      build: () => DevocionalesNavigationBloc(),
+      build: () => DevocionalesNavigationBloc(
+        navigationRepository: mockNavigationRepository,
+        devocionalRepository: mockDevocionalRepository,
+      ),
       act: (bloc) async {
-        bloc.add(const InitializeNavigation(initialIndex: 0, totalDevocionales: 5));
+        bloc.add(
+            const InitializeNavigation(initialIndex: 0, totalDevocionales: 5));
         await Future.delayed(const Duration(milliseconds: 50));
         bloc.add(const NavigateToIndex(4)); // Jump to last
         await Future.delayed(const Duration(milliseconds: 50));
@@ -366,9 +488,13 @@ void main() {
 
     blocTest<DevocionalesNavigationBloc, DevocionalesNavigationState>(
       'navigation boundaries are respected (next at end)',
-      build: () => DevocionalesNavigationBloc(),
+      build: () => DevocionalesNavigationBloc(
+        navigationRepository: mockNavigationRepository,
+        devocionalRepository: mockDevocionalRepository,
+      ),
       act: (bloc) async {
-        bloc.add(const InitializeNavigation(initialIndex: 9, totalDevocionales: 10));
+        bloc.add(
+            const InitializeNavigation(initialIndex: 9, totalDevocionales: 10));
         await Future.delayed(const Duration(milliseconds: 50));
         bloc.add(const NavigateToNext()); // At last, should not emit
         await Future.delayed(const Duration(milliseconds: 50));
@@ -383,9 +509,13 @@ void main() {
 
     blocTest<DevocionalesNavigationBloc, DevocionalesNavigationState>(
       'navigation boundaries are respected (previous at start)',
-      build: () => DevocionalesNavigationBloc(),
+      build: () => DevocionalesNavigationBloc(
+        navigationRepository: mockNavigationRepository,
+        devocionalRepository: mockDevocionalRepository,
+      ),
       act: (bloc) async {
-        bloc.add(const InitializeNavigation(initialIndex: 0, totalDevocionales: 10));
+        bloc.add(
+            const InitializeNavigation(initialIndex: 0, totalDevocionales: 10));
         await Future.delayed(const Duration(milliseconds: 50));
         bloc.add(const NavigateToPrevious()); // At first, should not emit
         await Future.delayed(const Duration(milliseconds: 50));
@@ -402,7 +532,10 @@ void main() {
   group('DevocionalesNavigationBloc - Edge Cases', () {
     blocTest<DevocionalesNavigationBloc, DevocionalesNavigationState>(
       'handles single devotional list correctly',
-      build: () => DevocionalesNavigationBloc(),
+      build: () => DevocionalesNavigationBloc(
+        navigationRepository: mockNavigationRepository,
+        devocionalRepository: mockDevocionalRepository,
+      ),
       act: (bloc) => bloc.add(
         const InitializeNavigation(initialIndex: 0, totalDevocionales: 1),
       ),
@@ -417,7 +550,10 @@ void main() {
 
     blocTest<DevocionalesNavigationBloc, DevocionalesNavigationState>(
       'handles two devotional list correctly at start',
-      build: () => DevocionalesNavigationBloc(),
+      build: () => DevocionalesNavigationBloc(
+        navigationRepository: mockNavigationRepository,
+        devocionalRepository: mockDevocionalRepository,
+      ),
       act: (bloc) => bloc.add(
         const InitializeNavigation(initialIndex: 0, totalDevocionales: 2),
       ),
@@ -431,7 +567,10 @@ void main() {
 
     blocTest<DevocionalesNavigationBloc, DevocionalesNavigationState>(
       'handles two devotional list correctly at end',
-      build: () => DevocionalesNavigationBloc(),
+      build: () => DevocionalesNavigationBloc(
+        navigationRepository: mockNavigationRepository,
+        devocionalRepository: mockDevocionalRepository,
+      ),
       act: (bloc) => bloc.add(
         const InitializeNavigation(initialIndex: 1, totalDevocionales: 2),
       ),
@@ -445,7 +584,8 @@ void main() {
   });
 
   group('DevocionalesNavigationBloc - State Equality and Copyability', () {
-    test('NavigationReady copyWith creates new instance with updated values', () {
+    test('NavigationReady copyWith creates new instance with updated values',
+        () {
       const original = NavigationReady(
         currentIndex: 5,
         totalDevocionales: 10,
@@ -461,7 +601,8 @@ void main() {
       expect(copied.canNavigatePrevious, true);
     });
 
-    test('NavigationReady.calculate sets navigation capabilities correctly', () {
+    test('NavigationReady.calculate sets navigation capabilities correctly',
+        () {
       // At start
       final atStart = NavigationReady.calculate(
         currentIndex: 0,
@@ -513,30 +654,41 @@ void main() {
     });
   });
 
-  group('DevocionalesNavigationBloc - SharedPreferences Persistence', () {
-    test('loadSavedIndex returns 0 when no saved index', () async {
-      SharedPreferences.setMockInitialValues({});
-      final index = await DevocionalesNavigationBloc.loadSavedIndex();
-      expect(index, 0);
-    });
+  group('DevocionalesNavigationBloc - Repository Integration', () {
+    test('saveCurrentIndex is called through repository', () async {
+      when(() => mockNavigationRepository.saveCurrentIndex(any()))
+          .thenAnswer((_) async => {});
 
-    test('loadSavedIndex returns saved index', () async {
-      SharedPreferences.setMockInitialValues({'lastDevocionalIndex': 5});
-      final index = await DevocionalesNavigationBloc.loadSavedIndex();
-      expect(index, 5);
-    });
+      final bloc = DevocionalesNavigationBloc(
+        navigationRepository: mockNavigationRepository,
+        devocionalRepository: mockDevocionalRepository,
+      );
 
-    test('navigation saves index to SharedPreferences', () async {
-      SharedPreferences.setMockInitialValues({});
-      final bloc = DevocionalesNavigationBloc();
-
-      bloc.add(const InitializeNavigation(initialIndex: 3, totalDevocionales: 10));
+      bloc.add(
+          const InitializeNavigation(initialIndex: 3, totalDevocionales: 10));
       await Future.delayed(const Duration(milliseconds: 100));
 
-      final prefs = await SharedPreferences.getInstance();
-      expect(prefs.getInt('lastDevocionalIndex'), 3);
+      verify(() => mockNavigationRepository.saveCurrentIndex(3)).called(1);
 
       bloc.close();
+    });
+
+    test('loadCurrentIndex returns value from repository', () async {
+      when(() => mockNavigationRepository.loadCurrentIndex())
+          .thenAnswer((_) async => 5);
+
+      final index = await mockNavigationRepository.loadCurrentIndex();
+      expect(index, 5);
+      verify(() => mockNavigationRepository.loadCurrentIndex()).called(1);
+    });
+
+    test('loadCurrentIndex returns 0 when no saved index', () async {
+      when(() => mockNavigationRepository.loadCurrentIndex())
+          .thenAnswer((_) async => 0);
+
+      final index = await mockNavigationRepository.loadCurrentIndex();
+      expect(index, 0);
+      verify(() => mockNavigationRepository.loadCurrentIndex()).called(1);
     });
   });
 
@@ -561,11 +713,26 @@ void main() {
         ),
       ];
 
-      final index = DevocionalesNavigationBloc.findFirstUnreadDevocionalIndex(
+      when(() => mockDevocionalRepository.findFirstUnreadDevocionalIndex(
+            devocionales,
+            [],
+          )).thenReturn(0);
+
+      final bloc = DevocionalesNavigationBloc(
+        navigationRepository: mockNavigationRepository,
+        devocionalRepository: mockDevocionalRepository,
+      );
+
+      final index = bloc.findFirstUnreadDevocionalIndex(
         devocionales,
         [],
       );
       expect(index, 0);
+      verify(() => mockDevocionalRepository.findFirstUnreadDevocionalIndex(
+            devocionales,
+            [],
+          )).called(1);
+      bloc.close();
     });
 
     test('returns first unread index when some are read', () {
@@ -596,11 +763,26 @@ void main() {
         ),
       ];
 
-      final index = DevocionalesNavigationBloc.findFirstUnreadDevocionalIndex(
+      when(() => mockDevocionalRepository.findFirstUnreadDevocionalIndex(
+            devocionales,
+            ['1', '2'],
+          )).thenReturn(2);
+
+      final bloc = DevocionalesNavigationBloc(
+        navigationRepository: mockNavigationRepository,
+        devocionalRepository: mockDevocionalRepository,
+      );
+
+      final index = bloc.findFirstUnreadDevocionalIndex(
         devocionales,
         ['1', '2'],
       );
       expect(index, 2);
+      verify(() => mockDevocionalRepository.findFirstUnreadDevocionalIndex(
+            devocionales,
+            ['1', '2'],
+          )).called(1);
+      bloc.close();
     });
 
     test('returns 0 when all devotionals are read', () {
@@ -623,19 +805,49 @@ void main() {
         ),
       ];
 
-      final index = DevocionalesNavigationBloc.findFirstUnreadDevocionalIndex(
+      when(() => mockDevocionalRepository.findFirstUnreadDevocionalIndex(
+            devocionales,
+            ['1', '2'],
+          )).thenReturn(0);
+
+      final bloc = DevocionalesNavigationBloc(
+        navigationRepository: mockNavigationRepository,
+        devocionalRepository: mockDevocionalRepository,
+      );
+
+      final index = bloc.findFirstUnreadDevocionalIndex(
         devocionales,
         ['1', '2'],
       );
       expect(index, 0);
+      verify(() => mockDevocionalRepository.findFirstUnreadDevocionalIndex(
+            devocionales,
+            ['1', '2'],
+          )).called(1);
+      bloc.close();
     });
 
     test('returns 0 when devotionals list is empty', () {
-      final index = DevocionalesNavigationBloc.findFirstUnreadDevocionalIndex(
+      when(() => mockDevocionalRepository.findFirstUnreadDevocionalIndex(
+            [],
+            [],
+          )).thenReturn(0);
+
+      final bloc = DevocionalesNavigationBloc(
+        navigationRepository: mockNavigationRepository,
+        devocionalRepository: mockDevocionalRepository,
+      );
+
+      final index = bloc.findFirstUnreadDevocionalIndex(
         [],
         [],
       );
       expect(index, 0);
+      verify(() => mockDevocionalRepository.findFirstUnreadDevocionalIndex(
+            [],
+            [],
+          )).called(1);
+      bloc.close();
     });
   });
 }
