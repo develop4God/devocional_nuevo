@@ -89,7 +89,6 @@ dev_dependencies:
   path_provider_platform_interface: any
   test: ^1.25.7
 
-
   firebase_analytics_platform_interface: any
 flutter:
   uses-material-design: true
