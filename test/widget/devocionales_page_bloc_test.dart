@@ -10,14 +10,13 @@ import 'package:devocional_nuevo/blocs/devocionales/devocionales_navigation_stat
 import 'package:devocional_nuevo/models/devocional_model.dart';
 
 // Mocks
-class MockDevocionalesNavigationBloc
-    extends Mock implements DevocionalesNavigationBloc {}
+class MockDevocionalesNavigationBloc extends Mock
+    implements DevocionalesNavigationBloc {}
 
 // Fake classes for mocktail
 class FakeNavigationEvent extends Fake implements DevocionalesNavigationEvent {}
 
-class FakeNavigationState extends Fake
-    implements DevocionalesNavigationState {}
+class FakeNavigationState extends Fake implements DevocionalesNavigationState {}
 
 // Helper function to create test devotionals
 List<Devocional> createTestDevocionales(int count) {
