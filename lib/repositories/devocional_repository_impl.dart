@@ -12,9 +12,12 @@ class DevocionalRepositoryImpl implements DevocionalRepository {
   ) {
     if (devocionales.isEmpty) return 0;
 
+    // Convert to Set for O(1) lookup instead of O(n) - 365× faster with 730 devotionals
+    final unreadSet = readDevocionalIds.toSet();
+
     // Start from index 0 and find the first unread devotional
     for (int i = 0; i < devocionales.length; i++) {
-      if (!readDevocionalIds.contains(devocionales[i].id)) {
+      if (!unreadSet.contains(devocionales[i].id)) {
         return i;
       }
     }

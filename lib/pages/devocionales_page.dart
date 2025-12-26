@@ -3,6 +3,8 @@ import 'dart:math';
 
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:bible_reader_core/bible_reader_core.dart';
+import 'package:devocional_nuevo/blocs/devocionales/devocionales_navigation_bloc.dart';
+import 'package:devocional_nuevo/blocs/devocionales/devocionales_navigation_event.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
@@ -13,6 +15,8 @@ import 'package:devocional_nuevo/pages/prayers_page.dart';
 import 'package:devocional_nuevo/pages/progress_page.dart';
 import 'package:devocional_nuevo/pages/settings_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
+import 'package:devocional_nuevo/repositories/navigation_repository_impl.dart';
+import 'package:devocional_nuevo/repositories/devocional_repository_impl.dart';
 import 'package:devocional_nuevo/services/devocionales_tracking.dart';
 import 'package:devocional_nuevo/services/update_service.dart';
 import 'package:devocional_nuevo/utils/bubble_constants.dart';
@@ -55,6 +59,9 @@ class DevocionalesPage extends StatefulWidget {
 
 class _DevocionalesPageState extends State<DevocionalesPage>
     with WidgetsBindingObserver, RouteAware {
+  // Feature flag: Master switch to enable/disable Navigation BLoC
+  static const bool _useNavigationBloc = false;
+
   final ScreenshotController screenshotController = ScreenshotController();
   final ScrollController _scrollController = ScrollController();
   int _currentDevocionalIndex = 0;
@@ -66,6 +73,9 @@ class _DevocionalesPageState extends State<DevocionalesPage>
   bool _routeSubscribed = false;
   int _currentStreak = 0;
   late Future<int> _streakFuture;
+
+  // Navigation BLoC (only used when _useNavigationBloc = true)
+  DevocionalesNavigationBloc? _navigationBloc;
 
   // Font control variables
   bool _showFontControls = false;
@@ -100,7 +110,14 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       _precacheLottieAnimations();
     });
     _loadFontSize();
-    _loadInitialData();
+
+    // Feature flag: Choose between BLoC and legacy navigation
+    if (_useNavigationBloc) {
+      _initializeNavigationBloc();
+    } else {
+      _loadInitialDataLegacy();
+    }
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       UpdateService.checkForUpdate();
     });
@@ -239,6 +256,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     _ttsAudioController.dispose();
     _tracking.dispose();
     _scrollController.dispose();
+    _navigationBloc?.close(); // Clean up BLoC if initialized
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -248,7 +266,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     setState(() {});
   }
 
-  Future<void> _loadInitialData() async {
+  Future<void> _loadInitialDataLegacy() async {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
 
@@ -274,7 +292,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
         if (mounted) {
           setState(() {
             // Find the first unread devotional
-            _currentDevocionalIndex = _findFirstUnreadDevocionalIndex(
+            _currentDevocionalIndex = _findFirstUnreadDevocionalIndexLegacy(
               devocionalProvider.devocionales,
               readDevocionalIds,
             );
@@ -282,7 +300,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
               'Devocional cargado al inicio (primer no leído): $_currentDevocionalIndex',
             );
           });
-          _startTrackingCurrentDevocional();
+          _startTrackingCurrentDevocionalLegacy();
         }
       } else {
         if (mounted) {
@@ -303,15 +321,81 @@ class _DevocionalesPageState extends State<DevocionalesPage>
             setState(() {
               _currentDevocionalIndex = index;
             });
-            _startTrackingCurrentDevocional();
+            _startTrackingCurrentDevocionalLegacy();
           }
         }
       }
     });
   }
 
-  /// Find the first unread devotional index starting from the beginning
-  int _findFirstUnreadDevocionalIndex(
+  /// Initialize Navigation BLoC with devotionals from provider
+  Future<void> _initializeNavigationBloc() async {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+
+      final devocionalProvider = Provider.of<DevocionalProvider>(
+        context,
+        listen: false,
+      );
+
+      // Wait for devotionals to load
+      if (!devocionalProvider.isLoading &&
+          devocionalProvider.devocionales.isEmpty) {
+        await devocionalProvider.initializeData();
+        if (!mounted) return;
+      }
+
+      if (devocionalProvider.devocionales.isEmpty) {
+        developer.log('No devotionals available to initialize Navigation BLoC');
+        return;
+      }
+
+      // Record daily app visit
+      final spiritualStatsService = SpiritualStatsService();
+      await spiritualStatsService.recordDailyAppVisit();
+
+      // Get read devotional IDs for finding first unread
+      final stats = await spiritualStatsService.getStats();
+      final readDevocionalIds = stats.readDevocionalIds;
+
+      // Create BLoC with repositories
+      _navigationBloc = DevocionalesNavigationBloc(
+        navigationRepository: NavigationRepositoryImpl(),
+        devocionalRepository: DevocionalRepositoryImpl(),
+      );
+
+      // Find first unread index or use saved index
+      int initialIndex = 0;
+      if (widget.initialDevocionalId != null) {
+        // Deep link - find index by ID
+        final index = devocionalProvider.devocionales.indexWhere(
+          (d) => d.id == widget.initialDevocionalId,
+        );
+        initialIndex = index != -1 ? index : 0;
+      } else {
+        // Find first unread
+        initialIndex = _navigationBloc!.findFirstUnreadDevocionalIndex(
+          devocionalProvider.devocionales,
+          readDevocionalIds,
+        );
+      }
+
+      // Initialize navigation with full devotionals list
+      _navigationBloc!.add(
+        InitializeNavigation(
+          initialIndex: initialIndex,
+          devocionales: devocionalProvider.devocionales,
+        ),
+      );
+
+      developer.log(
+        'Navigation BLoC initialized at index: $initialIndex',
+      );
+    });
+  }
+
+  /// Find the first unread devotional index starting from the beginning (Legacy)
+  int _findFirstUnreadDevocionalIndexLegacy(
     List<Devocional> devocionales,
     List<String> readDevocionalIds,
   ) {
@@ -334,7 +418,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     return 0;
   }
 
-  void _startTrackingCurrentDevocional() {
+  void _startTrackingCurrentDevocionalLegacy() {
     final devocionalProvider = Provider.of<DevocionalProvider>(
       context,
       listen: false,
@@ -352,6 +436,46 @@ class _DevocionalesPageState extends State<DevocionalesPage>
   }
 
   void _goToNextDevocional() async {
+    if (_useNavigationBloc) {
+      // BLoC mode: Dispatch NavigateToNext event
+      if (_navigationBloc == null) return;
+
+      // Stop audio/TTS before navigation
+      if (_audioController != null && _audioController!.isActive) {
+        debugPrint(
+          'DevocionalesPage: Stopping AudioController before navigation',
+        );
+        await _audioController!.stop();
+        await Future.delayed(const Duration(milliseconds: 100));
+      } else {
+        await _stopSpeaking();
+      }
+
+      // Dispatch navigation event
+      _navigationBloc!.add(const NavigateToNext());
+
+      // Scroll to top
+      _scrollToTop();
+
+      // Trigger haptic feedback
+      HapticFeedback.mediumImpact();
+
+      // Check if we should show invitation dialog
+      final devocionalProvider = Provider.of<DevocionalProvider>(
+        context,
+        listen: false,
+      );
+      if (devocionalProvider.showInvitationDialog) {
+        if (mounted) {
+          _showInvitation(context);
+        }
+      }
+    } else {
+      _goToNextDevocionalLegacy();
+    }
+  }
+
+  void _goToNextDevocionalLegacy() async {
     if (!mounted) return;
 
     final devocionalProvider = Provider.of<DevocionalProvider>(
@@ -379,7 +503,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       _scrollToTop();
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        _startTrackingCurrentDevocional();
+        _startTrackingCurrentDevocionalLegacy();
       });
 
       HapticFeedback.mediumImpact(); // Changed from lightImpact
@@ -390,11 +514,40 @@ class _DevocionalesPageState extends State<DevocionalesPage>
         }
       }
 
-      _saveCurrentDevocionalIndex();
+      _saveCurrentDevocionalIndexLegacy();
     }
   }
 
   void _goToPreviousDevocional() async {
+    if (_useNavigationBloc) {
+      // BLoC mode: Dispatch NavigateToPrevious event
+      if (_navigationBloc == null) return;
+
+      // Stop audio/TTS before navigation
+      if (_audioController != null && _audioController!.isActive) {
+        debugPrint(
+          'DevocionalesPage: Stopping AudioController before navigation',
+        );
+        await _audioController!.stop();
+        await Future.delayed(const Duration(milliseconds: 100));
+      } else {
+        await _stopSpeaking();
+      }
+
+      // Dispatch navigation event
+      _navigationBloc!.add(const NavigateToPrevious());
+
+      // Scroll to top
+      _scrollToTop();
+
+      // Trigger haptic feedback
+      HapticFeedback.mediumImpact();
+    } else {
+      _goToPreviousDevocionalLegacy();
+    }
+  }
+
+  void _goToPreviousDevocionalLegacy() async {
     if (_currentDevocionalIndex > 0) {
       if (_audioController != null && _audioController!.isActive) {
         debugPrint(
@@ -413,7 +566,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       _scrollToTop();
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        _startTrackingCurrentDevocional();
+        _startTrackingCurrentDevocionalLegacy();
       });
 
       HapticFeedback.mediumImpact(); // Changed from lightImpact
@@ -432,7 +585,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     });
   }
 
-  Future<void> _saveCurrentDevocionalIndex() async {
+  Future<void> _saveCurrentDevocionalIndexLegacy() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt(_lastDevocionalIndexKey, _currentDevocionalIndex);
     developer.log('Índice de devocional guardado: $_currentDevocionalIndex');
