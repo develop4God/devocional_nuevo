@@ -115,6 +115,12 @@ class _DevocionalesPageState extends State<DevocionalesPage>
 
     // Feature flag: Choose between BLoC and legacy navigation
     if (_useNavigationBloc) {
+      // Create BLoC immediately to avoid spinner on app start
+      _navigationBloc = DevocionalesNavigationBloc(
+        navigationRepository: NavigationRepositoryImpl(),
+        devocionalRepository: DevocionalRepositoryImpl(),
+      );
+      // Initialize asynchronously in background
       _initializeNavigationBloc();
     } else {
       _loadInitialDataLegacy();
@@ -359,12 +365,6 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       // Get read devotional IDs for finding first unread
       final stats = await spiritualStatsService.getStats();
       final readDevocionalIds = stats.readDevocionalIds;
-
-      // Create BLoC with repositories
-      _navigationBloc = DevocionalesNavigationBloc(
-        navigationRepository: NavigationRepositoryImpl(),
-        devocionalRepository: DevocionalRepositoryImpl(),
-      );
 
       // Find first unread index or use saved index
       int initialIndex = 0;
@@ -966,15 +966,6 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     final TextTheme textTheme = Theme.of(context).textTheme;
     final themeState = context.watch<ThemeBloc>().state as ThemeLoaded;
 
-    // Show loading spinner if BLoC not initialized yet
-    if (_navigationBloc == null) {
-      return Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(color: colorScheme.primary),
-        ),
-      );
-    }
-
     // Listen to DevocionalProvider changes to update BLoC when bible version or language changes
     return Consumer<DevocionalProvider>(
       builder: (context, devocionalProvider, child) {
@@ -1030,7 +1021,23 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                 );
               }
 
-              if (state is! NavigationReady) {
+              // While BLoC is initializing, use provider data if available
+              // This prevents spinner on app start - shows first devotional immediately
+              Devocional currentDevocional;
+              bool canNavigateNext;
+              bool canNavigatePrevious;
+
+              if (state is NavigationReady) {
+                currentDevocional = state.currentDevocional;
+                canNavigateNext = state.canNavigateNext;
+                canNavigatePrevious = state.canNavigatePrevious;
+              } else if (devocionalProvider.devocionales.isNotEmpty) {
+                // Use provider data temporarily while BLoC initializes
+                currentDevocional = devocionalProvider.devocionales[0];
+                canNavigateNext = devocionalProvider.devocionales.length > 1;
+                canNavigatePrevious = false;
+              } else {
+                // Only show spinner if provider is also loading
                 return Scaffold(
                   body: Center(
                     child:
@@ -1038,10 +1045,6 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                   ),
                 );
               }
-
-              final currentDevocional = state.currentDevocional;
-              final canNavigateNext = state.canNavigateNext;
-              final canNavigatePrevious = state.canNavigatePrevious;
 
               // Listen to provider for isFavorite to rebuild when favorites change
               final bool isFavorite =
