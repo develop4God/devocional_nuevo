@@ -970,7 +970,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       return Scaffold(
         body: Center(
           child: Text(
-            'Initializing...',
+            'devotionals.initializing'.tr(),
             style: textTheme.bodyMedium,
           ),
         ),
@@ -996,7 +996,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
         builder: (context, state) {
           if (state is NavigationError) {
             return Scaffold(
-              appBar: AppBar(title: const Text('Error')),
+              appBar: AppBar(title: Text('devotionals.error'.tr())),
               body: Center(
                 child: Text(
                   state.message,
@@ -1318,14 +1318,139 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     Color? appBarBackgroundColor,
     ColorScheme colorScheme,
   ) {
-    // This is a placeholder - you'll need to add the action buttons code
-    // from the original bottomNavigationBar
-    return Container(
-      color: appBarBackgroundColor,
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [],
+    final devocionalProvider = Provider.of<DevocionalProvider>(
+      context,
+      listen: false,
+    );
+
+    return SafeArea(
+      top: false,
+      child: BottomAppBar(
+        height: 60,
+        color: appBarBackgroundColor,
+        padding: EdgeInsets.zero,
+        child: Center(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              IconButton(
+                key: const Key('bottom_appbar_favorite_icon'),
+                tooltip: isFavorite
+                    ? 'devotionals.remove_from_favorites_short'.tr()
+                    : 'devotionals.save_as_favorite'.tr(),
+                onPressed: () => devocionalProvider.toggleFavorite(
+                  currentDevocional,
+                  context,
+                ),
+                icon: Icon(
+                  isFavorite ? Icons.star : Icons.favorite_border,
+                  color: isFavorite ? Colors.amber : Colors.white,
+                  size: 32,
+                ),
+              ),
+              IconButton(
+                key: const Key('bottom_appbar_prayers_icon'),
+                tooltip: 'tooltips.my_prayers'.tr(),
+                onPressed: () async {
+                  HapticFeedback.mediumImpact();
+                  await BubbleUtils.markAsShown(
+                    BubbleUtils.getIconBubbleId(
+                      Icons.local_fire_department_outlined,
+                      'new',
+                    ),
+                  );
+                  _goToPrayers();
+                },
+                icon: const Icon(
+                  Icons.local_fire_department_outlined,
+                  color: Colors.white,
+                  size: 35,
+                ),
+              ),
+              IconButton(
+                key: const Key('bottom_appbar_bible_icon'),
+                tooltip: 'tooltips.bible'.tr(),
+                onPressed: () async {
+                  await BubbleUtils.markAsShown(
+                    BubbleUtils.getIconBubbleId(
+                      Icons.auto_stories_outlined,
+                      'new',
+                    ),
+                  );
+                  _goToBible();
+                },
+                icon: const Icon(
+                  Icons.auto_stories_outlined,
+                  color: Colors.white,
+                  size: 32,
+                ),
+              ),
+              IconButton(
+                key: const Key('bottom_appbar_share_icon'),
+                tooltip: 'devotionals.share_devotional'.tr(),
+                onPressed: () => _shareAsText(currentDevocional),
+                icon: Icon(
+                  Icons.share_outlined,
+                  color: colorScheme.onPrimary,
+                  size: 30,
+                ),
+              ),
+              IconButton(
+                key: const Key('bottom_appbar_progress_icon'),
+                tooltip: 'tooltips.progress'.tr(),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    PageRouteBuilder(
+                      pageBuilder: (context, animation, secondaryAnimation) =>
+                          const ProgressPage(),
+                      transitionsBuilder:
+                          (context, animation, secondaryAnimation, child) {
+                        return FadeTransition(opacity: animation, child: child);
+                      },
+                      transitionDuration: const Duration(milliseconds: 250),
+                    ),
+                  );
+                },
+                icon: Icon(
+                  Icons.emoji_events_outlined,
+                  color: colorScheme.onPrimary,
+                  size: 30,
+                ),
+              ),
+              IconButton(
+                key: const Key('bottom_appbar_settings_icon'),
+                tooltip: 'tooltips.settings'.tr(),
+                onPressed: () async {
+                  await BubbleUtils.markAsShown(
+                    BubbleUtils.getIconBubbleId(
+                      Icons.app_settings_alt_outlined,
+                      'new',
+                    ),
+                  );
+                  if (!context.mounted) return;
+                  Navigator.push(
+                    context,
+                    PageRouteBuilder(
+                      pageBuilder: (context, animation, secondaryAnimation) =>
+                          const SettingsPage(),
+                      transitionsBuilder:
+                          (context, animation, secondaryAnimation, child) {
+                        return FadeTransition(opacity: animation, child: child);
+                      },
+                      transitionDuration: const Duration(milliseconds: 250),
+                    ),
+                  );
+                },
+                icon: Icon(
+                  Icons.app_settings_alt_outlined,
+                  color: colorScheme.onPrimary,
+                  size: 30,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
