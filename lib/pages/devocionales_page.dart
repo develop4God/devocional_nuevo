@@ -132,7 +132,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
 
       // Log analytics event for app initialization with BLoC
       _logAnalyticsEvent('app_init', parameters: {
-        'use_navigation_bloc': true,
+        'use_navigation_bloc': 'true',
       });
     } else {
       _loadInitialDataLegacy();
@@ -635,7 +635,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
         // Log analytics event (fallback path)
         await _logAnalyticsEvent('navigation_previous', parameters: {
           'current_index': _currentDevocionalIndex,
-          'via_bloc': false,
+          'via_bloc': 'false',
           'fallback_reason': 'bloc_error',
         });
       }
