@@ -62,7 +62,7 @@ class DevocionalesPage extends StatefulWidget {
 class _DevocionalesPageState extends State<DevocionalesPage>
     with WidgetsBindingObserver, RouteAware {
   // Feature flag: Master switch to enable/disable Navigation BLoC
-  static const bool _useNavigationBloc = false;
+  static const bool _useNavigationBloc = true;
 
   final ScreenshotController screenshotController = ScreenshotController();
   final ScrollController _scrollController = ScrollController();
