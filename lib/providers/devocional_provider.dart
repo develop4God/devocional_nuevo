@@ -275,8 +275,9 @@ class DevocionalProvider with ChangeNotifier {
       // Usar el tracking unificado para registrar y verificar milestone
       await DevocionalesTracking()
           .recordDevocionalHeard(devocionalId, listenedPercentage);
-      // Validar si ya fue registrado
+      // Obtener stats actualizados tras registrar 'heard'
       final stats = await _statsService.getStats();
+      notifyListeners(); // Notificar a la UI de cualquier cambio
       if (stats.readDevocionalIds.contains(devocionalId)) {
         // Si ya está en la lista de leídos/escuchados => ya fue registrado
         return 'ya_registrado';
