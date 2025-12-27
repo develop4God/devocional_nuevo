@@ -183,4 +183,21 @@ class AnalyticsService {
       // Fail silently
     }
   }
+
+  /// Log bottom bar action event
+  ///
+  /// Event name: `bottom_bar_action`
+  /// Parameter: `action` (e.g., 'favorite', 'prayers', 'bible', 'share', 'progress', 'settings')
+  Future<void> logBottomBarAction({required String action}) async {
+    try {
+      await _analytics.logEvent(
+        name: 'bottom_bar_action',
+        parameters: {'action': action},
+      );
+      debugPrint(
+          '📊 Analytics: bottom_bar_action event logged ([1m$action[0m)');
+    } catch (e) {
+      _logAnalyticsError('bottom_bar_action', e);
+    }
+  }
 }

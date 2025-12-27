@@ -366,7 +366,8 @@ class _MyAppState extends State<MyApp> {
             routes: {
               '/settings': (context) => const SettingsPage(),
               '/devocionales': (context) => const DevocionalesPage(),
-              if (kDebugMode || _developerMode) '/debug': (context) => const DebugPage(),
+              if (kDebugMode || _developerMode)
+                '/debug': (context) => const DebugPage(),
             },
           ),
         );

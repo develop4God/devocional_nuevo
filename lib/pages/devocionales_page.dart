@@ -1480,10 +1480,15 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                 tooltip: isFavorite
                     ? 'devotionals.remove_from_favorites_short'.tr()
                     : 'devotionals.save_as_favorite'.tr(),
-                onPressed: () => devocionalProvider.toggleFavorite(
-                  currentDevocional,
-                  context,
-                ),
+                onPressed: () {
+                  debugPrint('🔥 [BottomBar] Tap: favorite');
+                  getService<AnalyticsService>()
+                      .logBottomBarAction(action: 'favorite');
+                  devocionalProvider.toggleFavorite(
+                    currentDevocional,
+                    context,
+                  );
+                },
                 icon: Icon(
                   isFavorite ? Icons.star : Icons.favorite_border,
                   color: isFavorite ? Colors.amber : Colors.white,
@@ -1494,6 +1499,9 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                 key: const Key('bottom_appbar_prayers_icon'),
                 tooltip: 'tooltips.my_prayers'.tr(),
                 onPressed: () async {
+                  debugPrint('🔥 [BottomBar] Tap: prayers');
+                  getService<AnalyticsService>()
+                      .logBottomBarAction(action: 'prayers');
                   HapticFeedback.mediumImpact();
                   await BubbleUtils.markAsShown(
                     BubbleUtils.getIconBubbleId(
@@ -1513,6 +1521,9 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                 key: const Key('bottom_appbar_bible_icon'),
                 tooltip: 'tooltips.bible'.tr(),
                 onPressed: () async {
+                  debugPrint('🔥 [BottomBar] Tap: bible');
+                  getService<AnalyticsService>()
+                      .logBottomBarAction(action: 'bible');
                   await BubbleUtils.markAsShown(
                     BubbleUtils.getIconBubbleId(
                       Icons.auto_stories_outlined,
@@ -1530,7 +1541,12 @@ class _DevocionalesPageState extends State<DevocionalesPage>
               IconButton(
                 key: const Key('bottom_appbar_share_icon'),
                 tooltip: 'devotionals.share_devotional'.tr(),
-                onPressed: () => _shareAsText(currentDevocional),
+                onPressed: () {
+                  debugPrint('🔥 [BottomBar] Tap: share');
+                  getService<AnalyticsService>()
+                      .logBottomBarAction(action: 'share');
+                  _shareAsText(currentDevocional);
+                },
                 icon: Icon(
                   Icons.share_outlined,
                   color: colorScheme.onPrimary,
@@ -1541,12 +1557,16 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                 key: const Key('bottom_appbar_progress_icon'),
                 tooltip: 'tooltips.progress'.tr(),
                 onPressed: () {
+                  debugPrint('🔥 [BottomBar] Tap: progress');
+                  getService<AnalyticsService>()
+                      .logBottomBarAction(action: 'progress');
                   Navigator.push(
                     context,
                     PageRouteBuilder(
                       pageBuilder: (context, animation, secondaryAnimation) =>
                           const ProgressPage(),
-                      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                      transitionsBuilder:
+                          (context, animation, secondaryAnimation, child) {
                         return FadeTransition(opacity: animation, child: child);
                       },
                       transitionDuration: const Duration(milliseconds: 250),
@@ -1563,6 +1583,9 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                 key: const Key('bottom_appbar_settings_icon'),
                 tooltip: 'tooltips.settings'.tr(),
                 onPressed: () async {
+                  debugPrint('🔥 [BottomBar] Tap: settings');
+                  getService<AnalyticsService>()
+                      .logBottomBarAction(action: 'settings');
                   await BubbleUtils.markAsShown(
                     BubbleUtils.getIconBubbleId(
                       Icons.app_settings_alt_outlined,
@@ -1918,12 +1941,15 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                             tooltip: isFavorite
                                 ? 'devotionals.remove_from_favorites_short'.tr()
                                 : 'devotionals.save_as_favorite'.tr(),
-                            onPressed: currentDevocional != null
-                                ? () => devocionalProvider.toggleFavorite(
-                                      currentDevocional,
-                                      context,
-                                    )
-                                : null,
+                            onPressed: () {
+                              debugPrint('🔥 [BottomBar] Tap: favorite');
+                              getService<AnalyticsService>()
+                                  .logBottomBarAction(action: 'favorite');
+                              devocionalProvider.toggleFavorite(
+                                currentDevocional!,
+                                context,
+                              );
+                            },
                             icon: Icon(
                               isFavorite ? Icons.star : Icons.favorite_border,
                               color: isFavorite ? Colors.amber : Colors.white,
@@ -1934,8 +1960,10 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                             key: const Key('bottom_appbar_prayers_icon'),
                             tooltip: 'tooltips.my_prayers'.tr(),
                             onPressed: () async {
-                              HapticFeedback
-                                  .mediumImpact(); // Added haptic feedback
+                              debugPrint('🔥 [BottomBar] Tap: prayers');
+                              getService<AnalyticsService>()
+                                  .logBottomBarAction(action: 'prayers');
+                              HapticFeedback.mediumImpact();
                               await BubbleUtils.markAsShown(
                                 BubbleUtils.getIconBubbleId(
                                   Icons.local_fire_department_outlined,
@@ -1954,6 +1982,9 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                             key: const Key('bottom_appbar_bible_icon'),
                             tooltip: 'tooltips.bible'.tr(),
                             onPressed: () async {
+                              debugPrint('🔥 [BottomBar] Tap: bible');
+                              getService<AnalyticsService>()
+                                  .logBottomBarAction(action: 'bible');
                               await BubbleUtils.markAsShown(
                                 BubbleUtils.getIconBubbleId(
                                   Icons.auto_stories_outlined,
@@ -1962,7 +1993,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                               );
                               _goToBible();
                             },
-                            icon: Icon(
+                            icon: const Icon(
                               Icons.auto_stories_outlined,
                               color: Colors.white,
                               size: 32,
@@ -1971,9 +2002,12 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                           IconButton(
                             key: const Key('bottom_appbar_share_icon'),
                             tooltip: 'devotionals.share_devotional'.tr(),
-                            onPressed: currentDevocional != null
-                                ? () => _shareAsText(currentDevocional)
-                                : null,
+                            onPressed: () {
+                              debugPrint('🔥 [BottomBar] Tap: share');
+                              getService<AnalyticsService>()
+                                  .logBottomBarAction(action: 'share');
+                              _shareAsText(currentDevocional!);
+                            },
                             icon: Icon(
                               Icons.share_outlined,
                               color: colorScheme.onPrimary,
@@ -1984,6 +2018,9 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                             key: const Key('bottom_appbar_progress_icon'),
                             tooltip: 'tooltips.progress'.tr(),
                             onPressed: () {
+                              debugPrint('🔥 [BottomBar] Tap: progress');
+                              getService<AnalyticsService>()
+                                  .logBottomBarAction(action: 'progress');
                               Navigator.push(
                                 context,
                                 PageRouteBuilder(
@@ -2010,6 +2047,9 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                             key: const Key('bottom_appbar_settings_icon'),
                             tooltip: 'tooltips.settings'.tr(),
                             onPressed: () async {
+                              debugPrint('🔥 [BottomBar] Tap: settings');
+                              getService<AnalyticsService>()
+                                  .logBottomBarAction(action: 'settings');
                               await BubbleUtils.markAsShown(
                                 BubbleUtils.getIconBubbleId(
                                   Icons.app_settings_alt_outlined,

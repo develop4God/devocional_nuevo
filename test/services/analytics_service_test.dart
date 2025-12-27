@@ -435,5 +435,38 @@ void main() {
         )).called(1);
       });
     });
+
+    group('logBottomBarAction', () {
+      test('should log bottom_bar_action event with action parameter',
+          () async {
+        // Arrange
+        const action = 'favorite';
+        when(mockAnalytics.logEvent(
+          name: 'bottom_bar_action',
+          parameters: {'action': action},
+        )).thenAnswer((_) async => {});
+
+        // Act
+        await analyticsService.logBottomBarAction(action: action);
+
+        // Assert
+        verify(mockAnalytics.logEvent(
+          name: 'bottom_bar_action',
+          parameters: {'action': action},
+        )).called(1);
+      });
+
+      test('should not throw on analytics error', () async {
+        // Arrange
+        const action = 'settings';
+        when(mockAnalytics.logEvent(
+          name: 'bottom_bar_action',
+          parameters: {'action': action},
+        )).thenThrow(Exception('Analytics error'));
+
+        // Act & Assert - should not throw
+        await analyticsService.logBottomBarAction(action: action);
+      });
+    });
   });
 }
