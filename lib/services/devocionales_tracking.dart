@@ -136,7 +136,7 @@ class DevocionalesTracking {
     debugPrint(
         'Reading time: ${readingTime}s, Scroll: ${(scrollPercentage * 100).toStringAsFixed(1)}%');
 
-    final meetsCriteria = readingTime >= 30 && scrollPercentage >= 0.5;
+    final meetsCriteria = readingTime >= 40 && scrollPercentage >= 0.6;
     debugPrint('Meets criteria: $meetsCriteria');
     developer.log(
         '[TRACKING] Intento de lectura: ${currentDevocional.id}, tiempo: ${readingTime}s, scroll: ${(scrollPercentage * 100).toStringAsFixed(1)}%',
