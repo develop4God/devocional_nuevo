@@ -468,5 +468,203 @@ void main() {
         await analyticsService.logBottomBarAction(action: action);
       });
     });
+
+    group('logAppInit', () {
+      test('should log app_init event with parameters', () async {
+        // Arrange
+        final parameters = {'use_navigation_bloc': 'true'};
+        when(mockAnalytics.logEvent(
+          name: 'app_init',
+          parameters: parameters,
+        )).thenAnswer((_) async => {});
+
+        // Act
+        await analyticsService.logAppInit(parameters: parameters);
+
+        // Assert
+        verify(mockAnalytics.logEvent(
+          name: 'app_init',
+          parameters: parameters,
+        )).called(1);
+      });
+
+      test('should log app_init event without parameters', () async {
+        // Arrange
+        when(mockAnalytics.logEvent(
+          name: 'app_init',
+          parameters: null,
+        )).thenAnswer((_) async => {});
+
+        // Act
+        await analyticsService.logAppInit();
+
+        // Assert
+        verify(mockAnalytics.logEvent(
+          name: 'app_init',
+          parameters: null,
+        )).called(1);
+      });
+
+      test('should not throw on analytics error', () async {
+        // Arrange
+        when(mockAnalytics.logEvent(
+          name: 'app_init',
+          parameters: anyNamed('parameters'),
+        )).thenThrow(Exception('Analytics error'));
+
+        // Act & Assert - should not throw
+        await analyticsService.logAppInit();
+      });
+    });
+
+    group('logNavigationNext', () {
+      test('should log navigation_next event with all parameters', () async {
+        // Arrange
+        when(mockAnalytics.logEvent(
+          name: 'navigation_next',
+          parameters: anyNamed('parameters'),
+        )).thenAnswer((_) async => {});
+
+        // Act
+        await analyticsService.logNavigationNext(
+          currentIndex: 5,
+          totalDevocionales: 365,
+          viaBloc: 'true',
+        );
+
+        // Assert
+        final captured = verify(mockAnalytics.logEvent(
+          name: 'navigation_next',
+          parameters: captureAnyNamed('parameters'),
+        )).captured;
+
+        expect(captured.length, 1);
+        final params = captured[0] as Map<String, Object>;
+        expect(params['current_index'], 5);
+        expect(params['total_devocionales'], 365);
+        expect(params['via_bloc'], 'true');
+        expect(params.containsKey('fallback_reason'), false);
+      });
+
+      test('should log navigation_next event with fallback reason', () async {
+        // Arrange
+        when(mockAnalytics.logEvent(
+          name: 'navigation_next',
+          parameters: anyNamed('parameters'),
+        )).thenAnswer((_) async => {});
+
+        // Act
+        await analyticsService.logNavigationNext(
+          currentIndex: 10,
+          totalDevocionales: 365,
+          viaBloc: 'false',
+          fallbackReason: 'bloc_error',
+        );
+
+        // Assert
+        final captured = verify(mockAnalytics.logEvent(
+          name: 'navigation_next',
+          parameters: captureAnyNamed('parameters'),
+        )).captured;
+
+        expect(captured.length, 1);
+        final params = captured[0] as Map<String, Object>;
+        expect(params['current_index'], 10);
+        expect(params['total_devocionales'], 365);
+        expect(params['via_bloc'], 'false');
+        expect(params['fallback_reason'], 'bloc_error');
+      });
+
+      test('should not throw on analytics error', () async {
+        // Arrange
+        when(mockAnalytics.logEvent(
+          name: 'navigation_next',
+          parameters: anyNamed('parameters'),
+        )).thenThrow(Exception('Analytics error'));
+
+        // Act & Assert - should not throw
+        await analyticsService.logNavigationNext(
+          currentIndex: 0,
+          totalDevocionales: 365,
+          viaBloc: 'true',
+        );
+      });
+    });
+
+    group('logNavigationPrevious', () {
+      test('should log navigation_previous event with all parameters',
+          () async {
+        // Arrange
+        when(mockAnalytics.logEvent(
+          name: 'navigation_previous',
+          parameters: anyNamed('parameters'),
+        )).thenAnswer((_) async => {});
+
+        // Act
+        await analyticsService.logNavigationPrevious(
+          currentIndex: 3,
+          totalDevocionales: 365,
+          viaBloc: 'true',
+        );
+
+        // Assert
+        final captured = verify(mockAnalytics.logEvent(
+          name: 'navigation_previous',
+          parameters: captureAnyNamed('parameters'),
+        )).captured;
+
+        expect(captured.length, 1);
+        final params = captured[0] as Map<String, Object>;
+        expect(params['current_index'], 3);
+        expect(params['total_devocionales'], 365);
+        expect(params['via_bloc'], 'true');
+        expect(params.containsKey('fallback_reason'), false);
+      });
+
+      test('should log navigation_previous event with fallback reason',
+          () async {
+        // Arrange
+        when(mockAnalytics.logEvent(
+          name: 'navigation_previous',
+          parameters: anyNamed('parameters'),
+        )).thenAnswer((_) async => {});
+
+        // Act
+        await analyticsService.logNavigationPrevious(
+          currentIndex: 8,
+          totalDevocionales: 365,
+          viaBloc: 'false',
+          fallbackReason: 'bloc_error',
+        );
+
+        // Assert
+        final captured = verify(mockAnalytics.logEvent(
+          name: 'navigation_previous',
+          parameters: captureAnyNamed('parameters'),
+        )).captured;
+
+        expect(captured.length, 1);
+        final params = captured[0] as Map<String, Object>;
+        expect(params['current_index'], 8);
+        expect(params['total_devocionales'], 365);
+        expect(params['via_bloc'], 'false');
+        expect(params['fallback_reason'], 'bloc_error');
+      });
+
+      test('should not throw on analytics error', () async {
+        // Arrange
+        when(mockAnalytics.logEvent(
+          name: 'navigation_previous',
+          parameters: anyNamed('parameters'),
+        )).thenThrow(Exception('Analytics error'));
+
+        // Act & Assert - should not throw
+        await analyticsService.logNavigationPrevious(
+          currentIndex: 0,
+          totalDevocionales: 365,
+          viaBloc: 'true',
+        );
+      });
+    });
   });
 }

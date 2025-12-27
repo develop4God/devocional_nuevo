@@ -131,7 +131,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       _initializeNavigationBloc();
 
       // Log analytics event for app initialization with BLoC
-      _logAnalyticsEvent('app_init', parameters: {
+      getService<AnalyticsService>().logAppInit(parameters: {
         'use_navigation_bloc': 'true',
       });
     } else {
@@ -486,11 +486,11 @@ class _DevocionalesPageState extends State<DevocionalesPage>
         HapticFeedback.mediumImpact();
 
         // Log analytics event (BLoC path)
-        await _logAnalyticsEvent('navigation_next', parameters: {
-          'current_index': currentIndex,
-          'total_devocionales': totalDevocionales,
-          'via_bloc': 'true',
-        });
+        await getService<AnalyticsService>().logNavigationNext(
+          currentIndex: currentIndex,
+          totalDevocionales: totalDevocionales,
+          viaBloc: 'true',
+        );
 
         // Check if we should show invitation dialog
         if (!mounted) return;
@@ -520,11 +520,12 @@ class _DevocionalesPageState extends State<DevocionalesPage>
         _goToNextDevocionalLegacy();
 
         // Log analytics event (fallback path)
-        await _logAnalyticsEvent('navigation_next', parameters: {
-          'current_index': _currentDevocionalIndex,
-          'via_bloc': 'false',
-          'fallback_reason': 'bloc_error',
-        });
+        await getService<AnalyticsService>().logNavigationNext(
+          currentIndex: _currentDevocionalIndex,
+          totalDevocionales: 0,
+          viaBloc: 'false',
+          fallbackReason: 'bloc_error',
+        );
       }
     } else {
       _goToNextDevocionalLegacy();
@@ -609,11 +610,11 @@ class _DevocionalesPageState extends State<DevocionalesPage>
         HapticFeedback.mediumImpact();
 
         // Log analytics event (BLoC path)
-        await _logAnalyticsEvent('navigation_previous', parameters: {
-          'current_index': currentIndex,
-          'total_devocionales': totalDevocionales,
-          'via_bloc': 'true',
-        });
+        await getService<AnalyticsService>().logNavigationPrevious(
+          currentIndex: currentIndex,
+          totalDevocionales: totalDevocionales,
+          viaBloc: 'true',
+        );
       } catch (e, stackTrace) {
         // Log error to Crashlytics
         debugPrint('❌ BLoC navigation error, falling back to legacy: $e');
@@ -633,11 +634,12 @@ class _DevocionalesPageState extends State<DevocionalesPage>
         _goToPreviousDevocionalLegacy();
 
         // Log analytics event (fallback path)
-        await _logAnalyticsEvent('navigation_previous', parameters: {
-          'current_index': _currentDevocionalIndex,
-          'via_bloc': 'false',
-          'fallback_reason': 'bloc_error',
-        });
+        await getService<AnalyticsService>().logNavigationPrevious(
+          currentIndex: _currentDevocionalIndex,
+          totalDevocionales: 0,
+          viaBloc: 'false',
+          fallbackReason: 'bloc_error',
+        );
       }
     } else {
       _goToPreviousDevocionalLegacy();
@@ -667,24 +669,6 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       });
 
       HapticFeedback.mediumImpact(); // Changed from lightImpact
-    }
-  }
-
-  /// Helper method to log analytics events safely
-  /// Falls back silently if analytics service is not available
-  Future<void> _logAnalyticsEvent(
-    String eventName, {
-    Map<String, Object>? parameters,
-  }) async {
-    try {
-      final analytics = getService<AnalyticsService>();
-      await analytics.logCustomEvent(
-        eventName: eventName,
-        parameters: parameters,
-      );
-    } catch (e) {
-      // Fail silently - analytics errors should not affect app functionality
-      debugPrint('⚠️ Analytics error in $eventName: $e');
     }
   }
 
@@ -1481,7 +1465,6 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                     ? 'devotionals.remove_from_favorites_short'.tr()
                     : 'devotionals.save_as_favorite'.tr(),
                 onPressed: () {
-                  debugPrint('🔥 [BottomBar] Tap: favorite');
                   getService<AnalyticsService>()
                       .logBottomBarAction(action: 'favorite');
                   devocionalProvider.toggleFavorite(
@@ -1499,7 +1482,6 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                 key: const Key('bottom_appbar_prayers_icon'),
                 tooltip: 'tooltips.my_prayers'.tr(),
                 onPressed: () async {
-                  debugPrint('🔥 [BottomBar] Tap: prayers');
                   getService<AnalyticsService>()
                       .logBottomBarAction(action: 'prayers');
                   HapticFeedback.mediumImpact();
@@ -1521,7 +1503,6 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                 key: const Key('bottom_appbar_bible_icon'),
                 tooltip: 'tooltips.bible'.tr(),
                 onPressed: () async {
-                  debugPrint('🔥 [BottomBar] Tap: bible');
                   getService<AnalyticsService>()
                       .logBottomBarAction(action: 'bible');
                   await BubbleUtils.markAsShown(
@@ -1542,7 +1523,6 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                 key: const Key('bottom_appbar_share_icon'),
                 tooltip: 'devotionals.share_devotional'.tr(),
                 onPressed: () {
-                  debugPrint('🔥 [BottomBar] Tap: share');
                   getService<AnalyticsService>()
                       .logBottomBarAction(action: 'share');
                   _shareAsText(currentDevocional);
@@ -1557,7 +1537,6 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                 key: const Key('bottom_appbar_progress_icon'),
                 tooltip: 'tooltips.progress'.tr(),
                 onPressed: () {
-                  debugPrint('🔥 [BottomBar] Tap: progress');
                   getService<AnalyticsService>()
                       .logBottomBarAction(action: 'progress');
                   Navigator.push(
