@@ -488,8 +488,8 @@ class _DevocionalesPageState extends State<DevocionalesPage>
         // Log analytics event (BLoC path)
         await _logAnalyticsEvent('navigation_next', parameters: {
           'current_index': currentIndex,
-          'total_devotionals': totalDevocionales,
-          'via_bloc': true,
+          'total_devocionales': totalDevocionales,
+          'via_bloc': 'true',
         });
 
         // Check if we should show invitation dialog
@@ -522,7 +522,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
         // Log analytics event (fallback path)
         await _logAnalyticsEvent('navigation_next', parameters: {
           'current_index': _currentDevocionalIndex,
-          'via_bloc': false,
+          'via_bloc': 'false',
           'fallback_reason': 'bloc_error',
         });
       }
@@ -611,8 +611,8 @@ class _DevocionalesPageState extends State<DevocionalesPage>
         // Log analytics event (BLoC path)
         await _logAnalyticsEvent('navigation_previous', parameters: {
           'current_index': currentIndex,
-          'total_devotionals': totalDevocionales,
-          'via_bloc': true,
+          'total_devocionales': totalDevocionales,
+          'via_bloc': 'true',
         });
       } catch (e, stackTrace) {
         // Log error to Crashlytics
@@ -1546,8 +1546,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                     PageRouteBuilder(
                       pageBuilder: (context, animation, secondaryAnimation) =>
                           const ProgressPage(),
-                      transitionsBuilder:
-                          (context, animation, secondaryAnimation, child) {
+                      transitionsBuilder: (context, animation, secondaryAnimation, child) {
                         return FadeTransition(opacity: animation, child: child);
                       },
                       transitionDuration: const Duration(milliseconds: 250),
