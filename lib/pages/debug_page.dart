@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:devocional_nuevo/services/in_app_review_service.dart';
 
 /// Página de debug solo visible en modo desarrollo.
 class DebugPage extends StatelessWidget {
@@ -87,6 +88,16 @@ class DebugPage extends StatelessWidget {
             ),
           ],
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          debugPrint('🟣 [Debug] Botón de evaluación presionado.');
+          // Llama al método real para mostrar el diálogo de reseña
+          await InAppReviewService.requestInAppReview(context);
+        },
+        backgroundColor: Colors.deepPurple,
+        child: const Icon(Icons.reviews_rounded),
+        tooltip: 'Abrir diálogo de evaluación',
       ),
     );
   }
