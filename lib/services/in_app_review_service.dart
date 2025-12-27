@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../models/spiritual_stats_model.dart';
 import '../extensions/string_extensions.dart';
+import '../widgets/app_gradient_dialog.dart';
 
 /// Service for managing In-App Review requests
 /// Shows review dialogs at optimal engagement moments (5th, 25th, 50th, 100th, 200th devotional)
@@ -143,7 +144,7 @@ class InAppReviewService {
     return true;
   }
 
-  /// Shows the custom review dialog with three options
+  /// Shows the custom review dialog with three options using modern gradient design
   static Future<void> showReviewDialog(BuildContext context) async {
     if (!context.mounted) return;
 
@@ -165,66 +166,169 @@ class InAppReviewService {
         context: context,
         barrierDismissible: false,
         builder: (BuildContext context) {
-          return AlertDialog(
-            backgroundColor: colorScheme.surface,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16.0),
-            ),
-            title: Text(
-              'review.title'.tr(),
-              style: TextStyle(
-                color: colorScheme.onSurface,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            content: Text(
-              'review.message'.tr(),
-              style: TextStyle(
-                color: colorScheme.onSurface,
-                height: 1.4,
-              ),
-            ),
-            actions: [
-              // "Share" button - primary action
-              ElevatedButton(
-                onPressed: () async {
-                  Navigator.of(context).pop();
-                  await _markUserAsRated();
-                  if (context.mounted) {
-                    await requestInAppReview(context);
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: colorScheme.primary,
-                  foregroundColor: colorScheme.onPrimary,
+          return AppGradientDialog(
+            maxWidth: 380,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Icon with gradient background
+                Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        colorScheme.primary,
+                        colorScheme.secondary,
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: colorScheme.primary.withAlpha(100),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Icon(
+                    Icons.star_rounded,
+                    size: 48,
+                    color: colorScheme.onPrimary,
+                  ),
                 ),
-                child: Text('review.button_share'.tr()),
-              ),
+                const SizedBox(height: 24),
 
-              // "Already rated" button
-              TextButton(
-                onPressed: () async {
-                  Navigator.of(context).pop();
-                  await _markUserAsRated();
-                },
-                child: Text(
-                  'review.button_already_rated'.tr(),
-                  style: TextStyle(color: colorScheme.onSurface),
+                // Title
+                Text(
+                  'review.title'.tr(),
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: colorScheme.onSurface,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 22,
+                  ),
                 ),
-              ),
+                const SizedBox(height: 16),
 
-              // "Not now" button - sets remind later
-              TextButton(
-                onPressed: () async {
-                  Navigator.of(context).pop();
-                  await _setRemindLater();
-                },
-                child: Text(
-                  'review.button_not_now'.tr(),
-                  style: TextStyle(color: colorScheme.onSurface),
+                // Message
+                Text(
+                  'review.message'.tr(),
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: colorScheme.onSurface.withAlpha(200),
+                    height: 1.5,
+                    fontSize: 15,
+                  ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 32),
+
+                // Primary action button - "Share" with gradient
+                Container(
+                  width: double.infinity,
+                  height: 54,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        colorScheme.primary,
+                        colorScheme.secondary,
+                      ],
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: colorScheme.primary.withAlpha(80),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(12),
+                      onTap: () async {
+                        Navigator.of(context).pop();
+                        await _markUserAsRated();
+                        if (context.mounted) {
+                          await requestInAppReview(context);
+                        }
+                      },
+                      child: Center(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.share_rounded,
+                              color: colorScheme.onPrimary,
+                              size: 20,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              'review.button_share'.tr(),
+                              style: TextStyle(
+                                color: colorScheme.onPrimary,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+
+                // Secondary button - "Already rated"
+                SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: TextButton(
+                    onPressed: () async {
+                      Navigator.of(context).pop();
+                      await _markUserAsRated();
+                    },
+                    style: TextButton.styleFrom(
+                      foregroundColor: colorScheme.onSurface.withAlpha(180),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: Text(
+                      'review.button_already_rated'.tr(),
+                      style: const TextStyle(fontSize: 15),
+                    ),
+                  ),
+                ),
+
+                // Tertiary button - "Not now"
+                SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: TextButton(
+                    onPressed: () async {
+                      Navigator.of(context).pop();
+                      await _setRemindLater();
+                    },
+                    style: TextButton.styleFrom(
+                      foregroundColor: colorScheme.onSurface.withAlpha(150),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: Text(
+                      'review.button_not_now'.tr(),
+                      style: const TextStyle(fontSize: 15),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           );
         },
       );
@@ -233,12 +337,13 @@ class InAppReviewService {
     }
   }
 
-  /// Attempts to request in-app review, with Play Store fallback
+  /// Attempts to request in-app review using native Google Play dialog
+  /// Shows a small overlay within the app for review submission
   static Future<void> requestInAppReview(BuildContext context) async {
     try {
       final InAppReview inAppReview = InAppReview.instance;
 
-      // In debug mode, always use fallback for reliable testing
+      // In debug mode, show fallback for testing
       if (kDebugMode) {
         debugPrint('🐛 InAppReview: Debug mode - using Play Store fallback');
         if (context.mounted) {
@@ -247,32 +352,41 @@ class InAppReviewService {
         return;
       }
 
+      // Check if native in-app review is available
       if (await inAppReview.isAvailable()) {
-        debugPrint('📱 InAppReview: Requesting native in-app review');
+        debugPrint(
+            '📱 InAppReview: Native review available - requesting in-app dialog');
+
+        // Request the native in-app review
+        // This shows a small overlay within the app (Google Play's native UI)
+        // No need to open Play Store - the review happens inside the app
         await inAppReview.requestReview();
 
-        // Add a small delay to check if native review appeared
-        await Future.delayed(const Duration(milliseconds: 500));
+        debugPrint(
+            '✅ InAppReview: Native review request completed successfully');
 
-        // Note: We can't reliably detect if the native review actually appeared,
-        // but we provide fallback option in case user dismisses quickly
-        debugPrint('📱 InAppReview: Native review request completed');
+        // The native dialog may or may not appear based on Google's quota/policies
+        // We can't control or detect if it actually showed, but the request was made
       } else {
         debugPrint(
-            '🌐 InAppReview: Native not available, showing fallback dialog');
+            '⚠️ InAppReview: Native review not available - using fallback');
+
+        // Fallback: Open Play Store directly
         if (context.mounted) {
           await _showPlayStoreFallback(context);
         }
       }
     } catch (e) {
       debugPrint('❌ InAppReview request error: $e');
+
+      // On any error, offer fallback to Play Store
       if (context.mounted) {
         await _showPlayStoreFallback(context);
       }
     }
   }
 
-  /// Shows fallback dialog to go to Play Store
+  /// Shows fallback dialog to go to Play Store with modern gradient design
   static Future<void> _showPlayStoreFallback(BuildContext context) async {
     if (!context.mounted) return;
 
@@ -282,36 +396,131 @@ class InAppReviewService {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          backgroundColor: colorScheme.surface,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16.0),
-          ),
-          title: Text(
-            'review.fallback_title'.tr(),
-            style: TextStyle(color: colorScheme.onSurface),
-          ),
-          content: Text(
-            'review.fallback_message'.tr(),
-            style: TextStyle(color: colorScheme.onSurface),
-          ),
-          actions: [
-            ElevatedButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: colorScheme.primary,
-                foregroundColor: colorScheme.onPrimary,
+        return AppGradientDialog(
+          maxWidth: 360,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Play Store icon
+              Container(
+                width: 72,
+                height: 72,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      colorScheme.primary,
+                      colorScheme.secondary,
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.store_rounded,
+                  size: 40,
+                  color: colorScheme.onPrimary,
+                ),
               ),
-              child: Text('review.fallback_go'.tr()),
-            ),
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: Text(
-                'review.fallback_cancel'.tr(),
-                style: TextStyle(color: colorScheme.onSurface),
+              const SizedBox(height: 20),
+
+              // Title
+              Text(
+                'review.fallback_title'.tr(),
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: colorScheme.onSurface,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 20,
+                ),
               ),
-            ),
-          ],
+              const SizedBox(height: 12),
+
+              // Message
+              Text(
+                'review.fallback_message'.tr(),
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: colorScheme.onSurface.withAlpha(200),
+                  height: 1.4,
+                  fontSize: 15,
+                ),
+              ),
+              const SizedBox(height: 28),
+
+              // Go to Play Store button
+              Container(
+                width: double.infinity,
+                height: 52,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      colorScheme.primary,
+                      colorScheme.secondary,
+                    ],
+                    begin: Alignment.centerLeft,
+                    end: Alignment.centerRight,
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: colorScheme.primary.withAlpha(80),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(12),
+                    onTap: () => Navigator.of(context).pop(true),
+                    child: Center(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.open_in_new_rounded,
+                            color: colorScheme.onPrimary,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'review.fallback_go'.tr(),
+                            style: TextStyle(
+                              color: colorScheme.onPrimary,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              // Cancel button
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: TextButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  style: TextButton.styleFrom(
+                    foregroundColor: colorScheme.onSurface.withAlpha(180),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: Text(
+                    'review.fallback_cancel'.tr(),
+                    style: const TextStyle(fontSize: 15),
+                  ),
+                ),
+              ),
+            ],
+          ),
         );
       },
     );
