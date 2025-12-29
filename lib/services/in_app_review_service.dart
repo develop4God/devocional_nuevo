@@ -36,7 +36,7 @@ class InAppReviewService {
       }
 
       final shouldShow =
-      await shouldShowReviewRequest(stats.totalDevocionalesRead);
+          await shouldShowReviewRequest(stats.totalDevocionalesRead);
 
       if (shouldShow && context.mounted) {
         debugPrint('✅ InAppReview: Showing review dialog');
@@ -114,7 +114,7 @@ class InAppReviewService {
     final lastRequestTimestamp = prefs.getInt(_lastReviewRequestKey) ?? 0;
     if (lastRequestTimestamp > 0) {
       final lastRequestDate =
-      DateTime.fromMillisecondsSinceEpoch(lastRequestTimestamp * 1000);
+          DateTime.fromMillisecondsSinceEpoch(lastRequestTimestamp * 1000);
       final daysSinceLastRequest =
           DateTime.now().difference(lastRequestDate).inDays;
 
@@ -129,7 +129,7 @@ class InAppReviewService {
     final remindLaterTimestamp = prefs.getInt(_remindLaterDateKey) ?? 0;
     if (remindLaterTimestamp > 0) {
       final remindLaterDate =
-      DateTime.fromMillisecondsSinceEpoch(remindLaterTimestamp * 1000);
+          DateTime.fromMillisecondsSinceEpoch(remindLaterTimestamp * 1000);
       final daysSinceRemindLater =
           DateTime.now().difference(remindLaterDate).inDays;
 
@@ -327,7 +327,7 @@ class InAppReviewService {
       final InAppReview inAppReview = InAppReview.instance;
       await inAppReview.openStoreListing(
         appStoreId:
-        'com.develop4god.devocional_nuevo', // Replace with actual app ID
+            'com.develop4god.devocional_nuevo', // Replace with actual app ID
       );
       debugPrint('🏪 InAppReview: Opened Play Store');
     } catch (e) {
