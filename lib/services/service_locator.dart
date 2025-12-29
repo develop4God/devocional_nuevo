@@ -17,6 +17,7 @@ library;
 import 'package:devocional_nuevo/services/analytics_service.dart';
 import 'package:devocional_nuevo/services/localization_service.dart';
 import 'package:devocional_nuevo/services/notification_service.dart';
+import 'package:devocional_nuevo/services/remote_config_service.dart';
 import 'package:devocional_nuevo/services/tts/i_tts_service.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 import 'package:devocional_nuevo/services/tts_service.dart';
@@ -115,6 +116,13 @@ void setupServiceLocator() {
   // Uses factory constructor to enforce DI-only instantiation
   locator
       .registerLazySingleton<NotificationService>(NotificationService.create);
+
+  // Register RemoteConfigService as a lazy singleton (created when first accessed)
+  // This service manages feature flags from Firebase Remote Config
+  // Migrated to DI pattern for better testability and maintainability
+  // Uses factory constructor to enforce DI-only instantiation
+  locator.registerLazySingleton<RemoteConfigService>(
+      RemoteConfigService.create);
 
   // Add more service registrations here as needed
   // Example:

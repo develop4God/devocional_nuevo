@@ -11,6 +11,7 @@ import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/providers/localization_provider.dart';
 import 'package:devocional_nuevo/services/devocionales_tracking.dart';
+import 'package:devocional_nuevo/services/remote_config_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
 import 'package:devocional_nuevo/services/tts/i_tts_service.dart';
@@ -250,6 +251,51 @@ class DevocionalProvider with ChangeNotifier {
     developer.log(
         '[PROVIDER] Finalizando tracking para: $devocionalId, tiempo: ${trackingData.readingTime}s, scroll: ${(trackingData.scrollPercentage * 100).toStringAsFixed(1)}%',
         name: 'DevocionalProvider');
+
+    // Get feature flags from Remote Config (with ready check)
+    try {
+      final remoteConfig = getService<RemoteConfigService>();
+
+      // Only use flags if Remote Config is ready
+      if (remoteConfig.isReady) {
+        final useLegacyMode = remoteConfig.featureLegacy;
+        final useBlocMode = remoteConfig.featureBloc;
+
+        developer.log(
+          '[PROVIDER] Feature flags - legacy: $useLegacyMode, bloc: $useBlocMode',
+          name: 'DevocionalProvider',
+        );
+
+        // Example: Use flags to control behavior
+        if (useLegacyMode) {
+          developer.log(
+            '[PROVIDER] Using legacy mode for recording devotional',
+            name: 'DevocionalProvider',
+          );
+          // Future: Add legacy recording logic here
+        }
+
+        if (useBlocMode) {
+          developer.log(
+            '[PROVIDER] BLoC mode enabled for devotional tracking',
+            name: 'DevocionalProvider',
+          );
+          // Future: Emit event to BLoC instead of direct service call
+        }
+      } else {
+        developer.log(
+          '[PROVIDER] Remote Config not ready yet, using defaults',
+          name: 'DevocionalProvider',
+        );
+      }
+    } catch (e) {
+      developer.log(
+        '[PROVIDER] Error reading feature flags, using defaults: $e',
+        name: 'DevocionalProvider',
+        error: e,
+      );
+    }
+
     try {
       await _statsService.recordDevocionalRead(
         devocionalId: devocionalId,
