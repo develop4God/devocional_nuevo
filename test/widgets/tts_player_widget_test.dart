@@ -10,6 +10,16 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../helpers/test_helpers.dart';
 
+// MockFlutterTts para pruebas
+class MockFlutterTts extends FlutterTts {
+  bool speakCalled = false;
+  @override
+  Future<dynamic> speak(String text, {bool focus = false}) async {
+    speakCalled = true;
+    return 1;
+  }
+}
+
 void main() {
   setUp(() {
     TestWidgetsFlutterBinding.ensureInitialized();
@@ -27,6 +37,8 @@ void main() {
       oracion: 'Test prayer',
       date: DateTime.now(),
     );
+    final mockTts = MockFlutterTts();
+    final controller = TtsAudioController(flutterTts: mockTts);
 
     await tester.pumpWidget(
       MaterialApp(
@@ -36,7 +48,7 @@ void main() {
             body: Center(
               child: TtsPlayerWidget(
                 devocional: dev,
-                audioController: TtsAudioController(flutterTts: FlutterTts()),
+                audioController: controller,
                 onCompleted: () {},
               ),
             ),

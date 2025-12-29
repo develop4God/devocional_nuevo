@@ -9,7 +9,9 @@ import 'dart:ui';
 import 'package:devocional_nuevo/controllers/audio_controller.dart'; // NEW
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
+import 'package:devocional_nuevo/providers/localization_provider.dart';
 import 'package:devocional_nuevo/services/devocionales_tracking.dart';
+import 'package:devocional_nuevo/services/remote_config_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
 import 'package:devocional_nuevo/services/tts/i_tts_service.dart';
@@ -17,7 +19,10 @@ import 'package:devocional_nuevo/utils/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
+import 'package:provider/provider.dart' show Provider;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:devocional_nuevo/services/analytics_service.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 
 /// Simplified provider focused on data management only
 /// Audio functionality moved to AudioController
@@ -88,13 +93,14 @@ class DevocionalProvider with ChangeNotifier {
   String? get currentTrackedDevocionalId =>
       _readingTracker.currentTrackedDevocionalId;
 
-  // Supported languages - Updated to incluir japonés
+  // Supported languages - Updated to include Chinese
   static const List<String> _supportedLanguages = [
     'es',
     'en',
     'pt',
     'fr',
-    'ja'
+    'ja',
+    'zh', // Add Chinese
   ];
   static const String _fallbackLanguage = 'es';
 
@@ -245,8 +251,92 @@ class DevocionalProvider with ChangeNotifier {
   Future<void> recordDevocionalRead(String devocionalId) async {
     final trackingData = _readingTracker.finalize(devocionalId);
     developer.log(
-        '[PROVIDER] Finalizando tracking para: $devocionalId, tiempo: ${trackingData.readingTime}s, scroll: ${(trackingData.scrollPercentage * 100).toStringAsFixed(1)}%',
+        '[PROVIDER] Finalizando tracking para: $devocionalId, tiempo: \\${trackingData.readingTime}s, scroll: \\${(trackingData.scrollPercentage * 100).toStringAsFixed(1)}%',
         name: 'DevocionalProvider');
+
+    // Get feature flags from Remote Config (with ready check)
+    try {
+      final remoteConfig = getService<RemoteConfigService>();
+      final analytics = getService<AnalyticsService>();
+
+      if (remoteConfig.isReady) {
+        final useLegacy = remoteConfig.featureLegacy;
+        final useBloc = remoteConfig.featureBloc;
+
+        developer.log(
+          '[PROVIDER] Feature flags - legacy: $useLegacy, bloc: $useBloc',
+          name: 'DevocionalProvider',
+        );
+
+        // 🔥 TRACK cual modo se usó
+        await analytics.logCustomEvent(
+          eventName: 'devotional_tracking_mode',
+          parameters: {
+            'mode': useBloc ? 'bloc' : 'legacy',
+            'legacy_flag': useLegacy,
+            'bloc_flag': useBloc,
+            'remote_config_ready': true,
+            'devocional_id': devocionalId,
+          },
+        );
+
+        if (useBloc) {
+          developer.log('[PROVIDER] Using BLoC tracking', name: 'DevocionalProvider');
+          try {
+            // TODO: BLoC tracking logic
+            await analytics.logCustomEvent(
+              eventName: 'devotional_bloc_success',
+              parameters: {'devocional_id': devocionalId},
+            );
+          } catch (e, stack) {
+            await analytics.logCustomEvent(
+              eventName: 'devotional_bloc_error',
+              parameters: {
+                'devocional_id': devocionalId,
+                'error': e.toString(),
+              },
+            );
+            await FirebaseCrashlytics.instance.recordError(
+              e,
+              stack,
+              reason: 'BLoC tracking mode failed',
+            );
+          }
+        } else {
+          developer.log('[PROVIDER] Using legacy tracking', name: 'DevocionalProvider');
+          await analytics.logCustomEvent(
+            eventName: 'devotional_legacy_success',
+            parameters: {'devocional_id': devocionalId},
+          );
+        }
+      } else {
+        await analytics.logCustomEvent(
+          eventName: 'devotional_tracking_mode',
+          parameters: {
+            'mode': 'legacy',
+            'remote_config_ready': false,
+            'reason': 'remote_config_not_ready',
+            'devocional_id': devocionalId,
+          },
+        );
+        developer.log(
+          '[PROVIDER] Remote Config not ready yet, using defaults',
+          name: 'DevocionalProvider',
+        );
+      }
+    } catch (e, stack) {
+      developer.log(
+        '[PROVIDER] Error reading feature flags, using defaults: $e',
+        name: 'DevocionalProvider',
+        error: e,
+      );
+      await FirebaseCrashlytics.instance.recordError(
+        e,
+        stack,
+        reason: 'Error reading feature flags in recordDevocionalRead',
+      );
+    }
+
     try {
       await _statsService.recordDevocionalRead(
         devocionalId: devocionalId,
@@ -272,8 +362,9 @@ class DevocionalProvider with ChangeNotifier {
       // Usar el tracking unificado para registrar y verificar milestone
       await DevocionalesTracking()
           .recordDevocionalHeard(devocionalId, listenedPercentage);
-      // Validar si ya fue registrado
+      // Obtener stats actualizados tras registrar 'heard'
       final stats = await _statsService.getStats();
+      notifyListeners(); // Notificar a la UI de cualquier cambio
       if (stats.readDevocionalIds.contains(devocionalId)) {
         // Si ya está en la lista de leídos/escuchados => ya fue registrado
         return 'ya_registrado';
@@ -404,7 +495,7 @@ class DevocionalProvider with ChangeNotifier {
   }
 
   // ========== LANGUAGE & VERSION SETTINGS ==========
-  void setSelectedLanguage(String language) async {
+  void setSelectedLanguage(String language, BuildContext? context) async {
     String supportedLanguage = _getSupportedLanguageWithFallback(language);
 
     if (_selectedLanguage != supportedLanguage) {
@@ -412,13 +503,23 @@ class DevocionalProvider with ChangeNotifier {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('selectedLanguage', supportedLanguage);
 
-      // Reset version to default for new language
+      // Defensive: ensure version is valid for the new language
+      List<String> versions =
+          Constants.bibleVersionsByLanguage[supportedLanguage] ?? ['RVR1960'];
       String defaultVersion =
-          Constants.defaultVersionByLanguage[supportedLanguage] ?? 'RVR1960';
-      _selectedVersion = defaultVersion;
-      debugPrint(
-          '[PROVIDER] setLanguageContext: idioma=$supportedLanguage, version=$defaultVersion');
-      await prefs.setString('selectedVersion', defaultVersion);
+          Constants.defaultVersionByLanguage[supportedLanguage] ??
+              versions.first;
+      if (!versions.contains(_selectedVersion)) {
+        _selectedVersion = defaultVersion;
+        await prefs.setString('selectedVersion', defaultVersion);
+      }
+
+      // Update UI locale/translations via LocalizationProvider
+      if (context != null && context.mounted) {
+        final localizationProvider =
+            Provider.of<LocalizationProvider>(context, listen: false);
+        await localizationProvider.changeLanguage(supportedLanguage);
+      }
 
       // Update TTS language context immediately
       _audioController.ttsService
@@ -802,6 +903,23 @@ class DevocionalProvider with ChangeNotifier {
   void stop() {}
 
   void speakDevocional(String s) {}
+
+  /// Devuelve la lista de devocionales no leídos según los IDs guardados en stats
+  Future<List<Devocional>> getDevocionalesNoLeidos() async {
+    final stats = await _statsService.getStats();
+    final leidos = stats.readDevocionalIds.toSet();
+    final noLeidos =
+        _filteredDevocionales.where((d) => !leidos.contains(d.id)).toList();
+    debugPrint(
+        '🔎 [NO LEÍDOS] Devocionales no leídos: [1m${noLeidos.length}[0m');
+    if (noLeidos.isNotEmpty) {
+      debugPrint(
+          '📖 [PRIMEROS] Mostrando: ${noLeidos.take(3).map((d) => d.id).toList()}');
+    } else {
+      debugPrint('🎉 [COMPLETADO] ¡No hay devocionales pendientes!');
+    }
+    return noLeidos;
+  }
 }
 
 // ========== READING TRACKER ==========

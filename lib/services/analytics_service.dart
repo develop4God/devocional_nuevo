@@ -183,4 +183,107 @@ class AnalyticsService {
       // Fail silently
     }
   }
+
+  /// Log bottom bar action event
+  ///
+  /// Event name: `bottom_bar_action`
+  /// Parameter: `action` (e.g., 'favorite', 'prayers', 'bible', 'share', 'progress', 'settings')
+  Future<void> logBottomBarAction({required String action}) async {
+    try {
+      debugPrint('🔥 [BottomBar] Tap: $action');
+      await _analytics.logEvent(
+        name: 'bottom_bar_action',
+        parameters: {'action': action},
+      );
+      debugPrint('📊 Analytics: bottom_bar_action event logged ($action)');
+    } catch (e) {
+      _logAnalyticsError('bottom_bar_action', e);
+    }
+  }
+
+  /// Log app initialization event
+  ///
+  /// Event name: `app_init`
+  /// Parameters: Additional context parameters (e.g., use_navigation_bloc)
+  Future<void> logAppInit({Map<String, Object>? parameters}) async {
+    try {
+      await _analytics.logEvent(
+        name: 'app_init',
+        parameters: parameters,
+      );
+      debugPrint('📊 Analytics: app_init event logged');
+    } catch (e) {
+      _logAnalyticsError('app_init', e);
+    }
+  }
+
+  /// Log navigation to next devotional
+  ///
+  /// Event name: `navigation_next`
+  /// Parameters:
+  /// - `current_index`: Current devotional index
+  /// - `total_devocionales`: Total number of devotionals
+  /// - `via_bloc`: Whether navigation used BLoC ('true') or legacy ('false')
+  /// - `fallback_reason`: Reason for fallback to legacy (optional)
+  Future<void> logNavigationNext({
+    required int currentIndex,
+    required int totalDevocionales,
+    required String viaBloc,
+    String? fallbackReason,
+  }) async {
+    try {
+      final parameters = <String, Object>{
+        'current_index': currentIndex,
+        'total_devocionales': totalDevocionales,
+        'via_bloc': viaBloc,
+      };
+
+      if (fallbackReason != null) {
+        parameters['fallback_reason'] = fallbackReason;
+      }
+
+      await _analytics.logEvent(
+        name: 'navigation_next',
+        parameters: parameters,
+      );
+      debugPrint('📊 Analytics: navigation_next event logged');
+    } catch (e) {
+      _logAnalyticsError('navigation_next', e);
+    }
+  }
+
+  /// Log navigation to previous devotional
+  ///
+  /// Event name: `navigation_previous`
+  /// Parameters:
+  /// - `current_index`: Current devotional index
+  /// - `total_devocionales`: Total number of devotionals
+  /// - `via_bloc`: Whether navigation used BLoC ('true') or legacy ('false')
+  /// - `fallback_reason`: Reason for fallback to legacy (optional)
+  Future<void> logNavigationPrevious({
+    required int currentIndex,
+    required int totalDevocionales,
+    required String viaBloc,
+    String? fallbackReason,
+  }) async {
+    try {
+      final parameters = <String, Object>{
+        'current_index': currentIndex,
+        'total_devocionales': totalDevocionales,
+        'via_bloc': viaBloc,
+      };
+
+      if (fallbackReason != null) {
+        parameters['fallback_reason'] = fallbackReason;
+      }
+
+      await _analytics.logEvent(
+        name: 'navigation_previous',
+        parameters: parameters,
+      );
+      debugPrint('📊 Analytics: navigation_previous event logged');
+    } catch (e) {
+      _logAnalyticsError('navigation_previous', e);
+    }
+  }
 }

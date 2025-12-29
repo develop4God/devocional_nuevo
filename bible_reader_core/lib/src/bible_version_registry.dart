@@ -13,6 +13,7 @@ class BibleVersionRegistry {
     'pt': 'Português',
     'fr': 'Français',
     'ja': '日本語',
+    'zh': '中文', // Add Chinese
   };
 
   static const Map<String, List<Map<String, String>>> _versionsByLanguage = {
@@ -35,6 +36,10 @@ class BibleVersionRegistry {
       {'name': '新改訳2003', 'dbFile': 'SK2003_ja.SQLite3'},
       {'name': 'リビングバイブル', 'dbFile': 'JCB_ja.SQLite3'},
     ],
+    'zh': [
+      {'name': '和合本1919', 'dbFile': 'CUV1919_zh.SQLite3'},
+      {'name': '新译本', 'dbFile': 'CNV_zh.SQLite3'},
+    ], // Add Chinese
   };
 
   /// Get all Bible versions for a specific language

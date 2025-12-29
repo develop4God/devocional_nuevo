@@ -251,8 +251,13 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
       debugPrint(
           '[TTS Widget] ▶️ Estado NO es playing ni loading, llamando play()');
       // Lanzar trigger FIAM tts_play
-      FirebaseInAppMessaging.instance.triggerEvent('tts_play');
-      debugPrint('[TTS Widget] Trigger FIAM tts_play lanzado');
+      try {
+        FirebaseInAppMessaging.instance.triggerEvent('tts_play');
+        debugPrint('[TTS Widget] Trigger FIAM tts_play lanzado');
+      } catch (e) {
+        debugPrint(
+            '[TTS Widget] ⚠️ Firebase not initialized, skipping FIAM trigger: $e');
+      }
       widget.audioController.play();
     } else {
       debugPrint('[TTS Widget] ⚠️ Estado es LOADING, no se hace nada');

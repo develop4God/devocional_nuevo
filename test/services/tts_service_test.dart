@@ -1,10 +1,10 @@
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 import 'package:devocional_nuevo/services/tts_service.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/services.dart';
 
 import '../helpers/test_helpers.dart';
 
@@ -61,7 +61,50 @@ class MockFlutterTts extends FlutterTts {
 }
 
 void main() {
-  WidgetsFlutterBinding.ensureInitialized();
+  TestWidgetsFlutterBinding.ensureInitialized();
+  // Mock global para MethodChannel de flutter_tts
+  const MethodChannel ttsChannel = MethodChannel('flutter_tts');
+  TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+      .setMockMethodCallHandler(
+    ttsChannel,
+    (MethodCall methodCall) async {
+      switch (methodCall.method) {
+        case 'getVoices':
+          // Simular lista de voces técnicas para todos los idiomas
+          return [
+            {
+              'name': 'cmn-cn-x-cce-local',
+              'locale': 'zh-CN',
+            },
+            {
+              'name': 'cmn-cn-x-ccc-local',
+              'locale': 'zh-CN',
+            },
+            {
+              'name': 'cmn-tw-x-cte-network',
+              'locale': 'zh-TW',
+            },
+            {
+              'name': 'cmn-tw-x-ctc-network',
+              'locale': 'zh-TW',
+            },
+            // Puedes agregar más voces simuladas si lo requieren otros tests
+          ];
+        case 'setLanguage':
+        case 'setSpeechRate':
+        case 'speak':
+        case 'stop':
+        case 'pause':
+        case 'setVolume':
+        case 'setPitch':
+        case 'setQueueMode':
+        case 'awaitSpeakCompletion':
+          return null;
+        default:
+          return null;
+      }
+    },
+  );
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
     registerTestServices();

@@ -211,6 +211,10 @@ class DevocionalesDrawer extends StatelessWidget {
 
     // Get available versions for current language
     final versions = devocionalProvider.availableVersions;
+    final selectedVersion =
+        versions.contains(devocionalProvider.selectedVersion)
+            ? devocionalProvider.selectedVersion
+            : (versions.isNotEmpty ? versions.first : null);
 
     final drawerBackgroundColor = theme.scaffoldBackgroundColor;
 
@@ -300,7 +304,7 @@ class DevocionalesDrawer extends StatelessWidget {
                           iconColor: colorScheme.primary,
                           label: DropdownButtonHideUnderline(
                             child: DropdownButton<String>(
-                              value: devocionalProvider.selectedVersion,
+                              value: selectedVersion,
                               icon: Icon(
                                 Icons.arrow_drop_down,
                                 color: colorScheme.onSurface,
@@ -329,9 +333,8 @@ class DevocionalesDrawer extends StatelessWidget {
                                   );
                                 }).toList();
                               },
-                              items: versions.map<DropdownMenuItem<String>>((
-                                String itemValue,
-                              ) {
+                              items: versions.map<DropdownMenuItem<String>>(
+                                  (String itemValue) {
                                 return DropdownMenuItem<String>(
                                   value: itemValue,
                                   child: Text(

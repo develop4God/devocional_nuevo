@@ -93,8 +93,10 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
       // Change language in provider
       await localizationProvider.changeLanguage(languageCode);
 
-      // Update DevocionalProvider with new language
-      devocionalProvider.setSelectedLanguage(languageCode);
+      // Update DevocionalProvider with new language (pass context for UI locale update)
+      if (mounted) {
+        devocionalProvider.setSelectedLanguage(languageCode, context);
+      }
 
       // Set default version for the language
       final defaultVersion = Constants.defaultVersionByLanguage[languageCode];
@@ -279,6 +281,10 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
         return 'pt-BR';
       case 'fr':
         return 'fr-FR';
+      case 'ja':
+        return 'ja-JP';
+      case 'zh':
+        return 'zh-CN';
       default:
         return '$languageCode-${languageCode.toUpperCase()}';
     }

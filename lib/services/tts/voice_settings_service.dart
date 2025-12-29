@@ -61,23 +61,9 @@ class VoiceSettingsService {
       'pt': ['pt-BR', 'pt-PT'],
       'fr': ['fr-FR', 'fr-CA'],
       'ja': ['ja-JP'],
+      'zh': ['zh-CN', 'zh-TW', 'yue-HK'], // Add zh with fallback order
     };
     final locales = preferredLocales[language] ?? [language];
-
-    // Define preferred default male voices per language (technical names)
-    // These are the recommended voices for each language on first app start
-    final Map<String, List<String>> preferredMaleVoices = {
-      // Spanish Latin America male voice
-      'es': ['es-us-x-esd-local', 'es-us-x-esd-network'],
-      // English US male voice
-      'en': ['en-us-x-tpd-network', 'en-us-x-tpd-local', 'en-us-x-iom-network'],
-      // Portuguese Brazil male voice
-      'pt': ['pt-br-x-ptd-network', 'pt-br-x-ptd-local'],
-      // French France male voice
-      'fr': ['fr-fr-x-frd-local', 'fr-fr-x-frd-network', 'fr-fr-x-vlf-local'],
-      // Japanese male voice
-      'ja': ['ja-jp-x-jac-local', 'ja-jp-x-jad-local', 'ja-jp-x-jac-network'],
-    };
 
     final voices = await _flutterTts.getVoices;
     if (voices is List) {
@@ -106,6 +92,22 @@ class VoiceSettingsService {
       }
 
       // Try to find a preferred male voice first
+      final preferredMaleVoices = {
+        'es': ['es-us-x-esd-local', 'es-us-x-esd-network'],
+        'en': [
+          'en-us-x-tpd-network',
+          'en-us-x-tpd-local',
+          'en-us-x-iom-network'
+        ],
+        'pt': ['pt-br-x-ptd-network', 'pt-br-x-ptd-local'],
+        'fr': ['fr-fr-x-frd-local', 'fr-fr-x-frd-network', 'fr-fr-x-vlf-local'],
+        'ja': ['ja-jp-x-jac-local', 'ja-jp-x-jad-local', 'ja-jp-x-jac-network'],
+        'zh': [
+          'cmn-cn-x-cce-local', 'cmn-cn-x-ssa-local', 'cmn-cn-x-ccc-local', 'cmn-cn-x-ccd-local', 'cmn-cn-x-cce-network', 'cmn-cn-x-ssa-network', 'cmn-cn-x-ccc-network', 'cmn-cn-x-ccd-network',
+          'zh-CN-language', 'zh-TW-language', 'cmn-tw-x-ctd-local', 'cmn-tw-x-cte-local', 'cmn-tw-x-ctc-local', 'cmn-tw-x-ctd-network', 'cmn-tw-x-cte-network', 'cmn-tw-x-ctc-network',
+          'yue-hk-x-yue-local', 'yue-hk-x-yue-network', 'yue-hk-x-yud-local', 'yue-hk-x-yud-network', 'yue-hk-x-yuf-local', 'yue-hk-x-yuf-network', 'yue-hk-x-jar-local', 'yue-hk-x-jar-network'
+        ],
+      };
       final preferredVoices = preferredMaleVoices[language] ?? [];
       Map? selectedVoice;
 
@@ -118,7 +120,7 @@ class VoiceSettingsService {
         );
         if (selectedVoice.isNotEmpty && selectedVoice['name'] != null) {
           debugPrint(
-              '🎤✅ [autoAssignDefaultVoice] Found preferred male voice: ${selectedVoice['name']}');
+              '🎤✅ [autoAssignDefaultVoice] Found preferred male voice: \\${selectedVoice['name']}');
           break;
         }
         selectedVoice = null;
@@ -267,6 +269,18 @@ class VoiceSettingsService {
               : _getDefaultLocaleForLanguage(language);
         }
 
+        // --- NEW: Validate voice for zh ---
+        if (language == 'zh' &&
+            (voiceName.trim().isEmpty ||
+                !locale.toLowerCase().startsWith('zh'))) {
+          debugPrint(
+              '⚠️ [VoiceSettings] Invalid saved voice for zh detected (name: "$voiceName", locale: "$locale"). Clearing and re-assigning.');
+          await clearSavedVoice(language);
+          await autoAssignDefaultVoice(language);
+          return await loadSavedVoice(language); // Try again after fix
+        }
+        // --- END NEW ---
+
         // Aplicar la voz al TTS
         await _flutterTts.setVoice({
           'name': voiceName,
@@ -373,6 +387,9 @@ class VoiceSettingsService {
         case 'ja':
           friendlyName = 'デフォルトの声';
           break;
+        case 'zh':
+          friendlyName = '默认语音';
+          break;
         default:
           friendlyName = 'Default Voice';
       }
@@ -412,6 +429,8 @@ class VoiceSettingsService {
         return gender == 'female' ? 'Voz Feminina$num' : 'Voz Masculina$num';
       case String s when s.startsWith('fr'):
         return gender == 'female' ? 'Voix Féminine$num' : 'Voix Masculine$num';
+      case String s when s.startsWith('zh'):
+        return gender == 'female' ? '女性声音$num' : '男性声音$num';
       default:
         return gender == 'female' ? 'Female Voice$num' : 'Male Voice$num';
     }
@@ -467,48 +486,35 @@ class VoiceSettingsService {
       final rawVoices = await _flutterTts.getVoices;
 
       if (rawVoices is List<dynamic>) {
-        final filteredVoices = rawVoices.where((voice) {
-          if (voice is Map) {
-            final locale = voice['locale'] as String? ?? '';
-            return locale.toLowerCase().startsWith(targetLocale.toLowerCase());
-          }
-          return false;
-        }).toList();
+        List<dynamic> filteredVoices;
+        if (language == 'zh') {
+          // Para chino, mostrar todas las voces técnicas disponibles
+          filteredVoices = rawVoices;
+        } else {
+          filteredVoices = rawVoices.where((voice) {
+            if (voice is Map) {
+              final locale = voice['locale'] as String? ?? '';
+              return locale
+                  .toLowerCase()
+                  .startsWith(targetLocale.toLowerCase());
+            }
+            return false;
+          }).toList();
+        }
 
         final formattedVoices = filteredVoices.map((voice) {
           final name = voice['name'] as String? ?? '';
           final locale = voice['locale'] as String? ?? '';
           final friendlyName = _getFriendlyVoiceName(name, locale);
+          // Para zh, mostrar el nombre técnico y el locale para fácil identificación
+          if (language == 'zh') {
+            return '$name ($locale)';
+          }
           return '$friendlyName ($locale)';
         }).toList();
 
-        // ✅ ORDENAMIENTO MEJORADO
-        formattedVoices.sort((a, b) {
-          // Prioridad 1: Voces con nombres propios
-          final aHasProperName = _hasProperName(a);
-          final bHasProperName = _hasProperName(b);
-          if (aHasProperName && !bHasProperName) return -1;
-          if (!aHasProperName && bHasProperName) return 1;
-
-          // Prioridad 2: Locales preferidos (US, ES, etc.)
-          final aIsPreferred = _isPreferredLocale(a, language);
-          final bIsPreferred = _isPreferredLocale(b, language);
-          if (aIsPreferred && !bIsPreferred) return -1;
-          if (!aIsPreferred && bIsPreferred) return 1;
-
-          // Prioridad 3: Voces femeninas primero
-          final aIsFemale = a.contains('♀') ||
-              a.toLowerCase().contains('female') ||
-              a.toLowerCase().contains('femenina');
-          final bIsFemale = b.contains('♀') ||
-              b.toLowerCase().contains('female') ||
-              b.toLowerCase().contains('femenina');
-          if (aIsFemale && !bIsFemale) return -1;
-          if (!aIsFemale && bIsFemale) return 1;
-
-          return a.compareTo(b);
-        });
-
+        // Ordenar por nombre técnico para zh, por nombre amigable para otros
+        formattedVoices.sort();
         return formattedVoices;
       }
 
@@ -524,6 +530,15 @@ class VoiceSettingsService {
       String language) async {
     final voices = await _flutterTts.getVoices;
     if (voices is List) {
+      if (language == 'zh') {
+        // Para chino, mostrar todas las voces técnicas disponibles
+        return voices.cast<Map>().map((voice) {
+          return {
+            'name': voice['name'] as String? ?? '',
+            'locale': voice['locale'] as String? ?? '',
+          };
+        }).toList();
+      }
       return voices.cast<Map>().where((voice) {
         final locale = voice['locale'] as String? ?? '';
         return locale.toLowerCase().contains(language.toLowerCase());
@@ -535,32 +550,6 @@ class VoiceSettingsService {
       }).toList();
     }
     return [];
-  }
-
-  /// ✅ VERIFICA SI UNA VOZ TIENE NOMBRE PROPIO
-  bool _hasProperName(String voiceName) {
-    final cleanName = voiceName.split('(')[0].trim();
-    // Si no contiene palabras como "Voz", "Voice", "Female", "Male", probablemente es un nombre propio
-    return !cleanName.toLowerCase().contains('voz') &&
-        !cleanName.toLowerCase().contains('voice') &&
-        !cleanName.toLowerCase().contains('female') &&
-        !cleanName.toLowerCase().contains('male') &&
-        !cleanName.toLowerCase().contains('masculina') &&
-        !cleanName.toLowerCase().contains('femenina') &&
-        cleanName.split(' ').length <= 2; // Nombres simples
-  }
-
-  /// ✅ VERIFICA SI ES UN LOCALE PREFERIDO
-  bool _isPreferredLocale(String voiceName, String language) {
-    final preferredLocales = {
-      'es': ['es-US', 'es-ES', 'es-MX'],
-      'en': ['en-US', 'en-GB'],
-      'pt': ['pt-BR', 'pt-PT'],
-      'fr': ['fr-FR', 'fr-CA'],
-    };
-
-    final preferred = preferredLocales[language] ?? [];
-    return preferred.any((locale) => voiceName.contains(locale));
   }
 
   /// Obtiene el locale por defecto para un idioma
@@ -576,6 +565,8 @@ class VoiceSettingsService {
         return 'fr-FR';
       case 'ja':
         return 'ja-JP';
+      case 'zh':
+        return 'zh-CN';
       default:
         return 'es-ES';
     }
@@ -783,9 +774,15 @@ class VoiceSettingsService {
       'ja-jp-x-jad-local': '🇯🇵 男性 声 2',
       'ja-jp-x-htm-local': '🇯🇵 女性 声 2',
     },
+    'zh': {
+      'cmn-cn-x-cce-local': '🇨🇳 男性 声 1', // Hombre (China)
+      'cmn-cn-x-ccc-local': '🇨🇳 女性 声 1', // Mujer (China)
+      'cmn-tw-x-cte-network': '🇹🇼 男性 声 2', // Hombre 2 (Taiwán)
+      'cmn-tw-x-ctc-network': '🇹🇼 女性 声 2', // Mujer 2 (Taiwán)
+    },
   };
 
-  /// Nuevo método para obtener nombre amigable con emoji
+  /// Nuevo metodo para obtener nombre amigable con emoji
   String getFriendlyVoiceName(String language, String technicalName) {
     final map = friendlyVoiceMap[language];
     if (map != null && map.containsKey(technicalName)) {

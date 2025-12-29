@@ -52,15 +52,16 @@ void main() {
       // Reset ServiceLocator for clean test state
       ServiceLocator().reset();
 
-      // Mock SharedPreferences
+      // Mock SharedPreferences before setting up the locator
       SharedPreferences.setMockInitialValues({});
 
-      // Create mock voice service
-      mockVoiceService = MockVoiceSettingsService();
+      // Use centralized setup for DI
+      setupServiceLocator();
 
-      // Register services in ServiceLocator
-      ServiceLocator().registerLazySingleton<LocalizationService>(
-          () => LocalizationService());
+      // Create mock voice service and override registration
+      mockVoiceService = MockVoiceSettingsService();
+      // Replace the real VoiceSettingsService with our mock
+      ServiceLocator().unregister<VoiceSettingsService>();
       ServiceLocator()
           .registerSingleton<VoiceSettingsService>(mockVoiceService);
 
@@ -77,7 +78,7 @@ void main() {
       // Verify that the provider is properly instantiated and uses DI
       expect(provider, isNotNull);
       expect(provider.supportedLocales, isNotEmpty);
-      expect(provider.supportedLocales.length, equals(5));
+      expect(provider.supportedLocales.length, equals(6));
     });
 
     test('supportedLocales returns all expected languages', () {
@@ -125,9 +126,9 @@ void main() {
       // Reset and set up with persisted English locale
       ServiceLocator().reset();
       SharedPreferences.setMockInitialValues({'locale': 'en'});
+      setupServiceLocator();
       mockVoiceService = MockVoiceSettingsService();
-      ServiceLocator().registerLazySingleton<LocalizationService>(
-          () => LocalizationService());
+      ServiceLocator().unregister<VoiceSettingsService>();
       ServiceLocator()
           .registerSingleton<VoiceSettingsService>(mockVoiceService);
 
@@ -243,12 +244,13 @@ void main() {
 
       final languages = provider.getAvailableLanguages();
 
-      expect(languages.length, equals(5));
+      expect(languages.length, equals(6));
       expect(languages['es'], equals('Español'));
       expect(languages['en'], equals('English'));
       expect(languages['pt'], equals('Português'));
       expect(languages['fr'], equals('Français'));
       expect(languages['ja'], equals('日本語'));
+      expect(languages['zh'], equals('中文'));
     });
 
     test('provider falls back to default locale for unsupported locale',
@@ -256,9 +258,9 @@ void main() {
       // Reset and set up with unsupported locale
       ServiceLocator().reset();
       SharedPreferences.setMockInitialValues({'locale': 'xx'});
+      setupServiceLocator();
       mockVoiceService = MockVoiceSettingsService();
-      ServiceLocator().registerLazySingleton<LocalizationService>(
-          () => LocalizationService());
+      ServiceLocator().unregister<VoiceSettingsService>();
       ServiceLocator()
           .registerSingleton<VoiceSettingsService>(mockVoiceService);
 
@@ -329,9 +331,9 @@ void main() {
       // Step 3: Simulate app restart - create new provider with same persisted data
       ServiceLocator().reset();
       // Do NOT reset SharedPreferences - persistence should survive
+      setupServiceLocator();
       mockVoiceService = MockVoiceSettingsService();
-      ServiceLocator().registerLazySingleton<LocalizationService>(
-          () => LocalizationService());
+      ServiceLocator().unregister<VoiceSettingsService>();
       ServiceLocator()
           .registerSingleton<VoiceSettingsService>(mockVoiceService);
       final newProvider = LocalizationProvider();
