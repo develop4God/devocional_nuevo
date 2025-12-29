@@ -61,24 +61,12 @@ class VoiceSettingsService {
       'pt': ['pt-BR', 'pt-PT'],
       'fr': ['fr-FR', 'fr-CA'],
       'ja': ['ja-JP'],
-      // 'zh': ['zh-CN', 'zh-TW', 'zh-HK'], // No filtrar por ahora
+      'zh': ['zh-CN', 'zh-TW', 'yue-HK'], // Add zh with fallback order
     };
     final locales = preferredLocales[language] ?? [language];
 
     final voices = await _flutterTts.getVoices;
     if (voices is List) {
-      if (language == 'zh') {
-        debugPrint(
-            '🎵 [autoAssignDefaultVoice] Listado de TODAS las voces técnicas para zh:');
-        for (final v in voices) {
-          final n = v['name'] as String? ?? '';
-          final l = v['locale'] as String? ?? '';
-          debugPrint('    - name: "$n", locale: "$l"');
-        }
-        debugPrint(
-            '⚠️ [autoAssignDefaultVoice] Selección automática deshabilitada para zh. Elige manualmente las voces a mapear.');
-        return;
-      }
       debugPrint(
           '🎵 [autoAssignDefaultVoice] Voces filtradas para $language (${locales.join(", ")}):');
       final filtered = voices
@@ -114,7 +102,11 @@ class VoiceSettingsService {
         'pt': ['pt-br-x-ptd-network', 'pt-br-x-ptd-local'],
         'fr': ['fr-fr-x-frd-local', 'fr-fr-x-frd-network', 'fr-fr-x-vlf-local'],
         'ja': ['ja-jp-x-jac-local', 'ja-jp-x-jad-local', 'ja-jp-x-jac-network'],
-        // 'zh': [], // No filtrar por ahora
+        'zh': [
+          'cmn-cn-x-cce-local', 'cmn-cn-x-ssa-local', 'cmn-cn-x-ccc-local', 'cmn-cn-x-ccd-local', 'cmn-cn-x-cce-network', 'cmn-cn-x-ssa-network', 'cmn-cn-x-ccc-network', 'cmn-cn-x-ccd-network',
+          'zh-CN-language', 'zh-TW-language', 'cmn-tw-x-ctd-local', 'cmn-tw-x-cte-local', 'cmn-tw-x-ctc-local', 'cmn-tw-x-ctd-network', 'cmn-tw-x-cte-network', 'cmn-tw-x-ctc-network',
+          'yue-hk-x-yue-local', 'yue-hk-x-yue-network', 'yue-hk-x-yud-local', 'yue-hk-x-yud-network', 'yue-hk-x-yuf-local', 'yue-hk-x-yuf-network', 'yue-hk-x-jar-local', 'yue-hk-x-jar-network'
+        ],
       };
       final preferredVoices = preferredMaleVoices[language] ?? [];
       Map? selectedVoice;
