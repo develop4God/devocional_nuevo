@@ -52,6 +52,7 @@ dependencies:
   firebase_analytics: ^11.3.3
   firebase_crashlytics: ^4.1.3
   firebase_in_app_messaging: ^0.8.0+8
+  firebase_remote_config: ^5.5.0
 
   # Audio dependencies
   flutter_tts: ^4.1.0
