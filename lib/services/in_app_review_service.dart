@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:in_app_review/in_app_review.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -234,92 +233,41 @@ class InAppReviewService {
   }
 
   /// Attempts to request in-app review, with Play Store fallback
+  /// Attempts to request in-app review, with Play Store fallback
   static Future<void> requestInAppReview(BuildContext context) async {
     try {
       final InAppReview inAppReview = InAppReview.instance;
 
-      // In debug mode, always use fallback for reliable testing
-      if (kDebugMode) {
-        debugPrint('🐛 InAppReview: Debug mode - using Play Store fallback');
-        if (context.mounted) {
-          await _showPlayStoreFallback(context);
-        }
-        return;
-      }
+      // Verificar si el review nativo está disponible
+      final isAvailable = await inAppReview.isAvailable();
+      debugPrint('📱 InAppReview: Native available: $isAvailable');
 
-      if (await inAppReview.isAvailable()) {
+      if (isAvailable) {
         debugPrint('📱 InAppReview: Requesting native in-app review');
+
+        // Este metodo muestra el diálogo nativo pequeño de Google Play
         await inAppReview.requestReview();
 
-        // Add a small delay to check if native review appeared
-        await Future.delayed(const Duration(milliseconds: 500));
+        debugPrint('✅ InAppReview: Native review request completed');
 
-        // Note: We can't reliably detect if the native review actually appeared,
-        // but we provide fallback option in case user dismisses quickly
-        debugPrint('📱 InAppReview: Native review request completed');
+        // NOTA: Google puede decidir no mostrar el diálogo por sus políticas de cuota
+        // Si eso pasa, automáticamente abrirá la Play Store
+
       } else {
-        debugPrint(
-            '🌐 InAppReview: Native not available, showing fallback dialog');
-        if (context.mounted) {
-          await _showPlayStoreFallback(context);
-        }
+        // Si no está disponible, abrir Play Store directamente
+        debugPrint('🌐 InAppReview: Native not available, opening Play Store');
+        await inAppReview.openStoreListing(
+          appStoreId: 'com.develop4god.devocional_nuevo',
+        );
       }
     } catch (e) {
       debugPrint('❌ InAppReview request error: $e');
       if (context.mounted) {
-        await _showPlayStoreFallback(context);
+        await _openPlayStore();
       }
     }
   }
 
-  /// Shows fallback dialog to go to Play Store
-  static Future<void> _showPlayStoreFallback(BuildContext context) async {
-    if (!context.mounted) return;
-
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          backgroundColor: colorScheme.surface,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16.0),
-          ),
-          title: Text(
-            'review.fallback_title'.tr(),
-            style: TextStyle(color: colorScheme.onSurface),
-          ),
-          content: Text(
-            'review.fallback_message'.tr(),
-            style: TextStyle(color: colorScheme.onSurface),
-          ),
-          actions: [
-            ElevatedButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: colorScheme.primary,
-                foregroundColor: colorScheme.onPrimary,
-              ),
-              child: Text('review.fallback_go'.tr()),
-            ),
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: Text(
-                'review.fallback_cancel'.tr(),
-                style: TextStyle(color: colorScheme.onSurface),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-
-    if (confirmed == true) {
-      await _openPlayStore();
-    }
-  }
 
   /// Opens Play Store for the app
   static Future<void> _openPlayStore() async {
