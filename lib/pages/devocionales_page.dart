@@ -813,6 +813,9 @@ class _DevocionalesPageState extends State<DevocionalesPage>
         return DateFormat("EEEE, d 'de' MMMM", 'pt');
       case 'ja':
         return DateFormat('y年M月d日 EEEE', 'ja');
+      case 'zh':
+        // Chinese date format: e.g. 2025年12月29日 星期一
+        return DateFormat('y年M月d日 EEEE', 'zh');
       default:
         return DateFormat('EEEE, MMMM d', 'en');
     }
@@ -1544,8 +1547,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                     PageRouteBuilder(
                       pageBuilder: (context, animation, secondaryAnimation) =>
                           const ProgressPage(),
-                      transitionsBuilder:
-                          (context, animation, secondaryAnimation, child) {
+                      transitionsBuilder: (context, animation, secondaryAnimation, child) {
                         return FadeTransition(opacity: animation, child: child);
                       },
                       transitionDuration: const Duration(milliseconds: 250),
@@ -1577,8 +1579,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                     PageRouteBuilder(
                       pageBuilder: (context, animation, secondaryAnimation) =>
                           const SettingsPage(),
-                      transitionsBuilder:
-                          (context, animation, secondaryAnimation, child) {
+                      transitionsBuilder: (context, animation, secondaryAnimation, child) {
                         return FadeTransition(opacity: animation, child: child);
                       },
                       transitionDuration: const Duration(milliseconds: 250),
@@ -2011,8 +2012,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                     return FadeTransition(
                                         opacity: animation, child: child);
                                   },
-                                  transitionDuration:
-                                      const Duration(milliseconds: 250),
+                                  transitionDuration: const Duration(milliseconds: 250),
                                 ),
                               );
                             },
@@ -2047,8 +2047,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                     return FadeTransition(
                                         opacity: animation, child: child);
                                   },
-                                  transitionDuration:
-                                      const Duration(milliseconds: 250),
+                                  transitionDuration: const Duration(milliseconds: 250),
                                 ),
                               );
                             },
