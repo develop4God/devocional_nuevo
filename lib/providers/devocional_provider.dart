@@ -275,8 +275,9 @@ class DevocionalProvider with ChangeNotifier {
       // Usar el tracking unificado para registrar y verificar milestone
       await DevocionalesTracking()
           .recordDevocionalHeard(devocionalId, listenedPercentage);
-      // Validar si ya fue registrado
+      // Obtener stats actualizados tras registrar 'heard'
       final stats = await _statsService.getStats();
+      notifyListeners(); // Notificar a la UI de cualquier cambio
       if (stats.readDevocionalIds.contains(devocionalId)) {
         // Si ya está en la lista de leídos/escuchados => ya fue registrado
         return 'ya_registrado';
@@ -815,6 +816,23 @@ class DevocionalProvider with ChangeNotifier {
   void stop() {}
 
   void speakDevocional(String s) {}
+
+  /// Devuelve la lista de devocionales no leídos según los IDs guardados en stats
+  Future<List<Devocional>> getDevocionalesNoLeidos() async {
+    final stats = await _statsService.getStats();
+    final leidos = stats.readDevocionalIds.toSet();
+    final noLeidos =
+        _filteredDevocionales.where((d) => !leidos.contains(d.id)).toList();
+    debugPrint(
+        '🔎 [NO LEÍDOS] Devocionales no leídos: [1m${noLeidos.length}[0m');
+    if (noLeidos.isNotEmpty) {
+      debugPrint(
+          '📖 [PRIMEROS] Mostrando: ${noLeidos.take(3).map((d) => d.id).toList()}');
+    } else {
+      debugPrint('🎉 [COMPLETADO] ¡No hay devocionales pendientes!');
+    }
+    return noLeidos;
+  }
 }
 
 // ========== READING TRACKER ==========

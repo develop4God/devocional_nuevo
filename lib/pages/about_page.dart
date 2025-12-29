@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AboutPage extends StatefulWidget {
   const AboutPage({super.key});
@@ -18,14 +19,18 @@ class AboutPage extends StatefulWidget {
 
 class _AboutPageState extends State<AboutPage> {
   String _appVersion = 'about.loading_version'.tr();
+  int _iconTapCount = 0;
+  static const int _tapThreshold = 7;
+  bool _developerMode = false;
 
   @override
   void initState() {
     super.initState();
     _initPackageInfo();
+    _loadDeveloperMode();
   }
 
-  // Método para obtener la versión de la aplicación
+  // Metodo para obtener la versión de la aplicación
   Future<void> _initPackageInfo() async {
     final PackageInfo info = await PackageInfo.fromPlatform();
     setState(() {
@@ -33,7 +38,38 @@ class _AboutPageState extends State<AboutPage> {
     });
   }
 
-  // Método para lanzar URL externas
+  Future<void> _loadDeveloperMode() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _developerMode = prefs.getBool('developerMode') ?? false;
+    });
+  }
+
+  Future<void> _setDeveloperMode(bool enabled) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('developerMode', enabled);
+    setState(() {
+      _developerMode = enabled;
+    });
+  }
+
+  void _onIconTapped() async {
+    if (_developerMode) return;
+    _iconTapCount++;
+    if (_iconTapCount >= _tapThreshold) {
+      await _setDeveloperMode(true);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Modo desarrollador activado'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    }
+  }
+
+  // Metodo para lanzar URL externas
   Future<void> _launchURL(String url) async {
     final Uri uri = Uri.parse(url);
     if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
@@ -67,13 +103,39 @@ class _AboutPageState extends State<AboutPage> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: <Widget>[
                 // Ícono de la Aplicación
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(20.0),
-                  child: Image.asset(
-                    'assets/icons/app_icon.png',
-                    width: 100,
-                    height: 100,
-                    fit: BoxFit.cover,
+                GestureDetector(
+                  onTap: _onIconTapped,
+                  child: Stack(
+                    alignment: Alignment.topRight,
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(20.0),
+                        child: Image.asset(
+                          'assets/icons/app_icon.png',
+                          width: 100,
+                          height: 100,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      if (_developerMode)
+                        Container(
+                          margin: const EdgeInsets.only(top: 4, right: 4),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: Colors.red.shade700,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Text(
+                            'DEV',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -188,6 +250,21 @@ class _AboutPageState extends State<AboutPage> {
                     ),
                   ),
                 ),
+                if (_developerMode)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 16.0, bottom: 8.0),
+                    child: ElevatedButton.icon(
+                      icon: const Icon(Icons.bug_report, color: Colors.white),
+                      label: const Text('Debug Tools'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red.shade700,
+                        foregroundColor: Colors.white,
+                      ),
+                      onPressed: () {
+                        Navigator.of(context).pushNamed('/debug');
+                      },
+                    ),
+                  ),
                 const SizedBox(height: 16),
               ],
             ),

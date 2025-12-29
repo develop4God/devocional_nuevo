@@ -1,6 +1,7 @@
 import com.android.build.gradle.LibraryExtension
 import com.android.build.gradle.AppExtension
 import org.gradle.kotlin.dsl.configure
+import org.gradle.api.file.Directory // Importar Directory para resolver el error si no está
 
 buildscript {
     repositories {
@@ -9,6 +10,8 @@ buildscript {
     }
     dependencies {
         classpath("com.google.gms:google-services:4.4.3")
+        // ¡Añade esta línea para el plugin de Crashlytics!
+        classpath("com.google.firebase:firebase-crashlytics-gradle:2.9.9") // Asegúrate de usar la versión más reciente
     }
 }
 

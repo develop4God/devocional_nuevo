@@ -9,6 +9,8 @@ plugins {
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
     id("com.google.gms.google-services")
+    // ¡Añade esta línea para el plugin de Crashlytics!
+    id("com.google.firebase.crashlytics")
 }
 
 // INICIO DEL BLOQUE DE CARGA DE PROPIEDADES
@@ -124,4 +126,6 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:34.4.0"))
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-messaging")
+    // ¡Añade esta línea para la dependencia de Crashlytics!
+    implementation("com.google.firebase:firebase-crashlytics")
 }
