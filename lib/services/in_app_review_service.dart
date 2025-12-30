@@ -252,7 +252,6 @@ class InAppReviewService {
 
         // NOTA: Google puede decidir no mostrar el diálogo por sus políticas de cuota
         // Si eso pasa, automáticamente abrirá la Play Store
-
       } else {
         // Si no está disponible, abrir Play Store directamente
         debugPrint('🌐 InAppReview: Native not available, opening Play Store');
@@ -267,7 +266,6 @@ class InAppReviewService {
       }
     }
   }
-
 
   /// Opens Play Store for the app
   static Future<void> _openPlayStore() async {

@@ -281,7 +281,8 @@ class DevocionalProvider with ChangeNotifier {
         );
 
         if (useBloc) {
-          developer.log('[PROVIDER] Using BLoC tracking', name: 'DevocionalProvider');
+          developer.log('[PROVIDER] Using BLoC tracking',
+              name: 'DevocionalProvider');
           try {
             // TODO: BLoC tracking logic
             await analytics.logCustomEvent(
@@ -303,7 +304,8 @@ class DevocionalProvider with ChangeNotifier {
             );
           }
         } else {
-          developer.log('[PROVIDER] Using legacy tracking', name: 'DevocionalProvider');
+          developer.log('[PROVIDER] Using legacy tracking',
+              name: 'DevocionalProvider');
           await analytics.logCustomEvent(
             eventName: 'devotional_legacy_success',
             parameters: {'devocional_id': devocionalId},

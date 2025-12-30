@@ -133,4 +133,3 @@ class _FakeRemoteConfigValue_0 extends _i1.SmartFake
           parentInvocation,
         );
 }
-

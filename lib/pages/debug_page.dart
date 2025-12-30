@@ -96,8 +96,8 @@ class DebugPage extends StatelessWidget {
           await InAppReviewService.requestInAppReview(context);
         },
         backgroundColor: Colors.deepPurple,
-        child: const Icon(Icons.reviews_rounded),
         tooltip: 'Abrir diálogo de evaluación',
+        child: const Icon(Icons.reviews_rounded),
       ),
     );
   }

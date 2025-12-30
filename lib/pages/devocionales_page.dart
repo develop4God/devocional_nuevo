@@ -1547,7 +1547,8 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                     PageRouteBuilder(
                       pageBuilder: (context, animation, secondaryAnimation) =>
                           const ProgressPage(),
-                      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                      transitionsBuilder:
+                          (context, animation, secondaryAnimation, child) {
                         return FadeTransition(opacity: animation, child: child);
                       },
                       transitionDuration: const Duration(milliseconds: 250),
@@ -1579,7 +1580,8 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                     PageRouteBuilder(
                       pageBuilder: (context, animation, secondaryAnimation) =>
                           const SettingsPage(),
-                      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                      transitionsBuilder:
+                          (context, animation, secondaryAnimation, child) {
                         return FadeTransition(opacity: animation, child: child);
                       },
                       transitionDuration: const Duration(milliseconds: 250),
@@ -2012,7 +2014,8 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                     return FadeTransition(
                                         opacity: animation, child: child);
                                   },
-                                  transitionDuration: const Duration(milliseconds: 250),
+                                  transitionDuration:
+                                      const Duration(milliseconds: 250),
                                 ),
                               );
                             },
@@ -2047,7 +2050,8 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                     return FadeTransition(
                                         opacity: animation, child: child);
                                   },
-                                  transitionDuration: const Duration(milliseconds: 250),
+                                  transitionDuration:
+                                      const Duration(milliseconds: 250),
                                 ),
                               );
                             },

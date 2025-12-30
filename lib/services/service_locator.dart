@@ -121,8 +121,8 @@ void setupServiceLocator() {
   // This service manages feature flags from Firebase Remote Config
   // Migrated to DI pattern for better testability and maintainability
   // Uses factory constructor to enforce DI-only instantiation
-  locator.registerLazySingleton<RemoteConfigService>(
-      RemoteConfigService.create);
+  locator
+      .registerLazySingleton<RemoteConfigService>(RemoteConfigService.create);
 
   // Add more service registrations here as needed
   // Example:

@@ -292,8 +292,8 @@ class SpiritualStatsService {
     }
 
     final bool meetsReadingCriteria =
-        (readingTimeSeconds >= 60 && scrollPercentage >= 0.8) ||
-            (listenedPercentage >= 0.8);
+        (readingTimeSeconds >= 40 && scrollPercentage >= 0.6) ||
+            (listenedPercentage >= 0.6);
 
     debugPrint(
         '🎯 [STATS] Criterios: tiempo=$readingTimeSeconds, scroll=$scrollPercentage, escuchado=$listenedPercentage, cumple=$meetsReadingCriteria');
