@@ -103,9 +103,26 @@ class VoiceSettingsService {
         'fr': ['fr-fr-x-frd-local', 'fr-fr-x-frd-network', 'fr-fr-x-vlf-local'],
         'ja': ['ja-jp-x-jac-local', 'ja-jp-x-jad-local', 'ja-jp-x-jac-network'],
         'zh': [
-          'cmn-cn-x-cce-local', 'cmn-cn-x-ssa-local', 'cmn-cn-x-ccc-local', 'cmn-cn-x-ccd-local', 'cmn-cn-x-cce-network', 'cmn-cn-x-ssa-network', 'cmn-cn-x-ccc-network', 'cmn-cn-x-ccd-network',
-          'zh-CN-language', 'zh-TW-language', 'cmn-tw-x-ctd-local', 'cmn-tw-x-cte-local', 'cmn-tw-x-ctc-local', 'cmn-tw-x-ctd-network', 'cmn-tw-x-cte-network', 'cmn-tw-x-ctc-network',
-          'yue-hk-x-yue-local', 'yue-hk-x-yue-network', 'yue-hk-x-yud-local', 'yue-hk-x-yud-network', 'yue-hk-x-yuf-local', 'yue-hk-x-yuf-network', 'yue-hk-x-jar-local', 'yue-hk-x-jar-network'
+          'cmn-cn-x-cce-local', // Voz masculina China por defecto
+          'cmn-cn-x-ccc-local', // Voz femenina China por defecto
+          'cmn-cn-x-cce-network',
+          'cmn-cn-x-ccc-network',
+          'zh-CN-language',
+          'zh-TW-language',
+          'cmn-tw-x-ctd-local',
+          'cmn-tw-x-cte-local',
+          'cmn-tw-x-ctc-local',
+          'cmn-tw-x-ctd-network',
+          'cmn-tw-x-cte-network',
+          'cmn-tw-x-ctc-network',
+          'yue-hk-x-yue-local',
+          'yue-hk-x-yue-network',
+          'yue-hk-x-yud-local',
+          'yue-hk-x-yud-network',
+          'yue-hk-x-yuf-local',
+          'yue-hk-x-yuf-network',
+          'yue-hk-x-jar-local',
+          'yue-hk-x-jar-network'
         ],
       };
       final preferredVoices = preferredMaleVoices[language] ?? [];
@@ -127,10 +144,12 @@ class VoiceSettingsService {
       }
 
       // Fallback to first available voice if no preferred voice found
-      selectedVoice ??= filtered.first;
+      selectedVoice ??= filtered.isNotEmpty ? filtered.first : null;
 
-      final name = selectedVoice['name'] as String? ?? '';
-      final locale = selectedVoice['locale'] as String? ?? '';
+      final name =
+          selectedVoice != null ? selectedVoice['name'] as String? ?? '' : '';
+      final locale =
+          selectedVoice != null ? selectedVoice['locale'] as String? ?? '' : '';
       final friendlyName = getFriendlyVoiceName(language, name);
       debugPrint(
           '🎵🔊 [autoAssignDefaultVoice] → Asignada: name="$name" ($friendlyName), locale="$locale" para $language');

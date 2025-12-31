@@ -113,21 +113,21 @@ void main() {
       await statsService.recordDevocionalRead(
         devocionalId: '${devocionalId}_short_time',
         readingTimeSeconds: 35, // Below 40s threshold
-        scrollPercentage: 80.0, // Above 60% threshold
+        scrollPercentage: 0.8, // Above 60% threshold
       );
 
       // Test case 2: Below minimum scroll percentage (should NOT count)
       await statsService.recordDevocionalRead(
         devocionalId: '${devocionalId}_low_scroll',
         readingTimeSeconds: 60, // Above 40s threshold
-        scrollPercentage: 55.0, // Below 60% threshold
+        scrollPercentage: 0.55, // Below 60% threshold
       );
 
       // Test case 3: Meets both criteria (should count)
       await statsService.recordDevocionalRead(
         devocionalId: '${devocionalId}_valid',
         readingTimeSeconds: 60, // Above 40s threshold
-        scrollPercentage: 80.0, // Above 60% threshold
+        scrollPercentage: 0.8, // Above 60% threshold
       );
 
       final stats = await statsService.getStats();
@@ -147,19 +147,19 @@ void main() {
       await statsService.recordDevocionalRead(
         devocionalId: '${devocionalId}_exact_40s',
         readingTimeSeconds: 40, // Exactly 40s
-        scrollPercentage: 60.0, // Exactly 60%
+        scrollPercentage: 0.6, // Exactly 60%
       );
 
       await statsService.recordDevocionalRead(
         devocionalId: '${devocionalId}_just_above',
         readingTimeSeconds: 41, // Just above 40s
-        scrollPercentage: 60.1, // Just above 60%
+        scrollPercentage: 0.601, // Just above 60%
       );
 
       await statsService.recordDevocionalRead(
         devocionalId: '${devocionalId}_just_below',
         readingTimeSeconds: 39, // Just below 40s
-        scrollPercentage: 59.9, // Just below 60%
+        scrollPercentage: 0.599, // Just below 60%
       );
 
       final stats = await statsService.getStats();
@@ -179,14 +179,14 @@ void main() {
       await statsService.recordDevocionalRead(
         devocionalId: 'streak_day_1',
         readingTimeSeconds: 40,
-        scrollPercentage: 60.0,
+        scrollPercentage: 0.6,
       );
 
       // Simulate reading from yesterday (this would require date manipulation in real service)
       await statsService.recordDevocionalRead(
         devocionalId: 'streak_day_2',
         readingTimeSeconds: 40,
-        scrollPercentage: 60.0,
+        scrollPercentage: 0.6,
       );
 
       final stats = await statsService.getStats();
@@ -206,7 +206,7 @@ void main() {
         futures.add(statsService.recordDevocionalRead(
           devocionalId: 'concurrent_test_$i',
           readingTimeSeconds: 40,
-          scrollPercentage: 60.0,
+          scrollPercentage: 0.6,
         ));
       }
 
@@ -269,7 +269,7 @@ void main() {
       await statsService.recordDevocionalRead(
         devocionalId: devocionalId,
         readingTimeSeconds: 40,
-        scrollPercentage: 60.0,
+        scrollPercentage: 0.6,
         favoritesCount: 5,
       );
 
@@ -333,7 +333,7 @@ void main() {
       await statsService.recordDevocionalRead(
         devocionalId: testDevocionalId,
         readingTimeSeconds: 60,
-        scrollPercentage: 80.0,
+        scrollPercentage: 0.8,
       );
 
       // Create new instance and check persistence
