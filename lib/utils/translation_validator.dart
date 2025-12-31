@@ -82,7 +82,8 @@ void main(List<String> args) async {
     insertMissingKeys(referenceJson, targetJson);
 
     stdout.writeln(
-        '==== TRANSLATION VALIDATION AND COMPLETION REPORT ($lang) ====');
+      '==== TRANSLATION VALIDATION AND COMPLETION REPORT ($lang) ====',
+    );
     if (missingKeys.isEmpty && incompleteKeys.isEmpty) {
       stdout.writeln('✅ All keys are present and complete.');
     } else {
@@ -101,11 +102,13 @@ void main(List<String> args) async {
     }
 
     // Save the updated target file with missing keys
-    await targetFile
-        .writeAsString(JsonEncoder.withIndent('  ').convert(targetJson));
+    await targetFile.writeAsString(
+      JsonEncoder.withIndent('  ').convert(targetJson),
+    );
     if (pendingCount > 0) {
       stdout.writeln(
-          '✅ $lang.json updated: $pendingCount new keys added as "PENDING".');
+        '✅ $lang.json updated: $pendingCount new keys added as "PENDING".',
+      );
     } else {
       stdout.writeln('ℹ️ No new keys added. $lang.json was already complete.');
     }

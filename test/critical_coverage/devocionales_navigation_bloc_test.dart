@@ -42,8 +42,9 @@ void main() {
     mockDevocionalRepository = MockDevocionalRepository();
 
     // Default stub for saveCurrentIndex to prevent errors
-    when(() => mockNavigationRepository.saveCurrentIndex(any()))
-        .thenAnswer((_) async => {});
+    when(
+      () => mockNavigationRepository.saveCurrentIndex(any()),
+    ).thenAnswer((_) async => {});
   });
 
   group('DevocionalesNavigationBloc - Initial State', () {
@@ -75,7 +76,10 @@ void main() {
             .having((s) => s.currentIndex, 'currentIndex', 0)
             .having((s) => s.totalDevocionales, 'totalDevocionales', 10)
             .having(
-                (s) => s.currentDevocional.id, 'currentDevocional.id', 'dev_0')
+              (s) => s.currentDevocional.id,
+              'currentDevocional.id',
+              'dev_0',
+            )
             .having((s) => s.devocionales.length, 'devocionales.length', 10)
             .having((s) => s.canNavigateNext, 'canNavigateNext', true)
             .having((s) => s.canNavigatePrevious, 'canNavigatePrevious', false),
@@ -123,7 +127,10 @@ void main() {
             .having((s) => s.currentIndex, 'currentIndex', 9) // Clamped to last
             .having((s) => s.totalDevocionales, 'totalDevocionales', 10)
             .having(
-                (s) => s.currentDevocional.id, 'currentDevocional.id', 'dev_9'),
+              (s) => s.currentDevocional.id,
+              'currentDevocional.id',
+              'dev_9',
+            ),
       ],
       verify: (_) {
         verify(() => mockNavigationRepository.saveCurrentIndex(9)).called(1);
@@ -145,10 +152,16 @@ void main() {
       expect: () => [
         isA<NavigationReady>()
             .having(
-                (s) => s.currentIndex, 'currentIndex', 0) // Clamped to first
+              (s) => s.currentIndex,
+              'currentIndex',
+              0,
+            ) // Clamped to first
             .having((s) => s.totalDevocionales, 'totalDevocionales', 10)
             .having(
-                (s) => s.currentDevocional.id, 'currentDevocional.id', 'dev_0'),
+              (s) => s.currentDevocional.id,
+              'currentDevocional.id',
+              'dev_0',
+            ),
       ],
       verify: (_) {
         verify(() => mockNavigationRepository.saveCurrentIndex(0)).called(1);
@@ -171,7 +184,10 @@ void main() {
         isA<NavigationReady>()
             .having((s) => s.currentIndex, 'currentIndex', 5)
             .having(
-                (s) => s.currentDevocional.id, 'currentDevocional.id', 'dev_5')
+              (s) => s.currentDevocional.id,
+              'currentDevocional.id',
+              'dev_5',
+            )
             .having((s) => s.canNavigateNext, 'canNavigateNext', true)
             .having((s) => s.canNavigatePrevious, 'canNavigatePrevious', true),
       ],
@@ -200,7 +216,10 @@ void main() {
         isA<NavigationReady>()
             .having((s) => s.currentIndex, 'currentIndex', 6)
             .having(
-                (s) => s.currentDevocional.id, 'currentDevocional.id', 'dev_6')
+              (s) => s.currentDevocional.id,
+              'currentDevocional.id',
+              'dev_6',
+            )
             .having((s) => s.totalDevocionales, 'totalDevocionales', 10),
       ],
       verify: (_) {
@@ -246,7 +265,10 @@ void main() {
         isA<NavigationReady>()
             .having((s) => s.currentIndex, 'currentIndex', 1)
             .having(
-                (s) => s.currentDevocional.id, 'currentDevocional.id', 'dev_1')
+              (s) => s.currentDevocional.id,
+              'currentDevocional.id',
+              'dev_1',
+            )
             .having((s) => s.canNavigateNext, 'canNavigateNext', true)
             .having((s) => s.canNavigatePrevious, 'canNavigatePrevious', true),
       ],
@@ -288,7 +310,10 @@ void main() {
         isA<NavigationReady>()
             .having((s) => s.currentIndex, 'currentIndex', 4)
             .having(
-                (s) => s.currentDevocional.id, 'currentDevocional.id', 'dev_4')
+              (s) => s.currentDevocional.id,
+              'currentDevocional.id',
+              'dev_4',
+            )
             .having((s) => s.totalDevocionales, 'totalDevocionales', 10),
       ],
       verify: (_) {
@@ -334,7 +359,10 @@ void main() {
         isA<NavigationReady>()
             .having((s) => s.currentIndex, 'currentIndex', 8)
             .having(
-                (s) => s.currentDevocional.id, 'currentDevocional.id', 'dev_8')
+              (s) => s.currentDevocional.id,
+              'currentDevocional.id',
+              'dev_8',
+            )
             .having((s) => s.canNavigateNext, 'canNavigateNext', true)
             .having((s) => s.canNavigatePrevious, 'canNavigatePrevious', true),
       ],
@@ -363,7 +391,10 @@ void main() {
         isA<NavigationReady>()
             .having((s) => s.currentIndex, 'currentIndex', 7)
             .having(
-                (s) => s.currentDevocional.id, 'currentDevocional.id', 'dev_7')
+              (s) => s.currentDevocional.id,
+              'currentDevocional.id',
+              'dev_7',
+            )
             .having((s) => s.totalDevocionales, 'totalDevocionales', 10),
       ],
       verify: (_) {
@@ -389,7 +420,10 @@ void main() {
         isA<NavigationReady>()
             .having((s) => s.currentIndex, 'currentIndex', 9) // Clamped to last
             .having(
-                (s) => s.currentDevocional.id, 'currentDevocional.id', 'dev_9')
+              (s) => s.currentDevocional.id,
+              'currentDevocional.id',
+              'dev_9',
+            )
             .having((s) => s.totalDevocionales, 'totalDevocionales', 10),
       ],
       verify: (_) {
@@ -414,9 +448,15 @@ void main() {
       expect: () => [
         isA<NavigationReady>()
             .having(
-                (s) => s.currentIndex, 'currentIndex', 0) // Clamped to first
+              (s) => s.currentIndex,
+              'currentIndex',
+              0,
+            ) // Clamped to first
             .having(
-                (s) => s.currentDevocional.id, 'currentDevocional.id', 'dev_0')
+              (s) => s.currentDevocional.id,
+              'currentDevocional.id',
+              'dev_0',
+            )
             .having((s) => s.totalDevocionales, 'totalDevocionales', 10),
       ],
       verify: (_) {
@@ -453,10 +493,12 @@ void main() {
         devocionalRepository: mockDevocionalRepository,
       ),
       setUp: () {
-        when(() => mockDevocionalRepository.findFirstUnreadDevocionalIndex(
-              any(),
-              any(),
-            )).thenReturn(3);
+        when(
+          () => mockDevocionalRepository.findFirstUnreadDevocionalIndex(
+            any(),
+            any(),
+          ),
+        ).thenReturn(3);
       },
       seed: () {
         final devocionales = createTestDevocionales(10);
@@ -471,14 +513,20 @@ void main() {
         isA<NavigationReady>()
             .having((s) => s.currentIndex, 'currentIndex', 3)
             .having(
-                (s) => s.currentDevocional.id, 'currentDevocional.id', 'dev_3'),
+              (s) => s.currentDevocional.id,
+              'currentDevocional.id',
+              'dev_3',
+            ),
       ],
       verify: (_) {
         verify(() => mockNavigationRepository.saveCurrentIndex(3)).called(1);
-        verify(() => mockDevocionalRepository.findFirstUnreadDevocionalIndex(
-              any(),
-              ['dev_0', 'dev_1', 'dev_2'],
-            )).called(1);
+        verify(
+          () => mockDevocionalRepository.findFirstUnreadDevocionalIndex(any(), [
+            'dev_0',
+            'dev_1',
+            'dev_2',
+          ]),
+        ).called(1);
       },
     );
 
@@ -489,10 +537,12 @@ void main() {
         devocionalRepository: mockDevocionalRepository,
       ),
       setUp: () {
-        when(() => mockDevocionalRepository.findFirstUnreadDevocionalIndex(
-              any(),
-              any(),
-            )).thenReturn(3);
+        when(
+          () => mockDevocionalRepository.findFirstUnreadDevocionalIndex(
+            any(),
+            any(),
+          ),
+        ).thenReturn(3);
       },
       seed: () {
         final devocionales = createTestDevocionales(10);
@@ -506,10 +556,13 @@ void main() {
       expect: () => [], // No state change
       verify: (_) {
         verifyNever(() => mockNavigationRepository.saveCurrentIndex(any()));
-        verify(() => mockDevocionalRepository.findFirstUnreadDevocionalIndex(
-              any(),
-              ['dev_0', 'dev_1', 'dev_2'],
-            )).called(1);
+        verify(
+          () => mockDevocionalRepository.findFirstUnreadDevocionalIndex(any(), [
+            'dev_0',
+            'dev_1',
+            'dev_2',
+          ]),
+        ).called(1);
       },
     );
   });
@@ -562,10 +615,16 @@ void main() {
       expect: () => [
         isA<NavigationReady>()
             .having(
-                (s) => s.currentIndex, 'currentIndex', 4) // Clamped to new last
+              (s) => s.currentIndex,
+              'currentIndex',
+              4,
+            ) // Clamped to new last
             .having((s) => s.totalDevocionales, 'totalDevocionales', 5)
             .having(
-                (s) => s.currentDevocional.id, 'currentDevocional.id', 'dev_4'),
+              (s) => s.currentDevocional.id,
+              'currentDevocional.id',
+              'dev_4',
+            ),
       ],
       verify: (_) {
         verify(() => mockNavigationRepository.saveCurrentIndex(4)).called(1);
@@ -609,7 +668,8 @@ void main() {
       act: (bloc) async {
         final devocionales = createTestDevocionales(10);
         bloc.add(
-            InitializeNavigation(initialIndex: 0, devocionales: devocionales));
+          InitializeNavigation(initialIndex: 0, devocionales: devocionales),
+        );
         await Future.delayed(const Duration(milliseconds: 50));
         bloc.add(const NavigateToNext());
         await Future.delayed(const Duration(milliseconds: 50));
@@ -621,19 +681,31 @@ void main() {
         isA<NavigationReady>()
             .having((s) => s.currentIndex, 'currentIndex', 0)
             .having(
-                (s) => s.currentDevocional.id, 'currentDevocional.id', 'dev_0'),
+              (s) => s.currentDevocional.id,
+              'currentDevocional.id',
+              'dev_0',
+            ),
         isA<NavigationReady>()
             .having((s) => s.currentIndex, 'currentIndex', 1)
             .having(
-                (s) => s.currentDevocional.id, 'currentDevocional.id', 'dev_1'),
+              (s) => s.currentDevocional.id,
+              'currentDevocional.id',
+              'dev_1',
+            ),
         isA<NavigationReady>()
             .having((s) => s.currentIndex, 'currentIndex', 2)
             .having(
-                (s) => s.currentDevocional.id, 'currentDevocional.id', 'dev_2'),
+              (s) => s.currentDevocional.id,
+              'currentDevocional.id',
+              'dev_2',
+            ),
         isA<NavigationReady>()
             .having((s) => s.currentIndex, 'currentIndex', 1)
             .having(
-                (s) => s.currentDevocional.id, 'currentDevocional.id', 'dev_1'),
+              (s) => s.currentDevocional.id,
+              'currentDevocional.id',
+              'dev_1',
+            ),
       ],
     );
 
@@ -646,7 +718,8 @@ void main() {
       act: (bloc) async {
         final devocionales = createTestDevocionales(5);
         bloc.add(
-            InitializeNavigation(initialIndex: 0, devocionales: devocionales));
+          InitializeNavigation(initialIndex: 0, devocionales: devocionales),
+        );
         await Future.delayed(const Duration(milliseconds: 50));
         bloc.add(const NavigateToIndex(4)); // Jump to last
         await Future.delayed(const Duration(milliseconds: 50));
@@ -658,15 +731,24 @@ void main() {
         isA<NavigationReady>()
             .having((s) => s.currentIndex, 'currentIndex', 0)
             .having(
-                (s) => s.currentDevocional.id, 'currentDevocional.id', 'dev_0'),
+              (s) => s.currentDevocional.id,
+              'currentDevocional.id',
+              'dev_0',
+            ),
         isA<NavigationReady>()
             .having((s) => s.currentIndex, 'currentIndex', 4)
             .having(
-                (s) => s.currentDevocional.id, 'currentDevocional.id', 'dev_4'),
+              (s) => s.currentDevocional.id,
+              'currentDevocional.id',
+              'dev_4',
+            ),
         isA<NavigationReady>()
             .having((s) => s.currentIndex, 'currentIndex', 0)
             .having(
-                (s) => s.currentDevocional.id, 'currentDevocional.id', 'dev_0'),
+              (s) => s.currentDevocional.id,
+              'currentDevocional.id',
+              'dev_0',
+            ),
       ],
     );
 
@@ -679,7 +761,8 @@ void main() {
       act: (bloc) async {
         final devocionales = createTestDevocionales(10);
         bloc.add(
-            InitializeNavigation(initialIndex: 9, devocionales: devocionales));
+          InitializeNavigation(initialIndex: 9, devocionales: devocionales),
+        );
         await Future.delayed(const Duration(milliseconds: 50));
         bloc.add(const NavigateToNext()); // At last, should not emit
         await Future.delayed(const Duration(milliseconds: 50));
@@ -701,7 +784,8 @@ void main() {
       act: (bloc) async {
         final devocionales = createTestDevocionales(10);
         bloc.add(
-            InitializeNavigation(initialIndex: 0, devocionales: devocionales));
+          InitializeNavigation(initialIndex: 0, devocionales: devocionales),
+        );
         await Future.delayed(const Duration(milliseconds: 50));
         bloc.add(const NavigateToPrevious()); // At first, should not emit
         await Future.delayed(const Duration(milliseconds: 50));
@@ -779,53 +863,57 @@ void main() {
   });
 
   group('DevocionalesNavigationBloc - State Equality and Copyability', () {
-    test('NavigationReady copyWith creates new instance with updated values',
-        () {
-      final devocionales = createTestDevocionales(10);
-      final original = NavigationReady.calculate(
-        currentIndex: 5,
-        devocionales: devocionales,
-      );
+    test(
+      'NavigationReady copyWith creates new instance with updated values',
+      () {
+        final devocionales = createTestDevocionales(10);
+        final original = NavigationReady.calculate(
+          currentIndex: 5,
+          devocionales: devocionales,
+        );
 
-      final copied = original.copyWith(currentIndex: 6);
+        final copied = original.copyWith(currentIndex: 6);
 
-      expect(copied.currentIndex, 6);
-      expect(copied.totalDevocionales, 10);
-      expect(copied.canNavigateNext, original.canNavigateNext);
-      expect(copied.canNavigatePrevious, original.canNavigatePrevious);
-    });
+        expect(copied.currentIndex, 6);
+        expect(copied.totalDevocionales, 10);
+        expect(copied.canNavigateNext, original.canNavigateNext);
+        expect(copied.canNavigatePrevious, original.canNavigatePrevious);
+      },
+    );
 
-    test('NavigationReady.calculate sets navigation capabilities correctly',
-        () {
-      final devocionales = createTestDevocionales(10);
+    test(
+      'NavigationReady.calculate sets navigation capabilities correctly',
+      () {
+        final devocionales = createTestDevocionales(10);
 
-      // At start
-      final atStart = NavigationReady.calculate(
-        currentIndex: 0,
-        devocionales: devocionales,
-      );
-      expect(atStart.canNavigateNext, true);
-      expect(atStart.canNavigatePrevious, false);
-      expect(atStart.currentDevocional.id, 'dev_0');
+        // At start
+        final atStart = NavigationReady.calculate(
+          currentIndex: 0,
+          devocionales: devocionales,
+        );
+        expect(atStart.canNavigateNext, true);
+        expect(atStart.canNavigatePrevious, false);
+        expect(atStart.currentDevocional.id, 'dev_0');
 
-      // In middle
-      final inMiddle = NavigationReady.calculate(
-        currentIndex: 5,
-        devocionales: devocionales,
-      );
-      expect(inMiddle.canNavigateNext, true);
-      expect(inMiddle.canNavigatePrevious, true);
-      expect(inMiddle.currentDevocional.id, 'dev_5');
+        // In middle
+        final inMiddle = NavigationReady.calculate(
+          currentIndex: 5,
+          devocionales: devocionales,
+        );
+        expect(inMiddle.canNavigateNext, true);
+        expect(inMiddle.canNavigatePrevious, true);
+        expect(inMiddle.currentDevocional.id, 'dev_5');
 
-      // At end
-      final atEnd = NavigationReady.calculate(
-        currentIndex: 9,
-        devocionales: devocionales,
-      );
-      expect(atEnd.canNavigateNext, false);
-      expect(atEnd.canNavigatePrevious, true);
-      expect(atEnd.currentDevocional.id, 'dev_9');
-    });
+        // At end
+        final atEnd = NavigationReady.calculate(
+          currentIndex: 9,
+          devocionales: devocionales,
+        );
+        expect(atEnd.canNavigateNext, false);
+        expect(atEnd.canNavigatePrevious, true);
+        expect(atEnd.currentDevocional.id, 'dev_9');
+      },
+    );
 
     test('NavigationError contains error message', () {
       const state = NavigationError('Test error');
@@ -855,8 +943,9 @@ void main() {
 
   group('DevocionalesNavigationBloc - Repository Integration', () {
     test('saveCurrentIndex is called through repository', () async {
-      when(() => mockNavigationRepository.saveCurrentIndex(any()))
-          .thenAnswer((_) async => {});
+      when(
+        () => mockNavigationRepository.saveCurrentIndex(any()),
+      ).thenAnswer((_) async => {});
 
       final bloc = DevocionalesNavigationBloc(
         navigationRepository: mockNavigationRepository,
@@ -865,7 +954,8 @@ void main() {
 
       final devocionales = createTestDevocionales(10);
       bloc.add(
-          InitializeNavigation(initialIndex: 3, devocionales: devocionales));
+        InitializeNavigation(initialIndex: 3, devocionales: devocionales),
+      );
       await Future.delayed(const Duration(milliseconds: 100));
 
       verify(() => mockNavigationRepository.saveCurrentIndex(3)).called(1);
@@ -874,8 +964,9 @@ void main() {
     });
 
     test('loadCurrentIndex returns value from repository', () async {
-      when(() => mockNavigationRepository.loadCurrentIndex())
-          .thenAnswer((_) async => 5);
+      when(
+        () => mockNavigationRepository.loadCurrentIndex(),
+      ).thenAnswer((_) async => 5);
 
       final index = await mockNavigationRepository.loadCurrentIndex();
       expect(index, 5);
@@ -883,8 +974,9 @@ void main() {
     });
 
     test('loadCurrentIndex returns 0 when no saved index', () async {
-      when(() => mockNavigationRepository.loadCurrentIndex())
-          .thenAnswer((_) async => 0);
+      when(
+        () => mockNavigationRepository.loadCurrentIndex(),
+      ).thenAnswer((_) async => 0);
 
       final index = await mockNavigationRepository.loadCurrentIndex();
       expect(index, 0);
@@ -896,98 +988,102 @@ void main() {
     test('returns 0 when all devotionals are unread', () {
       final devocionales = createTestDevocionales(2);
 
-      when(() => mockDevocionalRepository.findFirstUnreadDevocionalIndex(
-            devocionales,
-            [],
-          )).thenReturn(0);
+      when(
+        () => mockDevocionalRepository.findFirstUnreadDevocionalIndex(
+          devocionales,
+          [],
+        ),
+      ).thenReturn(0);
 
       final bloc = DevocionalesNavigationBloc(
         navigationRepository: mockNavigationRepository,
         devocionalRepository: mockDevocionalRepository,
       );
 
-      final index = bloc.findFirstUnreadDevocionalIndex(
-        devocionales,
-        [],
-      );
+      final index = bloc.findFirstUnreadDevocionalIndex(devocionales, []);
       expect(index, 0);
-      verify(() => mockDevocionalRepository.findFirstUnreadDevocionalIndex(
-            devocionales,
-            [],
-          )).called(1);
+      verify(
+        () => mockDevocionalRepository.findFirstUnreadDevocionalIndex(
+          devocionales,
+          [],
+        ),
+      ).called(1);
       bloc.close();
     });
 
     test('returns first unread index when some are read', () {
       final devocionales = createTestDevocionales(3);
 
-      when(() => mockDevocionalRepository.findFirstUnreadDevocionalIndex(
-            devocionales,
-            ['dev_0', 'dev_1'],
-          )).thenReturn(2);
+      when(
+        () => mockDevocionalRepository.findFirstUnreadDevocionalIndex(
+          devocionales,
+          ['dev_0', 'dev_1'],
+        ),
+      ).thenReturn(2);
 
       final bloc = DevocionalesNavigationBloc(
         navigationRepository: mockNavigationRepository,
         devocionalRepository: mockDevocionalRepository,
       );
 
-      final index = bloc.findFirstUnreadDevocionalIndex(
-        devocionales,
-        ['dev_0', 'dev_1'],
-      );
+      final index = bloc.findFirstUnreadDevocionalIndex(devocionales, [
+        'dev_0',
+        'dev_1',
+      ]);
       expect(index, 2);
-      verify(() => mockDevocionalRepository.findFirstUnreadDevocionalIndex(
-            devocionales,
-            ['dev_0', 'dev_1'],
-          )).called(1);
+      verify(
+        () => mockDevocionalRepository.findFirstUnreadDevocionalIndex(
+          devocionales,
+          ['dev_0', 'dev_1'],
+        ),
+      ).called(1);
       bloc.close();
     });
 
     test('returns 0 when all devotionals are read', () {
       final devocionales = createTestDevocionales(2);
 
-      when(() => mockDevocionalRepository.findFirstUnreadDevocionalIndex(
-            devocionales,
-            ['dev_0', 'dev_1'],
-          )).thenReturn(0);
+      when(
+        () => mockDevocionalRepository.findFirstUnreadDevocionalIndex(
+          devocionales,
+          ['dev_0', 'dev_1'],
+        ),
+      ).thenReturn(0);
 
       final bloc = DevocionalesNavigationBloc(
         navigationRepository: mockNavigationRepository,
         devocionalRepository: mockDevocionalRepository,
       );
 
-      final index = bloc.findFirstUnreadDevocionalIndex(
-        devocionales,
-        ['dev_0', 'dev_1'],
-      );
+      final index = bloc.findFirstUnreadDevocionalIndex(devocionales, [
+        'dev_0',
+        'dev_1',
+      ]);
       expect(index, 0);
-      verify(() => mockDevocionalRepository.findFirstUnreadDevocionalIndex(
-            devocionales,
-            ['dev_0', 'dev_1'],
-          )).called(1);
+      verify(
+        () => mockDevocionalRepository.findFirstUnreadDevocionalIndex(
+          devocionales,
+          ['dev_0', 'dev_1'],
+        ),
+      ).called(1);
       bloc.close();
     });
 
     test('returns 0 when devotionals list is empty', () {
-      when(() => mockDevocionalRepository.findFirstUnreadDevocionalIndex(
-            [],
-            [],
-          )).thenReturn(0);
+      when(
+        () => mockDevocionalRepository.findFirstUnreadDevocionalIndex([], []),
+      ).thenReturn(0);
 
       final bloc = DevocionalesNavigationBloc(
         navigationRepository: mockNavigationRepository,
         devocionalRepository: mockDevocionalRepository,
       );
 
-      final index = bloc.findFirstUnreadDevocionalIndex(
-        [],
-        [],
-      );
+      final index = bloc.findFirstUnreadDevocionalIndex([], []);
       expect(index, 0);
-      verify(() => mockDevocionalRepository.findFirstUnreadDevocionalIndex(
-            [],
-            [],
-          )).called(1);
+      verify(
+        () => mockDevocionalRepository.findFirstUnreadDevocionalIndex([], []),
+      ).called(1);
       bloc.close();
     });
   });

@@ -21,36 +21,35 @@ void main() {
 
       // Mock flutter_tts platform channel
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(
-        const MethodChannel('flutter_tts'),
-        (call) async {
-          switch (call.method) {
-            case 'speak':
-            case 'stop':
-            case 'pause':
-            case 'setLanguage':
-            case 'setSpeechRate':
-            case 'setVolume':
-            case 'setPitch':
-            case 'awaitSpeakCompletion':
-            case 'awaitSynthCompletion':
-              return 1;
-            case 'getVoices':
-              return [
-                {'name': 'es-ES-Standard-A', 'locale': 'es-ES'},
-                {'name': 'en-US-Standard-C', 'locale': 'en-US'},
-              ];
-            case 'getLanguages':
-              return ['es-ES', 'en-US', 'pt-BR'];
-            case 'getEngines':
-            case 'getDefaultEngine':
-            case 'isLanguageAvailable':
-              return [];
-            default:
-              return null;
-          }
-        },
-      );
+          .setMockMethodCallHandler(const MethodChannel('flutter_tts'), (
+        call,
+      ) async {
+        switch (call.method) {
+          case 'speak':
+          case 'stop':
+          case 'pause':
+          case 'setLanguage':
+          case 'setSpeechRate':
+          case 'setVolume':
+          case 'setPitch':
+          case 'awaitSpeakCompletion':
+          case 'awaitSynthCompletion':
+            return 1;
+          case 'getVoices':
+            return [
+              {'name': 'es-ES-Standard-A', 'locale': 'es-ES'},
+              {'name': 'en-US-Standard-C', 'locale': 'en-US'},
+            ];
+          case 'getLanguages':
+            return ['es-ES', 'en-US', 'pt-BR'];
+          case 'getEngines':
+          case 'getDefaultEngine':
+          case 'isLanguageAvailable':
+            return [];
+          default:
+            return null;
+        }
+      });
 
       mockTts = FlutterTts();
       controller = TtsAudioController(flutterTts: mockTts);
@@ -82,8 +81,11 @@ void main() {
         // WHEN: User changes speed (simulating UI button tap)
         // CRITICAL: In the real app, we must pause BEFORE calling cyclePlaybackRate
         await controller.pause();
-        expect(controller.state.value, TtsPlayerState.paused,
-            reason: 'MUST pause before changing speed');
+        expect(
+          controller.state.value,
+          TtsPlayerState.paused,
+          reason: 'MUST pause before changing speed',
+        );
 
         // THEN: Change speed while paused
         await controller.cyclePlaybackRate();
@@ -93,8 +95,11 @@ void main() {
         expect(controller.playbackRate.value, isNot(equals(initialSpeed)));
 
         // Verify still paused (user must manually resume)
-        expect(controller.state.value, TtsPlayerState.paused,
-            reason: 'Should remain paused until user presses play');
+        expect(
+          controller.state.value,
+          TtsPlayerState.paused,
+          reason: 'Should remain paused until user presses play',
+        );
       });
 
       test('User rapidly cycles speed - must be paused each time', () async {
@@ -154,9 +159,12 @@ void main() {
         await controller.pause();
 
         // THEN: Must be paused
-        expect(controller.state.value, TtsPlayerState.paused,
-            reason:
-                'MUST pause before opening voice selector to avoid playback conflicts');
+        expect(
+          controller.state.value,
+          TtsPlayerState.paused,
+          reason:
+              'MUST pause before opening voice selector to avoid playback conflicts',
+        );
 
         // Simulate voice selector being open (audio stays paused)
         await Future.delayed(const Duration(milliseconds: 500));
@@ -182,44 +190,47 @@ void main() {
 
     group('Complete User Flow: Speed/Voice Changes with Pause', () {
       test(
-          'User plays, changes speed (pauses), resumes, changes voice (pauses), resumes',
-          () async {
-        // Step 1: User starts playing
-        controller.setText('Reflexión completa con cambios de configuración.');
-        await controller.play();
-        await Future.delayed(const Duration(milliseconds: 500));
-        expect(controller.state.value, TtsPlayerState.playing);
+        'User plays, changes speed (pauses), resumes, changes voice (pauses), resumes',
+        () async {
+          // Step 1: User starts playing
+          controller.setText(
+            'Reflexión completa con cambios de configuración.',
+          );
+          await controller.play();
+          await Future.delayed(const Duration(milliseconds: 500));
+          expect(controller.state.value, TtsPlayerState.playing);
 
-        final speed1 = controller.playbackRate.value;
+          final speed1 = controller.playbackRate.value;
 
-        // Step 2: User changes speed - MUST PAUSE FIRST
-        await controller.pause();
-        expect(controller.state.value, TtsPlayerState.paused);
+          // Step 2: User changes speed - MUST PAUSE FIRST
+          await controller.pause();
+          expect(controller.state.value, TtsPlayerState.paused);
 
-        await controller.cyclePlaybackRate();
-        await Future.delayed(const Duration(milliseconds: 200));
+          await controller.cyclePlaybackRate();
+          await Future.delayed(const Duration(milliseconds: 200));
 
-        expect(controller.playbackRate.value, isNot(equals(speed1)));
-        expect(controller.state.value, TtsPlayerState.paused);
+          expect(controller.playbackRate.value, isNot(equals(speed1)));
+          expect(controller.state.value, TtsPlayerState.paused);
 
-        // Step 3: User resumes playback
-        await controller.play();
-        await Future.delayed(const Duration(milliseconds: 500));
-        expect(controller.state.value, TtsPlayerState.playing);
+          // Step 3: User resumes playback
+          await controller.play();
+          await Future.delayed(const Duration(milliseconds: 500));
+          expect(controller.state.value, TtsPlayerState.playing);
 
-        // Step 4: User changes voice - MUST PAUSE FIRST
-        await controller.pause();
-        expect(controller.state.value, TtsPlayerState.paused);
+          // Step 4: User changes voice - MUST PAUSE FIRST
+          await controller.pause();
+          expect(controller.state.value, TtsPlayerState.paused);
 
-        // Simulate voice selector interaction
-        await Future.delayed(const Duration(milliseconds: 300));
-        expect(controller.state.value, TtsPlayerState.paused);
+          // Simulate voice selector interaction
+          await Future.delayed(const Duration(milliseconds: 300));
+          expect(controller.state.value, TtsPlayerState.paused);
 
-        // Step 5: User resumes after voice change
-        await controller.play();
-        await Future.delayed(const Duration(milliseconds: 500));
-        expect(controller.state.value, TtsPlayerState.playing);
-      });
+          // Step 5: User resumes after voice change
+          await controller.play();
+          await Future.delayed(const Duration(milliseconds: 500));
+          expect(controller.state.value, TtsPlayerState.playing);
+        },
+      );
 
       test('Multiple configuration changes with proper pause/resume', () async {
         // GIVEN: Audio playing
@@ -271,35 +282,37 @@ void main() {
         );
       });
 
-      test('Speed change while loading - should pause first if needed',
-          () async {
-        // GIVEN: Audio is loading
-        controller.setText('Content for loading speed change');
-        final playFuture = controller.play();
-        expect(controller.state.value, TtsPlayerState.loading);
+      test(
+        'Speed change while loading - should pause first if needed',
+        () async {
+          // GIVEN: Audio is loading
+          controller.setText('Content for loading speed change');
+          final playFuture = controller.play();
+          expect(controller.state.value, TtsPlayerState.loading);
 
-        // WHEN: System pauses before changing speed (defensive)
-        if (controller.state.value == TtsPlayerState.playing ||
-            controller.state.value == TtsPlayerState.loading) {
-          await controller.pause();
-        }
+          // WHEN: System pauses before changing speed (defensive)
+          if (controller.state.value == TtsPlayerState.playing ||
+              controller.state.value == TtsPlayerState.loading) {
+            await controller.pause();
+          }
 
-        await playFuture;
-        await Future.delayed(const Duration(milliseconds: 200));
+          await playFuture;
+          await Future.delayed(const Duration(milliseconds: 200));
 
-        // THEN: Change speed safely
-        await controller.cyclePlaybackRate();
+          // THEN: Change speed safely
+          await controller.cyclePlaybackRate();
 
-        // Should be in valid state
-        expect(
-          controller.state.value,
-          isIn([
-            TtsPlayerState.paused,
-            TtsPlayerState.idle,
-            TtsPlayerState.playing,
-          ]),
-        );
-      });
+          // Should be in valid state
+          expect(
+            controller.state.value,
+            isIn([
+              TtsPlayerState.paused,
+              TtsPlayerState.idle,
+              TtsPlayerState.playing,
+            ]),
+          );
+        },
+      );
 
       test('Double pause - should be idempotent', () async {
         // GIVEN: Audio is playing
@@ -338,31 +351,33 @@ void main() {
     });
 
     group('Regression Prevention', () {
-      test('Speed change without pause would cause issues - test documents fix',
-          () async {
-        // This test documents the BUG that was fixed
-        // Previously, speed was changed while playing, causing issues
+      test(
+        'Speed change without pause would cause issues - test documents fix',
+        () async {
+          // This test documents the BUG that was fixed
+          // Previously, speed was changed while playing, causing issues
 
-        // GIVEN: Audio is playing
-        controller.setText('Test documenting the bug fix');
-        await controller.play();
-        await Future.delayed(const Duration(milliseconds: 500));
-        expect(controller.state.value, TtsPlayerState.playing);
+          // GIVEN: Audio is playing
+          controller.setText('Test documenting the bug fix');
+          await controller.play();
+          await Future.delayed(const Duration(milliseconds: 500));
+          expect(controller.state.value, TtsPlayerState.playing);
 
-        // DOCUMENTED BUG: Previously, speed was changed while playing, causing
-        // audio engine conflicts and playback stuttering/failures.
+          // DOCUMENTED BUG: Previously, speed was changed while playing, causing
+          // audio engine conflicts and playback stuttering/failures.
 
-        // THE FIX: Always pause first to avoid conflicts
-        await controller.pause();
-        expect(controller.state.value, TtsPlayerState.paused);
+          // THE FIX: Always pause first to avoid conflicts
+          await controller.pause();
+          expect(controller.state.value, TtsPlayerState.paused);
 
-        // Then change speed safely
-        await controller.cyclePlaybackRate();
-        await Future.delayed(const Duration(milliseconds: 200));
+          // Then change speed safely
+          await controller.cyclePlaybackRate();
+          await Future.delayed(const Duration(milliseconds: 200));
 
-        // Verify stable state
-        expect(controller.state.value, TtsPlayerState.paused);
-      });
+          // Verify stable state
+          expect(controller.state.value, TtsPlayerState.paused);
+        },
+      );
 
       test('Verify fix is applied: no playback during config change', () async {
         // This test verifies the fix prevents playback during configuration

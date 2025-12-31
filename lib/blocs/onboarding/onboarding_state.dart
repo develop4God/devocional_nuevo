@@ -64,7 +64,8 @@ class OnboardingStepActive extends OnboardingState {
     OnboardingProgress? progress,
   }) {
     debugPrint(
-        '[ONBOARDING_STATE] OnboardingStepActive.copyWith: userSelections=${userSelections ?? this.userSelections}');
+      '[ONBOARDING_STATE] OnboardingStepActive.copyWith: userSelections=${userSelections ?? this.userSelections}',
+    );
     return OnboardingStepActive(
       currentStepIndex: currentStepIndex ?? this.currentStepIndex,
       currentStep: currentStep ?? this.currentStep,

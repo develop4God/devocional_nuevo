@@ -15,14 +15,8 @@ void main() {
         'reflexion':
             'Este versículo nos recuerda el amor infinito de Dios por nosotros.',
         'para_meditar': [
-          {
-            'cita': 'Juan 3:16',
-            'texto': '¿Cómo experimentas el amor de Dios?',
-          },
-          {
-            'cita': 'Juan 3:17',
-            'texto': '¿Cómo respondes a este amor?',
-          },
+          {'cita': 'Juan 3:16', 'texto': '¿Cómo experimentas el amor de Dios?'},
+          {'cita': 'Juan 3:17', 'texto': '¿Cómo respondes a este amor?'},
         ],
         'oracion':
             'Señor, gracias por tu amor infinito. Ayúdame a compartirlo.',
@@ -116,9 +110,7 @@ void main() {
         id: 'roundtrip-001',
         versiculo: 'Test: ñ, é, 日本語',
         reflexion: 'Reflexión con acentos',
-        paraMeditar: [
-          ParaMeditar(cita: 'Test cita', texto: 'Texto con ñ'),
-        ],
+        paraMeditar: [ParaMeditar(cita: 'Test cita', texto: 'Texto con ñ')],
         oracion: 'Oración especial',
         date: DateTime(2025, 6, 15),
         version: 'RVR1960',
@@ -171,10 +163,7 @@ void main() {
 
   group('ParaMeditar Model Tests', () {
     test('parses ParaMeditar from JSON', () {
-      final json = {
-        'cita': 'Juan 3:16',
-        'texto': '¿Qué significa para ti?',
-      };
+      final json = {'cita': 'Juan 3:16', 'texto': '¿Qué significa para ti?'};
 
       final paraMeditar = ParaMeditar.fromJson(json);
 
@@ -183,10 +172,7 @@ void main() {
     });
 
     test('serializes ParaMeditar to JSON', () {
-      final paraMeditar = ParaMeditar(
-        cita: 'Test cita',
-        texto: 'Test texto',
-      );
+      final paraMeditar = ParaMeditar(cita: 'Test cita', texto: 'Test texto');
 
       final json = paraMeditar.toJson();
 
@@ -260,7 +246,8 @@ void main() {
     test('user searches devocionales by content', () {
       final searchResults = devocionales
           .where(
-              (d) => d.reflexion.toLowerCase().contains('amor'.toLowerCase()))
+            (d) => d.reflexion.toLowerCase().contains('amor'.toLowerCase()),
+          )
           .toList();
 
       expect(searchResults.length, equals(1));
@@ -320,10 +307,7 @@ void main() {
         reflexion: longReflexion,
         paraMeditar: List.generate(
           10,
-          (i) => ParaMeditar(
-            cita: 'Cita $i',
-            texto: 'Texto largo ' * 50,
-          ),
+          (i) => ParaMeditar(cita: 'Cita $i', texto: 'Texto largo ' * 50),
         ),
         oracion: 'Oración ' * 100,
         date: DateTime.now(),

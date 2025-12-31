@@ -24,7 +24,9 @@ class InAppReviewService {
 
   /// Main entry point - checks if should show review and displays dialog
   static Future<void> checkAndShow(
-      SpiritualStats stats, BuildContext context) async {
+    SpiritualStats stats,
+    BuildContext context,
+  ) async {
     try {
       debugPrint('🔍 InAppReview: Checking if should show review dialog');
       debugPrint('📊 Total devotionals read: ${stats.totalDevocionalesRead}');
@@ -34,8 +36,9 @@ class InAppReviewService {
         return;
       }
 
-      final shouldShow =
-          await shouldShowReviewRequest(stats.totalDevocionalesRead);
+      final shouldShow = await shouldShowReviewRequest(
+        stats.totalDevocionalesRead,
+      );
 
       if (shouldShow && context.mounted) {
         debugPrint('✅ InAppReview: Showing review dialog');
@@ -72,7 +75,8 @@ class InAppReviewService {
       final firstTimeCheckDone = prefs.getBool(_firstTimeCheckKey) ?? false;
       if (!firstTimeCheckDone && totalDevocionalesRead >= 5) {
         debugPrint(
-            '🆕 InAppReview: First time check - user has $totalDevocionalesRead devotionals');
+          '🆕 InAppReview: First time check - user has $totalDevocionalesRead devotionals',
+        );
 
         // Mark first time check as done
         await prefs.setBool(_firstTimeCheckKey, true);
@@ -80,7 +84,8 @@ class InAppReviewService {
         // Check cooldown periods before showing
         if (await _checkCooldownPeriods(prefs)) {
           debugPrint(
-              '✅ InAppReview: First time user with 5+ devotionals, showing review');
+            '✅ InAppReview: First time user with 5+ devotionals, showing review',
+          );
           return true;
         }
       }
@@ -112,14 +117,16 @@ class InAppReviewService {
     // Check global cooldown (90+ days since last request)
     final lastRequestTimestamp = prefs.getInt(_lastReviewRequestKey) ?? 0;
     if (lastRequestTimestamp > 0) {
-      final lastRequestDate =
-          DateTime.fromMillisecondsSinceEpoch(lastRequestTimestamp * 1000);
+      final lastRequestDate = DateTime.fromMillisecondsSinceEpoch(
+        lastRequestTimestamp * 1000,
+      );
       final daysSinceLastRequest =
           DateTime.now().difference(lastRequestDate).inDays;
 
       if (daysSinceLastRequest < _globalCooldownDays) {
         debugPrint(
-            'Global cooldown active ($daysSinceLastRequest/$_globalCooldownDays days)');
+          'Global cooldown active ($daysSinceLastRequest/$_globalCooldownDays days)',
+        );
         return false;
       }
     }
@@ -127,14 +134,16 @@ class InAppReviewService {
     // Check "remind later" cooldown (30+ days)
     final remindLaterTimestamp = prefs.getInt(_remindLaterDateKey) ?? 0;
     if (remindLaterTimestamp > 0) {
-      final remindLaterDate =
-          DateTime.fromMillisecondsSinceEpoch(remindLaterTimestamp * 1000);
+      final remindLaterDate = DateTime.fromMillisecondsSinceEpoch(
+        remindLaterTimestamp * 1000,
+      );
       final daysSinceRemindLater =
           DateTime.now().difference(remindLaterDate).inDays;
 
       if (daysSinceRemindLater < _remindLaterDays) {
         debugPrint(
-            'Remind later cooldown active ($daysSinceRemindLater/$_remindLaterDays days)');
+          'Remind later cooldown active ($daysSinceRemindLater/$_remindLaterDays days)',
+        );
         return false;
       }
     }
@@ -178,10 +187,7 @@ class InAppReviewService {
             ),
             content: Text(
               'review.message'.tr(),
-              style: TextStyle(
-                color: colorScheme.onSurface,
-                height: 1.4,
-              ),
+              style: TextStyle(color: colorScheme.onSurface, height: 1.4),
             ),
             actions: [
               // "Share" button - primary action
@@ -281,7 +287,8 @@ class InAppReviewService {
       // Try direct URL as fallback
       try {
         final url = Uri.parse(
-            'https://play.google.com/store/apps/details?id=com.develop4god.devocional_nuevo');
+          'https://play.google.com/store/apps/details?id=com.develop4god.devocional_nuevo',
+        );
         if (await canLaunchUrl(url)) {
           await launchUrl(url, mode: LaunchMode.externalApplication);
         }

@@ -75,9 +75,7 @@ class DevocionalesContentWidget extends StatelessWidget {
                       return const SizedBox(
                         width: 40,
                         height: 40,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                        ),
+                        child: CircularProgressIndicator(strokeWidth: 2),
                       );
                     }
                     final streak = snapshot.data ?? currentStreak;
@@ -95,10 +93,7 @@ class DevocionalesContentWidget extends StatelessWidget {
           GestureDetector(
             onTap: onVerseCopy,
             child: Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 6,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
                 // Gradiente existente
                 gradient: LinearGradient(
@@ -171,9 +166,7 @@ class DevocionalesContentWidget extends StatelessWidget {
           const SizedBox(height: 10),
           ...devocional.paraMeditar.map((item) {
             return Padding(
-              padding: const EdgeInsets.symmetric(
-                vertical: 4.0,
-              ),
+              padding: const EdgeInsets.symmetric(vertical: 4.0),
               child: Text.rich(
                 TextSpan(
                   children: [
@@ -240,9 +233,7 @@ class DevocionalesContentWidget extends StatelessWidget {
                   ),
                 if (devocional.version != null)
                   Text(
-                    'devotionals.version'.tr({
-                      'version': devocional.version,
-                    }),
+                    'devotionals.version'.tr({'version': devocional.version}),
                     style: textTheme.bodySmall?.copyWith(
                       fontSize: 14,
                       color: colorScheme.onSurface,
@@ -251,9 +242,7 @@ class DevocionalesContentWidget extends StatelessWidget {
                 const SizedBox(height: 10),
                 Center(
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: Consumer<DevocionalProvider>(
                       builder: (context, provider, child) {
                         return Text(
@@ -263,9 +252,7 @@ class DevocionalesContentWidget extends StatelessWidget {
                           ),
                           style: textTheme.bodySmall?.copyWith(
                             fontSize: 12,
-                            color: colorScheme.onSurface.withValues(
-                              alpha: 0.7,
-                            ),
+                            color: colorScheme.onSurface.withValues(alpha: 0.7),
                           ),
                           textAlign: TextAlign.center,
                         );
@@ -285,8 +272,9 @@ class DevocionalesContentWidget extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final textColor = colorScheme.onSurface;
     // Slight background for the whole badge using theme surfaceContainerHighest
-    final backgroundColor =
-        colorScheme.surfaceContainerHighest.withValues(alpha: 0.06);
+    final backgroundColor = colorScheme.surfaceContainerHighest.withValues(
+      alpha: 0.06,
+    );
 
     return Material(
       color: Colors.transparent,

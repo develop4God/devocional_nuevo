@@ -105,40 +105,46 @@ void main() {
     });
 
     // CRITICAL BUSINESS LOGIC: Reading time and scroll percentage thresholds
-    test('should validate reading criteria - minimum 40s and 60% scroll',
-        () async {
-      const devocionalId = 'criteria_test';
+    test(
+      'should validate reading criteria - minimum 40s and 60% scroll',
+      () async {
+        const devocionalId = 'criteria_test';
 
-      // Test case 1: Below minimum reading time (should NOT count)
-      await statsService.recordDevocionalRead(
-        devocionalId: '${devocionalId}_short_time',
-        readingTimeSeconds: 35, // Below 40s threshold
-        scrollPercentage: 0.8, // Above 60% threshold
-      );
+        // Test case 1: Below minimum reading time (should NOT count)
+        await statsService.recordDevocionalRead(
+          devocionalId: '${devocionalId}_short_time',
+          readingTimeSeconds: 35, // Below 40s threshold
+          scrollPercentage: 0.8, // Above 60% threshold
+        );
 
-      // Test case 2: Below minimum scroll percentage (should NOT count)
-      await statsService.recordDevocionalRead(
-        devocionalId: '${devocionalId}_low_scroll',
-        readingTimeSeconds: 60, // Above 40s threshold
-        scrollPercentage: 0.55, // Below 60% threshold
-      );
+        // Test case 2: Below minimum scroll percentage (should NOT count)
+        await statsService.recordDevocionalRead(
+          devocionalId: '${devocionalId}_low_scroll',
+          readingTimeSeconds: 60, // Above 40s threshold
+          scrollPercentage: 0.55, // Below 60% threshold
+        );
 
-      // Test case 3: Meets both criteria (should count)
-      await statsService.recordDevocionalRead(
-        devocionalId: '${devocionalId}_valid',
-        readingTimeSeconds: 60, // Above 40s threshold
-        scrollPercentage: 0.8, // Above 60% threshold
-      );
+        // Test case 3: Meets both criteria (should count)
+        await statsService.recordDevocionalRead(
+          devocionalId: '${devocionalId}_valid',
+          readingTimeSeconds: 60, // Above 40s threshold
+          scrollPercentage: 0.8, // Above 60% threshold
+        );
 
-      final stats = await statsService.getStats();
+        final stats = await statsService.getStats();
 
-      // Solo la lectura válida debe contarse
-      expect(stats.readDevocionalIds, contains('${devocionalId}_valid'));
-      expect(stats.readDevocionalIds,
-          isNot(contains('${devocionalId}_short_time')));
-      expect(stats.readDevocionalIds,
-          isNot(contains('${devocionalId}_low_scroll')));
-    });
+        // Solo la lectura válida debe contarse
+        expect(stats.readDevocionalIds, contains('${devocionalId}_valid'));
+        expect(
+          stats.readDevocionalIds,
+          isNot(contains('${devocionalId}_short_time')),
+        );
+        expect(
+          stats.readDevocionalIds,
+          isNot(contains('${devocionalId}_low_scroll')),
+        );
+      },
+    );
 
     test('should handle edge cases for reading thresholds', () async {
       const devocionalId = 'edge_cases';
@@ -167,47 +173,53 @@ void main() {
       // Deben contarse solo los que cumplen o superan el umbral
       expect(stats.readDevocionalIds, contains('${devocionalId}_exact_40s'));
       expect(stats.readDevocionalIds, contains('${devocionalId}_just_above'));
-      expect(stats.readDevocionalIds,
-          isNot(contains('${devocionalId}_just_below')));
+      expect(
+        stats.readDevocionalIds,
+        isNot(contains('${devocionalId}_just_below')),
+      );
     });
 
-    test('should handle consecutive daily readings for streak calculation',
-        () async {
-      // Simulate readings on consecutive days for streak calculation
+    test(
+      'should handle consecutive daily readings for streak calculation',
+      () async {
+        // Simulate readings on consecutive days for streak calculation
 
-      // Record readings with valid criteria for streak calculation
-      await statsService.recordDevocionalRead(
-        devocionalId: 'streak_day_1',
-        readingTimeSeconds: 40,
-        scrollPercentage: 0.6,
-      );
+        // Record readings with valid criteria for streak calculation
+        await statsService.recordDevocionalRead(
+          devocionalId: 'streak_day_1',
+          readingTimeSeconds: 40,
+          scrollPercentage: 0.6,
+        );
 
-      // Simulate reading from yesterday (this would require date manipulation in real service)
-      await statsService.recordDevocionalRead(
-        devocionalId: 'streak_day_2',
-        readingTimeSeconds: 40,
-        scrollPercentage: 0.6,
-      );
+        // Simulate reading from yesterday (this would require date manipulation in real service)
+        await statsService.recordDevocionalRead(
+          devocionalId: 'streak_day_2',
+          readingTimeSeconds: 40,
+          scrollPercentage: 0.6,
+        );
 
-      final stats = await statsService.getStats();
+        final stats = await statsService.getStats();
 
-      // Verify streak calculation logic (basic validation)
-      expect(stats.currentStreak, isA<int>());
-      expect(stats.longestStreak, isA<int>());
-      expect(stats.currentStreak, greaterThanOrEqualTo(0));
-      expect(stats.longestStreak, greaterThanOrEqualTo(stats.currentStreak));
-    });
+        // Verify streak calculation logic (basic validation)
+        expect(stats.currentStreak, isA<int>());
+        expect(stats.longestStreak, isA<int>());
+        expect(stats.currentStreak, greaterThanOrEqualTo(0));
+        expect(stats.longestStreak, greaterThanOrEqualTo(stats.currentStreak));
+      },
+    );
 
     test('should handle concurrent reading operations correctly', () async {
       // Test multiple concurrent operations
       final futures = <Future>[];
 
       for (int i = 0; i < 5; i++) {
-        futures.add(statsService.recordDevocionalRead(
-          devocionalId: 'concurrent_test_$i',
-          readingTimeSeconds: 40,
-          scrollPercentage: 0.6,
-        ));
+        futures.add(
+          statsService.recordDevocionalRead(
+            devocionalId: 'concurrent_test_$i',
+            readingTimeSeconds: 40,
+            scrollPercentage: 0.6,
+          ),
+        );
       }
 
       // Wait for all operations to complete
@@ -248,17 +260,23 @@ void main() {
       for (final testCase in validCases) {
         final shouldCount =
             testCase['time']! >= 40 && testCase['scroll']! >= 60.0;
-        expect(shouldCount, isTrue,
-            reason:
-                'Time:  2${testCase['time']}, Scroll: ${testCase['scroll']} should count');
+        expect(
+          shouldCount,
+          isTrue,
+          reason:
+              'Time:  2${testCase['time']}, Scroll: ${testCase['scroll']} should count',
+        );
       }
 
       for (final testCase in invalidCases) {
         final shouldCount =
             testCase['time']! >= 40 && testCase['scroll']! >= 60.0;
-        expect(shouldCount, isFalse,
-            reason:
-                'Time: ${testCase['time']}, Scroll: ${testCase['scroll']} should NOT count');
+        expect(
+          shouldCount,
+          isFalse,
+          reason:
+              'Time: ${testCase['time']}, Scroll: ${testCase['scroll']} should NOT count',
+        );
       }
     });
 

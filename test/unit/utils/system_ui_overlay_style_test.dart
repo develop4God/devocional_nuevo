@@ -15,10 +15,7 @@ void main() {
     });
 
     test('Status bar icons should be light (white)', () {
-      expect(
-        systemUiOverlayStyle.statusBarIconBrightness,
-        Brightness.light,
-      );
+      expect(systemUiOverlayStyle.statusBarIconBrightness, Brightness.light);
     });
 
     test('Status bar brightness should be dark for iOS', () {
@@ -46,45 +43,58 @@ void main() {
       );
     });
 
-    test('Dark gray navigation bar provides good contrast with white icons',
-        () {
-      // Dark gray (0xFF424242) with white icons (0xFFFFFFFF)
-      // This ensures buttons are always visible regardless of theme
-      const navBarColor = Color(0xFF424242);
-      const iconColor = Color(0xFFFFFFFF);
+    test(
+      'Dark gray navigation bar provides good contrast with white icons',
+      () {
+        // Dark gray (0xFF424242) with white icons (0xFFFFFFFF)
+        // This ensures buttons are always visible regardless of theme
+        const navBarColor = Color(0xFF424242);
+        const iconColor = Color(0xFFFFFFFF);
 
-      // Calculate relative luminance
-      final navBarLuminance = navBarColor.computeLuminance();
-      final iconLuminance = iconColor.computeLuminance();
+        // Calculate relative luminance
+        final navBarLuminance = navBarColor.computeLuminance();
+        final iconLuminance = iconColor.computeLuminance();
 
-      // Contrast ratio should be > 4.5:1 for WCAG AA compliance
-      final contrastRatio = (iconLuminance + 0.05) / (navBarLuminance + 0.05);
+        // Contrast ratio should be > 4.5:1 for WCAG AA compliance
+        final contrastRatio = (iconLuminance + 0.05) / (navBarLuminance + 0.05);
 
-      expect(contrastRatio, greaterThan(4.5),
-          reason: 'Navigation bar should have sufficient contrast with icons');
-    });
+        expect(
+          contrastRatio,
+          greaterThan(4.5),
+          reason: 'Navigation bar should have sufficient contrast with icons',
+        );
+      },
+    );
 
-    test('System UI overlay style is consistent across all app configurations',
-        () {
-      // Verify the configuration works for both light and dark themes
-      // by checking that the values are constant
-      expect(systemUiOverlayStyle, isA<SystemUiOverlayStyle>());
-      expect(systemUiOverlayStyle.systemNavigationBarColor, isNotNull);
-      expect(
-        systemUiOverlayStyle.systemNavigationBarIconBrightness,
-        isNotNull,
-      );
-    });
+    test(
+      'System UI overlay style is consistent across all app configurations',
+      () {
+        // Verify the configuration works for both light and dark themes
+        // by checking that the values are constant
+        expect(systemUiOverlayStyle, isA<SystemUiOverlayStyle>());
+        expect(systemUiOverlayStyle.systemNavigationBarColor, isNotNull);
+        expect(
+          systemUiOverlayStyle.systemNavigationBarIconBrightness,
+          isNotNull,
+        );
+      },
+    );
 
     test('Configuration matches Android 15 edge-to-edge requirements', () {
       // Android 15+ requires proper edge-to-edge configuration
       // The navigation bar color should not be pure black or white
       final navColor = systemUiOverlayStyle.systemNavigationBarColor!;
 
-      expect(navColor, isNot(Colors.black),
-          reason: 'Pure black can cause contrast issues on some devices');
-      expect(navColor, isNot(Colors.white),
-          reason: 'Pure white can cause visibility issues with white icons');
+      expect(
+        navColor,
+        isNot(Colors.black),
+        reason: 'Pure black can cause contrast issues on some devices',
+      );
+      expect(
+        navColor,
+        isNot(Colors.white),
+        reason: 'Pure white can cause visibility issues with white icons',
+      );
 
       // Should be a neutral gray for maximum compatibility
       final redValue = (navColor.r * 255.0).round() & 0xff;
@@ -96,15 +106,14 @@ void main() {
   });
 
   group('System UI Overlay Style Integration', () {
-    testWidgets('AnnotatedRegion applies system UI overlay style correctly',
-        (WidgetTester tester) async {
+    testWidgets('AnnotatedRegion applies system UI overlay style correctly', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         AnnotatedRegion<SystemUiOverlayStyle>(
           value: systemUiOverlayStyle,
           child: const MaterialApp(
-            home: Scaffold(
-              body: Center(child: Text('Test')),
-            ),
+            home: Scaffold(body: Center(child: Text('Test'))),
           ),
         ),
       );
@@ -113,17 +122,16 @@ void main() {
       // If the widget builds successfully, the AnnotatedRegion is working
     });
 
-    testWidgets('System UI overlay style works with different themes',
-        (WidgetTester tester) async {
+    testWidgets('System UI overlay style works with different themes', (
+      WidgetTester tester,
+    ) async {
       // Test with light theme
       await tester.pumpWidget(
         AnnotatedRegion<SystemUiOverlayStyle>(
           value: systemUiOverlayStyle,
           child: MaterialApp(
             theme: ThemeData.light(),
-            home: const Scaffold(
-              body: Center(child: Text('Light Theme')),
-            ),
+            home: const Scaffold(body: Center(child: Text('Light Theme'))),
           ),
         ),
       );
@@ -137,9 +145,7 @@ void main() {
           value: systemUiOverlayStyle,
           child: MaterialApp(
             theme: ThemeData.dark(),
-            home: const Scaffold(
-              body: Center(child: Text('Dark Theme')),
-            ),
+            home: const Scaffold(body: Center(child: Text('Dark Theme'))),
           ),
         ),
       );

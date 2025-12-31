@@ -8,8 +8,9 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group('System Navigation Bar Integration Tests', () {
-    testWidgets('App should have AnnotatedRegion with systemUiOverlayStyle',
-        (WidgetTester tester) async {
+    testWidgets('App should have AnnotatedRegion with systemUiOverlayStyle', (
+      WidgetTester tester,
+    ) async {
       // Build the app
       // Note: We can't actually run the full app in tests due to Firebase
       // dependencies, but we can test the AnnotatedRegion wrapper
@@ -18,9 +19,7 @@ void main() {
         AnnotatedRegion<SystemUiOverlayStyle>(
           value: systemUiOverlayStyle,
           child: const MaterialApp(
-            home: Scaffold(
-              body: Center(child: Text('Test App')),
-            ),
+            home: Scaffold(body: Center(child: Text('Test App'))),
           ),
         ),
       );
@@ -29,8 +28,9 @@ void main() {
       expect(find.text('Test App'), findsOneWidget);
     });
 
-    testWidgets('System UI overlay style should persist through navigation',
-        (WidgetTester tester) async {
+    testWidgets('System UI overlay style should persist through navigation', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         AnnotatedRegion<SystemUiOverlayStyle>(
           value: systemUiOverlayStyle,
@@ -67,16 +67,19 @@ void main() {
       await tester.pumpAndSettle();
 
       // Verify second page
-      expect(find.text('Second Page'),
-          findsNWidgets(2)); // One in AppBar, one in body
+      expect(
+        find.text('Second Page'),
+        findsNWidgets(2),
+      ); // One in AppBar, one in body
 
       // The AnnotatedRegion should still be in effect
       // (we can't directly test the SystemUiOverlayStyle, but if the widget
       // builds and navigates successfully, it's working)
     });
 
-    testWidgets('System UI overlay style should work with theme changes',
-        (WidgetTester tester) async {
+    testWidgets('System UI overlay style should work with theme changes', (
+      WidgetTester tester,
+    ) async {
       bool isDarkMode = false;
 
       await tester.pumpWidget(
@@ -96,8 +99,9 @@ void main() {
                         isDarkMode = !isDarkMode;
                       });
                     },
-                    child:
-                        Text(isDarkMode ? 'Switch to Light' : 'Switch to Dark'),
+                    child: Text(
+                      isDarkMode ? 'Switch to Light' : 'Switch to Dark',
+                    ),
                   ),
                 ),
               ),
@@ -124,10 +128,7 @@ void main() {
     test('System UI overlay style values are correct for all scenarios', () {
       // Verify the configuration is correct
       expect(systemUiOverlayStyle.statusBarColor, Colors.transparent);
-      expect(
-        systemUiOverlayStyle.statusBarIconBrightness,
-        Brightness.light,
-      );
+      expect(systemUiOverlayStyle.statusBarIconBrightness, Brightness.light);
       expect(
         systemUiOverlayStyle.systemNavigationBarColor,
         const Color(0xFF424242),
@@ -143,41 +144,40 @@ void main() {
     });
 
     testWidgets(
-        'System UI overlay style should not interfere with app functionality',
-        (WidgetTester tester) async {
-      // Test that the AnnotatedRegion doesn't break normal app behavior
-      await tester.pumpWidget(
-        AnnotatedRegion<SystemUiOverlayStyle>(
-          value: systemUiOverlayStyle,
-          child: MaterialApp(
-            home: Scaffold(
-              body: ListView(
-                children: List.generate(
-                  20,
-                  (index) => ListTile(
-                    title: Text('Item $index'),
-                    onTap: () {},
+      'System UI overlay style should not interfere with app functionality',
+      (WidgetTester tester) async {
+        // Test that the AnnotatedRegion doesn't break normal app behavior
+        await tester.pumpWidget(
+          AnnotatedRegion<SystemUiOverlayStyle>(
+            value: systemUiOverlayStyle,
+            child: MaterialApp(
+              home: Scaffold(
+                body: ListView(
+                  children: List.generate(
+                    20,
+                    (index) =>
+                        ListTile(title: Text('Item $index'), onTap: () {}),
                   ),
                 ),
               ),
             ),
           ),
-        ),
-      );
+        );
 
-      // Verify list is scrollable
-      expect(find.text('Item 0'), findsOneWidget);
-      expect(find.text('Item 19'), findsNothing);
+        // Verify list is scrollable
+        expect(find.text('Item 0'), findsOneWidget);
+        expect(find.text('Item 19'), findsNothing);
 
-      // Scroll down
-      await tester.drag(find.byType(ListView), const Offset(0, -300));
-      await tester.pumpAndSettle();
+        // Scroll down
+        await tester.drag(find.byType(ListView), const Offset(0, -300));
+        await tester.pumpAndSettle();
 
-      // Verify scrolling worked
-      expect(find.text('Item 0'), findsNothing);
+        // Verify scrolling worked
+        expect(find.text('Item 0'), findsNothing);
 
-      // The AnnotatedRegion should not interfere with touch events
-    });
+        // The AnnotatedRegion should not interfere with touch events
+      },
+    );
   });
 
   group('System Navigation Bar Color Validation', () {

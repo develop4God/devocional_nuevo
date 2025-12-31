@@ -75,10 +75,7 @@ class _SplashScreenState extends State<SplashScreen>
           // Added fade transition as requested
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             // Fade transition from splash to devotionals
-            return FadeTransition(
-              opacity: animation,
-              child: child,
-            );
+            return FadeTransition(opacity: animation, child: child);
           },
         ),
       );
@@ -236,8 +233,9 @@ class _SplashScreenState extends State<SplashScreen>
                             Shadow(
                               offset: Offset(0, 0),
                               blurRadius: 8.0,
-                              color: Colors.white
-                                  .withAlpha(200), // Sombra blanca más intensa
+                              color: Colors.white.withAlpha(
+                                200,
+                              ), // Sombra blanca más intensa
                             ),
                           ],
                         ),
@@ -263,14 +261,16 @@ class _SplashScreenState extends State<SplashScreen>
                             Shadow(
                               offset: Offset(0, 0),
                               blurRadius: 4.0,
-                              color: Colors.white
-                                  .withAlpha(128), // Sombra blanca suave
+                              color: Colors.white.withAlpha(
+                                128,
+                              ), // Sombra blanca suave
                             ),
                             Shadow(
                               offset: Offset(0, 0),
                               blurRadius: 7.0,
                               color: Colors.black.withAlpha(
-                                  100), // Sombra oscura sutil igual que en 'God'
+                                100,
+                              ), // Sombra oscura sutil igual que en 'God'
                             ),
                           ],
                         ),
@@ -309,7 +309,8 @@ class _SplashScreenState extends State<SplashScreen>
                                   offset: Offset(0, 0),
                                   blurRadius: 7.0,
                                   color: Colors.black.withAlpha(
-                                      100), // Sombra oscura más sutil
+                                    100,
+                                  ), // Sombra oscura más sutil
                                 ),
                               ],
                             ),

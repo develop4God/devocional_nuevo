@@ -16,10 +16,7 @@ class ThanksgivingLoaded extends ThanksgivingState {
   final List<Thanksgiving> thanksgivings;
   final String? errorMessage;
 
-  ThanksgivingLoaded({
-    required this.thanksgivings,
-    this.errorMessage,
-  });
+  ThanksgivingLoaded({required this.thanksgivings, this.errorMessage});
 
   /// Creates a copy with updated fields
   ThanksgivingLoaded copyWith({

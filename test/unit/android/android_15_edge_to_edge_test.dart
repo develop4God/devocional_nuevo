@@ -43,7 +43,7 @@ void main() {
         33,
         34,
         35,
-        36
+        36,
       ];
 
       for (final apiLevel in supportedApiLevels) {
@@ -83,9 +83,11 @@ void main() {
       const hasAndroidXCore =
           true; // We added androidx.core:core-ktx dependency
 
-      expect(hasAndroidXCore, isTrue,
-          reason:
-              'AndroidX Core dependency should be available for WindowCompat');
+      expect(
+        hasAndroidXCore,
+        isTrue,
+        reason: 'AndroidX Core dependency should be available for WindowCompat',
+      );
     });
 
     test('Edge-to-edge setup happens BEFORE Flutter initialization', () {
@@ -111,10 +113,7 @@ void main() {
       // The MainActivity also has Game Loop test support
       // Edge-to-edge should not interfere with Game Loop tests
 
-      const features = [
-        'edge-to-edge',
-        'game-loop',
-      ];
+      const features = ['edge-to-edge', 'game-loop'];
 
       // Both features should coexist
       expect(features.length, equals(2));
@@ -153,8 +152,11 @@ void main() {
 
       // The parameter should be 'false' to enable edge-to-edge
       const edgeToEdgeParam = false;
-      expect(edgeToEdgeParam, isFalse,
-          reason: 'setDecorFitsSystemWindows(false) enables edge-to-edge');
+      expect(
+        edgeToEdgeParam,
+        isFalse,
+        reason: 'setDecorFitsSystemWindows(false) enables edge-to-edge',
+      );
     });
 
     test('AndroidX Core dependency version should support WindowCompat', () {
@@ -170,8 +172,11 @@ void main() {
       expect(major, greaterThanOrEqualTo(1));
 
       if (major == 1) {
-        expect(minor, greaterThanOrEqualTo(5),
-            reason: 'WindowCompat requires androidx.core 1.5.0+');
+        expect(
+          minor,
+          greaterThanOrEqualTo(5),
+          reason: 'WindowCompat requires androidx.core 1.5.0+',
+        );
       }
     });
   });
@@ -215,11 +220,7 @@ void main() {
 
     test('Edge-to-edge should not affect fullscreen mode', () {
       // Edge-to-edge is compatible with fullscreen immersive mode
-      const modes = [
-        'normal',
-        'fullscreen',
-        'immersive',
-      ];
+      const modes = ['normal', 'fullscreen', 'immersive'];
 
       expect(modes.length, equals(3));
       // Edge-to-edge should work with all modes
@@ -244,11 +245,7 @@ void main() {
       // Edge-to-edge should not make UI elements unreachable
       // System gestures should still work
 
-      const systemGestures = [
-        'back',
-        'home',
-        'recents',
-      ];
+      const systemGestures = ['back', 'home', 'recents'];
 
       for (final gesture in systemGestures) {
         expect(
@@ -268,16 +265,22 @@ void main() {
       // Our app should target SDK 34+ for Android 15 compatibility
       const minTargetSdk = 34;
 
-      expect(minTargetSdk, lessThanOrEqualTo(android15ApiLevel),
-          reason: 'Target SDK should support Android 15');
+      expect(
+        minTargetSdk,
+        lessThanOrEqualTo(android15ApiLevel),
+        reason: 'Target SDK should support Android 15',
+      );
     });
 
     test('Compile SDK should be sufficient for Android 15 APIs', () {
       // Compile SDK should be at least 34 to use Android 15 features
       const minCompileSdk = 34;
 
-      expect(minCompileSdk, greaterThanOrEqualTo(34),
-          reason: 'Compile SDK should support Android 15 APIs');
+      expect(
+        minCompileSdk,
+        greaterThanOrEqualTo(34),
+        reason: 'Compile SDK should support Android 15 APIs',
+      );
     });
 
     test('Min SDK backward compatibility is maintained', () {
@@ -285,10 +288,16 @@ void main() {
       const minSdk = 21;
       const maxSdk = 35; // Android 15
 
-      expect(minSdk, equals(21),
-          reason: 'Minimum SDK should remain at 21 for broad compatibility');
-      expect(maxSdk, greaterThanOrEqualTo(35),
-          reason: 'Maximum SDK should support Android 15');
+      expect(
+        minSdk,
+        equals(21),
+        reason: 'Minimum SDK should remain at 21 for broad compatibility',
+      );
+      expect(
+        maxSdk,
+        greaterThanOrEqualTo(35),
+        reason: 'Maximum SDK should support Android 15',
+      );
     });
   });
 }

@@ -30,10 +30,13 @@ void main() {
         // User expects app to support Spanish, English, Portuguese, French, Japanese, Chinese
         expect(LocalizationService.supportedLocales, hasLength(6));
 
-        final languageCodes =
-            LocalizationService.supportedLocales.map((l) => l.languageCode);
+        final languageCodes = LocalizationService.supportedLocales.map(
+          (l) => l.languageCode,
+        );
         expect(
-            languageCodes, containsAll(['es', 'en', 'pt', 'fr', 'ja', 'zh']));
+          languageCodes,
+          containsAll(['es', 'en', 'pt', 'fr', 'ja', 'zh']),
+        );
       });
 
       test('default locale is Spanish', () {

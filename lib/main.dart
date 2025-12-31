@@ -72,8 +72,9 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     );
     // Registrar solo NotificationService como fallback
     final locator = ServiceLocator();
-    locator
-        .registerLazySingleton<NotificationService>(NotificationService.create);
+    locator.registerLazySingleton<NotificationService>(
+      NotificationService.create,
+    );
     developer.log(
       'BackgroundServiceCallback: Solo NotificationService registrado como fallback en background isolate.',
       name: 'BackgroundServiceCallback',
@@ -147,14 +148,18 @@ void main() async {
     await inAppMessaging.setAutomaticDataCollectionEnabled(true);
     inAppMessaging.triggerEvent('app_launch');
     inAppMessaging.triggerEvent('on_foreground');
-    developer.log('App: Firebase In-App Messaging inicializado en background.',
-        name: 'MainApp');
+    developer.log(
+      'App: Firebase In-App Messaging inicializado en background.',
+      name: 'MainApp',
+    );
   });
 
   // Setup dependency injection
   setupServiceLocator();
-  developer.log('App: Service locator initialized with DI container.',
-      name: 'MainApp');
+  developer.log(
+    'App: Service locator initialized with DI container.',
+    name: 'MainApp',
+  );
 
   // Initialize Remote Config (AWAIT for it to be ready before runApp)
   // This ensures feature flags are available from app start
@@ -454,11 +459,7 @@ class _AppInitializerState extends State<AppInitializer> {
         );
       }
     } catch (e) {
-      developer.log(
-        'ERROR: Firebase Auth: $e',
-        name: 'MainApp',
-        error: e,
-      );
+      developer.log('ERROR: Firebase Auth: $e', name: 'MainApp', error: e);
     }
 
     // Timezone (necesario para algunas features)
@@ -469,11 +470,7 @@ class _AppInitializerState extends State<AppInitializer> {
         name: 'MainApp',
       );
     } catch (e) {
-      developer.log(
-        'ERROR: Timezone: $e',
-        name: 'MainApp',
-        error: e,
-      );
+      developer.log('ERROR: Timezone: $e', name: 'MainApp', error: e);
     }
   }
 
@@ -482,15 +479,21 @@ class _AppInitializerState extends State<AppInitializer> {
     Future.delayed(const Duration(seconds: 1), () async {
       try {
         if (!mounted) return;
-        final localizationProvider =
-            Provider.of<LocalizationProvider>(context, listen: false);
+        final localizationProvider = Provider.of<LocalizationProvider>(
+          context,
+          listen: false,
+        );
         final languageCode = localizationProvider.currentLocale.languageCode;
         await getService<ITtsService>().initializeTtsOnAppStart(languageCode);
         debugPrint(
-            '[MAIN] TTS inicializado en background con idioma: $languageCode');
+          '[MAIN] TTS inicializado en background con idioma: $languageCode',
+        );
       } catch (e) {
-        developer.log('ERROR: TTS initialization: $e',
-            name: 'MainApp', error: e);
+        developer.log(
+          'ERROR: TTS initialization: $e',
+          name: 'MainApp',
+          error: e,
+        );
       }
     });
 

@@ -32,27 +32,39 @@ void main() {
       final timeRegex = RegExp(r'^\d{2}:\d{2}$');
 
       for (final time in validTimes) {
-        expect(timeRegex.hasMatch(time), isTrue,
-            reason: '$time should be valid format');
+        expect(
+          timeRegex.hasMatch(time),
+          isTrue,
+          reason: '$time should be valid format',
+        );
       }
 
       // Test hour validation (0-23)
       for (int hour = 0; hour <= 23; hour++) {
         final timeStr = '${hour.toString().padLeft(2, '0')}:00';
-        expect(timeRegex.hasMatch(timeStr), isTrue,
-            reason: '$timeStr should be valid hour');
+        expect(
+          timeRegex.hasMatch(timeStr),
+          isTrue,
+          reason: '$timeStr should be valid hour',
+        );
       }
 
       // Test minute validation (0-59)
       for (int minute = 0; minute <= 59; minute++) {
         final timeStr = '12:${minute.toString().padLeft(2, '0')}';
-        expect(timeRegex.hasMatch(timeStr), isTrue,
-            reason: '$timeStr should be valid minute');
+        expect(
+          timeRegex.hasMatch(timeStr),
+          isTrue,
+          reason: '$timeStr should be valid minute',
+        );
       }
 
       for (final time in invalidTimes) {
-        expect(timeRegex.hasMatch(time), isFalse,
-            reason: '$time should be invalid format');
+        expect(
+          timeRegex.hasMatch(time),
+          isFalse,
+          reason: '$time should be invalid format',
+        );
       }
     });
 
@@ -85,23 +97,29 @@ void main() {
         'America/New_York',
         'Europe/Madrid',
         'Asia/Tokyo',
-        'Australia/Sydney'
+        'Australia/Sydney',
       ];
       const invalidTimezones = [
         'america/new_york', // case sensitive
-        ''
+        '',
       ];
 
       final timezoneRegex = RegExp(r'^[A-Z][A-Za-z_]+/[A-Z][A-Za-z_]+$');
 
       for (final timezone in validTimezones) {
-        expect(timezoneRegex.hasMatch(timezone), isTrue,
-            reason: '$timezone should be valid format');
+        expect(
+          timezoneRegex.hasMatch(timezone),
+          isTrue,
+          reason: '$timezone should be valid format',
+        );
       }
 
       for (final timezone in invalidTimezones) {
-        expect(timezoneRegex.hasMatch(timezone), isFalse,
-            reason: '$timezone should be invalid format');
+        expect(
+          timezoneRegex.hasMatch(timezone),
+          isFalse,
+          reason: '$timezone should be invalid format',
+        );
       }
 
       // Note: 'Europe/InvalidCity' matches the format but isn't a real timezone
@@ -237,8 +255,13 @@ void main() {
         final minute = int.parse(parts[1]);
 
         final now = DateTime.now();
-        var scheduledTime =
-            DateTime(now.year, now.month, now.day, hour, minute);
+        var scheduledTime = DateTime(
+          now.year,
+          now.month,
+          now.day,
+          hour,
+          minute,
+        );
 
         // If the time has already passed today, schedule for tomorrow
         if (scheduledTime.isBefore(now)) {

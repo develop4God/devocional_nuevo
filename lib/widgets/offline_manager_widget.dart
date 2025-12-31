@@ -32,8 +32,10 @@ class OfflineManagerWidget extends StatelessWidget {
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.offline_bolt,
-                        color: colorScheme.onPrimaryContainer),
+                    Icon(
+                      Icons.offline_bolt,
+                      color: colorScheme.onPrimaryContainer,
+                    ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
@@ -104,8 +106,10 @@ class OfflineManagerWidget extends StatelessWidget {
                         onPressed: () =>
                             devocionalProvider.clearDownloadStatus(),
                         padding: EdgeInsets.zero,
-                        constraints:
-                            const BoxConstraints(minWidth: 24, minHeight: 24),
+                        constraints: const BoxConstraints(
+                          minWidth: 24,
+                          minHeight: 24,
+                        ),
                       ),
                   ],
                 ),
@@ -142,7 +146,9 @@ class OfflineManagerWidget extends StatelessWidget {
                       onPressed: devocionalProvider.isDownloading
                           ? null
                           : () => _downloadDevocionales(
-                              context, devocionalProvider),
+                                context,
+                                devocionalProvider,
+                              ),
                       icon: const Icon(Icons.download),
                       label: const Text('Descargar año actual'),
                       style: ElevatedButton.styleFrom(
@@ -194,7 +200,9 @@ class OfflineManagerWidget extends StatelessWidget {
   }
 
   Future<void> _downloadDevocionales(
-      BuildContext context, DevocionalProvider provider) async {
+    BuildContext context,
+    DevocionalProvider provider,
+  ) async {
     final colorScheme = Theme.of(context).colorScheme;
     final success = await provider.downloadCurrentYearDevocionales();
 
@@ -213,7 +221,9 @@ class OfflineManagerWidget extends StatelessWidget {
   }
 
   Future<void> _refreshFromAPI(
-      BuildContext context, DevocionalProvider provider) async {
+    BuildContext context,
+    DevocionalProvider provider,
+  ) async {
     final colorScheme = Theme.of(context).colorScheme;
     await provider.forceRefreshFromAPI();
 

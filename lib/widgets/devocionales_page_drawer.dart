@@ -49,8 +49,10 @@ class DevocionalesDrawer extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    Icon(Icons.download_for_offline_outlined,
-                        color: colorScheme.primary),
+                    Icon(
+                      Icons.download_for_offline_outlined,
+                      color: colorScheme.primary,
+                    ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
@@ -76,15 +78,13 @@ class DevocionalesDrawer extends StatelessWidget {
                 ),
                 if (downloading) ...[
                   const SizedBox(height: 20),
-                  LinearProgressIndicator(
-                    value: progress,
-                    minHeight: 8,
-                  ),
+                  LinearProgressIndicator(value: progress, minHeight: 8),
                   const SizedBox(height: 8),
                   Text(
                     "${'drawer.download_dialog_downloading'.tr()} ${(progress * 100).toStringAsFixed(0)}%",
-                    style: textTheme.bodySmall
-                        ?.copyWith(color: colorScheme.onPrimary),
+                    style: textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onPrimary,
+                    ),
                   ),
                 ],
                 const SizedBox(height: 24),
@@ -99,7 +99,9 @@ class DevocionalesDrawer extends StatelessWidget {
                         child: Text(
                           'drawer.cancel'.tr(),
                           style: TextStyle(
-                              color: colorScheme.onPrimary, fontSize: 16),
+                            color: colorScheme.onPrimary,
+                            fontSize: 16,
+                          ),
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -111,40 +113,45 @@ class DevocionalesDrawer extends StatelessWidget {
                           });
 
                           final devocionalProvider =
-                              Provider.of<DevocionalProvider>(context,
-                                  listen: false);
+                              Provider.of<DevocionalProvider>(
+                            context,
+                            listen: false,
+                          );
 
                           bool success = await devocionalProvider
                               .downloadDevocionalesWithProgress(
-                                  onProgress: (p) {
-                            setState(() {
-                              progress = p;
-                            });
-                          });
+                            onProgress: (p) {
+                              setState(() {
+                                progress = p;
+                              });
+                            },
+                          );
 
                           if (context.mounted) {
-                            Future.delayed(const Duration(milliseconds: 400),
-                                () {
-                              if (context.mounted) {
-                                Navigator.of(context).pop();
-                                if (success) {
+                            Future.delayed(
+                              const Duration(milliseconds: 400),
+                              () {
+                                if (context.mounted) {
                                   Navigator.of(context).pop();
-                                }
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      success
-                                          ? 'drawer.download_success'.tr()
-                                          : 'drawer.download_error'.tr(),
+                                  if (success) {
+                                    Navigator.of(context).pop();
+                                  }
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        success
+                                            ? 'drawer.download_success'.tr()
+                                            : 'drawer.download_error'.tr(),
+                                      ),
+                                      backgroundColor: success
+                                          ? colorScheme.primary
+                                          : colorScheme.error,
+                                      duration: const Duration(seconds: 4),
                                     ),
-                                    backgroundColor: success
-                                        ? colorScheme.primary
-                                        : colorScheme.error,
-                                    duration: const Duration(seconds: 4),
-                                  ),
-                                );
-                              }
-                            });
+                                  );
+                                }
+                              },
+                            );
                           }
                         },
                         style: ElevatedButton.styleFrom(
@@ -266,8 +273,10 @@ class DevocionalesDrawer extends StatelessWidget {
                         bottom: 0,
                         child: IconButton(
                           key: const Key('drawer_close_button'),
-                          icon: const Icon(Icons.close_outlined,
-                              color: Colors.white),
+                          icon: const Icon(
+                            Icons.close_outlined,
+                            color: Colors.white,
+                          ),
                           onPressed: () {
                             Navigator.of(context).pop();
                           },
@@ -313,8 +322,9 @@ class DevocionalesDrawer extends StatelessWidget {
                               isExpanded: true,
                               onChanged: (String? newValue) {
                                 if (newValue != null) {
-                                  devocionalProvider
-                                      .setSelectedVersion(newValue);
+                                  devocionalProvider.setSelectedVersion(
+                                    newValue,
+                                  );
                                   Navigator.of(context).pop();
                                 }
                               },
@@ -333,14 +343,16 @@ class DevocionalesDrawer extends StatelessWidget {
                                   );
                                 }).toList();
                               },
-                              items: versions.map<DropdownMenuItem<String>>(
-                                  (String itemValue) {
+                              items: versions.map<DropdownMenuItem<String>>((
+                                String itemValue,
+                              ) {
                                 return DropdownMenuItem<String>(
                                   value: itemValue,
                                   child: Text(
                                     itemValue,
-                                    style:
-                                        TextStyle(color: colorScheme.onSurface),
+                                    style: TextStyle(
+                                      color: colorScheme.onSurface,
+                                    ),
                                   ),
                                 );
                               }).toList(),
@@ -513,14 +525,17 @@ class DevocionalesDrawer extends StatelessWidget {
                                 if (!hasLocalData) {
                                   _showOfflineManagerDialog(context);
                                 } else {
-                                  Navigator.of(context)
-                                      .pop(); // Cierra el Drawer
+                                  Navigator.of(
+                                    context,
+                                  ).pop(); // Cierra el Drawer
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
                                       content: Text(
-                                          'drawer.offline_access_ready'.tr()),
-                                      backgroundColor:
-                                          Theme.of(context).colorScheme.primary,
+                                        'drawer.offline_access_ready'.tr(),
+                                      ),
+                                      backgroundColor: Theme.of(
+                                        context,
+                                      ).colorScheme.primary,
                                       duration: const Duration(seconds: 2),
                                     ),
                                   );
@@ -529,10 +544,7 @@ class DevocionalesDrawer extends StatelessWidget {
                             );
                           },
                         ),
-                        Divider(
-                          height: 32,
-                          color: dividerAdaptiveColor,
-                        ),
+                        Divider(height: 32, color: dividerAdaptiveColor),
                         // --- Selector visual de temas con icono y título a la par, y el grid debajo ---
                         Padding(
                           padding: const EdgeInsets.symmetric(vertical: 5),

@@ -53,9 +53,7 @@ void main() {
         status: PrayerStatus.active,
       );
 
-      final editedPrayer = originalPrayer.copyWith(
-        text: 'Updated prayer text',
-      );
+      final editedPrayer = originalPrayer.copyWith(text: 'Updated prayer text');
 
       expect(editedPrayer.id, equals('123'));
       expect(editedPrayer.text, equals('Updated prayer text'));
@@ -160,7 +158,9 @@ void main() {
 
       expect(PrayerStatus.fromString('active'), equals(PrayerStatus.active));
       expect(
-          PrayerStatus.fromString('answered'), equals(PrayerStatus.answered));
+        PrayerStatus.fromString('answered'),
+        equals(PrayerStatus.answered),
+      );
       expect(PrayerStatus.fromString('ACTIVE'), equals(PrayerStatus.active));
       expect(PrayerStatus.fromString('invalid'), equals(PrayerStatus.active));
     });
@@ -291,25 +291,29 @@ void main() {
     test('calculate prayer answer rate', () {
       final prayers = [
         Prayer(
-            id: '1',
-            text: 'P1',
-            createdDate: DateTime.now(),
-            status: PrayerStatus.active),
+          id: '1',
+          text: 'P1',
+          createdDate: DateTime.now(),
+          status: PrayerStatus.active,
+        ),
         Prayer(
-            id: '2',
-            text: 'P2',
-            createdDate: DateTime.now(),
-            status: PrayerStatus.answered),
+          id: '2',
+          text: 'P2',
+          createdDate: DateTime.now(),
+          status: PrayerStatus.answered,
+        ),
         Prayer(
-            id: '3',
-            text: 'P3',
-            createdDate: DateTime.now(),
-            status: PrayerStatus.answered),
+          id: '3',
+          text: 'P3',
+          createdDate: DateTime.now(),
+          status: PrayerStatus.answered,
+        ),
         Prayer(
-            id: '4',
-            text: 'P4',
-            createdDate: DateTime.now(),
-            status: PrayerStatus.active),
+          id: '4',
+          text: 'P4',
+          createdDate: DateTime.now(),
+          status: PrayerStatus.active,
+        ),
       ];
 
       final totalPrayers = prayers.length;
@@ -353,20 +357,23 @@ void main() {
     test('identify longest waiting active prayer', () {
       final prayers = [
         Prayer(
-            id: '1',
-            text: 'P1',
-            createdDate: DateTime.now().subtract(const Duration(days: 10)),
-            status: PrayerStatus.active),
+          id: '1',
+          text: 'P1',
+          createdDate: DateTime.now().subtract(const Duration(days: 10)),
+          status: PrayerStatus.active,
+        ),
         Prayer(
-            id: '2',
-            text: 'P2',
-            createdDate: DateTime.now().subtract(const Duration(days: 100)),
-            status: PrayerStatus.active),
+          id: '2',
+          text: 'P2',
+          createdDate: DateTime.now().subtract(const Duration(days: 100)),
+          status: PrayerStatus.active,
+        ),
         Prayer(
-            id: '3',
-            text: 'P3',
-            createdDate: DateTime.now().subtract(const Duration(days: 50)),
-            status: PrayerStatus.active),
+          id: '3',
+          text: 'P3',
+          createdDate: DateTime.now().subtract(const Duration(days: 50)),
+          status: PrayerStatus.active,
+        ),
       ];
 
       final activePrayers = prayers.where((p) => p.isActive).toList();

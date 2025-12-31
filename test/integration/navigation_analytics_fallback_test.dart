@@ -41,110 +41,115 @@ void main() {
     mockDevocionalRepository = MockDevocionalRepository();
 
     // Default stub for saveCurrentIndex to prevent errors
-    when(() => mockNavigationRepository.saveCurrentIndex(any()))
-        .thenAnswer((_) async => {});
-    when(() => mockNavigationRepository.loadCurrentIndex())
-        .thenAnswer((_) async => 0);
-    when(() => mockDevocionalRepository.findFirstUnreadDevocionalIndex(
-          any(),
-          any(),
-        )).thenReturn(0);
+    when(
+      () => mockNavigationRepository.saveCurrentIndex(any()),
+    ).thenAnswer((_) async => {});
+    when(
+      () => mockNavigationRepository.loadCurrentIndex(),
+    ).thenAnswer((_) async => 0);
+    when(
+      () =>
+          mockDevocionalRepository.findFirstUnreadDevocionalIndex(any(), any()),
+    ).thenReturn(0);
   });
 
   group('Navigation BLoC - Analytics State Integration', () {
-    test('BLoC emits correct state after navigation for analytics tracking',
-        () async {
-      // Arrange
-      final devocionales = createTestDevocionales(10);
-      final bloc = DevocionalesNavigationBloc(
-        navigationRepository: mockNavigationRepository,
-        devocionalRepository: mockDevocionalRepository,
-      );
+    test(
+      'BLoC emits correct state after navigation for analytics tracking',
+      () async {
+        // Arrange
+        final devocionales = createTestDevocionales(10);
+        final bloc = DevocionalesNavigationBloc(
+          navigationRepository: mockNavigationRepository,
+          devocionalRepository: mockDevocionalRepository,
+        );
 
-      // Act
-      bloc.add(InitializeNavigation(
-        initialIndex: 0,
-        devocionales: devocionales,
-      ));
+        // Act
+        bloc.add(
+          InitializeNavigation(initialIndex: 0, devocionales: devocionales),
+        );
 
-      await Future.delayed(const Duration(milliseconds: 100));
+        await Future.delayed(const Duration(milliseconds: 100));
 
-      // Assert initial state
-      expect(bloc.state, isA<NavigationReady>());
-      final initialState = bloc.state as NavigationReady;
-      expect(initialState.currentIndex, 0);
-      expect(initialState.totalDevocionales, 10);
+        // Assert initial state
+        expect(bloc.state, isA<NavigationReady>());
+        final initialState = bloc.state as NavigationReady;
+        expect(initialState.currentIndex, 0);
+        expect(initialState.totalDevocionales, 10);
 
-      // Navigate next
-      bloc.add(const NavigateToNext());
-      await Future.delayed(const Duration(milliseconds: 100));
+        // Navigate next
+        bloc.add(const NavigateToNext());
+        await Future.delayed(const Duration(milliseconds: 100));
 
-      // Assert new state provides analytics data
-      final newState = bloc.state as NavigationReady;
-      expect(newState.currentIndex, 1);
-      expect(newState.currentDevocional.id, 'dev_1');
+        // Assert new state provides analytics data
+        final newState = bloc.state as NavigationReady;
+        expect(newState.currentIndex, 1);
+        expect(newState.currentDevocional.id, 'dev_1');
 
-      bloc.close();
-    });
+        bloc.close();
+      },
+    );
 
-    test('BLoC state provides necessary data for analytics parameters',
-        () async {
-      // Arrange
-      final devocionales = createTestDevocionales(100);
-      final bloc = DevocionalesNavigationBloc(
-        navigationRepository: mockNavigationRepository,
-        devocionalRepository: mockDevocionalRepository,
-      );
+    test(
+      'BLoC state provides necessary data for analytics parameters',
+      () async {
+        // Arrange
+        final devocionales = createTestDevocionales(100);
+        final bloc = DevocionalesNavigationBloc(
+          navigationRepository: mockNavigationRepository,
+          devocionalRepository: mockDevocionalRepository,
+        );
 
-      // Act
-      bloc.add(InitializeNavigation(
-        initialIndex: 42,
-        devocionales: devocionales,
-      ));
+        // Act
+        bloc.add(
+          InitializeNavigation(initialIndex: 42, devocionales: devocionales),
+        );
 
-      await Future.delayed(const Duration(milliseconds: 100));
+        await Future.delayed(const Duration(milliseconds: 100));
 
-      // Assert state contains analytics-relevant data
-      final state = bloc.state as NavigationReady;
-      expect(state.currentIndex, 42);
-      expect(state.totalDevocionales, 100);
-      expect(state.currentDevocional.id, 'dev_42');
-      expect(state.canNavigateNext, true);
-      expect(state.canNavigatePrevious, true);
+        // Assert state contains analytics-relevant data
+        final state = bloc.state as NavigationReady;
+        expect(state.currentIndex, 42);
+        expect(state.totalDevocionales, 100);
+        expect(state.currentDevocional.id, 'dev_42');
+        expect(state.canNavigateNext, true);
+        expect(state.canNavigatePrevious, true);
 
-      bloc.close();
-    });
+        bloc.close();
+      },
+    );
 
-    test('BLoC handles rapid navigation for analytics event buffering',
-        () async {
-      // Arrange
-      final devocionales = createTestDevocionales(20);
-      final bloc = DevocionalesNavigationBloc(
-        navigationRepository: mockNavigationRepository,
-        devocionalRepository: mockDevocionalRepository,
-      );
+    test(
+      'BLoC handles rapid navigation for analytics event buffering',
+      () async {
+        // Arrange
+        final devocionales = createTestDevocionales(20);
+        final bloc = DevocionalesNavigationBloc(
+          navigationRepository: mockNavigationRepository,
+          devocionalRepository: mockDevocionalRepository,
+        );
 
-      bloc.add(InitializeNavigation(
-        initialIndex: 0,
-        devocionales: devocionales,
-      ));
+        bloc.add(
+          InitializeNavigation(initialIndex: 0, devocionales: devocionales),
+        );
 
-      await Future.delayed(const Duration(milliseconds: 100));
+        await Future.delayed(const Duration(milliseconds: 100));
 
-      // Act - rapid navigation (analytics should handle buffering)
-      bloc.add(const NavigateToNext());
-      bloc.add(const NavigateToNext());
-      bloc.add(const NavigateToNext());
+        // Act - rapid navigation (analytics should handle buffering)
+        bloc.add(const NavigateToNext());
+        bloc.add(const NavigateToNext());
+        bloc.add(const NavigateToNext());
 
-      await Future.delayed(const Duration(milliseconds: 200));
+        await Future.delayed(const Duration(milliseconds: 200));
 
-      // Assert final state is correct
-      final state = bloc.state as NavigationReady;
-      expect(state.currentIndex, 3);
-      expect(state.currentDevocional.id, 'dev_3');
+        // Assert final state is correct
+        final state = bloc.state as NavigationReady;
+        expect(state.currentIndex, 3);
+        expect(state.currentDevocional.id, 'dev_3');
 
-      bloc.close();
-    });
+        bloc.close();
+      },
+    );
 
     test('BLoC state can be read for fallback to legacy navigation', () async {
       // Arrange
@@ -155,10 +160,9 @@ void main() {
       );
 
       // Initialize
-      bloc.add(InitializeNavigation(
-        initialIndex: 5,
-        devocionales: devocionales,
-      ));
+      bloc.add(
+        InitializeNavigation(initialIndex: 5, devocionales: devocionales),
+      );
 
       await Future.delayed(const Duration(milliseconds: 100));
 
@@ -187,10 +191,9 @@ void main() {
       );
 
       // Act
-      bloc.add(InitializeNavigation(
-        initialIndex: 25,
-        devocionales: devocionales,
-      ));
+      bloc.add(
+        InitializeNavigation(initialIndex: 25, devocionales: devocionales),
+      );
 
       await Future.delayed(const Duration(milliseconds: 100));
 

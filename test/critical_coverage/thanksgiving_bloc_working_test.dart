@@ -30,8 +30,11 @@ void main() {
         bloc.stream,
         emitsInOrder([
           isA<ThanksgivingLoading>(),
-          isA<ThanksgivingLoaded>()
-              .having((s) => s.thanksgivings.isEmpty, 'isEmpty', true),
+          isA<ThanksgivingLoaded>().having(
+            (s) => s.thanksgivings.isEmpty,
+            'isEmpty',
+            true,
+          ),
         ]),
       );
     });
@@ -153,7 +156,8 @@ void main() {
       bloc.add(AddThanksgiving(''));
 
       await bloc.stream.firstWhere(
-          (state) => state is ThanksgivingLoaded && state.errorMessage != null);
+        (state) => state is ThanksgivingLoaded && state.errorMessage != null,
+      );
 
       // Now clear the error
       bloc.add(ClearThanksgivingError());

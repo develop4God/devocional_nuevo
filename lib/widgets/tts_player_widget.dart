@@ -43,7 +43,8 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
         final language = Localizations.localeOf(context).languageCode;
         final ttsText = _buildTtsText(language);
         debugPrint(
-            '[TTS Widget] 📝 Configurando texto inicial - Idioma: $language, Longitud: ${ttsText.length} caracteres');
+          '[TTS Widget] 📝 Configurando texto inicial - Idioma: $language, Longitud: ${ttsText.length} caracteres',
+        );
         widget.audioController.setText(ttsText, languageCode: language);
         debugPrint('[TTS Widget] ✅ Texto configurado correctamente');
       }
@@ -54,25 +55,32 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
         final s = widget.audioController.state.value;
         if (s == TtsPlayerState.completed && !_hasRegisteredHeard) {
           _hasRegisteredHeard = true;
-          final provider =
-              Provider.of<DevocionalProvider>(context, listen: false);
+          final provider = Provider.of<DevocionalProvider>(
+            context,
+            listen: false,
+          );
           // Usamos 0.8 (80%) como umbral consistente con implementaciones previas
           provider
               .recordDevocionalHeard(widget.devocional.id, 0.8, context)
               .then((result) {
             if (result == 'guardado') {
               debugPrint(
-                  '[TTS Widget] Devocional marcado como heard: ${widget.devocional.id}');
+                '[TTS Widget] Devocional marcado como heard: ${widget.devocional.id}',
+              );
               widget.onCompleted?.call();
             } else if (result == 'ya_registrado') {
               debugPrint(
-                  '[TTS Widget] Devocional ya registrado anteriormente: ${widget.devocional.id}');
+                '[TTS Widget] Devocional ya registrado anteriormente: ${widget.devocional.id}',
+              );
             } else {
               debugPrint(
-                  '[TTS Widget] recordDevocionalHeard result: $result for ${widget.devocional.id}');
+                '[TTS Widget] recordDevocionalHeard result: $result for ${widget.devocional.id}',
+              );
             }
           }).catchError((e) {
-            debugPrint('[TTS Widget] Error registrando devocional heard: $e');
+            debugPrint(
+              '[TTS Widget] Error registrando devocional heard: $e',
+            );
           });
         }
       } catch (e) {
@@ -87,7 +95,8 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
     super.didUpdateWidget(oldWidget);
     if (oldWidget.devocional.id != widget.devocional.id) {
       debugPrint(
-          '[TTS Widget] Cambio de devocional detectado, deteniendo audio');
+        '[TTS Widget] Cambio de devocional detectado, deteniendo audio',
+      );
       widget.audioController.stop();
       // Resetear flag para permitir registro en el nuevo devocional
       _hasRegisteredHeard = false;
@@ -120,7 +129,8 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
         state == AppLifecycleState.inactive ||
         state == AppLifecycleState.detached) {
       debugPrint(
-          '[TTS Widget] App en segundo plano o pantalla inactiva, pausando audio');
+        '[TTS Widget] App en segundo plano o pantalla inactiva, pausando audio',
+      );
       widget.audioController.pause();
     }
   }
@@ -134,32 +144,40 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
     final StringBuffer ttsBuffer = StringBuffer();
 
     ttsBuffer.write('$verseLabel: ');
-    ttsBuffer.write(BibleTextFormatter.normalizeTtsText(
-      widget.devocional.versiculo,
-      language,
-      widget.devocional.version,
-    ));
+    ttsBuffer.write(
+      BibleTextFormatter.normalizeTtsText(
+        widget.devocional.versiculo,
+        language,
+        widget.devocional.version,
+      ),
+    );
 
     ttsBuffer.write('\n$reflectionLabel: ');
-    ttsBuffer.write(BibleTextFormatter.normalizeTtsText(
-      widget.devocional.reflexion,
-      language,
-      widget.devocional.version,
-    ));
+    ttsBuffer.write(
+      BibleTextFormatter.normalizeTtsText(
+        widget.devocional.reflexion,
+        language,
+        widget.devocional.version,
+      ),
+    );
 
     if (widget.devocional.paraMeditar.isNotEmpty) {
       ttsBuffer.write('\n$meditateLabel: ');
-      ttsBuffer.write(widget.devocional.paraMeditar.map((m) {
-        return '${BibleTextFormatter.normalizeTtsText(m.cita, language, widget.devocional.version)}: ${m.texto}';
-      }).join('\n'));
+      ttsBuffer.write(
+        widget.devocional.paraMeditar.map((m) {
+          return '${BibleTextFormatter.normalizeTtsText(m.cita, language, widget.devocional.version)}: ${m.texto}';
+        }).join('\n'),
+      );
     }
 
     ttsBuffer.write('\n$prayerLabel: ');
-    ttsBuffer.write(BibleTextFormatter.normalizeTtsText(
-      widget.devocional.oracion,
-      language,
-      widget.devocional.version,
-    ));
+    ttsBuffer.write(
+      BibleTextFormatter.normalizeTtsText(
+        widget.devocional.oracion,
+        language,
+        widget.devocional.version,
+      ),
+    );
 
     return ttsBuffer.toString();
   }
@@ -167,11 +185,13 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
   @override
   Widget build(BuildContext context) {
     debugPrint(
-        '[TTS Widget] build() llamado para devocional: ${widget.devocional.id}');
+      '[TTS Widget] build() llamado para devocional: ${widget.devocional.id}',
+    );
     final language = Localizations.localeOf(context).languageCode;
     final ttsText = _buildTtsText(language);
     debugPrint(
-        '[TTS Widget] Texto TTS armado: ${ttsText.length > 80 ? '${ttsText.substring(0, 80)}...' : ttsText}');
+      '[TTS Widget] Texto TTS armado: ${ttsText.length > 80 ? '${ttsText.substring(0, 80)}...' : ttsText}',
+    );
 
     // Restore dynamic visuals: show spinner while loading, pause when playing, play otherwise.
     return ValueListenableBuilder<TtsPlayerState>(
@@ -190,8 +210,12 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
     );
   }
 
-  Future<void> _handlePlayPause(BuildContext context, TtsPlayerState state,
-      String language, String ttsText) async {
+  Future<void> _handlePlayPause(
+    BuildContext context,
+    TtsPlayerState state,
+    String language,
+    String ttsText,
+  ) async {
     debugPrint('[TTS Widget] ========== HANDLE PLAY/PAUSE ==========');
     debugPrint('[TTS Widget] Estado actual: $state');
 
@@ -216,7 +240,8 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
         builder: (ctx) {
           return Padding(
             padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).viewInsets.bottom),
+              bottom: MediaQuery.of(context).viewInsets.bottom,
+            ),
             child: ModernVoiceFeatureDialog(
               onConfigure: () async {
                 Navigator.of(ctx).pop();
@@ -229,7 +254,8 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
                 await voiceService.setUserSavedVoice(language);
                 if (state != TtsPlayerState.loading) {
                   debugPrint(
-                      '[TTS Widget] ▶️ Llamando widget.audioController.play()');
+                    '[TTS Widget] ▶️ Llamando widget.audioController.play()',
+                  );
                   widget.audioController.play();
                 }
               },
@@ -242,21 +268,24 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
 
     final friendlyName = await voiceService.loadSavedVoice(language);
     debugPrint(
-        '[TTS Widget] 🗂️🔊 Voz aplicada antes de reproducir: $friendlyName');
+      '[TTS Widget] 🗂️🔊 Voz aplicada antes de reproducir: $friendlyName',
+    );
 
     if (state == TtsPlayerState.playing) {
       debugPrint('[TTS Widget] ⏸️ Estado es PLAYING, llamando pause()');
       widget.audioController.pause();
     } else if (state != TtsPlayerState.loading) {
       debugPrint(
-          '[TTS Widget] ▶️ Estado NO es playing ni loading, llamando play()');
+        '[TTS Widget] ▶️ Estado NO es playing ni loading, llamando play()',
+      );
       // Lanzar trigger FIAM tts_play
       try {
         FirebaseInAppMessaging.instance.triggerEvent('tts_play');
         debugPrint('[TTS Widget] Trigger FIAM tts_play lanzado');
       } catch (e) {
         debugPrint(
-            '[TTS Widget] ⚠️ Firebase not initialized, skipping FIAM trigger: $e');
+          '[TTS Widget] ⚠️ Firebase not initialized, skipping FIAM trigger: $e',
+        );
       }
       widget.audioController.play();
     } else {
@@ -267,7 +296,10 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
   }
 
   Future<void> _showVoiceSelector(
-      BuildContext context, String language, String ttsText) async {
+    BuildContext context,
+    String language,
+    String ttsText,
+  ) async {
     await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -277,8 +309,9 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
       builder: (context) => FractionallySizedBox(
         heightFactor: 0.8,
         child: Padding(
-          padding:
-              EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
           child: VoiceSelectorDialog(
             language: language,
             sampleText: ttsText,

@@ -5,10 +5,16 @@ void main() {
   group('Language Initialization and Feature Flags Tests', () {
     test('Feature flags should be properly defined', () {
       // Verify that feature flags exist and are set to false as required
-      expect(Constants.enableOnboardingFeature, false,
-          reason: 'Onboarding feature should be disabled');
-      expect(Constants.enableBackupFeature, false,
-          reason: 'Backup feature should be disabled');
+      expect(
+        Constants.enableOnboardingFeature,
+        false,
+        reason: 'Onboarding feature should be disabled',
+      );
+      expect(
+        Constants.enableBackupFeature,
+        false,
+        reason: 'Backup feature should be disabled',
+      );
     });
 
     test('Feature flags should be compile-time constants', () {

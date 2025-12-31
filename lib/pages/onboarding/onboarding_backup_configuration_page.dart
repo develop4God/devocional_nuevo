@@ -74,13 +74,14 @@ class _OnboardingBackupConfigurationPageState
               !_hasConfiguredBackup &&
               !_isNavigating) {
             debugPrint(
-                '✅ [ONBOARDING] Usuario autenticado, configurando backup UNA VEZ');
+              '✅ [ONBOARDING] Usuario autenticado, configurando backup UNA VEZ',
+            );
             _hasConfiguredBackup = true; // ← Evita re-ejecuciones
 
             // Configurar backup en OnboardingBloc
-            context
-                .read<OnboardingBloc>()
-                .add(const ConfigureBackupOption(true));
+            context.read<OnboardingBloc>().add(
+                  const ConfigureBackupOption(true),
+                );
 
             // Navegar después de un delay
             Future.delayed(const Duration(milliseconds: 2000), () {
@@ -149,9 +150,9 @@ class _OnboardingBackupConfigurationPageState
                       : () {
                           if (!_isNavigating) {
                             _isNavigating = true;
-                            context
-                                .read<OnboardingBloc>()
-                                .add(const SkipBackupForNow());
+                            context.read<OnboardingBloc>().add(
+                                  const SkipBackupForNow(),
+                                );
                             widget.onSkip();
                           }
                         },

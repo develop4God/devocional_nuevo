@@ -52,9 +52,7 @@ class _AddThanksgivingModalState extends State<AddThanksgivingModal> {
     return Container(
       decoration: BoxDecoration(
         color: colorScheme.surface,
-        borderRadius: const BorderRadius.vertical(
-          top: Radius.circular(20),
-        ),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       ),
       padding: EdgeInsets.only(
         left: 20,
@@ -152,22 +150,15 @@ class _AddThanksgivingModalState extends State<AddThanksgivingModal> {
                   : colorScheme.surface,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(
-                  color: colorScheme.outline,
-                ),
+                borderSide: BorderSide(color: colorScheme.outline),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(
-                  color: colorScheme.outline,
-                ),
+                borderSide: BorderSide(color: colorScheme.outline),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(
-                  color: colorScheme.primary,
-                  width: 2,
-                ),
+                borderSide: BorderSide(color: colorScheme.primary, width: 2),
               ),
               contentPadding: const EdgeInsets.all(16),
               counterStyle: textTheme.bodySmall?.copyWith(
@@ -194,8 +185,10 @@ class _AddThanksgivingModalState extends State<AddThanksgivingModal> {
                   Expanded(
                     child: Text(
                       _errorMessage!,
-                      style:
-                          TextStyle(color: Colors.red.shade700, fontSize: 14),
+                      style: TextStyle(
+                        color: Colors.red.shade700,
+                        fontSize: 14,
+                      ),
                     ),
                   ),
                 ],
@@ -294,9 +287,9 @@ class _AddThanksgivingModalState extends State<AddThanksgivingModal> {
 
     try {
       if (_isEditing) {
-        context
-            .read<ThanksgivingBloc>()
-            .add(EditThanksgiving(widget.thanksgivingToEdit!.id, text));
+        context.read<ThanksgivingBloc>().add(
+              EditThanksgiving(widget.thanksgivingToEdit!.id, text),
+            );
         _showSuccessSnackBar('thanksgiving.thanksgiving_updated'.tr());
       } else {
         context.read<ThanksgivingBloc>().add(AddThanksgiving(text));
@@ -327,10 +320,7 @@ class _AddThanksgivingModalState extends State<AddThanksgivingModal> {
       SnackBar(
         content: Row(
           children: [
-            Icon(
-              Icons.check_circle_outline,
-              color: colorScheme.onSecondary,
-            ),
+            Icon(Icons.check_circle_outline, color: colorScheme.onSecondary),
             const SizedBox(width: 8),
             Expanded(
               child: Text(
@@ -343,9 +333,7 @@ class _AddThanksgivingModalState extends State<AddThanksgivingModal> {
         backgroundColor: colorScheme.secondary,
         duration: const Duration(seconds: 2),
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
     );
   }

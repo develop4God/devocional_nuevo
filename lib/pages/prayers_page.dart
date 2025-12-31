@@ -66,10 +66,7 @@ class _PrayersPageState extends State<PrayersPage>
           ),
         ],
       ),
-      constraints: const BoxConstraints(
-        minWidth: 18,
-        minHeight: 18,
-      ),
+      constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
       child: Text(
         count > 99 ? '99+' : count.toString(),
         style: const TextStyle(
@@ -88,280 +85,275 @@ class _PrayersPageState extends State<PrayersPage>
     final themeState = context.watch<ThemeBloc>().state as ThemeLoaded;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
-        value: themeState.systemUiOverlayStyle,
-        child: Scaffold(
-          appBar: CustomAppBar(
-            titleText: 'prayer.my_prayers'.tr(),
-          ),
-          body: Column(
-            children: [
-              // Container para las tabs en la parte blanca
-              Container(
-                color: colorScheme.surface,
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: TabBar(
-                        controller: _tabController,
-                        indicatorColor: colorScheme.primary,
-                        labelColor: colorScheme.primary,
-                        unselectedLabelColor:
-                            colorScheme.onSurface.withValues(alpha: 0.6),
-                        labelPadding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 0),
-                        tabs: [
-                          // Tab 1: Active Prayers with count badge
-                          Tab(
-                            height: 72,
-                            child: BlocBuilder<PrayerBloc, PrayerState>(
-                              builder: (context, state) {
-                                final count = state is PrayerLoaded
-                                    ? state.activePrayersCount
-                                    : 0;
-                                return Stack(
-                                  clipBehavior: Clip.none,
-                                  children: [
-                                    Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        const Icon(Icons.schedule, size: 22),
-                                        const SizedBox(height: 2),
-                                        FittedBox(
-                                          fit: BoxFit.scaleDown,
-                                          child: Text(
-                                            'prayer.prayers'.tr(),
-                                            textAlign: TextAlign.center,
-                                            style: const TextStyle(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.fade,
-                                          ),
-                                        ),
-                                        FittedBox(
-                                          fit: BoxFit.scaleDown,
-                                          child: Text(
-                                            'prayer.active'.tr(),
-                                            textAlign: TextAlign.center,
-                                            style:
-                                                const TextStyle(fontSize: 13),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.fade,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    if (count > 0)
-                                      Positioned(
-                                        right: -8,
-                                        top: -4,
-                                        child: _buildCountBadge(
-                                            count,
-                                            colorScheme.primary
-                                                .withValues(alpha: 0.4)),
-                                      ),
-                                  ],
-                                );
-                              },
-                            ),
-                          ),
-                          // Tab 2: Answered Prayers with count badge
-                          Tab(
-                            height: 72,
-                            child: BlocBuilder<PrayerBloc, PrayerState>(
-                              builder: (context, state) {
-                                final count = state is PrayerLoaded
-                                    ? state.answeredPrayersCount
-                                    : 0;
-                                return Stack(
-                                  clipBehavior: Clip.none,
-                                  children: [
-                                    Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        const Icon(Icons.check_circle_outline,
-                                            size: 22),
-                                        const SizedBox(height: 2),
-                                        FittedBox(
-                                          fit: BoxFit.scaleDown,
-                                          child: Text(
-                                            'prayer.prayers'.tr(),
-                                            textAlign: TextAlign.center,
-                                            style: const TextStyle(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.fade,
-                                          ),
-                                        ),
-                                        FittedBox(
-                                          fit: BoxFit.scaleDown,
-                                          child: Text(
-                                            'prayer.answered_prayers'.tr(),
-                                            textAlign: TextAlign.center,
-                                            style:
-                                                const TextStyle(fontSize: 13),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.fade,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    if (count > 0)
-                                      Positioned(
-                                        right: -8,
-                                        top: -4,
-                                        child: _buildCountBadge(
-                                            count, Colors.green.shade200),
-                                      ),
-                                  ],
-                                );
-                              },
-                            ),
-                          ),
-                          // Tab 3: Thanksgivings with count badge
-                          Tab(
-                            height: 72,
-                            child: BlocBuilder<ThanksgivingBloc,
-                                ThanksgivingState>(
-                              builder: (context, state) {
-                                final count = state is ThanksgivingLoaded
-                                    ? state.thanksgivings.length
-                                    : 0;
-                                return Stack(
-                                  clipBehavior: Clip.none,
-                                  children: [
-                                    Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        const Text('☺️',
-                                            style: TextStyle(fontSize: 22)),
-                                        const SizedBox(height: 2),
-                                        FittedBox(
-                                          fit: BoxFit.scaleDown,
-                                          child: Text(
-                                            'thanksgiving.thanksgivings'.tr(),
-                                            textAlign: TextAlign.center,
-                                            style: const TextStyle(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                            maxLines: 2,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    if (count > 0)
-                                      Positioned(
-                                        right: -8,
-                                        top: -4,
-                                        child: _buildCountBadge(
-                                            count, Colors.pink.shade200),
-                                      ),
-                                  ],
-                                );
-                              },
-                            ),
-                          ),
-                        ],
+      value: themeState.systemUiOverlayStyle,
+      child: Scaffold(
+        appBar: CustomAppBar(titleText: 'prayer.my_prayers'.tr()),
+        body: Column(
+          children: [
+            // Container para las tabs en la parte blanca
+            Container(
+              color: colorScheme.surface,
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TabBar(
+                      controller: _tabController,
+                      indicatorColor: colorScheme.primary,
+                      labelColor: colorScheme.primary,
+                      unselectedLabelColor: colorScheme.onSurface.withValues(
+                        alpha: 0.6,
                       ),
+                      labelPadding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 0,
+                      ),
+                      tabs: [
+                        // Tab 1: Active Prayers with count badge
+                        Tab(
+                          height: 72,
+                          child: BlocBuilder<PrayerBloc, PrayerState>(
+                            builder: (context, state) {
+                              final count = state is PrayerLoaded
+                                  ? state.activePrayersCount
+                                  : 0;
+                              return Stack(
+                                clipBehavior: Clip.none,
+                                children: [
+                                  Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(Icons.schedule, size: 22),
+                                      const SizedBox(height: 2),
+                                      FittedBox(
+                                        fit: BoxFit.scaleDown,
+                                        child: Text(
+                                          'prayer.prayers'.tr(),
+                                          textAlign: TextAlign.center,
+                                          style: const TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.fade,
+                                        ),
+                                      ),
+                                      FittedBox(
+                                        fit: BoxFit.scaleDown,
+                                        child: Text(
+                                          'prayer.active'.tr(),
+                                          textAlign: TextAlign.center,
+                                          style: const TextStyle(fontSize: 13),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.fade,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  if (count > 0)
+                                    Positioned(
+                                      right: -8,
+                                      top: -4,
+                                      child: _buildCountBadge(
+                                        count,
+                                        colorScheme.primary.withValues(
+                                          alpha: 0.4,
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              );
+                            },
+                          ),
+                        ),
+                        // Tab 2: Answered Prayers with count badge
+                        Tab(
+                          height: 72,
+                          child: BlocBuilder<PrayerBloc, PrayerState>(
+                            builder: (context, state) {
+                              final count = state is PrayerLoaded
+                                  ? state.answeredPrayersCount
+                                  : 0;
+                              return Stack(
+                                clipBehavior: Clip.none,
+                                children: [
+                                  Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(
+                                        Icons.check_circle_outline,
+                                        size: 22,
+                                      ),
+                                      const SizedBox(height: 2),
+                                      FittedBox(
+                                        fit: BoxFit.scaleDown,
+                                        child: Text(
+                                          'prayer.prayers'.tr(),
+                                          textAlign: TextAlign.center,
+                                          style: const TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.fade,
+                                        ),
+                                      ),
+                                      FittedBox(
+                                        fit: BoxFit.scaleDown,
+                                        child: Text(
+                                          'prayer.answered_prayers'.tr(),
+                                          textAlign: TextAlign.center,
+                                          style: const TextStyle(fontSize: 13),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.fade,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  if (count > 0)
+                                    Positioned(
+                                      right: -8,
+                                      top: -4,
+                                      child: _buildCountBadge(
+                                        count,
+                                        Colors.green.shade200,
+                                      ),
+                                    ),
+                                ],
+                              );
+                            },
+                          ),
+                        ),
+                        // Tab 3: Thanksgivings with count badge
+                        Tab(
+                          height: 72,
+                          child:
+                              BlocBuilder<ThanksgivingBloc, ThanksgivingState>(
+                            builder: (context, state) {
+                              final count = state is ThanksgivingLoaded
+                                  ? state.thanksgivings.length
+                                  : 0;
+                              return Stack(
+                                clipBehavior: Clip.none,
+                                children: [
+                                  Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Text(
+                                        '☺️',
+                                        style: TextStyle(fontSize: 22),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      FittedBox(
+                                        fit: BoxFit.scaleDown,
+                                        child: Text(
+                                          'thanksgiving.thanksgivings'.tr(),
+                                          textAlign: TextAlign.center,
+                                          style: const TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  if (count > 0)
+                                    Positioned(
+                                      right: -8,
+                                      top: -4,
+                                      child: _buildCountBadge(
+                                        count,
+                                        Colors.pink.shade200,
+                                      ),
+                                    ),
+                                ],
+                              );
+                            },
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-              // El contenido expandido
-              Expanded(
-                child: TabBarView(
-                  controller: _tabController,
-                  children: [
-                    // Tab 1: Active Prayers
-                    BlocBuilder<PrayerBloc, PrayerState>(
-                      builder: (context, state) {
-                        if (state is PrayerLoading) {
-                          return const Center(
-                            child: CircularProgressIndicator(),
-                          );
-                        }
-                        if (state is PrayerError) {
-                          return _buildErrorState(context, state.message, () {
-                            context.read<PrayerBloc>().add(RefreshPrayers());
-                          });
-                        }
-                        if (state is PrayerLoaded) {
-                          return _buildActivePrayersTab(context, state);
-                        }
-                        return const Center(
-                          child: CircularProgressIndicator(),
-                        );
-                      },
-                    ),
-                    // Tab 2: Answered Prayers
-                    BlocBuilder<PrayerBloc, PrayerState>(
-                      builder: (context, state) {
-                        if (state is PrayerLoading) {
-                          return const Center(
-                            child: CircularProgressIndicator(),
-                          );
-                        }
-                        if (state is PrayerError) {
-                          return _buildErrorState(context, state.message, () {
-                            context.read<PrayerBloc>().add(RefreshPrayers());
-                          });
-                        }
-                        if (state is PrayerLoaded) {
-                          return _buildAnsweredPrayersTab(context, state);
-                        }
-                        return const Center(
-                          child: CircularProgressIndicator(),
-                        );
-                      },
-                    ),
-                    // Tab 3: Thanksgivings
-                    BlocBuilder<ThanksgivingBloc, ThanksgivingState>(
-                      builder: (context, state) {
-                        if (state is ThanksgivingLoading) {
-                          return const Center(
-                            child: CircularProgressIndicator(),
-                          );
-                        }
-                        if (state is ThanksgivingError) {
-                          return _buildErrorState(context, state.message, () {
-                            context
-                                .read<ThanksgivingBloc>()
-                                .add(RefreshThanksgivings());
-                          });
-                        }
-                        if (state is ThanksgivingLoaded) {
-                          return _buildThanksgivingsTab(context, state);
-                        }
-                        return const Center(
-                          child: CircularProgressIndicator(),
-                        );
-                      },
-                    ),
-                  ],
-                ),
+            ),
+            // El contenido expandido
+            Expanded(
+              child: TabBarView(
+                controller: _tabController,
+                children: [
+                  // Tab 1: Active Prayers
+                  BlocBuilder<PrayerBloc, PrayerState>(
+                    builder: (context, state) {
+                      if (state is PrayerLoading) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+                      if (state is PrayerError) {
+                        return _buildErrorState(context, state.message, () {
+                          context.read<PrayerBloc>().add(RefreshPrayers());
+                        });
+                      }
+                      if (state is PrayerLoaded) {
+                        return _buildActivePrayersTab(context, state);
+                      }
+                      return const Center(child: CircularProgressIndicator());
+                    },
+                  ),
+                  // Tab 2: Answered Prayers
+                  BlocBuilder<PrayerBloc, PrayerState>(
+                    builder: (context, state) {
+                      if (state is PrayerLoading) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+                      if (state is PrayerError) {
+                        return _buildErrorState(context, state.message, () {
+                          context.read<PrayerBloc>().add(RefreshPrayers());
+                        });
+                      }
+                      if (state is PrayerLoaded) {
+                        return _buildAnsweredPrayersTab(context, state);
+                      }
+                      return const Center(child: CircularProgressIndicator());
+                    },
+                  ),
+                  // Tab 3: Thanksgivings
+                  BlocBuilder<ThanksgivingBloc, ThanksgivingState>(
+                    builder: (context, state) {
+                      if (state is ThanksgivingLoading) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+                      if (state is ThanksgivingError) {
+                        return _buildErrorState(context, state.message, () {
+                          context.read<ThanksgivingBloc>().add(
+                                RefreshThanksgivings(),
+                              );
+                        });
+                      }
+                      if (state is ThanksgivingLoaded) {
+                        return _buildThanksgivingsTab(context, state);
+                      }
+                      return const Center(child: CircularProgressIndicator());
+                    },
+                  ),
+                ],
               ),
-            ],
-          ),
-          floatingActionButton: AnimatedFabWithText(
-            onPressed: _showAddPrayerOrThanksgivingChoice,
-            text: 'prayer.add_prayer_thanksgiving_hint'.tr(),
-            fabColor: colorScheme.primary, // Color del círculo con el +
-            backgroundColor: colorScheme.secondary, // Color del fondo del texto
-            textColor: colorScheme.onPrimaryContainer, //Color del texto
-            iconColor: colorScheme.onPrimary, // Color del icono +
-          ),
-        ));
+            ),
+          ],
+        ),
+        floatingActionButton: AnimatedFabWithText(
+          onPressed: _showAddPrayerOrThanksgivingChoice,
+          text: 'prayer.add_prayer_thanksgiving_hint'.tr(),
+          fabColor: colorScheme.primary, // Color del círculo con el +
+          backgroundColor: colorScheme.secondary, // Color del fondo del texto
+          textColor: colorScheme.onPrimaryContainer, //Color del texto
+          iconColor: colorScheme.onPrimary, // Color del icono +
+        ),
+      ),
+    );
   }
 
-  Widget _buildActivePrayersTab(
-    BuildContext context,
-    PrayerLoaded state,
-  ) {
+  Widget _buildActivePrayersTab(BuildContext context, PrayerLoaded state) {
     final activePrayers = state.activePrayers;
 
     if (activePrayers.isEmpty) {
@@ -386,21 +378,13 @@ class _PrayersPageState extends State<PrayersPage>
         itemCount: activePrayers.length,
         itemBuilder: (context, index) {
           final prayer = activePrayers[index];
-          return _buildPrayerCard(
-            context,
-            prayer,
-            state,
-            isActive: true,
-          );
+          return _buildPrayerCard(context, prayer, state, isActive: true);
         },
       ),
     );
   }
 
-  Widget _buildAnsweredPrayersTab(
-    BuildContext context,
-    PrayerLoaded state,
-  ) {
+  Widget _buildAnsweredPrayersTab(BuildContext context, PrayerLoaded state) {
     final answeredPrayers = state.answeredPrayers;
 
     if (answeredPrayers.isEmpty) {
@@ -425,12 +409,7 @@ class _PrayersPageState extends State<PrayersPage>
         itemCount: answeredPrayers.length,
         itemBuilder: (context, index) {
           final prayer = answeredPrayers[index];
-          return _buildPrayerCard(
-            context,
-            prayer,
-            state,
-            isActive: false,
-          );
+          return _buildPrayerCard(context, prayer, state, isActive: false);
         },
       ),
     );
@@ -544,9 +523,9 @@ class _PrayersPageState extends State<PrayersPage>
                           if (isActive) {
                             _showAnswerPrayerModal(context, prayer);
                           } else {
-                            context
-                                .read<PrayerBloc>()
-                                .add(MarkPrayerAsActive(prayer.id));
+                            context.read<PrayerBloc>().add(
+                                  MarkPrayerAsActive(prayer.id),
+                                );
                           }
                           break;
                         case 'edit':
@@ -574,9 +553,11 @@ class _PrayersPageState extends State<PrayersPage>
                                   isActive ? Colors.green : colorScheme.primary,
                             ),
                             const SizedBox(width: 12), // Más espacio
-                            Text(isActive
-                                ? 'prayer.mark_as_answered'.tr()
-                                : 'prayer.mark_as_active'.tr()),
+                            Text(
+                              isActive
+                                  ? 'prayer.mark_as_answered'.tr()
+                                  : 'prayer.mark_as_active'.tr(),
+                            ),
                           ],
                         ),
                       ),
@@ -612,11 +593,16 @@ class _PrayersPageState extends State<PrayersPage>
                         value: 'delete',
                         child: Row(
                           children: [
-                            const Icon(Icons.delete,
-                                size: 20, color: Colors.red),
+                            const Icon(
+                              Icons.delete,
+                              size: 20,
+                              color: Colors.red,
+                            ),
                             const SizedBox(width: 12),
-                            Text('app.delete'.tr(),
-                                style: const TextStyle(color: Colors.red)),
+                            Text(
+                              'app.delete'.tr(),
+                              style: const TextStyle(color: Colors.red),
+                            ),
                           ],
                         ),
                       ),
@@ -626,7 +612,6 @@ class _PrayersPageState extends State<PrayersPage>
               ],
             ),
             const SizedBox(height: 6), // Reducido para autofit
-
             // Prayer text
             Text(
               prayer.text,
@@ -636,7 +621,6 @@ class _PrayersPageState extends State<PrayersPage>
               ),
             ),
             const SizedBox(height: 8), // Reducido para autofit
-
             // Footer with dates
             Row(
               children: [
@@ -648,7 +632,7 @@ class _PrayersPageState extends State<PrayersPage>
                 const SizedBox(width: 4),
                 Text(
                   'prayer.created'.tr({
-                    'date': DateFormat('dd/MM/yyyy').format(prayer.createdDate)
+                    'date': DateFormat('dd/MM/yyyy').format(prayer.createdDate),
                   }),
                   style: textTheme.bodySmall?.copyWith(
                     color: colorScheme.onSurface.withValues(alpha: 0.6),
@@ -657,10 +641,12 @@ class _PrayersPageState extends State<PrayersPage>
                 const SizedBox(width: 8),
                 Text(
                   prayer.daysOld == 1
-                      ? 'prayer.days_old_single'
-                          .tr({'days': prayer.daysOld.toString()})
-                      : 'prayer.days_old_plural'
-                          .tr({'days': prayer.daysOld.toString()}),
+                      ? 'prayer.days_old_single'.tr({
+                          'days': prayer.daysOld.toString(),
+                        })
+                      : 'prayer.days_old_plural'.tr({
+                          'days': prayer.daysOld.toString(),
+                        }),
                   style: textTheme.bodySmall?.copyWith(
                     color: colorScheme.primary,
                     fontWeight: FontWeight.w500,
@@ -681,12 +667,11 @@ class _PrayersPageState extends State<PrayersPage>
                   const SizedBox(width: 4),
                   Text(
                     'prayer.answered'.tr({
-                      'date':
-                          DateFormat('dd/MM/yyyy').format(prayer.answeredDate!)
+                      'date': DateFormat(
+                        'dd/MM/yyyy',
+                      ).format(prayer.answeredDate!),
                     }),
-                    style: textTheme.bodySmall?.copyWith(
-                      color: Colors.green,
-                    ),
+                    style: textTheme.bodySmall?.copyWith(color: Colors.green),
                   ),
                 ],
               ),
@@ -737,59 +722,39 @@ class _PrayersPageState extends State<PrayersPage>
     );
   }
 
-  void _showEditPrayerModal(
-    BuildContext context,
-    Prayer prayer,
-  ) {
+  void _showEditPrayerModal(BuildContext context, Prayer prayer) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => AddPrayerModal(
-        prayerToEdit: prayer,
-      ),
+      builder: (context) => AddPrayerModal(prayerToEdit: prayer),
     );
   }
 
-  void _showAnswerPrayerModal(
-    BuildContext context,
-    Prayer prayer,
-  ) {
+  void _showAnswerPrayerModal(BuildContext context, Prayer prayer) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => AnswerPrayerModal(
-        prayer: prayer,
-      ),
+      builder: (context) => AnswerPrayerModal(prayer: prayer),
     );
   }
 
-  void _showEditAnsweredCommentModal(
-    BuildContext context,
-    Prayer prayer,
-  ) {
+  void _showEditAnsweredCommentModal(BuildContext context, Prayer prayer) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => EditAnsweredCommentModal(
-        prayer: prayer,
-      ),
+      builder: (context) => EditAnsweredCommentModal(prayer: prayer),
     );
   }
 
-  void _showDeleteConfirmation(
-    BuildContext context,
-    Prayer prayer,
-  ) {
+  void _showDeleteConfirmation(BuildContext context, Prayer prayer) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: Text('prayer.delete_prayer'.tr()),
-        content: Text(
-          'prayer.delete_confirmation'.tr(),
-        ),
+        content: Text('prayer.delete_confirmation'.tr()),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
@@ -800,9 +765,7 @@ class _PrayersPageState extends State<PrayersPage>
               Navigator.of(context).pop();
               context.read<PrayerBloc>().add(DeletePrayer(prayer.id));
             },
-            style: TextButton.styleFrom(
-              foregroundColor: Colors.red,
-            ),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
             child: Text('app.delete'.tr()),
           ),
         ],
@@ -861,17 +824,12 @@ class _PrayersPageState extends State<PrayersPage>
                       child: Container(
                         padding: const EdgeInsets.all(20),
                         decoration: BoxDecoration(
-                          border: Border.all(
-                            color: colorScheme.outline,
-                          ),
+                          border: Border.all(color: colorScheme.outline),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Column(
                           children: [
-                            const Text(
-                              '🙏',
-                              style: TextStyle(fontSize: 48),
-                            ),
+                            const Text('🙏', style: TextStyle(fontSize: 48)),
                             const SizedBox(height: 12),
                             Text(
                               'prayer.prayer'.tr(),
@@ -895,17 +853,12 @@ class _PrayersPageState extends State<PrayersPage>
                       child: Container(
                         padding: const EdgeInsets.all(20),
                         decoration: BoxDecoration(
-                          border: Border.all(
-                            color: colorScheme.outline,
-                          ),
+                          border: Border.all(color: colorScheme.outline),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Column(
                           children: [
-                            const Text(
-                              '☺️',
-                              style: TextStyle(fontSize: 48),
-                            ),
+                            const Text('☺️', style: TextStyle(fontSize: 48)),
                             const SizedBox(height: 12),
                             Text(
                               'thanksgiving.thanksgiving'.tr(),
@@ -938,24 +891,17 @@ class _PrayersPageState extends State<PrayersPage>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.error_outline,
-            size: 64,
-            color: colorScheme.error,
-          ),
+          Icon(Icons.error_outline, size: 64, color: colorScheme.error),
           const SizedBox(height: 16),
           Text(
             message,
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: colorScheme.error,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyLarge?.copyWith(color: colorScheme.error),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: onRetry,
-            child: Text('prayer.retry'.tr()),
-          ),
+          ElevatedButton(onPressed: onRetry, child: Text('prayer.retry'.tr())),
         ],
       ),
     );
@@ -1051,7 +997,9 @@ class _PrayersPageState extends State<PrayersPage>
                           break;
                         case 'delete':
                           _showDeleteThanksgivingConfirmation(
-                              context, thanksgiving);
+                            context,
+                            thanksgiving,
+                          );
                           break;
                       }
                     },
@@ -1070,11 +1018,16 @@ class _PrayersPageState extends State<PrayersPage>
                         value: 'delete',
                         child: Row(
                           children: [
-                            const Icon(Icons.delete,
-                                size: 20, color: Colors.red),
+                            const Icon(
+                              Icons.delete,
+                              size: 20,
+                              color: Colors.red,
+                            ),
                             const SizedBox(width: 12),
-                            Text('app.delete'.tr(),
-                                style: const TextStyle(color: Colors.red)),
+                            Text(
+                              'app.delete'.tr(),
+                              style: const TextStyle(color: Colors.red),
+                            ),
                           ],
                         ),
                       ),
@@ -1105,8 +1058,9 @@ class _PrayersPageState extends State<PrayersPage>
                 const SizedBox(width: 4),
                 Text(
                   'thanksgiving.created'.tr({
-                    'date': DateFormat('dd/MM/yyyy')
-                        .format(thanksgiving.createdDate)
+                    'date': DateFormat(
+                      'dd/MM/yyyy',
+                    ).format(thanksgiving.createdDate),
                   }),
                   style: textTheme.bodySmall?.copyWith(
                     color: colorScheme.onSurface.withValues(alpha: 0.6),
@@ -1115,10 +1069,12 @@ class _PrayersPageState extends State<PrayersPage>
                 const SizedBox(width: 8),
                 Text(
                   thanksgiving.daysOld == 1
-                      ? 'thanksgiving.days_old_single'
-                          .tr({'days': thanksgiving.daysOld.toString()})
-                      : 'thanksgiving.days_old_plural'
-                          .tr({'days': thanksgiving.daysOld.toString()}),
+                      ? 'thanksgiving.days_old_single'.tr({
+                          'days': thanksgiving.daysOld.toString(),
+                        })
+                      : 'thanksgiving.days_old_plural'.tr({
+                          'days': thanksgiving.daysOld.toString(),
+                        }),
                   style: textTheme.bodySmall?.copyWith(
                     color: Colors.amber.shade700,
                     fontWeight: FontWeight.w500,
@@ -1140,9 +1096,8 @@ class _PrayersPageState extends State<PrayersPage>
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => AddThanksgivingModal(
-        thanksgivingToEdit: thanksgiving,
-      ),
+      builder: (context) =>
+          AddThanksgivingModal(thanksgivingToEdit: thanksgiving),
     );
   }
 
@@ -1154,9 +1109,7 @@ class _PrayersPageState extends State<PrayersPage>
       context: context,
       builder: (context) => AlertDialog(
         title: Text('thanksgiving.delete_thanksgiving'.tr()),
-        content: Text(
-          'thanksgiving.delete_confirmation'.tr(),
-        ),
+        content: Text('thanksgiving.delete_confirmation'.tr()),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
@@ -1165,13 +1118,11 @@ class _PrayersPageState extends State<PrayersPage>
           TextButton(
             onPressed: () {
               Navigator.of(context).pop();
-              context
-                  .read<ThanksgivingBloc>()
-                  .add(DeleteThanksgiving(thanksgiving.id));
+              context.read<ThanksgivingBloc>().add(
+                    DeleteThanksgiving(thanksgiving.id),
+                  );
             },
-            style: TextButton.styleFrom(
-              foregroundColor: Colors.red,
-            ),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
             child: Text('app.delete'.tr()),
           ),
         ],

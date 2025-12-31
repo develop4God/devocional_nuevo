@@ -14,7 +14,8 @@ class GoogleDriveAuthService {
   factory GoogleDriveAuthService() {
     if (_singletonInstance != null) {
       debugPrint(
-          "⚠️ [DEBUG] Duplicate GoogleDriveAuthService instantiation prevented. Singleton returned.");
+        "⚠️ [DEBUG] Duplicate GoogleDriveAuthService instantiation prevented. Singleton returned.",
+      );
       return _singletonInstance!;
     }
     _singletonInstance = GoogleDriveAuthService._internal();
@@ -76,7 +77,8 @@ class GoogleDriveAuthService {
 
       if (_currentUser != null) {
         debugPrint(
-            '🔑 [DEBUG] Usuario obtenido, creando authenticated client...');
+          '🔑 [DEBUG] Usuario obtenido, creando authenticated client...',
+        );
 
         // Use the extension method on GoogleSignIn to get authenticated client
         _authClient = await _googleSignIn!.authenticatedClient();
@@ -91,7 +93,8 @@ class GoogleDriveAuthService {
         }
 
         debugPrint(
-            '🔑 [DEBUG] AuthClient creado exitosamente usando extension');
+          '🔑 [DEBUG] AuthClient creado exitosamente usando extension',
+        );
 
         // Save sign-in state
         debugPrint('🔑 [DEBUG] Guardando estado en SharedPreferences...');
@@ -225,11 +228,13 @@ class GoogleDriveAuthService {
 
           if (_authClient != null) {
             debugPrint(
-                '✅ [DEBUG] AuthClient recreado exitosamente usando extension');
+              '✅ [DEBUG] AuthClient recreado exitosamente usando extension',
+            );
             return _authClient;
           } else {
             debugPrint(
-                '❌ [DEBUG] No se pudo crear authenticated client en recreación');
+              '❌ [DEBUG] No se pudo crear authenticated client en recreación',
+            );
           }
         } else {
           debugPrint('❌ [DEBUG] signInSilently falló - usuario no disponible');

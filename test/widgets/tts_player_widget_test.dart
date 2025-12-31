@@ -27,8 +27,9 @@ void main() {
     registerTestServices();
   });
 
-  testWidgets('TtsPlayerWidget renders and play button is present',
-      (WidgetTester tester) async {
+  testWidgets('TtsPlayerWidget renders and play button is present', (
+    WidgetTester tester,
+  ) async {
     final dev = Devocional(
       id: 'test_1',
       versiculo: 'John 3:16',

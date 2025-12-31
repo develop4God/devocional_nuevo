@@ -24,35 +24,32 @@ void main() {
     setupServiceLocator();
 
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(
-      ttsChannel,
-      (MethodCall call) async {
-        switch (call.method) {
-          case 'speak':
-          case 'stop':
-          case 'pause':
-          case 'setLanguage':
-          case 'setSpeechRate':
-          case 'setVolume':
-          case 'setPitch':
-          case 'awaitSpeakCompletion':
-          case 'setQueueMode':
-          case 'awaitSynthCompletion':
-            return 1;
-          case 'getLanguages':
-            return ['es-ES', 'en-US'];
-          case 'getVoices':
-            return [
-              {'name': 'Voice ES', 'locale': 'es-ES'},
-              {'name': 'Voice EN', 'locale': 'en-US'},
-            ];
-          case 'isLanguageAvailable':
-            return true;
-          default:
-            return null;
-        }
-      },
-    );
+        .setMockMethodCallHandler(ttsChannel, (MethodCall call) async {
+      switch (call.method) {
+        case 'speak':
+        case 'stop':
+        case 'pause':
+        case 'setLanguage':
+        case 'setSpeechRate':
+        case 'setVolume':
+        case 'setPitch':
+        case 'awaitSpeakCompletion':
+        case 'setQueueMode':
+        case 'awaitSynthCompletion':
+          return 1;
+        case 'getLanguages':
+          return ['es-ES', 'en-US'];
+        case 'getVoices':
+          return [
+            {'name': 'Voice ES', 'locale': 'es-ES'},
+            {'name': 'Voice EN', 'locale': 'en-US'},
+          ];
+        case 'isLanguageAvailable':
+          return true;
+        default:
+          return null;
+      }
+    });
   });
 
   tearDownAll(() {
@@ -139,10 +136,7 @@ void main() {
 
         final positionAfterResume = controller.currentPosition.value;
 
-        expect(
-          positionAfterResume,
-          greaterThanOrEqualTo(positionDuringPause),
-        );
+        expect(positionAfterResume, greaterThanOrEqualTo(positionDuringPause));
         expect(
           positionAfterResume.inMilliseconds,
           greaterThan(positionDuringPause.inMilliseconds + 400),

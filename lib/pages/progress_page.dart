@@ -51,13 +51,12 @@ class _ProgressPageState extends State<ProgressPage>
       vsync: this,
     );
 
-    _streakAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _streakAnimationController,
-      curve: Curves.easeOutBack,
-    ));
+    _streakAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _streakAnimationController,
+        curve: Curves.easeOutBack,
+      ),
+    );
   }
 
   Future<void> _loadStats() async {
@@ -66,8 +65,10 @@ class _ProgressPageState extends State<ProgressPage>
     });
 
     try {
-      final devocionalProvider =
-          Provider.of<DevocionalProvider>(context, listen: false);
+      final devocionalProvider = Provider.of<DevocionalProvider>(
+        context,
+        listen: false,
+      );
       final favoritesCount = devocionalProvider.favoriteDevocionales.length;
       final stats = await _statsService.updateFavoritesCount(favoritesCount);
 
@@ -85,8 +86,10 @@ class _ProgressPageState extends State<ProgressPage>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text(
-                  'progress.error_loading_stats'.tr({'error': e.toString()}))),
+            content: Text(
+              'progress.error_loading_stats'.tr({'error': e.toString()}),
+            ),
+          ),
         );
       }
     }
@@ -152,10 +155,7 @@ class _ProgressPageState extends State<ProgressPage>
                   const SizedBox(height: 2),
                   Text(
                     'progress.achievement_tip'.tr(),
-                    style: const TextStyle(
-                      fontSize: 13,
-                      color: Colors.white,
-                    ),
+                    style: const TextStyle(fontSize: 13, color: Colors.white),
                   ),
                 ],
               ),
@@ -164,9 +164,7 @@ class _ProgressPageState extends State<ProgressPage>
         ),
         backgroundColor: colorScheme.primary,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         margin: const EdgeInsets.all(16),
         duration: const Duration(seconds: 8),
         elevation: 6,
@@ -242,9 +240,7 @@ class _ProgressPageState extends State<ProgressPage>
             : _stats == null
                 ? _buildErrorWidget()
                 : RefreshIndicator(
-                    onRefresh: _loadStats,
-                    child: _buildContent(),
-                  ),
+                    onRefresh: _loadStats, child: _buildContent()),
       ),
     );
   }
@@ -314,10 +310,7 @@ class _ProgressPageState extends State<ProgressPage>
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
-                  colors: [
-                    colorScheme.primary,
-                    colorScheme.secondary,
-                  ],
+                  colors: [colorScheme.primary, colorScheme.secondary],
                 ),
               ),
               padding: const EdgeInsets.all(24),
@@ -396,8 +389,9 @@ class _ProgressPageState extends State<ProgressPage>
               : 'progress.goal_reached'.tr(),
           style: TextStyle(
             fontSize: 12,
-            color:
-                Theme.of(context).colorScheme.onPrimary.withValues(alpha: 0.8),
+            color: Theme.of(
+              context,
+            ).colorScheme.onPrimary.withValues(alpha: 0.8),
           ),
           textAlign: TextAlign.center,
           overflow: TextOverflow.ellipsis,
@@ -465,9 +459,7 @@ class _ProgressPageState extends State<ProgressPage>
 
     return Card(
       elevation: 4,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       // ✨ SOMBRA TEMÁTICA
       shadowColor: colorScheme.primary.withValues(alpha: 1),
       child: Padding(
@@ -484,11 +476,7 @@ class _ProgressPageState extends State<ProgressPage>
                 builder: (context, scale, child) {
                   return Transform.scale(
                     scale: scale,
-                    child: Icon(
-                      icon,
-                      color: color,
-                      size: 20,
-                    ),
+                    child: Icon(icon, color: color, size: 20),
                   );
                 },
               ),
@@ -558,24 +546,19 @@ class _ProgressPageState extends State<ProgressPage>
         // Última actividad cerca del grid
         Row(
           children: [
-            const Icon(
-              Icons.schedule,
-              color: Colors.green,
-              size: 16,
-            ),
+            const Icon(Icons.schedule, color: Colors.green, size: 16),
             const SizedBox(width: 1),
             Text(
               'progress.last_activity'.tr({
                 'date': _stats!.lastActivityDate != null
                     ? DateFormat('dd/MM/yyyy').format(_stats!.lastActivityDate!)
-                    : 'progress.no_activity'.tr()
+                    : 'progress.no_activity'.tr(),
               }),
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     fontWeight: FontWeight.w500,
-                    color: Theme.of(context)
-                        .colorScheme
-                        .onSurface
-                        .withValues(alpha: 0.7),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onSurface.withValues(alpha: 0.7),
                   ),
             ),
           ],
@@ -602,11 +585,7 @@ class _ProgressPageState extends State<ProgressPage>
         color: isUnlocked ? achievement.color : Colors.grey,
         borderRadius: BorderRadius.circular(8),
         boxShadow: const [
-          BoxShadow(
-            color: Colors.black26,
-            blurRadius: 4,
-            offset: Offset(0, 2),
-          ),
+          BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(0, 2)),
         ],
       ),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -615,9 +594,7 @@ class _ProgressPageState extends State<ProgressPage>
       verticalOffset: 10,
       child: Card(
         elevation: isUnlocked ? 4 : 2,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         // ✨ SOMBRA TEMÁTICA DIFERENCIADA
         shadowColor: isUnlocked
             ? achievement.color.withValues(alpha: 1)
@@ -664,8 +641,9 @@ class _ProgressPageState extends State<ProgressPage>
                           achievement.description,
                           style: theme.textTheme.bodySmall?.copyWith(
                             fontSize: 8,
-                            color: theme.colorScheme.onSurface
-                                .withValues(alpha: 0.6),
+                            color: theme.colorScheme.onSurface.withValues(
+                              alpha: 0.6,
+                            ),
                           ),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,

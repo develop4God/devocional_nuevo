@@ -35,8 +35,10 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
 
     if (!mounted) return;
 
-    final localizationProvider =
-        Provider.of<LocalizationProvider>(context, listen: false);
+    final localizationProvider = Provider.of<LocalizationProvider>(
+      context,
+      listen: false,
+    );
     _currentLanguage = localizationProvider.currentLocale.languageCode;
 
     setState(() {
@@ -74,10 +76,14 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
       _downloadProgress[languageCode] = 0.0;
     });
 
-    final devocionalProvider =
-        Provider.of<DevocionalProvider>(context, listen: false);
-    final localizationProvider =
-        Provider.of<LocalizationProvider>(context, listen: false);
+    final devocionalProvider = Provider.of<DevocionalProvider>(
+      context,
+      listen: false,
+    );
+    final localizationProvider = Provider.of<LocalizationProvider>(
+      context,
+      listen: false,
+    );
 
     try {
       // Simulate progress updates
@@ -105,11 +111,14 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
       }
 
       // Cambiar el contexto de TTS al idioma y versión seleccionados
-      devocionalProvider.audioController.ttsService
-          .setLanguageContext(languageCode, defaultVersion ?? '');
+      devocionalProvider.audioController.ttsService.setLanguageContext(
+        languageCode,
+        defaultVersion ?? '',
+      );
       // Usar el metodo getTtsLocale del provider de localización
-      await devocionalProvider.audioController.ttsService
-          .setLanguage(localizationProvider.getTtsLocale());
+      await devocionalProvider.audioController.ttsService.setLanguage(
+        localizationProvider.getTtsLocale(),
+      );
 
       // Download devotional content (only if not already downloaded or if it's not Spanish)
       bool downloadSuccess = true;
@@ -159,7 +168,9 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
   }
 
   Future<void> _assignBestVoiceForLanguage(
-      String languageCode, DevocionalProvider provider) async {
+    String languageCode,
+    DevocionalProvider provider,
+  ) async {
     try {
       debugPrint('🎵 Auto-assigning best voice for language: $languageCode');
 
@@ -212,23 +223,22 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
         }
 
         debugPrint(
-            '🎵 Selected best voice: $bestVoiceName with locale: $bestVoiceLocale');
+          '🎵 Selected best voice: $bestVoiceName with locale: $bestVoiceLocale',
+        );
 
         // Set the voice
         final voiceName = bestVoiceName;
         final voiceLocale = bestVoiceLocale;
 
-        await provider.setTtsVoice({
-          'name': voiceName,
-          'locale': voiceLocale,
-        });
+        await provider.setTtsVoice({'name': voiceName, 'locale': voiceLocale});
 
         // Save the voice preference
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('tts_voice_$languageCode', bestVoice);
 
         debugPrint(
-            '✅ Auto-assigned voice: $bestVoice for language $languageCode');
+          '✅ Auto-assigned voice: $bestVoice for language $languageCode',
+        );
       }
     } catch (e) {
       debugPrint('⚠️ Error auto-assigning voice for $languageCode: $e');
@@ -260,7 +270,7 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
       'ava',
       'kate',
       'sara',
-      'laura'
+      'laura',
     ];
 
     for (final name in femaleNames) {
@@ -301,9 +311,7 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
         backgroundColor: theme.colorScheme.error,
         behavior: SnackBarBehavior.floating,
         margin: const EdgeInsets.all(16),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
     );
   }
@@ -342,16 +350,29 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
           ),
         ),
         subtitle: _buildLanguageSubtitle(
-            languageCode, isCurrentLanguage, isDownloaded, theme),
+          languageCode,
+          isCurrentLanguage,
+          isDownloaded,
+          theme,
+        ),
         trailing: _buildTrailingWidget(
-            languageCode, isDownloaded, isDownloading, progress, theme),
+          languageCode,
+          isDownloaded,
+          isDownloading,
+          progress,
+          theme,
+        ),
         onTap: disableTap ? null : () => _downloadLanguage(languageCode),
       ),
     );
   }
 
-  Widget? _buildLanguageSubtitle(String languageCode, bool isCurrentLanguage,
-      bool isDownloaded, ThemeData theme) {
+  Widget? _buildLanguageSubtitle(
+    String languageCode,
+    bool isCurrentLanguage,
+    bool isDownloaded,
+    ThemeData theme,
+  ) {
     if (isCurrentLanguage) {
       return Text(
         'application_language.current_language'.tr(),
@@ -370,8 +391,13 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
     return null;
   }
 
-  Widget _buildTrailingWidget(String languageCode, bool isDownloaded,
-      bool isDownloading, double progress, ThemeData theme) {
+  Widget _buildTrailingWidget(
+    String languageCode,
+    bool isDownloaded,
+    bool isDownloading,
+    double progress,
+    ThemeData theme,
+  ) {
     if (isDownloading) {
       return SizedBox(
         width: 60,
@@ -412,10 +438,7 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
       }
     }
 
-    return Icon(
-      Icons.file_download_outlined,
-      color: theme.colorScheme.primary,
-    );
+    return Icon(Icons.file_download_outlined, color: theme.colorScheme.primary);
   }
 
   @override
@@ -426,9 +449,7 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: themeState.systemUiOverlayStyle,
       child: Scaffold(
-        appBar: CustomAppBar(
-          titleText: 'application_language.title'.tr(),
-        ),
+        appBar: CustomAppBar(titleText: 'application_language.title'.tr()),
         backgroundColor: theme.colorScheme.surface,
         body: ListView(
           children: [

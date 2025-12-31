@@ -159,11 +159,7 @@ class _AnimatedFabWithTextState extends State<AnimatedFabWithText>
                   onTap: widget.onPressed,
                   customBorder: const CircleBorder(),
                   child: Center(
-                    child: Icon(
-                      Icons.add,
-                      color: widget.iconColor,
-                      size: 28,
-                    ),
+                    child: Icon(Icons.add, color: widget.iconColor, size: 28),
                   ),
                 ),
               ),

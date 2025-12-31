@@ -58,10 +58,7 @@ void main() {
       'should emit loading then loaded when loading prayers from empty storage',
       build: () => prayerBloc,
       act: (bloc) => bloc.add(LoadPrayers()),
-      expect: () => [
-        isA<PrayerLoading>(),
-        isA<PrayerLoaded>(),
-      ],
+      expect: () => [isA<PrayerLoading>(), isA<PrayerLoaded>()],
       verify: (bloc) {
         final state = bloc.state as PrayerLoaded;
         expect(state.prayers, isEmpty);

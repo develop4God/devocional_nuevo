@@ -34,7 +34,7 @@ class _ContactPageState extends State<ContactPage> {
       'contact.bugs'.tr(),
       'contact.feedback'.tr(),
       'contact.improvements'.tr(),
-      'contact.other'.tr()
+      'contact.other'.tr(),
     ];
   }
 
@@ -66,8 +66,10 @@ class _ContactPageState extends State<ContactPage> {
           }))}&body=${Uri.encodeComponent(message)}',
     );
 
-    developer.log('Intentando abrir cliente de correo: $emailUri',
-        name: 'EmailLaunch');
+    developer.log(
+      'Intentando abrir cliente de correo: $emailUri',
+      name: 'EmailLaunch',
+    );
 
     try {
       if (await canLaunchUrl(emailUri)) {
@@ -88,13 +90,18 @@ class _ContactPageState extends State<ContactPage> {
         }
       } else {
         _showErrorSnackBar(
-            'No se pudo abrir el cliente de correo. Por favor, envía un correo manualmente a develop4god@gmail.com');
+          'No se pudo abrir el cliente de correo. Por favor, envía un correo manualmente a develop4god@gmail.com',
+        );
       }
     } catch (e) {
-      developer.log('Error al intentar abrir cliente de correo: $e',
-          error: e, name: 'EmailLaunch');
+      developer.log(
+        'Error al intentar abrir cliente de correo: $e',
+        error: e,
+        name: 'EmailLaunch',
+      );
       _showErrorSnackBar(
-          'Error al abrir el cliente de correo: ${e.toString()}');
+        'Error al abrir el cliente de correo: ${e.toString()}',
+      );
     }
   }
 
@@ -111,10 +118,7 @@ class _ContactPageState extends State<ContactPage> {
   void _showErrorSnackBar(String message) {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(message),
-          backgroundColor: Colors.red,
-        ),
+        SnackBar(content: Text(message), backgroundColor: Colors.red),
       );
     }
   }
@@ -126,240 +130,252 @@ class _ContactPageState extends State<ContactPage> {
     final themeState = context.watch<ThemeBloc>().state as ThemeLoaded;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
-        value: themeState.systemUiOverlayStyle,
-        child: Scaffold(
-          appBar: CustomAppBar(
-            titleText: 'contact_page.title'.tr(),
-          ),
-          body: SingleChildScrollView(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Título de la página
-                Text(
-                  'contact_page.contact_us'.tr(),
-                  style: textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: colorScheme.primary,
+      value: themeState.systemUiOverlayStyle,
+      child: Scaffold(
+        appBar: CustomAppBar(titleText: 'contact_page.title'.tr()),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Título de la página
+              Text(
+                'contact_page.contact_us'.tr(),
+                style: textTheme.headlineMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: colorScheme.primary,
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Descripción
+              Text(
+                'contact_page.description'.tr(),
+                style: textTheme.bodyLarge?.copyWith(
+                  color: colorScheme.onSurface,
+                ),
+              ),
+              const SizedBox(height: 30),
+
+              // SOLUCIÓN: Cambio a Container con DropdownButton para eliminar inconsistencias
+              Container(
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? colorScheme.outline
+                        : colorScheme.primary.withValues(alpha: 0.7),
                   ),
+                  borderRadius: BorderRadius.circular(10),
                 ),
-                const SizedBox(height: 20),
-
-                // Descripción
-                Text(
-                  'contact_page.description'.tr(),
-                  style: textTheme.bodyLarge
-                      ?.copyWith(color: colorScheme.onSurface),
+                child: DropdownButton<String>(
+                  value: _selectedContactOption,
+                  hint: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                    child: Row(
+                      children: [
+                        Icon(Icons.topic_outlined, color: colorScheme.primary),
+                        const SizedBox(width: 12),
+                        Text(
+                          'contact.select_option'.tr(),
+                          style: TextStyle(
+                            color:
+                                Theme.of(context).brightness == Brightness.dark
+                                    ? colorScheme.onSurfaceVariant
+                                    : colorScheme.primary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  isExpanded: true,
+                  underline: const SizedBox(),
+                  // Remover la línea por defecto
+                  items: _contactOptions.map((String option) {
+                    return DropdownMenuItem<String>(
+                      value: option,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.topic_outlined,
+                              color: colorScheme.primary,
+                              size: 20,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(child: Text(option)),
+                          ],
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      _selectedContactOption = newValue;
+                    });
+                  },
+                  selectedItemBuilder: (BuildContext context) {
+                    return _contactOptions.map((String option) {
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.topic_outlined,
+                              color: colorScheme.primary,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                option,
+                                style: TextStyle(
+                                  color: Theme.of(context).brightness ==
+                                          Brightness.dark
+                                      ? colorScheme.onSurface
+                                      : colorScheme.primary,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }).toList();
+                  },
                 ),
-                const SizedBox(height: 30),
+              ),
+              const SizedBox(height: 20),
 
-                // SOLUCIÓN: Cambio a Container con DropdownButton para eliminar inconsistencias
-                Container(
-                  decoration: BoxDecoration(
-                    border: Border.all(
+              // Campo de texto para el mensaje
+              TextField(
+                controller: _messageController,
+                style: TextStyle(color: colorScheme.onSurface),
+                decoration: InputDecoration(
+                  labelText: 'contact_page.message_label'.tr(),
+                  labelStyle: TextStyle(
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? colorScheme.onSurfaceVariant
+                        : colorScheme.primary,
+                  ),
+                  hintText: 'contact_page.message_hint'.tr(),
+                  hintStyle: TextStyle(
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? colorScheme.onSurface.withValues(alpha: 0.5)
+                        : colorScheme.primary.withValues(alpha: 0.5),
+                  ),
+                  filled: true,
+                  fillColor: Theme.of(context).brightness == Brightness.dark
+                      ? colorScheme.surfaceContainerHighest
+                      : colorScheme.surfaceContainerLowest,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(
                       color: Theme.of(context).brightness == Brightness.dark
                           ? colorScheme.outline
                           : colorScheme.primary.withValues(alpha: 0.7),
+                      width: 1.5,
                     ),
+                  ),
+                  enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: DropdownButton<String>(
-                    value: _selectedContactOption,
-                    hint: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                      child: Row(
-                        children: [
-                          Icon(Icons.topic_outlined,
-                              color: colorScheme.primary),
-                          const SizedBox(width: 12),
-                          Text(
-                            'contact.select_option'.tr(),
-                            style: TextStyle(
-                              color: Theme.of(context).brightness ==
-                                      Brightness.dark
-                                  ? colorScheme.onSurfaceVariant
-                                  : colorScheme.primary,
-                            ),
-                          ),
-                        ],
-                      ),
+                    borderSide: BorderSide(
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? colorScheme.outline
+                          : colorScheme.primary.withValues(alpha: 0.7),
+                      width: 1.5,
                     ),
-                    isExpanded: true,
-                    underline: const SizedBox(),
-                    // Remover la línea por defecto
-                    items: _contactOptions.map((String option) {
-                      return DropdownMenuItem<String>(
-                        value: option,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                          child: Row(
-                            children: [
-                              Icon(Icons.topic_outlined,
-                                  color: colorScheme.primary, size: 20),
-                              const SizedBox(width: 12),
-                              Expanded(child: Text(option)),
-                            ],
-                          ),
-                        ),
-                      );
-                    }).toList(),
-                    onChanged: (String? newValue) {
-                      setState(() {
-                        _selectedContactOption = newValue;
-                      });
-                    },
-                    selectedItemBuilder: (BuildContext context) {
-                      return _contactOptions.map((String option) {
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                          child: Row(
-                            children: [
-                              Icon(Icons.topic_outlined,
-                                  color: colorScheme.primary),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Text(
-                                  option,
-                                  style: TextStyle(
-                                    color: Theme.of(context).brightness ==
-                                            Brightness.dark
-                                        ? colorScheme.onSurface
-                                        : colorScheme.primary,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      }).toList();
-                    },
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(
+                      color: colorScheme.primary,
+                      width: 2,
+                    ),
+                  ),
+                  prefixIcon: Icon(Icons.message, color: colorScheme.primary),
+                ),
+                maxLines: 5,
+              ),
+              const SizedBox(height: 20),
+
+              // Botón de enviar
+              Center(
+                child: ElevatedButton.icon(
+                  onPressed: _sendContactEmail,
+                  icon: Icon(Icons.send, color: colorScheme.onPrimary),
+                  label: Text(
+                    'contact.open_email'.tr(),
+                    style: TextStyle(color: colorScheme.onPrimary),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: colorScheme.primary,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 12,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30.0),
+                    ),
                   ),
                 ),
-                const SizedBox(height: 20),
+              ),
 
-                // Campo de texto para el mensaje
-                TextField(
-                  controller: _messageController,
+              const SizedBox(height: 30),
+              const Divider(),
+              const SizedBox(height: 20),
+
+              // Otras formas de contacto (sin cambios)
+              Text(
+                'contact_page.other_contact_methods'.tr(),
+                style: textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: colorScheme.onSurface,
+                ),
+              ),
+              const SizedBox(height: 15),
+
+              // Email directo
+              ListTile(
+                leading: Icon(Icons.email, color: colorScheme.primary),
+                title: Text(
+                  'develop4God@gmail.com',
                   style: TextStyle(color: colorScheme.onSurface),
-                  decoration: InputDecoration(
-                    labelText: 'contact_page.message_label'.tr(),
-                    labelStyle: TextStyle(
-                      color: Theme.of(context).brightness == Brightness.dark
-                          ? colorScheme.onSurfaceVariant
-                          : colorScheme.primary,
-                    ),
-                    hintText: 'contact_page.message_hint'.tr(),
-                    hintStyle: TextStyle(
-                      color: Theme.of(context).brightness == Brightness.dark
-                          ? colorScheme.onSurface.withValues(alpha: 0.5)
-                          : colorScheme.primary.withValues(alpha: 0.5),
-                    ),
-                    filled: true,
-                    fillColor: Theme.of(context).brightness == Brightness.dark
-                        ? colorScheme.surfaceContainerHighest
-                        : colorScheme.surfaceContainerLowest,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide(
-                        color: Theme.of(context).brightness == Brightness.dark
-                            ? colorScheme.outline
-                            : colorScheme.primary.withValues(alpha: 0.7),
-                        width: 1.5,
-                      ),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide(
-                        color: Theme.of(context).brightness == Brightness.dark
-                            ? colorScheme.outline
-                            : colorScheme.primary.withValues(alpha: 0.7),
-                        width: 1.5,
-                      ),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide(
-                        color: colorScheme.primary,
-                        width: 2,
-                      ),
-                    ),
-                    prefixIcon: Icon(Icons.message, color: colorScheme.primary),
-                  ),
-                  maxLines: 5,
                 ),
-                const SizedBox(height: 20),
+                onTap: () async {
+                  final Uri emailUri = Uri(
+                    scheme: 'mailto',
+                    path: 'develop4god@gmail.com',
+                  );
+                  if (await canLaunchUrl(emailUri)) {
+                    await launchUrl(emailUri);
+                  } else {
+                    _showErrorSnackBar('No se pudo abrir el cliente de correo');
+                  }
+                },
+              ),
 
-                // Botón de enviar
-                Center(
-                  child: ElevatedButton.icon(
-                    onPressed: _sendContactEmail,
-                    icon: Icon(Icons.send, color: colorScheme.onPrimary),
-                    label: Text('contact.open_email'.tr(),
-                        style: TextStyle(color: colorScheme.onPrimary)),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: colorScheme.primary,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 24, vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30.0),
-                      ),
-                    ),
-                  ),
+              // Sitio web
+              ListTile(
+                leading: Icon(Icons.language, color: colorScheme.primary),
+                title: Text(
+                  'contact.visit_website'.tr(),
+                  style: TextStyle(color: colorScheme.onSurface),
                 ),
-
-                const SizedBox(height: 30),
-                const Divider(),
-                const SizedBox(height: 20),
-
-                // Otras formas de contacto (sin cambios)
-                Text(
-                  'contact_page.other_contact_methods'.tr(),
-                  style: textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: colorScheme.onSurface,
-                  ),
-                ),
-                const SizedBox(height: 15),
-
-                // Email directo
-                ListTile(
-                  leading: Icon(Icons.email, color: colorScheme.primary),
-                  title: Text('develop4God@gmail.com',
-                      style: TextStyle(color: colorScheme.onSurface)),
-                  onTap: () async {
-                    final Uri emailUri = Uri(
-                      scheme: 'mailto',
-                      path: 'develop4god@gmail.com',
+                onTap: () async {
+                  final Uri webUri = Uri.parse('https://www.develop4god.com/');
+                  if (await canLaunchUrl(webUri)) {
+                    await launchUrl(
+                      webUri,
+                      mode: LaunchMode.externalApplication,
                     );
-                    if (await canLaunchUrl(emailUri)) {
-                      await launchUrl(emailUri);
-                    } else {
-                      _showErrorSnackBar(
-                          'No se pudo abrir el cliente de correo');
-                    }
-                  },
-                ),
-
-                // Sitio web
-                ListTile(
-                  leading: Icon(Icons.language, color: colorScheme.primary),
-                  title: Text('contact.visit_website'.tr(),
-                      style: TextStyle(color: colorScheme.onSurface)),
-                  onTap: () async {
-                    final Uri webUri =
-                        Uri.parse('https://www.develop4god.com/');
-                    if (await canLaunchUrl(webUri)) {
-                      await launchUrl(webUri,
-                          mode: LaunchMode.externalApplication);
-                    } else {
-                      _showErrorSnackBar('No se pudo abrir el navegador');
-                    }
-                  },
-                ),
-              ],
-            ),
+                  } else {
+                    _showErrorSnackBar('No se pudo abrir el navegador');
+                  }
+                },
+              ),
+            ],
           ),
-        ));
+        ),
+      ),
+    );
   }
 }

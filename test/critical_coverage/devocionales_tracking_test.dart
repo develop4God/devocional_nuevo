@@ -46,12 +46,14 @@ void main() {
       test('check if devocional already auto-completed', () {
         final autoCompletedDevocionals = <String>{'devotional_123'};
 
-        final alreadyCompleted =
-            autoCompletedDevocionals.contains('devotional_123');
+        final alreadyCompleted = autoCompletedDevocionals.contains(
+          'devotional_123',
+        );
         expect(alreadyCompleted, isTrue);
 
-        final notCompleted =
-            autoCompletedDevocionals.contains('devotional_456');
+        final notCompleted = autoCompletedDevocionals.contains(
+          'devotional_456',
+        );
         expect(notCompleted, isFalse);
       });
     });

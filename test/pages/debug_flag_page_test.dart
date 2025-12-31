@@ -43,37 +43,40 @@ void main() {
     });
 
     testWidgets(
-        'Borrar flag de voz llama clearUserSavedVoiceFlag y muestra SnackBar',
-        (tester) async {
-      // Arrange
-      when(() => mockVoiceSettingsService.clearUserSavedVoiceFlag(any()))
-          .thenAnswer((_) async {});
+      'Borrar flag de voz llama clearUserSavedVoiceFlag y muestra SnackBar',
+      (tester) async {
+        // Arrange
+        when(
+          () => mockVoiceSettingsService.clearUserSavedVoiceFlag(any()),
+        ).thenAnswer((_) async {});
 
-      await tester.pumpWidget(
-        MultiProvider(
-          providers: [
-            Provider<VoiceSettingsService>.value(
-                value: mockVoiceSettingsService),
-            ChangeNotifierProvider<LocalizationProvider>.value(
-                value: mockLocalizationProvider),
-          ],
-          child: const MaterialApp(
-            home: debug_page.DebugFlagPage(),
+        await tester.pumpWidget(
+          MultiProvider(
+            providers: [
+              Provider<VoiceSettingsService>.value(
+                value: mockVoiceSettingsService,
+              ),
+              ChangeNotifierProvider<LocalizationProvider>.value(
+                value: mockLocalizationProvider,
+              ),
+            ],
+            child: const MaterialApp(home: debug_page.DebugFlagPage()),
           ),
-        ),
-      );
+        );
 
-      // Act
-      final buttonFinder = find.text('Borrar flag de voz (pruebas)');
-      expect(buttonFinder, findsOneWidget);
-      await tester.tap(buttonFinder);
-      await tester.pumpAndSettle();
+        // Act
+        final buttonFinder = find.text('Borrar flag de voz (pruebas)');
+        expect(buttonFinder, findsOneWidget);
+        await tester.tap(buttonFinder);
+        await tester.pumpAndSettle();
 
-      // Assert
-      verify(() => mockVoiceSettingsService.clearUserSavedVoiceFlag('es'))
-          .called(1);
-      expect(find.byType(SnackBar), findsOneWidget);
-      expect(find.textContaining('Flag de voz borrado'), findsOneWidget);
-    });
+        // Assert
+        verify(
+          () => mockVoiceSettingsService.clearUserSavedVoiceFlag('es'),
+        ).called(1);
+        expect(find.byType(SnackBar), findsOneWidget);
+        expect(find.textContaining('Flag de voz borrado'), findsOneWidget);
+      },
+    );
   });
 }

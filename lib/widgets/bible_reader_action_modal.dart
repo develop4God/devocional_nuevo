@@ -31,9 +31,7 @@ class BibleReaderActionModal extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: colorScheme.surface,
-        borderRadius: const BorderRadius.vertical(
-          top: Radius.circular(24),
-        ),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
       child: Column(
@@ -45,8 +43,11 @@ class BibleReaderActionModal extends StatelessWidget {
               const Spacer(),
               if (areVersesSaved && onDeleteSaved != null)
                 PopupMenuButton<String>(
-                  icon: Icon(Icons.more_vert,
-                      color: colorScheme.onSurfaceVariant, size: 24),
+                  icon: Icon(
+                    Icons.more_vert,
+                    color: colorScheme.onSurfaceVariant,
+                    size: 24,
+                  ),
                   tooltip: 'bible.close'.tr(),
                   padding: EdgeInsets.zero,
                   onSelected: (value) {
@@ -59,8 +60,11 @@ class BibleReaderActionModal extends StatelessWidget {
                       value: 'delete',
                       child: Row(
                         children: [
-                          Icon(Icons.delete_outline,
-                              color: colorScheme.error, size: 20),
+                          Icon(
+                            Icons.delete_outline,
+                            color: colorScheme.error,
+                            size: 20,
+                          ),
                           const SizedBox(width: 8),
                           Text('bible.delete_saved_verses'.tr()),
                         ],
@@ -70,8 +74,11 @@ class BibleReaderActionModal extends StatelessWidget {
                 ),
               const SizedBox(width: 8),
               IconButton(
-                icon: Icon(Icons.close,
-                    color: colorScheme.onSurfaceVariant, size: 26),
+                icon: Icon(
+                  Icons.close,
+                  color: colorScheme.onSurfaceVariant,
+                  size: 26,
+                ),
                 onPressed: () => Navigator.of(context).pop(),
                 tooltip: 'bible.close'.tr(),
                 padding: EdgeInsets.zero,
@@ -94,9 +101,7 @@ class BibleReaderActionModal extends StatelessWidget {
 
           // Selected verses text (scrollable, grows up to 60% of screen)
           Container(
-            constraints: BoxConstraints(
-              maxHeight: maxModalHeight,
-            ),
+            constraints: BoxConstraints(maxHeight: maxModalHeight),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
               color: colorScheme.surfaceContainerHighest,
@@ -105,9 +110,9 @@ class BibleReaderActionModal extends StatelessWidget {
             child: SingleChildScrollView(
               child: Text(
                 selectedVersesText,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      height: 1.5,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(height: 1.5),
                 textAlign: TextAlign.center,
               ),
             ),
@@ -194,17 +199,13 @@ class BibleReaderActionModal extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(
-                icon,
-                size: 28,
-                color: colorScheme.onSurface,
-              ),
+              Icon(icon, size: 28, color: colorScheme.onSurface),
               const SizedBox(height: 4),
               Text(
                 label,
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: colorScheme.onSurface,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.labelSmall?.copyWith(color: colorScheme.onSurface),
                 textAlign: TextAlign.center,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,

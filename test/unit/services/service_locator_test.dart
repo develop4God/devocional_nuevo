@@ -46,7 +46,8 @@ void main() {
 
       test('registerFactory creates new instance each time', () {
         ServiceLocator().registerFactory<VoiceSettingsService>(
-            () => VoiceSettingsService());
+          () => VoiceSettingsService(),
+        );
 
         final instance1 = getService<VoiceSettingsService>();
         final instance2 = getService<VoiceSettingsService>();
@@ -81,15 +82,17 @@ void main() {
 
       test('isRegistered returns true after registration', () {
         ServiceLocator().registerLazySingleton<VoiceSettingsService>(
-            () => VoiceSettingsService());
+          () => VoiceSettingsService(),
+        );
         expect(ServiceLocator().isRegistered<VoiceSettingsService>(), isTrue);
       });
     });
 
     group('Lifecycle Management', () {
       test('reset clears all singletons', () {
-        ServiceLocator()
-            .registerSingleton<VoiceSettingsService>(VoiceSettingsService());
+        ServiceLocator().registerSingleton<VoiceSettingsService>(
+          VoiceSettingsService(),
+        );
 
         expect(ServiceLocator().isRegistered<VoiceSettingsService>(), isTrue);
 
@@ -100,7 +103,8 @@ void main() {
 
       test('reset clears all factories', () {
         ServiceLocator().registerFactory<VoiceSettingsService>(
-            () => VoiceSettingsService());
+          () => VoiceSettingsService(),
+        );
 
         expect(ServiceLocator().isRegistered<VoiceSettingsService>(), isTrue);
 
@@ -110,8 +114,9 @@ void main() {
       });
 
       test('unregister removes specific service', () {
-        ServiceLocator()
-            .registerSingleton<VoiceSettingsService>(VoiceSettingsService());
+        ServiceLocator().registerSingleton<VoiceSettingsService>(
+          VoiceSettingsService(),
+        );
 
         expect(ServiceLocator().isRegistered<VoiceSettingsService>(), isTrue);
 

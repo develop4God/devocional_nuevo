@@ -15,7 +15,8 @@ class BibleTextFormatter {
         ? '${reference.substring(0, maxLogLength)}...'
         : reference;
     debugPrint(
-        '[BibleTextFormatter] formatBibleBook called with reference="$logText", language="$language"');
+      '[BibleTextFormatter] formatBibleBook called with reference="$logText", language="$language"',
+    );
     switch (language) {
       case 'es':
         return _formatBibleBookSpanish(reference);
@@ -31,7 +32,8 @@ class BibleTextFormatter {
         return _formatBibleBookChinese(reference);
       default:
         debugPrint(
-            '[BibleTextFormatter] Unknown language "$language", using Spanish as default');
+          '[BibleTextFormatter] Unknown language "$language", using Spanish as default',
+        );
         return _formatBibleBookSpanish(reference);
     }
   }
@@ -40,8 +42,10 @@ class BibleTextFormatter {
   /// Now uses replaceAllMapped to work anywhere in text, not just at beginning
   static String _formatBibleBookSpanish(String reference) {
     // Use word boundary (\b) or start of string to match Bible book references anywhere
-    final exp = RegExp(r'(?:^|\s)([123])\s+([A-Za-záéíóúÁÉÍÓÚñÑ]+)',
-        caseSensitive: false);
+    final exp = RegExp(
+      r'(?:^|\s)([123])\s+([A-Za-záéíóúÁÉÍÓÚñÑ]+)',
+      caseSensitive: false,
+    );
 
     return reference.replaceAllMapped(exp, (match) {
       final matchText = match.group(0)!;
@@ -85,8 +89,10 @@ class BibleTextFormatter {
   /// Formats Portuguese Bible book ordinals (Primeiro, Segundo, Terceiro)
   /// Now uses replaceAllMapped to work anywhere in text, not just at beginning
   static String _formatBibleBookPortuguese(String reference) {
-    final exp = RegExp(r'(?:^|\s)([123])\s+([A-Za-záéíóúâêîôûãõç]+)',
-        caseSensitive: false);
+    final exp = RegExp(
+      r'(?:^|\s)([123])\s+([A-Za-záéíóúâêîôûãõç]+)',
+      caseSensitive: false,
+    );
     final ordinals = {'1': 'Primeiro', '2': 'Segundo', '3': 'Terceiro'};
 
     return reference.replaceAllMapped(exp, (match) {
@@ -102,8 +108,10 @@ class BibleTextFormatter {
   /// Formats French Bible book ordinals (Premier, Deuxième, Troisième)
   /// Now uses replaceAllMapped to work anywhere in text, not just at beginning
   static String _formatBibleBookFrench(String reference) {
-    final exp = RegExp(r'(?:^|\s)([123])\s+([A-Za-zéèêëàâäùûüôîïç]+)',
-        caseSensitive: false);
+    final exp = RegExp(
+      r'(?:^|\s)([123])\s+([A-Za-zéèêëàâäùûüôîïç]+)',
+      caseSensitive: false,
+    );
     final ordinals = {'1': 'Premier', '2': 'Deuxième', '3': 'Troisième'};
 
     return reference.replaceAllMapped(exp, (match) {
@@ -152,20 +160,18 @@ class BibleTextFormatter {
           'TOB': 'Traduction Oecuménique de la Bible',
         };
       case 'zh':
-        return {
-          '和合本1919': '和合本一九一九',
-          '新译本': '新译本',
-        };
+        return {'和合本1919': '和合本一九一九', '新译本': '新译本'};
       default:
-        return {
-          'RVR1960': 'Reina Valera mil novecientos sesenta',
-        };
+        return {'RVR1960': 'Reina Valera mil novecientos sesenta'};
     }
   }
 
   /// Normaliza y arma el texto para TTS (capítulo, versículo, ordinales, versión bíblica)
-  static String normalizeTtsText(String text, String language,
-      [String? version]) {
+  static String normalizeTtsText(
+    String text,
+    String language, [
+    String? version,
+  ]) {
     String normalized = text;
     // 1. Formatear libros bíblicos PRIMERO (con RegExp corregido)
     normalized = formatBibleBook(normalized, language);
@@ -201,37 +207,37 @@ class BibleTextFormatter {
     // to avoid word boundary issues with non-ASCII characters
     final isCJK = language == 'zh' || language == 'ja';
     final pattern = isCJK
-        ? RegExp(r'((?:\d+\s+)?[一-龯ぁ-んァ-ン]+)\s+(\d+):(\d+)(?:-(\d+))?',
-            caseSensitive: false)
+        ? RegExp(
+            r'((?:\d+\s+)?[一-龯ぁ-んァ-ン]+)\s+(\d+):(\d+)(?:-(\d+))?',
+            caseSensitive: false,
+          )
         : RegExp(
             r'(\b(?:\d+\s+)?[A-Za-záéíóúÁÉÍÓÚñÑ]+)\s+(\d+):(\d+)(?:-(\d+))?',
-            caseSensitive: false);
+            caseSensitive: false,
+          );
 
-    return text.replaceAllMapped(
-      pattern,
-      (match) {
-        final book = match.group(1)!;
-        final chapter = match.group(2)!;
-        final verseStart = match.group(3)!;
-        final verseEnd = match.group(4);
+    return text.replaceAllMapped(pattern, (match) {
+      final book = match.group(1)!;
+      final chapter = match.group(2)!;
+      final verseStart = match.group(3)!;
+      final verseEnd = match.group(4);
 
-        String result = '$book $chapterWord $chapter $verseWord $verseStart';
-        if (verseEnd != null) {
-          final toWord = language == 'en'
-              ? 'to'
-              : language == 'pt'
-                  ? 'ao'
-                  : language == 'fr'
-                      ? 'au'
-                      : language == 'ja'
-                          ? '～'
-                          : language == 'zh'
-                              ? '至'
-                              : 'al';
-          result += ' $toWord $verseEnd';
-        }
-        return result;
-      },
-    );
+      String result = '$book $chapterWord $chapter $verseWord $verseStart';
+      if (verseEnd != null) {
+        final toWord = language == 'en'
+            ? 'to'
+            : language == 'pt'
+                ? 'ao'
+                : language == 'fr'
+                    ? 'au'
+                    : language == 'ja'
+                        ? '～'
+                        : language == 'zh'
+                            ? '至'
+                            : 'al';
+        result += ' $toWord $verseEnd';
+      }
+      return result;
+    });
   }
 }

@@ -38,23 +38,24 @@ class PrayerBloc extends Bloc<PrayerEvent, PrayerState> {
       final prayers = await _loadPrayersFromStorage();
       emit(PrayerLoaded(prayers: prayers));
     } catch (e) {
-      final errorMessage = getService<LocalizationService>()
-          .translate('errors.prayer_loading_error');
+      final errorMessage = getService<LocalizationService>().translate(
+        'errors.prayer_loading_error',
+      );
       debugPrint('Error loading prayers: $e');
       emit(PrayerError(errorMessage));
     }
   }
 
   /// Handles adding a new prayer
-  Future<void> _onAddPrayer(
-    AddPrayer event,
-    Emitter<PrayerState> emit,
-  ) async {
+  Future<void> _onAddPrayer(AddPrayer event, Emitter<PrayerState> emit) async {
     if (event.text.trim().isEmpty) {
       final currentState = state;
       if (currentState is PrayerLoaded) {
-        emit(currentState.copyWith(
-            errorMessage: 'El texto de la oración no puede estar vacío'));
+        emit(
+          currentState.copyWith(
+            errorMessage: 'El texto de la oración no puede estar vacío',
+          ),
+        );
       }
       return;
     }
@@ -82,8 +83,9 @@ class PrayerBloc extends Bloc<PrayerEvent, PrayerState> {
     } catch (e) {
       final currentState = state;
       if (currentState is PrayerLoaded) {
-        emit(currentState.copyWith(
-            errorMessage: 'Error al añadir la oración: $e'));
+        emit(
+          currentState.copyWith(errorMessage: 'Error al añadir la oración: $e'),
+        );
       }
       debugPrint('Error adding prayer: $e');
     }
@@ -97,8 +99,11 @@ class PrayerBloc extends Bloc<PrayerEvent, PrayerState> {
     if (event.newText.trim().isEmpty) {
       final currentState = state;
       if (currentState is PrayerLoaded) {
-        emit(currentState.copyWith(
-            errorMessage: 'El texto de la oración no puede estar vacío'));
+        emit(
+          currentState.copyWith(
+            errorMessage: 'El texto de la oración no puede estar vacío',
+          ),
+        );
       }
       return;
     }
@@ -119,8 +124,9 @@ class PrayerBloc extends Bloc<PrayerEvent, PrayerState> {
     } catch (e) {
       final currentState = state;
       if (currentState is PrayerLoaded) {
-        emit(currentState.copyWith(
-            errorMessage: 'Error al editar la oración: $e'));
+        emit(
+          currentState.copyWith(errorMessage: 'Error al editar la oración: $e'),
+        );
       }
       debugPrint('Error editing prayer: $e');
     }
@@ -144,8 +150,11 @@ class PrayerBloc extends Bloc<PrayerEvent, PrayerState> {
     } catch (e) {
       final currentState = state;
       if (currentState is PrayerLoaded) {
-        emit(currentState.copyWith(
-            errorMessage: 'Error al eliminar la oración: $e'));
+        emit(
+          currentState.copyWith(
+            errorMessage: 'Error al eliminar la oración: $e',
+          ),
+        );
       }
       debugPrint('Error deleting prayer: $e');
     }
@@ -177,8 +186,11 @@ class PrayerBloc extends Bloc<PrayerEvent, PrayerState> {
     } catch (e) {
       final currentState = state;
       if (currentState is PrayerLoaded) {
-        emit(currentState.copyWith(
-            errorMessage: 'Error al marcar la oración como respondida: $e'));
+        emit(
+          currentState.copyWith(
+            errorMessage: 'Error al marcar la oración como respondida: $e',
+          ),
+        );
       }
       debugPrint('Error marking prayer as answered: $e');
     }
@@ -210,8 +222,11 @@ class PrayerBloc extends Bloc<PrayerEvent, PrayerState> {
     } catch (e) {
       final currentState = state;
       if (currentState is PrayerLoaded) {
-        emit(currentState.copyWith(
-            errorMessage: 'Error al marcar la oración como activa: $e'));
+        emit(
+          currentState.copyWith(
+            errorMessage: 'Error al marcar la oración como activa: $e',
+          ),
+        );
       }
       debugPrint('Error marking prayer as active: $e');
     }
@@ -228,9 +243,7 @@ class PrayerBloc extends Bloc<PrayerEvent, PrayerState> {
 
       final updatedPrayers = currentState.prayers.map((prayer) {
         if (prayer.id == event.prayerId) {
-          return prayer.copyWith(
-            answeredComment: event.comment,
-          );
+          return prayer.copyWith(answeredComment: event.comment);
         }
         return prayer;
       }).toList();
@@ -240,9 +253,11 @@ class PrayerBloc extends Bloc<PrayerEvent, PrayerState> {
     } catch (e) {
       final currentState = state;
       if (currentState is PrayerLoaded) {
-        emit(currentState.copyWith(
-            errorMessage:
-                'Error al actualizar el comentario de respuesta: $e'));
+        emit(
+          currentState.copyWith(
+            errorMessage: 'Error al actualizar el comentario de respuesta: $e',
+          ),
+        );
       }
       debugPrint('Error updating answered comment: $e');
     }
@@ -267,10 +282,7 @@ class PrayerBloc extends Bloc<PrayerEvent, PrayerState> {
   }
 
   /// Handles clearing error messages
-  void _onClearPrayerError(
-    ClearPrayerError event,
-    Emitter<PrayerState> emit,
-  ) {
+  void _onClearPrayerError(ClearPrayerError event, Emitter<PrayerState> emit) {
     final currentState = state;
     if (currentState is PrayerLoaded) {
       emit(currentState.copyWith(clearError: true));

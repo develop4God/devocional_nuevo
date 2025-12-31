@@ -27,32 +27,31 @@ void main() {
 
       // Mock flutter_tts platform channel
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(
-        const MethodChannel('flutter_tts'),
-        (call) async {
-          switch (call.method) {
-            case 'speak':
-            case 'stop':
-            case 'pause':
-            case 'setLanguage':
-            case 'setSpeechRate':
-            case 'setVolume':
-            case 'setPitch':
-            case 'awaitSpeakCompletion':
-            case 'awaitSynthCompletion':
-            case 'setQueueMode':
-              return 1;
-            case 'getLanguages':
-              return ['es-ES', 'en-US', 'pt-BR'];
-            case 'getVoices':
-              return [];
-            case 'isLanguageAvailable':
-              return true;
-            default:
-              return null;
-          }
-        },
-      );
+          .setMockMethodCallHandler(const MethodChannel('flutter_tts'), (
+        call,
+      ) async {
+        switch (call.method) {
+          case 'speak':
+          case 'stop':
+          case 'pause':
+          case 'setLanguage':
+          case 'setSpeechRate':
+          case 'setVolume':
+          case 'setPitch':
+          case 'awaitSpeakCompletion':
+          case 'awaitSynthCompletion':
+          case 'setQueueMode':
+            return 1;
+          case 'getLanguages':
+            return ['es-ES', 'en-US', 'pt-BR'];
+          case 'getVoices':
+            return [];
+          case 'isLanguageAvailable':
+            return true;
+          default:
+            return null;
+        }
+      });
 
       // Mock path_provider for DevocionalProvider
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
@@ -77,7 +76,9 @@ void main() {
           .setMockMethodCallHandler(const MethodChannel('flutter_tts'), null);
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(
-              const MethodChannel('plugins.flutter.io/path_provider'), null);
+        const MethodChannel('plugins.flutter.io/path_provider'),
+        null,
+      );
     });
 
     test('ServiceLocator provides ITtsService instance', () {
@@ -93,22 +94,27 @@ void main() {
       expect(service, isA<TtsService>());
     });
 
-    test('ServiceLocator returns same singleton instance on multiple calls',
-        () {
-      // Given: Service locator is set up
-      setupServiceLocator();
+    test(
+      'ServiceLocator returns same singleton instance on multiple calls',
+      () {
+        // Given: Service locator is set up
+        setupServiceLocator();
 
-      // When: We request service multiple times
-      final service1 = getService<ITtsService>();
-      final service2 = getService<ITtsService>();
-      final service3 = getService<ITtsService>();
+        // When: We request service multiple times
+        final service1 = getService<ITtsService>();
+        final service2 = getService<ITtsService>();
+        final service3 = getService<ITtsService>();
 
-      // Then: All references should be identical (same instance)
-      expect(identical(service1, service2), true,
-          reason: 'Service locator should return same singleton instance');
-      expect(identical(service2, service3), true);
-      expect(identical(service1, service3), true);
-    });
+        // Then: All references should be identical (same instance)
+        expect(
+          identical(service1, service2),
+          true,
+          reason: 'Service locator should return same singleton instance',
+        );
+        expect(identical(service2, service3), true);
+        expect(identical(service1, service3), true);
+      },
+    );
 
     test('AudioController works with injected ITtsService', () async {
       // Given: Service locator is set up and we have a TTS service
@@ -154,8 +160,11 @@ void main() {
 
       // Then: Devotional should be tracked
       // Note: In test environment, TTS platform handlers may not update state correctly
-      expect(controller.currentDevocionalId, 'di-test-1',
-          reason: 'Devotional ID should be set after play command');
+      expect(
+        controller.currentDevocionalId,
+        'di-test-1',
+        reason: 'Devotional ID should be set after play command',
+      );
 
       // Cleanup
       await controller.stop();
@@ -203,23 +212,28 @@ void main() {
       controller3.dispose();
     });
 
-    test('Concurrent access to service locator returns same instance',
-        () async {
-      // Given: Service locator is set up
-      setupServiceLocator();
+    test(
+      'Concurrent access to service locator returns same instance',
+      () async {
+        // Given: Service locator is set up
+        setupServiceLocator();
 
-      // When: We request service concurrently from multiple futures
-      final futures = List.generate(
-        50,
-        (_) => Future(() => getService<ITtsService>()),
-      );
-      final services = await Future.wait(futures);
+        // When: We request service concurrently from multiple futures
+        final futures = List.generate(
+          50,
+          (_) => Future(() => getService<ITtsService>()),
+        );
+        final services = await Future.wait(futures);
 
-      // Then: All should be the same instance
-      final uniqueInstances = services.toSet();
-      expect(uniqueInstances.length, 1,
-          reason: 'Concurrent access should return same singleton');
-    });
+        // Then: All should be the same instance
+        final uniqueInstances = services.toSet();
+        expect(
+          uniqueInstances.length,
+          1,
+          reason: 'Concurrent access should return same singleton',
+        );
+      },
+    );
 
     test('ServiceLocator throws clear error when service not registered', () {
       // Given: Service locator is reset (no services registered)
@@ -244,8 +258,11 @@ void main() {
       final service2 = getService<ITtsService>();
 
       // Then: We should get a new instance
-      expect(identical(service1, service2), false,
-          reason: 'Reset should create new instance');
+      expect(
+        identical(service1, service2),
+        false,
+        reason: 'Reset should create new instance',
+      );
 
       // Cleanup
       await service1.dispose();
@@ -308,12 +325,7 @@ void main() {
         reflexion:
             'Una reflexión sobre el amor de Dios que es profunda y significativa.',
         oracion: 'Padre celestial, gracias por tu amor incondicional.',
-        paraMeditar: [
-          ParaMeditar(
-            cita: '1 Juan 4:8',
-            texto: 'Dios es amor',
-          ),
-        ],
+        paraMeditar: [ParaMeditar(cita: '1 Juan 4:8', texto: 'Dios es amor')],
       );
 
       // When: User plays devotional
@@ -336,8 +348,11 @@ void main() {
       await Future.delayed(const Duration(milliseconds: 50));
 
       // Then: Should not have crashed
-      expect(controller.mounted, true,
-          reason: 'Controller should still be mounted after user flow');
+      expect(
+        controller.mounted,
+        true,
+        reason: 'Controller should still be mounted after user flow',
+      );
 
       // Cleanup
       controller.dispose();

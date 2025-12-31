@@ -96,8 +96,9 @@ class _OnboardingThemeSelectionPageState
                                   .headlineMedium
                                   ?.copyWith(
                                     fontWeight: FontWeight.bold,
-                                    color:
-                                        Theme.of(context).colorScheme.onSurface,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurface,
                                   ),
                               textAlign: TextAlign.center,
                               maxLines: 2,
@@ -113,9 +114,7 @@ class _OnboardingThemeSelectionPageState
                                   .textTheme
                                   .bodyMedium
                                   ?.copyWith(
-                                    color: Theme.of(
-                                      context,
-                                    )
+                                    color: Theme.of(context)
                                         .colorScheme
                                         .onSurface
                                         .withValues(alpha: 0.7),
@@ -233,7 +232,8 @@ class _OnboardingThemeSelectionPageState
                                     if (isSelected)
                                       Padding(
                                         padding: const EdgeInsets.only(
-                                            top: 4), // Reduced padding
+                                          top: 4,
+                                        ), // Reduced padding
                                         child: Icon(
                                           Icons.check_circle,
                                           color: themeData.colorScheme.primary,

@@ -56,8 +56,9 @@ void main() {
       );
     });
 
-    testWidgets('Widget renders with BlocBuilder when NavigationReady state',
-        (WidgetTester tester) async {
+    testWidgets('Widget renders with BlocBuilder when NavigationReady state', (
+      WidgetTester tester,
+    ) async {
       // Arrange
       final devocionales = createTestDevocionales(10);
       final readyState = NavigationReady.calculate(
@@ -79,8 +80,9 @@ void main() {
       expect(state.canNavigatePrevious, true);
     });
 
-    testWidgets('Next button tap dispatches NavigateToNext event',
-        (WidgetTester tester) async {
+    testWidgets('Next button tap dispatches NavigateToNext event', (
+      WidgetTester tester,
+    ) async {
       // Arrange
       final devocionales = createTestDevocionales(10);
       final readyState = NavigationReady.calculate(
@@ -98,8 +100,9 @@ void main() {
       verify(() => mockBloc.add(any(that: isA<NavigateToNext>()))).called(1);
     });
 
-    testWidgets('Previous button tap dispatches NavigateToPrevious event',
-        (WidgetTester tester) async {
+    testWidgets('Previous button tap dispatches NavigateToPrevious event', (
+      WidgetTester tester,
+    ) async {
       // Arrange
       final devocionales = createTestDevocionales(10);
       final readyState = NavigationReady.calculate(
@@ -114,12 +117,14 @@ void main() {
       mockBloc.add(const NavigateToPrevious());
 
       // Assert
-      verify(() => mockBloc.add(any(that: isA<NavigateToPrevious>())))
-          .called(1);
+      verify(
+        () => mockBloc.add(any(that: isA<NavigateToPrevious>())),
+      ).called(1);
     });
 
-    testWidgets('NavigationReady state contains correct devotional content',
-        (WidgetTester tester) async {
+    testWidgets('NavigationReady state contains correct devotional content', (
+      WidgetTester tester,
+    ) async {
       // Arrange
       final devocionales = createTestDevocionales(10);
       final readyState = NavigationReady.calculate(
@@ -138,8 +143,9 @@ void main() {
       expect(state.totalDevocionales, 10);
     });
 
-    testWidgets('NavigationError state shows error message',
-        (WidgetTester tester) async {
+    testWidgets('NavigationError state shows error message', (
+      WidgetTester tester,
+    ) async {
       // Arrange
       const errorState = NavigationError('Test error message');
 
@@ -151,8 +157,9 @@ void main() {
       expect(state.message, 'Test error message');
     });
 
-    testWidgets('canNavigateNext=false at last devotional',
-        (WidgetTester tester) async {
+    testWidgets('canNavigateNext=false at last devotional', (
+      WidgetTester tester,
+    ) async {
       // Arrange
       final devocionales = createTestDevocionales(10);
       final readyState = NavigationReady.calculate(
@@ -170,8 +177,9 @@ void main() {
       expect(state.currentIndex, 9);
     });
 
-    testWidgets('canNavigatePrevious=false at first devotional',
-        (WidgetTester tester) async {
+    testWidgets('canNavigatePrevious=false at first devotional', (
+      WidgetTester tester,
+    ) async {
       // Arrange
       final devocionales = createTestDevocionales(10);
       final readyState = NavigationReady.calculate(
@@ -189,8 +197,9 @@ void main() {
       expect(state.currentIndex, 0);
     });
 
-    testWidgets('BLoC emits state changes when navigating',
-        (WidgetTester tester) async {
+    testWidgets('BLoC emits state changes when navigating', (
+      WidgetTester tester,
+    ) async {
       // Arrange
       final devocionales = createTestDevocionales(10);
       final initialState = NavigationReady.calculate(
@@ -221,8 +230,9 @@ void main() {
       expect((states[1] as NavigationReady).currentIndex, 1);
     });
 
-    testWidgets('Single devotional list disables both navigation buttons',
-        (WidgetTester tester) async {
+    testWidgets('Single devotional list disables both navigation buttons', (
+      WidgetTester tester,
+    ) async {
       // Arrange
       final devocionales = createTestDevocionales(1);
       final readyState = NavigationReady.calculate(
@@ -240,8 +250,9 @@ void main() {
       expect(state.totalDevocionales, 1);
     });
 
-    testWidgets('NavigateToIndex event updates current devotional',
-        (WidgetTester tester) async {
+    testWidgets('NavigateToIndex event updates current devotional', (
+      WidgetTester tester,
+    ) async {
       // Arrange
       when(() => mockBloc.add(any())).thenReturn(null);
 
@@ -255,25 +266,27 @@ void main() {
       expect(capturedEvent.index, 7);
     });
 
-    testWidgets('InitializeNavigation event sets up initial state',
-        (WidgetTester tester) async {
+    testWidgets('InitializeNavigation event sets up initial state', (
+      WidgetTester tester,
+    ) async {
       // Arrange
       final devocionales = createTestDevocionales(10);
       when(() => mockBloc.add(any())).thenReturn(null);
 
       // Act
-      mockBloc.add(InitializeNavigation(
-        initialIndex: 0,
-        devocionales: devocionales,
-      ));
+      mockBloc.add(
+        InitializeNavigation(initialIndex: 0, devocionales: devocionales),
+      );
 
       // Assert
-      verify(() => mockBloc.add(any(that: isA<InitializeNavigation>())))
-          .called(1);
+      verify(
+        () => mockBloc.add(any(that: isA<InitializeNavigation>())),
+      ).called(1);
     });
 
-    testWidgets('UpdateDevocionales event updates devotional list',
-        (WidgetTester tester) async {
+    testWidgets('UpdateDevocionales event updates devotional list', (
+      WidgetTester tester,
+    ) async {
       // Arrange
       final newDevocionales = createTestDevocionales(15);
       when(() => mockBloc.add(any())).thenReturn(null);
@@ -288,8 +301,9 @@ void main() {
       expect(capturedEvent.devocionales.length, 15);
     });
 
-    testWidgets('NavigateToFirstUnread event finds correct unread devotional',
-        (WidgetTester tester) async {
+    testWidgets('NavigateToFirstUnread event finds correct unread devotional', (
+      WidgetTester tester,
+    ) async {
       // Arrange
       final readIds = ['dev_0', 'dev_1', 'dev_2'];
       when(() => mockBloc.add(any())).thenReturn(null);

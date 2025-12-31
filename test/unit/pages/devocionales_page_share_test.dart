@@ -80,8 +80,11 @@ void main() {
               .length;
 
       // The meditations text itself should not contain any play store links
-      expect(playStoreLinkCount, equals(0),
-          reason: 'Meditations text should not contain play store links');
+      expect(
+        playStoreLinkCount,
+        equals(0),
+        reason: 'Meditations text should not contain play store links',
+      );
     });
 
     test('Divider length validation - should be 20 characters', () {
@@ -163,10 +166,7 @@ void main() {
         versiculo: 'Test "quotes" & <html> symbols',
         reflexion: 'Test with emojis 🙏 ❤️ ✝️',
         paraMeditar: [
-          ParaMeditar(
-            cita: 'Test 1:1',
-            texto: 'Symbols: @#\$%^&*()',
-          ),
+          ParaMeditar(cita: 'Test 1:1', texto: 'Symbols: @#\$%^&*()'),
         ],
         oracion: 'Prayer with \n newlines and \t tabs',
         language: 'es',
@@ -192,9 +192,7 @@ void main() {
         date: DateTime.now(),
         versiculo: 'Test verse',
         reflexion: 'Test reflection',
-        paraMeditar: [
-          ParaMeditar(cita: 'Test 1:1', texto: 'Test text'),
-        ],
+        paraMeditar: [ParaMeditar(cita: 'Test 1:1', texto: 'Test text')],
         oracion: 'Test prayer',
         // language and version are null
       );
@@ -222,7 +220,9 @@ void main() {
 
       expect(meditation.cita, equals('Juan 3:16'));
       expect(
-          meditation.texto, equals('Porque de tal manera amó Dios al mundo'));
+        meditation.texto,
+        equals('Porque de tal manera amó Dios al mundo'),
+      );
     });
 
     test('Multiple meditations should be independent', () {
@@ -313,8 +313,11 @@ void main() {
       // User clicks share button -> _shareAsText is called directly
       // No _showShareOptions dialog is shown
       const directShareEnabled = true;
-      expect(directShareEnabled, isTrue,
-          reason: 'Share button should trigger direct text share');
+      expect(
+        directShareEnabled,
+        isTrue,
+        reason: 'Share button should trigger direct text share',
+      );
     });
 
     test('Share as image functionality should be commented out', () {
@@ -322,8 +325,11 @@ void main() {
       // The functionality is commented out per user request
 
       const shareAsImageRemoved = true;
-      expect(shareAsImageRemoved, isTrue,
-          reason: 'Share as image option should be removed from UI');
+      expect(
+        shareAsImageRemoved,
+        isTrue,
+        reason: 'Share as image option should be removed from UI',
+      );
     });
 
     test('Share options dialog should be commented out', () {
@@ -331,8 +337,11 @@ void main() {
       // User goes directly to text share
 
       const showShareOptionsRemoved = true;
-      expect(showShareOptionsRemoved, isTrue,
-          reason: 'Share options dialog should not be shown');
+      expect(
+        showShareOptionsRemoved,
+        isTrue,
+        reason: 'Share options dialog should not be shown',
+      );
     });
 
     test('Direct share behavior matches user flow', () {
@@ -368,8 +377,11 @@ void main() {
 
       // The flow is now simplified: one tap -> share
       const simplifiedFlow = true;
-      expect(simplifiedFlow, isTrue,
-          reason: 'Share flow should be simplified to one tap');
+      expect(
+        simplifiedFlow,
+        isTrue,
+        reason: 'Share flow should be simplified to one tap',
+      );
     });
   });
 }

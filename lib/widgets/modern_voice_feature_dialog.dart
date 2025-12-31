@@ -44,8 +44,10 @@ class ModernVoiceFeatureDialog extends StatelessWidget {
               TextButton(
                 style: TextButton.styleFrom(
                   foregroundColor: colorScheme.secondary,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 18,
+                    vertical: 12,
+                  ),
                 ),
                 onPressed: onContinue,
                 child: Text(
@@ -71,8 +73,10 @@ class ModernVoiceFeatureDialog extends StatelessWidget {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(18),
                   ),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 18,
+                    vertical: 12,
+                  ),
                 ),
                 icon: const Icon(Icons.settings_voice),
                 label: Text('app.voice_feature_configure'.tr()),

@@ -20,7 +20,8 @@ class CompressionService {
       final compressed = GZipEncoder().encode(bytes);
 
       debugPrint(
-          'Compression: ${bytes.length} bytes -> ${compressed.length} bytes');
+        'Compression: ${bytes.length} bytes -> ${compressed.length} bytes',
+      );
 
       return Uint8List.fromList(compressed);
     } catch (e) {
@@ -43,7 +44,8 @@ class CompressionService {
       final data = json.decode(jsonString) as Map<String, dynamic>;
 
       debugPrint(
-          'Decompression: ${compressedData.length} bytes -> ${decompressed.length} bytes');
+        'Decompression: ${compressedData.length} bytes -> ${decompressed.length} bytes',
+      );
 
       return data;
     } catch (e) {
@@ -94,7 +96,8 @@ class CompressionService {
       final zipData = ZipEncoder().encode(archive);
 
       debugPrint(
-          'Archive created with ${files.length} files, size: ${zipData.length} bytes');
+        'Archive created with ${files.length} files, size: ${zipData.length} bytes',
+      );
 
       return Uint8List.fromList(zipData);
     } catch (e) {

@@ -53,10 +53,7 @@ class CopyrightUtils {
         'RVR1960': 'Reina Valera 1960',
         'NVI': 'Nueva Versión Internacional',
       },
-      'en': {
-        'KJV': 'King James Version',
-        'NIV': 'New International Version',
-      },
+      'en': {'KJV': 'King James Version', 'NIV': 'New International Version'},
       'pt': {
         'ARC': 'Almeida Revista e Corrigida',
         'NVI': 'Nova Versão Internacional',

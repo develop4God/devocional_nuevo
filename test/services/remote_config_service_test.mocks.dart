@@ -34,10 +34,7 @@ class MockFirebaseRemoteConfig extends _i1.Mock
   @override
   _i3.Future<void> setDefaults(Map<String, dynamic>? defaultParameters) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #setDefaults,
-          [defaultParameters],
-        ),
+        Invocation.method(#setDefaults, [defaultParameters]),
         returnValue: _i3.Future<void>.value(),
         returnValueForMissingStub: _i3.Future<void>.value(),
       ) as _i3.Future<void>);
@@ -45,91 +42,57 @@ class MockFirebaseRemoteConfig extends _i1.Mock
   @override
   _i3.Future<void> setConfigSettings(_i2.RemoteConfigSettings? settings) =>
       (super.noSuchMethod(
-        Invocation.method(
-          #setConfigSettings,
-          [settings],
-        ),
+        Invocation.method(#setConfigSettings, [settings]),
         returnValue: _i3.Future<void>.value(),
         returnValueForMissingStub: _i3.Future<void>.value(),
       ) as _i3.Future<void>);
 
   @override
   _i3.Future<bool> fetchAndActivate() => (super.noSuchMethod(
-        Invocation.method(
-          #fetchAndActivate,
-          [],
-        ),
+        Invocation.method(#fetchAndActivate, []),
         returnValue: _i3.Future<bool>.value(false),
       ) as _i3.Future<bool>);
 
   @override
   bool getBool(String? key) => (super.noSuchMethod(
-        Invocation.method(
-          #getBool,
-          [key],
-        ),
+        Invocation.method(#getBool, [key]),
         returnValue: false,
       ) as bool);
 
   @override
-  int getInt(String? key) => (super.noSuchMethod(
-        Invocation.method(
-          #getInt,
-          [key],
-        ),
-        returnValue: 0,
-      ) as int);
+  int getInt(String? key) =>
+      (super.noSuchMethod(Invocation.method(#getInt, [key]), returnValue: 0)
+          as int);
 
   @override
   double getDouble(String? key) => (super.noSuchMethod(
-        Invocation.method(
-          #getDouble,
-          [key],
-        ),
+        Invocation.method(#getDouble, [key]),
         returnValue: 0.0,
       ) as double);
 
   @override
-  String getString(String? key) => (super.noSuchMethod(
-        Invocation.method(
-          #getString,
-          [key],
-        ),
-        returnValue: '',
-      ) as String);
+  String getString(String? key) =>
+      (super.noSuchMethod(Invocation.method(#getString, [key]), returnValue: '')
+          as String);
 
   @override
   _i2.RemoteConfigValue getValue(String? key) => (super.noSuchMethod(
-        Invocation.method(
-          #getValue,
-          [key],
-        ),
+        Invocation.method(#getValue, [key]),
         returnValue: _FakeRemoteConfigValue_0(
           this,
-          Invocation.method(
-            #getValue,
-            [key],
-          ),
+          Invocation.method(#getValue, [key]),
         ),
       ) as _i2.RemoteConfigValue);
 
   @override
   Map<String, _i2.RemoteConfigValue> getAll() => (super.noSuchMethod(
-        Invocation.method(
-          #getAll,
-          [],
-        ),
+        Invocation.method(#getAll, []),
         returnValue: <String, _i2.RemoteConfigValue>{},
       ) as Map<String, _i2.RemoteConfigValue>);
 }
 
 class _FakeRemoteConfigValue_0 extends _i1.SmartFake
     implements _i2.RemoteConfigValue {
-  _FakeRemoteConfigValue_0(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
+  _FakeRemoteConfigValue_0(Object parent, Invocation parentInvocation)
+      : super(parent, parentInvocation);
 }

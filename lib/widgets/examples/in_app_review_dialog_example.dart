@@ -9,9 +9,7 @@ class InAppReviewDialogExample extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('In-App Review Dialog Example'),
-      ),
+      appBar: AppBar(title: const Text('In-App Review Dialog Example')),
       body: Center(
         child: ElevatedButton(
           onPressed: () => _showExampleDialog(context),
@@ -39,10 +37,7 @@ class InAppReviewDialogExample extends StatelessWidget {
                 height: 80,
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [
-                      colorScheme.primary,
-                      colorScheme.secondary,
-                    ],
+                    colors: [colorScheme.primary, colorScheme.secondary],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
@@ -93,10 +88,7 @@ class InAppReviewDialogExample extends StatelessWidget {
                 height: 54,
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [
-                      colorScheme.primary,
-                      colorScheme.secondary,
-                    ],
+                    colors: [colorScheme.primary, colorScheme.secondary],
                     begin: Alignment.centerLeft,
                     end: Alignment.centerRight,
                   ),
@@ -117,8 +109,9 @@ class InAppReviewDialogExample extends StatelessWidget {
                       Navigator.of(context).pop();
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content:
-                              Text('In-App Review would be triggered here'),
+                          content: Text(
+                            'In-App Review would be triggered here',
+                          ),
                         ),
                       );
                     },
@@ -193,10 +186,7 @@ class InAppReviewDialogExample extends StatelessWidget {
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: const Text(
-                    'Ahora no',
-                    style: TextStyle(fontSize: 15),
-                  ),
+                  child: const Text('Ahora no', style: TextStyle(fontSize: 15)),
                 ),
               ),
             ],

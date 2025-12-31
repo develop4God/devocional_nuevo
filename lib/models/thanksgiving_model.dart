@@ -50,11 +50,7 @@ class Thanksgiving {
   }
 
   /// Crea una copia del agradecimiento con los campos especificados actualizados.
-  Thanksgiving copyWith({
-    String? id,
-    String? text,
-    DateTime? createdDate,
-  }) {
+  Thanksgiving copyWith({String? id, String? text, DateTime? createdDate}) {
     return Thanksgiving(
       id: id ?? this.id,
       text: text ?? this.text,

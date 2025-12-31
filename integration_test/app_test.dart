@@ -6,8 +6,9 @@ import 'package:devocional_nuevo/main.dart' as app;
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('App muestra un Scaffold al finalizar el splash',
-      (WidgetTester tester) async {
+  testWidgets('App muestra un Scaffold al finalizar el splash', (
+    WidgetTester tester,
+  ) async {
     app.main();
     await tester.pumpAndSettle();
 

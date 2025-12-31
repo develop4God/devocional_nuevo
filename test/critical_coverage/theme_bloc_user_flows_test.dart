@@ -310,8 +310,10 @@ void main() {
       expect(highContrast, greaterThan(4.5));
 
       // Test low contrast (similar grays)
-      final lowContrast =
-          calculateContrastRatio(Colors.grey.shade400, Colors.grey.shade500);
+      final lowContrast = calculateContrastRatio(
+        Colors.grey.shade400,
+        Colors.grey.shade500,
+      );
       expect(lowContrast, lessThan(4.5));
     });
   });

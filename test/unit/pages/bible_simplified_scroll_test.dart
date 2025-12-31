@@ -6,8 +6,10 @@ void main() {
   group('Simplified Verse Scroll Tests', () {
     test('GlobalKey approach uses Scrollable.ensureVisible', () {
       // Verify that GlobalKey-based scrolling is simpler
-      expect(true,
-          true); // Placeholder - actual implementation tested via integration
+      expect(
+        true,
+        true,
+      ); // Placeholder - actual implementation tested via integration
     });
 
     test('should scroll to exact verse regardless of text length', () {

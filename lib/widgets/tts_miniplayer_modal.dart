@@ -125,7 +125,8 @@ class _TtsMiniplayerModalState extends State<TtsMiniplayerModal> {
   void _onSliderChange(double value) {
     if (widget.debug) {
       debugPrint(
-          '🖐️ [TTS Modal] Slider dragging: ${value.toStringAsFixed(3)}');
+        '🖐️ [TTS Modal] Slider dragging: ${value.toStringAsFixed(3)}',
+      );
     }
     setState(() {
       _sliderValue = value.clamp(0.0, 1.0);
@@ -141,7 +142,8 @@ class _TtsMiniplayerModalState extends State<TtsMiniplayerModal> {
 
     if (widget.debug) {
       debugPrint(
-          '⏯️ [TTS Modal] Seek to ${millis}ms (${value.toStringAsFixed(3)})');
+        '⏯️ [TTS Modal] Seek to ${millis}ms (${value.toStringAsFixed(3)})',
+      );
     }
 
     widget.onSeek(newPosition);
@@ -166,9 +168,11 @@ class _TtsMiniplayerModalState extends State<TtsMiniplayerModal> {
         : (totalMs == 0 ? 0.0 : currentMs / totalMs);
 
     if (widget.debug) {
-      debugPrint('🧭 [TTS Modal] Build - slider: $sliderValue, '
-          'pos: ${currentMs}ms, total: ${totalMs}ms, '
-          'seeking: $_isSeeking, state: ${snapshot.state}');
+      debugPrint(
+        '🧭 [TTS Modal] Build - slider: $sliderValue, '
+        'pos: ${currentMs}ms, total: ${totalMs}ms, '
+        'seeking: $_isSeeking, state: ${snapshot.state}',
+      );
     }
 
     final theme = Theme.of(context);
@@ -185,9 +189,7 @@ class _TtsMiniplayerModalState extends State<TtsMiniplayerModal> {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: const BorderRadius.vertical(
-          top: Radius.circular(28),
-        ),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
         boxShadow: [
           BoxShadow(
             color: colorScheme.primary.withAlpha(80),
@@ -234,12 +236,7 @@ class _TtsMiniplayerModalState extends State<TtsMiniplayerModal> {
               const SizedBox(height: 32),
 
               // Progress bar
-              _buildProgressBar(
-                context,
-                colorScheme,
-                snapshot,
-                sliderValue,
-              ),
+              _buildProgressBar(context, colorScheme, snapshot, sliderValue),
               const SizedBox(height: 24),
 
               // Controls row
@@ -263,10 +260,7 @@ class _TtsMiniplayerModalState extends State<TtsMiniplayerModal> {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         gradient: LinearGradient(
-          colors: [
-            colorScheme.primary,
-            colorScheme.primary.withAlpha(200),
-          ],
+          colors: [colorScheme.primary, colorScheme.primary.withAlpha(200)],
         ),
         border: Border.all(
           color: Colors.grey[400]!, // Borde gris claro
@@ -364,10 +358,7 @@ class _TtsMiniplayerModalState extends State<TtsMiniplayerModal> {
         GestureDetector(
           onTap: widget.onCycleRate,
           child: Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 10,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
@@ -385,11 +376,7 @@ class _TtsMiniplayerModalState extends State<TtsMiniplayerModal> {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(
-                  Icons.speed_rounded,
-                  size: 20,
-                  color: Colors.black,
-                ),
+                Icon(Icons.speed_rounded, size: 20, color: Colors.black),
                 const SizedBox(width: 8),
                 Text(
                   "${snapshot.playbackRate.toStringAsFixed(1)}x",

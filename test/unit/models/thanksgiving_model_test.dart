@@ -12,7 +12,9 @@ void main() {
 
       expect(thanksgiving.id, equals('thanksgiving_123'));
       expect(
-          thanksgiving.text, equals('Gracias Señor por tu amor y fidelidad.'));
+        thanksgiving.text,
+        equals('Gracias Señor por tu amor y fidelidad.'),
+      );
       expect(thanksgiving.createdDate, equals(DateTime(2024, 1, 15, 10, 30)));
     });
 
@@ -32,7 +34,9 @@ void main() {
       expect(thanksgivingFromJson.id, equals(thanksgiving.id));
       expect(thanksgivingFromJson.text, equals(thanksgiving.text));
       expect(
-          thanksgivingFromJson.createdDate, equals(thanksgiving.createdDate));
+        thanksgivingFromJson.createdDate,
+        equals(thanksgiving.createdDate),
+      );
     });
 
     test('should copy thanksgiving with updated fields', () {
@@ -42,9 +46,7 @@ void main() {
         createdDate: DateTime(2024, 1, 10),
       );
 
-      final updated = original.copyWith(
-        text: 'Updated thanksgiving',
-      );
+      final updated = original.copyWith(text: 'Updated thanksgiving');
 
       expect(updated.id, equals(original.id)); // unchanged
       expect(updated.text, equals('Updated thanksgiving')); // changed
@@ -89,10 +91,7 @@ void main() {
     });
 
     test('should handle missing date in fromJson', () {
-      final json = {
-        'id': 'thanksgiving_no_date',
-        'text': 'Test thanksgiving',
-      };
+      final json = {'id': 'thanksgiving_no_date', 'text': 'Test thanksgiving'};
 
       final thanksgiving = Thanksgiving.fromJson(json);
 

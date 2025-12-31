@@ -43,13 +43,17 @@ class DevocionalesNavigationBloc
     }
 
     // Validate and clamp the initial index
-    final validIndex =
-        _clampIndex(event.initialIndex, event.devocionales.length);
+    final validIndex = _clampIndex(
+      event.initialIndex,
+      event.devocionales.length,
+    );
 
-    emit(NavigationReady.calculate(
-      currentIndex: validIndex,
-      devocionales: event.devocionales,
-    ));
+    emit(
+      NavigationReady.calculate(
+        currentIndex: validIndex,
+        devocionales: event.devocionales,
+      ),
+    );
 
     // Save the index via repository
     await _navigationRepository.saveCurrentIndex(validIndex);
@@ -71,10 +75,12 @@ class DevocionalesNavigationBloc
 
     final newIndex = currentState.currentIndex + 1;
 
-    emit(NavigationReady.calculate(
-      currentIndex: newIndex,
-      devocionales: currentState.devocionales,
-    ));
+    emit(
+      NavigationReady.calculate(
+        currentIndex: newIndex,
+        devocionales: currentState.devocionales,
+      ),
+    );
 
     await _navigationRepository.saveCurrentIndex(newIndex);
   }
@@ -95,10 +101,12 @@ class DevocionalesNavigationBloc
 
     final newIndex = currentState.currentIndex - 1;
 
-    emit(NavigationReady.calculate(
-      currentIndex: newIndex,
-      devocionales: currentState.devocionales,
-    ));
+    emit(
+      NavigationReady.calculate(
+        currentIndex: newIndex,
+        devocionales: currentState.devocionales,
+      ),
+    );
 
     await _navigationRepository.saveCurrentIndex(newIndex);
   }
@@ -113,18 +121,22 @@ class DevocionalesNavigationBloc
     final currentState = state as NavigationReady;
 
     // Validate the index
-    final validIndex =
-        _clampIndex(event.index, currentState.devocionales.length);
+    final validIndex = _clampIndex(
+      event.index,
+      currentState.devocionales.length,
+    );
 
     // Don't emit if we're already at this index
     if (validIndex == currentState.currentIndex) {
       return;
     }
 
-    emit(NavigationReady.calculate(
-      currentIndex: validIndex,
-      devocionales: currentState.devocionales,
-    ));
+    emit(
+      NavigationReady.calculate(
+        currentIndex: validIndex,
+        devocionales: currentState.devocionales,
+      ),
+    );
 
     await _navigationRepository.saveCurrentIndex(validIndex);
   }
@@ -150,10 +162,12 @@ class DevocionalesNavigationBloc
       return;
     }
 
-    emit(NavigationReady.calculate(
-      currentIndex: firstUnreadIndex,
-      devocionales: currentState.devocionales,
-    ));
+    emit(
+      NavigationReady.calculate(
+        currentIndex: firstUnreadIndex,
+        devocionales: currentState.devocionales,
+      ),
+    );
 
     await _navigationRepository.saveCurrentIndex(firstUnreadIndex);
   }
@@ -178,10 +192,12 @@ class DevocionalesNavigationBloc
       event.devocionales.length,
     );
 
-    emit(NavigationReady.calculate(
-      currentIndex: validIndex,
-      devocionales: event.devocionales,
-    ));
+    emit(
+      NavigationReady.calculate(
+        currentIndex: validIndex,
+        devocionales: event.devocionales,
+      ),
+    );
 
     if (validIndex != currentState.currentIndex) {
       await _navigationRepository.saveCurrentIndex(validIndex);

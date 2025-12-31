@@ -28,8 +28,10 @@ void main() {
       expect(json, isA<Map<String, dynamic>>());
       expect(json['id'], equals('test_devotional_123'));
       expect(json['versiculo'], equals('Juan 3:16'));
-      expect(json['reflexion'],
-          equals('Una reflexión profunda sobre el amor de Dios.'));
+      expect(
+        json['reflexion'],
+        equals('Una reflexión profunda sobre el amor de Dios.'),
+      );
 
       // Test fromJson
       final fromJson = Devocional.fromJson(json);
@@ -74,8 +76,9 @@ void main() {
       final paraMeditar = [
         ParaMeditar(cita: 'Mateo 5:16', texto: 'Así alumbre vuestra luz...'),
         ParaMeditar(
-            cita: 'Romanos 8:28',
-            texto: 'Y sabemos que a los que aman a Dios...'),
+          cita: 'Romanos 8:28',
+          texto: 'Y sabemos que a los que aman a Dios...',
+        ),
       ];
 
       final devotional = Devocional(
@@ -89,8 +92,10 @@ void main() {
 
       expect(devotional.paraMeditar.length, equals(2));
       expect(devotional.paraMeditar[0].cita, equals('Mateo 5:16'));
-      expect(devotional.paraMeditar[0].texto,
-          equals('Así alumbre vuestra luz...'));
+      expect(
+        devotional.paraMeditar[0].texto,
+        equals('Así alumbre vuestra luz...'),
+      );
       expect(devotional.paraMeditar[1].cita, equals('Romanos 8:28'));
 
       // Test JSON serialization with ParaMeditar

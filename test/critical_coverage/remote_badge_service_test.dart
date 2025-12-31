@@ -32,8 +32,11 @@ void main() {
         final cacheAge = now - cacheTime;
         final cacheExpiry = const Duration(hours: 1).inMilliseconds;
 
-        expect(cacheAge < cacheExpiry, isTrue,
-            reason: '30 minutes old cache should be fresh');
+        expect(
+          cacheAge < cacheExpiry,
+          isTrue,
+          reason: '30 minutes old cache should be fresh',
+        );
       });
 
       test('cache is expired after expiry window', () {
@@ -42,8 +45,11 @@ void main() {
         final cacheAge = now - cacheTime;
         final cacheExpiry = const Duration(hours: 1).inMilliseconds;
 
-        expect(cacheAge > cacheExpiry, isTrue,
-            reason: '2 hours old cache should be expired');
+        expect(
+          cacheAge > cacheExpiry,
+          isTrue,
+          reason: '2 hours old cache should be expired',
+        );
       });
 
       test('cache at exactly expiry boundary', () {
@@ -131,8 +137,11 @@ void main() {
         const networkFailed = true;
 
         final returnedBadges = networkFailed && hasCache;
-        expect(returnedBadges, isTrue,
-            reason: 'Should return cached badges on timeout');
+        expect(
+          returnedBadges,
+          isTrue,
+          reason: 'Should return cached badges on timeout',
+        );
       });
 
       test('network error returns cached badges as fallback', () {
@@ -170,8 +179,11 @@ void main() {
       test('null cached config means update needed', () {
         const cachedConfig = null;
 
-        expect(cachedConfig == null, isTrue,
-            reason: 'No cache means we need to fetch');
+        expect(
+          cachedConfig == null,
+          isTrue,
+          reason: 'No cache means we need to fetch',
+        );
       });
     });
   });

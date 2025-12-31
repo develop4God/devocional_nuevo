@@ -30,25 +30,27 @@ void main() {
       FlutterTtsMockHelper.tearDownMockFlutterTts();
     });
 
-    test('User switches to Chinese and gets proper TTS configuration',
-        () async {
-      // GIVEN: App starts in default Spanish
-      await provider.initialize();
-      expect(provider.currentLocale.languageCode, equals('es'));
+    test(
+      'User switches to Chinese and gets proper TTS configuration',
+      () async {
+        // GIVEN: App starts in default Spanish
+        await provider.initialize();
+        expect(provider.currentLocale.languageCode, equals('es'));
 
-      // WHEN: User switches to Chinese
-      await provider.changeLanguage('zh');
+        // WHEN: User switches to Chinese
+        await provider.changeLanguage('zh');
 
-      // THEN: Language is updated to Chinese
-      expect(provider.currentLocale.languageCode, equals('zh'));
+        // THEN: Language is updated to Chinese
+        expect(provider.currentLocale.languageCode, equals('zh'));
 
-      // AND: TTS locale is properly configured for Chinese
-      final ttsLocale = provider.getTtsLocale();
-      expect(ttsLocale, equals('zh-CN'));
+        // AND: TTS locale is properly configured for Chinese
+        final ttsLocale = provider.getTtsLocale();
+        expect(ttsLocale, equals('zh-CN'));
 
-      // AND: Language name displays in Chinese
-      expect(provider.getLanguageName('zh'), equals('中文'));
-    });
+        // AND: Language name displays in Chinese
+        expect(provider.getLanguageName('zh'), equals('中文'));
+      },
+    );
 
     test('Chinese Bible references are formatted correctly for TTS', () {
       // GIVEN: Chinese Bible reference
@@ -56,10 +58,14 @@ void main() {
       const reference2 = '诗篇 23:1-6';
 
       // WHEN: Formatted for TTS
-      final formatted1 =
-          BibleTextFormatter.formatBibleReferences(reference1, 'zh');
-      final formatted2 =
-          BibleTextFormatter.formatBibleReferences(reference2, 'zh');
+      final formatted1 = BibleTextFormatter.formatBibleReferences(
+        reference1,
+        'zh',
+      );
+      final formatted2 = BibleTextFormatter.formatBibleReferences(
+        reference2,
+        'zh',
+      );
 
       // THEN: Contains Chinese chapter and verse markers
       expect(formatted1, contains('章')); // Chapter
@@ -139,27 +145,33 @@ void main() {
     test('Chinese text formatting handles both simplified and traditional', () {
       // Simplified Chinese
       final simplified = '创世记 1:1';
-      final formattedSimplified =
-          BibleTextFormatter.formatBibleReferences(simplified, 'zh');
+      final formattedSimplified = BibleTextFormatter.formatBibleReferences(
+        simplified,
+        'zh',
+      );
       expect(formattedSimplified, contains('章'));
 
       // Traditional Chinese
       final traditional = '創世記 2:1';
-      final formattedTraditional =
-          BibleTextFormatter.formatBibleReferences(traditional, 'zh');
+      final formattedTraditional = BibleTextFormatter.formatBibleReferences(
+        traditional,
+        'zh',
+      );
       expect(formattedTraditional, contains('章'));
     });
 
-    test('Voice proactive assignment triggers on Chinese language change',
-        () async {
-      final voiceSettings = getService<VoiceSettingsService>();
+    test(
+      'Voice proactive assignment triggers on Chinese language change',
+      () async {
+        final voiceSettings = getService<VoiceSettingsService>();
 
-      // WHEN: Language changes to Chinese
-      await provider.changeLanguage('zh');
+        // WHEN: Language changes to Chinese
+        await provider.changeLanguage('zh');
 
-      // THEN: Voice settings service processes the change
-      final hasVoice = await voiceSettings.hasUserSavedVoice('zh');
-      expect(hasVoice, isA<bool>());
-    });
+        // THEN: Voice settings service processes the change
+        final hasVoice = await voiceSettings.hasUserSavedVoice('zh');
+        expect(hasVoice, isA<bool>());
+      },
+    );
   });
 }

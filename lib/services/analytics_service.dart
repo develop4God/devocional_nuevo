@@ -36,11 +36,13 @@ class AnalyticsService {
   static void _logAnalyticsError(String operation, dynamic error) {
     _analyticsErrorCount++;
     debugPrint(
-        '❌ Analytics error #$_analyticsErrorCount in $operation: $error');
+      '❌ Analytics error #$_analyticsErrorCount in $operation: $error',
+    );
 
     if (_analyticsErrorCount > 10) {
       debugPrint(
-          '⚠️ HIGH ANALYTICS ERROR RATE: $_analyticsErrorCount failures detected');
+        '⚠️ HIGH ANALYTICS ERROR RATE: $_analyticsErrorCount failures detected',
+      );
     }
   }
 
@@ -58,10 +60,7 @@ class AnalyticsService {
   /// Helps measure engagement with the audio feature.
   Future<void> logTtsPlay() async {
     try {
-      await _analytics.logEvent(
-        name: 'tts_play',
-        parameters: null,
-      );
+      await _analytics.logEvent(name: 'tts_play', parameters: null);
       debugPrint('📊 Analytics: tts_play event logged');
     } catch (e) {
       _logAnalyticsError('tts_play', e);
@@ -93,8 +92,10 @@ class AnalyticsService {
     try {
       // Validate campaign tag format
       if (!isValidCampaignTag(campaignTag)) {
-        _logAnalyticsError('devotional_read_complete',
-            'Invalid campaign tag format: "$campaignTag"');
+        _logAnalyticsError(
+          'devotional_read_complete',
+          'Invalid campaign tag format: "$campaignTag"',
+        );
         return;
       }
 
@@ -120,7 +121,8 @@ class AnalyticsService {
         parameters: parameters,
       );
       debugPrint(
-          '📊 Analytics: devotional_read_complete event logged for $devocionalId (campaign_tag: $campaignTag, source: $source)');
+        '📊 Analytics: devotional_read_complete event logged for $devocionalId (campaign_tag: $campaignTag, source: $source)',
+      );
     } catch (e) {
       _logAnalyticsError('devotional_read_complete', e);
       // Fail silently - analytics errors should not affect app functionality
@@ -135,10 +137,7 @@ class AnalyticsService {
     Map<String, Object>? parameters,
   }) async {
     try {
-      await _analytics.logEvent(
-        name: eventName,
-        parameters: parameters,
-      );
+      await _analytics.logEvent(name: eventName, parameters: parameters);
       debugPrint('📊 Analytics: $eventName event logged');
     } catch (e) {
       _logAnalyticsError(eventName, e);
@@ -207,10 +206,7 @@ class AnalyticsService {
   /// Parameters: Additional context parameters (e.g., use_navigation_bloc)
   Future<void> logAppInit({Map<String, Object>? parameters}) async {
     try {
-      await _analytics.logEvent(
-        name: 'app_init',
-        parameters: parameters,
-      );
+      await _analytics.logEvent(name: 'app_init', parameters: parameters);
       debugPrint('📊 Analytics: app_init event logged');
     } catch (e) {
       _logAnalyticsError('app_init', e);

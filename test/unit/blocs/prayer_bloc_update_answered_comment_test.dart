@@ -7,10 +7,7 @@ void main() {
   group('PrayerBloc - UpdateAnsweredComment Event', () {
     test('UpdateAnsweredComment event should exist and be callable', () {
       // Arrange & Act
-      final event = UpdateAnsweredComment(
-        'test-id',
-        comment: 'Test comment',
-      );
+      final event = UpdateAnsweredComment('test-id', comment: 'Test comment');
 
       // Assert
       expect(event, isA<PrayerEvent>());
@@ -20,10 +17,7 @@ void main() {
 
     test('UpdateAnsweredComment with null comment should work', () {
       // Arrange & Act
-      final event = UpdateAnsweredComment(
-        'test-id',
-        comment: null,
-      );
+      final event = UpdateAnsweredComment('test-id', comment: null);
 
       // Assert
       expect(event, isA<PrayerEvent>());
@@ -33,10 +27,7 @@ void main() {
 
     test('UpdateAnsweredComment with empty comment should work', () {
       // Arrange & Act
-      final event = UpdateAnsweredComment(
-        'test-id',
-        comment: '',
-      );
+      final event = UpdateAnsweredComment('test-id', comment: '');
 
       // Assert
       expect(event, isA<PrayerEvent>());

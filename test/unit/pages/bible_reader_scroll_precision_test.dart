@@ -17,20 +17,22 @@ void main() {
       expect(shortHeight, lessThan(100));
     });
 
-    test('should calculate accurate scroll position for long verse (Psalm 119)',
-        () {
-      final fontSize = 18.0;
-      final lineHeight = fontSize * 1.6;
+    test(
+      'should calculate accurate scroll position for long verse (Psalm 119)',
+      () {
+        final fontSize = 18.0;
+        final lineHeight = fontSize * 1.6;
 
-      // Simulate long verse from Psalm 119
-      final longText =
-          'Your word is a lamp for my feet, a light on my path. I have taken an oath and confirmed it, that I will follow your righteous laws.';
-      final longLines = (longText.length / 40).ceil();
-      final longHeight = (longLines * lineHeight) + 16;
+        // Simulate long verse from Psalm 119
+        final longText =
+            'Your word is a lamp for my feet, a light on my path. I have taken an oath and confirmed it, that I will follow your righteous laws.';
+        final longLines = (longText.length / 40).ceil();
+        final longHeight = (longLines * lineHeight) + 16;
 
-      expect(longLines, greaterThanOrEqualTo(3)); // ~130 chars = 4+ lines
-      expect(longHeight, greaterThan(80));
-    });
+        expect(longLines, greaterThanOrEqualTo(3)); // ~130 chars = 4+ lines
+        expect(longHeight, greaterThan(80));
+      },
+    );
 
     test('should accumulate height correctly for multiple verses', () {
       final fontSize = 18.0;
@@ -79,8 +81,10 @@ void main() {
       final screenHeight = 800.0;
       final centerOffset = screenHeight * 0.25;
 
-      final scrollPosition =
-          (estimatedHeight - centerOffset).clamp(0.0, maxScrollExtent);
+      final scrollPosition = (estimatedHeight - centerOffset).clamp(
+        0.0,
+        maxScrollExtent,
+      );
 
       expect(scrollPosition, equals(maxScrollExtent));
       expect(scrollPosition, lessThanOrEqualTo(maxScrollExtent));
@@ -92,8 +96,10 @@ void main() {
       final screenHeight = 800.0;
       final centerOffset = screenHeight * 0.25;
 
-      final scrollPosition =
-          (estimatedHeight - centerOffset).clamp(0.0, maxScrollExtent);
+      final scrollPosition = (estimatedHeight - centerOffset).clamp(
+        0.0,
+        maxScrollExtent,
+      );
 
       expect(scrollPosition, equals(0.0));
       expect(scrollPosition, greaterThanOrEqualTo(0.0));
@@ -130,8 +136,10 @@ void main() {
 
     test('should handle verse 1 (first verse)', () {
       final verseNumber = 1;
-      final verses =
-          List.generate(50, (i) => {'verse': i + 1, 'text': 'Verse ${i + 1}'});
+      final verses = List.generate(
+        50,
+        (i) => {'verse': i + 1, 'text': 'Verse ${i + 1}'},
+      );
 
       final verseIndex = verses.indexWhere((v) => v['verse'] == verseNumber);
 
@@ -149,7 +157,9 @@ void main() {
     test('should find correct verse index for verse 119 in Psalm 119', () {
       // Simulate Psalm 119 with 176 verses
       final verses = List.generate(
-          176, (i) => {'verse': i + 1, 'text': 'Psalm 119 verse ${i + 1}'});
+        176,
+        (i) => {'verse': i + 1, 'text': 'Psalm 119 verse ${i + 1}'},
+      );
 
       final targetVerse = 119;
       final verseIndex = verses.indexWhere((v) => v['verse'] == targetVerse);
@@ -161,7 +171,9 @@ void main() {
 
     test('should handle mid-chapter verse navigation', () {
       final verses = List.generate(
-          31, (i) => {'verse': i + 1, 'text': 'Genesis 1:${i + 1}'});
+        31,
+        (i) => {'verse': i + 1, 'text': 'Genesis 1:${i + 1}'},
+      );
 
       final targetVerse = 15;
       final verseIndex = verses.indexWhere((v) => v['verse'] == targetVerse);
@@ -188,11 +200,7 @@ void main() {
     });
 
     test('should format verse range reference correctly', () {
-      final selectedVerses = {
-        'Juan|3|16',
-        'Juan|3|17',
-        'Juan|3|18',
-      };
+      final selectedVerses = {'Juan|3|16', 'Juan|3|17', 'Juan|3|18'};
       final sorted = selectedVerses.toList()..sort();
       final first = sorted.first.split('|');
       final last = sorted.last.split('|');
@@ -208,11 +216,7 @@ void main() {
     });
 
     test('should handle non-contiguous verses', () {
-      final selectedVerses = {
-        'Juan|3|16',
-        'Juan|3|19',
-        'Juan|3|20',
-      };
+      final selectedVerses = {'Juan|3|16', 'Juan|3|19', 'Juan|3|20'};
       final sorted = selectedVerses.toList()..sort();
 
       expect(sorted.length, equals(3));

@@ -66,10 +66,7 @@ class ThemeRepository {
 
   /// Load both theme family and brightness
   Future<Map<String, dynamic>> loadThemeSettings() async {
-    final results = await Future.wait([
-      loadThemeFamily(),
-      loadBrightness(),
-    ]);
+    final results = await Future.wait([loadThemeFamily(), loadBrightness()]);
 
     return {
       'themeFamily': results[0] as String,

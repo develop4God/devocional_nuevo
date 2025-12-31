@@ -194,8 +194,9 @@ class TtsService implements ITtsService {
     try {
       if (!_isPlatformSupported) {
         throw const TtsException(
-            'Text-to-Speech not supported on this platform',
-            code: 'PLATFORM_NOT_SUPPORTED');
+          'Text-to-Speech not supported on this platform',
+          code: 'PLATFORM_NOT_SUPPORTED',
+        );
       }
 
       final prefs = await SharedPreferences.getInstance();
@@ -245,8 +246,9 @@ class TtsService implements ITtsService {
       debugPrint('🔧 TTS: Setting language to $language');
       await _flutterTts.setLanguage(language);
 
-      final savedVoice =
-          await _voiceSettingsService.loadSavedVoice(language.split('-')[0]);
+      final savedVoice = await _voiceSettingsService.loadSavedVoice(
+        language.split('-')[0],
+      );
       if (savedVoice != null) {
         debugPrint('🔧 TTS: Voice loaded by VoiceSettingsService: $savedVoice');
       }
@@ -268,7 +270,8 @@ class TtsService implements ITtsService {
       engineRate = 1.0;
     }
     debugPrint(
-        '🔧 TTS: Setting speech rate (engine) to $engineRate (from stored $rate)');
+      '🔧 TTS: Setting speech rate (engine) to $engineRate (from stored $rate)',
+    );
     await _flutterTts.setSpeechRate(engineRate.clamp(0.1, 3.0));
     await _flutterTts.setVolume(1.0);
     await _flutterTts.setPitch(1.0);
@@ -343,11 +346,14 @@ class TtsService implements ITtsService {
   @override
   Future<void> speakDevotional(Devocional devocional) async {
     debugPrint(
-        '🎤 TTS: Starting devotional ${devocional.id} at ${DateTime.now()}');
+      '🎤 TTS: Starting devotional ${devocional.id} at ${DateTime.now()}',
+    );
 
     if (_disposed) {
-      throw const TtsException('TTS service disposed',
-          code: 'SERVICE_DISPOSED');
+      throw const TtsException(
+        'TTS service disposed',
+        code: 'SERVICE_DISPOSED',
+      );
     }
 
     try {
@@ -363,14 +369,18 @@ class TtsService implements ITtsService {
       _progressController.add(0.0);
 
       final normalizedText = _normalizeTtsText(
-          devocional.reflexion, _currentLanguage, _currentVersion);
+        devocional.reflexion,
+        _currentLanguage,
+        _currentVersion,
+      );
 
       if (normalizedText.isEmpty) {
         throw const TtsException('No valid text content to speak');
       }
 
       debugPrint(
-          '📝 TTS: Speaking: ${normalizedText.length > 50 ? '${normalizedText.substring(0, 50)}...' : normalizedText}');
+        '📝 TTS: Speaking: ${normalizedText.length > 50 ? '${normalizedText.substring(0, 50)}...' : normalizedText}',
+      );
 
       _lastTextSpoken = normalizedText;
 
@@ -379,7 +389,8 @@ class TtsService implements ITtsService {
       Timer(const Duration(seconds: 3), () {
         if (_currentState == TtsState.idle && !_disposed) {
           debugPrint(
-              '⚠️ TTS: Start handler fallback for speakText at ${DateTime.now()}');
+            '⚠️ TTS: Start handler fallback for speakText at ${DateTime.now()}',
+          );
           _currentState = TtsState.playing;
         }
       });
@@ -394,8 +405,10 @@ class TtsService implements ITtsService {
     debugPrint('🔊 TTS: Speaking single text chunk at ${DateTime.now()}');
 
     if (_disposed) {
-      throw const TtsException('TTS service disposed',
-          code: 'SERVICE_DISPOSED');
+      throw const TtsException(
+        'TTS service disposed',
+        code: 'SERVICE_DISPOSED',
+      );
     }
 
     try {
@@ -403,15 +416,19 @@ class TtsService implements ITtsService {
         await _initialize();
       }
 
-      final normalizedText =
-          _normalizeTtsText(_sanitize(text), _currentLanguage, _currentVersion);
+      final normalizedText = _normalizeTtsText(
+        _sanitize(text),
+        _currentLanguage,
+        _currentVersion,
+      );
 
       if (normalizedText.isEmpty) {
         throw const TtsException('No valid text content to speak');
       }
 
       debugPrint(
-          '📝 TTS: Speaking: ${normalizedText.length > 50 ? '${normalizedText.substring(0, 50)}...' : normalizedText}');
+        '📝 TTS: Speaking: ${normalizedText.length > 50 ? '${normalizedText.substring(0, 50)}...' : normalizedText}',
+      );
 
       _lastTextSpoken = normalizedText;
 
@@ -420,7 +437,8 @@ class TtsService implements ITtsService {
       Timer(const Duration(seconds: 3), () {
         if (_currentState == TtsState.idle && !_disposed) {
           debugPrint(
-              '⚠️ TTS: Start handler fallback for speakText at ${DateTime.now()}');
+            '⚠️ TTS: Start handler fallback for speakText at ${DateTime.now()}',
+          );
           _currentState = TtsState.playing;
         }
       });
@@ -435,7 +453,8 @@ class TtsService implements ITtsService {
   @override
   Future<void> pause() async {
     debugPrint(
-        '⏸️ TTS: Pause requested (current state: $_currentState) at ${DateTime.now()}');
+      '⏸️ TTS: Pause requested (current state: $_currentState) at ${DateTime.now()}',
+    );
 
     if (_currentState == TtsState.playing) {
       // CRÍTICO: Cancelar timer de emergencia INMEDIATAMENTE para evitar avance de chunk
@@ -454,12 +473,14 @@ class TtsService implements ITtsService {
   @override
   Future<void> resume() async {
     debugPrint(
-        '▶️ TTS: Resume requested (current state: $_currentState) at ${DateTime.now()}');
+      '▶️ TTS: Resume requested (current state: $_currentState) at ${DateTime.now()}',
+    );
 
     if (_currentState == TtsState.paused) {
       try {
         debugPrint(
-            '▶️ TTS: Resuming devotional $_currentDevocionalId at ${DateTime.now()}');
+          '▶️ TTS: Resuming devotional $_currentDevocionalId at ${DateTime.now()}',
+        );
         _currentState = TtsState.playing;
         await _flutterTts.speak(_lastTextSpoken);
       } catch (e) {
@@ -469,7 +490,8 @@ class TtsService implements ITtsService {
       }
     } else {
       debugPrint(
-          '⚠️ TTS: Cannot resume - not paused (current: $_currentState) at ${DateTime.now()}');
+        '⚠️ TTS: Cannot resume - not paused (current: $_currentState) at ${DateTime.now()}',
+      );
     }
   }
 
@@ -477,7 +499,8 @@ class TtsService implements ITtsService {
   @override
   Future<void> stop() async {
     debugPrint(
-        '⏹️ TTS: Stop requested (current state: $_currentState) at ${DateTime.now()}');
+      '⏹️ TTS: Stop requested (current state: $_currentState) at ${DateTime.now()}',
+    );
 
     // CRÍTICO: Stop inmediato sin validaciones restrictivas - usuario siempre tiene control
     _currentState = TtsState.stopping;
@@ -531,7 +554,8 @@ class TtsService implements ITtsService {
 
     final clampedRate = miniRate.clamp(0.1, 3.0);
     debugPrint(
-        '🔧 TTS Service: Applying speech rate mini=$miniRate (settings-scale=$settingsScale)');
+      '🔧 TTS Service: Applying speech rate mini=$miniRate (settings-scale=$settingsScale)',
+    );
     await _flutterTts.setSpeechRate(clampedRate);
 
     final prefs = await SharedPreferences.getInstance();
@@ -581,7 +605,8 @@ class TtsService implements ITtsService {
 
     try {
       debugPrint(
-          '🔧 TTS: Changing voice language to $ttsLocale for context $language');
+        '🔧 TTS: Changing voice language to $ttsLocale for context $language',
+      );
       await _flutterTts.setLanguage(ttsLocale);
       await _voiceSettingsService.loadSavedVoice(language);
 
@@ -656,10 +681,12 @@ class TtsService implements ITtsService {
     // CRITICAL: Update _currentLanguage BEFORE any initialization to ensure correct language
     _currentLanguage = languageCode;
     debugPrint(
-        '[TTS] Language context set to $languageCode before initialization');
+      '[TTS] Language context set to $languageCode before initialization',
+    );
     await assignDefaultVoiceForLanguage(languageCode);
     debugPrint(
-        '[TTS] Voz e idioma asignados proactivamente al iniciar la app: $languageCode');
+      '[TTS] Voz e idioma asignados proactivamente al iniciar la app: $languageCode',
+    );
   }
 
   @override
@@ -670,7 +697,8 @@ class TtsService implements ITtsService {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('tts_language', ttsLocale);
     debugPrint(
-        '[TTS] Voz por defecto asignada para idioma: $languageCode ($ttsLocale)');
+      '[TTS] Voz por defecto asignada para idioma: $languageCode ($ttsLocale)',
+    );
   }
 
   String _sanitize(String text) {

@@ -21,24 +21,23 @@ void main() {
 
       // Mock the flutter_tts platform channel
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(
-        const MethodChannel('flutter_tts'),
-        (call) async {
-          switch (call.method) {
-            case 'speak':
-            case 'stop':
-            case 'pause':
-            case 'setLanguage':
-            case 'setSpeechRate':
-            case 'setVolume':
-            case 'setPitch':
-            case 'awaitSpeakCompletion':
-              return 1;
-            default:
-              return null;
-          }
-        },
-      );
+          .setMockMethodCallHandler(const MethodChannel('flutter_tts'), (
+        call,
+      ) async {
+        switch (call.method) {
+          case 'speak':
+          case 'stop':
+          case 'pause':
+          case 'setLanguage':
+          case 'setSpeechRate':
+          case 'setVolume':
+          case 'setPitch':
+          case 'awaitSpeakCompletion':
+            return 1;
+          default:
+            return null;
+        }
+      });
 
       mockFlutterTts = FlutterTts();
       controller = TtsAudioController(flutterTts: mockFlutterTts);
@@ -117,7 +116,8 @@ void main() {
 
       expect(controller.totalDuration.value.inSeconds, expectedSeconds);
       debugPrint(
-          'Chinese text: $chars chars -> ${controller.totalDuration.value.inSeconds}s (expected: $expectedSeconds)');
+        'Chinese text: $chars chars -> ${controller.totalDuration.value.inSeconds}s (expected: $expectedSeconds)',
+      );
     });
 
     test('setText calculates duration for Japanese text based on characters',
@@ -132,7 +132,8 @@ void main() {
 
       expect(controller.totalDuration.value.inSeconds, expectedSeconds);
       debugPrint(
-          'Japanese text: $chars chars -> ${controller.totalDuration.value.inSeconds}s (expected: $expectedSeconds)');
+        'Japanese text: $chars chars -> ${controller.totalDuration.value.inSeconds}s (expected: $expectedSeconds)',
+      );
     });
 
     test('setText calculates duration for English text based on words', () {
@@ -146,7 +147,8 @@ void main() {
 
       expect(controller.totalDuration.value.inSeconds, expectedSeconds);
       debugPrint(
-          'English text: $words words -> ${controller.totalDuration.value.inSeconds}s (expected: $expectedSeconds)');
+        'English text: $words words -> ${controller.totalDuration.value.inSeconds}s (expected: $expectedSeconds)',
+      );
     });
 
     test('setText calculates duration for Spanish text based on words', () {
@@ -160,7 +162,8 @@ void main() {
 
       expect(controller.totalDuration.value.inSeconds, expectedSeconds);
       debugPrint(
-          'Spanish text: $words words -> ${controller.totalDuration.value.inSeconds}s (expected: $expectedSeconds)');
+        'Spanish text: $words words -> ${controller.totalDuration.value.inSeconds}s (expected: $expectedSeconds)',
+      );
     });
 
     test('Chinese duration estimation is consistent', () {
@@ -176,7 +179,8 @@ void main() {
       // text2 should take longer than text1 (more characters)
       expect(duration2.inSeconds, greaterThan(duration1.inSeconds));
       debugPrint(
-          'Chinese text1: ${duration1.inSeconds}s, text2: ${duration2.inSeconds}s');
+        'Chinese text1: ${duration1.inSeconds}s, text2: ${duration2.inSeconds}s',
+      );
     });
   });
 }

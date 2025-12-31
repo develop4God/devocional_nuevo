@@ -82,10 +82,9 @@ class NotificationService {
     final User? user = _auth.currentUser;
     if (user != null) {
       final userDocRef = _firestore.collection('users').doc(user.uid);
-      await userDocRef.set(
-        {'lastLogin': FieldValue.serverTimestamp()},
-        SetOptions(merge: true),
-      );
+      await userDocRef.set({
+        'lastLogin': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
       developer.log(
         'NotificationService: lastLogin actualizado para el usuario ${user.uid}',
         name: 'NotificationService',
@@ -402,16 +401,13 @@ class NotificationService {
           .doc(userId)
           .collection('settings')
           .doc('notifications');
-      await docRef.set(
-        {
-          'notificationsEnabled': notificationsEnabled,
-          'notificationTime': notificationTime,
-          'userTimezone': userTimezone,
-          'lastUpdated': FieldValue.serverTimestamp(),
-          'preferredLanguage': currentLanguage,
-        },
-        SetOptions(merge: true),
-      );
+      await docRef.set({
+        'notificationsEnabled': notificationsEnabled,
+        'notificationTime': notificationTime,
+        'userTimezone': userTimezone,
+        'lastUpdated': FieldValue.serverTimestamp(),
+        'preferredLanguage': currentLanguage,
+      }, SetOptions(merge: true));
       developer.log(
         'NotificationService: Configuración de notificaciones guardada para $userId: Enabled: $notificationsEnabled, Time: $notificationTime, Timezone: $userTimezone, Language: $currentLanguage',
         name: 'NotificationService',

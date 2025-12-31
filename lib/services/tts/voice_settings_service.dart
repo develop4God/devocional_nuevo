@@ -41,7 +41,8 @@ class VoiceSettingsService {
     if (_sampleTtsInstance == null) {
       _sampleTtsInstance = FlutterTts();
       debugPrint(
-          '🔊 VoiceSettings: Created dedicated TTS instance for samples');
+        '🔊 VoiceSettings: Created dedicated TTS instance for samples',
+      );
     }
     return _sampleTtsInstance!;
   }
@@ -51,7 +52,8 @@ class VoiceSettingsService {
   Future<void> autoAssignDefaultVoice(String language) async {
     final hasVoice = await hasSavedVoice(language);
     debugPrint(
-        '🎵 [autoAssignDefaultVoice] ¿Ya hay voz guardada para "$language"? $hasVoice');
+      '🎵 [autoAssignDefaultVoice] ¿Ya hay voz guardada para "$language"? $hasVoice',
+    );
     if (hasVoice) return;
 
     // Define los locales preferidos para cada idioma
@@ -68,15 +70,20 @@ class VoiceSettingsService {
     final voices = await _flutterTts.getVoices;
     if (voices is List) {
       debugPrint(
-          '🎵 [autoAssignDefaultVoice] Voces filtradas para $language (${locales.join(", ")}):');
+        '🎵 [autoAssignDefaultVoice] Voces filtradas para $language (${locales.join(", ")}):',
+      );
       final filtered = voices
           .cast<Map>()
-          .where((voice) =>
-              locales.any((loc) =>
-                  (voice['locale'] as String?)?.toLowerCase() ==
-                  loc.toLowerCase()) &&
-              (voice['name'] as String?) != null &&
-              (voice['name'] as String).trim().isNotEmpty)
+          .where(
+            (voice) =>
+                locales.any(
+                  (loc) =>
+                      (voice['locale'] as String?)?.toLowerCase() ==
+                      loc.toLowerCase(),
+                ) &&
+                (voice['name'] as String?) != null &&
+                (voice['name'] as String).trim().isNotEmpty,
+          )
           .toList();
 
       for (final v in filtered) {
@@ -87,7 +94,8 @@ class VoiceSettingsService {
 
       if (filtered.isEmpty) {
         debugPrint(
-            '⚠️ [autoAssignDefaultVoice] ¡No se encontró voz válida para $language!');
+          '⚠️ [autoAssignDefaultVoice] ¡No se encontró voz válida para $language!',
+        );
         return;
       }
 
@@ -97,7 +105,7 @@ class VoiceSettingsService {
         'en': [
           'en-us-x-tpd-network',
           'en-us-x-tpd-local',
-          'en-us-x-iom-network'
+          'en-us-x-iom-network',
         ],
         'pt': ['pt-br-x-ptd-network', 'pt-br-x-ptd-local'],
         'fr': ['fr-fr-x-frd-local', 'fr-fr-x-frd-network', 'fr-fr-x-vlf-local'],
@@ -122,7 +130,7 @@ class VoiceSettingsService {
           'yue-hk-x-yuf-local',
           'yue-hk-x-yuf-network',
           'yue-hk-x-jar-local',
-          'yue-hk-x-jar-network'
+          'yue-hk-x-jar-network',
         ],
       };
       final preferredVoices = preferredMaleVoices[language] ?? [];
@@ -137,7 +145,8 @@ class VoiceSettingsService {
         );
         if (selectedVoice.isNotEmpty && selectedVoice['name'] != null) {
           debugPrint(
-              '🎤✅ [autoAssignDefaultVoice] Found preferred male voice: \\${selectedVoice['name']}');
+            '🎤✅ [autoAssignDefaultVoice] Found preferred male voice: \\${selectedVoice['name']}',
+          );
           break;
         }
         selectedVoice = null;
@@ -152,11 +161,13 @@ class VoiceSettingsService {
           selectedVoice != null ? selectedVoice['locale'] as String? ?? '' : '';
       final friendlyName = getFriendlyVoiceName(language, name);
       debugPrint(
-          '🎵🔊 [autoAssignDefaultVoice] → Asignada: name="$name" ($friendlyName), locale="$locale" para $language');
+        '🎵🔊 [autoAssignDefaultVoice] → Asignada: name="$name" ($friendlyName), locale="$locale" para $language',
+      );
       if (name.isNotEmpty && locale.isNotEmpty) {
         await saveVoice(language, name, locale);
         debugPrint(
-            '✅🎙️ [autoAssignDefaultVoice] Default voice saved successfully for $language: $friendlyName');
+          '✅🎙️ [autoAssignDefaultVoice] Default voice saved successfully for $language: $friendlyName',
+        );
       }
     } else {
       debugPrint('⚠️ [autoAssignDefaultVoice] No se obtuvo lista de voces');
@@ -194,7 +205,10 @@ class VoiceSettingsService {
 
   /// Guarda la voz seleccionada para un idioma específico
   Future<void> saveVoice(
-      String language, String voiceName, String locale) async {
+    String language,
+    String voiceName,
+    String locale,
+  ) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       // Guardar tanto el nombre técnico como el amigable
@@ -207,13 +221,11 @@ class VoiceSettingsService {
       await prefs.setString('tts_voice_$language', voiceData.toString());
 
       // Solo aplicar la voz globalmente al TTS al guardar
-      await _flutterTts.setVoice({
-        'name': voiceName,
-        'locale': locale,
-      });
+      await _flutterTts.setVoice({'name': voiceName, 'locale': locale});
 
       debugPrint(
-          '🔧🗂️ VoiceSettings: Saved & applied voice ${voiceData['friendly_name']} (${voiceData['technical_name']}) for language $language');
+        '🔧🗂️ VoiceSettings: Saved & applied voice ${voiceData['friendly_name']} (${voiceData['technical_name']}) for language $language',
+      );
     } catch (e) {
       debugPrint('❌ VoiceSettings: Failed to save voice: $e');
       rethrow;
@@ -222,20 +234,21 @@ class VoiceSettingsService {
 
   /// Reproduce solo el sample de voz, sin guardar ni aplicar globalmente
   Future<void> playVoiceSample(
-      String voiceName, String locale, String sampleText) async {
+    String voiceName,
+    String locale,
+    String sampleText,
+  ) async {
     try {
       // CRITICAL: Use dedicated sample TTS instance to prevent interference
       // with main playback and avoid triggering the mini-player modal
       await _sampleTts.stop();
-      await _sampleTts.setVoice({
-        'name': voiceName,
-        'locale': locale,
-      });
+      await _sampleTts.setVoice({'name': voiceName, 'locale': locale});
       // Siempre aplicar rate 1.0 para samples (voz natural)
       await _sampleTts.setSpeechRate(0.6);
       await _sampleTts.speak(sampleText);
       debugPrint(
-          '🔊🔬 VoiceSettings: Played sample for $voiceName ($locale) using dedicated TTS instance');
+        '🔊🔬 VoiceSettings: Played sample for $voiceName ($locale) using dedicated TTS instance',
+      );
     } catch (e) {
       debugPrint('❌ VoiceSettings: Failed to play sample: $e');
     }
@@ -254,9 +267,13 @@ class VoiceSettingsService {
 
   /// Guarda la voz seleccionada en SharedPreferences y muestra debugPrint
   Future<void> saveVoiceWithDebug(
-      String language, String name, String locale) async {
+    String language,
+    String name,
+    String locale,
+  ) async {
     debugPrint(
-        '🔊 Voz seleccionada: name=$name, locale=$locale, language=$language');
+      '🔊 Voz seleccionada: name=$name, locale=$locale, language=$language',
+    );
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('voice_name_$language', name);
     await prefs.setString('voice_locale_$language', locale);
@@ -293,7 +310,8 @@ class VoiceSettingsService {
             (voiceName.trim().isEmpty ||
                 !locale.toLowerCase().startsWith('zh'))) {
           debugPrint(
-              '⚠️ [VoiceSettings] Invalid saved voice for zh detected (name: "$voiceName", locale: "$locale"). Clearing and re-assigning.');
+            '⚠️ [VoiceSettings] Invalid saved voice for zh detected (name: "$voiceName", locale: "$locale"). Clearing and re-assigning.',
+          );
           await clearSavedVoice(language);
           await autoAssignDefaultVoice(language);
           return await loadSavedVoice(language); // Try again after fix
@@ -301,13 +319,11 @@ class VoiceSettingsService {
         // --- END NEW ---
 
         // Aplicar la voz al TTS
-        await _flutterTts.setVoice({
-          'name': voiceName,
-          'locale': locale,
-        });
+        await _flutterTts.setVoice({'name': voiceName, 'locale': locale});
 
         debugPrint(
-            '🔧 VoiceSettings: Loaded saved voice $voiceName for language $language (locale: $locale)');
+          '🔧 VoiceSettings: Loaded saved voice $voiceName for language $language (locale: $locale)',
+        );
         return _getFriendlyVoiceName(voiceName, locale);
       }
     } catch (e) {
@@ -353,10 +369,14 @@ class VoiceSettingsService {
     String friendlyName = voiceName;
 
     // Eliminar prefijos comunes de plataforma
-    friendlyName =
-        friendlyName.replaceAll(RegExp(r'^com\.apple\.ttsbundle\.'), '');
     friendlyName = friendlyName.replaceAll(
-        RegExp(r'^com\.apple\.speech\.synthesis\.voice\.'), '');
+      RegExp(r'^com\.apple\.ttsbundle\.'),
+      '',
+    );
+    friendlyName = friendlyName.replaceAll(
+      RegExp(r'^com\.apple\.speech\.synthesis\.voice\.'),
+      '',
+    );
     friendlyName = friendlyName.replaceAll(RegExp(r'^Microsoft\s+'), '');
     friendlyName = friendlyName.replaceAll(RegExp(r'^Google\s+'), '');
     friendlyName = friendlyName.replaceAll(RegExp(r'^Amazon\s+'), '');
@@ -458,18 +478,22 @@ class VoiceSettingsService {
   /// Metodo proactivo para inicializar el TTS con la voz correcta al iniciar la app o cambiar idioma
   Future<void> proactiveAssignVoiceOnInit(String language) async {
     debugPrint(
-        '🔄 [proactiveAssignVoiceOnInit] Inicializando TTS para idioma: $language');
+      '🔄 [proactiveAssignVoiceOnInit] Inicializando TTS para idioma: $language',
+    );
     final friendlyName = await loadSavedVoice(language);
     if (friendlyName == null) {
       debugPrint(
-          '🔄 [proactiveAssignVoiceOnInit] No hay voz guardada válida, asignando automáticamente...');
+        '🔄 [proactiveAssignVoiceOnInit] No hay voz guardada válida, asignando automáticamente...',
+      );
       await autoAssignDefaultVoice(language);
       final newFriendlyName = await loadSavedVoice(language);
       debugPrint(
-          '🔄 [proactiveAssignVoiceOnInit] Voz asignada: $newFriendlyName');
+        '🔄 [proactiveAssignVoiceOnInit] Voz asignada: $newFriendlyName',
+      );
     } else {
       debugPrint(
-          '🔄 [proactiveAssignVoiceOnInit] Voz guardada aplicada: $friendlyName');
+        '🔄 [proactiveAssignVoiceOnInit] Voz guardada aplicada: $friendlyName',
+      );
     }
   }
 
@@ -513,9 +537,9 @@ class VoiceSettingsService {
           filteredVoices = rawVoices.where((voice) {
             if (voice is Map) {
               final locale = voice['locale'] as String? ?? '';
-              return locale
-                  .toLowerCase()
-                  .startsWith(targetLocale.toLowerCase());
+              return locale.toLowerCase().startsWith(
+                    targetLocale.toLowerCase(),
+                  );
             }
             return false;
           }).toList();
@@ -546,7 +570,8 @@ class VoiceSettingsService {
 
   /// Obtiene todas las voces disponibles para el idioma actual
   Future<List<Map<String, String>>> getAvailableVoicesForLanguage(
-      String language) async {
+    String language,
+  ) async {
     final voices = await _flutterTts.getVoices;
     if (voices is List) {
       if (language == 'zh') {
@@ -597,7 +622,8 @@ class VoiceSettingsService {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove('tts_voice_$language');
       debugPrint(
-          '🗑️ VoiceSettings: Cleared saved voice for language $language');
+        '🗑️ VoiceSettings: Cleared saved voice for language $language',
+      );
     } catch (e) {
       debugPrint('❌ VoiceSettings: Failed to clear saved voice: $e');
     }
@@ -667,7 +693,8 @@ class VoiceSettingsService {
       }
       await prefs.setDouble('tts_rate', toStore);
       debugPrint(
-          '🔧 VoiceSettings: Saved speech rate (settings-scale) = $toStore');
+        '🔧 VoiceSettings: Saved speech rate (settings-scale) = $toStore',
+      );
     } catch (e) {
       debugPrint('❌ VoiceSettings: Failed to save speech rate: $e');
     }
@@ -677,13 +704,15 @@ class VoiceSettingsService {
   static const List<double> allowedPlaybackRates = [
     0.5,
     1.0,
-    2.0
-  ]; // 0.5x, 1.0x, 2.0x
+    1.5,
+  ]; // 0.5x, 1.0x, 1.5x (was 2.0x)
 
   /// Rota la velocidad de reproducción (entre allowedPlaybackRates), la guarda y la aplica al TTS.
   /// Devuelve el nuevo playbackRate aplicado.
-  Future<double> cyclePlaybackRate(
-      {double? currentMiniRate, FlutterTts? ttsOverride}) async {
+  Future<double> cyclePlaybackRate({
+    double? currentMiniRate,
+    FlutterTts? ttsOverride,
+  }) async {
     final rates = miniPlayerRates;
     final current = (currentMiniRate ?? await getSavedMiniRate());
 
@@ -702,11 +731,13 @@ class VoiceSettingsService {
       await tts.setSpeechRate(settingsValue);
     } catch (e) {
       debugPrint(
-          'VoiceSettingsService: Failed to set speech rate on engine: $e');
+        'VoiceSettingsService: Failed to set speech rate on engine: $e',
+      );
     }
 
     debugPrint(
-        '🔄 VoiceSettingsService: cyclePlaybackRate -> nextMini=$nextMini settings=$settingsValue');
+      '🔄 VoiceSettingsService: cyclePlaybackRate -> nextMini=$nextMini settings=$settingsValue',
+    );
     return nextMini;
   }
 
@@ -714,30 +745,27 @@ class VoiceSettingsService {
   static const List<double> miniPlayerRates = [
     0.5,
     1.0,
-    2.0
-  ]; // 0.5x, 1.0x, 2.0x
+    1.5,
+  ]; // 0.5x, 1.0x, 1.5x (was 2.0x)
   static final Map<double, double> miniToSettings = {
-    0.5: 0.25, // 0.5x → 25% (menos lento que 10%)
+    0.5: 0.25, // 0.5x → 25%
     1.0: 0.5, // 1.0x → 50%
-    2.0: 1.0, // 2.0x → 100%
+    1.5: 0.75, // 1.5x → 75% (was 2.0: 1.0)
   };
   static final Map<double, double> settingsToMini = {
-    // Refleja el ajuste anterior: 0.25 settings → 0.5x miniplayer
     0.25: 0.5,
     0.5: 1.0,
-    1.0: 2.0,
+    0.75: 1.5,
   };
 
   /// Dado un rate de settings, devuelve el rate homologado del miniplayer
   double getMiniPlayerRate(double settingsRate) {
-    // Si coincide exactamente
     if (settingsToMini.containsKey(settingsRate)) {
       return settingsToMini[settingsRate]!;
     }
-    // Si está cerca de 0.25, 0.5 o 1.0 (umbrales algo amplios para tolerar valores antiguos)
     if ((settingsRate - 0.25).abs() < 0.08) return 0.5;
     if ((settingsRate - 0.5).abs() < 0.12) return 1.0;
-    if ((settingsRate - 1.0).abs() < 0.12) return 2.0;
+    if ((settingsRate - 0.75).abs() < 0.12) return 1.5;
     // Por defecto, 1.0x
     return 1.0;
   }

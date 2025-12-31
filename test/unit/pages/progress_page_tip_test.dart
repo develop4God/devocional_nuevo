@@ -17,8 +17,11 @@ void main() {
       final tipShownCount = prefs.getInt('achievement_tip_count') ?? 0;
 
       // Should not show anymore
-      expect(tipShownCount >= 2, isTrue,
-          reason: 'Tip should not show more than 2 times');
+      expect(
+        tipShownCount >= 2,
+        isTrue,
+        reason: 'Tip should not show more than 2 times',
+      );
     });
 
     test('Tip counter increments correctly', () async {
@@ -59,8 +62,11 @@ void main() {
       final tipShownCount = prefs.getInt('achievement_tip_count') ?? 0;
       final shouldShow = tipShownCount < 2;
 
-      expect(shouldShow, isFalse,
-          reason: 'Tip should not show when count is 2 or more');
+      expect(
+        shouldShow,
+        isFalse,
+        reason: 'Tip should not show when count is 2 or more',
+      );
     });
 
     test('Tip banner counter initializes to 0 by default', () async {
@@ -69,8 +75,11 @@ void main() {
 
       final tipShownCount = prefs.getInt('achievement_tip_count') ?? 0;
 
-      expect(tipShownCount, 0,
-          reason: 'Counter should default to 0 if not set');
+      expect(
+        tipShownCount,
+        0,
+        reason: 'Counter should default to 0 if not set',
+      );
     });
   });
 
@@ -80,8 +89,11 @@ void main() {
       // The actual implementation is in progress_page.dart dispose method
 
       const hasDisposeLogic = true;
-      expect(hasDisposeLogic, isTrue,
-          reason: 'Dispose method should hide snackbar on exit');
+      expect(
+        hasDisposeLogic,
+        isTrue,
+        reason: 'Dispose method should hide snackbar on exit',
+      );
     });
 
     test('Progress page should clean up resources on dispose', () {

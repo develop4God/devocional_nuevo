@@ -160,7 +160,8 @@ class SpiritualStatsService {
         await _createAutoBackup(stats);
         await prefs.setInt(_lastBackupTimeKey, currentTime);
         debugPrint(
-            'Auto-backup created (${hoursSinceLastBackup.toStringAsFixed(1)} hours since last)');
+          'Auto-backup created (${hoursSinceLastBackup.toStringAsFixed(1)} hours since last)',
+        );
       }
     } catch (e) {
       debugPrint('Error in auto-backup check: $e');
@@ -206,15 +207,18 @@ class SpiritualStatsService {
       final directory = await getApplicationDocumentsDirectory();
       final files = directory
           .listSync()
-          .where((entity) =>
-              entity is File && entity.path.contains('spiritual_stats_auto_'))
+          .where(
+            (entity) =>
+                entity is File && entity.path.contains('spiritual_stats_auto_'),
+          )
           .cast<File>()
           .toList();
 
       if (files.length > _maxBackupFiles) {
         // Ordenar por fecha de modificación (más reciente primero)
         files.sort(
-            (a, b) => b.lastModifiedSync().compareTo(a.lastModifiedSync()));
+          (a, b) => b.lastModifiedSync().compareTo(a.lastModifiedSync()),
+        );
 
         // Eliminar los más antiguos
         for (int i = _maxBackupFiles; i < files.length; i++) {
@@ -233,8 +237,10 @@ class SpiritualStatsService {
       final directory = await getApplicationDocumentsDirectory();
       final files = directory
           .listSync()
-          .where((entity) =>
-              entity is File && entity.path.contains('spiritual_stats_auto_'))
+          .where(
+            (entity) =>
+                entity is File && entity.path.contains('spiritual_stats_auto_'),
+          )
           .cast<File>()
           .toList();
 
@@ -244,8 +250,9 @@ class SpiritualStatsService {
       }
 
       // Obtener el más reciente
-      files
-          .sort((a, b) => b.lastModifiedSync().compareTo(a.lastModifiedSync()));
+      files.sort(
+        (a, b) => b.lastModifiedSync().compareTo(a.lastModifiedSync()),
+      );
       final mostRecentFile = files.first;
 
       final jsonString = await mostRecentFile.readAsString();
@@ -261,7 +268,8 @@ class SpiritualStatsService {
 
       if (backupData['preferences'] != null) {
         await _restorePreferences(
-            Map<String, dynamic>.from(backupData['preferences']));
+          Map<String, dynamic>.from(backupData['preferences']),
+        );
       }
 
       debugPrint('Successfully restored from auto-backup');
@@ -282,7 +290,8 @@ class SpiritualStatsService {
     String source = 'unknown', // 'read', 'heard', etc.
   }) async {
     debugPrint(
-        '🎯 [STATS] Iniciando registro de devocional: $devocionalId, fuente: $source');
+      '🎯 [STATS] Iniciando registro de devocional: $devocionalId, fuente: $source',
+    );
     final prefs = await SharedPreferences.getInstance();
     final stats = await getStats();
 
@@ -296,7 +305,8 @@ class SpiritualStatsService {
             (listenedPercentage >= 0.6);
 
     debugPrint(
-        '🎯 [STATS] Criterios: tiempo=$readingTimeSeconds, scroll=$scrollPercentage, escuchado=$listenedPercentage, cumple=$meetsReadingCriteria');
+      '🎯 [STATS] Criterios: tiempo=$readingTimeSeconds, scroll=$scrollPercentage, escuchado=$listenedPercentage, cumple=$meetsReadingCriteria',
+    );
 
     if (stats.readDevocionalIds.contains(devocionalId)) {
       debugPrint('🎯 [STATS] Devocional ya registrado: $devocionalId');
@@ -310,10 +320,13 @@ class SpiritualStatsService {
 
     if (!meetsReadingCriteria) {
       debugPrint(
-          '🎯 [STATS] Devocional no cumple criterio, no se suma: $devocionalId');
+        '🎯 [STATS] Devocional no cumple criterio, no se suma: $devocionalId',
+      );
       await prefs.setString(_lastReadDevocionalKey, devocionalId);
       await prefs.setInt(
-          _lastReadTimeKey, DateTime.now().millisecondsSinceEpoch ~/ 1000);
+        _lastReadTimeKey,
+        DateTime.now().millisecondsSinceEpoch ~/ 1000,
+      );
       if (favoritesCount != null) {
         final updatedStats = stats.copyWith(favoritesCount: favoritesCount);
         await saveStats(updatedStats);
@@ -324,7 +337,9 @@ class SpiritualStatsService {
 
     await prefs.setString(_lastReadDevocionalKey, devocionalId);
     await prefs.setInt(
-        _lastReadTimeKey, DateTime.now().millisecondsSinceEpoch ~/ 1000);
+      _lastReadTimeKey,
+      DateTime.now().millisecondsSinceEpoch ~/ 1000,
+    );
 
     final today = DateTime.now();
     final todayDateOnly = DateTime(today.year, today.month, today.day);
@@ -363,7 +378,8 @@ class SpiritualStatsService {
 
     await saveStats(updatedStats);
     debugPrint(
-        '🎯 [STATS] Devocional guardado: $devocionalId, total ahora: ${updatedStats.totalDevocionalesRead}');
+      '🎯 [STATS] Devocional guardado: $devocionalId, total ahora: ${updatedStats.totalDevocionalesRead}',
+    );
     return updatedStats;
   }
 
@@ -439,7 +455,8 @@ class SpiritualStatsService {
       final backupData = json.decode(jsonString);
 
       debugPrint(
-          'Restoring from manual JSON backup version: ${backupData['version']}');
+        'Restoring from manual JSON backup version: ${backupData['version']}',
+      );
 
       final stats = SpiritualStats.fromJson(backupData['stats']);
 
@@ -449,7 +466,8 @@ class SpiritualStatsService {
 
       if (backupData['preferences'] != null) {
         await _restorePreferences(
-            Map<String, dynamic>.from(backupData['preferences']));
+          Map<String, dynamic>.from(backupData['preferences']),
+        );
       }
 
       debugPrint('Successfully restored from manual JSON backup');
@@ -466,13 +484,16 @@ class SpiritualStatsService {
       final directory = await getApplicationDocumentsDirectory();
       final autoBackups = directory
           .listSync()
-          .where((entity) =>
-              entity is File && entity.path.contains('spiritual_stats_auto_'))
+          .where(
+            (entity) =>
+                entity is File && entity.path.contains('spiritual_stats_auto_'),
+          )
           .cast<File>()
           .length;
 
-      final manualBackupExists =
-          await File('${directory.path}/$_jsonBackupFilename').exists();
+      final manualBackupExists = await File(
+        '${directory.path}/$_jsonBackupFilename',
+      ).exists();
 
       final prefs = await SharedPreferences.getInstance();
       final lastAutoBackup = prefs.getInt(_lastBackupTimeKey);
@@ -488,7 +509,8 @@ class SpiritualStatsService {
         'next_auto_backup':
             lastAutoBackup != null && await isAutoBackupEnabled()
                 ? DateTime.fromMillisecondsSinceEpoch(
-                    (lastAutoBackup + _autoBackupIntervalHours * 3600) * 1000)
+                    (lastAutoBackup + _autoBackupIntervalHours * 3600) * 1000,
+                  )
                 : null,
       };
     } catch (e) {
@@ -548,7 +570,9 @@ class SpiritualStatsService {
 
       if (preferences[_lastReadDevocionalKey] != null) {
         await prefs.setString(
-            _lastReadDevocionalKey, preferences[_lastReadDevocionalKey]);
+          _lastReadDevocionalKey,
+          preferences[_lastReadDevocionalKey],
+        );
       }
 
       if (preferences[_lastReadTimeKey] != null) {
@@ -652,8 +676,11 @@ class SpiritualStatsService {
     DateTime currentDate = todayDateOnly;
 
     for (final readDate in readDates) {
-      final readDateOnly =
-          DateTime(readDate.year, readDate.month, readDate.day);
+      final readDateOnly = DateTime(
+        readDate.year,
+        readDate.month,
+        readDate.day,
+      );
 
       if (readDateOnly.isAtSameMomentAs(currentDate)) {
         streak++;
@@ -673,12 +700,14 @@ class SpiritualStatsService {
     int favoritesCount,
   ) {
     final allAchievements = PredefinedAchievements.all;
-    final unlockedAchievements =
-        List<Achievement>.from(currentStats.unlockedAchievements);
+    final unlockedAchievements = List<Achievement>.from(
+      currentStats.unlockedAchievements,
+    );
 
     for (final achievement in allAchievements) {
-      final isAlreadyUnlocked =
-          unlockedAchievements.any((a) => a.id == achievement.id);
+      final isAlreadyUnlocked = unlockedAchievements.any(
+        (a) => a.id == achievement.id,
+      );
 
       if (!isAlreadyUnlocked) {
         bool shouldUnlock = false;
@@ -725,8 +754,10 @@ class SpiritualStatsService {
       // Eliminar auto-backups
       final autoBackups = directory
           .listSync()
-          .where((entity) =>
-              entity is File && entity.path.contains('spiritual_stats_auto_'))
+          .where(
+            (entity) =>
+                entity is File && entity.path.contains('spiritual_stats_auto_'),
+          )
           .cast<File>();
 
       for (final file in autoBackups) {

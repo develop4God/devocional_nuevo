@@ -130,8 +130,9 @@ class LocalizationService {
             return;
           }
 
-          final jsonString = await rootBundle
-              .loadString('i18n/${defaultLocale.languageCode}.json');
+          final jsonString = await rootBundle.loadString(
+            'i18n/${defaultLocale.languageCode}.json',
+          );
           final translations = json.decode(jsonString) as Map<String, dynamic>;
           _translationsCache[defaultLocale.languageCode] = translations;
           _translations = translations;
@@ -242,13 +243,23 @@ class LocalizationService {
   DateFormat getLocalizedDateFormat(String languageCode) {
     switch (languageCode) {
       case 'es':
-        return DateFormat('EEEE, d ' 'de' ' MMMM', 'es');
+        return DateFormat(
+          'EEEE, d '
+              'de'
+              ' MMMM',
+          'es',
+        );
       case 'en':
         return DateFormat('EEEE, MMMM d', 'en');
       case 'fr':
         return DateFormat('EEEE d MMMM', 'fr');
       case 'pt':
-        return DateFormat('EEEE, d ' 'de' ' MMMM', 'pt');
+        return DateFormat(
+          'EEEE, d '
+              'de'
+              ' MMMM',
+          'pt',
+        );
       case 'ja':
         return DateFormat('y年M月d日 EEEE', 'ja');
       case 'zh':

@@ -260,7 +260,10 @@ void main() {
   group('VoiceSettingsService - Localized Gender Names', () {
     test('Spanish gender names are correct', () {
       String getLocalizedGenderName(
-          String gender, String locale, String number) {
+        String gender,
+        String locale,
+        String number,
+      ) {
         final num = number.isNotEmpty ? ' $number' : '';
         switch (locale.toLowerCase()) {
           case String s when s.startsWith('es'):
@@ -281,7 +284,10 @@ void main() {
 
     test('English gender names are correct', () {
       String getLocalizedGenderName(
-          String gender, String locale, String number) {
+        String gender,
+        String locale,
+        String number,
+      ) {
         final num = number.isNotEmpty ? ' $number' : '';
         switch (locale.toLowerCase()) {
           case String s when s.startsWith('en'):
@@ -297,7 +303,10 @@ void main() {
 
     test('Portuguese gender names are correct', () {
       String getLocalizedGenderName(
-          String gender, String locale, String number) {
+        String gender,
+        String locale,
+        String number,
+      ) {
         final num = number.isNotEmpty ? ' $number' : '';
         switch (locale.toLowerCase()) {
           case String s when s.startsWith('pt'):
@@ -315,7 +324,10 @@ void main() {
 
     test('French gender names are correct', () {
       String getLocalizedGenderName(
-          String gender, String locale, String number) {
+        String gender,
+        String locale,
+        String number,
+      ) {
         final num = number.isNotEmpty ? ' $number' : '';
         switch (locale.toLowerCase()) {
           case String s when s.startsWith('fr'):
@@ -339,7 +351,7 @@ void main() {
         'en': [
           'en-us-x-tpd-network',
           'en-us-x-tpd-local',
-          'en-us-x-iom-network'
+          'en-us-x-iom-network',
         ],
         'pt': ['pt-br-x-ptd-network', 'pt-br-x-ptd-local'],
         'fr': ['fr-fr-x-frd-local', 'fr-fr-x-frd-network', 'fr-fr-x-vlf-local'],

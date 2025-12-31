@@ -24,32 +24,31 @@ void main() {
 
       // Mock solo los platform channels (infraestructura externa)
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(
-        const MethodChannel('flutter_tts'),
-        (call) async {
-          // Simular respuestas básicas del TTS nativo
-          switch (call.method) {
-            case 'speak':
-            case 'stop':
-            case 'pause':
-            case 'setLanguage':
-            case 'setSpeechRate':
-            case 'setVolume':
-            case 'setPitch':
-            case 'awaitSpeakCompletion':
-              return null;
-            case 'getLanguages':
-              return ['es-ES', 'en-US'];
-            case 'getVoices':
-              return [
-                {'name': 'Voice ES', 'locale': 'es-ES'},
-                {'name': 'Voice EN', 'locale': 'en-US'},
-              ];
-            default:
-              return null;
-          }
-        },
-      );
+          .setMockMethodCallHandler(const MethodChannel('flutter_tts'), (
+        call,
+      ) async {
+        // Simular respuestas básicas del TTS nativo
+        switch (call.method) {
+          case 'speak':
+          case 'stop':
+          case 'pause':
+          case 'setLanguage':
+          case 'setSpeechRate':
+          case 'setVolume':
+          case 'setPitch':
+          case 'awaitSpeakCompletion':
+            return null;
+          case 'getLanguages':
+            return ['es-ES', 'en-US'];
+          case 'getVoices':
+            return [
+              {'name': 'Voice ES', 'locale': 'es-ES'},
+              {'name': 'Voice EN', 'locale': 'en-US'},
+            ];
+          default:
+            return null;
+        }
+      });
 
       controller = AudioController(TtsService());
       controller.initialize();
@@ -61,43 +60,64 @@ void main() {
       }
 
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(
-        const MethodChannel('flutter_tts'),
-        null,
-      );
+          .setMockMethodCallHandler(const MethodChannel('flutter_tts'), null);
     });
 
     // ========== TESTS DE ESTADO INICIAL ==========
 
     test('should initialize with idle state and inactive flags', () {
       // Verificar estado observable desde afuera
-      expect(controller.currentState, equals(TtsState.idle),
-          reason: 'Initial state must be idle');
+      expect(
+        controller.currentState,
+        equals(TtsState.idle),
+        reason: 'Initial state must be idle',
+      );
 
-      expect(controller.isActive, isFalse,
-          reason: 'Should not be active initially');
+      expect(
+        controller.isActive,
+        isFalse,
+        reason: 'Should not be active initially',
+      );
 
-      expect(controller.isPlaying, isFalse,
-          reason: 'Should not be playing initially');
+      expect(
+        controller.isPlaying,
+        isFalse,
+        reason: 'Should not be playing initially',
+      );
 
-      expect(controller.isPaused, isFalse,
-          reason: 'Should not be paused initially');
+      expect(
+        controller.isPaused,
+        isFalse,
+        reason: 'Should not be paused initially',
+      );
 
-      expect(controller.hasError, isFalse,
-          reason: 'Should have no errors initially');
+      expect(
+        controller.hasError,
+        isFalse,
+        reason: 'Should have no errors initially',
+      );
     });
 
     test('should start with null devotional and zero progress', () {
-      expect(controller.currentDevocionalId, isNull,
-          reason: 'No devotional should be loaded initially');
+      expect(
+        controller.currentDevocionalId,
+        isNull,
+        reason: 'No devotional should be loaded initially',
+      );
 
-      expect(controller.progress, equals(0.0),
-          reason: 'Progress should be zero initially');
+      expect(
+        controller.progress,
+        equals(0.0),
+        reason: 'Progress should be zero initially',
+      );
     });
 
     test('should be mounted after initialization', () {
-      expect(controller.mounted, isTrue,
-          reason: 'Controller should be mounted after initialization');
+      expect(
+        controller.mounted,
+        isTrue,
+        reason: 'Controller should be mounted after initialization',
+      );
     });
 
     // ========== TESTS DE REGLAS DE NEGOCIO ==========
@@ -117,31 +137,46 @@ void main() {
       }
 
       // En estado idle, ambos deben ser false
-      expect(isPlaying && isPaused, isFalse,
-          reason: 'Cannot be both playing and paused');
+      expect(
+        isPlaying && isPaused,
+        isFalse,
+        reason: 'Cannot be both playing and paused',
+      );
     });
 
     test('should have isActive consistent with playing/paused states', () {
       // En idle: isActive debe ser false
       expect(controller.currentState, equals(TtsState.idle));
-      expect(controller.isActive, isFalse,
-          reason: 'isActive should be false when idle');
+      expect(
+        controller.isActive,
+        isFalse,
+        reason: 'isActive should be false when idle',
+      );
 
       // Cuando no está playing ni paused, isActive debe ser false
       if (!controller.isPlaying && !controller.isPaused) {
-        expect(controller.isActive, isFalse,
-            reason: 'isActive should be false when neither playing nor paused');
+        expect(
+          controller.isActive,
+          isFalse,
+          reason: 'isActive should be false when neither playing nor paused',
+        );
       }
     });
 
     test('should maintain progress within valid bounds [0.0, 1.0]', () {
       final progress = controller.progress;
 
-      expect(progress, greaterThanOrEqualTo(0.0),
-          reason: 'Progress cannot be negative');
+      expect(
+        progress,
+        greaterThanOrEqualTo(0.0),
+        reason: 'Progress cannot be negative',
+      );
 
-      expect(progress, lessThanOrEqualTo(1.0),
-          reason: 'Progress cannot exceed 1.0');
+      expect(
+        progress,
+        lessThanOrEqualTo(1.0),
+        reason: 'Progress cannot exceed 1.0',
+      );
     });
 
     // ========== TESTS DE ESTADO DE ERROR ==========
@@ -149,14 +184,20 @@ void main() {
     test('should map error state to hasError property correctly', () {
       // En estado idle, no debe haber error
       expect(controller.currentState, equals(TtsState.idle));
-      expect(controller.hasError, isFalse,
-          reason: 'hasError should be false in idle state');
+      expect(
+        controller.hasError,
+        isFalse,
+        reason: 'hasError should be false in idle state',
+      );
 
       // hasError debe ser true SOLO cuando currentState == TtsState.error
       // En cualquier otro estado, debe ser false
       if (controller.currentState != TtsState.error) {
-        expect(controller.hasError, isFalse,
-            reason: 'hasError should be false when not in error state');
+        expect(
+          controller.hasError,
+          isFalse,
+          reason: 'hasError should be false when not in error state',
+        );
       }
     });
 
@@ -177,43 +218,53 @@ void main() {
       }
     });
 
-    test('should have isDevocionalPlaying return false for any ID initially',
-        () {
-      // Sin audio cargado, ningún devocional debe estar reproduciéndose
-      expect(controller.isDevocionalPlaying('any_id'), isFalse,
-          reason: 'No devotional should be playing initially');
+    test(
+      'should have isDevocionalPlaying return false for any ID initially',
+      () {
+        // Sin audio cargado, ningún devocional debe estar reproduciéndose
+        expect(
+          controller.isDevocionalPlaying('any_id'),
+          isFalse,
+          reason: 'No devotional should be playing initially',
+        );
 
-      expect(controller.isDevocionalPlaying('test_123'), isFalse,
-          reason: 'Specific ID check should return false initially');
-    });
+        expect(
+          controller.isDevocionalPlaying('test_123'),
+          isFalse,
+          reason: 'Specific ID check should return false initially',
+        );
+      },
+    );
 
     // ========== TESTS DE OPERACIONES (Sin verificar implementación interna) ==========
 
-    test('should accept playDevotional call without throwing immediately',
-        () async {
-      final devocional = Devocional(
-        id: 'test_1',
-        date: DateTime.now(),
-        versiculo: 'Test verse',
-        reflexion: 'Test reflection',
-        paraMeditar: [],
-        oracion: 'Test prayer',
-      );
+    test(
+      'should accept playDevotional call without throwing immediately',
+      () async {
+        final devocional = Devocional(
+          id: 'test_1',
+          date: DateTime.now(),
+          versiculo: 'Test verse',
+          reflexion: 'Test reflection',
+          paraMeditar: [],
+          oracion: 'Test prayer',
+        );
 
-      // The method should exist and accept the call without throwing synchronously
-      // In test environment, TTS service may be disposed, so async errors are expected
-      // We test peripheral behavior: method exists and is callable
-      final future = controller.playDevotional(devocional);
-      expect(future, isA<Future<void>>());
+        // The method should exist and accept the call without throwing synchronously
+        // In test environment, TTS service may be disposed, so async errors are expected
+        // We test peripheral behavior: method exists and is callable
+        final future = controller.playDevotional(devocional);
+        expect(future, isA<Future<void>>());
 
-      // Wait for async operations to complete or fail (peripheral behavior)
-      try {
-        await future;
-      } catch (e) {
-        // TTS service disposed is expected in test environment
-        expect(e.toString(), contains('TTS service disposed'));
-      }
-    });
+        // Wait for async operations to complete or fail (peripheral behavior)
+        try {
+          await future;
+        } catch (e) {
+          // TTS service disposed is expected in test environment
+          expect(e.toString(), contains('TTS service disposed'));
+        }
+      },
+    );
 
     test('should accept pause/resume/stop calls in any state', () {
       // Los métodos deben existir y no lanzar errores de compilación
@@ -227,13 +278,19 @@ void main() {
     // ========== TESTS DE CICLO DE VIDA ==========
 
     test('should transition to unmounted state after dispose', () {
-      expect(controller.mounted, isTrue,
-          reason: 'Should be mounted before dispose');
+      expect(
+        controller.mounted,
+        isTrue,
+        reason: 'Should be mounted before dispose',
+      );
 
       controller.dispose();
 
-      expect(controller.mounted, isFalse,
-          reason: 'Should be unmounted after dispose');
+      expect(
+        controller.mounted,
+        isFalse,
+        reason: 'Should be unmounted after dispose',
+      );
 
       // Las propiedades deben seguir accesibles (no lanzar)
       expect(() => controller.currentState, returnsNormally);

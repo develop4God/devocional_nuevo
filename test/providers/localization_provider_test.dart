@@ -62,8 +62,9 @@ void main() {
       mockVoiceService = MockVoiceSettingsService();
       // Replace the real VoiceSettingsService with our mock
       ServiceLocator().unregister<VoiceSettingsService>();
-      ServiceLocator()
-          .registerSingleton<VoiceSettingsService>(mockVoiceService);
+      ServiceLocator().registerSingleton<VoiceSettingsService>(
+        mockVoiceService,
+      );
 
       // Create provider instance (uses DI internally)
       provider = LocalizationProvider();
@@ -112,67 +113,74 @@ void main() {
       );
     });
 
-    test('initialize() calls VoiceSettingsService.proactiveAssignVoiceOnInit()',
-        () async {
-      await provider.initialize();
+    test(
+      'initialize() calls VoiceSettingsService.proactiveAssignVoiceOnInit()',
+      () async {
+        await provider.initialize();
 
-      // Verify that proactiveAssignVoiceOnInit was called
-      expect(mockVoiceService.proactiveAssignCalled, isTrue);
-      expect(mockVoiceService.lastLanguageCode, isNotNull);
-    });
-
-    test('initialize() loads persisted locale from SharedPreferences',
-        () async {
-      // Reset and set up with persisted English locale
-      ServiceLocator().reset();
-      SharedPreferences.setMockInitialValues({'locale': 'en'});
-      setupServiceLocator();
-      mockVoiceService = MockVoiceSettingsService();
-      ServiceLocator().unregister<VoiceSettingsService>();
-      ServiceLocator()
-          .registerSingleton<VoiceSettingsService>(mockVoiceService);
-
-      provider = LocalizationProvider();
-      await provider.initialize();
-
-      // Should load persisted English locale
-      expect(provider.currentLocale.languageCode, equals('en'));
-    });
+        // Verify that proactiveAssignVoiceOnInit was called
+        expect(mockVoiceService.proactiveAssignCalled, isTrue);
+        expect(mockVoiceService.lastLanguageCode, isNotNull);
+      },
+    );
 
     test(
-        'changeLanguage() calls LocalizationService.changeLocale() and notifies listeners',
-        () async {
-      await provider.initialize();
-      mockVoiceService.reset();
+      'initialize() loads persisted locale from SharedPreferences',
+      () async {
+        // Reset and set up with persisted English locale
+        ServiceLocator().reset();
+        SharedPreferences.setMockInitialValues({'locale': 'en'});
+        setupServiceLocator();
+        mockVoiceService = MockVoiceSettingsService();
+        ServiceLocator().unregister<VoiceSettingsService>();
+        ServiceLocator().registerSingleton<VoiceSettingsService>(
+          mockVoiceService,
+        );
 
-      int notificationCount = 0;
-      provider.addListener(() {
-        notificationCount++;
-      });
+        provider = LocalizationProvider();
+        await provider.initialize();
 
-      // Change language to Portuguese
-      await provider.changeLanguage('pt');
-
-      // Verify that the provider notified listeners
-      expect(notificationCount, greaterThanOrEqualTo(1));
-
-      // Verify that currentLocale reflects the change
-      expect(provider.currentLocale.languageCode, equals('pt'));
-    });
+        // Should load persisted English locale
+        expect(provider.currentLocale.languageCode, equals('en'));
+      },
+    );
 
     test(
-        'changeLanguage() calls VoiceSettingsService.proactiveAssignVoiceOnInit()',
-        () async {
-      await provider.initialize();
-      mockVoiceService.reset();
+      'changeLanguage() calls LocalizationService.changeLocale() and notifies listeners',
+      () async {
+        await provider.initialize();
+        mockVoiceService.reset();
 
-      // Change language to Portuguese
-      await provider.changeLanguage('pt');
+        int notificationCount = 0;
+        provider.addListener(() {
+          notificationCount++;
+        });
 
-      // Verify that proactiveAssignVoiceOnInit was called with the new language
-      expect(mockVoiceService.proactiveAssignCalled, isTrue);
-      expect(mockVoiceService.lastLanguageCode, equals('pt'));
-    });
+        // Change language to Portuguese
+        await provider.changeLanguage('pt');
+
+        // Verify that the provider notified listeners
+        expect(notificationCount, greaterThanOrEqualTo(1));
+
+        // Verify that currentLocale reflects the change
+        expect(provider.currentLocale.languageCode, equals('pt'));
+      },
+    );
+
+    test(
+      'changeLanguage() calls VoiceSettingsService.proactiveAssignVoiceOnInit()',
+      () async {
+        await provider.initialize();
+        mockVoiceService.reset();
+
+        // Change language to Portuguese
+        await provider.changeLanguage('pt');
+
+        // Verify that proactiveAssignVoiceOnInit was called with the new language
+        expect(mockVoiceService.proactiveAssignCalled, isTrue);
+        expect(mockVoiceService.lastLanguageCode, equals('pt'));
+      },
+    );
 
     test('changeLanguage() persists locale in SharedPreferences', () async {
       await provider.initialize();
@@ -200,33 +208,36 @@ void main() {
       await provider.initialize();
 
       // Test translation with parameters
-      final translation = provider
-          .translate('navigation.switch_to_language', {'language': 'Test'});
+      final translation = provider.translate('navigation.switch_to_language', {
+        'language': 'Test',
+      });
 
       expect(translation, isNotNull);
       expect(translation.isNotEmpty, isTrue);
     });
 
-    test('getTtsLocale() returns correct TTS locale for current language',
-        () async {
-      await provider.initialize();
+    test(
+      'getTtsLocale() returns correct TTS locale for current language',
+      () async {
+        await provider.initialize();
 
-      // Test each language's TTS locale
-      await provider.changeLanguage('es');
-      expect(provider.getTtsLocale(), equals('es-ES'));
+        // Test each language's TTS locale
+        await provider.changeLanguage('es');
+        expect(provider.getTtsLocale(), equals('es-ES'));
 
-      await provider.changeLanguage('en');
-      expect(provider.getTtsLocale(), equals('en-US'));
+        await provider.changeLanguage('en');
+        expect(provider.getTtsLocale(), equals('en-US'));
 
-      await provider.changeLanguage('pt');
-      expect(provider.getTtsLocale(), equals('pt-BR'));
+        await provider.changeLanguage('pt');
+        expect(provider.getTtsLocale(), equals('pt-BR'));
 
-      await provider.changeLanguage('fr');
-      expect(provider.getTtsLocale(), equals('fr-FR'));
+        await provider.changeLanguage('fr');
+        expect(provider.getTtsLocale(), equals('fr-FR'));
 
-      await provider.changeLanguage('ja');
-      expect(provider.getTtsLocale(), equals('ja-JP'));
-    });
+        await provider.changeLanguage('ja');
+        expect(provider.getTtsLocale(), equals('ja-JP'));
+      },
+    );
 
     test('getLanguageName() returns correct native language name', () async {
       await provider.initialize();
@@ -238,43 +249,48 @@ void main() {
       expect(provider.getLanguageName('ja'), equals('日本語'));
     });
 
-    test('getAvailableLanguages() returns map of all supported languages',
-        () async {
-      await provider.initialize();
+    test(
+      'getAvailableLanguages() returns map of all supported languages',
+      () async {
+        await provider.initialize();
 
-      final languages = provider.getAvailableLanguages();
+        final languages = provider.getAvailableLanguages();
 
-      expect(languages.length, equals(6));
-      expect(languages['es'], equals('Español'));
-      expect(languages['en'], equals('English'));
-      expect(languages['pt'], equals('Português'));
-      expect(languages['fr'], equals('Français'));
-      expect(languages['ja'], equals('日本語'));
-      expect(languages['zh'], equals('中文'));
-    });
+        expect(languages.length, equals(6));
+        expect(languages['es'], equals('Español'));
+        expect(languages['en'], equals('English'));
+        expect(languages['pt'], equals('Português'));
+        expect(languages['fr'], equals('Français'));
+        expect(languages['ja'], equals('日本語'));
+        expect(languages['zh'], equals('中文'));
+      },
+    );
 
-    test('provider falls back to default locale for unsupported locale',
-        () async {
-      // Reset and set up with unsupported locale
-      ServiceLocator().reset();
-      SharedPreferences.setMockInitialValues({'locale': 'xx'});
-      setupServiceLocator();
-      mockVoiceService = MockVoiceSettingsService();
-      ServiceLocator().unregister<VoiceSettingsService>();
-      ServiceLocator()
-          .registerSingleton<VoiceSettingsService>(mockVoiceService);
+    test(
+      'provider falls back to default locale for unsupported locale',
+      () async {
+        // Reset and set up with unsupported locale
+        ServiceLocator().reset();
+        SharedPreferences.setMockInitialValues({'locale': 'xx'});
+        setupServiceLocator();
+        mockVoiceService = MockVoiceSettingsService();
+        ServiceLocator().unregister<VoiceSettingsService>();
+        ServiceLocator().registerSingleton<VoiceSettingsService>(
+          mockVoiceService,
+        );
 
-      provider = LocalizationProvider();
-      await provider.initialize();
+        provider = LocalizationProvider();
+        await provider.initialize();
 
-      // Should fall back to default Spanish locale
-      expect(
-        LocalizationService.supportedLocales
-            .map((l) => l.languageCode)
-            .contains(provider.currentLocale.languageCode),
-        isTrue,
-      );
-    });
+        // Should fall back to default Spanish locale
+        expect(
+          LocalizationService.supportedLocales
+              .map((l) => l.languageCode)
+              .contains(provider.currentLocale.languageCode),
+          isTrue,
+        );
+      },
+    );
 
     test('multiple locale changes work correctly', () async {
       await provider.initialize();
@@ -306,9 +322,11 @@ void main() {
       SharedPreferences.setMockInitialValues({});
       mockVoiceService = MockVoiceSettingsService();
       ServiceLocator().registerLazySingleton<LocalizationService>(
-          () => LocalizationService());
-      ServiceLocator()
-          .registerSingleton<VoiceSettingsService>(mockVoiceService);
+        () => LocalizationService(),
+      );
+      ServiceLocator().registerSingleton<VoiceSettingsService>(
+        mockVoiceService,
+      );
       provider = LocalizationProvider();
     });
 
@@ -316,58 +334,67 @@ void main() {
       ServiceLocator().reset();
     });
 
-    test('User journey: initialize app, change language, verify persistence',
-        () async {
-      // Step 1: User opens app, provider initializes
-      await provider.initialize();
-      final initialLocale = provider.currentLocale.languageCode;
-      expect(LocalizationService.supportedLocales.map((l) => l.languageCode),
-          contains(initialLocale));
+    test(
+      'User journey: initialize app, change language, verify persistence',
+      () async {
+        // Step 1: User opens app, provider initializes
+        await provider.initialize();
+        final initialLocale = provider.currentLocale.languageCode;
+        expect(
+          LocalizationService.supportedLocales.map((l) => l.languageCode),
+          contains(initialLocale),
+        );
 
-      // Step 2: User changes language to French
-      await provider.changeLanguage('fr');
-      expect(provider.currentLocale.languageCode, equals('fr'));
+        // Step 2: User changes language to French
+        await provider.changeLanguage('fr');
+        expect(provider.currentLocale.languageCode, equals('fr'));
 
-      // Step 3: Simulate app restart - create new provider with same persisted data
-      ServiceLocator().reset();
-      // Do NOT reset SharedPreferences - persistence should survive
-      setupServiceLocator();
-      mockVoiceService = MockVoiceSettingsService();
-      ServiceLocator().unregister<VoiceSettingsService>();
-      ServiceLocator()
-          .registerSingleton<VoiceSettingsService>(mockVoiceService);
-      final newProvider = LocalizationProvider();
-      await newProvider.initialize();
+        // Step 3: Simulate app restart - create new provider with same persisted data
+        ServiceLocator().reset();
+        // Do NOT reset SharedPreferences - persistence should survive
+        setupServiceLocator();
+        mockVoiceService = MockVoiceSettingsService();
+        ServiceLocator().unregister<VoiceSettingsService>();
+        ServiceLocator().registerSingleton<VoiceSettingsService>(
+          mockVoiceService,
+        );
+        final newProvider = LocalizationProvider();
+        await newProvider.initialize();
 
-      // Step 4: Verify French is still selected (persistence works)
-      expect(newProvider.currentLocale.languageCode, equals('fr'));
-    });
+        // Step 4: Verify French is still selected (persistence works)
+        expect(newProvider.currentLocale.languageCode, equals('fr'));
+      },
+    );
 
-    test('User can access translations immediately after language change',
-        () async {
-      await provider.initialize();
+    test(
+      'User can access translations immediately after language change',
+      () async {
+        await provider.initialize();
 
-      // Change to English
-      await provider.changeLanguage('en');
+        // Change to English
+        await provider.changeLanguage('en');
 
-      // Translations should be available immediately
-      final ttsLocale = provider.getTtsLocale();
-      expect(ttsLocale, equals('en-US'));
-    });
+        // Translations should be available immediately
+        final ttsLocale = provider.getTtsLocale();
+        expect(ttsLocale, equals('en-US'));
+      },
+    );
 
-    test('VoiceSettingsService is called on initialization and language change',
-        () async {
-      // Initialize
-      await provider.initialize();
-      expect(mockVoiceService.proactiveAssignCalled, isTrue);
+    test(
+      'VoiceSettingsService is called on initialization and language change',
+      () async {
+        // Initialize
+        await provider.initialize();
+        expect(mockVoiceService.proactiveAssignCalled, isTrue);
 
-      // Reset tracking
-      mockVoiceService.reset();
+        // Reset tracking
+        mockVoiceService.reset();
 
-      // Change language
-      await provider.changeLanguage('pt');
-      expect(mockVoiceService.proactiveAssignCalled, isTrue);
-      expect(mockVoiceService.lastLanguageCode, equals('pt'));
-    });
+        // Change language
+        await provider.changeLanguage('pt');
+        expect(mockVoiceService.proactiveAssignCalled, isTrue);
+        expect(mockVoiceService.lastLanguageCode, equals('pt'));
+      },
+    );
   });
 }

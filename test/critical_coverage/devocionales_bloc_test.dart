@@ -22,10 +22,7 @@ void main() {
       'emits [DevocionalesLoading, DevocionalesLoaded] when LoadDevocionales is added',
       build: () => DevocionalesBloc(),
       act: (bloc) => bloc.add(LoadDevocionales()),
-      expect: () => [
-        isA<DevocionalesLoading>(),
-        isA<DevocionalesLoaded>(),
-      ],
+      expect: () => [isA<DevocionalesLoading>(), isA<DevocionalesLoaded>()],
     );
 
     blocTest<DevocionalesBloc, DevocionalesState>(
@@ -53,28 +50,30 @@ void main() {
     blocTest<DevocionalesBloc, DevocionalesState>(
       'emits DevocionalesLoaded with new version when ChangeVersion is added',
       build: () => DevocionalesBloc(),
-      seed: () => DevocionalesLoaded(
-        devocionales: [],
-        selectedVersion: 'RVR1960',
-      ),
+      seed: () =>
+          DevocionalesLoaded(devocionales: [], selectedVersion: 'RVR1960'),
       act: (bloc) => bloc.add(ChangeVersion('NVI')),
       expect: () => [
-        isA<DevocionalesLoaded>()
-            .having((s) => s.selectedVersion, 'selectedVersion', 'NVI'),
+        isA<DevocionalesLoaded>().having(
+          (s) => s.selectedVersion,
+          'selectedVersion',
+          'NVI',
+        ),
       ],
     );
 
     blocTest<DevocionalesBloc, DevocionalesState>(
       'changing to same version re-emits state',
       build: () => DevocionalesBloc(),
-      seed: () => DevocionalesLoaded(
-        devocionales: [],
-        selectedVersion: 'RVR1960',
-      ),
+      seed: () =>
+          DevocionalesLoaded(devocionales: [], selectedVersion: 'RVR1960'),
       act: (bloc) => bloc.add(ChangeVersion('RVR1960')),
       expect: () => [
-        isA<DevocionalesLoaded>()
-            .having((s) => s.selectedVersion, 'selectedVersion', 'RVR1960'),
+        isA<DevocionalesLoaded>().having(
+          (s) => s.selectedVersion,
+          'selectedVersion',
+          'RVR1960',
+        ),
       ],
     );
   });
@@ -83,14 +82,10 @@ void main() {
     blocTest<DevocionalesBloc, DevocionalesState>(
       'emits DevocionalesLoaded when ToggleFavorite is added in loaded state',
       build: () => DevocionalesBloc(),
-      seed: () => DevocionalesLoaded(
-        devocionales: [],
-        selectedVersion: 'RVR1960',
-      ),
+      seed: () =>
+          DevocionalesLoaded(devocionales: [], selectedVersion: 'RVR1960'),
       act: (bloc) => bloc.add(ToggleFavorite('devocional-1')),
-      expect: () => [
-        isA<DevocionalesLoaded>(),
-      ],
+      expect: () => [isA<DevocionalesLoaded>()],
     );
 
     blocTest<DevocionalesBloc, DevocionalesState>(
@@ -114,10 +109,16 @@ void main() {
       },
       expect: () => [
         isA<DevocionalesLoading>(),
-        isA<DevocionalesLoaded>()
-            .having((s) => s.selectedVersion, 'selectedVersion', 'RVR1960'),
-        isA<DevocionalesLoaded>()
-            .having((s) => s.selectedVersion, 'selectedVersion', 'NVI'),
+        isA<DevocionalesLoaded>().having(
+          (s) => s.selectedVersion,
+          'selectedVersion',
+          'RVR1960',
+        ),
+        isA<DevocionalesLoaded>().having(
+          (s) => s.selectedVersion,
+          'selectedVersion',
+          'NVI',
+        ),
         isA<DevocionalesLoaded>(),
       ],
     );
@@ -138,19 +139,21 @@ void main() {
       expect(state1.devocionales.length, state2.devocionales.length);
     });
 
-    test('DevocionalesLoaded instances with different versions are different',
-        () {
-      final state1 = DevocionalesLoaded(
-        devocionales: [],
-        selectedVersion: 'RVR1960',
-      );
-      final state2 = DevocionalesLoaded(
-        devocionales: [],
-        selectedVersion: 'NVI',
-      );
+    test(
+      'DevocionalesLoaded instances with different versions are different',
+      () {
+        final state1 = DevocionalesLoaded(
+          devocionales: [],
+          selectedVersion: 'RVR1960',
+        );
+        final state2 = DevocionalesLoaded(
+          devocionales: [],
+          selectedVersion: 'NVI',
+        );
 
-      expect(state1.selectedVersion, isNot(state2.selectedVersion));
-    });
+        expect(state1.selectedVersion, isNot(state2.selectedVersion));
+      },
+    );
 
     test('DevocionalesError contains error message', () {
       final state = DevocionalesError('Test error message');
@@ -185,7 +188,7 @@ void main() {
         date: DateTime(2024, 1, 1),
         version: 'RVR1960',
         paraMeditar: [
-          ParaMeditar(cita: 'John 3:16', texto: 'For God so loved')
+          ParaMeditar(cita: 'John 3:16', texto: 'For God so loved'),
         ],
       );
 
@@ -227,7 +230,7 @@ void main() {
         date: DateTime(2024, 1, 1),
         version: 'RVR1960',
         paraMeditar: [
-          ParaMeditar(cita: 'John 3:16', texto: 'For God so loved')
+          ParaMeditar(cita: 'John 3:16', texto: 'For God so loved'),
         ],
       );
 
@@ -245,10 +248,7 @@ void main() {
         'date': '2024-01-01',
         'version': 'RVR1960',
         'para_meditar': [
-          {
-            'cita': 'John 3:16',
-            'texto': 'For God so loved',
-          },
+          {'cita': 'John 3:16', 'texto': 'For God so loved'},
         ],
       };
 
@@ -270,29 +270,32 @@ void main() {
     test('filtering by version returns matching devocionales', () {
       final allDevocionales = [
         Devocional(
-            id: '1',
-            versiculo: 'V1',
-            reflexion: 'R1',
-            oracion: 'O1',
-            date: DateTime(2024, 1, 1),
-            version: 'RVR1960',
-            paraMeditar: []),
+          id: '1',
+          versiculo: 'V1',
+          reflexion: 'R1',
+          oracion: 'O1',
+          date: DateTime(2024, 1, 1),
+          version: 'RVR1960',
+          paraMeditar: [],
+        ),
         Devocional(
-            id: '2',
-            versiculo: 'V2',
-            reflexion: 'R2',
-            oracion: 'O2',
-            date: DateTime(2024, 1, 2),
-            version: 'NVI',
-            paraMeditar: []),
+          id: '2',
+          versiculo: 'V2',
+          reflexion: 'R2',
+          oracion: 'O2',
+          date: DateTime(2024, 1, 2),
+          version: 'NVI',
+          paraMeditar: [],
+        ),
         Devocional(
-            id: '3',
-            versiculo: 'V3',
-            reflexion: 'R3',
-            oracion: 'O3',
-            date: DateTime(2024, 1, 3),
-            version: 'RVR1960',
-            paraMeditar: []),
+          id: '3',
+          versiculo: 'V3',
+          reflexion: 'R3',
+          oracion: 'O3',
+          date: DateTime(2024, 1, 3),
+          version: 'RVR1960',
+          paraMeditar: [],
+        ),
       ];
 
       final filtered =
@@ -304,13 +307,14 @@ void main() {
     test('filtering by non-existent version returns empty list', () {
       final allDevocionales = [
         Devocional(
-            id: '1',
-            versiculo: 'V1',
-            reflexion: 'R1',
-            oracion: 'O1',
-            date: DateTime(2024, 1, 1),
-            version: 'RVR1960',
-            paraMeditar: []),
+          id: '1',
+          versiculo: 'V1',
+          reflexion: 'R1',
+          oracion: 'O1',
+          date: DateTime(2024, 1, 1),
+          version: 'RVR1960',
+          paraMeditar: [],
+        ),
       ];
 
       final filtered =

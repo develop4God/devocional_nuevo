@@ -1,9 +1,9 @@
+import 'package:devocional_nuevo/services/remote_config_service.dart';
+import 'package:devocional_nuevo/services/service_locator.dart';
+import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
-import 'package:firebase_remote_config/firebase_remote_config.dart';
-import 'package:devocional_nuevo/services/remote_config_service.dart';
-import 'package:devocional_nuevo/services/service_locator.dart';
 
 // Generate mocks for FirebaseRemoteConfig
 @GenerateMocks([FirebaseRemoteConfig])
@@ -38,11 +38,11 @@ void main() {
       });
 
       test('should use factory constructor pattern for DI', () {
-        // This test verifies the real service follows the DI pattern
-        // Direct instantiation would fail at compile time (constructor is private)
-
-        // Factory method should work
-        final realService = RemoteConfigService.create();
+        // Este test verifica que el servicio real sigue el patrón de DI
+        // En vez de usar la instancia real (que requiere Firebase inicializado), usamos un mock
+        final realService = RemoteConfigService.create(
+          remoteConfig: mockRemoteConfig,
+        );
         expect(realService, isA<RemoteConfigService>());
       });
 
@@ -91,8 +91,9 @@ void main() {
       });
 
       test('should handle getBool errors and return false', () {
-        when(mockRemoteConfig.getBool('feature_legacy'))
-            .thenThrow(Exception('Remote Config error'));
+        when(
+          mockRemoteConfig.getBool('feature_legacy'),
+        ).thenThrow(Exception('Remote Config error'));
 
         // Should not throw, should return false
         expect(service.featureLegacy, false);
@@ -103,8 +104,9 @@ void main() {
       test('should initialize successfully with valid config', () async {
         // Mock the initialization chain
         when(mockRemoteConfig.setDefaults(any)).thenAnswer((_) async => {});
-        when(mockRemoteConfig.setConfigSettings(any))
-            .thenAnswer((_) async => {});
+        when(
+          mockRemoteConfig.setConfigSettings(any),
+        ).thenAnswer((_) async => {});
         when(mockRemoteConfig.fetchAndActivate()).thenAnswer((_) async => true);
         when(mockRemoteConfig.getBool('feature_legacy')).thenReturn(false);
         when(mockRemoteConfig.getBool('feature_bloc')).thenReturn(false);
@@ -123,8 +125,9 @@ void main() {
       test('should not reinitialize if already initialized', () async {
         // First initialization
         when(mockRemoteConfig.setDefaults(any)).thenAnswer((_) async => {});
-        when(mockRemoteConfig.setConfigSettings(any))
-            .thenAnswer((_) async => {});
+        when(
+          mockRemoteConfig.setConfigSettings(any),
+        ).thenAnswer((_) async => {});
         when(mockRemoteConfig.fetchAndActivate()).thenAnswer((_) async => true);
         when(mockRemoteConfig.getBool(any)).thenReturn(false);
 
@@ -138,8 +141,9 @@ void main() {
 
       test('should handle initialization errors gracefully', () async {
         when(mockRemoteConfig.setDefaults(any)).thenAnswer((_) async => {});
-        when(mockRemoteConfig.setConfigSettings(any))
-            .thenThrow(Exception('Config error'));
+        when(
+          mockRemoteConfig.setConfigSettings(any),
+        ).thenThrow(Exception('Config error'));
 
         // Should not throw
         await service.initialize();
@@ -151,8 +155,9 @@ void main() {
       test('should reset initialization status for testing', () async {
         // Initialize first
         when(mockRemoteConfig.setDefaults(any)).thenAnswer((_) async => {});
-        when(mockRemoteConfig.setConfigSettings(any))
-            .thenAnswer((_) async => {});
+        when(
+          mockRemoteConfig.setConfigSettings(any),
+        ).thenAnswer((_) async => {});
         when(mockRemoteConfig.fetchAndActivate()).thenAnswer((_) async => true);
         when(mockRemoteConfig.getBool(any)).thenReturn(false);
 
@@ -180,8 +185,9 @@ void main() {
       });
 
       test('should handle refresh errors gracefully', () async {
-        when(mockRemoteConfig.fetchAndActivate())
-            .thenThrow(Exception('Network error'));
+        when(
+          mockRemoteConfig.fetchAndActivate(),
+        ).thenThrow(Exception('Network error'));
 
         // Should not throw
         await service.refresh();

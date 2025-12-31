@@ -125,8 +125,9 @@ class OnboardingProgress extends Equatable {
     return OnboardingProgress(
       totalSteps: json['totalSteps'] as int,
       completedSteps: json['completedSteps'] as int,
-      stepCompletionStatus:
-          List<bool>.from(json['stepCompletionStatus'] as List),
+      stepCompletionStatus: List<bool>.from(
+        json['stepCompletionStatus'] as List,
+      ),
       progressPercentage: (json['progressPercentage'] as num).toDouble(),
     );
   }
@@ -198,8 +199,9 @@ class OnboardingConfiguration extends Equatable {
       backupEnabled: json['backupEnabled'] as bool?,
       selectedLanguage: json['selectedLanguage'] as String?,
       notificationsEnabled: json['notificationsEnabled'] as bool?,
-      additionalSettings:
-          Map<String, dynamic>.from(json['additionalSettings'] ?? {}),
+      additionalSettings: Map<String, dynamic>.from(
+        json['additionalSettings'] ?? {},
+      ),
       lastUpdated: DateTime.parse(json['lastUpdated'] as String),
     );
   }

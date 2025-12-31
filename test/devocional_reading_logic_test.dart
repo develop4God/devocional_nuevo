@@ -178,8 +178,10 @@ void main() {
 
       // Check initial streak - reading a devotional creates a streak of 1
       var stats = await statsService.getStats();
-      expect(stats.currentStreak,
-          1); // Reading first devotional creates streak of 1
+      expect(
+        stats.currentStreak,
+        1,
+      ); // Reading first devotional creates streak of 1
       expect(stats.longestStreak, 1);
 
       // Record another devotional (same day)
@@ -191,8 +193,10 @@ void main() {
 
       stats = await statsService.getStats();
       expect(stats.totalDevocionalesRead, 2);
-      expect(stats.currentStreak,
-          1); // Still 1, as both readings are on the same day
+      expect(
+        stats.currentStreak,
+        1,
+      ); // Still 1, as both readings are on the same day
     });
 
     test('Service handles malformed data gracefully', () async {

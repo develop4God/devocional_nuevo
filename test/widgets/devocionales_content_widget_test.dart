@@ -62,8 +62,11 @@ void main() {
       streakTapped = false;
     });
 
-    Widget buildWidget(
-        {int streak = 5, String? formattedDate, Future<int>? streakFuture}) {
+    Widget buildWidget({
+      int streak = 5,
+      String? formattedDate,
+      Future<int>? streakFuture,
+    }) {
       return MaterialApp(
         home: ChangeNotifierProvider<DevocionalProvider>.value(
           value: fakeProvider,
@@ -98,8 +101,9 @@ void main() {
       expect(verseCopied, isTrue);
     });
 
-    testWidgets('calls onStreakBadgeTap when streak badge tapped',
-        (tester) async {
+    testWidgets('calls onStreakBadgeTap when streak badge tapped', (
+      tester,
+    ) async {
       await tester.pumpWidget(buildWidget());
       await tester.pump();
       final badges = find.byType(InkWell);
@@ -117,8 +121,9 @@ void main() {
       expect(find.byType(InkWell), findsNothing);
     });
 
-    testWidgets('handles empty meditations and tags gracefully',
-        (tester) async {
+    testWidgets('handles empty meditations and tags gracefully', (
+      tester,
+    ) async {
       devocional = Devocional(
         id: 'test-id-2',
         versiculo: 'Juan 3:16',

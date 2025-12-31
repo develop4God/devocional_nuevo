@@ -15,10 +15,7 @@ class PrayerLoaded extends PrayerState {
   final List<Prayer> prayers;
   final String? errorMessage;
 
-  PrayerLoaded({
-    required this.prayers,
-    this.errorMessage,
-  });
+  PrayerLoaded({required this.prayers, this.errorMessage});
 
   /// Get only active prayers
   List<Prayer> get activePrayers => prayers.where((p) => p.isActive).toList();

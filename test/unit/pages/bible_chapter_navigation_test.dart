@@ -24,7 +24,7 @@ void main() {
         25,
         110,
         60,
-        135 // 20 selections total
+        135, // 20 selections total
       ];
 
       // Each selection should work independently
@@ -123,8 +123,9 @@ void main() {
       final targetVerse = 50;
 
       // Find verse index
-      final verseIndex =
-          verses.indexWhere((v) => (v['verse'] as int) == targetVerse);
+      final verseIndex = verses.indexWhere(
+        (v) => (v['verse'] as int) == targetVerse,
+      );
 
       expect(verseIndex, equals(49)); // Index is 0-based
 

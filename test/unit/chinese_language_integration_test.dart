@@ -45,21 +45,27 @@ void main() {
     });
 
     test('Chinese reference formatting includes chapter and verse words', () {
-      final result =
-          BibleTextFormatter.formatBibleReferences('约翰福音 3:16', 'zh');
+      final result = BibleTextFormatter.formatBibleReferences(
+        '约翰福音 3:16',
+        'zh',
+      );
       expect(result, contains('章'));
       expect(result, contains('节'));
     });
 
     test('Chinese verse range uses correct connector', () {
-      final result =
-          BibleTextFormatter.formatBibleReferences('诗篇 23:1-6', 'zh');
+      final result = BibleTextFormatter.formatBibleReferences(
+        '诗篇 23:1-6',
+        'zh',
+      );
       expect(result, contains('至'));
     });
 
     test('Chinese TTS normalization works correctly', () {
-      final result =
-          BibleTextFormatter.normalizeTtsText('约翰福音 3:16 和合本1919', 'zh');
+      final result = BibleTextFormatter.normalizeTtsText(
+        '约翰福音 3:16 和合本1919',
+        'zh',
+      );
       expect(result, contains('约翰福音'));
       expect(result, contains('和合本一九一九'));
     });
@@ -100,8 +106,10 @@ void main() {
       for (final version in versions) {
         expect(version, isNotEmpty);
         // Chinese versions should contain Chinese characters
-        expect(version,
-            matches(RegExp(r'[\u4e00-\u9fff]'))); // Unicode range for Chinese
+        expect(
+          version,
+          matches(RegExp(r'[\u4e00-\u9fff]')),
+        ); // Unicode range for Chinese
       }
     });
 
@@ -122,17 +130,13 @@ void main() {
     });
 
     test('Chinese Bible reference formatting preserves book names', () {
-      final testCases = [
-        '约翰福音',
-        '创世记',
-        '诗篇',
-        '启示录',
-        '马太福音',
-      ];
+      final testCases = ['约翰福音', '创世记', '诗篇', '启示录', '马太福音'];
 
       for (final bookName in testCases) {
-        final result =
-            BibleTextFormatter.formatBibleReferences('$bookName 1:1', 'zh');
+        final result = BibleTextFormatter.formatBibleReferences(
+          '$bookName 1:1',
+          'zh',
+        );
         expect(result, contains(bookName));
       }
     });
@@ -176,8 +180,10 @@ void main() {
     });
 
     test('Handles Chinese with numbers in text', () {
-      final result =
-          BibleTextFormatter.formatBibleReferences('约翰福音 3:16', 'zh');
+      final result = BibleTextFormatter.formatBibleReferences(
+        '约翰福音 3:16',
+        'zh',
+      );
       expect(result, contains('3'));
       expect(result, contains('16'));
     });

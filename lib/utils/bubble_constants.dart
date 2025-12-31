@@ -14,8 +14,9 @@ class BubbleConstants {
 
   // Colores
   //static const Color newFeatureColor = Color(0xFF4CAF50); verde para nuevo
-  static const Color newFeatureColor =
-      Color(0xFF2962FF); //azul vibrante para nuevo
+  static const Color newFeatureColor = Color(
+    0xFF2962FF,
+  ); //azul vibrante para nuevo
   static const Color updatedFeatureColor = Color(0xFF2196F3);
   static const Color notificationColor = Color(0xFFFF5722);
 
@@ -142,21 +143,13 @@ class _BubbleOverlayState extends State<_BubbleOverlay>
       vsync: this,
     );
 
-    _scaleAnimation = Tween<double>(
-      begin: 0.8,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeOutCubic,
-    ));
+    _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOutCubic),
+    );
 
-    _opacityAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeOutCubic,
-    ));
+    _opacityAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOutCubic),
+    );
   }
 
   Future<void> _checkIfShouldShow() async {
@@ -195,7 +188,8 @@ class _BubbleOverlayState extends State<_BubbleOverlay>
                       decoration: BoxDecoration(
                         color: widget.bubbleColor,
                         borderRadius: BorderRadius.circular(
-                            BubbleConstants.widgetBubbleRadius),
+                          BubbleConstants.widgetBubbleRadius,
+                        ),
                         boxShadow: BubbleConstants.bubbleShadow,
                       ),
                       child: Text(
@@ -271,21 +265,13 @@ class _IconBadgeOverlayState extends State<_IconBadgeOverlay>
       vsync: this,
     );
 
-    _scaleAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.elasticOut,
-    ));
+    _scaleAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.elasticOut),
+    );
 
-    _opacityAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeOutCubic,
-    ));
+    _opacityAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOutCubic),
+    );
   }
 
   Future<void> _checkIfShouldShow() async {
@@ -413,8 +399,11 @@ class BubbleUtils {
 
   /// Obtener el ID que usaría un ícono específico
   /// Uso: BubbleUtils.getIconBubbleId(Icons.emoji_events_outlined, 'new');
-  static String getIconBubbleId(IconData icon, String type,
-      {String? semanticLabel}) {
+  static String getIconBubbleId(
+    IconData icon,
+    String type, {
+    String? semanticLabel,
+  }) {
     return 'icon_${type}_${icon.toString()}_${semanticLabel ?? 'unknown'}';
   }
 }

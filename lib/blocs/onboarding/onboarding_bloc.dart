@@ -67,28 +67,34 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
 
     if (state is! OnboardingStepActive) {
       debugPrint(
-          '⚠️ [ONBOARDING_BLOC] Cannot skip backup - not in active step state');
+        '⚠️ [ONBOARDING_BLOC] Cannot skip backup - not in active step state',
+      );
       return;
     }
 
     try {
       final currentState = state as OnboardingStepActive;
 
-      final updatedSelections =
-          Map<String, dynamic>.from(currentState.userSelections);
+      final updatedSelections = Map<String, dynamic>.from(
+        currentState.userSelections,
+      );
       updatedSelections['backupSkipped'] = true;
       updatedSelections['backupEnabled'] = false;
 
       await _saveConfiguration(updatedSelections);
       debugPrint(
-          '🟢 [ONBOARDING_BLOC] userSelections después de SkipBackupForNow: $updatedSelections');
-      emit(currentState.copyWith(
-        userSelections: updatedSelections,
-        stepConfiguration: {'backupSkipped': true},
-      ));
+        '🟢 [ONBOARDING_BLOC] userSelections después de SkipBackupForNow: $updatedSelections',
+      );
+      emit(
+        currentState.copyWith(
+          userSelections: updatedSelections,
+          stepConfiguration: {'backupSkipped': true},
+        ),
+      );
 
       debugPrint(
-          '✅ [ONBOARDING_BLOC] Backup marcado como "configurar más tarde"');
+        '✅ [ONBOARDING_BLOC] Backup marcado como "configurar más tarde"',
+      );
     } catch (e, stack) {
       debugPrint('❌ [ONBOARDING_BLOC] Error skipping backup: $e');
       debugPrint('❌ [ONBOARDING_BLOC] Stacktrace: $stack');
@@ -113,11 +119,14 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
 
       if (isComplete) {
         debugPrint(
-            '✅ [ONBOARDING_BLOC] Onboarding ya completado, emitiendo OnboardingCompleted');
-        emit(OnboardingCompleted(
-          appliedConfigurations: await _loadSavedConfiguration(),
-          completionTimestamp: DateTime.now(),
-        ));
+          '✅ [ONBOARDING_BLOC] Onboarding ya completado, emitiendo OnboardingCompleted',
+        );
+        emit(
+          OnboardingCompleted(
+            appliedConfigurations: await _loadSavedConfiguration(),
+            completionTimestamp: DateTime.now(),
+          ),
+        );
         return;
       }
       // 🔧 NUEVO: Marcar onboarding como en progreso
@@ -129,7 +138,8 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       final savedProgress = await _loadSavedProgress();
 
       debugPrint(
-          '📊 [ONBOARDING_BLOC] Configuración guardada: $savedConfiguration');
+        '📊 [ONBOARDING_BLOC] Configuración guardada: $savedConfiguration',
+      );
       debugPrint('📊 [ONBOARDING_BLOC] Progreso guardado: $savedProgress');
 
       // Determine starting step
@@ -145,30 +155,37 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       final progress = savedProgress ??
           OnboardingProgress.fromStepCompletion(
             List.generate(
-                OnboardingSteps.defaultSteps.length, (index) => false),
+              OnboardingSteps.defaultSteps.length,
+              (index) => false,
+            ),
           );
 
       debugPrint('📊 [ONBOARDING_BLOC] Iniciando en paso: $startingStep');
 
-      emit(OnboardingStepActive(
-        currentStepIndex: startingStep,
-        currentStep: currentStep,
-        userSelections: savedConfiguration,
-        stepConfiguration: {},
-        canProgress: true,
-        canGoBack: startingStep > 0,
-        progress: progress,
-      ));
+      emit(
+        OnboardingStepActive(
+          currentStepIndex: startingStep,
+          currentStep: currentStep,
+          userSelections: savedConfiguration,
+          stepConfiguration: {},
+          canProgress: true,
+          canGoBack: startingStep > 0,
+          progress: progress,
+        ),
+      );
 
       debugPrint(
-          '✅ [ONBOARDING_BLOC] OnboardingStepActive emitido exitosamente');
+        '✅ [ONBOARDING_BLOC] OnboardingStepActive emitido exitosamente',
+      );
     } catch (e) {
       debugPrint('❌ [ONBOARDING_BLOC] Error initializing onboarding: $e');
-      emit(OnboardingError(
-        message: 'Error initializing onboarding: ${e.toString()}',
-        category: OnboardingErrorCategory.unknown,
-        errorContext: {'error': e.toString()},
-      ));
+      emit(
+        OnboardingError(
+          message: 'Error initializing onboarding: ${e.toString()}',
+          category: OnboardingErrorCategory.unknown,
+          errorContext: {'error': e.toString()},
+        ),
+      );
     }
 
     debugPrint('🏁 [ONBOARDING_BLOC] === FIN InitializeOnboarding ===');
@@ -180,18 +197,21 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     Emitter<OnboardingState> emit,
   ) async {
     debugPrint(
-        '🔄 [ONBOARDING_BLOC] === INICIANDO ProgressToStep: ${event.stepIndex} ===');
+      '🔄 [ONBOARDING_BLOC] === INICIANDO ProgressToStep: ${event.stepIndex} ===',
+    );
 
     // Race condition protection
     if (_isProcessingStep) {
       debugPrint(
-          '⚠️ [ONBOARDING_BLOC] Step progression already in progress, ignoring duplicate event');
+        '⚠️ [ONBOARDING_BLOC] Step progression already in progress, ignoring duplicate event',
+      );
       return;
     }
 
     if (state is! OnboardingStepActive) {
       debugPrint(
-          '⚠️ [ONBOARDING_BLOC] Cannot progress - not in active step state');
+        '⚠️ [ONBOARDING_BLOC] Cannot progress - not in active step state',
+      );
       return;
     }
 
@@ -203,43 +223,52 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       if (event.stepIndex < 0 ||
           event.stepIndex >= OnboardingSteps.defaultSteps.length) {
         debugPrint(
-            '❌ [ONBOARDING_BLOC] Invalid step index: ${event.stepIndex}');
+          '❌ [ONBOARDING_BLOC] Invalid step index: ${event.stepIndex}',
+        );
         return;
       }
 
       // Update progress
-      final updatedCompletionStatus =
-          List<bool>.from(currentState.progress.stepCompletionStatus);
+      final updatedCompletionStatus = List<bool>.from(
+        currentState.progress.stepCompletionStatus,
+      );
       for (int i = 0; i <= event.stepIndex; i++) {
         if (i < updatedCompletionStatus.length) {
           updatedCompletionStatus[i] = true;
         }
       }
 
-      final updatedProgress =
-          OnboardingProgress.fromStepCompletion(updatedCompletionStatus);
+      final updatedProgress = OnboardingProgress.fromStepCompletion(
+        updatedCompletionStatus,
+      );
       await _saveProgress(updatedProgress);
 
       final newStep = OnboardingSteps.defaultSteps[event.stepIndex];
 
-      emit(currentState.copyWith(
-        currentStepIndex: event.stepIndex,
-        currentStep: newStep,
-        canProgress: event.stepIndex < OnboardingSteps.defaultSteps.length - 1,
-        canGoBack: event.stepIndex > 0,
-        progress: updatedProgress,
-        userSelections: currentState.userSelections,
-      ));
+      emit(
+        currentState.copyWith(
+          currentStepIndex: event.stepIndex,
+          currentStep: newStep,
+          canProgress:
+              event.stepIndex < OnboardingSteps.defaultSteps.length - 1,
+          canGoBack: event.stepIndex > 0,
+          progress: updatedProgress,
+          userSelections: currentState.userSelections,
+        ),
+      );
 
       debugPrint(
-          '✅ [ONBOARDING_BLOC] Progreso a paso ${event.stepIndex} exitoso');
+        '✅ [ONBOARDING_BLOC] Progreso a paso ${event.stepIndex} exitoso',
+      );
     } catch (e) {
       debugPrint('❌ [ONBOARDING_BLOC] Error progressing to step: $e');
-      emit(OnboardingError(
-        message: 'Error progressing to step: ${e.toString()}',
-        category: OnboardingErrorCategory.unknown,
-        errorContext: {'stepIndex': event.stepIndex, 'error': e.toString()},
-      ));
+      emit(
+        OnboardingError(
+          message: 'Error progressing to step: ${e.toString()}',
+          category: OnboardingErrorCategory.unknown,
+          errorContext: {'stepIndex': event.stepIndex, 'error': e.toString()},
+        ),
+      );
     } finally {
       _isProcessingStep = false;
     }
@@ -253,68 +282,86 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     Emitter<OnboardingState> emit,
   ) async {
     debugPrint(
-        '🔄 [ONBOARDING_BLOC] === INICIANDO SelectTheme: ${event.themeFamily} ===');
+      '🔄 [ONBOARDING_BLOC] === INICIANDO SelectTheme: ${event.themeFamily} ===',
+    );
 
     if (state is! OnboardingStepActive) {
       debugPrint(
-          '⚠️ [ONBOARDING_BLOC] Cannot select theme - not in active step state');
+        '⚠️ [ONBOARDING_BLOC] Cannot select theme - not in active step state',
+      );
       return;
     }
 
     try {
       // Validate theme family input
       if (!_validateThemeFamily(event.themeFamily)) {
-        emit(OnboardingError(
-          message: 'Invalid theme family: ${event.themeFamily}',
-          category: OnboardingErrorCategory.invalidConfiguration,
-          errorContext: {'themeFamily': event.themeFamily},
-        ));
+        emit(
+          OnboardingError(
+            message: 'Invalid theme family: ${event.themeFamily}',
+            category: OnboardingErrorCategory.invalidConfiguration,
+            errorContext: {'themeFamily': event.themeFamily},
+          ),
+        );
         return;
       }
 
       final currentState = state as OnboardingStepActive;
 
-      emit(OnboardingConfiguring(
-        configurationType: OnboardingConfigurationType.themeSelection,
-        configurationData: const {},
-      ));
+      emit(
+        OnboardingConfiguring(
+          configurationType: OnboardingConfigurationType.themeSelection,
+          configurationData: const {},
+        ),
+      );
 
       // Apply theme immediately for preview
       _themeBloc.add(ChangeThemeFamily(event.themeFamily));
       debugPrint(
-          '🎨 [ONBOARDING_BLOC] Tema aplicado para preview: ${event.themeFamily}');
+        '🎨 [ONBOARDING_BLOC] Tema aplicado para preview: ${event.themeFamily}',
+      );
 
-      final updatedSelections =
-          Map<String, dynamic>.from(currentState.userSelections);
+      final updatedSelections = Map<String, dynamic>.from(
+        currentState.userSelections,
+      );
       updatedSelections['selectedThemeFamily'] = event.themeFamily;
 
       // Validate configuration before saving
       if (!_validateConfiguration(updatedSelections)) {
-        emit(OnboardingError(
-          message: 'Configuration validation failed',
-          category: OnboardingErrorCategory.invalidConfiguration,
-          errorContext: {'configuration': updatedSelections},
-        ));
+        emit(
+          OnboardingError(
+            message: 'Configuration validation failed',
+            category: OnboardingErrorCategory.invalidConfiguration,
+            errorContext: {'configuration': updatedSelections},
+          ),
+        );
         return;
       }
 
       // Save configuration
       await _saveConfiguration(updatedSelections);
 
-      emit(currentState.copyWith(
-        userSelections: updatedSelections,
-        stepConfiguration: {'themeApplied': true},
-      ));
+      emit(
+        currentState.copyWith(
+          userSelections: updatedSelections,
+          stepConfiguration: {'themeApplied': true},
+        ),
+      );
       debugPrint(
-          '🟢 [DEBUG] userSelections después de SelectTheme: $updatedSelections');
+        '🟢 [DEBUG] userSelections después de SelectTheme: $updatedSelections',
+      );
       debugPrint('✅ [ONBOARDING_BLOC] Selección de tema exitosa');
     } catch (e) {
       debugPrint('❌ [ONBOARDING_BLOC] Error selecting theme: $e');
-      emit(OnboardingError(
-        message: 'Error selecting theme: ${e.toString()}',
-        category: OnboardingErrorCategory.invalidConfiguration,
-        errorContext: {'themeFamily': event.themeFamily, 'error': e.toString()},
-      ));
+      emit(
+        OnboardingError(
+          message: 'Error selecting theme: ${e.toString()}',
+          category: OnboardingErrorCategory.invalidConfiguration,
+          errorContext: {
+            'themeFamily': event.themeFamily,
+            'error': e.toString(),
+          },
+        ),
+      );
     }
 
     debugPrint('🏁 [ONBOARDING_BLOC] === FIN SelectTheme ===');
@@ -326,11 +373,13 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     Emitter<OnboardingState> emit,
   ) async {
     debugPrint(
-        '🔄 [ONBOARDING_BLOC] === INICIANDO ConfigureBackupOption: ${event.enableBackup} ===');
+      '🔄 [ONBOARDING_BLOC] === INICIANDO ConfigureBackupOption: ${event.enableBackup} ===',
+    );
 
     if (state is! OnboardingStepActive) {
       debugPrint(
-          '⚠️ [ONBOARDING_BLOC] Cannot configure backup - not in active step state');
+        '⚠️ [ONBOARDING_BLOC] Cannot configure backup - not in active step state',
+      );
       return;
     }
 
@@ -340,15 +389,17 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       // Don't emit OnboardingConfiguring - just update the state silently
       // This keeps state as OnboardingStepActive so navigation can proceed
 
-      final updatedSelections =
-          Map<String, dynamic>.from(currentState.userSelections);
+      final updatedSelections = Map<String, dynamic>.from(
+        currentState.userSelections,
+      );
       updatedSelections['backupEnabled'] = event.enableBackup;
       updatedSelections['backupSkipped'] = false;
 
       // Coordinate with BackupBloc if available and backup is enabled
       if (event.enableBackup && _backupBloc != null) {
         debugPrint(
-            '🔧 [ONBOARDING_BLOC] Configurando backup a través de BackupBloc');
+          '🔧 [ONBOARDING_BLOC] Configurando backup a través de BackupBloc',
+        );
         _backupBloc!.add(const ToggleAutoBackup(true));
       }
 
@@ -356,24 +407,29 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       await _saveConfiguration(updatedSelections);
 
       debugPrint(
-          '🟢 [ONBOARDING_BLOC] userSelections después de ConfigureBackupOption: $updatedSelections');
+        '🟢 [ONBOARDING_BLOC] userSelections después de ConfigureBackupOption: $updatedSelections',
+      );
 
-      emit(currentState.copyWith(
-        userSelections: updatedSelections,
-        stepConfiguration: {'backupConfigured': event.enableBackup},
-      ));
+      emit(
+        currentState.copyWith(
+          userSelections: updatedSelections,
+          stepConfiguration: {'backupConfigured': event.enableBackup},
+        ),
+      );
 
       debugPrint('✅ [ONBOARDING_BLOC] Configuración de backup exitosa');
     } catch (e) {
       debugPrint('❌ [ONBOARDING_BLOC] Error configuring backup: $e');
-      emit(OnboardingError(
-        message: 'Error configuring backup: ${e.toString()}',
-        category: OnboardingErrorCategory.serviceUnavailable,
-        errorContext: {
-          'enableBackup': event.enableBackup,
-          'error': e.toString()
-        },
-      ));
+      emit(
+        OnboardingError(
+          message: 'Error configuring backup: ${e.toString()}',
+          category: OnboardingErrorCategory.serviceUnavailable,
+          errorContext: {
+            'enableBackup': event.enableBackup,
+            'error': e.toString(),
+          },
+        ),
+      );
     }
 
     debugPrint('🏁 [ONBOARDING_BLOC] === FIN ConfigureBackupOption ===');
@@ -385,18 +441,21 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     Emitter<OnboardingState> emit,
   ) async {
     debugPrint(
-        '🔄 [ONBOARDING_BLOC] === INICIANDO UpdateStepConfiguration ===');
+      '🔄 [ONBOARDING_BLOC] === INICIANDO UpdateStepConfiguration ===',
+    );
 
     if (state is! OnboardingStepActive) {
       debugPrint(
-          '⚠️ [ONBOARDING_BLOC] Cannot update configuration - not in active step state');
+        '⚠️ [ONBOARDING_BLOC] Cannot update configuration - not in active step state',
+      );
       return;
     }
 
     try {
       final currentState = state as OnboardingStepActive;
-      final updatedConfiguration =
-          Map<String, dynamic>.from(currentState.stepConfiguration);
+      final updatedConfiguration = Map<String, dynamic>.from(
+        currentState.stepConfiguration,
+      );
       updatedConfiguration.addAll(event.configuration);
 
       emit(currentState.copyWith(stepConfiguration: updatedConfiguration));
@@ -404,14 +463,16 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       debugPrint('✅ [ONBOARDING_BLOC] Configuración actualizada');
     } catch (e) {
       debugPrint('❌ [ONBOARDING_BLOC] Error updating configuration: $e');
-      emit(OnboardingError(
-        message: 'Error updating configuration: ${e.toString()}',
-        category: OnboardingErrorCategory.unknown,
-        errorContext: {
-          'configuration': event.configuration,
-          'error': e.toString()
-        },
-      ));
+      emit(
+        OnboardingError(
+          message: 'Error updating configuration: ${e.toString()}',
+          category: OnboardingErrorCategory.unknown,
+          errorContext: {
+            'configuration': event.configuration,
+            'error': e.toString(),
+          },
+        ),
+      );
     }
 
     debugPrint('🏁 [ONBOARDING_BLOC] === FIN UpdateStepConfiguration ===');
@@ -427,7 +488,8 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     // Race condition protection
     if (_isCompletingOnboarding) {
       debugPrint(
-          '⚠️ [ONBOARDING_BLOC] Onboarding completion already in progress, ignoring duplicate event');
+        '⚠️ [ONBOARDING_BLOC] Onboarding completion already in progress, ignoring duplicate event',
+      );
       return;
     }
 
@@ -437,31 +499,39 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       Map<String, dynamic> configurations;
       if (state is OnboardingStepActive) {
         configurations = Map<String, dynamic>.from(
-            (state as OnboardingStepActive).userSelections);
+          (state as OnboardingStepActive).userSelections,
+        );
         debugPrint(
-            '🔍 [ONBOARDING_BLOC] Configuraciones desde OnboardingStepActive: $configurations');
+          '🔍 [ONBOARDING_BLOC] Configuraciones desde OnboardingStepActive: $configurations',
+        );
       } else {
         configurations = await _loadSavedConfiguration();
         debugPrint(
-            '🔍 [ONBOARDING_BLOC] Configuraciones desde SharedPreferences: $configurations');
+          '🔍 [ONBOARDING_BLOC] Configuraciones desde SharedPreferences: $configurations',
+        );
       }
 
       debugPrint(
-          '🟣 [ONBOARDING_BLOC] State al completar onboarding: ${state.runtimeType}');
+        '🟣 [ONBOARDING_BLOC] State al completar onboarding: ${state.runtimeType}',
+      );
       debugPrint(
-          '🟣 [ONBOARDING_BLOC] Configuraciones ANTES de enriquecer: $configurations');
+        '🟣 [ONBOARDING_BLOC] Configuraciones ANTES de enriquecer: $configurations',
+      );
 
       // 🔧 Step 2: Enrich with REAL backup state from BackupBloc BEFORE emitting loading
       if (_backupBloc != null) {
         final backupState = _backupBloc!.state;
         debugPrint(
-            '📊 [ONBOARDING_BLOC] BackupBloc estado: ${backupState.runtimeType}');
+          '📊 [ONBOARDING_BLOC] BackupBloc estado: \\${backupState.runtimeType}',
+        );
 
         if (backupState is BackupLoaded) {
           debugPrint(
-              '📊 [ONBOARDING_BLOC] BackupBloc isAuthenticated: ${backupState.isAuthenticated}');
+            '📊 [ONBOARDING_BLOC] BackupBloc isAuthenticated: ${backupState.isAuthenticated}',
+          );
           debugPrint(
-              '📊 [ONBOARDING_BLOC] BackupBloc autoBackupEnabled: ${backupState.autoBackupEnabled}');
+            '📊 [ONBOARDING_BLOC] BackupBloc autoBackupEnabled: ${backupState.autoBackupEnabled}',
+          );
 
           // Solo sobrescribir si el backup realmente está configurado
           if (backupState.isAuthenticated && backupState.autoBackupEnabled) {
@@ -473,22 +543,26 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
                 backupState.lastBackupTime != null;
 
             debugPrint(
-                '✅ [ONBOARDING_BLOC] Backup info actualizada desde BackupBloc');
+              '✅ [ONBOARDING_BLOC] Backup info actualizada desde BackupBloc',
+            );
             debugPrint(
-                '✅ [ONBOARDING_BLOC] backupEnabled: true, backupSkipped: false');
+              '✅ [ONBOARDING_BLOC] backupEnabled: true, backupSkipped: false',
+            );
           } else if (!backupState.isAuthenticated &&
               configurations['backupEnabled'] != true) {
             // Usuario no se autenticó Y no tiene backup configurado = skipped
             configurations['backupSkipped'] = true;
             configurations['backupEnabled'] = false;
             debugPrint(
-                '📊 [ONBOARDING_BLOC] Backup marcado como skipped (no auth)');
+              '📊 [ONBOARDING_BLOC] Backup marcado como skipped (no auth)',
+            );
           }
         }
       }
 
       debugPrint(
-          '🟣 [ONBOARDING_BLOC] Configuraciones DESPUÉS de enriquecer: $configurations');
+        '🟣 [ONBOARDING_BLOC] Configuraciones DESPUÉS de enriquecer: $configurations',
+      );
 
       // 🔧 Step 3: Save enriched configuration BEFORE marking complete
       await _saveConfiguration(configurations);
@@ -505,20 +579,25 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       await _clearSavedProgress();
 
       debugPrint(
-          '🟣 [BLOC] Emitiendo OnboardingCompleted con configuración: $configurations');
-      emit(OnboardingCompleted(
-        appliedConfigurations: configurations,
-        completionTimestamp: DateTime.now(),
-      ));
+        '🟣 [BLOC] Emitiendo OnboardingCompleted con configuración: $configurations',
+      );
+      emit(
+        OnboardingCompleted(
+          appliedConfigurations: configurations,
+          completionTimestamp: DateTime.now(),
+        ),
+      );
 
       debugPrint('✅ [ONBOARDING_BLOC] Onboarding completado exitosamente');
     } catch (e) {
       debugPrint('❌ [ONBOARDING_BLOC] Error completing onboarding: $e');
-      emit(OnboardingError(
-        message: 'Error completing onboarding: ${e.toString()}',
-        category: OnboardingErrorCategory.unknown,
-        errorContext: {'error': e.toString()},
-      ));
+      emit(
+        OnboardingError(
+          message: 'Error completing onboarding: ${e.toString()}',
+          category: OnboardingErrorCategory.unknown,
+          errorContext: {'error': e.toString()},
+        ),
+      );
     } finally {
       _isCompletingOnboarding = false;
     }
@@ -543,11 +622,13 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       debugPrint('✅ [ONBOARDING_BLOC] Onboarding reset exitoso');
     } catch (e) {
       debugPrint('❌ [ONBOARDING_BLOC] Error resetting onboarding: $e');
-      emit(OnboardingError(
-        message: 'Error resetting onboarding: ${e.toString()}',
-        category: OnboardingErrorCategory.unknown,
-        errorContext: {'error': e.toString()},
-      ));
+      emit(
+        OnboardingError(
+          message: 'Error resetting onboarding: ${e.toString()}',
+          category: OnboardingErrorCategory.unknown,
+          errorContext: {'error': e.toString()},
+        ),
+      );
     }
 
     debugPrint('🏁 [ONBOARDING_BLOC] === FIN ResetOnboarding ===');
@@ -592,7 +673,8 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
 
     if (state is! OnboardingStepActive) {
       debugPrint(
-          '⚠️ [ONBOARDING_BLOC] Cannot go back - not in active step state');
+        '⚠️ [ONBOARDING_BLOC] Cannot go back - not in active step state',
+      );
       return;
     }
 
@@ -618,18 +700,21 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
     Emitter<OnboardingState> emit,
   ) async {
     debugPrint(
-        '🔄 [ONBOARDING_BLOC] === INICIANDO UpdatePreview: ${event.previewType} ===');
+      '🔄 [ONBOARDING_BLOC] === INICIANDO UpdatePreview: ${event.previewType} ===',
+    );
 
     if (state is! OnboardingStepActive) {
       debugPrint(
-          '⚠️ [ONBOARDING_BLOC] Cannot update preview - not in active step state');
+        '⚠️ [ONBOARDING_BLOC] Cannot update preview - not in active step state',
+      );
       return;
     }
 
     try {
       final currentState = state as OnboardingStepActive;
-      final updatedConfiguration =
-          Map<String, dynamic>.from(currentState.stepConfiguration);
+      final updatedConfiguration = Map<String, dynamic>.from(
+        currentState.stepConfiguration,
+      );
       updatedConfiguration['preview_${event.previewType}'] = event.previewValue;
 
       emit(currentState.copyWith(stepConfiguration: updatedConfiguration));
@@ -655,9 +740,11 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
           wrapper = jsonDecode(configJson) as Map<String, dynamic>;
         } catch (e) {
           debugPrint(
-              '❌ [ONBOARDING_BLOC] Corrupted JSON detected in configuration: $e');
+            '❌ [ONBOARDING_BLOC] Corrupted JSON detected in configuration: $e',
+          );
           debugPrint(
-              '🔄 [ONBOARDING_BLOC] Clearing corrupted configuration data');
+            '🔄 [ONBOARDING_BLOC] Clearing corrupted configuration data',
+          );
           await prefs.remove(_configurationKey);
           return {};
         }
@@ -665,7 +752,8 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
         // Validate JSON structure
         if (!_isValidConfigurationStructure(wrapper)) {
           debugPrint(
-              '⚠️ [ONBOARDING_BLOC] Invalid configuration structure detected, falling back to defaults');
+            '⚠️ [ONBOARDING_BLOC] Invalid configuration structure detected, falling back to defaults',
+          );
           await prefs.remove(_configurationKey);
           return {};
         }
@@ -679,14 +767,16 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
         if (schemaVersion < _currentSchemaVersion) {
           config = _migrateConfiguration(config, schemaVersion);
           debugPrint(
-              '🔄 [ONBOARDING_BLOC] Configuration migrated from v$schemaVersion to v$_currentSchemaVersion');
+            '🔄 [ONBOARDING_BLOC] Configuration migrated from v$schemaVersion to v$_currentSchemaVersion',
+          );
 
           // Save migrated configuration
           await _saveConfiguration(config);
         }
 
         debugPrint(
-            '📊 [ONBOARDING_BLOC] Configuración cargada: ${config.keys}');
+          '📊 [ONBOARDING_BLOC] Configuración cargada: ${config.keys}',
+        );
         return config;
       }
     } catch (e) {
@@ -700,7 +790,8 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
   Future<void> _saveConfiguration(Map<String, dynamic> configuration) async {
     if (_isSavingConfiguration) {
       debugPrint(
-          '⚠️ [ONBOARDING_BLOC] Configuration save already in progress, skipping');
+        '⚠️ [ONBOARDING_BLOC] Configuration save already in progress, skipping',
+      );
       return;
     }
 
@@ -720,7 +811,8 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       final configJson = jsonEncode(wrapper);
       await prefs.setString(_configurationKey, configJson);
       debugPrint(
-          '💾 [ONBOARDING_BLOC] Configuración guardada: ${configuration.keys}');
+        '💾 [ONBOARDING_BLOC] Configuración guardada: ${configuration.keys}',
+      );
     } catch (e) {
       debugPrint('⚠️ [ONBOARDING_BLOC] Error saving configuration: $e');
     } finally {
@@ -742,7 +834,8 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
           wrapper = jsonDecode(progressJson) as Map<String, dynamic>;
         } catch (e) {
           debugPrint(
-              '❌ [ONBOARDING_BLOC] Corrupted JSON detected in progress: $e');
+            '❌ [ONBOARDING_BLOC] Corrupted JSON detected in progress: $e',
+          );
           debugPrint('🔄 [ONBOARDING_BLOC] Clearing corrupted progress data');
           await prefs.remove(_progressKey);
           return null;
@@ -751,7 +844,8 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
         // Validate JSON structure
         if (!_isValidProgressStructure(wrapper)) {
           debugPrint(
-              '⚠️ [ONBOARDING_BLOC] Invalid progress structure detected, falling back to defaults');
+            '⚠️ [ONBOARDING_BLOC] Invalid progress structure detected, falling back to defaults',
+          );
           await prefs.remove(_progressKey);
           return null;
         }
@@ -765,12 +859,14 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
         if (schemaVersion < _currentSchemaVersion) {
           progressData = _migrateProgress(progressData, schemaVersion);
           debugPrint(
-              '🔄 [ONBOARDING_BLOC] Progress migrated from v$schemaVersion to v$_currentSchemaVersion');
+            '🔄 [ONBOARDING_BLOC] Progress migrated from v$schemaVersion to v$_currentSchemaVersion',
+          );
         }
 
         final progress = OnboardingProgress.fromJson(progressData);
         debugPrint(
-            '📊 [ONBOARDING_BLOC] Progreso cargado: ${progress.completedSteps}/${progress.totalSteps}');
+          '📊 [ONBOARDING_BLOC] Progreso cargado: ${progress.completedSteps}/${progress.totalSteps}',
+        );
         return progress;
       }
     } catch (e) {
@@ -797,7 +893,8 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       final progressJson = jsonEncode(wrapper);
       await prefs.setString(_progressKey, progressJson);
       debugPrint(
-          '💾 [ONBOARDING_BLOC] Progreso guardado: ${progress.completedSteps}/${progress.totalSteps}');
+        '💾 [ONBOARDING_BLOC] Progreso guardado: ${progress.completedSteps}/${progress.totalSteps}',
+      );
     } catch (e) {
       debugPrint('⚠️ [ONBOARDING_BLOC] Error saving progress: $e');
     } finally {
@@ -835,7 +932,8 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
         final themeFamily = configuration['selectedThemeFamily'];
         if (themeFamily != null && themeFamily is! String) {
           debugPrint(
-              '❌ [ONBOARDING_BLOC] Invalid theme family type: ${themeFamily.runtimeType}');
+            '❌ [ONBOARDING_BLOC] Invalid theme family type: ${themeFamily.runtimeType}',
+          );
           return false;
         }
         if (themeFamily is String && themeFamily.trim().isEmpty) {
@@ -849,7 +947,8 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
         final backupEnabled = configuration['backupEnabled'];
         if (backupEnabled != null && backupEnabled is! bool) {
           debugPrint(
-              '❌ [ONBOARDING_BLOC] Invalid backup enabled type: ${backupEnabled.runtimeType}');
+            '❌ [ONBOARDING_BLOC] Invalid backup enabled type: ${backupEnabled.runtimeType}',
+          );
           return false;
         }
       }
@@ -859,7 +958,8 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
         final language = configuration['selectedLanguage'];
         if (language != null && language is! String) {
           debugPrint(
-              '❌ [ONBOARDING_BLOC] Invalid language type: ${language.runtimeType}');
+            '❌ [ONBOARDING_BLOC] Invalid language type: ${language.runtimeType}',
+          );
           return false;
         }
       }
@@ -886,11 +986,12 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       'Green',
       'Red',
       'Orange',
-      'Purple'
+      'Purple',
     ];
     if (!supportedThemes.contains(themeFamily)) {
       debugPrint(
-          '⚠️ [ONBOARDING_BLOC] Theme family "$themeFamily" not in supported list, but allowing it');
+        '⚠️ [ONBOARDING_BLOC] Theme family "$themeFamily" not in supported list, but allowing it',
+      );
     }
 
     return true;
@@ -898,9 +999,12 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
 
   /// Migrate configuration from older schema versions
   Map<String, dynamic> _migrateConfiguration(
-      Map<String, dynamic> config, int fromVersion) {
+    Map<String, dynamic> config,
+    int fromVersion,
+  ) {
     debugPrint(
-        '🔄 [ONBOARDING_BLOC] Migrating configuration from version $fromVersion to $_currentSchemaVersion');
+      '🔄 [ONBOARDING_BLOC] Migrating configuration from version $fromVersion to $_currentSchemaVersion',
+    );
 
     try {
       Map<String, dynamic> migratedConfig = Map<String, dynamic>.from(config);
@@ -909,7 +1013,8 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       if (fromVersion < 1) {
         // Example: migratedConfig['newField'] = 'defaultValue';
         debugPrint(
-            '✅ [ONBOARDING_BLOC] Configuration migration v0->v1 completed');
+          '✅ [ONBOARDING_BLOC] Configuration migration v0->v1 completed',
+        );
       }
 
       return migratedConfig;
@@ -922,21 +1027,27 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
 
   /// Migrate progress data from older schema versions
   Map<String, dynamic> _migrateProgress(
-      Map<String, dynamic> progressData, int fromVersion) {
+    Map<String, dynamic> progressData,
+    int fromVersion,
+  ) {
     debugPrint(
-        '🔄 [ONBOARDING_BLOC] Migrating progress from version $fromVersion to $_currentSchemaVersion');
+      '🔄 [ONBOARDING_BLOC] Migrating progress from version $fromVersion to $_currentSchemaVersion',
+    );
 
     try {
-      Map<String, dynamic> migratedProgress =
-          Map<String, dynamic>.from(progressData);
+      Map<String, dynamic> migratedProgress = Map<String, dynamic>.from(
+        progressData,
+      );
 
       // Version 0 -> 1: No changes needed for now, but this is where future migrations would go
       if (fromVersion < 1) {
         // Example: Ensure all required fields exist
         migratedProgress['totalSteps'] ??= 4;
         migratedProgress['completedSteps'] ??= 0;
-        migratedProgress['stepCompletionStatus'] ??=
-            List<bool>.filled(4, false);
+        migratedProgress['stepCompletionStatus'] ??= List<bool>.filled(
+          4,
+          false,
+        );
         migratedProgress['progressPercentage'] ??= 0.0;
         debugPrint('✅ [ONBOARDING_BLOC] Progress migration v0->v1 completed');
       }
@@ -970,13 +1081,15 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       for (final key in data.keys) {
         if (!_isValidConfigurationKey(key)) {
           debugPrint(
-              '⚠️ [ONBOARDING_BLOC] Unknown legacy configuration key: $key');
+            '⚠️ [ONBOARDING_BLOC] Unknown legacy configuration key: $key',
+          );
         }
       }
       return true;
     } catch (e) {
       debugPrint(
-          '❌ [ONBOARDING_BLOC] Configuration structure validation failed: $e');
+        '❌ [ONBOARDING_BLOC] Configuration structure validation failed: $e',
+      );
       return false;
     }
   }
@@ -995,7 +1108,8 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       return _isValidProgressPayload(data);
     } catch (e) {
       debugPrint(
-          '❌ [ONBOARDING_BLOC] Progress structure validation failed: $e');
+        '❌ [ONBOARDING_BLOC] Progress structure validation failed: $e',
+      );
       return false;
     }
   }
@@ -1022,7 +1136,7 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
       'totalSteps',
       'completedSteps',
       'stepCompletionStatus',
-      'progressPercentage'
+      'progressPercentage',
     ];
 
     for (final key in requiredKeys) {

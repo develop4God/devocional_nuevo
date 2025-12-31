@@ -23,35 +23,32 @@ class FlutterTtsMockHelper {
   /// ```
   static void setupMockFlutterTts() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(
-      _ttsChannel,
-      (MethodCall methodCall) async {
-        switch (methodCall.method) {
-          case 'getVoices':
-            // Return comprehensive list of voices for all supported languages
-            // This includes Spanish, English, Portuguese, French, Japanese, and Chinese
-            return _getMockVoices();
-          case 'setLanguage':
-          case 'setSpeechRate':
-          case 'speak':
-          case 'stop':
-          case 'pause':
-          case 'setVolume':
-          case 'setPitch':
-          case 'setQueueMode':
-          case 'awaitSpeakCompletion':
-          case 'setVoice':
-            // Return success for all setter methods
-            return Future.value(1);
-          case 'getLanguages':
-            // Return list of supported languages
-            return ['es-ES', 'en-US', 'pt-BR', 'fr-FR', 'ja-JP', 'zh-CN'];
-          default:
-            // Return null for any other method
-            return Future.value();
-        }
-      },
-    );
+        .setMockMethodCallHandler(_ttsChannel, (MethodCall methodCall) async {
+      switch (methodCall.method) {
+        case 'getVoices':
+          // Return comprehensive list of voices for all supported languages
+          // This includes Spanish, English, Portuguese, French, Japanese, and Chinese
+          return _getMockVoices();
+        case 'setLanguage':
+        case 'setSpeechRate':
+        case 'speak':
+        case 'stop':
+        case 'pause':
+        case 'setVolume':
+        case 'setPitch':
+        case 'setQueueMode':
+        case 'awaitSpeakCompletion':
+        case 'setVoice':
+          // Return success for all setter methods
+          return Future.value(1);
+        case 'getLanguages':
+          // Return list of supported languages
+          return ['es-ES', 'en-US', 'pt-BR', 'fr-FR', 'ja-JP', 'zh-CN'];
+        default:
+          // Return null for any other method
+          return Future.value();
+      }
+    });
   }
 
   /// Returns a mock list of TTS voices for all supported languages

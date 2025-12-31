@@ -113,7 +113,8 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
           totalVerses: state.maxVerse,
           selectedVerse: state.selectedVerse ?? 1,
           bookName: state.books.firstWhere(
-              (b) => b['short_name'] == state.selectedBookName)['long_name'],
+            (b) => b['short_name'] == state.selectedBookName,
+          )['long_name'],
           chapterNumber: state.selectedChapter!,
           onVerseSelected: (verseNumber) {
             Navigator.of(context).pop();
@@ -138,7 +139,8 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
           totalChapters: state.maxChapter,
           selectedChapter: state.selectedChapter ?? 1,
           bookName: state.books.firstWhere(
-              (b) => b['short_name'] == state.selectedBookName)['long_name'],
+            (b) => b['short_name'] == state.selectedBookName,
+          )['long_name'],
           onChapterSelected: (chapterNumber) async {
             Navigator.of(context).pop();
             await _controller.selectChapter(chapterNumber);
@@ -188,15 +190,18 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     final wasSelected = state.selectedVerses.contains(key);
 
     debugPrint(
-        '[BibleReader] Tapping verse $verseNumber, key: $key, wasSelected: $wasSelected');
+      '[BibleReader] Tapping verse $verseNumber, key: $key, wasSelected: $wasSelected',
+    );
     debugPrint(
-        '[BibleReader] Before tap: selectedVerses: ${state.selectedVerses}, selectedVerse: ${state.selectedVerse}, scroll attached: ${_itemScrollController.isAttached}');
+      '[BibleReader] Before tap: selectedVerses: ${state.selectedVerses}, selectedVerse: ${state.selectedVerse}, scroll attached: ${_itemScrollController.isAttached}',
+    );
 
     _controller.toggleVerseSelection(key);
 
     final afterState = _controller.state;
     debugPrint(
-        '[BibleReader] After tap: selectedVerses: ${afterState.selectedVerses}, selectedVerse: ${afterState.selectedVerse}');
+      '[BibleReader] After tap: selectedVerses: ${afterState.selectedVerses}, selectedVerse: ${afterState.selectedVerse}',
+    );
 
     // Do not update selectedVerse, do not scroll!
     // Only show/hide modal if needed
@@ -220,8 +225,9 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     // Check if all selected verses are already saved
     final selectedVerses = _controller.state.selectedVerses.toList();
     final persistentlyMarkedVerses = _controller.state.persistentlyMarkedVerses;
-    final areVersesSaved =
-        selectedVerses.every((key) => persistentlyMarkedVerses.contains(key));
+    final areVersesSaved = selectedVerses.every(
+      (key) => persistentlyMarkedVerses.contains(key),
+    );
 
     showModalBottomSheet(
       context: context,
@@ -480,18 +486,21 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                           ),
                           tooltip: 'bible.select_version'.tr(),
                           onSelected: (version) async {
-                            final scaffoldMessenger =
-                                ScaffoldMessenger.of(context);
+                            final scaffoldMessenger = ScaffoldMessenger.of(
+                              context,
+                            );
                             final colorScheme = Theme.of(context).colorScheme;
                             await _controller.switchVersion(version);
                             if (!mounted) return;
                             scaffoldMessenger.showSnackBar(
                               SnackBar(
                                 content: Text(
-                                  'bible.loading_version'
-                                      .tr({'version': version.name}),
-                                  style:
-                                      TextStyle(color: colorScheme.onSecondary),
+                                  'bible.loading_version'.tr({
+                                    'version': version.name,
+                                  }),
+                                  style: TextStyle(
+                                    color: colorScheme.onSecondary,
+                                  ),
                                 ),
                                 backgroundColor: colorScheme.secondary,
                                 duration: const Duration(seconds: 1),
@@ -506,11 +515,13 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                                 children: [
                                   if (version.name ==
                                       state.selectedVersion?.name)
-                                    Icon(Icons.check,
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .primary,
-                                        size: 20)
+                                    Icon(
+                                      Icons.check,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.primary,
+                                      size: 20,
+                                    )
                                   else
                                     const SizedBox(width: 20),
                                   const SizedBox(width: 8),
@@ -550,7 +561,9 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                                 onTap: _showBookSelector,
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(
-                                      horizontal: 12, vertical: 12),
+                                    horizontal: 12,
+                                    vertical: 12,
+                                  ),
                                   decoration: BoxDecoration(
                                     border: Border.all(
                                       color: Theme.of(context)
@@ -565,16 +578,20 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                                   ),
                                   child: Row(
                                     children: [
-                                      Icon(Icons.auto_stories_outlined,
-                                          size: 20, color: colorScheme.primary),
+                                      Icon(
+                                        Icons.auto_stories_outlined,
+                                        size: 20,
+                                        color: colorScheme.primary,
+                                      ),
                                       const SizedBox(width: 8),
                                       Expanded(
                                         child: Text(
                                           state.selectedBookName != null
-                                              ? state.books.firstWhere((b) =>
+                                              ? state.books.firstWhere(
+                                                  (b) =>
                                                       b['short_name'] ==
-                                                      state.selectedBookName)[
-                                                  'long_name']
+                                                      state.selectedBookName,
+                                                )['long_name']
                                               : 'Seleccionar libro',
                                           overflow: TextOverflow.ellipsis,
                                           style: TextStyle(
@@ -583,8 +600,10 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                                           ),
                                         ),
                                       ),
-                                      Icon(Icons.arrow_drop_down,
-                                          color: colorScheme.onSurface),
+                                      Icon(
+                                        Icons.arrow_drop_down,
+                                        color: colorScheme.onSurface,
+                                      ),
                                     ],
                                   ),
                                 ),
@@ -594,15 +613,19 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                             Expanded(
                               child: OutlinedButton.icon(
                                 onPressed: _showChapterGridSelector,
-                                icon: Icon(Icons.format_list_numbered,
-                                    size: 18, color: colorScheme.primary),
+                                icon: Icon(
+                                  Icons.format_list_numbered,
+                                  size: 18,
+                                  color: colorScheme.primary,
+                                ),
                                 label: Text(
                                   'C. ${state.selectedChapter ?? 1}',
                                   style: const TextStyle(fontSize: 14),
                                 ),
                                 style: OutlinedButton.styleFrom(
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 12),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 12,
+                                  ),
                                 ),
                               ),
                             ),
@@ -610,15 +633,18 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                             Expanded(
                               child: OutlinedButton.icon(
                                 onPressed: _showVerseGridSelector,
-                                icon: const Icon(Icons.format_list_numbered,
-                                    size: 18),
+                                icon: const Icon(
+                                  Icons.format_list_numbered,
+                                  size: 18,
+                                ),
                                 label: Text(
                                   'V. ${state.selectedVerse ?? 1}',
                                   style: const TextStyle(fontSize: 14),
                                 ),
                                 style: OutlinedButton.styleFrom(
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 12),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 12,
+                                  ),
                                 ),
                               ),
                             ),
@@ -643,7 +669,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                                     Text(
                                       'bible.loading_version'.tr({
                                         'version':
-                                            state.selectedVersion?.name ?? ''
+                                            state.selectedVersion?.name ?? '',
                                       }),
                                     ),
                                   ],
@@ -652,8 +678,12 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                             : ScrollablePositionedList.builder(
                                 itemScrollController: _itemScrollController,
                                 itemPositionsListener: _itemPositionsListener,
-                                padding:
-                                    const EdgeInsets.fromLTRB(16, 16, 16, 32),
+                                padding: const EdgeInsets.fromLTRB(
+                                  16,
+                                  16,
+                                  16,
+                                  32,
+                                ),
                                 itemCount: state.verses.length + 2,
                                 // +1 título, +1 disclaimer
                                 itemBuilder: (context, idx) {
@@ -689,14 +719,16 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                                       padding: const EdgeInsets.only(top: 24),
                                       child: Text(
                                         CopyrightUtils.getCopyrightText(
-                                            state.selectedVersion!.languageCode,
-                                            state.selectedVersion!.name),
+                                          state.selectedVersion!.languageCode,
+                                          state.selectedVersion!.name,
+                                        ),
                                         style: Theme.of(context)
                                             .textTheme
                                             .bodySmall
                                             ?.copyWith(
-                                                color: colorScheme.onSurface
-                                                    .withValues(alpha: 153)),
+                                              color: colorScheme.onSurface
+                                                  .withValues(alpha: 153),
+                                            ),
                                         textAlign: TextAlign.center,
                                       ),
                                     );
@@ -717,7 +749,9 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                                         _controller.togglePersistentMark(key),
                                     child: Container(
                                       padding: const EdgeInsets.symmetric(
-                                          vertical: 8, horizontal: 4),
+                                        vertical: 8,
+                                        horizontal: 4,
+                                      ),
                                       decoration: isSelected
                                           ? BoxDecoration(
                                               color: colorScheme
@@ -749,18 +783,20 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                                             ),
                                             TextSpan(
                                               text: _cleanVerseText(
-                                                  verse['text']),
+                                                verse['text'],
+                                              ),
                                               style: isPersistentlyMarked
                                                   ? TextStyle(
                                                       backgroundColor:
                                                           colorScheme.secondary
                                                               .withValues(
-                                                                  alpha: 0.25),
+                                                        alpha: 0.25,
+                                                      ),
                                                       fontWeight:
                                                           FontWeight.w500,
                                                     )
                                                   : null,
-                                            )
+                                            ),
                                           ],
                                         ),
                                       ),
@@ -797,13 +833,17 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                     child: SafeArea(
                       child: Padding(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 12),
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             IconButton(
-                              icon: Icon(Icons.arrow_back_ios,
-                                  color: colorScheme.primary),
+                              icon: Icon(
+                                Icons.arrow_back_ios,
+                                color: colorScheme.primary,
+                              ),
                               tooltip: 'bible.previous_chapter'.tr(),
                               onPressed: () async {
                                 await _controller.goToPreviousChapter();
@@ -812,8 +852,9 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                             ),
                             // Button sizes to its content; avoid IntrinsicWidth to prevent intrinsic-measurement errors
                             Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 8.0),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8.0,
+                              ),
                               child: ElevatedButton(
                                 onPressed: _showBookSelector,
                                 style: ElevatedButton.styleFrom(
@@ -823,10 +864,13 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                                   foregroundColor:
                                       colorScheme.onPrimaryContainer,
                                   elevation: 2,
-                                  shadowColor: colorScheme.primary
-                                      .withValues(alpha: 0.3),
+                                  shadowColor: colorScheme.primary.withValues(
+                                    alpha: 0.3,
+                                  ),
                                   padding: const EdgeInsets.symmetric(
-                                      vertical: 10.0, horizontal: 16.0),
+                                    vertical: 10.0,
+                                    horizontal: 16.0,
+                                  ),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(30),
                                   ),
@@ -853,8 +897,10 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                               ),
                             ),
                             IconButton(
-                              icon: Icon(Icons.arrow_forward_ios,
-                                  color: colorScheme.primary),
+                              icon: Icon(
+                                Icons.arrow_forward_ios,
+                                color: colorScheme.primary,
+                              ),
                               tooltip: 'bible.next_chapter'.tr(),
                               onPressed: () async {
                                 await _controller.goToNextChapter();

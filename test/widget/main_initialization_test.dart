@@ -87,35 +87,39 @@ void main() {
 
   group('Context Safety - Mounted Check Pattern Tests', () {
     testWidgets(
-        'Mounted check prevents context-after-dispose when widget unmounts during async',
-        (WidgetTester tester) async {
+      'Mounted check prevents context-after-dispose when widget unmounts during async',
+      (WidgetTester tester) async {
+        final resultCompleter = Completer<String>();
+
+        // Build the test widget
+        await tester.pumpWidget(
+          TestMountedCheckWidget(resultCompleter: resultCompleter),
+        );
+
+        // Allow first async operation to start
+        await tester.pump(const Duration(milliseconds: 50));
+
+        // Unmount widget mid-initialization
+        await tester.pumpWidget(const SizedBox.shrink());
+
+        // Wait for async operations to complete
+        await tester.pump(const Duration(milliseconds: 200));
+
+        // Verify the widget detected unmount and exited safely
+        final result = await resultCompleter.future;
+        expect(result, equals('unmounted_safely'));
+      },
+    );
+
+    testWidgets('Initialization completes normally when widget stays mounted', (
+      WidgetTester tester,
+    ) async {
       final resultCompleter = Completer<String>();
 
       // Build the test widget
-      await tester
-          .pumpWidget(TestMountedCheckWidget(resultCompleter: resultCompleter));
-
-      // Allow first async operation to start
-      await tester.pump(const Duration(milliseconds: 50));
-
-      // Unmount widget mid-initialization
-      await tester.pumpWidget(const SizedBox.shrink());
-
-      // Wait for async operations to complete
-      await tester.pump(const Duration(milliseconds: 200));
-
-      // Verify the widget detected unmount and exited safely
-      final result = await resultCompleter.future;
-      expect(result, equals('unmounted_safely'));
-    });
-
-    testWidgets('Initialization completes normally when widget stays mounted',
-        (WidgetTester tester) async {
-      final resultCompleter = Completer<String>();
-
-      // Build the test widget
-      await tester
-          .pumpWidget(TestMountedCheckWidget(resultCompleter: resultCompleter));
+      await tester.pumpWidget(
+        TestMountedCheckWidget(resultCompleter: resultCompleter),
+      );
 
       // Let the widget complete its initialization
       await tester.pump(const Duration(milliseconds: 300));
@@ -125,15 +129,17 @@ void main() {
       expect(result, equals('completed_normally'));
     });
 
-    testWidgets('Multiple rapid mount/unmount cycles are handled safely',
-        (WidgetTester tester) async {
+    testWidgets('Multiple rapid mount/unmount cycles are handled safely', (
+      WidgetTester tester,
+    ) async {
       final completers = <Completer<String>>[];
 
       // First mount
       final completer1 = Completer<String>();
       completers.add(completer1);
-      await tester
-          .pumpWidget(TestMountedCheckWidget(resultCompleter: completer1));
+      await tester.pumpWidget(
+        TestMountedCheckWidget(resultCompleter: completer1),
+      );
       await tester.pump(const Duration(milliseconds: 30));
 
       // Unmount
@@ -143,8 +149,9 @@ void main() {
       // Second mount
       final completer2 = Completer<String>();
       completers.add(completer2);
-      await tester
-          .pumpWidget(TestMountedCheckWidget(resultCompleter: completer2));
+      await tester.pumpWidget(
+        TestMountedCheckWidget(resultCompleter: completer2),
+      );
       await tester.pump(const Duration(milliseconds: 30));
 
       // Unmount again
@@ -154,22 +161,28 @@ void main() {
       // All completers should have completed (either normally or with unmount detection)
       for (final completer in completers) {
         final result = await completer.future;
-        expect(result,
-            anyOf(equals('unmounted_safely'), equals('completed_normally')));
+        expect(
+          result,
+          anyOf(equals('unmounted_safely'), equals('completed_normally')),
+        );
       }
     });
   });
 
   group('LocalizationService Integration', () {
-    test('LocalizationService initializes correctly via ServiceLocator',
-        () async {
-      final localizationService = getService<LocalizationService>();
-      await localizationService.initialize();
+    test(
+      'LocalizationService initializes correctly via ServiceLocator',
+      () async {
+        final localizationService = getService<LocalizationService>();
+        await localizationService.initialize();
 
-      // Should have a valid locale
-      expect(localizationService.currentLocale, isNotNull);
-      expect(LocalizationService.supportedLocales.map((l) => l.languageCode),
-          contains(localizationService.currentLocale.languageCode));
-    });
+        // Should have a valid locale
+        expect(localizationService.currentLocale, isNotNull);
+        expect(
+          LocalizationService.supportedLocales.map((l) => l.languageCode),
+          contains(localizationService.currentLocale.languageCode),
+        );
+      },
+    );
   });
 }

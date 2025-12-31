@@ -214,7 +214,9 @@ void main() {
     // SCENARIO 14: Validation before proceeding
     test('step validation before progression', () {
       bool canProceedFromStep(
-          String stepName, Map<String, dynamic> selections) {
+        String stepName,
+        Map<String, dynamic> selections,
+      ) {
         switch (stepName) {
           case 'welcome':
             return true; // Always can proceed
@@ -247,8 +249,10 @@ void main() {
       const fadeInDuration = Duration(milliseconds: 200);
 
       expect(transitionDuration.inMilliseconds, equals(300));
-      expect(fadeInDuration.inMilliseconds,
-          lessThan(transitionDuration.inMilliseconds));
+      expect(
+        fadeInDuration.inMilliseconds,
+        lessThan(transitionDuration.inMilliseconds),
+      );
     });
   });
 

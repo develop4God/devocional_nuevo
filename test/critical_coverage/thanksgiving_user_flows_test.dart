@@ -27,9 +27,7 @@ void main() {
         createdDate: DateTime(2025, 1, 1),
       );
 
-      final edited = original.copyWith(
-        text: 'Updated thanks for everything',
-      );
+      final edited = original.copyWith(text: 'Updated thanks for everything');
 
       expect(edited.id, equals('thanks-001'));
       expect(edited.text, equals('Updated thanks for everything'));
@@ -249,21 +247,25 @@ void main() {
       final weekAgo = DateTime.now().subtract(const Duration(days: 7));
       final thanksgivings = [
         Thanksgiving(
-            id: '1',
-            text: 'T1',
-            createdDate: DateTime.now().subtract(const Duration(days: 1))),
+          id: '1',
+          text: 'T1',
+          createdDate: DateTime.now().subtract(const Duration(days: 1)),
+        ),
         Thanksgiving(
-            id: '2',
-            text: 'T2',
-            createdDate: DateTime.now().subtract(const Duration(days: 3))),
+          id: '2',
+          text: 'T2',
+          createdDate: DateTime.now().subtract(const Duration(days: 3)),
+        ),
         Thanksgiving(
-            id: '3',
-            text: 'T3',
-            createdDate: DateTime.now().subtract(const Duration(days: 5))),
+          id: '3',
+          text: 'T3',
+          createdDate: DateTime.now().subtract(const Duration(days: 5)),
+        ),
         Thanksgiving(
-            id: '4',
-            text: 'T4',
-            createdDate: DateTime.now().subtract(const Duration(days: 14))),
+          id: '4',
+          text: 'T4',
+          createdDate: DateTime.now().subtract(const Duration(days: 14)),
+        ),
       ];
 
       final lastWeekThanks =
@@ -275,17 +277,20 @@ void main() {
     test('identify most recent thanksgiving', () {
       final thanksgivings = [
         Thanksgiving(
-            id: '1',
-            text: 'T1',
-            createdDate: DateTime.now().subtract(const Duration(days: 10))),
+          id: '1',
+          text: 'T1',
+          createdDate: DateTime.now().subtract(const Duration(days: 10)),
+        ),
         Thanksgiving(
-            id: '2',
-            text: 'T2',
-            createdDate: DateTime.now().subtract(const Duration(days: 1))),
+          id: '2',
+          text: 'T2',
+          createdDate: DateTime.now().subtract(const Duration(days: 1)),
+        ),
         Thanksgiving(
-            id: '3',
-            text: 'T3',
-            createdDate: DateTime.now().subtract(const Duration(days: 5))),
+          id: '3',
+          text: 'T3',
+          createdDate: DateTime.now().subtract(const Duration(days: 5)),
+        ),
       ];
 
       final sorted = List<Thanksgiving>.from(thanksgivings)
@@ -332,17 +337,20 @@ void main() {
       final consecutiveThanks = [
         Thanksgiving(id: '1', text: 'T1', createdDate: DateTime.now()),
         Thanksgiving(
-            id: '2',
-            text: 'T2',
-            createdDate: DateTime.now().subtract(const Duration(days: 1))),
+          id: '2',
+          text: 'T2',
+          createdDate: DateTime.now().subtract(const Duration(days: 1)),
+        ),
         Thanksgiving(
-            id: '3',
-            text: 'T3',
-            createdDate: DateTime.now().subtract(const Duration(days: 2))),
+          id: '3',
+          text: 'T3',
+          createdDate: DateTime.now().subtract(const Duration(days: 2)),
+        ),
         Thanksgiving(
-            id: '4',
-            text: 'T4',
-            createdDate: DateTime.now().subtract(const Duration(days: 5))),
+          id: '4',
+          text: 'T4',
+          createdDate: DateTime.now().subtract(const Duration(days: 5)),
+        ),
       ];
 
       final streak = calculateStreak(consecutiveThanks);

@@ -82,118 +82,117 @@ class _BackupSettingsView extends StatelessWidget {
     final themeState = context.watch<ThemeBloc>().state as ThemeLoaded;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
-        value: themeState.systemUiOverlayStyle,
-        child: Scaffold(
-          appBar: CustomAppBar(
-            titleText: 'backup.title'.tr(),
-          ),
-          body: BlocListener<BackupBloc, BackupState>(
-            listener: (context, state) {
-              debugPrint(
-                '🔄 [DEBUG] BlocListener recibió estado: ${state.runtimeType}',
+      value: themeState.systemUiOverlayStyle,
+      child: Scaffold(
+        appBar: CustomAppBar(titleText: 'backup.title'.tr()),
+        body: BlocListener<BackupBloc, BackupState>(
+          listener: (context, state) {
+            debugPrint(
+              '🔄 [DEBUG] BlocListener recibió estado: ${state.runtimeType}',
+            );
+
+            if (state is BackupError) {
+              debugPrint('❌ [DEBUG] BackupError recibido: ${state.message}');
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(state.message.tr()),
+                  backgroundColor: colorScheme.error,
+                ),
               );
+            } else if (state is BackupCreated) {
+              debugPrint('✅ [DEBUG] BackupCreated recibido');
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('backup.created_successfully'.tr()),
+                  backgroundColor: colorScheme.primary,
+                ),
+              );
+            } else if (state is BackupRestored) {
+              debugPrint('✅ [DEBUG] BackupRestored recibido');
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('backup.restored_successfully'.tr()),
+                  backgroundColor: colorScheme.primary,
+                ),
+              );
+            } else if (state is BackupSuccess) {
+              debugPrint('✅ [DEBUG] BackupSuccess recibido');
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        state.title.tr(),
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      Text(state.message.tr()),
+                    ],
+                  ),
+                  backgroundColor: Colors.green,
+                  duration: const Duration(seconds: 3),
+                ),
+              );
+            }
+          },
+          child: BlocBuilder<BackupBloc, BackupState>(
+            builder: (context, state) {
+              if (state is BackupLoading) {
+                return const Center(child: CircularProgressIndicator());
+              }
+
+              if (state is BackupLoaded) {
+                return _BackupSettingsContent(state: state);
+              }
 
               if (state is BackupError) {
-                debugPrint('❌ [DEBUG] BackupError recibido: ${state.message}');
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(state.message.tr()),
-                    backgroundColor: colorScheme.error,
-                  ),
-                );
-              } else if (state is BackupCreated) {
-                debugPrint('✅ [DEBUG] BackupCreated recibido');
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('backup.created_successfully'.tr()),
-                    backgroundColor: colorScheme.primary,
-                  ),
-                );
-              } else if (state is BackupRestored) {
-                debugPrint('✅ [DEBUG] BackupRestored recibido');
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('backup.restored_successfully'.tr()),
-                    backgroundColor: colorScheme.primary,
-                  ),
-                );
-              } else if (state is BackupSuccess) {
-                debugPrint('✅ [DEBUG] BackupSuccess recibido');
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          state.title.tr(),
-                          style: const TextStyle(fontWeight: FontWeight.bold),
+                // Solución: agregar la declaración de 'theme' en el metodo donde falta
+                final theme = Theme.of(context);
+                final colorScheme = theme.colorScheme;
+
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.error_outline,
+                        size: 64,
+                        color: colorScheme.error,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'backup.error_loading'.tr(),
+                        style: theme.textTheme.titleLarge,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        state.message,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
                         ),
-                        Text(state.message.tr()),
-                      ],
-                    ),
-                    backgroundColor: Colors.green,
-                    duration: const Duration(seconds: 3),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: () {
+                          context.read<BackupBloc>().add(
+                                const LoadBackupSettings(),
+                              );
+                        },
+                        child: Text('backup.retry'.tr()),
+                      ),
+                    ],
                   ),
                 );
               }
+
+              return const Center(child: CircularProgressIndicator());
             },
-            child: BlocBuilder<BackupBloc, BackupState>(
-              builder: (context, state) {
-                if (state is BackupLoading) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-
-                if (state is BackupLoaded) {
-                  return _BackupSettingsContent(state: state);
-                }
-
-                if (state is BackupError) {
-                  // Solución: agregar la declaración de 'theme' en el metodo donde falta
-                  final theme = Theme.of(context);
-                  final colorScheme = theme.colorScheme;
-
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.error_outline,
-                          size: 64,
-                          color: colorScheme.error,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'backup.error_loading'.tr(),
-                          style: theme.textTheme.titleLarge,
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          state.message,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 16),
-                        ElevatedButton(
-                          onPressed: () {
-                            context.read<BackupBloc>().add(
-                                  const LoadBackupSettings(),
-                                );
-                          },
-                          child: Text('backup.retry'.tr()),
-                        ),
-                      ],
-                    ),
-                  );
-                }
-
-                return const Center(child: CircularProgressIndicator());
-              },
-            ),
           ),
-        ));
+        ),
+      ),
+    );
   }
 }
 
@@ -853,7 +852,8 @@ class _BackupSettingsContent extends StatelessWidget {
     debugPrint('[BACKUP] lastBackupTime: $lastBackupTime');
     debugPrint('[BACKUP] now: $now');
     debugPrint(
-        '[BACKUP] elapsed: ${elapsed.inHours}h ${elapsed.inMinutes % 60}m');
+      '[BACKUP] elapsed: ${elapsed.inHours}h ${elapsed.inMinutes % 60}m',
+    );
     debugPrint('[BACKUP] minutesLeft before next backup: $minutesLeft');
 
     if (minutesLeft <= 1) {
@@ -861,15 +861,17 @@ class _BackupSettingsContent extends StatelessWidget {
       return 'backup.next_backup_in_hours'.tr().replaceAll('{hours}', '24');
     } else if (minutesLeft < 60) {
       debugPrint('[BACKUP] Showing: Próxima copia en $minutesLeft minutos');
-      return 'backup.next_backup_in_minutes'
-          .tr()
-          .replaceAll('{minutes}', minutesLeft.toString());
+      return 'backup.next_backup_in_minutes'.tr().replaceAll(
+            '{minutes}',
+            minutesLeft.toString(),
+          );
     } else {
       final hoursLeft = minutesLeft ~/ 60;
       debugPrint('[BACKUP] Showing: Próxima copia en $hoursLeft horas');
-      return 'backup.next_backup_in_hours'
-          .tr()
-          .replaceAll('{hours}', hoursLeft.toString());
+      return 'backup.next_backup_in_hours'.tr().replaceAll(
+            '{hours}',
+            hoursLeft.toString(),
+          );
     }
   }
 }

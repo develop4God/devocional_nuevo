@@ -10,9 +10,7 @@ void main() {
         id: 'test_dev',
         versiculo: 'Test verse',
         reflexion: 'Test reflection',
-        paraMeditar: [
-          ParaMeditar(cita: 'Test 1:1', texto: 'Test meditation'),
-        ],
+        paraMeditar: [ParaMeditar(cita: 'Test 1:1', texto: 'Test meditation')],
         oracion: 'Test prayer',
         date: DateTime(2025, 1, 15),
       );
@@ -51,9 +49,7 @@ void main() {
         id: 'json_test',
         versiculo: 'JSON test verse',
         reflexion: 'JSON test reflection',
-        paraMeditar: [
-          ParaMeditar(cita: 'JSON 1:1', texto: 'JSON meditation'),
-        ],
+        paraMeditar: [ParaMeditar(cita: 'JSON 1:1', texto: 'JSON meditation')],
         oracion: 'JSON test prayer',
         date: DateTime(2025, 1, 15),
         version: 'KJV',
@@ -78,7 +74,7 @@ void main() {
         'versiculo': 'From JSON verse',
         'reflexion': 'From JSON reflection',
         'para_meditar': [
-          {'cita': 'JSON 2:2', 'texto': 'JSON meditation 2'}
+          {'cita': 'JSON 2:2', 'texto': 'JSON meditation 2'},
         ],
         'oracion': 'From JSON prayer',
         'date': '2025-01-15',

@@ -209,20 +209,22 @@ void main() {
       expect(version, 'KJV');
     });
 
-    test('should update position when navigating to different chapter',
-        () async {
-      final prefs = await SharedPreferences.getInstance();
+    test(
+      'should update position when navigating to different chapter',
+      () async {
+        final prefs = await SharedPreferences.getInstance();
 
-      // Initial position - Genesis 1
-      await prefs.setString('bible_last_book', 'Genesis');
-      await prefs.setInt('bible_last_chapter', 1);
+        // Initial position - Genesis 1
+        await prefs.setString('bible_last_book', 'Genesis');
+        await prefs.setInt('bible_last_chapter', 1);
 
-      // Navigate to Genesis 2
-      await prefs.setInt('bible_last_chapter', 2);
+        // Navigate to Genesis 2
+        await prefs.setInt('bible_last_chapter', 2);
 
-      expect(prefs.getInt('bible_last_chapter'), 2);
-      expect(prefs.getString('bible_last_book'), 'Genesis');
-    });
+        expect(prefs.getInt('bible_last_chapter'), 2);
+        expect(prefs.getString('bible_last_book'), 'Genesis');
+      },
+    );
 
     test('should update position when navigating to different book', () async {
       final prefs = await SharedPreferences.getInstance();

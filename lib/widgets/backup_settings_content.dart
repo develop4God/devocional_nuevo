@@ -13,7 +13,7 @@ enum ConnectionButtonState {
   connecting,
   transferring,
   configuring,
-  complete
+  complete,
 }
 
 class BackupSettingsContent extends StatefulWidget {
@@ -168,8 +168,9 @@ class _BackupSettingsContentState extends State<BackupSettingsContent> {
     }
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16)
-          .copyWith(bottom: widget.isOnboardingMode ? 16 : 80),
+      padding: const EdgeInsets.all(
+        16,
+      ).copyWith(bottom: widget.isOnboardingMode ? 16 : 80),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -335,17 +336,15 @@ class _BackupSettingsContentState extends State<BackupSettingsContent> {
                             color: Colors.white.withValues(alpha: 0.9),
                           ),
                         ),
-                  label: Text(
-                    buttonText,
-                    style: const TextStyle(fontSize: 16),
-                  ),
+                  label: Text(buttonText, style: const TextStyle(fontSize: 16)),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: buttonColor,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     disabledBackgroundColor: buttonColor.withValues(alpha: 0.7),
-                    disabledForegroundColor:
-                        Colors.white.withValues(alpha: 0.9),
+                    disabledForegroundColor: Colors.white.withValues(
+                      alpha: 0.9,
+                    ),
                   ),
                 ),
               ),
@@ -365,7 +364,9 @@ class _BackupSettingsContentState extends State<BackupSettingsContent> {
   }
 
   Widget _buildOnboardingConnectedState(
-      BuildContext context, BackupLoaded state) {
+    BuildContext context,
+    BackupLoaded state,
+  ) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
@@ -401,9 +402,7 @@ class _BackupSettingsContentState extends State<BackupSettingsContent> {
       decoration: BoxDecoration(
         color: colorScheme.primaryContainer.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: statusColor.withValues(alpha: 0.3),
-        ),
+        border: Border.all(color: statusColor.withValues(alpha: 0.3)),
       ),
       child: Column(
         children: [
@@ -474,9 +473,9 @@ class _BackupSettingsContentState extends State<BackupSettingsContent> {
                   value: state.autoBackupEnabled,
                   onChanged: (value) {
                     if (value) {
-                      context
-                          .read<BackupBloc>()
-                          .add(const ToggleAutoBackup(true));
+                      context.read<BackupBloc>().add(
+                            const ToggleAutoBackup(true),
+                          );
                     } else {
                       _showLogoutConfirmation(context);
                     }
@@ -494,26 +493,34 @@ class _BackupSettingsContentState extends State<BackupSettingsContent> {
             const SizedBox(height: 16),
             Row(
               children: [
-                Icon(Icons.cloud_done,
-                    size: 16, color: colorScheme.onSurfaceVariant),
+                Icon(
+                  Icons.cloud_done,
+                  size: 16,
+                  color: colorScheme.onSurfaceVariant,
+                ),
                 const SizedBox(width: 8),
                 Text(
                   'backup.connected_to_google_drive'.tr(),
-                  style: theme.textTheme.bodySmall
-                      ?.copyWith(fontWeight: FontWeight.w500),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ],
             ),
             const SizedBox(height: 8),
             Row(
               children: [
-                Icon(Icons.person_outline,
-                    size: 16, color: colorScheme.onSurfaceVariant),
+                Icon(
+                  Icons.person_outline,
+                  size: 16,
+                  color: colorScheme.onSurfaceVariant,
+                ),
                 const SizedBox(width: 8),
                 Text(
                   '${'backup.backup_email'.tr()}: ',
-                  style: theme.textTheme.bodySmall
-                      ?.copyWith(fontWeight: FontWeight.w500),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
                 Expanded(
                   child: Text(
@@ -529,13 +536,17 @@ class _BackupSettingsContentState extends State<BackupSettingsContent> {
               const SizedBox(height: 8),
               Row(
                 children: [
-                  Icon(Icons.schedule,
-                      size: 16, color: colorScheme.onSurfaceVariant),
+                  Icon(
+                    Icons.schedule,
+                    size: 16,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
                   const SizedBox(width: 8),
                   Text(
                     '${'backup.last_backup'.tr()}: ',
-                    style: theme.textTheme.bodySmall
-                        ?.copyWith(fontWeight: FontWeight.w500),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                   Expanded(
                     child: Text(
@@ -563,13 +574,17 @@ class _BackupSettingsContentState extends State<BackupSettingsContent> {
             padding: const EdgeInsets.all(20),
             child: Column(
               children: [
-                Icon(Icons.touch_app,
-                    size: 48, color: theme.colorScheme.primary),
+                Icon(
+                  Icons.touch_app,
+                  size: 48,
+                  color: theme.colorScheme.primary,
+                ),
                 const SizedBox(height: 16),
                 Text(
                   'backup.manual_backup_active'.tr(),
-                  style: theme.textTheme.titleLarge
-                      ?.copyWith(fontWeight: FontWeight.bold),
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 8),
@@ -583,13 +598,17 @@ class _BackupSettingsContentState extends State<BackupSettingsContent> {
                 const SizedBox(height: 8),
                 Row(
                   children: [
-                    Icon(Icons.cloud_done,
-                        size: 16, color: theme.colorScheme.onSurfaceVariant),
+                    Icon(
+                      Icons.cloud_done,
+                      size: 16,
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
                     const SizedBox(width: 8),
                     Text(
                       'backup.connected_to_google_drive'.tr(),
-                      style: theme.textTheme.bodySmall
-                          ?.copyWith(fontWeight: FontWeight.w500),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ],
                 ),
@@ -597,13 +616,17 @@ class _BackupSettingsContentState extends State<BackupSettingsContent> {
                 if (state.userEmail != null) ...[
                   Row(
                     children: [
-                      Icon(Icons.person_outline,
-                          size: 16, color: theme.colorScheme.onSurfaceVariant),
+                      Icon(
+                        Icons.person_outline,
+                        size: 16,
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
                       const SizedBox(width: 8),
                       Text(
                         '${'backup.backup_email'.tr()}: ',
-                        style: theme.textTheme.bodySmall
-                            ?.copyWith(fontWeight: FontWeight.w500),
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                       Expanded(
                         child: Text(
@@ -621,9 +644,9 @@ class _BackupSettingsContentState extends State<BackupSettingsContent> {
                   width: double.infinity,
                   child: ElevatedButton.icon(
                     onPressed: () {
-                      context
-                          .read<BackupBloc>()
-                          .add(const CreateManualBackup());
+                      context.read<BackupBloc>().add(
+                            const CreateManualBackup(),
+                          );
                     },
                     icon: const Icon(Icons.backup),
                     label: Text('backup.create_backup'.tr()),
@@ -635,9 +658,9 @@ class _BackupSettingsContentState extends State<BackupSettingsContent> {
                 const SizedBox(height: 12),
                 TextButton(
                   onPressed: () {
-                    context
-                        .read<BackupBloc>()
-                        .add(const ToggleAutoBackup(true));
+                    context.read<BackupBloc>().add(
+                          const ToggleAutoBackup(true),
+                        );
                   },
                   child: Text('backup.enable_auto_backup'.tr()),
                 ),
@@ -648,14 +671,17 @@ class _BackupSettingsContentState extends State<BackupSettingsContent> {
         if (state.lastBackupTime != null) ...[
           const SizedBox(height: 16),
           Card(
-            color: theme.colorScheme.surfaceContainerHighest
-                .withValues(alpha: 0.3),
+            color: theme.colorScheme.surfaceContainerHighest.withValues(
+              alpha: 0.3,
+            ),
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Row(
                 children: [
-                  Icon(Icons.history,
-                      color: theme.colorScheme.onSurfaceVariant),
+                  Icon(
+                    Icons.history,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
@@ -693,8 +719,9 @@ class _BackupSettingsContentState extends State<BackupSettingsContent> {
               children: [
                 Text(
                   'backup.security_title'.tr(),
-                  style: theme.textTheme.titleSmall
-                      ?.copyWith(fontWeight: FontWeight.bold),
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Text(
@@ -782,9 +809,10 @@ class _BackupSettingsContentState extends State<BackupSettingsContent> {
     } else if (difference.inDays == 1) {
       return 'backup.yesterday'.tr();
     } else {
-      return 'backup.days_ago'
-          .tr()
-          .replaceAll('{days}', difference.inDays.toString());
+      return 'backup.days_ago'.tr().replaceAll(
+            '{days}',
+            difference.inDays.toString(),
+          );
     }
   }
 }
