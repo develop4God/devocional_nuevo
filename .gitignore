@@ -6,6 +6,7 @@
 .fvm/
 .idea/
 .vscode/
+.env
 build/
 *.iml
 *.packages
