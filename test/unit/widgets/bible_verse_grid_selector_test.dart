@@ -16,8 +16,9 @@ void main() {
       registerTestServices();
     });
 
-    testWidgets('Should display grid with correct number of verses',
-        (WidgetTester tester) async {
+    testWidgets('Should display grid with correct number of verses', (
+      WidgetTester tester,
+    ) async {
       // Test with Genesis 1 (31 verses)
       await tester.pumpWidget(
         MaterialApp(
@@ -64,8 +65,9 @@ void main() {
       expect(find.text('25'), findsOneWidget);
     });
 
-    testWidgets('Should handle Psalm 119 (176 verses)',
-        (WidgetTester tester) async {
+    testWidgets('Should handle Psalm 119 (176 verses)', (
+      WidgetTester tester,
+    ) async {
       int? selectedVerse;
 
       // Test with longest chapter in the Bible
@@ -95,10 +97,7 @@ void main() {
       expect(selectedVerse, equals(1));
 
       // Scroll to find last verse
-      await tester.drag(
-        find.byType(GridView),
-        const Offset(0, -5000),
-      );
+      await tester.drag(find.byType(GridView), const Offset(0, -5000));
       await tester.pumpAndSettle();
 
       // Verify last verse is available after scrolling
@@ -109,8 +108,9 @@ void main() {
       expect(selectedVerse, equals(176));
     });
 
-    testWidgets('Should call callback when verse is tapped',
-        (WidgetTester tester) async {
+    testWidgets('Should call callback when verse is tapped', (
+      WidgetTester tester,
+    ) async {
       int? selectedVerse;
 
       await tester.pumpWidget(
@@ -138,8 +138,9 @@ void main() {
       expect(selectedVerse, equals(16));
     });
 
-    testWidgets('Should display book and chapter info in header',
-        (WidgetTester tester) async {
+    testWidgets('Should display book and chapter info in header', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -161,8 +162,9 @@ void main() {
       expect(find.textContaining('8'), findsAtLeastNWidgets(1));
     });
 
-    testWidgets('Should handle single verse chapter',
-        (WidgetTester tester) async {
+    testWidgets('Should handle single verse chapter', (
+      WidgetTester tester,
+    ) async {
       // Test with Obadiah (1 chapter, 21 verses)
       await tester.pumpWidget(
         MaterialApp(
@@ -187,8 +189,9 @@ void main() {
       expect(gridItems, findsNWidgets(21));
     });
 
-    testWidgets('Should close dialog when close button is tapped',
-        (WidgetTester tester) async {
+    testWidgets('Should close dialog when close button is tapped', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -230,8 +233,9 @@ void main() {
       expect(find.byType(Dialog), findsNothing);
     });
 
-    testWidgets('Should display scrollbar for long chapters',
-        (WidgetTester tester) async {
+    testWidgets('Should display scrollbar for long chapters', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -261,8 +265,9 @@ void main() {
       expect(expectedRows, equals(22)); // 176 / 8 = 22 rows
     });
 
-    testWidgets('Should navigate multiple verses in sequence',
-        (WidgetTester tester) async {
+    testWidgets('Should navigate multiple verses in sequence', (
+      WidgetTester tester,
+    ) async {
       final List<int> selectedVerses = [];
 
       await tester.pumpWidget(
@@ -307,8 +312,9 @@ void main() {
       expect(selectedVerses, equals(verseSequence));
     });
 
-    testWidgets('Should handle rapid verse selections',
-        (WidgetTester tester) async {
+    testWidgets('Should handle rapid verse selections', (
+      WidgetTester tester,
+    ) async {
       final List<int> selectedVerses = [];
 
       await tester.pumpWidget(
@@ -339,8 +345,9 @@ void main() {
       expect(selectedVerses.length, equals(10));
     });
 
-    testWidgets('Should work with different book names',
-        (WidgetTester tester) async {
+    testWidgets('Should work with different book names', (
+      WidgetTester tester,
+    ) async {
       final books = [
         {'name': 'Genesis', 'chapter': 1, 'verses': 31},
         {'name': '1 Chronicles', 'chapter': 29, 'verses': 30},
@@ -374,8 +381,9 @@ void main() {
   });
 
   group('Verse Grid Edge Cases', () {
-    testWidgets('Should handle first verse selection',
-        (WidgetTester tester) async {
+    testWidgets('Should handle first verse selection', (
+      WidgetTester tester,
+    ) async {
       int? selectedVerse;
 
       await tester.pumpWidget(
@@ -401,8 +409,9 @@ void main() {
       expect(selectedVerse, equals(1));
     });
 
-    testWidgets('Should handle last verse selection',
-        (WidgetTester tester) async {
+    testWidgets('Should handle last verse selection', (
+      WidgetTester tester,
+    ) async {
       int? selectedVerse;
 
       await tester.pumpWidget(
@@ -424,10 +433,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Scroll to bottom to see verse 50
-      await tester.drag(
-        find.byType(GridView),
-        const Offset(0, -1000),
-      );
+      await tester.drag(find.byType(GridView), const Offset(0, -1000));
       await tester.pumpAndSettle();
 
       await tester.tap(find.text('50'));
@@ -436,8 +442,9 @@ void main() {
       expect(selectedVerse, equals(50));
     });
 
-    testWidgets('Should handle middle verse selection',
-        (WidgetTester tester) async {
+    testWidgets('Should handle middle verse selection', (
+      WidgetTester tester,
+    ) async {
       int? selectedVerse;
 
       await tester.pumpWidget(

@@ -16,6 +16,8 @@ library;
 
 import 'package:devocional_nuevo/services/analytics_service.dart';
 import 'package:devocional_nuevo/services/localization_service.dart';
+import 'package:devocional_nuevo/services/notification_service.dart';
+import 'package:devocional_nuevo/services/remote_config_service.dart';
 import 'package:devocional_nuevo/services/tts/i_tts_service.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 import 'package:devocional_nuevo/services/tts_service.dart';
@@ -63,8 +65,10 @@ class ServiceLocator {
       return _factories[T]!() as T;
     }
 
-    throw StateError('Service ${T.toString()} not registered. '
-        'Ensure setupServiceLocator() is called at app startup.');
+    throw StateError(
+      'Service ${T.toString()} not registered. '
+      'Ensure setupServiceLocator() is called at app startup.',
+    );
   }
 
   /// Check if a service is registered
@@ -93,13 +97,15 @@ void setupServiceLocator() {
   // Register LocalizationService as a lazy singleton (created when first accessed)
   // This replaces the previous static singleton pattern to enable proper DI and testing.
   // See LocalizationService documentation for usage details.
-  locator
-      .registerLazySingleton<LocalizationService>(() => LocalizationService());
+  locator.registerLazySingleton<LocalizationService>(
+    () => LocalizationService(),
+  );
 
   // Register VoiceSettingsService as a lazy singleton (created when first accessed)
   // This must be registered before TtsService as TtsService depends on it
   locator.registerLazySingleton<VoiceSettingsService>(
-      () => VoiceSettingsService());
+    () => VoiceSettingsService(),
+  );
 
   // Register TTS service as a lazy singleton (created when first accessed)
   locator.registerLazySingleton<ITtsService>(() => TtsService());
@@ -107,6 +113,22 @@ void setupServiceLocator() {
   // Register Analytics service as a lazy singleton (created when first accessed)
   // This service tracks user events and behaviors using Firebase Analytics
   locator.registerLazySingleton<AnalyticsService>(() => AnalyticsService());
+
+  // Register NotificationService as a lazy singleton (created when first accessed)
+  // This service manages FCM, local notifications, and notification settings
+  // Migrated from singleton pattern to DI for better testability and maintainability
+  // Uses factory constructor to enforce DI-only instantiation
+  locator.registerLazySingleton<NotificationService>(
+    NotificationService.create,
+  );
+
+  // Register RemoteConfigService as a lazy singleton (created when first accessed)
+  // This service manages feature flags from Firebase Remote Config
+  // Migrated to DI pattern for better testability and maintainability
+  // Uses factory constructor to enforce DI-only instantiation
+  locator.registerLazySingleton<RemoteConfigService>(
+    RemoteConfigService.create,
+  );
 
   // Add more service registrations here as needed
   // Example:

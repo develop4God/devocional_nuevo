@@ -7,10 +7,14 @@ import android.content.Intent
 import android.os.Bundle
 import android.os.Build
 import androidx.core.view.WindowCompat
+import com.google.firebase.crashlytics.FirebaseCrashlytics // ¡Añade esta importación!
 
 class MainActivity : FlutterActivity() {
 
-    private val channel = "com.devocional_nuevo.test_channel"
+    // Cambiamos el nombre del canal para que sea específico de Crashlytics
+    // y coincida con el que usaremos en Flutter.
+    private val CRASHLYTICS_CHANNEL = "com.develop4god.devocional_nuevo/crashlytics"
+    private val GENERAL_CHANNEL = "com.devocional_nuevo.test_channel" // Tu canal existente
 
     // --- INICIO: Soporte para Firebase Test Lab Game Loop y Edge-to-Edge ---
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -40,10 +44,26 @@ class MainActivity : FlutterActivity() {
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
 
-        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, channel).setMethodCallHandler { call, result ->
+        // Tu MethodChannel existente
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, GENERAL_CHANNEL).setMethodCallHandler { call, result ->
             if (call.method == "getInitialIntentAction") {
                 val action = intent.action
                 result.success(action)
+            } else {
+                result.notImplemented()
+            }
+        }
+
+        // ¡NUEVO MethodChannel para Crashlytics!
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CRASHLYTICS_CHANNEL).setMethodCallHandler {
+                call, result ->
+            if (call.method == "forceCrash") {
+                // Opcional: Puedes registrar un mensaje que aparecerá en el informe de Crashlytics
+                FirebaseCrashlytics.getInstance().log("Fallo forzado desde Flutter a través del canal de métodos.")
+                throw RuntimeException("¡Este es un fallo de prueba forzado de Crashlytics desde Flutter!")
+                // Nota: La línea de abajo (result.success) no se alcanzará debido al throw.
+                // Sin embargo, se mantiene por si decides cambiar la lógica y no lanzar una excepción.
+                // result.success(true)
             } else {
                 result.notImplemented()
             }

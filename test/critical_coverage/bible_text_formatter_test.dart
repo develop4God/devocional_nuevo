@@ -22,14 +22,18 @@ void main() {
     });
 
     test('formats book names with accents', () {
-      final result =
-          BibleTextFormatter.formatBibleBook('1 Tesalonicenses', 'es');
+      final result = BibleTextFormatter.formatBibleBook(
+        '1 Tesalonicenses',
+        'es',
+      );
       expect(result, 'Primera de Tesalonicenses');
     });
 
     test('handles book in middle of text', () {
-      final result =
-          BibleTextFormatter.formatBibleBook('Lee 1 Pedro hoy', 'es');
+      final result = BibleTextFormatter.formatBibleBook(
+        'Lee 1 Pedro hoy',
+        'es',
+      );
       expect(result, contains('Primera de Pedro'));
     });
 
@@ -112,6 +116,23 @@ void main() {
     });
   });
 
+  group('BibleTextFormatter - Chinese', () {
+    test('returns Chinese text unchanged (no ordinals)', () {
+      final result = BibleTextFormatter.formatBibleBook('彼得前书', 'zh');
+      expect(result, '彼得前书');
+    });
+
+    test('trims Chinese text', () {
+      final result = BibleTextFormatter.formatBibleBook('  约翰福音  ', 'zh');
+      expect(result, '约翰福音');
+    });
+
+    test('handles traditional Chinese characters', () {
+      final result = BibleTextFormatter.formatBibleBook('創世記', 'zh');
+      expect(result, '創世記');
+    });
+  });
+
   group('BibleTextFormatter - Bible Version Expansions', () {
     test('Spanish versions expand correctly', () {
       final expansions = BibleTextFormatter.getBibleVersionExpansions('es');
@@ -137,6 +158,13 @@ void main() {
       expect(expansions['TOB'], 'Traduction Oecuménique de la Bible');
     });
 
+    test('Chinese versions expand correctly', () {
+      final expansions = BibleTextFormatter.getBibleVersionExpansions('zh');
+      expect(expansions['和合本1919'], '和合本一九一九');
+      // The second Chinese version should be 新译本 (not 新标点和合本)
+      expect(expansions['新译本'], '新译本');
+    });
+
     test('unknown language falls back to Spanish', () {
       final expansions = BibleTextFormatter.getBibleVersionExpansions('xx');
       expect(expansions['RVR1960'], 'Reina Valera mil novecientos sesenta');
@@ -145,57 +173,99 @@ void main() {
 
   group('BibleTextFormatter - Bible References', () {
     test('formats chapter:verse reference in Spanish', () {
-      final result =
-          BibleTextFormatter.formatBibleReferences('Juan 3:16', 'es');
+      final result = BibleTextFormatter.formatBibleReferences(
+        'Juan 3:16',
+        'es',
+      );
       expect(result, contains('capítulo'));
       expect(result, contains('versículo'));
     });
 
     test('formats chapter:verse reference in English', () {
-      final result =
-          BibleTextFormatter.formatBibleReferences('John 3:16', 'en');
+      final result = BibleTextFormatter.formatBibleReferences(
+        'John 3:16',
+        'en',
+      );
       expect(result, contains('chapter'));
       expect(result, contains('verse'));
     });
 
     test('formats verse range in Spanish', () {
-      final result =
-          BibleTextFormatter.formatBibleReferences('Salmos 23:1-6', 'es');
+      final result = BibleTextFormatter.formatBibleReferences(
+        'Salmos 23:1-6',
+        'es',
+      );
       expect(result, contains('al'));
     });
 
     test('formats verse range in English', () {
-      final result =
-          BibleTextFormatter.formatBibleReferences('Psalms 23:1-6', 'en');
+      final result = BibleTextFormatter.formatBibleReferences(
+        'Psalms 23:1-6',
+        'en',
+      );
       expect(result, contains('to'));
     });
 
     test('formats verse range in Portuguese', () {
-      final result =
-          BibleTextFormatter.formatBibleReferences('Salmos 23:1-6', 'pt');
+      final result = BibleTextFormatter.formatBibleReferences(
+        'Salmos 23:1-6',
+        'pt',
+      );
       expect(result, contains('ao'));
     });
 
     test('formats verse range in French', () {
-      final result =
-          BibleTextFormatter.formatBibleReferences('Psaumes 23:1-6', 'fr');
+      final result = BibleTextFormatter.formatBibleReferences(
+        'Psaumes 23:1-6',
+        'fr',
+      );
       expect(result, contains('au'));
+    });
+
+    test('formats chapter:verse reference in Chinese', () {
+      final result = BibleTextFormatter.formatBibleReferences(
+        '约翰福音 3:16',
+        'zh',
+      );
+      expect(result, contains('章'));
+      expect(result, contains('节'));
+    });
+
+    test('formats verse range in Chinese', () {
+      final result = BibleTextFormatter.formatBibleReferences(
+        '诗篇 23:1-6',
+        'zh',
+      );
+      expect(result, contains('至'));
     });
   });
 
   group('BibleTextFormatter - Normalize TTS Text', () {
     test('normalizes complete Spanish reference', () {
-      final result =
-          BibleTextFormatter.normalizeTtsText('1 Pedro 3:16 RVR1960', 'es');
+      final result = BibleTextFormatter.normalizeTtsText(
+        '1 Pedro 3:16 RVR1960',
+        'es',
+      );
       expect(result, contains('Primera de Pedro'));
       expect(result, contains('Reina Valera'));
     });
 
     test('normalizes complete English reference', () {
-      final result =
-          BibleTextFormatter.normalizeTtsText('1 Peter 3:16 KJV', 'en');
+      final result = BibleTextFormatter.normalizeTtsText(
+        '1 Peter 3:16 KJV',
+        'en',
+      );
       expect(result, contains('First Peter'));
       expect(result, contains('King James Version'));
+    });
+
+    test('normalizes complete Chinese reference', () {
+      final result = BibleTextFormatter.normalizeTtsText(
+        '约翰福音 3:16 和合本1919',
+        'zh',
+      );
+      expect(result, contains('约翰福音'));
+      expect(result, contains('和合本一九一九'));
     });
 
     test('cleans up extra whitespace', () {
@@ -226,8 +296,10 @@ void main() {
     });
 
     test('handles multiple book references in text', () {
-      final result =
-          BibleTextFormatter.formatBibleBook('Lee 1 Pedro y 2 Juan', 'es');
+      final result = BibleTextFormatter.formatBibleBook(
+        'Lee 1 Pedro y 2 Juan',
+        'es',
+      );
       expect(result, contains('Primera de Pedro'));
       expect(result, contains('Segunda de Juan'));
     });

@@ -11,7 +11,10 @@ class Constants {
 
   // ✅ NEW METHOD for multilingual support
   static String getDevocionalesApiUrlMultilingual(
-      int year, String languageCode, String versionCode) {
+    int year,
+    String languageCode,
+    String versionCode,
+  ) {
     // Backward compatibility for Spanish RVR1960
     if (languageCode == 'es' && versionCode == 'RVR1960') {
       return getDevocionalesApiUrl(year); // Use original method
@@ -30,6 +33,7 @@ class Constants {
     'pt': 'Português',
     'fr': 'Français',
     'ja': '日本語', // Habilitar japonés
+    'zh': '中文', // Habilitar chino
   };
 
   // Versiones de la Biblia disponibles por idioma
@@ -39,6 +43,7 @@ class Constants {
     'pt': ['ARC', 'NVI'],
     'fr': ['LSG1910', 'TOB'],
     'ja': ['新改訳2003', 'リビングバイブル'], // Japanese versions
+    'zh': ['和合本1919', '新译本'], // Chinese versions (fix: 新译本)
   };
 
   // Versión de Biblia por defecto por idioma
@@ -48,6 +53,7 @@ class Constants {
     'pt': 'ARC',
     'fr': 'LSG1910',
     'ja': '新改訳2003', // Default Japanese version
+    'zh': '和合本1919', // Default Chinese version
   };
 
   // Nombres japoneses para versiones de la Biblia (deprecated - versions now use Japanese names directly)

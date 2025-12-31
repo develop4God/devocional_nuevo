@@ -38,32 +38,36 @@ void main() {
 
       // Mock flutter_tts platform channel
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(
-        const MethodChannel('flutter_tts'),
-        (call) async {
-          switch (call.method) {
-            case 'speak':
-            case 'stop':
-            case 'pause':
-            case 'setLanguage':
-            case 'setSpeechRate':
-            case 'setVolume':
-            case 'setPitch':
-            case 'awaitSpeakCompletion':
-            case 'awaitSynthCompletion':
-            case 'setQueueMode':
-              return 1;
-            case 'getLanguages':
-              return ['es-ES', 'en-US', 'pt-BR', 'fr-FR', 'ja-JP'];
-            case 'getVoices':
-              return [];
-            case 'isLanguageAvailable':
-              return true;
-            default:
-              return null;
-          }
-        },
-      );
+          .setMockMethodCallHandler(const MethodChannel('flutter_tts'), (
+        call,
+      ) async {
+        switch (call.method) {
+          case 'speak':
+          case 'stop':
+          case 'pause':
+          case 'setLanguage':
+          case 'setSpeechRate':
+          case 'setVolume':
+          case 'setPitch':
+          case 'awaitSpeakCompletion':
+          case 'awaitSynthCompletion':
+          case 'setQueueMode':
+            return 1;
+          case 'getLanguages':
+            return ['es-ES', 'en-US', 'pt-BR', 'fr-FR', 'ja-JP'];
+          case 'getVoices':
+            return [
+              {'name': 'cmn-cn-x-cce-local', 'locale': 'zh-CN'},
+              {'name': 'cmn-cn-x-ccc-local', 'locale': 'zh-CN'},
+              {'name': 'cmn-tw-x-cte-network', 'locale': 'zh-TW'},
+              {'name': 'cmn-tw-x-ctc-network', 'locale': 'zh-TW'},
+            ];
+          case 'isLanguageAvailable':
+            return true;
+          default:
+            return null;
+        }
+      });
 
       // Create fresh service instance for each test
       ttsService = TtsService();
@@ -110,8 +114,11 @@ void main() {
 
       // Then: Service should track the devotional ID
       // Note: In test environment, TTS platform may not report playing state correctly
-      expect(ttsService.currentDevocionalId, 'test-1',
-          reason: 'Current devotional should be tracked after play');
+      expect(
+        ttsService.currentDevocionalId,
+        'test-1',
+        reason: 'Current devotional should be tracked after play',
+      );
     });
 
     test('User Scenario: User pauses playback', () async {
@@ -135,8 +142,11 @@ void main() {
 
       // Then: Pause method should be callable without throwing
       // Note: In test environment, TTS platform handlers may not fire
-      expect(ttsService.currentDevocionalId, 'test-2',
-          reason: 'Current devotional should still be tracked');
+      expect(
+        ttsService.currentDevocionalId,
+        'test-2',
+        reason: 'Current devotional should still be tracked',
+      );
     });
 
     test('User Scenario: User resumes after pause', () async {
@@ -162,8 +172,11 @@ void main() {
 
       // Then: Resume should be callable and track devotional
       // Note: In test environment, TTS platform handlers may not fire correctly
-      expect(ttsService.currentDevocionalId, 'test-3',
-          reason: 'Devotional should still be tracked after resume');
+      expect(
+        ttsService.currentDevocionalId,
+        'test-3',
+        reason: 'Devotional should still be tracked after resume',
+      );
     });
 
     test('User Scenario: User stops playback completely', () async {
@@ -186,12 +199,21 @@ void main() {
       await Future.delayed(const Duration(milliseconds: 100));
 
       // Then: Service should reset state flags
-      expect(ttsService.isPlaying, false,
-          reason: 'isPlaying should be false after stop');
-      expect(ttsService.isPaused, false,
-          reason: 'isPaused should be false after stop');
-      expect(ttsService.isActive, false,
-          reason: 'isActive should be false after stop');
+      expect(
+        ttsService.isPlaying,
+        false,
+        reason: 'isPlaying should be false after stop',
+      );
+      expect(
+        ttsService.isPaused,
+        false,
+        reason: 'isPaused should be false after stop',
+      );
+      expect(
+        ttsService.isActive,
+        false,
+        reason: 'isActive should be false after stop',
+      );
     });
 
     test('User Scenario: Multiple rapid commands handled gracefully', () async {
@@ -216,8 +238,11 @@ void main() {
       await Future.delayed(const Duration(milliseconds: 100));
 
       // Then: Service should handle gracefully and not crash
-      expect(ttsService.isDisposed, false,
-          reason: 'Service should not crash or dispose from rapid commands');
+      expect(
+        ttsService.isDisposed,
+        false,
+        reason: 'Service should not crash or dispose from rapid commands',
+      );
     });
 
     test('User Scenario: Language context changes', () async {
@@ -229,8 +254,11 @@ void main() {
       ttsService.setLanguageContext('en', 'NIV');
 
       // Then: Service should adapt (no exception thrown)
-      expect(() => ttsService.setLanguageContext('pt', 'NVI'), returnsNormally,
-          reason: 'Setting language context should not throw exceptions');
+      expect(
+        () => ttsService.setLanguageContext('pt', 'NVI'),
+        returnsNormally,
+        reason: 'Setting language context should not throw exceptions',
+      );
     });
 
     test('User Scenario: TTS plays full devotional content', () async {
@@ -245,8 +273,9 @@ void main() {
             'Padre celestial, ayúdanos a confiar en tu plan perfecto para nuestras vidas.',
         paraMeditar: [
           ParaMeditar(
-              cita: '1 Corintios 13:4-7',
-              texto: 'El amor es paciente, es bondadoso.')
+            cita: '1 Corintios 13:4-7',
+            texto: 'El amor es paciente, es bondadoso.',
+          ),
         ],
       );
 
@@ -256,8 +285,11 @@ void main() {
 
       // Then: Service should track the devotional
       // Note: In test environment, TTS platform handlers may not report playing correctly
-      expect(ttsService.currentDevocionalId, 'test-6',
-          reason: 'Current devotional should be tracked');
+      expect(
+        ttsService.currentDevocionalId,
+        'test-6',
+        reason: 'Current devotional should be tracked',
+      );
     });
 
     test('User Scenario: Service properly disposes', () async {
@@ -287,8 +319,11 @@ void main() {
       await ttsService.setSpeechRate(0.8);
 
       // Then: No exception should occur
-      expect(ttsService.isDisposed, false,
-          reason: 'Service should remain functional after rate change');
+      expect(
+        ttsService.isDisposed,
+        false,
+        reason: 'Service should remain functional after rate change',
+      );
 
       // And: Extreme values should be clamped
       await ttsService.setSpeechRate(10.0); // Should clamp to 3.0
@@ -343,8 +378,11 @@ void main() {
 
         // Then: Service should complete without errors
         // Note: In test environment, stream events may not fire as expected
-        expect(ttsService.isDisposed, false,
-            reason: 'Service should not be disposed during operation');
+        expect(
+          ttsService.isDisposed,
+          false,
+          reason: 'Service should not be disposed during operation',
+        );
       } finally {
         await subscription.cancel();
       }
@@ -374,8 +412,11 @@ void main() {
 
         // Then: Progress stream subscription should work without errors
         // Note: In test environment, progress events may not fire
-        expect(ttsService.isDisposed, false,
-            reason: 'Service should not be disposed');
+        expect(
+          ttsService.isDisposed,
+          false,
+          reason: 'Service should not be disposed',
+        );
       } finally {
         await subscription.cancel();
       }
@@ -383,22 +424,24 @@ void main() {
   });
 
   group('TTS Service - Dependency Injection Validation', () {
-    test('Service can be registered and retrieved from service locator',
-        () async {
-      // Given: Service locator is setup
-      ServiceLocator().reset();
-      setupServiceLocator();
+    test(
+      'Service can be registered and retrieved from service locator',
+      () async {
+        // Given: Service locator is setup
+        ServiceLocator().reset();
+        setupServiceLocator();
 
-      // When: We retrieve the service
-      final service = getService<ITtsService>();
+        // When: We retrieve the service
+        final service = getService<ITtsService>();
 
-      // Then: We should get a valid instance
-      expect(service, isNotNull);
-      expect(service, isA<ITtsService>());
-      expect(service.isDisposed, false);
+        // Then: We should get a valid instance
+        expect(service, isNotNull);
+        expect(service, isA<ITtsService>());
+        expect(service.isDisposed, false);
 
-      await service.dispose();
-    });
+        await service.dispose();
+      },
+    );
 
     test('Multiple retrievals return same instance (lazy singleton)', () async {
       // Given: Service locator is setup
@@ -410,8 +453,11 @@ void main() {
       final service2 = getService<ITtsService>();
 
       // Then: Should be same instance
-      expect(identical(service1, service2), true,
-          reason: 'Lazy singleton should return same instance');
+      expect(
+        identical(service1, service2),
+        true,
+        reason: 'Lazy singleton should return same instance',
+      );
 
       await service1.dispose();
     });

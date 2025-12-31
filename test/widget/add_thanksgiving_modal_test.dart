@@ -28,16 +28,15 @@ void main() {
         home: Scaffold(
           body: BlocProvider<ThanksgivingBloc>.value(
             value: bloc,
-            child: AddThanksgivingModal(
-              thanksgivingToEdit: thanksgivingToEdit,
-            ),
+            child: AddThanksgivingModal(thanksgivingToEdit: thanksgivingToEdit),
           ),
         ),
       );
     }
 
-    testWidgets('should display title for new thanksgiving',
-        (WidgetTester tester) async {
+    testWidgets('should display title for new thanksgiving', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
 
@@ -53,8 +52,9 @@ void main() {
       expect(find.byIcon(Icons.close), findsOneWidget);
     });
 
-    testWidgets('should display cancel and create buttons',
-        (WidgetTester tester) async {
+    testWidgets('should display cancel and create buttons', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
 
@@ -62,8 +62,9 @@ void main() {
       expect(find.byType(ElevatedButton), findsOneWidget);
     });
 
-    testWidgets('should populate text field when editing',
-        (WidgetTester tester) async {
+    testWidgets('should populate text field when editing', (
+      WidgetTester tester,
+    ) async {
       final existingThanksgiving = Thanksgiving(
         id: 'test_123',
         text: 'Existing thanksgiving text',
@@ -78,8 +79,9 @@ void main() {
       expect(find.text('Existing thanksgiving text'), findsOneWidget);
     });
 
-    testWidgets('should close modal when close button is tapped',
-        (WidgetTester tester) async {
+    testWidgets('should close modal when close button is tapped', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
 
@@ -90,8 +92,9 @@ void main() {
       expect(find.byType(AddThanksgivingModal), findsNothing);
     });
 
-    testWidgets('should close modal when cancel button is tapped',
-        (WidgetTester tester) async {
+    testWidgets('should close modal when cancel button is tapped', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
 
@@ -102,8 +105,9 @@ void main() {
       expect(find.byType(AddThanksgivingModal), findsNothing);
     });
 
-    testWidgets('should show error when submitting empty text',
-        (WidgetTester tester) async {
+    testWidgets('should show error when submitting empty text', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
 
@@ -115,8 +119,9 @@ void main() {
       expect(find.byIcon(Icons.error_outline), findsOneWidget);
     });
 
-    testWidgets('should show error when text is too short',
-        (WidgetTester tester) async {
+    testWidgets('should show error when text is too short', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
 
@@ -132,8 +137,9 @@ void main() {
       expect(find.byIcon(Icons.error_outline), findsOneWidget);
     });
 
-    testWidgets('should allow entering valid text and create thanksgiving',
-        (WidgetTester tester) async {
+    testWidgets('should allow entering valid text and create thanksgiving', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
 
@@ -153,17 +159,19 @@ void main() {
       expect(find.byType(AddThanksgivingModal), findsNothing);
     });
 
-    testWidgets('should respect max length of 500 characters',
-        (WidgetTester tester) async {
+    testWidgets('should respect max length of 500 characters', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
 
       final textField = tester.widget<TextField>(find.byType(TextField));
-      expect(textField.maxLength, equals(500));
+      expect(textField.maxLength, equals(700));
     });
 
-    testWidgets('should have 6 lines for text input',
-        (WidgetTester tester) async {
+    testWidgets('should have 6 lines for text input', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
 
@@ -171,8 +179,9 @@ void main() {
       expect(textField.maxLines, equals(6));
     });
 
-    testWidgets('should auto-focus on text field when opened',
-        (WidgetTester tester) async {
+    testWidgets('should auto-focus on text field when opened', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
 

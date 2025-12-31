@@ -31,6 +31,7 @@ class LocalizationService {
     Locale('pt', ''), // Portuguese
     Locale('fr', ''), // French
     Locale('ja', ''), // Japanese
+    Locale('zh', ''), // Chinese
   ];
 
   // Default locale
@@ -129,8 +130,9 @@ class LocalizationService {
             return;
           }
 
-          final jsonString = await rootBundle
-              .loadString('i18n/${defaultLocale.languageCode}.json');
+          final jsonString = await rootBundle.loadString(
+            'i18n/${defaultLocale.languageCode}.json',
+          );
           final translations = json.decode(jsonString) as Map<String, dynamic>;
           _translationsCache[defaultLocale.languageCode] = translations;
           _translations = translations;
@@ -210,6 +212,8 @@ class LocalizationService {
         return 'fr-FR';
       case 'ja':
         return 'ja-JP';
+      case 'zh':
+        return 'zh-CN';
       default:
         return 'es-ES';
     }
@@ -228,6 +232,8 @@ class LocalizationService {
         return 'Français';
       case 'ja':
         return '日本語';
+      case 'zh':
+        return '中文';
       default:
         return languageCode;
     }
@@ -237,15 +243,27 @@ class LocalizationService {
   DateFormat getLocalizedDateFormat(String languageCode) {
     switch (languageCode) {
       case 'es':
-        return DateFormat('EEEE, d ' 'de' ' MMMM', 'es');
+        return DateFormat(
+          'EEEE, d '
+              'de'
+              ' MMMM',
+          'es',
+        );
       case 'en':
         return DateFormat('EEEE, MMMM d', 'en');
       case 'fr':
         return DateFormat('EEEE d MMMM', 'fr');
       case 'pt':
-        return DateFormat('EEEE, d ' 'de' ' MMMM', 'pt');
+        return DateFormat(
+          'EEEE, d '
+              'de'
+              ' MMMM',
+          'pt',
+        );
       case 'ja':
         return DateFormat('y年M月d日 EEEE', 'ja');
+      case 'zh':
+        return DateFormat('y年M月d日 EEEE', 'zh');
       default:
         return DateFormat('EEEE, MMMM d', 'en');
     }

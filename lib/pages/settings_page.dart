@@ -69,7 +69,8 @@ class _SettingsPageState extends State<SettingsPage> {
         _showBackupSection = true; // Habilitado
       });
       developer.log(
-          '[FORCED ON] Feature flags set to: donation_mode=$_donationMode, badges=$_showBadgesTab, backup=$_showBackupSection');
+        '[FORCED ON] Feature flags set to: donation_mode=$_donationMode, badges=$_showBadgesTab, backup=$_showBackupSection',
+      );
     } catch (e) {
       developer.log('Feature flags failed to load: $e, using defaults');
       // Keep default values - app continues working
@@ -77,8 +78,10 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Future<void> _loadSavedVoices() async {
-    final localizationProvider =
-        Provider.of<LocalizationProvider>(context, listen: false);
+    final localizationProvider = Provider.of<LocalizationProvider>(
+      context,
+      listen: false,
+    );
     final language = localizationProvider.currentLocale.languageCode;
     final prefs = await SharedPreferences.getInstance();
     // Load saved voice name for the current language (used by VoiceSelectorDialog)
@@ -141,169 +144,172 @@ class _SettingsPageState extends State<SettingsPage> {
     final themeState = context.watch<ThemeBloc>().state as ThemeLoaded;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
-        value: themeState.systemUiOverlayStyle,
-        child: Scaffold(
-          appBar: CustomAppBar(
-            titleText: 'settings.title'.tr(),
-          ),
-          body: Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Support/Donation Button (PayPal always)
-                  SizedBox(
-                    child: Align(
-                      alignment: Alignment.topRight,
-                      child: OutlinedButton.icon(
-                        onPressed: _handleDonateAction,
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: colorScheme.onSurface,
-                          side: BorderSide(
-                              color: colorScheme.primary, width: 2.0),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20.0),
-                          ),
+      value: themeState.systemUiOverlayStyle,
+      child: Scaffold(
+        appBar: CustomAppBar(titleText: 'settings.title'.tr()),
+        body: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Support/Donation Button (PayPal always)
+                SizedBox(
+                  child: Align(
+                    alignment: Alignment.topRight,
+                    child: OutlinedButton.icon(
+                      onPressed: _handleDonateAction,
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: colorScheme.onSurface,
+                        side: BorderSide(
+                          color: colorScheme.primary,
+                          width: 2.0,
                         ),
-                        label: Text(
-                          'settings.donate'.tr(),
-                          style: textTheme.bodyMedium?.copyWith(
-                            color: colorScheme.onSurface,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20.0),
+                        ),
+                      ),
+                      label: Text(
+                        'settings.donate'.tr(),
+                        style: textTheme.bodyMedium?.copyWith(
+                          color: colorScheme.onSurface,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
                         ),
                       ),
                     ),
                   ),
-                  const SizedBox(height: 20),
+                ),
+                const SizedBox(height: 20),
 
-                  // Language Selection
-                  InkWell(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const ApplicationLanguagePage(),
-                        ),
-                      );
-                    },
-                    borderRadius: BorderRadius.circular(8.0),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 12,
-                        horizontal: 4,
+                // Language Selection
+                InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const ApplicationLanguagePage(),
                       ),
-                      child: Row(
-                        children: [
-                          Icon(Icons.language, color: colorScheme.primary),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'settings.language'.tr(),
-                                  style: textTheme.bodyMedium?.copyWith(
-                                    fontSize: 16,
-                                    color: colorScheme.onSurface,
-                                  ),
+                    );
+                  },
+                  borderRadius: BorderRadius.circular(8.0),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 12,
+                      horizontal: 4,
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.language, color: colorScheme.primary),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'settings.language'.tr(),
+                                style: textTheme.bodyMedium?.copyWith(
+                                  fontSize: 16,
+                                  color: colorScheme.onSurface,
                                 ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  Constants.supportedLanguages[
-                                          localizationProvider
-                                              .currentLocale.languageCode] ??
-                                      localizationProvider
-                                          .currentLocale.languageCode,
-                                  style: textTheme.bodySmall?.copyWith(
-                                    color: colorScheme.onSurfaceVariant,
-                                    fontSize: 12,
-                                  ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                Constants.supportedLanguages[
+                                        localizationProvider
+                                            .currentLocale.languageCode] ??
+                                    localizationProvider
+                                        .currentLocale.languageCode,
+                                style: textTheme.bodySmall?.copyWith(
+                                  color: colorScheme.onSurfaceVariant,
+                                  fontSize: 12,
                                 ),
-                                // Mostrar solo el idioma, sin versión bíblica
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  // Contact
-                  InkWell(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const ContactPage()),
-                      );
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8.0),
-                      child: Row(
-                        children: [
-                          Icon(Icons.contact_mail, color: colorScheme.primary),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Text(
-                              'settings.contact_us'.tr(),
-                              style: textTheme.bodyMedium?.copyWith(
-                                fontSize: 16,
-                                color: colorScheme.onSurface,
                               ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
+                              // Mostrar solo el idioma, sin versión bíblica
+                            ],
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 20),
+                ),
 
-                  // About
-                  InkWell(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const AboutPage()),
-                      );
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8.0),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.perm_device_info_outlined,
-                            color: colorScheme.primary,
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Text(
-                              'settings.about_app'.tr(),
-                              style: textTheme.bodyMedium?.copyWith(
-                                fontSize: 16,
-                                color: colorScheme.onSurface,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
+                const SizedBox(height: 20),
+
+                // Contact
+                InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const ContactPage(),
                       ),
+                    );
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: Row(
+                      children: [
+                        Icon(Icons.contact_mail, color: colorScheme.primary),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            'settings.contact_us'.tr(),
+                            style: textTheme.bodyMedium?.copyWith(
+                              fontSize: 16,
+                              color: colorScheme.onSurface,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
+                ),
+                const SizedBox(height: 20),
 
-                  const SizedBox(height: 20),
-                ],
-              ),
+                // About
+                InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const AboutPage(),
+                      ),
+                    );
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.perm_device_info_outlined,
+                          color: colorScheme.primary,
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            'settings.about_app'.tr(),
+                            style: textTheme.bodyMedium?.copyWith(
+                              fontSize: 16,
+                              color: colorScheme.onSurface,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 20),
+              ],
             ),
           ),
-        ));
+        ),
+      ),
+    );
   }
 }

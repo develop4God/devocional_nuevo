@@ -86,8 +86,11 @@ void main() {
 
       stats = await statsService.getStats();
       // Should still be 1, not 2
-      expect(stats.totalDevocionalesRead, equals(1),
-          reason: 'Re-reading same devotional should not increase count');
+      expect(
+        stats.totalDevocionalesRead,
+        equals(1),
+        reason: 'Re-reading same devotional should not increase count',
+      );
       expect(stats.readDevocionalIds.length, equals(1));
     });
 
@@ -101,8 +104,11 @@ void main() {
       );
 
       var stats = await statsService.getStats();
-      expect(stats.totalDevocionalesRead, equals(0),
-          reason: 'Quick skim should not count as read');
+      expect(
+        stats.totalDevocionalesRead,
+        equals(0),
+        reason: 'Quick skim should not count as read',
+      );
       expect(stats.readDevocionalIds, isEmpty);
     });
 
@@ -116,8 +122,11 @@ void main() {
       );
 
       var stats = await statsService.getStats();
-      expect(stats.totalDevocionalesRead, equals(0),
-          reason: 'Partial scroll should not count as read');
+      expect(
+        stats.totalDevocionalesRead,
+        equals(0),
+        reason: 'Partial scroll should not count as read',
+      );
       expect(stats.readDevocionalIds, isEmpty);
     });
 
@@ -130,8 +139,11 @@ void main() {
       );
 
       var stats = await statsService.getStats();
-      expect(stats.totalDevocionalesRead, equals(1),
-          reason: 'Listening should count as completing devotional');
+      expect(
+        stats.totalDevocionalesRead,
+        equals(1),
+        reason: 'Listening should count as completing devotional',
+      );
       expect(stats.readDevocionalIds, contains('audio_dev_001'));
     });
 
@@ -171,35 +183,37 @@ void main() {
       expect(stats.favoritesCount, equals(1));
     });
 
-    test('User updates favorites count after reading multiple devotionals',
-        () async {
-      // Read first devotional
-      await statsService.recordDevocionalRead(
-        devocionalId: 'dev_1',
-        readingTimeSeconds: 100,
-        scrollPercentage: 0.9,
-      );
+    test(
+      'User updates favorites count after reading multiple devotionals',
+      () async {
+        // Read first devotional
+        await statsService.recordDevocionalRead(
+          devocionalId: 'dev_1',
+          readingTimeSeconds: 100,
+          scrollPercentage: 0.9,
+        );
 
-      // Read and favorite second
-      await statsService.recordDevocionalRead(
-        devocionalId: 'dev_2',
-        readingTimeSeconds: 100,
-        scrollPercentage: 0.9,
-        favoritesCount: 1,
-      );
+        // Read and favorite second
+        await statsService.recordDevocionalRead(
+          devocionalId: 'dev_2',
+          readingTimeSeconds: 100,
+          scrollPercentage: 0.9,
+          favoritesCount: 1,
+        );
 
-      // Read and favorite third
-      await statsService.recordDevocionalRead(
-        devocionalId: 'dev_3',
-        readingTimeSeconds: 100,
-        scrollPercentage: 0.9,
-        favoritesCount: 2,
-      );
+        // Read and favorite third
+        await statsService.recordDevocionalRead(
+          devocionalId: 'dev_3',
+          readingTimeSeconds: 100,
+          scrollPercentage: 0.9,
+          favoritesCount: 2,
+        );
 
-      var stats = await statsService.getStats();
-      expect(stats.totalDevocionalesRead, equals(3));
-      expect(stats.favoritesCount, equals(2));
-    });
+        var stats = await statsService.getStats();
+        expect(stats.totalDevocionalesRead, equals(3));
+        expect(stats.favoritesCount, equals(2));
+      },
+    );
 
     test('User workflow: App restart and stats persist', () async {
       // Day 1: User reads devotionals
@@ -238,8 +252,11 @@ void main() {
       );
 
       var stats = await statsService.getStats();
-      expect(stats.totalDevocionalesRead, equals(0),
-          reason: 'Empty ID should not be counted');
+      expect(
+        stats.totalDevocionalesRead,
+        equals(0),
+        reason: 'Empty ID should not be counted',
+      );
     });
 
     test('Real user pattern: Mix of reading and listening', () async {
@@ -272,8 +289,11 @@ void main() {
       );
 
       var stats = await statsService.getStats();
-      expect(stats.totalDevocionalesRead, equals(4),
-          reason: 'Both reading and listening should count');
+      expect(
+        stats.totalDevocionalesRead,
+        equals(4),
+        reason: 'Both reading and listening should count',
+      );
       expect(stats.readDevocionalIds.length, equals(4));
     });
 
@@ -298,8 +318,11 @@ void main() {
         orElse: () => statsAfter.unlockedAchievements.first,
       );
 
-      expect(firstReadAchievement.isUnlocked, isTrue,
-          reason: 'First read achievement should be unlocked');
+      expect(
+        firstReadAchievement.isUnlocked,
+        isTrue,
+        reason: 'First read achievement should be unlocked',
+      );
     });
 
     test('User quickly switches between devotionals (navigation)', () async {

@@ -6,8 +6,11 @@ void main() {
   group('Onboarding Feature Flag Tests', () {
     test('Onboarding feature should be disabled by default', () {
       // Verify that onboarding feature is disabled via feature flag
-      expect(Constants.enableOnboardingFeature, false,
-          reason: 'Onboarding feature should be disabled for users');
+      expect(
+        Constants.enableOnboardingFeature,
+        false,
+        reason: 'Onboarding feature should be disabled for users',
+      );
     });
 
     test('Feature flag should prevent onboarding check', () {
@@ -26,8 +29,11 @@ void main() {
           await OnboardingService.instance.shouldShowOnboarding();
 
       // Onboarding is permanently disabled
-      expect(shouldShow, false,
-          reason: 'Onboarding should always return false when disabled');
+      expect(
+        shouldShow,
+        false,
+        reason: 'Onboarding should always return false when disabled',
+      );
     });
 
     test('Feature flag is compile-time constant', () {

@@ -21,10 +21,7 @@ class ThemeBloc extends Bloc<ThemeEvent, ThemeState> {
   }
 
   /// Load theme settings from storage
-  Future<void> _onLoadTheme(
-    LoadTheme event,
-    Emitter<ThemeState> emit,
-  ) async {
+  Future<void> _onLoadTheme(LoadTheme event, Emitter<ThemeState> emit) async {
     try {
       emit(const ThemeLoading());
 
@@ -37,10 +34,12 @@ class ThemeBloc extends Bloc<ThemeEvent, ThemeState> {
           ? themeFamily
           : ThemeRepository.defaultThemeFamily;
 
-      emit(ThemeLoaded.withThemeData(
-        themeFamily: validatedThemeFamily,
-        brightness: brightness,
-      ));
+      emit(
+        ThemeLoaded.withThemeData(
+          themeFamily: validatedThemeFamily,
+          brightness: brightness,
+        ),
+      );
     } catch (e) {
       emit(ThemeError('Failed to load theme: ${e.toString()}'));
     }
@@ -69,10 +68,12 @@ class ThemeBloc extends Bloc<ThemeEvent, ThemeState> {
       await _repository.saveThemeFamily(event.themeFamily);
 
       // Emit new state
-      emit(ThemeLoaded.withThemeData(
-        themeFamily: event.themeFamily,
-        brightness: currentState.brightness,
-      ));
+      emit(
+        ThemeLoaded.withThemeData(
+          themeFamily: event.themeFamily,
+          brightness: currentState.brightness,
+        ),
+      );
     } catch (e) {
       emit(ThemeError('Failed to change theme family: ${e.toString()}'));
     }
@@ -95,10 +96,12 @@ class ThemeBloc extends Bloc<ThemeEvent, ThemeState> {
       await _repository.saveBrightness(event.brightness);
 
       // Emit new state
-      emit(ThemeLoaded.withThemeData(
-        themeFamily: currentState.themeFamily,
-        brightness: event.brightness,
-      ));
+      emit(
+        ThemeLoaded.withThemeData(
+          themeFamily: currentState.themeFamily,
+          brightness: event.brightness,
+        ),
+      );
     } catch (e) {
       emit(ThemeError('Failed to change brightness: ${e.toString()}'));
     }
@@ -109,10 +112,12 @@ class ThemeBloc extends Bloc<ThemeEvent, ThemeState> {
     InitializeThemeDefaults event,
     Emitter<ThemeState> emit,
   ) async {
-    emit(ThemeLoaded.withThemeData(
-      themeFamily: ThemeRepository.defaultThemeFamily,
-      brightness: ThemeRepository.defaultBrightness,
-    ));
+    emit(
+      ThemeLoaded.withThemeData(
+        themeFamily: ThemeRepository.defaultThemeFamily,
+        brightness: ThemeRepository.defaultBrightness,
+      ),
+    );
   }
 
   /// Helper method for immediate theme access (compatible with old API)

@@ -23,19 +23,22 @@ void main() {
         providers: [
           BlocProvider<ThemeBloc>(
             create: (_) => ThemeBloc()
-              ..emit(ThemeLoaded(
-                themeFamily: 'Deep Purple',
-                brightness: Brightness.light,
-                themeData: ThemeData.light(),
-              )),
+              ..emit(
+                ThemeLoaded(
+                  themeFamily: 'Deep Purple',
+                  brightness: Brightness.light,
+                  themeData: ThemeData.light(),
+                ),
+              ),
           ),
         ],
         child: MaterialApp(home: child),
       );
     }
 
-    testWidgets('should create BibleReaderPage with versions',
-        (WidgetTester tester) async {
+    testWidgets('should create BibleReaderPage with versions', (
+      WidgetTester tester,
+    ) async {
       final versions = [
         BibleVersion(
           name: 'RVR1960',
@@ -46,8 +49,9 @@ void main() {
         ),
       ];
 
-      await tester
-          .pumpWidget(buildTestableWidget(BibleReaderPage(versions: versions)));
+      await tester.pumpWidget(
+        buildTestableWidget(BibleReaderPage(versions: versions)),
+      );
 
       // Wait for first frame
       await tester.pump();
@@ -57,8 +61,9 @@ void main() {
       expect(find.byType(AppBar), findsOneWidget);
     });
 
-    testWidgets('should show loading indicator initially',
-        (WidgetTester tester) async {
+    testWidgets('should show loading indicator initially', (
+      WidgetTester tester,
+    ) async {
       final versions = [
         BibleVersion(
           name: 'RVR1960',
@@ -69,8 +74,9 @@ void main() {
         ),
       ];
 
-      await tester
-          .pumpWidget(buildTestableWidget(BibleReaderPage(versions: versions)));
+      await tester.pumpWidget(
+        buildTestableWidget(BibleReaderPage(versions: versions)),
+      );
 
       // Initial frame
       await tester.pump();
@@ -91,8 +97,9 @@ void main() {
         ),
       ];
 
-      await tester
-          .pumpWidget(buildTestableWidget(BibleReaderPage(versions: versions)));
+      await tester.pumpWidget(
+        buildTestableWidget(BibleReaderPage(versions: versions)),
+      );
 
       await tester.pump();
 
@@ -100,8 +107,9 @@ void main() {
       expect(find.byType(AppBar), findsOneWidget);
     });
 
-    testWidgets('should accept empty versions list',
-        (WidgetTester tester) async {
+    testWidgets('should accept empty versions list', (
+      WidgetTester tester,
+    ) async {
       // This test verifies the widget doesn't crash with empty list
       // In real app, we'd pass at least one version
       final versions = [
@@ -114,8 +122,9 @@ void main() {
         ),
       ];
 
-      await tester
-          .pumpWidget(buildTestableWidget(BibleReaderPage(versions: versions)));
+      await tester.pumpWidget(
+        buildTestableWidget(BibleReaderPage(versions: versions)),
+      );
 
       await tester.pump();
 

@@ -5,14 +5,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:devocional_nuevo/models/spiritual_stats_model.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
-import 'package:devocional_nuevo/services/localization_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   setUpAll(() {
     TestWidgetsFlutterBinding.ensureInitialized();
     ServiceLocator().reset();
-    ServiceLocator().registerLazySingleton<LocalizationService>(
-        () => LocalizationService());
+    SharedPreferences.setMockInitialValues({});
+    setupServiceLocator();
   });
 
   tearDownAll(() {
@@ -303,9 +303,7 @@ void main() {
         isUnlocked: true,
       );
 
-      final stats = SpiritualStats(
-        unlockedAchievements: [achievement],
-      );
+      final stats = SpiritualStats(unlockedAchievements: [achievement]);
 
       expect(stats.unlockedAchievements, hasLength(1));
       expect(stats.unlockedAchievements.first.isUnlocked, true);
@@ -314,32 +312,35 @@ void main() {
     test('stats can track multiple achievements', () {
       final achievements = <Achievement>[
         Achievement(
-            id: '1',
-            title: 'A1',
-            description: 'D1',
-            icon: Icons.star,
-            color: Colors.amber,
-            threshold: 1,
-            type: AchievementType.reading,
-            isUnlocked: true),
+          id: '1',
+          title: 'A1',
+          description: 'D1',
+          icon: Icons.star,
+          color: Colors.amber,
+          threshold: 1,
+          type: AchievementType.reading,
+          isUnlocked: true,
+        ),
         Achievement(
-            id: '2',
-            title: 'A2',
-            description: 'D2',
-            icon: Icons.star,
-            color: Colors.blue,
-            threshold: 5,
-            type: AchievementType.streak,
-            isUnlocked: true),
+          id: '2',
+          title: 'A2',
+          description: 'D2',
+          icon: Icons.star,
+          color: Colors.blue,
+          threshold: 5,
+          type: AchievementType.streak,
+          isUnlocked: true,
+        ),
         Achievement(
-            id: '3',
-            title: 'A3',
-            description: 'D3',
-            icon: Icons.star,
-            color: Colors.green,
-            threshold: 10,
-            type: AchievementType.favorites,
-            isUnlocked: true),
+          id: '3',
+          title: 'A3',
+          description: 'D3',
+          icon: Icons.star,
+          color: Colors.green,
+          threshold: 10,
+          type: AchievementType.favorites,
+          isUnlocked: true,
+        ),
       ];
 
       final stats = SpiritualStats(unlockedAchievements: achievements);

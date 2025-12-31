@@ -21,11 +21,13 @@ void main() {
       expect(BibleTextNormalizer.clean(text), 'Verse text  continues here');
     });
 
-    test('should remove bracketed references with special characters [36†]',
-        () {
-      const text = 'Verse text [36†] continues here';
-      expect(BibleTextNormalizer.clean(text), 'Verse text  continues here');
-    });
+    test(
+      'should remove bracketed references with special characters [36†]',
+      () {
+        const text = 'Verse text [36†] continues here';
+        expect(BibleTextNormalizer.clean(text), 'Verse text  continues here');
+      },
+    );
 
     test('should remove bracketed references with mixed content [a1]', () {
       const text = 'Verse text [a1] continues here';
@@ -55,7 +57,9 @@ void main() {
     test('should remove both HTML tags and bracketed references', () {
       const text = 'Verse<pb/> text [1] continues [36†] here<f>note</f>';
       expect(
-          BibleTextNormalizer.clean(text), 'Verse text  continues  herenote');
+        BibleTextNormalizer.clean(text),
+        'Verse text  continues  herenote',
+      );
     });
 
     test('should trim whitespace from result', () {

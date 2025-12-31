@@ -77,11 +77,17 @@ void main() {
         for (int i = 1; i <= 10; i++) {
           final shouldAttemptCompletion = i >= completionThreshold;
           if (i >= 8) {
-            expect(shouldAttemptCompletion, isTrue,
-                reason: 'Should attempt completion at ${i * 10}%');
+            expect(
+              shouldAttemptCompletion,
+              isTrue,
+              reason: 'Should attempt completion at ${i * 10}%',
+            );
           } else {
-            expect(shouldAttemptCompletion, isFalse,
-                reason: 'Should not attempt completion at ${i * 10}%');
+            expect(
+              shouldAttemptCompletion,
+              isFalse,
+              reason: 'Should not attempt completion at ${i * 10}%',
+            );
           }
         }
       });
@@ -107,10 +113,7 @@ void main() {
       });
 
       test('error update info has updateAvailable false', () {
-        final errorInfo = {
-          'updateAvailable': false,
-          'error': 'Network error',
-        };
+        final errorInfo = {'updateAvailable': false, 'error': 'Network error'};
 
         expect(errorInfo['updateAvailable'], isFalse);
         expect(errorInfo.containsKey('error'), isTrue);

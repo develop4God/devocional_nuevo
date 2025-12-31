@@ -15,8 +15,9 @@ void main() {
     registerTestServices();
   });
 
-  testWidgets('AnswerPrayerModal allows up to 400 characters',
-      (WidgetTester tester) async {
+  testWidgets('AnswerPrayerModal allows up to 400 characters', (
+    WidgetTester tester,
+  ) async {
     final prayer = Prayer(
       id: 'test-prayer',
       text: 'Sample',

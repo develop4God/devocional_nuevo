@@ -23,11 +23,18 @@ const NOTIFICATION_TRANSLATIONS = {
   fr: {
     title: "Votre espace de Paix vous attend",
     body: "N'oubliez pas de vous connecter aujourd'hui avec la parole de Dieu!",
-    },
+  },
   ja: {
     title: "あなたの平和の空間が待っています",
     body: "今日、神の言葉とつながることを忘れないでください！",
-
+  },
+  zh: {
+    title: "你的平安空间在等待",
+    body: "记得今天与神的话语连接！",
+  },
+  hi: {
+    title: "आपकी शांति का स्थान प्रतीक्षा कर रहा है",
+    body: "आज परमेश्वर के वचन से जुड़ना याद रखें!",
   },
 };
 
@@ -211,7 +218,7 @@ exports.sendDailyDevotionalNotification = onSchedule({
 });
 
 // ==========================================
-// FUNCIÓN 2: LIMPIEZA AGRESIVA DE BASE DE DATOS 
+// FUNCIÓN 2: LIMPIEZA AGRESIVA DE BASE DE DATOS
 // Elimina usuario completo si cumple cualquier condición
 // Modificado: 27-nov-2025 - Parámetros de retención ajustados
 // ==========================================
@@ -224,11 +231,11 @@ exports.cleanupInvalidFCMTokens = onSchedule({
   logger.info("Limpieza: Iniciando proceso.", {structuredData: true});
 
   const now = admin.firestore.Timestamp.now();
-  
+
   // Parámetros de retención configurables
   const RETENTION_DAYS_LAST_LOGIN = 15;
   const RETENTION_DAYS_TOKENS = 30;
-  
+
   const cutoffLastLogin = admin.firestore.Timestamp.fromMillis(now.toMillis() - (RETENTION_DAYS_LAST_LOGIN * 24 * 60 * 60 * 1000));
   const cutoffTokens = admin.firestore.Timestamp.fromMillis(now.toMillis() - (RETENTION_DAYS_TOKENS * 24 * 60 * 60 * 1000));
 
@@ -248,7 +255,7 @@ exports.cleanupInvalidFCMTokens = onSchedule({
 
       const settingsRef = db.collection("users").doc(userId).collection("settings").doc("notifications");
       let settingsDoc;
-      
+
       try {
         settingsDoc = await settingsRef.get();
       } catch (e) {
@@ -266,7 +273,7 @@ exports.cleanupInvalidFCMTokens = onSchedule({
       if (!shouldDelete) {
         const userData = userDoc.data();
         const lastLogin = userData?.lastLogin;
-        
+
         if (!lastLogin || (lastLogin instanceof admin.firestore.Timestamp && lastLogin.toMillis() < cutoffLastLogin.toMillis())) {
           shouldDelete = true;
           deleteReason = `inactivo +${RETENTION_DAYS_LAST_LOGIN} días (lastLogin)`;
@@ -276,7 +283,7 @@ exports.cleanupInvalidFCMTokens = onSchedule({
       // Condición 3: Todos los tokens son > 30 días o sin tokens
       if (!shouldDelete) {
         const tokensSnapshot = await db.collection("users").doc(userId).collection("fcmTokens").get();
-        
+
         if (tokensSnapshot.empty) {
           shouldDelete = true;
           deleteReason = "sin tokens";

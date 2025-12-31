@@ -18,9 +18,12 @@ void main() {
 
       test('should be lowercase with underscore separator', () {
         final tag = AnalyticsConstants.defaultCampaignTag;
-        expect(tag, matches(r'^[a-z0-9_]+$'),
-            reason:
-                'Campaign tag should only contain lowercase letters, numbers, and underscores');
+        expect(
+          tag,
+          matches(r'^[a-z0-9_]+$'),
+          reason:
+              'Campaign tag should only contain lowercase letters, numbers, and underscores',
+        );
       });
     });
 
@@ -41,31 +44,41 @@ void main() {
       });
 
       test(
-          'should return default tag for any devotional ID when totalDevocionalesRead >= 7',
-          () {
-        final testIds = [
-          'dev_001',
-          'dev_999',
-          'special_devotional',
-          'test_id',
-          '',
-        ];
+        'should return default tag for any devotional ID when totalDevocionalesRead >= 7',
+        () {
+          final testIds = [
+            'dev_001',
+            'dev_999',
+            'special_devotional',
+            'test_id',
+            '',
+          ];
 
-        for (final id in testIds) {
-          final tag = AnalyticsConstants.getCampaignTag(
-              devocionalId: id, totalDevocionalesRead: 7);
-          expect(tag, AnalyticsConstants.defaultCampaignTag,
+          for (final id in testIds) {
+            final tag = AnalyticsConstants.getCampaignTag(
+              devocionalId: id,
+              totalDevocionalesRead: 7,
+            );
+            expect(
+              tag,
+              AnalyticsConstants.defaultCampaignTag,
               reason:
-                  'Should return default tag when totalDevocionalesRead >= 7 for ID: $id');
-        }
-      });
+                  'Should return default tag when totalDevocionalesRead >= 7 for ID: $id',
+            );
+          }
+        },
+      );
 
       test('should return consistent value for same inputs', () {
         const testId = 'dev_123';
         final tag1 = AnalyticsConstants.getCampaignTag(
-            devocionalId: testId, totalDevocionalesRead: 7);
+          devocionalId: testId,
+          totalDevocionalesRead: 7,
+        );
         final tag2 = AnalyticsConstants.getCampaignTag(
-            devocionalId: testId, totalDevocionalesRead: 7);
+          devocionalId: testId,
+          totalDevocionalesRead: 7,
+        );
 
         expect(tag1, tag2, reason: 'Same inputs should always return same tag');
       });
@@ -77,14 +90,20 @@ void main() {
         expect(AnalyticsConstants.getCampaignTag(totalDevocionalesRead: 6), '');
 
         // At threshold
-        expect(AnalyticsConstants.getCampaignTag(totalDevocionalesRead: 7),
-            AnalyticsConstants.defaultCampaignTag);
+        expect(
+          AnalyticsConstants.getCampaignTag(totalDevocionalesRead: 7),
+          AnalyticsConstants.defaultCampaignTag,
+        );
 
         // Above threshold
-        expect(AnalyticsConstants.getCampaignTag(totalDevocionalesRead: 8),
-            AnalyticsConstants.defaultCampaignTag);
-        expect(AnalyticsConstants.getCampaignTag(totalDevocionalesRead: 100),
-            AnalyticsConstants.defaultCampaignTag);
+        expect(
+          AnalyticsConstants.getCampaignTag(totalDevocionalesRead: 8),
+          AnalyticsConstants.defaultCampaignTag,
+        );
+        expect(
+          AnalyticsConstants.getCampaignTag(totalDevocionalesRead: 100),
+          AnalyticsConstants.defaultCampaignTag,
+        );
       });
     });
 
@@ -92,7 +111,9 @@ void main() {
       test('should handle very long devotional IDs', () {
         final longId = 'dev_${'x' * 1000}';
         final tag = AnalyticsConstants.getCampaignTag(
-            devocionalId: longId, totalDevocionalesRead: 7);
+          devocionalId: longId,
+          totalDevocionalesRead: 7,
+        );
         expect(tag, AnalyticsConstants.defaultCampaignTag);
       });
 
@@ -107,30 +128,37 @@ void main() {
 
         for (final id in specialIds) {
           final tag = AnalyticsConstants.getCampaignTag(
-              devocionalId: id, totalDevocionalesRead: 7);
-          expect(tag, AnalyticsConstants.defaultCampaignTag,
-              reason: 'Should handle special characters in ID: $id');
+            devocionalId: id,
+            totalDevocionalesRead: 7,
+          );
+          expect(
+            tag,
+            AnalyticsConstants.defaultCampaignTag,
+            reason: 'Should handle special characters in ID: $id',
+          );
         }
       });
 
       test('should handle unicode characters in devotional ID', () {
-        final unicodeIds = [
-          'dev_español',
-          'dev_中文',
-          'dev_🙏',
-        ];
+        final unicodeIds = ['dev_español', 'dev_中文', 'dev_🙏'];
 
         for (final id in unicodeIds) {
           final tag = AnalyticsConstants.getCampaignTag(
-              devocionalId: id, totalDevocionalesRead: 7);
-          expect(tag, AnalyticsConstants.defaultCampaignTag,
-              reason: 'Should handle unicode in ID: $id');
+            devocionalId: id,
+            totalDevocionalesRead: 7,
+          );
+          expect(
+            tag,
+            AnalyticsConstants.defaultCampaignTag,
+            reason: 'Should handle unicode in ID: $id',
+          );
         }
       });
 
       test('should handle negative totalDevocionalesRead', () {
-        final tag =
-            AnalyticsConstants.getCampaignTag(totalDevocionalesRead: -1);
+        final tag = AnalyticsConstants.getCampaignTag(
+          totalDevocionalesRead: -1,
+        );
         expect(tag, '');
       });
 
@@ -141,42 +169,55 @@ void main() {
     });
 
     group('Future Extensibility', () {
-      test('getCampaignTag method signature supports future conditional logic',
-          () {
-        // This test documents the method signature for future extension
-        // The method accepts optional devocionalId parameter
+      test(
+        'getCampaignTag method signature supports future conditional logic',
+        () {
+          // This test documents the method signature for future extension
+          // The method accepts optional devocionalId parameter
 
-        // Can be called without parameters
-        expect(() => AnalyticsConstants.getCampaignTag(), returnsNormally);
+          // Can be called without parameters
+          expect(() => AnalyticsConstants.getCampaignTag(), returnsNormally);
 
-        // Can be called with null
-        expect(() => AnalyticsConstants.getCampaignTag(devocionalId: null),
-            returnsNormally);
+          // Can be called with null
+          expect(
+            () => AnalyticsConstants.getCampaignTag(devocionalId: null),
+            returnsNormally,
+          );
 
-        // Can be called with any string
-        expect(() => AnalyticsConstants.getCampaignTag(devocionalId: 'any_id'),
-            returnsNormally);
-      });
+          // Can be called with any string
+          expect(
+            () => AnalyticsConstants.getCampaignTag(devocionalId: 'any_id'),
+            returnsNormally,
+          );
+        },
+      );
     });
 
     group('Integration with Firebase Analytics', () {
       test(
-          'campaign tag format is compatible with Firebase Analytics parameter naming',
-          () {
-        // Firebase Analytics parameter names should:
-        // - Be alphanumeric with underscores
-        // - Start with a letter
-        // - Be no longer than 40 characters
+        'campaign tag format is compatible with Firebase Analytics parameter naming',
+        () {
+          // Firebase Analytics parameter names should:
+          // - Be alphanumeric with underscores
+          // - Start with a letter
+          // - Be no longer than 40 characters
 
-        final tag = AnalyticsConstants.defaultCampaignTag;
+          final tag = AnalyticsConstants.defaultCampaignTag;
 
-        expect(tag.length <= 40, true,
-            reason: 'Firebase parameter values should be <= 40 chars');
+          expect(
+            tag.length <= 40,
+            true,
+            reason: 'Firebase parameter values should be <= 40 chars',
+          );
 
-        expect(tag, matches(r'^[a-zA-Z][a-zA-Z0-9_]*$'),
+          expect(
+            tag,
+            matches(r'^[a-zA-Z][a-zA-Z0-9_]*$'),
             reason:
-                'Should start with letter and contain only alphanumeric + underscore');
-      });
+                'Should start with letter and contain only alphanumeric + underscore',
+          );
+        },
+      );
     });
   });
 }

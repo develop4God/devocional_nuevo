@@ -163,18 +163,14 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
           builder: (context, state) {
             if (state is OnboardingLoading) {
               return const Scaffold(
-                body: Center(
-                  child: CircularProgressIndicator(),
-                ),
+                body: Center(child: CircularProgressIndicator()),
               );
             }
 
             if (state is OnboardingCompleted) {
               // This should not be reached due to the listener, but provide fallback
               return const Scaffold(
-                body: Center(
-                  child: Text('Onboarding completed!'),
-                ),
+                body: Center(child: Text('Onboarding completed!')),
               );
             }
 
@@ -227,42 +223,45 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
                         // Additional margin to separate from status bar
                         child: Row(
                           children: List.generate(
-                              OnboardingSteps.defaultSteps.length - 1, (index) {
-                            return Expanded(
-                              child: Container(
-                                margin: EdgeInsets.only(
+                            OnboardingSteps.defaultSteps.length - 1,
+                            (index) {
+                              return Expanded(
+                                child: Container(
+                                  margin: EdgeInsets.only(
                                     right: index <
                                             OnboardingSteps
                                                     .defaultSteps.length -
                                                 2
                                         ? 8
-                                        : 0),
-                                height:
-                                    6, // Increased height for better visibility
-                                decoration: BoxDecoration(
-                                  color: index <= state.currentStepIndex
-                                      ? Theme.of(context).colorScheme.primary
-                                      : Theme.of(context)
-                                          .colorScheme
-                                          .outline
-                                          .withValues(alpha: 0.3),
-                                  borderRadius: BorderRadius.circular(3),
-                                  boxShadow: index <= state.currentStepIndex
-                                      ? [
-                                          BoxShadow(
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .primary
-                                                .withValues(alpha: 0.3),
-                                            blurRadius: 4,
-                                            offset: const Offset(0, 2),
-                                          ),
-                                        ]
-                                      : null,
+                                        : 0,
+                                  ),
+                                  height:
+                                      6, // Increased height for better visibility
+                                  decoration: BoxDecoration(
+                                    color: index <= state.currentStepIndex
+                                        ? Theme.of(context).colorScheme.primary
+                                        : Theme.of(context)
+                                            .colorScheme
+                                            .outline
+                                            .withValues(alpha: 0.3),
+                                    borderRadius: BorderRadius.circular(3),
+                                    boxShadow: index <= state.currentStepIndex
+                                        ? [
+                                            BoxShadow(
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .primary
+                                                  .withValues(alpha: 0.3),
+                                              blurRadius: 4,
+                                              offset: const Offset(0, 2),
+                                            ),
+                                          ]
+                                        : null,
+                                  ),
                                 ),
-                              ),
-                            );
-                          }),
+                              );
+                            },
+                          ),
                         ),
                       ),
 
@@ -295,9 +294,7 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
 
             // Default fallback for initial state
             return const Scaffold(
-              body: Center(
-                child: CircularProgressIndicator(),
-              ),
+              body: Center(child: CircularProgressIndicator()),
             );
           },
         ),

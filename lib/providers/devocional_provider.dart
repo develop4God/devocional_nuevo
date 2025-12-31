@@ -9,7 +9,9 @@ import 'dart:ui';
 import 'package:devocional_nuevo/controllers/audio_controller.dart'; // NEW
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
+import 'package:devocional_nuevo/providers/localization_provider.dart';
 import 'package:devocional_nuevo/services/devocionales_tracking.dart';
+import 'package:devocional_nuevo/services/remote_config_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
 import 'package:devocional_nuevo/services/tts/i_tts_service.dart';
@@ -17,7 +19,10 @@ import 'package:devocional_nuevo/utils/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
+import 'package:provider/provider.dart' show Provider;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:devocional_nuevo/services/analytics_service.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 
 /// Simplified provider focused on data management only
 /// Audio functionality moved to AudioController
@@ -88,13 +93,14 @@ class DevocionalProvider with ChangeNotifier {
   String? get currentTrackedDevocionalId =>
       _readingTracker.currentTrackedDevocionalId;
 
-  // Supported languages - Updated to incluir japonés
+  // Supported languages - Updated to include Chinese
   static const List<String> _supportedLanguages = [
     'es',
     'en',
     'pt',
     'fr',
-    'ja'
+    'ja',
+    'zh', // Add Chinese
   ];
   static const String _fallbackLanguage = 'es';
 
@@ -182,8 +188,10 @@ class DevocionalProvider with ChangeNotifier {
   Future<void> playDevotional(Devocional devocional) async {
     debugPrint('🎵 Provider: playDevotional llamado para ${devocional.id}');
     // Update TTS language context before playing
-    _audioController.ttsService
-        .setLanguageContext(_selectedLanguage, _selectedVersion);
+    _audioController.ttsService.setLanguageContext(
+      _selectedLanguage,
+      _selectedVersion,
+    );
     await _audioController.playDevotional(devocional);
   }
 
@@ -228,10 +236,14 @@ class DevocionalProvider with ChangeNotifier {
   }
 
   // ========== READING TRACKING (DELEGATES) ==========
-  void startDevocionalTracking(String devocionalId,
-      {ScrollController? scrollController}) {
-    _readingTracker.startTracking(devocionalId,
-        scrollController: scrollController);
+  void startDevocionalTracking(
+    String devocionalId, {
+    ScrollController? scrollController,
+  }) {
+    _readingTracker.startTracking(
+      devocionalId,
+      scrollController: scrollController,
+    );
   }
 
   void pauseTracking() {
@@ -245,8 +257,99 @@ class DevocionalProvider with ChangeNotifier {
   Future<void> recordDevocionalRead(String devocionalId) async {
     final trackingData = _readingTracker.finalize(devocionalId);
     developer.log(
-        '[PROVIDER] Finalizando tracking para: $devocionalId, tiempo: ${trackingData.readingTime}s, scroll: ${(trackingData.scrollPercentage * 100).toStringAsFixed(1)}%',
-        name: 'DevocionalProvider');
+      '[PROVIDER] Finalizando tracking para: $devocionalId, tiempo: \\${trackingData.readingTime}s, scroll: \\${(trackingData.scrollPercentage * 100).toStringAsFixed(1)}%',
+      name: 'DevocionalProvider',
+    );
+
+    // Get feature flags from Remote Config (with ready check)
+    try {
+      final remoteConfig = getService<RemoteConfigService>();
+      final analytics = getService<AnalyticsService>();
+
+      if (remoteConfig.isReady) {
+        final useLegacy = remoteConfig.featureLegacy;
+        final useBloc = remoteConfig.featureBloc;
+
+        developer.log(
+          '[PROVIDER] Feature flags - legacy: $useLegacy, bloc: $useBloc',
+          name: 'DevocionalProvider',
+        );
+
+        // 🔥 TRACK cual modo se usó
+        await analytics.logCustomEvent(
+          eventName: 'devotional_tracking_mode',
+          parameters: {
+            'mode': useBloc ? 'bloc' : 'legacy',
+            'legacy_flag': useLegacy,
+            'bloc_flag': useBloc,
+            'remote_config_ready': true,
+            'devocional_id': devocionalId,
+          },
+        );
+
+        if (useBloc) {
+          developer.log(
+            '[PROVIDER] Using BLoC tracking',
+            name: 'DevocionalProvider',
+          );
+          try {
+            // TODO: BLoC tracking logic
+            await analytics.logCustomEvent(
+              eventName: 'devotional_bloc_success',
+              parameters: {'devocional_id': devocionalId},
+            );
+          } catch (e, stack) {
+            await analytics.logCustomEvent(
+              eventName: 'devotional_bloc_error',
+              parameters: {
+                'devocional_id': devocionalId,
+                'error': e.toString(),
+              },
+            );
+            await FirebaseCrashlytics.instance.recordError(
+              e,
+              stack,
+              reason: 'BLoC tracking mode failed',
+            );
+          }
+        } else {
+          developer.log(
+            '[PROVIDER] Using legacy tracking',
+            name: 'DevocionalProvider',
+          );
+          await analytics.logCustomEvent(
+            eventName: 'devotional_legacy_success',
+            parameters: {'devocional_id': devocionalId},
+          );
+        }
+      } else {
+        await analytics.logCustomEvent(
+          eventName: 'devotional_tracking_mode',
+          parameters: {
+            'mode': 'legacy',
+            'remote_config_ready': false,
+            'reason': 'remote_config_not_ready',
+            'devocional_id': devocionalId,
+          },
+        );
+        developer.log(
+          '[PROVIDER] Remote Config not ready yet, using defaults',
+          name: 'DevocionalProvider',
+        );
+      }
+    } catch (e, stack) {
+      developer.log(
+        '[PROVIDER] Error reading feature flags, using defaults: $e',
+        name: 'DevocionalProvider',
+        error: e,
+      );
+      await FirebaseCrashlytics.instance.recordError(
+        e,
+        stack,
+        reason: 'Error reading feature flags in recordDevocionalRead',
+      );
+    }
+
     try {
       await _statsService.recordDevocionalRead(
         devocionalId: devocionalId,
@@ -254,26 +357,36 @@ class DevocionalProvider with ChangeNotifier {
         readingTimeSeconds: trackingData.readingTime,
         scrollPercentage: trackingData.scrollPercentage,
       );
-      developer.log('[PROVIDER] Devocional guardado en stats: $devocionalId',
-          name: 'DevocionalProvider');
+      developer.log(
+        '[PROVIDER] Devocional guardado en stats: $devocionalId',
+        name: 'DevocionalProvider',
+      );
       debugPrint('✅ Recorded devotional read: $devocionalId');
       notifyListeners();
     } catch (e) {
-      developer.log('[PROVIDER] Error guardando devocional: $e',
-          name: 'DevocionalProvider');
+      developer.log(
+        '[PROVIDER] Error guardando devocional: $e',
+        name: 'DevocionalProvider',
+      );
       debugPrint('❌ Error recording devotional read: $e');
     }
   }
 
   /// Registra que un devocional fue escuchado (para TTS)
-  Future<String> recordDevocionalHeard(String devocionalId,
-      double listenedPercentage, BuildContext context) async {
+  Future<String> recordDevocionalHeard(
+    String devocionalId,
+    double listenedPercentage,
+    BuildContext context,
+  ) async {
     try {
       // Usar el tracking unificado para registrar y verificar milestone
-      await DevocionalesTracking()
-          .recordDevocionalHeard(devocionalId, listenedPercentage);
-      // Validar si ya fue registrado
+      await DevocionalesTracking().recordDevocionalHeard(
+        devocionalId,
+        listenedPercentage,
+      );
+      // Obtener stats actualizados tras registrar 'heard'
       final stats = await _statsService.getStats();
+      notifyListeners(); // Notificar a la UI de cualquier cambio
       if (stats.readDevocionalIds.contains(devocionalId)) {
         // Si ya está en la lista de leídos/escuchados => ya fue registrado
         return 'ya_registrado';
@@ -299,7 +412,10 @@ class DevocionalProvider with ChangeNotifier {
 
       // Try local storage first
       Map<String, dynamic>? localData = await _loadFromLocalStorage(
-          currentYear, _selectedLanguage, _selectedVersion);
+        currentYear,
+        _selectedLanguage,
+        _selectedVersion,
+      );
 
       if (localData != null) {
         debugPrint('Loading from local storage');
@@ -310,9 +426,13 @@ class DevocionalProvider with ChangeNotifier {
 
       // Load from API with language and version
       debugPrint(
-          'Loading from API for language: $_selectedLanguage, version: $_selectedVersion');
+        'Loading from API for language: $_selectedLanguage, version: $_selectedVersion',
+      );
       final String url = Constants.getDevocionalesApiUrlMultilingual(
-          currentYear, _selectedLanguage, _selectedVersion);
+        currentYear,
+        _selectedLanguage,
+        _selectedVersion,
+      );
       debugPrint('🔍 Requesting URL: $url');
       final response = await http.get(Uri.parse(url));
 
@@ -371,7 +491,8 @@ class DevocionalProvider with ChangeNotifier {
         for (var devocionalJson in dateValue) {
           try {
             loadedDevocionales.add(
-                Devocional.fromJson(devocionalJson as Map<String, dynamic>));
+              Devocional.fromJson(devocionalJson as Map<String, dynamic>),
+            );
           } catch (e) {
             debugPrint('Error parsing devotional for $dateKey: $e');
           }
@@ -404,7 +525,7 @@ class DevocionalProvider with ChangeNotifier {
   }
 
   // ========== LANGUAGE & VERSION SETTINGS ==========
-  void setSelectedLanguage(String language) async {
+  void setSelectedLanguage(String language, BuildContext? context) async {
     String supportedLanguage = _getSupportedLanguageWithFallback(language);
 
     if (_selectedLanguage != supportedLanguage) {
@@ -412,21 +533,36 @@ class DevocionalProvider with ChangeNotifier {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('selectedLanguage', supportedLanguage);
 
-      // Reset version to default for new language
+      // Defensive: ensure version is valid for the new language
+      List<String> versions =
+          Constants.bibleVersionsByLanguage[supportedLanguage] ?? ['RVR1960'];
       String defaultVersion =
-          Constants.defaultVersionByLanguage[supportedLanguage] ?? 'RVR1960';
-      _selectedVersion = defaultVersion;
-      debugPrint(
-          '[PROVIDER] setLanguageContext: idioma=$supportedLanguage, version=$defaultVersion');
-      await prefs.setString('selectedVersion', defaultVersion);
+          Constants.defaultVersionByLanguage[supportedLanguage] ??
+              versions.first;
+      if (!versions.contains(_selectedVersion)) {
+        _selectedVersion = defaultVersion;
+        await prefs.setString('selectedVersion', defaultVersion);
+      }
+
+      // Update UI locale/translations via LocalizationProvider
+      if (context != null && context.mounted) {
+        final localizationProvider = Provider.of<LocalizationProvider>(
+          context,
+          listen: false,
+        );
+        await localizationProvider.changeLanguage(supportedLanguage);
+      }
 
       // Update TTS language context immediately
-      _audioController.ttsService
-          .setLanguageContext(_selectedLanguage, _selectedVersion);
+      _audioController.ttsService.setLanguageContext(
+        _selectedLanguage,
+        _selectedVersion,
+      );
 
       if (language != supportedLanguage) {
         debugPrint(
-            'Language $language not available, using $supportedLanguage');
+          'Language $language not available, using $supportedLanguage',
+        );
       }
 
       await _fetchAllDevocionalesForLanguage();
@@ -439,8 +575,10 @@ class DevocionalProvider with ChangeNotifier {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('selectedVersion', version);
       // Actualizar el contexto de TTS al cambiar la versión
-      _audioController.ttsService
-          .setLanguageContext(_selectedLanguage, _selectedVersion);
+      _audioController.ttsService.setLanguageContext(
+        _selectedLanguage,
+        _selectedVersion,
+      );
       await _fetchAllDevocionalesForLanguage();
     }
   }
@@ -487,8 +625,10 @@ class DevocionalProvider with ChangeNotifier {
       _favoriteDevocionales.removeWhere((fav) => fav.id == devocional.id);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('devotionals_page.removed_from_favorites'.tr(),
-              style: TextStyle(color: colorScheme.onSecondary)),
+          content: Text(
+            'devotionals_page.removed_from_favorites'.tr(),
+            style: TextStyle(color: colorScheme.onSecondary),
+          ),
           duration: const Duration(seconds: 2),
           backgroundColor: colorScheme.secondary,
         ),
@@ -497,8 +637,10 @@ class DevocionalProvider with ChangeNotifier {
       _favoriteDevocionales.add(devocional);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('devotionals_page.added_to_favorites'.tr(),
-              style: TextStyle(color: colorScheme.onSecondary)),
+          content: Text(
+            'devotionals_page.added_to_favorites'.tr(),
+            style: TextStyle(color: colorScheme.onSecondary),
+          ),
           duration: const Duration(seconds: 2),
           backgroundColor: colorScheme.secondary,
         ),
@@ -539,8 +681,9 @@ class DevocionalProvider with ChangeNotifier {
   // ========== OFFLINE FUNCTIONALITY ==========
   Future<Directory> _getLocalStorageDirectory() async {
     final Directory appDocumentsDir = await getApplicationDocumentsDirectory();
-    final Directory devocionalesDir =
-        Directory('${appDocumentsDir.path}/devocionales');
+    final Directory devocionalesDir = Directory(
+      '${appDocumentsDir.path}/devocionales',
+    );
 
     if (!await devocionalesDir.exists()) {
       await devocionalesDir.create(recursive: true);
@@ -548,8 +691,11 @@ class DevocionalProvider with ChangeNotifier {
     return devocionalesDir;
   }
 
-  Future<String> _getLocalFilePath(int year, String language,
-      [String? version]) async {
+  Future<String> _getLocalFilePath(
+    int year,
+    String language, [
+    String? version,
+  ]) async {
     final Directory storageDir = await _getLocalStorageDirectory();
     // Include version in filename for new languages, maintain backward compatibility for Spanish
     if (language == 'es' && version == 'RVR1960') {
@@ -560,8 +706,11 @@ class DevocionalProvider with ChangeNotifier {
     }
   }
 
-  Future<bool> hasLocalFile(int year, String language,
-      [String? version]) async {
+  Future<bool> hasLocalFile(
+    int year,
+    String language, [
+    String? version,
+  ]) async {
     try {
       final String filePath = await _getLocalFilePath(year, language, version);
       final File file = File(filePath);
@@ -581,21 +730,28 @@ class DevocionalProvider with ChangeNotifier {
 
     try {
       final String url = Constants.getDevocionalesApiUrlMultilingual(
-          year, _selectedLanguage, _selectedVersion);
+        year,
+        _selectedLanguage,
+        _selectedVersion,
+      );
       debugPrint('🔍 Requesting URL: $url');
       debugPrint('🔍 Language: $_selectedLanguage, Version: $_selectedVersion');
       final response = await http.get(Uri.parse(url));
 
       if (response.statusCode == 404) {
         debugPrint(
-            '❌ File not found (404): $_selectedLanguage $_selectedVersion year $year');
+          '❌ File not found (404): $_selectedLanguage $_selectedVersion year $year',
+        );
         throw Exception(
-            'File not available for $_selectedLanguage $_selectedVersion year $year');
+          'File not available for $_selectedLanguage $_selectedVersion year $year',
+        );
       } else if (response.statusCode != 200) {
         debugPrint(
-            '❌ HTTP Error ${response.statusCode}: ${response.reasonPhrase}');
+          '❌ HTTP Error ${response.statusCode}: ${response.reasonPhrase}',
+        );
         throw Exception(
-            'HTTP Error ${response.statusCode}: ${response.reasonPhrase}');
+          'HTTP Error ${response.statusCode}: ${response.reasonPhrase}',
+        );
       }
 
       final Map<String, dynamic> jsonData = json.decode(response.body);
@@ -604,8 +760,11 @@ class DevocionalProvider with ChangeNotifier {
         throw Exception('Invalid JSON structure: missing "data" field');
       }
 
-      final String filePath =
-          await _getLocalFilePath(year, _selectedLanguage, _selectedVersion);
+      final String filePath = await _getLocalFilePath(
+        year,
+        _selectedLanguage,
+        _selectedVersion,
+      );
       final File file = File(filePath);
       await file.writeAsString(response.body);
 
@@ -622,8 +781,11 @@ class DevocionalProvider with ChangeNotifier {
     }
   }
 
-  Future<Map<String, dynamic>?> _loadFromLocalStorage(int year, String language,
-      [String? version]) async {
+  Future<Map<String, dynamic>?> _loadFromLocalStorage(
+    int year,
+    String language, [
+    String? version,
+  ]) async {
     try {
       final String filePath = await _getLocalFilePath(year, language, version);
       final File file = File(filePath);
@@ -680,13 +842,15 @@ class DevocionalProvider with ChangeNotifier {
 
   Future<bool> _tryVersionFallback(int year) async {
     debugPrint(
-        '🔄 Trying version fallback for $_selectedLanguage $_selectedVersion');
+      '🔄 Trying version fallback for $_selectedLanguage $_selectedVersion',
+    );
 
     // Get available versions for the language
     final availableVersions =
         Constants.bibleVersionsByLanguage[_selectedLanguage] ?? [];
     debugPrint(
-        '🔄 Available versions for $_selectedLanguage: $availableVersions');
+      '🔄 Available versions for $_selectedLanguage: $availableVersions',
+    );
 
     // Try other versions for the same language, prioritizing the default version first
     final defaultVersion =
@@ -719,7 +883,9 @@ class DevocionalProvider with ChangeNotifier {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('selected_version_$_selectedLanguage', version);
         await prefs.setString(
-            'selectedVersion', version); // Also update global preference
+          'selectedVersion',
+          version,
+        ); // Also update global preference
         notifyListeners();
         return true;
       }
@@ -762,10 +928,16 @@ class DevocionalProvider with ChangeNotifier {
   }
 
   Future<bool> hasTargetYearsLocalData() async {
-    final bool has2025 =
-        await hasLocalFile(2025, _selectedLanguage, _selectedVersion);
-    final bool has2026 =
-        await hasLocalFile(2026, _selectedLanguage, _selectedVersion);
+    final bool has2025 = await hasLocalFile(
+      2025,
+      _selectedLanguage,
+      _selectedVersion,
+    );
+    final bool has2026 = await hasLocalFile(
+      2026,
+      _selectedLanguage,
+      _selectedVersion,
+    );
     return has2025 && has2026;
   }
 
@@ -802,6 +974,25 @@ class DevocionalProvider with ChangeNotifier {
   void stop() {}
 
   void speakDevocional(String s) {}
+
+  /// Devuelve la lista de devocionales no leídos según los IDs guardados en stats
+  Future<List<Devocional>> getDevocionalesNoLeidos() async {
+    final stats = await _statsService.getStats();
+    final leidos = stats.readDevocionalIds.toSet();
+    final noLeidos =
+        _filteredDevocionales.where((d) => !leidos.contains(d.id)).toList();
+    debugPrint(
+      '🔎 [NO LEÍDOS] Devocionales no leídos: [1m${noLeidos.length}[0m',
+    );
+    if (noLeidos.isNotEmpty) {
+      debugPrint(
+        '📖 [PRIMEROS] Mostrando: ${noLeidos.take(3).map((d) => d.id).toList()}',
+      );
+    } else {
+      debugPrint('🎉 [COMPLETADO] ¡No hay devocionales pendientes!');
+    }
+    return noLeidos;
+  }
 }
 
 // ========== READING TRACKER ==========
@@ -837,8 +1028,10 @@ class ReadingTracker {
   String? get currentTrackedDevocionalId => _currentDevocionalId;
 
   /// Start tracking for a devotional
-  void startTracking(String devocionalId,
-      {ScrollController? scrollController}) {
+  void startTracking(
+    String devocionalId, {
+    ScrollController? scrollController,
+  }) {
     if (_currentDevocionalId == devocionalId) {
       _resumeTimer();
       return;
@@ -852,7 +1045,9 @@ class ReadingTracker {
   }
 
   void _initializeTracking(
-      String devocionalId, ScrollController? scrollController) {
+    String devocionalId,
+    ScrollController? scrollController,
+  ) {
     _currentDevocionalId = devocionalId;
     _startTime = DateTime.now();
     _pausedTime = null;
@@ -899,7 +1094,8 @@ class ReadingTracker {
     _accumulatedSeconds += sessionSeconds;
     _pausedTime = now;
     debugPrint(
-        '[TRACKER] pause() - acumulado: $_accumulatedSeconds segundos, session: $sessionSeconds, startTime: $_startTime, pausedTime: $_pausedTime');
+      '[TRACKER] pause() - acumulado: $_accumulatedSeconds segundos, session: $sessionSeconds, startTime: $_startTime, pausedTime: $_pausedTime',
+    );
     _timer?.cancel();
   }
 
@@ -907,7 +1103,8 @@ class ReadingTracker {
     if (_currentDevocionalId == null || _pausedTime == null) return;
     _startTime = DateTime.now();
     debugPrint(
-        '[TRACKER] resume() - acumulado antes de reanudar: $_accumulatedSeconds segundos, pausedTime: $_pausedTime');
+      '[TRACKER] resume() - acumulado antes de reanudar: $_accumulatedSeconds segundos, pausedTime: $_pausedTime',
+    );
     _pausedTime = null;
     _startTimer();
   }
@@ -986,8 +1183,5 @@ class TrackingData {
   final int readingTime;
   final double scrollPercentage;
 
-  TrackingData({
-    required this.readingTime,
-    required this.scrollPercentage,
-  });
+  TrackingData({required this.readingTime, required this.scrollPercentage});
 }

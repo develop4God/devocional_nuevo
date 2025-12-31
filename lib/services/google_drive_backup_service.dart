@@ -351,13 +351,14 @@ class GoogleDriveBackupService {
       'compression_enabled': await isCompressionEnabled(),
     };
 
-// Add logs for each section included in the backup
+    // Add logs for each section included in the backup
     debugPrint('[BACKUP] Creating backupData...');
     debugPrint('[BACKUP] timestamp: ${backupData['timestamp']}');
     debugPrint('[BACKUP] version: ${backupData['version']}');
     debugPrint('[BACKUP] app_version: ${backupData['app_version']}');
     debugPrint(
-        '[BACKUP] compression_enabled: ${backupData['compression_enabled']}');
+      '[BACKUP] compression_enabled: ${backupData['compression_enabled']}',
+    );
 
     // Include spiritual stats if enabled
     if (options['spiritual_stats'] == true) {
@@ -409,7 +410,8 @@ class GoogleDriveBackupService {
             json.decode(thanksgivingsJson) as List<dynamic>;
         backupData['saved_thanksgivings'] = thanksgivingsList;
         debugPrint(
-            'Included ${thanksgivingsList.length} saved thanksgivings in backup');
+          'Included ${thanksgivingsList.length} saved thanksgivings in backup',
+        );
       } catch (e) {
         debugPrint('Error getting saved thanksgivings: $e');
         backupData['saved_thanksgivings'] = [];
@@ -702,7 +704,8 @@ class GoogleDriveBackupService {
           final prefs = await SharedPreferences.getInstance();
           await prefs.setString('thanksgivings', json.encode(thanksgivings));
           debugPrint(
-              'Restored ${thanksgivings.length} saved thanksgivings from backup');
+            'Restored ${thanksgivings.length} saved thanksgivings from backup',
+          );
         } catch (e) {
           debugPrint('Error restoring saved thanksgivings: $e');
         }

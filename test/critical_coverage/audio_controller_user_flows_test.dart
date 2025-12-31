@@ -30,8 +30,11 @@ void main() {
       }
 
       for (final state in TtsState.values) {
-        expect(checkStateConsistency(state), isTrue,
-            reason: 'State $state should be consistent');
+        expect(
+          checkStateConsistency(state),
+          isTrue,
+          reason: 'State $state should be consistent',
+        );
       }
     });
 
@@ -367,16 +370,26 @@ void main() {
       }
 
       expect(getButtonIcon(TtsState.idle, null, 'dev-001'), equals('play'));
-      expect(getButtonIcon(TtsState.playing, 'dev-001', 'dev-001'),
-          equals('pause'));
       expect(
-          getButtonIcon(TtsState.paused, 'dev-001', 'dev-001'), equals('play'));
-      expect(getButtonIcon(TtsState.playing, 'dev-002', 'dev-001'),
-          equals('play'));
-      expect(getButtonIcon(TtsState.initializing, 'dev-001', 'dev-001'),
-          equals('loading'));
+        getButtonIcon(TtsState.playing, 'dev-001', 'dev-001'),
+        equals('pause'),
+      );
       expect(
-          getButtonIcon(TtsState.error, 'dev-001', 'dev-001'), equals('error'));
+        getButtonIcon(TtsState.paused, 'dev-001', 'dev-001'),
+        equals('play'),
+      );
+      expect(
+        getButtonIcon(TtsState.playing, 'dev-002', 'dev-001'),
+        equals('play'),
+      );
+      expect(
+        getButtonIcon(TtsState.initializing, 'dev-001', 'dev-001'),
+        equals('loading'),
+      );
+      expect(
+        getButtonIcon(TtsState.error, 'dev-001', 'dev-001'),
+        equals('error'),
+      );
     });
 
     // SCENARIO 21: Button enabled/disabled state

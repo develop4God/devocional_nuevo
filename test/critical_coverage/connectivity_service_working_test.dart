@@ -8,8 +8,9 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   // Mock the connectivity_plus channel
-  const MethodChannel connectivityChannel =
-      MethodChannel('dev.fluttercommunity.plus/connectivity');
+  const MethodChannel connectivityChannel = MethodChannel(
+    'dev.fluttercommunity.plus/connectivity',
+  );
 
   group('ConnectivityService Critical Business Logic Tests', () {
     setUpAll(() {
@@ -19,17 +20,16 @@ void main() {
     setUp(() {
       // Mock connectivity plugin responses
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(
-        connectivityChannel,
-        (MethodCall methodCall) async {
-          switch (methodCall.method) {
-            case 'check':
-              return ['wifi']; // Default to WiFi connected
-            default:
-              return null;
-          }
-        },
-      );
+          .setMockMethodCallHandler(connectivityChannel, (
+        MethodCall methodCall,
+      ) async {
+        switch (methodCall.method) {
+          case 'check':
+            return ['wifi']; // Default to WiFi connected
+          default:
+            return null;
+        }
+      });
     });
 
     tearDown(() {
@@ -81,7 +81,9 @@ void main() {
     test('Backup should proceed logic with WiFi-only setting', () {
       // Business logic for backup decision
       bool shouldProceedWithBackup(
-          bool wifiOnlyEnabled, List<String> connectivity) {
+        bool wifiOnlyEnabled,
+        List<String> connectivity,
+      ) {
         if (!wifiOnlyEnabled) {
           // Any connection is fine
           return connectivity.isNotEmpty && !connectivity.contains('none');
@@ -140,10 +142,14 @@ void main() {
       }
 
       expect(getConnectivityStatusText(['wifi']), equals('Connected via WiFi'));
-      expect(getConnectivityStatusText(['mobile']),
-          equals('Connected via Mobile Data'));
-      expect(getConnectivityStatusText(['ethernet']),
-          equals('Connected via Ethernet'));
+      expect(
+        getConnectivityStatusText(['mobile']),
+        equals('Connected via Mobile Data'),
+      );
+      expect(
+        getConnectivityStatusText(['ethernet']),
+        equals('Connected via Ethernet'),
+      );
       expect(getConnectivityStatusText(['none']), equals('No connection'));
       expect(getConnectivityStatusText([]), equals('No connection'));
     });
@@ -171,8 +177,10 @@ void main() {
       expect(shouldWarnAboutDataUsage(['wifi'], 15 * 1024 * 1024), isFalse);
 
       // Large download on WiFi + mobile - no warning (WiFi available)
-      expect(shouldWarnAboutDataUsage(['wifi', 'mobile'], 15 * 1024 * 1024),
-          isFalse);
+      expect(
+        shouldWarnAboutDataUsage(['wifi', 'mobile'], 15 * 1024 * 1024),
+        isFalse,
+      );
     });
 
     // SCENARIO 8: Offline mode detection

@@ -15,19 +15,21 @@ class DebugFlagPage extends StatelessWidget {
       return const SizedBox.shrink();
     }
     final localizationProvider = Provider.of<LocalizationProvider>(context);
-    final voiceSettingsService =
-        Provider.of<VoiceSettingsService>(context, listen: false);
+    final voiceSettingsService = Provider.of<VoiceSettingsService>(
+      context,
+      listen: false,
+    );
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Debug: Flags y opciones'),
-      ),
+      appBar: AppBar(title: const Text('Debug: Flags y opciones')),
       body: ListView(
         padding: const EdgeInsets.all(24.0),
         children: [
           OutlinedButton.icon(
             icon: const Icon(Icons.delete_forever, color: Colors.red),
-            label: const Text('Borrar flag de voz (pruebas)',
-                style: TextStyle(color: Colors.red)),
+            label: const Text(
+              'Borrar flag de voz (pruebas)',
+              style: TextStyle(color: Colors.red),
+            ),
             style: OutlinedButton.styleFrom(
               side: const BorderSide(color: Colors.red, width: 2.0),
               shape: RoundedRectangleBorder(
@@ -41,7 +43,8 @@ class DebugFlagPage extends StatelessWidget {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
                     content: Text(
-                        'Flag de voz borrado. Puedes probar el diálogo de selección de voz.'),
+                      'Flag de voz borrado. Puedes probar el diálogo de selección de voz.',
+                    ),
                     backgroundColor: Colors.red,
                   ),
                 );
@@ -52,8 +55,10 @@ class DebugFlagPage extends StatelessWidget {
           // Aquí puedes agregar más botones de debug en el futuro
           OutlinedButton.icon(
             icon: const Icon(Icons.bug_report, color: Colors.blue),
-            label: const Text('Opción de debug extra',
-                style: TextStyle(color: Colors.blue)),
+            label: const Text(
+              'Opción de debug extra',
+              style: TextStyle(color: Colors.blue),
+            ),
             style: OutlinedButton.styleFrom(
               side: const BorderSide(color: Colors.blue, width: 2.0),
               shape: RoundedRectangleBorder(

@@ -26,8 +26,9 @@ class _EditAnsweredCommentModalState extends State<EditAnsweredCommentModal> {
   void initState() {
     super.initState();
     // Initialize with existing answered comment
-    _commentController =
-        TextEditingController(text: widget.prayer.answeredComment ?? '');
+    _commentController = TextEditingController(
+      text: widget.prayer.answeredComment ?? '',
+    );
     // Auto focus on the text field
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _focusNode.requestFocus();
@@ -48,9 +49,7 @@ class _EditAnsweredCommentModalState extends State<EditAnsweredCommentModal> {
     final mediaQuery = MediaQuery.of(context);
 
     return Container(
-      margin: EdgeInsets.only(
-        bottom: mediaQuery.viewInsets.bottom,
-      ),
+      margin: EdgeInsets.only(bottom: mediaQuery.viewInsets.bottom),
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: colorScheme.surface,
@@ -63,11 +62,7 @@ class _EditAnsweredCommentModalState extends State<EditAnsweredCommentModal> {
           // Header
           Row(
             children: [
-              Icon(
-                Icons.edit,
-                color: colorScheme.primary,
-                size: 28,
-              ),
+              Icon(Icons.edit, color: colorScheme.primary, size: 28),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
@@ -98,11 +93,7 @@ class _EditAnsweredCommentModalState extends State<EditAnsweredCommentModal> {
             ),
             child: Row(
               children: [
-                Icon(
-                  Icons.info_outline,
-                  color: colorScheme.primary,
-                  size: 20,
-                ),
+                Icon(Icons.info_outline, color: colorScheme.primary, size: 20),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(

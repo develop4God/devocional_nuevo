@@ -27,8 +27,11 @@ void main() {
       test('intermediate values are not milestones', () {
         final nonMilestones = [1, 2, 3, 4, 6, 10, 15, 20, 24, 26, 49, 51, 99];
         for (final value in nonMilestones) {
-          expect(milestones.contains(value), isFalse,
-              reason: '$value should not be a milestone');
+          expect(
+            milestones.contains(value),
+            isFalse,
+            reason: '$value should not be a milestone',
+          );
         }
       });
 

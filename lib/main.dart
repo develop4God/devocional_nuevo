@@ -11,6 +11,8 @@ import 'package:devocional_nuevo/controllers/audio_controller.dart';
 import 'package:devocional_nuevo/pages/devocionales_page.dart';
 import 'package:devocional_nuevo/pages/onboarding/onboarding_flow.dart';
 import 'package:devocional_nuevo/pages/settings_page.dart';
+import 'package:devocional_nuevo/pages/debug_page.dart';
+import 'package:flutter/foundation.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/providers/localization_provider.dart';
 import 'package:devocional_nuevo/services/connectivity_service.dart';
@@ -18,6 +20,7 @@ import 'package:devocional_nuevo/services/google_drive_auth_service.dart';
 import 'package:devocional_nuevo/services/google_drive_backup_service.dart';
 import 'package:devocional_nuevo/services/notification_service.dart';
 import 'package:devocional_nuevo/services/onboarding_service.dart';
+import 'package:devocional_nuevo/services/remote_config_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
 import 'package:devocional_nuevo/services/tts/i_tts_service.dart';
@@ -28,7 +31,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_in_app_messaging/firebase_in_app_messaging.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -37,6 +39,8 @@ import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:provider/provider.dart';
 import 'package:timezone/data/latest_all.dart' as tzdata;
 import 'package:timezone/timezone.dart' as tz;
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 // Global navigator key for app navigation
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -51,6 +55,32 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     name: 'BackgroundServiceCallback',
   );
   await Firebase.initializeApp();
+
+  // Setup ServiceLocator para el isolate de background con manejo de errores
+  try {
+    setupServiceLocator();
+    developer.log(
+      'BackgroundServiceCallback: ServiceLocator initialized in background isolate.',
+      name: 'BackgroundServiceCallback',
+    );
+  } catch (e, stack) {
+    developer.log(
+      'ServiceLocator setup failed in background isolate',
+      name: 'BackgroundServiceCallback',
+      error: e,
+      stackTrace: stack,
+    );
+    // Registrar solo NotificationService como fallback
+    final locator = ServiceLocator();
+    locator.registerLazySingleton<NotificationService>(
+      NotificationService.create,
+    );
+    developer.log(
+      'BackgroundServiceCallback: Solo NotificationService registrado como fallback en background isolate.',
+      name: 'BackgroundServiceCallback',
+    );
+  }
+
   tzdata.initializeTimeZones();
   try {
     final String currentTimeZone = await FlutterTimezone.getLocalTimezone();
@@ -71,7 +101,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
       name: 'BackgroundServiceCallback',
     );
   }
-  final NotificationService notificationService = NotificationService();
+  final notificationService = getService<NotificationService>();
   await notificationService.initialize();
   final String? title = message.notification?.title;
   final String? body = message.notification?.body;
@@ -104,6 +134,13 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
 
+  // AGREGAR Crashlytics para manejo global de errores
+  FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
+  PlatformDispatcher.instance.onError = (error, stack) {
+    FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+    return true;
+  };
+
   // Inicializar Firebase In-App Messaging en background (non-blocking)
   Future.microtask(() async {
     final FirebaseInAppMessaging inAppMessaging =
@@ -111,14 +148,36 @@ void main() async {
     await inAppMessaging.setAutomaticDataCollectionEnabled(true);
     inAppMessaging.triggerEvent('app_launch');
     inAppMessaging.triggerEvent('on_foreground');
-    developer.log('App: Firebase In-App Messaging inicializado en background.',
-        name: 'MainApp');
+    developer.log(
+      'App: Firebase In-App Messaging inicializado en background.',
+      name: 'MainApp',
+    );
   });
 
   // Setup dependency injection
   setupServiceLocator();
-  developer.log('App: Service locator initialized with DI container.',
-      name: 'MainApp');
+  developer.log(
+    'App: Service locator initialized with DI container.',
+    name: 'MainApp',
+  );
+
+  // Initialize Remote Config (AWAIT for it to be ready before runApp)
+  // This ensures feature flags are available from app start
+  try {
+    final remoteConfigService = getService<RemoteConfigService>();
+    await remoteConfigService.initialize();
+    developer.log(
+      'App: RemoteConfigService initialized successfully.',
+      name: 'MainApp',
+    );
+  } catch (e, stack) {
+    developer.log(
+      'App: Failed to initialize RemoteConfigService, using defaults',
+      name: 'MainApp',
+      error: e,
+      stackTrace: stack,
+    );
+  }
 
   // Configure system UI overlay style for consistent navigation bar appearance
   // This ensures dark gray navigation bar with white buttons across all themes
@@ -180,11 +239,20 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   late Future<bool> _initializationFuture;
+  bool _developerMode = false;
 
   @override
   void initState() {
     super.initState();
     _initializationFuture = _initializeApp();
+    _loadDeveloperMode();
+  }
+
+  Future<void> _loadDeveloperMode() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _developerMode = prefs.getBool('developerMode') ?? false;
+    });
   }
 
   /// Metodo unificado que inicializa servicios y verifica onboarding
@@ -322,6 +390,8 @@ class _MyAppState extends State<MyApp> {
             routes: {
               '/settings': (context) => const SettingsPage(),
               '/devocionales': (context) => const DevocionalesPage(),
+              if (kDebugMode || _developerMode)
+                '/debug': (context) => const DebugPage(),
             },
           ),
         );
@@ -389,11 +459,7 @@ class _AppInitializerState extends State<AppInitializer> {
         );
       }
     } catch (e) {
-      developer.log(
-        'ERROR: Firebase Auth: $e',
-        name: 'MainApp',
-        error: e,
-      );
+      developer.log('ERROR: Firebase Auth: $e', name: 'MainApp', error: e);
     }
 
     // Timezone (necesario para algunas features)
@@ -404,11 +470,7 @@ class _AppInitializerState extends State<AppInitializer> {
         name: 'MainApp',
       );
     } catch (e) {
-      developer.log(
-        'ERROR: Timezone: $e',
-        name: 'MainApp',
-        error: e,
-      );
+      developer.log('ERROR: Timezone: $e', name: 'MainApp', error: e);
     }
   }
 
@@ -417,22 +479,28 @@ class _AppInitializerState extends State<AppInitializer> {
     Future.delayed(const Duration(seconds: 1), () async {
       try {
         if (!mounted) return;
-        final localizationProvider =
-            Provider.of<LocalizationProvider>(context, listen: false);
+        final localizationProvider = Provider.of<LocalizationProvider>(
+          context,
+          listen: false,
+        );
         final languageCode = localizationProvider.currentLocale.languageCode;
         await getService<ITtsService>().initializeTtsOnAppStart(languageCode);
         debugPrint(
-            '[MAIN] TTS inicializado en background con idioma: $languageCode');
+          '[MAIN] TTS inicializado en background con idioma: $languageCode',
+        );
       } catch (e) {
-        developer.log('ERROR: TTS initialization: $e',
-            name: 'MainApp', error: e);
+        developer.log(
+          'ERROR: TTS initialization: $e',
+          name: 'MainApp',
+          error: e,
+        );
       }
     });
 
     // Notifications - diferido 2 segundos
     Future.delayed(const Duration(seconds: 2), () async {
       try {
-        await NotificationService().initialize();
+        await getService<NotificationService>().initialize();
         developer.log(
           'AppInitializer: Servicios de notificación inicializados en background.',
           name: 'MainApp',

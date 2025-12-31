@@ -34,88 +34,102 @@ void main() {
     });
 
     group('TTS Play Button Tracking', () {
-      testWidgets('should log tts_play event when play button is pressed',
-          (tester) async {
+      testWidgets('should log tts_play event when play button is pressed', (
+        tester,
+      ) async {
         // Arrange
-        when(mockAnalytics.logEvent(name: 'tts_play', parameters: null))
-            .thenAnswer((_) async => {});
+        when(
+          mockAnalytics.logEvent(name: 'tts_play', parameters: null),
+        ).thenAnswer((_) async => {});
 
         // Act
         await analyticsService.logTtsPlay();
         await tester.pumpAndSettle();
 
         // Assert
-        verify(mockAnalytics.logEvent(name: 'tts_play', parameters: null))
-            .called(1);
+        verify(
+          mockAnalytics.logEvent(name: 'tts_play', parameters: null),
+        ).called(1);
         expect(AnalyticsService.analyticsErrorCount, 0);
       });
 
       testWidgets(
-          'should handle analytics failure gracefully when tracking TTS play',
-          (tester) async {
-        // Arrange
-        when(mockAnalytics.logEvent(name: 'tts_play', parameters: null))
-            .thenThrow(Exception('Network timeout'));
+        'should handle analytics failure gracefully when tracking TTS play',
+        (tester) async {
+          // Arrange
+          when(
+            mockAnalytics.logEvent(name: 'tts_play', parameters: null),
+          ).thenThrow(Exception('Network timeout'));
 
-        // Act
-        await analyticsService.logTtsPlay();
-        await tester.pumpAndSettle();
+          // Act
+          await analyticsService.logTtsPlay();
+          await tester.pumpAndSettle();
 
-        // Assert - should not throw, error count increments
-        expect(AnalyticsService.analyticsErrorCount, 1);
-      });
+          // Assert - should not throw, error count increments
+          expect(AnalyticsService.analyticsErrorCount, 1);
+        },
+      );
     });
 
     group('Devotional Completion Tracking', () {
       testWidgets(
-          'should log completion with valid campaign tag from constants',
-          (tester) async {
-        // Arrange
-        const devocionalId = 'dev_integration_test_001';
-        final campaignTag =
-            AnalyticsConstants.getCampaignTag(devocionalId: devocionalId);
+        'should log completion with valid campaign tag from constants',
+        (tester) async {
+          // Arrange
+          const devocionalId = 'dev_integration_test_001';
+          final campaignTag = AnalyticsConstants.getCampaignTag(
+            devocionalId: devocionalId,
+          );
 
-        when(mockAnalytics.logEvent(
-          name: 'devotional_read_complete',
-          parameters: anyNamed('parameters'),
-        )).thenAnswer((_) async => {});
+          when(
+            mockAnalytics.logEvent(
+              name: 'devotional_read_complete',
+              parameters: anyNamed('parameters'),
+            ),
+          ).thenAnswer((_) async => {});
 
-        // Act
-        await analyticsService.logDevocionalComplete(
-          devocionalId: devocionalId,
-          campaignTag: campaignTag,
-          source: 'read',
-          readingTimeSeconds: 120,
-          scrollPercentage: 0.95,
-        );
-        await tester.pumpAndSettle();
+          // Act
+          await analyticsService.logDevocionalComplete(
+            devocionalId: devocionalId,
+            campaignTag: campaignTag,
+            source: 'read',
+            readingTimeSeconds: 120,
+            scrollPercentage: 0.95,
+          );
+          await tester.pumpAndSettle();
 
-        // Assert
-        final captured = verify(mockAnalytics.logEvent(
-          name: 'devotional_read_complete',
-          parameters: captureAnyNamed('parameters'),
-        )).captured;
+          // Assert
+          final captured = verify(
+            mockAnalytics.logEvent(
+              name: 'devotional_read_complete',
+              parameters: captureAnyNamed('parameters'),
+            ),
+          ).captured;
 
-        expect(captured.length, 1);
-        final params = captured[0] as Map<String, Object>;
-        expect(params['campaign_tag'], campaignTag);
-        expect(params['devotional_id'], devocionalId);
-        expect(params['source'], 'read');
-        expect(params['reading_time_seconds'], 120);
-        expect(params['scroll_percentage'], 95);
-        expect(AnalyticsService.analyticsErrorCount, 0);
-      });
+          expect(captured.length, 1);
+          final params = captured[0] as Map<String, Object>;
+          expect(params['campaign_tag'], campaignTag);
+          expect(params['devotional_id'], devocionalId);
+          expect(params['source'], 'read');
+          expect(params['reading_time_seconds'], 120);
+          expect(params['scroll_percentage'], 95);
+          expect(AnalyticsService.analyticsErrorCount, 0);
+        },
+      );
 
-      testWidgets('should log heard completion with listened percentage',
-          (tester) async {
+      testWidgets('should log heard completion with listened percentage', (
+        tester,
+      ) async {
         // Arrange
         const devocionalId = 'dev_heard_test';
         const campaignTag = 'custom_1';
 
-        when(mockAnalytics.logEvent(
-          name: 'devotional_read_complete',
-          parameters: anyNamed('parameters'),
-        )).thenAnswer((_) async => {});
+        when(
+          mockAnalytics.logEvent(
+            name: 'devotional_read_complete',
+            parameters: anyNamed('parameters'),
+          ),
+        ).thenAnswer((_) async => {});
 
         // Act
         await analyticsService.logDevocionalComplete(
@@ -127,10 +141,12 @@ void main() {
         await tester.pumpAndSettle();
 
         // Assert
-        final captured = verify(mockAnalytics.logEvent(
-          name: 'devotional_read_complete',
-          parameters: captureAnyNamed('parameters'),
-        )).captured;
+        final captured = verify(
+          mockAnalytics.logEvent(
+            name: 'devotional_read_complete',
+            parameters: captureAnyNamed('parameters'),
+          ),
+        ).captured;
 
         expect(captured.length, 1);
         final params = captured[0] as Map<String, Object>;
@@ -152,17 +168,20 @@ void main() {
         await tester.pumpAndSettle();
 
         // Assert - should NOT call Firebase Analytics
-        verifyNever(mockAnalytics.logEvent(
-          name: 'any_event',
-          parameters: anyNamed('parameters'),
-        ));
+        verifyNever(
+          mockAnalytics.logEvent(
+            name: 'any_event',
+            parameters: anyNamed('parameters'),
+          ),
+        );
         expect(AnalyticsService.analyticsErrorCount, 1);
       });
     });
 
     group('Campaign Tag Validation', () {
-      testWidgets('should validate campaign tag before logging',
-          (tester) async {
+      testWidgets('should validate campaign tag before logging', (
+        tester,
+      ) async {
         // Arrange
         final testCases = [
           {'tag': 'custom_1', 'valid': true},
@@ -174,10 +193,12 @@ void main() {
           {'tag': '', 'valid': false},
         ];
 
-        when(mockAnalytics.logEvent(
-          name: 'devotional_read_complete',
-          parameters: anyNamed('parameters'),
-        )).thenAnswer((_) async => {});
+        when(
+          mockAnalytics.logEvent(
+            name: 'devotional_read_complete',
+            parameters: anyNamed('parameters'),
+          ),
+        ).thenAnswer((_) async => {});
 
         // Act & Assert
         for (final testCase in testCases) {
@@ -192,11 +213,17 @@ void main() {
           await tester.pumpAndSettle();
 
           if (shouldBeValid) {
-            expect(AnalyticsService.analyticsErrorCount, 0,
-                reason: 'Valid tag "$tag" should not produce errors');
+            expect(
+              AnalyticsService.analyticsErrorCount,
+              0,
+              reason: 'Valid tag "$tag" should not produce errors',
+            );
           } else {
-            expect(AnalyticsService.analyticsErrorCount, 1,
-                reason: 'Invalid tag "$tag" should produce error');
+            expect(
+              AnalyticsService.analyticsErrorCount,
+              1,
+              reason: 'Invalid tag "$tag" should produce error',
+            );
           }
         }
       });
@@ -205,8 +232,9 @@ void main() {
     group('Error Telemetry', () {
       testWidgets('should track multiple consecutive errors', (tester) async {
         // Arrange
-        when(mockAnalytics.logEvent(name: 'tts_play', parameters: null))
-            .thenThrow(Exception('Persistent error'));
+        when(
+          mockAnalytics.logEvent(name: 'tts_play', parameters: null),
+        ).thenThrow(Exception('Persistent error'));
 
         expect(AnalyticsService.analyticsErrorCount, 0);
 
@@ -222,12 +250,15 @@ void main() {
 
       testWidgets('should track errors from mixed operations', (tester) async {
         // Arrange
-        when(mockAnalytics.logEvent(name: 'tts_play', parameters: null))
-            .thenThrow(Exception('TTS error'));
-        when(mockAnalytics.logEvent(
-          name: 'devotional_read_complete',
-          parameters: anyNamed('parameters'),
-        )).thenThrow(Exception('Completion error'));
+        when(
+          mockAnalytics.logEvent(name: 'tts_play', parameters: null),
+        ).thenThrow(Exception('TTS error'));
+        when(
+          mockAnalytics.logEvent(
+            name: 'devotional_read_complete',
+            parameters: anyNamed('parameters'),
+          ),
+        ).thenThrow(Exception('Completion error'));
 
         expect(AnalyticsService.analyticsErrorCount, 0);
 
@@ -244,11 +275,13 @@ void main() {
         expect(AnalyticsService.analyticsErrorCount, 3);
       });
 
-      testWidgets('should warn after exceeding error threshold',
-          (tester) async {
+      testWidgets('should warn after exceeding error threshold', (
+        tester,
+      ) async {
         // Arrange
-        when(mockAnalytics.logEvent(name: 'tts_play', parameters: null))
-            .thenThrow(Exception('Error'));
+        when(
+          mockAnalytics.logEvent(name: 'tts_play', parameters: null),
+        ).thenThrow(Exception('Error'));
 
         // Act - trigger 12 errors (threshold is 10)
         for (var i = 0; i < 12; i++) {
@@ -270,10 +303,12 @@ void main() {
           devocionalId: devocionalId,
         );
 
-        when(mockAnalytics.logEvent(
-          name: 'devotional_read_complete',
-          parameters: anyNamed('parameters'),
-        )).thenAnswer((_) async => {});
+        when(
+          mockAnalytics.logEvent(
+            name: 'devotional_read_complete',
+            parameters: anyNamed('parameters'),
+          ),
+        ).thenAnswer((_) async => {});
 
         // Act
         await analyticsService.logDevocionalComplete(
@@ -283,10 +318,12 @@ void main() {
         await tester.pumpAndSettle();
 
         // Assert
-        final captured = verify(mockAnalytics.logEvent(
-          name: 'devotional_read_complete',
-          parameters: captureAnyNamed('parameters'),
-        )).captured;
+        final captured = verify(
+          mockAnalytics.logEvent(
+            name: 'devotional_read_complete',
+            parameters: captureAnyNamed('parameters'),
+          ),
+        ).captured;
 
         final params = captured[0] as Map<String, Object>;
         expect(params['campaign_tag'], AnalyticsConstants.defaultCampaignTag);
@@ -297,24 +334,30 @@ void main() {
         final tag = AnalyticsConstants.getCampaignTag();
 
         // Assert
-        expect(AnalyticsService.isValidCampaignTag(tag), true,
-            reason: 'Constants-generated tags should always pass validation');
+        expect(
+          AnalyticsService.isValidCampaignTag(tag),
+          true,
+          reason: 'Constants-generated tags should always pass validation',
+        );
       });
     });
 
     group('Real-World Scenarios', () {
-      testWidgets('complete user journey: read devotional and track',
-          (tester) async {
+      testWidgets('complete user journey: read devotional and track', (
+        tester,
+      ) async {
         // Arrange
         const devocionalId = 'daily_devotional_2024_01_01';
         final campaignTag = AnalyticsConstants.getCampaignTag(
           devocionalId: devocionalId,
         );
 
-        when(mockAnalytics.logEvent(
-          name: 'devotional_read_complete',
-          parameters: anyNamed('parameters'),
-        )).thenAnswer((_) async => {});
+        when(
+          mockAnalytics.logEvent(
+            name: 'devotional_read_complete',
+            parameters: anyNamed('parameters'),
+          ),
+        ).thenAnswer((_) async => {});
 
         // Act - User reads for 180 seconds and scrolls 90%
         await analyticsService.logDevocionalComplete(
@@ -327,27 +370,33 @@ void main() {
         await tester.pumpAndSettle();
 
         // Assert
-        verify(mockAnalytics.logEvent(
-          name: 'devotional_read_complete',
-          parameters: anyNamed('parameters'),
-        )).called(1);
+        verify(
+          mockAnalytics.logEvent(
+            name: 'devotional_read_complete',
+            parameters: anyNamed('parameters'),
+          ),
+        ).called(1);
         expect(AnalyticsService.analyticsErrorCount, 0);
       });
 
-      testWidgets('complete user journey: TTS playback and track',
-          (tester) async {
+      testWidgets('complete user journey: TTS playback and track', (
+        tester,
+      ) async {
         // Arrange
         const devocionalId = 'audio_devotional_test';
         final campaignTag = AnalyticsConstants.getCampaignTag(
           devocionalId: devocionalId,
         );
 
-        when(mockAnalytics.logEvent(name: 'tts_play', parameters: null))
-            .thenAnswer((_) async => {});
-        when(mockAnalytics.logEvent(
-          name: 'devotional_read_complete',
-          parameters: anyNamed('parameters'),
-        )).thenAnswer((_) async => {});
+        when(
+          mockAnalytics.logEvent(name: 'tts_play', parameters: null),
+        ).thenAnswer((_) async => {});
+        when(
+          mockAnalytics.logEvent(
+            name: 'devotional_read_complete',
+            parameters: anyNamed('parameters'),
+          ),
+        ).thenAnswer((_) async => {});
 
         // Act - User presses play and listens to 75% of audio
         await analyticsService.logTtsPlay();
@@ -360,12 +409,15 @@ void main() {
         await tester.pumpAndSettle();
 
         // Assert
-        verify(mockAnalytics.logEvent(name: 'tts_play', parameters: null))
-            .called(1);
-        verify(mockAnalytics.logEvent(
-          name: 'devotional_read_complete',
-          parameters: anyNamed('parameters'),
-        )).called(1);
+        verify(
+          mockAnalytics.logEvent(name: 'tts_play', parameters: null),
+        ).called(1);
+        verify(
+          mockAnalytics.logEvent(
+            name: 'devotional_read_complete',
+            parameters: anyNamed('parameters'),
+          ),
+        ).called(1);
         expect(AnalyticsService.analyticsErrorCount, 0);
       });
     });

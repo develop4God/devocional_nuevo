@@ -69,8 +69,9 @@ void main() {
       );
     }
 
-    testWidgets('should display count badge for active prayers',
-        (WidgetTester tester) async {
+    testWidgets('should display count badge for active prayers', (
+      WidgetTester tester,
+    ) async {
       // Create prayers list with 5 active prayers
       final prayers = List.generate(
         5,
@@ -82,18 +83,24 @@ void main() {
         ),
       );
 
-      await tester.pumpWidget(createWidgetUnderTest(
-        prayerState: PrayerLoaded(prayers: prayers),
-        thanksgivingState: ThanksgivingLoaded(thanksgivings: []),
-      ));
+      await tester.pumpWidget(
+        createWidgetUnderTest(
+          prayerState: PrayerLoaded(prayers: prayers),
+          thanksgivingState: ThanksgivingLoaded(thanksgivings: []),
+        ),
+      );
       await tester.pumpAndSettle();
 
       // Verify active prayers count (5) is displayed
       expect(find.text('5'), findsOneWidget);
+
+      // Wait for AnimatedFabWithText timer to complete
+      await tester.pump(const Duration(seconds: 4));
     });
 
-    testWidgets('should display count badge for answered prayers',
-        (WidgetTester tester) async {
+    testWidgets('should display count badge for answered prayers', (
+      WidgetTester tester,
+    ) async {
       // Create prayers list with 3 answered prayers
       final prayers = List.generate(
         3,
@@ -106,18 +113,24 @@ void main() {
         ),
       );
 
-      await tester.pumpWidget(createWidgetUnderTest(
-        prayerState: PrayerLoaded(prayers: prayers),
-        thanksgivingState: ThanksgivingLoaded(thanksgivings: []),
-      ));
+      await tester.pumpWidget(
+        createWidgetUnderTest(
+          prayerState: PrayerLoaded(prayers: prayers),
+          thanksgivingState: ThanksgivingLoaded(thanksgivings: []),
+        ),
+      );
       await tester.pumpAndSettle();
 
       // Verify answered prayers count (3) is displayed
       expect(find.text('3'), findsOneWidget);
+
+      // Wait for AnimatedFabWithText timer to complete
+      await tester.pump(const Duration(seconds: 4));
     });
 
-    testWidgets('should display count badge for thanksgivings',
-        (WidgetTester tester) async {
+    testWidgets('should display count badge for thanksgivings', (
+      WidgetTester tester,
+    ) async {
       // Create 7 thanksgivings
       final thanksgivings = List.generate(
         7,
@@ -128,30 +141,42 @@ void main() {
         ),
       );
 
-      await tester.pumpWidget(createWidgetUnderTest(
-        prayerState: PrayerLoaded(prayers: []),
-        thanksgivingState: ThanksgivingLoaded(thanksgivings: thanksgivings),
-      ));
+      await tester.pumpWidget(
+        createWidgetUnderTest(
+          prayerState: PrayerLoaded(prayers: []),
+          thanksgivingState: ThanksgivingLoaded(thanksgivings: thanksgivings),
+        ),
+      );
       await tester.pumpAndSettle();
 
       // Verify thanksgiving count (7) is displayed
       expect(find.text('7'), findsOneWidget);
+
+      // Wait for AnimatedFabWithText timer to complete
+      await tester.pump(const Duration(seconds: 4));
     });
 
-    testWidgets('should not display badge when count is zero',
-        (WidgetTester tester) async {
-      await tester.pumpWidget(createWidgetUnderTest(
-        prayerState: PrayerLoaded(prayers: []),
-        thanksgivingState: ThanksgivingLoaded(thanksgivings: []),
-      ));
+    testWidgets('should not display badge when count is zero', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(
+        createWidgetUnderTest(
+          prayerState: PrayerLoaded(prayers: []),
+          thanksgivingState: ThanksgivingLoaded(thanksgivings: []),
+        ),
+      );
       await tester.pumpAndSettle();
 
       // Verify no count badges are displayed (0 should not show)
       expect(find.text('0'), findsNothing);
+
+      // Wait for AnimatedFabWithText timer to complete
+      await tester.pump(const Duration(seconds: 4));
     });
 
-    testWidgets('should display 99+ for counts over 99',
-        (WidgetTester tester) async {
+    testWidgets('should display 99+ for counts over 99', (
+      WidgetTester tester,
+    ) async {
       // Create 100 active prayers
       final prayers = List.generate(
         100,
@@ -163,18 +188,24 @@ void main() {
         ),
       );
 
-      await tester.pumpWidget(createWidgetUnderTest(
-        prayerState: PrayerLoaded(prayers: prayers),
-        thanksgivingState: ThanksgivingLoaded(thanksgivings: []),
-      ));
+      await tester.pumpWidget(
+        createWidgetUnderTest(
+          prayerState: PrayerLoaded(prayers: prayers),
+          thanksgivingState: ThanksgivingLoaded(thanksgivings: []),
+        ),
+      );
       await tester.pumpAndSettle();
 
       // Verify 99+ is displayed instead of 100
       expect(find.text('99+'), findsOneWidget);
+
+      // Wait for AnimatedFabWithText timer to complete
+      await tester.pump(const Duration(seconds: 4));
     });
 
-    testWidgets('should display multiple badges for different tabs',
-        (WidgetTester tester) async {
+    testWidgets('should display multiple badges for different tabs', (
+      WidgetTester tester,
+    ) async {
       // Create mixed prayers and thanksgivings
       final activePrayers = List.generate(
         2,
@@ -206,17 +237,23 @@ void main() {
         ),
       );
 
-      await tester.pumpWidget(createWidgetUnderTest(
-        prayerState:
-            PrayerLoaded(prayers: [...activePrayers, ...answeredPrayers]),
-        thanksgivingState: ThanksgivingLoaded(thanksgivings: thanksgivings),
-      ));
+      await tester.pumpWidget(
+        createWidgetUnderTest(
+          prayerState: PrayerLoaded(
+            prayers: [...activePrayers, ...answeredPrayers],
+          ),
+          thanksgivingState: ThanksgivingLoaded(thanksgivings: thanksgivings),
+        ),
+      );
       await tester.pumpAndSettle();
 
       // Verify all counts are displayed
       expect(find.text('2'), findsOneWidget); // Active prayers
       expect(find.text('4'), findsOneWidget); // Answered prayers
       expect(find.text('6'), findsOneWidget); // Thanksgivings
+
+      // Wait for AnimatedFabWithText timer to complete
+      await tester.pump(const Duration(seconds: 4));
     });
   });
 }

@@ -44,9 +44,7 @@ class _AnswerPrayerModalState extends State<AnswerPrayerModal> {
     final mediaQuery = MediaQuery.of(context);
 
     return Container(
-      margin: EdgeInsets.only(
-        bottom: mediaQuery.viewInsets.bottom,
-      ),
+      margin: EdgeInsets.only(bottom: mediaQuery.viewInsets.bottom),
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: colorScheme.surface,
@@ -59,11 +57,7 @@ class _AnswerPrayerModalState extends State<AnswerPrayerModal> {
           // Header
           Row(
             children: [
-              Icon(
-                Icons.check_circle_outline,
-                color: Colors.green,
-                size: 28,
-              ),
+              Icon(Icons.check_circle_outline, color: Colors.green, size: 28),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
@@ -94,11 +88,7 @@ class _AnswerPrayerModalState extends State<AnswerPrayerModal> {
             ),
             child: Row(
               children: [
-                Icon(
-                  Icons.info_outline,
-                  color: Colors.green,
-                  size: 20,
-                ),
+                Icon(Icons.info_outline, color: Colors.green, size: 20),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(

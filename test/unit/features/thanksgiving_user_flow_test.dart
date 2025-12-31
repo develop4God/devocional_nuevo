@@ -27,10 +27,16 @@ void main() {
       const hasPrayerOption = true;
       const hasThanksgivingOption = true;
 
-      expect(hasPrayerOption, isTrue,
-          reason: 'Prayer option should be available');
-      expect(hasThanksgivingOption, isTrue,
-          reason: 'Thanksgiving option should be available');
+      expect(
+        hasPrayerOption,
+        isTrue,
+        reason: 'Prayer option should be available',
+      );
+      expect(
+        hasThanksgivingOption,
+        isTrue,
+        reason: 'Thanksgiving option should be available',
+      );
     });
 
     test('Thanksgiving option shows correct emoji and label', () {
@@ -43,8 +49,11 @@ void main() {
 
       expect(thanksgivingEmoji, isNotEmpty);
       expect(prayerEmoji, isNotEmpty);
-      expect(thanksgivingEmoji, isNot(equals(prayerEmoji)),
-          reason: 'Each option should have unique emoji');
+      expect(
+        thanksgivingEmoji,
+        isNot(equals(prayerEmoji)),
+        reason: 'Each option should have unique emoji',
+      );
     });
 
     test('User can add a new thanksgiving', () {
@@ -70,8 +79,11 @@ void main() {
       const hasSaveButton = true;
       const hasCloseButton = true;
 
-      expect(hasTextField, isTrue,
-          reason: 'Modal should have text input field');
+      expect(
+        hasTextField,
+        isTrue,
+        reason: 'Modal should have text input field',
+      );
       expect(hasSaveButton, isTrue, reason: 'Modal should have save button');
       expect(hasCloseButton, isTrue, reason: 'Modal should have close button');
     });
@@ -106,12 +118,21 @@ void main() {
       const bottomSheetShows = true;
       const thanksgivingOptionClickable = true;
 
-      expect(fabAvailable, isTrue,
-          reason: 'FAB should be available on devocionales page');
-      expect(bottomSheetShows, isTrue,
-          reason: 'Bottom sheet should show when FAB is tapped');
-      expect(thanksgivingOptionClickable, isTrue,
-          reason: 'Thanksgiving option should be clickable');
+      expect(
+        fabAvailable,
+        isTrue,
+        reason: 'FAB should be available on devocionales page',
+      );
+      expect(
+        bottomSheetShows,
+        isTrue,
+        reason: 'Bottom sheet should show when FAB is tapped',
+      );
+      expect(
+        thanksgivingOptionClickable,
+        isTrue,
+        reason: 'Thanksgiving option should be clickable',
+      );
     });
 
     test('Thanksgiving can have long text content', () {

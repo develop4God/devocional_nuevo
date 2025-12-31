@@ -1,65 +1,73 @@
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
+import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+class MockPathProviderPlatform extends Mock implements PathProviderPlatform {}
 
 void main() {
   late DevocionalProvider provider;
 
   // Mock canales plataforma externos (path_provider, flutter_tts)
-  const MethodChannel pathProviderChannel =
-      MethodChannel('plugins.flutter.io/path_provider');
+  const MethodChannel pathProviderChannel = MethodChannel(
+    'plugins.flutter.io/path_provider',
+  );
   const MethodChannel ttsChannel = MethodChannel('flutter_tts');
 
-  setUpAll(() {
+  setUpAll(() async {
+    await Firebase.initializeApp();
+    final mockPathProvider = MockPathProviderPlatform();
+    PathProviderPlatform.instance = mockPathProvider;
+    when(() => mockPathProvider.getApplicationDocumentsPath())
+        .thenAnswer((_) async => '/mock_documents');
+
     TestWidgetsFlutterBinding.ensureInitialized();
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(
-      pathProviderChannel,
-      (MethodCall methodCall) async {
-        switch (methodCall.method) {
-          case 'getApplicationDocumentsDirectory':
-            return '/mock_documents';
-          case 'getTemporaryDirectory':
-            return '/mock_temp';
-          default:
-            return null;
-        }
-      },
-    );
+        .setMockMethodCallHandler(pathProviderChannel, (
+      MethodCall methodCall,
+    ) async {
+      switch (methodCall.method) {
+        case 'getApplicationDocumentsDirectory':
+          return '/mock_documents';
+        case 'getTemporaryDirectory':
+          return '/mock_temp';
+        default:
+          return null;
+      }
+    });
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(
-      ttsChannel,
-      (MethodCall call) async {
-        switch (call.method) {
-          case 'speak':
-          case 'stop':
-          case 'pause':
-          case 'setLanguage':
-          case 'setSpeechRate':
-          case 'setVolume':
-          case 'setPitch':
-          case 'awaitSpeakCompletion':
-          case 'setQueueMode':
-          case 'awaitSynthCompletion':
-            return 1;
-          case 'getLanguages':
-            return ['es-ES', 'en-US'];
-          case 'getVoices':
-            return [
-              {'name': 'Voice ES', 'locale': 'es-ES'},
-              {'name': 'Voice EN', 'locale': 'en-US'},
-            ];
-          case 'isLanguageAvailable':
-            return true;
-          default:
-            return null;
-        }
-      },
-    );
+        .setMockMethodCallHandler(ttsChannel, (MethodCall call) async {
+      switch (call.method) {
+        case 'speak':
+        case 'stop':
+        case 'pause':
+        case 'setLanguage':
+        case 'setSpeechRate':
+        case 'setVolume':
+        case 'setPitch':
+        case 'awaitSpeakCompletion':
+        case 'setQueueMode':
+        case 'awaitSynthCompletion':
+          return 1;
+        case 'getLanguages':
+          return ['es-ES', 'en-US'];
+        case 'getVoices':
+          return [
+            {'name': 'Voice ES', 'locale': 'es-ES'},
+            {'name': 'Voice EN', 'locale': 'en-US'},
+          ];
+        case 'isLanguageAvailable':
+          return true;
+        default:
+          return null;
+      }
+    });
   });
 
   setUp(() async {
@@ -101,18 +109,18 @@ void main() {
       expect(provider.supportedLanguages, contains('en'));
       // Fallback language on unsupported input
       final currentLang = provider.selectedLanguage;
-      provider.setSelectedLanguage('unsupported');
+      provider.setSelectedLanguage('unsupported', null);
       // Should fallback to 'es' (the hardcoded fallback language)
       // Wait for async operations
       await Future.delayed(const Duration(milliseconds: 200));
       expect(provider.selectedLanguage, 'es');
       // Restore original language
-      provider.setSelectedLanguage(currentLang);
+      provider.setSelectedLanguage(currentLang, null);
       await Future.delayed(const Duration(milliseconds: 200));
     });
 
     test('changing language updates data and version defaults', () async {
-      provider.setSelectedLanguage('en');
+      provider.setSelectedLanguage('en', null);
       expect(provider.selectedLanguage, 'en');
       expect(provider.selectedVersion, isNotNull);
       // Devocionales will be empty due to HTTP 400, but API was called
@@ -128,13 +136,10 @@ void main() {
       await Future.delayed(const Duration(milliseconds: 100));
     });
 
-    testWidgets('favorite management works correctly',
-        (WidgetTester tester) async {
-      await tester.pumpWidget(MaterialApp(
-        home: Scaffold(
-          body: Container(),
-        ),
-      ));
+    testWidgets('favorite management works correctly', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(MaterialApp(home: Scaffold(body: Container())));
 
       final devotional = Devocional(
         id: 'fav_test_1',
@@ -147,11 +152,15 @@ void main() {
 
       expect(provider.isFavorite(devotional), isFalse);
       provider.toggleFavorite(
-          devotional, tester.element(find.byType(Container)));
+        devotional,
+        tester.element(find.byType(Container)),
+      );
       await tester.pump(); // Let the snackbar animation complete
       expect(provider.isFavorite(devotional), isTrue);
       provider.toggleFavorite(
-          devotional, tester.element(find.byType(Container)));
+        devotional,
+        tester.element(find.byType(Container)),
+      );
       await tester.pump();
       expect(provider.isFavorite(devotional), isFalse);
     });
@@ -251,8 +260,9 @@ void main() {
       expect(hasLocal, isFalse);
 
       // Download for specific year - will also fail
-      bool specificDownload =
-          await provider.downloadDevocionalesForYear(DateTime.now().year);
+      bool specificDownload = await provider.downloadDevocionalesForYear(
+        DateTime.now().year,
+      );
       expect(specificDownload, isFalse);
 
       // Clear local files test
@@ -295,7 +305,7 @@ void main() {
 
     test('Japanese version codes are correctly configured', () async {
       // Test that Japanese versions use the new version codes
-      provider.setSelectedLanguage('ja');
+      provider.setSelectedLanguage('ja', null);
       await Future.delayed(const Duration(milliseconds: 200));
 
       expect(provider.selectedLanguage, 'ja');

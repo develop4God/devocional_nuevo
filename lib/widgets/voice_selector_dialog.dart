@@ -37,7 +37,7 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
 
   // Flag para forzar fallback en testing (SOLO activo en debug mode)
   static const bool _forceFallbackForTesting =
-      false; // ← Cambiar a true para probar fallback
+      false; // ← Cambiado a false para desactivar fallback en pruebas
 
   // Getter seguro: solo funciona en debug mode
   bool get _shouldForceFallback => kDebugMode && _forceFallbackForTesting;
@@ -80,6 +80,13 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
     'fr-CA-language': '🇨🇦',
   };
 
+  static const Map<String, String> chineseVoiceMap = {
+    'cmn-cn-x-cce-local': '🇨🇳', // Hombre China
+    'cmn-cn-x-ccc-local': '🇨🇳', // Mujer China
+    'cmn-tw-x-cte-network': '🇹🇼', // Hombre 2 Taiwán
+    'cmn-tw-x-ctc-network': '🇹🇼', // Mujer 2 Taiwán
+  };
+
   @override
   void initState() {
     super.initState();
@@ -101,6 +108,8 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
         return 'Vous pouvez enregistrer cette voix ou en choisir une autre, selon votre préférence';
       case 'ja':
         return 'この声を保存するか、別の声を選択することができます。お好みに合わせて';
+      case 'zh':
+        return '您可以保存此语音或选择其他语音，按您的喜好';
       default:
         return template;
     }
@@ -149,6 +158,8 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
         return japaneseVoiceMap.containsKey(voiceName);
       case 'fr':
         return frenchVoiceMap.containsKey(voiceName);
+      case 'zh':
+        return chineseVoiceMap.containsKey(voiceName);
       default:
         return false;
     }
@@ -182,14 +193,20 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
           return frenchVoiceMap[voiceName]!;
         }
         break;
+      case 'zh':
+        if (chineseVoiceMap.containsKey(voiceName)) {
+          return chineseVoiceMap[voiceName]!;
+        }
+        break;
     }
     // Si es fallback, extrae la bandera del locale
     return _getCountryFlag(locale);
   }
 
   Future<void> _loadVoices() async {
-    final voices = await _voiceSettingsService
-        .getAvailableVoicesForLanguage(widget.language);
+    final voices = await _voiceSettingsService.getAvailableVoicesForLanguage(
+      widget.language,
+    );
 
     List<Map<String, String>> premiumVoices = [];
     List<Map<String, String>> fallbackVoices = [];
@@ -212,6 +229,9 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
       case 'fr':
         premiumMap = frenchVoiceMap;
         break;
+      case 'zh':
+        premiumMap = chineseVoiceMap;
+        break;
     }
 
     if (premiumMap != null) {
@@ -221,15 +241,18 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
           .toList();
 
       // Ordenar según el orden del mapa
-      premiumVoices.sort((a, b) =>
-          premiumMap!.keys.toList().indexOf(a['name']!) -
-          premiumMap.keys.toList().indexOf(b['name']!));
+      premiumVoices.sort(
+        (a, b) =>
+            premiumMap!.keys.toList().indexOf(a['name']!) -
+            premiumMap.keys.toList().indexOf(b['name']!),
+      );
 
       // Si no hay suficientes voces premium (menos de 2), agregar fallback
       if (premiumVoices.length < 2 || _shouldForceFallback) {
         debugPrint(
-            '[VoiceSelector] 🔄 Activando fallback para ${widget.language}: '
-            'premium=${premiumVoices.length}, forced=$_shouldForceFallback');
+          '[VoiceSelector] 🔄 Activando fallback para \\${widget.language}: '
+          'premium=\${premiumVoices.length}, forced=\$_shouldForceFallback',
+        );
 
         // Definir locales prioritarios por idioma (los más comunes)
         final priorityLocales = <String, List<String>>{
@@ -238,6 +261,7 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
           'pt': ['pt-BR', 'pt-PT'],
           'fr': ['fr-FR', 'fr-CA'],
           'ja': ['ja-JP'],
+          'zh': ['zh-CN', 'zh-TW'],
         };
 
         final priorities = priorityLocales[widget.language] ?? [];
@@ -279,8 +303,9 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
         }
 
         debugPrint(
-            '[VoiceSelector] ✅ Fallback encontró ${fallbackVoices.length} voces '
-            'distribuidas en ${voicesByLocale.length} locales (máx 2 por locale)');
+          '[VoiceSelector] ✅ Fallback encontró \${fallbackVoices.length} voces '
+          'distribuidas en \${voicesByLocale.length} locales (máx 2 por locale)',
+        );
       }
     }
 
@@ -292,8 +317,10 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
       _initialVoiceName = null;
       _initialVoiceLocale = null;
 
-      debugPrint('[VoiceSelector] 📋 Total voces cargadas: ${_voices.length} '
-          '(premium: ${premiumVoices.length}, fallback: ${fallbackVoices.length})');
+      debugPrint(
+        '[VoiceSelector] 📋 Total voces cargadas: \${_voices.length} '
+        '(premium: \${premiumVoices.length}, fallback: \${fallbackVoices.length})',
+      );
     });
   }
 
@@ -302,7 +329,10 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
       _playingIndex = index;
     });
     await _voiceSettingsService.playVoiceSample(
-        name, locale, _translatedSampleText);
+      name,
+      locale,
+      _translatedSampleText,
+    );
     await Future.delayed(const Duration(seconds: 2));
     setState(() {
       _playingIndex = null;
@@ -316,7 +346,10 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
   }
 
   Widget _buildVoiceIcon(
-      String voiceName, String language, ColorScheme colorScheme) {
+    String voiceName,
+    String language,
+    ColorScheme colorScheme,
+  ) {
     final isPremium = _isPremiumVoice(voiceName, language);
 
     if (!isPremium) {
@@ -328,55 +361,108 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
       case 'es':
         if (voiceName == 'es-us-x-esd-local' ||
             voiceName == 'es-es-x-eed-local') {
-          return Icon(Icons.man_3_outlined,
-              color: colorScheme.primary, size: 38);
+          return Icon(
+            Icons.man_3_outlined,
+            color: colorScheme.primary,
+            size: 38,
+          );
         } else {
-          return Icon(Icons.woman_outlined,
-              color: colorScheme.primary, size: 38);
+          return Icon(
+            Icons.woman_outlined,
+            color: colorScheme.primary,
+            size: 38,
+          );
         }
       case 'en':
         if (voiceName == 'en-us-x-tpd-network' ||
             voiceName == 'en-gb-x-gbb-local') {
-          return Icon(Icons.man_3_outlined,
-              color: colorScheme.primary, size: 38);
+          return Icon(
+            Icons.man_3_outlined,
+            color: colorScheme.primary,
+            size: 38,
+          );
         } else {
-          return Icon(Icons.woman_outlined,
-              color: colorScheme.primary, size: 38);
+          return Icon(
+            Icons.woman_outlined,
+            color: colorScheme.primary,
+            size: 38,
+          );
         }
       case 'pt':
         if (voiceName == 'pt-br-x-ptd-network' ||
             voiceName == 'pt-pt-x-pmj-local') {
-          return Icon(Icons.man_3_outlined,
-              color: colorScheme.primary, size: 38);
+          return Icon(
+            Icons.man_3_outlined,
+            color: colorScheme.primary,
+            size: 38,
+          );
         } else {
-          return Icon(Icons.woman_outlined,
-              color: colorScheme.primary, size: 38);
+          return Icon(
+            Icons.woman_outlined,
+            color: colorScheme.primary,
+            size: 38,
+          );
         }
       case 'ja':
         if (voiceName == 'ja-jp-x-jac-local' ||
             voiceName == 'ja-jp-x-jad-local') {
-          return Icon(Icons.man_3_outlined,
-              color: colorScheme.primary, size: 38);
+          return Icon(
+            Icons.man_3_outlined,
+            color: colorScheme.primary,
+            size: 38,
+          );
         } else {
-          return Icon(Icons.woman_outlined,
-              color: colorScheme.primary, size: 38);
+          return Icon(
+            Icons.woman_outlined,
+            color: colorScheme.primary,
+            size: 38,
+          );
         }
       case 'fr':
         if (voiceName == 'fr-fr-x-frd-network' ||
             voiceName == 'fr-ca-x-cab-network') {
-          return Icon(Icons.man_3_outlined,
-              color: colorScheme.primary, size: 38);
+          return Icon(
+            Icons.man_3_outlined,
+            color: colorScheme.primary,
+            size: 38,
+          );
         } else {
-          return Icon(Icons.woman_outlined,
-              color: colorScheme.primary, size: 38);
+          return Icon(
+            Icons.woman_outlined,
+            color: colorScheme.primary,
+            size: 38,
+          );
         }
+      case 'zh':
+        if (voiceName == 'cmn-cn-x-cce-local' ||
+            voiceName == 'cmn-tw-x-cte-network') {
+          return Icon(
+            Icons.man_3_outlined,
+            color: colorScheme.primary,
+            size: 38,
+          );
+        }
+        if (voiceName == 'cmn-cn-x-ccc-local' ||
+            voiceName == 'cmn-tw-x-ctc-network') {
+          return Icon(
+            Icons.woman_outlined,
+            color: colorScheme.primary,
+            size: 38,
+          );
+        }
+        break;
       default:
         return Icon(Icons.person, color: colorScheme.primary, size: 38);
     }
+    // Always return a Widget
+    return Icon(Icons.person, color: colorScheme.primary, size: 38);
   }
 
   String _getVoiceDescription(
-      String voiceName, String locale, String language) {
+    String voiceName,
+    String locale,
+    String language,
+  ) {
     final isPremium = _isPremiumVoice(voiceName, language);
 
     if (!isPremium) {
@@ -446,6 +532,18 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
             return 'Homme Canada';
           case 'fr-CA-language':
             return 'Femme Canada';
+        }
+        break;
+      case 'zh':
+        switch (voiceName) {
+          case 'cmn-cn-x-cce-local':
+            return '男性 声 1'; // Hombre China
+          case 'cmn-cn-x-ccc-local':
+            return '女性 声 1'; // Mujer China
+          case 'cmn-tw-x-cte-network':
+            return '男性 声 2'; // Hombre 2 Taiwán
+          case 'cmn-tw-x-ctc-network':
+            return '女性 声 2'; // Mujer 2 Taiwán
         }
         break;
     }
@@ -541,16 +639,20 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
                           _selectedVoiceName!,
                           _selectedVoiceLocale!,
                         );
-                        await _voiceSettingsService
-                            .setUserSavedVoice(widget.language);
+                        await _voiceSettingsService.setUserSavedVoice(
+                          widget.language,
+                        );
                         debugPrint(
-                            '[VoiceSelectorDialog] Voz guardada: $_selectedVoiceName ($_selectedVoiceLocale) para idioma ${widget.language}');
+                          '[VoiceSelectorDialog] Voz guardada: $_selectedVoiceName ($_selectedVoiceLocale) para idioma ${widget.language}',
+                        );
                         if (!mounted) return;
                         navigator.pop();
                       },
                       child: Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 8),
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
                         decoration: BoxDecoration(
                           color: colorScheme.primary.withAlpha(40),
                           borderRadius: BorderRadius.circular(32),
@@ -569,7 +671,11 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
                 ),
               Padding(
                 padding: const EdgeInsets.only(
-                    top: 70.0, left: 0, right: 0, bottom: 0),
+                  top: 70.0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                ),
                 child: _isLoading
                     ? const Center(child: CircularProgressIndicator())
                     : LayoutBuilder(
@@ -590,8 +696,9 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
                                   const SizedBox(height: 12),
                                   Text(
                                     'settings.voice_sample_text'.tr(),
-                                    style:
-                                        Theme.of(context).textTheme.bodyMedium,
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.bodyMedium,
                                     textAlign: TextAlign.center,
                                   ),
                                   const SizedBox(height: 18),
@@ -618,25 +725,36 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
                                                 voice['locale'];
                                           });
                                           widget.onVoiceSelected(
-                                              voice['name']!, voice['locale']!);
-                                          await _playSample(voice['name']!,
-                                              voice['locale']!, index);
+                                            voice['name']!,
+                                            voice['locale']!,
+                                          );
+                                          await _playSample(
+                                            voice['name']!,
+                                            voice['locale']!,
+                                            index,
+                                          );
                                         },
                                         onDoubleTap: () async {
-                                          await _playSample(voice['name']!,
-                                              voice['locale']!, index);
+                                          await _playSample(
+                                            voice['name']!,
+                                            voice['locale']!,
+                                            index,
+                                          );
                                         },
                                         child: AnimatedContainer(
-                                          duration:
-                                              const Duration(milliseconds: 250),
+                                          duration: const Duration(
+                                            milliseconds: 250,
+                                          ),
                                           curve: Curves.easeInOut,
                                           decoration: BoxDecoration(
                                             color: isSelected
-                                                ? colorScheme.primary
-                                                    .withAlpha(60)
+                                                ? colorScheme.primary.withAlpha(
+                                                    60,
+                                                  )
                                                 : colorScheme.surface,
-                                            borderRadius:
-                                                BorderRadius.circular(14),
+                                            borderRadius: BorderRadius.circular(
+                                              14,
+                                            ),
                                             border: Border.all(
                                               color: isSelected
                                                   ? colorScheme.primary
@@ -647,11 +765,11 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
                                             boxShadow: isSelected
                                                 ? [
                                                     BoxShadow(
-                                                        color: colorScheme
-                                                            .primary
-                                                            .withAlpha(40),
-                                                        blurRadius: 8,
-                                                        offset: Offset(0, 2))
+                                                      color: colorScheme.primary
+                                                          .withAlpha(40),
+                                                      blurRadius: 8,
+                                                      offset: Offset(0, 2),
+                                                    ),
                                                   ]
                                                 : [],
                                           ),
@@ -663,37 +781,44 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
                                                 Row(
                                                   children: [
                                                     _buildVoiceIcon(
-                                                        voice['name']!,
-                                                        widget.language,
-                                                        colorScheme),
+                                                      voice['name']!,
+                                                      widget.language,
+                                                      colorScheme,
+                                                    ),
                                                     const SizedBox(width: 10),
                                                     Text(
                                                       _getVoiceEmoji(
-                                                          voice['name']!,
-                                                          voice['locale']!,
-                                                          widget.language),
+                                                        voice['name']!,
+                                                        voice['locale']!,
+                                                        widget.language,
+                                                      ),
                                                       style: TextStyle(
-                                                          fontWeight:
-                                                              FontWeight.w900,
-                                                          fontSize: 32,
-                                                          color: colorScheme
-                                                              .primary),
+                                                        fontWeight:
+                                                            FontWeight.w900,
+                                                        fontSize: 32,
+                                                        color:
+                                                            colorScheme.primary,
+                                                      ),
                                                     ),
                                                   ],
                                                 ),
                                                 Padding(
                                                   padding:
                                                       const EdgeInsets.only(
-                                                          left: 36, top: 2),
+                                                    left: 36,
+                                                    top: 2,
+                                                  ),
                                                   child: Text(
                                                     _getVoiceDescription(
-                                                        voice['name']!,
-                                                        voice['locale']!,
-                                                        widget.language),
+                                                      voice['name']!,
+                                                      voice['locale']!,
+                                                      widget.language,
+                                                    ),
                                                     style: TextStyle(
-                                                        fontSize: 13,
-                                                        color: colorScheme
-                                                            .onSurface),
+                                                      fontSize: 13,
+                                                      color:
+                                                          colorScheme.onSurface,
+                                                    ),
                                                   ),
                                                 ),
                                               ],
@@ -704,18 +829,23 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
                                                     height: 32,
                                                     child:
                                                         CircularProgressIndicator(
-                                                            strokeWidth: 2))
+                                                      strokeWidth: 2,
+                                                    ),
+                                                  )
                                                 : isSelected
                                                     ? Icon(
                                                         Icons
                                                             .speaker_phone_outlined,
                                                         color:
                                                             colorScheme.primary,
-                                                        size: 32)
-                                                    : Icon(Icons.volume_up,
+                                                        size: 32,
+                                                      )
+                                                    : Icon(
+                                                        Icons.volume_up,
                                                         color:
                                                             colorScheme.primary,
-                                                        size: 32),
+                                                        size: 32,
+                                                      ),
                                             selected: isSelected,
                                           ),
                                         ),

@@ -19,10 +19,7 @@ void main() {
         'prayers': [
           {'id': 'prayer1', 'text': 'Test prayer content'},
         ],
-        'settings': {
-          'language': 'es',
-          'theme': 'dark',
-        },
+        'settings': {'language': 'es', 'theme': 'dark'},
       };
 
       final compressed = CompressionService.compressJson(testData);
@@ -67,10 +64,7 @@ void main() {
         'prayers': largePrayers,
         'devocionales': List.generate(
           50,
-          (i) => {
-            'id': 'dev_$i',
-            'reflexion': 'Long reflection text ' * 20,
-          },
+          (i) => {'id': 'dev_$i', 'reflexion': 'Long reflection text ' * 20},
         ),
       };
 
@@ -97,8 +91,9 @@ void main() {
     // SCENARIO 5: Handle uncompressed JSON data (backward compatibility)
     test('decompressJson handles uncompressed JSON as fallback', () {
       final jsonData = {'test': 'value', 'number': 42};
-      final uncompressedBytes =
-          Uint8List.fromList(utf8.encode(json.encode(jsonData)));
+      final uncompressedBytes = Uint8List.fromList(
+        utf8.encode(json.encode(jsonData)),
+      );
 
       final result = CompressionService.decompressJson(uncompressedBytes);
 
@@ -132,7 +127,7 @@ void main() {
     test('createArchive creates valid ZIP archive', () {
       final files = {
         'prayers.json': {
-          'prayers': ['p1', 'p2']
+          'prayers': ['p1', 'p2'],
         },
         'settings.json': {'theme': 'dark'},
         'stats.json': {'total': 100},
@@ -240,10 +235,7 @@ void main() {
           ),
           'thanksgivings': List.generate(
             20,
-            (i) => {
-              'id': 'thanks_$i',
-              'text': 'Thanksgiving $i',
-            },
+            (i) => {'id': 'thanks_$i', 'text': 'Thanksgiving $i'},
           ),
         },
         'settings': {
@@ -259,7 +251,9 @@ void main() {
 
       // Check compression is effective
       final ratio = CompressionService.getCompressionRatio(
-          originalSize, compressed.length);
+        originalSize,
+        compressed.length,
+      );
       expect(ratio, greaterThan(30)); // At least 30% compression
 
       // Verify data integrity

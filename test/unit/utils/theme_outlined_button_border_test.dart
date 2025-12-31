@@ -8,10 +8,16 @@ void main() {
       final theme = appThemeFamilies['Deep Purple']!['light']!;
       final borderSide = theme.outlinedButtonTheme.style?.side?.resolve({});
 
-      expect(borderSide, isNotNull,
-          reason: 'OutlinedButtonTheme side should be defined');
-      expect(borderSide?.color, Colors.black,
-          reason: 'Light theme should have black border');
+      expect(
+        borderSide,
+        isNotNull,
+        reason: 'OutlinedButtonTheme side should be defined',
+      );
+      expect(
+        borderSide?.color,
+        Colors.black,
+        reason: 'Light theme should have black border',
+      );
       expect(borderSide?.width, 1.0, reason: 'Border width should be 1.0');
     });
 
@@ -19,10 +25,16 @@ void main() {
       final theme = appThemeFamilies['Deep Purple']!['dark']!;
       final borderSide = theme.outlinedButtonTheme.style?.side?.resolve({});
 
-      expect(borderSide, isNotNull,
-          reason: 'OutlinedButtonTheme side should be defined');
-      expect(borderSide?.color, Colors.white,
-          reason: 'Dark theme should have white border');
+      expect(
+        borderSide,
+        isNotNull,
+        reason: 'OutlinedButtonTheme side should be defined',
+      );
+      expect(
+        borderSide?.color,
+        Colors.white,
+        reason: 'Dark theme should have white border',
+      );
       expect(borderSide?.width, 1.0, reason: 'Border width should be 1.0');
     });
 
@@ -30,10 +42,16 @@ void main() {
       final theme = appThemeFamilies['Green']!['light']!;
       final borderSide = theme.outlinedButtonTheme.style?.side?.resolve({});
 
-      expect(borderSide, isNotNull,
-          reason: 'OutlinedButtonTheme side should be defined');
-      expect(borderSide?.color, Colors.black,
-          reason: 'Light theme should have black border');
+      expect(
+        borderSide,
+        isNotNull,
+        reason: 'OutlinedButtonTheme side should be defined',
+      );
+      expect(
+        borderSide?.color,
+        Colors.black,
+        reason: 'Light theme should have black border',
+      );
       expect(borderSide?.width, 1.0, reason: 'Border width should be 1.0');
     });
 
@@ -41,10 +59,16 @@ void main() {
       final theme = appThemeFamilies['Green']!['dark']!;
       final borderSide = theme.outlinedButtonTheme.style?.side?.resolve({});
 
-      expect(borderSide, isNotNull,
-          reason: 'OutlinedButtonTheme side should be defined');
-      expect(borderSide?.color, Colors.white,
-          reason: 'Dark theme should have white border');
+      expect(
+        borderSide,
+        isNotNull,
+        reason: 'OutlinedButtonTheme side should be defined',
+      );
+      expect(
+        borderSide?.color,
+        Colors.white,
+        reason: 'Dark theme should have white border',
+      );
       expect(borderSide?.width, 1.0, reason: 'Border width should be 1.0');
     });
 
@@ -52,10 +76,16 @@ void main() {
       final theme = appThemeFamilies['Pink']!['light']!;
       final borderSide = theme.outlinedButtonTheme.style?.side?.resolve({});
 
-      expect(borderSide, isNotNull,
-          reason: 'OutlinedButtonTheme side should be defined');
-      expect(borderSide?.color, Colors.black,
-          reason: 'Light theme should have black border');
+      expect(
+        borderSide,
+        isNotNull,
+        reason: 'OutlinedButtonTheme side should be defined',
+      );
+      expect(
+        borderSide?.color,
+        Colors.black,
+        reason: 'Light theme should have black border',
+      );
       expect(borderSide?.width, 1.0, reason: 'Border width should be 1.0');
     });
 
@@ -63,10 +93,16 @@ void main() {
       final theme = appThemeFamilies['Pink']!['dark']!;
       final borderSide = theme.outlinedButtonTheme.style?.side?.resolve({});
 
-      expect(borderSide, isNotNull,
-          reason: 'OutlinedButtonTheme side should be defined');
-      expect(borderSide?.color, Colors.white,
-          reason: 'Dark theme should have white border');
+      expect(
+        borderSide,
+        isNotNull,
+        reason: 'OutlinedButtonTheme side should be defined',
+      );
+      expect(
+        borderSide?.color,
+        Colors.white,
+        reason: 'Dark theme should have white border',
+      );
       expect(borderSide?.width, 1.0, reason: 'Border width should be 1.0');
     });
 
@@ -74,10 +110,16 @@ void main() {
       final theme = appThemeFamilies['Cyan']!['light']!;
       final borderSide = theme.outlinedButtonTheme.style?.side?.resolve({});
 
-      expect(borderSide, isNotNull,
-          reason: 'OutlinedButtonTheme side should be defined');
-      expect(borderSide?.color, Colors.black,
-          reason: 'Light theme should have black border');
+      expect(
+        borderSide,
+        isNotNull,
+        reason: 'OutlinedButtonTheme side should be defined',
+      );
+      expect(
+        borderSide?.color,
+        Colors.black,
+        reason: 'Light theme should have black border',
+      );
       expect(borderSide?.width, 1.0, reason: 'Border width should be 1.0');
     });
 
@@ -85,10 +127,16 @@ void main() {
       final theme = appThemeFamilies['Cyan']!['dark']!;
       final borderSide = theme.outlinedButtonTheme.style?.side?.resolve({});
 
-      expect(borderSide, isNotNull,
-          reason: 'OutlinedButtonTheme side should be defined');
-      expect(borderSide?.color, Colors.white,
-          reason: 'Dark theme should have white border');
+      expect(
+        borderSide,
+        isNotNull,
+        reason: 'OutlinedButtonTheme side should be defined',
+      );
+      expect(
+        borderSide?.color,
+        Colors.white,
+        reason: 'Dark theme should have white border',
+      );
       expect(borderSide?.width, 1.0, reason: 'Border width should be 1.0');
     });
 
@@ -96,10 +144,16 @@ void main() {
       final theme = appThemeFamilies['Light Blue']!['light']!;
       final borderSide = theme.outlinedButtonTheme.style?.side?.resolve({});
 
-      expect(borderSide, isNotNull,
-          reason: 'OutlinedButtonTheme side should be defined');
-      expect(borderSide?.color, Colors.black,
-          reason: 'Light theme should have black border');
+      expect(
+        borderSide,
+        isNotNull,
+        reason: 'OutlinedButtonTheme side should be defined',
+      );
+      expect(
+        borderSide?.color,
+        Colors.black,
+        reason: 'Light theme should have black border',
+      );
       expect(borderSide?.width, 1.0, reason: 'Border width should be 1.0');
     });
 
@@ -107,10 +161,16 @@ void main() {
       final theme = appThemeFamilies['Light Blue']!['dark']!;
       final borderSide = theme.outlinedButtonTheme.style?.side?.resolve({});
 
-      expect(borderSide, isNotNull,
-          reason: 'OutlinedButtonTheme side should be defined');
-      expect(borderSide?.color, Colors.white,
-          reason: 'Dark theme should have white border');
+      expect(
+        borderSide,
+        isNotNull,
+        reason: 'OutlinedButtonTheme side should be defined',
+      );
+      expect(
+        borderSide?.color,
+        Colors.white,
+        reason: 'Dark theme should have white border',
+      );
       expect(borderSide?.width, 1.0, reason: 'Border width should be 1.0');
     });
 
@@ -120,14 +180,20 @@ void main() {
           final theme = modeEntry.value;
           final shape = theme.outlinedButtonTheme.style?.shape?.resolve({});
 
-          expect(shape, isA<RoundedRectangleBorder>(),
-              reason:
-                  '${themeFamily.key} ${modeEntry.key} should have RoundedRectangleBorder');
+          expect(
+            shape,
+            isA<RoundedRectangleBorder>(),
+            reason:
+                '${themeFamily.key} ${modeEntry.key} should have RoundedRectangleBorder',
+          );
 
           if (shape is RoundedRectangleBorder) {
-            expect(shape.borderRadius, BorderRadius.circular(25),
-                reason:
-                    '${themeFamily.key} ${modeEntry.key} should have border radius of 25');
+            expect(
+              shape.borderRadius,
+              BorderRadius.circular(25),
+              reason:
+                  '${themeFamily.key} ${modeEntry.key} should have border radius of 25',
+            );
           }
         }
       }
@@ -142,20 +208,32 @@ void main() {
           final inputBorder =
               theme.inputDecorationTheme.border as OutlineInputBorder?;
 
-          expect(outlinedButtonBorder, isNotNull,
-              reason:
-                  '${themeFamily.key} ${modeEntry.key} OutlinedButton should have border');
-          expect(inputBorder, isNotNull,
-              reason:
-                  '${themeFamily.key} ${modeEntry.key} InputDecoration should have border');
+          expect(
+            outlinedButtonBorder,
+            isNotNull,
+            reason:
+                '${themeFamily.key} ${modeEntry.key} OutlinedButton should have border',
+          );
+          expect(
+            inputBorder,
+            isNotNull,
+            reason:
+                '${themeFamily.key} ${modeEntry.key} InputDecoration should have border',
+          );
 
           if (outlinedButtonBorder != null && inputBorder != null) {
-            expect(outlinedButtonBorder.width, inputBorder.borderSide.width,
-                reason:
-                    '${themeFamily.key} ${modeEntry.key} border widths should match');
-            expect(outlinedButtonBorder.color, inputBorder.borderSide.color,
-                reason:
-                    '${themeFamily.key} ${modeEntry.key} border colors should match');
+            expect(
+              outlinedButtonBorder.width,
+              inputBorder.borderSide.width,
+              reason:
+                  '${themeFamily.key} ${modeEntry.key} border widths should match',
+            );
+            expect(
+              outlinedButtonBorder.color,
+              inputBorder.borderSide.color,
+              reason:
+                  '${themeFamily.key} ${modeEntry.key} border colors should match',
+            );
           }
         }
       }

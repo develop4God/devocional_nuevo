@@ -68,8 +68,9 @@ class BibleChapterGridSelector extends StatelessWidget {
                         Text(
                           bookName,
                           style: textTheme.bodySmall?.copyWith(
-                            color: colorScheme.onPrimaryContainer
-                                .withValues(alpha: 0.8),
+                            color: colorScheme.onPrimaryContainer.withValues(
+                              alpha: 0.8,
+                            ),
                           ),
                         ),
                       ],
@@ -147,10 +148,7 @@ class BibleChapterGridSelector extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(8),
             border: isSelected
-                ? Border.all(
-                    color: colorScheme.onPrimary,
-                    width: 2,
-                  )
+                ? Border.all(color: colorScheme.onPrimary, width: 2)
                 : null,
           ),
           child: Center(

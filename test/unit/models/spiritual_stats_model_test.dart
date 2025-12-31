@@ -31,8 +31,10 @@ void main() {
       // Test serialization/deserialization
       final json = stats.toJson();
       final statsFromJson = SpiritualStats.fromJson(json);
-      expect(statsFromJson.totalDevocionalesRead,
-          equals(stats.totalDevocionalesRead));
+      expect(
+        statsFromJson.totalDevocionalesRead,
+        equals(stats.totalDevocionalesRead),
+      );
       expect(statsFromJson.currentStreak, equals(stats.currentStreak));
       expect(statsFromJson.readDevocionalIds, equals(stats.readDevocionalIds));
     });
@@ -49,8 +51,10 @@ void main() {
     });
 
     test('should copy SpiritualStats with updated values', () {
-      final original =
-          SpiritualStats(totalDevocionalesRead: 5, currentStreak: 3);
+      final original = SpiritualStats(
+        totalDevocionalesRead: 5,
+        currentStreak: 3,
+      );
       final updated = original.copyWith(currentStreak: 8, longestStreak: 10);
 
       expect(updated.totalDevocionalesRead, equals(5)); // unchanged

@@ -84,7 +84,7 @@ void main() {
       TestWidgetsFlutterBinding.ensureInitialized();
       SharedPreferences.setMockInitialValues({});
       ServiceLocator().reset();
-      setupServiceLocator(); // Setup all services
+      setupServiceLocator();
       mockTts = MockFlutterTts();
       controller = TtsAudioController(flutterTts: mockTts);
       voiceSettingsService = getService<VoiceSettingsService>();
@@ -118,8 +118,9 @@ void main() {
     }
 
     group('Scenario 1: First Time User', () {
-      testWidgets('First time user - play button is visible',
-          (WidgetTester tester) async {
+      testWidgets('First time user - play button is visible', (
+        WidgetTester tester,
+      ) async {
         // GIVEN: User has never selected a voice
         await tester.pumpWidget(createWidgetUnderTest());
         await tester.pump(const Duration(milliseconds: 100));
@@ -149,8 +150,9 @@ void main() {
     });
 
     group('Scenario 2: Returning User', () {
-      testWidgets('Returning user - plays immediately without modal',
-          (WidgetTester tester) async {
+      testWidgets('Returning user - plays immediately without modal', (
+        WidgetTester tester,
+      ) async {
         // GIVEN: Voice already saved
         await voiceSettingsService.setUserSavedVoice('es');
 
@@ -176,8 +178,9 @@ void main() {
         expect(hasVoice, isTrue);
       });
 
-      testWidgets('Returning user with saved voice can play immediately',
-          (tester) async {
+      testWidgets('Returning user with saved voice can play immediately', (
+        tester,
+      ) async {
         // GIVEN: User has saved voice
         await voiceSettingsService.setUserSavedVoice('es');
 
@@ -191,14 +194,16 @@ void main() {
     });
 
     group('Scenario 3: Language Switcher', () {
-      testWidgets('User switching language has no voice for new language',
-          (tester) async {
+      testWidgets('User switching language has no voice for new language', (
+        tester,
+      ) async {
         // GIVEN: User has Spanish voice saved
         await voiceSettingsService.setUserSavedVoice('es');
 
         // WHEN: User switches to English
-        final hasEnglishVoice =
-            await voiceSettingsService.hasUserSavedVoice('en');
+        final hasEnglishVoice = await voiceSettingsService.hasUserSavedVoice(
+          'en',
+        );
 
         // THEN: No English voice saved
         expect(hasEnglishVoice, isFalse);
@@ -206,8 +211,9 @@ void main() {
         expect(await voiceSettingsService.hasUserSavedVoice('es'), isTrue);
       });
 
-      testWidgets('Each language maintains independent voice selection',
-          (tester) async {
+      testWidgets('Each language maintains independent voice selection', (
+        tester,
+      ) async {
         // GIVEN: User saves Spanish voice
         await voiceSettingsService.setUserSavedVoice('es');
 
@@ -225,8 +231,9 @@ void main() {
     });
 
     group('Scenario 4: Playback Controls - Widget Tests', () {
-      testWidgets('Initial state shows play button',
-          (WidgetTester tester) async {
+      testWidgets('Initial state shows play button', (
+        WidgetTester tester,
+      ) async {
         await tester.pumpWidget(createWidgetUnderTest());
         await tester.pump(const Duration(milliseconds: 100));
 
@@ -235,8 +242,9 @@ void main() {
         expect(find.byIcon(Icons.pause), findsNothing);
       });
 
-      testWidgets('Playing state shows pause button',
-          (WidgetTester tester) async {
+      testWidgets('Playing state shows pause button', (
+        WidgetTester tester,
+      ) async {
         // GIVEN: User has saved voice
         await voiceSettingsService.setUserSavedVoice('es');
 
@@ -248,7 +256,8 @@ void main() {
         // Trigger play and pump to allow async operations to complete
         final playFuture = controller.play();
         await tester.pump(
-            const Duration(milliseconds: 500)); // Advance past the 400ms delay
+          const Duration(milliseconds: 500),
+        ); // Advance past the 400ms delay
         await playFuture;
         await tester.pump(const Duration(milliseconds: 100));
 
@@ -257,8 +266,9 @@ void main() {
         expect(find.byIcon(Icons.play_arrow), findsNothing);
       });
 
-      testWidgets('Pause button returns to play icon',
-          (WidgetTester tester) async {
+      testWidgets('Pause button returns to play icon', (
+        WidgetTester tester,
+      ) async {
         // GIVEN: User has saved voice
         await voiceSettingsService.setUserSavedVoice('es');
 
@@ -282,8 +292,9 @@ void main() {
         expect(find.byIcon(Icons.pause), findsNothing);
       });
 
-      testWidgets('Loading state shows progress indicator',
-          (WidgetTester tester) async {
+      testWidgets('Loading state shows progress indicator', (
+        WidgetTester tester,
+      ) async {
         await tester.pumpWidget(createWidgetUnderTest());
         await tester.pump(const Duration(milliseconds: 100));
 
@@ -354,8 +365,10 @@ void main() {
         // THEN: Speech rate is converted and applied
         // 0.8 settings-scale doesn't match any predefined mappings and falls to
         // default 1.0 mini-rate, which maps to 0.5 settings-scale for the engine
-        expect(mockTts.lastSpeechRate,
-            equals(0.5)); // Engine gets normalized settings-scale value
+        expect(
+          mockTts.lastSpeechRate,
+          equals(0.5),
+        ); // Engine gets normalized settings-scale value
       });
     });
 

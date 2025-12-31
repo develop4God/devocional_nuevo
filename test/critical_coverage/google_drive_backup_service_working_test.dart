@@ -84,14 +84,18 @@ void main() {
       // Backed up 25 hours ago - should be due
       expect(
         isBackupDue(
-            'daily', DateTime.now().subtract(const Duration(hours: 25))),
+          'daily',
+          DateTime.now().subtract(const Duration(hours: 25)),
+        ),
         isTrue,
       );
 
       // Backed up 12 hours ago - not due
       expect(
         isBackupDue(
-            'daily', DateTime.now().subtract(const Duration(hours: 12))),
+          'daily',
+          DateTime.now().subtract(const Duration(hours: 12)),
+        ),
         isFalse,
       );
 
@@ -173,7 +177,9 @@ void main() {
 
       expect(defaultOptions.keys.length, equals(5));
       expect(
-          defaultOptions.values.every((v) => v == true || v == false), isTrue);
+        defaultOptions.values.every((v) => v == true || v == false),
+        isTrue,
+      );
     });
 
     // SCENARIO 6: WiFi-only setting respects user preference
@@ -549,7 +555,9 @@ void main() {
       expect(classifyBackupError('unauthorized access'), equals('auth_error'));
       expect(classifyBackupError('quota exceeded'), equals('storage_error'));
       expect(
-          classifyBackupError('permission denied'), equals('permission_error'));
+        classifyBackupError('permission denied'),
+        equals('permission_error'),
+      );
       expect(classifyBackupError('some other error'), equals('unknown_error'));
     });
 

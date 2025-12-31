@@ -27,7 +27,8 @@ void main() {
       test('ServiceLocator should return singleton instance', () {
         // Register VoiceSettingsService in the service locator
         ServiceLocator().registerLazySingleton<VoiceSettingsService>(
-            () => voiceSettingsService);
+          () => voiceSettingsService,
+        );
 
         // Get two references from service locator
         final instance1 = getService<VoiceSettingsService>();
@@ -54,7 +55,8 @@ void main() {
       test('ServiceLocator reset should clear registrations', () {
         // Register a service
         ServiceLocator().registerLazySingleton<VoiceSettingsService>(
-            () => VoiceSettingsService());
+          () => VoiceSettingsService(),
+        );
 
         // Verify it's registered
         expect(ServiceLocator().isRegistered<VoiceSettingsService>(), isTrue);
@@ -69,7 +71,8 @@ void main() {
       test('Multiple calls to getService should return same instance', () {
         // Setup the service locator with lazy singleton
         ServiceLocator().registerLazySingleton<VoiceSettingsService>(
-            () => VoiceSettingsService());
+          () => VoiceSettingsService(),
+        );
 
         // Get multiple references
         final refs = <VoiceSettingsService>[];
@@ -85,20 +88,26 @@ void main() {
     });
 
     group('Friendly Voice Name Mapping', () {
-      test('should return friendly name for Spanish Latin America male voice',
-          () {
-        // Technical name: es-us-x-esd-local
-        // Friendly name: 🇲🇽 Hombre Latinoamérica
-        final friendlyName = voiceSettingsService.getFriendlyVoiceName(
-            'es', 'es-us-x-esd-local');
-        expect(friendlyName, equals('🇲🇽 Hombre Latinoamérica'));
-      });
+      test(
+        'should return friendly name for Spanish Latin America male voice',
+        () {
+          // Technical name: es-us-x-esd-local
+          // Friendly name: 🇲🇽 Hombre Latinoamérica
+          final friendlyName = voiceSettingsService.getFriendlyVoiceName(
+            'es',
+            'es-us-x-esd-local',
+          );
+          expect(friendlyName, equals('🇲🇽 Hombre Latinoamérica'));
+        },
+      );
 
       test('should return friendly name for English US male voice', () {
         // Technical name: en-us-x-tpd-network
         // Friendly name: 🇺🇸 Male United States
         final friendlyName = voiceSettingsService.getFriendlyVoiceName(
-            'en', 'en-us-x-tpd-network');
+          'en',
+          'en-us-x-tpd-network',
+        );
         expect(friendlyName, equals('🇺🇸 Male United States'));
       });
 
@@ -106,7 +115,9 @@ void main() {
         // Technical name: pt-br-x-ptd-network
         // Friendly name: 🇧🇷 Homem Brasil
         final friendlyName = voiceSettingsService.getFriendlyVoiceName(
-            'pt', 'pt-br-x-ptd-network');
+          'pt',
+          'pt-br-x-ptd-network',
+        );
         expect(friendlyName, equals('🇧🇷 Homem Brasil'));
       });
 
@@ -114,7 +125,9 @@ void main() {
         // Technical name: fr-fr-x-frd-local
         // Friendly name: 🇫🇷 Homme France
         final friendlyName = voiceSettingsService.getFriendlyVoiceName(
-            'fr', 'fr-fr-x-frd-local');
+          'fr',
+          'fr-fr-x-frd-local',
+        );
         expect(friendlyName, equals('🇫🇷 Homme France'));
       });
 
@@ -122,43 +135,52 @@ void main() {
         // Technical name: ja-jp-x-jac-local
         // Friendly name: 🇯🇵 男性 声 1
         final friendlyName = voiceSettingsService.getFriendlyVoiceName(
-            'ja', 'ja-jp-x-jac-local');
+          'ja',
+          'ja-jp-x-jac-local',
+        );
         expect(friendlyName, equals('🇯🇵 男性 声 1'));
       });
 
       test('should return technical name for unknown voice', () {
         final friendlyName = voiceSettingsService.getFriendlyVoiceName(
-            'es', 'unknown-voice-name');
+          'es',
+          'unknown-voice-name',
+        );
         expect(friendlyName, equals('unknown-voice-name'));
       });
     });
 
     group('Preferred Default Voices', () {
-      test('Spanish preferred male voices should include es-us-x-esd-local',
-          () {
-        // Verify the map contains the expected Spanish male voice
-        final map = VoiceSettingsService.friendlyVoiceMap['es'];
-        expect(map, isNotNull);
-        expect(map!.containsKey('es-us-x-esd-local'), isTrue);
-        expect(map['es-us-x-esd-local'], equals('🇲🇽 Hombre Latinoamérica'));
-      });
-
-      test('English preferred male voices should include en-us-x-tpd-network',
-          () {
-        final map = VoiceSettingsService.friendlyVoiceMap['en'];
-        expect(map, isNotNull);
-        expect(map!.containsKey('en-us-x-tpd-network'), isTrue);
-        expect(map['en-us-x-tpd-network'], equals('🇺🇸 Male United States'));
-      });
+      test(
+        'Spanish preferred male voices should include es-us-x-esd-local',
+        () {
+          // Verify the map contains the expected Spanish male voice
+          final map = VoiceSettingsService.friendlyVoiceMap['es'];
+          expect(map, isNotNull);
+          expect(map!.containsKey('es-us-x-esd-local'), isTrue);
+          expect(map['es-us-x-esd-local'], equals('🇲🇽 Hombre Latinoamérica'));
+        },
+      );
 
       test(
-          'Portuguese preferred male voices should include pt-br-x-ptd-network',
-          () {
-        final map = VoiceSettingsService.friendlyVoiceMap['pt'];
-        expect(map, isNotNull);
-        expect(map!.containsKey('pt-br-x-ptd-network'), isTrue);
-        expect(map['pt-br-x-ptd-network'], equals('🇧🇷 Homem Brasil'));
-      });
+        'English preferred male voices should include en-us-x-tpd-network',
+        () {
+          final map = VoiceSettingsService.friendlyVoiceMap['en'];
+          expect(map, isNotNull);
+          expect(map!.containsKey('en-us-x-tpd-network'), isTrue);
+          expect(map['en-us-x-tpd-network'], equals('🇺🇸 Male United States'));
+        },
+      );
+
+      test(
+        'Portuguese preferred male voices should include pt-br-x-ptd-network',
+        () {
+          final map = VoiceSettingsService.friendlyVoiceMap['pt'];
+          expect(map, isNotNull);
+          expect(map!.containsKey('pt-br-x-ptd-network'), isTrue);
+          expect(map['pt-br-x-ptd-network'], equals('🇧🇷 Homem Brasil'));
+        },
+      );
 
       test('French preferred male voices should include fr-fr-x-frd-local', () {
         final map = VoiceSettingsService.friendlyVoiceMap['fr'];
@@ -167,21 +189,25 @@ void main() {
         expect(map['fr-fr-x-frd-local'], equals('🇫🇷 Homme France'));
       });
 
-      test('Japanese preferred male voices should include ja-jp-x-jac-local',
-          () {
-        final map = VoiceSettingsService.friendlyVoiceMap['ja'];
-        expect(map, isNotNull);
-        expect(map!.containsKey('ja-jp-x-jac-local'), isTrue);
-        expect(map['ja-jp-x-jac-local'], equals('🇯🇵 男性 声 1'));
-      });
+      test(
+        'Japanese preferred male voices should include ja-jp-x-jac-local',
+        () {
+          final map = VoiceSettingsService.friendlyVoiceMap['ja'];
+          expect(map, isNotNull);
+          expect(map!.containsKey('ja-jp-x-jac-local'), isTrue);
+          expect(map['ja-jp-x-jac-local'], equals('🇯🇵 男性 声 1'));
+        },
+      );
     });
 
     group('Voice Persistence', () {
-      test('hasSavedVoice should return false when no voice is saved',
-          () async {
-        final hasSaved = await voiceSettingsService.hasSavedVoice('es');
-        expect(hasSaved, isFalse);
-      });
+      test(
+        'hasSavedVoice should return false when no voice is saved',
+        () async {
+          final hasSaved = await voiceSettingsService.hasSavedVoice('es');
+          expect(hasSaved, isFalse);
+        },
+      );
 
       // Note: Tests that call saveVoice require platform TTS implementation
       // These would fail in unit tests without mocking FlutterTts

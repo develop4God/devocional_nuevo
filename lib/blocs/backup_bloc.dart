@@ -483,8 +483,9 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
         if (hoursSinceLastBackup >= 24) {
           debugPrint('🚀 [BLOC] 24+ horas, ejecutando startup backup');
 
-          final success =
-              await _backupService.createBackup(_devocionalProvider);
+          final success = await _backupService.createBackup(
+            _devocionalProvider,
+          );
 
           if (success) {
             debugPrint('✅ [BLOC] Startup backup exitoso');

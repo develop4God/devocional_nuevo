@@ -9,43 +9,51 @@ void main() {
   group('Devocionales Tracking Logic Tests', () {
     group('Timer Criteria Check', () {
       test(
-          'startDevocionalTracking should trigger criteria check timer to start',
-          () {
-        // This test validates the logic that when startDevocionalTracking is called,
-        // the criteria check timer should be started.
-        // The actual implementation calls startCriteriaCheckTimer() inside startDevocionalTracking()
+        'startDevocionalTracking should trigger criteria check timer to start',
+        () {
+          // This test validates the logic that when startDevocionalTracking is called,
+          // the criteria check timer should be started.
+          // The actual implementation calls startCriteriaCheckTimer() inside startDevocionalTracking()
 
-        // Simulate the behavior: timer should be created and active
-        Timer? criteriaCheckTimer;
-        bool timerStarted = false;
+          // Simulate the behavior: timer should be created and active
+          Timer? criteriaCheckTimer;
+          bool timerStarted = false;
 
-        void startCriteriaCheckTimer() {
-          criteriaCheckTimer?.cancel();
-          criteriaCheckTimer =
-              Timer.periodic(const Duration(seconds: 5), (timer) {
-            // Check reading criteria
-          });
-          timerStarted = true;
-        }
+          void startCriteriaCheckTimer() {
+            criteriaCheckTimer?.cancel();
+            criteriaCheckTimer = Timer.periodic(const Duration(seconds: 5), (
+              timer,
+            ) {
+              // Check reading criteria
+            });
+            timerStarted = true;
+          }
 
-        void startDevocionalTracking(String devocionalId) {
-          // This is the fixed behavior - timer starts when tracking begins
-          startCriteriaCheckTimer();
-        }
+          void startDevocionalTracking(String devocionalId) {
+            // This is the fixed behavior - timer starts when tracking begins
+            startCriteriaCheckTimer();
+          }
 
-        // Execute
-        startDevocionalTracking('test-devocional-id');
+          // Execute
+          startDevocionalTracking('test-devocional-id');
 
-        // Verify
-        expect(timerStarted, isTrue,
+          // Verify
+          expect(
+            timerStarted,
+            isTrue,
             reason:
-                'Timer should be started when startDevocionalTracking is called');
-        expect(criteriaCheckTimer?.isActive, isTrue,
-            reason: 'Timer should be active after starting');
+                'Timer should be started when startDevocionalTracking is called',
+          );
+          expect(
+            criteriaCheckTimer?.isActive,
+            isTrue,
+            reason: 'Timer should be active after starting',
+          );
 
-        // Cleanup
-        criteriaCheckTimer?.cancel();
-      });
+          // Cleanup
+          criteriaCheckTimer?.cancel();
+        },
+      );
 
       test('reading criteria should check time >= 60s and scroll >= 80%', () {
         // Test the criteria evaluation logic
@@ -166,178 +174,204 @@ void main() {
         );
       });
 
-      test('findFirstUnreadDevocionalIndex skips scattered read devotionals',
-          () {
-        final devocionalIds = ['dev-1', 'dev-2', 'dev-3', 'dev-4', 'dev-5'];
-        final readDevocionalIds = ['dev-1', 'dev-3', 'dev-5']; // Read scattered
+      test(
+        'findFirstUnreadDevocionalIndex skips scattered read devotionals',
+        () {
+          final devocionalIds = ['dev-1', 'dev-2', 'dev-3', 'dev-4', 'dev-5'];
+          final readDevocionalIds = [
+            'dev-1',
+            'dev-3',
+            'dev-5',
+          ]; // Read scattered
 
-        int findFirstUnreadDevocionalIndex(
-          List<String> devocionales,
-          List<String> readIds,
-        ) {
-          for (int i = 0; i < devocionales.length; i++) {
-            if (!readIds.contains(devocionales[i])) {
-              return i;
+          int findFirstUnreadDevocionalIndex(
+            List<String> devocionales,
+            List<String> readIds,
+          ) {
+            for (int i = 0; i < devocionales.length; i++) {
+              if (!readIds.contains(devocionales[i])) {
+                return i;
+              }
             }
+            return 0;
           }
-          return 0;
-        }
 
-        // First unread should be at index 1 (dev-2)
-        expect(
-          findFirstUnreadDevocionalIndex(devocionalIds, readDevocionalIds),
-          equals(1),
-          reason: 'Should return index 1 where dev-2 is (first unread)',
-        );
-      });
+          // First unread should be at index 1 (dev-2)
+          expect(
+            findFirstUnreadDevocionalIndex(devocionalIds, readDevocionalIds),
+            equals(1),
+            reason: 'Should return index 1 where dev-2 is (first unread)',
+          );
+        },
+      );
     });
 
     group('App Open and Close Behavior', () {
-      test('on app open should load first unread devotional, not saved index',
-          () {
-        // Simulate saved index and read devotionals
-        final savedIndex = 2;
-        final devocionalIds = ['dev-1', 'dev-2', 'dev-3', 'dev-4', 'dev-5'];
-        final readDevocionalIds = [
-          'dev-1',
-          'dev-2',
-          'dev-3'
-        ]; // First three read
+      test(
+        'on app open should load first unread devotional, not saved index',
+        () {
+          // Simulate saved index and read devotionals
+          final savedIndex = 2;
+          final devocionalIds = ['dev-1', 'dev-2', 'dev-3', 'dev-4', 'dev-5'];
+          final readDevocionalIds = [
+            'dev-1',
+            'dev-2',
+            'dev-3',
+          ]; // First three read
 
-        int loadInitialIndex(
-          int? savedIndex,
-          List<String> devocionales,
-          List<String> readIds,
-        ) {
-          // NEW BEHAVIOR: Find first unread instead of using saved index
-          for (int i = 0; i < devocionales.length; i++) {
-            if (!readIds.contains(devocionales[i])) {
-              return i;
+          int loadInitialIndex(
+            int? savedIndex,
+            List<String> devocionales,
+            List<String> readIds,
+          ) {
+            // NEW BEHAVIOR: Find first unread instead of using saved index
+            for (int i = 0; i < devocionales.length; i++) {
+              if (!readIds.contains(devocionales[i])) {
+                return i;
+              }
             }
+            return 0;
           }
-          return 0;
-        }
 
-        final result =
-            loadInitialIndex(savedIndex, devocionalIds, readDevocionalIds);
+          final result = loadInitialIndex(
+            savedIndex,
+            devocionalIds,
+            readDevocionalIds,
+          );
 
-        // Should return index 3 (dev-4), not savedIndex + 1 = 3
-        expect(
-          result,
-          equals(3),
-          reason:
-              'Should load first unread devotional (index 3) instead of saved index + 1',
-        );
-      });
+          // Should return index 3 (dev-4), not savedIndex + 1 = 3
+          expect(
+            result,
+            equals(3),
+            reason:
+                'Should load first unread devotional (index 3) instead of saved index + 1',
+          );
+        },
+      );
 
-      test('saved index should be ignored when that devotional is already read',
-          () {
-        // User was on index 1, app closed, devotional 1 and 2 are now read
-        final savedIndex = 1;
-        final devocionalIds = ['dev-1', 'dev-2', 'dev-3', 'dev-4'];
-        final readDevocionalIds = ['dev-1', 'dev-2']; // User read dev-2 before
+      test(
+        'saved index should be ignored when that devotional is already read',
+        () {
+          // User was on index 1, app closed, devotional 1 and 2 are now read
+          final savedIndex = 1;
+          final devocionalIds = ['dev-1', 'dev-2', 'dev-3', 'dev-4'];
+          final readDevocionalIds = [
+            'dev-1',
+            'dev-2',
+          ]; // User read dev-2 before
 
-        // OLD BEHAVIOR (wrong): would return savedIndex + 1 = 2
-        // NEW BEHAVIOR (correct): should find first unread
+          // OLD BEHAVIOR (wrong): would return savedIndex + 1 = 2
+          // NEW BEHAVIOR (correct): should find first unread
 
-        int loadInitialIndexOld(int? savedIndex, int totalDevocionales) {
-          if (savedIndex != null) {
-            return (savedIndex + 1) % totalDevocionales;
-          }
-          return 0;
-        }
-
-        int loadInitialIndexNew(
-          List<String> devocionales,
-          List<String> readIds,
-        ) {
-          for (int i = 0; i < devocionales.length; i++) {
-            if (!readIds.contains(devocionales[i])) {
-              return i;
+          int loadInitialIndexOld(int? savedIndex, int totalDevocionales) {
+            if (savedIndex != null) {
+              return (savedIndex + 1) % totalDevocionales;
             }
+            return 0;
           }
-          return 0;
-        }
 
-        final oldResult = loadInitialIndexOld(savedIndex, devocionalIds.length);
-        final newResult = loadInitialIndexNew(devocionalIds, readDevocionalIds);
+          int loadInitialIndexNew(
+            List<String> devocionales,
+            List<String> readIds,
+          ) {
+            for (int i = 0; i < devocionales.length; i++) {
+              if (!readIds.contains(devocionales[i])) {
+                return i;
+              }
+            }
+            return 0;
+          }
 
-        // Old behavior would return 2 (which is dev-3, happens to be correct in this case)
-        // New behavior explicitly finds first unread, which is also 2
-        expect(oldResult, equals(2));
-        expect(newResult, equals(2));
+          final oldResult = loadInitialIndexOld(
+            savedIndex,
+            devocionalIds.length,
+          );
+          final newResult = loadInitialIndexNew(
+            devocionalIds,
+            readDevocionalIds,
+          );
 
-        // But with different read list, old behavior fails:
-        final readDevocionalIds2 = ['dev-1', 'dev-3']; // dev-2 is unread!
-        final newResult2 =
-            loadInitialIndexNew(devocionalIds, readDevocionalIds2);
-        expect(
-          newResult2,
-          equals(1),
-          reason:
-              'New behavior correctly finds dev-2 at index 1 as first unread',
-        );
-        // Old behavior would still return 2 (wrong!)
-      });
+          // Old behavior would return 2 (which is dev-3, happens to be correct in this case)
+          // New behavior explicitly finds first unread, which is also 2
+          expect(oldResult, equals(2));
+          expect(newResult, equals(2));
+
+          // But with different read list, old behavior fails:
+          final readDevocionalIds2 = ['dev-1', 'dev-3']; // dev-2 is unread!
+          final newResult2 = loadInitialIndexNew(
+            devocionalIds,
+            readDevocionalIds2,
+          );
+          expect(
+            newResult2,
+            equals(1),
+            reason:
+                'New behavior correctly finds dev-2 at index 1 as first unread',
+          );
+          // Old behavior would still return 2 (wrong!)
+        },
+      );
     });
 
     group('Reading Tracker', () {
-      test('accumulated seconds should persist through pause/resume cycles',
-          () {
-        // Simulate reading tracker behavior
-        int accumulatedSeconds = 0;
-        DateTime? startTime;
-        DateTime? pausedTime;
+      test(
+        'accumulated seconds should persist through pause/resume cycles',
+        () {
+          // Simulate reading tracker behavior
+          int accumulatedSeconds = 0;
+          DateTime? startTime;
+          DateTime? pausedTime;
 
-        void startTracking() {
-          startTime = DateTime.now();
-          pausedTime = null;
-          accumulatedSeconds = 0;
-        }
-
-        void pause() {
-          if (startTime != null && pausedTime == null) {
-            final now = DateTime.now();
-            accumulatedSeconds += now.difference(startTime!).inSeconds;
-            pausedTime = now;
-          }
-        }
-
-        void resume() {
-          if (pausedTime != null) {
+          void startTracking() {
             startTime = DateTime.now();
             pausedTime = null;
+            accumulatedSeconds = 0;
           }
-        }
 
-        int getCurrentSeconds() {
-          if (startTime == null) return accumulatedSeconds;
-          if (pausedTime != null) return accumulatedSeconds;
-          return accumulatedSeconds +
-              DateTime.now().difference(startTime!).inSeconds;
-        }
+          void pause() {
+            if (startTime != null && pausedTime == null) {
+              final now = DateTime.now();
+              accumulatedSeconds += now.difference(startTime!).inSeconds;
+              pausedTime = now;
+            }
+          }
 
-        // Start tracking
-        startTracking();
-        expect(getCurrentSeconds(), equals(0));
+          void resume() {
+            if (pausedTime != null) {
+              startTime = DateTime.now();
+              pausedTime = null;
+            }
+          }
 
-        // Simulate passage of time (using accumulated directly for test)
-        accumulatedSeconds = 30; // Simulate 30 seconds passed
+          int getCurrentSeconds() {
+            if (startTime == null) return accumulatedSeconds;
+            if (pausedTime != null) return accumulatedSeconds;
+            return accumulatedSeconds +
+                DateTime.now().difference(startTime!).inSeconds;
+          }
 
-        // Pause - use the pause function
-        pause();
+          // Start tracking
+          startTracking();
+          expect(getCurrentSeconds(), equals(0));
 
-        // Verify paused state
-        expect(getCurrentSeconds(), equals(30));
+          // Simulate passage of time (using accumulated directly for test)
+          accumulatedSeconds = 30; // Simulate 30 seconds passed
 
-        // Resume
-        resume();
-        startTime = DateTime.now();
+          // Pause - use the pause function
+          pause();
 
-        // More time passes
-        accumulatedSeconds = 45; // Total 45 seconds
-        expect(getCurrentSeconds() >= 45, isTrue);
-      });
+          // Verify paused state
+          expect(getCurrentSeconds(), equals(30));
+
+          // Resume
+          resume();
+          startTime = DateTime.now();
+
+          // More time passes
+          accumulatedSeconds = 45; // Total 45 seconds
+          expect(getCurrentSeconds() >= 45, isTrue);
+        },
+      );
 
       test('scroll percentage should track maximum reached', () {
         double maxScrollPercentage = 0.0;
@@ -356,8 +390,11 @@ void main() {
         expect(maxScrollPercentage, equals(0.5));
 
         updateScroll(0.3); // Scrolls back up
-        expect(maxScrollPercentage, equals(0.5),
-            reason: 'Max should not decrease');
+        expect(
+          maxScrollPercentage,
+          equals(0.5),
+          reason: 'Max should not decrease',
+        );
 
         updateScroll(0.85);
         expect(maxScrollPercentage, equals(0.85));

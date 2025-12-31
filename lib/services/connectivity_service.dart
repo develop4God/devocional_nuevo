@@ -16,8 +16,9 @@ class ConnectivityService {
 
   /// Initialize connectivity monitoring
   void initialize() {
-    _connectivitySubscription =
-        _connectivity.onConnectivityChanged.listen((results) {
+    _connectivitySubscription = _connectivity.onConnectivityChanged.listen((
+      results,
+    ) {
       final isWifi = results.contains(ConnectivityResult.wifi);
       _wifiStatusController.add(isWifi);
       debugPrint('Connectivity changed: WiFi=$isWifi');

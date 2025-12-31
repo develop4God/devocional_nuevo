@@ -10,57 +10,54 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// Tests the complete flow: Constants -> Provider -> URL generation -> Copyright display
 void main() {
   // Mock platform channels
-  const MethodChannel pathProviderChannel =
-      MethodChannel('plugins.flutter.io/path_provider');
+  const MethodChannel pathProviderChannel = MethodChannel(
+    'plugins.flutter.io/path_provider',
+  );
   const MethodChannel ttsChannel = MethodChannel('flutter_tts');
 
   setUpAll(() {
     TestWidgetsFlutterBinding.ensureInitialized();
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(
-      pathProviderChannel,
-      (MethodCall methodCall) async {
-        switch (methodCall.method) {
-          case 'getApplicationDocumentsDirectory':
-            return '/mock_documents';
-          case 'getTemporaryDirectory':
-            return '/mock_temp';
-          default:
-            return null;
-        }
-      },
-    );
+        .setMockMethodCallHandler(pathProviderChannel, (
+      MethodCall methodCall,
+    ) async {
+      switch (methodCall.method) {
+        case 'getApplicationDocumentsDirectory':
+          return '/mock_documents';
+        case 'getTemporaryDirectory':
+          return '/mock_temp';
+        default:
+          return null;
+      }
+    });
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(
-      ttsChannel,
-      (MethodCall call) async {
-        switch (call.method) {
-          case 'speak':
-          case 'stop':
-          case 'pause':
-          case 'setLanguage':
-          case 'setSpeechRate':
-          case 'setVolume':
-          case 'setPitch':
-          case 'awaitSpeakCompletion':
-          case 'setQueueMode':
-          case 'awaitSynthCompletion':
-            return 1;
-          case 'getLanguages':
-            return ['es-ES', 'en-US', 'ja-JP'];
-          case 'getVoices':
-            return [
-              {'name': 'Voice ES', 'locale': 'es-ES'},
-              {'name': 'Voice EN', 'locale': 'en-US'},
-              {'name': 'Voice JA', 'locale': 'ja-JP'},
-            ];
-          case 'isLanguageAvailable':
-            return true;
-          default:
-            return null;
-        }
-      },
-    );
+        .setMockMethodCallHandler(ttsChannel, (MethodCall call) async {
+      switch (call.method) {
+        case 'speak':
+        case 'stop':
+        case 'pause':
+        case 'setLanguage':
+        case 'setSpeechRate':
+        case 'setVolume':
+        case 'setPitch':
+        case 'awaitSpeakCompletion':
+        case 'setQueueMode':
+        case 'awaitSynthCompletion':
+          return 1;
+        case 'getLanguages':
+          return ['es-ES', 'en-US', 'ja-JP'];
+        case 'getVoices':
+          return [
+            {'name': 'Voice ES', 'locale': 'es-ES'},
+            {'name': 'Voice EN', 'locale': 'en-US'},
+            {'name': 'Voice JA', 'locale': 'ja-JP'},
+          ];
+        case 'isLanguageAvailable':
+          return true;
+        default:
+          return null;
+      }
+    });
   });
 
   tearDownAll(() {
@@ -154,12 +151,16 @@ void main() {
     });
 
     test('Bible version display names are correct for Japanese', () {
-      final displayName1 =
-          CopyrightUtils.getBibleVersionDisplayName('ja', '新改訳2003');
+      final displayName1 = CopyrightUtils.getBibleVersionDisplayName(
+        'ja',
+        '新改訳2003',
+      );
       expect(displayName1, equals('新改訳2003聖書'));
 
-      final displayName2 =
-          CopyrightUtils.getBibleVersionDisplayName('ja', 'リビングバイブル');
+      final displayName2 = CopyrightUtils.getBibleVersionDisplayName(
+        'ja',
+        'リビングバイブル',
+      );
       expect(displayName2, equals('リビングバイブル'));
     });
 
@@ -167,7 +168,7 @@ void main() {
       await provider.initializeData();
 
       // Set to Japanese
-      provider.setSelectedLanguage('ja');
+      provider.setSelectedLanguage('ja', null);
       await Future.delayed(const Duration(milliseconds: 300));
 
       expect(provider.selectedLanguage, equals('ja'));
@@ -184,7 +185,7 @@ void main() {
       await provider.initializeData();
 
       // Set to Japanese
-      provider.setSelectedLanguage('ja');
+      provider.setSelectedLanguage('ja', null);
       await Future.delayed(const Duration(milliseconds: 300));
 
       expect(provider.selectedVersion, equals('新改訳2003'));
@@ -204,68 +205,71 @@ void main() {
     });
 
     test(
-        'Complete flow: Language selection -> Version change -> URL generation',
-        () async {
-      await provider.initializeData();
+      'Complete flow: Language selection -> Version change -> URL generation',
+      () async {
+        await provider.initializeData();
 
-      // Start with Japanese
-      provider.setSelectedLanguage('ja');
-      await Future.delayed(const Duration(milliseconds: 300));
+        // Start with Japanese
+        provider.setSelectedLanguage('ja', null);
+        await Future.delayed(const Duration(milliseconds: 300));
 
-      // Verify default version is set
-      expect(provider.selectedVersion, equals('新改訳2003'));
+        // Verify default version is set
+        expect(provider.selectedVersion, equals('新改訳2003'));
 
-      // Verify URL would be generated correctly
-      final url1 = Constants.getDevocionalesApiUrlMultilingual(
-        DateTime.now().year,
-        provider.selectedLanguage,
-        provider.selectedVersion,
-      );
-      expect(url1, contains('ja_新改訳2003.json'));
+        // Verify URL would be generated correctly
+        final url1 = Constants.getDevocionalesApiUrlMultilingual(
+          DateTime.now().year,
+          provider.selectedLanguage,
+          provider.selectedVersion,
+        );
+        expect(url1, contains('ja_新改訳2003.json'));
 
-      // Switch version
-      provider.setSelectedVersion('リビングバイブル');
-      await Future.delayed(const Duration(milliseconds: 300));
+        // Switch version
+        provider.setSelectedVersion('リビングバイブル');
+        await Future.delayed(const Duration(milliseconds: 300));
 
-      // Verify URL changes
-      final url2 = Constants.getDevocionalesApiUrlMultilingual(
-        DateTime.now().year,
-        provider.selectedLanguage,
-        provider.selectedVersion,
-      );
-      expect(url2, contains('ja_リビングバイブル.json'));
+        // Verify URL changes
+        final url2 = Constants.getDevocionalesApiUrlMultilingual(
+          DateTime.now().year,
+          provider.selectedLanguage,
+          provider.selectedVersion,
+        );
+        expect(url2, contains('ja_リビングバイブル.json'));
 
-      // Verify copyright would be correct
-      final copyright = CopyrightUtils.getCopyrightText(
-        provider.selectedLanguage,
-        provider.selectedVersion,
-      );
-      expect(copyright, contains('リビングバイブル'));
-    });
+        // Verify copyright would be correct
+        final copyright = CopyrightUtils.getCopyrightText(
+          provider.selectedLanguage,
+          provider.selectedVersion,
+        );
+        expect(copyright, contains('リビングバイブル'));
+      },
+    );
 
-    test('Switching from another language to Japanese uses correct default',
-        () async {
-      await provider.initializeData();
+    test(
+      'Switching from another language to Japanese uses correct default',
+      () async {
+        await provider.initializeData();
 
-      // Start with English
-      provider.setSelectedLanguage('en');
-      await Future.delayed(const Duration(milliseconds: 300));
+        // Start with English
+        provider.setSelectedLanguage('en', null);
+        await Future.delayed(const Duration(milliseconds: 300));
 
-      expect(provider.selectedLanguage, equals('en'));
-      expect(provider.selectedVersion, isNotEmpty);
+        expect(provider.selectedLanguage, equals('en'));
+        expect(provider.selectedVersion, isNotEmpty);
 
-      // Switch to Japanese
-      provider.setSelectedLanguage('ja');
-      await Future.delayed(const Duration(milliseconds: 300));
+        // Switch to Japanese
+        provider.setSelectedLanguage('ja', null);
+        await Future.delayed(const Duration(milliseconds: 300));
 
-      // Should use Japanese default version
-      expect(provider.selectedLanguage, equals('ja'));
-      expect(provider.selectedVersion, equals('新改訳2003'));
+        // Should use Japanese default version
+        expect(provider.selectedLanguage, equals('ja'));
+        expect(provider.selectedVersion, equals('新改訳2003'));
 
-      // Verify available versions are Japanese
-      final versions = provider.availableVersions;
-      expect(versions, contains('新改訳2003'));
-      expect(versions, contains('リビングバイブル'));
-    });
+        // Verify available versions are Japanese
+        final versions = provider.availableVersions;
+        expect(versions, contains('新改訳2003'));
+        expect(versions, contains('リビングバイブル'));
+      },
+    );
   });
 }

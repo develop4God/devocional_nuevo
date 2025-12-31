@@ -23,36 +23,35 @@ void main() {
 
       // Mock flutter_tts platform channel
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(
-        const MethodChannel('flutter_tts'),
-        (call) async {
-          switch (call.method) {
-            case 'speak':
-            case 'stop':
-            case 'pause':
-            case 'setLanguage':
-            case 'setSpeechRate':
-            case 'setVolume':
-            case 'setPitch':
-            case 'awaitSpeakCompletion':
-            case 'awaitSynthCompletion':
-              return 1;
-            case 'getVoices':
-              return [
-                {'name': 'es-ES-Standard-A', 'locale': 'es-ES'},
-                {'name': 'en-US-Standard-C', 'locale': 'en-US'},
-              ];
-            case 'getLanguages':
-              return ['es-ES', 'en-US', 'pt-BR'];
-            case 'getEngines':
-            case 'getDefaultEngine':
-            case 'isLanguageAvailable':
-              return [];
-            default:
-              return null;
-          }
-        },
-      );
+          .setMockMethodCallHandler(const MethodChannel('flutter_tts'), (
+        call,
+      ) async {
+        switch (call.method) {
+          case 'speak':
+          case 'stop':
+          case 'pause':
+          case 'setLanguage':
+          case 'setSpeechRate':
+          case 'setVolume':
+          case 'setPitch':
+          case 'awaitSpeakCompletion':
+          case 'awaitSynthCompletion':
+            return 1;
+          case 'getVoices':
+            return [
+              {'name': 'es-ES-Standard-A', 'locale': 'es-ES'},
+              {'name': 'en-US-Standard-C', 'locale': 'en-US'},
+            ];
+          case 'getLanguages':
+            return ['es-ES', 'en-US', 'pt-BR'];
+          case 'getEngines':
+          case 'getDefaultEngine':
+          case 'isLanguageAvailable':
+            return [];
+          default:
+            return null;
+        }
+      });
 
       mockTts = FlutterTts();
       controller = TtsAudioController(flutterTts: mockTts);
@@ -68,10 +67,10 @@ void main() {
 
     group('Scenario 1: First-time User Listens to Devotional', () {
       test(
-          'User opens app, reads devotional, then plays audio for the first time',
-          () async {
-        // GIVEN: User has just opened a devotional
-        const devotionalText = '''
+        'User opens app, reads devotional, then plays audio for the first time',
+        () async {
+          // GIVEN: User has just opened a devotional
+          const devotionalText = '''
           Versículo del día: Juan 3:16
           Porque de tal manera amó Dios al mundo, que ha dado a su Hijo unigénito,
           para que todo aquel que en él cree, no se pierda, mas tenga vida eterna.
@@ -85,30 +84,31 @@ void main() {
           cada día reconociendo tu gracia. Amén.
         ''';
 
-        // WHEN: User sets the text
-        controller.setText(devotionalText);
-        await Future.delayed(const Duration(milliseconds: 100));
+          // WHEN: User sets the text
+          controller.setText(devotionalText);
+          await Future.delayed(const Duration(milliseconds: 100));
 
-        // THEN: Duration is calculated
-        expect(controller.totalDuration.value.inSeconds, greaterThan(0));
-        final initialDuration = controller.totalDuration.value;
+          // THEN: Duration is calculated
+          expect(controller.totalDuration.value.inSeconds, greaterThan(0));
+          final initialDuration = controller.totalDuration.value;
 
-        // WHEN: User presses play
-        final playFuture = controller.play();
+          // WHEN: User presses play
+          final playFuture = controller.play();
 
-        // THEN: Shows loading state
-        expect(controller.state.value, TtsPlayerState.loading);
+          // THEN: Shows loading state
+          expect(controller.state.value, TtsPlayerState.loading);
 
-        // Wait for TTS to start
-        await Future.delayed(const Duration(milliseconds: 500));
-        await playFuture;
+          // Wait for TTS to start
+          await Future.delayed(const Duration(milliseconds: 500));
+          await playFuture;
 
-        // THEN: Now playing
-        expect(controller.state.value, TtsPlayerState.playing);
+          // THEN: Now playing
+          expect(controller.state.value, TtsPlayerState.playing);
 
-        // Verify duration hasn't changed (calculated once at 1.0x)
-        expect(controller.totalDuration.value, equals(initialDuration));
-      });
+          // Verify duration hasn't changed (calculated once at 1.0x)
+          expect(controller.totalDuration.value, equals(initialDuration));
+        },
+      );
 
       test('User adjusts speed during playback', () async {
         // GIVEN: User is listening to audio
@@ -136,9 +136,11 @@ void main() {
 
         // THEN: Speed changes but duration estimate remains at 1.0x base
         expect(controller.playbackRate.value, equals(1.5));
-        expect(controller.totalDuration.value, equals(originalDuration),
-            reason:
-                'Duration should remain constant, calculated at 1.0x speed');
+        expect(
+          controller.totalDuration.value,
+          equals(originalDuration),
+          reason: 'Duration should remain constant, calculated at 1.0x speed',
+        );
 
         // WHEN: User continues cycling speed to 2.0x
         await controller.cyclePlaybackRate();
@@ -175,8 +177,11 @@ void main() {
             (controller.totalDuration.value.inMilliseconds > 0
                 ? controller.totalDuration.value.inMilliseconds
                 : 1);
-        expect(progress, lessThanOrEqualTo(0.1),
-            reason: 'Progress should be minimal at start');
+        expect(
+          progress,
+          lessThanOrEqualTo(0.1),
+          reason: 'Progress should be minimal at start',
+        );
 
         // Simulate some progress (in real app, this comes from TTS callbacks)
         // For testing, we can manually update or verify the structure is there
@@ -204,8 +209,10 @@ void main() {
         controller.seek(halfwayPosition);
 
         // THEN: Position updates
-        expect(controller.currentPosition.value.inSeconds,
-            greaterThanOrEqualTo(0));
+        expect(
+          controller.currentPosition.value.inSeconds,
+          greaterThanOrEqualTo(0),
+        );
       });
     });
 
@@ -257,35 +264,37 @@ void main() {
     });
 
     group('Scenario 4: Speed Cycling Edge Cases', () {
-      test('User cycles through all speeds: 1.0x -> 1.5x -> 2.0x -> 1.0x',
-          () async {
-        // GIVEN: Controller with text
-        controller.setText('Test text');
-        await Future.delayed(const Duration(milliseconds: 100));
+      test(
+        'User cycles through all speeds: 1.0x -> 1.5x -> 2.0x -> 1.0x',
+        () async {
+          // GIVEN: Controller with text
+          controller.setText('Test text');
+          await Future.delayed(const Duration(milliseconds: 100));
 
-        final baseDuration = controller.totalDuration.value;
+          final baseDuration = controller.totalDuration.value;
 
-        // Start at 1.0x
-        expect(controller.playbackRate.value, equals(1.0));
+          // Start at 1.0x
+          expect(controller.playbackRate.value, equals(1.0));
 
-        // Cycle to 1.5x
-        await controller.cyclePlaybackRate();
-        await Future.delayed(const Duration(milliseconds: 100));
-        expect(controller.playbackRate.value, equals(1.5));
-        expect(controller.totalDuration.value, equals(baseDuration));
+          // Cycle to 1.5x
+          await controller.cyclePlaybackRate();
+          await Future.delayed(const Duration(milliseconds: 100));
+          expect(controller.playbackRate.value, equals(1.5));
+          expect(controller.totalDuration.value, equals(baseDuration));
 
-        // Cycle to 2.0x
-        await controller.cyclePlaybackRate();
-        await Future.delayed(const Duration(milliseconds: 100));
-        expect(controller.playbackRate.value, equals(2.0));
-        expect(controller.totalDuration.value, equals(baseDuration));
+          // Cycle to 2.0x
+          await controller.cyclePlaybackRate();
+          await Future.delayed(const Duration(milliseconds: 100));
+          expect(controller.playbackRate.value, equals(2.0));
+          expect(controller.totalDuration.value, equals(baseDuration));
 
-        // Cycle back to 1.0x
-        await controller.cyclePlaybackRate();
-        await Future.delayed(const Duration(milliseconds: 100));
-        expect(controller.playbackRate.value, equals(1.0));
-        expect(controller.totalDuration.value, equals(baseDuration));
-      });
+          // Cycle back to 1.0x
+          await controller.cyclePlaybackRate();
+          await Future.delayed(const Duration(milliseconds: 100));
+          expect(controller.playbackRate.value, equals(1.0));
+          expect(controller.totalDuration.value, equals(baseDuration));
+        },
+      );
 
       test('Speed changes persist during pause/resume', () async {
         // GIVEN: User sets speed to 2.0x
@@ -371,11 +380,9 @@ void main() {
         // THEN: Should handle gracefully (either stay idle or show error)
         // Not crash or enter invalid state
         expect(
-            controller.state.value,
-            isIn([
-              TtsPlayerState.idle,
-              TtsPlayerState.error,
-            ]));
+          controller.state.value,
+          isIn([TtsPlayerState.idle, TtsPlayerState.error]),
+        );
       });
 
       test('User rapidly toggles play/pause', () async {
@@ -394,12 +401,13 @@ void main() {
         await Future.delayed(const Duration(milliseconds: 500));
         expect(controller.state.value, isNotNull);
         expect(
-            controller.state.value,
-            isIn([
-              TtsPlayerState.playing,
-              TtsPlayerState.paused,
-              TtsPlayerState.loading,
-            ]));
+          controller.state.value,
+          isIn([
+            TtsPlayerState.playing,
+            TtsPlayerState.paused,
+            TtsPlayerState.loading,
+          ]),
+        );
       });
 
       test('Duration calculation for very long text', () async {
@@ -415,8 +423,11 @@ void main() {
         await Future.delayed(const Duration(milliseconds: 200));
 
         // THEN: Duration is calculated properly
-        expect(controller.totalDuration.value.inSeconds, greaterThan(60),
-            reason: 'Long text should have duration > 1 minute');
+        expect(
+          controller.totalDuration.value.inSeconds,
+          greaterThan(60),
+          reason: 'Long text should have duration > 1 minute',
+        );
       });
     });
 
@@ -450,14 +461,15 @@ void main() {
     });
 
     group('Scenario 8: Complete TTS Lifecycle', () {
-      test('Full user journey: select voice -> play -> adjust speed -> finish',
-          () async {
-        // Step 1: User selects voice
-        await voiceSettings.setUserSavedVoice('es');
-        expect(await voiceSettings.hasUserSavedVoice('es'), isTrue);
+      test(
+        'Full user journey: select voice -> play -> adjust speed -> finish',
+        () async {
+          // Step 1: User selects voice
+          await voiceSettings.setUserSavedVoice('es');
+          expect(await voiceSettings.hasUserSavedVoice('es'), isTrue);
 
-        // Step 2: User loads devotional
-        const devotionalText = '''
+          // Step 2: User loads devotional
+          const devotionalText = '''
           Versículo: Filipenses 4:13
           Todo lo puedo en Cristo que me fortalece.
           
@@ -465,43 +477,44 @@ void main() {
           Oración: Señor, fortalece mi fe.
         ''';
 
-        controller.setText(devotionalText);
-        await Future.delayed(const Duration(milliseconds: 100));
+          controller.setText(devotionalText);
+          await Future.delayed(const Duration(milliseconds: 100));
 
-        final baseDuration = controller.totalDuration.value;
-        expect(baseDuration.inSeconds, greaterThan(0));
+          final baseDuration = controller.totalDuration.value;
+          expect(baseDuration.inSeconds, greaterThan(0));
 
-        // Step 3: User starts playback
-        await controller.play();
-        await Future.delayed(const Duration(milliseconds: 500));
-        expect(controller.state.value, TtsPlayerState.playing);
+          // Step 3: User starts playback
+          await controller.play();
+          await Future.delayed(const Duration(milliseconds: 500));
+          expect(controller.state.value, TtsPlayerState.playing);
 
-        // Step 4: User adjusts speed to 1.5x
-        await controller.cyclePlaybackRate();
-        await Future.delayed(const Duration(milliseconds: 200));
-        expect(controller.playbackRate.value, equals(1.5));
+          // Step 4: User adjusts speed to 1.5x
+          await controller.cyclePlaybackRate();
+          await Future.delayed(const Duration(milliseconds: 200));
+          expect(controller.playbackRate.value, equals(1.5));
 
-        // Duration stays constant
-        expect(controller.totalDuration.value, equals(baseDuration));
+          // Duration stays constant
+          expect(controller.totalDuration.value, equals(baseDuration));
 
-        // Step 5: User pauses to reflect
-        await controller.pause();
-        expect(controller.state.value, TtsPlayerState.paused);
+          // Step 5: User pauses to reflect
+          await controller.pause();
+          expect(controller.state.value, TtsPlayerState.paused);
 
-        // Step 6: User resumes
-        await controller.play();
-        await Future.delayed(const Duration(milliseconds: 500));
-        expect(controller.state.value, TtsPlayerState.playing);
-        expect(controller.playbackRate.value, equals(1.5));
+          // Step 6: User resumes
+          await controller.play();
+          await Future.delayed(const Duration(milliseconds: 500));
+          expect(controller.state.value, TtsPlayerState.playing);
+          expect(controller.playbackRate.value, equals(1.5));
 
-        // Step 7: User finishes and stops
-        await controller.stop();
-        expect(controller.state.value, TtsPlayerState.idle);
-        expect(controller.currentPosition.value, equals(Duration.zero));
+          // Step 7: User finishes and stops
+          await controller.stop();
+          expect(controller.state.value, TtsPlayerState.idle);
+          expect(controller.currentPosition.value, equals(Duration.zero));
 
-        // Speed preference persists for next devotional
-        expect(controller.playbackRate.value, equals(1.5));
-      });
+          // Speed preference persists for next devotional
+          expect(controller.playbackRate.value, equals(1.5));
+        },
+      );
     });
   });
 }

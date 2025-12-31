@@ -6,10 +6,7 @@ import 'package:lottie/lottie.dart';
 class OnboardingWelcomePage extends StatefulWidget {
   final VoidCallback onNext;
 
-  const OnboardingWelcomePage({
-    super.key,
-    required this.onNext,
-  });
+  const OnboardingWelcomePage({super.key, required this.onNext});
 
   @override
   State<OnboardingWelcomePage> createState() => _OnboardingWelcomePageState();
@@ -69,14 +66,15 @@ class _OnboardingWelcomePageState extends State<OnboardingWelcomePage> {
                         // Welcome subtitle
                         Text(
                           'onboarding.onboarding_welcome_subtitle'.tr(),
-                          style:
-                              Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .onSurface
-                                        .withValues(alpha: 0.7),
-                                    height: 1.5,
-                                  ),
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyLarge
+                              ?.copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurface.withValues(alpha: 0.7),
+                                height: 1.5,
+                              ),
                           textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 40),

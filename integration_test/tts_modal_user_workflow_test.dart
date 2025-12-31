@@ -21,31 +21,30 @@ void main() {
 
       // Mock flutter_tts platform channel
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(
-        const MethodChannel('flutter_tts'),
-        (call) async {
-          switch (call.method) {
-            case 'speak':
-            case 'stop':
-            case 'pause':
-            case 'setLanguage':
-            case 'setSpeechRate':
-            case 'setVolume':
-            case 'setPitch':
-            case 'awaitSpeakCompletion':
-            case 'awaitSynthCompletion':
-              return 1;
-            case 'getVoices':
-            case 'getLanguages':
-            case 'getEngines':
-            case 'getDefaultEngine':
-            case 'isLanguageAvailable':
-              return [];
-            default:
-              return null;
-          }
-        },
-      );
+          .setMockMethodCallHandler(const MethodChannel('flutter_tts'), (
+        call,
+      ) async {
+        switch (call.method) {
+          case 'speak':
+          case 'stop':
+          case 'pause':
+          case 'setLanguage':
+          case 'setSpeechRate':
+          case 'setVolume':
+          case 'setPitch':
+          case 'awaitSpeakCompletion':
+          case 'awaitSynthCompletion':
+            return 1;
+          case 'getVoices':
+          case 'getLanguages':
+          case 'getEngines':
+          case 'getDefaultEngine':
+          case 'isLanguageAvailable':
+            return [];
+          default:
+            return null;
+        }
+      });
 
       mockTts = FlutterTts();
       controller = TtsAudioController(flutterTts: mockTts);
@@ -58,54 +57,59 @@ void main() {
           .setMockMethodCallHandler(const MethodChannel('flutter_tts'), null);
     });
 
-    test('User plays devotional audio and modal shows expected states',
-        () async {
-      // GIVEN: User has a devotional text to listen to
-      const devotionalText = '''
+    test(
+      'User plays devotional audio and modal shows expected states',
+      () async {
+        // GIVEN: User has a devotional text to listen to
+        const devotionalText = '''
         Versículo: Juan 3:16 - Porque de tal manera amó Dios al mundo
         Reflexión: Una profunda reflexión sobre el amor de Dios
         Oración: Padre celestial, gracias por tu amor incondicional
       ''';
 
-      // WHEN: User sets up the audio
-      controller.setText(devotionalText);
+        // WHEN: User sets up the audio
+        controller.setText(devotionalText);
 
-      // THEN: Duration should be calculated at 1.0x speed
-      await Future.delayed(const Duration(milliseconds: 100));
-      final duration = controller.totalDuration.value;
-      expect(duration.inSeconds, greaterThan(0),
-          reason: 'Duration should be calculated based on text');
+        // THEN: Duration should be calculated at 1.0x speed
+        await Future.delayed(const Duration(milliseconds: 100));
+        final duration = controller.totalDuration.value;
+        expect(
+          duration.inSeconds,
+          greaterThan(0),
+          reason: 'Duration should be calculated based on text',
+        );
 
-      // WHEN: User presses play
-      final playFuture = controller.play();
+        // WHEN: User presses play
+        final playFuture = controller.play();
 
-      // THEN: State transitions to loading then playing
-      expect(controller.state.value, TtsPlayerState.loading);
-      await Future.delayed(const Duration(milliseconds: 500));
-      await playFuture;
+        // THEN: State transitions to loading then playing
+        expect(controller.state.value, TtsPlayerState.loading);
+        await Future.delayed(const Duration(milliseconds: 500));
+        await playFuture;
 
-      expect(controller.state.value, TtsPlayerState.playing);
+        expect(controller.state.value, TtsPlayerState.playing);
 
-      // WHEN: User pauses playback
-      await controller.pause();
+        // WHEN: User pauses playback
+        await controller.pause();
 
-      // THEN: State changes to paused
-      expect(controller.state.value, TtsPlayerState.paused);
+        // THEN: State changes to paused
+        expect(controller.state.value, TtsPlayerState.paused);
 
-      // WHEN: User resumes playback
-      await controller.play();
-      await Future.delayed(const Duration(milliseconds: 500));
+        // WHEN: User resumes playback
+        await controller.play();
+        await Future.delayed(const Duration(milliseconds: 500));
 
-      // THEN: State returns to playing
-      expect(controller.state.value, TtsPlayerState.playing);
+        // THEN: State returns to playing
+        expect(controller.state.value, TtsPlayerState.playing);
 
-      // WHEN: User stops playback completely
-      await controller.stop();
+        // WHEN: User stops playback completely
+        await controller.stop();
 
-      // THEN: State is idle and position resets
-      expect(controller.state.value, TtsPlayerState.idle);
-      expect(controller.currentPosition.value, Duration.zero);
-    });
+        // THEN: State is idle and position resets
+        expect(controller.state.value, TtsPlayerState.idle);
+        expect(controller.currentPosition.value, Duration.zero);
+      },
+    );
 
     test('User changes playback speed and duration remains constant', () async {
       // GIVEN: User has audio loaded
@@ -122,9 +126,12 @@ void main() {
         await Future.delayed(const Duration(milliseconds: 100));
 
         // THEN: Duration remains constant (calculated at 1.0x speed)
-        expect(controller.totalDuration.value, equals(originalDuration),
-            reason:
-                'Duration should remain constant regardless of playback speed');
+        expect(
+          controller.totalDuration.value,
+          equals(originalDuration),
+          reason:
+              'Duration should remain constant regardless of playback speed',
+        );
       }
     });
 
@@ -166,27 +173,29 @@ void main() {
       );
     });
 
-    test('User completes audio playback and state transitions correctly',
-        () async {
-      // GIVEN: User starts audio playback
-      const text = 'Texto breve';
-      controller.setText(text);
-      await controller.play();
-      await Future.delayed(const Duration(milliseconds: 500));
+    test(
+      'User completes audio playback and state transitions correctly',
+      () async {
+        // GIVEN: User starts audio playback
+        const text = 'Texto breve';
+        controller.setText(text);
+        await controller.play();
+        await Future.delayed(const Duration(milliseconds: 500));
 
-      expect(controller.state.value, TtsPlayerState.playing);
+        expect(controller.state.value, TtsPlayerState.playing);
 
-      // WHEN: Audio completes (simulated)
-      controller.complete();
+        // WHEN: Audio completes (simulated)
+        controller.complete();
 
-      // THEN: State is completed
-      expect(controller.state.value, TtsPlayerState.completed);
-      expect(
-        controller.currentPosition.value,
-        controller.totalDuration.value,
-        reason: 'Position should be at end when completed',
-      );
-    });
+        // THEN: State is completed
+        expect(controller.state.value, TtsPlayerState.completed);
+        expect(
+          controller.currentPosition.value,
+          controller.totalDuration.value,
+          reason: 'Position should be at end when completed',
+        );
+      },
+    );
 
     test('User stops and restarts audio multiple times', () async {
       // Scenario: User frequently stops and restarts to re-listen to parts
@@ -280,10 +289,10 @@ void main() {
       await Future.delayed(const Duration(milliseconds: 300));
 
       // THEN: Should still work correctly
-      expect(
-        [TtsPlayerState.playing, TtsPlayerState.loading],
-        contains(controller.state.value),
-      );
+      expect([
+        TtsPlayerState.playing,
+        TtsPlayerState.loading,
+      ], contains(controller.state.value));
 
       // Cleanup
       await controller.stop();

@@ -11,15 +11,17 @@ void main() {
     late LocalizationService localizationService;
 
     setUp(() async {
-      // Reset ServiceLocator and register LocalizationService for clean test state
+      // Reset ServiceLocator and register default services using the app setup
       ServiceLocator().reset();
-      ServiceLocator().registerLazySingleton<LocalizationService>(
-          () => LocalizationService());
 
-      // Mock SharedPreferences
+      // Mock SharedPreferences BEFORE setting up the locator so services
+      // that read prefs during initialization get the mocked values.
       SharedPreferences.setMockInitialValues({});
 
-      // Get fresh instance from ServiceLocator and initialize with real assets
+      // Use the centralized setup to register all services (DI approach)
+      setupServiceLocator();
+
+      // Acquire the localization service and initialize translations
       localizationService = getService<LocalizationService>();
       await localizationService.initialize();
     });
@@ -30,8 +32,10 @@ void main() {
     });
 
     test('should initialize with default locale', () async {
-      expect(LocalizationService.supportedLocales.map((l) => l.languageCode),
-          contains(localizationService.currentLocale.languageCode));
+      expect(
+        LocalizationService.supportedLocales.map((l) => l.languageCode),
+        contains(localizationService.currentLocale.languageCode),
+      );
     });
 
     test('should load translations correctly for each language', () async {
@@ -44,33 +48,49 @@ void main() {
       if (spanishTitle != 'app.title') {
         // If translations are loaded, test expected values
         expect(spanishTitle, equals('Devocionales Cristianos'));
-        expect(localizationService.translate('app.loading'),
-            equals('Cargando...'));
+        expect(
+          localizationService.translate('app.loading'),
+          equals('Cargando...'),
+        );
 
         // Test English
         await localizationService.changeLocale(const Locale('en'));
-        expect(localizationService.translate('app.title'),
-            equals('Christian Devotionals'));
         expect(
-            localizationService.translate('app.loading'), equals('Loading...'));
+          localizationService.translate('app.title'),
+          equals('Christian Devotionals'),
+        );
+        expect(
+          localizationService.translate('app.loading'),
+          equals('Loading...'),
+        );
 
         // Test Portuguese
         await localizationService.changeLocale(const Locale('pt'));
-        expect(localizationService.translate('app.title'),
-            equals('Devocionais Cristãos'));
-        expect(localizationService.translate('app.loading'),
-            equals('Carregando...'));
+        expect(
+          localizationService.translate('app.title'),
+          equals('Devocionais Cristãos'),
+        );
+        expect(
+          localizationService.translate('app.loading'),
+          equals('Carregando...'),
+        );
 
         // Test French
         await localizationService.changeLocale(const Locale('fr'));
-        expect(localizationService.translate('app.title'),
-            equals('Méditations Chrétiennes'));
-        expect(localizationService.translate('app.loading'),
-            equals('Chargement...'));
+        expect(
+          localizationService.translate('app.title'),
+          equals('Méditations Chrétiennes'),
+        );
+        expect(
+          localizationService.translate('app.loading'),
+          equals('Chargement...'),
+        );
       } else {
         // If assets aren't loaded, verify graceful fallback
-        expect(spanishTitle,
-            equals('app.title')); // Returns key when translation missing
+        expect(
+          spanishTitle,
+          equals('app.title'),
+        ); // Returns key when translation missing
 
         // Test other languages also fallback gracefully
         await localizationService.changeLocale(const Locale('en'));
@@ -113,14 +133,18 @@ void main() {
 
     test('should return key when translation not found', () async {
       await localizationService.changeLocale(const Locale('es'));
-      expect(localizationService.translate('nonexistent.key'),
-          equals('nonexistent.key'));
+      expect(
+        localizationService.translate('nonexistent.key'),
+        equals('nonexistent.key'),
+      );
     });
 
     test('should support all required locales', () {
-      expect(LocalizationService.supportedLocales.length, equals(5));
-      expect(LocalizationService.supportedLocales.map((l) => l.languageCode),
-          containsAll(['es', 'en', 'pt', 'fr', 'ja']));
+      expect(LocalizationService.supportedLocales.length, equals(6));
+      expect(
+        LocalizationService.supportedLocales.map((l) => l.languageCode),
+        containsAll(['es', 'en', 'pt', 'fr', 'ja', 'zh']),
+      );
     });
 
     test('should return correct Japanese TTS locale', () async {
@@ -147,8 +171,7 @@ void main() {
     setUp(() async {
       ServiceLocator().reset();
       SharedPreferences.setMockInitialValues({});
-      ServiceLocator().registerLazySingleton<LocalizationService>(
-          () => LocalizationService());
+      setupServiceLocator();
       localizationService = getService<LocalizationService>();
     });
 
@@ -156,40 +179,42 @@ void main() {
       ServiceLocator().reset();
     });
 
-    test('initialize() loads persisted locale from SharedPreferences',
-        () async {
-      // Set up with persisted English locale
-      ServiceLocator().reset();
-      SharedPreferences.setMockInitialValues({'locale': 'en'});
-      ServiceLocator().registerLazySingleton<LocalizationService>(
-          () => LocalizationService());
+    test(
+      'initialize() loads persisted locale from SharedPreferences',
+      () async {
+        // Set up with persisted English locale
+        ServiceLocator().reset();
+        SharedPreferences.setMockInitialValues({'locale': 'en'});
+        // Use centralized setup so all dependent services are registered
+        setupServiceLocator();
 
-      localizationService = getService<LocalizationService>();
-      await localizationService.initialize();
+        localizationService = getService<LocalizationService>();
+        await localizationService.initialize();
 
-      // Should load persisted English locale
-      expect(localizationService.currentLocale.languageCode, equals('en'));
-    });
+        // Should load persisted English locale
+        expect(localizationService.currentLocale.languageCode, equals('en'));
+      },
+    );
 
-    test('initialize() uses default locale when saved locale is unsupported',
-        () async {
-      // Set up with unsupported locale
-      ServiceLocator().reset();
-      SharedPreferences.setMockInitialValues({'locale': 'xx'});
-      ServiceLocator().registerLazySingleton<LocalizationService>(
-          () => LocalizationService());
+    test(
+      'initialize() uses default locale when saved locale is unsupported',
+      () async {
+        // Set up with unsupported locale
+        ServiceLocator().reset();
+        SharedPreferences.setMockInitialValues({'locale': 'xx'});
+        setupServiceLocator();
+        localizationService = getService<LocalizationService>();
+        await localizationService.initialize();
 
-      localizationService = getService<LocalizationService>();
-      await localizationService.initialize();
-
-      // Should fall back to a supported locale
-      expect(
-        LocalizationService.supportedLocales
-            .map((l) => l.languageCode)
-            .contains(localizationService.currentLocale.languageCode),
-        isTrue,
-      );
-    });
+        // Should fall back to a supported locale
+        expect(
+          LocalizationService.supportedLocales
+              .map((l) => l.languageCode)
+              .contains(localizationService.currentLocale.languageCode),
+          isTrue,
+        );
+      },
+    );
 
     test('changeLocale() persists new locale in SharedPreferences', () async {
       await localizationService.initialize();
@@ -221,8 +246,10 @@ void main() {
       await localizationService.changeLocale(const Locale('es'));
 
       // Test with navigation.switch_to_language if available
-      final result = localizationService
-          .translate('navigation.switch_to_language', {'language': 'Test'});
+      final result = localizationService.translate(
+        'navigation.switch_to_language',
+        {'language': 'Test'},
+      );
 
       // Either the key is returned or the translation with substitution
       expect(result, isNotNull);
@@ -241,76 +268,90 @@ void main() {
       expect(result.isNotEmpty, isTrue);
     });
 
-    test('getLocalizedDateFormat() returns correct format for each language',
-        () async {
-      await localizationService.initialize();
+    test(
+      'getLocalizedDateFormat() returns correct format for each language',
+      () async {
+        await localizationService.initialize();
 
-      // Note: DateFormat requires initializeDateFormatting() which may not be
-      // available in all test environments. We test that the method exists and
-      // returns a DateFormat object, or gracefully handles the exception.
-      try {
-        // Test Spanish date format
-        final esFormat = localizationService.getLocalizedDateFormat('es');
-        expect(esFormat, isNotNull);
+        // Note: DateFormat requires initializeDateFormatting() which may not be
+        // available in all test environments. We test that the method exists and
+        // returns a DateFormat object, or gracefully handles the exception.
+        try {
+          // Test Spanish date format
+          final esFormat = localizationService.getLocalizedDateFormat('es');
+          expect(esFormat, isNotNull);
 
-        // Test English date format
-        final enFormat = localizationService.getLocalizedDateFormat('en');
-        expect(enFormat, isNotNull);
+          // Test English date format
+          final enFormat = localizationService.getLocalizedDateFormat('en');
+          expect(enFormat, isNotNull);
 
-        // Test Portuguese date format
-        final ptFormat = localizationService.getLocalizedDateFormat('pt');
-        expect(ptFormat, isNotNull);
+          // Test Portuguese date format
+          final ptFormat = localizationService.getLocalizedDateFormat('pt');
+          expect(ptFormat, isNotNull);
 
-        // Test French date format
-        final frFormat = localizationService.getLocalizedDateFormat('fr');
-        expect(frFormat, isNotNull);
+          // Test French date format
+          final frFormat = localizationService.getLocalizedDateFormat('fr');
+          expect(frFormat, isNotNull);
 
-        // Test Japanese date format
-        final jaFormat = localizationService.getLocalizedDateFormat('ja');
-        expect(jaFormat, isNotNull);
-      } catch (e) {
-        // If intl locale data not initialized, the method throws an exception
-        // This is expected in test environments without full intl setup
-        expect(e.toString(), contains('Locale data has not been initialized'));
-      }
-    });
+          // Test Japanese date format
+          final jaFormat = localizationService.getLocalizedDateFormat('ja');
+          expect(jaFormat, isNotNull);
+        } catch (e) {
+          // If intl locale data not initialized, the method throws an exception
+          // This is expected in test environments without full intl setup
+          expect(
+            e.toString(),
+            contains('Locale data has not been initialized'),
+          );
+        }
+      },
+    );
 
-    test('getLocalizedDateFormat() returns English format for unknown language',
-        () async {
-      await localizationService.initialize();
+    test(
+      'getLocalizedDateFormat() returns English format for unknown language',
+      () async {
+        await localizationService.initialize();
 
-      try {
-        final format = localizationService.getLocalizedDateFormat('xx');
-        expect(format, isNotNull);
-      } catch (e) {
-        // If intl locale data not initialized, the method throws an exception
-        expect(e.toString(), contains('Locale data has not been initialized'));
-      }
-    });
+        try {
+          final format = localizationService.getLocalizedDateFormat('xx');
+          expect(format, isNotNull);
+        } catch (e) {
+          // If intl locale data not initialized, the method throws an exception
+          expect(
+            e.toString(),
+            contains('Locale data has not been initialized'),
+          );
+        }
+      },
+    );
 
-    test('User journey: app start -> change language -> verify persistence',
-        () async {
-      // Step 1: Initialize with default
-      await localizationService.initialize();
-      final initialLocale = localizationService.currentLocale.languageCode;
-      expect(LocalizationService.supportedLocales.map((l) => l.languageCode),
-          contains(initialLocale));
+    test(
+      'User journey: app start -> change language -> verify persistence',
+      () async {
+        // Step 1: Initialize with default
+        await localizationService.initialize();
+        final initialLocale = localizationService.currentLocale.languageCode;
+        expect(
+          LocalizationService.supportedLocales.map((l) => l.languageCode),
+          contains(initialLocale),
+        );
 
-      // Step 2: Change to Portuguese
-      await localizationService.changeLocale(const Locale('pt'));
-      expect(localizationService.currentLocale.languageCode, equals('pt'));
+        // Step 2: Change to Portuguese
+        await localizationService.changeLocale(const Locale('pt'));
+        expect(localizationService.currentLocale.languageCode, equals('pt'));
 
-      // Step 3: Simulate app restart with new service instance
-      ServiceLocator().reset();
-      // Do NOT reset SharedPreferences - persistence should survive
-      ServiceLocator().registerLazySingleton<LocalizationService>(
-          () => LocalizationService());
-      final newService = getService<LocalizationService>();
-      await newService.initialize();
+        // Step 3: Simulate app restart with new service instance
+        ServiceLocator().reset();
+        // Do NOT reset SharedPreferences - persistence should survive
+        // Re-create the full locator as the app would on startup
+        setupServiceLocator();
+        final newService = getService<LocalizationService>();
+        await newService.initialize();
 
-      // Step 4: Portuguese should still be selected
-      expect(newService.currentLocale.languageCode, equals('pt'));
-    });
+        // Step 4: Portuguese should still be selected
+        expect(newService.currentLocale.languageCode, equals('pt'));
+      },
+    );
 
     test('Multiple rapid locale changes work correctly', () async {
       await localizationService.initialize();
@@ -331,33 +372,34 @@ void main() {
     });
 
     test(
-        'Translation cache stores and reuses translations on language switches',
-        () async {
-      await localizationService.initialize();
+      'Translation cache stores and reuses translations on language switches',
+      () async {
+        await localizationService.initialize();
 
-      // Initially, only the current locale should be cached
-      final initialLocale = localizationService.currentLocale.languageCode;
-      expect(localizationService.isCached(initialLocale), isTrue);
+        // Initially, only the current locale should be cached
+        final initialLocale = localizationService.currentLocale.languageCode;
+        expect(localizationService.isCached(initialLocale), isTrue);
 
-      // Switch to English - should load and cache
-      await localizationService.changeLocale(const Locale('en'));
-      expect(localizationService.isCached('en'), isTrue);
-      expect(localizationService.currentLocale.languageCode, equals('en'));
+        // Switch to English - should load and cache
+        await localizationService.changeLocale(const Locale('en'));
+        expect(localizationService.isCached('en'), isTrue);
+        expect(localizationService.currentLocale.languageCode, equals('en'));
 
-      // Switch to Spanish - should load and cache
-      await localizationService.changeLocale(const Locale('es'));
-      expect(localizationService.isCached('es'), isTrue);
-      expect(localizationService.currentLocale.languageCode, equals('es'));
+        // Switch to Spanish - should load and cache
+        await localizationService.changeLocale(const Locale('es'));
+        expect(localizationService.isCached('es'), isTrue);
+        expect(localizationService.currentLocale.languageCode, equals('es'));
 
-      // Both languages should now be cached
-      expect(localizationService.isCached('en'), isTrue);
-      expect(localizationService.isCached('es'), isTrue);
+        // Both languages should now be cached
+        expect(localizationService.isCached('en'), isTrue);
+        expect(localizationService.isCached('es'), isTrue);
 
-      // Switch back to English - should use cache (verify it's still cached)
-      await localizationService.changeLocale(const Locale('en'));
-      expect(localizationService.isCached('en'), isTrue);
-      expect(localizationService.currentLocale.languageCode, equals('en'));
-    });
+        // Switch back to English - should use cache (verify it's still cached)
+        await localizationService.changeLocale(const Locale('en'));
+        expect(localizationService.isCached('en'), isTrue);
+        expect(localizationService.currentLocale.languageCode, equals('en'));
+      },
+    );
 
     test('Error handling falls back to default locale gracefully', () async {
       // This test verifies that the error logging and fallback mechanism works
@@ -375,18 +417,20 @@ void main() {
       expect(translation, isNotNull);
     });
 
-    test('Service handles unsupported locale gracefully with fallback',
-        () async {
-      await localizationService.initialize();
+    test(
+      'Service handles unsupported locale gracefully with fallback',
+      () async {
+        await localizationService.initialize();
 
-      // Attempt to change to an unsupported locale
-      // This should fail silently and not change the current locale
-      final currentLocale = localizationService.currentLocale;
-      await localizationService.changeLocale(const Locale('invalid_xx'));
+        // Attempt to change to an unsupported locale
+        // This should fail silently and not change the current locale
+        final currentLocale = localizationService.currentLocale;
+        await localizationService.changeLocale(const Locale('invalid_xx'));
 
-      // Locale should remain unchanged because 'invalid_xx' is not supported
-      expect(localizationService.currentLocale, equals(currentLocale));
-    });
+        // Locale should remain unchanged because 'invalid_xx' is not supported
+        expect(localizationService.currentLocale, equals(currentLocale));
+      },
+    );
 
     test('Translation returns key when translation not found', () async {
       await localizationService.initialize();

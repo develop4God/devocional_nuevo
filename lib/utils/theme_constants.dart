@@ -202,8 +202,10 @@ final Map<String, Map<String, ThemeData>> appThemeFamilies = {
         trackHeight: 4,
       ),
       inputDecorationTheme: InputDecorationTheme(
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 12,
+        ),
         border: const OutlineInputBorder(
           borderRadius: BorderRadius.all(Radius.circular(25)),
           borderSide: BorderSide(color: Colors.white, width: 1.0),
@@ -334,8 +336,10 @@ final Map<String, Map<String, ThemeData>> appThemeFamilies = {
         trackHeight: 4,
       ),
       inputDecorationTheme: InputDecorationTheme(
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 12,
+        ),
         border: const OutlineInputBorder(
           borderRadius: BorderRadius.all(Radius.circular(25)),
           borderSide: BorderSide(color: Colors.white, width: 1.0),
@@ -466,8 +470,10 @@ final Map<String, Map<String, ThemeData>> appThemeFamilies = {
         trackHeight: 4,
       ),
       inputDecorationTheme: InputDecorationTheme(
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 12,
+        ),
         border: const OutlineInputBorder(
           borderRadius: BorderRadius.all(Radius.circular(25)),
           borderSide: BorderSide(color: Colors.white, width: 1.0),
@@ -598,8 +604,10 @@ final Map<String, Map<String, ThemeData>> appThemeFamilies = {
         trackHeight: 4,
       ),
       inputDecorationTheme: InputDecorationTheme(
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 12,
+        ),
         border: const OutlineInputBorder(
           borderRadius: BorderRadius.all(Radius.circular(25)),
           borderSide: BorderSide(color: Colors.white, width: 1.0),
@@ -735,8 +743,10 @@ final Map<String, Map<String, ThemeData>> appThemeFamilies = {
         trackHeight: 4,
       ),
       inputDecorationTheme: InputDecorationTheme(
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 12,
+        ),
         border: const OutlineInputBorder(
           borderRadius: BorderRadius.all(Radius.circular(25)),
           borderSide: BorderSide(color: Colors.white, width: 1.0),
@@ -790,7 +800,6 @@ const SystemUiOverlayStyle systemUiOverlayStyle = SystemUiOverlayStyle(
   statusBarColor: Colors.transparent,
   statusBarIconBrightness: Brightness.light, // White icons on status bar
   statusBarBrightness: Brightness.dark, // For iOS
-
   // Navigation bar (bottom) - consistent dark gray with white buttons
   systemNavigationBarColor: Color(0xFF424242), // Dark gray (Material grey 800)
   systemNavigationBarIconBrightness:

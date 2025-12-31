@@ -15,7 +15,8 @@ class BibleTextFormatter {
         ? '${reference.substring(0, maxLogLength)}...'
         : reference;
     debugPrint(
-        '[BibleTextFormatter] formatBibleBook called with reference="$logText", language="$language"');
+      '[BibleTextFormatter] formatBibleBook called with reference="$logText", language="$language"',
+    );
     switch (language) {
       case 'es':
         return _formatBibleBookSpanish(reference);
@@ -27,9 +28,12 @@ class BibleTextFormatter {
         return _formatBibleBookFrench(reference);
       case 'ja':
         return _formatBibleBookJapanese(reference);
+      case 'zh':
+        return _formatBibleBookChinese(reference);
       default:
         debugPrint(
-            '[BibleTextFormatter] Unknown language "$language", using Spanish as default');
+          '[BibleTextFormatter] Unknown language "$language", using Spanish as default',
+        );
         return _formatBibleBookSpanish(reference);
     }
   }
@@ -38,8 +42,10 @@ class BibleTextFormatter {
   /// Now uses replaceAllMapped to work anywhere in text, not just at beginning
   static String _formatBibleBookSpanish(String reference) {
     // Use word boundary (\b) or start of string to match Bible book references anywhere
-    final exp = RegExp(r'(?:^|\s)([123])\s+([A-Za-záéíóúÁÉÍÓÚñÑ]+)',
-        caseSensitive: false);
+    final exp = RegExp(
+      r'(?:^|\s)([123])\s+([A-Za-záéíóúÁÉÍÓÚñÑ]+)',
+      caseSensitive: false,
+    );
 
     return reference.replaceAllMapped(exp, (match) {
       final matchText = match.group(0)!;
@@ -83,8 +89,10 @@ class BibleTextFormatter {
   /// Formats Portuguese Bible book ordinals (Primeiro, Segundo, Terceiro)
   /// Now uses replaceAllMapped to work anywhere in text, not just at beginning
   static String _formatBibleBookPortuguese(String reference) {
-    final exp = RegExp(r'(?:^|\s)([123])\s+([A-Za-záéíóúâêîôûãõç]+)',
-        caseSensitive: false);
+    final exp = RegExp(
+      r'(?:^|\s)([123])\s+([A-Za-záéíóúâêîôûãõç]+)',
+      caseSensitive: false,
+    );
     final ordinals = {'1': 'Primeiro', '2': 'Segundo', '3': 'Terceiro'};
 
     return reference.replaceAllMapped(exp, (match) {
@@ -100,8 +108,10 @@ class BibleTextFormatter {
   /// Formats French Bible book ordinals (Premier, Deuxième, Troisième)
   /// Now uses replaceAllMapped to work anywhere in text, not just at beginning
   static String _formatBibleBookFrench(String reference) {
-    final exp = RegExp(r'(?:^|\s)([123])\s+([A-Za-zéèêëàâäùûüôîïç]+)',
-        caseSensitive: false);
+    final exp = RegExp(
+      r'(?:^|\s)([123])\s+([A-Za-zéèêëàâäùûüôîïç]+)',
+      caseSensitive: false,
+    );
     final ordinals = {'1': 'Premier', '2': 'Deuxième', '3': 'Troisième'};
 
     return reference.replaceAllMapped(exp, (match) {
@@ -117,6 +127,12 @@ class BibleTextFormatter {
   /// Formato para libros bíblicos en japonés (sin ordinales, solo limpieza básica)
   static String _formatBibleBookJapanese(String reference) {
     // En japonés, los libros bíblicos no usan ordinales, solo se devuelve el texto tal cual
+    return reference.trim();
+  }
+
+  /// Formato para libros bíblicos en chino (sin ordinales, solo limpieza básica)
+  static String _formatBibleBookChinese(String reference) {
+    // En chino, los libros bíblicos no usan ordinales, solo se devuelve el texto tal cual
     return reference.trim();
   }
 
@@ -143,16 +159,19 @@ class BibleTextFormatter {
           'LSG1910': 'Louis Segond mille neuf cent dix',
           'TOB': 'Traduction Oecuménique de la Bible',
         };
+      case 'zh':
+        return {'和合本1919': '和合本一九一九', '新译本': '新译本'};
       default:
-        return {
-          'RVR1960': 'Reina Valera mil novecientos sesenta',
-        };
+        return {'RVR1960': 'Reina Valera mil novecientos sesenta'};
     }
   }
 
   /// Normaliza y arma el texto para TTS (capítulo, versículo, ordinales, versión bíblica)
-  static String normalizeTtsText(String text, String language,
-      [String? version]) {
+  static String normalizeTtsText(
+    String text,
+    String language, [
+    String? version,
+  ]) {
     String normalized = text;
     // 1. Formatear libros bíblicos PRIMERO (con RegExp corregido)
     normalized = formatBibleBook(normalized, language);
@@ -177,37 +196,48 @@ class BibleTextFormatter {
       'pt': 'capítulo|versículo',
       'fr': 'chapitre|verset',
       'ja': '章|節', // Japonés: capítulo=章, versículo=節
+      'zh': '章|节', // Chino: capítulo=章, versículo=节
     };
 
     final words = referenceWords[language] ?? referenceWords['es']!;
     final chapterWord = words.split('|')[0];
     final verseWord = words.split('|')[1];
 
-    return text.replaceAllMapped(
-      RegExp(
-          r'(\b(?:\d+\s+)?[A-Za-záéíóúÁÉÍÓÚñÑ一-龯ぁ-んァ-ン]+)\s+(\d+):(\d+)(?:-(\d+))?',
-          caseSensitive: false),
-      (match) {
-        final book = match.group(1)!;
-        final chapter = match.group(2)!;
-        final verseStart = match.group(3)!;
-        final verseEnd = match.group(4);
+    // Different regex pattern for CJK languages (Chinese, Japanese, Korean)
+    // to avoid word boundary issues with non-ASCII characters
+    final isCJK = language == 'zh' || language == 'ja';
+    final pattern = isCJK
+        ? RegExp(
+            r'((?:\d+\s+)?[一-龯ぁ-んァ-ン]+)\s+(\d+):(\d+)(?:-(\d+))?',
+            caseSensitive: false,
+          )
+        : RegExp(
+            r'(\b(?:\d+\s+)?[A-Za-záéíóúÁÉÍÓÚñÑ]+)\s+(\d+):(\d+)(?:-(\d+))?',
+            caseSensitive: false,
+          );
 
-        String result = '$book $chapterWord $chapter $verseWord $verseStart';
-        if (verseEnd != null) {
-          final toWord = language == 'en'
-              ? 'to'
-              : language == 'pt'
-                  ? 'ao'
-                  : language == 'fr'
-                      ? 'au'
-                      : language == 'ja'
-                          ? '～'
-                          : 'al';
-          result += ' $toWord $verseEnd';
-        }
-        return result;
-      },
-    );
+    return text.replaceAllMapped(pattern, (match) {
+      final book = match.group(1)!;
+      final chapter = match.group(2)!;
+      final verseStart = match.group(3)!;
+      final verseEnd = match.group(4);
+
+      String result = '$book $chapterWord $chapter $verseWord $verseStart';
+      if (verseEnd != null) {
+        final toWord = language == 'en'
+            ? 'to'
+            : language == 'pt'
+                ? 'ao'
+                : language == 'fr'
+                    ? 'au'
+                    : language == 'ja'
+                        ? '～'
+                        : language == 'zh'
+                            ? '至'
+                            : 'al';
+        result += ' $toWord $verseEnd';
+      }
+      return result;
+    });
   }
 }

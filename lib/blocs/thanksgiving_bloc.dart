@@ -35,8 +35,9 @@ class ThanksgivingBloc extends Bloc<ThanksgivingEvent, ThanksgivingState> {
       final thanksgivings = await _loadThanksgivingsFromStorage();
       emit(ThanksgivingLoaded(thanksgivings: thanksgivings));
     } catch (e) {
-      final errorMessage = getService<LocalizationService>()
-          .translate('errors.thanksgiving_loading_error');
+      final errorMessage = getService<LocalizationService>().translate(
+        'errors.thanksgiving_loading_error',
+      );
       debugPrint('Error loading thanksgivings: $e');
       emit(ThanksgivingError(errorMessage));
     }
@@ -50,8 +51,11 @@ class ThanksgivingBloc extends Bloc<ThanksgivingEvent, ThanksgivingState> {
     if (event.text.trim().isEmpty) {
       final currentState = state;
       if (currentState is ThanksgivingLoaded) {
-        emit(currentState.copyWith(
-            errorMessage: 'El texto del agradecimiento no puede estar vacío'));
+        emit(
+          currentState.copyWith(
+            errorMessage: 'El texto del agradecimiento no puede estar vacío',
+          ),
+        );
       }
       return;
     }
@@ -78,8 +82,11 @@ class ThanksgivingBloc extends Bloc<ThanksgivingEvent, ThanksgivingState> {
     } catch (e) {
       final currentState = state;
       if (currentState is ThanksgivingLoaded) {
-        emit(currentState.copyWith(
-            errorMessage: 'Error al añadir el agradecimiento: $e'));
+        emit(
+          currentState.copyWith(
+            errorMessage: 'Error al añadir el agradecimiento: $e',
+          ),
+        );
       }
       debugPrint('Error adding thanksgiving: $e');
     }
@@ -93,8 +100,11 @@ class ThanksgivingBloc extends Bloc<ThanksgivingEvent, ThanksgivingState> {
     if (event.newText.trim().isEmpty) {
       final currentState = state;
       if (currentState is ThanksgivingLoaded) {
-        emit(currentState.copyWith(
-            errorMessage: 'El texto del agradecimiento no puede estar vacío'));
+        emit(
+          currentState.copyWith(
+            errorMessage: 'El texto del agradecimiento no puede estar vacío',
+          ),
+        );
       }
       return;
     }
@@ -103,8 +113,9 @@ class ThanksgivingBloc extends Bloc<ThanksgivingEvent, ThanksgivingState> {
       final currentState = state;
       if (currentState is! ThanksgivingLoaded) return;
 
-      final updatedThanksgivings =
-          currentState.thanksgivings.map((thanksgiving) {
+      final updatedThanksgivings = currentState.thanksgivings.map((
+        thanksgiving,
+      ) {
         if (thanksgiving.id == event.thanksgivingId) {
           return thanksgiving.copyWith(text: event.newText.trim());
         }
@@ -112,13 +123,20 @@ class ThanksgivingBloc extends Bloc<ThanksgivingEvent, ThanksgivingState> {
       }).toList();
 
       await _saveThanksgivingsToStorage(updatedThanksgivings);
-      emit(currentState.copyWith(
-          thanksgivings: updatedThanksgivings, clearError: true));
+      emit(
+        currentState.copyWith(
+          thanksgivings: updatedThanksgivings,
+          clearError: true,
+        ),
+      );
     } catch (e) {
       final currentState = state;
       if (currentState is ThanksgivingLoaded) {
-        emit(currentState.copyWith(
-            errorMessage: 'Error al editar el agradecimiento: $e'));
+        emit(
+          currentState.copyWith(
+            errorMessage: 'Error al editar el agradecimiento: $e',
+          ),
+        );
       }
       debugPrint('Error editing thanksgiving: $e');
     }
@@ -142,8 +160,11 @@ class ThanksgivingBloc extends Bloc<ThanksgivingEvent, ThanksgivingState> {
     } catch (e) {
       final currentState = state;
       if (currentState is ThanksgivingLoaded) {
-        emit(currentState.copyWith(
-            errorMessage: 'Error al eliminar el agradecimiento: $e'));
+        emit(
+          currentState.copyWith(
+            errorMessage: 'Error al eliminar el agradecimiento: $e',
+          ),
+        );
       }
       debugPrint('Error deleting thanksgiving: $e');
     }
@@ -202,7 +223,8 @@ class ThanksgivingBloc extends Bloc<ThanksgivingEvent, ThanksgivingState> {
 
   /// Saves thanksgivings to SharedPreferences and creates backup
   Future<void> _saveThanksgivingsToStorage(
-      List<Thanksgiving> thanksgivings) async {
+    List<Thanksgiving> thanksgivings,
+  ) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final String thanksgivingsJson = json.encode(
@@ -219,7 +241,8 @@ class ThanksgivingBloc extends Bloc<ThanksgivingEvent, ThanksgivingState> {
 
   /// Creates a backup of thanksgivings to JSON file
   Future<void> _backupThanksgivingsToFile(
-      List<Thanksgiving> thanksgivings) async {
+    List<Thanksgiving> thanksgivings,
+  ) async {
     try {
       final directory = await getApplicationDocumentsDirectory();
       final file = File('${directory.path}/thanksgivings.json');

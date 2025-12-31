@@ -30,8 +30,9 @@ void main() {
 
     // Stubs para los getters requeridos
     when(() => mockDevocionalProvider.selectedVersion).thenReturn('RVR1960');
-    when(() => mockDevocionalProvider.availableVersions)
-        .thenReturn(['RVR1960', 'NVI', 'KJV']);
+    when(
+      () => mockDevocionalProvider.availableVersions,
+    ).thenReturn(['RVR1960', 'NVI', 'KJV']);
     when(() => mockDevocionalProvider.isOfflineMode).thenReturn(false);
     when(() => mockDevocionalProvider.downloadStatus).thenReturn(null);
     when(() => mockDevocionalProvider.selectedLanguage).thenReturn('es');
@@ -71,58 +72,69 @@ void main() {
 
   group('DevocionalesDrawer Offline Integration', () {
     testWidgets(
-        'should show "Descargar devocionales" with download icon when no local data',
-        (WidgetTester tester) async {
-      // Mock sin datos locales
-      when(() => mockDevocionalProvider.hasTargetYearsLocalData())
-          .thenAnswer((_) async => false);
+      'should show "Descargar devocionales" with download icon when no local data',
+      (WidgetTester tester) async {
+        // Mock sin datos locales
+        when(
+          () => mockDevocionalProvider.hasTargetYearsLocalData(),
+        ).thenAnswer((_) async => false);
 
-      await tester.pumpWidget(createWidgetUnderTest());
+        await tester.pumpWidget(createWidgetUnderTest());
 
-      // Abre el drawer
-      await tester.tap(find.text('Open Drawer'));
-      await tester.pumpAndSettle();
+        // Abre el drawer
+        await tester.tap(find.text('Open Drawer'));
+        await tester.pumpAndSettle();
 
-      // Verify the main text "Descargar devocionales"
-      expect(find.text('Descargar devocionales'), findsOneWidget);
+        // Verify the main text "Descargar devocionales"
+        expect(find.text('Descargar devocionales'), findsOneWidget);
 
-      // Verify subtitle text for offline use
-      expect(find.text('Para uso sin internet'), findsOneWidget);
+        // Verify subtitle text for offline use
+        expect(find.text('Para uso sin internet'), findsOneWidget);
 
-      // Verify download icon is present
-      expect(find.byIcon(Icons.download_for_offline_outlined), findsOneWidget);
-    });
+        // Verify download icon is present
+        expect(
+          find.byIcon(Icons.download_for_offline_outlined),
+          findsOneWidget,
+        );
+      },
+    );
 
     testWidgets(
-        'should show "Disfruta contenido sin internet" with offline pin icon when local data exists',
-        (WidgetTester tester) async {
-      // Mock con datos locales
-      when(() => mockDevocionalProvider.hasTargetYearsLocalData())
-          .thenAnswer((_) async => true);
+      'should show "Disfruta contenido sin internet" with offline pin icon when local data exists',
+      (WidgetTester tester) async {
+        // Mock con datos locales
+        when(
+          () => mockDevocionalProvider.hasTargetYearsLocalData(),
+        ).thenAnswer((_) async => true);
 
-      await tester.pumpWidget(createWidgetUnderTest());
+        await tester.pumpWidget(createWidgetUnderTest());
 
-      // Abre el drawer
-      await tester.tap(find.text('Open Drawer'));
-      await tester.pumpAndSettle();
+        // Abre el drawer
+        await tester.tap(find.text('Open Drawer'));
+        await tester.pumpAndSettle();
 
-      // Verify the main text "Descargar devocionales"
-      expect(find.text('Descargar devocionales'), findsOneWidget);
+        // Verify the main text "Descargar devocionales"
+        expect(find.text('Descargar devocionales'), findsOneWidget);
 
-      // Verify subtitle text indicating content is ready
-      expect(find.text('Disfruta contenido sin internet'), findsOneWidget);
+        // Verify subtitle text indicating content is ready
+        expect(find.text('Disfruta contenido sin internet'), findsOneWidget);
 
-      // Verify offline pin icon is present
-      expect(find.byIcon(Icons.offline_pin_outlined), findsOneWidget);
-    });
+        // Verify offline pin icon is present
+        expect(find.byIcon(Icons.offline_pin_outlined), findsOneWidget);
+      },
+    );
 
-    testWidgets('should open download confirmation dialog when tapped',
-        (WidgetTester tester) async {
-      when(() => mockDevocionalProvider.hasTargetYearsLocalData())
-          .thenAnswer((_) async => false);
-      when(() => mockDevocionalProvider.downloadDevocionalesWithProgress(
-            onProgress: any(named: 'onProgress'),
-          )).thenAnswer((_) async => true);
+    testWidgets('should open download confirmation dialog when tapped', (
+      WidgetTester tester,
+    ) async {
+      when(
+        () => mockDevocionalProvider.hasTargetYearsLocalData(),
+      ).thenAnswer((_) async => false);
+      when(
+        () => mockDevocionalProvider.downloadDevocionalesWithProgress(
+          onProgress: any(named: 'onProgress'),
+        ),
+      ).thenAnswer((_) async => true);
 
       await tester.pumpWidget(createWidgetUnderTest());
 
@@ -131,8 +143,9 @@ void main() {
       await tester.pumpAndSettle();
 
       // Find and tap the download devotionals option
-      final downloadButton =
-          find.byKey(const Key('drawer_download_devotionals'));
+      final downloadButton = find.byKey(
+        const Key('drawer_download_devotionals'),
+      );
       expect(downloadButton, findsOneWidget);
 
       await tester.tap(downloadButton);
@@ -153,10 +166,12 @@ void main() {
       expect(find.text('Aceptar'), findsOneWidget);
     });
 
-    testWidgets('should have proper drawer structure',
-        (WidgetTester tester) async {
-      when(() => mockDevocionalProvider.hasTargetYearsLocalData())
-          .thenAnswer((_) async => false);
+    testWidgets('should have proper drawer structure', (
+      WidgetTester tester,
+    ) async {
+      when(
+        () => mockDevocionalProvider.hasTargetYearsLocalData(),
+      ).thenAnswer((_) async => false);
 
       await tester.pumpWidget(createWidgetUnderTest());
 
@@ -171,8 +186,10 @@ void main() {
       expect(find.text('Tu Biblia, tu estilo'), findsOneWidget); // Drawer title
 
       // Bible version selector
-      expect(find.byKey(const Key('drawer_bible_version_selector')),
-          findsOneWidget);
+      expect(
+        find.byKey(const Key('drawer_bible_version_selector')),
+        findsOneWidget,
+      );
 
       // Check for main menu items
       expect(find.text('Favoritos guardados'), findsOneWidget);

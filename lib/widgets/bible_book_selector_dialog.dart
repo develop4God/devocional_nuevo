@@ -79,10 +79,7 @@ class _BibleBookSelectorDialogState extends State<BibleBookSelectorDialog> {
       backgroundColor: Theme.of(context).colorScheme.surface,
       insetPadding: const EdgeInsets.all(16),
       child: Container(
-        constraints: const BoxConstraints(
-          maxWidth: 600,
-          maxHeight: 800,
-        ),
+        constraints: const BoxConstraints(maxWidth: 600, maxHeight: 800),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -188,10 +185,9 @@ class _BibleBookSelectorDialogState extends State<BibleBookSelectorDialog> {
                         ),
                       ),
                       selected: isSelected,
-                      selectedTileColor: Theme.of(context)
-                          .colorScheme
-                          .primaryContainer
-                          .withValues(alpha: 0.3),
+                      selectedTileColor: Theme.of(
+                        context,
+                      ).colorScheme.primaryContainer.withValues(alpha: 0.3),
                       onTap: () {
                         Navigator.of(context).pop();
                         widget.onBookSelected(book);

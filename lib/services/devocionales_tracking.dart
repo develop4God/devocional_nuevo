@@ -71,7 +71,9 @@ class DevocionalesTracking {
 
   /// Inicia el tracking para un devocional específico
   void startDevocionalTracking(
-      String devocionalId, ScrollController scrollController) {
+    String devocionalId,
+    ScrollController scrollController,
+  ) {
     if (_context == null) {
       debugPrint('❌ DevocionalesTracking not initialized');
       return;
@@ -83,10 +85,12 @@ class DevocionalesTracking {
     );
 
     debugPrint(
-        '[TRACKING] startDevocionalTracking() llamado para $devocionalId');
+      '[TRACKING] startDevocionalTracking() llamado para $devocionalId',
+    );
 
     debugPrint(
-        '[TRACKING] Antes de start: trackedId=${devocionalProvider.currentTrackedDevocionalId}, segundos=${devocionalProvider.currentReadingSeconds}');
+      '[TRACKING] Antes de start: trackedId=${devocionalProvider.currentTrackedDevocionalId}, segundos=${devocionalProvider.currentReadingSeconds}',
+    );
 
     devocionalProvider.startDevocionalTracking(
       devocionalId,
@@ -99,7 +103,8 @@ class DevocionalesTracking {
     debugPrint('📖 Started tracking for devotional: $devocionalId');
 
     debugPrint(
-        '[TRACKING] Después de start: trackedId=${devocionalProvider.currentTrackedDevocionalId}, segundos=${devocionalProvider.currentReadingSeconds}');
+      '[TRACKING] Después de start: trackedId=${devocionalProvider.currentTrackedDevocionalId}, segundos=${devocionalProvider.currentReadingSeconds}',
+    );
   }
 
   /// Evalúa criterios de lectura automáticamente
@@ -134,21 +139,26 @@ class DevocionalesTracking {
 
     debugPrint('Devotional read attempt: ${currentDevocional.id}');
     debugPrint(
-        'Reading time: ${readingTime}s, Scroll: ${(scrollPercentage * 100).toStringAsFixed(1)}%');
+      'Reading time: ${readingTime}s, Scroll: ${(scrollPercentage * 100).toStringAsFixed(1)}%',
+    );
 
-    final meetsCriteria = readingTime >= 60 && scrollPercentage >= 0.8;
+    final meetsCriteria = readingTime >= 40 && scrollPercentage >= 0.6;
     debugPrint('Meets criteria: $meetsCriteria');
     developer.log(
-        '[TRACKING] Intento de lectura: ${currentDevocional.id}, tiempo: ${readingTime}s, scroll: ${(scrollPercentage * 100).toStringAsFixed(1)}%',
-        name: 'DevocionalesTracking');
-    developer.log('[TRACKING] ¿Cumple criterio?: $meetsCriteria',
-        name: 'DevocionalesTracking');
+      '[TRACKING] Intento de lectura: ${currentDevocional.id}, tiempo: ${readingTime}s, scroll: ${(scrollPercentage * 100).toStringAsFixed(1)}%',
+      name: 'DevocionalesTracking',
+    );
+    developer.log(
+      '[TRACKING] ¿Cumple criterio?: $meetsCriteria',
+      name: 'DevocionalesTracking',
+    );
 
     if (meetsCriteria) {
       debugPrint('✅ Criteria met automatically - updating stats immediately');
       developer.log(
-          '[TRACKING] Criterio cumplido, actualizando stats para: ${currentDevocional.id}',
-          name: 'DevocionalesTracking');
+        '[TRACKING] Criterio cumplido, actualizando stats para: ${currentDevocional.id}',
+        name: 'DevocionalesTracking',
+      );
       _updateReadingStats(currentDevocional.id);
     }
   }
@@ -174,7 +184,8 @@ class DevocionalesTracking {
         source: source,
       );
       debugPrint(
-          '📊 [TRACKING] Stats actualizados para $devocionalId (source: $source)');
+        '📊 [TRACKING] Stats actualizados para $devocionalId (source: $source)',
+      );
 
       // Firebase Analytics: Log devotional completion with campaign_tag
       final analytics = _analytics;
@@ -183,11 +194,13 @@ class DevocionalesTracking {
         totalDevocionalesRead: stats.totalDevocionalesRead,
       );
       debugPrint(
-          '🟢 [ANALYTICS] Validando milestone: totalDevocionalesRead=${stats.totalDevocionalesRead}, campaignTag="$campaignTag"');
+        '🟢 [ANALYTICS] Validando milestone: totalDevocionalesRead=${stats.totalDevocionalesRead}, campaignTag="$campaignTag"',
+      );
       if (analytics != null) {
         try {
           debugPrint(
-              '🚀 [ANALYTICS] Enviando evento devotional_read_complete a Firebase con campaignTag="$campaignTag" para devocionalId="$devocionalId"');
+            '🚀 [ANALYTICS] Enviando evento devotional_read_complete a Firebase con campaignTag="$campaignTag" para devocionalId="$devocionalId"',
+          );
           await analytics.logDevocionalComplete(
             devocionalId: devocionalId,
             campaignTag: campaignTag,
@@ -237,7 +250,8 @@ class DevocionalesTracking {
 
       final stats = await SpiritualStatsService().getStats();
       debugPrint(
-          '🎯 Auto-completion review check: ${stats.totalDevocionalesRead} devotionals');
+        '🎯 Auto-completion review check: ${stats.totalDevocionalesRead} devotionals',
+      );
 
       if (_context?.mounted == true) {
         await InAppReviewService.checkAndShow(stats, _context!);
@@ -267,7 +281,9 @@ class DevocionalesTracking {
 
   /// Nuevo: Registra manualmente la escucha de un devocional (TTS/audio)
   Future<void> recordDevocionalHeard(
-      String devocionalId, double listenedPercentage) async {
+    String devocionalId,
+    double listenedPercentage,
+  ) async {
     if (_context == null) return;
     // Usar el metodo unificado para registrar escucha y verificar milestone
     await recordDevocionalInteraction(
@@ -276,7 +292,8 @@ class DevocionalesTracking {
       source: 'heard',
     );
     debugPrint(
-        '📊 Manual heard recorded for: $devocionalId ($listenedPercentage)');
+      '📊 Manual heard recorded for: $devocionalId ($listenedPercentage)',
+    );
   }
 
   /// Limpia el set de auto-completados para permitir nueva evaluación
@@ -297,7 +314,8 @@ class DevocionalesTracking {
       _autoCompletedDevocionals.clear();
     }
     debugPrint(
-        '🧹 Auto-completed devotionals cleared except: $keepDevocionalId');
+      '🧹 Auto-completed devotionals cleared except: $keepDevocionalId',
+    );
   }
 
   /// Pausa el tracking (cuando la app va a background)
@@ -323,12 +341,14 @@ class DevocionalesTracking {
       listen: false,
     );
     debugPrint(
-        '[TRACKING] Antes de resume: trackedId=${devocionalProvider.currentTrackedDevocionalId}, segundos=${devocionalProvider.currentReadingSeconds}');
+      '[TRACKING] Antes de resume: trackedId=${devocionalProvider.currentTrackedDevocionalId}, segundos=${devocionalProvider.currentReadingSeconds}',
+    );
     devocionalProvider.resumeTracking();
     startCriteriaCheckTimer();
     debugPrint('▶️ Tracking resumed');
     debugPrint(
-        '[TRACKING] Después de resume: trackedId=${devocionalProvider.currentTrackedDevocionalId}, segundos=${devocionalProvider.currentReadingSeconds}');
+      '[TRACKING] Después de resume: trackedId=${devocionalProvider.currentTrackedDevocionalId}, segundos=${devocionalProvider.currentReadingSeconds}',
+    );
   }
 
   /// Limpia recursos al destruir el servicio

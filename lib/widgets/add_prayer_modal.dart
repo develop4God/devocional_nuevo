@@ -52,9 +52,7 @@ class _AddPrayerModalState extends State<AddPrayerModal> {
     return Container(
       decoration: BoxDecoration(
         color: colorScheme.surface,
-        borderRadius: const BorderRadius.vertical(
-          top: Radius.circular(20),
-        ),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       ),
       padding: EdgeInsets.only(
         left: 20,
@@ -152,22 +150,15 @@ class _AddPrayerModalState extends State<AddPrayerModal> {
                   : colorScheme.surface,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(
-                  color: colorScheme.outline,
-                ),
+                borderSide: BorderSide(color: colorScheme.outline),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(
-                  color: colorScheme.outline,
-                ),
+                borderSide: BorderSide(color: colorScheme.outline),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(
-                  color: colorScheme.primary,
-                  width: 2,
-                ),
+                borderSide: BorderSide(color: colorScheme.primary, width: 2),
               ),
               contentPadding: const EdgeInsets.all(16),
               counterStyle: textTheme.bodySmall?.copyWith(
@@ -194,8 +185,10 @@ class _AddPrayerModalState extends State<AddPrayerModal> {
                   Expanded(
                     child: Text(
                       _errorMessage!,
-                      style:
-                          TextStyle(color: Colors.red.shade700, fontSize: 14),
+                      style: TextStyle(
+                        color: Colors.red.shade700,
+                        fontSize: 14,
+                      ),
                     ),
                   ),
                 ],
@@ -294,9 +287,9 @@ class _AddPrayerModalState extends State<AddPrayerModal> {
 
     try {
       if (_isEditing) {
-        context
-            .read<PrayerBloc>()
-            .add(EditPrayer(widget.prayerToEdit!.id, text));
+        context.read<PrayerBloc>().add(
+              EditPrayer(widget.prayerToEdit!.id, text),
+            );
         _showSuccessSnackBar('prayer.prayer_updated'.tr());
       } else {
         context.read<PrayerBloc>().add(AddPrayer(text));
@@ -327,10 +320,7 @@ class _AddPrayerModalState extends State<AddPrayerModal> {
       SnackBar(
         content: Row(
           children: [
-            Icon(
-              Icons.check_circle_outline,
-              color: colorScheme.onSecondary,
-            ),
+            Icon(Icons.check_circle_outline, color: colorScheme.onSecondary),
             const SizedBox(width: 8),
             Expanded(
               child: Text(
@@ -343,9 +333,7 @@ class _AddPrayerModalState extends State<AddPrayerModal> {
         backgroundColor: colorScheme.secondary,
         duration: const Duration(seconds: 2),
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
     );
   }

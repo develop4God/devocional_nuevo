@@ -17,32 +17,36 @@ void main() {
 
   setUp(() {
     mockFlutterTts = MockFlutterTts();
-    voiceSettingsService =
-        VoiceSettingsService.withBothTts(mockFlutterTts, mockFlutterTts);
+    voiceSettingsService = VoiceSettingsService.withBothTts(
+      mockFlutterTts,
+      mockFlutterTts,
+    );
   });
 
   group('VoiceSettingsService - Voice Sample Playback', () {
-    test('playVoiceSample should stop previous sample before playing new one',
-        () async {
-      // Arrange
-      when(mockFlutterTts.stop()).thenAnswer((_) async => 1);
-      when(mockFlutterTts.setVoice(any)).thenAnswer((_) async => 1);
-      when(mockFlutterTts.setSpeechRate(any)).thenAnswer((_) async => 1);
-      when(mockFlutterTts.speak(any)).thenAnswer((_) async => 1);
+    test(
+      'playVoiceSample should stop previous sample before playing new one',
+      () async {
+        // Arrange
+        when(mockFlutterTts.stop()).thenAnswer((_) async => 1);
+        when(mockFlutterTts.setVoice(any)).thenAnswer((_) async => 1);
+        when(mockFlutterTts.setSpeechRate(any)).thenAnswer((_) async => 1);
+        when(mockFlutterTts.speak(any)).thenAnswer((_) async => 1);
 
-      // Act
-      await voiceSettingsService.playVoiceSample(
-        'en-us-x-tpf-local',
-        'en-US',
-        'Test sample text',
-      );
+        // Act
+        await voiceSettingsService.playVoiceSample(
+          'en-us-x-tpf-local',
+          'en-US',
+          'Test sample text',
+        );
 
-      // Assert
-      verify(mockFlutterTts.stop()).called(1);
-      verify(mockFlutterTts.setVoice(any)).called(1);
-      verify(mockFlutterTts.setSpeechRate(any)).called(1);
-      verify(mockFlutterTts.speak(any)).called(1);
-    });
+        // Assert
+        verify(mockFlutterTts.stop()).called(1);
+        verify(mockFlutterTts.setVoice(any)).called(1);
+        verify(mockFlutterTts.setSpeechRate(any)).called(1);
+        verify(mockFlutterTts.speak(any)).called(1);
+      },
+    );
 
     test('playVoiceSample should handle multiple calls correctly', () async {
       // Arrange

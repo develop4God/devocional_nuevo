@@ -11,15 +11,10 @@ void main() {
     late LocalizationService localizationService;
 
     setUp(() async {
-      // Reset ServiceLocator and register LocalizationService for clean test state
       ServiceLocator().reset();
-      ServiceLocator().registerLazySingleton<LocalizationService>(
-          () => LocalizationService());
-
-      // Mock SharedPreferences
       SharedPreferences.setMockInitialValues({});
+      setupServiceLocator();
 
-      // Get fresh instance from ServiceLocator and initialize with real assets
       localizationService = getService<LocalizationService>();
       await localizationService.initialize();
     });
@@ -42,8 +37,9 @@ void main() {
       await localizationService.changeLocale(const Locale('es'));
 
       // Test with a key that has parameters in the real translations
-      final result =
-          'navigation.switch_to_language'.tr({'language': 'English'});
+      final result = 'navigation.switch_to_language'.tr({
+        'language': 'English',
+      });
       expect(result, isNotEmpty);
     });
 

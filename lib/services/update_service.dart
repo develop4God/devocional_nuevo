@@ -27,8 +27,10 @@ class UpdateService {
       await InAppUpdate.performImmediateUpdate();
       developer.log('Immediate update completed', name: 'UpdateService');
     } catch (e) {
-      developer.log('Error performing immediate update: $e',
-          name: 'UpdateService');
+      developer.log(
+        'Error performing immediate update: $e',
+        name: 'UpdateService',
+      );
     }
   }
 
@@ -36,8 +38,10 @@ class UpdateService {
   static Future<void> performFlexibleUpdate() async {
     try {
       await InAppUpdate.startFlexibleUpdate();
-      developer.log('Flexible update started successfully',
-          name: 'UpdateService');
+      developer.log(
+        'Flexible update started successfully',
+        name: 'UpdateService',
+      );
 
       // Esperar un tiempo razonable para la descarga
       await Future.delayed(const Duration(seconds: 10));
@@ -46,8 +50,10 @@ class UpdateService {
       await InAppUpdate.completeFlexibleUpdate();
       developer.log('Flexible update completed', name: 'UpdateService');
     } catch (e) {
-      developer.log('Error performing flexible update: $e',
-          name: 'UpdateService');
+      developer.log(
+        'Error performing flexible update: $e',
+        name: 'UpdateService',
+      );
     }
   }
 
@@ -59,16 +65,20 @@ class UpdateService {
       onStatusChange?.call('Iniciando actualización...');
 
       await InAppUpdate.startFlexibleUpdate();
-      developer.log('Flexible update started successfully',
-          name: 'UpdateService');
+      developer.log(
+        'Flexible update started successfully',
+        name: 'UpdateService',
+      );
       onStatusChange?.call('Descargando actualización...');
 
       // Monitorear el progreso de la descarga
       await _monitorFlexibleUpdateProgress(onStatusChange);
     } catch (e) {
       onStatusChange?.call('Error en actualización');
-      developer.log('Error performing flexible update: $e',
-          name: 'UpdateService');
+      developer.log(
+        'Error performing flexible update: $e',
+        name: 'UpdateService',
+      );
     }
   }
 
@@ -90,13 +100,17 @@ class UpdateService {
             onStatusChange?.call('Preparando instalación...');
             await InAppUpdate.completeFlexibleUpdate();
             onStatusChange?.call('Actualización completada exitosamente');
-            developer.log('Flexible update completed successfully',
-                name: 'UpdateService');
+            developer.log(
+              'Flexible update completed successfully',
+              name: 'UpdateService',
+            );
             return;
           } catch (e) {
             // Si falla, continúar esperando
-            developer.log('Update not ready yet, continuing...',
-                name: 'UpdateService');
+            developer.log(
+              'Update not ready yet, continuing...',
+              name: 'UpdateService',
+            );
           }
         }
       }
@@ -105,17 +119,23 @@ class UpdateService {
       try {
         await InAppUpdate.completeFlexibleUpdate();
         onStatusChange?.call('Actualización completada');
-        developer.log('Flexible update completed on final attempt',
-            name: 'UpdateService');
+        developer.log(
+          'Flexible update completed on final attempt',
+          name: 'UpdateService',
+        );
       } catch (e) {
         onStatusChange?.call('Error al completar actualización');
-        developer.log('Failed to complete flexible update: $e',
-            name: 'UpdateService');
+        developer.log(
+          'Failed to complete flexible update: $e',
+          name: 'UpdateService',
+        );
       }
     } catch (e) {
       onStatusChange?.call('Error durante el monitoreo');
-      developer.log('Error monitoring flexible update progress: $e',
-          name: 'UpdateService');
+      developer.log(
+        'Error monitoring flexible update progress: $e',
+        name: 'UpdateService',
+      );
     }
   }
 
@@ -123,12 +143,16 @@ class UpdateService {
   static Future<bool> completeFlexibleUpdateIfAvailable() async {
     try {
       await InAppUpdate.completeFlexibleUpdate();
-      developer.log('Flexible update completed successfully',
-          name: 'UpdateService');
+      developer.log(
+        'Flexible update completed successfully',
+        name: 'UpdateService',
+      );
       return true;
     } catch (e) {
-      developer.log('No flexible update available to complete: $e',
-          name: 'UpdateService');
+      developer.log(
+        'No flexible update available to complete: $e',
+        name: 'UpdateService',
+      );
       return false;
     }
   }
@@ -149,10 +173,7 @@ class UpdateService {
       };
     } catch (e) {
       developer.log('Error getting update info: $e', name: 'UpdateService');
-      return {
-        'updateAvailable': false,
-        'error': e.toString(),
-      };
+      return {'updateAvailable': false, 'error': e.toString()};
     }
   }
 }

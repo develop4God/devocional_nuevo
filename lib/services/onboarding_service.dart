@@ -38,14 +38,16 @@ class OnboardingService {
       // Check if onboarding was completed and version matches
       if (isComplete && savedVersion == _currentVersion) {
         debugPrint(
-            '✅ [OnboardingService] Onboarding completado (v$savedVersion)');
+          '✅ [OnboardingService] Onboarding completado (v$savedVersion)',
+        );
         return true;
       }
 
       // If version mismatch, user needs to go through onboarding again
       if (isComplete && savedVersion != _currentVersion) {
         debugPrint(
-            '🔄 [OnboardingService] Nueva versión de onboarding disponible: v$savedVersion -> v$_currentVersion');
+          '🔄 [OnboardingService] Nueva versión de onboarding disponible: v$savedVersion -> v$_currentVersion',
+        );
         return false;
       }
 
@@ -64,9 +66,11 @@ class OnboardingService {
       await prefs.setBool(_onboardingCompleteKey, true);
       await prefs.setInt(_onboardingVersionKey, _currentVersion);
       await prefs.remove(
-          _onboardingInProgressKey); // 🔧 NUEVO: Limpiar flag de progreso
+        _onboardingInProgressKey,
+      ); // 🔧 NUEVO: Limpiar flag de progreso
       debugPrint(
-          '✅ [OnboardingService] Onboarding marcado como completado (v$_currentVersion)');
+        '✅ [OnboardingService] Onboarding marcado como completado (v$_currentVersion)',
+      );
     } catch (e) {
       debugPrint('❌ [OnboardingService] Error setting onboarding complete: $e');
     }
@@ -79,15 +83,18 @@ class OnboardingService {
       if (inProgress) {
         await prefs.setBool(_onboardingInProgressKey, true);
         debugPrint(
-            '🚀 [OnboardingService] Onboarding marcado como en progreso');
+          '🚀 [OnboardingService] Onboarding marcado como en progreso',
+        );
       } else {
         await prefs.remove(_onboardingInProgressKey);
         debugPrint(
-            '✅ [OnboardingService] Flag de onboarding en progreso eliminado');
+          '✅ [OnboardingService] Flag de onboarding en progreso eliminado',
+        );
       }
     } catch (e) {
       debugPrint(
-          '❌ [OnboardingService] Error setting onboarding in progress: $e');
+        '❌ [OnboardingService] Error setting onboarding in progress: $e',
+      );
     }
   }
 
@@ -111,7 +118,8 @@ class OnboardingService {
       return prefs.getBool(_onboardingInProgressKey) ?? false;
     } catch (e) {
       debugPrint(
-          '❌ [OnboardingService] Error checking onboarding in progress: $e');
+        '❌ [OnboardingService] Error checking onboarding in progress: $e',
+      );
       return false;
     }
   }
@@ -122,7 +130,8 @@ class OnboardingService {
     final inProgress = await isOnboardingInProgress();
     if (inProgress) {
       debugPrint(
-          '⚠️ [OnboardingService] Saltando restauración de onboarding - proceso en curso');
+        '⚠️ [OnboardingService] Saltando restauración de onboarding - proceso en curso',
+      );
       return false;
     }
     return true;

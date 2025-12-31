@@ -123,11 +123,15 @@ class _OnboardingCompletePageState extends State<OnboardingCompletePage>
                             final distance =
                                 60 + (40 * _particleAnimation.value);
                             final x = distance *
-                                math.cos(angle +
-                                    _particleAnimation.value * 2 * math.pi);
+                                math.cos(
+                                  angle +
+                                      _particleAnimation.value * 2 * math.pi,
+                                );
                             final y = distance *
-                                math.sin(angle +
-                                    _particleAnimation.value * 2 * math.pi);
+                                math.sin(
+                                  angle +
+                                      _particleAnimation.value * 2 * math.pi,
+                                );
 
                             return Transform.translate(
                               offset: Offset(x, y),
@@ -148,8 +152,10 @@ class _OnboardingCompletePageState extends State<OnboardingCompletePage>
 
                       // Main celebration icon
                       AnimatedBuilder(
-                        animation: Listenable.merge(
-                            [_scaleAnimation, _pulseAnimation]),
+                        animation: Listenable.merge([
+                          _scaleAnimation,
+                          _pulseAnimation,
+                        ]),
                         builder: (context, child) {
                           return Transform.scale(
                             scale:
@@ -169,8 +175,9 @@ class _OnboardingCompletePageState extends State<OnboardingCompletePage>
                                 shape: BoxShape.circle,
                                 boxShadow: [
                                   BoxShadow(
-                                    color: colorScheme.primary
-                                        .withValues(alpha: 0.3),
+                                    color: colorScheme.primary.withValues(
+                                      alpha: 0.3,
+                                    ),
                                     blurRadius: 30,
                                     spreadRadius: 5,
                                     offset: const Offset(0, 10),
@@ -254,7 +261,8 @@ class _OnboardingCompletePageState extends State<OnboardingCompletePage>
                     }
 
                     debugPrint(
-                        '🔍 [COMPLETE] isBackupConfigured: $isBackupConfigured');
+                      '🔍 [COMPLETE] isBackupConfigured: $isBackupConfigured',
+                    );
 
                     return AnimatedBuilder(
                       animation: _fadeAnimation,
@@ -264,7 +272,9 @@ class _OnboardingCompletePageState extends State<OnboardingCompletePage>
                           child: Opacity(
                             opacity: _fadeAnimation.value,
                             child: _buildSetupSummaryCard(
-                                context, isBackupConfigured),
+                              context,
+                              isBackupConfigured,
+                            ),
                           ),
                         );
                       },
@@ -295,8 +305,9 @@ class _OnboardingCompletePageState extends State<OnboardingCompletePage>
                               borderRadius: BorderRadius.circular(16),
                               boxShadow: [
                                 BoxShadow(
-                                  color: colorScheme.primary
-                                      .withValues(alpha: 0.3),
+                                  color: colorScheme.primary.withValues(
+                                    alpha: 0.3,
+                                  ),
                                   blurRadius: 20,
                                   offset: const Offset(0, 8),
                                 ),
@@ -304,15 +315,16 @@ class _OnboardingCompletePageState extends State<OnboardingCompletePage>
                             ),
                             child: ElevatedButton(
                               onPressed: () {
-                                context
-                                    .read<OnboardingBloc>()
-                                    .add(const CompleteOnboarding());
+                                context.read<OnboardingBloc>().add(
+                                      const CompleteOnboarding(),
+                                    );
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.transparent,
                                 shadowColor: Colors.transparent,
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 18),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 18,
+                                ),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(16),
                                 ),

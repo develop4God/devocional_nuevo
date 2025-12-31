@@ -44,7 +44,7 @@ void main() {
       // Build combined exclusion list
       final combinedIds = [
         ...exactResults.map((r) => r['rowid']),
-        ...startsWithResults.map((r) => r['rowid'])
+        ...startsWithResults.map((r) => r['rowid']),
       ];
       final combinedIdsStr = combinedIds.isEmpty ? '-1' : combinedIds.join(',');
 
@@ -59,7 +59,7 @@ void main() {
       // Build combined exclusion list
       final combinedIds = [
         ...exactResults.map((r) => r['rowid']),
-        ...startsWithResults.map((r) => r['rowid'])
+        ...startsWithResults.map((r) => r['rowid']),
       ];
       final combinedIdsStr = combinedIds.isEmpty ? '-1' : combinedIds.join(',');
 
