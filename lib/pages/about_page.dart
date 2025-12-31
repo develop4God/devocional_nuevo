@@ -3,12 +3,13 @@ import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/widgets/app_bar_constants.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class AboutPage extends StatefulWidget {
   const AboutPage({super.key});
@@ -55,6 +56,7 @@ class _AboutPageState extends State<AboutPage> {
 
   void _onIconTapped() async {
     if (_developerMode) return;
+    if (!kDebugMode) return; // Solo permitir en debug
     _iconTapCount++;
     if (_iconTapCount >= _tapThreshold) {
       await _setDeveloperMode(true);
