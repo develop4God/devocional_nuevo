@@ -13,7 +13,7 @@ class MockPathProviderPlatform extends PathProviderPlatform {
   Future<String?> getApplicationDocumentsPath() async {
     return '/mock_documents';
   }
-  
+
   @override
   Future<String?> getTemporaryPath() async {
     return '/mock_temp';
@@ -31,13 +31,14 @@ void main() {
 
   setUpAll(() async {
     TestWidgetsFlutterBinding.ensureInitialized();
-    
+
     // Mock Firebase Core
     const MethodChannel firebaseCoreChannel = MethodChannel(
       'plugins.flutter.io/firebase_core',
     );
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(firebaseCoreChannel, (MethodCall methodCall) async {
+        .setMockMethodCallHandler(firebaseCoreChannel,
+            (MethodCall methodCall) async {
       switch (methodCall.method) {
         case 'Firebase#initializeCore':
           return [
@@ -67,13 +68,14 @@ void main() {
           return null;
       }
     });
-    
+
     // Mock Firebase Crashlytics
     const MethodChannel crashlyticsChannel = MethodChannel(
       'plugins.flutter.io/firebase_crashlytics',
     );
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(crashlyticsChannel, (MethodCall methodCall) async {
+        .setMockMethodCallHandler(crashlyticsChannel,
+            (MethodCall methodCall) async {
       switch (methodCall.method) {
         case 'Crashlytics#checkForUnsentReports':
           return false;
@@ -89,14 +91,14 @@ void main() {
           return null;
       }
     });
-    
+
     // Initialize Firebase after setting up mocks
     try {
       await Firebase.initializeApp();
     } catch (e) {
       // Firebase may already be initialized
     }
-    
+
     final mockPathProvider = MockPathProviderPlatform();
     PathProviderPlatform.instance = mockPathProvider;
 
