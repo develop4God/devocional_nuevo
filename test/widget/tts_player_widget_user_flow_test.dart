@@ -363,11 +363,11 @@ void main() {
         await controller.play();
 
         // THEN: Speech rate is converted and applied
-        // 0.8 settings-scale doesn't match any predefined mappings and falls to
-        // default 1.0 mini-rate, which maps to 0.5 settings-scale for the engine
+        // 0.8 settings-scale is closest to 0.75 which maps to mini-rate 1.5
+        // which then maps back to 0.75 settings-scale for the engine
         expect(
           mockTts.lastSpeechRate,
-          equals(0.5),
+          equals(0.75),
         ); // Engine gets normalized settings-scale value
       });
     });
