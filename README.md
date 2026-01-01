@@ -116,7 +116,7 @@ dart fix --apply
 test/
 ├── behavioral/              # Real user behavior tests
 ├── critical_coverage/       # Critical path coverage tests
-├── integration/             # Integration tests
+├── integration/             # Integration tests (classic)
 ├── widget/                  # Widget tests  
 ├── services/               # Service tests
 └── unit/                    # Unit tests organized by feature
@@ -128,7 +128,19 @@ test/
     ├── utils/               # Utility tests
     ├── widgets/             # Widget unit tests
     └── features/            # Feature-specific tests
+
+patrol_test/                 # 🆕 Patrol framework tests (native automation)
+├── devotional_reading_workflow_test.dart  # ✅ 13 tests
+├── tts_audio_test.dart                    # ⚠️ 6/10 tests
+├── offline_mode_test.dart                 # 🔧 In progress
+└── README.md                              # Patrol documentation
 ```
+
+**🆕 Patrol Integration Tests:**
+- Modern testing framework with native automation
+- Supports permissions, notifications, back button
+- Cleaner syntax with `$` shorthand  
+- See [`patrol_test/README.md`](./patrol_test/README.md) for details
 
 **Coverage Highlights:**
 - ✅ Core devotional reading logic
@@ -269,7 +281,7 @@ dart fix --apply
 test/
 ├── behavioral/              # Tests de comportamiento real de usuario
 ├── critical_coverage/       # Tests de cobertura de rutas críticas
-├── integration/             # Tests de integración
+├── integration/             # Tests de integración (clásicos)
 ├── widget/                  # Tests de widgets
 ├── services/               # Tests de servicios
 └── unit/                    # Tests unitarios organizados por feature
@@ -281,7 +293,19 @@ test/
     ├── utils/               # Tests de utilidades
     ├── widgets/             # Tests unitarios de widgets
     └── features/            # Tests específicos de features
+
+patrol_test/                 # 🆕 Tests con framework Patrol (automatización nativa)
+├── devotional_reading_workflow_test.dart  # ✅ 13 tests
+├── tts_audio_test.dart                    # ⚠️ 6/10 tests
+├── offline_mode_test.dart                 # 🔧 En progreso
+└── README.md                              # Documentación de Patrol
 ```
+
+**🆕 Tests de Integración con Patrol:**
+- Framework moderno con automatización nativa
+- Soporta permisos, notificaciones, botón atrás
+- Sintaxis más limpia con atajo `$`
+- Ver [`patrol_test/README.md`](./patrol_test/README.md) para detalles
 
 **Aspectos Destacados de Cobertura:**
 - ✅ Lógica central de lectura devocional
