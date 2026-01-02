@@ -1,3 +1,5 @@
+// ignore_for_file: invalid_use_of_visible_for_testing_member
+
 import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
@@ -13,7 +15,7 @@ import '../test/helpers/test_helpers.dart';
 
 /// Integration tests for Offline Mode functionality (Patrol migration in progress)
 /// Tests drawer offline download feature and user interactions
-/// 
+///
 /// MIGRATION NOTES:
 /// - Migrated from integration_test/drawer_offline_integration_test.dart to patrol_test/
 /// - Currently using standard testWidgets/WidgetTester

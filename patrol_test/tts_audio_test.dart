@@ -1,15 +1,15 @@
+// ignore_for_file: invalid_use_of_visible_for_testing_member
+
 import 'package:devocional_nuevo/controllers/tts_audio_controller.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
-import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_tts/flutter_tts.dart';
-import 'package:patrol/patrol.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Patrol-based integration tests for complete TTS user workflows
 /// Covers: devotional reading, audio playback, speed adjustments, progress tracking
-/// 
+///
 /// MIGRATION NOTES:
 /// - Migrated from integration_test/tts_complete_user_flow_test.dart
 /// - Replaced flutter_test with patrol
@@ -18,11 +18,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// - Could add native permission requests for audio in future ($.native.grantPermissionWhenInUse())
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
-  
+
   group('TTS Complete User Flow - Integration Tests', () {
     late FlutterTts mockTts;
     late TtsAudioController controller;
-    late VoiceSettingsService voiceSettings;
 
     setUp(() {
       SharedPreferences.setMockInitialValues({});
@@ -63,7 +62,6 @@ void main() {
 
       mockTts = FlutterTts();
       controller = TtsAudioController(flutterTts: mockTts);
-      voiceSettings = VoiceSettingsService();
     });
 
     tearDown(() {
@@ -271,8 +269,7 @@ void main() {
     });
 
     group('Scenario 4: Multi-Devotional Session', () {
-      test('User listens to multiple devotionals in one session',
-          () async {
+      test('User listens to multiple devotionals in one session', () async {
         // GIVEN: User finishes first devotional
         controller.setText('Primera reflexión del día.');
         await controller.play();

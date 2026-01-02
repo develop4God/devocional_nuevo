@@ -1,13 +1,14 @@
+// ignore_for_file: invalid_use_of_visible_for_testing_member
+
 import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:patrol/patrol.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../test/helpers/test_helpers.dart';
 
 /// Patrol-based integration tests for Devotional Reading workflow
 /// Tests real user behavior: reading devotionals, tracking progress, streaks
-/// 
+///
 /// MIGRATION NOTES:
 /// - Migrated from integration_test/devotional_reading_workflow_test.dart
 /// - Using regular test() since these are service-level tests without UI
@@ -68,8 +69,7 @@ void main() {
       expect(stats.readDevocionalIds, contains('dev_2025_01_17'));
     });
 
-    test('User re-reads same devotional - should not double count',
-        () async {
+    test('User re-reads same devotional - should not double count', () async {
       // Scenario: User likes a devotional and re-reads it
 
       // First read
@@ -100,8 +100,7 @@ void main() {
       expect(stats.readDevocionalIds.length, equals(1));
     });
 
-    test('User skims devotional (quick scroll) - should not count',
-        () async {
+    test('User skims devotional (quick scroll) - should not count', () async {
       // Scenario: User quickly scrolls through without really reading
 
       await statsService.recordDevocionalRead(
@@ -119,8 +118,7 @@ void main() {
       expect(stats.readDevocionalIds, isEmpty);
     });
 
-    test('User reads but does not scroll much - should not count',
-        () async {
+    test('User reads but does not scroll much - should not count', () async {
       // Scenario: User starts reading but gets distracted
 
       await statsService.recordDevocionalRead(
@@ -333,8 +331,7 @@ void main() {
       );
     });
 
-    test('User quickly switches between devotionals (navigation)',
-        () async {
+    test('User quickly switches between devotionals (navigation)', () async {
       // User browses through several devotionals quickly
 
       // Open first devotional but switch away quickly
