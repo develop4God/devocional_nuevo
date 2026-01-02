@@ -436,8 +436,7 @@ class DevocionalProvider with ChangeNotifier {
       }
 
       // If we loaded all years from local storage, use that
-      if (loadedLocalYears.length == yearsToLoad.length &&
-          allDevocionales.isNotEmpty) {
+      if (loadedLocalYears.length == yearsToLoad.length) {
         _isOfflineMode = true;
         allDevocionales.sort((a, b) => a.date.compareTo(b.date));
         _allDevocionalesForCurrentLanguage = allDevocionales;
