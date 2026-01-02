@@ -153,15 +153,21 @@ void main() {
       expect(unread.any((d) => d.id == 'dev_2026_01_01'), false);
     });
 
-    test('Years 2025 and 2026 are loaded consecutively', () {
-      // This test verifies the logic of loading multiple years
-      final yearsToLoad = [2025, 2026];
+    test('Years are loaded dynamically (current and previous year)', () {
+      // This test verifies the logic of loading multiple years dynamically
+      final currentYear = DateTime.now().year;
+      final yearsToLoad = [currentYear - 1, currentYear];
 
       expect(yearsToLoad.length, 2);
-      expect(yearsToLoad.contains(2025), true);
-      expect(yearsToLoad.contains(2026), true);
-      expect(yearsToLoad[0], 2025, reason: '2025 should be loaded first');
-      expect(yearsToLoad[1], 2026, reason: '2026 should be loaded second');
+      expect(yearsToLoad[0], currentYear - 1,
+          reason: 'Previous year should be loaded first');
+      expect(yearsToLoad[1], currentYear,
+          reason: 'Current year should be loaded second');
+
+      // In 2026, this would be [2025, 2026]
+      if (currentYear == 2026) {
+        expect(yearsToLoad, [2025, 2026]);
+      }
     });
   });
 }

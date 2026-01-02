@@ -408,10 +408,13 @@ class DevocionalProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      // Load devotionals from both 2025 and 2026 to ensure continuity
-      final List<int> yearsToLoad = [2025, 2026];
+      // Load devotionals from current year and previous year to ensure continuity
+      // This allows users to access all available devotionals regardless of the current date
+      final int currentYear = DateTime.now().year;
+      final List<int> yearsToLoad = [currentYear - 1, currentYear];
       final List<Devocional> allDevocionales = [];
-      bool loadedFromLocal = false;
+      final Set<int> loadedLocalYears = {};
+      final Set<int> loadedApiYears = {};
 
       // Try loading from local storage first for both years
       for (final year in yearsToLoad) {
@@ -423,15 +426,18 @@ class DevocionalProvider with ChangeNotifier {
 
         if (localData != null) {
           debugPrint('Loading from local storage for year $year');
-          loadedFromLocal = true;
           final List<Devocional> yearDevocionales =
               await _extractDevocionalesFromData(localData);
-          allDevocionales.addAll(yearDevocionales);
+          if (yearDevocionales.isNotEmpty) {
+            loadedLocalYears.add(year);
+            allDevocionales.addAll(yearDevocionales);
+          }
         }
       }
 
       // If we loaded all years from local storage, use that
-      if (loadedFromLocal && allDevocionales.isNotEmpty) {
+      if (loadedLocalYears.length == yearsToLoad.length &&
+          allDevocionales.isNotEmpty) {
         _isOfflineMode = true;
         allDevocionales.sort((a, b) => a.date.compareTo(b.date));
         _allDevocionalesForCurrentLanguage = allDevocionales;
@@ -440,8 +446,13 @@ class DevocionalProvider with ChangeNotifier {
         return;
       }
 
-      // Otherwise, load from API for each year
+      // Otherwise, load missing years from API
       for (final year in yearsToLoad) {
+        // Skip years already loaded from local storage
+        if (loadedLocalYears.contains(year)) {
+          continue;
+        }
+
         try {
           debugPrint(
             'Loading from API for year $year, language: $_selectedLanguage, version: $_selectedVersion',
@@ -459,7 +470,10 @@ class DevocionalProvider with ChangeNotifier {
             final Map<String, dynamic> data = json.decode(responseBody);
             final List<Devocional> yearDevocionales =
                 await _extractDevocionalesFromData(data);
-            allDevocionales.addAll(yearDevocionales);
+            if (yearDevocionales.isNotEmpty) {
+              loadedApiYears.add(year);
+              allDevocionales.addAll(yearDevocionales);
+            }
           } else {
             debugPrint(
               '⚠️ Failed to load year $year from API: ${response.statusCode}',
@@ -480,6 +494,12 @@ class DevocionalProvider with ChangeNotifier {
       _allDevocionalesForCurrentLanguage = allDevocionales;
       _errorMessage = null;
       _filterDevocionalesByVersion();
+
+      // Log which years were successfully loaded
+      final loadedYears = {...loadedLocalYears, ...loadedApiYears};
+      debugPrint(
+        '✅ Successfully loaded devotionals from years: ${loadedYears.toList()}',
+      );
     } catch (e) {
       _errorMessage = 'Error al cargar los devocionales: $e';
       _allDevocionalesForCurrentLanguage = [];
@@ -863,8 +883,9 @@ class DevocionalProvider with ChangeNotifier {
   }
 
   Future<bool> downloadCurrentYearDevocionales() async {
-    // Download both 2025 and 2026 to ensure continuity
-    final List<int> yearsToDownload = [2025, 2026];
+    // Download current year and previous year to ensure continuity
+    final int currentYear = DateTime.now().year;
+    final List<int> yearsToDownload = [currentYear - 1, currentYear];
     bool allSuccess = true;
 
     for (final year in yearsToDownload) {
