@@ -380,6 +380,17 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     );
   }
 
+  // Helper para prefijos de capítulo y versículo según idioma
+  String getChapterPrefix(String? lang) {
+    if (lang == 'ja' || lang == 'zh') return '章'; // japonés o chino
+    return 'C.';
+  }
+
+  String getVersePrefix(String? lang) {
+    if (lang == 'ja' || lang == 'zh') return '节'; // japonés o chino
+    return 'V.';
+  }
+
   @override
   Widget build(BuildContext context) {
     final themeState = context.watch<ThemeBloc>().state as ThemeLoaded;
@@ -619,7 +630,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                                   color: colorScheme.primary,
                                 ),
                                 label: Text(
-                                  'C. ${state.selectedChapter ?? 1}',
+                                  '${getChapterPrefix(state.selectedVersion?.languageCode)} ${state.selectedChapter ?? 1}',
                                   style: const TextStyle(fontSize: 14),
                                 ),
                                 style: OutlinedButton.styleFrom(
@@ -638,7 +649,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                                   size: 18,
                                 ),
                                 label: Text(
-                                  'V. ${state.selectedVerse ?? 1}',
+                                  '${getVersePrefix(state.selectedVersion?.languageCode)} ${state.selectedVerse ?? 1}',
                                   style: const TextStyle(fontSize: 14),
                                 ),
                                 style: OutlinedButton.styleFrom(
