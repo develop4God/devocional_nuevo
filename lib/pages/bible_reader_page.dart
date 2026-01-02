@@ -17,9 +17,9 @@ import 'package:devocional_nuevo/widgets/floating_font_control_buttons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:lottie/lottie.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:share_plus/share_plus.dart' show ShareParams, SharePlus;
-import 'package:lottie/lottie.dart';
 
 /// Pure UI presentation layer for Bible Reader
 /// All business logic is handled by BibleReaderController
@@ -380,6 +380,17 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
     );
   }
 
+  // Helper para prefijos de capítulo y versículo según idioma
+  String getChapterPrefix(String? lang) {
+    if (lang == 'ja' || lang == 'zh') return '章'; // japonés o chino
+    return 'C.';
+  }
+
+  String getVersePrefix(String? lang) {
+    if (lang == 'ja' || lang == 'zh') return '节'; // japonés o chino
+    return 'V.';
+  }
+
   @override
   Widget build(BuildContext context) {
     final themeState = context.watch<ThemeBloc>().state as ThemeLoaded;
@@ -619,7 +630,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                                   color: colorScheme.primary,
                                 ),
                                 label: Text(
-                                  'C. ${state.selectedChapter ?? 1}',
+                                  '${getChapterPrefix(state.selectedVersion?.languageCode)} ${state.selectedChapter ?? 1}',
                                   style: const TextStyle(fontSize: 14),
                                 ),
                                 style: OutlinedButton.styleFrom(
@@ -638,7 +649,7 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                                   size: 18,
                                 ),
                                 label: Text(
-                                  'V. ${state.selectedVerse ?? 1}',
+                                  '${getVersePrefix(state.selectedVersion?.languageCode)} ${state.selectedVerse ?? 1}',
                                   style: const TextStyle(fontSize: 14),
                                 ),
                                 style: OutlinedButton.styleFrom(
@@ -850,49 +861,56 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                                 _scrollToTop();
                               },
                             ),
-                            // Button sizes to its content; avoid IntrinsicWidth to prevent intrinsic-measurement errors
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8.0,
-                              ),
-                              child: ElevatedButton(
-                                onPressed: _showBookSelector,
-                                style: ElevatedButton.styleFrom(
-                                  // allow the button to shrink to fit content
-                                  minimumSize: const Size(0, 0),
-                                  backgroundColor: colorScheme.primaryContainer,
-                                  foregroundColor:
-                                      colorScheme.onPrimaryContainer,
-                                  elevation: 2,
-                                  shadowColor: colorScheme.primary.withValues(
-                                    alpha: 0.3,
-                                  ),
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 10.0,
-                                    horizontal: 16.0,
-                                  ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(30),
-                                  ),
-                                ),
-                                child: AutoSizeText(
-                                  state.selectedBookName != null
-                                      ? '${state.books.firstWhere((b) => b['short_name'] == state.selectedBookName, orElse: () => {
-                                            'long_name': state.selectedBookName
-                                          })['long_name']} ${state.selectedChapter}'
-                                      : '',
-                                  textAlign: TextAlign.center,
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .titleSmall
-                                      ?.copyWith(
-                                        fontWeight: FontWeight.w600,
-                                        color: colorScheme.onPrimaryContainer,
+                            // Botón de capítulo expandido para tablets y pantallas grandes
+                            Expanded(
+                              child: Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 8.0),
+                                child: SizedBox(
+                                  height: 44,
+                                  child: ElevatedButton(
+                                    onPressed: _showBookSelector,
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor:
+                                          colorScheme.primaryContainer,
+                                      foregroundColor:
+                                          colorScheme.onPrimaryContainer,
+                                      elevation: 2,
+                                      shadowColor: colorScheme.primary
+                                          .withValues(alpha: 0.3),
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 10.0,
+                                        horizontal: 16.0,
                                       ),
-                                  maxLines: 1,
-                                  minFontSize: 11,
-                                  maxFontSize: 15,
-                                  overflow: TextOverflow.ellipsis,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(30),
+                                      ),
+                                    ),
+                                    child: FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      child: AutoSizeText(
+                                        state.selectedBookName != null
+                                            ? '${state.books.firstWhere((b) => b['short_name'] == state.selectedBookName, orElse: () => {
+                                                  'long_name':
+                                                      state.selectedBookName
+                                                })['long_name']} ${state.selectedChapter}'
+                                            : '',
+                                        textAlign: TextAlign.center,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .titleSmall
+                                            ?.copyWith(
+                                              fontWeight: FontWeight.w600,
+                                              color: colorScheme
+                                                  .onPrimaryContainer,
+                                            ),
+                                        maxLines: 1,
+                                        minFontSize: 11,
+                                        maxFontSize: 15,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ),
                                 ),
                               ),
                             ),

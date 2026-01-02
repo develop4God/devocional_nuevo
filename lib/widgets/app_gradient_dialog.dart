@@ -76,7 +76,10 @@ class AppGradientDialog extends StatelessWidget {
                   ],
                 ),
                 padding: padding,
-                child: SingleChildScrollView(child: child),
+                child: Material(
+                  type: MaterialType.transparency,
+                  child: SingleChildScrollView(child: child),
+                ),
               ),
             ),
           ),
