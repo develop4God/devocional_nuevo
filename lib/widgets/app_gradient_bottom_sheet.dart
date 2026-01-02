@@ -20,6 +20,7 @@ class AppGradientBottomSheet extends StatelessWidget {
   final Color? borderColor;
   final double borderWidth;
   final bool useMaterial;
+  final double bottomSpacing;
 
   const AppGradientBottomSheet({
     super.key,
@@ -33,6 +34,7 @@ class AppGradientBottomSheet extends StatelessWidget {
     this.borderColor,
     this.borderWidth = 2,
     this.useMaterial = true,
+    this.bottomSpacing = 12.0,
   });
 
   @override
@@ -52,6 +54,19 @@ class AppGradientBottomSheet extends StatelessWidget {
     if (useMaterial) {
       content = Material(type: MaterialType.transparency, child: content);
     }
+
+    // Garantizar separación respecto a la system navigation incluso en dispositivos
+    // con navegación por gestos donde viewPadding.bottom puede ser 0.
+    final double systemInset = MediaQuery.of(context).viewPadding.bottom;
+    const double fallbackWhenZero = 16.0; // espacio por defecto si no hay inset
+    final double extraWhenZero = systemInset == 0 ? fallbackWhenZero : 0;
+    final double effectiveBottom = systemInset + bottomSpacing + extraWhenZero;
+
+    // Incorporar el espacio inferior en el padding del container para que
+    // el gradiente se pinte hasta el final mientras el contenido queda
+    // separado del sistema (keyboard/nav).
+    final EdgeInsetsGeometry effectivePadding =
+        padding.add(EdgeInsets.only(bottom: effectiveBottom));
 
     return ConstrainedBox(
       constraints: BoxConstraints(
@@ -76,12 +91,12 @@ class AppGradientBottomSheet extends StatelessWidget {
           boxShadow: [
             BoxShadow(
               color: colorScheme.primary.withAlpha(80),
-              blurRadius: 18,
+              blurRadius: 9,
               offset: const Offset(0, 8),
             ),
           ],
         ),
-        padding: padding,
+        padding: effectivePadding,
         child: content,
       ),
     );

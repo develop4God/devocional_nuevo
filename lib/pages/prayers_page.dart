@@ -11,10 +11,11 @@ import 'package:devocional_nuevo/models/prayer_model.dart';
 import 'package:devocional_nuevo/models/thanksgiving_model.dart';
 import 'package:devocional_nuevo/widgets/add_prayer_modal.dart';
 import 'package:devocional_nuevo/widgets/add_thanksgiving_modal.dart';
-import 'package:devocional_nuevo/widgets/answer_prayer_modal.dart';
-import 'package:devocional_nuevo/widgets/edit_answered_comment_modal.dart';
-import 'package:devocional_nuevo/widgets/app_bar_constants.dart';
 import 'package:devocional_nuevo/widgets/animated_fab_with_text.dart';
+import 'package:devocional_nuevo/widgets/answer_prayer_modal.dart';
+import 'package:devocional_nuevo/widgets/app_bar_constants.dart';
+import 'package:devocional_nuevo/widgets/app_gradient_bottom_sheet.dart';
+import 'package:devocional_nuevo/widgets/edit_answered_comment_modal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -344,9 +345,12 @@ class _PrayersPageState extends State<PrayersPage>
         floatingActionButton: AnimatedFabWithText(
           onPressed: _showAddPrayerOrThanksgivingChoice,
           text: 'prayer.add_prayer_thanksgiving_hint'.tr(),
-          fabColor: colorScheme.primary, // Color del círculo con el +
-          backgroundColor: colorScheme.secondary, // Color del fondo del texto
-          textColor: colorScheme.onPrimaryContainer, //Color del texto
+          fabColor: colorScheme.primary,
+          // Color del círculo con el +
+          backgroundColor: colorScheme.secondary,
+          // Color del fondo del texto
+          textColor: colorScheme.onPrimaryContainer,
+          //Color del texto
           iconColor: colorScheme.onPrimary, // Color del icono +
         ),
       ),
@@ -788,12 +792,16 @@ class _PrayersPageState extends State<PrayersPage>
 
     showModalBottomSheet(
       context: context,
+      backgroundColor: Colors.transparent,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
+      isScrollControlled: true,
       builder: (BuildContext context) {
-        return Padding(
+        return AppGradientBottomSheet(
+          // mover el padding del caller al propio widget para ocupar el ancho disponible
           padding: const EdgeInsets.all(20.0),
+          borderRadius: 20,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
