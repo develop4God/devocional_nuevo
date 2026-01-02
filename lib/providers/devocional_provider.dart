@@ -863,17 +863,25 @@ class DevocionalProvider with ChangeNotifier {
   }
 
   Future<bool> downloadCurrentYearDevocionales() async {
-    final int currentYear = DateTime.now().year;
+    // Download both 2025 and 2026 to ensure continuity
+    final List<int> yearsToDownload = [2025, 2026];
+    bool allSuccess = true;
 
-    // Try current year first
-    bool success = await downloadAndStoreDevocionales(currentYear);
+    for (final year in yearsToDownload) {
+      bool success = await downloadAndStoreDevocionales(year);
 
-    // If current year fails, try fallback logic for missing versions
-    if (!success) {
-      success = await _tryVersionFallback(currentYear);
+      // If download fails, try fallback logic for missing versions
+      if (!success) {
+        success = await _tryVersionFallback(year);
+      }
+
+      if (!success) {
+        allSuccess = false;
+        debugPrint('⚠️ Failed to download devotionals for year $year');
+      }
     }
 
-    return success;
+    return allSuccess;
   }
 
   Future<bool> _tryVersionFallback(int year) async {
