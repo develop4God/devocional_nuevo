@@ -16,9 +16,10 @@ import 'package:devocional_nuevo/pages/prayers_page.dart';
 import 'package:devocional_nuevo/pages/progress_page.dart';
 import 'package:devocional_nuevo/pages/settings_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
-import 'package:devocional_nuevo/repositories/navigation_repository_impl.dart';
 import 'package:devocional_nuevo/repositories/devocional_repository_impl.dart';
+import 'package:devocional_nuevo/repositories/navigation_repository_impl.dart';
 import 'package:devocional_nuevo/services/devocionales_tracking.dart';
+import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/update_service.dart';
 import 'package:devocional_nuevo/utils/bubble_constants.dart';
 import 'package:devocional_nuevo/widgets/add_prayer_modal.dart';
@@ -34,7 +35,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_tts/flutter_tts.dart';
-
 import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart'; // Re-agregado para animación post-splash
 import 'package:provider/provider.dart';
@@ -42,14 +42,14 @@ import 'package:screenshot/screenshot.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:devocional_nuevo/services/service_locator.dart';
 import '../controllers/audio_controller.dart';
 import '../controllers/tts_audio_controller.dart';
 import '../services/analytics_service.dart';
 import '../services/spiritual_stats_service.dart';
 import '../services/tts/bible_text_formatter.dart';
-import '../widgets/voice_selector_dialog.dart';
 import '../widgets/animated_fab_with_text.dart';
+import '../widgets/app_gradient_bottom_sheet.dart';
+import '../widgets/voice_selector_dialog.dart';
 
 class DevocionalesPage extends StatefulWidget {
   final String? initialDevocionalId;
@@ -892,12 +892,15 @@ class _DevocionalesPageState extends State<DevocionalesPage>
 
     showModalBottomSheet(
       context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (BuildContext context) {
-        return Padding(
+        return AppGradientBottomSheet(
           padding: const EdgeInsets.all(20.0),
+          borderRadius: 20,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -1660,9 +1663,12 @@ class _DevocionalesPageState extends State<DevocionalesPage>
         floatingActionButton: AnimatedFabWithText(
           onPressed: _showAddPrayerOrThanksgivingChoice,
           text: 'prayer.add_prayer_thanksgiving_hint'.tr(),
-          fabColor: colorScheme.primary, // Color del círculo con el +
-          backgroundColor: colorScheme.secondary, // Color del fondo del texto
-          textColor: colorScheme.onPrimaryContainer, // Color del texto
+          fabColor: colorScheme.primary,
+          // Color del círculo con el +
+          backgroundColor: colorScheme.secondary,
+          // Color del fondo del texto
+          textColor: colorScheme.onPrimaryContainer,
+          // Color del texto
           iconColor: colorScheme.onPrimary, // Color del icono +
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
