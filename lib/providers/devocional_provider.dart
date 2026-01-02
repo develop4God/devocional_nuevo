@@ -6,6 +6,7 @@ import 'dart:developer' as developer;
 import 'dart:io';
 import 'dart:ui';
 
+import 'package:devocional_nuevo/constants/devocional_years.dart';
 import 'package:devocional_nuevo/controllers/audio_controller.dart'; // NEW
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
@@ -408,15 +409,14 @@ class DevocionalProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      // Load devotionals from current year and previous year to ensure continuity
-      // This allows users to access all available devotionals regardless of the current date
-      final int currentYear = DateTime.now().year;
-      final List<int> yearsToLoad = [currentYear - 1, currentYear];
+      // Load devotionals from all available years to ensure no data loss
+      // All historical years remain accessible
+      final List<int> yearsToLoad = DevocionalYears.availableYears;
       final List<Devocional> allDevocionales = [];
       final Set<int> loadedLocalYears = {};
       final Set<int> loadedApiYears = {};
 
-      // Try loading from local storage first for both years
+      // Try loading from local storage first for all years
       for (final year in yearsToLoad) {
         Map<String, dynamic>? localData = await _loadFromLocalStorage(
           year,
@@ -882,9 +882,9 @@ class DevocionalProvider with ChangeNotifier {
   }
 
   Future<bool> downloadCurrentYearDevocionales() async {
-    // Download current year and previous year to ensure continuity
-    final int currentYear = DateTime.now().year;
-    final List<int> yearsToDownload = [currentYear - 1, currentYear];
+    // Download all available years to ensure no data loss
+    // All historical years remain accessible
+    final List<int> yearsToDownload = DevocionalYears.availableYears;
     bool allSuccess = true;
 
     for (final year in yearsToDownload) {

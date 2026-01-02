@@ -1,5 +1,6 @@
 // patrol_test/multi_year_devotionals_patrol_test.dart
 
+import 'package:devocional_nuevo/constants/devocional_years.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -366,17 +367,14 @@ void main() {
 
       test('Integrity: Year calculation is dynamic and correct', () {
         final currentYear = DateTime.now().year;
-        final yearsToLoad = [currentYear - 1, currentYear];
+        final yearsToLoad = DevocionalYears.availableYears;
 
-        // Verify we're loading previous and current year
-        expect(yearsToLoad.length, 2);
-        expect(yearsToLoad[0], currentYear - 1);
-        expect(yearsToLoad[1], currentYear);
-
-        // For 2026, this should be [2025, 2026]
-        if (currentYear == 2026) {
-          expect(yearsToLoad, [2025, 2026]);
-        }
+        // Verify we're loading from constant list
+        expect(yearsToLoad.length, greaterThanOrEqualTo(2));
+        expect(yearsToLoad.contains(2025), true,
+            reason: '2025 should always be available');
+        expect(yearsToLoad.contains(2026), true,
+            reason: '2026 should always be available');
       });
     });
   });

@@ -1,5 +1,6 @@
 // test/multi_year_devotionals_test.dart
 
+import 'package:devocional_nuevo/constants/devocional_years.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -153,20 +154,21 @@ void main() {
       expect(unread.any((d) => d.id == 'dev_2026_01_01'), false);
     });
 
-    test('Years are loaded dynamically (current and previous year)', () {
-      // This test verifies the logic of loading multiple years dynamically
-      final currentYear = DateTime.now().year;
-      final yearsToLoad = [currentYear - 1, currentYear];
+    test('Years are loaded from constant list (no progressive data loss)', () {
+      // This test verifies the logic of loading years from constant list
+      final yearsToLoad = DevocionalYears.availableYears;
 
-      expect(yearsToLoad.length, 2);
-      expect(yearsToLoad[0], currentYear - 1,
-          reason: 'Previous year should be loaded first');
-      expect(yearsToLoad[1], currentYear,
-          reason: 'Current year should be loaded second');
+      expect(yearsToLoad.length, greaterThanOrEqualTo(2),
+          reason: 'At least 2025 and 2026 should be available');
+      expect(yearsToLoad.contains(2025), true,
+          reason: '2025 should always be available');
+      expect(yearsToLoad.contains(2026), true,
+          reason: '2026 should always be available');
 
-      // In 2026, this would be [2025, 2026]
-      if (currentYear == 2026) {
-        expect(yearsToLoad, [2025, 2026]);
+      // Verify years are in ascending order
+      for (int i = 0; i < yearsToLoad.length - 1; i++) {
+        expect(yearsToLoad[i] < yearsToLoad[i + 1], true,
+            reason: 'Years should be in ascending order');
       }
     });
   });
