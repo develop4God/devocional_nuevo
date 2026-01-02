@@ -875,26 +875,29 @@ class _BibleReaderPageState extends State<BibleReaderPage> {
                                         borderRadius: BorderRadius.circular(30),
                                       ),
                                     ),
-                                    child: AutoSizeText(
-                                      state.selectedBookName != null
-                                          ? '${state.books.firstWhere((b) => b['short_name'] == state.selectedBookName, orElse: () => {
-                                                'long_name':
-                                                    state.selectedBookName
-                                              })['long_name']} ${state.selectedChapter}'
-                                          : '',
-                                      textAlign: TextAlign.center,
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .titleSmall
-                                          ?.copyWith(
-                                            fontWeight: FontWeight.w600,
-                                            color:
-                                                colorScheme.onPrimaryContainer,
-                                          ),
-                                      maxLines: 1,
-                                      minFontSize: 11,
-                                      maxFontSize: 15,
-                                      overflow: TextOverflow.ellipsis,
+                                    child: FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      child: AutoSizeText(
+                                        state.selectedBookName != null
+                                            ? '${state.books.firstWhere((b) => b['short_name'] == state.selectedBookName, orElse: () => {
+                                                  'long_name':
+                                                      state.selectedBookName
+                                                })['long_name']} ${state.selectedChapter}'
+                                            : '',
+                                        textAlign: TextAlign.center,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .titleSmall
+                                            ?.copyWith(
+                                              fontWeight: FontWeight.w600,
+                                              color: colorScheme
+                                                  .onPrimaryContainer,
+                                            ),
+                                        maxLines: 1,
+                                        minFontSize: 11,
+                                        maxFontSize: 15,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
                                     ),
                                   ),
                                 ),
