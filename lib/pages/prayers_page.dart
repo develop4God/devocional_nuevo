@@ -14,7 +14,6 @@ import 'package:devocional_nuevo/widgets/add_thanksgiving_modal.dart';
 import 'package:devocional_nuevo/widgets/animated_fab_with_text.dart';
 import 'package:devocional_nuevo/widgets/answer_prayer_modal.dart';
 import 'package:devocional_nuevo/widgets/app_bar_constants.dart';
-import 'package:devocional_nuevo/widgets/app_gradient_bottom_sheet.dart';
 import 'package:devocional_nuevo/widgets/edit_answered_comment_modal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -792,16 +791,12 @@ class _PrayersPageState extends State<PrayersPage>
 
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.transparent,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      isScrollControlled: true,
       builder: (BuildContext context) {
-        return AppGradientBottomSheet(
-          // mover el padding del caller al propio widget para ocupar el ancho disponible
+        return Padding(
           padding: const EdgeInsets.all(20.0),
-          borderRadius: 20,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
