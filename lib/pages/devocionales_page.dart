@@ -49,7 +49,6 @@ import '../services/spiritual_stats_service.dart';
 import '../services/tts/bible_text_formatter.dart';
 import '../widgets/animated_fab_with_text.dart';
 import '../widgets/app_gradient_bottom_sheet.dart';
-import '../widgets/app_gradient_dialog.dart';
 import '../widgets/voice_selector_dialog.dart';
 
 class DevocionalesPage extends StatefulWidget {
@@ -705,86 +704,86 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       context: context,
       barrierDismissible: false,
       builder: (dialogContext) => StatefulBuilder(
-        builder: (context, setDialogState) => AppGradientDialog(
+        builder: (context, setDialogState) => AlertDialog(
           key: const Key('salvation_prayer_dialog'),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                "devotionals.salvation_prayer_title".tr(),
-                textAlign: TextAlign.center,
-                style: textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: colorScheme.onSurface,
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                "devotionals.salvation_prayer_intro".tr(),
-                textAlign: TextAlign.justify,
-                style: textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.onSurface,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                "devotionals.salvation_prayer".tr(),
-                textAlign: TextAlign.justify,
-                style: textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: colorScheme.onSurface,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                "devotionals.salvation_promise".tr(),
-                textAlign: TextAlign.justify,
-                style: textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.onSurface,
-                ),
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Checkbox(
-                    value: doNotShowAgainChecked,
-                    onChanged: (val) {
-                      setDialogState(() {
-                        doNotShowAgainChecked = val ?? false;
-                      });
-                    },
-                    activeColor: colorScheme.primary,
+          backgroundColor: colorScheme.surface,
+          title: Text(
+            "devotionals.salvation_prayer_title".tr(),
+            textAlign: TextAlign.center,
+            style: textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: colorScheme.onSurface,
+            ),
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  "devotionals.salvation_prayer_intro".tr(),
+                  textAlign: TextAlign.justify,
+                  style: textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurface,
                   ),
-                  Expanded(
-                    child: Text(
-                      'prayer.already_prayed'.tr(),
-                      style: textTheme.bodyMedium?.copyWith(
-                        color: colorScheme.onSurface,
-                      ),
+                ),
+                Text(
+                  "devotionals.salvation_prayer".tr(),
+                  textAlign: TextAlign.justify,
+                  style: textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: colorScheme.onSurface,
+                  ),
+                ),
+                Text(
+                  "devotionals.salvation_promise".tr(),
+                  textAlign: TextAlign.justify,
+                  style: textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurface,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            Row(
+              children: [
+                Checkbox(
+                  value: doNotShowAgainChecked,
+                  onChanged: (val) {
+                    setDialogState(() {
+                      doNotShowAgainChecked = val ?? false;
+                    });
+                  },
+                  activeColor: colorScheme.primary,
+                ),
+                Expanded(
+                  child: Text(
+                    'prayer.already_prayed'.tr(),
+                    style: textTheme.bodyMedium?.copyWith(
+                      color: colorScheme.onSurface,
                     ),
                   ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Align(
-                alignment: Alignment.center,
-                child: TextButton(
-                  key: const Key('salvation_prayer_continue_button'),
-                  onPressed: () {
-                    devocionalProvider.setInvitationDialogVisibility(
-                      !doNotShowAgainChecked,
-                    );
-                    Navigator.of(dialogContext).pop();
-                  },
-                  child: Text(
-                    "devotionals.continue".tr(),
-                    style: TextStyle(color: colorScheme.primary),
-                  ),
+                ),
+              ],
+            ),
+            Align(
+              alignment: Alignment.center,
+              child: TextButton(
+                key: const Key('salvation_prayer_continue_button'),
+                onPressed: () {
+                  devocionalProvider.setInvitationDialogVisibility(
+                    !doNotShowAgainChecked,
+                  );
+                  Navigator.of(dialogContext).pop();
+                },
+                child: Text(
+                  "devotionals.continue".tr(),
+                  style: TextStyle(color: colorScheme.primary),
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -1597,7 +1596,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                   );
                   await BubbleUtils.markAsShown(
                     BubbleUtils.getIconBubbleId(
-                      Icons.app_settings_alt_outlined,
+                      Icons.settings_suggest_sharp,
                       'new',
                     ),
                   );
@@ -1619,9 +1618,9 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                   );
                 },
                 icon: Icon(
-                  Icons.app_settings_alt_outlined,
+                  Icons.settings_suggest_sharp,
                   color: colorScheme.onPrimary,
-                  size: 30,
+                  size: 35,
                 ),
               ),
             ],
@@ -2180,9 +2179,9 @@ class _DevocionalesPageState extends State<DevocionalesPage>
         return ValueListenableBuilder<TtsPlayerState>(
           valueListenable: _ttsAudioController.state,
           builder: (context, state, _) {
-            // Auto-close modal when not playing/paused
-            if (state == TtsPlayerState.idle ||
-                state == TtsPlayerState.completed) {
+            // Auto-close modal when audio completes
+            // Don't close on idle to prevent closing during seek/speed change operations
+            if (state == TtsPlayerState.completed) {
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 if (Navigator.canPop(ctx)) {
                   Navigator.of(ctx).pop();
