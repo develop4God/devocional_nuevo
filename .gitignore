@@ -83,3 +83,6 @@ full_test.txt
 
 # Ignore Flutter generated plugin registrant (auto-generated, should not be versioned)
 android/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.java
+
+# Ignore Patrol generated test bundle (auto-generated, should not be versioned)
+patrol_test/test_bundle.dart
