@@ -43,7 +43,7 @@ jobs:
       - name: Accept Android Licenses
         run: yes | flutter doctor --android-licenses
 
-      - name: Start Android emulator and run Patrol tests
+      - name: Start Android emulator for Patrol tests
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 33
