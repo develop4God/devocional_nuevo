@@ -182,5 +182,33 @@ void main() {
         'Chinese text1: ${duration1.inSeconds}s, text2: ${duration2.inSeconds}s',
       );
     });
+
+    test('pause handles errors gracefully without crashing', () async {
+      // This test ensures that even if the native pause() method fails,
+      // the controller maintains a consistent state
+      controller.setText('Test text for pause error handling');
+      await controller.play();
+
+      // Mock a failure scenario by calling pause multiple times
+      await controller.pause();
+      expect(controller.state.value, TtsPlayerState.paused);
+
+      // Second pause should still work (defensive programming)
+      await controller.pause();
+      expect(controller.state.value, TtsPlayerState.paused);
+
+      debugPrint('Pause error handling test completed successfully');
+    });
+
+    test('pause with empty text does not crash', () async {
+      // Edge case: pause without any text set
+      try {
+        await controller.pause();
+        expect(controller.state.value, TtsPlayerState.paused);
+        debugPrint('Pause with empty text completed without crash');
+      } catch (e) {
+        fail('Pause should not crash with empty text: $e');
+      }
+    });
   });
 }

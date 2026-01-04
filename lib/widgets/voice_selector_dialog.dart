@@ -27,7 +27,7 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
   String? _selectedVoiceLocale;
   bool _isLoading = true;
   int? _playingIndex;
-  late String _translatedSampleText;
+  String? _translatedSampleText;
 
   late final VoiceSettingsService _voiceSettingsService =
       getService<VoiceSettingsService>();
@@ -325,18 +325,42 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
   }
 
   Future<void> _playSample(String name, String locale, int index) async {
+    // Defensive check: ensure widget is still mounted before setState
+    if (!mounted) {
+      debugPrint(
+        '[VoiceSelector] ⚠️ Widget not mounted, skipping _playSample',
+      );
+      return;
+    }
+
     setState(() {
       _playingIndex = index;
     });
-    await _voiceSettingsService.playVoiceSample(
-      name,
-      locale,
-      _translatedSampleText,
-    );
-    await Future.delayed(const Duration(seconds: 2));
-    setState(() {
-      _playingIndex = null;
-    });
+
+    try {
+      // Defensive check: ensure _translatedSampleText is not null
+      final sampleText = _translatedSampleText ?? widget.sampleText;
+      debugPrint(
+        '[VoiceSelector] 🔊 Playing sample: name=$name, locale=$locale, text length=${sampleText.length}',
+      );
+
+      await _voiceSettingsService.playVoiceSample(
+        name,
+        locale,
+        sampleText,
+      );
+      await Future.delayed(const Duration(seconds: 2));
+    } catch (e, stackTrace) {
+      debugPrint('[VoiceSelector] ❌ Error playing sample: $e');
+      debugPrint('[VoiceSelector] Stack trace: $stackTrace');
+    } finally {
+      // Defensive check: ensure widget is still mounted before final setState
+      if (mounted) {
+        setState(() {
+          _playingIndex = null;
+        });
+      }
+    }
   }
 
   @override

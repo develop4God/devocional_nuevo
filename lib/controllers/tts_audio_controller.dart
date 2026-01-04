@@ -241,22 +241,43 @@ class TtsAudioController {
       '⏸️ [TTS Controller] Posición actual antes de pausar: ${currentPosition.value.inSeconds}s',
     );
 
-    await flutterTts.pause();
-    state.value = TtsPlayerState.paused;
-    _pauseProgressTimer();
+    // Add validation logging for debugging StringIndexOutOfBoundsException
+    debugPrint(
+      '⏸️ [TTS Controller] _currentText length: ${_currentText?.length ?? 0}',
+    );
+    debugPrint(
+      '⏸️ [TTS Controller] _fullText length: ${_fullText?.length ?? 0}',
+    );
 
-    // CRITICAL: Fallback position capture for test environments or edge cases
-    if (currentPosition.value > _accumulatedPosition) {
-      _accumulatedPosition = currentPosition.value;
+    try {
+      await flutterTts.pause();
+      state.value = TtsPlayerState.paused;
+      _pauseProgressTimer();
+
+      // CRITICAL: Fallback position capture for test environments or edge cases
+      if (currentPosition.value > _accumulatedPosition) {
+        _accumulatedPosition = currentPosition.value;
+        debugPrint(
+          '⏸️ [TTS Controller] Capturada posición actual en pause: ${_accumulatedPosition.inSeconds}s',
+        );
+      }
+
+      debugPrint('⏸️ [TTS Controller] Estado final: ${state.value.toString()}');
       debugPrint(
-        '⏸️ [TTS Controller] Capturada posición actual en pause: ${_accumulatedPosition.inSeconds}s',
+        '⏸️ [TTS Controller] Posición acumulada guardada: ${_accumulatedPosition.inSeconds}s',
       );
+    } catch (e, stackTrace) {
+      debugPrint('❌ [TTS Controller] ERROR en pause(): $e');
+      debugPrint('❌ [TTS Controller] Stack trace: $stackTrace');
+      // Even if pause fails, update state to paused to maintain consistency
+      state.value = TtsPlayerState.paused;
+      _pauseProgressTimer();
+      // Capture position even on error
+      if (currentPosition.value > _accumulatedPosition) {
+        _accumulatedPosition = currentPosition.value;
+      }
     }
 
-    debugPrint('⏸️ [TTS Controller] Estado final: ${state.value.toString()}');
-    debugPrint(
-      '⏸️ [TTS Controller] Posición acumulada guardada: ${_accumulatedPosition.inSeconds}s',
-    );
     debugPrint('⏸️ [TTS Controller] ========== FIN PAUSE() ==========');
   }
 
