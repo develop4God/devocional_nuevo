@@ -11,10 +11,13 @@ import 'package:test_api/src/backend/invoker.dart';
 // START: GENERATED TEST IMPORTS
 import 'analytics_integration_test.dart' as analytics_integration_test;
 import 'app_test.dart' as app_test;
-import 'devotional_reading_workflow_test.dart' as devotional_reading_workflow_test;
-import 'drawer_offline_integration_test.dart' as drawer_offline_integration_test;
+import 'devotional_reading_workflow_test.dart'
+    as devotional_reading_workflow_test;
+import 'drawer_offline_integration_test.dart'
+    as drawer_offline_integration_test;
 import 'prayer_workflow_test.dart' as prayer_workflow_test;
-import 'system_navigation_bar_integration_test.dart' as system_navigation_bar_integration_test;
+import 'system_navigation_bar_integration_test.dart'
+    as system_navigation_bar_integration_test;
 import 'thanksgiving_integration_test.dart' as thanksgiving_integration_test;
 import 'tts_complete_user_flow_test.dart' as tts_complete_user_flow_test;
 import 'tts_di_integration_test.dart' as tts_di_integration_test;
@@ -71,7 +74,8 @@ Future<void> main() async {
     // Maybe somewhat counterintuitively, this callback runs *after* the calls
     // to group() below.
     final topLevelGroup = Invoker.current!.liveTest.groups.first;
-    final dartTestGroup = createDartTestGroup(topLevelGroup,
+    final dartTestGroup = createDartTestGroup(
+      topLevelGroup,
       tags: null,
       excludeTags: null,
     );
@@ -83,10 +87,13 @@ Future<void> main() async {
   // START: GENERATED TEST GROUPS
   group('analytics_integration_test', analytics_integration_test.main);
   group('app_test', app_test.main);
-  group('devotional_reading_workflow_test', devotional_reading_workflow_test.main);
-  group('drawer_offline_integration_test', drawer_offline_integration_test.main);
+  group('devotional_reading_workflow_test',
+      devotional_reading_workflow_test.main);
+  group(
+      'drawer_offline_integration_test', drawer_offline_integration_test.main);
   group('prayer_workflow_test', prayer_workflow_test.main);
-  group('system_navigation_bar_integration_test', system_navigation_bar_integration_test.main);
+  group('system_navigation_bar_integration_test',
+      system_navigation_bar_integration_test.main);
   group('thanksgiving_integration_test', thanksgiving_integration_test.main);
   group('tts_complete_user_flow_test', tts_complete_user_flow_test.main);
   group('tts_di_integration_test', tts_di_integration_test.main);
