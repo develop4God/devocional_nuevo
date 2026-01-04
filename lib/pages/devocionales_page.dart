@@ -1596,7 +1596,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                   );
                   await BubbleUtils.markAsShown(
                     BubbleUtils.getIconBubbleId(
-                      Icons.app_settings_alt_outlined,
+                      Icons.settings_suggest_sharp,
                       'new',
                     ),
                   );
@@ -1618,9 +1618,9 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                   );
                 },
                 icon: Icon(
-                  Icons.app_settings_alt_outlined,
+                  Icons.settings_suggest_sharp,
                   color: colorScheme.onPrimary,
-                  size: 30,
+                  size: 35,
                 ),
               ),
             ],
