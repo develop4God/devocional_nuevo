@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:clock/clock.dart';
 
+import 'package:clock/clock.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 import 'package:flutter/foundation.dart';
@@ -21,6 +21,9 @@ class TtsAudioController {
   /// Flag to prevent state changes from voice sample playback
   /// Set to true when playing voice samples in VoiceSelector dialog
   bool _isPlayingSample = false;
+
+  /// Flag to prevent modal close during seek operation
+  bool _isSeeking = false;
 
   // Progress notifiers for miniplayer
   final ValueNotifier<Duration> currentPosition = ValueNotifier(Duration.zero);
@@ -100,9 +103,21 @@ class TtsAudioController {
       _stopProgressTimer();
       currentPosition.value = totalDuration.value;
       state.value = TtsPlayerState.completed;
+      // CRITICAL FIX: Reset accumulated position to allow replay from beginning
+      _accumulatedPosition = Duration.zero;
+      debugPrint(
+        '🏁 [TTS Controller] Posición acumulada reseteada a 0 para permitir replay desde el inicio',
+      );
     });
     flutterTts.setCancelHandler(() {
       debugPrint('❌ [TTS Controller] CANCEL HANDLER - Audio cancelado');
+      // Don't change state to idle if we're in the middle of a seek operation
+      if (_isSeeking) {
+        debugPrint(
+          '⏭️ [TTS Controller] Seek en progreso, manteniendo estado actual',
+        );
+        return;
+      }
       _stopProgressTimer();
       state.value = TtsPlayerState.idle;
     });
@@ -318,6 +333,7 @@ class TtsAudioController {
     _stopProgressTimer();
     state.value = TtsPlayerState.completed;
     currentPosition.value = totalDuration.value;
+    _accumulatedPosition = Duration.zero;
     debugPrint('[TTS Controller] estado actual: ${state.value.toString()}');
   }
 
@@ -418,10 +434,14 @@ class TtsAudioController {
 
   // Seek within estimated duration
   void seek(Duration position) {
+    debugPrint(
+      '⏩ [TTS Controller] ========== SEEK LLAMADO: ${position.inSeconds}s ==========',
+    );
     if (position < Duration.zero) position = Duration.zero;
     // If we have a full duration (from setText), ensure bounds against full duration
     if (_fullDuration == Duration.zero) {
       // nothing to seek
+      debugPrint('⏩ [TTS Controller] No hay duración, abortando seek');
       return;
     }
 
@@ -452,6 +472,11 @@ class TtsAudioController {
 
     // If currently playing, restart TTS from the remaining text
     if (state.value == TtsPlayerState.playing) {
+      debugPrint(
+          '⏩ [TTS Controller] Estado es PLAYING, reiniciando desde nueva posición');
+      // Set seek flag to prevent cancel handler from changing state
+      _isSeeking = true;
+
       // flutter_tts doesn't have robust seek; stop and speak remaining text
       flutterTts.stop();
       // FIX: apply current speech rate from VoiceSettingsService (settings-scale, not mini)
@@ -460,9 +485,22 @@ class TtsAudioController {
       flutterTts.setSpeechRate(settingsRate);
       if (_currentText != null && _currentText!.isNotEmpty) {
         flutterTts.speak(_currentText!);
+        debugPrint(
+            '⏩ [TTS Controller] Reproducción reiniciada desde nueva posición');
       }
       // progress timer will sync from the start handler
+
+      // Reset seek flag after a short delay to ensure speak() has started
+      Future.delayed(const Duration(milliseconds: 100), () {
+        _isSeeking = false;
+        debugPrint('⏩ [TTS Controller] Flag de seek reseteada');
+      });
+    } else {
+      debugPrint(
+          '⏩ [TTS Controller] Estado no es PLAYING, solo actualizando posición');
     }
+
+    debugPrint('⏩ [TTS Controller] ========== FIN SEEK ==========');
   }
 
   // Cycle playback rate usando solo VoiceSettingsService
@@ -506,6 +544,9 @@ class TtsAudioController {
         debugPrint(
           '[TTS Controller] Reiniciando reproducción para aplicar nueva velocidad: mini=$next (settings=$newSettingsRate)',
         );
+        // Set flag to prevent cancel handler from changing state during speed change
+        _isSeeking = true;
+
         // Detener utterance actual
         await flutterTts.stop();
         // Asegurar que el motor use el nuevo settings-rate (aunque voiceService ya lo aplicó, lo reafirmamos)
@@ -523,6 +564,9 @@ class TtsAudioController {
           _playStartTime = clock.now();
           _startProgressTimer();
         }
+
+        // Reset flag after operation completes
+        _isSeeking = false;
       }
 
       debugPrint(

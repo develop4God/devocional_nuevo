@@ -275,6 +275,13 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
       debugPrint('[TTS Widget] ⏸️ Estado es PLAYING, llamando pause()');
       widget.audioController.pause();
     } else if (state != TtsPlayerState.loading) {
+      // Si el estado es completed, hacer stop primero para resetear completamente
+      if (state == TtsPlayerState.completed) {
+        debugPrint(
+          '[TTS Widget] 🔄 Estado es COMPLETED, llamando stop() antes de play() para resetear',
+        );
+        await widget.audioController.stop();
+      }
       debugPrint(
         '[TTS Widget] ▶️ Estado NO es playing ni loading, llamando play()',
       );

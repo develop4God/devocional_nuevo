@@ -2179,9 +2179,9 @@ class _DevocionalesPageState extends State<DevocionalesPage>
         return ValueListenableBuilder<TtsPlayerState>(
           valueListenable: _ttsAudioController.state,
           builder: (context, state, _) {
-            // Auto-close modal when not playing/paused
-            if (state == TtsPlayerState.idle ||
-                state == TtsPlayerState.completed) {
+            // Auto-close modal when audio completes
+            // Don't close on idle to prevent closing during seek/speed change operations
+            if (state == TtsPlayerState.completed) {
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 if (Navigator.canPop(ctx)) {
                   Navigator.of(ctx).pop();
