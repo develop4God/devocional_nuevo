@@ -211,4 +211,156 @@ void main() {
       }
     });
   });
+
+  group('TtsAudioController - Multibyte Edge Cases', () {
+    late TtsAudioController controller;
+    late FlutterTts mockFlutterTts;
+
+    setUp(() {
+      registerTestServices();
+      SharedPreferences.setMockInitialValues({});
+
+      // Mock the flutter_tts platform channel
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(const MethodChannel('flutter_tts'), (
+        call,
+      ) async {
+        switch (call.method) {
+          case 'speak':
+          case 'stop':
+          case 'pause':
+          case 'setLanguage':
+          case 'setSpeechRate':
+          case 'setVolume':
+          case 'setPitch':
+          case 'awaitSpeakCompletion':
+            return 1;
+          default:
+            return null;
+        }
+      });
+
+      mockFlutterTts = FlutterTts();
+      controller = TtsAudioController(flutterTts: mockFlutterTts);
+    });
+
+    tearDown(() {
+      controller.dispose();
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(const MethodChannel('flutter_tts'), null);
+    });
+
+    test('pause handles text with emojis without crash', () async {
+      controller.setText('Hello 😀🎉 World 🌍✨');
+      await controller.play();
+      await controller.pause();
+      // When multibyte ratio triggers workaround, state should be idle (from stop())
+      // Otherwise should be paused
+      expect(
+        [TtsPlayerState.paused, TtsPlayerState.idle],
+        contains(controller.state.value),
+      );
+      debugPrint('Emoji test completed: ${controller.state.value}');
+    });
+
+    test('pause handles Spanish accents (2-byte UTF-8)', () async {
+      final text =
+          'Jesús dijo: "Bienaventurados los mansos, porque ellos recibirán la tierra por heredad" ' *
+              3;
+      controller.setText(text);
+      await controller.play();
+      await controller.pause();
+      expect(
+        [TtsPlayerState.paused, TtsPlayerState.idle],
+        contains(controller.state.value),
+      );
+      debugPrint('Spanish accents test completed: ${controller.state.value}');
+    });
+
+    test('pause handles Chinese characters (3-byte UTF-8)', () async {
+      controller.setText('耶稣说："虚心的人有福了，因为天国是他们的。"');
+      await controller.play();
+      await controller.pause();
+      expect(
+        [TtsPlayerState.paused, TtsPlayerState.idle],
+        contains(controller.state.value),
+      );
+      debugPrint(
+          'Chinese characters test completed: ${controller.state.value}');
+    });
+
+    test('user flow: play→pause→resume with multibyte text', () async {
+      final text = 'Texto con ñ, á, é, í, ó, ú 😊' * 5;
+      controller.setText(text);
+
+      await controller.play();
+      expect(controller.state.value, TtsPlayerState.playing);
+
+      await controller.pause();
+      expect(
+        [TtsPlayerState.paused, TtsPlayerState.idle],
+        contains(controller.state.value),
+      );
+
+      // Resume using play()
+      await controller.play();
+      expect(controller.state.value, TtsPlayerState.playing);
+
+      debugPrint('User flow test completed successfully');
+    });
+
+    test('pause with 500+ char text and mixed encoding', () async {
+      final text = 'A' * 200 + '中文' * 50 + '🎉' * 20 + 'Español' * 10;
+      controller.setText(text);
+      await controller.play();
+      await controller.pause();
+      expect(
+        [TtsPlayerState.paused, TtsPlayerState.idle],
+        contains(controller.state.value),
+      );
+      debugPrint(
+        'Mixed encoding test completed: ${controller.state.value}, text length: ${text.length}',
+      );
+    });
+
+    test('multibyte detection activates for high ratio text', () async {
+      // Create text with high multibyte ratio (>1.5)
+      final text = '🎉' * 100; // Emojis are 4-byte UTF-8
+      controller.setText(text);
+      await controller.play();
+
+      // Capture logs to verify workaround activation
+      await controller.pause();
+
+      // When ratio > 1.5, stop() is called instead of pause()
+      // stop() sets state to idle
+      expect(controller.state.value, TtsPlayerState.idle);
+      debugPrint(
+          'Multibyte detection test: state is ${controller.state.value}');
+    });
+
+    test('multibyte detection does not activate for ASCII text', () async {
+      final text = 'A' * 100; // Pure ASCII, ratio = 1.0
+      controller.setText(text);
+      await controller.play();
+      await controller.pause();
+
+      // For ASCII text, normal pause() should be used
+      expect(controller.state.value, TtsPlayerState.paused);
+      debugPrint('ASCII text test: state is ${controller.state.value}');
+    });
+
+    test('short multibyte text (<50 chars) bypasses detection', () async {
+      final text = '😀🎉🌍✨'; // Only 4 emoji characters
+      controller.setText(text);
+      await controller.play();
+      await controller.pause();
+
+      // Short text (<50 chars) bypasses multibyte detection
+      expect(controller.state.value, TtsPlayerState.paused);
+      debugPrint(
+        'Short multibyte text test: state is ${controller.state.value}',
+      );
+    });
+  });
 }

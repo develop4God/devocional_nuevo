@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:clock/clock.dart';
 
 import 'package:devocional_nuevo/services/service_locator.dart';
@@ -248,6 +249,23 @@ class TtsAudioController {
     debugPrint(
       '⏸️ [TTS Controller] _fullText length: ${_fullText?.length ?? 0}',
     );
+
+    // Workaround: Detect multibyte characters that cause native crashes
+    if (_currentText != null && _currentText!.length > 50) {
+      final byteLength = utf8.encode(_currentText!).length;
+      final ratio = byteLength / _currentText!.length;
+
+      if (ratio > 1.5) {
+        debugPrint(
+          '⚠️ [TTS Controller] Multibyte ratio: $ratio (${_currentText!.length} chars → $byteLength bytes)',
+        );
+        debugPrint(
+          '⚠️ [TTS Controller] Using stop() instead of pause() to prevent native crash',
+        );
+        await stop();
+        return;
+      }
+    }
 
     try {
       await flutterTts.pause();
