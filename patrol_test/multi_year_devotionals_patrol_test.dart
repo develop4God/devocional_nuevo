@@ -1,3 +1,4 @@
+// ignore_for_file: invalid_use_of_visible_for_testing_member
 // patrol_test/multi_year_devotionals_patrol_test.dart
 
 import 'package:devocional_nuevo/constants/devocional_years.dart';
@@ -366,7 +367,6 @@ void main() {
       });
 
       test('Integrity: Year calculation is dynamic and correct', () {
-        final currentYear = DateTime.now().year;
         final yearsToLoad = DevocionalYears.availableYears;
 
         // Verify we're loading from constant list
