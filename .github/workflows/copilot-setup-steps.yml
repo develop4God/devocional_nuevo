@@ -40,20 +40,7 @@ jobs:
       - name: Install Flutter dependencies
         run: flutter pub get
 
-      - name: Accept Android Licenses
-        run: yes | flutter doctor --android-licenses
-
-      - name: Start Android emulator for Patrol tests
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: 33
-          target: google_apis
-          arch: x86_64
-          profile: pixel_4
-
       - name: Run flutter doctor
         run: flutter doctor -v
-
-
 
       # Hasta aquí: entorno completo, multiplataforma, sin ejecutar tests.
