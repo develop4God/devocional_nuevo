@@ -9,8 +9,10 @@ import 'package:patrol/src/platform/contracts/contracts.dart';
 import 'package:test_api/src/backend/invoker.dart';
 
 // START: GENERATED TEST IMPORTS
-import 'devotional_reading_workflow_test.dart' as devotional_reading_workflow_test;
-import 'multi_year_devotionals_patrol_test.dart' as multi_year_devotionals_patrol_test;
+import 'devotional_reading_workflow_test.dart'
+    as devotional_reading_workflow_test;
+import 'multi_year_devotionals_patrol_test.dart'
+    as multi_year_devotionals_patrol_test;
 import 'offline_mode_test.dart' as offline_mode_test;
 import 'tts_audio_test.dart' as tts_audio_test;
 // END: GENERATED TEST IMPORTS
@@ -75,8 +77,10 @@ Future<void> main() async {
   });
 
   // START: GENERATED TEST GROUPS
-  group('devotional_reading_workflow_test', devotional_reading_workflow_test.main);
-  group('multi_year_devotionals_patrol_test', multi_year_devotionals_patrol_test.main);
+  group('devotional_reading_workflow_test',
+      devotional_reading_workflow_test.main);
+  group('multi_year_devotionals_patrol_test',
+      multi_year_devotionals_patrol_test.main);
   group('offline_mode_test', offline_mode_test.main);
   group('tts_audio_test', tts_audio_test.main);
   // END: GENERATED TEST GROUPS
