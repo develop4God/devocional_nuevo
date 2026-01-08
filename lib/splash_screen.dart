@@ -4,7 +4,6 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/pages/devocionales_page.dart'; // CAMBIADO: Importar página principal
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -175,12 +174,13 @@ class _SplashScreenState extends State<SplashScreen>
                               child: AutoSizeText(
                                 'app.preparing'.tr(),
                                 textAlign: TextAlign.center,
-                                style: GoogleFonts.dancingScript(
+                                style: const TextStyle(
+                                  fontFamily: 'DancingScript',
                                   fontSize: 30,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.deepPurple,
                                   shadows: [
-                                    const Shadow(
+                                    Shadow(
                                       offset: Offset(2.0, 2.0),
                                       blurRadius: 5.0,
                                       color: Colors.black26,
@@ -214,18 +214,19 @@ class _SplashScreenState extends State<SplashScreen>
                     children: [
                       TextSpan(
                         text: 'Develop',
-                        style: GoogleFonts.poppins(
+                        style: const TextStyle(
+                          fontFamily: 'Poppins',
                           fontSize: 18,
                           fontWeight: FontWeight.w600,
                           color: Colors.black,
                           letterSpacing: 1,
                           shadows: [
-                            const Shadow(
+                            Shadow(
                               offset: Offset(2.0, 2.0),
                               blurRadius: 8.0,
                               color: Colors.black45,
                             ),
-                            const Shadow(
+                            Shadow(
                               offset: Offset(0, 0),
                               blurRadius: 15.0,
                               color: Colors.white24,
@@ -233,27 +234,26 @@ class _SplashScreenState extends State<SplashScreen>
                             Shadow(
                               offset: Offset(0, 0),
                               blurRadius: 8.0,
-                              color: Colors.white.withAlpha(
-                                200,
-                              ), // Sombra blanca más intensa
+                              color: Colors.white,
                             ),
                           ],
                         ),
                       ),
                       TextSpan(
                         text: '4',
-                        style: GoogleFonts.poppins(
+                        style: const TextStyle(
+                          fontFamily: 'Poppins',
                           fontSize: 18,
                           fontWeight: FontWeight.w600,
-                          color: const Color(0xFF32CD32),
+                          color: Color(0xFF32CD32),
                           letterSpacing: 1,
                           shadows: [
-                            const Shadow(
+                            Shadow(
                               offset: Offset(2.0, 2.0),
                               blurRadius: 8.0,
                               color: Colors.black45,
                             ),
-                            const Shadow(
+                            Shadow(
                               offset: Offset(0, 0),
                               blurRadius: 20.0,
                               color: Color(0xFF32CD32),
@@ -261,16 +261,12 @@ class _SplashScreenState extends State<SplashScreen>
                             Shadow(
                               offset: Offset(0, 0),
                               blurRadius: 4.0,
-                              color: Colors.white.withAlpha(
-                                128,
-                              ), // Sombra blanca suave
+                              color: Colors.white,
                             ),
                             Shadow(
                               offset: Offset(0, 0),
                               blurRadius: 7.0,
-                              color: Colors.black.withAlpha(
-                                100,
-                              ), // Sombra oscura sutil igual que en 'God'
+                              color: Colors.black,
                             ),
                           ],
                         ),
@@ -289,18 +285,19 @@ class _SplashScreenState extends State<SplashScreen>
                           ).createShader(bounds),
                           child: Text(
                             'God',
-                            style: GoogleFonts.poppins(
+                            style: const TextStyle(
+                              fontFamily: 'Poppins',
                               fontSize: 22,
                               fontWeight: FontWeight.w500,
                               color: Colors.white,
                               letterSpacing: 1.2,
                               shadows: [
-                                const Shadow(
+                                Shadow(
                                   offset: Offset(2.0, 2.0),
                                   blurRadius: 8.0,
                                   color: Colors.black45,
                                 ),
-                                const Shadow(
+                                Shadow(
                                   offset: Offset(0, 0),
                                   blurRadius: 15.0,
                                   color: Color(0xFFFFD700),
@@ -308,9 +305,7 @@ class _SplashScreenState extends State<SplashScreen>
                                 Shadow(
                                   offset: Offset(0, 0),
                                   blurRadius: 7.0,
-                                  color: Colors.black.withAlpha(
-                                    100,
-                                  ), // Sombra oscura más sutil
+                                  color: Colors.black,
                                 ),
                               ],
                             ),

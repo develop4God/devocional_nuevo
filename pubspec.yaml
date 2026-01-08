@@ -102,3 +102,17 @@ flutter:
     - assets/badges/
     - assets/lottie/
     - assets/biblia/
+    - assets/fonts/DancingScript-Bold.ttf
+    # Add Poppins font files here when available
+  fonts:
+    - family: DancingScript
+      fonts:
+        - asset: assets/fonts/DancingScript-Bold.ttf
+          weight: 700
+    # Uncomment and add Poppins font files when available
+    # - family: Poppins
+    #   fonts:
+    #     - asset: assets/fonts/Poppins-Regular.ttf
+    #       weight: 400
+    #     - asset: assets/fonts/Poppins-Bold.ttf
+    #       weight: 700
