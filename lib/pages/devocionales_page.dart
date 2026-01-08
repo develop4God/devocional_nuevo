@@ -199,13 +199,23 @@ class _DevocionalesPageState extends State<DevocionalesPage>
 
       // Initialize navigation with full devotionals list
       if (mounted && _navigationBloc != null && !_navigationBloc!.isClosed) {
-        _navigationBloc!.add(
-          InitializeNavigation(
-            initialIndex: initialIndex,
-            devocionales: devocionalProvider.devocionales,
-          ),
-        );
-        developer.log('Navigation BLoC initialized at index: $initialIndex');
+        try {
+          _navigationBloc!.add(
+            InitializeNavigation(
+              initialIndex: initialIndex,
+              devocionales: devocionalProvider.devocionales,
+            ),
+          );
+          developer.log('Navigation BLoC initialized at index: $initialIndex');
+        } catch (e, st) {
+          developer.log('Failed to initialize BLoC: $e');
+          try {
+            FirebaseCrashlytics.instance.recordError(e, st);
+          } catch (_) {
+            developer
+                .log('Failed to report initialization error to Crashlytics');
+          }
+        }
       } else {
         developer.log(
             'Navigation BLoC not initialized: widget not mounted or BLoC closed');
