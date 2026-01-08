@@ -33,6 +33,9 @@ class DevocionalesDrawer extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
+    // Capture the parent context (drawer) to use for operations outside the dialog
+    final parentContext = context;
+
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -40,8 +43,9 @@ class DevocionalesDrawer extends StatelessWidget {
         double progress = 0.0;
         bool downloading = false;
 
+        // Use explicit names for the StatefulBuilder builder params to avoid shadowing
         return StatefulBuilder(
-          builder: (context, setState) => AppGradientDialog(
+          builder: (sbContext, setState) => AppGradientDialog(
             maxWidth: 420,
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -107,48 +111,81 @@ class DevocionalesDrawer extends StatelessWidget {
                       const SizedBox(width: 8),
                       ElevatedButton(
                         onPressed: () async {
+                          // Set downloading state on the dialog UI
                           setState(() {
                             downloading = true;
                             progress = 0.0;
                           });
 
+                          // Use parentContext to obtain the provider from the outer tree
                           final devocionalProvider =
                               Provider.of<DevocionalProvider>(
-                            context,
+                            parentContext,
                             listen: false,
                           );
 
                           bool success = await devocionalProvider
                               .downloadDevocionalesWithProgress(
                             onProgress: (p) {
-                              setState(() {
-                                progress = p;
-                              });
+                              // Guard setState: only update dialog UI while it is still the current route
+                              final bool dialogIsCurrent =
+                                  ModalRoute.of(dialogContext)?.isCurrent ??
+                                      false;
+                              if (dialogIsCurrent) {
+                                try {
+                                  setState(() {
+                                    progress = p;
+                                  });
+                                } catch (_) {
+                                  // In case setState fails for any reason, swallow to avoid crash.
+                                }
+                              }
                             },
                           );
 
-                          if (context.mounted) {
+                          // After download finishes, close the dialog and optionally the drawer
+                          final bool dialogStillOpen =
+                              ModalRoute.of(dialogContext)?.isCurrent ?? false;
+
+                          if (dialogStillOpen) {
                             Future.delayed(
                               const Duration(milliseconds: 400),
                               () {
-                                if (context.mounted) {
-                                  Navigator.of(context).pop();
+                                final bool dialogStillOpenNow =
+                                    ModalRoute.of(dialogContext)?.isCurrent ??
+                                        false;
+                                if (dialogStillOpenNow) {
+                                  // Close the dialog
+                                  Navigator.of(dialogContext).pop();
+
+                                  // If success, also close the drawer (parent context)
                                   if (success) {
-                                    Navigator.of(context).pop();
+                                    try {
+                                      Navigator.of(parentContext).pop();
+                                    } catch (_) {
+                                      // Ignore: parent may have been removed
+                                    }
                                   }
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        success
-                                            ? 'drawer.download_success'.tr()
-                                            : 'drawer.download_error'.tr(),
+
+                                  // Show snackbar on the parent scaffold
+                                  try {
+                                    ScaffoldMessenger.of(parentContext)
+                                        .showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          success
+                                              ? 'drawer.download_success'.tr()
+                                              : 'drawer.download_error'.tr(),
+                                        ),
+                                        backgroundColor: success
+                                            ? colorScheme.primary
+                                            : colorScheme.error,
+                                        duration: const Duration(seconds: 4),
                                       ),
-                                      backgroundColor: success
-                                          ? colorScheme.primary
-                                          : colorScheme.error,
-                                      duration: const Duration(seconds: 4),
-                                    ),
-                                  );
+                                    );
+                                  } catch (_) {
+                                    // If parent context no longer has a ScaffoldMessenger, ignore.
+                                  }
                                 }
                               },
                             );

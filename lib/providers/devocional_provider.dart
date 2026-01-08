@@ -11,19 +11,19 @@ import 'package:devocional_nuevo/controllers/audio_controller.dart'; // NEW
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/providers/localization_provider.dart';
+import 'package:devocional_nuevo/services/analytics_service.dart';
 import 'package:devocional_nuevo/services/devocionales_tracking.dart';
 import 'package:devocional_nuevo/services/remote_config_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
 import 'package:devocional_nuevo/services/tts/i_tts_service.dart';
 import 'package:devocional_nuevo/utils/constants.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart' show Provider;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:devocional_nuevo/services/analytics_service.dart';
-import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 
 /// Simplified provider focused on data management only
 /// Audio functionality moved to AudioController
@@ -979,7 +979,26 @@ class DevocionalProvider with ChangeNotifier {
       bool success = await downloadAndStoreDevocionales(year);
       doneYears++;
       double progress = doneYears / totalYears;
-      onProgress(progress);
+
+      // Safely call the onProgress callback: schedule it and catch errors coming from UI
+      try {
+        // Schedule a microtask so UI setState calls happen outside of provider's execution stack
+        Future.microtask(() {
+          try {
+            onProgress(progress);
+          } catch (e, st) {
+            debugPrint('onProgress callback threw an error: $e');
+            FirebaseCrashlytics.instance
+                .recordError(e, st, reason: 'onProgress callback error');
+          }
+        });
+      } catch (e, st) {
+        // If scheduling the callback fails for any reason, log and continue
+        debugPrint('Failed to schedule onProgress callback: $e');
+        FirebaseCrashlytics.instance.recordError(e, st,
+            reason: 'Failed to schedule onProgress callback');
+      }
+
       if (!success) allSuccess = false;
     }
 
