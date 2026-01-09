@@ -32,6 +32,7 @@ class DevocionalProvider with ChangeNotifier {
   List<Devocional> _allDevocionalesForCurrentLanguage = [];
   List<Devocional> _filteredDevocionales = [];
   List<Devocional> _favoriteDevocionales = [];
+  Set<String> _favoriteIds = {}; // ID-based favorites storage
 
   bool _isLoading = false;
   String? _errorMessage;
@@ -576,6 +577,7 @@ class DevocionalProvider with ChangeNotifier {
       _errorMessage = null;
     }
 
+    _syncFavoritesWithLoadedDevotionals();
     notifyListeners();
   }
 
@@ -641,26 +643,54 @@ class DevocionalProvider with ChangeNotifier {
   // ========== FAVORITES MANAGEMENT ==========
   Future<void> _loadFavorites() async {
     final prefs = await SharedPreferences.getInstance();
-    final String? favoritesJson = prefs.getString('favorites');
+    final String? favoriteIdsJson = prefs.getString('favorite_ids');
 
+    if (favoriteIdsJson != null) {
+      final List<dynamic> decodedList = json.decode(favoriteIdsJson);
+      _favoriteIds = decodedList.cast<String>().toSet();
+      debugPrint('✅ Loaded ${_favoriteIds.length} favorite IDs');
+      return;
+    }
+
+    // Legacy migration fallback
+    final String? favoritesJson = prefs.getString('favorites');
     if (favoritesJson != null) {
-      final List<dynamic> decodedList = json.decode(favoritesJson);
-      _favoriteDevocionales = decodedList
-          .map((item) => Devocional.fromJson(item as Map<String, dynamic>))
-          .toList();
+      try {
+        final List<dynamic> decodedList = json.decode(favoritesJson);
+        _favoriteIds = decodedList
+            .map((item) => Devocional.fromJson(item as Map<String, dynamic>).id)
+            .where((id) => id.isNotEmpty)
+            .toSet();
+        debugPrint(
+            '✅ Migrated ${_favoriteIds.length} favorites from legacy storage');
+      } catch (e) {
+        debugPrint('⚠️ Failed loading legacy favorites: $e');
+      }
     }
   }
 
   Future<void> _saveFavorites() async {
     final prefs = await SharedPreferences.getInstance();
-    final String favoritesJson = json.encode(
-      _favoriteDevocionales.map((devocional) => devocional.toJson()).toList(),
-    );
-    await prefs.setString('favorites', favoritesJson);
+    await prefs.setString('favorite_ids', json.encode(_favoriteIds.toList()));
+    debugPrint('💾 Saved ${_favoriteIds.length} favorite IDs');
+  }
+
+  void _syncFavoritesWithLoadedDevotionals() {
+    if (_favoriteIds.isEmpty || _allDevocionalesForCurrentLanguage.isEmpty) {
+      _favoriteDevocionales = [];
+      return;
+    }
+
+    _favoriteDevocionales = _allDevocionalesForCurrentLanguage
+        .where((d) => _favoriteIds.contains(d.id))
+        .toList();
+
+    debugPrint(
+        '🔄 Synced ${_favoriteDevocionales.length} favorites from ${_favoriteIds.length} IDs');
   }
 
   bool isFavorite(Devocional devocional) {
-    return _favoriteDevocionales.any((fav) => fav.id == devocional.id);
+    return _favoriteIds.contains(devocional.id);
   }
 
   void toggleFavorite(Devocional devocional, BuildContext context) {
@@ -677,6 +707,7 @@ class DevocionalProvider with ChangeNotifier {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
 
     if (isFavorite(devocional)) {
+      _favoriteIds.remove(devocional.id);
       _favoriteDevocionales.removeWhere((fav) => fav.id == devocional.id);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -689,6 +720,7 @@ class DevocionalProvider with ChangeNotifier {
         ),
       );
     } else {
+      _favoriteIds.add(devocional.id);
       _favoriteDevocionales.add(devocional);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -713,6 +745,7 @@ class DevocionalProvider with ChangeNotifier {
   Future<void> reloadFavoritesFromStorage() async {
     try {
       await _loadFavorites();
+      _syncFavoritesWithLoadedDevotionals();
       notifyListeners(); // Notifica a todos los Consumers (FavoritesPage)
       debugPrint('✅ Provider: Favorites reloaded from storage after restore');
     } catch (e) {
