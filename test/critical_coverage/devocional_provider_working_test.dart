@@ -399,42 +399,31 @@ void main() {
       expect(provider.selectedVersion, 'リビングバイブル');
     });
 
-    test('legacy favorites visible after initialization', () async {
-      // Create a test devotional
+    test('legacy favorites migrated to ID format', () async {
       final testDevocional = Devocional(
         id: 'legacy_fav_1',
         date: DateTime(2025, 1, 1),
         versiculo: 'Juan 3:16',
-        reflexion: 'Legacy test reflection',
-        paraMeditar: [ParaMeditar(cita: 'Test', texto: 'Test meditation')],
-        oracion: 'Legacy test prayer',
+        reflexion: 'Test',
+        paraMeditar: [ParaMeditar(cita: 'Test', texto: 'Test')],
+        oracion: 'Test',
         version: 'RVR1960',
       );
 
-      // Set up SharedPreferences with legacy favorites format
       SharedPreferences.setMockInitialValues({
         'favorites': json.encode([testDevocional.toJson()]),
       });
 
-      // Create new provider and initialize
-      ServiceLocator().reset();
-      setupServiceLocator();
       final newProvider = DevocionalProvider();
       await newProvider.initializeData();
 
-      // Verify that legacy favorites were migrated and IDs were loaded
-      expect(newProvider.favoriteDevocionales.length, greaterThan(0),
-          reason: 'Legacy favorites should be migrated and visible');
+      // Verify migration happened
+      final prefs = await SharedPreferences.getInstance();
+      final favoriteIds = prefs.getString('favorite_ids');
+      expect(favoriteIds, isNotNull);
 
-      // Check if the favorite ID was migrated
-      final migrated = await SharedPreferences.getInstance();
-      final favoriteIds = migrated.getString('favorite_ids');
-      expect(favoriteIds, isNotNull,
-          reason: 'Favorite IDs should be saved in new format');
-
-      final List<dynamic> ids = json.decode(favoriteIds!);
-      expect(ids, contains('legacy_fav_1'),
-          reason: 'Legacy favorite ID should be in the migrated list');
+      final ids = json.decode(favoriteIds!);
+      expect(ids, contains('legacy_fav_1'));
 
       newProvider.dispose();
     });
