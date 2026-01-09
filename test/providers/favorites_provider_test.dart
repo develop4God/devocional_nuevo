@@ -647,4 +647,268 @@ void main() {
       provider.dispose();
     });
   });
+
+  group('Production User Migration Safety - Real User Scenarios', () {
+    test(
+        'Migration preserves legacy data for rollback - Scenario: User with 50 favorites',
+        () async {
+      final prefs = await SharedPreferences.getInstance();
+
+      // Simulate a real production user with 50 favorites in legacy format
+      final legacyFavorites = List.generate(
+        50,
+        (index) => {
+          'id':
+              'devocional_2025_${(index + 1).toString().padLeft(2, '0')}_01_RVR1960',
+          'date': '2025-${(index + 1).toString().padLeft(2, '0')}-01',
+          'versiculo': 'Test verse $index',
+          'texto': 'Test text $index',
+          'reflexion': 'Test reflection $index',
+          'oracion': 'Test prayer $index',
+          'version': 'RVR1960',
+          'language': 'es',
+        },
+      );
+
+      // Save legacy data
+      await prefs.setString('favorites', json.encode(legacyFavorites));
+
+      // Verify legacy data is present before migration
+      final legacyDataBefore = prefs.getString('favorites');
+      expect(legacyDataBefore, isNotNull);
+
+      // User upgrades app - new provider loads and migrates
+      final provider = DevocionalProvider();
+      await provider.initializeData();
+
+      // Verify migration worked
+      expect(provider.favoriteDevocionales.length, equals(50));
+
+      // CRITICAL: Verify legacy data is STILL present (not deleted)
+      final legacyDataAfter = prefs.getString('favorites');
+      expect(legacyDataAfter, isNotNull,
+          reason: 'Legacy data must be preserved for safe rollback');
+      expect(legacyDataAfter, equals(legacyDataBefore),
+          reason: 'Legacy data must remain unchanged');
+
+      // Verify new format is also saved
+      final newData = prefs.getString('favorite_ids');
+      expect(newData, isNotNull, reason: 'New ID-based data must be saved');
+
+      // Verify the new data contains correct IDs
+      final newIds = (json.decode(newData!) as List).cast<String>();
+      expect(newIds.length, equals(50));
+      expect(
+        newIds.first,
+        equals('devocional_2025_01_01_RVR1960'),
+      );
+
+      provider.dispose();
+    });
+
+    test(
+        'Rollback scenario: Old app version can still read legacy data after migration',
+        () async {
+      final prefs = await SharedPreferences.getInstance();
+
+      // Setup: User has legacy favorites
+      final legacyFavorites = [
+        {
+          'id': 'devocional_2025_01_15_RVR1960',
+          'date': '2025-01-15',
+          'versiculo': 'Juan 3:16',
+          'texto': 'Test text',
+          'reflexion': 'Test reflection',
+          'oracion': 'Test prayer',
+          'version': 'RVR1960',
+          'language': 'es',
+        },
+      ];
+
+      await prefs.setString('favorites', json.encode(legacyFavorites));
+
+      // Step 1: User upgrades to new version and migration happens
+      final newProvider = DevocionalProvider();
+      await newProvider.initializeData();
+
+      // Verify migration worked - favorite is recognized
+      final migratedDevocional = createTestDevocional(
+        id: 'devocional_2025_01_15_RVR1960',
+        date: DateTime(2025, 1, 15),
+        versiculo: 'Juan 3:16',
+      );
+      expect(newProvider.isFavorite(migratedDevocional), isTrue,
+          reason: 'Migrated favorite should be recognized');
+
+      newProvider.dispose();
+
+      // Step 2: Simulate rollback - old app version reads legacy data
+      // Old version only knows about 'favorites' key, not 'favorite_ids'
+      final legacyDataAfterRollback = prefs.getString('favorites');
+      expect(legacyDataAfterRollback, isNotNull,
+          reason:
+              'Legacy data must still exist for old app version to read on rollback');
+
+      // Old version should be able to parse this
+      final List<dynamic> legacyParsed = json.decode(legacyDataAfterRollback!);
+      expect(legacyParsed.length, equals(1),
+          reason:
+              'Original favorite should still be accessible to old app version');
+      expect(legacyParsed.first['id'], equals('devocional_2025_01_15_RVR1960'));
+    });
+
+    test(
+        'Zero data loss: All user favorites survive migration even with corrupted entries',
+        () async {
+      final prefs = await SharedPreferences.getInstance();
+
+      // Real-world scenario: Some entries may have issues
+      final legacyFavorites = [
+        // Valid entry 1
+        {
+          'id': 'devocional_2025_01_01_RVR1960',
+          'date': '2025-01-01',
+          'versiculo': 'Juan 3:16',
+          'texto': 'Test',
+          'reflexion': 'Test',
+          'oracion': 'Test',
+          'version': 'RVR1960',
+          'language': 'es',
+        },
+        // Entry with empty ID (should be skipped safely)
+        {
+          'id': '',
+          'date': '2025-01-02',
+          'versiculo': 'Juan 3:17',
+          'texto': 'Test',
+          'reflexion': 'Test',
+          'oracion': 'Test',
+          'version': 'RVR1960',
+          'language': 'es',
+        },
+        // Valid entry 2
+        {
+          'id': 'devocional_2025_01_03_RVR1960',
+          'date': '2025-01-03',
+          'versiculo': 'Juan 3:18',
+          'texto': 'Test',
+          'reflexion': 'Test',
+          'oracion': 'Test',
+          'version': 'RVR1960',
+          'language': 'es',
+        },
+      ];
+
+      await prefs.setString('favorites', json.encode(legacyFavorites));
+
+      final provider = DevocionalProvider();
+      await provider.initializeData();
+
+      // Should have migrated 2 valid entries (skipped the empty ID)
+      final newData = prefs.getString('favorite_ids');
+      expect(newData, isNotNull);
+      final newIds = (json.decode(newData!) as List).cast<String>();
+      expect(newIds.length, equals(2),
+          reason: 'Should migrate only valid favorites');
+      expect(newIds.contains('devocional_2025_01_01_RVR1960'), isTrue);
+      expect(newIds.contains('devocional_2025_01_03_RVR1960'), isTrue);
+
+      // Legacy data must still be intact
+      final legacyData = prefs.getString('favorites');
+      expect(legacyData, isNotNull);
+      final legacyParsed = json.decode(legacyData!);
+      expect(legacyParsed.length, equals(3),
+          reason: 'Original data must remain untouched');
+
+      provider.dispose();
+    });
+
+    test('Performance: Migration of large favorites list (100+ items) is fast',
+        () async {
+      final prefs = await SharedPreferences.getInstance();
+
+      // Simulate user with many favorites
+      final legacyFavorites = List.generate(
+        150,
+        (index) => {
+          'id':
+              'devocional_2025_${((index % 365) + 1).toString().padLeft(3, '0')}_RVR1960',
+          'date':
+              '2025-${((index % 12) + 1).toString().padLeft(2, '0')}-${((index % 28) + 1).toString().padLeft(2, '0')}',
+          'versiculo': 'Verse $index',
+          'texto': 'Text $index',
+          'reflexion': 'Reflection $index',
+          'oracion': 'Prayer $index',
+          'version': 'RVR1960',
+          'language': 'es',
+        },
+      );
+
+      await prefs.setString('favorites', json.encode(legacyFavorites));
+
+      final stopwatch = Stopwatch()..start();
+      final provider = DevocionalProvider();
+      await provider.initializeData();
+      stopwatch.stop();
+
+      // Migration should be fast (< 1 second for 150 items)
+      expect(stopwatch.elapsedMilliseconds, lessThan(1000),
+          reason: 'Migration must be performant for large datasets');
+
+      // Verify migration success
+      final newData = prefs.getString('favorite_ids');
+      expect(newData, isNotNull);
+      final newIds = (json.decode(newData!) as List).cast<String>();
+      expect(newIds.length, equals(150));
+
+      provider.dispose();
+    });
+
+    test('Language switch preserves favorites with correct IDs', () async {
+      final prefs = await SharedPreferences.getInstance();
+
+      // User has favorites in Spanish
+      final legacyFavorites = [
+        {
+          'id': 'devocional_2025_01_01_RVR1960',
+          'date': '2025-01-01',
+          'versiculo': 'Juan 3:16',
+          'texto': 'Test',
+          'reflexion': 'Test',
+          'oracion': 'Test',
+          'version': 'RVR1960',
+          'language': 'es',
+        },
+      ];
+
+      await prefs.setString('favorites', json.encode(legacyFavorites));
+
+      final provider = DevocionalProvider();
+      await provider.initializeData();
+
+      // Verify favorite is loaded
+      final devocional = createTestDevocional(
+        id: 'devocional_2025_01_01_RVR1960',
+        date: DateTime(2025, 1, 1),
+        versiculo: 'Juan 3:16',
+      );
+      expect(provider.isFavorite(devocional), isTrue);
+
+      // Switch language to English
+      provider.setSelectedLanguage('en', null);
+      provider.setSelectedVersion('KJV');
+
+      // Wait for async operations to complete
+      await Future.delayed(Duration(milliseconds: 100));
+
+      // Favorite IDs should still be stored (even if devotional not available in English)
+      final storedIds = prefs.getString('favorite_ids');
+      expect(storedIds, isNotNull);
+      final ids = (json.decode(storedIds!) as List).cast<String>();
+      expect(ids.contains('devocional_2025_01_01_RVR1960'), isTrue,
+          reason: 'Favorite IDs must persist across language switches');
+
+      provider.dispose();
+    });
+  });
 }

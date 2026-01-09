@@ -144,6 +144,9 @@ class DevocionalesDrawer extends StatelessWidget {
                           );
 
                           // After download finishes, close the dialog and optionally the drawer
+                          // Check if context is still mounted before using it
+                          if (!dialogContext.mounted) return;
+
                           final bool dialogStillOpen =
                               ModalRoute.of(dialogContext)?.isCurrent ?? false;
 
@@ -151,6 +154,9 @@ class DevocionalesDrawer extends StatelessWidget {
                             Future.delayed(
                               const Duration(milliseconds: 400),
                               () {
+                                // Check if context is still mounted before using it
+                                if (!dialogContext.mounted) return;
+
                                 final bool dialogStillOpenNow =
                                     ModalRoute.of(dialogContext)?.isCurrent ??
                                         false;
@@ -160,31 +166,35 @@ class DevocionalesDrawer extends StatelessWidget {
 
                                   // If success, also close the drawer (parent context)
                                   if (success) {
-                                    try {
-                                      Navigator.of(parentContext).pop();
-                                    } catch (_) {
-                                      // Ignore: parent may have been removed
+                                    if (parentContext.mounted) {
+                                      try {
+                                        Navigator.of(parentContext).pop();
+                                      } catch (_) {
+                                        // Ignore: parent may have been removed
+                                      }
                                     }
                                   }
 
                                   // Show snackbar on the parent scaffold
-                                  try {
-                                    ScaffoldMessenger.of(parentContext)
-                                        .showSnackBar(
-                                      SnackBar(
-                                        content: Text(
-                                          success
-                                              ? 'drawer.download_success'.tr()
-                                              : 'drawer.download_error'.tr(),
+                                  if (parentContext.mounted) {
+                                    try {
+                                      ScaffoldMessenger.of(parentContext)
+                                          .showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            success
+                                                ? 'drawer.download_success'.tr()
+                                                : 'drawer.download_error'.tr(),
+                                          ),
+                                          backgroundColor: success
+                                              ? colorScheme.primary
+                                              : colorScheme.error,
+                                          duration: const Duration(seconds: 4),
                                         ),
-                                        backgroundColor: success
-                                            ? colorScheme.primary
-                                            : colorScheme.error,
-                                        duration: const Duration(seconds: 4),
-                                      ),
-                                    );
-                                  } catch (_) {
-                                    // If parent context no longer has a ScaffoldMessenger, ignore.
+                                      );
+                                    } catch (_) {
+                                      // If parent context no longer has a ScaffoldMessenger, ignore.
+                                    }
                                   }
                                 }
                               },
