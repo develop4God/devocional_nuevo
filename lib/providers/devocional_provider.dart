@@ -661,6 +661,7 @@ class DevocionalProvider with ChangeNotifier {
             .map((item) => Devocional.fromJson(item as Map<String, dynamic>).id)
             .where((id) => id.isNotEmpty)
             .toSet();
+        await _saveFavorites();
         debugPrint(
             '✅ Migrated ${_favoriteIds.length} favorites from legacy storage');
       } catch (e) {
