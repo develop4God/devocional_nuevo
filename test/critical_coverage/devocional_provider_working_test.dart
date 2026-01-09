@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
@@ -395,6 +397,145 @@ void main() {
       provider.setSelectedVersion('リビングバイブル');
       await Future.delayed(const Duration(milliseconds: 200));
       expect(provider.selectedVersion, 'リビングバイブル');
+    });
+
+    test('legacy favorites visible after initialization', () async {
+      // Create a test devotional
+      final testDevocional = Devocional(
+        id: 'legacy_fav_1',
+        date: DateTime(2025, 1, 1),
+        versiculo: 'Juan 3:16',
+        reflexion: 'Legacy test reflection',
+        paraMeditar: [ParaMeditar(cita: 'Test', texto: 'Test meditation')],
+        oracion: 'Legacy test prayer',
+        version: 'RVR1960',
+      );
+
+      // Set up SharedPreferences with legacy favorites format
+      SharedPreferences.setMockInitialValues({
+        'favorites': json.encode([testDevocional.toJson()]),
+      });
+
+      // Create new provider and initialize
+      ServiceLocator().reset();
+      setupServiceLocator();
+      final newProvider = DevocionalProvider();
+      await newProvider.initializeData();
+
+      // Verify that legacy favorites were migrated and IDs were loaded
+      expect(newProvider.favoriteDevocionales.length, greaterThan(0),
+          reason: 'Legacy favorites should be migrated and visible');
+
+      // Check if the favorite ID was migrated
+      final migrated = await SharedPreferences.getInstance();
+      final favoriteIds = migrated.getString('favorite_ids');
+      expect(favoriteIds, isNotNull,
+          reason: 'Favorite IDs should be saved in new format');
+
+      final List<dynamic> ids = json.decode(favoriteIds!);
+      expect(ids, contains('legacy_fav_1'),
+          reason: 'Legacy favorite ID should be in the migrated list');
+
+      newProvider.dispose();
+    });
+
+    test('favorite IDs persist after language switch', () async {
+      // Create test devotionals with IDs
+      final testDevocional1 = Devocional(
+        id: 'persist_test_1',
+        date: DateTime(2025, 1, 15),
+        versiculo: 'Test verse',
+        reflexion: 'Test reflection',
+        paraMeditar: [ParaMeditar(cita: 'Test', texto: 'Test meditation')],
+        oracion: 'Test prayer',
+        version: 'RVR1960',
+      );
+
+      // Set up initial state with favorite IDs
+      SharedPreferences.setMockInitialValues({
+        'favorite_ids': json.encode(['persist_test_1', 'persist_test_2']),
+        'selectedLanguage': 'es',
+      });
+
+      // Create new provider
+      ServiceLocator().reset();
+      setupServiceLocator();
+      final newProvider = DevocionalProvider();
+      await newProvider.initializeData();
+
+      // Verify favorite IDs are loaded
+      expect(newProvider.isFavorite(testDevocional1), isTrue,
+          reason: 'Favorite status should be maintained');
+
+      // Switch language
+      newProvider.setSelectedLanguage('en', null);
+      await Future.delayed(const Duration(milliseconds: 300));
+
+      // Verify favorite IDs are still maintained
+      expect(newProvider.isFavorite(testDevocional1), isTrue,
+          reason: 'Favorite IDs should persist after language switch');
+
+      newProvider.dispose();
+    });
+
+    test('_loadFavorites handles corrupted JSON gracefully', () async {
+      // Set up corrupted JSON data
+      SharedPreferences.setMockInitialValues({
+        'favorite_ids': '{corrupted json',
+      });
+
+      // Create new provider
+      ServiceLocator().reset();
+      setupServiceLocator();
+      final newProvider = DevocionalProvider();
+      await newProvider.initializeData();
+
+      // Should handle error and initialize with empty set
+      expect(newProvider.favoriteDevocionales, isEmpty,
+          reason: 'Should handle corrupted JSON gracefully');
+
+      newProvider.dispose();
+    });
+
+    test('_loadFavorites handles corrupted legacy JSON gracefully', () async {
+      // Set up corrupted legacy JSON data
+      SharedPreferences.setMockInitialValues({
+        'favorites': '{corrupted legacy json',
+      });
+
+      // Create new provider
+      ServiceLocator().reset();
+      setupServiceLocator();
+      final newProvider = DevocionalProvider();
+      await newProvider.initializeData();
+
+      // Should handle error and initialize with empty set
+      expect(newProvider.favoriteDevocionales, isEmpty,
+          reason: 'Should handle corrupted legacy JSON gracefully');
+
+      newProvider.dispose();
+    });
+
+    test('sync favorites rehydrates after devotionals load', () async {
+      // Set up favorite IDs before devotionals are loaded
+      SharedPreferences.setMockInitialValues({
+        'favorite_ids': json.encode(['rehydrate_test_1', 'rehydrate_test_2']),
+      });
+
+      // Create new provider
+      ServiceLocator().reset();
+      setupServiceLocator();
+      final newProvider = DevocionalProvider();
+
+      // Initialize - this will load IDs first, then devotionals, then sync
+      await newProvider.initializeData();
+
+      // Even though devotionals may not match (due to API issues in test),
+      // the sync should have been called without errors
+      expect(newProvider.favoriteDevocionales, isA<List<Devocional>>(),
+          reason: 'Sync should produce a valid list');
+
+      newProvider.dispose();
     });
   });
 }

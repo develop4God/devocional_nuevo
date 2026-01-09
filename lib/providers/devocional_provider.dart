@@ -646,26 +646,32 @@ class DevocionalProvider with ChangeNotifier {
     final String? favoriteIdsJson = prefs.getString('favorite_ids');
 
     if (favoriteIdsJson != null) {
-      final List<dynamic> decodedList = json.decode(favoriteIdsJson);
-      _favoriteIds = decodedList.cast<String>().toSet();
-      debugPrint('✅ Loaded ${_favoriteIds.length} favorite IDs');
-      return;
-    }
-
-    // Legacy migration fallback
-    final String? favoritesJson = prefs.getString('favorites');
-    if (favoritesJson != null) {
       try {
-        final List<dynamic> decodedList = json.decode(favoritesJson);
-        _favoriteIds = decodedList
-            .map((item) => Devocional.fromJson(item as Map<String, dynamic>).id)
-            .where((id) => id.isNotEmpty)
-            .toSet();
-        await _saveFavorites();
-        debugPrint(
-            '✅ Migrated ${_favoriteIds.length} favorites from legacy storage');
+        final List<dynamic> decodedList = json.decode(favoriteIdsJson);
+        _favoriteIds = decodedList.cast<String>().toSet();
+        debugPrint('✅ Loaded ${_favoriteIds.length} favorite IDs');
       } catch (e) {
-        debugPrint('⚠️ Failed loading legacy favorites: $e');
+        debugPrint('⚠️ Failed decoding favorite_ids: $e');
+        _favoriteIds = {};
+      }
+    } else {
+      // Legacy migration fallback
+      final String? favoritesJson = prefs.getString('favorites');
+      if (favoritesJson != null) {
+        try {
+          final List<dynamic> decodedList = json.decode(favoritesJson);
+          _favoriteIds = decodedList
+              .map((item) =>
+                  Devocional.fromJson(item as Map<String, dynamic>).id)
+              .where((id) => id.isNotEmpty)
+              .toSet();
+          await _saveFavorites();
+          debugPrint(
+              '✅ Migrated ${_favoriteIds.length} favorites from legacy storage');
+        } catch (e) {
+          debugPrint('⚠️ Failed loading legacy favorites: $e');
+          _favoriteIds = {};
+        }
       }
     }
   }
@@ -696,12 +702,14 @@ class DevocionalProvider with ChangeNotifier {
 
   void toggleFavorite(Devocional devocional, BuildContext context) {
     if (devocional.id.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('No se puede guardar devocional sin ID'),
-          duration: Duration(seconds: 2),
-        ),
-      );
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('No se puede guardar devocional sin ID'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
       return;
     }
 
@@ -710,29 +718,33 @@ class DevocionalProvider with ChangeNotifier {
     if (isFavorite(devocional)) {
       _favoriteIds.remove(devocional.id);
       _favoriteDevocionales.removeWhere((fav) => fav.id == devocional.id);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'devotionals_page.removed_from_favorites'.tr(),
-            style: TextStyle(color: colorScheme.onSecondary),
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'devotionals_page.removed_from_favorites'.tr(),
+              style: TextStyle(color: colorScheme.onSecondary),
+            ),
+            duration: const Duration(seconds: 2),
+            backgroundColor: colorScheme.secondary,
           ),
-          duration: const Duration(seconds: 2),
-          backgroundColor: colorScheme.secondary,
-        ),
-      );
+        );
+      }
     } else {
       _favoriteIds.add(devocional.id);
       _favoriteDevocionales.add(devocional);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'devotionals_page.added_to_favorites'.tr(),
-            style: TextStyle(color: colorScheme.onSecondary),
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'devotionals_page.added_to_favorites'.tr(),
+              style: TextStyle(color: colorScheme.onSecondary),
+            ),
+            duration: const Duration(seconds: 2),
+            backgroundColor: colorScheme.secondary,
           ),
-          duration: const Duration(seconds: 2),
-          backgroundColor: colorScheme.secondary,
-        ),
-      );
+        );
+      }
     }
 
     _saveFavorites();
