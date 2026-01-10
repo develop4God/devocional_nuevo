@@ -652,9 +652,15 @@ class DevocionalProvider with ChangeNotifier {
       try {
         final List<dynamic> decodedList = json.decode(favoriteIdsJson);
         _favoriteIds = decodedList.cast<String>().toSet();
-        debugPrint('✅ Loaded ${_favoriteIds.length} favorite IDs');
+        developer.log(
+          '⭐FAVORITES_LOAD: ${_favoriteIds.length} IDs loaded',
+          name: 'Favorites',
+        );
       } catch (e) {
-        debugPrint('⚠️ Failed decoding favorite_ids: $e');
+        developer.log(
+          '❌FAVORITES_ERROR: Failed decoding favorite_ids: $e',
+          name: 'Favorites',
+        );
         _favoriteIds = {};
       }
     } else {
@@ -680,11 +686,16 @@ class DevocionalProvider with ChangeNotifier {
           // Clean up legacy key after successful migration
           if (_favoriteIds.isNotEmpty) {
             await prefs.remove('favorites');
-            debugPrint('🧹 Cleaned legacy favorites key');
+            developer.log(
+              '⭐FAVORITES_CLEANUP: Legacy key removed',
+              name: 'Favorites',
+            );
           }
 
-          debugPrint(
-              '✅ Migrated $migrated favorites from legacy storage (dropped: $dropped)');
+          developer.log(
+            '⭐FAVORITES_MIGRATE: $migrated migrated from legacy (dropped: $dropped)',
+            name: 'Favorites',
+          );
 
           // Log telemetry for migration
           try {
@@ -710,14 +721,22 @@ class DevocionalProvider with ChangeNotifier {
                   'dropped': dropped,
                 },
               );
-              debugPrint(
-                  '⚠️ Migration data loss: $dropped favorites had empty IDs');
+              developer.log(
+                '⚠️FAVORITES_WARN: Migration data loss - $dropped favorites had empty IDs',
+                name: 'Favorites',
+              );
             }
           } catch (e) {
-            debugPrint('⚠️ Failed to send migration telemetry: $e');
+            developer.log(
+              '❌FAVORITES_ERROR: Failed to send migration telemetry: $e',
+              name: 'Favorites',
+            );
           }
         } catch (e) {
-          debugPrint('⚠️ Failed loading legacy favorites: $e');
+          developer.log(
+            '❌FAVORITES_ERROR: Failed loading legacy favorites: $e',
+            name: 'Favorites',
+          );
           _favoriteIds = {};
 
           // Log migration failure
@@ -730,28 +749,50 @@ class DevocionalProvider with ChangeNotifier {
               },
             );
           } catch (analyticsError) {
-            debugPrint(
-                '⚠️ Failed to send migration failure telemetry: $analyticsError');
+            developer.log(
+              '❌FAVORITES_ERROR: Failed to send migration failure telemetry: $analyticsError',
+              name: 'Favorites',
+            );
           }
         }
+      } else {
+        developer.log(
+          '⭐FAVORITES_LOAD: New user, no favorites',
+          name: 'Favorites',
+        );
       }
     }
   }
 
   Future<void> _saveFavorites() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('favorite_ids', json.encode(_favoriteIds.toList()));
-    // Optional: persist a local schema version for favorites to allow
-    // future migrations to detect and upgrade stored format.
     try {
-      await prefs.setInt(
-        'favorites_schema_version',
-        Constants.favoritesSchemaVersion,
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('favorite_ids', json.encode(_favoriteIds.toList()));
+      developer.log(
+        '⭐FAVORITES_SAVE: ${_favoriteIds.length} IDs saved',
+        name: 'Favorites',
       );
+
+      // Optional: persist a local schema version for favorites to allow
+      // future migrations to detect and upgrade stored format.
+      try {
+        await prefs.setInt(
+          'favorites_schema_version',
+          Constants.favoritesSchemaVersion,
+        );
+      } catch (e) {
+        developer.log(
+          '❌FAVORITES_ERROR: Failed to set favorites_schema_version: $e',
+          name: 'Favorites',
+        );
+      }
     } catch (e) {
-      debugPrint('⚠️ Failed to set favorites_schema_version: $e');
+      developer.log(
+        '❌FAVORITES_ERROR: Save failed: $e',
+        name: 'Favorites',
+      );
+      rethrow;
     }
-    debugPrint('💾 Saved ${_favoriteIds.length} favorite IDs');
   }
 
   /// Public helper: persist current favorites to SharedPreferences.
@@ -783,8 +824,10 @@ class DevocionalProvider with ChangeNotifier {
         .where((d) => _favoriteIds.contains(d.id))
         .toList();
 
-    debugPrint(
-        '🔄 Synced ${_favoriteDevocionales.length} favorites from ${_favoriteIds.length} IDs');
+    developer.log(
+      '⭐FAVORITES_SYNC: ${_favoriteDevocionales.length} synced from ${_favoriteIds.length} IDs',
+      name: 'Favorites',
+    );
 
     // Optional telemetry: detect and report mismatch between stored IDs and
     // the devotionals actually found for the current language/version.
@@ -808,8 +851,16 @@ class DevocionalProvider with ChangeNotifier {
           name: 'DevocionalProvider',
         );
       } catch (e) {
-        debugPrint('⚠️ Failed to send favorites mismatch telemetry: $e');
+        developer.log(
+          '❌FAVORITES_ERROR: Failed to send favorites mismatch telemetry: $e',
+          name: 'Favorites',
+        );
       }
+    } else if (_favoriteIds.length != _favoriteDevocionales.length) {
+      developer.log(
+        '⚠️FAVORITES_WARN: Mismatch persists (throttled)',
+        name: 'Favorites',
+      );
     }
   }
 
@@ -877,9 +928,15 @@ class DevocionalProvider with ChangeNotifier {
       await _loadFavorites();
       _syncFavoritesWithLoadedDevotionals();
       notifyListeners(); // Notifica a todos los Consumers (FavoritesPage)
-      debugPrint('✅ Provider: Favorites reloaded from storage after restore');
+      developer.log(
+        '⭐FAVORITES_LOAD: Favorites reloaded from storage after restore',
+        name: 'Favorites',
+      );
     } catch (e) {
-      debugPrint('❌ Error reloading favorites from storage: $e');
+      developer.log(
+        '❌FAVORITES_ERROR: Error reloading favorites from storage: $e',
+        name: 'Favorites',
+      );
     }
   }
 
