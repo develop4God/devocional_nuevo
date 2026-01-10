@@ -84,6 +84,13 @@ class Constants {
   static const bool enableBackupFeature = false;
 }
 
+/// Schema versioning and migration constants for favorites storage
+class FavoritesSchema {
+  static const int currentVersion = 2;
+  static const String versionKey = 'favorites_schema_version';
+  static const String migratedAtKey = 'favorites_migrated_at';
+}
+
 // Servicio de navegación global
 class NavigationService {
   static GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();

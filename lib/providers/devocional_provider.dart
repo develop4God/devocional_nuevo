@@ -899,43 +899,51 @@ class DevocionalProvider with ChangeNotifier {
 
   /// Toggle favorite status for a devotional
   /// Returns true if favorite was added, false if removed
-  /// Returns null if the operation failed (e.g., empty ID)
-  Future<bool?> toggleFavorite(String id) async {
+  /// Throws an exception if the operation fails
+  Future<bool> toggleFavorite(String id) async {
     if (id.isEmpty) {
       developer.log(
         '❌FAVORITES_ERROR: Cannot toggle favorite with empty ID',
         name: 'Favorites',
       );
-      return null;
+      throw ArgumentError('Cannot toggle favorite with empty ID');
     }
 
-    bool? wasAdded;
-    int count = 0;
+    return await _favoritesLock.synchronized(() async {
+      try {
+        final wasAdded = !_favoriteIds.contains(id);
 
-    await _favoritesLock.synchronized(() async {
-      if (_favoriteIds.contains(id)) {
-        _favoriteIds.remove(id);
-        _favoriteDevocionales.removeWhere((d) => d.id == id);
-        wasAdded = false;
-      } else {
-        _favoriteIds.add(id);
-        final dev = _allDevocionalesForCurrentLanguage
-            .where((d) => d.id == id)
-            .firstOrNull;
-        if (dev != null) {
-          _favoriteDevocionales.add(dev);
+        if (wasAdded) {
+          _favoriteIds.add(id);
+          final dev = _allDevocionalesForCurrentLanguage
+              .where((d) => d.id == id)
+              .firstOrNull;
+          if (dev != null) {
+            _favoriteDevocionales.add(dev);
+          }
+        } else {
+          _favoriteIds.remove(id);
+          _favoriteDevocionales.removeWhere((d) => d.id == id);
         }
-        wasAdded = true;
+
+        final count = _favoriteIds.length;
+        await _saveFavoritesInternal();
+
+        // Update stats outside lock to avoid blocking critical section
+        _statsService.updateFavoritesCount(count);
+        notifyListeners();
+
+        return wasAdded;
+      } catch (e, stack) {
+        developer.log(
+          'Failed to toggle favorite',
+          error: e,
+          stackTrace: stack,
+          name: 'Favorites',
+        );
+        rethrow; // Let UI handle
       }
-
-      count = _favoriteIds.length;
-      await _saveFavoritesInternal();
     });
-
-    // Update stats outside lock to avoid blocking critical section
-    _statsService.updateFavoritesCount(count);
-    notifyListeners();
-    return wasAdded;
   }
 
   /// Legacy method for backwards compatibility with BuildContext
@@ -955,23 +963,33 @@ class DevocionalProvider with ChangeNotifier {
       return;
     }
 
-    final wasAdded = await toggleFavorite(devocional.id);
-    if (wasAdded == null || !context.mounted) return;
+    try {
+      final wasAdded = await toggleFavorite(devocional.id);
+      if (!context.mounted) return;
 
-    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+      final ColorScheme colorScheme = Theme.of(context).colorScheme;
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          wasAdded
-              ? 'devotionals_page.added_to_favorites'.tr()
-              : 'devotionals_page.removed_from_favorites'.tr(),
-          style: TextStyle(color: colorScheme.onSecondary),
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            wasAdded
+                ? 'devotionals_page.added_to_favorites'.tr()
+                : 'devotionals_page.removed_from_favorites'.tr(),
+            style: TextStyle(color: colorScheme.onSecondary),
+          ),
+          duration: const Duration(seconds: 2),
+          backgroundColor: colorScheme.secondary,
         ),
-        duration: const Duration(seconds: 2),
-        backgroundColor: colorScheme.secondary,
-      ),
-    );
+      );
+    } catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Error al actualizar favorito'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
   }
 
   /// Reload favorites from SharedPreferences after restore

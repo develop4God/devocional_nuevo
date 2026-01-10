@@ -995,6 +995,23 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     );
   }
 
+  void _showFavoritesFeedback(bool wasAdded) {
+    if (!mounted) return;
+    final colorScheme = Theme.of(context).colorScheme;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          wasAdded
+              ? 'devotionals_page.added_to_favorites'.tr()
+              : 'devotionals_page.removed_from_favorites'.tr(),
+          style: TextStyle(color: colorScheme.onSecondary),
+        ),
+        duration: const Duration(seconds: 2),
+        backgroundColor: colorScheme.secondary,
+      ),
+    );
+  }
+
   String expandBibleVersion(String version, String language) {
     final expansions = BibleTextFormatter.getBibleVersionExpansions(language);
     return expansions[version] ?? version;
@@ -1481,21 +1498,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                   );
                   final wasAdded = await devocionalProvider
                       .toggleFavorite(currentDevocional.id);
-                  if (wasAdded != null && context.mounted) {
-                    final colorScheme = Theme.of(context).colorScheme;
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          wasAdded
-                              ? 'devotionals_page.added_to_favorites'.tr()
-                              : 'devotionals_page.removed_from_favorites'.tr(),
-                          style: TextStyle(color: colorScheme.onSecondary),
-                        ),
-                        duration: const Duration(seconds: 2),
-                        backgroundColor: colorScheme.secondary,
-                      ),
-                    );
-                  }
+                  _showFavoritesFeedback(wasAdded);
                 },
                 icon: Icon(
                   isFavorite ? Icons.star : Icons.favorite_border,
@@ -1977,25 +1980,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                   await devocionalProvider.toggleFavorite(
                                 currentDevocional!.id,
                               );
-                              if (wasAdded != null && context.mounted) {
-                                final colorScheme =
-                                    Theme.of(context).colorScheme;
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      wasAdded
-                                          ? 'devotionals_page.added_to_favorites'
-                                              .tr()
-                                          : 'devotionals_page.removed_from_favorites'
-                                              .tr(),
-                                      style: TextStyle(
-                                          color: colorScheme.onSecondary),
-                                    ),
-                                    duration: const Duration(seconds: 2),
-                                    backgroundColor: colorScheme.secondary,
-                                  ),
-                                );
-                              }
+                              _showFavoritesFeedback(wasAdded);
                             },
                             icon: Icon(
                               isFavorite ? Icons.star : Icons.favorite_border,
