@@ -40,6 +40,9 @@ class DevocionalProvider with ChangeNotifier {
   String _selectedVersion = 'RVR1960';
   bool _showInvitationDialog = true;
 
+  // Session-based telemetry throttle flags
+  bool _hasFiredMismatchTelemetry = false;
+
   // ========== SERVICES ==========
   final SpiritualStatsService _statsService = SpiritualStatsService();
   late final AudioController _audioController; // NEW - Injected dependency
@@ -660,17 +663,76 @@ class DevocionalProvider with ChangeNotifier {
       if (favoritesJson != null) {
         try {
           final List<dynamic> decodedList = json.decode(favoritesJson);
+          final int totalLegacy = decodedList.length;
+
           _favoriteIds = decodedList
               .map((item) =>
                   Devocional.fromJson(item as Map<String, dynamic>).id)
               .where((id) => id.isNotEmpty)
               .toSet();
+
+          final int migrated = _favoriteIds.length;
+          final int dropped = totalLegacy - migrated;
+
+          // Save migrated favorites
           await _saveFavorites();
+
+          // Clean up legacy key after successful migration
+          if (_favoriteIds.isNotEmpty) {
+            await prefs.remove('favorites');
+            debugPrint('🧹 Cleaned legacy favorites key');
+          }
+
           debugPrint(
-              '✅ Migrated ${_favoriteIds.length} favorites from legacy storage');
+              '✅ Migrated $migrated favorites from legacy storage (dropped: $dropped)');
+
+          // Log telemetry for migration
+          try {
+            final analytics = getService<AnalyticsService>();
+
+            // Log migration success
+            analytics.logCustomEvent(
+              eventName: 'favorites_migration_success',
+              parameters: {
+                'total_legacy': totalLegacy,
+                'migrated': migrated,
+                'dropped': dropped,
+              },
+            );
+
+            // Log data loss if any IDs were dropped
+            if (dropped > 0) {
+              analytics.logCustomEvent(
+                eventName: 'favorites_migration_data_loss',
+                parameters: {
+                  'total_legacy': totalLegacy,
+                  'migrated': migrated,
+                  'dropped': dropped,
+                },
+              );
+              debugPrint(
+                  '⚠️ Migration data loss: $dropped favorites had empty IDs');
+            }
+          } catch (e) {
+            debugPrint('⚠️ Failed to send migration telemetry: $e');
+          }
         } catch (e) {
           debugPrint('⚠️ Failed loading legacy favorites: $e');
           _favoriteIds = {};
+
+          // Log migration failure
+          try {
+            final analytics = getService<AnalyticsService>();
+            analytics.logCustomEvent(
+              eventName: 'favorites_migration_failure',
+              parameters: {
+                'error': e.toString(),
+              },
+            );
+          } catch (analyticsError) {
+            debugPrint(
+                '⚠️ Failed to send migration failure telemetry: $analyticsError');
+          }
         }
       }
     }
@@ -726,7 +788,10 @@ class DevocionalProvider with ChangeNotifier {
 
     // Optional telemetry: detect and report mismatch between stored IDs and
     // the devotionals actually found for the current language/version.
-    if (_favoriteIds.length != _favoriteDevocionales.length) {
+    // Use session-based throttling to prevent analytics flooding
+    if (_favoriteIds.length != _favoriteDevocionales.length &&
+        !_hasFiredMismatchTelemetry) {
+      _hasFiredMismatchTelemetry = true;
       try {
         final analytics = getService<AnalyticsService>();
         analytics.logCustomEvent(
