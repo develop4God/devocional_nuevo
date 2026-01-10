@@ -23,6 +23,8 @@ echo ""
 echo "=== Step 1: Building OLD version (main branch) ==="
 git checkout main
 flutter build apk --release
+echo "Listing APK output directory after build (old version):"
+ls -lh build/app/outputs/flutter-apk/
 APK_PATH="build/app/outputs/flutter-apk/app-release.apk"
 if [ ! -f "$APK_PATH" ]; then
   echo "⚠️  Release APK not found. Trying debug APK..."
@@ -42,6 +44,8 @@ echo ""
 echo "=== Step 2: Building NEW version (fix branch) ==="
 git checkout fix/favorites-no-read
 flutter build apk --release
+echo "Listing APK output directory after build (new version):"
+ls -lh build/app/outputs/flutter-apk/
 APK_PATH="build/app/outputs/flutter-apk/app-release.apk"
 if [ ! -f "$APK_PATH" ]; then
   echo "⚠️  Release APK not found. Trying debug APK..."
