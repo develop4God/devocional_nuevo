@@ -100,14 +100,15 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   setUp(() {
-    // Start with empty mock prefs
-    SharedPreferences.setMockInitialValues({});
     // Reset service locator and register fake TTS service
     ServiceLocator().reset();
     ServiceLocator().registerSingleton<ITtsService>(FakeTtsService());
   });
 
   test('saveFavorites persists ids and schema version', () async {
+    // Start with empty mock prefs for this test
+    SharedPreferences.setMockInitialValues({});
+
     final provider = DevocionalProvider();
 
     // Use the new helpers to add a favorite and persist without UI
@@ -123,6 +124,44 @@ void main() {
     final List<dynamic> decoded =
         favsJson == null ? [] : (jsonDecode(favsJson) as List<dynamic>);
     expect(decoded, contains('test-id'));
+
+    final int? schemaVersion = prefs.getInt('favorites_schema_version');
+    expect(schemaVersion, equals(Constants.favoritesSchemaVersion));
+  });
+
+  test('migrates legacy favorites to favorite_ids and sets schema version',
+      () async {
+    // Create a legacy-style favorites list (array of serialized devotionals)
+    final legacyDev = Devocional(
+      id: 'legacy-id',
+      versiculo: '',
+      reflexion: '',
+      paraMeditar: <ParaMeditar>[],
+      oracion: '',
+      date: DateTime.now(),
+      version: 'RVR1960',
+    );
+
+    final legacyJson = jsonEncode([legacyDev.toJson()]);
+
+    // Seed SharedPreferences with the legacy key
+    SharedPreferences.setMockInitialValues({'favorites': legacyJson});
+
+    final provider = DevocionalProvider();
+
+    // Trigger reload/migration
+    await provider.reloadFavoritesFromStorage();
+
+    // Allow async writes to complete
+    await Future.delayed(const Duration(milliseconds: 50));
+
+    final prefs = await SharedPreferences.getInstance();
+    final favIdsJson = prefs.getString('favorite_ids');
+    expect(favIdsJson, isNotNull);
+
+    final List<dynamic> decoded =
+        favIdsJson == null ? [] : (jsonDecode(favIdsJson) as List<dynamic>);
+    expect(decoded, contains('legacy-id'));
 
     final int? schemaVersion = prefs.getInt('favorites_schema_version');
     expect(schemaVersion, equals(Constants.favoritesSchemaVersion));
