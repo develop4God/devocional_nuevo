@@ -5,8 +5,8 @@
 set -e
 
 # Ensure script runs from project root
-d=$(dirname "$0")/..
-cd "$d"
+SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
+cd "$SCRIPT_DIR"
 echo "Changed current working directory to: $(pwd)"
 
 PACKAGE=${1:-"com.develop4god.devocional_nuevo"}
@@ -125,6 +125,10 @@ fi
 if [ "$SKIP_INSTALL" = false ] && [ "$FROM_MIGRATION" = false ] && [ "$FROM_ANALYSIS" = false ]; then
   # Step 3: Install old version
   echo "=== Step 3: Installing OLD version ==="
+  if [ ! -f old-version.apk ]; then
+    echo "❌ old-version.apk not found in $(pwd). Please ensure the APK exists before continuing."
+    exit 1
+  fi
   while true; do
     adb install -r old-version.apk && break
     echo "Waiting for user to allow install of old-version.apk... retrying in 5s."
@@ -147,6 +151,11 @@ if [ "$SKIP_INSTALL" = false ] && [ "$FROM_MIGRATION" = false ] && [ "$FROM_ANAL
   LOGPID=$!
 
   sleep 2
+  if [ ! -f new-version.apk ]; then
+    echo "❌ new-version.apk not found in $(pwd). Please ensure the APK exists before continuing."
+    kill $LOGPID 2>/dev/null || true
+    exit 1
+  fi
   while true; do
     adb install -r new-version.apk && break
     echo "Waiting for user to allow install of new-version.apk... retrying in 5s."
