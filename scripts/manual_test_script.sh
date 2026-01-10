@@ -23,15 +23,23 @@ echo ""
 echo "=== Step 1: Building OLD version (main branch) ==="
 git checkout main
 flutter build apk --release
+echo "Current working directory: $(pwd)"
 echo "Listing APK output directory after build (old version):"
-ls -lh build/app/outputs/flutter-apk/
+ls -lh build/app/outputs/flutter-apk/ || echo "Directory not found. Searching for APKs..."
+FOUND_APK=$(find build/app/outputs/ -name '*.apk' | head -n 1)
+echo "Found APK: $FOUND_APK"
 APK_PATH="build/app/outputs/flutter-apk/app-release.apk"
 if [ ! -f "$APK_PATH" ]; then
   echo "⚠️  Release APK not found. Trying debug APK..."
   APK_PATH="build/app/outputs/flutter-apk/app-debug.apk"
   if [ ! -f "$APK_PATH" ]; then
-    echo "❌ Neither release nor debug APK found after build. Exiting."
-    exit 1
+    if [ -n "$FOUND_APK" ]; then
+      echo "⚠️  Using found APK: $FOUND_APK for old version."
+      APK_PATH="$FOUND_APK"
+    else
+      echo "❌ Neither release nor debug APK found after build. Exiting."
+      exit 1
+    fi
   else
     echo "⚠️  Using debug APK for old version."
   fi
@@ -44,15 +52,23 @@ echo ""
 echo "=== Step 2: Building NEW version (fix branch) ==="
 git checkout fix/favorites-no-read
 flutter build apk --release
+echo "Current working directory: $(pwd)"
 echo "Listing APK output directory after build (new version):"
-ls -lh build/app/outputs/flutter-apk/
+ls -lh build/app/outputs/flutter-apk/ || echo "Directory not found. Searching for APKs..."
+FOUND_APK=$(find build/app/outputs/ -name '*.apk' | head -n 1)
+echo "Found APK: $FOUND_APK"
 APK_PATH="build/app/outputs/flutter-apk/app-release.apk"
 if [ ! -f "$APK_PATH" ]; then
   echo "⚠️  Release APK not found. Trying debug APK..."
   APK_PATH="build/app/outputs/flutter-apk/app-debug.apk"
   if [ ! -f "$APK_PATH" ]; then
-    echo "❌ Neither release nor debug APK found after build. Exiting."
-    exit 1
+    if [ -n "$FOUND_APK" ]; then
+      echo "⚠️  Using found APK: $FOUND_APK for new version."
+      APK_PATH="$FOUND_APK"
+    else
+      echo "❌ Neither release nor debug APK found after build. Exiting."
+      exit 1
+    fi
   else
     echo "⚠️  Using debug APK for new version."
   fi
