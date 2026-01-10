@@ -251,16 +251,17 @@
     "streak": "連続記録"
   },
   "errors": {
-    "network_error": "接続エラー",
+    "network_error": "通信エラー",
     "file_not_found": "ファイルが見つかりません",
     "permission_denied": "許可が拒否されました",
     "unknown_error": "不明なエラー",
-    "retry_message": "再試行してください",
-    "no_internet": "インターネット接続なし",
+    "retry_message": "もう一度お試しください",
+    "no_internet": "インターネットに接続されていません",
     "server_error": "サーバーエラー",
-    "timeout_error": "リクエストタイムアウト",
+    "timeout_error": "タイムアウトエラー",
     "prayer_loading_error": "祈りの読み込みエラー",
-    "thanksgiving_loading_error": "感謝の読み込みエラー"
+    "thanksgiving_loading_error": "感謝の読み込みエラー",
+    "update_favorite_failed": "お気に入りの更新に失敗しました"
   },
   "messages": {
     "welcome": "ようこそ！",

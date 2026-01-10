@@ -24,20 +24,28 @@ import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart' show Provider;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:synchronized/synchronized.dart';
 
 /// Simplified provider focused on data management only
 /// Audio functionality moved to AudioController
 class DevocionalProvider with ChangeNotifier {
+  // ========== CONCURRENCY PROTECTION ==========
+  final _favoritesLock = Lock();
+
   // ========== CORE DATA ==========
   List<Devocional> _allDevocionalesForCurrentLanguage = [];
   List<Devocional> _filteredDevocionales = [];
   List<Devocional> _favoriteDevocionales = [];
+  Set<String> _favoriteIds = {}; // ID-based favorites storage
 
   bool _isLoading = false;
   String? _errorMessage;
   String _selectedLanguage = 'es';
   String _selectedVersion = 'RVR1960';
   bool _showInvitationDialog = true;
+
+  // Session-based telemetry throttle flags
+  bool _hasFiredMismatchTelemetry = false;
 
   // ========== SERVICES ==========
   final SpiritualStatsService _statsService = SpiritualStatsService();
@@ -576,6 +584,7 @@ class DevocionalProvider with ChangeNotifier {
       _errorMessage = null;
     }
 
+    _syncFavoritesWithLoadedDevotionals();
     notifyListeners();
   }
 
@@ -640,71 +649,344 @@ class DevocionalProvider with ChangeNotifier {
 
   // ========== FAVORITES MANAGEMENT ==========
   Future<void> _loadFavorites() async {
-    final prefs = await SharedPreferences.getInstance();
-    final String? favoritesJson = prefs.getString('favorites');
+    await _favoritesLock.synchronized(() async {
+      final prefs = await SharedPreferences.getInstance();
+      final String? favoriteIdsJson = prefs.getString('favorite_ids');
 
-    if (favoritesJson != null) {
-      final List<dynamic> decodedList = json.decode(favoritesJson);
-      _favoriteDevocionales = decodedList
-          .map((item) => Devocional.fromJson(item as Map<String, dynamic>))
-          .toList();
+      if (favoriteIdsJson != null) {
+        try {
+          final List<dynamic> decodedList = json.decode(favoriteIdsJson);
+          _favoriteIds = decodedList.cast<String>().toSet();
+          developer.log(
+            '⭐FAVORITES_LOAD: ${_favoriteIds.length} IDs loaded',
+            name: 'Favorites',
+          );
+        } catch (e) {
+          developer.log(
+            '❌FAVORITES_ERROR: Failed decoding favorite_ids: $e',
+            name: 'Favorites',
+          );
+          _favoriteIds = {};
+        }
+      } else {
+        // Legacy migration fallback
+        final String? favoritesJson = prefs.getString('favorites');
+        if (favoritesJson != null) {
+          try {
+            final List<dynamic> decodedList = json.decode(favoritesJson);
+            final int totalLegacy = decodedList.length;
+
+            _favoriteIds = decodedList
+                .map((item) =>
+                    Devocional.fromJson(item as Map<String, dynamic>).id)
+                .where((id) => id.isNotEmpty)
+                .toSet();
+
+            final int migrated = _favoriteIds.length;
+            final int dropped = totalLegacy - migrated;
+
+            // Save migrated favorites (will acquire lock internally)
+            await _saveFavoritesInternal();
+
+            // Clean up legacy key after successful migration
+            if (_favoriteIds.isNotEmpty) {
+              await prefs.remove('favorites');
+              developer.log(
+                '⭐FAVORITES_CLEANUP: Legacy key removed',
+                name: 'Favorites',
+              );
+            }
+
+            developer.log(
+              '⭐FAVORITES_MIGRATE: $migrated migrated from legacy (dropped: $dropped)',
+              name: 'Favorites',
+            );
+
+            // Log telemetry for migration
+            try {
+              final analytics = getService<AnalyticsService>();
+
+              // Log migration success
+              analytics.logCustomEvent(
+                eventName: 'favorites_migration_success',
+                parameters: {
+                  'total_legacy': totalLegacy,
+                  'migrated': migrated,
+                  'dropped': dropped,
+                },
+              );
+
+              // Log data loss if any IDs were dropped
+              if (dropped > 0) {
+                analytics.logCustomEvent(
+                  eventName: 'favorites_migration_data_loss',
+                  parameters: {
+                    'total_legacy': totalLegacy,
+                    'migrated': migrated,
+                    'dropped': dropped,
+                  },
+                );
+                developer.log(
+                  '⚠️FAVORITES_WARN: Migration data loss - $dropped favorites had empty IDs',
+                  name: 'Favorites',
+                );
+              }
+            } catch (e) {
+              developer.log(
+                '❌FAVORITES_ERROR: Failed to send migration telemetry: $e',
+                name: 'Favorites',
+              );
+            }
+          } catch (e) {
+            developer.log(
+              '❌FAVORITES_ERROR: Failed loading legacy favorites: $e',
+              name: 'Favorites',
+            );
+            _favoriteIds = {};
+
+            // Log migration failure
+            try {
+              final analytics = getService<AnalyticsService>();
+              analytics.logCustomEvent(
+                eventName: 'favorites_migration_failure',
+                parameters: {
+                  'error': e.toString(),
+                },
+              );
+            } catch (analyticsError) {
+              developer.log(
+                '❌FAVORITES_ERROR: Failed to send migration failure telemetry: $analyticsError',
+                name: 'Favorites',
+              );
+            }
+          }
+        } else {
+          developer.log(
+            '⭐FAVORITES_LOAD: New user, no favorites',
+            name: 'Favorites',
+          );
+        }
+      }
+    });
+  }
+
+  /// Internal save method that assumes lock is already held
+  Future<void> _saveFavoritesInternal() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('favorite_ids', json.encode(_favoriteIds.toList()));
+      developer.log(
+        '⭐FAVORITES_SAVE: ${_favoriteIds.length} IDs saved',
+        name: 'Favorites',
+      );
+
+      // Optional: persist a local schema version for favorites to allow
+      // future migrations to detect and upgrade stored format.
+      try {
+        await prefs.setInt(
+          'favorites_schema_version',
+          Constants.favoritesSchemaVersion,
+        );
+      } catch (e) {
+        developer.log(
+          '❌FAVORITES_ERROR: Failed to set favorites_schema_version: $e',
+          name: 'Favorites',
+        );
+      }
+    } catch (e) {
+      developer.log(
+        '❌FAVORITES_ERROR: Save failed: $e',
+        name: 'Favorites',
+      );
+      rethrow;
     }
   }
 
   Future<void> _saveFavorites() async {
-    final prefs = await SharedPreferences.getInstance();
-    final String favoritesJson = json.encode(
-      _favoriteDevocionales.map((devocional) => devocional.toJson()).toList(),
-    );
-    await prefs.setString('favorites', favoritesJson);
+    await _favoritesLock.synchronized(() async {
+      await _saveFavoritesInternal();
+    });
   }
 
-  bool isFavorite(Devocional devocional) {
-    return _favoriteDevocionales.any((fav) => fav.id == devocional.id);
+  /// Public helper: persist current favorites to SharedPreferences.
+  /// This is intentionally a thin wrapper around [_saveFavorites] so tests
+  /// can call it without relying on UI interactions.
+  Future<void> saveFavorites() async {
+    await _saveFavorites();
   }
 
-  void toggleFavorite(Devocional devocional, BuildContext context) {
-    if (devocional.id.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('No se puede guardar devocional sin ID'),
-          duration: Duration(seconds: 2),
-        ),
-      );
+  /// Public helper: add a favorite ID programmatically (no UI) and persist it.
+  /// Useful for unit tests or programmatic changes that don't need SnackBars.
+  Future<void> addFavoriteId(String id) async {
+    if (id.isEmpty) return;
+
+    int count = 0;
+    bool wasAdded = false;
+
+    await _favoritesLock.synchronized(() async {
+      // Check for duplicates to avoid unnecessary saves
+      if (_favoriteIds.contains(id)) {
+        return;
+      }
+      _favoriteIds.add(id);
+      wasAdded = true;
+      // Keep _favoriteDevocionales in sync only if possible; for tests we only
+      // need the persisted IDs and schema version.
+      count = _favoriteIds.length;
+      await _saveFavoritesInternal();
+    });
+
+    // Update stats outside lock to avoid blocking critical section
+    if (wasAdded) {
+      _statsService.updateFavoritesCount(count);
+      notifyListeners();
+    }
+  }
+
+  void _syncFavoritesWithLoadedDevotionals() {
+    if (_favoriteIds.isEmpty || _allDevocionalesForCurrentLanguage.isEmpty) {
+      _favoriteDevocionales = [];
       return;
     }
 
-    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+    _favoriteDevocionales = _allDevocionalesForCurrentLanguage
+        .where((d) => _favoriteIds.contains(d.id))
+        .toList();
 
-    if (isFavorite(devocional)) {
-      _favoriteDevocionales.removeWhere((fav) => fav.id == devocional.id);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'devotionals_page.removed_from_favorites'.tr(),
-            style: TextStyle(color: colorScheme.onSecondary),
-          ),
-          duration: const Duration(seconds: 2),
-          backgroundColor: colorScheme.secondary,
-        ),
-      );
-    } else {
-      _favoriteDevocionales.add(devocional);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'devotionals_page.added_to_favorites'.tr(),
-            style: TextStyle(color: colorScheme.onSecondary),
-          ),
-          duration: const Duration(seconds: 2),
-          backgroundColor: colorScheme.secondary,
-        ),
+    developer.log(
+      '⭐FAVORITES_SYNC: ${_favoriteDevocionales.length} synced from ${_favoriteIds.length} IDs',
+      name: 'Favorites',
+    );
+
+    // Optional telemetry: detect and report mismatch between stored IDs and
+    // the devotionals actually found for the current language/version.
+    // Use session-based throttling to prevent analytics flooding
+    if (_favoriteIds.length != _favoriteDevocionales.length &&
+        !_hasFiredMismatchTelemetry) {
+      _hasFiredMismatchTelemetry = true;
+      try {
+        final analytics = getService<AnalyticsService>();
+        analytics.logCustomEvent(
+          eventName: 'favorites_id_mismatch',
+          parameters: {
+            'favorite_ids_count': _favoriteIds.length,
+            'favorite_devocionales_count': _favoriteDevocionales.length,
+            'language': _selectedLanguage,
+            'version': _selectedVersion,
+          },
+        );
+        developer.log(
+          '[PROVIDER] favorites_id_mismatch logged: ids=${_favoriteIds.length}, found=${_favoriteDevocionales.length}',
+          name: 'DevocionalProvider',
+        );
+      } catch (e) {
+        developer.log(
+          '❌FAVORITES_ERROR: Failed to send favorites mismatch telemetry: $e',
+          name: 'Favorites',
+        );
+      }
+    } else if (_favoriteIds.length != _favoriteDevocionales.length) {
+      developer.log(
+        '⚠️FAVORITES_WARN: Mismatch persists (throttled)',
+        name: 'Favorites',
       );
     }
+  }
 
-    _saveFavorites();
-    _statsService.updateFavoritesCount(_favoriteDevocionales.length);
-    notifyListeners();
+  bool isFavorite(Devocional devocional) {
+    return _favoriteIds.contains(devocional.id);
+  }
+
+  /// Toggle favorite status for a devotional
+  /// Returns true if favorite was added, false if removed
+  /// Throws an exception if the operation fails
+  Future<bool> toggleFavorite(String id) async {
+    if (id.isEmpty) {
+      developer.log(
+        '❌FAVORITES_ERROR: Cannot toggle favorite with empty ID',
+        name: 'Favorites',
+      );
+      throw ArgumentError('Cannot toggle favorite with empty ID');
+    }
+
+    return await _favoritesLock.synchronized(() async {
+      try {
+        final wasAdded = !_favoriteIds.contains(id);
+
+        if (wasAdded) {
+          _favoriteIds.add(id);
+          final dev = _allDevocionalesForCurrentLanguage
+              .where((d) => d.id == id)
+              .firstOrNull;
+          if (dev != null) {
+            _favoriteDevocionales.add(dev);
+          }
+        } else {
+          _favoriteIds.remove(id);
+          _favoriteDevocionales.removeWhere((d) => d.id == id);
+        }
+
+        final count = _favoriteIds.length;
+        await _saveFavoritesInternal();
+
+        // Update stats outside lock to avoid blocking critical section
+        _statsService.updateFavoritesCount(count);
+        notifyListeners();
+
+        return wasAdded;
+      } catch (e, stack) {
+        developer.log(
+          'Failed to toggle favorite',
+          error: e,
+          stackTrace: stack,
+          name: 'Favorites',
+        );
+        rethrow; // Let UI handle
+      }
+    });
+  }
+
+  /// Legacy method for backwards compatibility with BuildContext
+  /// Wraps the new toggleFavorite and shows SnackBar messages
+  @Deprecated('Use toggleFavorite(String id) instead')
+  void toggleFavoriteWithContext(
+      Devocional devocional, BuildContext context) async {
+    if (devocional.id.isEmpty) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('No se puede guardar devocional sin ID'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+      return;
+    }
+
+    try {
+      final wasAdded = await toggleFavorite(devocional.id);
+      if (!context.mounted) return;
+
+      final ColorScheme colorScheme = Theme.of(context).colorScheme;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            wasAdded
+                ? 'devotionals_page.added_to_favorites'.tr()
+                : 'devotionals_page.removed_from_favorites'.tr(),
+            style: TextStyle(color: colorScheme.onSecondary),
+          ),
+          duration: const Duration(seconds: 2),
+          backgroundColor: colorScheme.secondary,
+        ),
+      );
+    } catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('errors.update_favorite_failed'.tr())),
+      );
+    }
   }
 
   /// Reload favorites from SharedPreferences after restore
@@ -713,10 +995,19 @@ class DevocionalProvider with ChangeNotifier {
   Future<void> reloadFavoritesFromStorage() async {
     try {
       await _loadFavorites();
+      await _favoritesLock.synchronized(() async {
+        _syncFavoritesWithLoadedDevotionals();
+      });
       notifyListeners(); // Notifica a todos los Consumers (FavoritesPage)
-      debugPrint('✅ Provider: Favorites reloaded from storage after restore');
+      developer.log(
+        '⭐FAVORITES_LOAD: Favorites reloaded from storage after restore',
+        name: 'Favorites',
+      );
     } catch (e) {
-      debugPrint('❌ Error reloading favorites from storage: $e');
+      developer.log(
+        '❌FAVORITES_ERROR: Error reloading favorites from storage: $e',
+        name: 'Favorites',
+      );
     }
   }
 

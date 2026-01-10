@@ -995,6 +995,23 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     );
   }
 
+  void _showFavoritesFeedback(bool wasAdded) {
+    if (!mounted) return;
+    final colorScheme = Theme.of(context).colorScheme;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          wasAdded
+              ? 'devotionals_page.added_to_favorites'.tr()
+              : 'devotionals_page.removed_from_favorites'.tr(),
+          style: TextStyle(color: colorScheme.onSecondary),
+        ),
+        duration: const Duration(seconds: 2),
+        backgroundColor: colorScheme.secondary,
+      ),
+    );
+  }
+
   String expandBibleVersion(String version, String language) {
     final expansions = BibleTextFormatter.getBibleVersionExpansions(language);
     return expansions[version] ?? version;
@@ -1475,11 +1492,13 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                 tooltip: isFavorite
                     ? 'devotionals.remove_from_favorites_short'.tr()
                     : 'devotionals.save_as_favorite'.tr(),
-                onPressed: () {
+                onPressed: () async {
                   getService<AnalyticsService>().logBottomBarAction(
                     action: 'favorite',
                   );
-                  devocionalProvider.toggleFavorite(currentDevocional, context);
+                  final wasAdded = await devocionalProvider
+                      .toggleFavorite(currentDevocional.id);
+                  _showFavoritesFeedback(wasAdded);
                 },
                 icon: Icon(
                   isFavorite ? Icons.star : Icons.favorite_border,
@@ -1952,15 +1971,16 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                             tooltip: isFavorite
                                 ? 'devotionals.remove_from_favorites_short'.tr()
                                 : 'devotionals.save_as_favorite'.tr(),
-                            onPressed: () {
+                            onPressed: () async {
                               debugPrint('🔥 [BottomBar] Tap: favorite');
                               getService<AnalyticsService>().logBottomBarAction(
                                 action: 'favorite',
                               );
-                              devocionalProvider.toggleFavorite(
-                                currentDevocional!,
-                                context,
+                              final wasAdded =
+                                  await devocionalProvider.toggleFavorite(
+                                currentDevocional!.id,
                               );
+                              _showFavoritesFeedback(wasAdded);
                             },
                             icon: Icon(
                               isFavorite ? Icons.star : Icons.favorite_border,

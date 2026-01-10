@@ -255,12 +255,13 @@
     "file_not_found": "文件未找到",
     "permission_denied": "权限被拒绝",
     "unknown_error": "未知错误",
-    "retry_message": "请重试",
-    "no_internet": "无互联网连接",
+    "retry_message": "请再试一次",
+    "no_internet": "无网络连接",
     "server_error": "服务器错误",
     "timeout_error": "请求超时",
     "prayer_loading_error": "加载祷告时出错",
-    "thanksgiving_loading_error": "加载感恩时出错"
+    "thanksgiving_loading_error": "加载感恩时出错",
+    "update_favorite_failed": "更新收藏失败"
   },
   "messages": {
     "welcome": "欢迎！",

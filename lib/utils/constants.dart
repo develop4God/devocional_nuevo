@@ -69,6 +69,10 @@ class Constants {
   static const String prefCurrentIndex = 'currentIndex';
   static const String prefLastNotificationDate = 'lastNotificationDate';
 
+  /// Favorites local storage schema version. Bump this when changing the
+  /// local format for favorites so migrations can be applied.
+  static const int favoritesSchemaVersion = 1;
+
   /// Compatibilidad con lógica de mostrar/no mostrar diálogos de invitación (usada en el provider)
   static const String prefShowInvitationDialog = 'showInvitationDialog';
 
@@ -78,6 +82,13 @@ class Constants {
 
   /// Feature flag to disable backup initialization (not available to users)
   static const bool enableBackupFeature = false;
+}
+
+/// Schema versioning and migration constants for favorites storage
+class FavoritesSchema {
+  static const int currentVersion = 2;
+  static const String versionKey = 'favorites_schema_version';
+  static const String migratedAtKey = 'favorites_migrated_at';
 }
 
 // Servicio de navegación global

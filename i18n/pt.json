@@ -252,16 +252,17 @@
     "streak": "sequência"
   },
   "errors": {
-    "network_error": "Erro de rede",
+    "network_error": "Erro de conexão",
     "file_not_found": "Arquivo não encontrado",
     "permission_denied": "Permissão negada",
     "unknown_error": "Erro desconhecido",
     "retry_message": "Por favor, tente novamente",
     "no_internet": "Sem conexão com a internet",
     "server_error": "Erro do servidor",
-    "timeout_error": "Tempo limite esgotado",
+    "timeout_error": "Tempo de espera esgotado",
     "prayer_loading_error": "Erro ao carregar orações",
-    "thanksgiving_loading_error": "Erro ao carregar ações de graças"
+    "thanksgiving_loading_error": "Erro ao carregar agradecimentos",
+    "update_favorite_failed": "Falha ao atualizar favorito"
   },
   "messages": {
     "welcome": "Bem-vindo!",

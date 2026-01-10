@@ -1,0 +1,275 @@
+#!/bin/bash
+# Complete AAB Migration Test - Build to Verification
+# Usage: ./test_migration.sh <package.name>
+
+set -e
+
+# Ensure script runs from project root
+SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
+cd "$SCRIPT_DIR"
+echo "Changed current working directory to: $(pwd)"
+
+PACKAGE=${1:-"com.develop4god.devocional_nuevo"}
+
+echo "=== Complete Migration Test ==="
+echo "Package: $PACKAGE"
+echo ""
+
+# Check device
+if ! adb devices | grep -q "device$"; then
+  echo "❌ No device connected"
+  exit 1
+fi
+
+echo "✅ Device connected"
+echo ""
+
+# Parse command-line options
+SKIP_BUILD=false
+SKIP_INSTALL=false
+FROM_INSTALL=false
+FROM_MIGRATION=false
+FROM_ANALYSIS=false
+for arg in "$@"; do
+  case $arg in
+    --skip-build)
+      SKIP_BUILD=true
+      ;;
+    --skip-install)
+      SKIP_INSTALL=true
+      ;;
+    --from-install)
+      FROM_INSTALL=true
+      ;;
+    --from-migration)
+      FROM_MIGRATION=true
+      ;;
+    --from-analysis)
+      FROM_ANALYSIS=true
+      ;;
+  esac
+done
+
+# Step 1: Build old and new APKs (unless skipped)
+if [ "$SKIP_BUILD" = false ] && [ "$FROM_INSTALL" = false ] && [ "$FROM_MIGRATION" = false ] && [ "$FROM_ANALYSIS" = false ]; then
+  if [ -f old-version.apk ] && [ -f new-version.apk ]; then
+    echo "Both old-version.apk and new-version.apk exist. Skip build step? (y/n)"
+    read SKIP
+    if [ "$SKIP" = "y" ]; then
+      SKIP_BUILD=true
+    fi
+  fi
+fi
+
+if [ "$SKIP_BUILD" = false ] && [ "$FROM_INSTALL" = false ] && [ "$FROM_MIGRATION" = false ] && [ "$FROM_ANALYSIS" = false ]; then
+  # Step 1: Build old version
+  echo "=== Step 1: Building OLD version (main branch) ==="
+  git checkout main
+  flutter build apk --release
+  echo "Current working directory: $(pwd)"
+  echo "Listing APK output directory after build (old version):"
+  ls -lh build/app/outputs/flutter-apk/ || echo "Directory not found. Searching for APKs..."
+  FOUND_APK=$(find build/app/outputs/ -name '*.apk' | head -n 1)
+  echo "Found APK: $FOUND_APK"
+  APK_PATH="build/app/outputs/flutter-apk/app-release.apk"
+  if [ ! -f "$APK_PATH" ]; then
+    echo "⚠️  Release APK not found. Trying debug APK..."
+    APK_PATH="build/app/outputs/flutter-apk/app-debug.apk"
+    if [ ! -f "$APK_PATH" ]; then
+      if [ -n "$FOUND_APK" ]; then
+        echo "⚠️  Using found APK: $FOUND_APK for old version."
+        APK_PATH="$FOUND_APK"
+      else
+        echo "❌ Neither release nor debug APK found after build. Exiting."
+        exit 1
+      fi
+    else
+      echo "⚠️  Using debug APK for old version."
+    fi
+  fi
+  cp "$APK_PATH" old-version.apk
+  echo "✅ Old version saved: old-version.apk"
+  echo ""
+
+  # Step 2: Build new version
+  echo "=== Step 2: Building NEW version (fix branch) ==="
+  git checkout fix/favorites-no-read
+  flutter build apk --release
+  echo "Current working directory: $(pwd)"
+  echo "Listing APK output directory after build (new version):"
+  ls -lh build/app/outputs/flutter-apk/ || echo "Directory not found. Searching for APKs..."
+  FOUND_APK=$(find build/app/outputs/ -name '*.apk' | head -n 1)
+  echo "Found APK: $FOUND_APK"
+  APK_PATH="build/app/outputs/flutter-apk/app-release.apk"
+  if [ ! -f "$APK_PATH" ]; then
+    echo "⚠️  Release APK not found. Trying debug APK..."
+    APK_PATH="build/app/outputs/flutter-apk/app-debug.apk"
+    if [ ! -f "$APK_PATH" ]; then
+      if [ -n "$FOUND_APK" ]; then
+        echo "⚠️  Using found APK: $FOUND_APK for new version."
+        APK_PATH="$FOUND_APK"
+      else
+        echo "❌ Neither release nor debug APK found after build. Exiting."
+        exit 1
+      fi
+    else
+      echo "⚠️  Using debug APK for new version."
+    fi
+  fi
+  cp "$APK_PATH" new-version.apk
+  echo "✅ New version saved: new-version.apk"
+  echo ""
+fi
+
+# Step 3: Install old and new APKs (unless skipped or resuming from migration/analysis)
+if [ "$SKIP_INSTALL" = false ] && [ "$FROM_MIGRATION" = false ] && [ "$FROM_ANALYSIS" = false ]; then
+  # Step 3: Install old version
+  echo "=== Step 3: Installing OLD version ==="
+  if [ ! -f old-version.apk ]; then
+    echo "❌ old-version.apk not found in $(pwd). Please ensure the APK exists before continuing."
+    exit 1
+  fi
+  while true; do
+    adb install -r old-version.apk && break
+    echo "Waiting for user to allow install of old-version.apk... retrying in 5s."
+    sleep 5
+  done
+
+  echo ""
+  echo "🎯 ACTION REQUIRED:"
+  echo "  1. Open the app"
+  echo "  2. Add 3-5 favorites"
+  echo "  3. Press ENTER when done..."
+  # shellcheck disable=SC2162
+  read
+
+  # Step 4: Migration with logging
+  echo ""
+  echo "=== Step 4: Installing NEW version (capturing logs) ==="
+  adb logcat -c
+  adb logcat -s "Favorites:V" "*:S" | tee migration.log | grep --line-buffered "FAVORITES_" &
+  LOGPID=$!
+
+  sleep 2
+  if [ ! -f new-version.apk ]; then
+    echo "❌ new-version.apk not found in $(pwd). Please ensure the APK exists before continuing."
+    kill $LOGPID 2>/dev/null || true
+    exit 1
+  fi
+  while true; do
+    adb install -r new-version.apk && break
+    echo "Waiting for user to allow install of new-version.apk... retrying in 5s."
+    sleep 5
+  done
+
+  echo "🎯 Launching app..."
+  adb shell am start -n "$PACKAGE/.MainActivity"
+
+  echo "⏳ Waiting 15 seconds for migration..."
+  sleep 15
+
+  kill $LOGPID 2>/dev/null || true
+fi
+
+# Step 4: Migration with logging (if resuming from install or not skipping)
+if { [ "$FROM_INSTALL" = true ] && [ "$FROM_MIGRATION" = false ] && [ "$FROM_ANALYSIS" = false ]; } || \
+   { [ "$SKIP_INSTALL" = true ] && [ "$FROM_MIGRATION" = false ] && [ "$FROM_ANALYSIS" = false ]; }; then
+  # Step 4: Migration with logging
+  echo ""
+  echo "=== Step 4: Installing NEW version (capturing logs) ==="
+  adb logcat -c
+  adb logcat -s "Favorites:V" "*:S" | tee migration.log | grep --line-buffered "FAVORITES_" &
+  LOGPID=$!
+
+  sleep 2
+  while true; do
+    adb install -r new-version.apk && break
+    echo "Waiting for user to allow install of new-version.apk... retrying in 5s."
+    sleep 5
+  done
+
+  echo "🎯 Launching app..."
+  adb shell am start -n "$PACKAGE/.MainActivity"
+
+  echo "⏳ Waiting 15 seconds for migration..."
+  sleep 15
+
+  kill $LOGPID 2>/dev/null || true
+fi
+
+# Step 5: Analyze results (always runs)
+echo ""
+echo "=== Step 5: Migration Analysis ==="
+
+MIGRATE=$(grep -c "FAVORITES_MIGRATE" migration.log)
+MIGRATE=${MIGRATE:-0}
+CLEANUP=$(grep -c "FAVORITES_CLEANUP" migration.log)
+CLEANUP=${CLEANUP:-0}
+SAVE=$(grep -c "FAVORITES_SAVE" migration.log)
+SAVE=${SAVE:-0}
+SYNC=$(grep -c "FAVORITES_SYNC" migration.log)
+SYNC=${SYNC:-0}
+ERRORS=$(grep -c "FAVORITES_ERROR" migration.log)
+ERRORS=${ERRORS:-0}
+WARNS=$(grep -c "FAVORITES_WARN" migration.log)
+WARNS=${WARNS:-0}
+
+echo "Results:"
+echo "  Migration: $MIGRATE"
+echo "  Cleanup:   $CLEANUP"
+echo "  Save:      $SAVE"
+echo "  Sync:      $SYNC"
+echo "  Errors:    $ERRORS"
+echo "  Warnings:  $WARNS"
+echo ""
+
+if [ "$MIGRATE" -gt 0 ]; then
+  echo "✅ Migration executed:"
+  grep "FAVORITES_MIGRATE" migration.log
+fi
+
+if [ "$CLEANUP" -gt 0 ]; then
+  echo "✅ Legacy cleanup:"
+  grep "FAVORITES_CLEANUP" migration.log
+fi
+
+if [ "$ERRORS" -gt 0 ]; then
+  echo ""
+  echo "❌ ERRORS DETECTED:"
+  grep "FAVORITES_ERROR" migration.log
+fi
+
+if [ "$WARNS" -gt 0 ]; then
+  echo ""
+  echo "⚠️ WARNINGS:"
+  grep "FAVORITES_WARN" migration.log
+fi
+
+echo ""
+echo "📋 Full log saved: migration.log"
+echo ""
+echo "=== Step 6: Manual Verification ==="
+echo "🎯 Check in app:"
+echo "  1. ✓ Favorites still exist?"
+echo "  2. ✓ Count matches what you added?"
+echo "  3. ✓ Add/remove new favorites works?"
+echo ""
+echo "All checks passed? (y/n)"
+# shellcheck disable=SC2162
+read RESULT
+
+echo ""
+if [ "$RESULT" = "y" ]; then
+  echo "✅ MIGRATION TEST PASSED"
+  echo ""
+  echo "Next steps:"
+  echo "  - Review migration.log for details"
+  echo "  - Test language switching"
+  echo "  - Test app restart"
+  exit 0
+else
+  echo "❌ MIGRATION TEST FAILED"
+  echo "Review migration.log for details"
+  exit 1
+fi
+

@@ -260,7 +260,8 @@
     "server_error": "Error del servidor",
     "timeout_error": "Tiempo de espera agotado",
     "prayer_loading_error": "Error al cargar las oraciones",
-    "thanksgiving_loading_error": "Error al cargar agradecimientos"
+    "thanksgiving_loading_error": "Error al cargar agradecimientos",
+    "update_favorite_failed": "Error al actualizar favorito"
   },
   "messages": {
     "welcome": "¡Bienvenido!",

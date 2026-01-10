@@ -260,7 +260,8 @@
     "server_error": "Server error",
     "timeout_error": "Request timeout",
     "prayer_loading_error": "Error loading prayers",
-    "thanksgiving_loading_error": "Error loading thanksgivings"
+    "thanksgiving_loading_error": "Error loading thanksgivings",
+    "update_favorite_failed": "Failed to update favorite"
   },
   "messages": {
     "welcome": "Welcome!",
