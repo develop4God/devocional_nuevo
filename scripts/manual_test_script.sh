@@ -116,12 +116,18 @@ kill $LOGPID 2>/dev/null || true
 echo ""
 echo "=== Step 5: Migration Analysis ==="
 
-MIGRATE=$(grep -c "⭐FAVORITES_MIGRATE" migration.log || echo "0")
-CLEANUP=$(grep -c "⭐FAVORITES_CLEANUP" migration.log || echo "0")
-SAVE=$(grep -c "⭐FAVORITES_SAVE" migration.log || echo "0")
-SYNC=$(grep -c "⭐FAVORITES_SYNC" migration.log || echo "0")
-ERRORS=$(grep -c "❌FAVORITES_ERROR" migration.log || echo "0")
-WARNS=$(grep -c "⚠️FAVORITES_WARN" migration.log || echo "0")
+MIGRATE=$(grep -c "FAVORITES_MIGRATE" migration.log)
+MIGRATE=${MIGRATE:-0}
+CLEANUP=$(grep -c "FAVORITES_CLEANUP" migration.log)
+CLEANUP=${CLEANUP:-0}
+SAVE=$(grep -c "FAVORITES_SAVE" migration.log)
+SAVE=${SAVE:-0}
+SYNC=$(grep -c "FAVORITES_SYNC" migration.log)
+SYNC=${SYNC:-0}
+ERRORS=$(grep -c "FAVORITES_ERROR" migration.log)
+ERRORS=${ERRORS:-0}
+WARNS=$(grep -c "FAVORITES_WARN" migration.log)
+WARNS=${WARNS:-0}
 
 echo "Results:"
 echo "  Migration: $MIGRATE"
@@ -134,24 +140,24 @@ echo ""
 
 if [ "$MIGRATE" -gt 0 ]; then
   echo "✅ Migration executed:"
-  grep "⭐FAVORITES_MIGRATE" migration.log
+  grep "FAVORITES_MIGRATE" migration.log
 fi
 
 if [ "$CLEANUP" -gt 0 ]; then
   echo "✅ Legacy cleanup:"
-  grep "⭐FAVORITES_CLEANUP" migration.log
+  grep "FAVORITES_CLEANUP" migration.log
 fi
 
 if [ "$ERRORS" -gt 0 ]; then
   echo ""
   echo "❌ ERRORS DETECTED:"
-  grep "❌FAVORITES_ERROR" migration.log
+  grep "FAVORITES_ERROR" migration.log
 fi
 
 if [ "$WARNS" -gt 0 ]; then
   echo ""
   echo "⚠️ WARNINGS:"
-  grep "⚠️FAVORITES_WARN" migration.log
+  grep "FAVORITES_WARN" migration.log
 fi
 
 echo ""
