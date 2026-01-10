@@ -116,16 +116,14 @@ class FakeTtsService implements ITtsService {
 }
 
 /// Mock analytics service for telemetry testing
-class MockAnalyticsService extends AnalyticsService {
+/// We create a simplified mock that doesn't need Firebase
+class MockAnalyticsService {
   final List<Map<String, dynamic>> events = [];
-
-  MockAnalyticsService() : super();
 
   void reset() {
     events.clear();
   }
 
-  @override
   Future<void> logCustomEvent({
     required String eventName,
     Map<String, Object>? parameters,
@@ -136,10 +134,8 @@ class MockAnalyticsService extends AnalyticsService {
     });
   }
 
-  @override
   Future<void> logTtsPlay() async {}
 
-  @override
   Future<void> logDevocionalComplete({
     required String devocionalId,
     required String campaignTag,
@@ -149,25 +145,19 @@ class MockAnalyticsService extends AnalyticsService {
     double? listenedPercentage,
   }) async {}
 
-  @override
   Future<void> setUserProperty({
     required String name,
     required String value,
   }) async {}
 
-  @override
   Future<void> setUserId(String? userId) async {}
 
-  @override
   Future<void> resetAnalyticsData() async {}
 
-  @override
   Future<void> logBottomBarAction({required String action}) async {}
 
-  @override
   Future<void> logAppInit({Map<String, Object>? parameters}) async {}
 
-  @override
   Future<void> logNavigationNext({
     required int currentIndex,
     required int totalDevocionales,
@@ -175,13 +165,112 @@ class MockAnalyticsService extends AnalyticsService {
     String? fallbackReason,
   }) async {}
 
-  @override
   Future<void> logNavigationPrevious({
     required int currentIndex,
     required int totalDevocionales,
     required String viaBloc,
     String? fallbackReason,
   }) async {}
+}
+
+/// Wrapper that extends AnalyticsService and delegates to MockAnalyticsService
+/// This allows us to register it with the correct type while capturing events
+class MockAnalyticsWrapper extends AnalyticsService {
+  static final MockAnalyticsService _mock = MockAnalyticsService();
+
+  MockAnalyticsWrapper() : super();
+
+  static MockAnalyticsService get mock => _mock;
+
+  @override
+  Future<void> logCustomEvent({
+    required String eventName,
+    Map<String, Object>? parameters,
+  }) async {
+    await _mock.logCustomEvent(eventName: eventName, parameters: parameters);
+  }
+
+  @override
+  Future<void> logTtsPlay() async {
+    await _mock.logTtsPlay();
+  }
+
+  @override
+  Future<void> logDevocionalComplete({
+    required String devocionalId,
+    required String campaignTag,
+    String source = 'read',
+    int? readingTimeSeconds,
+    double? scrollPercentage,
+    double? listenedPercentage,
+  }) async {
+    await _mock.logDevocionalComplete(
+      devocionalId: devocionalId,
+      campaignTag: campaignTag,
+      source: source,
+      readingTimeSeconds: readingTimeSeconds,
+      scrollPercentage: scrollPercentage,
+      listenedPercentage: listenedPercentage,
+    );
+  }
+
+  @override
+  Future<void> setUserProperty({
+    required String name,
+    required String value,
+  }) async {
+    await _mock.setUserProperty(name: name, value: value);
+  }
+
+  @override
+  Future<void> setUserId(String? userId) async {
+    await _mock.setUserId(userId);
+  }
+
+  @override
+  Future<void> resetAnalyticsData() async {
+    await _mock.resetAnalyticsData();
+  }
+
+  @override
+  Future<void> logBottomBarAction({required String action}) async {
+    await _mock.logBottomBarAction(action: action);
+  }
+
+  @override
+  Future<void> logAppInit({Map<String, Object>? parameters}) async {
+    await _mock.logAppInit(parameters: parameters);
+  }
+
+  @override
+  Future<void> logNavigationNext({
+    required int currentIndex,
+    required int totalDevocionales,
+    required String viaBloc,
+    String? fallbackReason,
+  }) async {
+    await _mock.logNavigationNext(
+      currentIndex: currentIndex,
+      totalDevocionales: totalDevocionales,
+      viaBloc: viaBloc,
+      fallbackReason: fallbackReason,
+    );
+  }
+
+  @override
+  Future<void> logNavigationPrevious({
+    required int currentIndex,
+    required int totalDevocionales,
+    required String viaBloc,
+    String? fallbackReason,
+  }) async {
+    await _mock.logNavigationPrevious(
+      currentIndex: currentIndex,
+      totalDevocionales: totalDevocionales,
+      viaBloc: viaBloc,
+      fallbackReason: fallbackReason,
+    );
+  }
 }
 
 /// Helper to create test devotionals
@@ -354,8 +443,10 @@ void main() {
     // Reset service locator and register fake services
     ServiceLocator().reset();
     ServiceLocator().registerSingleton<ITtsService>(FakeTtsService());
-    ServiceLocator()
-        .registerSingleton<AnalyticsService>(MockAnalyticsService());
+
+    // Register analytics as a lazy singleton so Firebase is initialized first
+    // This creates the instance only when first accessed, after Firebase.initializeApp()
+    ServiceLocator().registerLazySingleton<AnalyticsService>(() => MockAnalyticsWrapper());
   });
 
   group('PR #180 - Test 1: Race Condition - Init Order', () {
@@ -473,8 +564,7 @@ void main() {
   group('PR #180 - Test 3: Partial Migration (Empty IDs)', () {
     test('migration logs when some favorites have empty IDs', () async {
       final prefs = await SharedPreferences.getInstance();
-      final mockAnalytics =
-          getService<AnalyticsService>() as MockAnalyticsService;
+      final mockAnalytics = MockAnalyticsWrapper.mock;
       mockAnalytics.reset();
 
       // 3 items, 1 with empty ID
@@ -537,8 +627,7 @@ void main() {
   group('PR #180 - Test 4: Telemetry Throttling', () {
     test('mismatch telemetry fires only once per session', () async {
       final prefs = await SharedPreferences.getInstance();
-      final mockAnalytics =
-          getService<AnalyticsService>() as MockAnalyticsService;
+      final mockAnalytics = MockAnalyticsWrapper.mock;
       mockAnalytics.reset();
 
       // Set up scenario where there will be a mismatch
@@ -582,8 +671,7 @@ void main() {
   group('PR #180 - Test 5: Corrupted Legacy Data', () {
     test('migration handles corrupted JSON gracefully', () async {
       final prefs = await SharedPreferences.getInstance();
-      final mockAnalytics =
-          getService<AnalyticsService>() as MockAnalyticsService;
+      final mockAnalytics = MockAnalyticsWrapper.mock;
       mockAnalytics.reset();
 
       // Set corrupted JSON
@@ -701,8 +789,7 @@ void main() {
   group('PR #180 - Additional Edge Cases', () {
     test('migration success telemetry is logged correctly', () async {
       final prefs = await SharedPreferences.getInstance();
-      final mockAnalytics =
-          getService<AnalyticsService>() as MockAnalyticsService;
+      final mockAnalytics = MockAnalyticsWrapper.mock;
       mockAnalytics.reset();
 
       // Set up valid legacy data
@@ -745,8 +832,7 @@ void main() {
     });
 
     test('no telemetry spam when favorites match devotionals', () async {
-      final mockAnalytics =
-          getService<AnalyticsService>() as MockAnalyticsService;
+      final mockAnalytics = MockAnalyticsWrapper.mock;
       mockAnalytics.reset();
 
       final provider = DevocionalProvider();
