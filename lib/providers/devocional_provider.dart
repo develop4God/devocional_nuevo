@@ -679,6 +679,13 @@ class DevocionalProvider with ChangeNotifier {
   Future<void> _saveFavorites() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('favorite_ids', json.encode(_favoriteIds.toList()));
+    // Optional: persist a local schema version for favorites to allow
+    // future migrations to detect and upgrade stored format.
+    try {
+      await prefs.setInt('favorites_schema_version', 1);
+    } catch (e) {
+      debugPrint('⚠️ Failed to set favorites_schema_version: $e');
+    }
     debugPrint('💾 Saved ${_favoriteIds.length} favorite IDs');
   }
 
@@ -694,6 +701,29 @@ class DevocionalProvider with ChangeNotifier {
 
     debugPrint(
         '🔄 Synced ${_favoriteDevocionales.length} favorites from ${_favoriteIds.length} IDs');
+
+    // Optional telemetry: detect and report mismatch between stored IDs and
+    // the devotionals actually found for the current language/version.
+    if (_favoriteIds.length != _favoriteDevocionales.length) {
+      try {
+        final analytics = getService<AnalyticsService>();
+        analytics.logCustomEvent(
+          eventName: 'favorites_id_mismatch',
+          parameters: {
+            'favorite_ids_count': _favoriteIds.length,
+            'favorite_devocionales_count': _favoriteDevocionales.length,
+            'language': _selectedLanguage,
+            'version': _selectedVersion,
+          },
+        );
+        developer.log(
+          '[PROVIDER] favorites_id_mismatch logged: ids=${_favoriteIds.length}, found=${_favoriteDevocionales.length}',
+          name: 'DevocionalProvider',
+        );
+      } catch (e) {
+        debugPrint('⚠️ Failed to send favorites mismatch telemetry: $e');
+      }
+    }
   }
 
   bool isFavorite(Devocional devocional) {
