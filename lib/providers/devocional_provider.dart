@@ -818,15 +818,29 @@ class DevocionalProvider with ChangeNotifier {
   /// Public helper: add a favorite ID programmatically (no UI) and persist it.
   /// Useful for unit tests or programmatic changes that don't need SnackBars.
   Future<void> addFavoriteId(String id) async {
+    if (id.isEmpty) return;
+
+    int count = 0;
+    bool wasAdded = false;
+
     await _favoritesLock.synchronized(() async {
-      if (id.isEmpty) return;
+      // Check for duplicates to avoid unnecessary saves
+      if (_favoriteIds.contains(id)) {
+        return;
+      }
       _favoriteIds.add(id);
+      wasAdded = true;
       // Keep _favoriteDevocionales in sync only if possible; for tests we only
       // need the persisted IDs and schema version.
-      _statsService.updateFavoritesCount(_favoriteIds.length);
+      count = _favoriteIds.length;
       await _saveFavoritesInternal();
     });
-    notifyListeners();
+
+    // Update stats outside lock to avoid blocking critical section
+    if (wasAdded) {
+      _statsService.updateFavoritesCount(count);
+      notifyListeners();
+    }
   }
 
   void _syncFavoritesWithLoadedDevotionals() {
@@ -896,6 +910,7 @@ class DevocionalProvider with ChangeNotifier {
     }
 
     bool? wasAdded;
+    int count = 0;
 
     await _favoritesLock.synchronized(() async {
       if (_favoriteIds.contains(id)) {
@@ -906,7 +921,6 @@ class DevocionalProvider with ChangeNotifier {
         _favoriteIds.add(id);
         final dev = _allDevocionalesForCurrentLanguage
             .where((d) => d.id == id)
-            .cast<Devocional>()
             .firstOrNull;
         if (dev != null) {
           _favoriteDevocionales.add(dev);
@@ -914,11 +928,12 @@ class DevocionalProvider with ChangeNotifier {
         wasAdded = true;
       }
 
-      final count = _favoriteIds.length;
-      _statsService.updateFavoritesCount(count);
+      count = _favoriteIds.length;
       await _saveFavoritesInternal();
     });
 
+    // Update stats outside lock to avoid blocking critical section
+    _statsService.updateFavoritesCount(count);
     notifyListeners();
     return wasAdded;
   }
