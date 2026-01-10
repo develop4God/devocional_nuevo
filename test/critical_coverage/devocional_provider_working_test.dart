@@ -229,18 +229,18 @@ void main() {
       expect(provider.isFavorite(devotional), isFalse);
 
       // Use new async API
-      final result1 = await provider.toggleFavorite(devotional.id);
+      final wasAdded1 = await provider.toggleFavorite(devotional.id);
       await tester.pump(); // Let the provider notify
 
-      expect(result1, isNotNull);
-      expect(result1!['wasAdded'], isTrue);
+      expect(wasAdded1, isNotNull);
+      expect(wasAdded1, isTrue);
       expect(provider.isFavorite(devotional), isTrue);
 
-      final result2 = await provider.toggleFavorite(devotional.id);
+      final wasAdded2 = await provider.toggleFavorite(devotional.id);
       await tester.pump();
 
-      expect(result2, isNotNull);
-      expect(result2!['wasAdded'], isFalse);
+      expect(wasAdded2, isNotNull);
+      expect(wasAdded2, isFalse);
       expect(provider.isFavorite(devotional), isFalse);
     });
 

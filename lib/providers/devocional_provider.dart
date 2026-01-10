@@ -884,9 +884,9 @@ class DevocionalProvider with ChangeNotifier {
   }
 
   /// Toggle favorite status for a devotional
-  /// Returns a map with 'wasAdded' (bool) and 'count' (int) for UI feedback
+  /// Returns true if favorite was added, false if removed
   /// Returns null if the operation failed (e.g., empty ID)
-  Future<Map<String, dynamic>?> toggleFavorite(String id) async {
+  Future<bool?> toggleFavorite(String id) async {
     if (id.isEmpty) {
       developer.log(
         '❌FAVORITES_ERROR: Cannot toggle favorite with empty ID',
@@ -895,10 +895,9 @@ class DevocionalProvider with ChangeNotifier {
       return null;
     }
 
-    Map<String, dynamic>? result;
+    bool? wasAdded;
 
     await _favoritesLock.synchronized(() async {
-      bool wasAdded;
       if (_favoriteIds.contains(id)) {
         _favoriteIds.remove(id);
         _favoriteDevocionales.removeWhere((d) => d.id == id);
@@ -918,12 +917,10 @@ class DevocionalProvider with ChangeNotifier {
       final count = _favoriteIds.length;
       _statsService.updateFavoritesCount(count);
       await _saveFavoritesInternal();
-
-      result = {'wasAdded': wasAdded, 'count': count};
     });
 
     notifyListeners();
-    return result;
+    return wasAdded;
   }
 
   /// Legacy method for backwards compatibility with BuildContext
@@ -943,11 +940,10 @@ class DevocionalProvider with ChangeNotifier {
       return;
     }
 
-    final result = await toggleFavorite(devocional.id);
-    if (result == null || !context.mounted) return;
+    final wasAdded = await toggleFavorite(devocional.id);
+    if (wasAdded == null || !context.mounted) return;
 
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
-    final bool wasAdded = result['wasAdded'] as bool;
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(

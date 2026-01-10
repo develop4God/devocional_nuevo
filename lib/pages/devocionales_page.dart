@@ -1479,10 +1479,9 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                   getService<AnalyticsService>().logBottomBarAction(
                     action: 'favorite',
                   );
-                  final result = await devocionalProvider
+                  final wasAdded = await devocionalProvider
                       .toggleFavorite(currentDevocional.id);
-                  if (result != null && context.mounted) {
-                    final wasAdded = result['wasAdded'] as bool;
+                  if (wasAdded != null && context.mounted) {
                     final colorScheme = Theme.of(context).colorScheme;
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
@@ -1974,12 +1973,11 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                               getService<AnalyticsService>().logBottomBarAction(
                                 action: 'favorite',
                               );
-                              final result =
+                              final wasAdded =
                                   await devocionalProvider.toggleFavorite(
                                 currentDevocional!.id,
                               );
-                              if (result != null && context.mounted) {
-                                final wasAdded = result['wasAdded'] as bool;
+                              if (wasAdded != null && context.mounted) {
                                 final colorScheme =
                                     Theme.of(context).colorScheme;
                                 ScaffoldMessenger.of(context).showSnackBar(

@@ -563,10 +563,10 @@ void main() {
       );
 
       // Test that empty ID returns null
-      final result = await provider.toggleFavorite(invalidDevocional.id);
+      final wasAdded = await provider.toggleFavorite(invalidDevocional.id);
 
       // Should return null for invalid ID
-      expect(result, isNull);
+      expect(wasAdded, isNull);
 
       // Should not be in favorites
       expect(provider.favoriteDevocionales.length, equals(0));
@@ -586,11 +586,11 @@ void main() {
       );
 
       // Try to add favorite
-      final result = await provider.toggleFavorite(devocional.id);
+      final wasAdded = await provider.toggleFavorite(devocional.id);
 
       // Should be added (not removed)
-      expect(result, isNotNull);
-      expect(result!['wasAdded'], isTrue);
+      expect(wasAdded, isNotNull);
+      expect(wasAdded, isTrue);
       expect(provider.isFavorite(devocional), isTrue);
 
       provider.dispose();

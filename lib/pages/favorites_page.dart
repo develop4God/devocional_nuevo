@@ -139,11 +139,10 @@ class FavoritesPage extends StatelessWidget {
                               ),
                               tooltip: 'favorites.remove_tooltip'.tr(),
                               onPressed: () async {
-                                final result =
-                                    await devocionalProvider.toggleFavorite(
+                                await devocionalProvider.toggleFavorite(
                                   devocional.id,
                                 );
-                                if (result != null && context.mounted) {
+                                if (context.mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
                                       backgroundColor: Theme.of(
