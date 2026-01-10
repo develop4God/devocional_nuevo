@@ -984,10 +984,7 @@ class DevocionalProvider with ChangeNotifier {
     } catch (e) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Error al actualizar favorito'),
-          duration: Duration(seconds: 2),
-        ),
+        SnackBar(content: Text('errors.update_favorite_failed'.tr())),
       );
     }
   }

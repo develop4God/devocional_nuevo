@@ -252,15 +252,16 @@
   },
   "errors": {
     "network_error": "Erreur de connexion",
-    "file_not_found": "Fichier introuvable",
+    "file_not_found": "Fichier non trouvé",
     "permission_denied": "Permission refusée",
     "unknown_error": "Erreur inconnue",
     "retry_message": "Veuillez réessayer",
-    "no_internet": "Pas de connexion internet",
+    "no_internet": "Pas de connexion Internet",
     "server_error": "Erreur du serveur",
     "timeout_error": "Délai d'attente dépassé",
     "prayer_loading_error": "Erreur lors du chargement des prières",
-    "thanksgiving_loading_error": "Erreur lors du chargement des actions de grâce"
+    "thanksgiving_loading_error": "Erreur lors du chargement des actions de grâce",
+    "update_favorite_failed": "Échec de la mise à jour du favori"
   },
   "messages": {
     "welcome": "Bienvenue !",
