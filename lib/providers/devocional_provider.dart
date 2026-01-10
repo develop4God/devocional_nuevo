@@ -126,7 +126,8 @@ class DevocionalProvider with ChangeNotifier {
   }
 
   // ========== CONSTRUCTOR ==========
-  DevocionalProvider() {
+  DevocionalProvider({http.Client? httpClient})
+      : httpClient = httpClient ?? http.Client() {
     debugPrint('🏗️ Provider: Constructor iniciado');
 
     // Initialize audio controller with DI
@@ -138,6 +139,8 @@ class DevocionalProvider with ChangeNotifier {
 
     debugPrint('✅ Provider: Constructor completado');
   }
+
+  final http.Client httpClient;
 
   bool? get isSpeaking => null;
 
@@ -470,7 +473,7 @@ class DevocionalProvider with ChangeNotifier {
             _selectedVersion,
           );
           debugPrint('🔍 Requesting URL: $url');
-          final response = await http.get(Uri.parse(url));
+          final response = await httpClient.get(Uri.parse(url));
 
           if (response.statusCode == 200) {
             final String responseBody = response.body;
@@ -1082,7 +1085,7 @@ class DevocionalProvider with ChangeNotifier {
       );
       debugPrint('🔍 Requesting URL: $url');
       debugPrint('🔍 Language: $_selectedLanguage, Version: $_selectedVersion');
-      final response = await http.get(Uri.parse(url));
+      final response = await httpClient.get(Uri.parse(url));
 
       if (response.statusCode == 404) {
         debugPrint(

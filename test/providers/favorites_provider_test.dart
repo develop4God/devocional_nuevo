@@ -1,6 +1,7 @@
 // test/providers/favorites_provider_test.dart
 
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
@@ -10,18 +11,21 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class MockPathProviderPlatform extends PathProviderPlatform {
   @override
   Future<String?> getApplicationDocumentsPath() async {
-    return '/mock_documents';
+    // Use a writable temp directory for tests
+    return Directory.systemTemp.path;
   }
 
   @override
   Future<String?> getTemporaryPath() async {
-    return '/mock_temp';
+    return Directory.systemTemp.path;
   }
 }
 
@@ -55,6 +59,12 @@ Devocional createTestDevocional({
 /// Tests the ID-based storage system to prevent "not read" bugs
 void main() {
   late DevocionalProvider provider;
+
+  // Mock HTTP client that returns dummy data for all requests
+  final mockHttpClient = MockClient((request) async {
+    // Return a minimal valid JSON structure for devotionals
+    return http.Response('{"data": {"es": {}}}', 200);
+  });
 
   // Mock platform channels
   const MethodChannel pathProviderChannel = MethodChannel(
@@ -201,9 +211,8 @@ void main() {
   });
 
   setUp(() async {
-    // Clear SharedPreferences before each test
     SharedPreferences.setMockInitialValues({});
-    provider = DevocionalProvider();
+    provider = DevocionalProvider(httpClient: mockHttpClient);
   });
 
   tearDown(() {
@@ -213,32 +222,21 @@ void main() {
   group('Favorites ID-Based Storage System', () {
     test('Should save and load favorites using IDs only', () async {
       final prefs = await SharedPreferences.getInstance();
-
-      // Create test devotionals
       final testDevocional = createTestDevocional(
         id: 'devocional_2025_01_15_RVR1960',
         date: DateTime(2025, 1, 15),
         versiculo: 'Juan 3:16',
       );
-
-      // Simulate adding to favorites
       final favoriteIds = {'devocional_2025_01_15_RVR1960'};
       await prefs.setString('favorite_ids', json.encode(favoriteIds.toList()));
-
-      // Load favorites in a new provider instance
-      final newProvider = DevocionalProvider();
+      final newProvider = DevocionalProvider(httpClient: mockHttpClient);
       await newProvider.initializeData();
-
-      // Verify the favorite ID was loaded
       expect(newProvider.isFavorite(testDevocional), isTrue);
-
       newProvider.dispose();
     });
 
     test('Should migrate legacy favorites to ID-based storage', () async {
       final prefs = await SharedPreferences.getInstance();
-
-      // Create legacy favorites format (full objects)
       final legacyFavorites = [
         {
           'id': 'devocional_2025_01_15_RVR1960',
@@ -251,42 +249,28 @@ void main() {
           'language': 'es',
         },
       ];
-
       await prefs.setString('favorites', json.encode(legacyFavorites));
-
-      // Load with new provider - should migrate
-      final newProvider = DevocionalProvider();
+      final newProvider = DevocionalProvider(httpClient: mockHttpClient);
       await newProvider.initializeData();
-
-      // Create test devotional with same ID
       final testDevocional = createTestDevocional(
         id: 'devocional_2025_01_15_RVR1960',
         date: DateTime(2025, 1, 15),
         versiculo: 'Juan 3:16',
       );
-
-      // Should recognize as favorite after migration
       expect(newProvider.isFavorite(testDevocional), isTrue);
-
       newProvider.dispose();
     });
 
     test('Should handle empty favorites gracefully', () async {
       await SharedPreferences.getInstance();
-
-      // No favorites stored
-      final newProvider = DevocionalProvider();
+      final newProvider = DevocionalProvider(httpClient: mockHttpClient);
       await newProvider.initializeData();
-
       expect(newProvider.favoriteDevocionales, isEmpty);
-
       newProvider.dispose();
     });
 
     test('Should skip invalid IDs during legacy migration', () async {
       final prefs = await SharedPreferences.getInstance();
-
-      // Create legacy favorites with empty and null IDs
       final legacyFavorites = [
         {
           'id': '',
@@ -309,22 +293,15 @@ void main() {
           'language': 'es',
         },
       ];
-
       await prefs.setString('favorites', json.encode(legacyFavorites));
-
-      // Load with new provider
-      final newProvider = DevocionalProvider();
+      final newProvider = DevocionalProvider(httpClient: mockHttpClient);
       await newProvider.initializeData();
-
-      // Should only have valid ID
       final validDevocional = createTestDevocional(
         id: 'valid_id',
         date: DateTime(2025, 1, 16),
         versiculo: 'Juan 3:17',
       );
-
       expect(newProvider.isFavorite(validDevocional), isTrue);
-
       newProvider.dispose();
     });
   });
@@ -340,7 +317,7 @@ void main() {
       );
 
       // First session: Add favorite
-      final provider1 = DevocionalProvider();
+      final provider1 = DevocionalProvider(httpClient: mockHttpClient);
       await provider1.initializeData();
 
       await tester.pumpWidget(
@@ -369,7 +346,7 @@ void main() {
       provider1.dispose();
 
       // Second session: Load again (simulating app restart)
-      final provider2 = DevocionalProvider();
+      final provider2 = DevocionalProvider(httpClient: mockHttpClient);
       await provider2.initializeData();
 
       // Should still be favorite
@@ -391,7 +368,7 @@ void main() {
       );
 
       // First session: Add favorite and mark as read
-      final provider1 = DevocionalProvider();
+      final provider1 = DevocionalProvider(httpClient: mockHttpClient);
       await provider1.initializeData();
 
       await tester.pumpWidget(
@@ -426,7 +403,7 @@ void main() {
       provider1.dispose();
 
       // Second session: Load again
-      final provider2 = DevocionalProvider();
+      final provider2 = DevocionalProvider(httpClient: mockHttpClient);
       await provider2.initializeData();
 
       // Should still be favorite AND read
@@ -453,7 +430,7 @@ void main() {
       await prefs.setString('favorite_ids', json.encode(backupFavoriteIds));
 
       // Load provider and reload favorites
-      final provider = DevocionalProvider();
+      final provider = DevocionalProvider(httpClient: mockHttpClient);
       await provider.initializeData();
       await provider.reloadFavoritesFromStorage();
 
@@ -496,7 +473,7 @@ void main() {
       await prefs.setString('spiritual_stats', json.encode(statsData));
 
       // Load provider
-      final provider = DevocionalProvider();
+      final provider = DevocionalProvider(httpClient: mockHttpClient);
       await provider.initializeData();
       await provider.reloadFavoritesFromStorage();
 
@@ -528,7 +505,7 @@ void main() {
       await prefs.setString('favorite_ids', json.encode(spanishFavorites));
 
       // Load provider in Spanish
-      final provider = DevocionalProvider();
+      final provider = DevocionalProvider(httpClient: mockHttpClient);
       await provider.initializeData();
 
       // Create Spanish devotional
@@ -553,7 +530,7 @@ void main() {
   group('Edge Cases', () {
     testWidgets('Should not add devotional without ID to favorites',
         (WidgetTester tester) async {
-      final provider = DevocionalProvider();
+      final provider = DevocionalProvider(httpClient: mockHttpClient);
       await provider.initializeData();
 
       final invalidDevocional = createTestDevocional(
@@ -576,7 +553,7 @@ void main() {
 
     testWidgets('Should handle removing non-existent favorite gracefully',
         (WidgetTester tester) async {
-      final provider = DevocionalProvider();
+      final provider = DevocionalProvider(httpClient: mockHttpClient);
       await provider.initializeData();
 
       final devocional = createTestDevocional(
@@ -605,7 +582,7 @@ void main() {
       ];
       await prefs.setString('favorite_ids', json.encode(favoriteIds));
 
-      final provider = DevocionalProvider();
+      final provider = DevocionalProvider(httpClient: mockHttpClient);
       await provider.initializeData();
 
       // Favorites should be loaded
@@ -626,7 +603,7 @@ void main() {
       // Store corrupted JSON
       await prefs.setString('favorite_ids', 'not-valid-json');
 
-      final provider = DevocionalProvider();
+      final provider = DevocionalProvider(httpClient: mockHttpClient);
 
       // Should not crash, should handle gracefully
       expect(() async => await provider.initializeData(), returnsNormally);
@@ -654,7 +631,7 @@ void main() {
       await prefs.setString('favorites', json.encode(legacyFavorites));
 
       // Load provider and add a favorite
-      final provider = DevocionalProvider();
+      final provider = DevocionalProvider(httpClient: mockHttpClient);
       await provider.initializeData();
       await provider.toggleFavorite('dev_456');
 
@@ -670,7 +647,7 @@ void main() {
 
     testWidgets('handles rapid concurrent toggles',
         (WidgetTester tester) async {
-      final provider = DevocionalProvider();
+      final provider = DevocionalProvider(httpClient: mockHttpClient);
       await provider.initializeData();
 
       // Simulate rapid concurrent toggles
@@ -689,7 +666,7 @@ void main() {
       // This test is difficult to implement without dependency injection
       // for SharedPreferences. For now, we'll test that toggleFavorite
       // propagates exceptions correctly by testing with empty ID
-      final provider = DevocionalProvider();
+      final provider = DevocionalProvider(httpClient: mockHttpClient);
       await provider.initializeData();
 
       // Empty ID should throw ArgumentError
@@ -732,7 +709,7 @@ void main() {
       expect(legacyDataBefore, isNotNull);
 
       // User upgrades app - new provider loads and migrates
-      final provider = DevocionalProvider();
+      final provider = DevocionalProvider(httpClient: mockHttpClient);
       await provider.initializeData();
 
       // Verify migration worked
@@ -782,7 +759,7 @@ void main() {
       await prefs.setString('favorites', json.encode(legacyFavorites));
 
       // Step 1: User upgrades to new version and migration happens
-      final newProvider = DevocionalProvider();
+      final newProvider = DevocionalProvider(httpClient: mockHttpClient);
       await newProvider.initializeData();
 
       // Verify migration worked - favorite is recognized
@@ -855,7 +832,7 @@ void main() {
 
       await prefs.setString('favorites', json.encode(legacyFavorites));
 
-      final provider = DevocionalProvider();
+      final provider = DevocionalProvider(httpClient: mockHttpClient);
       await provider.initializeData();
 
       // Should have migrated 2 valid entries (skipped the empty ID)
@@ -901,7 +878,7 @@ void main() {
       await prefs.setString('favorites', json.encode(legacyFavorites));
 
       final stopwatch = Stopwatch()..start();
-      final provider = DevocionalProvider();
+      final provider = DevocionalProvider(httpClient: mockHttpClient);
       await provider.initializeData();
       stopwatch.stop();
 
@@ -937,7 +914,7 @@ void main() {
 
       await prefs.setString('favorites', json.encode(legacyFavorites));
 
-      final provider = DevocionalProvider();
+      final provider = DevocionalProvider(httpClient: mockHttpClient);
       await provider.initializeData();
 
       // Verify favorite is loaded
