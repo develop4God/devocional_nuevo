@@ -446,7 +446,8 @@ void main() {
 
     // Register analytics as a lazy singleton so Firebase is initialized first
     // This creates the instance only when first accessed, after Firebase.initializeApp()
-    ServiceLocator().registerLazySingleton<AnalyticsService>(() => MockAnalyticsWrapper());
+    ServiceLocator()
+        .registerLazySingleton<AnalyticsService>(() => MockAnalyticsWrapper());
   });
 
   group('PR #180 - Test 1: Race Condition - Init Order', () {
