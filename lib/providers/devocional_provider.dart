@@ -4,7 +4,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:developer' as developer;
 import 'dart:io';
-import 'dart:ui';
 
 import 'package:devocional_nuevo/constants/devocional_years.dart';
 import 'package:devocional_nuevo/controllers/audio_controller.dart'; // NEW
@@ -19,6 +18,7 @@ import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
 import 'package:devocional_nuevo/services/tts/i_tts_service.dart';
 import 'package:devocional_nuevo/utils/constants.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
@@ -49,7 +49,8 @@ class DevocionalProvider with ChangeNotifier {
 
   // ========== SERVICES ==========
   final SpiritualStatsService _statsService = SpiritualStatsService();
-  late final AudioController _audioController; // NEW - Injected dependency
+  AudioController?
+      _audioController; // nullable to allow disabling audio in tests
 
   // ========== OFFLINE FUNCTIONALITY ==========
   bool _isDownloading = false;
@@ -82,17 +83,17 @@ class DevocionalProvider with ChangeNotifier {
   bool get isOfflineMode => _isOfflineMode;
 
   // Audio getters (delegates to AudioController)
-  AudioController get audioController => _audioController;
+  AudioController get audioController => _audioController!;
 
-  bool get isAudioPlaying => _audioController.isPlaying;
+  bool get isAudioPlaying => _audioController!.isPlaying;
 
-  bool get isAudioPaused => _audioController.isPaused;
+  bool get isAudioPaused => _audioController!.isPaused;
 
   String? get currentPlayingDevocionalId =>
-      _audioController.currentDevocionalId;
+      _audioController!.currentDevocionalId;
 
   bool isDevocionalPlaying(String devocionalId) =>
-      _audioController.isDevocionalPlaying(devocionalId);
+      _audioController!.isDevocionalPlaying(devocionalId);
 
   // Reading tracker getters
   int get currentReadingSeconds => _readingTracker.currentReadingSeconds;
@@ -126,16 +127,24 @@ class DevocionalProvider with ChangeNotifier {
   }
 
   // ========== CONSTRUCTOR ==========
-  DevocionalProvider({http.Client? httpClient})
-      : httpClient = httpClient ?? http.Client() {
+  DevocionalProvider({
+    http.Client? httpClient,
+    bool enableAudio = true,
+  })  : assert(
+          enableAudio || !kReleaseMode,
+          'Audio must not be disabled in release builds',
+        ),
+        httpClient = httpClient ?? http.Client() {
     debugPrint('🏗️ Provider: Constructor iniciado');
 
-    // Initialize audio controller with DI
-    _audioController = AudioController(getService<ITtsService>());
-    _audioController.initialize();
+    // Initialize audio controller with DI if enabled
+    if (enableAudio) {
+      _audioController = AudioController(getService<ITtsService>());
+      _audioController!.initialize();
 
-    // Listen to audio controller changes and relay to our listeners
-    _audioController.addListener(_onAudioStateChanged);
+      // Listen to audio controller changes and relay to our listeners
+      _audioController!.addListener(_onAudioStateChanged);
+    }
 
     debugPrint('✅ Provider: Constructor completado');
   }
@@ -200,51 +209,51 @@ class DevocionalProvider with ChangeNotifier {
   Future<void> playDevotional(Devocional devocional) async {
     debugPrint('🎵 Provider: playDevotional llamado para ${devocional.id}');
     // Update TTS language context before playing
-    _audioController.ttsService.setLanguageContext(
+    _audioController!.ttsService.setLanguageContext(
       _selectedLanguage,
       _selectedVersion,
     );
-    await _audioController.playDevotional(devocional);
+    await _audioController!.playDevotional(devocional);
   }
 
   Future<void> pauseAudio() async {
-    await _audioController.pause();
+    await _audioController!.pause();
   }
 
   Future<void> resumeAudio() async {
-    await _audioController.resume();
+    await _audioController!.resume();
   }
 
   Future<void> stopAudio() async {
-    await _audioController.stop();
+    await _audioController!.stop();
   }
 
   Future<void> toggleAudioPlayPause(Devocional devocional) async {
-    await _audioController.togglePlayPause(devocional);
+    await _audioController!.togglePlayPause(devocional);
   }
 
   Future<List<String>> getAvailableLanguages() async {
-    return await _audioController.getAvailableLanguages();
+    return await _audioController!.getAvailableLanguages();
   }
 
   Future<List<String>> getAvailableVoices() async {
-    return await _audioController.getAvailableVoices();
+    return await _audioController!.getAvailableVoices();
   }
 
   Future<List<String>> getVoicesForLanguage(String language) async {
-    return await _audioController.getVoicesForLanguage(language);
+    return await _audioController!.getVoicesForLanguage(language);
   }
 
   Future<void> setTtsLanguage(String language) async {
-    await _audioController.setLanguage(language);
+    await _audioController!.setLanguage(language);
   }
 
   Future<void> setTtsVoice(Map<String, String> voice) async {
-    await _audioController.setVoice(voice);
+    await _audioController!.setVoice(voice);
   }
 
   Future<void> setTtsSpeechRate(double rate) async {
-    await _audioController.setSpeechRate(rate);
+    await _audioController!.setSpeechRate(rate);
   }
 
   // ========== READING TRACKING (DELEGATES) ==========
@@ -621,10 +630,12 @@ class DevocionalProvider with ChangeNotifier {
       }
 
       // Update TTS language context immediately
-      _audioController.ttsService.setLanguageContext(
-        _selectedLanguage,
-        _selectedVersion,
-      );
+      if (_audioController != null) {
+        _audioController!.ttsService.setLanguageContext(
+          _selectedLanguage,
+          _selectedVersion,
+        );
+      }
 
       if (language != supportedLanguage) {
         debugPrint(
@@ -642,10 +653,12 @@ class DevocionalProvider with ChangeNotifier {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('selectedVersion', version);
       // Actualizar el contexto de TTS al cambiar la versión
-      _audioController.ttsService.setLanguageContext(
-        _selectedLanguage,
-        _selectedVersion,
-      );
+      if (_audioController != null) {
+        _audioController!.ttsService.setLanguageContext(
+          _selectedLanguage,
+          _selectedVersion,
+        );
+      }
       await _fetchAllDevocionalesForLanguage();
     }
   }
@@ -1338,8 +1351,8 @@ class DevocionalProvider with ChangeNotifier {
     debugPrint('🧹 Provider: Disposing...');
 
     // Dispose audio controller
-    _audioController.removeListener(_onAudioStateChanged);
-    _audioController.dispose();
+    _audioController?.removeListener(_onAudioStateChanged);
+    _audioController?.dispose();
 
     // Dispose reading tracker
     _readingTracker.dispose();

@@ -14,6 +14,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class MockPathProviderPlatform extends PathProviderPlatform {
@@ -60,10 +61,24 @@ Devocional createTestDevocional({
 void main() {
   late DevocionalProvider provider;
 
-  // Mock HTTP client that returns dummy data for all requests
+  // Mock HTTP client that returns a minimal valid devotional payload for all requests
   final mockHttpClient = MockClient((request) async {
-    // Return a minimal valid JSON structure for devotionals
-    return http.Response('{"data": {"es": {}}}', 200);
+    return http.Response(
+        jsonEncode({
+          "data": {
+            "es": {
+              "2025-01-01": {
+                "id": "devocional_2025_01_01_KJV",
+                "date": "2025-01-01",
+                "versiculo": "Juan 1:1",
+                "texto": "Texto de prueba",
+                "language": "es",
+                "version": "KJV"
+              }
+            }
+          }
+        }),
+        200);
   });
 
   // Mock platform channels
@@ -212,7 +227,8 @@ void main() {
 
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
-    provider = DevocionalProvider(httpClient: mockHttpClient);
+    provider =
+        DevocionalProvider(httpClient: mockHttpClient, enableAudio: false);
   });
 
   tearDown(() {
@@ -229,7 +245,8 @@ void main() {
       );
       final favoriteIds = {'devocional_2025_01_15_RVR1960'};
       await prefs.setString('favorite_ids', json.encode(favoriteIds.toList()));
-      final newProvider = DevocionalProvider(httpClient: mockHttpClient);
+      final newProvider =
+          DevocionalProvider(httpClient: mockHttpClient, enableAudio: false);
       await newProvider.initializeData();
       expect(newProvider.isFavorite(testDevocional), isTrue);
       newProvider.dispose();
@@ -250,7 +267,8 @@ void main() {
         },
       ];
       await prefs.setString('favorites', json.encode(legacyFavorites));
-      final newProvider = DevocionalProvider(httpClient: mockHttpClient);
+      final newProvider =
+          DevocionalProvider(httpClient: mockHttpClient, enableAudio: false);
       await newProvider.initializeData();
       final testDevocional = createTestDevocional(
         id: 'devocional_2025_01_15_RVR1960',
@@ -263,7 +281,8 @@ void main() {
 
     test('Should handle empty favorites gracefully', () async {
       await SharedPreferences.getInstance();
-      final newProvider = DevocionalProvider(httpClient: mockHttpClient);
+      final newProvider =
+          DevocionalProvider(httpClient: mockHttpClient, enableAudio: false);
       await newProvider.initializeData();
       expect(newProvider.favoriteDevocionales, isEmpty);
       newProvider.dispose();
@@ -294,7 +313,8 @@ void main() {
         },
       ];
       await prefs.setString('favorites', json.encode(legacyFavorites));
-      final newProvider = DevocionalProvider(httpClient: mockHttpClient);
+      final newProvider =
+          DevocionalProvider(httpClient: mockHttpClient, enableAudio: false);
       await newProvider.initializeData();
       final validDevocional = createTestDevocional(
         id: 'valid_id',
@@ -317,20 +337,24 @@ void main() {
       );
 
       // First session: Add favorite
-      final provider1 = DevocionalProvider(httpClient: mockHttpClient);
+      final provider1 =
+          DevocionalProvider(httpClient: mockHttpClient, enableAudio: false);
       await provider1.initializeData();
 
       await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: Builder(
-              builder: (context) {
-                // Use the new async toggleFavorite API
-                Future.microtask(() async {
-                  await provider1.toggleFavorite(devocional1.id);
-                });
-                return Container();
-              },
+        ChangeNotifierProvider.value(
+          value: provider1,
+          child: MaterialApp(
+            home: Scaffold(
+              body: Builder(
+                builder: (context) {
+                  // Use the new async toggleFavorite API
+                  Future.microtask(() async {
+                    await provider1.toggleFavorite(devocional1.id);
+                  });
+                  return Container();
+                },
+              ),
             ),
           ),
         ),
@@ -346,7 +370,8 @@ void main() {
       provider1.dispose();
 
       // Second session: Load again (simulating app restart)
-      final provider2 = DevocionalProvider(httpClient: mockHttpClient);
+      final provider2 =
+          DevocionalProvider(httpClient: mockHttpClient, enableAudio: false);
       await provider2.initializeData();
 
       // Should still be favorite
@@ -368,20 +393,24 @@ void main() {
       );
 
       // First session: Add favorite and mark as read
-      final provider1 = DevocionalProvider(httpClient: mockHttpClient);
+      final provider1 =
+          DevocionalProvider(httpClient: mockHttpClient, enableAudio: false);
       await provider1.initializeData();
 
       await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: Builder(
-              builder: (context) {
-                // Use the new async toggleFavorite API
-                Future.microtask(() async {
-                  await provider1.toggleFavorite(devocional.id);
-                });
-                return Container();
-              },
+        ChangeNotifierProvider.value(
+          value: provider1,
+          child: MaterialApp(
+            home: Scaffold(
+              body: Builder(
+                builder: (context) {
+                  // Use the new async toggleFavorite API
+                  Future.microtask(() async {
+                    await provider1.toggleFavorite(devocional.id);
+                  });
+                  return Container();
+                },
+              ),
             ),
           ),
         ),
@@ -403,7 +432,8 @@ void main() {
       provider1.dispose();
 
       // Second session: Load again
-      final provider2 = DevocionalProvider(httpClient: mockHttpClient);
+      final provider2 =
+          DevocionalProvider(httpClient: mockHttpClient, enableAudio: false);
       await provider2.initializeData();
 
       // Should still be favorite AND read
@@ -430,7 +460,8 @@ void main() {
       await prefs.setString('favorite_ids', json.encode(backupFavoriteIds));
 
       // Load provider and reload favorites
-      final provider = DevocionalProvider(httpClient: mockHttpClient);
+      final provider =
+          DevocionalProvider(httpClient: mockHttpClient, enableAudio: false);
       await provider.initializeData();
       await provider.reloadFavoritesFromStorage();
 
@@ -473,7 +504,8 @@ void main() {
       await prefs.setString('spiritual_stats', json.encode(statsData));
 
       // Load provider
-      final provider = DevocionalProvider(httpClient: mockHttpClient);
+      final provider =
+          DevocionalProvider(httpClient: mockHttpClient, enableAudio: false);
       await provider.initializeData();
       await provider.reloadFavoritesFromStorage();
 
@@ -505,7 +537,8 @@ void main() {
       await prefs.setString('favorite_ids', json.encode(spanishFavorites));
 
       // Load provider in Spanish
-      final provider = DevocionalProvider(httpClient: mockHttpClient);
+      final provider =
+          DevocionalProvider(httpClient: mockHttpClient, enableAudio: false);
       await provider.initializeData();
 
       // Create Spanish devotional
@@ -530,7 +563,8 @@ void main() {
   group('Edge Cases', () {
     testWidgets('Should not add devotional without ID to favorites',
         (WidgetTester tester) async {
-      final provider = DevocionalProvider(httpClient: mockHttpClient);
+      final provider =
+          DevocionalProvider(httpClient: mockHttpClient, enableAudio: false);
       await provider.initializeData();
 
       final invalidDevocional = createTestDevocional(
@@ -553,7 +587,8 @@ void main() {
 
     testWidgets('Should handle removing non-existent favorite gracefully',
         (WidgetTester tester) async {
-      final provider = DevocionalProvider(httpClient: mockHttpClient);
+      final provider =
+          DevocionalProvider(httpClient: mockHttpClient, enableAudio: false);
       await provider.initializeData();
 
       final devocional = createTestDevocional(
@@ -582,7 +617,8 @@ void main() {
       ];
       await prefs.setString('favorite_ids', json.encode(favoriteIds));
 
-      final provider = DevocionalProvider(httpClient: mockHttpClient);
+      final provider =
+          DevocionalProvider(httpClient: mockHttpClient, enableAudio: false);
       await provider.initializeData();
 
       // Favorites should be loaded
@@ -603,7 +639,8 @@ void main() {
       // Store corrupted JSON
       await prefs.setString('favorite_ids', 'not-valid-json');
 
-      final provider = DevocionalProvider(httpClient: mockHttpClient);
+      final provider =
+          DevocionalProvider(httpClient: mockHttpClient, enableAudio: false);
 
       // Should not crash, should handle gracefully
       expect(() async => await provider.initializeData(), returnsNormally);
@@ -631,7 +668,8 @@ void main() {
       await prefs.setString('favorites', json.encode(legacyFavorites));
 
       // Load provider and add a favorite
-      final provider = DevocionalProvider(httpClient: mockHttpClient);
+      final provider =
+          DevocionalProvider(httpClient: mockHttpClient, enableAudio: false);
       await provider.initializeData();
       await provider.toggleFavorite('dev_456');
 
@@ -647,7 +685,8 @@ void main() {
 
     testWidgets('handles rapid concurrent toggles',
         (WidgetTester tester) async {
-      final provider = DevocionalProvider(httpClient: mockHttpClient);
+      final provider =
+          DevocionalProvider(httpClient: mockHttpClient, enableAudio: false);
       await provider.initializeData();
 
       // Simulate rapid concurrent toggles
@@ -666,7 +705,8 @@ void main() {
       // This test is difficult to implement without dependency injection
       // for SharedPreferences. For now, we'll test that toggleFavorite
       // propagates exceptions correctly by testing with empty ID
-      final provider = DevocionalProvider(httpClient: mockHttpClient);
+      final provider =
+          DevocionalProvider(httpClient: mockHttpClient, enableAudio: false);
       await provider.initializeData();
 
       // Empty ID should throw ArgumentError
@@ -709,7 +749,8 @@ void main() {
       expect(legacyDataBefore, isNotNull);
 
       // User upgrades app - new provider loads and migrates
-      final provider = DevocionalProvider(httpClient: mockHttpClient);
+      final provider =
+          DevocionalProvider(httpClient: mockHttpClient, enableAudio: false);
       await provider.initializeData();
 
       // Verify migration worked
@@ -759,7 +800,8 @@ void main() {
       await prefs.setString('favorites', json.encode(legacyFavorites));
 
       // Step 1: User upgrades to new version and migration happens
-      final newProvider = DevocionalProvider(httpClient: mockHttpClient);
+      final newProvider =
+          DevocionalProvider(httpClient: mockHttpClient, enableAudio: false);
       await newProvider.initializeData();
 
       // Verify migration worked - favorite is recognized
@@ -832,7 +874,8 @@ void main() {
 
       await prefs.setString('favorites', json.encode(legacyFavorites));
 
-      final provider = DevocionalProvider(httpClient: mockHttpClient);
+      final provider =
+          DevocionalProvider(httpClient: mockHttpClient, enableAudio: false);
       await provider.initializeData();
 
       // Should have migrated 2 valid entries (skipped the empty ID)
@@ -878,7 +921,8 @@ void main() {
       await prefs.setString('favorites', json.encode(legacyFavorites));
 
       final stopwatch = Stopwatch()..start();
-      final provider = DevocionalProvider(httpClient: mockHttpClient);
+      final provider =
+          DevocionalProvider(httpClient: mockHttpClient, enableAudio: false);
       await provider.initializeData();
       stopwatch.stop();
 
@@ -914,7 +958,8 @@ void main() {
 
       await prefs.setString('favorites', json.encode(legacyFavorites));
 
-      final provider = DevocionalProvider(httpClient: mockHttpClient);
+      final provider =
+          DevocionalProvider(httpClient: mockHttpClient, enableAudio: false);
       await provider.initializeData();
 
       // Verify favorite is loaded
