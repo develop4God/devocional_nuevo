@@ -40,6 +40,9 @@ class DevocionalProvider with ChangeNotifier {
   String _selectedVersion = 'RVR1960';
   bool _showInvitationDialog = true;
 
+  // Session-based telemetry throttle flags
+  bool _hasFiredMismatchTelemetry = false;
+
   // ========== SERVICES ==========
   final SpiritualStatsService _statsService = SpiritualStatsService();
   late final AudioController _audioController; // NEW - Injected dependency
@@ -649,9 +652,15 @@ class DevocionalProvider with ChangeNotifier {
       try {
         final List<dynamic> decodedList = json.decode(favoriteIdsJson);
         _favoriteIds = decodedList.cast<String>().toSet();
-        debugPrint('✅ Loaded ${_favoriteIds.length} favorite IDs');
+        developer.log(
+          '⭐FAVORITES_LOAD: ${_favoriteIds.length} IDs loaded',
+          name: 'Favorites',
+        );
       } catch (e) {
-        debugPrint('⚠️ Failed decoding favorite_ids: $e');
+        developer.log(
+          '❌FAVORITES_ERROR: Failed decoding favorite_ids: $e',
+          name: 'Favorites',
+        );
         _favoriteIds = {};
       }
     } else {
@@ -660,36 +669,130 @@ class DevocionalProvider with ChangeNotifier {
       if (favoritesJson != null) {
         try {
           final List<dynamic> decodedList = json.decode(favoritesJson);
+          final int totalLegacy = decodedList.length;
+
           _favoriteIds = decodedList
               .map((item) =>
                   Devocional.fromJson(item as Map<String, dynamic>).id)
               .where((id) => id.isNotEmpty)
               .toSet();
+
+          final int migrated = _favoriteIds.length;
+          final int dropped = totalLegacy - migrated;
+
+          // Save migrated favorites
           await _saveFavorites();
-          debugPrint(
-              '✅ Migrated ${_favoriteIds.length} favorites from legacy storage');
+
+          // Clean up legacy key after successful migration
+          if (_favoriteIds.isNotEmpty) {
+            await prefs.remove('favorites');
+            developer.log(
+              '⭐FAVORITES_CLEANUP: Legacy key removed',
+              name: 'Favorites',
+            );
+          }
+
+          developer.log(
+            '⭐FAVORITES_MIGRATE: $migrated migrated from legacy (dropped: $dropped)',
+            name: 'Favorites',
+          );
+
+          // Log telemetry for migration
+          try {
+            final analytics = getService<AnalyticsService>();
+
+            // Log migration success
+            analytics.logCustomEvent(
+              eventName: 'favorites_migration_success',
+              parameters: {
+                'total_legacy': totalLegacy,
+                'migrated': migrated,
+                'dropped': dropped,
+              },
+            );
+
+            // Log data loss if any IDs were dropped
+            if (dropped > 0) {
+              analytics.logCustomEvent(
+                eventName: 'favorites_migration_data_loss',
+                parameters: {
+                  'total_legacy': totalLegacy,
+                  'migrated': migrated,
+                  'dropped': dropped,
+                },
+              );
+              developer.log(
+                '⚠️FAVORITES_WARN: Migration data loss - $dropped favorites had empty IDs',
+                name: 'Favorites',
+              );
+            }
+          } catch (e) {
+            developer.log(
+              '❌FAVORITES_ERROR: Failed to send migration telemetry: $e',
+              name: 'Favorites',
+            );
+          }
         } catch (e) {
-          debugPrint('⚠️ Failed loading legacy favorites: $e');
+          developer.log(
+            '❌FAVORITES_ERROR: Failed loading legacy favorites: $e',
+            name: 'Favorites',
+          );
           _favoriteIds = {};
+
+          // Log migration failure
+          try {
+            final analytics = getService<AnalyticsService>();
+            analytics.logCustomEvent(
+              eventName: 'favorites_migration_failure',
+              parameters: {
+                'error': e.toString(),
+              },
+            );
+          } catch (analyticsError) {
+            developer.log(
+              '❌FAVORITES_ERROR: Failed to send migration failure telemetry: $analyticsError',
+              name: 'Favorites',
+            );
+          }
         }
+      } else {
+        developer.log(
+          '⭐FAVORITES_LOAD: New user, no favorites',
+          name: 'Favorites',
+        );
       }
     }
   }
 
   Future<void> _saveFavorites() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('favorite_ids', json.encode(_favoriteIds.toList()));
-    // Optional: persist a local schema version for favorites to allow
-    // future migrations to detect and upgrade stored format.
     try {
-      await prefs.setInt(
-        'favorites_schema_version',
-        Constants.favoritesSchemaVersion,
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('favorite_ids', json.encode(_favoriteIds.toList()));
+      developer.log(
+        '⭐FAVORITES_SAVE: ${_favoriteIds.length} IDs saved',
+        name: 'Favorites',
       );
+
+      // Optional: persist a local schema version for favorites to allow
+      // future migrations to detect and upgrade stored format.
+      try {
+        await prefs.setInt(
+          'favorites_schema_version',
+          Constants.favoritesSchemaVersion,
+        );
+      } catch (e) {
+        developer.log(
+          '❌FAVORITES_ERROR: Failed to set favorites_schema_version: $e',
+          name: 'Favorites',
+        );
+      }
     } catch (e) {
-      debugPrint('⚠️ Failed to set favorites_schema_version: $e');
+      developer.log(
+        '❌FAVORITES_ERROR: Save failed: $e',
+        name: 'Favorites',
+      );
+      rethrow;
     }
-    debugPrint('💾 Saved ${_favoriteIds.length} favorite IDs');
   }
 
   /// Public helper: persist current favorites to SharedPreferences.
@@ -721,12 +824,17 @@ class DevocionalProvider with ChangeNotifier {
         .where((d) => _favoriteIds.contains(d.id))
         .toList();
 
-    debugPrint(
-        '🔄 Synced ${_favoriteDevocionales.length} favorites from ${_favoriteIds.length} IDs');
+    developer.log(
+      '⭐FAVORITES_SYNC: ${_favoriteDevocionales.length} synced from ${_favoriteIds.length} IDs',
+      name: 'Favorites',
+    );
 
     // Optional telemetry: detect and report mismatch between stored IDs and
     // the devotionals actually found for the current language/version.
-    if (_favoriteIds.length != _favoriteDevocionales.length) {
+    // Use session-based throttling to prevent analytics flooding
+    if (_favoriteIds.length != _favoriteDevocionales.length &&
+        !_hasFiredMismatchTelemetry) {
+      _hasFiredMismatchTelemetry = true;
       try {
         final analytics = getService<AnalyticsService>();
         analytics.logCustomEvent(
@@ -743,8 +851,16 @@ class DevocionalProvider with ChangeNotifier {
           name: 'DevocionalProvider',
         );
       } catch (e) {
-        debugPrint('⚠️ Failed to send favorites mismatch telemetry: $e');
+        developer.log(
+          '❌FAVORITES_ERROR: Failed to send favorites mismatch telemetry: $e',
+          name: 'Favorites',
+        );
       }
+    } else if (_favoriteIds.length != _favoriteDevocionales.length) {
+      developer.log(
+        '⚠️FAVORITES_WARN: Mismatch persists (throttled)',
+        name: 'Favorites',
+      );
     }
   }
 
@@ -812,9 +928,15 @@ class DevocionalProvider with ChangeNotifier {
       await _loadFavorites();
       _syncFavoritesWithLoadedDevotionals();
       notifyListeners(); // Notifica a todos los Consumers (FavoritesPage)
-      debugPrint('✅ Provider: Favorites reloaded from storage after restore');
+      developer.log(
+        '⭐FAVORITES_LOAD: Favorites reloaded from storage after restore',
+        name: 'Favorites',
+      );
     } catch (e) {
-      debugPrint('❌ Error reloading favorites from storage: $e');
+      developer.log(
+        '❌FAVORITES_ERROR: Error reloading favorites from storage: $e',
+        name: 'Favorites',
+      );
     }
   }
 
