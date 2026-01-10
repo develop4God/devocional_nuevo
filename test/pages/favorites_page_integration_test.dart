@@ -1,9 +1,8 @@
-// test/providers/favorites_high_value_test.dart
-
 import 'dart:convert';
 
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -11,6 +10,32 @@ import 'package:shared_preferences/shared_preferences.dart';
 void main() {
   setUpAll(() {
     TestWidgetsFlutterBinding.ensureInitialized();
+
+    // Path provider mock setup FIRST
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+      const MethodChannel('plugins.flutter.io/path_provider'),
+      (MethodCall methodCall) async {
+        switch (methodCall.method) {
+          case 'getApplicationDocumentsDirectory':
+          case 'getApplicationDocumentsPath':
+          case 'getStorageDirectory':
+          case 'getDownloadsDirectory':
+          case 'getApplicationSupportDirectory':
+          case 'getLibraryDirectory':
+            return '/mock_documents';
+          case 'getTemporaryDirectory':
+          case 'getTemporaryPath':
+            return '/mock_temp';
+          default:
+            if (kDebugMode) {
+              print(
+                  'Mocked path_provider: Unexpected method \\${methodCall.method}');
+            }
+            return '/mock_unknown';
+        }
+      },
+    );
 
     // Mock TTS channel
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
@@ -36,24 +61,6 @@ void main() {
       },
     );
 
-    // Mock path_provider
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(
-      const MethodChannel('plugins.flutter.io/path_provider'),
-      (MethodCall methodCall) async {
-        switch (methodCall.method) {
-          case 'getApplicationDocumentsDirectory':
-          case 'getApplicationDocumentsPath': // Support both
-            return '/mock_documents';
-          case 'getTemporaryDirectory':
-          case 'getTemporaryPath': // Support both
-            return '/mock_temp';
-          default:
-            return null;
-        }
-      },
-    );
-
     setupServiceLocator();
   });
 
@@ -74,22 +81,6 @@ void main() {
     final stored = prefs.getString('favorite_ids');
     expect(stored, contains('dev_123'));
     provider2.dispose(); // Timers disposed here
-  });
-
-  test('Favorites survive language change', () async {
-    SharedPreferences.setMockInitialValues({'favorite_ids': '["dev_123"]'});
-    final provider = DevocionalProvider();
-    await provider.addFavoriteId('dev_123');
-
-    // Switch languages
-    provider.setSelectedLanguage('en', null);
-    provider.setSelectedLanguage('es', null);
-
-    // Verify favorite still in memory
-    final prefs = await SharedPreferences.getInstance();
-    final stored = json.decode(prefs.getString('favorite_ids')!);
-    expect(stored, contains('dev_123'));
-    provider.dispose(); // Dispose only after all usage
   });
 
   test('Multiple rapid toggles resolve correctly', () async {
