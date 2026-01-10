@@ -84,7 +84,11 @@ echo ""
 
 # Step 3: Install old version
 echo "=== Step 3: Installing OLD version ==="
-adb install -r old-version.apk
+while true; do
+  adb install -r old-version.apk && break
+  echo "Waiting for user to allow install of old-version.apk... retrying in 5s."
+  sleep 5
+done
 
 echo ""
 echo "🎯 ACTION REQUIRED:"
@@ -102,7 +106,11 @@ adb logcat -s "Favorites:V" "*:S" | tee migration.log | grep --line-buffered "FA
 LOGPID=$!
 
 sleep 2
-adb install -r new-version.apk
+while true; do
+  adb install -r new-version.apk && break
+  echo "Waiting for user to allow install of new-version.apk... retrying in 5s."
+  sleep 5
+done
 
 echo "🎯 Launching app..."
 adb shell am start -n "$PACKAGE/.MainActivity"
@@ -187,3 +195,4 @@ else
   echo "Review migration.log for details"
   exit 1
 fi
+
