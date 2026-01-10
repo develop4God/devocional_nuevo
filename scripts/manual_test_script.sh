@@ -4,6 +4,11 @@
 
 set -e
 
+# Ensure script runs from project root
+d=$(dirname "$0")/..
+cd "$d"
+echo "Changed current working directory to: $(pwd)"
+
 PACKAGE=${1:-"com.develop4god.devocional_nuevo"}
 
 echo "=== Complete Migration Test ==="
