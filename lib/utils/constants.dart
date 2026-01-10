@@ -69,6 +69,10 @@ class Constants {
   static const String prefCurrentIndex = 'currentIndex';
   static const String prefLastNotificationDate = 'lastNotificationDate';
 
+  /// Favorites local storage schema version. Bump this when changing the
+  /// local format for favorites so migrations can be applied.
+  static const int favoritesSchemaVersion = 1;
+
   /// Compatibilidad con lógica de mostrar/no mostrar diálogos de invitación (usada en el provider)
   static const String prefShowInvitationDialog = 'showInvitationDialog';
 

@@ -682,11 +682,33 @@ class DevocionalProvider with ChangeNotifier {
     // Optional: persist a local schema version for favorites to allow
     // future migrations to detect and upgrade stored format.
     try {
-      await prefs.setInt('favorites_schema_version', 1);
+      await prefs.setInt(
+        'favorites_schema_version',
+        Constants.favoritesSchemaVersion,
+      );
     } catch (e) {
       debugPrint('⚠️ Failed to set favorites_schema_version: $e');
     }
     debugPrint('💾 Saved ${_favoriteIds.length} favorite IDs');
+  }
+
+  /// Public helper: persist current favorites to SharedPreferences.
+  /// This is intentionally a thin wrapper around [_saveFavorites] so tests
+  /// can call it without relying on UI interactions.
+  Future<void> saveFavorites() async {
+    await _saveFavorites();
+  }
+
+  /// Public helper: add a favorite ID programmatically (no UI) and persist it.
+  /// Useful for unit tests or programmatic changes that don't need SnackBars.
+  Future<void> addFavoriteId(String id) async {
+    if (id.isEmpty) return;
+    _favoriteIds.add(id);
+    // Keep _favoriteDevocionales in sync only if possible; for tests we only
+    // need the persisted IDs and schema version.
+    _statsService.updateFavoritesCount(_favoriteIds.length);
+    await _saveFavorites();
+    notifyListeners();
   }
 
   void _syncFavoritesWithLoadedDevotionals() {
