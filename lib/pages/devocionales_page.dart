@@ -190,35 +190,33 @@ class _DevocionalesPageState extends State<DevocionalesPage>
         );
         initialIndex = index != -1 ? index : 0;
       } else {
-        // Find first unread
-        initialIndex = _navigationBloc!.findFirstUnreadDevocionalIndex(
+        // Find first unread using repository (pure logic, deterministic)
+        initialIndex =
+            DevocionalRepositoryImpl().findFirstUnreadDevocionalIndex(
           devocionalProvider.devocionales,
           readDevocionalIds,
         );
       }
 
       // Initialize navigation with full devotionals list
-      if (mounted && _navigationBloc != null && !_navigationBloc!.isClosed) {
+      // Guard early and avoid race windows: check mounted and bloc state immediately
+      if (!mounted || _navigationBloc == null) return;
+      if (_navigationBloc!.isClosed) return;
+      try {
+        _navigationBloc!.add(
+          InitializeNavigation(
+            initialIndex: initialIndex,
+            devocionales: devocionalProvider.devocionales,
+          ),
+        );
+        developer.log('Navigation BLoC initialized at index: $initialIndex');
+      } catch (e, st) {
+        developer.log('Failed to initialize BLoC: $e');
         try {
-          _navigationBloc!.add(
-            InitializeNavigation(
-              initialIndex: initialIndex,
-              devocionales: devocionalProvider.devocionales,
-            ),
-          );
-          developer.log('Navigation BLoC initialized at index: $initialIndex');
-        } catch (e, st) {
-          developer.log('Failed to initialize BLoC: $e');
-          try {
-            FirebaseCrashlytics.instance.recordError(e, st);
-          } catch (_) {
-            developer
-                .log('Failed to report initialization error to Crashlytics');
-          }
+          FirebaseCrashlytics.instance.recordError(e, st);
+        } catch (_) {
+          developer.log('Failed to report initialization error to Crashlytics');
         }
-      } else {
-        developer.log(
-            'Navigation BLoC not initialized: widget not mounted or BLoC closed');
       }
     });
   }
@@ -396,26 +394,25 @@ class _DevocionalesPageState extends State<DevocionalesPage>
         );
         initialIndex = index != -1 ? index : 0;
       } else {
-        // Find first unread
-        initialIndex = _navigationBloc!.findFirstUnreadDevocionalIndex(
+        // Find first unread using repository (pure logic, deterministic)
+        initialIndex =
+            DevocionalRepositoryImpl().findFirstUnreadDevocionalIndex(
           devocionalProvider.devocionales,
           readDevocionalIds,
         );
       }
 
       // Initialize navigation with full devotionals list
-      if (mounted && _navigationBloc != null && !_navigationBloc!.isClosed) {
-        _navigationBloc!.add(
-          InitializeNavigation(
-            initialIndex: initialIndex,
-            devocionales: devocionalProvider.devocionales,
-          ),
-        );
-        developer.log('Navigation BLoC initialized at index: $initialIndex');
-      } else {
-        developer.log(
-            'Navigation BLoC not initialized: widget not mounted or BLoC closed');
-      }
+      // Guard early and avoid race windows: check mounted and bloc state immediately
+      if (!mounted || _navigationBloc == null) return;
+      if (_navigationBloc!.isClosed) return;
+      _navigationBloc!.add(
+        InitializeNavigation(
+          initialIndex: initialIndex,
+          devocionales: devocionalProvider.devocionales,
+        ),
+      );
+      developer.log('Navigation BLoC initialized at index: $initialIndex');
     });
   }
 
