@@ -227,17 +227,20 @@ void main() {
       );
 
       expect(provider.isFavorite(devotional), isFalse);
-      provider.toggleFavorite(
-        devotional,
-        tester.element(find.byType(Container)),
-      );
-      await tester.pump(); // Let the snackbar animation complete
+
+      // Use new async API
+      final result1 = await provider.toggleFavorite(devotional.id);
+      await tester.pump(); // Let the provider notify
+
+      expect(result1, isNotNull);
+      expect(result1!['wasAdded'], isTrue);
       expect(provider.isFavorite(devotional), isTrue);
-      provider.toggleFavorite(
-        devotional,
-        tester.element(find.byType(Container)),
-      );
+
+      final result2 = await provider.toggleFavorite(devotional.id);
       await tester.pump();
+
+      expect(result2, isNotNull);
+      expect(result2!['wasAdded'], isFalse);
       expect(provider.isFavorite(devotional), isFalse);
     });
 
