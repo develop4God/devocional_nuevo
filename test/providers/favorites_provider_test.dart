@@ -348,7 +348,10 @@ void main() {
           home: Scaffold(
             body: Builder(
               builder: (context) {
-                provider1.toggleFavorite(devocional1, context);
+                // Use the new async toggleFavorite API
+                Future.microtask(() async {
+                  await provider1.toggleFavorite(devocional1.id);
+                });
                 return Container();
               },
             ),
@@ -357,6 +360,9 @@ void main() {
       );
 
       await tester.pumpAndSettle();
+
+      // Wait for the async operation to complete
+      await Future.delayed(const Duration(milliseconds: 100));
 
       // Verify it's saved
       expect(provider1.isFavorite(devocional1), isTrue);
@@ -393,7 +399,10 @@ void main() {
           home: Scaffold(
             body: Builder(
               builder: (context) {
-                provider1.toggleFavorite(devocional, context);
+                // Use the new async toggleFavorite API
+                Future.microtask(() async {
+                  await provider1.toggleFavorite(devocional.id);
+                });
                 return Container();
               },
             ),
@@ -402,6 +411,9 @@ void main() {
       );
 
       await tester.pumpAndSettle();
+
+      // Wait for the async operation to complete
+      await Future.delayed(const Duration(milliseconds: 100));
 
       // Mark as read
       await provider1.recordDevocionalRead(devocionalId);
@@ -550,24 +562,11 @@ void main() {
         versiculo: 'Juan 3:16',
       );
 
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: Builder(
-              builder: (context) {
-                provider.toggleFavorite(invalidDevocional, context);
-                return Container();
-              },
-            ),
-          ),
-        ),
-      );
+      // Test that empty ID returns null
+      final wasAdded = await provider.toggleFavorite(invalidDevocional.id);
 
-      await tester.pumpAndSettle();
-
-      // Should show error message
-      expect(
-          find.text('No se puede guardar devocional sin ID'), findsOneWidget);
+      // Should return null for invalid ID
+      expect(wasAdded, isNull);
 
       // Should not be in favorites
       expect(provider.favoriteDevocionales.length, equals(0));
@@ -586,23 +585,12 @@ void main() {
         versiculo: 'Juan 3:16',
       );
 
-      // Try to remove when not favorited
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: Builder(
-              builder: (context) {
-                provider.toggleFavorite(devocional, context);
-                return Container();
-              },
-            ),
-          ),
-        ),
-      );
-
-      await tester.pumpAndSettle();
+      // Try to add favorite
+      final wasAdded = await provider.toggleFavorite(devocional.id);
 
       // Should be added (not removed)
+      expect(wasAdded, isNotNull);
+      expect(wasAdded, isTrue);
       expect(provider.isFavorite(devocional), isTrue);
 
       provider.dispose();

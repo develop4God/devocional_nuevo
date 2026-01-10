@@ -138,37 +138,38 @@ class FavoritesPage extends StatelessWidget {
                                 size: 28,
                               ),
                               tooltip: 'favorites.remove_tooltip'.tr(),
-                              onPressed: () {
-                                devocionalProvider.toggleFavorite(
-                                  devocional,
-                                  context,
+                              onPressed: () async {
+                                await devocionalProvider.toggleFavorite(
+                                  devocional.id,
                                 );
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    backgroundColor: Theme.of(
-                                          context,
-                                        ).appBarTheme.backgroundColor ??
-                                        Theme.of(context).colorScheme.primary,
-                                    // Usa el color que quieras
-                                    content: Text(
-                                      'favorites.removed_message'.tr({
-                                        'verse': devocional.versiculo,
-                                      }),
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        // Contrasta con fondo oscuro
-                                        fontWeight: FontWeight.w500,
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      backgroundColor: Theme.of(
+                                            context,
+                                          ).appBarTheme.backgroundColor ??
+                                          Theme.of(context).colorScheme.primary,
+                                      // Usa el color que quieras
+                                      content: Text(
+                                        'favorites.removed_message'.tr({
+                                          'verse': devocional.versiculo,
+                                        }),
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          // Contrasta con fondo oscuro
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                      behavior: SnackBarBehavior.floating,
+                                      // Opcional para no tapar el BottomAppBar
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(
+                                          12,
+                                        ), // Opcional
                                       ),
                                     ),
-                                    behavior: SnackBarBehavior.floating,
-                                    // Opcional para no tapar el BottomAppBar
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(
-                                        12,
-                                      ), // Opcional
-                                    ),
-                                  ),
-                                );
+                                  );
+                                }
                               },
                             ),
                           ),

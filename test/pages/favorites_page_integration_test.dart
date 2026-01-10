@@ -312,8 +312,10 @@ void main() {
           child: MaterialApp(
             home: Builder(
               builder: (context) {
-                // Toggle favorite in context
-                provider.toggleFavorite(testDevocional, context);
+                // Toggle favorite using new async API
+                Future.microtask(() async {
+                  await provider.toggleFavorite(testDevocional.id);
+                });
                 return FavoritesPage();
               },
             ),
@@ -326,6 +328,9 @@ void main() {
       );
 
       await tester.pumpAndSettle();
+
+      // Wait for async operation
+      await Future.delayed(const Duration(milliseconds: 100));
 
       // Should have added one favorite
       expect(provider.favoriteDevocionales.length, equals(initialFavCount + 1));
@@ -393,7 +398,10 @@ void main() {
           child: MaterialApp(
             home: Builder(
               builder: (context) {
-                provider.toggleFavorite(testDevocional, context);
+                // Toggle favorite using new async API
+                Future.microtask(() async {
+                  await provider.toggleFavorite(testDevocional.id);
+                });
                 return FavoritesPage();
               },
             ),
@@ -406,6 +414,9 @@ void main() {
       );
 
       await tester.pumpAndSettle();
+
+      // Wait for async operation
+      await Future.delayed(const Duration(milliseconds: 100));
 
       // Should display the verse
       expect(find.text('Juan 3:16'), findsOneWidget);
@@ -440,7 +451,10 @@ void main() {
           child: MaterialApp(
             home: Builder(
               builder: (context) {
-                provider.toggleFavorite(testDevocional, context);
+                // Toggle favorite using new async API
+                Future.microtask(() async {
+                  await provider.toggleFavorite(testDevocional.id);
+                });
                 return FavoritesPage();
               },
             ),

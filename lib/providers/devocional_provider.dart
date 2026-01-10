@@ -24,10 +24,14 @@ import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart' show Provider;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:synchronized/synchronized.dart';
 
 /// Simplified provider focused on data management only
 /// Audio functionality moved to AudioController
 class DevocionalProvider with ChangeNotifier {
+  // ========== CONCURRENCY PROTECTION ==========
+  final _favoritesLock = Lock();
+
   // ========== CORE DATA ==========
   List<Devocional> _allDevocionalesForCurrentLanguage = [];
   List<Devocional> _filteredDevocionales = [];
@@ -645,126 +649,129 @@ class DevocionalProvider with ChangeNotifier {
 
   // ========== FAVORITES MANAGEMENT ==========
   Future<void> _loadFavorites() async {
-    final prefs = await SharedPreferences.getInstance();
-    final String? favoriteIdsJson = prefs.getString('favorite_ids');
+    await _favoritesLock.synchronized(() async {
+      final prefs = await SharedPreferences.getInstance();
+      final String? favoriteIdsJson = prefs.getString('favorite_ids');
 
-    if (favoriteIdsJson != null) {
-      try {
-        final List<dynamic> decodedList = json.decode(favoriteIdsJson);
-        _favoriteIds = decodedList.cast<String>().toSet();
-        developer.log(
-          '⭐FAVORITES_LOAD: ${_favoriteIds.length} IDs loaded',
-          name: 'Favorites',
-        );
-      } catch (e) {
-        developer.log(
-          '❌FAVORITES_ERROR: Failed decoding favorite_ids: $e',
-          name: 'Favorites',
-        );
-        _favoriteIds = {};
-      }
-    } else {
-      // Legacy migration fallback
-      final String? favoritesJson = prefs.getString('favorites');
-      if (favoritesJson != null) {
+      if (favoriteIdsJson != null) {
         try {
-          final List<dynamic> decodedList = json.decode(favoritesJson);
-          final int totalLegacy = decodedList.length;
-
-          _favoriteIds = decodedList
-              .map((item) =>
-                  Devocional.fromJson(item as Map<String, dynamic>).id)
-              .where((id) => id.isNotEmpty)
-              .toSet();
-
-          final int migrated = _favoriteIds.length;
-          final int dropped = totalLegacy - migrated;
-
-          // Save migrated favorites
-          await _saveFavorites();
-
-          // Clean up legacy key after successful migration
-          if (_favoriteIds.isNotEmpty) {
-            await prefs.remove('favorites');
-            developer.log(
-              '⭐FAVORITES_CLEANUP: Legacy key removed',
-              name: 'Favorites',
-            );
-          }
-
+          final List<dynamic> decodedList = json.decode(favoriteIdsJson);
+          _favoriteIds = decodedList.cast<String>().toSet();
           developer.log(
-            '⭐FAVORITES_MIGRATE: $migrated migrated from legacy (dropped: $dropped)',
+            '⭐FAVORITES_LOAD: ${_favoriteIds.length} IDs loaded',
             name: 'Favorites',
           );
-
-          // Log telemetry for migration
+        } catch (e) {
+          developer.log(
+            '❌FAVORITES_ERROR: Failed decoding favorite_ids: $e',
+            name: 'Favorites',
+          );
+          _favoriteIds = {};
+        }
+      } else {
+        // Legacy migration fallback
+        final String? favoritesJson = prefs.getString('favorites');
+        if (favoritesJson != null) {
           try {
-            final analytics = getService<AnalyticsService>();
+            final List<dynamic> decodedList = json.decode(favoritesJson);
+            final int totalLegacy = decodedList.length;
 
-            // Log migration success
-            analytics.logCustomEvent(
-              eventName: 'favorites_migration_success',
-              parameters: {
-                'total_legacy': totalLegacy,
-                'migrated': migrated,
-                'dropped': dropped,
-              },
+            _favoriteIds = decodedList
+                .map((item) =>
+                    Devocional.fromJson(item as Map<String, dynamic>).id)
+                .where((id) => id.isNotEmpty)
+                .toSet();
+
+            final int migrated = _favoriteIds.length;
+            final int dropped = totalLegacy - migrated;
+
+            // Save migrated favorites (will acquire lock internally)
+            await _saveFavoritesInternal();
+
+            // Clean up legacy key after successful migration
+            if (_favoriteIds.isNotEmpty) {
+              await prefs.remove('favorites');
+              developer.log(
+                '⭐FAVORITES_CLEANUP: Legacy key removed',
+                name: 'Favorites',
+              );
+            }
+
+            developer.log(
+              '⭐FAVORITES_MIGRATE: $migrated migrated from legacy (dropped: $dropped)',
+              name: 'Favorites',
             );
 
-            // Log data loss if any IDs were dropped
-            if (dropped > 0) {
+            // Log telemetry for migration
+            try {
+              final analytics = getService<AnalyticsService>();
+
+              // Log migration success
               analytics.logCustomEvent(
-                eventName: 'favorites_migration_data_loss',
+                eventName: 'favorites_migration_success',
                 parameters: {
                   'total_legacy': totalLegacy,
                   'migrated': migrated,
                   'dropped': dropped,
                 },
               );
+
+              // Log data loss if any IDs were dropped
+              if (dropped > 0) {
+                analytics.logCustomEvent(
+                  eventName: 'favorites_migration_data_loss',
+                  parameters: {
+                    'total_legacy': totalLegacy,
+                    'migrated': migrated,
+                    'dropped': dropped,
+                  },
+                );
+                developer.log(
+                  '⚠️FAVORITES_WARN: Migration data loss - $dropped favorites had empty IDs',
+                  name: 'Favorites',
+                );
+              }
+            } catch (e) {
               developer.log(
-                '⚠️FAVORITES_WARN: Migration data loss - $dropped favorites had empty IDs',
+                '❌FAVORITES_ERROR: Failed to send migration telemetry: $e',
                 name: 'Favorites',
               );
             }
           } catch (e) {
             developer.log(
-              '❌FAVORITES_ERROR: Failed to send migration telemetry: $e',
+              '❌FAVORITES_ERROR: Failed loading legacy favorites: $e',
               name: 'Favorites',
             );
+            _favoriteIds = {};
+
+            // Log migration failure
+            try {
+              final analytics = getService<AnalyticsService>();
+              analytics.logCustomEvent(
+                eventName: 'favorites_migration_failure',
+                parameters: {
+                  'error': e.toString(),
+                },
+              );
+            } catch (analyticsError) {
+              developer.log(
+                '❌FAVORITES_ERROR: Failed to send migration failure telemetry: $analyticsError',
+                name: 'Favorites',
+              );
+            }
           }
-        } catch (e) {
+        } else {
           developer.log(
-            '❌FAVORITES_ERROR: Failed loading legacy favorites: $e',
+            '⭐FAVORITES_LOAD: New user, no favorites',
             name: 'Favorites',
           );
-          _favoriteIds = {};
-
-          // Log migration failure
-          try {
-            final analytics = getService<AnalyticsService>();
-            analytics.logCustomEvent(
-              eventName: 'favorites_migration_failure',
-              parameters: {
-                'error': e.toString(),
-              },
-            );
-          } catch (analyticsError) {
-            developer.log(
-              '❌FAVORITES_ERROR: Failed to send migration failure telemetry: $analyticsError',
-              name: 'Favorites',
-            );
-          }
         }
-      } else {
-        developer.log(
-          '⭐FAVORITES_LOAD: New user, no favorites',
-          name: 'Favorites',
-        );
       }
-    }
+    });
   }
 
-  Future<void> _saveFavorites() async {
+  /// Internal save method that assumes lock is already held
+  Future<void> _saveFavoritesInternal() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('favorite_ids', json.encode(_favoriteIds.toList()));
@@ -795,6 +802,12 @@ class DevocionalProvider with ChangeNotifier {
     }
   }
 
+  Future<void> _saveFavorites() async {
+    await _favoritesLock.synchronized(() async {
+      await _saveFavoritesInternal();
+    });
+  }
+
   /// Public helper: persist current favorites to SharedPreferences.
   /// This is intentionally a thin wrapper around [_saveFavorites] so tests
   /// can call it without relying on UI interactions.
@@ -806,12 +819,28 @@ class DevocionalProvider with ChangeNotifier {
   /// Useful for unit tests or programmatic changes that don't need SnackBars.
   Future<void> addFavoriteId(String id) async {
     if (id.isEmpty) return;
-    _favoriteIds.add(id);
-    // Keep _favoriteDevocionales in sync only if possible; for tests we only
-    // need the persisted IDs and schema version.
-    _statsService.updateFavoritesCount(_favoriteIds.length);
-    await _saveFavorites();
-    notifyListeners();
+
+    int count = 0;
+    bool wasAdded = false;
+
+    await _favoritesLock.synchronized(() async {
+      // Check for duplicates to avoid unnecessary saves
+      if (_favoriteIds.contains(id)) {
+        return;
+      }
+      _favoriteIds.add(id);
+      wasAdded = true;
+      // Keep _favoriteDevocionales in sync only if possible; for tests we only
+      // need the persisted IDs and schema version.
+      count = _favoriteIds.length;
+      await _saveFavoritesInternal();
+    });
+
+    // Update stats outside lock to avoid blocking critical section
+    if (wasAdded) {
+      _statsService.updateFavoritesCount(count);
+      notifyListeners();
+    }
   }
 
   void _syncFavoritesWithLoadedDevotionals() {
@@ -868,7 +897,52 @@ class DevocionalProvider with ChangeNotifier {
     return _favoriteIds.contains(devocional.id);
   }
 
-  void toggleFavorite(Devocional devocional, BuildContext context) {
+  /// Toggle favorite status for a devotional
+  /// Returns true if favorite was added, false if removed
+  /// Returns null if the operation failed (e.g., empty ID)
+  Future<bool?> toggleFavorite(String id) async {
+    if (id.isEmpty) {
+      developer.log(
+        '❌FAVORITES_ERROR: Cannot toggle favorite with empty ID',
+        name: 'Favorites',
+      );
+      return null;
+    }
+
+    bool? wasAdded;
+    int count = 0;
+
+    await _favoritesLock.synchronized(() async {
+      if (_favoriteIds.contains(id)) {
+        _favoriteIds.remove(id);
+        _favoriteDevocionales.removeWhere((d) => d.id == id);
+        wasAdded = false;
+      } else {
+        _favoriteIds.add(id);
+        final dev = _allDevocionalesForCurrentLanguage
+            .where((d) => d.id == id)
+            .firstOrNull;
+        if (dev != null) {
+          _favoriteDevocionales.add(dev);
+        }
+        wasAdded = true;
+      }
+
+      count = _favoriteIds.length;
+      await _saveFavoritesInternal();
+    });
+
+    // Update stats outside lock to avoid blocking critical section
+    _statsService.updateFavoritesCount(count);
+    notifyListeners();
+    return wasAdded;
+  }
+
+  /// Legacy method for backwards compatibility with BuildContext
+  /// Wraps the new toggleFavorite and shows SnackBar messages
+  @Deprecated('Use toggleFavorite(String id) instead')
+  void toggleFavoriteWithContext(
+      Devocional devocional, BuildContext context) async {
     if (devocional.id.isEmpty) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -881,43 +955,23 @@ class DevocionalProvider with ChangeNotifier {
       return;
     }
 
+    final wasAdded = await toggleFavorite(devocional.id);
+    if (wasAdded == null || !context.mounted) return;
+
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
 
-    if (isFavorite(devocional)) {
-      _favoriteIds.remove(devocional.id);
-      _favoriteDevocionales.removeWhere((fav) => fav.id == devocional.id);
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'devotionals_page.removed_from_favorites'.tr(),
-              style: TextStyle(color: colorScheme.onSecondary),
-            ),
-            duration: const Duration(seconds: 2),
-            backgroundColor: colorScheme.secondary,
-          ),
-        );
-      }
-    } else {
-      _favoriteIds.add(devocional.id);
-      _favoriteDevocionales.add(devocional);
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'devotionals_page.added_to_favorites'.tr(),
-              style: TextStyle(color: colorScheme.onSecondary),
-            ),
-            duration: const Duration(seconds: 2),
-            backgroundColor: colorScheme.secondary,
-          ),
-        );
-      }
-    }
-
-    _saveFavorites();
-    _statsService.updateFavoritesCount(_favoriteDevocionales.length);
-    notifyListeners();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          wasAdded
+              ? 'devotionals_page.added_to_favorites'.tr()
+              : 'devotionals_page.removed_from_favorites'.tr(),
+          style: TextStyle(color: colorScheme.onSecondary),
+        ),
+        duration: const Duration(seconds: 2),
+        backgroundColor: colorScheme.secondary,
+      ),
+    );
   }
 
   /// Reload favorites from SharedPreferences after restore
@@ -926,7 +980,9 @@ class DevocionalProvider with ChangeNotifier {
   Future<void> reloadFavoritesFromStorage() async {
     try {
       await _loadFavorites();
-      _syncFavoritesWithLoadedDevotionals();
+      await _favoritesLock.synchronized(() async {
+        _syncFavoritesWithLoadedDevotionals();
+      });
       notifyListeners(); // Notifica a todos los Consumers (FavoritesPage)
       developer.log(
         '⭐FAVORITES_LOAD: Favorites reloaded from storage after restore',
