@@ -330,7 +330,7 @@ void main() {
     test('Should persist favorite IDs across app restarts', () async {
       // Real user behavior: User favorites a devotional, closes app, reopens app
       // The favorite ID should persist even if devotionals haven't loaded yet
-      
+
       final devocionalId = 'devocional_2025_01_15_RVR1960';
       final devocional = createTestDevocional(
         id: devocionalId,
@@ -383,7 +383,7 @@ void main() {
     test('Should preserve favorite status after restart', () async {
       // Real user behavior: User favorites devotional, restarts app
       // Focus: Favorite persistence (read tracking tested separately)
-      
+
       final devocionalId = 'devocional_2025_01_15_RVR1960';
       final devocional = createTestDevocional(
         id: devocionalId,
