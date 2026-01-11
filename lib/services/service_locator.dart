@@ -14,13 +14,16 @@
 /// to enable proper DI and testing.
 library;
 
+import 'package:devocional_nuevo/repositories/discovery_repository.dart';
 import 'package:devocional_nuevo/services/analytics_service.dart';
+import 'package:devocional_nuevo/services/discovery_progress_tracker.dart';
 import 'package:devocional_nuevo/services/localization_service.dart';
 import 'package:devocional_nuevo/services/notification_service.dart';
 import 'package:devocional_nuevo/services/remote_config_service.dart';
 import 'package:devocional_nuevo/services/tts/i_tts_service.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 import 'package:devocional_nuevo/services/tts_service.dart';
+import 'package:http/http.dart' as http;
 
 class ServiceLocator {
   static final ServiceLocator _instance = ServiceLocator._internal();
@@ -128,6 +131,18 @@ void setupServiceLocator() {
   // Uses factory constructor to enforce DI-only instantiation
   locator.registerLazySingleton<RemoteConfigService>(
     RemoteConfigService.create,
+  );
+
+  // Register DiscoveryRepository as a lazy singleton (created when first accessed)
+  // This repository manages fetching Discovery studies from GitHub with caching
+  locator.registerLazySingleton<DiscoveryRepository>(
+    () => DiscoveryRepository(httpClient: http.Client()),
+  );
+
+  // Register DiscoveryProgressTracker as a lazy singleton (created when first accessed)
+  // This service tracks user progress through Discovery studies
+  locator.registerLazySingleton<DiscoveryProgressTracker>(
+    () => DiscoveryProgressTracker(),
   );
 
   // Add more service registrations here as needed
