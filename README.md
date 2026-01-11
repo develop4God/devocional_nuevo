@@ -52,7 +52,7 @@ Multilingual mobile application for reading daily devotionals with advanced audi
 | Test Files | 113 test files |
 | Total Tests | 1,318 tests (100% passing ✅) |
 | Test Coverage | 44.06% (3,455/7,841 lines) |
-| Supported Languages | 6 (es, en, pt, fr) |
+| Supported Languages | 6 (es, en, pt, fr, ja, zh) |
 | Static Analysis | ✅ All checks passing |
 
 ### 🏗️ Architecture
@@ -217,7 +217,7 @@ Aplicación móvil multilingüe para leer devocionales diarios con funcionalidad
 | Archivos de Test | 113 archivos |
 | Total de Tests | 1,318 tests (100% aprobados ✅) |
 | Cobertura de Tests | 44.06% (3,455/7,841 líneas) |
-| Idiomas Soportados | 6 (es, en, pt, fr) |
+| Idiomas Soportados | 6 (es, en, pt, fr, ja, zh) |
 | Análisis Estático | ✅ Todas las verificaciones pasando |
 
 ### 🏗️ Arquitectura

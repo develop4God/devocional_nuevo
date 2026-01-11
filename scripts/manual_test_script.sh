@@ -4,9 +4,9 @@
 
 set -e
 
-# Ensure script runs from project root
+# Ensure script runs from project root (parent of scripts directory)
 SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
-cd "$SCRIPT_DIR"
+cd "$SCRIPT_DIR/.."
 echo "Changed current working directory to: $(pwd)"
 
 PACKAGE=${1:-"com.develop4god.devocional_nuevo"}

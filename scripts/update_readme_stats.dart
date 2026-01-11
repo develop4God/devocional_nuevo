@@ -95,6 +95,7 @@ Future<Map<String, int>> runTests() async {
   
   if (result.exitCode != 0) {
     print('⚠️  Warning: Tests failed, cannot determine test count');
+    print('   Run "flutter test" manually to see errors');
     // Return null values to indicate unavailable data
     return {'total': 0, 'passing': 0};
   }
@@ -114,6 +115,8 @@ Future<Map<String, int>> runTests() async {
   }
   
   print('⚠️  Warning: Could not parse test count from output');
+  print('   Expected format: "X tests passed" or "All X tests passed!"');
+  print('   Consider running tests manually and checking output format');
   return {'total': 0, 'passing': 0};
 }
 
@@ -126,7 +129,8 @@ Future<Map<String, dynamic>> getCoverage() async {
   );
   
   if (result.exitCode != 0) {
-    print('⚠️  Warning: Coverage generation failed');
+    print('⚠️  Warning: Coverage generation failed (exit code: ${result.exitCode})');
+    print('   Run "flutter test --coverage" manually to debug');
     return {'percent': '0.00', 'covered': 0, 'total': 0};
   }
   
@@ -134,6 +138,8 @@ Future<Map<String, dynamic>> getCoverage() async {
   final lcovFile = File('coverage/lcov.info');
   if (!await lcovFile.exists()) {
     print('⚠️  Warning: coverage/lcov.info not found');
+    print('   Expected location: coverage/lcov.info');
+    print('   Ensure "flutter test --coverage" completed successfully');
     return {'percent': '0.00', 'covered': 0, 'total': 0};
   }
   
