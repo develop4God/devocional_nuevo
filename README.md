@@ -48,11 +48,11 @@ Multilingual mobile application for reading daily devotionals with advanced audi
 
 | Metric | Value |
 |--------|-------|
-| Source Files (lib/) | 98 Dart files |
-| Test Files | 58 test files |
+| Source Files (lib/) | 118 Dart files |
+| Test Files | 113 test files |
 | Total Tests | 1,318 tests (100% passing ✅) |
 | Test Coverage | 44.06% (3,455/7,841 lines) |
-| Supported Languages | 4 (es, en, pt, fr) |
+| Supported Languages | 6 (es, en, pt, fr) |
 | Static Analysis | ✅ All checks passing |
 
 ### 🏗️ Architecture
@@ -213,11 +213,11 @@ Aplicación móvil multilingüe para leer devocionales diarios con funcionalidad
 
 | Métrica | Valor |
 |---------|-------|
-| Archivos Fuente (lib/) | 98 archivos Dart |
-| Archivos de Test | 58 archivos |
+| Archivos Fuente (lib/) | 118 archivos Dart |
+| Archivos de Test | 113 archivos |
 | Total de Tests | 1,318 tests (100% aprobados ✅) |
 | Cobertura de Tests | 44.06% (3,455/7,841 líneas) |
-| Idiomas Soportados | 4 (es, en, pt, fr) |
+| Idiomas Soportados | 6 (es, en, pt, fr) |
 | Análisis Estático | ✅ Todas las verificaciones pasando |
 
 ### 🏗️ Arquitectura

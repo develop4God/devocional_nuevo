@@ -90,6 +90,13 @@ Screenshots for documentation.
 
 Capturas de pantalla para documentación.
 
+### 📦 [archive/](./archive/)
+Historical documentation for completed features and fixes.
+
+Documentación histórica de características y correcciones completadas.
+
+- [archive/favorites/](./archive/favorites/) - Favorites sync bug fix (Q4 2024)
+
 ---
 
 ## 🔗 Related Documentation / Documentación Relacionada
