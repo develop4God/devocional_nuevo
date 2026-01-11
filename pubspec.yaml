@@ -93,6 +93,7 @@ dev_dependencies:
 
 
   firebase_analytics_platform_interface: any
+  test_api: any
 flutter:
   uses-material-design: true
   assets:
