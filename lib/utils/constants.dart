@@ -82,6 +82,9 @@ class Constants {
 
   /// Feature flag to disable backup initialization (not available to users)
   static const bool enableBackupFeature = false;
+
+  /// Feature flag for Discovery Studies feature
+  static const bool enableDiscoveryFeature = true;
 }
 
 /// Schema versioning and migration constants for favorites storage

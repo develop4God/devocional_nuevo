@@ -2,6 +2,7 @@ import 'dart:developer' as developer;
 
 import 'package:devocional_nuevo/blocs/backup_bloc.dart';
 import 'package:devocional_nuevo/blocs/backup_event.dart';
+import 'package:devocional_nuevo/blocs/discovery/discovery_bloc.dart';
 import 'package:devocional_nuevo/blocs/prayer_bloc.dart';
 import 'package:devocional_nuevo/blocs/thanksgiving_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
@@ -14,7 +15,9 @@ import 'package:devocional_nuevo/pages/onboarding/onboarding_flow.dart';
 import 'package:devocional_nuevo/pages/settings_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/providers/localization_provider.dart';
+import 'package:devocional_nuevo/repositories/discovery_repository.dart';
 import 'package:devocional_nuevo/services/connectivity_service.dart';
+import 'package:devocional_nuevo/services/discovery_progress_tracker.dart';
 import 'package:devocional_nuevo/services/google_drive_auth_service.dart';
 import 'package:devocional_nuevo/services/google_drive_backup_service.dart';
 import 'package:devocional_nuevo/services/notification_service.dart';
@@ -202,6 +205,14 @@ void main() async {
         ChangeNotifierProvider(create: (context) => DevocionalProvider()),
         BlocProvider(create: (context) => PrayerBloc()),
         BlocProvider(create: (context) => ThanksgivingBloc()),
+        // DiscoveryBloc for Discovery Studies feature
+        if (Constants.enableDiscoveryFeature)
+          BlocProvider(
+            create: (context) => DiscoveryBloc(
+              repository: getService<DiscoveryRepository>(),
+              progressTracker: getService<DiscoveryProgressTracker>(),
+            ),
+          ),
         BlocProvider(
           create: (context) {
             final themeBloc = ThemeBloc();
