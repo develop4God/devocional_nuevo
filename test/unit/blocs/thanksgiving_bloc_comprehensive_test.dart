@@ -5,7 +5,6 @@ import 'dart:io';
 import 'package:devocional_nuevo/blocs/thanksgiving_bloc.dart';
 import 'package:devocional_nuevo/blocs/thanksgiving_event.dart';
 import 'package:devocional_nuevo/blocs/thanksgiving_state.dart';
-import 'package:devocional_nuevo/models/thanksgiving_model.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -63,8 +62,8 @@ void main() {
 
         final state = bloc.state as ThanksgivingLoaded;
         expect(state.thanksgivings.length, equals(1));
-        expect(state.thanksgivings.first.text,
-            equals('Thank God for my family'));
+        expect(
+            state.thanksgivings.first.text, equals('Thank God for my family'));
       });
 
       test('User adds multiple thanksgivings in sequence', () async {
@@ -167,8 +166,9 @@ void main() {
         await Future.delayed(const Duration(milliseconds: 100));
 
         var state = bloc.state as ThanksgivingLoaded;
-        final thanksgiving1Id =
-            state.thanksgivings.firstWhere((t) => t.text == 'Thanksgiving 1').id;
+        final thanksgiving1Id = state.thanksgivings
+            .firstWhere((t) => t.text == 'Thanksgiving 1')
+            .id;
 
         bloc.add(DeleteThanksgiving(thanksgiving1Id));
         await Future.delayed(const Duration(milliseconds: 100));
@@ -188,10 +188,12 @@ void main() {
         await Future.delayed(const Duration(milliseconds: 100));
 
         var state = bloc.state as ThanksgivingLoaded;
-        final id1 =
-            state.thanksgivings.firstWhere((t) => t.text == 'Thanksgiving 1').id;
-        final id2 =
-            state.thanksgivings.firstWhere((t) => t.text == 'Thanksgiving 2').id;
+        final id1 = state.thanksgivings
+            .firstWhere((t) => t.text == 'Thanksgiving 1')
+            .id;
+        final id2 = state.thanksgivings
+            .firstWhere((t) => t.text == 'Thanksgiving 2')
+            .id;
 
         bloc.add(DeleteThanksgiving(id1));
         await Future.delayed(const Duration(milliseconds: 50));
@@ -226,8 +228,7 @@ void main() {
         state = bloc2.state as ThanksgivingLoaded;
         expect(state.thanksgivings.length, equals(2));
         expect(
-            state.thanksgivings
-                .any((t) => t.text == 'Thank God for salvation'),
+            state.thanksgivings.any((t) => t.text == 'Thank God for salvation'),
             isTrue);
         expect(state.thanksgivings.any((t) => t.text == 'Thank God for grace'),
             isTrue);

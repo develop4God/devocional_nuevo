@@ -151,8 +151,7 @@ void main() {
         expect(state.themeData.brightness, equals(targetBrightness));
       });
 
-      test('User toggles between light and dark mode multiple times',
-          () async {
+      test('User toggles between light and dark mode multiple times', () async {
         bloc.add(LoadTheme());
         await Future.delayed(const Duration(milliseconds: 100));
 
