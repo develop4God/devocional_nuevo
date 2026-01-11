@@ -2,7 +2,6 @@
 
 import 'dart:async';
 
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:devocional_nuevo/services/connectivity_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -87,7 +86,9 @@ void main() {
 
         final results = await Future.wait(futures);
         expect(results, hasLength(5));
-        expect(results.every((r) => r is bool), isTrue);
+        for (final result in results) {
+          expect(result, isA<bool>());
+        }
       });
     });
 
@@ -202,7 +203,10 @@ void main() {
         ]);
 
         expect(results, hasLength(4));
-        expect(results.every((r) => r is bool), isTrue);
+        // All results should be booleans
+        for (final result in results) {
+          expect(result, isA<bool>());
+        }
       });
 
       test('Service recovers from temporary connectivity check failures',

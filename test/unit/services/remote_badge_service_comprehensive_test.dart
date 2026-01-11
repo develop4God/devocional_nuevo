@@ -130,7 +130,7 @@ void main() {
     group('Caching Behavior', () {
       test('Service uses cache when available', () async {
         // First call - may hit network
-        final badges1 = await service.getAvailableBadges();
+        await service.getAvailableBadges();
 
         // Second call - should use cache
         final stopwatch = Stopwatch()..start();
@@ -182,7 +182,10 @@ void main() {
         final results = await Future.wait(futures);
 
         expect(results, hasLength(5));
-        expect(results.every((r) => r is List), isTrue);
+        // All results should be lists
+        for (final result in results) {
+          expect(result, isA<List>());
+        }
       });
 
       test('Service handles concurrent requests from different sources',
