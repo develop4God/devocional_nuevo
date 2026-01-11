@@ -94,15 +94,18 @@ Future<Map<String, int>> runTests() async {
   final result = await Process.run('flutter', ['test', '--no-pub']);
   
   if (result.exitCode != 0) {
-    print('⚠️  Warning: Tests failed, using estimated values');
-    return {'total': 1318, 'passing': 1318}; // Fallback to last known values
+    print('⚠️  Warning: Tests failed, cannot determine test count');
+    // Return null values to indicate unavailable data
+    return {'total': 0, 'passing': 0};
   }
   
   final output = result.stdout.toString();
   
-  // Parse test output for count
-  // Format: "All tests passed! X tests"
-  final passedRegex = RegExp(r'(\d+) tests? passed');
+  // Parse test output for count - handle various formats:
+  // - "All tests passed! X tests"
+  // - "All X tests passed!"
+  // - "X tests passed"
+  final passedRegex = RegExp(r'(?:All\s+)?(\d+)\s+tests?\s+passed', caseSensitive: false);
   final match = passedRegex.firstMatch(output);
   
   if (match != null) {
@@ -110,8 +113,8 @@ Future<Map<String, int>> runTests() async {
     return {'total': total, 'passing': total};
   }
   
-  // Fallback
-  return {'total': 1318, 'passing': 1318};
+  print('⚠️  Warning: Could not parse test count from output');
+  return {'total': 0, 'passing': 0};
 }
 
 /// Run tests with coverage and parse lcov.info
@@ -124,14 +127,14 @@ Future<Map<String, dynamic>> getCoverage() async {
   
   if (result.exitCode != 0) {
     print('⚠️  Warning: Coverage generation failed');
-    return {'percent': '44.06', 'covered': 3455, 'total': 7841};
+    return {'percent': '0.00', 'covered': 0, 'total': 0};
   }
   
   // Parse lcov.info
   final lcovFile = File('coverage/lcov.info');
   if (!await lcovFile.exists()) {
     print('⚠️  Warning: coverage/lcov.info not found');
-    return {'percent': '44.06', 'covered': 3455, 'total': 7841};
+    return {'percent': '0.00', 'covered': 0, 'total': 0};
   }
   
   final content = await lcovFile.readAsString();
@@ -164,7 +167,7 @@ Future<int> countLanguages() async {
   final i18nDir = Directory('i18n');
   if (!await i18nDir.exists()) {
     print('⚠️  Warning: i18n directory not found');
-    return 4; // Default fallback
+    return 0; // Return 0 to indicate unavailable data
   }
   
   var count = 0;
@@ -223,16 +226,16 @@ Future<void> updateReadme(Map<String, dynamic> stats) async {
   );
   
   // Update test count if available
-  if (stats.containsKey('total_tests')) {
-    // English section
+  if (stats.containsKey('total_tests') && stats['total_tests'] > 0) {
+    // English section - handle both comma and non-comma formats
     content = content.replaceAllMapped(
-      RegExp(r'\| Total Tests \| (\d+,?\d*) tests'),
+      RegExp(r'\| Total Tests \| ([\d,]+) tests'),
       (match) => '| Total Tests | ${_formatNumber(stats['total_tests'])} tests',
     );
     
-    // Spanish section
+    // Spanish section - handle both comma and non-comma formats
     content = content.replaceAllMapped(
-      RegExp(r'\| Total de Tests \| (\d+\.?\d*) tests'),
+      RegExp(r'\| Total de Tests \| ([\d.,]+) tests'),
       (match) => '| Total de Tests | ${_formatNumber(stats['total_tests'])} tests',
     );
     
@@ -244,17 +247,19 @@ Future<void> updateReadme(Map<String, dynamic> stats) async {
   }
   
   // Update coverage if available
-  if (stats.containsKey('coverage_percent')) {
-    // English section
+  if (stats.containsKey('coverage_percent') && 
+      stats['coverage_percent'] != '0.00' &&
+      stats['coverage_total'] > 0) {
+    // English section - handle both comma and non-comma number formats
     content = content.replaceAllMapped(
-      RegExp(r'\| Test Coverage \| ([\d.]+)% \((\d+,?\d*)/(\d+,?\d*) lines\) \|'),
-      (match) => '| Test Coverage | ${stats['coverage_percent']}% (${stats['coverage_covered']}/${stats['coverage_total']} lines) |',
+      RegExp(r'\| Test Coverage \| ([\d.]+)% \(([\d,]+)/([\d,]+) lines\) \|'),
+      (match) => '| Test Coverage | ${stats['coverage_percent']}% (${_formatNumber(stats['coverage_covered'])}/${_formatNumber(stats['coverage_total'])} lines) |',
     );
     
-    // Spanish section
+    // Spanish section - handle both comma and period number formats
     content = content.replaceAllMapped(
-      RegExp(r'\| Cobertura de Tests \| ([\d.]+)% \((\d+\.?\d*)/(\d+\.?\d*) líneas\) \|'),
-      (match) => '| Cobertura de Tests | ${stats['coverage_percent']}% (${stats['coverage_covered']}/${stats['coverage_total']} líneas) |',
+      RegExp(r'\| Cobertura de Tests \| ([\d.]+)% \(([\d.,]+)/([\d.,]+) líneas\) \|'),
+      (match) => '| Cobertura de Tests | ${stats['coverage_percent']}% (${_formatNumber(stats['coverage_covered'])}/${_formatNumber(stats['coverage_total'])} líneas) |',
     );
     
     // Update badge
