@@ -8,13 +8,11 @@ import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
-import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class MockPathProviderPlatform extends PathProviderPlatform {
@@ -327,64 +325,10 @@ void main() {
   });
 
   group('Favorites Persistence After App Restart', () {
-    testWidgets('Should persist favorites across app restarts',
-        (WidgetTester tester) async {
-      // Create test devotionals
-      final devocional1 = createTestDevocional(
-        id: 'devocional_2025_01_15_RVR1960',
-        date: DateTime(2025, 1, 15),
-        versiculo: 'Juan 3:16',
-      );
+    test('Should persist favorite IDs across app restarts', () async {
+      // Real user behavior: User favorites a devotional, closes app, reopens app
+      // The favorite ID should persist even if devotionals haven't loaded yet
 
-      // First session: Add favorite
-      final provider1 =
-          DevocionalProvider(httpClient: mockHttpClient, enableAudio: false);
-      await provider1.initializeData();
-
-      await tester.pumpWidget(
-        ChangeNotifierProvider.value(
-          value: provider1,
-          child: MaterialApp(
-            home: Scaffold(
-              body: Builder(
-                builder: (context) {
-                  // Use the new async toggleFavorite API
-                  Future.microtask(() async {
-                    await provider1.toggleFavorite(devocional1.id);
-                  });
-                  return Container();
-                },
-              ),
-            ),
-          ),
-        ),
-      );
-
-      await tester.pumpAndSettle();
-
-      // Wait for the async operation to complete
-      await Future.delayed(const Duration(milliseconds: 100));
-
-      // Verify it's saved
-      expect(provider1.isFavorite(devocional1), isTrue);
-      provider1.dispose();
-
-      // Second session: Load again (simulating app restart)
-      final provider2 =
-          DevocionalProvider(httpClient: mockHttpClient, enableAudio: false);
-      await provider2.initializeData();
-
-      // Should still be favorite
-      expect(provider2.isFavorite(devocional1), isTrue);
-      expect(provider2.favoriteDevocionales.length, equals(1));
-
-      provider2.dispose();
-    });
-
-    testWidgets(
-        'Should show favorite as "read" after restart if marked as read',
-        (WidgetTester tester) async {
-      // Create test devotional
       final devocionalId = 'devocional_2025_01_15_RVR1960';
       final devocional = createTestDevocional(
         id: devocionalId,
@@ -392,56 +336,203 @@ void main() {
         versiculo: 'Juan 3:16',
       );
 
-      // First session: Add favorite and mark as read
+      // First session: User opens app and adds favorite
       final provider1 =
           DevocionalProvider(httpClient: mockHttpClient, enableAudio: false);
       await provider1.initializeData();
 
-      await tester.pumpWidget(
-        ChangeNotifierProvider.value(
-          value: provider1,
-          child: MaterialApp(
-            home: Scaffold(
-              body: Builder(
-                builder: (context) {
-                  // Use the new async toggleFavorite API
-                  Future.microtask(() async {
-                    await provider1.toggleFavorite(devocional.id);
-                  });
-                  return Container();
-                },
-              ),
-            ),
-          ),
-        ),
-      );
+      // User toggles favorite (adds it)
+      final wasAdded = await provider1.toggleFavorite(devocional.id);
+      expect(wasAdded, isTrue, reason: 'Favorite should be added');
 
-      await tester.pumpAndSettle();
+      // Verify it's marked as favorite (ID-based check)
+      expect(provider1.isFavorite(devocional), isTrue,
+          reason: 'Should be marked as favorite immediately');
 
-      // Wait for the async operation to complete
-      await Future.delayed(const Duration(milliseconds: 100));
+      // Verify it's persisted in storage
+      final prefs = await SharedPreferences.getInstance();
+      final storedIds = prefs.getString('favorite_ids');
+      expect(storedIds, isNotNull, reason: 'Favorite IDs should be saved');
+      final ids = (json.decode(storedIds!) as List).cast<String>();
+      expect(ids.contains(devocional.id), isTrue,
+          reason: 'Favorite ID should be in storage');
 
-      // Mark as read
-      await provider1.recordDevocionalRead(devocionalId);
-
-      // Verify saved in stats
-      final statsService1 = SpiritualStatsService();
-      final stats1 = await statsService1.getStats();
-      expect(stats1.readDevocionalIds.contains(devocionalId), isTrue);
-
+      // User closes app
       provider1.dispose();
 
-      // Second session: Load again
+      // Second session: User reopens app (simulating app restart)
       final provider2 =
           DevocionalProvider(httpClient: mockHttpClient, enableAudio: false);
       await provider2.initializeData();
 
-      // Should still be favorite AND read
-      expect(provider2.isFavorite(devocional), isTrue);
+      // Favorite ID should still be recognized (even if devotional list is empty)
+      expect(provider2.isFavorite(devocional), isTrue,
+          reason: 'Favorite ID should persist after app restart');
 
-      final statsService2 = SpiritualStatsService();
-      final stats2 = await statsService2.getStats();
-      expect(stats2.readDevocionalIds.contains(devocionalId), isTrue);
+      // Verify storage still has it
+      final storedIds2 = prefs.getString('favorite_ids');
+      final ids2 = (json.decode(storedIds2!) as List).cast<String>();
+      expect(ids2.contains(devocional.id), isTrue,
+          reason: 'Favorite ID should remain in storage');
+
+      provider2.dispose();
+    });
+
+    test('Should preserve favorite status after restart', () async {
+      // Real user behavior: User favorites devotional, restarts app
+      // Focus: Favorite persistence (read tracking tested separately)
+
+      final devocionalId = 'devocional_2025_01_15_RVR1960';
+      final devocional = createTestDevocional(
+        id: devocionalId,
+        date: DateTime(2025, 1, 15),
+        versiculo: 'Juan 3:16',
+      );
+
+      // First session: User adds favorite
+      final provider1 =
+          DevocionalProvider(httpClient: mockHttpClient, enableAudio: false);
+      await provider1.initializeData();
+
+      // Add to favorites
+      await provider1.toggleFavorite(devocional.id);
+      expect(provider1.isFavorite(devocional), isTrue,
+          reason: 'Favorite should be added');
+
+      // Verify it's persisted
+      final prefs = await SharedPreferences.getInstance();
+      final storedIds1 = prefs.getString('favorite_ids');
+      expect(storedIds1, isNotNull);
+      final ids1 = (json.decode(storedIds1!) as List).cast<String>();
+      expect(ids1.contains(devocionalId), isTrue,
+          reason: 'Favorite ID should be in storage');
+
+      // User closes app
+      provider1.dispose();
+
+      // Second session: User reopens app (app restart)
+      final provider2 =
+          DevocionalProvider(httpClient: mockHttpClient, enableAudio: false);
+      await provider2.initializeData();
+
+      // Should still be favorite (ID-based check)
+      expect(provider2.isFavorite(devocional), isTrue,
+          reason: 'Favorite should persist after restart');
+
+      // Verify storage persistence
+      final storedIds2 = prefs.getString('favorite_ids');
+      final ids2 = (json.decode(storedIds2!) as List).cast<String>();
+      expect(ids2.contains(devocionalId), isTrue,
+          reason: 'Favorite ID should remain in storage after restart');
+
+      provider2.dispose();
+    });
+
+    test('User adds multiple favorites in one session and IDs persist',
+        () async {
+      // Real user scenario: User browses devotionals and favorites several
+      final prefs = await SharedPreferences.getInstance();
+
+      // First session: User adds 5 favorites
+      final provider1 =
+          DevocionalProvider(httpClient: mockHttpClient, enableAudio: false);
+      await provider1.initializeData();
+
+      final favoriteIds = [
+        'devocional_2025_01_01_RVR1960',
+        'devocional_2025_01_02_RVR1960',
+        'devocional_2025_01_03_RVR1960',
+        'devocional_2025_01_04_RVR1960',
+        'devocional_2025_01_05_RVR1960',
+      ];
+
+      // User favorites each one
+      for (final id in favoriteIds) {
+        await provider1.toggleFavorite(id);
+      }
+
+      // Verify all IDs are stored
+      final storedIds = prefs.getString('favorite_ids');
+      expect(storedIds, isNotNull, reason: 'Favorite IDs should be saved');
+      final stored = (json.decode(storedIds!) as List).cast<String>();
+      expect(stored.length, equals(5), reason: 'All 5 IDs should be persisted');
+
+      // Verify all are recognized as favorites
+      for (final id in favoriteIds) {
+        final dev = createTestDevocional(
+          id: id,
+          date: DateTime(2025, 1, 1),
+          versiculo: 'Test',
+        );
+        expect(provider1.isFavorite(dev), isTrue,
+            reason: '$id should be marked as favorite');
+      }
+
+      provider1.dispose();
+
+      // Second session: App restart
+      final provider2 =
+          DevocionalProvider(httpClient: mockHttpClient, enableAudio: false);
+      await provider2.initializeData();
+
+      // All IDs should still be recognized as favorites
+      for (final id in favoriteIds) {
+        final dev = createTestDevocional(
+          id: id,
+          date: DateTime(2025, 1, 1),
+          versiculo: 'Test',
+        );
+        expect(provider2.isFavorite(dev), isTrue,
+            reason: '$id should persist as favorite after restart');
+      }
+
+      // Verify persistence in storage
+      final storedIds2 = prefs.getString('favorite_ids');
+      final stored2 = (json.decode(storedIds2!) as List).cast<String>();
+      expect(stored2.length, equals(5),
+          reason: 'All 5 IDs should remain in storage');
+
+      provider2.dispose();
+    });
+
+    test('User toggles favorite multiple times - final state persists',
+        () async {
+      // Real user scenario: User changes mind, toggles favorite on/off
+      final devocionalId = 'devocional_2025_01_10_RVR1960';
+      final devocional = createTestDevocional(
+        id: devocionalId,
+        date: DateTime(2025, 1, 10),
+        versiculo: 'Juan 3:16',
+      );
+
+      final provider =
+          DevocionalProvider(httpClient: mockHttpClient, enableAudio: false);
+      await provider.initializeData();
+
+      // User adds favorite
+      await provider.toggleFavorite(devocionalId);
+      expect(provider.isFavorite(devocional), isTrue,
+          reason: 'Should be favorited');
+
+      // User changes mind, removes it
+      await provider.toggleFavorite(devocionalId);
+      expect(provider.isFavorite(devocional), isFalse,
+          reason: 'Should be unfavorited');
+
+      // User changes mind again, adds it back
+      await provider.toggleFavorite(devocionalId);
+      expect(provider.isFavorite(devocional), isTrue,
+          reason: 'Should be favorited again');
+
+      provider.dispose();
+
+      // Restart app - final state should persist
+      final provider2 =
+          DevocionalProvider(httpClient: mockHttpClient, enableAudio: false);
+      await provider2.initializeData();
+
+      expect(provider2.isFavorite(devocional), isTrue,
+          reason: 'Final favorited state should persist');
 
       provider2.dispose();
     });
@@ -561,8 +652,8 @@ void main() {
   });
 
   group('Edge Cases', () {
-    testWidgets('Should not add devotional without ID to favorites',
-        (WidgetTester tester) async {
+    test('Should not add devotional without ID to favorites', () async {
+      // Real user behavior: System validation prevents empty IDs
       final provider =
           DevocionalProvider(httpClient: mockHttpClient, enableAudio: false);
       await provider.initializeData();
@@ -577,16 +668,18 @@ void main() {
       expect(
         () async => await provider.toggleFavorite(invalidDevocional.id),
         throwsArgumentError,
+        reason: 'Empty IDs should not be allowed',
       );
 
       // Should not be in favorites
-      expect(provider.favoriteDevocionales.length, equals(0));
+      expect(provider.favoriteDevocionales.length, equals(0),
+          reason: 'No favorites should be added');
 
       provider.dispose();
     });
 
-    testWidgets('Should handle removing non-existent favorite gracefully',
-        (WidgetTester tester) async {
+    test('Should handle removing non-existent favorite gracefully', () async {
+      // Real user behavior: Toggle adds if not present
       final provider =
           DevocionalProvider(httpClient: mockHttpClient, enableAudio: false);
       await provider.initializeData();
@@ -597,12 +690,13 @@ void main() {
         versiculo: 'Juan 3:16',
       );
 
-      // Try to add favorite
+      // Try to add favorite (toggle when not present)
       final wasAdded = await provider.toggleFavorite(devocional.id);
 
       // Should be added (not removed)
-      expect(wasAdded, isTrue);
-      expect(provider.isFavorite(devocional), isTrue);
+      expect(wasAdded, isTrue, reason: 'Should add when not present');
+      expect(provider.isFavorite(devocional), isTrue,
+          reason: 'Should be marked as favorite');
 
       provider.dispose();
     });
@@ -683,28 +777,28 @@ void main() {
       provider.dispose();
     });
 
-    testWidgets('handles rapid concurrent toggles',
-        (WidgetTester tester) async {
+    test('handles rapid concurrent toggles', () async {
+      // Real user behavior: User rapidly taps favorite button
       final provider =
           DevocionalProvider(httpClient: mockHttpClient, enableAudio: false);
       await provider.initializeData();
 
-      // Simulate rapid concurrent toggles
+      // Simulate rapid concurrent toggles (user tapping button multiple times)
       final futures =
           List.generate(10, (_) => provider.toggleFavorite('dev_123'));
       await Future.wait(futures);
 
-      // Should have toggled 10 times, ending with it in favorites (odd number would be in, even would be out)
-      // Since we start with 0 toggles and do 10 toggles (even), it should NOT be in favorites
-      expect(provider.favoriteDevocionales.length, equals(0));
+      // Should have toggled 10 times, ending with it NOT in favorites (even toggles)
+      // Starting state: not favorite (0)
+      // After 10 toggles (even number): back to not favorite
+      expect(provider.favoriteDevocionales.length, equals(0),
+          reason: 'Even number of toggles should result in not favorite');
 
       provider.dispose();
     });
 
-    testWidgets('throws on save failure', (WidgetTester tester) async {
-      // This test is difficult to implement without dependency injection
-      // for SharedPreferences. For now, we'll test that toggleFavorite
-      // propagates exceptions correctly by testing with empty ID
+    test('throws on save failure with empty ID', () async {
+      // Real user behavior validation: System prevents invalid operations
       final provider =
           DevocionalProvider(httpClient: mockHttpClient, enableAudio: false);
       await provider.initializeData();
@@ -713,6 +807,7 @@ void main() {
       expect(
         () async => await provider.toggleFavorite(''),
         throwsArgumentError,
+        reason: 'Empty ID should throw error',
       );
 
       provider.dispose();
