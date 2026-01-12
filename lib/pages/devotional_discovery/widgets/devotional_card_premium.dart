@@ -2,11 +2,21 @@
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:intl/intl.dart';
 import 'package:shimmer/shimmer.dart';
 
 import '../../../models/devocional_model.dart';
 import '../../../utils/tag_color_dictionary.dart';
+
+// Custom cache manager for Discovery images with size and TTL limits
+final customDiscoveryCacheManager = CacheManager(
+  Config(
+    'discovery_images',
+    maxNrOfCacheObjects: 200,
+    stalePeriod: const Duration(days: 7),
+  ),
+);
 
 /// Premium devotional card with full background image (Glorify/YouVersion style)
 class DevotionalCardPremium extends StatelessWidget {
@@ -264,6 +274,9 @@ class DevotionalCardPremium extends StatelessWidget {
       return CachedNetworkImage(
         imageUrl: imageUrl,
         fit: BoxFit.cover,
+        cacheManager: customDiscoveryCacheManager,
+        maxHeightDiskCache: 1080,
+        maxWidthDiskCache: 1920,
         placeholder: (context, url) => Shimmer.fromColors(
           baseColor: _getGradientColors()[0],
           highlightColor: _getGradientColors()[1].withValues(alpha: 0.5),

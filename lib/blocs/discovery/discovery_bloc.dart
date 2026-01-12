@@ -120,7 +120,10 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
       // Emit the same state to trigger UI refresh
       final currentState = state;
       if (currentState is DiscoveryLoaded) {
-        emit(currentState.copyWith(clearError: true));
+        emit(currentState.copyWith(
+          clearError: true,
+          lastUpdated: DateTime.now(),
+        ));
       }
     } catch (e) {
       debugPrint('Error marking section completed: $e');
@@ -150,7 +153,10 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
       // Emit the same state to trigger UI refresh
       final currentState = state;
       if (currentState is DiscoveryLoaded) {
-        emit(currentState.copyWith(clearError: true));
+        emit(currentState.copyWith(
+          clearError: true,
+          lastUpdated: DateTime.now(),
+        ));
       }
     } catch (e) {
       debugPrint('Error saving answer: $e');
@@ -176,7 +182,10 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
       // Emit the same state to trigger UI refresh
       final currentState = state;
       if (currentState is DiscoveryLoaded) {
-        emit(currentState.copyWith(clearError: true));
+        emit(currentState.copyWith(
+          clearError: true,
+          lastUpdated: DateTime.now(),
+        ));
       }
     } catch (e) {
       debugPrint('Error completing study: $e');

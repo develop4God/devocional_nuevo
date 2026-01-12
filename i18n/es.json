@@ -673,5 +673,18 @@
     "days_old_single": "({days} día)",
     "days_old_plural": "({days} días)",
     "thankful_for": "Agradezco por:"
+  },
+  "discovery": {
+    "discovery_studies": "Estudios Discovery",
+    "discovery_load_error": "Error al cargar estudios Discovery",
+    "discovery_section_complete_error": "Error al marcar sección como completada",
+    "discovery_answer_save_error": "Error al guardar respuesta",
+    "discovery_study_complete_error": "Error al completar estudio",
+    "discovery_refresh_error": "Error al actualizar estudios",
+    "no_studies_available": "No hay estudios Discovery disponibles",
+    "loading_studies": "Cargando estudios Discovery...",
+    "study_completed": "Estudio completado exitosamente",
+    "section_completed": "Sección completada",
+    "answer_saved": "Respuesta guardada exitosamente"
   }
 }

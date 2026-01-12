@@ -1,6 +1,7 @@
 // lib/blocs/discovery/discovery_state.dart
 
 import 'package:devocional_nuevo/models/discovery_devotional_model.dart';
+import 'package:equatable/equatable.dart';
 
 abstract class DiscoveryState {}
 
@@ -11,16 +12,18 @@ class DiscoveryInitial extends DiscoveryState {}
 class DiscoveryLoading extends DiscoveryState {}
 
 /// State when Discovery studies are successfully loaded
-class DiscoveryLoaded extends DiscoveryState {
+class DiscoveryLoaded extends DiscoveryState with EquatableMixin {
   final List<String> availableStudyIds;
   final Map<String, DiscoveryDevotional> loadedStudies;
   final String? errorMessage;
+  final DateTime lastUpdated;
 
   DiscoveryLoaded({
     required this.availableStudyIds,
     required this.loadedStudies,
     this.errorMessage,
-  });
+    DateTime? lastUpdated,
+  }) : lastUpdated = lastUpdated ?? DateTime.now();
 
   /// Get a specific study by ID
   DiscoveryDevotional? getStudy(String studyId) {
@@ -44,13 +47,19 @@ class DiscoveryLoaded extends DiscoveryState {
     Map<String, DiscoveryDevotional>? loadedStudies,
     String? errorMessage,
     bool clearError = false,
+    DateTime? lastUpdated,
   }) {
     return DiscoveryLoaded(
       availableStudyIds: availableStudyIds ?? this.availableStudyIds,
       loadedStudies: loadedStudies ?? this.loadedStudies,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
+      lastUpdated: lastUpdated ?? DateTime.now(),
     );
   }
+
+  @override
+  List<Object?> get props =>
+      [availableStudyIds, loadedStudies, errorMessage, lastUpdated];
 }
 
 /// State when a specific study is being loaded

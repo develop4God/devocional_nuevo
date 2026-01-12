@@ -241,5 +241,36 @@ void main() {
         ],
       );
     });
+
+    group('State Management - lastUpdated', () {
+      test('emits distinct states when progress updated', () async {
+        final state1 = DiscoveryLoaded(
+          availableStudyIds: [],
+          loadedStudies: {},
+        );
+        await Future.delayed(const Duration(milliseconds: 10));
+        final state2 = DiscoveryLoaded(
+          availableStudyIds: [],
+          loadedStudies: {},
+        );
+        // Different timestamps make states distinct for Equatable
+        expect(state1, isNot(equals(state2)));
+      });
+
+      test('same state data with same timestamp are equal', () {
+        final now = DateTime.now();
+        final state1 = DiscoveryLoaded(
+          availableStudyIds: ['test'],
+          loadedStudies: {},
+          lastUpdated: now,
+        );
+        final state2 = DiscoveryLoaded(
+          availableStudyIds: ['test'],
+          loadedStudies: {},
+          lastUpdated: now,
+        );
+        expect(state1, equals(state2));
+      });
+    });
   });
 }
