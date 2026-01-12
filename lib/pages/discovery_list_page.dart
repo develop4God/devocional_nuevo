@@ -4,6 +4,8 @@ import 'package:devocional_nuevo/blocs/discovery/discovery_bloc.dart';
 import 'package:devocional_nuevo/blocs/discovery/discovery_event.dart';
 import 'package:devocional_nuevo/blocs/discovery/discovery_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
+import 'package:devocional_nuevo/pages/discovery_detail_page.dart';
+import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/widgets/app_bar_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -131,11 +133,21 @@ class _StudyCard extends StatelessWidget {
       ),
       child: InkWell(
         onTap: () {
-          // TODO: Navigate to study detail page when implemented
-          // For now, this is a placeholder
-          // Navigator.push(context, MaterialPageRoute(
-          //   builder: (_) => DiscoveryDetailPage(studyId: studyId),
-          // ));
+          // Get current language from provider
+          final languageCode = context.read<DevocionalProvider>().selectedLanguage;
+          
+          // Load the study
+          context.read<DiscoveryBloc>().add(
+            LoadDiscoveryStudy(studyId, languageCode: languageCode),
+          );
+          
+          // Navigate to detail page
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => DiscoveryDetailPage(studyId: studyId),
+            ),
+          );
         },
         borderRadius: BorderRadius.circular(12),
         child: Column(
