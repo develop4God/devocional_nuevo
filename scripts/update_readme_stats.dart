@@ -1,4 +1,7 @@
 #!/usr/bin/env dart
+// ignore_for_file: avoid_print
+
+library;
 
 /// Auto-generates README.md statistics from actual codebase
 ///
