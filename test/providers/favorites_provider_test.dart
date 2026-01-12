@@ -61,22 +61,71 @@ void main() {
 
   // Mock HTTP client that returns a minimal valid devotional payload for all requests
   final mockHttpClient = MockClient((request) async {
-    return http.Response(
-        jsonEncode({
-          "data": {
-            "es": {
-              "2025-01-01": {
-                "id": "devocional_2025_01_01_KJV",
-                "date": "2025-01-01",
-                "versiculo": "Juan 1:1",
-                "texto": "Texto de prueba",
-                "language": "es",
-                "version": "KJV"
-              }
-            }
-          }
-        }),
-        200);
+    // Generate devotionals for different dates and languages based on URL
+    final url = request.url.toString();
+    print('🔧 Mock HTTP Client received request: $url');
+    
+    // Determine language and version from URL
+    String language = 'es';
+    String version = 'RVR1960';
+    int year = 2025;
+    
+    // Check if it's the default Spanish RVR1960 URL format (backward compatibility)
+    if (url.contains('Devocional_year_') && !url.contains('_en_') && !url.contains('_pt_')) {
+      // Spanish RVR1960 uses the original URL format
+      language = 'es';
+      version = 'RVR1960';
+      if (url.contains('year_2026')) {
+        year = 2026;
+      }
+    } else {
+      // New multilingual format
+      if (url.contains('_en_')) {
+        language = 'en';
+        version = 'KJV';
+      } else if (url.contains('_pt_')) {
+        language = 'pt';
+        version = 'NVI';
+      }
+      
+      if (url.contains('year_2026')) {
+        year = 2026;
+      }
+    }
+    
+    print('🔧 Mock will generate: year=$year, language=$language, version=$version');
+    
+    // Generate devotionals for the entire year for the requested language
+    final Map<String, dynamic> languageData = {};
+    
+    // Generate 365 days of devotionals
+    for (int month = 1; month <= 12; month++) {
+      final daysInMonth = month == 2 ? 28 : (month == 4 || month == 6 || month == 9 || month == 11 ? 30 : 31);
+      for (int day = 1; day <= daysInMonth; day++) {
+        final dateStr = '$year-${month.toString().padLeft(2, '0')}-${day.toString().padLeft(2, '0')}';
+        final id = 'devocional_${year}_${month.toString().padLeft(2, '0')}_${day.toString().padLeft(2, '0')}_$version';
+        languageData[dateStr] = {
+          "id": id,
+          "date": dateStr,
+          "versiculo": "Test verse $dateStr",
+          "texto": "Test text $dateStr",
+          "reflexion": "Test reflection $dateStr",
+          "oracion": "Test prayer $dateStr",
+          "language": language,
+          "version": version,
+          "paraMeditar": [
+            {"cita": "Test cita", "texto": "Test para meditar"}
+          ]
+        };
+      }
+    }
+    
+    print('🔧 Mock generated ${languageData.length} devotionals');
+    
+    // Return the data in the expected structure: {"data": {"language": {...}}}
+    final response = {"data": {language: languageData}};
+    print('🔧 Mock response structure keys: ${response.keys}, data keys: ${(response['data'] as Map).keys}');
+    return http.Response(jsonEncode(response), 200);
   });
 
   // Mock platform channels
@@ -703,6 +752,10 @@ void main() {
 
     test('Should sync favorites after version change', () async {
       final prefs = await SharedPreferences.getInstance();
+
+      // Set up Spanish language first (since favorites are RVR1960 which is Spanish)
+      await prefs.setString('selectedLanguage', 'es');
+      await prefs.setString('selectedVersion', 'RVR1960');
 
       // Set up favorites
       final favoriteIds = [
