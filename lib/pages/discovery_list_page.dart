@@ -131,14 +131,11 @@ class _StudyCard extends StatelessWidget {
       ),
       child: InkWell(
         onTap: () {
-          // Load and navigate to study detail page
-          // This will be implemented when the detail page is added
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Opening study: $studyId'),
-              duration: const Duration(seconds: 1),
-            ),
-          );
+          // TODO: Navigate to study detail page when implemented
+          // For now, this is a placeholder
+          // Navigator.push(context, MaterialPageRoute(
+          //   builder: (_) => DiscoveryDetailPage(studyId: studyId),
+          // ));
         },
         borderRadius: BorderRadius.circular(12),
         child: Column(
