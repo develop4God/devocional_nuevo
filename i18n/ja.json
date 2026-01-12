@@ -190,7 +190,9 @@
     "settings": "設定",
     "about": "について",
     "drawer_title": "デボーション",
-    "close_drawer": "メニューを閉じる"
+    "close_drawer": "メニューを閉じる",
+    "previous": "前へ",
+    "next": "次へ"
   },
   "drawer": {
     "title": "あなたの聖書、あなたのスタイル",
@@ -673,5 +675,18 @@
     "days_old_single": "({days}日)",
     "days_old_plural": "({days}日)",
     "thankful_for": "感謝しています："
+  },
+  "discovery": {
+    "discovery_studies": "ディスカバリー研究",
+    "discovery_load_error": "ディスカバリー研究の読み込みエラー",
+    "discovery_section_complete_error": "セクション完了のマークエラー",
+    "discovery_answer_save_error": "回答の保存エラー",
+    "discovery_study_complete_error": "研究の完了エラー",
+    "discovery_refresh_error": "研究の更新エラー",
+    "no_studies_available": "利用可能なディスカバリー研究がありません",
+    "loading_studies": "ディスカバリー研究を読み込み中...",
+    "study_completed": "研究が正常に完了しました",
+    "section_completed": "セクション完了",
+    "answer_saved": "回答が正常に保存されました"
   }
 }
