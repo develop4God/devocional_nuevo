@@ -2,7 +2,6 @@
 // High-value user behavior tests for favorites functionality
 
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
@@ -13,17 +12,7 @@ import 'package:http/testing.dart';
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class MockPathProviderPlatform extends PathProviderPlatform {
-  @override
-  Future<String?> getApplicationDocumentsPath() async {
-    return Directory.systemTemp.path;
-  }
-
-  @override
-  Future<String?> getTemporaryPath() async {
-    return Directory.systemTemp.path;
-  }
-}
+import '../helpers/test_helpers.dart';
 
 /// Real user behavior tests for favorites
 /// Focuses on common scenarios without implementation details
