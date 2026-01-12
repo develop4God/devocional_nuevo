@@ -141,7 +141,7 @@ void main() {
       await Future.delayed(const Duration(milliseconds: 200));
 
       expect(bloc.state, isA<DiscoveryLoaded>());
-      
+
       bloc.close();
     });
   });

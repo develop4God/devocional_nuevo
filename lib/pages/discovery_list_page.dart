@@ -57,7 +57,9 @@ class _DiscoveryListPageState extends State<DiscoveryListPage> {
                     const SizedBox(height: 16),
                     ElevatedButton.icon(
                       onPressed: () {
-                        context.read<DiscoveryBloc>().add(LoadDiscoveryStudies());
+                        context
+                            .read<DiscoveryBloc>()
+                            .add(LoadDiscoveryStudies());
                       },
                       icon: const Icon(Icons.refresh),
                       label: Text('app.retry'.tr()),
@@ -134,13 +136,14 @@ class _StudyCard extends StatelessWidget {
       child: InkWell(
         onTap: () {
           // Get current language from provider
-          final languageCode = context.read<DevocionalProvider>().selectedLanguage;
-          
+          final languageCode =
+              context.read<DevocionalProvider>().selectedLanguage;
+
           // Load the study
           context.read<DiscoveryBloc>().add(
-            LoadDiscoveryStudy(studyId, languageCode: languageCode),
-          );
-          
+                LoadDiscoveryStudy(studyId, languageCode: languageCode),
+              );
+
           // Navigate to detail page
           Navigator.push(
             context,

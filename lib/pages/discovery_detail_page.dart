@@ -157,9 +157,8 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
                   devocional: study,
                   isComplete: false,
                   isPlaying: false,
-                  onPrevious: _currentSectionIndex > 0
-                      ? _goToPreviousSection
-                      : null,
+                  onPrevious:
+                      _currentSectionIndex > 0 ? _goToPreviousSection : null,
                   onNext: _currentSectionIndex < study.secciones.length - 1
                       ? () => _goToNextSection(study.secciones.length)
                       : null,
@@ -182,7 +181,8 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isDark ? Colors.grey[850] : theme.colorScheme.primary.withAlpha(26),
+        color:
+            isDark ? Colors.grey[850] : theme.colorScheme.primary.withAlpha(26),
         border: Border(
           bottom: BorderSide(
             color: theme.dividerColor,
