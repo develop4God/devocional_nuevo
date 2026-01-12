@@ -44,13 +44,10 @@ class DiscoveryRepository {
       );
 
       String filename;
-      if (studyInfo != null && studyInfo['files'] != null) {
-        // Usar el archivo específico del idioma si existe
-        filename = studyInfo['files'][languageCode] as String? ??
-            studyInfo['files']['es'] as String? ??
-            '$id.json';
+      final files = studyInfo?['files'] as Map<String, dynamic>?;
+      if (files != null) {
+        filename = files[languageCode] ?? files['es'] ?? '${id}_es_001.json';
       } else {
-        // Fallback a nombre de archivo por defecto
         filename = '${id}_${languageCode}_001.json';
       }
 

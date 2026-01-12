@@ -125,7 +125,7 @@ ${'discovery.shared_from_app'.tr()}
               if (onPrevious != null)
                 _ActionButton(
                   icon: Icons.arrow_back_ios,
-                  label: 'Anterior',
+                  label: 'navigation.previous'.tr(),
                   onPressed: onPrevious!,
                   color: Colors.blueGrey,
                 ),
@@ -160,7 +160,7 @@ ${'discovery.shared_from_app'.tr()}
               if (onNext != null)
                 _ActionButton(
                   icon: Icons.arrow_forward_ios,
-                  label: 'Siguiente',
+                  label: 'navigation.next'.tr(),
                   onPressed: onNext!,
                   color: Colors.blueGrey,
                 ),

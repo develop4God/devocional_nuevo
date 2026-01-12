@@ -259,6 +259,21 @@ class _MyAppState extends State<MyApp> {
     _loadDeveloperMode();
   }
 
+  @override
+  void dispose() {
+    // Close HTTP client to prevent resource leaks
+    try {
+      getService<http.Client>().close();
+    } catch (e) {
+      developer.log(
+        'Error closing HTTP client: $e',
+        name: 'MainApp',
+        error: e,
+      );
+    }
+    super.dispose();
+  }
+
   Future<void> _loadDeveloperMode() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
