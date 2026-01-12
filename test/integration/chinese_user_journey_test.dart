@@ -1,3 +1,6 @@
+@Tags(['slow'])
+library;
+
 import 'package:devocional_nuevo/providers/localization_provider.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/tts/bible_text_formatter.dart';

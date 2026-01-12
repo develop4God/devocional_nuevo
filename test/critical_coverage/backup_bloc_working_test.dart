@@ -1,3 +1,6 @@
+@Tags(['slow'])
+library;
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:devocional_nuevo/blocs/backup_bloc.dart';
 import 'package:devocional_nuevo/blocs/backup_event.dart';
@@ -9,6 +12,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
 // Mock classes for testing
+
 class MockGoogleDriveBackupService extends Mock
     implements GoogleDriveBackupService {}
 

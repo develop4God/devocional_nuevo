@@ -1,3 +1,6 @@
+@Tags(['slow'])
+library;
+
 // test/critical_coverage/onboarding_service_test.dart
 // High-value tests for OnboardingService - user onboarding flows
 

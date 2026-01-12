@@ -1,3 +1,6 @@
+@Tags(['slow'])
+library;
+
 // test/critical_coverage/connectivity_service_working_test.dart
 // High-value tests for ConnectivityService - real user flows and edge cases
 

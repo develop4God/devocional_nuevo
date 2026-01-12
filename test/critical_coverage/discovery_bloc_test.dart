@@ -1,3 +1,6 @@
+@Tags(['slow'])
+library;
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:devocional_nuevo/blocs/discovery/discovery_bloc.dart';
 import 'package:devocional_nuevo/blocs/discovery/discovery_event.dart';

@@ -1,3 +1,6 @@
+@Tags(['slow'])
+library;
+
 import 'package:devocional_nuevo/blocs/thanksgiving_bloc.dart';
 import 'package:devocional_nuevo/blocs/thanksgiving_event.dart';
 import 'package:devocional_nuevo/blocs/thanksgiving_state.dart';

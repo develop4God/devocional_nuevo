@@ -1,3 +1,6 @@
+@Tags(['slow'])
+library;
+
 // test/integration/devocionales_page_bugfix_validation_test.dart
 
 import 'package:flutter_test/flutter_test.dart';
@@ -10,6 +13,7 @@ import 'package:devocional_nuevo/repositories/navigation_repository.dart';
 import 'package:devocional_nuevo/repositories/devocional_repository.dart';
 
 /// Mock classes
+
 class MockNavigationRepository extends Mock implements NavigationRepository {}
 
 class MockDevocionalRepository extends Mock implements DevocionalRepository {}
