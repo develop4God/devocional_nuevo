@@ -141,7 +141,7 @@ void setupServiceLocator() {
   // Register DiscoveryRepository as a lazy singleton (created when first accessed)
   // This repository manages fetching Discovery studies from GitHub with caching
   locator.registerLazySingleton<DiscoveryRepository>(
-    () => DiscoveryRepository(httpClient: locator<http.Client>()),
+    () => DiscoveryRepository(httpClient: locator.get<http.Client>()),
   );
 
   // Register DiscoveryProgressTracker as a lazy singleton (created when first accessed)
