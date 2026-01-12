@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:flutter/services.dart';
