@@ -12,25 +12,51 @@ import 'package:shared_preferences/shared_preferences.dart';
 class DiscoveryRepository {
   final http.Client httpClient;
   static const String _cacheKeyPrefix = 'discovery_cache_';
+  static const String _indexCacheKey = 'discovery_index_cache';
+  static const String _indexCacheTimestampKey = 'discovery_index_timestamp';
   static const String _githubRawBaseUrl =
-      'https://raw.githubusercontent.com/develop4God/Devocionales-json/main/discovery';
+      'https://raw.githubusercontent.com/develop4God/Devocionales-json/refs/heads/main/discovery';
+  static const Duration _indexCacheTTL = Duration(hours: 1);
 
   DiscoveryRepository({required this.httpClient});
 
-  /// Obtiene un estudio Discovery por su ID.
+  /// Obtiene un estudio Discovery por su ID y código de idioma.
   ///
   /// Primero intenta obtenerlo del cache, si no está disponible o ha expirado,
-  /// lo descarga desde GitHub.
-  Future<DiscoveryDevotional> fetchDiscoveryStudy(String id) async {
+  /// lo descarga desde GitHub usando el nombre de archivo específico del idioma.
+  Future<DiscoveryDevotional> fetchDiscoveryStudy(
+    String id,
+    String languageCode,
+  ) async {
     try {
       // Intentar cargar desde cache primero
-      final cached = await _loadFromCache(id);
+      final cacheKey = '${id}_$languageCode';
+      final cached = await _loadFromCache(cacheKey);
       if (cached != null) {
         return cached;
       }
 
-      // Si no está en cache, descargar desde GitHub
-      final url = '$_githubRawBaseUrl/$id.json';
+      // Obtener el índice para encontrar el nombre de archivo correcto
+      final index = await _fetchIndex();
+      final studyInfo = index['studies']?.firstWhere(
+        (s) => s['id'] == id,
+        orElse: () => null,
+      );
+
+      String filename;
+      if (studyInfo != null && studyInfo['files'] != null) {
+        // Usar el archivo específico del idioma si existe
+        filename = studyInfo['files'][languageCode] as String? ??
+            studyInfo['files']['es'] as String? ??
+            '$id.json';
+      } else {
+        // Fallback a nombre de archivo por defecto
+        filename = '${id}_${languageCode}_001.json';
+      }
+
+      // Descargar desde GitHub
+      final url = '$_githubRawBaseUrl/$filename';
+      debugPrint('Fetching Discovery study from: $url');
       final response = await httpClient.get(Uri.parse(url));
 
       if (response.statusCode == 200) {
@@ -38,7 +64,7 @@ class DiscoveryRepository {
         final study = DiscoveryDevotional.fromJson(json);
 
         // Guardar en cache
-        await _saveToCache(id, json);
+        await _saveToCache(cacheKey, json);
 
         return study;
       } else {
@@ -52,17 +78,71 @@ class DiscoveryRepository {
     }
   }
 
-  /// Obtiene la lista de estudios Discovery disponibles.
+  /// Obtiene la lista de estudios Discovery disponibles desde GitHub index.
   ///
-  /// Por ahora retorna una lista hardcoded, pero podría extenderse
-  /// para obtener el índice desde GitHub.
+  /// Intenta cargar desde cache (TTL: 1 hora), si no está disponible o expiró,
+  /// descarga desde GitHub. Si falla, retorna lista hardcoded como fallback.
   Future<List<String>> fetchAvailableStudies() async {
-    // TODO: En una implementación completa, esto vendría de un index.json en GitHub
+    try {
+      final index = await _fetchIndex();
+      final studies = index['studies'] as List<dynamic>?;
+      if (studies != null && studies.isNotEmpty) {
+        return studies.map((s) => s['id'] as String).toList();
+      }
+    } catch (e) {
+      debugPrint('Error fetching index, using fallback list: $e');
+    }
+
+    // Fallback to hardcoded list if index fetch fails
     return [
-      'estrella-manana-001',
-      'estrella-manana-002',
-      'estrella-manana-003',
+      'morning_star_001',
+      'morning_star_002',
+      'morning_star_003',
     ];
+  }
+
+  /// Obtiene el índice de estudios desde GitHub con cache de 1 hora.
+  Future<Map<String, dynamic>> _fetchIndex() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+
+      // Check cache first
+      final cachedIndex = prefs.getString(_indexCacheKey);
+      final cachedTimestamp = prefs.getInt(_indexCacheTimestampKey);
+
+      if (cachedIndex != null && cachedTimestamp != null) {
+        final cacheAge =
+            DateTime.now().millisecondsSinceEpoch - cachedTimestamp;
+        if (cacheAge < _indexCacheTTL.inMilliseconds) {
+          debugPrint('Using cached Discovery index');
+          return jsonDecode(cachedIndex) as Map<String, dynamic>;
+        }
+      }
+
+      // Fetch from GitHub
+      final url = '$_githubRawBaseUrl/index.json';
+      debugPrint('Fetching Discovery index from: $url');
+      final response = await httpClient.get(Uri.parse(url));
+
+      if (response.statusCode == 200) {
+        final index = jsonDecode(response.body) as Map<String, dynamic>;
+
+        // Cache the index
+        await prefs.setString(_indexCacheKey, response.body);
+        await prefs.setInt(
+          _indexCacheTimestampKey,
+          DateTime.now().millisecondsSinceEpoch,
+        );
+
+        debugPrint('Discovery index cached successfully');
+        return index;
+      } else {
+        throw Exception('Failed to load index: ${response.statusCode}');
+      }
+    } catch (e) {
+      debugPrint('Error fetching Discovery index: $e');
+      rethrow;
+    }
   }
 
   /// Carga un estudio desde el cache de SharedPreferences.

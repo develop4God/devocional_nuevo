@@ -97,7 +97,7 @@ void main() {
       blocTest<DiscoveryBloc, DiscoveryState>(
         'emits [DiscoveryStudyLoading, DiscoveryLoaded] when study loads successfully',
         build: () {
-          when(() => mockRepository.fetchDiscoveryStudy(studyId))
+          when(() => mockRepository.fetchDiscoveryStudy(studyId, any()))
               .thenAnswer((_) async => study);
           return bloc;
         },
@@ -112,14 +112,15 @@ void main() {
                   equals(study)),
         ],
         verify: (_) {
-          verify(() => mockRepository.fetchDiscoveryStudy(studyId)).called(1);
+          verify(() => mockRepository.fetchDiscoveryStudy(studyId, 'es'))
+              .called(1);
         },
       );
 
       blocTest<DiscoveryBloc, DiscoveryState>(
         'emits error when study loading fails',
         build: () {
-          when(() => mockRepository.fetchDiscoveryStudy(studyId))
+          when(() => mockRepository.fetchDiscoveryStudy(studyId, any()))
               .thenThrow(Exception('Study not found'));
           return bloc;
         },

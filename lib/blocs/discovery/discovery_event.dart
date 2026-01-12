@@ -8,8 +8,9 @@ class LoadDiscoveryStudies extends DiscoveryEvent {}
 /// Event to load a specific Discovery study by ID
 class LoadDiscoveryStudy extends DiscoveryEvent {
   final String studyId;
+  final String? languageCode;
 
-  LoadDiscoveryStudy(this.studyId);
+  LoadDiscoveryStudy(this.studyId, {this.languageCode});
 }
 
 /// Event to mark a section as completed

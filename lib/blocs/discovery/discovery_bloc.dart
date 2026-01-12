@@ -62,7 +62,12 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
     emit(DiscoveryStudyLoading(event.studyId));
 
     try {
-      final study = await repository.fetchDiscoveryStudy(event.studyId);
+      // Default to Spanish if no language code provided
+      final languageCode = event.languageCode ?? 'es';
+      final study = await repository.fetchDiscoveryStudy(
+        event.studyId,
+        languageCode,
+      );
 
       // Restore previous state if available, or create new loaded state
       if (currentState is DiscoveryLoaded) {
