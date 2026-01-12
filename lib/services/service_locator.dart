@@ -133,10 +133,15 @@ void setupServiceLocator() {
     RemoteConfigService.create,
   );
 
+  // Register HTTP client as a lazy singleton (created when first accessed)
+  // This is used by repositories to make HTTP requests
+  // Registered as singleton to prevent resource leaks from creating multiple clients
+  locator.registerLazySingleton<http.Client>(() => http.Client());
+
   // Register DiscoveryRepository as a lazy singleton (created when first accessed)
   // This repository manages fetching Discovery studies from GitHub with caching
   locator.registerLazySingleton<DiscoveryRepository>(
-    () => DiscoveryRepository(httpClient: http.Client()),
+    () => DiscoveryRepository(httpClient: locator.get<http.Client>()),
   );
 
   // Register DiscoveryProgressTracker as a lazy singleton (created when first accessed)

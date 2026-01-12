@@ -40,6 +40,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
+import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/data/latest_all.dart' as tzdata;
@@ -257,6 +258,21 @@ class _MyAppState extends State<MyApp> {
     super.initState();
     _initializationFuture = _initializeApp();
     _loadDeveloperMode();
+  }
+
+  @override
+  void dispose() {
+    // Close HTTP client to prevent resource leaks
+    try {
+      getService<http.Client>().close();
+    } catch (e) {
+      developer.log(
+        'Error closing HTTP client: $e',
+        name: 'MainApp',
+        error: e,
+      );
+    }
+    super.dispose();
   }
 
   Future<void> _loadDeveloperMode() async {

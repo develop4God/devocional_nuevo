@@ -190,7 +190,9 @@
     "settings": "Configuración",
     "about": "Acerca de",
     "drawer_title": "Devocionales",
-    "close_drawer": "Cerrar menú"
+    "close_drawer": "Cerrar menú",
+    "previous": "Anterior",
+    "next": "Siguiente"
   },
   "drawer": {
     "title": "Tu Biblia, tu estilo",

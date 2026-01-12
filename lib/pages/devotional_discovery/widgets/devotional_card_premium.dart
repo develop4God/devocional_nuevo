@@ -9,14 +9,20 @@ import 'package:shimmer/shimmer.dart';
 import '../../../models/devocional_model.dart';
 import '../../../utils/tag_color_dictionary.dart';
 
-// Custom cache manager for Discovery images with size and TTL limits
-final customDiscoveryCacheManager = CacheManager(
-  Config(
-    'discovery_images',
-    maxNrOfCacheObjects: 200,
-    stalePeriod: const Duration(days: 7),
-  ),
-);
+// Singleton cache manager for Discovery images with size and TTL limits
+class _DiscoveryCacheManager {
+  static CacheManager? _instance;
+  static CacheManager get instance {
+    _instance ??= CacheManager(
+      Config(
+        'discovery_images',
+        maxNrOfCacheObjects: 200,
+        stalePeriod: const Duration(days: 7),
+      ),
+    );
+    return _instance!;
+  }
+}
 
 /// Premium devotional card with full background image (Glorify/YouVersion style)
 class DevotionalCardPremium extends StatelessWidget {
@@ -274,7 +280,7 @@ class DevotionalCardPremium extends StatelessWidget {
       return CachedNetworkImage(
         imageUrl: imageUrl,
         fit: BoxFit.cover,
-        cacheManager: customDiscoveryCacheManager,
+        cacheManager: _DiscoveryCacheManager.instance,
         maxHeightDiskCache: 1080,
         maxWidthDiskCache: 1920,
         placeholder: (context, url) => Shimmer.fromColors(

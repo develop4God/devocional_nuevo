@@ -190,7 +190,9 @@
     "settings": "Paramètres",
     "about": "À propos",
     "drawer_title": "Méditations",
-    "close_drawer": "Fermer le menu"
+    "close_drawer": "Fermer le menu",
+    "previous": "Précédent",
+    "next": "Suivant"
   },
   "drawer": {
     "title": "Votre Bible, votre style",
