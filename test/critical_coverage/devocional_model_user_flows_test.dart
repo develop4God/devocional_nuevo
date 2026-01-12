@@ -4,6 +4,7 @@
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+@Tags(['slow'])
 void main() {
   group('Devocional Model - User Behavior Tests', () {
     // SCENARIO 1: User loads devocional from API response

@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
 import 'package:devocional_nuevo/models/spiritual_stats_model.dart';
 
+@Tags(['slow'])
 import '../helpers/test_helpers.dart';
 
 void main() {

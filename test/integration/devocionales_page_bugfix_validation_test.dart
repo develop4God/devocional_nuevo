@@ -9,6 +9,8 @@ import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/repositories/navigation_repository.dart';
 import 'package:devocional_nuevo/repositories/devocional_repository.dart';
 
+@Tags(['slow'])
+
 /// Mock classes
 class MockNavigationRepository extends Mock implements NavigationRepository {}
 

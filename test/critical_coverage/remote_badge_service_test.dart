@@ -2,6 +2,8 @@
 
 import 'package:flutter_test/flutter_test.dart';
 
+@Tags(['slow'])
+
 /// High-value tests for RemoteBadgeService
 /// Tests caching logic and badge retrieval
 void main() {

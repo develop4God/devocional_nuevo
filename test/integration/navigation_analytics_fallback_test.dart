@@ -10,6 +10,8 @@ import 'package:devocional_nuevo/repositories/navigation_repository.dart';
 import 'package:devocional_nuevo/repositories/devocional_repository.dart';
 import 'package:mocktail/mocktail.dart';
 
+@Tags(['slow'])
+
 // Mock classes for testing
 class MockNavigationRepository extends Mock implements NavigationRepository {}
 

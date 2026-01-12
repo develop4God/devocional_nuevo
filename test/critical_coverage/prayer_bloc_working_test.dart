@@ -8,6 +8,7 @@ import 'package:devocional_nuevo/blocs/prayer_event.dart';
 import 'package:devocional_nuevo/blocs/prayer_state.dart';
 import 'package:devocional_nuevo/models/prayer_model.dart';
 
+@Tags(['slow'])
 void main() {
   group('PrayerBloc Critical Coverage Tests', () {
     late PrayerBloc prayerBloc;

@@ -2,6 +2,7 @@
 
 import 'dart:ui';
 
+@Tags(['slow'])
 import 'package:devocional_nuevo/services/localization_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';

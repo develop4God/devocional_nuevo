@@ -2,6 +2,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
 
+@Tags(['slow'])
 void main() {
   group('DevocionalModel Critical Coverage Tests', () {
     test('should serialize/deserialize JSON correctly', () {

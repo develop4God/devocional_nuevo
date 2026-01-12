@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+@Tags(['slow'])
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';

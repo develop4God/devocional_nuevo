@@ -5,6 +5,7 @@ import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+@Tags(['slow'])
 import '../helpers/flutter_tts_mock_helper.dart';
 
 void main() {

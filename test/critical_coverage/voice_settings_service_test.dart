@@ -3,6 +3,7 @@
 
 import 'package:flutter_test/flutter_test.dart';
 
+@Tags(['slow'])
 void main() {
   group('VoiceSettingsService - Friendly Voice Names', () {
     // friendlyVoiceMap tests

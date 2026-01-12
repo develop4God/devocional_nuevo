@@ -9,6 +9,8 @@ import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/repositories/navigation_repository_impl.dart';
 import 'package:devocional_nuevo/repositories/devocional_repository_impl.dart';
 
+@Tags(['slow'])
+
 // Helper function to create test devotionals
 List<Devocional> createTestDevocionales(int count) {
   return List.generate(

@@ -3,6 +3,7 @@
 
 import 'dart:async';
 
+@Tags(['slow'])
 import 'package:devocional_nuevo/services/tts_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 

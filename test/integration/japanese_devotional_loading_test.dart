@@ -6,6 +6,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+@Tags(['slow'])
+
 /// Integration test for Japanese devotional loading with new version codes
 /// Tests the complete flow: Constants -> Provider -> URL generation -> Copyright display
 void main() {

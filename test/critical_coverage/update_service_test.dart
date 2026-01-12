@@ -2,6 +2,8 @@
 
 import 'package:flutter_test/flutter_test.dart';
 
+@Tags(['slow'])
+
 /// High-value tests for UpdateService
 /// Tests update check logic and update type decisions
 void main() {

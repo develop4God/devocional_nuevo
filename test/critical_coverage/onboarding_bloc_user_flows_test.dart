@@ -4,6 +4,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+@Tags(['slow'])
 void main() {
   group('OnboardingBloc - User Behavior Tests (Business Logic)', () {
     setUpAll(() {

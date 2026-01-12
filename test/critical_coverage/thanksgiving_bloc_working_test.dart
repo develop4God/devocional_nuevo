@@ -4,6 +4,7 @@ import 'package:devocional_nuevo/blocs/thanksgiving_state.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+@Tags(['slow'])
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 

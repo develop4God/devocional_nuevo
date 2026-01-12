@@ -4,6 +4,7 @@
 import 'package:devocional_nuevo/models/prayer_model.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+@Tags(['slow'])
 void main() {
   group('Prayer Model - User Behavior Tests', () {
     // SCENARIO 1: User creates a new prayer

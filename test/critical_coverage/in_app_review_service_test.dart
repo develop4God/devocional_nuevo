@@ -2,6 +2,8 @@
 
 import 'package:flutter_test/flutter_test.dart';
 
+@Tags(['slow'])
+
 /// High-value tests for InAppReviewService
 /// Tests milestone detection and review request logic
 void main() {
