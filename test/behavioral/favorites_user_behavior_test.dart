@@ -30,27 +30,36 @@ void main() {
 
     // Simple mock client - returns minimal data needed for favorites testing
     final mockHttpClient = MockClient((request) async {
-      return http.Response(jsonEncode({"data": {"es": {}}}), 200);
+      return http.Response(
+          jsonEncode({
+            "data": {"es": {}}
+          }),
+          200);
     });
 
     setUpAll(() async {
       TestWidgetsFlutterBinding.ensureInitialized();
 
       // Mock Firebase
-      const firebaseCoreChannel = MethodChannel('plugins.flutter.io/firebase_core');
+      const firebaseCoreChannel =
+          MethodChannel('plugins.flutter.io/firebase_core');
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(firebaseCoreChannel, (call) async {
         if (call.method == 'Firebase#initializeCore') {
-          return [{'name': '[DEFAULT]', 'options': {}, 'pluginConstants': {}}];
+          return [
+            {'name': '[DEFAULT]', 'options': {}, 'pluginConstants': {}}
+          ];
         }
         return null;
       });
 
-      const crashlyticsChannel = MethodChannel('plugins.flutter.io/firebase_crashlytics');
+      const crashlyticsChannel =
+          MethodChannel('plugins.flutter.io/firebase_crashlytics');
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(crashlyticsChannel, (_) async => null);
 
-      const remoteConfigChannel = MethodChannel('plugins.flutter.io/firebase_remote_config');
+      const remoteConfigChannel =
+          MethodChannel('plugins.flutter.io/firebase_remote_config');
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(remoteConfigChannel, (call) async {
         return call.method == 'RemoteConfig#instance' ? {} : null;
@@ -66,7 +75,8 @@ void main() {
 
     setUp(() async {
       SharedPreferences.setMockInitialValues({});
-      provider = DevocionalProvider(httpClient: mockHttpClient, enableAudio: false);
+      provider =
+          DevocionalProvider(httpClient: mockHttpClient, enableAudio: false);
       await provider.initializeData();
     });
 
@@ -75,7 +85,8 @@ void main() {
     });
 
     group('User adds favorites', () {
-      test('User taps favorite button - devotional is added to favorites', () async {
+      test('User taps favorite button - devotional is added to favorites',
+          () async {
         // GIVEN: User has a devotional open
         const devocionalId = 'devocional_2025_01_15_RVR1960';
 
@@ -83,10 +94,15 @@ void main() {
         final wasAdded = await provider.toggleFavorite(devocionalId);
 
         // THEN: Devotional is added to favorites
-        expect(wasAdded, isTrue, reason: 'Should add favorite when not present');
-        expect(provider.favoriteDevocionales.map((d) => d.id).contains(devocionalId), 
-               isFalse, reason: 'Not in loaded devotionals, but ID is tracked');
-        
+        expect(wasAdded, isTrue,
+            reason: 'Should add favorite when not present');
+        expect(
+            provider.favoriteDevocionales
+                .map((d) => d.id)
+                .contains(devocionalId),
+            isFalse,
+            reason: 'Not in loaded devotionals, but ID is tracked');
+
         // Verify it persists
         final prefs = await SharedPreferences.getInstance();
         final savedIds = prefs.getString('favorite_ids');
@@ -109,7 +125,7 @@ void main() {
         final prefs = await SharedPreferences.getInstance();
         final savedIds = prefs.getString('favorite_ids');
         expect(savedIds, isNotNull);
-        
+
         final ids = (jsonDecode(savedIds!) as List).cast<String>();
         expect(ids, hasLength(3));
         expect(ids, contains(morningDevocional));
@@ -129,7 +145,7 @@ void main() {
 
         // THEN: Devotional is removed from favorites
         expect(wasAdded, isFalse, reason: 'Should remove when already present');
-        
+
         final prefs = await SharedPreferences.getInstance();
         final savedIds = prefs.getString('favorite_ids');
         if (savedIds != null) {
@@ -138,7 +154,8 @@ void main() {
         }
       });
 
-      test('User accidentally taps favorite twice - final state is correct', () async {
+      test('User accidentally taps favorite twice - final state is correct',
+          () async {
         // GIVEN: User viewing a devotional
         const devocionalId = 'devocional_2025_01_16_RVR1960';
 
@@ -161,19 +178,20 @@ void main() {
         // GIVEN: User has favorited several devotionals
         const favorite1 = 'devocional_2025_01_10_RVR1960';
         const favorite2 = 'devocional_2025_01_11_RVR1960';
-        
+
         await provider.toggleFavorite(favorite1);
         await provider.toggleFavorite(favorite2);
-        
+
         // Save current state
         final prefs = await SharedPreferences.getInstance();
         final savedBefore = prefs.getString('favorite_ids');
-        
+
         // WHEN: User closes app (dispose current provider - this happens in tearDown too)
         // Simulate closing app by disposing (tearDown will try again but that's ok)
-        
+
         // Open app again (new provider instance)
-        final newProvider = DevocionalProvider(httpClient: mockHttpClient, enableAudio: false);
+        final newProvider =
+            DevocionalProvider(httpClient: mockHttpClient, enableAudio: false);
         await newProvider.initializeData();
 
         // THEN: Favorites are still there
@@ -181,7 +199,7 @@ void main() {
         expect(savedAfter, equals(savedBefore));
         expect(savedAfter, contains(favorite1));
         expect(savedAfter, contains(favorite2));
-        
+
         newProvider.dispose();
       });
     });
