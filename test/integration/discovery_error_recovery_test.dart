@@ -8,7 +8,6 @@ import 'package:devocional_nuevo/blocs/discovery/discovery_bloc.dart';
 import 'package:devocional_nuevo/blocs/discovery/discovery_event.dart';
 import 'package:devocional_nuevo/blocs/discovery/discovery_state.dart';
 import 'package:devocional_nuevo/models/discovery_devotional_model.dart';
-import 'package:devocional_nuevo/models/discovery_section_model.dart';
 import 'package:devocional_nuevo/repositories/discovery_repository.dart';
 import 'package:devocional_nuevo/services/discovery_progress_tracker.dart';
 import 'package:flutter_test/flutter_test.dart';

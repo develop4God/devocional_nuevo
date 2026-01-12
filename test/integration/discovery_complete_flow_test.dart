@@ -213,7 +213,9 @@ void main() {
       when(() => mockRepository.fetchDiscoveryStudy('study1', 'es'))
           .thenAnswer((_) async => testStudy);
       when(() => mockProgressTracker.saveAnswer(any(), any(), any()))
-          .thenAnswer((_) async {});
+          .thenAnswer((_) async {
+            return null;
+          });
 
       final bloc = DiscoveryBloc(
         repository: mockRepository,
