@@ -1,3 +1,6 @@
+@Tags(['slow'])
+library;
+
 // test/critical_coverage/notification_service_working_test.dart
 
 import 'package:flutter_test/flutter_test.dart';
@@ -5,7 +8,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:devocional_nuevo/services/notification_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 
-@Tags(['slow'])
 void main() {
   group('NotificationService Critical Business Logic Tests', () {
     setUpAll(() {

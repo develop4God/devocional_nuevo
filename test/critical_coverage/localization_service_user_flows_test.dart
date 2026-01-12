@@ -1,14 +1,17 @@
+@Tags(['slow'])
+library;
+
 // test/critical_coverage/localization_service_user_flows_test.dart
 
 import 'dart:ui';
 
-@Tags(['slow'])
 import 'package:devocional_nuevo/services/localization_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
 /// High-value user flow tests for LocalizationService
 /// Tests real user behavior for multi-language support
+
 void main() {
   setUpAll(() async {
     // Initialize date formatting for all supported locales

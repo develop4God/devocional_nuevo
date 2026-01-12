@@ -1,10 +1,12 @@
+@Tags(['slow'])
+library;
+
 // test/critical_coverage/onboarding_service_test.dart
 // High-value tests for OnboardingService - user onboarding flows
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-@Tags(['slow'])
 void main() {
   group('OnboardingService - Version Management', () {
     late Map<String, Object> preferences;

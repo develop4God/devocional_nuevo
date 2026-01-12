@@ -1,9 +1,11 @@
+@Tags(['slow'])
+library;
+
 // test/critical_coverage/voice_settings_service_test.dart
 // High-value tests for VoiceSettingsService - TTS voice selection logic
 
 import 'package:flutter_test/flutter_test.dart';
 
-@Tags(['slow'])
 void main() {
   group('VoiceSettingsService - Friendly Voice Names', () {
     // friendlyVoiceMap tests

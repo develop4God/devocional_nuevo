@@ -1,9 +1,11 @@
+@Tags(['slow'])
+library;
+
 // test/critical_coverage/audio_controller_user_flows_test.dart
 // High-value user behavior tests for AudioController
 
 import 'dart:async';
 
-@Tags(['slow'])
 import 'package:devocional_nuevo/services/tts_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 

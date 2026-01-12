@@ -1,3 +1,6 @@
+@Tags(['slow'])
+library;
+
 import 'package:devocional_nuevo/providers/localization_provider.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/tts/bible_text_formatter.dart';
@@ -5,7 +8,6 @@ import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-@Tags(['slow'])
 import '../helpers/flutter_tts_mock_helper.dart';
 
 void main() {

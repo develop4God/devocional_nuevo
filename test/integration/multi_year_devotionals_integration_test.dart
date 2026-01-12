@@ -1,3 +1,6 @@
+@Tags(['slow'])
+library;
+
 // test/integration/multi_year_devotionals_integration_test.dart
 
 import 'package:devocional_nuevo/models/devocional_model.dart';
@@ -5,7 +8,6 @@ import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-@Tags(['slow'])
 import '../helpers/test_helpers.dart';
 
 void main() {

@@ -1,3 +1,6 @@
+@Tags(['slow'])
+library;
+
 // test/critical_coverage/prayer_bloc_working_test.dart
 import 'package:flutter_test/flutter_test.dart';
 import 'package:bloc_test/bloc_test.dart';
@@ -8,7 +11,6 @@ import 'package:devocional_nuevo/blocs/prayer_event.dart';
 import 'package:devocional_nuevo/blocs/prayer_state.dart';
 import 'package:devocional_nuevo/models/prayer_model.dart';
 
-@Tags(['slow'])
 void main() {
   group('PrayerBloc Critical Coverage Tests', () {
     late PrayerBloc prayerBloc;

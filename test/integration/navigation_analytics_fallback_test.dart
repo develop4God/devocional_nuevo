@@ -1,3 +1,6 @@
+@Tags(['slow'])
+library;
+
 // test/integration/navigation_analytics_fallback_test.dart
 // Tests for Navigation BLoC Analytics integration and fallback scenarios
 
@@ -10,9 +13,8 @@ import 'package:devocional_nuevo/repositories/navigation_repository.dart';
 import 'package:devocional_nuevo/repositories/devocional_repository.dart';
 import 'package:mocktail/mocktail.dart';
 
-@Tags(['slow'])
-
 // Mock classes for testing
+
 class MockNavigationRepository extends Mock implements NavigationRepository {}
 
 class MockDevocionalRepository extends Mock implements DevocionalRepository {}

@@ -1,10 +1,12 @@
+@Tags(['slow'])
+library;
+
 // test/critical_coverage/google_drive_backup_service_working_test.dart
 // High-value tests for GoogleDriveBackupService business logic
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-@Tags(['slow'])
 void main() {
   group('GoogleDriveBackupService Critical Business Logic Tests', () {
     setUpAll(() {

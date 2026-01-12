@@ -1,3 +1,6 @@
+@Tags(['slow'])
+library;
+
 // test/critical_coverage/audio_controller_working_test.dart
 // ✅ PERIPHERAL TESTING - Sin mocks, probando comportamiento observable
 
@@ -8,7 +11,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-@Tags(['slow'])
 import '../helpers/test_helpers.dart';
 
 void main() {

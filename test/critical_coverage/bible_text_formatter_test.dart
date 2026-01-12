@@ -1,10 +1,12 @@
+@Tags(['slow'])
+library;
+
 // test/critical_coverage/bible_text_formatter_test.dart
 // High-value tests for Bible text formatting for TTS across all languages
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:devocional_nuevo/services/tts/bible_text_formatter.dart';
 
-@Tags(['slow'])
 void main() {
   group('BibleTextFormatter - Spanish Ordinals', () {
     test('formats 1 Pedro as Primera de Pedro', () {

@@ -1,10 +1,12 @@
+@Tags(['slow'])
+library;
+
 // test/critical_coverage/compression_service_working_test.dart
 // High-value tests for CompressionService - real user flows and edge cases
 
 import 'dart:convert';
 import 'dart:typed_data';
 
-@Tags(['slow'])
 import 'package:devocional_nuevo/services/compression_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 

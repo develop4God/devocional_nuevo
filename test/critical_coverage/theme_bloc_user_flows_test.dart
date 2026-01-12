@@ -1,3 +1,6 @@
+@Tags(['slow'])
+library;
+
 // test/critical_coverage/theme_bloc_user_flows_test.dart
 // High-value user behavior tests for ThemeBloc
 
@@ -5,7 +8,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-@Tags(['slow'])
 void main() {
   group('ThemeBloc - User Behavior Tests (Business Logic)', () {
     setUpAll(() {

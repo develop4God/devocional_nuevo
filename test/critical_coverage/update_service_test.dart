@@ -1,11 +1,13 @@
+@Tags(['slow'])
+library;
+
 // test/critical_coverage/update_service_test.dart
 
 import 'package:flutter_test/flutter_test.dart';
 
-@Tags(['slow'])
-
 /// High-value tests for UpdateService
 /// Tests update check logic and update type decisions
+
 void main() {
   group('UpdateService Update Logic', () {
     group('Update Availability Check', () {

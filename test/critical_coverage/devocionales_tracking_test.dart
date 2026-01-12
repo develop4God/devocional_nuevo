@@ -1,11 +1,13 @@
+@Tags(['slow'])
+library;
+
 // test/critical_coverage/devocionales_tracking_test.dart
 
 import 'package:flutter_test/flutter_test.dart';
 
-@Tags(['slow'])
-
 /// High-value tests for DevocionalesTracking service
 /// Tests reading criteria evaluation and auto-completion logic
+
 void main() {
   group('DevocionalesTracking Reading Criteria', () {
     group('Timer Configuration', () {

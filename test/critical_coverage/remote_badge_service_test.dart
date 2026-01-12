@@ -1,11 +1,13 @@
+@Tags(['slow'])
+library;
+
 // test/critical_coverage/remote_badge_service_test.dart
 
 import 'package:flutter_test/flutter_test.dart';
 
-@Tags(['slow'])
-
 /// High-value tests for RemoteBadgeService
 /// Tests caching logic and badge retrieval
+
 void main() {
   group('RemoteBadgeService Caching Logic', () {
     // Cache constants from the service

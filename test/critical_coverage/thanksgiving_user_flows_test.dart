@@ -1,10 +1,12 @@
+@Tags(['slow'])
+library;
+
 // test/critical_coverage/thanksgiving_user_flows_test.dart
 // High-value user behavior tests for Thanksgiving functionality
 
 import 'package:devocional_nuevo/models/thanksgiving_model.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-@Tags(['slow'])
 void main() {
   group('Thanksgiving Model - User Behavior Tests', () {
     // SCENARIO 1: User creates a new thanksgiving

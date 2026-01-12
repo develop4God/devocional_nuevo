@@ -1,3 +1,6 @@
+@Tags(['slow'])
+library;
+
 // test/critical_coverage/devocionales_bloc_test.dart
 // High-value tests for DevocionalesBloc - devotionals viewing user flows
 
@@ -8,7 +11,6 @@ import 'package:devocional_nuevo/blocs/devocionales/devocionales_event.dart';
 import 'package:devocional_nuevo/blocs/devocionales/devocionales_state.dart';
 import 'package:bloc_test/bloc_test.dart';
 
-@Tags(['slow'])
 void main() {
   group('DevocionalesBloc - Initial State', () {
     test('initial state is DevocionalesInitial', () {

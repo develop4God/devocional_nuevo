@@ -1,3 +1,6 @@
+@Tags(['slow'])
+library;
+
 // test/critical_coverage/spiritual_stats_model_test.dart
 // High-value tests for SpiritualStats model - achievements and streaks
 
@@ -7,7 +10,6 @@ import 'package:devocional_nuevo/models/spiritual_stats_model.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-@Tags(['slow'])
 void main() {
   setUpAll(() {
     TestWidgetsFlutterBinding.ensureInitialized();

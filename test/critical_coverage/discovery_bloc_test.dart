@@ -1,3 +1,6 @@
+@Tags(['slow'])
+library;
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:devocional_nuevo/blocs/discovery/discovery_bloc.dart';
 import 'package:devocional_nuevo/blocs/discovery/discovery_event.dart';
@@ -10,7 +13,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:http/http.dart' as http;
 
-@Tags(['slow'])
 class MockDiscoveryRepository extends Mock implements DiscoveryRepository {}
 
 class MockDiscoveryProgressTracker extends Mock

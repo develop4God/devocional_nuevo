@@ -1,11 +1,13 @@
+@Tags(['slow'])
+library;
+
 // test/critical_coverage/in_app_review_service_test.dart
 
 import 'package:flutter_test/flutter_test.dart';
 
-@Tags(['slow'])
-
 /// High-value tests for InAppReviewService
 /// Tests milestone detection and review request logic
+
 void main() {
   group('InAppReviewService Milestone Logic', () {
     // The milestones are: 5, 25, 50, 100, 200

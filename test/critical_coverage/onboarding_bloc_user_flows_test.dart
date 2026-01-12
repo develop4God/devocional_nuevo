@@ -1,10 +1,12 @@
+@Tags(['slow'])
+library;
+
 // test/critical_coverage/onboarding_bloc_user_flows_test.dart
 // High-value user behavior tests for OnboardingBloc
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-@Tags(['slow'])
 void main() {
   group('OnboardingBloc - User Behavior Tests (Business Logic)', () {
     setUpAll(() {
