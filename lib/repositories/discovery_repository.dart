@@ -3,6 +3,7 @@
 import 'dart:convert';
 
 import 'package:devocional_nuevo/models/discovery_devotional_model.dart';
+import 'package:devocional_nuevo/utils/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -15,8 +16,6 @@ class DiscoveryRepository {
   static const String _cacheKeyPrefix = 'discovery_cache_';
   static const String _indexCacheKey = 'discovery_index_cache';
   static const String _indexCacheTimestampKey = 'discovery_index_timestamp';
-  static const String _githubRawBaseUrl =
-      'https://raw.githubusercontent.com/develop4God/Devocionales-json/refs/heads/main/discovery';
   static const Duration _indexCacheTTL = Duration(hours: 1);
 
   DiscoveryRepository({required this.httpClient});
@@ -59,8 +58,8 @@ class DiscoveryRepository {
         filename = '${id}_${languageCode}_001.json';
       }
 
-      // Descargar desde GitHub
-      final url = '$_githubRawBaseUrl/$filename';
+      // Descargar desde GitHub usando Constants
+      final url = Constants.getDiscoveryStudyFileUrl(filename);
       debugPrint('Fetching Discovery study from: $url');
       final response = await httpClient.get(Uri.parse(url));
 
@@ -124,8 +123,8 @@ class DiscoveryRepository {
         }
       }
 
-      // Fetch from GitHub
-      final url = '$_githubRawBaseUrl/index.json';
+      // Fetch from GitHub using Constants
+      final url = Constants.discoveryIndexUrl;
       debugPrint('Fetching Discovery index from: $url');
       final response = await httpClient.get(Uri.parse(url));
 
