@@ -19,6 +19,7 @@ class Devocional {
   final String? version;
   final String? language;
   final List<String>? tags;
+  final String? imageUrl;
 
   Devocional({
     required this.id,
@@ -30,6 +31,7 @@ class Devocional {
     this.version,
     this.language,
     this.tags,
+    this.imageUrl,
   });
 
   /// Constructor factory para crear una instancia de [Devocional] desde un JSON.
@@ -73,6 +75,7 @@ class Devocional {
       tags: (json['tags'] as List<dynamic>?)
           ?.map((tag) => tag as String)
           .toList(),
+      imageUrl: json['imageUrl'] as String?,
     );
   }
 
@@ -94,6 +97,7 @@ class Devocional {
       'version': version,
       'language': language,
       'tags': tags,
+      'imageUrl': imageUrl,
     };
   }
 }

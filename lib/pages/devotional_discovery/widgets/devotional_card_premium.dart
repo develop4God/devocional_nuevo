@@ -272,12 +272,8 @@ class DevotionalCardPremium extends StatelessWidget {
   }
 
   Widget _buildBackgroundImage() {
-    // Use CachedNetworkImage with shimmer placeholder
-    // For now, we'll use a fallback gradient since we don't have image URLs
-    // In production, you'd fetch image URLs from your API or use Unsplash
-    final imageUrl = _getImageUrl();
-
-    if (imageUrl != null) {
+    final imageUrl = devocional.imageUrl;
+    if (imageUrl != null && imageUrl.isNotEmpty) {
       return CachedNetworkImage(
         imageUrl: imageUrl,
         fit: BoxFit.cover,
@@ -286,7 +282,7 @@ class DevotionalCardPremium extends StatelessWidget {
         maxWidthDiskCache: 1920,
         placeholder: (context, url) => Shimmer.fromColors(
           baseColor: _getGradientColors()[0],
-          highlightColor: _getGradientColors()[1].withValues(alpha: 0.5),
+          highlightColor: _getGradientColors()[1].withAlpha(128),
           child: Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
@@ -328,11 +324,10 @@ class DevotionalCardPremium extends StatelessWidget {
         ),
       );
     }
-
     // Fallback gradient with subtle shimmer effect
     return Shimmer.fromColors(
       baseColor: _getGradientColors()[0],
-      highlightColor: _getGradientColors()[1].withValues(alpha: 0.3),
+      highlightColor: _getGradientColors()[1].withAlpha(77),
       period: const Duration(milliseconds: 2000),
       child: Container(
         decoration: BoxDecoration(
@@ -344,15 +339,6 @@ class DevotionalCardPremium extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  String? _getImageUrl() {
-    // In production, fetch image URLs from your devotional data.
-    // Images are stored at:
-    //   https://raw.githubusercontent.com/develop4God/Devocionales-assets/refs/heads/main/images
-    // Example usage (replace 'sample.jpg' with your actual image name):
-    return 'https://raw.githubusercontent.com/develop4God/Devocionales-assets/refs/heads/main/images/sample.jpg';
-    // For dynamic usage, add an "imageUrl" field to your Devocional model and return it here.
   }
 
   // Reemplaza el metodo _getTagColor para usar el diccionario centralizado
