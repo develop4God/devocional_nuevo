@@ -2,14 +2,17 @@ import 'package:devocional_nuevo/controllers/audio_controller.dart';
 import 'package:devocional_nuevo/controllers/tts_audio_controller.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
+import 'package:devocional_nuevo/pages/discovery_list_page.dart';
 import 'package:devocional_nuevo/pages/progress_page.dart';
 import 'package:devocional_nuevo/pages/settings_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/services/analytics_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/utils/bubble_constants.dart';
+import 'package:devocional_nuevo/utils/constants.dart';
 import 'package:devocional_nuevo/widgets/tts_player_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 /// Bottom navigation bar for Devocionales page
@@ -27,6 +30,7 @@ class DevocionalesBottomBar extends StatelessWidget {
   final VoidCallback onPrayers;
   final VoidCallback onShare;
   final ValueChanged<bool> onFavoriteToggled;
+
   const DevocionalesBottomBar({
     super.key,
     required this.currentDevocional,
@@ -42,6 +46,7 @@ class DevocionalesBottomBar extends StatelessWidget {
     required this.onPrayers,
     required this.onFavoriteToggled,
   });
+
   @override
   Widget build(BuildContext context) {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
@@ -219,6 +224,7 @@ class DevocionalesBottomBar extends StatelessWidget {
               // 1. Favorites
               IconButton(
                 key: const Key('bottom_appbar_favorite_icon'),
+                tooltip: isFavorite
                     ? 'devotionals.remove_from_favorites_short'.tr()
                     : 'devotionals.save_as_favorite'.tr(),
                 onPressed: () async {
@@ -238,11 +244,50 @@ class DevocionalesBottomBar extends StatelessWidget {
               // 2. Share
               IconButton(
                 key: const Key('bottom_appbar_share_icon'),
+                tooltip: 'devotionals.share_devotional'.tr(),
                 onPressed: () {
+                  getService<AnalyticsService>().logBottomBarAction(
+                    action: 'share',
+                  );
+                  onShare();
+                },
+                icon: Icon(
+                  Icons.share_outlined,
+                  color: colorScheme.onPrimary,
+                  size: 30,
+                ),
+              ),
+              // 3. Prayers
+              IconButton(
+                key: const Key('bottom_appbar_prayers_icon'),
+                tooltip: 'tooltips.my_prayers'.tr(),
+                onPressed: () async {
+                  getService<AnalyticsService>().logBottomBarAction(
+                    action: 'prayers',
+                  );
+                  HapticFeedback.mediumImpact();
+                  await BubbleUtils.markAsShown(
+                    BubbleUtils.getIconBubbleId(
+                      Icons.local_fire_department_outlined,
+                      'new',
+                    ),
+                  );
+                  onPrayers();
+                },
+                icon: const Icon(
+                  Icons.local_fire_department_outlined,
+                  color: Colors.white,
+                  size: 35,
+                ),
+              ),
+              // 4. Bible
+              IconButton(
+                key: const Key('bottom_appbar_bible_icon'),
+                tooltip: 'tooltips.bible'.tr(),
                 onPressed: () async {
                   getService<AnalyticsService>().logBottomBarAction(
                     action: 'bible',
-                    action: 'share',
+                  );
                   await BubbleUtils.markAsShown(
                     BubbleUtils.getIconBubbleId(
                       Icons.auto_stories_outlined,
@@ -251,15 +296,17 @@ class DevocionalesBottomBar extends StatelessWidget {
                   );
                   onBible();
                 },
-                  onShare();
-                  onPrayers();
-                icon: Icon(
+                icon: const Icon(
+                  Icons.auto_stories_outlined,
+                  color: Colors.white,
                   size: 32,
                 ),
               ),
-              // 4. Discovery Studies (new feature)
+              // 5. Discovery Studies (new feature)
+              if (Constants.enableDiscoveryFeature)
                 IconButton(
-              // 3. Bible
+                  key: const Key('bottom_appbar_discovery_icon'),
+                  tooltip: 'discovery.discovery_studies'.tr(),
                   onPressed: () {
                     getService<AnalyticsService>().logBottomBarAction(
                       action: 'discovery',
@@ -277,29 +324,37 @@ class DevocionalesBottomBar extends StatelessWidget {
                     size: 32,
                   ),
                 ),
-              // 5. Spiritual Stats/Progress
+              // 6. Spiritual Stats/Progress
               IconButton(
                 key: const Key('bottom_appbar_progress_icon'),
-              // 4. Discovery Studies (new feature)
-              IconButton(
-                key: const Key('bottom_appbar_share_icon'),
-                tooltip: 'devotionals.share_devotional'.tr(),
+                tooltip: 'tooltips.progress'.tr(),
                 onPressed: () {
                   getService<AnalyticsService>().logBottomBarAction(
-                    action: 'share',
+                    action: 'progress',
                   );
-                  onShare();
+                  Navigator.push(
+                    context,
+                    PageRouteBuilder(
+                      pageBuilder: (context, animation, secondaryAnimation) =>
+                          const ProgressPage(),
+                      transitionsBuilder:
+                          (context, animation, secondaryAnimation, child) {
+                        return FadeTransition(
+                          opacity: animation,
+                          child: child,
+                        );
+                      },
+                      transitionDuration: const Duration(milliseconds: 250),
+                    ),
+                  );
                 },
                 icon: Icon(
-                  Icons.share_outlined,
+                  Icons.emoji_events_outlined,
                   color: colorScheme.onPrimary,
                   size: 30,
                 ),
               ),
-                  size: 30,
-                ),
-              ),
-              // 6. Settings
+              // 7. Settings
               IconButton(
                 key: const Key('bottom_appbar_settings_icon'),
                 tooltip: 'tooltips.settings'.tr(),
@@ -324,7 +379,8 @@ class DevocionalesBottomBar extends StatelessWidget {
                           (context, animation, secondaryAnimation, child) {
                         return FadeTransition(
                           opacity: animation,
-              // 6. Settings
+                          child: child,
+                        );
                       },
                       transitionDuration: const Duration(milliseconds: 250),
                     ),
