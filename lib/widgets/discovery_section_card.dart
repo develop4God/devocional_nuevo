@@ -11,6 +11,7 @@ class DiscoverySectionCard extends StatelessWidget {
   final String studyId;
   final int sectionIndex;
   final bool isDark;
+  final String? versiculoClave;
 
   const DiscoverySectionCard({
     super.key,
@@ -18,6 +19,7 @@ class DiscoverySectionCard extends StatelessWidget {
     required this.studyId,
     required this.sectionIndex,
     required this.isDark,
+    this.versiculoClave,
   });
 
   @override
@@ -27,6 +29,27 @@ class DiscoverySectionCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (versiculoClave != null && versiculoClave!.isNotEmpty) ...[
+            Row(
+              children: [
+                Icon(Icons.menu_book, color: Colors.blue[700], size: 22),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    versiculoClave!,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blue,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+          ],
           if (section.icono != null) ...[
             Center(
               child: Text(

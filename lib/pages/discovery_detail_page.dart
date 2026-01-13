@@ -102,6 +102,8 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
             final study = state.getStudy(widget.studyId);
 
             if (study == null) {
+              debugPrint(
+                  '❌ [DiscoveryDetailPage] Study not found for id: \\${widget.studyId} (fallback or missing)');
               return Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -112,6 +114,9 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
                   ],
                 ),
               );
+            } else {
+              debugPrint(
+                  '🌐 [DiscoveryDetailPage] Study loaded for id: \\${widget.studyId} (likely from network or updated cache)');
             }
 
             return Column(
@@ -169,6 +174,7 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
                                 studyId: widget.studyId,
                                 sectionIndex: index,
                                 isDark: isDark,
+                                versiculoClave: study.versiculoClave,
                               ),
                               if (isLast)
                                 Positioned.fill(
@@ -231,23 +237,6 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
           const SizedBox(height: 8),
           Row(
             children: [
-              Icon(
-                Icons.menu_book,
-                size: 16,
-                color: theme.colorScheme.secondary,
-              ),
-              const SizedBox(width: 4),
-              Flexible(
-                child: Text(
-                  study.versiculoClave,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.secondary,
-                    fontStyle: FontStyle.italic,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 1,
-                ),
-              ),
               const Spacer(),
               Chip(
                 label: Text(
