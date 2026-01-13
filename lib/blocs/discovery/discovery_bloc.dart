@@ -39,10 +39,31 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
 
     try {
       final studyIds = await repository.fetchAvailableStudies();
+      // Fetch the index to get titles
+      final index = await repository.fetchIndex();
+      // Determine locale (default to 'es' if not available)
+      String locale = 'es';
+      try {
+        // Try to get locale from context if possible
+        // This is a workaround since BLoC doesn't have direct access to context
+        // In production, pass locale as event or via repository/provider
+        locale = WidgetsBinding.instance.platformDispatcher.locale.languageCode;
+      } catch (_) {}
+      // Build map of studyId -> localized title
+      final Map<String, String> studyTitles = {};
+      final studies = index['studies'] as List<dynamic>? ?? [];
+      for (final s in studies) {
+        final id = s['id'] as String?;
+        final titles = s['titles'] as Map<String, dynamic>?;
+        if (id != null && titles != null) {
+          studyTitles[id] = titles[locale] ?? titles['es'] ?? id;
+        }
+      }
       emit(
         DiscoveryLoaded(
           availableStudyIds: studyIds,
           loadedStudies: {},
+          studyTitles: studyTitles,
         ),
       );
     } catch (e) {
@@ -87,6 +108,7 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
           DiscoveryLoaded(
             availableStudyIds: [event.studyId],
             loadedStudies: {event.studyId: study},
+            studyTitles: {}, // Fix: required argument
           ),
         );
       }
@@ -221,6 +243,7 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
           DiscoveryLoaded(
             availableStudyIds: studyIds,
             loadedStudies: {},
+            studyTitles: {}, // Fix: required argument
           ),
         );
       }

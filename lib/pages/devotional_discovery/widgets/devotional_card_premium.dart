@@ -28,6 +28,7 @@ class _DiscoveryCacheManager {
 /// Premium devotional card with full background image (Glorify/YouVersion style)
 class DevotionalCardPremium extends StatelessWidget {
   final Devocional devocional;
+  final String title; // New: Localized title
   final bool isFavorite;
   final VoidCallback onTap;
   final VoidCallback onFavoriteToggle;
@@ -36,6 +37,7 @@ class DevotionalCardPremium extends StatelessWidget {
   const DevotionalCardPremium({
     super.key,
     required this.devocional,
+    required this.title, // New
     required this.isFavorite,
     required this.onTap,
     required this.onFavoriteToggle,
@@ -50,7 +52,7 @@ class DevotionalCardPremium extends StatelessWidget {
 
     return Semantics(
       label:
-          'Devotional card for $verseReference. $verseText. Posted $displayDate. ${isFavorite ? "In favorites" : "Not in favorites"}',
+          'Devotional card for $title. $verseReference. $verseText. Posted $displayDate. ${isFavorite ? "In favorites" : "Not in favorites"}',
       button: true,
       child: Container(
         height: 320,
@@ -59,7 +61,7 @@ class DevotionalCardPremium extends StatelessWidget {
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.15),
+              color: Colors.black.withAlpha(38),
               blurRadius: 20,
               offset: const Offset(0, 10),
             ),
@@ -161,13 +163,27 @@ class DevotionalCardPremium extends StatelessWidget {
 
                         const SizedBox(height: 12),
 
-                        // Verse reference (large and bold)
+                        // New: Localized title (large and bold)
+                        Text(
+                          title,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            height: 1.1,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 8),
+
+                        // Verse reference (smaller, below title)
                         Text(
                           verseReference,
                           style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 26,
-                            fontWeight: FontWeight.bold,
+                            color: Colors.white70,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
                             height: 1.1,
                           ),
                           maxLines: 2,

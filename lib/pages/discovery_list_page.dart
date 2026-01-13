@@ -145,14 +145,24 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
 
   Widget _buildCarousel(
       BuildContext context, List<String> studyIds, bool isDark) {
+    final state = context.watch<DiscoveryBloc>().state;
+    String getTitle(String studyId) {
+      if (state is DiscoveryLoaded) {
+        return state.studyTitles[studyId] ?? studyId;
+      }
+      return studyId;
+    }
+
     return Swiper(
       itemBuilder: (context, index) {
         final studyId = studyIds[index];
         // Create a mock Devocional object for the premium card
         final mockDevocional = _createMockDevocional(studyId);
-
+        final title = getTitle(studyId);
         return DevotionalCardPremium(
           devocional: mockDevocional,
+          title: title,
+          // Pass the localized title
           isFavorite: false,
           isDark: isDark,
           onTap: () => _navigateToDetail(context, studyId),

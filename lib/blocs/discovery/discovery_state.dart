@@ -15,12 +15,14 @@ class DiscoveryLoading extends DiscoveryState {}
 class DiscoveryLoaded extends DiscoveryState with EquatableMixin {
   final List<String> availableStudyIds;
   final Map<String, DiscoveryDevotional> loadedStudies;
+  final Map<String, String> studyTitles; // New: study ID to localized title
   final String? errorMessage;
   final DateTime lastUpdated;
 
   DiscoveryLoaded({
     required this.availableStudyIds,
     required this.loadedStudies,
+    required this.studyTitles, // New
     this.errorMessage,
     DateTime? lastUpdated,
   }) : lastUpdated = lastUpdated ?? DateTime.now();
@@ -45,6 +47,7 @@ class DiscoveryLoaded extends DiscoveryState with EquatableMixin {
   DiscoveryLoaded copyWith({
     List<String>? availableStudyIds,
     Map<String, DiscoveryDevotional>? loadedStudies,
+    Map<String, String>? studyTitles, // New
     String? errorMessage,
     bool clearError = false,
     DateTime? lastUpdated,
@@ -52,14 +55,21 @@ class DiscoveryLoaded extends DiscoveryState with EquatableMixin {
     return DiscoveryLoaded(
       availableStudyIds: availableStudyIds ?? this.availableStudyIds,
       loadedStudies: loadedStudies ?? this.loadedStudies,
+      studyTitles: studyTitles ?? this.studyTitles,
+      // New
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
       lastUpdated: lastUpdated ?? DateTime.now(),
     );
   }
 
   @override
-  List<Object?> get props =>
-      [availableStudyIds, loadedStudies, errorMessage, lastUpdated];
+  List<Object?> get props => [
+        availableStudyIds,
+        loadedStudies,
+        studyTitles,
+        errorMessage,
+        lastUpdated
+      ];
 }
 
 /// State when a specific study is being loaded

@@ -1,6 +1,7 @@
 // lib/repositories/discovery_repository.dart
 
 import 'dart:convert';
+
 import 'package:devocional_nuevo/models/discovery_devotional_model.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -218,5 +219,10 @@ class DiscoveryRepository {
     } catch (e) {
       debugPrint('Error clearing cache: $e');
     }
+  }
+
+  /// Public method to fetch the index (for BLoC to access titles)
+  Future<Map<String, dynamic>> fetchIndex() async {
+    return await _fetchIndex();
   }
 }
