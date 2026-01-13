@@ -90,6 +90,7 @@ void main() {
         paraMeditar: [],
         oracion: 'Test prayer',
         date: DateTime(2026, 1, 15),
+        cards: [],
         secciones: [
           DiscoverySection(tipo: 'natural', contenido: 'Test content'),
         ],

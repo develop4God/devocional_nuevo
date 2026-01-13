@@ -22,27 +22,34 @@ class DiscoveryRepository {
 
   /// Obtiene un estudio Discovery por su ID y código de idioma.
   ///
-  /// Primero intenta obtenerlo del cache, si no está disponible o ha expirado,
-  /// lo descarga desde GitHub usando el nombre de archivo específico del idioma.
+  /// Primero verifica el cache comparando versiones del índice.
+  /// Si la versión coincide, usa el cache.
+  /// Si difiere, descarga la nueva versión desde GitHub.
   Future<DiscoveryDevotional> fetchDiscoveryStudy(
     String id,
     String languageCode,
   ) async {
     try {
-      // Intentar cargar desde cache primero
-      final cacheKey = '${id}_$languageCode';
-      final cached = await _loadFromCache(cacheKey);
-      if (cached != null) {
-        return cached;
-      }
-
-      // Obtener el índice para encontrar el nombre de archivo correcto
+      // Obtener el índice para encontrar la versión y nombre de archivo
       final index = await _fetchIndex();
       final studyInfo = index['studies']?.firstWhere(
         (s) => s['id'] == id,
         orElse: () => null,
       );
 
+      final String expectedVersion = studyInfo?['version'] as String? ?? '1.0';
+
+      // Intentar cargar desde cache primero
+      final cacheKey = '${id}_$languageCode';
+      final cached = await _loadFromCache(cacheKey, expectedVersion);
+      if (cached != null) {
+        debugPrint('✅ Cache HIT for $id (version: $expectedVersion)');
+        return cached;
+      }
+
+      debugPrint('❌ Cache MISS for $id, downloading...');
+
+      // Determinar el nombre del archivo
       String filename;
       final files = studyInfo?['files'] as Map<String, dynamic>?;
       if (files != null) {
@@ -60,8 +67,8 @@ class DiscoveryRepository {
         final json = jsonDecode(response.body) as Map<String, dynamic>;
         final study = DiscoveryDevotional.fromJson(json);
 
-        // Guardar en cache
-        await _saveToCache(cacheKey, json);
+        // Guardar en cache con la versión
+        await _saveToCache(cacheKey, json, expectedVersion);
 
         return study;
       } else {
@@ -143,16 +150,33 @@ class DiscoveryRepository {
   }
 
   /// Carga un estudio desde el cache de SharedPreferences.
-  Future<DiscoveryDevotional?> _loadFromCache(String id) async {
+  /// Verifica que la versión coincida con la esperada.
+  Future<DiscoveryDevotional?> _loadFromCache(
+    String id,
+    String expectedVersion,
+  ) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final cacheKey = '$_cacheKeyPrefix$id';
-      final cachedJson = prefs.getString(cacheKey);
+      final versionKey = '$_cacheKeyPrefix${id}_version';
 
-      if (cachedJson != null && cachedJson.isNotEmpty) {
+      final cachedJson = prefs.getString(cacheKey);
+      final cachedVersion = prefs.getString(versionKey);
+
+      if (cachedJson != null &&
+          cachedJson.isNotEmpty &&
+          cachedVersion == expectedVersion) {
+        debugPrint(
+          '📦 Cache valid for $id (version: $cachedVersion matches $expectedVersion)',
+        );
         final json = jsonDecode(cachedJson) as Map<String, dynamic>;
         return DiscoveryDevotional.fromJson(json);
+      } else if (cachedJson != null && cachedVersion != expectedVersion) {
+        debugPrint(
+          '🔄 Cache INVALIDATED for $id (cached: $cachedVersion, expected: $expectedVersion)',
+        );
       }
+
       return null;
     } catch (e) {
       debugPrint('Error loading from cache: $e');
@@ -160,12 +184,21 @@ class DiscoveryRepository {
     }
   }
 
-  /// Guarda un estudio en el cache de SharedPreferences.
-  Future<void> _saveToCache(String id, Map<String, dynamic> json) async {
+  /// Guarda un estudio en el cache de SharedPreferences con su versión.
+  Future<void> _saveToCache(
+    String id,
+    Map<String, dynamic> json,
+    String version,
+  ) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final cacheKey = '$_cacheKeyPrefix$id';
+      final versionKey = '$_cacheKeyPrefix${id}_version';
+
       await prefs.setString(cacheKey, jsonEncode(json));
+      await prefs.setString(versionKey, version);
+
+      debugPrint('💾 Cached $id with version: $version');
     } catch (e) {
       debugPrint('Error saving to cache: $e');
       // No propagar el error, el cache es opcional
