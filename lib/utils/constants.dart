@@ -85,6 +85,14 @@ class Constants {
 
   /// Feature flag for Discovery Studies feature
   static const bool enableDiscoveryFeature = true;
+
+  /// DISCOVERY STUDIES URLS
+  static const String discoveryIndexUrl =
+      'https://raw.githubusercontent.com/develop4God/Devocionales-json/refs/heads/main/discovery/index.json';
+
+  static String getDiscoveryStudyFileUrl(String fileName) {
+    return 'https://raw.githubusercontent.com/develop4God/Devocionales-json/refs/heads/main/discovery/$fileName';
+  }
 }
 
 /// Schema versioning and migration constants for favorites storage
