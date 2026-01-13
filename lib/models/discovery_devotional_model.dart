@@ -120,12 +120,14 @@ class DiscoveryDevotional extends Devocional {
     if (cards == null || cards.isEmpty) return '';
 
     // Buscar la tarjeta discovery_activation
-    final activationCard = cards.firstWhere(
-      (card) => card['type'] == 'discovery_activation',
-      orElse: () => null,
-    );
+    for (final card in cards) {
+      if (card is Map<String, dynamic> &&
+          card['type'] == 'discovery_activation') {
+        return card['prayer']?['content'] as String? ?? '';
+      }
+    }
 
-    return activationCard?['prayer']?['content'] as String? ?? '';
+    return '';
   }
 
   /// Parsea la fecha desde diferentes formatos.
