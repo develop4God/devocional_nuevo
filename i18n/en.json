@@ -190,7 +190,9 @@
     "settings": "Settings",
     "about": "About",
     "drawer_title": "Devotionals",
-    "close_drawer": "Close menu"
+    "close_drawer": "Close menu",
+    "previous": "Previous",
+    "next": "Next"
   },
   "drawer": {
     "title": "Your Bible, your style",
@@ -673,5 +675,18 @@
     "days_old_single": "({days} day)",
     "days_old_plural": "({days} days)",
     "thankful_for": "I am thankful for:"
+  },
+  "discovery": {
+    "discovery_studies": "Discovery Studies",
+    "discovery_load_error": "Error loading Discovery studies",
+    "discovery_section_complete_error": "Error marking section as completed",
+    "discovery_answer_save_error": "Error saving answer",
+    "discovery_study_complete_error": "Error completing study",
+    "discovery_refresh_error": "Error refreshing studies",
+    "no_studies_available": "No Discovery studies available",
+    "loading_studies": "Loading Discovery studies...",
+    "study_completed": "Study completed successfully",
+    "section_completed": "Section completed",
+    "answer_saved": "Answer saved successfully"
   }
 }

@@ -1,3 +1,6 @@
+@Tags(['slow'])
+library;
+
 // test/integration/multi_year_devotionals_integration_test.dart
 
 import 'package:devocional_nuevo/models/devocional_model.dart';

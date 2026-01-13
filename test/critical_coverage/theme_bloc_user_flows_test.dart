@@ -1,3 +1,6 @@
+@Tags(['slow'])
+library;
+
 // test/critical_coverage/theme_bloc_user_flows_test.dart
 // High-value user behavior tests for ThemeBloc
 

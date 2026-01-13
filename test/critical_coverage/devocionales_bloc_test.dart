@@ -1,3 +1,6 @@
+@Tags(['slow'])
+library;
+
 // test/critical_coverage/devocionales_bloc_test.dart
 // High-value tests for DevocionalesBloc - devotionals viewing user flows
 

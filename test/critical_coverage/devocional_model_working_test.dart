@@ -1,3 +1,6 @@
+@Tags(['slow'])
+library;
+
 // test/critical_coverage/devocional_model_working_test.dart
 import 'package:flutter_test/flutter_test.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';

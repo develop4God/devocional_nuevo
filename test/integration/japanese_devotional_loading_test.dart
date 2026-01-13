@@ -1,3 +1,6 @@
+@Tags(['slow'])
+library;
+
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/utils/constants.dart';
@@ -8,6 +11,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 /// Integration test for Japanese devotional loading with new version codes
 /// Tests the complete flow: Constants -> Provider -> URL generation -> Copyright display
+
 void main() {
   // Mock platform channels
   const MethodChannel pathProviderChannel = MethodChannel(

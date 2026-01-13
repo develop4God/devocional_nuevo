@@ -41,7 +41,7 @@ jobs:
         run: |
           sed -i -E 's/compileSdk = (flutter\.compileSdkVersion|[0-9]+)/compileSdk = 36/' android/app/build.gradle.kts
           sed -i -E 's/targetSdk = (flutter\.targetSdkVersion|[0-9]+)/targetSdk = 36/' android/app/build.gradle.kts
-          sed -i -E 's/minSdk = (flutter\.minSdkVersion|[0-9]+)/minSdk = 23/' android/app/build.gradle.kts
+          sed -i -E 's/minSdk = (flutter\.minSdkVersion|[0-9]+)/minSdk = 24/' android/app/build.gradle.kts
           # Patch ndkVersion or add it if not present
           if grep -Eq 'ndkVersion\s*=' android/app/build.gradle.kts; then
             sed -i -E 's/ndkVersion\s*=\s*"[0-9.]+"|ndkVersion\s*=\s*[0-9.]+/ndkVersion = "27.0.12077973"/' android/app/build.gradle.kts

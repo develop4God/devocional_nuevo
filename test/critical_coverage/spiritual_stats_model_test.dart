@@ -1,3 +1,6 @@
+@Tags(['slow'])
+library;
+
 // test/critical_coverage/spiritual_stats_model_test.dart
 // High-value tests for SpiritualStats model - achievements and streaks
 

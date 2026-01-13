@@ -190,7 +190,9 @@
     "settings": "设置",
     "about": "关于",
     "drawer_title": "灵修",
-    "close_drawer": "关闭菜单"
+    "close_drawer": "关闭菜单",
+    "previous": "上一个",
+    "next": "下一个"
   },
   "drawer": {
     "title": "您的圣经，您的风格",
@@ -673,5 +675,18 @@
     "days_old_single": "（{days}天）",
     "days_old_plural": "（{days}天）",
     "thankful_for": "我感谢："
+  },
+  "discovery": {
+    "discovery_studies": "探索研究",
+    "discovery_load_error": "加载探索研究时出错",
+    "discovery_section_complete_error": "标记章节完成时出错",
+    "discovery_answer_save_error": "保存答案时出错",
+    "discovery_study_complete_error": "完成研究时出错",
+    "discovery_refresh_error": "刷新研究时出错",
+    "no_studies_available": "没有可用的探索研究",
+    "loading_studies": "正在加载探索研究...",
+    "study_completed": "研究成功完成",
+    "section_completed": "章节完成",
+    "answer_saved": "答案保存成功"
   }
 }

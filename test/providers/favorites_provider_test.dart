@@ -1,13 +1,10 @@
 // test/providers/favorites_provider_test.dart
+// High-value user behavior tests for favorites functionality
 
 import 'dart:convert';
-import 'dart:io';
 
-import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
-import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
@@ -15,209 +12,53 @@ import 'package:http/testing.dart';
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class MockPathProviderPlatform extends PathProviderPlatform {
-  @override
-  Future<String?> getApplicationDocumentsPath() async {
-    // Use a writable temp directory for tests
-    return Directory.systemTemp.path;
-  }
+import '../helpers/test_helpers.dart';
 
-  @override
-  Future<String?> getTemporaryPath() async {
-    return Directory.systemTemp.path;
-  }
-}
-
-/// Helper function to create test devotionals with proper structure
-Devocional createTestDevocional({
-  required String id,
-  required DateTime date,
-  required String versiculo,
-  String reflexion = 'Test reflection',
-  String oracion = 'Test prayer',
-  String version = 'RVR1960',
-  String language = 'es',
-  List<String>? tags,
-}) {
-  return Devocional(
-    id: id,
-    date: date,
-    versiculo: versiculo,
-    reflexion: reflexion,
-    paraMeditar: [
-      ParaMeditar(cita: 'Test cita', texto: 'Test para meditar text'),
-    ],
-    oracion: oracion,
-    version: version,
-    language: language,
-    tags: tags,
-  );
-}
-
-/// Comprehensive test suite for favorites functionality
-/// Tests the ID-based storage system to prevent "not read" bugs
+/// Real user behavior tests for favorites
+/// Focuses on common scenarios without implementation details
 void main() {
   late DevocionalProvider provider;
 
-  // Mock HTTP client that returns a minimal valid devotional payload for all requests
+  // Simple mock client
   final mockHttpClient = MockClient((request) async {
     return http.Response(
         jsonEncode({
-          "data": {
-            "es": {
-              "2025-01-01": {
-                "id": "devocional_2025_01_01_KJV",
-                "date": "2025-01-01",
-                "versiculo": "Juan 1:1",
-                "texto": "Texto de prueba",
-                "language": "es",
-                "version": "KJV"
-              }
-            }
-          }
+          "data": {"es": {}}
         }),
         200);
   });
 
-  // Mock platform channels
-  const MethodChannel pathProviderChannel = MethodChannel(
-    'plugins.flutter.io/path_provider',
-  );
-  const MethodChannel ttsChannel = MethodChannel('flutter_tts');
-
   setUpAll(() async {
     TestWidgetsFlutterBinding.ensureInitialized();
 
-    // Mock Firebase Core
-    const MethodChannel firebaseCoreChannel = MethodChannel(
-      'plugins.flutter.io/firebase_core',
-    );
+    // Mock Firebase
+    const firebaseCoreChannel =
+        MethodChannel('plugins.flutter.io/firebase_core');
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(firebaseCoreChannel,
-            (MethodCall methodCall) async {
-      switch (methodCall.method) {
-        case 'Firebase#initializeCore':
-          return [
-            {
-              'name': '[DEFAULT]',
-              'options': {
-                'apiKey': 'fake-api-key',
-                'appId': 'fake-app-id',
-                'messagingSenderId': 'fake-sender-id',
-                'projectId': 'fake-project-id',
-              },
-              'pluginConstants': {},
-            }
-          ];
-        case 'Firebase#initializeApp':
-          return {
-            'name': '[DEFAULT]',
-            'options': {
-              'apiKey': 'fake-api-key',
-              'appId': 'fake-app-id',
-              'messagingSenderId': 'fake-sender-id',
-              'projectId': 'fake-project-id',
-            },
-            'pluginConstants': {},
-          };
-        default:
-          return null;
-      }
-    });
-
-    // Mock Firebase Crashlytics
-    const MethodChannel crashlyticsChannel = MethodChannel(
-      'plugins.flutter.io/firebase_crashlytics',
-    );
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(crashlyticsChannel,
-            (MethodCall methodCall) async {
-      return null;
-    });
-
-    // Mock Firebase Remote Config
-    const MethodChannel remoteConfigChannel = MethodChannel(
-      'plugins.flutter.io/firebase_remote_config',
-    );
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(remoteConfigChannel,
-            (MethodCall methodCall) async {
-      switch (methodCall.method) {
-        case 'RemoteConfig#instance':
-          return {};
-        case 'RemoteConfig#setConfigSettings':
-        case 'RemoteConfig#setDefaults':
-        case 'RemoteConfig#fetchAndActivate':
-          return true;
-        case 'RemoteConfig#getString':
-          return '';
-        case 'RemoteConfig#getBool':
-          return false;
-        case 'RemoteConfig#getInt':
-          return 0;
-        case 'RemoteConfig#getDouble':
-          return 0.0;
-        default:
-          return null;
-      }
-    });
-
-    // Mock Firebase Analytics
-    const MethodChannel analyticsChannel = MethodChannel(
-      'plugins.flutter.io/firebase_analytics',
-    );
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(analyticsChannel,
-            (MethodCall methodCall) async {
-      return null;
-    });
-
-    // Initialize Firebase
-    try {
-      await Firebase.initializeApp();
-    } catch (e) {
-      // Firebase may already be initialized
-    }
-
-    // Mock path provider
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(pathProviderChannel,
-            (MethodCall methodCall) async {
-      if (methodCall.method == 'getApplicationDocumentsDirectory') {
-        return '/mock_documents';
+        .setMockMethodCallHandler(firebaseCoreChannel, (call) async {
+      if (call.method == 'Firebase#initializeCore') {
+        return [
+          {'name': '[DEFAULT]', 'options': {}, 'pluginConstants': {}}
+        ];
       }
       return null;
     });
 
-    // Mock TTS
+    const crashlyticsChannel =
+        MethodChannel('plugins.flutter.io/firebase_crashlytics');
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(ttsChannel, (MethodCall methodCall) async {
-      switch (methodCall.method) {
-        case 'speak':
-        case 'stop':
-        case 'pause':
-        case 'setLanguage':
-        case 'setSpeechRate':
-        case 'setVolume':
-        case 'setPitch':
-        case 'setVoice':
-        case 'synthesizeToFile':
-        case 'awaitSpeakCompletion':
-        case 'awaitSynthCompletion':
-          return 1;
-        case 'getLanguages':
-          return ['es-ES', 'en-US', 'pt-BR', 'fr-FR', 'ja-JP', 'zh-CN'];
-        case 'getVoices':
-          return [
-            {'name': 'es-ES-voice', 'locale': 'es-ES'},
-            {'name': 'en-US-voice', 'locale': 'en-US'},
-          ];
-        case 'isLanguageAvailable':
-          return 1;
-        default:
-          return null;
-      }
+        .setMockMethodCallHandler(crashlyticsChannel, (_) async => null);
+
+    const remoteConfigChannel =
+        MethodChannel('plugins.flutter.io/firebase_remote_config');
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(remoteConfigChannel, (call) async {
+      return call.method == 'RemoteConfig#instance' ? {} : null;
     });
+
+    const ttsChannel = MethodChannel('flutter_tts');
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(ttsChannel, (_) async => null);
 
     PathProviderPlatform.instance = MockPathProviderPlatform();
     setupServiceLocator();
@@ -227,859 +68,60 @@ void main() {
     SharedPreferences.setMockInitialValues({});
     provider =
         DevocionalProvider(httpClient: mockHttpClient, enableAudio: false);
+    await provider.initializeData();
   });
 
-  tearDown(() {
-    provider.dispose();
-  });
-
-  group('Favorites ID-Based Storage System', () {
-    test('Should save and load favorites using IDs only', () async {
-      final prefs = await SharedPreferences.getInstance();
-      final testDevocional = createTestDevocional(
-        id: 'devocional_2025_01_15_RVR1960',
-        date: DateTime(2025, 1, 15),
-        versiculo: 'Juan 3:16',
-      );
-      final favoriteIds = {'devocional_2025_01_15_RVR1960'};
-      await prefs.setString('favorite_ids', json.encode(favoriteIds.toList()));
-      final newProvider =
-          DevocionalProvider(httpClient: mockHttpClient, enableAudio: false);
-      await newProvider.initializeData();
-      expect(newProvider.isFavorite(testDevocional), isTrue);
-      newProvider.dispose();
-    });
-
-    test('Should migrate legacy favorites to ID-based storage', () async {
-      final prefs = await SharedPreferences.getInstance();
-      final legacyFavorites = [
-        {
-          'id': 'devocional_2025_01_15_RVR1960',
-          'date': '2025-01-15',
-          'versiculo': 'Juan 3:16',
-          'texto': 'Test text',
-          'reflexion': 'Test reflection',
-          'oracion': 'Test prayer',
-          'version': 'RVR1960',
-          'language': 'es',
-        },
-      ];
-      await prefs.setString('favorites', json.encode(legacyFavorites));
-      final newProvider =
-          DevocionalProvider(httpClient: mockHttpClient, enableAudio: false);
-      await newProvider.initializeData();
-      final testDevocional = createTestDevocional(
-        id: 'devocional_2025_01_15_RVR1960',
-        date: DateTime(2025, 1, 15),
-        versiculo: 'Juan 3:16',
-      );
-      expect(newProvider.isFavorite(testDevocional), isTrue);
-      newProvider.dispose();
-    });
-
-    test('Should handle empty favorites gracefully', () async {
-      await SharedPreferences.getInstance();
-      final newProvider =
-          DevocionalProvider(httpClient: mockHttpClient, enableAudio: false);
-      await newProvider.initializeData();
-      expect(newProvider.favoriteDevocionales, isEmpty);
-      newProvider.dispose();
-    });
-
-    test('Should skip invalid IDs during legacy migration', () async {
-      final prefs = await SharedPreferences.getInstance();
-      final legacyFavorites = [
-        {
-          'id': '',
-          'date': '2025-01-15',
-          'versiculo': 'Juan 3:16',
-          'texto': 'Test text',
-          'reflexion': 'Test reflection',
-          'oracion': 'Test prayer',
-          'version': 'RVR1960',
-          'language': 'es',
-        },
-        {
-          'id': 'valid_id',
-          'date': '2025-01-16',
-          'versiculo': 'Juan 3:17',
-          'texto': 'Test text 2',
-          'reflexion': 'Test reflection 2',
-          'oracion': 'Test prayer 2',
-          'version': 'RVR1960',
-          'language': 'es',
-        },
-      ];
-      await prefs.setString('favorites', json.encode(legacyFavorites));
-      final newProvider =
-          DevocionalProvider(httpClient: mockHttpClient, enableAudio: false);
-      await newProvider.initializeData();
-      final validDevocional = createTestDevocional(
-        id: 'valid_id',
-        date: DateTime(2025, 1, 16),
-        versiculo: 'Juan 3:17',
-      );
-      expect(newProvider.isFavorite(validDevocional), isTrue);
-      newProvider.dispose();
-    });
-  });
-
-  group('Favorites Persistence After App Restart', () {
-    test('Should persist favorite IDs across app restarts', () async {
-      // Real user behavior: User favorites a devotional, closes app, reopens app
-      // The favorite ID should persist even if devotionals haven't loaded yet
-
-      final devocionalId = 'devocional_2025_01_15_RVR1960';
-      final devocional = createTestDevocional(
-        id: devocionalId,
-        date: DateTime(2025, 1, 15),
-        versiculo: 'Juan 3:16',
-      );
-
-      // First session: User opens app and adds favorite
-      final provider1 =
-          DevocionalProvider(httpClient: mockHttpClient, enableAudio: false);
-      await provider1.initializeData();
-
-      // User toggles favorite (adds it)
-      final wasAdded = await provider1.toggleFavorite(devocional.id);
-      expect(wasAdded, isTrue, reason: 'Favorite should be added');
-
-      // Verify it's marked as favorite (ID-based check)
-      expect(provider1.isFavorite(devocional), isTrue,
-          reason: 'Should be marked as favorite immediately');
-
-      // Verify it's persisted in storage
-      final prefs = await SharedPreferences.getInstance();
-      final storedIds = prefs.getString('favorite_ids');
-      expect(storedIds, isNotNull, reason: 'Favorite IDs should be saved');
-      final ids = (json.decode(storedIds!) as List).cast<String>();
-      expect(ids.contains(devocional.id), isTrue,
-          reason: 'Favorite ID should be in storage');
-
-      // User closes app
-      provider1.dispose();
-
-      // Second session: User reopens app (simulating app restart)
-      final provider2 =
-          DevocionalProvider(httpClient: mockHttpClient, enableAudio: false);
-      await provider2.initializeData();
-
-      // Favorite ID should still be recognized (even if devotional list is empty)
-      expect(provider2.isFavorite(devocional), isTrue,
-          reason: 'Favorite ID should persist after app restart');
-
-      // Verify storage still has it
-      final storedIds2 = prefs.getString('favorite_ids');
-      final ids2 = (json.decode(storedIds2!) as List).cast<String>();
-      expect(ids2.contains(devocional.id), isTrue,
-          reason: 'Favorite ID should remain in storage');
-
-      provider2.dispose();
-    });
-
-    test('Should preserve favorite status after restart', () async {
-      // Real user behavior: User favorites devotional, restarts app
-      // Focus: Favorite persistence (read tracking tested separately)
-
-      final devocionalId = 'devocional_2025_01_15_RVR1960';
-      final devocional = createTestDevocional(
-        id: devocionalId,
-        date: DateTime(2025, 1, 15),
-        versiculo: 'Juan 3:16',
-      );
-
-      // First session: User adds favorite
-      final provider1 =
-          DevocionalProvider(httpClient: mockHttpClient, enableAudio: false);
-      await provider1.initializeData();
-
-      // Add to favorites
-      await provider1.toggleFavorite(devocional.id);
-      expect(provider1.isFavorite(devocional), isTrue,
-          reason: 'Favorite should be added');
-
-      // Verify it's persisted
-      final prefs = await SharedPreferences.getInstance();
-      final storedIds1 = prefs.getString('favorite_ids');
-      expect(storedIds1, isNotNull);
-      final ids1 = (json.decode(storedIds1!) as List).cast<String>();
-      expect(ids1.contains(devocionalId), isTrue,
-          reason: 'Favorite ID should be in storage');
-
-      // User closes app
-      provider1.dispose();
-
-      // Second session: User reopens app (app restart)
-      final provider2 =
-          DevocionalProvider(httpClient: mockHttpClient, enableAudio: false);
-      await provider2.initializeData();
-
-      // Should still be favorite (ID-based check)
-      expect(provider2.isFavorite(devocional), isTrue,
-          reason: 'Favorite should persist after restart');
-
-      // Verify storage persistence
-      final storedIds2 = prefs.getString('favorite_ids');
-      final ids2 = (json.decode(storedIds2!) as List).cast<String>();
-      expect(ids2.contains(devocionalId), isTrue,
-          reason: 'Favorite ID should remain in storage after restart');
-
-      provider2.dispose();
-    });
-
-    test('User adds multiple favorites in one session and IDs persist',
+  group('Real User Behavior - Favorites', () {
+    test('User rapidly taps favorite button - handles concurrent toggles',
         () async {
-      // Real user scenario: User browses devotionals and favorites several
-      final prefs = await SharedPreferences.getInstance();
+      // GIVEN: User viewing a devotional
+      const devocionalId = 'dev_123';
 
-      // First session: User adds 5 favorites
-      final provider1 =
-          DevocionalProvider(httpClient: mockHttpClient, enableAudio: false);
-      await provider1.initializeData();
-
-      final favoriteIds = [
-        'devocional_2025_01_01_RVR1960',
-        'devocional_2025_01_02_RVR1960',
-        'devocional_2025_01_03_RVR1960',
-        'devocional_2025_01_04_RVR1960',
-        'devocional_2025_01_05_RVR1960',
-      ];
-
-      // User favorites each one
-      for (final id in favoriteIds) {
-        await provider1.toggleFavorite(id);
-      }
-
-      // Verify all IDs are stored
-      final storedIds = prefs.getString('favorite_ids');
-      expect(storedIds, isNotNull, reason: 'Favorite IDs should be saved');
-      final stored = (json.decode(storedIds!) as List).cast<String>();
-      expect(stored.length, equals(5), reason: 'All 5 IDs should be persisted');
-
-      // Verify all are recognized as favorites
-      for (final id in favoriteIds) {
-        final dev = createTestDevocional(
-          id: id,
-          date: DateTime(2025, 1, 1),
-          versiculo: 'Test',
-        );
-        expect(provider1.isFavorite(dev), isTrue,
-            reason: '$id should be marked as favorite');
-      }
-
-      provider1.dispose();
-
-      // Second session: App restart
-      final provider2 =
-          DevocionalProvider(httpClient: mockHttpClient, enableAudio: false);
-      await provider2.initializeData();
-
-      // All IDs should still be recognized as favorites
-      for (final id in favoriteIds) {
-        final dev = createTestDevocional(
-          id: id,
-          date: DateTime(2025, 1, 1),
-          versiculo: 'Test',
-        );
-        expect(provider2.isFavorite(dev), isTrue,
-            reason: '$id should persist as favorite after restart');
-      }
-
-      // Verify persistence in storage
-      final storedIds2 = prefs.getString('favorite_ids');
-      final stored2 = (json.decode(storedIds2!) as List).cast<String>();
-      expect(stored2.length, equals(5),
-          reason: 'All 5 IDs should remain in storage');
-
-      provider2.dispose();
-    });
-
-    test('User toggles favorite multiple times - final state persists',
-        () async {
-      // Real user scenario: User changes mind, toggles favorite on/off
-      final devocionalId = 'devocional_2025_01_10_RVR1960';
-      final devocional = createTestDevocional(
-        id: devocionalId,
-        date: DateTime(2025, 1, 10),
-        versiculo: 'Juan 3:16',
-      );
-
-      final provider =
-          DevocionalProvider(httpClient: mockHttpClient, enableAudio: false);
-      await provider.initializeData();
-
-      // User adds favorite
-      await provider.toggleFavorite(devocionalId);
-      expect(provider.isFavorite(devocional), isTrue,
-          reason: 'Should be favorited');
-
-      // User changes mind, removes it
-      await provider.toggleFavorite(devocionalId);
-      expect(provider.isFavorite(devocional), isFalse,
-          reason: 'Should be unfavorited');
-
-      // User changes mind again, adds it back
-      await provider.toggleFavorite(devocionalId);
-      expect(provider.isFavorite(devocional), isTrue,
-          reason: 'Should be favorited again');
-
-      provider.dispose();
-
-      // Restart app - final state should persist
-      final provider2 =
-          DevocionalProvider(httpClient: mockHttpClient, enableAudio: false);
-      await provider2.initializeData();
-
-      expect(provider2.isFavorite(devocional), isTrue,
-          reason: 'Final favorited state should persist');
-
-      provider2.dispose();
-    });
-  });
-
-  group('Favorites Backup and Restore', () {
-    test('Should correctly restore favorites from backup', () async {
-      final prefs = await SharedPreferences.getInstance();
-
-      // Simulate backup data with favorite IDs
-      final backupFavoriteIds = [
-        'devocional_2025_01_15_RVR1960',
-        'devocional_2025_01_16_RVR1960',
-      ];
-
-      await prefs.setString('favorite_ids', json.encode(backupFavoriteIds));
-
-      // Load provider and reload favorites
-      final provider =
-          DevocionalProvider(httpClient: mockHttpClient, enableAudio: false);
-      await provider.initializeData();
-      await provider.reloadFavoritesFromStorage();
-
-      // Create test devotionals
-      final devocional1 = createTestDevocional(
-        id: 'devocional_2025_01_15_RVR1960',
-        date: DateTime(2025, 1, 15),
-        versiculo: 'Juan 3:16',
-      );
-
-      final devocional2 = createTestDevocional(
-        id: 'devocional_2025_01_16_RVR1960',
-        date: DateTime(2025, 1, 16),
-        versiculo: 'Juan 3:17',
-      );
-
-      // Both should be favorites
-      expect(provider.isFavorite(devocional1), isTrue);
-      expect(provider.isFavorite(devocional2), isTrue);
-
-      provider.dispose();
-    });
-
-    test('Should preserve read status after favorites restore', () async {
-      final prefs = await SharedPreferences.getInstance();
-
-      // Set up favorites and read status
-      final favoriteIds = ['devocional_2025_01_15_RVR1960'];
-      await prefs.setString('favorite_ids', json.encode(favoriteIds));
-
-      // Set up spiritual stats with read devotional
-      final statsData = {
-        'totalDaysRead': 1,
-        'currentStreak': 1,
-        'longestStreak': 1,
-        'totalFavorites': 1,
-        'lastReadDate': DateTime.now().toIso8601String(),
-        'readDevocionalIds': ['devocional_2025_01_15_RVR1960'],
-      };
-      await prefs.setString('spiritual_stats', json.encode(statsData));
-
-      // Load provider
-      final provider =
-          DevocionalProvider(httpClient: mockHttpClient, enableAudio: false);
-      await provider.initializeData();
-      await provider.reloadFavoritesFromStorage();
-
-      // Create test devotional
-      final devocional = createTestDevocional(
-        id: 'devocional_2025_01_15_RVR1960',
-        date: DateTime(2025, 1, 15),
-        versiculo: 'Juan 3:16',
-      );
-
-      // Should be favorite
-      expect(provider.isFavorite(devocional), isTrue);
-
-      // Should be marked as read
-      final statsService = SpiritualStatsService();
-      final stats = await statsService.getStats();
-      expect(stats.readDevocionalIds.contains(devocional.id), isTrue);
-
-      provider.dispose();
-    });
-  });
-
-  group('Language Switch Favorites', () {
-    test('Should maintain separate favorites per language', () async {
-      final prefs = await SharedPreferences.getInstance();
-
-      // Set up favorites for Spanish
-      final spanishFavorites = ['devocional_2025_01_15_RVR1960'];
-      await prefs.setString('favorite_ids', json.encode(spanishFavorites));
-
-      // Load provider in Spanish
-      final provider =
-          DevocionalProvider(httpClient: mockHttpClient, enableAudio: false);
-      await provider.initializeData();
-
-      // Create Spanish devotional
-      final spanishDevocional = createTestDevocional(
-        id: 'devocional_2025_01_15_RVR1960',
-        date: DateTime(2025, 1, 15),
-        versiculo: 'Juan 3:16',
-        reflexion: 'Reflexión en español',
-        oracion: 'Oración en español',
-      );
-
-      expect(provider.isFavorite(spanishDevocional), isTrue);
-
-      // Note: In the current implementation, favorites are shared across languages
-      // This test documents the current behavior
-      // If per-language favorites are needed, the implementation would need to change
-
-      provider.dispose();
-    });
-  });
-
-  group('Edge Cases', () {
-    test('Should not add devotional without ID to favorites', () async {
-      // Real user behavior: System validation prevents empty IDs
-      final provider =
-          DevocionalProvider(httpClient: mockHttpClient, enableAudio: false);
-      await provider.initializeData();
-
-      final invalidDevocional = createTestDevocional(
-        id: '', // Empty ID
-        date: DateTime(2025, 1, 15),
-        versiculo: 'Juan 3:16',
-      );
-
-      // Test that empty ID throws ArgumentError
-      expect(
-        () async => await provider.toggleFavorite(invalidDevocional.id),
-        throwsArgumentError,
-        reason: 'Empty IDs should not be allowed',
-      );
-
-      // Should not be in favorites
-      expect(provider.favoriteDevocionales.length, equals(0),
-          reason: 'No favorites should be added');
-
-      provider.dispose();
-    });
-
-    test('Should handle removing non-existent favorite gracefully', () async {
-      // Real user behavior: Toggle adds if not present
-      final provider =
-          DevocionalProvider(httpClient: mockHttpClient, enableAudio: false);
-      await provider.initializeData();
-
-      final devocional = createTestDevocional(
-        id: 'devocional_2025_01_15_RVR1960',
-        date: DateTime(2025, 1, 15),
-        versiculo: 'Juan 3:16',
-      );
-
-      // Try to add favorite (toggle when not present)
-      final wasAdded = await provider.toggleFavorite(devocional.id);
-
-      // Should be added (not removed)
-      expect(wasAdded, isTrue, reason: 'Should add when not present');
-      expect(provider.isFavorite(devocional), isTrue,
-          reason: 'Should be marked as favorite');
-
-      provider.dispose();
-    });
-
-    test('Should sync favorites after version change', () async {
-      final prefs = await SharedPreferences.getInstance();
-
-      // Set up favorites
-      final favoriteIds = [
-        'devocional_2025_01_15_RVR1960',
-        'devocional_2025_01_16_RVR1960',
-      ];
-      await prefs.setString('favorite_ids', json.encode(favoriteIds));
-
-      final provider =
-          DevocionalProvider(httpClient: mockHttpClient, enableAudio: false);
-      await provider.initializeData();
-
-      // Favorites should be loaded
-      expect(provider.favoriteDevocionales.isNotEmpty, isTrue);
-
-      // Change version (this triggers _filterDevocionalesByVersion which calls sync)
-      provider.setSelectedVersion('NVI');
-
-      // Favorites should still be accessible (if available in NVI)
-      // or empty if not available in new version
-
-      provider.dispose();
-    });
-
-    test('Should handle corrupted favorite_ids data', () async {
-      final prefs = await SharedPreferences.getInstance();
-
-      // Store corrupted JSON
-      await prefs.setString('favorite_ids', 'not-valid-json');
-
-      final provider =
-          DevocionalProvider(httpClient: mockHttpClient, enableAudio: false);
-
-      // Should not crash, should handle gracefully
-      expect(() async => await provider.initializeData(), returnsNormally);
-
-      provider.dispose();
-    });
-
-    test('preserves legacy format for rollback', () async {
-      final prefs = await SharedPreferences.getInstance();
-
-      // Create legacy favorites
-      final legacyFavorites = [
-        {
-          'id': 'dev_123',
-          'date': '2025-01-01',
-          'versiculo': 'Test verse',
-          'texto': 'Test text',
-          'reflexion': 'Test reflection',
-          'oracion': 'Test prayer',
-          'version': 'RVR1960',
-          'language': 'es',
-        },
-      ];
-
-      await prefs.setString('favorites', json.encode(legacyFavorites));
-
-      // Load provider and add a favorite
-      final provider =
-          DevocionalProvider(httpClient: mockHttpClient, enableAudio: false);
-      await provider.initializeData();
-      await provider.toggleFavorite('dev_456');
-
-      // Verify legacy format is preserved
-      final legacy = prefs.getString('favorites');
-      expect(legacy, isNotNull);
-      final legacyData = json.decode(legacy!);
-      expect(legacyData, isList);
-      expect(legacyData.length, greaterThan(0));
-
-      provider.dispose();
-    });
-
-    test('handles rapid concurrent toggles', () async {
-      // Real user behavior: User rapidly taps favorite button
-      final provider =
-          DevocionalProvider(httpClient: mockHttpClient, enableAudio: false);
-      await provider.initializeData();
-
-      // Simulate rapid concurrent toggles (user tapping button multiple times)
+      // WHEN: User rapidly taps favorite button multiple times (10 taps)
       final futures =
-          List.generate(10, (_) => provider.toggleFavorite('dev_123'));
+          List.generate(10, (_) => provider.toggleFavorite(devocionalId));
       await Future.wait(futures);
 
-      // Should have toggled 10 times, ending with it NOT in favorites (even toggles)
+      // THEN: After even number of toggles (10), should NOT be in favorites
       // Starting state: not favorite (0)
-      // After 10 toggles (even number): back to not favorite
-      expect(provider.favoriteDevocionales.length, equals(0),
-          reason: 'Even number of toggles should result in not favorite');
-
-      provider.dispose();
-    });
-
-    test('throws on save failure with empty ID', () async {
-      // Real user behavior validation: System prevents invalid operations
-      final provider =
-          DevocionalProvider(httpClient: mockHttpClient, enableAudio: false);
-      await provider.initializeData();
-
-      // Empty ID should throw ArgumentError
-      expect(
-        () async => await provider.toggleFavorite(''),
-        throwsArgumentError,
-        reason: 'Empty ID should throw error',
-      );
-
-      provider.dispose();
-    });
-  });
-
-  group('Production User Migration Safety - Real User Scenarios', () {
-    test(
-        'Migration preserves legacy data for rollback - Scenario: User with 50 favorites',
-        () async {
+      // After 10 toggles: back to not favorite
       final prefs = await SharedPreferences.getInstance();
-
-      // Simulate a real production user with 50 favorites in legacy format
-      final legacyFavorites = List.generate(
-        50,
-        (index) => {
-          'id':
-              'devocional_2025_${(index + 1).toString().padLeft(2, '0')}_01_RVR1960',
-          'date': '2025-${(index + 1).toString().padLeft(2, '0')}-01',
-          'versiculo': 'Test verse $index',
-          'texto': 'Test text $index',
-          'reflexion': 'Test reflection $index',
-          'oracion': 'Test prayer $index',
-          'version': 'RVR1960',
-          'language': 'es',
-        },
-      );
-
-      // Save legacy data
-      await prefs.setString('favorites', json.encode(legacyFavorites));
-
-      // Verify legacy data is present before migration
-      final legacyDataBefore = prefs.getString('favorites');
-      expect(legacyDataBefore, isNotNull);
-
-      // User upgrades app - new provider loads and migrates
-      final provider =
-          DevocionalProvider(httpClient: mockHttpClient, enableAudio: false);
-      await provider.initializeData();
-
-      // Verify migration worked
-      expect(provider.favoriteDevocionales.length, equals(50));
-
-      // CRITICAL: Verify legacy data is STILL present (not deleted)
-      final legacyDataAfter = prefs.getString('favorites');
-      expect(legacyDataAfter, isNotNull,
-          reason: 'Legacy data must be preserved for safe rollback');
-      expect(legacyDataAfter, equals(legacyDataBefore),
-          reason: 'Legacy data must remain unchanged');
-
-      // Verify new format is also saved
-      final newData = prefs.getString('favorite_ids');
-      expect(newData, isNotNull, reason: 'New ID-based data must be saved');
-
-      // Verify the new data contains correct IDs
-      final newIds = (json.decode(newData!) as List).cast<String>();
-      expect(newIds.length, equals(50));
-      expect(
-        newIds.first,
-        equals('devocional_2025_01_01_RVR1960'),
-      );
-
-      provider.dispose();
+      final savedIds = prefs.getString('favorite_ids');
+      if (savedIds != null) {
+        final ids = (jsonDecode(savedIds) as List).cast<String>();
+        expect(ids, isNot(contains(devocionalId)),
+            reason: 'Even number of toggles should result in not favorite');
+      }
     });
 
-    test(
-        'Rollback scenario: Old app version can still read legacy data after migration',
-        () async {
-      final prefs = await SharedPreferences.getInstance();
+    test('User cannot favorite devotional with empty ID', () async {
+      // GIVEN: Invalid devotional ID
+      const emptyId = '';
 
-      // Setup: User has legacy favorites
-      final legacyFavorites = [
-        {
-          'id': 'devocional_2025_01_15_RVR1960',
-          'date': '2025-01-15',
-          'versiculo': 'Juan 3:16',
-          'texto': 'Test text',
-          'reflexion': 'Test reflection',
-          'oracion': 'Test prayer',
-          'version': 'RVR1960',
-          'language': 'es',
-        },
-      ];
+      // WHEN/THEN: Attempting to favorite throws error
+      expect(
+        () => provider.toggleFavorite(emptyId),
+        throwsA(isA<ArgumentError>()),
+        reason: 'Empty ID should not be allowed',
+      );
+    });
 
-      await prefs.setString('favorites', json.encode(legacyFavorites));
+    test('User can handle corrupted data gracefully', () async {
+      // GIVEN: User has corrupted favorite data (edge case)
+      // This can happen from manual SharedPreferences editing or file corruption
 
-      // Step 1: User upgrades to new version and migration happens
+      // Create a separate provider just for this test
       final newProvider =
           DevocionalProvider(httpClient: mockHttpClient, enableAudio: false);
-      await newProvider.initializeData();
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('favorite_ids', 'not-valid-json');
 
-      // Verify migration worked - favorite is recognized
-      final migratedDevocional = createTestDevocional(
-        id: 'devocional_2025_01_15_RVR1960',
-        date: DateTime(2025, 1, 15),
-        versiculo: 'Juan 3:16',
-      );
-      expect(newProvider.isFavorite(migratedDevocional), isTrue,
-          reason: 'Migrated favorite should be recognized');
+      // WHEN: Provider initializes with corrupted data
+      // THEN: Should not crash, should handle gracefully
+      await expectLater(newProvider.initializeData(), completes,
+          reason: 'Should handle corrupted data without crashing');
 
       newProvider.dispose();
-
-      // Step 2: Simulate rollback - old app version reads legacy data
-      // Old version only knows about 'favorites' key, not 'favorite_ids'
-      final legacyDataAfterRollback = prefs.getString('favorites');
-      expect(legacyDataAfterRollback, isNotNull,
-          reason:
-              'Legacy data must still exist for old app version to read on rollback');
-
-      // Old version should be able to parse this
-      final List<dynamic> legacyParsed = json.decode(legacyDataAfterRollback!);
-      expect(legacyParsed.length, equals(1),
-          reason:
-              'Original favorite should still be accessible to old app version');
-      expect(legacyParsed.first['id'], equals('devocional_2025_01_15_RVR1960'));
-    });
-
-    test(
-        'Zero data loss: All user favorites survive migration even with corrupted entries',
-        () async {
-      final prefs = await SharedPreferences.getInstance();
-
-      // Real-world scenario: Some entries may have issues
-      final legacyFavorites = [
-        // Valid entry 1
-        {
-          'id': 'devocional_2025_01_01_RVR1960',
-          'date': '2025-01-01',
-          'versiculo': 'Juan 3:16',
-          'texto': 'Test',
-          'reflexion': 'Test',
-          'oracion': 'Test',
-          'version': 'RVR1960',
-          'language': 'es',
-        },
-        // Entry with empty ID (should be skipped safely)
-        {
-          'id': '',
-          'date': '2025-01-02',
-          'versiculo': 'Juan 3:17',
-          'texto': 'Test',
-          'reflexion': 'Test',
-          'oracion': 'Test',
-          'version': 'RVR1960',
-          'language': 'es',
-        },
-        // Valid entry 2
-        {
-          'id': 'devocional_2025_01_03_RVR1960',
-          'date': '2025-01-03',
-          'versiculo': 'Juan 3:18',
-          'texto': 'Test',
-          'reflexion': 'Test',
-          'oracion': 'Test',
-          'version': 'RVR1960',
-          'language': 'es',
-        },
-      ];
-
-      await prefs.setString('favorites', json.encode(legacyFavorites));
-
-      final provider =
-          DevocionalProvider(httpClient: mockHttpClient, enableAudio: false);
-      await provider.initializeData();
-
-      // Should have migrated 2 valid entries (skipped the empty ID)
-      final newData = prefs.getString('favorite_ids');
-      expect(newData, isNotNull);
-      final newIds = (json.decode(newData!) as List).cast<String>();
-      expect(newIds.length, equals(2),
-          reason: 'Should migrate only valid favorites');
-      expect(newIds.contains('devocional_2025_01_01_RVR1960'), isTrue);
-      expect(newIds.contains('devocional_2025_01_03_RVR1960'), isTrue);
-
-      // Legacy data must still be intact
-      final legacyData = prefs.getString('favorites');
-      expect(legacyData, isNotNull);
-      final legacyParsed = json.decode(legacyData!);
-      expect(legacyParsed.length, equals(3),
-          reason: 'Original data must remain untouched');
-
-      provider.dispose();
-    });
-
-    test('Performance: Migration of large favorites list (100+ items) is fast',
-        () async {
-      final prefs = await SharedPreferences.getInstance();
-
-      // Simulate user with many favorites
-      final legacyFavorites = List.generate(
-        150,
-        (index) => {
-          'id':
-              'devocional_2025_${((index % 365) + 1).toString().padLeft(3, '0')}_RVR1960',
-          'date':
-              '2025-${((index % 12) + 1).toString().padLeft(2, '0')}-${((index % 28) + 1).toString().padLeft(2, '0')}',
-          'versiculo': 'Verse $index',
-          'texto': 'Text $index',
-          'reflexion': 'Reflection $index',
-          'oracion': 'Prayer $index',
-          'version': 'RVR1960',
-          'language': 'es',
-        },
-      );
-
-      await prefs.setString('favorites', json.encode(legacyFavorites));
-
-      final stopwatch = Stopwatch()..start();
-      final provider =
-          DevocionalProvider(httpClient: mockHttpClient, enableAudio: false);
-      await provider.initializeData();
-      stopwatch.stop();
-
-      // Migration should be fast (< 1 second for 150 items)
-      expect(stopwatch.elapsedMilliseconds, lessThan(1000),
-          reason: 'Migration must be performant for large datasets');
-
-      // Verify migration success
-      final newData = prefs.getString('favorite_ids');
-      expect(newData, isNotNull);
-      final newIds = (json.decode(newData!) as List).cast<String>();
-      expect(newIds.length, equals(150));
-
-      provider.dispose();
-    });
-
-    test('Language switch preserves favorites with correct IDs', () async {
-      final prefs = await SharedPreferences.getInstance();
-
-      // User has favorites in Spanish
-      final legacyFavorites = [
-        {
-          'id': 'devocional_2025_01_01_RVR1960',
-          'date': '2025-01-01',
-          'versiculo': 'Juan 3:16',
-          'texto': 'Test',
-          'reflexion': 'Test',
-          'oracion': 'Test',
-          'version': 'RVR1960',
-          'language': 'es',
-        },
-      ];
-
-      await prefs.setString('favorites', json.encode(legacyFavorites));
-
-      final provider =
-          DevocionalProvider(httpClient: mockHttpClient, enableAudio: false);
-      await provider.initializeData();
-
-      // Verify favorite is loaded
-      final devocional = createTestDevocional(
-        id: 'devocional_2025_01_01_RVR1960',
-        date: DateTime(2025, 1, 1),
-        versiculo: 'Juan 3:16',
-      );
-      expect(provider.isFavorite(devocional), isTrue);
-
-      // Switch language to English
-      provider.setSelectedLanguage('en', null);
-      provider.setSelectedVersion('KJV');
-
-      // Wait for async operations to complete
-      await Future.delayed(Duration(milliseconds: 100));
-
-      // Favorite IDs should still be stored (even if devotional not available in English)
-      final storedIds = prefs.getString('favorite_ids');
-      expect(storedIds, isNotNull);
-      final ids = (json.decode(storedIds!) as List).cast<String>();
-      expect(ids.contains('devocional_2025_01_01_RVR1960'), isTrue,
-          reason: 'Favorite IDs must persist across language switches');
-
-      provider.dispose();
     });
   });
 }

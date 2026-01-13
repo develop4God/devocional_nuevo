@@ -1,3 +1,6 @@
+@Tags(['slow'])
+library;
+
 // test/critical_coverage/thanksgiving_user_flows_test.dart
 // High-value user behavior tests for Thanksgiving functionality
 

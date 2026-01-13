@@ -1,3 +1,6 @@
+@Tags(['slow'])
+library;
+
 // test/critical_coverage/devocional_model_user_flows_test.dart
 // High-value user behavior tests for Devocional model
 

@@ -1,3 +1,6 @@
+@Tags(['slow'])
+library;
+
 // test/critical_coverage/voice_settings_service_test.dart
 // High-value tests for VoiceSettingsService - TTS voice selection logic
 
