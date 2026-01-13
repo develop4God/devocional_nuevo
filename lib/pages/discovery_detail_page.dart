@@ -1,15 +1,17 @@
 // lib/pages/discovery_detail_page.dart
 
+import 'dart:math';
+
 import 'package:devocional_nuevo/blocs/discovery/discovery_bloc.dart';
 import 'package:devocional_nuevo/blocs/discovery/discovery_event.dart';
 import 'package:devocional_nuevo/blocs/discovery/discovery_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/discovery_devotional_model.dart';
 import 'package:devocional_nuevo/widgets/app_bar_constants.dart';
-import 'package:devocional_nuevo/widgets/discovery_action_bar.dart';
 import 'package:devocional_nuevo/widgets/discovery_section_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:lottie/lottie.dart';
 
 /// Detail page for viewing a specific Discovery study
 class DiscoveryDetailPage extends StatefulWidget {
@@ -28,36 +30,22 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
   int _currentSectionIndex = 0;
   final PageController _pageController = PageController();
 
+  // List of celebratory Lottie assets
+  final List<String> _celebrationLotties = [
+    'assets/lottie/confetti.json',
+    'assets/lottie/trophy_star.json',
+    // Add more assets here as needed
+  ];
+
+  String get _randomCelebrationLottie {
+    final rand = Random();
+    return _celebrationLotties[rand.nextInt(_celebrationLotties.length)];
+  }
+
   @override
   void dispose() {
     _pageController.dispose();
     super.dispose();
-  }
-
-  void _goToNextSection(int totalSections) {
-    if (_currentSectionIndex < totalSections - 1) {
-      setState(() {
-        _currentSectionIndex++;
-      });
-      _pageController.animateToPage(
-        _currentSectionIndex,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
-    }
-  }
-
-  void _goToPreviousSection() {
-    if (_currentSectionIndex > 0) {
-      setState(() {
-        _currentSectionIndex--;
-      });
-      _pageController.animateToPage(
-        _currentSectionIndex,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
-    }
   }
 
   @override
@@ -130,8 +118,29 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
               children: [
                 // Study header
                 _buildStudyHeader(study, theme, isDark),
-
-                // Section content
+                // Progress dots for sections
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(
+                      study.secciones.length,
+                      (index) => AnimatedContainer(
+                        duration: const Duration(milliseconds: 300),
+                        margin: const EdgeInsets.symmetric(horizontal: 4),
+                        width: _currentSectionIndex == index ? 24 : 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          color: _currentSectionIndex == index
+                              ? theme.colorScheme.primary
+                              : Colors.grey.withAlpha(128),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                // Swipeable carousel for sections
                 Expanded(
                   child: PageView.builder(
                     controller: _pageController,
@@ -142,26 +151,47 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
                     },
                     itemCount: study.secciones.length,
                     itemBuilder: (context, index) {
-                      return DiscoverySectionCard(
-                        section: study.secciones[index],
-                        studyId: widget.studyId,
-                        sectionIndex: index,
-                        isDark: isDark,
+                      final isLast = index == study.secciones.length - 1;
+                      return AnimatedContainer(
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeInOutCubic,
+                        margin: EdgeInsets.symmetric(
+                          horizontal: _currentSectionIndex == index ? 8 : 24,
+                          vertical: _currentSectionIndex == index ? 0 : 24,
+                        ),
+                        child: Material(
+                          elevation: _currentSectionIndex == index ? 8 : 2,
+                          borderRadius: BorderRadius.circular(24),
+                          child: Stack(
+                            children: [
+                              DiscoverySectionCard(
+                                section: study.secciones[index],
+                                studyId: widget.studyId,
+                                sectionIndex: index,
+                                isDark: isDark,
+                              ),
+                              if (isLast)
+                                Positioned.fill(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      // Show a random Lottie animation from the list
+                                      SizedBox(
+                                        height: 120,
+                                        child: Lottie.asset(
+                                          _randomCelebrationLottie,
+                                          repeat: false,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
                       );
                     },
                   ),
-                ),
-
-                // Action bar with navigation
-                DiscoveryActionBar(
-                  devocional: study,
-                  isComplete: false,
-                  isPlaying: false,
-                  onPrevious:
-                      _currentSectionIndex > 0 ? _goToPreviousSection : null,
-                  onNext: _currentSectionIndex < study.secciones.length - 1
-                      ? () => _goToNextSection(study.secciones.length)
-                      : null,
                 ),
               ],
             );
