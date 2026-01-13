@@ -207,11 +207,15 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
                 color: theme.colorScheme.secondary,
               ),
               const SizedBox(width: 4),
-              Text(
-                study.versiculoClave,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.secondary,
-                  fontStyle: FontStyle.italic,
+              Flexible(
+                child: Text(
+                  study.versiculoClave,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.secondary,
+                    fontStyle: FontStyle.italic,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
                 ),
               ),
               const Spacer(),
