@@ -243,21 +243,26 @@ class DevotionalCardPremium extends StatelessWidget {
     );
   }
 
-  /// Returns an emoji based on the first tag or a default
+  /// Returns an emoji based on the explicit model field, or fallback to tags
   String _getTopicEmoji() {
-    if (devocional.tags == null || devocional.tags!.isEmpty) return '📖';
-    final tag = devocional.tags!.first.toLowerCase();
+    // Priority 1: Explicit emoji from JSON
+    if (devocional.emoji != null && devocional.emoji!.isNotEmpty) {
+      return devocional.emoji!;
+    }
 
-    // Mapping common tags to emojis
-    if (tag.contains('amor') || tag.contains('love')) return '❤️';
-    if (tag.contains('paz') || tag.contains('peace')) return '🕊️';
-    if (tag.contains('fe') || tag.contains('faith')) return '⚓';
-    if (tag.contains('esperanza') || tag.contains('hope')) return '🌟';
-    if (tag.contains('sabiduria') || tag.contains('wisdom')) return '💡';
-    if (tag.contains('familia') || tag.contains('family')) return '🏠';
-    if (tag.contains('oracion') || tag.contains('prayer')) return '🙏';
+    // Priority 2: Fallback logic based on tags
+    if (devocional.tags != null && devocional.tags!.isNotEmpty) {
+      final tag = devocional.tags!.first.toLowerCase();
+      if (tag.contains('amor') || tag.contains('love')) return '❤️';
+      if (tag.contains('paz') || tag.contains('peace')) return '🕊️';
+      if (tag.contains('fe') || tag.contains('faith')) return '⚓';
+      if (tag.contains('esperanza') || tag.contains('hope')) return '🌟';
+      if (tag.contains('sabiduria') || tag.contains('wisdom')) return '💡';
+      if (tag.contains('familia') || tag.contains('family')) return '🏠';
+      if (tag.contains('oracion') || tag.contains('prayer')) return '🙏';
+    }
 
-    return '📖'; // Default Bible emoji
+    return '📖'; // Default fallback
   }
 
   Widget _buildBackgroundImage() {

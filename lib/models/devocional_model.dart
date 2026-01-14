@@ -9,17 +9,16 @@ class Devocional {
   final String id;
   final String versiculo;
   final String reflexion;
-  final List<ParaMeditar> paraMeditar; // << CAMBIO: Ahora es List<ParaMeditar>
+  final List<ParaMeditar> paraMeditar;
   final String oracion;
   final DateTime date;
 
   // Nuevos campos que se han detectado en el JSON.
-  // Los hacemos nulos (String?, List<String>?) para que no sean obligatorios
-  // en caso de que no siempre estén presentes en todos los devocionales.
   final String? version;
   final String? language;
   final List<String>? tags;
   final String? imageUrl;
+  final String? emoji; // << NEW FIELD
 
   Devocional({
     required this.id,
@@ -32,11 +31,10 @@ class Devocional {
     this.language,
     this.tags,
     this.imageUrl,
+    this.emoji, // << NEW FIELD
   });
 
   /// Constructor factory para crear una instancia de [Devocional] desde un JSON.
-  ///
-  /// Proporciona valores por defecto si algún campo es nulo en el JSON.
   factory Devocional.fromJson(Map<String, dynamic> json) {
     DateTime parsedDate;
     final String? dateString = json['date'] as String?;
@@ -47,10 +45,10 @@ class Devocional {
         debugPrint(
           'Error parsing date: $dateString, using DateTime.now(). Error: $e',
         );
-        parsedDate = DateTime.now(); // Fallback to current date
+        parsedDate = DateTime.now();
       }
     } else {
-      parsedDate = DateTime.now(); // Fallback if date is null or empty
+      parsedDate = DateTime.now();
     }
 
     String rawVersiculo = json['versiculo'] ?? '';
@@ -58,10 +56,8 @@ class Devocional {
     return Devocional(
       id: json['id'] as String? ?? UniqueKey().hashCode.toString(),
       versiculo: rawVersiculo,
-      // Se usa el valor directo del JSON
       reflexion: json['reflexion'] ?? '',
-      paraMeditar: (json['para_meditar']
-                  as List<dynamic>?) // << CAMBIO: Mapeo a ParaMeditar.fromJson
+      paraMeditar: (json['para_meditar'] as List<dynamic>?)
               ?.map(
                 (item) => ParaMeditar.fromJson(item as Map<String, dynamic>),
               )
@@ -69,35 +65,29 @@ class Devocional {
           [],
       oracion: json['oracion'] ?? '',
       date: parsedDate,
-      // Mapeo de los nuevos campos
       version: json['version'] as String?,
       language: json['language'] as String?,
       tags: (json['tags'] as List<dynamic>?)
           ?.map((tag) => tag as String)
           .toList(),
       imageUrl: json['imageUrl'] as String?,
+      emoji: json['emoji'] as String?, // << MAPPING NEW FIELD
     );
   }
 
-  // Metodo toJson para serializar a JSON (útil para guardar favoritos)
   Map<String, dynamic> toJson() {
     return {
       'id': id,
       'versiculo': versiculo,
       'reflexion': reflexion,
-      'para_meditar': paraMeditar
-          .map((e) => e.toJson())
-          .toList(), // << CAMBIO: Serializa cada ParaMeditar
+      'para_meditar': paraMeditar.map((e) => e.toJson()).toList(),
       'oracion': oracion,
-      'date': date
-          .toIso8601String()
-          .split('T')
-          .first, // Guarda solo la fecha (yyyy-MM-dd)
-      // Incluir los nuevos campos en toJson
+      'date': date.toIso8601String().split('T').first,
       'version': version,
       'language': language,
       'tags': tags,
       'imageUrl': imageUrl,
+      'emoji': emoji, // << SERIALIZING NEW FIELD
     };
   }
 }
