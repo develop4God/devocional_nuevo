@@ -48,15 +48,14 @@ class DevotionalCardPremium extends StatelessWidget {
   Widget build(BuildContext context) {
     final displayDate = _getDisplayDate();
     final verseReference = _extractVerseReference(devocional.versiculo);
-    final verseText = _extractVerseText(devocional.versiculo);
     final topicEmoji = _getTopicEmoji();
 
     return Semantics(
       label:
-          'Devotional card for $title. $verseReference. $verseText. Posted $displayDate. ${isFavorite ? "In favorites" : "Not in favorites"}',
+          'Devotional card for $title. $verseReference. Posted $displayDate. ${isFavorite ? "In favorites" : "Not in favorites"}',
       button: true,
       child: Container(
-        height: 340, // Increased slightly for centered content
+        height: 340,
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(24),
@@ -102,7 +101,7 @@ class DevotionalCardPremium extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        // Top Badge (Date) - Floating style
+                        // Top Badge (Date)
                         Align(
                           alignment: Alignment.topCenter,
                           child: Container(
@@ -132,15 +131,14 @@ class DevotionalCardPremium extends StatelessWidget {
 
                         const Spacer(),
 
-                        // Main Feature: Emoji + Title + Verse
-                        // Large Emoji for visual anchor
+                        // Large Emoji visual anchor
                         Text(
                           topicEmoji,
                           style: const TextStyle(fontSize: 48),
                         ),
                         const SizedBox(height: 12),
 
-                        // Localized title
+                        // Title
                         Text(
                           title,
                           textAlign: TextAlign.center,
@@ -157,10 +155,9 @@ class DevotionalCardPremium extends StatelessWidget {
 
                         const SizedBox(height: 12),
 
-                        // Verse Reference as a distinct subtitle
+                        // Verse Reference
                         Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 4),
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                           decoration: BoxDecoration(
                             color: Colors.black.withValues(alpha: 0.3),
                             borderRadius: BorderRadius.circular(8),
@@ -182,34 +179,26 @@ class DevotionalCardPremium extends StatelessWidget {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            if (devocional.tags != null &&
-                                devocional.tags!.isNotEmpty)
+                            if (devocional.tags != null && devocional.tags!.isNotEmpty)
                               ...devocional.tags!.take(1).map((tag) => Text(
-                                    TagColorDictionary.getTagTranslation(
-                                      tag,
-                                      Localizations.localeOf(context)
-                                          .languageCode,
-                                    ).toUpperCase(),
-                                    style: TextStyle(
-                                      color:
-                                          Colors.white.withValues(alpha: 0.7),
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.bold,
-                                      letterSpacing: 1,
-                                    ),
-                                  )),
+                                TagColorDictionary.getTagTranslation(
+                                  tag,
+                                  Localizations.localeOf(context).languageCode,
+                                ).toUpperCase(),
+                                style: TextStyle(
+                                  color: Colors.white.withValues(alpha: 0.7),
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 1,
+                                ),
+                              )),
                             const SizedBox(width: 8),
-                            Container(
-                                width: 4,
-                                height: 4,
-                                decoration: const BoxDecoration(
-                                    color: Colors.white54,
-                                    shape: BoxShape.circle)),
+                            Container(width: 4, height: 4, decoration: const BoxDecoration(color: Colors.white54, shape: BoxShape.circle)),
                             const SizedBox(width: 8),
-                            Text(
+                            const Text(
                               '5 MIN READ',
                               style: TextStyle(
-                                color: Colors.white.withValues(alpha: 0.7),
+                                color: Colors.white70,
                                 fontSize: 11,
                                 fontWeight: FontWeight.bold,
                                 letterSpacing: 1,
@@ -221,7 +210,7 @@ class DevotionalCardPremium extends StatelessWidget {
                     ),
                   ),
 
-                  // Floating heart button - remains in top-right for utility
+                  // Floating heart button
                   Positioned(
                     top: 16,
                     right: 16,
@@ -252,22 +241,12 @@ class DevotionalCardPremium extends StatelessWidget {
     );
   }
 
-  /// Returns an emoji based on the explicit model field, or fallback to tags
   String _getTopicEmoji() {
-    // Debug print to trace emoji source
-    debugPrint('DEBUG: _getTopicEmoji for study: ${devocional.id}');
-    debugPrint('DEBUG: Explicit emoji in model: "${devocional.emoji}"');
-
-    // Priority 1: Explicit emoji from JSON
     if (devocional.emoji != null && devocional.emoji!.isNotEmpty) {
-      debugPrint('DEBUG: Using explicit emoji: ${devocional.emoji}');
       return devocional.emoji!;
     }
-
-    // Priority 2: Fallback logic based on tags
     if (devocional.tags != null && devocional.tags!.isNotEmpty) {
       final tag = devocional.tags!.first.toLowerCase();
-      debugPrint('DEBUG: Falling back to tags. First tag: $tag');
       if (tag.contains('amor') || tag.contains('love')) return '❤️';
       if (tag.contains('paz') || tag.contains('peace')) return '🕊️';
       if (tag.contains('fe') || tag.contains('faith')) return '⚓';
@@ -276,9 +255,7 @@ class DevotionalCardPremium extends StatelessWidget {
       if (tag.contains('familia') || tag.contains('family')) return '🏠';
       if (tag.contains('oracion') || tag.contains('prayer')) return '🙏';
     }
-
-    debugPrint('DEBUG: No emoji found, using default 📖');
-    return '📖'; // Default fallback
+    return '📖';
   }
 
   Widget _buildBackgroundImage() {
@@ -303,8 +280,7 @@ class DevotionalCardPremium extends StatelessWidget {
               colors: _getGradientColors(),
             ),
           ),
-          child: const Center(
-              child: Icon(Icons.book, color: Colors.white30, size: 48)),
+          child: const Center(child: Icon(Icons.book, color: Colors.white30, size: 48)),
         ),
       );
     }
@@ -331,23 +307,20 @@ class DevotionalCardPremium extends StatelessWidget {
   String _getDisplayDate() {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    final devDate = DateTime(
-        devocional.date.year, devocional.date.month, devocional.date.day);
+    final devDate = DateTime(devocional.date.year, devocional.date.month, devocional.date.day);
 
     if (devDate == today) return 'Today';
 
     DateTime displayDate = devDate;
     while (displayDate.isBefore(today)) {
-      displayDate =
-          DateTime(displayDate.year + 1, displayDate.month, displayDate.day);
+      displayDate = DateTime(displayDate.year + 1, displayDate.month, displayDate.day);
     }
 
     final tomorrow = today.add(const Duration(days: 1));
     if (displayDate == tomorrow) return 'Tomorrow';
 
     final daysUntil = displayDate.difference(today).inDays;
-    if (daysUntil <= 7 && daysUntil > 1)
-      return DateFormat('EEEE').format(displayDate);
+    if (daysUntil <= 7 && daysUntil > 1) return DateFormat('EEEE').format(displayDate);
 
     return DateFormat('MMM dd').format(displayDate);
   }
@@ -366,16 +339,5 @@ class DevotionalCardPremium extends StatelessWidget {
       if (reference.length >= 3) return reference;
     }
     return trimmed.length < 50 ? trimmed : 'Daily Verse';
-  }
-
-  String _extractVerseText(String? versiculo) {
-    if (versiculo == null || versiculo.trim().isEmpty) return '';
-    final trimmed = versiculo.trim();
-    final quoteStart = trimmed.indexOf('"');
-    final quoteEnd = trimmed.lastIndexOf('"');
-    if (quoteStart != -1 && quoteEnd != -1 && quoteEnd > quoteStart) {
-      return trimmed.substring(quoteStart + 1, quoteEnd).trim();
-    }
-    return '';
   }
 }

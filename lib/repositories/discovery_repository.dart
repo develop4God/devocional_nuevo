@@ -8,21 +8,21 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Repositorio para obtener devocionales Discovery desde GitHub.
+/// Repositorio para obtener devocionales Discovery desde GitHub con cache inteligente.
 class DiscoveryRepository {
   final http.Client httpClient;
   static const String _cacheKeyPrefix = 'discovery_cache_';
   static const String _indexCacheKey = 'discovery_index_cache';
-  static const String _indexCacheTimestampKey = 'discovery_index_timestamp';
-  static const Duration _indexCacheTTL = Duration(hours: 1);
 
   DiscoveryRepository({required this.httpClient});
 
+  /// Obtiene un estudio Discovery comparando versiones del índice.
   Future<DiscoveryDevotional> fetchDiscoveryStudy(
     String id,
     String languageCode,
   ) async {
     try {
+      // 1. Obtener el índice (siempre intenta red primero para saber la versión actual)
       final index = await _fetchIndex();
       final studyInfo = index['studies']?.firstWhere(
         (s) => s['id'] == id,
@@ -31,12 +31,17 @@ class DiscoveryRepository {
 
       final String expectedVersion = studyInfo?['version'] as String? ?? '1.0';
 
+      // 2. Intentar cargar desde cache
       final cacheKey = '${id}_$languageCode';
       final cached = await _loadFromCache(cacheKey, expectedVersion);
+      
       if (cached != null) {
+        debugPrint('✅ Discovery: Usando cache para $id (v$expectedVersion)');
         return cached;
       }
 
+      // 3. Si no hay cache o versión difiere, descargar
+      debugPrint('🚀 Discovery: Descargando nueva versión para $id (v$expectedVersion)');
       String filename;
       final files = studyInfo?['files'] as Map<String, dynamic>?;
       if (files != null) {
@@ -51,76 +56,67 @@ class DiscoveryRepository {
       if (response.statusCode == 200) {
         final json = jsonDecode(response.body) as Map<String, dynamic>;
         final study = DiscoveryDevotional.fromJson(json);
+        
+        // Guardar en cache con la nueva versión
         await _saveToCache(cacheKey, json, expectedVersion);
         return study;
       } else {
-        throw Exception(
-            'Failed to load Discovery study: ${response.statusCode}');
+        throw Exception('Failed to load study: ${response.statusCode}');
       }
     } catch (e) {
+      debugPrint('❌ Discovery Error: $e');
       rethrow;
     }
   }
 
-  Future<List<String>> fetchAvailableStudies(
-      {bool forceRefresh = false}) async {
+  /// Obtiene la lista de IDs de estudios disponibles.
+  Future<List<String>> fetchAvailableStudies({bool forceRefresh = false}) async {
     try {
       final index = await _fetchIndex(forceRefresh: forceRefresh);
       final studies = index['studies'] as List<dynamic>?;
-      if (studies != null && studies.isNotEmpty) {
+      if (studies != null) {
         return studies.map((s) => s['id'] as String).toList();
       }
     } catch (e) {
-      debugPrint('Error fetching index: $e');
+      debugPrint('Error fetching available studies: $e');
     }
-    return ['morning_star_001', 'morning_star_002', 'morning_star_003'];
+    return [];
   }
 
+  /// Obtiene el índice de estudios. 
+  /// Estrategia: Network-First con Fallback a Cache.
   Future<Map<String, dynamic>> _fetchIndex({bool forceRefresh = false}) async {
+    final prefs = await SharedPreferences.getInstance();
+
     try {
-      final prefs = await SharedPreferences.getInstance();
-
-      if (!forceRefresh) {
-        final cachedIndex = prefs.getString(_indexCacheKey);
-        final cachedTimestamp = prefs.getInt(_indexCacheTimestampKey);
-
-        if (cachedIndex != null && cachedTimestamp != null) {
-          final cacheAge =
-              DateTime.now().millisecondsSinceEpoch - cachedTimestamp;
-          if (cacheAge < _indexCacheTTL.inMilliseconds) {
-            debugPrint('Using cached Discovery index');
-            return jsonDecode(cachedIndex) as Map<String, dynamic>;
-          }
-        }
-      } else {
-        debugPrint('Forcing Discovery index refresh...');
-      }
-
-      final url = Constants.discoveryIndexUrl;
-      final response = await httpClient.get(Uri.parse(url));
+      // Intentar siempre descargar el índice para estar al día con las versiones
+      debugPrint('🌐 Discovery: Buscando índice en la red...');
+      final response = await httpClient.get(Uri.parse(Constants.discoveryIndexUrl));
 
       if (response.statusCode == 200) {
         final index = jsonDecode(response.body) as Map<String, dynamic>;
+        // Guardar en cache para offline
         await prefs.setString(_indexCacheKey, response.body);
-        await prefs.setInt(
-            _indexCacheTimestampKey, DateTime.now().millisecondsSinceEpoch);
         return index;
       } else {
-        throw Exception('Failed to load index: ${response.statusCode}');
+        throw Exception('Server error: ${response.statusCode}');
       }
     } catch (e) {
+      debugPrint('⚠️ Discovery: Error de red al buscar índice, usando cache: $e');
+      final cachedIndex = prefs.getString(_indexCacheKey);
+      if (cachedIndex != null) {
+        return jsonDecode(cachedIndex) as Map<String, dynamic>;
+      }
+      // Si no hay nada en cache, lanzar error
       rethrow;
     }
   }
 
-  Future<DiscoveryDevotional?> _loadFromCache(
-      String id, String expectedVersion) async {
+  Future<DiscoveryDevotional?> _loadFromCache(String id, String expectedVersion) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final cacheKey = '$_cacheKeyPrefix$id';
-      final versionKey = '$_cacheKeyPrefix${id}_version';
-      final cachedJson = prefs.getString(cacheKey);
-      final cachedVersion = prefs.getString(versionKey);
+      final cachedJson = prefs.getString('$_cacheKeyPrefix$id');
+      final cachedVersion = prefs.getString('$_cacheKeyPrefix${id}_version');
 
       if (cachedJson != null && cachedVersion == expectedVersion) {
         return DiscoveryDevotional.fromJson(jsonDecode(cachedJson));
@@ -131,23 +127,12 @@ class DiscoveryRepository {
     }
   }
 
-  Future<void> _saveToCache(
-      String id, Map<String, dynamic> json, String version) async {
+  Future<void> _saveToCache(String id, Map<String, dynamic> json, String version) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('$_cacheKeyPrefix$id', jsonEncode(json));
       await prefs.setString('$_cacheKeyPrefix${id}_version', version);
     } catch (e) {}
-  }
-
-  Future<void> clearCache() async {
-    final prefs = await SharedPreferences.getInstance();
-    final keys = prefs.getKeys();
-    for (final key in keys) {
-      if (key.startsWith(_cacheKeyPrefix) || key == _indexCacheKey) {
-        await prefs.remove(key);
-      }
-    }
   }
 
   Future<Map<String, dynamic>> fetchIndex({bool forceRefresh = false}) async {

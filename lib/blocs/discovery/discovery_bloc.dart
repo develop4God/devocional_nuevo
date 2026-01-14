@@ -9,7 +9,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'discovery_event.dart';
 import 'discovery_state.dart';
 
-/// BLoC for managing Discovery studies.
+/// BLoC for managing Discovery studies with intelligent version-based fetching.
 class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
   final DiscoveryRepository repository;
   final DiscoveryProgressTracker progressTracker;
@@ -27,24 +27,22 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
     on<ClearDiscoveryError>(_onClearDiscoveryError);
   }
 
-  /// Handles loading all available Discovery studies
+  /// Handles loading all available Discovery studies on page entry.
+  /// Uses repository's intelligent fetch (Network-First for index).
   Future<void> _onLoadDiscoveryStudies(
     LoadDiscoveryStudies event,
     Emitter<DiscoveryState> emit,
   ) async {
     emit(DiscoveryLoading());
-    // Temporarily forcing refresh to pick up new 'emoji' field from GitHub index
-    await _fetchAndEmitIndex(emit, forceRefresh: true);
+    await _fetchAndEmitIndex(emit);
   }
 
   /// Shared logic to fetch index and emit loaded state
-  Future<void> _fetchAndEmitIndex(Emitter<DiscoveryState> emit,
-      {bool forceRefresh = false}) async {
+  Future<void> _fetchAndEmitIndex(Emitter<DiscoveryState> emit, {bool forceRefresh = false}) async {
     try {
-      final studyIds =
-          await repository.fetchAvailableStudies(forceRefresh: forceRefresh);
+      final studyIds = await repository.fetchAvailableStudies(forceRefresh: forceRefresh);
       final index = await repository.fetchIndex(forceRefresh: forceRefresh);
-
+      
       String locale = 'es';
       try {
         locale = WidgetsBinding.instance.platformDispatcher.locale.languageCode;
@@ -52,7 +50,7 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
 
       final Map<String, String> studyTitles = {};
       final Map<String, String> studyEmojis = {};
-
+      
       final studies = index['studies'] as List<dynamic>? ?? [];
       for (final s in studies) {
         final id = s['id'] as String?;
@@ -68,7 +66,7 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
           }
         }
       }
-
+      
       emit(
         DiscoveryLoaded(
           availableStudyIds: studyIds,
@@ -78,12 +76,13 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
         ),
       );
     } catch (e) {
-      debugPrint('Error loading Discovery studies: $e');
-      emit(DiscoveryError('Error al cargar estudios Discovery: $e'));
+      debugPrint('Error loading Discovery studies index: $e');
+      emit(DiscoveryError('Error al cargar índice de estudios: $e'));
     }
   }
 
-  /// Handles loading a specific Discovery study
+  /// Handles loading a specific Discovery study content.
+  /// Uses intelligent versioning: only downloads if version in index > version in cache.
   Future<void> _onLoadDiscoveryStudy(
     LoadDiscoveryStudy event,
     Emitter<DiscoveryState> emit,
@@ -99,8 +98,7 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
       );
 
       if (currentState is DiscoveryLoaded) {
-        final updatedStudies =
-            Map<String, DiscoveryDevotional>.from(currentState.loadedStudies);
+        final updatedStudies = Map<String, DiscoveryDevotional>.from(currentState.loadedStudies);
         updatedStudies[event.studyId] = study;
 
         emit(
@@ -122,8 +120,7 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
     } catch (e) {
       debugPrint('Error loading Discovery study ${event.studyId}: $e');
       if (currentState is DiscoveryLoaded) {
-        emit(
-            currentState.copyWith(errorMessage: 'Error al cargar estudio: $e'));
+        emit(currentState.copyWith(errorMessage: 'Error al cargar contenido del estudio: $e'));
       } else {
         emit(DiscoveryError('Error al cargar estudio: $e'));
       }
@@ -135,12 +132,10 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
     Emitter<DiscoveryState> emit,
   ) async {
     try {
-      await progressTracker.markSectionCompleted(
-          event.studyId, event.sectionIndex);
+      await progressTracker.markSectionCompleted(event.studyId, event.sectionIndex);
       final currentState = state;
       if (currentState is DiscoveryLoaded) {
-        emit(currentState.copyWith(
-            clearError: true, lastUpdated: DateTime.now()));
+        emit(currentState.copyWith(clearError: true, lastUpdated: DateTime.now()));
       }
     } catch (e) {
       debugPrint('Error marking section completed: $e');
@@ -152,12 +147,10 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
     Emitter<DiscoveryState> emit,
   ) async {
     try {
-      await progressTracker.answerQuestion(
-          event.studyId, event.questionIndex, event.answer);
+      await progressTracker.answerQuestion(event.studyId, event.questionIndex, event.answer);
       final currentState = state;
       if (currentState is DiscoveryLoaded) {
-        emit(currentState.copyWith(
-            clearError: true, lastUpdated: DateTime.now()));
+        emit(currentState.copyWith(clearError: true, lastUpdated: DateTime.now()));
       }
     } catch (e) {
       debugPrint('Error saving answer: $e');
@@ -172,8 +165,7 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
       await progressTracker.completeStudy(event.studyId);
       final currentState = state;
       if (currentState is DiscoveryLoaded) {
-        emit(currentState.copyWith(
-            clearError: true, lastUpdated: DateTime.now()));
+        emit(currentState.copyWith(clearError: true, lastUpdated: DateTime.now()));
       }
     } catch (e) {
       debugPrint('Error completing study: $e');
@@ -184,6 +176,7 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
     RefreshDiscoveryStudies event,
     Emitter<DiscoveryState> emit,
   ) async {
+    // Explicit manual refresh
     await _fetchAndEmitIndex(emit, forceRefresh: true);
   }
 
