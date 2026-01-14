@@ -49,26 +49,27 @@ class DevotionalCardPremium extends StatelessWidget {
     final displayDate = _getDisplayDate();
     final verseReference = _extractVerseReference(devocional.versiculo);
     final topicEmoji = _getTopicEmoji();
+    final colors = _getGradientColors();
 
     return Semantics(
       label:
           'Devotional card for $title. $verseReference. Posted $displayDate. ${isFavorite ? "In favorites" : "Not in favorites"}',
       button: true,
       child: Container(
-        height: 340,
+        height: 360, // Aumentado ligeramente
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(28),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withAlpha(38),
-              blurRadius: 20,
-              offset: const Offset(0, 10),
+              color: Colors.black.withAlpha(50),
+              blurRadius: 25,
+              offset: const Offset(0, 12),
             ),
           ],
         ),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(28),
           child: Material(
             color: Colors.transparent,
             child: InkWell(
@@ -76,53 +77,65 @@ class DevotionalCardPremium extends StatelessWidget {
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  // Background image
+                  // 1. Background Image or Base Gradient
                   _buildBackgroundImage(),
 
-                  // Sophisticated gradient overlay for centered text
+                  // 2. Light Effect / Bloom (Fondo dinámico detrás del emoji)
+                  Positioned.fill(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: RadialGradient(
+                          center: const Alignment(0, -0.1),
+                          radius: 0.8,
+                          colors: [
+                            colors[1].withValues(alpha: 0.4),
+                            colors[1].withValues(alpha: 0.1),
+                            Colors.transparent,
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  // 3. Bottom Scrim (Degradado para lectura de texto)
                   Container(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                         colors: [
-                          Colors.black.withValues(alpha: 0.2),
-                          Colors.black.withValues(alpha: 0.4),
-                          Colors.black.withValues(alpha: 0.7),
+                          Colors.black.withValues(alpha: 0.1),
+                          Colors.black.withValues(alpha: 0.3),
+                          Colors.black.withValues(alpha: 0.85),
                         ],
+                        stops: const [0.0, 0.5, 1.0],
                       ),
                     ),
                   ),
 
-                  // Content Layer
+                  // 4. Content Layer
                   Padding(
-                    padding: const EdgeInsets.all(24),
+                    padding: const EdgeInsets.all(28),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        // Top Badge (Date)
+                        // Top Badge
                         Align(
                           alignment: Alignment.topCenter,
                           child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 14,
-                              vertical: 6,
-                            ),
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                             decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.2),
+                              color: Colors.white.withValues(alpha: 0.15),
                               borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                color: Colors.white.withValues(alpha: 0.3),
-                                width: 0.5,
-                              ),
+                              border: Border.all(color: Colors.white.withValues(alpha: 0.2), width: 0.8),
                             ),
                             child: Text(
                               displayDate.toUpperCase(),
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 10,
-                                letterSpacing: 1.2,
+                                letterSpacing: 1.5,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -131,77 +144,100 @@ class DevotionalCardPremium extends StatelessWidget {
 
                         const Spacer(),
 
-                        // Large Emoji visual anchor
-                        Text(
-                          topicEmoji,
-                          style: const TextStyle(fontSize: 48),
+                        // The "Hero" Section: Emoji + Title
+                        // Animated-like Glow behind emoji
+                        Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            Container(
+                              width: 80,
+                              height: 80,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.white.withValues(alpha: 0.1),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: colors[0].withValues(alpha: 0.3),
+                                    blurRadius: 40,
+                                    spreadRadius: 10,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Text(
+                              topicEmoji,
+                              style: const TextStyle(fontSize: 56, shadows: [
+                                Shadow(color: Colors.black26, blurRadius: 10, offset: Offset(0, 4))
+                              ]),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 20),
 
-                        // Title
+                        // Title (Large & Powerful)
                         Text(
                           title,
                           textAlign: TextAlign.center,
                           style: const TextStyle(
                             color: Colors.white,
-                            fontSize: 26,
+                            fontSize: 28,
                             fontWeight: FontWeight.w900,
                             height: 1.1,
-                            letterSpacing: -0.5,
+                            letterSpacing: -0.8,
                           ),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
 
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 14),
 
-                        // Verse Reference
+                        // Verse reference in a elegant capsule
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                           decoration: BoxDecoration(
-                            color: Colors.black.withValues(alpha: 0.3),
-                            borderRadius: BorderRadius.circular(8),
+                            color: colors[0].withValues(alpha: 0.4),
+                            borderRadius: BorderRadius.circular(30),
+                            border: Border.all(color: Colors.white24, width: 0.5),
                           ),
                           child: Text(
                             verseReference,
                             style: const TextStyle(
                               color: Colors.white,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
                               fontStyle: FontStyle.italic,
+                              letterSpacing: 0.3,
                             ),
                           ),
                         ),
 
                         const Spacer(),
 
-                        // Bottom row: Tags and Reading Time
+                        // Reading Info
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            if (devocional.tags != null && devocional.tags!.isNotEmpty)
-                              ...devocional.tags!.take(1).map((tag) => Text(
-                                TagColorDictionary.getTagTranslation(
-                                  tag,
-                                  Localizations.localeOf(context).languageCode,
-                                ).toUpperCase(),
-                                style: TextStyle(
-                                  color: Colors.white.withValues(alpha: 0.7),
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.bold,
-                                  letterSpacing: 1,
-                                ),
-                              )),
+                            Icon(Icons.menu_book_rounded, color: Colors.white.withValues(alpha: 0.6), size: 14),
                             const SizedBox(width: 8),
-                            Container(width: 4, height: 4, decoration: const BoxDecoration(color: Colors.white54, shape: BoxShape.circle)),
-                            const SizedBox(width: 8),
-                            const Text(
-                              '5 MIN READ',
+                            Text(
+                              'DAILY BIBLE STUDY',
                               style: TextStyle(
-                                color: Colors.white70,
-                                fontSize: 11,
+                                color: Colors.white.withValues(alpha: 0.6),
+                                fontSize: 10,
                                 fontWeight: FontWeight.bold,
-                                letterSpacing: 1,
+                                letterSpacing: 1.2,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Container(width: 4, height: 4, decoration: const BoxDecoration(color: Colors.white30, shape: BoxShape.circle)),
+                            const SizedBox(width: 12),
+                            Text(
+                              '5 MIN',
+                              style: TextStyle(
+                                color: Colors.white.withValues(alpha: 0.6),
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 1.2,
                               ),
                             ),
                           ],
@@ -210,21 +246,22 @@ class DevotionalCardPremium extends StatelessWidget {
                     ),
                   ),
 
-                  // Floating heart button
+                  // Favorite Button (Glassmorphism style)
                   Positioned(
-                    top: 16,
-                    right: 16,
+                    top: 20,
+                    right: 20,
                     child: Material(
                       color: Colors.transparent,
                       child: Container(
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.9),
+                          color: Colors.black.withValues(alpha: 0.2),
                           shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white10),
                         ),
                         child: IconButton(
                           icon: Icon(
                             isFavorite ? Icons.favorite : Icons.favorite_border,
-                            color: isFavorite ? Colors.red : Colors.grey[800],
+                            color: isFavorite ? Colors.redAccent : Colors.white,
                             size: 20,
                           ),
                           onPressed: onFavoriteToggle,
@@ -242,9 +279,7 @@ class DevotionalCardPremium extends StatelessWidget {
   }
 
   String _getTopicEmoji() {
-    if (devocional.emoji != null && devocional.emoji!.isNotEmpty) {
-      return devocional.emoji!;
-    }
+    if (devocional.emoji != null && devocional.emoji!.isNotEmpty) return devocional.emoji!;
     if (devocional.tags != null && devocional.tags!.isNotEmpty) {
       final tag = devocional.tags!.first.toLowerCase();
       if (tag.contains('amor') || tag.contains('love')) return '❤️';
@@ -260,6 +295,8 @@ class DevotionalCardPremium extends StatelessWidget {
 
   Widget _buildBackgroundImage() {
     final imageUrl = devocional.imageUrl;
+    final colors = _getGradientColors();
+
     if (imageUrl != null && imageUrl.isNotEmpty) {
       return CachedNetworkImage(
         imageUrl: imageUrl,
@@ -268,8 +305,8 @@ class DevotionalCardPremium extends StatelessWidget {
         maxHeightDiskCache: 1080,
         maxWidthDiskCache: 1920,
         placeholder: (context, url) => Shimmer.fromColors(
-          baseColor: _getGradientColors()[0],
-          highlightColor: _getGradientColors()[1].withAlpha(128),
+          baseColor: colors[0],
+          highlightColor: colors[1].withAlpha(128),
           child: Container(color: Colors.black26),
         ),
         errorWidget: (context, url, error) => Container(
@@ -277,7 +314,7 @@ class DevotionalCardPremium extends StatelessWidget {
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: _getGradientColors(),
+              colors: colors,
             ),
           ),
           child: const Center(child: Icon(Icons.book, color: Colors.white30, size: 48)),
@@ -289,19 +326,19 @@ class DevotionalCardPremium extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: _getGradientColors(),
+          colors: colors,
         ),
       ),
     );
   }
 
   List<Color> _getGradientColors() {
-    final tagKey = devocional.tags != null && devocional.tags!.isNotEmpty
-        ? devocional.tags!.first
-        : null;
-    return tagKey != null
-        ? TagColorDictionary.getGradientForTag(tagKey)
-        : [const Color(0xFF607D8B), const Color(0xFF455A64)];
+    // Si hay tags, usar el color del diccionario
+    if (devocional.tags != null && devocional.tags!.isNotEmpty) {
+      return TagColorDictionary.getGradientForTag(devocional.tags!.first);
+    }
+    // Fallback elegante (Slate Blue/Gray)
+    return [const Color(0xFF37474F), const Color(0xFF102027)];
   }
 
   String _getDisplayDate() {
@@ -310,18 +347,14 @@ class DevotionalCardPremium extends StatelessWidget {
     final devDate = DateTime(devocional.date.year, devocional.date.month, devocional.date.day);
 
     if (devDate == today) return 'Today';
-
     DateTime displayDate = devDate;
     while (displayDate.isBefore(today)) {
       displayDate = DateTime(displayDate.year + 1, displayDate.month, displayDate.day);
     }
-
     final tomorrow = today.add(const Duration(days: 1));
     if (displayDate == tomorrow) return 'Tomorrow';
-
     final daysUntil = displayDate.difference(today).inDays;
     if (daysUntil <= 7 && daysUntil > 1) return DateFormat('EEEE').format(displayDate);
-
     return DateFormat('MMM dd').format(displayDate);
   }
 
