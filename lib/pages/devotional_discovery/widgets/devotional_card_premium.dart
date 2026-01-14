@@ -245,14 +245,20 @@ class DevotionalCardPremium extends StatelessWidget {
 
   /// Returns an emoji based on the explicit model field, or fallback to tags
   String _getTopicEmoji() {
+    // Debug print to trace emoji source
+    debugPrint('DEBUG: _getTopicEmoji for study: ${devocional.id}');
+    debugPrint('DEBUG: Explicit emoji in model: "${devocional.emoji}"');
+
     // Priority 1: Explicit emoji from JSON
     if (devocional.emoji != null && devocional.emoji!.isNotEmpty) {
+      debugPrint('DEBUG: Using explicit emoji: ${devocional.emoji}');
       return devocional.emoji!;
     }
 
     // Priority 2: Fallback logic based on tags
     if (devocional.tags != null && devocional.tags!.isNotEmpty) {
       final tag = devocional.tags!.first.toLowerCase();
+      debugPrint('DEBUG: Falling back to tags. First tag: $tag');
       if (tag.contains('amor') || tag.contains('love')) return '❤️';
       if (tag.contains('paz') || tag.contains('peace')) return '🕊️';
       if (tag.contains('fe') || tag.contains('faith')) return '⚓';
@@ -262,6 +268,7 @@ class DevotionalCardPremium extends StatelessWidget {
       if (tag.contains('oracion') || tag.contains('prayer')) return '🙏';
     }
 
+    debugPrint('DEBUG: No emoji found, using default 📖');
     return '📖'; // Default fallback
   }
 

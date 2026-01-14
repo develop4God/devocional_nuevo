@@ -15,39 +15,30 @@ class DiscoveryLoading extends DiscoveryState {}
 class DiscoveryLoaded extends DiscoveryState with EquatableMixin {
   final List<String> availableStudyIds;
   final Map<String, DiscoveryDevotional> loadedStudies;
-  final Map<String, String> studyTitles; // New: study ID to localized title
+  final Map<String, String> studyTitles; // study ID to localized title
+  final Map<String, String> studyEmojis; // NEW: study ID to emoji
   final String? errorMessage;
   final DateTime lastUpdated;
 
   DiscoveryLoaded({
     required this.availableStudyIds,
     required this.loadedStudies,
-    required this.studyTitles, // New
+    required this.studyTitles,
+    required this.studyEmojis, // NEW
     this.errorMessage,
     DateTime? lastUpdated,
   }) : lastUpdated = lastUpdated ?? DateTime.now();
 
-  /// Get a specific study by ID
-  DiscoveryDevotional? getStudy(String studyId) {
-    return loadedStudies[studyId];
-  }
-
-  /// Check if a study is loaded
-  bool isStudyLoaded(String studyId) {
-    return loadedStudies.containsKey(studyId);
-  }
-
-  /// Get count of available studies
+  DiscoveryDevotional? getStudy(String studyId) => loadedStudies[studyId];
+  bool isStudyLoaded(String studyId) => loadedStudies.containsKey(studyId);
   int get availableStudiesCount => availableStudyIds.length;
-
-  /// Get count of loaded studies
   int get loadedStudiesCount => loadedStudies.length;
 
-  /// Create a copy of this state with updated values
   DiscoveryLoaded copyWith({
     List<String>? availableStudyIds,
     Map<String, DiscoveryDevotional>? loadedStudies,
-    Map<String, String>? studyTitles, // New
+    Map<String, String>? studyTitles,
+    Map<String, String>? studyEmojis, // NEW
     String? errorMessage,
     bool clearError = false,
     DateTime? lastUpdated,
@@ -56,7 +47,7 @@ class DiscoveryLoaded extends DiscoveryState with EquatableMixin {
       availableStudyIds: availableStudyIds ?? this.availableStudyIds,
       loadedStudies: loadedStudies ?? this.loadedStudies,
       studyTitles: studyTitles ?? this.studyTitles,
-      // New
+      studyEmojis: studyEmojis ?? this.studyEmojis, // NEW
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
       lastUpdated: lastUpdated ?? DateTime.now(),
     );
@@ -67,21 +58,18 @@ class DiscoveryLoaded extends DiscoveryState with EquatableMixin {
         availableStudyIds,
         loadedStudies,
         studyTitles,
+        studyEmojis, // NEW
         errorMessage,
         lastUpdated
       ];
 }
 
-/// State when a specific study is being loaded
 class DiscoveryStudyLoading extends DiscoveryState {
   final String studyId;
-
   DiscoveryStudyLoading(this.studyId);
 }
 
-/// State when there's an error with Discovery studies
 class DiscoveryError extends DiscoveryState {
   final String message;
-
   DiscoveryError(this.message);
 }
