@@ -9,8 +9,6 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Repositorio para obtener devocionales Discovery desde GitHub.
-///
-/// Sigue el patrón de repository con HTTP client injection y cache a SharedPreferences.
 class DiscoveryRepository {
   final http.Client httpClient;
   static const String _cacheKeyPrefix = 'discovery_cache_';
@@ -20,17 +18,11 @@ class DiscoveryRepository {
 
   DiscoveryRepository({required this.httpClient});
 
-  /// Obtiene un estudio Discovery por su ID y código de idioma.
-  ///
-  /// Primero verifica el cache comparando versiones del índice.
-  /// Si la versión coincide, usa el cache.
-  /// Si difiere, descarga la nueva versión desde GitHub.
   Future<DiscoveryDevotional> fetchDiscoveryStudy(
     String id,
     String languageCode,
   ) async {
     try {
-      // Obtener el índice para encontrar la versión y nombre de archivo
       final index = await _fetchIndex();
       final studyInfo = index['studies']?.firstWhere(
         (s) => s['id'] == id,
@@ -39,17 +31,12 @@ class DiscoveryRepository {
 
       final String expectedVersion = studyInfo?['version'] as String? ?? '1.0';
 
-      // Intentar cargar desde cache primero
       final cacheKey = '${id}_$languageCode';
       final cached = await _loadFromCache(cacheKey, expectedVersion);
       if (cached != null) {
-        debugPrint('✅ Cache HIT for $id (version: $expectedVersion)');
         return cached;
       }
 
-      debugPrint('❌ Cache MISS for $id, downloading...');
-
-      // Determinar el nombre del archivo
       String filename;
       final files = studyInfo?['files'] as Map<String, dynamic>?;
       if (files != null) {
@@ -58,170 +45,112 @@ class DiscoveryRepository {
         filename = '${id}_${languageCode}_001.json';
       }
 
-      // Descargar desde GitHub usando Constants
       final url = Constants.getDiscoveryStudyFileUrl(filename);
-      debugPrint('Fetching Discovery study from: $url');
       final response = await httpClient.get(Uri.parse(url));
 
       if (response.statusCode == 200) {
         final json = jsonDecode(response.body) as Map<String, dynamic>;
         final study = DiscoveryDevotional.fromJson(json);
-
-        // Guardar en cache con la versión
         await _saveToCache(cacheKey, json, expectedVersion);
-
         return study;
       } else {
         throw Exception(
-          'Failed to load Discovery study: ${response.statusCode}',
-        );
+            'Failed to load Discovery study: ${response.statusCode}');
       }
     } catch (e) {
-      debugPrint('Error fetching Discovery study $id: $e');
       rethrow;
     }
   }
 
-  /// Obtiene la lista de estudios Discovery disponibles desde GitHub index.
-  ///
-  /// Intenta cargar desde cache (TTL: 1 hora), si no está disponible o expiró,
-  /// descarga desde GitHub. Si falla, retorna lista hardcoded como fallback.
-  Future<List<String>> fetchAvailableStudies() async {
+  Future<List<String>> fetchAvailableStudies(
+      {bool forceRefresh = false}) async {
     try {
-      final index = await _fetchIndex();
+      final index = await _fetchIndex(forceRefresh: forceRefresh);
       final studies = index['studies'] as List<dynamic>?;
       if (studies != null && studies.isNotEmpty) {
         return studies.map((s) => s['id'] as String).toList();
       }
     } catch (e) {
-      debugPrint('Error fetching index, using fallback list: $e');
+      debugPrint('Error fetching index: $e');
     }
-
-    // Fallback to hardcoded list if index fetch fails
-    return [
-      'morning_star_001',
-      'morning_star_002',
-      'morning_star_003',
-    ];
+    return ['morning_star_001', 'morning_star_002', 'morning_star_003'];
   }
 
-  /// Obtiene el índice de estudios desde GitHub con cache de 1 hora.
-  Future<Map<String, dynamic>> _fetchIndex() async {
+  Future<Map<String, dynamic>> _fetchIndex({bool forceRefresh = false}) async {
     try {
       final prefs = await SharedPreferences.getInstance();
 
-      // Check cache first
-      final cachedIndex = prefs.getString(_indexCacheKey);
-      final cachedTimestamp = prefs.getInt(_indexCacheTimestampKey);
+      if (!forceRefresh) {
+        final cachedIndex = prefs.getString(_indexCacheKey);
+        final cachedTimestamp = prefs.getInt(_indexCacheTimestampKey);
 
-      if (cachedIndex != null && cachedTimestamp != null) {
-        final cacheAge =
-            DateTime.now().millisecondsSinceEpoch - cachedTimestamp;
-        if (cacheAge < _indexCacheTTL.inMilliseconds) {
-          debugPrint('Using cached Discovery index');
-          return jsonDecode(cachedIndex) as Map<String, dynamic>;
+        if (cachedIndex != null && cachedTimestamp != null) {
+          final cacheAge =
+              DateTime.now().millisecondsSinceEpoch - cachedTimestamp;
+          if (cacheAge < _indexCacheTTL.inMilliseconds) {
+            debugPrint('Using cached Discovery index');
+            return jsonDecode(cachedIndex) as Map<String, dynamic>;
+          }
         }
+      } else {
+        debugPrint('Forcing Discovery index refresh...');
       }
 
-      // Fetch from GitHub using Constants
       final url = Constants.discoveryIndexUrl;
-      debugPrint('Fetching Discovery index from: $url');
       final response = await httpClient.get(Uri.parse(url));
 
       if (response.statusCode == 200) {
         final index = jsonDecode(response.body) as Map<String, dynamic>;
-
-        // Cache the index
         await prefs.setString(_indexCacheKey, response.body);
         await prefs.setInt(
-          _indexCacheTimestampKey,
-          DateTime.now().millisecondsSinceEpoch,
-        );
-
-        debugPrint('Discovery index cached successfully');
+            _indexCacheTimestampKey, DateTime.now().millisecondsSinceEpoch);
         return index;
       } else {
         throw Exception('Failed to load index: ${response.statusCode}');
       }
     } catch (e) {
-      debugPrint('Error fetching Discovery index: $e');
       rethrow;
     }
   }
 
-  /// Carga un estudio desde el cache de SharedPreferences.
-  /// Verifica que la versión coincida con la esperada.
   Future<DiscoveryDevotional?> _loadFromCache(
-    String id,
-    String expectedVersion,
-  ) async {
+      String id, String expectedVersion) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final cacheKey = '$_cacheKeyPrefix$id';
       final versionKey = '$_cacheKeyPrefix${id}_version';
-
       final cachedJson = prefs.getString(cacheKey);
       final cachedVersion = prefs.getString(versionKey);
 
-      if (cachedJson != null &&
-          cachedJson.isNotEmpty &&
-          cachedVersion == expectedVersion) {
-        debugPrint(
-          '📦 Cache valid for $id (version: $cachedVersion matches $expectedVersion)',
-        );
-        final json = jsonDecode(cachedJson) as Map<String, dynamic>;
-        return DiscoveryDevotional.fromJson(json);
-      } else if (cachedJson != null && cachedVersion != expectedVersion) {
-        debugPrint(
-          '🔄 Cache INVALIDATED for $id (cached: $cachedVersion, expected: $expectedVersion)',
-        );
+      if (cachedJson != null && cachedVersion == expectedVersion) {
+        return DiscoveryDevotional.fromJson(jsonDecode(cachedJson));
       }
-
       return null;
     } catch (e) {
-      debugPrint('Error loading from cache: $e');
       return null;
     }
   }
 
-  /// Guarda un estudio en el cache de SharedPreferences con su versión.
   Future<void> _saveToCache(
-    String id,
-    Map<String, dynamic> json,
-    String version,
-  ) async {
+      String id, Map<String, dynamic> json, String version) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final cacheKey = '$_cacheKeyPrefix$id';
-      final versionKey = '$_cacheKeyPrefix${id}_version';
-
-      await prefs.setString(cacheKey, jsonEncode(json));
-      await prefs.setString(versionKey, version);
-
-      debugPrint('💾 Cached $id with version: $version');
-    } catch (e) {
-      debugPrint('Error saving to cache: $e');
-      // No propagar el error, el cache es opcional
-    }
+      await prefs.setString('$_cacheKeyPrefix$id', jsonEncode(json));
+      await prefs.setString('$_cacheKeyPrefix${id}_version', version);
+    } catch (e) {}
   }
 
-  /// Limpia el cache de estudios Discovery.
   Future<void> clearCache() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final keys = prefs.getKeys();
-      for (final key in keys) {
-        if (key.startsWith(_cacheKeyPrefix)) {
-          await prefs.remove(key);
-        }
+    final prefs = await SharedPreferences.getInstance();
+    final keys = prefs.getKeys();
+    for (final key in keys) {
+      if (key.startsWith(_cacheKeyPrefix) || key == _indexCacheKey) {
+        await prefs.remove(key);
       }
-    } catch (e) {
-      debugPrint('Error clearing cache: $e');
     }
   }
 
-  /// Public method to fetch the index (for BLoC to access titles)
-  Future<Map<String, dynamic>> fetchIndex() async {
-    return await _fetchIndex();
+  Future<Map<String, dynamic>> fetchIndex({bool forceRefresh = false}) async {
+    return await _fetchIndex(forceRefresh: forceRefresh);
   }
 }

@@ -61,7 +61,8 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
         titleText: 'discovery.discovery_studies'.tr(),
         actions: [
           IconButton(
-            icon: Icon(_showGridOverlay ? Icons.view_carousel : Icons.grid_view),
+            icon:
+                Icon(_showGridOverlay ? Icons.view_carousel : Icons.grid_view),
             onPressed: _toggleGridOverlay,
             tooltip: _showGridOverlay ? 'Carousel View' : 'Grid View',
           ),
@@ -86,7 +87,8 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
                     _buildProgressDots(state.availableStudyIds.length),
                     const SizedBox(height: 16),
                     Expanded(
-                      child: _buildCarousel(context, state, state.availableStudyIds),
+                      child: _buildCarousel(
+                          context, state, state.availableStudyIds),
                     ),
                     _buildActionBar(context, state.availableStudyIds),
                   ],
@@ -126,7 +128,8 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
     );
   }
 
-  Widget _buildCarousel(BuildContext context, DiscoveryLoaded state, List<String> studyIds) {
+  Widget _buildCarousel(
+      BuildContext context, DiscoveryLoaded state, List<String> studyIds) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Swiper(
@@ -134,10 +137,10 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
         final studyId = studyIds[index];
         final title = state.studyTitles[studyId] ?? _formatStudyTitle(studyId);
         final emoji = state.studyEmojis[studyId]; // Extract emoji from state
-        
+
         // Create mock devotional with the explicit emoji
         final mockDevocional = _createMockDevocional(studyId, emoji: emoji);
-        
+
         return DevotionalCardPremium(
           devocional: mockDevocional,
           title: title,
@@ -181,8 +184,16 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            _buildActionButton(icon: Icons.share_outlined, label: 'Share', onTap: () {}, colorScheme: colorScheme),
-            _buildActionButton(icon: Icons.favorite_border, label: 'Save', onTap: () {}, colorScheme: colorScheme),
+            _buildActionButton(
+                icon: Icons.share_outlined,
+                label: 'Share',
+                onTap: () {},
+                colorScheme: colorScheme),
+            _buildActionButton(
+                icon: Icons.favorite_border,
+                label: 'Save',
+                onTap: () {},
+                colorScheme: colorScheme),
             _buildActionButton(
               icon: Icons.play_arrow,
               label: 'Read',
@@ -190,7 +201,11 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
               colorScheme: colorScheme,
               isPrimary: true,
             ),
-            _buildActionButton(icon: Icons.skip_next, label: 'Next', onTap: () {}, colorScheme: colorScheme),
+            _buildActionButton(
+                icon: Icons.skip_next,
+                label: 'Next',
+                onTap: () {},
+                colorScheme: colorScheme),
           ],
         ),
       ),
@@ -215,13 +230,22 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: isPrimary ? colorScheme.primary : colorScheme.primary.withAlpha(26),
+                color: isPrimary
+                    ? colorScheme.primary
+                    : colorScheme.primary.withAlpha(26),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(icon, color: isPrimary ? Colors.white : colorScheme.primary, size: 24),
+              child: Icon(icon,
+                  color: isPrimary ? Colors.white : colorScheme.primary,
+                  size: 24),
             ),
             const SizedBox(height: 4),
-            Text(label, style: TextStyle(fontSize: 12, color: colorScheme.onSurface, fontWeight: isPrimary ? FontWeight.bold : FontWeight.normal)),
+            Text(label,
+                style: TextStyle(
+                    fontSize: 12,
+                    color: colorScheme.onSurface,
+                    fontWeight:
+                        isPrimary ? FontWeight.bold : FontWeight.normal)),
           ],
         ),
       ),
@@ -233,7 +257,8 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
       animation: _gridAnimationController,
       builder: (context, child) {
         return Container(
-          color: Colors.black.withAlpha((200 * _gridAnimationController.value).toInt()),
+          color: Colors.black
+              .withAlpha((200 * _gridAnimationController.value).toInt()),
           child: SafeArea(
             child: Column(
               children: [
@@ -244,16 +269,24 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
                     children: [
                       Text(
                         'All Studies',
-                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
+                        style: Theme.of(context)
+                            .textTheme
+                            .headlineSmall
+                            ?.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold),
                       ),
-                      IconButton(icon: const Icon(Icons.close, color: Colors.white), onPressed: _toggleGridOverlay),
+                      IconButton(
+                          icon: const Icon(Icons.close, color: Colors.white),
+                          onPressed: _toggleGridOverlay),
                     ],
                   ),
                 ),
                 Expanded(
                   child: GridView.builder(
                     padding: const EdgeInsets.all(16),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 2,
                       childAspectRatio: 0.75,
                       crossAxisSpacing: 16,
@@ -292,10 +325,13 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
           children: [
             Icon(Icons.error_outline, size: 64, color: Colors.grey[400]),
             const SizedBox(height: 16),
-            Text(message, textAlign: TextAlign.center, style: Theme.of(context).textTheme.bodyLarge),
+            Text(message,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodyLarge),
             const SizedBox(height: 16),
             ElevatedButton.icon(
-              onPressed: () => context.read<DiscoveryBloc>().add(LoadDiscoveryStudies()),
+              onPressed: () =>
+                  context.read<DiscoveryBloc>().add(LoadDiscoveryStudies()),
               icon: const Icon(Icons.refresh),
               label: Text('app.retry'.tr()),
             ),
@@ -314,7 +350,9 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
           children: [
             Icon(Icons.explore_outlined, size: 64, color: Colors.grey[400]),
             const SizedBox(height: 16),
-            Text('discovery.no_studies_available'.tr(), textAlign: TextAlign.center, style: Theme.of(context).textTheme.bodyLarge),
+            Text('discovery.no_studies_available'.tr(),
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodyLarge),
           ],
         ),
       ),
@@ -323,8 +361,13 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
 
   void _navigateToDetail(BuildContext context, String studyId) {
     final languageCode = context.read<DevocionalProvider>().selectedLanguage;
-    context.read<DiscoveryBloc>().add(LoadDiscoveryStudy(studyId, languageCode: languageCode));
-    Navigator.push(context, MaterialPageRoute(builder: (_) => DiscoveryDetailPage(studyId: studyId)));
+    context
+        .read<DiscoveryBloc>()
+        .add(LoadDiscoveryStudy(studyId, languageCode: languageCode));
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (_) => DiscoveryDetailPage(studyId: studyId)));
   }
 
   Devocional _createMockDevocional(String studyId, {String? emoji}) {
@@ -342,7 +385,12 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
   }
 
   String _formatStudyTitle(String studyId) {
-    return studyId.replaceAll('_', ' ').split(' ').map((word) => word.isNotEmpty ? word[0].toUpperCase() + word.substring(1) : '').join(' ');
+    return studyId
+        .replaceAll('_', ' ')
+        .split(' ')
+        .map((word) =>
+            word.isNotEmpty ? word[0].toUpperCase() + word.substring(1) : '')
+        .join(' ');
   }
 }
 
@@ -351,7 +399,8 @@ class _StudyGridCard extends StatelessWidget {
   final bool isActive;
   final VoidCallback onTap;
 
-  const _StudyGridCard({required this.studyId, required this.isActive, required this.onTap});
+  const _StudyGridCard(
+      {required this.studyId, required this.isActive, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -360,7 +409,9 @@ class _StudyGridCard extends StatelessWidget {
       elevation: isActive ? 8 : 2,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: isActive ? BorderSide(color: theme.colorScheme.primary, width: 2) : BorderSide.none,
+        side: isActive
+            ? BorderSide(color: theme.colorScheme.primary, width: 2)
+            : BorderSide.none,
       ),
       child: InkWell(
         onTap: onTap,
@@ -371,8 +422,12 @@ class _StudyGridCard extends StatelessWidget {
             Expanded(
               flex: 3,
               child: Container(
-                decoration: BoxDecoration(color: theme.colorScheme.primary.withAlpha(51), borderRadius: const BorderRadius.vertical(top: Radius.circular(12))),
-                child: Icon(Icons.explore, size: 48, color: theme.colorScheme.primary),
+                decoration: BoxDecoration(
+                    color: theme.colorScheme.primary.withAlpha(51),
+                    borderRadius:
+                        const BorderRadius.vertical(top: Radius.circular(12))),
+                child: Icon(Icons.explore,
+                    size: 48, color: theme.colorScheme.primary),
               ),
             ),
             Expanded(
@@ -384,7 +439,9 @@ class _StudyGridCard extends StatelessWidget {
                   children: [
                     Text(
                       _formatStudyTitle(studyId),
-                      style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold, color: isActive ? theme.colorScheme.primary : null),
+                      style: theme.textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: isActive ? theme.colorScheme.primary : null),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -392,9 +449,13 @@ class _StudyGridCard extends StatelessWidget {
                     if (isActive)
                       Row(
                         children: [
-                          Icon(Icons.check_circle, size: 14, color: theme.colorScheme.primary),
+                          Icon(Icons.check_circle,
+                              size: 14, color: theme.colorScheme.primary),
                           const SizedBox(width: 4),
-                          Text('Current', style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.primary, fontWeight: FontWeight.bold)),
+                          Text('Current',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                  color: theme.colorScheme.primary,
+                                  fontWeight: FontWeight.bold)),
                         ],
                       ),
                   ],
@@ -408,6 +469,11 @@ class _StudyGridCard extends StatelessWidget {
   }
 
   String _formatStudyTitle(String studyId) {
-    return studyId.replaceAll('_', ' ').split(' ').map((word) => word.isNotEmpty ? word[0].toUpperCase() + word.substring(1) : '').join(' ');
+    return studyId
+        .replaceAll('_', ' ')
+        .split(' ')
+        .map((word) =>
+            word.isNotEmpty ? word[0].toUpperCase() + word.substring(1) : '')
+        .join(' ');
   }
 }

@@ -159,7 +159,8 @@ class DevotionalCardPremium extends StatelessWidget {
 
                         // Verse Reference as a distinct subtitle
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 4),
                           decoration: BoxDecoration(
                             color: Colors.black.withValues(alpha: 0.3),
                             borderRadius: BorderRadius.circular(8),
@@ -181,21 +182,29 @@ class DevotionalCardPremium extends StatelessWidget {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            if (devocional.tags != null && devocional.tags!.isNotEmpty)
+                            if (devocional.tags != null &&
+                                devocional.tags!.isNotEmpty)
                               ...devocional.tags!.take(1).map((tag) => Text(
-                                TagColorDictionary.getTagTranslation(
-                                  tag,
-                                  Localizations.localeOf(context).languageCode,
-                                ).toUpperCase(),
-                                style: TextStyle(
-                                  color: Colors.white.withValues(alpha: 0.7),
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.bold,
-                                  letterSpacing: 1,
-                                ),
-                              )),
+                                    TagColorDictionary.getTagTranslation(
+                                      tag,
+                                      Localizations.localeOf(context)
+                                          .languageCode,
+                                    ).toUpperCase(),
+                                    style: TextStyle(
+                                      color:
+                                          Colors.white.withValues(alpha: 0.7),
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 1,
+                                    ),
+                                  )),
                             const SizedBox(width: 8),
-                            Container(width: 4, height: 4, decoration: const BoxDecoration(color: Colors.white54, shape: BoxShape.circle)),
+                            Container(
+                                width: 4,
+                                height: 4,
+                                decoration: const BoxDecoration(
+                                    color: Colors.white54,
+                                    shape: BoxShape.circle)),
                             const SizedBox(width: 8),
                             Text(
                               '5 MIN READ',
@@ -294,7 +303,8 @@ class DevotionalCardPremium extends StatelessWidget {
               colors: _getGradientColors(),
             ),
           ),
-          child: const Center(child: Icon(Icons.book, color: Colors.white30, size: 48)),
+          child: const Center(
+              child: Icon(Icons.book, color: Colors.white30, size: 48)),
         ),
       );
     }
@@ -321,20 +331,23 @@ class DevotionalCardPremium extends StatelessWidget {
   String _getDisplayDate() {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    final devDate = DateTime(devocional.date.year, devocional.date.month, devocional.date.day);
+    final devDate = DateTime(
+        devocional.date.year, devocional.date.month, devocional.date.day);
 
     if (devDate == today) return 'Today';
 
     DateTime displayDate = devDate;
     while (displayDate.isBefore(today)) {
-      displayDate = DateTime(displayDate.year + 1, displayDate.month, displayDate.day);
+      displayDate =
+          DateTime(displayDate.year + 1, displayDate.month, displayDate.day);
     }
 
     final tomorrow = today.add(const Duration(days: 1));
     if (displayDate == tomorrow) return 'Tomorrow';
 
     final daysUntil = displayDate.difference(today).inDays;
-    if (daysUntil <= 7 && daysUntil > 1) return DateFormat('EEEE').format(displayDate);
+    if (daysUntil <= 7 && daysUntil > 1)
+      return DateFormat('EEEE').format(displayDate);
 
     return DateFormat('MMM dd').format(displayDate);
   }
