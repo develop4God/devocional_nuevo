@@ -84,14 +84,20 @@ class DiscoveryRepository {
   }
 
   /// Obtiene el índice de estudios. 
-  /// Estrategia: Network-First con Fallback a Cache.
+  /// Estrategia: Network-First con Fallback a Cache y Cache-Busting.
   Future<Map<String, dynamic>> _fetchIndex({bool forceRefresh = false}) async {
     final prefs = await SharedPreferences.getInstance();
 
     try {
-      // Intentar siempre descargar el índice para estar al día con las versiones
-      debugPrint('🌐 Discovery: Buscando índice en la red...');
-      final response = await httpClient.get(Uri.parse(Constants.discoveryIndexUrl));
+      // Agregar cache-buster (timestamp) para ignorar CDNs de GitHub y proxies locales
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final baseUrl = Constants.discoveryIndexUrl;
+      final cacheBusterUrl = baseUrl.contains('?') 
+          ? '$baseUrl&cb=$timestamp' 
+          : '$baseUrl?cb=$timestamp';
+
+      debugPrint('🌐 Discovery: Buscando índice en la red (buster: $timestamp)...');
+      final response = await httpClient.get(Uri.parse(cacheBusterUrl));
 
       if (response.statusCode == 200) {
         final index = jsonDecode(response.body) as Map<String, dynamic>;
@@ -107,7 +113,6 @@ class DiscoveryRepository {
       if (cachedIndex != null) {
         return jsonDecode(cachedIndex) as Map<String, dynamic>;
       }
-      // Si no hay nada en cache, lanzar error
       rethrow;
     }
   }
