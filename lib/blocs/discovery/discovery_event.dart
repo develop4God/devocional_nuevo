@@ -37,6 +37,20 @@ class CompleteDiscoveryStudy extends DiscoveryEvent {
   CompleteDiscoveryStudy(this.studyId);
 }
 
+/// NEW: Event to toggle favorite status for a study
+class ToggleDiscoveryFavorite extends DiscoveryEvent {
+  final String studyId;
+
+  ToggleDiscoveryFavorite(this.studyId);
+}
+
+/// NEW: Event to reset a study progress (do it again)
+class ResetDiscoveryStudy extends DiscoveryEvent {
+  final String studyId;
+
+  ResetDiscoveryStudy(this.studyId);
+}
+
 /// Event to refresh Discovery studies
 class RefreshDiscoveryStudies extends DiscoveryEvent {}
 

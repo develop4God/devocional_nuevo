@@ -2,6 +2,7 @@
 
 import 'package:devocional_nuevo/models/discovery_devotional_model.dart';
 import 'package:devocional_nuevo/repositories/discovery_repository.dart';
+import 'package:devocional_nuevo/services/discovery_favorites_service.dart';
 import 'package:devocional_nuevo/services/discovery_progress_tracker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -13,16 +14,20 @@ import 'discovery_state.dart';
 class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
   final DiscoveryRepository repository;
   final DiscoveryProgressTracker progressTracker;
+  final DiscoveryFavoritesService favoritesService; // NEW
 
   DiscoveryBloc({
     required this.repository,
     required this.progressTracker,
+    required this.favoritesService, // NEW
   }) : super(DiscoveryInitial()) {
     on<LoadDiscoveryStudies>(_onLoadDiscoveryStudies);
     on<LoadDiscoveryStudy>(_onLoadDiscoveryStudy);
     on<MarkSectionCompleted>(_onMarkSectionCompleted);
     on<AnswerDiscoveryQuestion>(_onAnswerDiscoveryQuestion);
     on<CompleteDiscoveryStudy>(_onCompleteDiscoveryStudy);
+    on<ToggleDiscoveryFavorite>(_onToggleDiscoveryFavorite); // NEW
+    on<ResetDiscoveryStudy>(_onResetDiscoveryStudy);
     on<RefreshDiscoveryStudies>(_onRefreshDiscoveryStudies);
     on<ClearDiscoveryError>(_onClearDiscoveryError);
   }
@@ -41,6 +46,7 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
     try {
       final studyIds = await repository.fetchAvailableStudies(forceRefresh: forceRefresh);
       final index = await repository.fetchIndex(forceRefresh: forceRefresh);
+      final favoriteIds = await favoritesService.loadFavoriteIds(); // NEW
       
       String locale = 'es';
       try {
@@ -77,6 +83,7 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
           studyTitles: studyTitles,
           studyEmojis: studyEmojis,
           completedStudies: completedStudies,
+          favoriteStudyIds: favoriteIds, // FIXED
         ),
       );
     } catch (e) {
@@ -112,6 +119,7 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
         );
       } else {
         final progress = await progressTracker.getProgress(event.studyId);
+        final favoriteIds = await favoritesService.loadFavoriteIds();
         emit(
           DiscoveryLoaded(
             availableStudyIds: [event.studyId],
@@ -119,6 +127,7 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
             studyTitles: {},
             studyEmojis: {},
             completedStudies: {event.studyId: progress.isCompleted},
+            favoriteStudyIds: favoriteIds, // FIXED
           ),
         );
       }
@@ -181,6 +190,45 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
       }
     } catch (e) {
       debugPrint('Error completing study: $e');
+    }
+  }
+
+  /// Handles toggling favorite status
+  Future<void> _onToggleDiscoveryFavorite(
+    ToggleDiscoveryFavorite event,
+    Emitter<DiscoveryState> emit,
+  ) async {
+    final currentState = state;
+    if (currentState is DiscoveryLoaded) {
+      await favoritesService.toggleFavorite(event.studyId);
+      final updatedIds = await favoritesService.loadFavoriteIds();
+      
+      emit(currentState.copyWith(
+        favoriteStudyIds: updatedIds,
+        lastUpdated: DateTime.now(),
+      ));
+    }
+  }
+
+  Future<void> _onResetDiscoveryStudy(
+    ResetDiscoveryStudy event,
+    Emitter<DiscoveryState> emit,
+  ) async {
+    try {
+      await progressTracker.resetStudyProgress(event.studyId);
+      final currentState = state;
+      if (currentState is DiscoveryLoaded) {
+        final updatedCompletion = Map<String, bool>.from(currentState.completedStudies);
+        updatedCompletion[event.studyId] = false;
+        
+        emit(currentState.copyWith(
+          completedStudies: updatedCompletion,
+          clearError: true, 
+          lastUpdated: DateTime.now(),
+        ));
+      }
+    } catch (e) {
+      debugPrint('Error resetting study progress: $e');
     }
   }
 

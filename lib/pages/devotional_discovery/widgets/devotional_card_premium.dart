@@ -30,7 +30,7 @@ class DevotionalCardPremium extends StatelessWidget {
   final Devocional devocional;
   final String title;
   final bool isFavorite;
-  final bool isCompleted; // Track if study is finished
+  final bool isCompleted; 
   final VoidCallback onTap;
   final VoidCallback onFavoriteToggle;
   final bool isDark;
@@ -79,7 +79,7 @@ class DevotionalCardPremium extends StatelessWidget {
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  // 1. Background Image or Base Gradient
+                  // 1. Background Image
                   _buildBackgroundImage(),
 
                   // 2. Light Effect / Bloom
@@ -122,7 +122,7 @@ class DevotionalCardPremium extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        // Top Badge (Centered)
+                        // Top Badge
                         Align(
                           alignment: Alignment.topCenter,
                           child: Container(
@@ -146,7 +146,7 @@ class DevotionalCardPremium extends StatelessWidget {
 
                         const Spacer(),
 
-                        // The "Hero" Section
+                        // Hero Section
                         Stack(
                           alignment: Alignment.center,
                           children: [
@@ -265,7 +265,7 @@ class DevotionalCardPremium extends StatelessWidget {
                       ),
                     ),
 
-                  // FAVORITE BUTTON - TOP RIGHT
+                  // ✅ DYNAMIC FAVORITE BUTTON (Heart Empty -> Yellow Star) - TOP RIGHT
                   Positioned(
                     top: 20,
                     right: 20,
@@ -278,10 +278,15 @@ class DevotionalCardPremium extends StatelessWidget {
                           border: Border.all(color: Colors.white10),
                         ),
                         child: IconButton(
-                          icon: Icon(
-                            isFavorite ? Icons.favorite : Icons.favorite_border,
-                            color: isFavorite ? Colors.redAccent : Colors.white,
-                            size: 20,
+                          icon: AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 300),
+                            transitionBuilder: (child, animation) => ScaleTransition(scale: animation, child: child),
+                            child: Icon(
+                              isFavorite ? Icons.star_rounded : Icons.favorite_border_rounded,
+                              key: ValueKey<bool>(isFavorite),
+                              color: isFavorite ? Colors.amberAccent : Colors.white,
+                              size: 24,
+                            ),
                           ),
                           onPressed: onFavoriteToggle,
                         ),

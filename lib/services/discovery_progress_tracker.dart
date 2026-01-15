@@ -5,9 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Service to track progress for Discovery studies.
-///
-/// Tracks completed sections, answered questions, and overall completion percentage
-/// for each Discovery study. Follows the pattern of spiritual_stats_service.dart.
 class DiscoveryProgressTracker {
   static const String _progressKeyPrefix = 'discovery_progress_';
 
@@ -23,7 +20,6 @@ class DiscoveryProgressTracker {
         return DiscoveryProgress.fromJson(json);
       }
 
-      // Return empty progress if not found
       return DiscoveryProgress(studyId: studyId);
     } catch (e) {
       debugPrint('Error loading progress for $studyId: $e');
@@ -80,6 +76,18 @@ class DiscoveryProgressTracker {
       }
     } catch (e) {
       debugPrint('Error completing study: $e');
+    }
+  }
+
+  /// NEW: Clears progress for a specific study so user can "do it again"
+  Future<void> resetStudyProgress(String studyId) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final key = '$_progressKeyPrefix$studyId';
+      await prefs.remove(key);
+      debugPrint('♻️ Discovery: Progress reset for study $studyId');
+    } catch (e) {
+      debugPrint('Error resetting study progress: $e');
     }
   }
 

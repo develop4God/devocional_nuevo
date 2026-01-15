@@ -17,7 +17,8 @@ class DiscoveryLoaded extends DiscoveryState with EquatableMixin {
   final Map<String, DiscoveryDevotional> loadedStudies;
   final Map<String, String> studyTitles; // study ID to localized title
   final Map<String, String> studyEmojis; // study ID to emoji
-  final Map<String, bool> completedStudies; // NEW: study ID to completion status
+  final Map<String, bool> completedStudies; // study ID to completion status
+  final Set<String> favoriteStudyIds; // NEW: Set of favorited study IDs
   final String? errorMessage;
   final DateTime lastUpdated;
 
@@ -26,14 +27,17 @@ class DiscoveryLoaded extends DiscoveryState with EquatableMixin {
     required this.loadedStudies,
     required this.studyTitles,
     required this.studyEmojis,
-    required this.completedStudies, // NEW
+    required this.completedStudies,
+    required this.favoriteStudyIds, // NEW
     this.errorMessage,
     DateTime? lastUpdated,
   }) : lastUpdated = lastUpdated ?? DateTime.now();
 
   DiscoveryDevotional? getStudy(String studyId) => loadedStudies[studyId];
   bool isStudyLoaded(String studyId) => loadedStudies.containsKey(studyId);
-  bool isStudyCompleted(String studyId) => completedStudies[studyId] ?? false; // NEW
+  bool isStudyCompleted(String studyId) => completedStudies[studyId] ?? false;
+  bool isStudyFavorite(String studyId) => favoriteStudyIds.contains(studyId); // NEW
+  
   int get availableStudiesCount => availableStudyIds.length;
   int get loadedStudiesCount => loadedStudies.length;
 
@@ -42,7 +46,8 @@ class DiscoveryLoaded extends DiscoveryState with EquatableMixin {
     Map<String, DiscoveryDevotional>? loadedStudies,
     Map<String, String>? studyTitles,
     Map<String, String>? studyEmojis,
-    Map<String, bool>? completedStudies, // NEW
+    Map<String, bool>? completedStudies,
+    Set<String>? favoriteStudyIds, // NEW
     String? errorMessage,
     bool clearError = false,
     DateTime? lastUpdated,
@@ -52,7 +57,8 @@ class DiscoveryLoaded extends DiscoveryState with EquatableMixin {
       loadedStudies: loadedStudies ?? this.loadedStudies,
       studyTitles: studyTitles ?? this.studyTitles,
       studyEmojis: studyEmojis ?? this.studyEmojis,
-      completedStudies: completedStudies ?? this.completedStudies, // NEW
+      completedStudies: completedStudies ?? this.completedStudies,
+      favoriteStudyIds: favoriteStudyIds ?? this.favoriteStudyIds, // NEW
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
       lastUpdated: lastUpdated ?? DateTime.now(),
     );
@@ -64,7 +70,8 @@ class DiscoveryLoaded extends DiscoveryState with EquatableMixin {
         loadedStudies,
         studyTitles,
         studyEmojis,
-        completedStudies, // NEW
+        completedStudies,
+        favoriteStudyIds, // NEW
         errorMessage,
         lastUpdated
       ];
