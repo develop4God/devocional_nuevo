@@ -14,19 +14,19 @@ import 'discovery_state.dart';
 class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
   final DiscoveryRepository repository;
   final DiscoveryProgressTracker progressTracker;
-  final DiscoveryFavoritesService favoritesService; // NEW
+  final DiscoveryFavoritesService favoritesService;
 
   DiscoveryBloc({
     required this.repository,
     required this.progressTracker,
-    required this.favoritesService, // NEW
+    required this.favoritesService,
   }) : super(DiscoveryInitial()) {
     on<LoadDiscoveryStudies>(_onLoadDiscoveryStudies);
     on<LoadDiscoveryStudy>(_onLoadDiscoveryStudy);
     on<MarkSectionCompleted>(_onMarkSectionCompleted);
     on<AnswerDiscoveryQuestion>(_onAnswerDiscoveryQuestion);
     on<CompleteDiscoveryStudy>(_onCompleteDiscoveryStudy);
-    on<ToggleDiscoveryFavorite>(_onToggleDiscoveryFavorite); // NEW
+    on<ToggleDiscoveryFavorite>(_onToggleDiscoveryFavorite);
     on<ResetDiscoveryStudy>(_onResetDiscoveryStudy);
     on<RefreshDiscoveryStudies>(_onRefreshDiscoveryStudies);
     on<ClearDiscoveryError>(_onClearDiscoveryError);
@@ -38,20 +38,25 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
     Emitter<DiscoveryState> emit,
   ) async {
     emit(DiscoveryLoading());
-    await _fetchAndEmitIndex(emit);
+    await _fetchAndEmitIndex(emit, languageCode: event.languageCode);
   }
 
   /// Shared logic to fetch index and emit loaded state
-  Future<void> _fetchAndEmitIndex(Emitter<DiscoveryState> emit, {bool forceRefresh = false}) async {
+  Future<void> _fetchAndEmitIndex(Emitter<DiscoveryState> emit, {bool forceRefresh = false, String? languageCode}) async {
     try {
       final studyIds = await repository.fetchAvailableStudies(forceRefresh: forceRefresh);
       final index = await repository.fetchIndex(forceRefresh: forceRefresh);
-      final favoriteIds = await favoritesService.loadFavoriteIds(); // NEW
+      final favoriteIds = await favoritesService.loadFavoriteIds();
       
-      String locale = 'es';
-      try {
-        locale = WidgetsBinding.instance.platformDispatcher.locale.languageCode;
-      } catch (_) {}
+      // ✅ PRIORITY: Use provided languageCode, then platform locale, then fallback 'es'
+      String locale = languageCode ?? 'es';
+      if (languageCode == null) {
+        try {
+          locale = WidgetsBinding.instance.platformDispatcher.locale.languageCode;
+        } catch (_) {}
+      }
+
+      debugPrint('🌐 Discovery: Building index for language: $locale');
 
       final Map<String, String> studyTitles = {};
       final Map<String, String> studyEmojis = {};
@@ -83,7 +88,7 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
           studyTitles: studyTitles,
           studyEmojis: studyEmojis,
           completedStudies: completedStudies,
-          favoriteStudyIds: favoriteIds, // FIXED
+          favoriteStudyIds: favoriteIds,
         ),
       );
     } catch (e) {
@@ -127,7 +132,7 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
             studyTitles: {},
             studyEmojis: {},
             completedStudies: {event.studyId: progress.isCompleted},
-            favoriteStudyIds: favoriteIds, // FIXED
+            favoriteStudyIds: favoriteIds,
           ),
         );
       }
@@ -219,7 +224,7 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
       final currentState = state;
       if (currentState is DiscoveryLoaded) {
         final updatedCompletion = Map<String, bool>.from(currentState.completedStudies);
-        updatedCompletion[event.studyId] = false;
+        updatedCompletion[event.studyId] = false; // Mark as incomplete
         
         emit(currentState.copyWith(
           completedStudies: updatedCompletion,
@@ -236,7 +241,8 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
     RefreshDiscoveryStudies event,
     Emitter<DiscoveryState> emit,
   ) async {
-    await _fetchAndEmitIndex(emit, forceRefresh: true);
+    // ✅ PASS THE LANGUAGE CODE FROM EVENT
+    await _fetchAndEmitIndex(emit, forceRefresh: true, languageCode: event.languageCode);
   }
 
   void _onClearDiscoveryError(
