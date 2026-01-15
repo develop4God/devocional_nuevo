@@ -689,7 +689,10 @@
     "section_completed": "Section completed",
     "answer_saved": "Answer saved successfully",
     "mark_completed": "Complete study",
-    "completed_study": "Study completed"
+    "completed_study": "Study completed",
+    "no_favorites_title": "No saved studies",
+    "no_favorites_description": "Tap the star on a study to save it here.",
+    "completed": "Completed"
   },
   "tags": {
     "love": "Love",
