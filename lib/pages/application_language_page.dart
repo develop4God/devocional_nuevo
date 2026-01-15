@@ -1,3 +1,5 @@
+import 'package:devocional_nuevo/blocs/discovery/discovery_bloc.dart';
+import 'package:devocional_nuevo/blocs/discovery/discovery_event.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
@@ -102,6 +104,11 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
       // Update DevocionalProvider with new language (pass context for UI locale update)
       if (mounted) {
         devocionalProvider.setSelectedLanguage(languageCode, context);
+        
+        // Update DiscoveryBloc with new language
+        if (Constants.enableDiscoveryFeature) {
+          context.read<DiscoveryBloc>().add(RefreshDiscoveryStudies(languageCode: languageCode));
+        }
       }
 
       // Set default version for the language

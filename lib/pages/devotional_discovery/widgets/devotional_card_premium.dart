@@ -44,7 +44,10 @@ class DevotionalCardPremium extends StatelessWidget {
     required this.onTap,
     required this.onFavoriteToggle,
     required this.isDark,
-  });
+  }) {
+    // ✅ DEBUG PRINT: Review why Spanish text might be appearing when English is expected
+    debugPrint('🏗️ DevotionalCardPremium: Created for title: "$title", id: "${devocional.id}"');
+  }
 
   @override
   Widget build(BuildContext context) {

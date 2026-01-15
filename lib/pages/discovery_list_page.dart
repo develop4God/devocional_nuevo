@@ -30,7 +30,10 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
   @override
   void initState() {
     super.initState();
-    context.read<DiscoveryBloc>().add(LoadDiscoveryStudies());
+    // ✅ FIX: Pass selected language from provider instead of relying on default system locale
+    final languageCode = context.read<DevocionalProvider>().selectedLanguage;
+    context.read<DiscoveryBloc>().add(LoadDiscoveryStudies(languageCode: languageCode));
+    
     _gridAnimationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 300),
@@ -346,8 +349,10 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
                 style: Theme.of(context).textTheme.bodyLarge),
             const SizedBox(height: 16),
             ElevatedButton.icon(
-              onPressed: () =>
-                  context.read<DiscoveryBloc>().add(LoadDiscoveryStudies()),
+              onPressed: () {
+                final languageCode = context.read<DevocionalProvider>().selectedLanguage;
+                context.read<DiscoveryBloc>().add(LoadDiscoveryStudies(languageCode: languageCode));
+              },
               icon: const Icon(Icons.refresh),
               label: Text('app.retry'.tr()),
             ),
