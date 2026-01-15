@@ -441,7 +441,7 @@
     "connected_to_google_drive": "Google Driveに接続されました",
     "connect_to_google_drive": "Google Driveに接続",
     "tap_to_connect_protect": "タップして接続し、霊的進歩を保護してください",
-    "description_title": "霊的進歩を保護",
+    "description_title": "霊적進歩を保護",
     "description_text": "お気に入りのデボーション、霊的統計、祈りをGoogle Driveに自動的に保存し、進歩を失うことがないようにします。",
     "google_drive_connection": "Google Drive接続",
     "automatic_backups": "自動バックアップ",
@@ -677,14 +677,14 @@
     "thankful_for": "感謝しています："
   },
   "discovery": {
-    "discovery_studies": "ディスカバリー研究",
-    "discovery_load_error": "ディスカバリー研究の読み込みエラー",
+    "discovery_studies": "聖書研究",
+    "discovery_load_error": "聖書研究の読み込みエラー",
     "discovery_section_complete_error": "セクション完了のマークエラー",
     "discovery_answer_save_error": "回答の保存エラー",
     "discovery_study_complete_error": "研究の完了エラー",
     "discovery_refresh_error": "研究の更新エラー",
-    "no_studies_available": "利用可能なディスカバリー研究がありません",
-    "loading_studies": "ディスカバリー研究を読み込み中...",
+    "no_studies_available": "利用可能な聖書研究がありません",
+    "loading_studies": "聖書研究を読み込み中...",
     "study_completed": "研究が正常に完了しました",
     "section_completed": "セクション完了",
     "answer_saved": "回答が正常に保存されました"
