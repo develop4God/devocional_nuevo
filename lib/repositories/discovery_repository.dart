@@ -34,14 +34,15 @@ class DiscoveryRepository {
       // 2. Intentar cargar desde cache
       final cacheKey = '${id}_$languageCode';
       final cached = await _loadFromCache(cacheKey, expectedVersion);
-      
+
       if (cached != null) {
         debugPrint('✅ Discovery: Usando cache para $id (v$expectedVersion)');
         return cached;
       }
 
       // 3. Si no hay cache o versión difiere, descargar
-      debugPrint('🚀 Discovery: Descargando nueva versión para $id (v$expectedVersion)');
+      debugPrint(
+          '🚀 Discovery: Descargando nueva versión para $id (v$expectedVersion)');
       String filename;
       final files = studyInfo?['files'] as Map<String, dynamic>?;
       if (files != null) {
@@ -50,13 +51,13 @@ class DiscoveryRepository {
         filename = '${id}_${languageCode}_001.json';
       }
 
-      final url = Constants.getDiscoveryStudyFileUrl(filename);
+      final url = Constants.getDiscoveryStudyFileUrl(filename, languageCode);
       final response = await httpClient.get(Uri.parse(url));
 
       if (response.statusCode == 200) {
         final json = jsonDecode(response.body) as Map<String, dynamic>;
         final study = DiscoveryDevotional.fromJson(json);
-        
+
         // Guardar en cache con la nueva versión
         await _saveToCache(cacheKey, json, expectedVersion);
         return study;
@@ -70,7 +71,8 @@ class DiscoveryRepository {
   }
 
   /// Obtiene la lista de IDs de estudios disponibles.
-  Future<List<String>> fetchAvailableStudies({bool forceRefresh = false}) async {
+  Future<List<String>> fetchAvailableStudies(
+      {bool forceRefresh = false}) async {
     try {
       final index = await _fetchIndex(forceRefresh: forceRefresh);
       final studies = index['studies'] as List<dynamic>?;
@@ -83,7 +85,7 @@ class DiscoveryRepository {
     return [];
   }
 
-  /// Obtiene el índice de estudios. 
+  /// Obtiene el índice de estudios.
   /// Estrategia: Network-First con Fallback a Cache y Cache-Busting.
   Future<Map<String, dynamic>> _fetchIndex({bool forceRefresh = false}) async {
     final prefs = await SharedPreferences.getInstance();
@@ -92,11 +94,12 @@ class DiscoveryRepository {
       // Agregar cache-buster (timestamp) para ignorar CDNs de GitHub y proxies locales
       final timestamp = DateTime.now().millisecondsSinceEpoch;
       final baseUrl = Constants.discoveryIndexUrl;
-      final cacheBusterUrl = baseUrl.contains('?') 
-          ? '$baseUrl&cb=$timestamp' 
+      final cacheBusterUrl = baseUrl.contains('?')
+          ? '$baseUrl&cb=$timestamp'
           : '$baseUrl?cb=$timestamp';
 
-      debugPrint('🌐 Discovery: Buscando índice en la red (buster: $timestamp)...');
+      debugPrint(
+          '🌐 Discovery: Buscando índice en la red (buster: $timestamp)...');
       final response = await httpClient.get(Uri.parse(cacheBusterUrl));
 
       if (response.statusCode == 200) {
@@ -108,7 +111,8 @@ class DiscoveryRepository {
         throw Exception('Server error: ${response.statusCode}');
       }
     } catch (e) {
-      debugPrint('⚠️ Discovery: Error de red al buscar índice, usando cache: $e');
+      debugPrint(
+          '⚠️ Discovery: Error de red al buscar índice, usando cache: $e');
       final cachedIndex = prefs.getString(_indexCacheKey);
       if (cachedIndex != null) {
         return jsonDecode(cachedIndex) as Map<String, dynamic>;
@@ -117,7 +121,8 @@ class DiscoveryRepository {
     }
   }
 
-  Future<DiscoveryDevotional?> _loadFromCache(String id, String expectedVersion) async {
+  Future<DiscoveryDevotional?> _loadFromCache(
+      String id, String expectedVersion) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final cachedJson = prefs.getString('$_cacheKeyPrefix$id');
@@ -132,7 +137,8 @@ class DiscoveryRepository {
     }
   }
 
-  Future<void> _saveToCache(String id, Map<String, dynamic> json, String version) async {
+  Future<void> _saveToCache(
+      String id, Map<String, dynamic> json, String version) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('$_cacheKeyPrefix$id', jsonEncode(json));

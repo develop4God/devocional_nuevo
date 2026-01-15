@@ -32,39 +32,42 @@ class VoiceSettingsService {
     if (_sampleTtsInstance == null) {
       _sampleTtsInstance = FlutterTts();
       _sampleTtsInstance!.awaitSpeakCompletion(true);
-      debugPrint('🔊 VoiceSettings: Created dedicated TTS instance for samples');
+      debugPrint(
+          '🔊 VoiceSettings: Created dedicated TTS instance for samples');
     }
     return _sampleTtsInstance!;
   }
 
   /// SURGICAL FIX: Verifies system voices before calling native setVoice.
   /// Prevents NPE in FlutterTtsPlugin.kt:515 on devices with broken TTS engines.
-  Future<void> _applyVoiceSafely(FlutterTts tts, String name, String locale) async {
+  Future<void> _applyVoiceSafely(
+      FlutterTts tts, String name, String locale) async {
     if (name.isEmpty) return;
-    
+
     try {
       // Fetch available voices from the system
       final dynamic voices = await tts.getVoices;
-      
+
       // CRITICAL SHIELD: If system returns null or empty, abort to prevent native crash
       if (voices == null || voices is! List || voices.isEmpty) {
-        debugPrint('⚠️ [TTS Shield] No voices available in system. Skipping setVoice.');
+        debugPrint(
+            '⚠️ [TTS Shield] No voices available in system. Skipping setVoice.');
         return;
       }
 
       // ENTERPRISE-GRADE VALIDATION: Match both Name and Locale
       // Prevents iterator mismatches on engines that reuse voice names
-      final bool exists = voices.any((v) => 
-        v is Map && 
-        v['name'] == name && 
-        (locale.isEmpty || v['locale'] == locale)
-      );
-      
+      final bool exists = voices.any((v) =>
+          v is Map &&
+          v['name'] == name &&
+          (locale.isEmpty || v['locale'] == locale));
+
       if (exists) {
         await tts.setVoice({'name': name, 'locale': locale});
         debugPrint('✅ [TTS Shield] Voice set safely: $name ($locale)');
       } else {
-        debugPrint('⚠️ [TTS Shield] Voice "$name" with locale "$locale" not found in system list.');
+        debugPrint(
+            '⚠️ [TTS Shield] Voice "$name" with locale "$locale" not found in system list.');
       }
     } catch (e) {
       debugPrint('❌ [TTS Shield] Validation error: $e');
@@ -87,28 +90,39 @@ class VoiceSettingsService {
 
     final dynamic voices = await _flutterTts.getVoices;
     if (voices is List) {
-      final filtered = voices.cast<Map>().where((voice) =>
-          locales.any((loc) => (voice['locale'] as String?)?.toLowerCase() == loc.toLowerCase()) &&
-          (voice['name'] as String?) != null && (voice['name'] as String).trim().isNotEmpty
-      ).toList();
+      final filtered = voices
+          .cast<Map>()
+          .where((voice) =>
+              locales.any((loc) =>
+                  (voice['locale'] as String?)?.toLowerCase() ==
+                  loc.toLowerCase()) &&
+              (voice['name'] as String?) != null &&
+              (voice['name'] as String).trim().isNotEmpty)
+          .toList();
 
       if (filtered.isEmpty) return;
 
       final preferredMaleVoices = {
         'es': ['es-us-x-esd-local', 'es-us-x-esd-network'],
-        'en': ['en-us-x-tpd-network', 'en-us-x-tpd-local', 'en-us-x-iom-network'],
+        'en': [
+          'en-us-x-tpd-network',
+          'en-us-x-tpd-local',
+          'en-us-x-iom-network'
+        ],
         'pt': ['pt-br-x-ptd-network', 'pt-br-x-ptd-local'],
         'fr': ['fr-fr-x-frd-local', 'fr-fr-x-frd-network', 'fr-fr-x-vlf-local'],
         'ja': ['ja-jp-x-jac-local', 'ja-jp-x-jad-local', 'ja-jp-x-jac-network'],
         'zh': ['cmn-cn-x-cce-local', 'cmn-cn-x-ccc-local'],
       };
-      
+
       final preferredVoices = preferredMaleVoices[language] ?? [];
       Map? selectedVoice;
 
       for (final preferredVoiceName in preferredVoices) {
         selectedVoice = filtered.firstWhere(
-          (voice) => (voice['name'] as String?)?.toLowerCase() == preferredVoiceName.toLowerCase(),
+          (voice) =>
+              (voice['name'] as String?)?.toLowerCase() ==
+              preferredVoiceName.toLowerCase(),
           orElse: () => <String, dynamic>{},
         );
         if (selectedVoice.isNotEmpty && selectedVoice['name'] != null) break;
@@ -117,9 +131,11 @@ class VoiceSettingsService {
 
       selectedVoice ??= filtered.isNotEmpty ? filtered.first : null;
 
-      final name = selectedVoice != null ? selectedVoice['name'] as String? ?? '' : '';
-      final locale = selectedVoice != null ? selectedVoice['locale'] as String? ?? '' : '';
-      
+      final name =
+          selectedVoice != null ? selectedVoice['name'] as String? ?? '' : '';
+      final locale =
+          selectedVoice != null ? selectedVoice['locale'] as String? ?? '' : '';
+
       if (name.isNotEmpty && locale.isNotEmpty) {
         await saveVoice(language, name, locale);
       }
@@ -145,7 +161,8 @@ class VoiceSettingsService {
     RegExp(r'fr-ca-x-[a-z]+#male_(\d+)-local'): 'Voix Masculine Canadienne',
   };
 
-  Future<void> saveVoice(String language, String voiceName, String locale) async {
+  Future<void> saveVoice(
+      String language, String voiceName, String locale) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final voiceData = {
@@ -159,14 +176,16 @@ class VoiceSettingsService {
       // Use safe dispatcher
       await _applyVoiceSafely(_flutterTts, voiceName, locale);
 
-      debugPrint('🔧 VoiceSettings: Saved & applied voice ${voiceData['friendly_name']} for $language');
+      debugPrint(
+          '🔧 VoiceSettings: Saved & applied voice ${voiceData['friendly_name']} for $language');
     } catch (e) {
       debugPrint('❌ VoiceSettings: Failed to save voice: $e');
       rethrow;
     }
   }
 
-  Future<void> playVoiceSample(String voiceName, String locale, String sampleText) async {
+  Future<void> playVoiceSample(
+      String voiceName, String locale, String sampleText) async {
     try {
       await _sampleTts.stop();
       // Use safe dispatcher
@@ -195,15 +214,21 @@ class VoiceSettingsService {
         String voiceName, locale;
         if (savedVoice.contains('technical_name')) {
           final parts = savedVoice.split(', ');
-          voiceName = parts.firstWhere((p) => p.contains('technical_name')).split(': ')[1];
+          voiceName = parts
+              .firstWhere((p) => p.contains('technical_name'))
+              .split(': ')[1];
           locale = parts.firstWhere((p) => p.contains('locale')).split(': ')[1];
         } else {
           final voiceParts = savedVoice.split(' (');
           voiceName = voiceParts[0];
-          locale = voiceParts.length > 1 ? voiceParts[1].replaceAll(')', '') : _getDefaultLocaleForLanguage(language);
+          locale = voiceParts.length > 1
+              ? voiceParts[1].replaceAll(')', '')
+              : _getDefaultLocaleForLanguage(language);
         }
 
-        if (language == 'zh' && (voiceName.trim().isEmpty || !locale.toLowerCase().startsWith('zh'))) {
+        if (language == 'zh' &&
+            (voiceName.trim().isEmpty ||
+                !locale.toLowerCase().startsWith('zh'))) {
           await clearSavedVoice(language);
           await autoAssignDefaultVoice(language);
           return await loadSavedVoice(language);
@@ -223,7 +248,8 @@ class VoiceSettingsService {
   String _getFriendlyVoiceName(String technicalName, String locale) {
     final language = locale.split('-').first;
     final map = friendlyVoiceMap[language];
-    if (map != null && map.containsKey(technicalName)) return map[technicalName]!;
+    if (map != null && map.containsKey(technicalName))
+      return map[technicalName]!;
 
     for (final pattern in _voicePatternMappings.keys) {
       if (pattern.hasMatch(technicalName)) {
@@ -241,16 +267,21 @@ class VoiceSettingsService {
 
   String _processUnmappedVoiceName(String voiceName, String locale) {
     String friendlyName = voiceName;
-    friendlyName = friendlyName.replaceAll(RegExp(r'^com\.apple\.ttsbundle\.'), '');
-    friendlyName = friendlyName.replaceAll(RegExp(r'^com\.apple\.speech\.synthesis\.voice\.'), '');
-    friendlyName = friendlyName.replaceAll(RegExp(r'^(Microsoft|Google|Amazon)\s+'), '');
-    friendlyName = friendlyName.replaceAll(RegExp(r'-(compact|enhanced|premium|neural|local|network)$'), '');
+    friendlyName =
+        friendlyName.replaceAll(RegExp(r'^com\.apple\.ttsbundle\.'), '');
+    friendlyName = friendlyName.replaceAll(
+        RegExp(r'^com\.apple\.speech\.synthesis\.voice\.'), '');
+    friendlyName =
+        friendlyName.replaceAll(RegExp(r'^(Microsoft|Google|Amazon)\s+'), '');
+    friendlyName = friendlyName.replaceAll(
+        RegExp(r'-(compact|enhanced|premium|neural|local|network)$'), '');
 
     if (friendlyName.contains('#')) {
       final parts = friendlyName.split('#');
       if (parts.length > 1) {
         final genderPart = parts[1];
-        final voiceNumber = RegExp(r'(\d+)').firstMatch(genderPart)?.group(1) ?? '';
+        final voiceNumber =
+            RegExp(r'(\d+)').firstMatch(genderPart)?.group(1) ?? '';
         if (genderPart.contains('female')) {
           friendlyName = _getLocalizedGenderName('female', locale, voiceNumber);
         } else if (genderPart.contains('male')) {
@@ -259,34 +290,63 @@ class VoiceSettingsService {
       }
     }
 
-    if (friendlyName.contains('x-') || friendlyName.contains('#') || friendlyName.length < 3) {
+    if (friendlyName.contains('x-') ||
+        friendlyName.contains('#') ||
+        friendlyName.length < 3) {
       switch (locale.split('-').first) {
-        case 'es': friendlyName = 'Voz por Defecto'; break;
-        case 'en': friendlyName = 'Default Voice'; break;
-        case 'pt': friendlyName = 'Voz Padrão'; break;
-        case 'fr': friendlyName = 'Voix par Défaut'; break;
-        case 'ja': friendlyName = 'デフォルトの声'; break;
-        case 'zh': friendlyName = '默认语音'; break;
-        default: friendlyName = 'Default Voice';
+        case 'es':
+          friendlyName = 'Voz por Defecto';
+          break;
+        case 'en':
+          friendlyName = 'Default Voice';
+          break;
+        case 'pt':
+          friendlyName = 'Voz Padrão';
+          break;
+        case 'fr':
+          friendlyName = 'Voix par Défaut';
+          break;
+        case 'ja':
+          friendlyName = 'デフォルトの声';
+          break;
+        case 'zh':
+          friendlyName = '默认语音';
+          break;
+        default:
+          friendlyName = 'Default Voice';
       }
     }
 
-    friendlyName = friendlyName.replaceAll('_', ' ').replaceAll('-', ' ').split(' ')
-        .where((word) => word.isNotEmpty).map((word) => word[0].toUpperCase() + word.substring(1).toLowerCase()).join(' ');
+    friendlyName = friendlyName
+        .replaceAll('_', ' ')
+        .replaceAll('-', ' ')
+        .split(' ')
+        .where((word) => word.isNotEmpty)
+        .map((word) => word[0].toUpperCase() + word.substring(1).toLowerCase())
+        .join(' ');
 
-    friendlyName = friendlyName.replaceAll(RegExp(r'\b(Voice|Tts|Speech|Synthesis)\b'), '').replaceAll(RegExp(r'\s+'), ' ').trim();
+    friendlyName = friendlyName
+        .replaceAll(RegExp(r'\b(Voice|Tts|Speech|Synthesis)\b'), '')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
     return friendlyName.isEmpty ? 'Voz por Defecto' : friendlyName;
   }
 
   String _getLocalizedGenderName(String gender, String locale, String number) {
     final num = number.isNotEmpty ? ' $number' : '';
     switch (locale.toLowerCase()) {
-      case String s when s.startsWith('es'): return gender == 'female' ? 'Voz Femenina$num' : 'Voz Masculina$num';
-      case String s when s.startsWith('en'): return gender == 'female' ? 'Female Voice$num' : 'Male Voice$num';
-      case String s when s.startsWith('pt'): return gender == 'female' ? 'Voz Feminina$num' : 'Voz Masculina$num';
-      case String s when s.startsWith('fr'): return gender == 'female' ? 'Voix Féminine$num' : 'Voix Masculine$num';
-      case String s when s.startsWith('zh'): return gender == 'female' ? '女性声音$num' : '男性声音$num';
-      default: return gender == 'female' ? 'Female Voice$num' : 'Male Voice$num';
+      case String s when s.startsWith('es'):
+        return gender == 'female' ? 'Voz Femenina$num' : 'Voz Masculina$num';
+      case String s when s.startsWith('en'):
+        return gender == 'female' ? 'Female Voice$num' : 'Male Voice$num';
+      case String s when s.startsWith('pt'):
+        return gender == 'female' ? 'Voz Feminina$num' : 'Voz Masculina$num';
+      case String s when s.startsWith('fr'):
+        return gender == 'female' ? 'Voix Féminine$num' : 'Voix Masculine$num';
+      case String s when s.startsWith('zh'):
+        return gender == 'female' ? '女性声音$num' : '男性声音$num';
+      default:
+        return gender == 'female' ? 'Female Voice$num' : 'Male Voice$num';
     }
   }
 
@@ -309,7 +369,8 @@ class VoiceSettingsService {
             return '${_getFriendlyVoiceName(name, locale)} ($locale)';
           }
           return voice.toString();
-        }).toList()..sort();
+        }).toList()
+          ..sort();
       }
       return [];
     } catch (e) {
@@ -323,12 +384,15 @@ class VoiceSettingsService {
       final dynamic rawVoices = await _flutterTts.getVoices;
       if (rawVoices is List) {
         List filteredVoices;
-        if (language == 'zh') { filteredVoices = rawVoices; } 
-        else {
+        if (language == 'zh') {
+          filteredVoices = rawVoices;
+        } else {
           filteredVoices = rawVoices.where((voice) {
             if (voice is Map) {
               final locale = voice['locale'] as String? ?? '';
-              return locale.toLowerCase().startsWith(targetLocale.toLowerCase());
+              return locale
+                  .toLowerCase()
+                  .startsWith(targetLocale.toLowerCase());
             }
             return false;
           }).toList();
@@ -336,8 +400,11 @@ class VoiceSettingsService {
         return filteredVoices.map((voice) {
           final name = voice['name'] as String? ?? '';
           final locale = voice['locale'] as String? ?? '';
-          return language == 'zh' ? '$name ($locale)' : '${_getFriendlyVoiceName(name, locale)} ($locale)';
-        }).toList()..sort();
+          return language == 'zh'
+              ? '$name ($locale)'
+              : '${_getFriendlyVoiceName(name, locale)} ($locale)';
+        }).toList()
+          ..sort();
       }
       return [];
     } catch (e) {
@@ -345,28 +412,50 @@ class VoiceSettingsService {
     }
   }
 
-  Future<List<Map<String, String>>> getAvailableVoicesForLanguage(String language) async {
+  Future<List<Map<String, String>>> getAvailableVoicesForLanguage(
+      String language) async {
     final dynamic voices = await _flutterTts.getVoices;
     if (voices is List) {
       final list = voices.cast<Map>();
       if (language == 'zh') {
-        return list.map((v) => {'name': v['name'] as String? ?? '', 'locale': v['locale'] as String? ?? ''}).toList();
+        return list
+            .map((v) => {
+                  'name': v['name'] as String? ?? '',
+                  'locale': v['locale'] as String? ?? ''
+                })
+            .toList();
       }
-      return list.where((v) => (v['locale'] as String?)?.toLowerCase().contains(language.toLowerCase()) ?? false)
-          .map((v) => {'name': v['name'] as String? ?? '', 'locale': v['locale'] as String? ?? ''}).toList();
+      return list
+          .where((v) =>
+              (v['locale'] as String?)
+                  ?.toLowerCase()
+                  .contains(language.toLowerCase()) ??
+              false)
+          .map((v) => {
+                'name': v['name'] as String? ?? '',
+                'locale': v['locale'] as String? ?? ''
+              })
+          .toList();
     }
     return [];
   }
 
   String _getDefaultLocaleForLanguage(String language) {
     switch (language.toLowerCase()) {
-      case 'es': return 'es-ES';
-      case 'en': return 'en-US';
-      case 'pt': return 'pt-BR';
-      case 'fr': return 'fr-FR';
-      case 'ja': return 'ja-JP';
-      case 'zh': return 'zh-CN';
-      default: return 'es-ES';
+      case 'es':
+        return 'es-ES';
+      case 'en':
+        return 'en-US';
+      case 'pt':
+        return 'pt-BR';
+      case 'fr':
+        return 'fr-FR';
+      case 'ja':
+        return 'ja-JP';
+      case 'zh':
+        return 'zh-CN';
+      default:
+        return 'es-ES';
     }
   }
 
@@ -418,7 +507,8 @@ class VoiceSettingsService {
   Future<void> setSavedSpeechRate(double rate) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      double toStore = miniToSettings[rate] ?? (rate >= 0.1 && rate <= 1.0 ? rate : 0.5);
+      double toStore =
+          miniToSettings[rate] ?? (rate >= 0.1 && rate <= 1.0 ? rate : 0.5);
       await prefs.setDouble('tts_rate', toStore);
     } catch (e) {
       debugPrint('VoiceSettings: Failed to save speech rate: $e');
@@ -427,10 +517,19 @@ class VoiceSettingsService {
 
   static const List<double> allowedPlaybackRates = [0.5, 1.0, 1.5];
   static const List<double> miniPlayerRates = [0.5, 1.0, 1.5];
-  static final Map<double, double> miniToSettings = {0.5: 0.25, 1.0: 0.5, 1.5: 0.75};
-  static final Map<double, double> settingsToMini = {0.25: 0.5, 0.5: 1.0, 0.75: 1.5};
+  static final Map<double, double> miniToSettings = {
+    0.5: 0.25,
+    1.0: 0.5,
+    1.5: 0.75
+  };
+  static final Map<double, double> settingsToMini = {
+    0.25: 0.5,
+    0.5: 1.0,
+    0.75: 1.5
+  };
 
-  Future<double> cyclePlaybackRate({double? currentMiniRate, FlutterTts? ttsOverride}) async {
+  Future<double> cyclePlaybackRate(
+      {double? currentMiniRate, FlutterTts? ttsOverride}) async {
     final rates = miniPlayerRates;
     final current = currentMiniRate ?? await getSavedMiniRate();
     int idx = rates.indexWhere((r) => (r - current).abs() < 0.001);
@@ -450,7 +549,8 @@ class VoiceSettingsService {
   }
 
   double getMiniPlayerRate(double settingsRate) {
-    if (settingsToMini.containsKey(settingsRate)) return settingsToMini[settingsRate]!;
+    if (settingsToMini.containsKey(settingsRate))
+      return settingsToMini[settingsRate]!;
     if ((settingsRate - 0.25).abs() < 0.08) return 0.5;
     if ((settingsRate - 0.5).abs() < 0.12) return 1.0;
     if ((settingsRate - 0.75).abs() < 0.12) return 1.5;

@@ -34,6 +34,7 @@ class DiscoveryDetailPage extends StatefulWidget {
 class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
   int _currentSectionIndex = 0;
   final PageController _pageController = PageController();
+  bool _isCelebrating = false; // Local state for completion celebration
 
   final List<String> _celebrationLotties = [
     'assets/lottie/confetti.json',
@@ -49,6 +50,19 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
   void dispose() {
     _pageController.dispose();
     super.dispose();
+  }
+
+  void _onCompleteStudy() {
+    setState(() {
+      _isCelebrating = true;
+    });
+    
+    context.read<DiscoveryBloc>().add(CompleteDiscoveryStudy(widget.studyId));
+    HapticFeedback.heavyImpact();
+
+    Future.delayed(const Duration(seconds: 4), () {
+      if (mounted) setState(() => _isCelebrating = false);
+    });
   }
 
   @override
@@ -97,12 +111,10 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
                           },
                         ),
                       ),
-                      // 🛡️ BOTTOM SAFE AREA SPACER: Prevents navigation bar overlap
                       SizedBox(height: MediaQuery.of(context).padding.bottom + 20),
                     ],
                   ),
 
-                  // 🌫️ BOTTOM GRADIENT OVERLAY: Consistent with DevocionalesPage
                   Positioned(
                     left: 0,
                     right: 0,
@@ -124,6 +136,17 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
                       ),
                     ),
                   ),
+
+                  if (_isCelebrating)
+                    IgnorePointer(
+                      child: Center(
+                        child: Lottie.asset(
+                          _randomCelebrationLottie,
+                          repeat: false,
+                          height: 300,
+                        ),
+                      ),
+                    ),
                 ],
               );
             }
@@ -213,7 +236,7 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
         child: Stack(
           children: [
             if (study.cards.isNotEmpty)
-              _buildCardContent(study.cards[index], isDark)
+              _buildCardContent(study.cards[index], isDark, isLast)
             else if (study.secciones != null && study.secciones!.isNotEmpty)
               DiscoverySectionCard(
                 section: study.secciones![index],
@@ -222,17 +245,13 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
                 isDark: isDark,
                 versiculoClave: study.versiculoClave,
               ),
-            if (isLast)
-              Center(
-                child: Lottie.asset(_randomCelebrationLottie, repeat: false, height: 200),
-              ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildCardContent(DiscoveryCard card, bool isDark) {
+  Widget _buildCardContent(DiscoveryCard card, bool isDark, bool isLast) {
     final theme = Theme.of(context);
     return SingleChildScrollView(
       padding: const EdgeInsets.all(28),
@@ -327,7 +346,29 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
             _buildPrayerTile(card.prayer!, theme),
           ],
           
-          const SizedBox(height: 40),
+          if (isLast) ...[
+            const SizedBox(height: 40),
+            SizedBox(
+              width: double.infinity,
+              height: 60,
+              child: ElevatedButton.icon(
+                onPressed: _isCelebrating ? null : _onCompleteStudy,
+                icon: const Icon(Icons.check_circle_outline_rounded),
+                label: Text(
+                  'discovery.study_completed'.tr().toUpperCase(),
+                  style: const TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: theme.colorScheme.primary,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                  elevation: 4,
+                ),
+              ),
+            ),
+          ],
+          
+          const SizedBox(height: 60),
         ],
       ),
     );
@@ -366,15 +407,29 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
         children: [
           Row(
             children: [
-              Text(word.word, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900)),
+              Text(
+                word.word, 
+                style: TextStyle(
+                  fontSize: 26, 
+                  fontWeight: FontWeight.w900, 
+                  color: theme.colorScheme.onSecondaryContainer,
+                )
+              ),
               if (word.transliteration != null) ...[
                 const SizedBox(width: 8),
-                Text('(${word.transliteration})', style: TextStyle(fontSize: 14, color: theme.colorScheme.primary)),
+                Text(
+                  '(${word.transliteration})', 
+                  style: TextStyle(
+                    fontSize: 16, 
+                    fontWeight: FontWeight.w600,
+                    color: theme.colorScheme.primary
+                  )
+                ),
               ],
             ],
           ),
           const SizedBox(height: 12),
-          Text('Significado: ${word.meaning}', style: const TextStyle(fontWeight: FontWeight.bold)),
+          Text('Significado: ${word.meaning}', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
           const SizedBox(height: 8),
           Text('Revelación: ${word.revelation}', style: const TextStyle(fontStyle: FontStyle.italic)),
         ],
@@ -403,15 +458,22 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
 
   Widget _buildPrayerTile(Prayer p, ThemeData theme) {
     return Container(
+      margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        gradient: LinearGradient(colors: [theme.colorScheme.primaryContainer, theme.colorScheme.surface]),
-        borderRadius: BorderRadius.circular(24),
+        color: theme.colorScheme.primaryContainer.withValues(alpha: 0.4), // Same style as Greek tile
+        borderRadius: BorderRadius.circular(20),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Oración de Activación', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+          const Text(
+            'Oración de Activación', 
+            style: TextStyle(
+              fontSize: 20, 
+              fontWeight: FontWeight.w900, // Same weight as Greek titles
+            )
+          ),
           const SizedBox(height: 12),
           Text(p.content, style: const TextStyle(fontStyle: FontStyle.italic, height: 1.6)),
         ],

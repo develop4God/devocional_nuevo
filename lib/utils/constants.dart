@@ -90,8 +90,9 @@ class Constants {
   static const String discoveryIndexUrl =
       'https://raw.githubusercontent.com/develop4God/Devocionales-json/refs/heads/main/discovery/index.json';
 
-  static String getDiscoveryStudyFileUrl(String fileName) {
-    return 'https://raw.githubusercontent.com/develop4God/Devocionales-json/refs/heads/main/discovery/$fileName';
+  /// Returns the URL for a Discovery Study JSON file for a specific language.
+  static String getDiscoveryStudyFileUrl(String fileName, String languageCode) {
+    return 'https://raw.githubusercontent.com/develop4God/Devocionales-json/refs/heads/main/discovery/$languageCode/$fileName';
   }
 }
 
