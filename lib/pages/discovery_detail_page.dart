@@ -1,7 +1,5 @@
 // lib/pages/discovery_detail_page.dart
 
-import 'dart:math';
-
 import 'package:devocional_nuevo/blocs/discovery/discovery_bloc.dart';
 import 'package:devocional_nuevo/blocs/discovery/discovery_event.dart';
 import 'package:devocional_nuevo/blocs/discovery/discovery_state.dart';
@@ -34,17 +32,8 @@ class DiscoveryDetailPage extends StatefulWidget {
 class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
   int _currentSectionIndex = 0;
   final PageController _pageController = PageController();
-  bool _isCelebrating = false; // Local state for completion celebration
-
-  final List<String> _celebrationLotties = [
-    'assets/lottie/confetti.json',
-    'assets/lottie/trophy_star.json',
-  ];
-
-  String get _randomCelebrationLottie {
-    final rand = Random();
-    return _celebrationLotties[rand.nextInt(_celebrationLotties.length)];
-  }
+  bool _isCelebrating = false;
+  bool _hasTriggeredCompletion = false;
 
   @override
   void dispose() {
@@ -53,14 +42,17 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
   }
 
   void _onCompleteStudy() {
+    if (_hasTriggeredCompletion) return;
+
     setState(() {
       _isCelebrating = true;
+      _hasTriggeredCompletion = true;
     });
-    
+
     context.read<DiscoveryBloc>().add(CompleteDiscoveryStudy(widget.studyId));
     HapticFeedback.heavyImpact();
 
-    Future.delayed(const Duration(seconds: 4), () {
+    Future.delayed(const Duration(seconds: 5), () {
       if (mounted) setState(() => _isCelebrating = false);
     });
   }
@@ -94,6 +86,11 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
                 return const Center(child: Text('Study not found.'));
               }
 
+              // Check if study is already marked as completed in the state
+              final bool isAlreadyCompleted =
+                  state.isStudyCompleted(widget.studyId) ||
+                      _hasTriggeredCompletion;
+
               return Stack(
                 children: [
                   Column(
@@ -103,18 +100,22 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
                       Expanded(
                         child: PageView.builder(
                           controller: _pageController,
-                          onPageChanged: (index) => setState(() => _currentSectionIndex = index),
+                          onPageChanged: (index) =>
+                              setState(() => _currentSectionIndex = index),
                           itemCount: study.totalSections,
                           itemBuilder: (context, index) {
                             final isLast = index == study.totalSections - 1;
-                            return _buildAnimatedCard(study, index, isDark, isLast);
+                            return _buildAnimatedCard(study, index, isDark,
+                                isLast, isAlreadyCompleted);
                           },
                         ),
                       ),
-                      SizedBox(height: MediaQuery.of(context).padding.bottom + 20),
+                      SizedBox(
+                          height: MediaQuery.of(context).padding.bottom + 20),
                     ],
                   ),
 
+                  // Bottom Scrim Overlay
                   Positioned(
                     left: 0,
                     right: 0,
@@ -127,8 +128,10 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
                             begin: Alignment.topCenter,
                             end: Alignment.bottomCenter,
                             colors: [
-                              theme.scaffoldBackgroundColor.withValues(alpha: 0),
-                              theme.scaffoldBackgroundColor.withValues(alpha: 0.8),
+                              theme.scaffoldBackgroundColor
+                                  .withValues(alpha: 0),
+                              theme.scaffoldBackgroundColor
+                                  .withValues(alpha: 0.8),
                               theme.scaffoldBackgroundColor,
                             ],
                           ),
@@ -137,13 +140,14 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
                     ),
                   ),
 
+                  // 🎊 CELEBRATION OVERLAY
                   if (_isCelebrating)
                     IgnorePointer(
                       child: Center(
                         child: Lottie.asset(
-                          _randomCelebrationLottie,
+                          'assets/lottie/kudos_birdie.json',
                           repeat: false,
-                          height: 300,
+                          height: 350,
                         ),
                       ),
                     ),
@@ -220,7 +224,8 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
     );
   }
 
-  Widget _buildAnimatedCard(DiscoveryDevotional study, int index, bool isDark, bool isLast) {
+  Widget _buildAnimatedCard(DiscoveryDevotional study, int index, bool isDark,
+      bool isLast, bool isAlreadyCompleted) {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 400),
       curve: Curves.easeOutQuart,
@@ -236,7 +241,8 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
         child: Stack(
           children: [
             if (study.cards.isNotEmpty)
-              _buildCardContent(study.cards[index], isDark, isLast)
+              _buildCardContent(
+                  study.cards[index], isDark, isLast, isAlreadyCompleted)
             else if (study.secciones != null && study.secciones!.isNotEmpty)
               DiscoverySectionCard(
                 section: study.secciones![index],
@@ -251,7 +257,8 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
     );
   }
 
-  Widget _buildCardContent(DiscoveryCard card, bool isDark, bool isLast) {
+  Widget _buildCardContent(
+      DiscoveryCard card, bool isDark, bool isLast, bool isAlreadyCompleted) {
     final theme = Theme.of(context);
     return SingleChildScrollView(
       padding: const EdgeInsets.all(28),
@@ -265,7 +272,8 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
 
           Text(
             card.title,
-            style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800, letterSpacing: -0.5),
+            style: theme.textTheme.headlineSmall
+                ?.copyWith(fontWeight: FontWeight.w800, letterSpacing: -0.5),
           ),
 
           if (card.subtitle != null) ...[
@@ -285,7 +293,9 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
           if (card.content != null)
             Text(
               card.content!,
-              style: theme.textTheme.bodyLarge?.copyWith(height: 1.6, color: theme.colorScheme.onSurface.withValues(alpha: 0.9)),
+              style: theme.textTheme.bodyLarge?.copyWith(
+                  height: 1.6,
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.9)),
             ),
 
           if (card.revelationKey != null) ...[
@@ -306,7 +316,8 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Icon(Icons.lightbulb_rounded, size: 28, color: Colors.white),
+                  const Icon(Icons.lightbulb_rounded,
+                      size: 28, color: Colors.white),
                   const SizedBox(width: 16),
                   Expanded(
                     child: Text(
@@ -326,7 +337,8 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
 
           if (card.scriptureConnections != null) ...[
             const SizedBox(height: 32),
-            ...card.scriptureConnections!.map((scripture) => _buildScriptureTile(scripture, theme)),
+            ...card.scriptureConnections!
+                .map((scripture) => _buildScriptureTile(scripture, theme)),
           ],
 
           if (card.greekWords != null) ...[
@@ -336,38 +348,62 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
 
           if (card.discoveryQuestions != null) ...[
             const SizedBox(height: 32),
-            const Text('Preguntas de Reflexión', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
+            const Text('Preguntas de Reflexión',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
             const SizedBox(height: 16),
-            ...card.discoveryQuestions!.map((q) => _buildQuestionTile(q, theme)),
+            ...card.discoveryQuestions!
+                .map((q) => _buildQuestionTile(q, theme)),
           ],
 
           if (card.prayer != null) ...[
             const SizedBox(height: 32),
             _buildPrayerTile(card.prayer!, theme),
           ],
-          
+
+          // ✨ MODERN MINIMALIST COMPLETE BUTTON
           if (isLast) ...[
-            const SizedBox(height: 40),
-            SizedBox(
-              width: double.infinity,
-              height: 60,
-              child: ElevatedButton.icon(
-                onPressed: _isCelebrating ? null : _onCompleteStudy,
-                icon: const Icon(Icons.check_circle_outline_rounded),
-                label: Text(
-                  'discovery.study_completed'.tr().toUpperCase(),
-                  style: const TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: theme.colorScheme.primary,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                  elevation: 4,
+            const SizedBox(height: 48),
+            Center(
+              child: AnimatedOpacity(
+                duration: const Duration(milliseconds: 300),
+                opacity: isAlreadyCompleted ? 0.6 : 1.0,
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: TextButton.icon(
+                    onPressed: isAlreadyCompleted ? null : _onCompleteStudy,
+                    icon: Icon(
+                      isAlreadyCompleted
+                          ? Icons.verified_rounded
+                          : Icons.check_circle_outline_rounded,
+                      color: isAlreadyCompleted ? Colors.green : Colors.white,
+                    ),
+                    label: Text(
+                      isAlreadyCompleted
+                          ? 'discovery.completed_study'.tr()
+                          : 'discovery.mark_completed'.tr(),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 16,
+                        letterSpacing: 0.2,
+                      ),
+                    ),
+                    style: TextButton.styleFrom(
+                      backgroundColor: isAlreadyCompleted
+                          ? theme.colorScheme.primary.withValues(alpha: 0.1)
+                          : theme.colorScheme.primary,
+                      foregroundColor: isAlreadyCompleted
+                          ? theme.colorScheme.primary
+                          : Colors.white,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(28)),
+                    ),
+                  ),
                 ),
               ),
             ),
           ],
-          
+
           const SizedBox(height: 60),
         ],
       ),
@@ -381,14 +417,19 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.1)),
+        border:
+            Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.1)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(s.reference, style: TextStyle(fontWeight: FontWeight.w900, color: theme.colorScheme.primary)),
+          Text(s.reference,
+              style: TextStyle(
+                  fontWeight: FontWeight.w900,
+                  color: theme.colorScheme.primary)),
           const SizedBox(height: 8),
-          Text(s.text, style: const TextStyle(fontStyle: FontStyle.italic, height: 1.5)),
+          Text(s.text,
+              style: const TextStyle(fontStyle: FontStyle.italic, height: 1.5)),
         ],
       ),
     );
@@ -407,31 +448,29 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
         children: [
           Row(
             children: [
-              Text(
-                word.word, 
-                style: TextStyle(
-                  fontSize: 26, 
-                  fontWeight: FontWeight.w900, 
-                  color: theme.colorScheme.onSecondaryContainer,
-                )
-              ),
+              Text(word.word,
+                  style: TextStyle(
+                    fontSize: 26,
+                    fontWeight: FontWeight.w900,
+                    color: theme.colorScheme.onSecondaryContainer,
+                  )),
               if (word.transliteration != null) ...[
                 const SizedBox(width: 8),
-                Text(
-                  '(${word.transliteration})', 
-                  style: TextStyle(
-                    fontSize: 16, 
-                    fontWeight: FontWeight.w600,
-                    color: theme.colorScheme.primary
-                  )
-                ),
+                Text('(${word.transliteration})',
+                    style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: theme.colorScheme.primary)),
               ],
             ],
           ),
           const SizedBox(height: 12),
-          Text('Significado: ${word.meaning}', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
+          Text('Significado: ${word.meaning}',
+              style:
+                  const TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
           const SizedBox(height: 8),
-          Text('Revelación: ${word.revelation}', style: const TextStyle(fontStyle: FontStyle.italic)),
+          Text('Revelación: ${word.revelation}',
+              style: const TextStyle(fontStyle: FontStyle.italic)),
         ],
       ),
     );
@@ -448,7 +487,12 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(q.category.toUpperCase(), style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: theme.colorScheme.primary, letterSpacing: 1)),
+          Text(q.category.toUpperCase(),
+              style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w900,
+                  color: theme.colorScheme.primary,
+                  letterSpacing: 1)),
           const SizedBox(height: 4),
           Text(q.question, style: const TextStyle(fontWeight: FontWeight.w600)),
         ],
@@ -461,21 +505,20 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: theme.colorScheme.primaryContainer.withValues(alpha: 0.4), // Same style as Greek tile
+        color: theme.colorScheme.primaryContainer.withValues(alpha: 0.4),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Oración de Activación', 
-            style: TextStyle(
-              fontSize: 20, 
-              fontWeight: FontWeight.w900, // Same weight as Greek titles
-            )
-          ),
+          const Text('Oración de Activación',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w900,
+              )),
           const SizedBox(height: 12),
-          Text(p.content, style: const TextStyle(fontStyle: FontStyle.italic, height: 1.6)),
+          Text(p.content,
+              style: const TextStyle(fontStyle: FontStyle.italic, height: 1.6)),
         ],
       ),
     );

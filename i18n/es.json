@@ -207,7 +207,7 @@
     "share_app": "Comparte app Devocionales Cristianos",
     "download_devotionals": "Descargar devocionales",
     "downloaded_devotionals": "Devocionales descargados",
-    "for_offline_use": "Para uso sin internet",
+    "for_offline_use": "Para uso offline",
     "offline_content_ready": "Disfruta contenido sin internet",
     "select_theme_color": "Selecciona color de tema",
     "download_dialog_title": "⬇️✨ Confirmar descarga",
@@ -687,6 +687,8 @@
     "loading_studies": "Cargando Estudios Bíblicos...",
     "study_completed": "Estudio completado exitosamente",
     "section_completed": "Sección completada",
-    "answer_saved": "Respuesta guardada exitosamente"
+    "answer_saved": "Respuesta guardada exitosamente",
+    "mark_completed": "Completar estudio",
+    "completed_study": "Estudio completado"
   }
 }
