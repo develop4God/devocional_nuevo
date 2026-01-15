@@ -56,7 +56,7 @@ class DevotionalCardPremium extends StatelessWidget {
           'Devotional card for $title. $verseReference. Posted $displayDate. ${isFavorite ? "In favorites" : "Not in favorites"}',
       button: true,
       child: Container(
-        height: 360, // Aumentado ligeramente
+        height: 360,
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(28),
@@ -120,20 +120,20 @@ class DevotionalCardPremium extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        // Top Badge
+                        // Top Badge - Clean surface style
                         Align(
                           alignment: Alignment.topCenter,
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                             decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.15),
+                              color: Colors.white.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(20),
-                              border: Border.all(color: Colors.white.withValues(alpha: 0.2), width: 0.8),
+                              border: Border.all(color: Colors.white.withValues(alpha: 0.3), width: 0.8),
                             ),
                             child: Text(
                               displayDate.toUpperCase(),
                               style: const TextStyle(
-                                color: Colors.white,
+                                color: Colors.white, // On surface
                                 fontSize: 10,
                                 letterSpacing: 1.5,
                                 fontWeight: FontWeight.bold,
@@ -145,7 +145,6 @@ class DevotionalCardPremium extends StatelessWidget {
                         const Spacer(),
 
                         // The "Hero" Section: Emoji + Title
-                        // Animated-like Glow behind emoji
                         Stack(
                           alignment: Alignment.center,
                           children: [
@@ -195,14 +194,14 @@ class DevotionalCardPremium extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                           decoration: BoxDecoration(
-                            color: colors[0].withValues(alpha: 0.4),
+                            color: Colors.white.withValues(alpha: 0.15), // Surface style
                             borderRadius: BorderRadius.circular(30),
-                            border: Border.all(color: Colors.white24, width: 0.5),
+                            border: Border.all(color: Colors.white.withValues(alpha: 0.2), width: 0.5),
                           ),
                           child: Text(
                             verseReference,
                             style: const TextStyle(
-                              color: Colors.white,
+                              color: Colors.white, // White font
                               fontSize: 13,
                               fontWeight: FontWeight.w700,
                               fontStyle: FontStyle.italic,
@@ -213,28 +212,28 @@ class DevotionalCardPremium extends StatelessWidget {
 
                         const Spacer(),
 
-                        // Reading Info
+                        // Reading Info - All Surface (White)
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.menu_book_rounded, color: Colors.white.withValues(alpha: 0.6), size: 14),
+                            Icon(Icons.menu_book_rounded, color: Colors.white.withValues(alpha: 0.9), size: 14),
                             const SizedBox(width: 8),
                             Text(
                               'DAILY BIBLE STUDY',
                               style: TextStyle(
-                                color: Colors.white.withValues(alpha: 0.6),
+                                color: Colors.white.withValues(alpha: 0.9),
                                 fontSize: 10,
                                 fontWeight: FontWeight.bold,
                                 letterSpacing: 1.2,
                               ),
                             ),
                             const SizedBox(width: 12),
-                            Container(width: 4, height: 4, decoration: const BoxDecoration(color: Colors.white30, shape: BoxShape.circle)),
+                            Container(width: 4, height: 4, decoration: const BoxDecoration(color: Colors.white70, shape: BoxShape.circle)),
                             const SizedBox(width: 12),
                             Text(
                               '5 MIN',
                               style: TextStyle(
-                                color: Colors.white.withValues(alpha: 0.6),
+                                color: Colors.white.withValues(alpha: 0.9),
                                 fontSize: 10,
                                 fontWeight: FontWeight.bold,
                                 letterSpacing: 1.2,
@@ -333,11 +332,9 @@ class DevotionalCardPremium extends StatelessWidget {
   }
 
   List<Color> _getGradientColors() {
-    // Si hay tags, usar el color del diccionario
     if (devocional.tags != null && devocional.tags!.isNotEmpty) {
       return TagColorDictionary.getGradientForTag(devocional.tags!.first);
     }
-    // Fallback elegante (Slate Blue/Gray)
     return [const Color(0xFF37474F), const Color(0xFF102027)];
   }
 

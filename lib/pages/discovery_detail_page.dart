@@ -11,8 +11,12 @@ import 'package:devocional_nuevo/models/discovery_devotional_model.dart';
 import 'package:devocional_nuevo/widgets/app_bar_constants.dart';
 import 'package:devocional_nuevo/widgets/discovery_section_card.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lottie/lottie.dart';
+
+import '../blocs/theme/theme_bloc.dart';
+import '../blocs/theme/theme_state.dart';
 
 /// Detail page for viewing a specific Discovery study
 class DiscoveryDetailPage extends StatefulWidget {
@@ -31,11 +35,9 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
   int _currentSectionIndex = 0;
   final PageController _pageController = PageController();
 
-  // List of celebratory Lottie assets
   final List<String> _celebrationLotties = [
     'assets/lottie/confetti.json',
     'assets/lottie/trophy_star.json',
-    // Add more assets here as needed
   ];
 
   String get _randomCelebrationLottie {
@@ -53,278 +55,248 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final themeState = context.watch<ThemeBloc>().state as ThemeLoaded;
 
-    return Scaffold(
-      appBar: CustomAppBar(
-        titleText: 'discovery.discovery_studies'.tr(),
-      ),
-      body: BlocBuilder<DiscoveryBloc, DiscoveryState>(
-        builder: (context, state) {
-          if (state is DiscoveryLoading || state is DiscoveryStudyLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          if (state is DiscoveryError) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.error_outline,
-                      size: 64,
-                      color: Colors.grey[400],
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      state.message,
-                      textAlign: TextAlign.center,
-                      style: theme.textTheme.bodyLarge,
-                    ),
-                    const SizedBox(height: 16),
-                    ElevatedButton.icon(
-                      onPressed: () {
-                        context.read<DiscoveryBloc>().add(
-                              LoadDiscoveryStudy(widget.studyId,
-                                  languageCode: 'es'),
-                            );
-                      },
-                      icon: const Icon(Icons.refresh),
-                      label: Text('app.retry'.tr()),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          }
-
-          if (state is DiscoveryLoaded) {
-            final study = state.getStudy(widget.studyId);
-
-            if (study == null) {
-              debugPrint(
-                  '❌ [DiscoveryDetailPage] Study not found for id: \\${widget.studyId} (fallback or missing)');
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.search_off, size: 64),
-                    const SizedBox(height: 16),
-                    Text('discovery.no_studies_available'.tr()),
-                  ],
-                ),
-              );
-            } else {
-              debugPrint(
-                  '🌐 [DiscoveryDetailPage] Study loaded for id: \\${widget.studyId} (likely from network or updated cache)');
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: themeState.systemUiOverlayStyle,
+      child: Scaffold(
+        appBar: CustomAppBar(
+          titleText: 'discovery.discovery_studies'.tr(),
+        ),
+        body: BlocBuilder<DiscoveryBloc, DiscoveryState>(
+          builder: (context, state) {
+            if (state is DiscoveryLoading || state is DiscoveryStudyLoading) {
+              return const Center(child: CircularProgressIndicator());
             }
 
-            return Column(
-              children: [
-                // Study header
-                _buildStudyHeader(study, theme, isDark),
-                // Progress dots for sections/cards
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: List.generate(
-                      study.totalSections,
-                      (index) => AnimatedContainer(
-                        duration: const Duration(milliseconds: 300),
-                        margin: const EdgeInsets.symmetric(horizontal: 4),
-                        width: _currentSectionIndex == index ? 24 : 8,
-                        height: 8,
+            if (state is DiscoveryError) {
+              return Center(child: Text(state.message));
+            }
+
+            if (state is DiscoveryLoaded) {
+              final study = state.getStudy(widget.studyId);
+
+              if (study == null) {
+                return const Center(child: Text('Study not found.'));
+              }
+
+              return Stack(
+                children: [
+                  Column(
+                    children: [
+                      _buildStudyHeader(study, theme),
+                      _buildProgressIndicator(study, theme),
+                      Expanded(
+                        child: PageView.builder(
+                          controller: _pageController,
+                          onPageChanged: (index) => setState(() => _currentSectionIndex = index),
+                          itemCount: study.totalSections,
+                          itemBuilder: (context, index) {
+                            final isLast = index == study.totalSections - 1;
+                            return _buildAnimatedCard(study, index, isDark, isLast);
+                          },
+                        ),
+                      ),
+                      // 🛡️ BOTTOM SAFE AREA SPACER: Prevents navigation bar overlap
+                      SizedBox(height: MediaQuery.of(context).padding.bottom + 20),
+                    ],
+                  ),
+
+                  // 🌫️ BOTTOM GRADIENT OVERLAY: Consistent with DevocionalesPage
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    height: 80,
+                    child: IgnorePointer(
+                      child: Container(
                         decoration: BoxDecoration(
-                          color: _currentSectionIndex == index
-                              ? theme.colorScheme.primary
-                              : Colors.grey.withAlpha(128),
-                          borderRadius: BorderRadius.circular(4),
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              theme.scaffoldBackgroundColor.withValues(alpha: 0),
+                              theme.scaffoldBackgroundColor.withValues(alpha: 0.8),
+                              theme.scaffoldBackgroundColor,
+                            ],
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
-                // Swipeable carousel for sections/cards
-                Expanded(
-                  child: PageView.builder(
-                    controller: _pageController,
-                    onPageChanged: (index) {
-                      setState(() {
-                        _currentSectionIndex = index;
-                      });
-                    },
-                    itemCount: study.totalSections,
-                    itemBuilder: (context, index) {
-                      final isLast = index == study.totalSections - 1;
-                      return AnimatedContainer(
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeInOutCubic,
-                        margin: EdgeInsets.symmetric(
-                          horizontal: _currentSectionIndex == index ? 8 : 24,
-                          vertical: _currentSectionIndex == index ? 0 : 24,
-                        ),
-                        child: Material(
-                          elevation: _currentSectionIndex == index ? 8 : 2,
-                          borderRadius: BorderRadius.circular(24),
-                          child: Stack(
-                            children: [
-                              // Render based on format (cards vs secciones)
-                              if (study.cards.isNotEmpty)
-                                _buildCardContent(study.cards[index], isDark)
-                              else if (study.secciones != null &&
-                                  study.secciones!.isNotEmpty)
-                                DiscoverySectionCard(
-                                  section: study.secciones![index],
-                                  studyId: widget.studyId,
-                                  sectionIndex: index,
-                                  isDark: isDark,
-                                  versiculoClave: study.versiculoClave,
-                                ),
-                              if (isLast)
-                                Positioned.fill(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      // Show a random Lottie animation from the list
-                                      SizedBox(
-                                        height: 120,
-                                        child: Lottie.asset(
-                                          _randomCelebrationLottie,
-                                          repeat: false,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ],
-            );
-          }
+                ],
+              );
+            }
 
-          return const SizedBox.shrink();
-        },
+            return const SizedBox.shrink();
+          },
+        ),
       ),
     );
   }
 
-  Widget _buildStudyHeader(
-    DiscoveryDevotional study,
-    ThemeData theme,
-    bool isDark,
-  ) {
+  Widget _buildStudyHeader(DiscoveryDevotional study, ThemeData theme) {
     return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color:
-            isDark ? Colors.grey[850] : theme.colorScheme.primary.withAlpha(26),
-        border: Border(
-          bottom: BorderSide(
-            color: theme.dividerColor,
-          ),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(24, 12, 24, 12),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            study.reflexion,
-            style: theme.textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.bold,
+          Expanded(
+            child: Text(
+              study.reflexion,
+              style: theme.textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.w900,
+                letterSpacing: -0.8,
+                fontSize: 22,
+              ),
             ),
           ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              const Spacer(),
-              Chip(
-                label: Text(
-                  '${'Section'.tr()} ${_currentSectionIndex + 1}/${study.totalSections}',
-                  style: const TextStyle(fontSize: 12),
-                ),
-                padding: EdgeInsets.zero,
-                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          const SizedBox(width: 16),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primary.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              '${_currentSectionIndex + 1}/${study.totalSections}',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w800,
+                color: theme.colorScheme.primary,
               ),
-            ],
+            ),
           ),
         ],
       ),
     );
   }
 
-  // Build card content based on card type
+  Widget _buildProgressIndicator(DiscoveryDevotional study, ThemeData theme) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: List.generate(
+          study.totalSections,
+          (index) => AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            margin: const EdgeInsets.symmetric(horizontal: 3),
+            width: _currentSectionIndex == index ? 24 : 6,
+            height: 6,
+            decoration: BoxDecoration(
+              color: _currentSectionIndex == index
+                  ? theme.colorScheme.primary
+                  : theme.colorScheme.primary.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(3),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAnimatedCard(DiscoveryDevotional study, int index, bool isDark, bool isLast) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 400),
+      curve: Curves.easeOutQuart,
+      margin: EdgeInsets.symmetric(
+        horizontal: _currentSectionIndex == index ? 12 : 28,
+        vertical: _currentSectionIndex == index ? 4 : 24,
+      ),
+      child: Material(
+        elevation: _currentSectionIndex == index ? 8 : 1,
+        borderRadius: BorderRadius.circular(32),
+        shadowColor: Colors.black.withValues(alpha: 0.08),
+        clipBehavior: Clip.antiAlias,
+        child: Stack(
+          children: [
+            if (study.cards.isNotEmpty)
+              _buildCardContent(study.cards[index], isDark)
+            else if (study.secciones != null && study.secciones!.isNotEmpty)
+              DiscoverySectionCard(
+                section: study.secciones![index],
+                studyId: widget.studyId,
+                sectionIndex: index,
+                isDark: isDark,
+                versiculoClave: study.versiculoClave,
+              ),
+            if (isLast)
+              Center(
+                child: Lottie.asset(_randomCelebrationLottie, repeat: false, height: 200),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildCardContent(DiscoveryCard card, bool isDark) {
-    // For now, render a simple card view
-    // TODO: Create specialized card widgets for each type
+    final theme = Theme.of(context);
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(28),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Icon
           if (card.icon != null) ...[
-            Text(
-              card.icon!,
-              style: const TextStyle(fontSize: 48),
-            ),
-            const SizedBox(height: 16),
+            Text(card.icon!, style: const TextStyle(fontSize: 52)),
+            const SizedBox(height: 20),
           ],
 
-          // Title
           Text(
             card.title,
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+            style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800, letterSpacing: -0.5),
           ),
 
-          // Subtitle
           if (card.subtitle != null) ...[
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             Text(
               card.subtitle!,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Colors.grey[600],
-                    fontStyle: FontStyle.italic,
-                  ),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.primary.withValues(alpha: 0.7),
+                fontWeight: FontWeight.w600,
+                fontStyle: FontStyle.italic,
+              ),
             ),
           ],
 
           const SizedBox(height: 24),
 
-          // Content
           if (card.content != null)
             Text(
               card.content!,
-              style: Theme.of(context).textTheme.bodyLarge,
+              style: theme.textTheme.bodyLarge?.copyWith(height: 1.6, color: theme.colorScheme.onSurface.withValues(alpha: 0.9)),
             ),
 
-          // Revelation Key
           if (card.revelationKey != null) ...[
-            const SizedBox(height: 24),
+            const SizedBox(height: 32),
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primaryContainer,
-                borderRadius: BorderRadius.circular(12),
+                color: theme.colorScheme.primary,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: theme.colorScheme.primary.withValues(alpha: 0.3),
+                    blurRadius: 15,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
               ),
               child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Icon(Icons.lightbulb, size: 24),
-                  const SizedBox(width: 12),
+                  const Icon(Icons.lightbulb_rounded, size: 28, color: Colors.white),
+                  const SizedBox(width: 16),
                   Expanded(
                     child: Text(
                       card.revelationKey!,
                       style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 16,
+                        color: Colors.white,
+                        height: 1.4,
                       ),
                     ),
                   ),
@@ -333,166 +305,115 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
             ),
           ],
 
-          // Scripture Connections
           if (card.scriptureConnections != null) ...[
-            const SizedBox(height: 24),
-            ...card.scriptureConnections!.map(
-              (scripture) => Container(
-                margin: const EdgeInsets.only(bottom: 16),
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey.shade300),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      scripture.reference,
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      scripture.text,
-                      style: const TextStyle(fontStyle: FontStyle.italic),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+            const SizedBox(height: 32),
+            ...card.scriptureConnections!.map((scripture) => _buildScriptureTile(scripture, theme)),
           ],
 
-          // Greek Words
           if (card.greekWords != null) ...[
-            const SizedBox(height: 24),
-            ...card.greekWords!.map(
-              (word) => Container(
-                margin: const EdgeInsets.only(bottom: 16),
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.secondaryContainer,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Text(
-                          word.word,
-                          style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        if (word.transliteration != null) ...[
-                          const SizedBox(width: 8),
-                          Text(
-                            '(${word.transliteration})',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey[600],
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      word.reference,
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text('Significado: ${word.meaning}'),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Revelación: ${word.revelation}',
-                      style: const TextStyle(fontStyle: FontStyle.italic),
-                    ),
-                    const SizedBox(height: 8),
-                    Text('Aplicación: ${word.application}'),
-                  ],
-                ),
-              ),
-            ),
+            const SizedBox(height: 32),
+            ...card.greekWords!.map((word) => _buildGreekWordTile(word, theme)),
           ],
 
-          // Discovery Questions
           if (card.discoveryQuestions != null) ...[
-            const SizedBox(height: 24),
-            const Text(
-              'Preguntas de Descubrimiento',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            const SizedBox(height: 32),
+            const Text('Preguntas de Reflexión', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
             const SizedBox(height: 16),
-            ...card.discoveryQuestions!.map(
-              (question) => Container(
-                margin: const EdgeInsets.only(bottom: 12),
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey.shade300),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      question.category,
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(question.question),
-                  ],
-                ),
-              ),
-            ),
+            ...card.discoveryQuestions!.map((q) => _buildQuestionTile(q, theme)),
           ],
 
-          // Prayer
           if (card.prayer != null) ...[
-            const SizedBox(height: 24),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primaryContainer,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (card.prayer!.title != null) ...[
-                    Text(
-                      card.prayer!.title!,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                  ],
-                  Text(
-                    card.prayer!.content,
-                    style: const TextStyle(
-                      fontStyle: FontStyle.italic,
-                      height: 1.5,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            const SizedBox(height: 32),
+            _buildPrayerTile(card.prayer!, theme),
           ],
+          
+          const SizedBox(height: 40),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildScriptureTile(ScriptureConnection s, ThemeData theme) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceVariant.withValues(alpha: 0.3),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.1)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(s.reference, style: TextStyle(fontWeight: FontWeight.w900, color: theme.colorScheme.primary)),
+          const SizedBox(height: 8),
+          Text(s.text, style: const TextStyle(fontStyle: FontStyle.italic, height: 1.5)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGreekWordTile(GreekWord word, ThemeData theme) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.secondaryContainer.withValues(alpha: 0.4),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(word.word, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900)),
+              if (word.transliteration != null) ...[
+                const SizedBox(width: 8),
+                Text('(${word.transliteration})', style: TextStyle(fontSize: 14, color: theme.colorScheme.primary)),
+              ],
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text('Significado: ${word.meaning}', style: const TextStyle(fontWeight: FontWeight.bold)),
+          const SizedBox(height: 8),
+          Text('Revelación: ${word.revelation}', style: const TextStyle(fontStyle: FontStyle.italic)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuestionTile(DiscoveryQuestion q, ThemeData theme) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        border: Border.all(color: theme.dividerColor.withValues(alpha: 0.1)),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(q.category.toUpperCase(), style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: theme.colorScheme.primary, letterSpacing: 1)),
+          const SizedBox(height: 4),
+          Text(q.question, style: const TextStyle(fontWeight: FontWeight.w600)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPrayerTile(Prayer p, ThemeData theme) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(colors: [theme.colorScheme.primaryContainer, theme.colorScheme.surface]),
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('Oración de Activación', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+          const SizedBox(height: 12),
+          Text(p.content, style: const TextStyle(fontStyle: FontStyle.italic, height: 1.6)),
         ],
       ),
     );
