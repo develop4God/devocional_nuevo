@@ -149,17 +149,21 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
         final title = state.studyTitles[studyId] ?? _formatStudyTitle(studyId);
         final emoji = state.studyEmojis[studyId];
         final isCompleted = state.completedStudies[studyId] ?? false;
+        final isFavorite = state.favoriteStudyIds.contains(studyId); // Check favorite status
 
         final mockDevocional = _createMockDevocional(studyId, emoji: emoji);
 
         return DevotionalCardPremium(
           devocional: mockDevocional,
           title: title,
-          isFavorite: false,
-          isCompleted: isCompleted, // FIXED: Now passing completion status
+          isFavorite: isFavorite, // Pass correct favorite status
+          isCompleted: isCompleted,
           isDark: isDark,
           onTap: () => _navigateToDetail(context, studyId),
-          onFavoriteToggle: () {},
+          onFavoriteToggle: () {
+            // ✅ ACTION LINKED: Toggle favorite in Bloc
+            context.read<DiscoveryBloc>().add(ToggleDiscoveryFavorite(studyId));
+          },
         );
       },
       itemCount: studyIds.length,
