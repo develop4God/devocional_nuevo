@@ -54,13 +54,15 @@ class _FavoritesPageState extends State<FavoritesPage> with SingleTickerProvider
         appBar: CustomAppBar(titleText: 'favorites.title'.tr()),
         body: Column(
           children: [
+            // Container para las tabs (Estilo Prayer Page)
             Container(
               color: colorScheme.surface,
               child: TabBar(
                 controller: _tabController,
                 indicatorColor: colorScheme.primary,
                 labelColor: colorScheme.primary,
-                unselectedLabelColor: colorScheme.onSurface.withValues(alpha: 0.6),
+                // Changed alpha from 0.6 to 0.3 for a lighter, less dark gray
+                unselectedLabelColor: colorScheme.onSurface.withValues(alpha: 0.3),
                 indicatorWeight: 3,
                 tabs: [
                   Tab(
@@ -232,10 +234,8 @@ class _FavoritesPageState extends State<FavoritesPage> with SingleTickerProvider
       ),
       child: InkWell(
         onTap: () {
-          // ✅ FIX: Load the study content before navigating to fix the indefinite spinner
           final languageCode = context.read<DevocionalProvider>().selectedLanguage;
           context.read<DiscoveryBloc>().add(LoadDiscoveryStudy(id, languageCode: languageCode));
-          
           Navigator.push(context, MaterialPageRoute(builder: (c) => DiscoveryDetailPage(studyId: id)));
         },
         borderRadius: BorderRadius.circular(24),
@@ -303,8 +303,9 @@ class _FavoritesPageState extends State<FavoritesPage> with SingleTickerProvider
   }
 
   Widget _buildEmptyState(BuildContext context, {required Widget icon, required String title, required String message}) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final textTheme = theme.textTheme;
 
     return Center(
       child: Padding(
@@ -312,12 +313,12 @@ class _FavoritesPageState extends State<FavoritesPage> with SingleTickerProvider
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            icon,
+            Opacity(opacity: 0.5, child: icon),
             const SizedBox(height: 24),
             Text(
               title,
               style: textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w900,
                 color: colorScheme.onSurface,
               ),
               textAlign: TextAlign.center,
