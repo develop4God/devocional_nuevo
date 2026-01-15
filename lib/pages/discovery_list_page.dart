@@ -80,21 +80,32 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
             if (state.availableStudyIds.isEmpty) {
               return _buildEmptyState(context);
             }
+
+            // Move completed studies to the end
+            final sortedIds = List<String>.from(state.availableStudyIds);
+            sortedIds.sort((a, b) {
+              final aCompleted = state.completedStudies[a] ?? false;
+              final bCompleted = state.completedStudies[b] ?? false;
+              if (aCompleted && !bCompleted) return 1;
+              if (!aCompleted && bCompleted) return -1;
+              return 0;
+            });
+
             return Stack(
               children: [
                 Column(
                   children: [
-                    _buildProgressDots(state.availableStudyIds.length),
+                    _buildProgressDots(sortedIds.length),
                     const SizedBox(height: 16),
                     Expanded(
                       child: _buildCarousel(
-                          context, state, state.availableStudyIds),
+                          context, state, sortedIds),
                     ),
-                    _buildActionBar(context, state.availableStudyIds),
+                    _buildActionBar(context, sortedIds),
                   ],
                 ),
                 if (_showGridOverlay)
-                  _buildGridOverlay(context, state.availableStudyIds),
+                  _buildGridOverlay(context, sortedIds),
               ],
             );
           }
@@ -136,15 +147,16 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
       itemBuilder: (context, index) {
         final studyId = studyIds[index];
         final title = state.studyTitles[studyId] ?? _formatStudyTitle(studyId);
-        final emoji = state.studyEmojis[studyId]; // Extract emoji from state
+        final emoji = state.studyEmojis[studyId];
+        final isCompleted = state.completedStudies[studyId] ?? false;
 
-        // Create mock devotional with the explicit emoji
         final mockDevocional = _createMockDevocional(studyId, emoji: emoji);
 
         return DevotionalCardPremium(
           devocional: mockDevocional,
           title: title,
           isFavorite: false,
+          isCompleted: isCompleted, // FIXED: Now passing completion status
           isDark: isDark,
           onTap: () => _navigateToDetail(context, studyId),
           onFavoriteToggle: () {},
@@ -380,7 +392,7 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
       paraMeditar: [],
       oracion: '',
       tags: ['Discovery', 'Study', 'Growth'],
-      emoji: emoji, // Pass the emoji here!
+      emoji: emoji,
     );
   }
 
