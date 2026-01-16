@@ -44,7 +44,6 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
   /// Shared logic to fetch index and emit loaded state
   Future<void> _fetchAndEmitIndex(Emitter<DiscoveryState> emit, {bool forceRefresh = false, String? languageCode}) async {
     try {
-      final studyIds = await repository.fetchAvailableStudies(forceRefresh: forceRefresh);
       final index = await repository.fetchIndex(forceRefresh: forceRefresh);
       final favoriteIds = await favoritesService.loadFavoriteIds();
       
@@ -58,6 +57,7 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
 
       debugPrint('🌐 Discovery: Building index for language: $locale');
 
+      final List<String> filteredStudyIds = [];
       final Map<String, String> studyTitles = {};
       final Map<String, String> studyEmojis = {};
       final Map<String, bool> completedStudies = {};
@@ -66,24 +66,32 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
       for (final s in studies) {
         final id = s['id'] as String?;
         if (id != null) {
-          final titles = s['titles'] as Map<String, dynamic>?;
-          final emoji = s['emoji'] as String?;
-
-          if (titles != null) {
-            studyTitles[id] = titles[locale] ?? titles['es'] ?? id;
-          }
-          if (emoji != null) {
-            studyEmojis[id] = emoji;
-          }
+          final files = s['files'] as Map<String, dynamic>?;
           
-          final progress = await progressTracker.getProgress(id);
-          completedStudies[id] = progress.isCompleted;
+          // ✅ FIX: Only include studies that support the current locale
+          // This prevents showing Spanish studies when the app is in English
+          if (files != null && files.containsKey(locale)) {
+            filteredStudyIds.add(id);
+            
+            final titles = s['titles'] as Map<String, dynamic>?;
+            final emoji = s['emoji'] as String?;
+
+            if (titles != null) {
+              studyTitles[id] = titles[locale] ?? titles['es'] ?? id;
+            }
+            if (emoji != null) {
+              studyEmojis[id] = emoji;
+            }
+            
+            final progress = await progressTracker.getProgress(id);
+            completedStudies[id] = progress.isCompleted;
+          }
         }
       }
       
       emit(
         DiscoveryLoaded(
-          availableStudyIds: studyIds,
+          availableStudyIds: filteredStudyIds,
           loadedStudies: {},
           studyTitles: studyTitles,
           studyEmojis: studyEmojis,

@@ -35,7 +35,7 @@ class DevotionalCardPremium extends StatelessWidget {
   final VoidCallback onFavoriteToggle;
   final bool isDark;
 
-  const DevotionalCardPremium({
+  DevotionalCardPremium({
     super.key,
     required this.devocional,
     required this.title,

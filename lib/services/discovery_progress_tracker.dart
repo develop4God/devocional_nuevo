@@ -9,10 +9,11 @@ class DiscoveryProgressTracker {
   static const String _progressKeyPrefix = 'discovery_progress_';
 
   /// Get progress for a specific study
-  Future<DiscoveryProgress> getProgress(String studyId) async {
+  Future<DiscoveryProgress> getProgress(String studyId, [String? languageCode]) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final key = '$_progressKeyPrefix$studyId';
+      // ✅ Use languageCode in key to keep progress separate per language
+      final key = _getStudyKey(studyId, languageCode);
       final progressJson = prefs.getString(key);
 
       if (progressJson != null && progressJson.isNotEmpty) {
@@ -20,17 +21,17 @@ class DiscoveryProgressTracker {
         return DiscoveryProgress.fromJson(json);
       }
 
-      return DiscoveryProgress(studyId: studyId);
+      return DiscoveryProgress(studyId: studyId, languageCode: languageCode);
     } catch (e) {
       debugPrint('Error loading progress for $studyId: $e');
-      return DiscoveryProgress(studyId: studyId);
+      return DiscoveryProgress(studyId: studyId, languageCode: languageCode);
     }
   }
 
   /// Mark a section as completed
-  Future<void> markSectionCompleted(String studyId, int sectionIndex) async {
+  Future<void> markSectionCompleted(String studyId, int sectionIndex, [String? languageCode]) async {
     try {
-      final progress = await getProgress(studyId);
+      final progress = await getProgress(studyId, languageCode);
       if (!progress.completedSections.contains(sectionIndex)) {
         final updatedSections = [...progress.completedSections, sectionIndex];
         final updatedProgress = progress.copyWith(
@@ -47,10 +48,11 @@ class DiscoveryProgressTracker {
   Future<void> answerQuestion(
     String studyId,
     int questionIndex,
-    String answer,
-  ) async {
+    String answer, [
+    String? languageCode,
+  ]) async {
     try {
-      final progress = await getProgress(studyId);
+      final progress = await getProgress(studyId, languageCode);
       final updatedAnswers = Map<int, String>.from(progress.answeredQuestions);
       updatedAnswers[questionIndex] = answer;
 
@@ -64,9 +66,9 @@ class DiscoveryProgressTracker {
   }
 
   /// Mark a study as completed
-  Future<void> completeStudy(String studyId) async {
+  Future<void> completeStudy(String studyId, [String? languageCode]) async {
     try {
-      final progress = await getProgress(studyId);
+      final progress = await getProgress(studyId, languageCode);
       if (!progress.isCompleted) {
         final updatedProgress = progress.copyWith(
           isCompleted: true,
@@ -80,12 +82,12 @@ class DiscoveryProgressTracker {
   }
 
   /// NEW: Clears progress for a specific study so user can "do it again"
-  Future<void> resetStudyProgress(String studyId) async {
+  Future<void> resetStudyProgress(String studyId, [String? languageCode]) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final key = '$_progressKeyPrefix$studyId';
+      final key = _getStudyKey(studyId, languageCode);
       await prefs.remove(key);
-      debugPrint('♻️ Discovery: Progress reset for study $studyId');
+      debugPrint('♻️ Discovery: Progress reset for study $studyId ($languageCode)');
     } catch (e) {
       debugPrint('Error resetting study progress: $e');
     }
@@ -94,10 +96,11 @@ class DiscoveryProgressTracker {
   /// Calculate completion percentage for a study
   Future<double> getCompletionPercentage(
     String studyId,
-    int totalSections,
-  ) async {
+    int totalSections, [
+    String? languageCode,
+  ]) async {
     try {
-      final progress = await getProgress(studyId);
+      final progress = await getProgress(studyId, languageCode);
       if (totalSections == 0) return 0.0;
       return progress.completedSections.length / totalSections;
     } catch (e) {
@@ -106,11 +109,18 @@ class DiscoveryProgressTracker {
     }
   }
 
+  String _getStudyKey(String studyId, String? languageCode) {
+    if (languageCode != null && languageCode.isNotEmpty) {
+      return '$_progressKeyPrefix${studyId}_$languageCode';
+    }
+    return '$_progressKeyPrefix$studyId';
+  }
+
   /// Save progress to SharedPreferences
   Future<void> _saveProgress(DiscoveryProgress progress) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final key = '$_progressKeyPrefix${progress.studyId}';
+      final key = _getStudyKey(progress.studyId, progress.languageCode);
       final json = jsonEncode(progress.toJson());
       await prefs.setString(key, json);
     } catch (e) {
@@ -137,6 +147,7 @@ class DiscoveryProgressTracker {
 /// Model to track progress for a Discovery study
 class DiscoveryProgress {
   final String studyId;
+  final String? languageCode;
   final List<int> completedSections;
   final Map<int, String> answeredQuestions;
   final bool isCompleted;
@@ -144,6 +155,7 @@ class DiscoveryProgress {
 
   DiscoveryProgress({
     required this.studyId,
+    this.languageCode,
     List<int>? completedSections,
     Map<int, String>? answeredQuestions,
     this.isCompleted = false,
@@ -155,6 +167,7 @@ class DiscoveryProgress {
   factory DiscoveryProgress.fromJson(Map<String, dynamic> json) {
     return DiscoveryProgress(
       studyId: json['studyId'] as String? ?? '',
+      languageCode: json['languageCode'] as String?,
       completedSections: (json['completedSections'] as List<dynamic>?)
               ?.map((e) => e as int)
               .toList() ??
@@ -175,6 +188,7 @@ class DiscoveryProgress {
   Map<String, dynamic> toJson() {
     return {
       'studyId': studyId,
+      'languageCode': languageCode,
       'completedSections': completedSections,
       'answeredQuestions': answeredQuestions.map(
         (key, value) => MapEntry(key.toString(), value),
@@ -187,6 +201,7 @@ class DiscoveryProgress {
   /// Copy with updated fields
   DiscoveryProgress copyWith({
     String? studyId,
+    String? languageCode,
     List<int>? completedSections,
     Map<int, String>? answeredQuestions,
     bool? isCompleted,
@@ -194,6 +209,7 @@ class DiscoveryProgress {
   }) {
     return DiscoveryProgress(
       studyId: studyId ?? this.studyId,
+      languageCode: languageCode ?? this.languageCode,
       completedSections: completedSections ?? this.completedSections,
       answeredQuestions: answeredQuestions ?? this.answeredQuestions,
       isCompleted: isCompleted ?? this.isCompleted,
