@@ -29,9 +29,6 @@ void main() {
       () async {
         // Arrange
         when(mockFlutterTts.stop()).thenAnswer((_) async => 1);
-        when(mockFlutterTts.getVoices).thenAnswer((_) async => [
-              {'name': 'en-us-x-tpf-local', 'locale': 'en-US'}
-            ]);
         when(mockFlutterTts.setVoice(any)).thenAnswer((_) async => 1);
         when(mockFlutterTts.setSpeechRate(any)).thenAnswer((_) async => 1);
         when(mockFlutterTts.speak(any)).thenAnswer((_) async => 1);
@@ -45,7 +42,6 @@ void main() {
 
         // Assert
         verify(mockFlutterTts.stop()).called(1);
-        verify(mockFlutterTts.getVoices).called(1);
         verify(mockFlutterTts.setVoice(any)).called(1);
         verify(mockFlutterTts.setSpeechRate(any)).called(1);
         verify(mockFlutterTts.speak(any)).called(1);
@@ -55,10 +51,6 @@ void main() {
     test('playVoiceSample should handle multiple calls correctly', () async {
       // Arrange
       when(mockFlutterTts.stop()).thenAnswer((_) async => 1);
-      when(mockFlutterTts.getVoices).thenAnswer((_) async => [
-            {'name': 'en-us-x-tpf-local', 'locale': 'en-US'},
-            {'name': 'en-us-x-tpd-network', 'locale': 'en-US'}
-          ]);
       when(mockFlutterTts.setVoice(any)).thenAnswer((_) async => 1);
       when(mockFlutterTts.setSpeechRate(any)).thenAnswer((_) async => 1);
       when(mockFlutterTts.speak(any)).thenAnswer((_) async => 1);
@@ -77,7 +69,6 @@ void main() {
 
       // Assert - Stop should be called twice (once for each play)
       verify(mockFlutterTts.stop()).called(2);
-      verify(mockFlutterTts.getVoices).called(2);
       verify(mockFlutterTts.setVoice(any)).called(2);
       verify(mockFlutterTts.setSpeechRate(any)).called(2);
       verify(mockFlutterTts.speak(any)).called(2);

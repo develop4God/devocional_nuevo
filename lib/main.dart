@@ -65,7 +65,8 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     setupServiceLocator();
   } catch (e) {
     final locator = ServiceLocator();
-    locator.registerLazySingleton<NotificationService>(NotificationService.create);
+    locator
+        .registerLazySingleton<NotificationService>(NotificationService.create);
   }
 
   tzdata.initializeTimeZones();
@@ -100,7 +101,8 @@ void main() async {
   };
 
   Future.microtask(() async {
-    final FirebaseInAppMessaging inAppMessaging = FirebaseInAppMessaging.instance;
+    final FirebaseInAppMessaging inAppMessaging =
+        FirebaseInAppMessaging.instance;
     await inAppMessaging.setAutomaticDataCollectionEnabled(true);
     inAppMessaging.triggerEvent('app_launch');
   });
@@ -127,7 +129,8 @@ void main() async {
             create: (context) => DiscoveryBloc(
               repository: getService<DiscoveryRepository>(),
               progressTracker: getService<DiscoveryProgressTracker>(),
-              favoritesService: getService<DiscoveryFavoritesService>(), // ✅ FIXED: Injected service
+              favoritesService: getService<
+                  DiscoveryFavoritesService>(), // ✅ FIXED: Injected service
             ),
           ),
         BlocProvider(
@@ -191,7 +194,8 @@ class _MyAppState extends State<MyApp> {
 
   Future<bool> _initializeApp() async {
     try {
-      final localizationProvider = Provider.of<LocalizationProvider>(context, listen: false);
+      final localizationProvider =
+          Provider.of<LocalizationProvider>(context, listen: false);
       await localizationProvider.initialize();
       if (!mounted) return false;
 
@@ -210,8 +214,8 @@ class _MyAppState extends State<MyApp> {
 
     return BlocBuilder<ThemeBloc, ThemeState>(
       builder: (context, themeState) {
-        ThemeData currentTheme = (themeState is ThemeLoaded) 
-            ? themeState.themeData 
+        ThemeData currentTheme = (themeState is ThemeLoaded)
+            ? themeState.themeData
             : context.read<ThemeBloc>().currentTheme;
 
         return AnnotatedRegion<SystemUiOverlayStyle>(
@@ -228,11 +232,16 @@ class _MyAppState extends State<MyApp> {
             home: FutureBuilder<bool>(
               future: _initializationFuture,
               builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) return const SplashScreen();
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const SplashScreen();
+                }
                 if (snapshot.hasData && snapshot.data == true) {
                   return OnboardingFlow(
                     onComplete: () {
-                      Navigator.of(context).pushReplacement(PageRouteBuilder(pageBuilder: (context, a, b) => const AppInitializer(), transitionDuration: Duration.zero));
+                      Navigator.of(context).pushReplacement(PageRouteBuilder(
+                          pageBuilder: (context, a, b) =>
+                              const AppInitializer(),
+                          transitionDuration: Duration.zero));
                     },
                   );
                 }
@@ -242,7 +251,8 @@ class _MyAppState extends State<MyApp> {
             routes: {
               '/settings': (context) => const SettingsPage(),
               '/devocionales': (context) => const DevocionalesPage(),
-              if (kDebugMode || _developerMode) '/debug': (context) => const DebugPage(),
+              if (kDebugMode || _developerMode)
+                '/debug': (context) => const DebugPage(),
             },
           ),
         );
@@ -270,7 +280,9 @@ class _AppInitializerState extends State<AppInitializer> {
     await _initCriticalServices();
     await _initAppData();
     if (!mounted) return;
-    Navigator.of(context).pushReplacement(PageRouteBuilder(pageBuilder: (context, a, b) => const DevocionalesPage(), transitionDuration: const Duration(milliseconds: 300)));
+    Navigator.of(context).pushReplacement(PageRouteBuilder(
+        pageBuilder: (context, a, b) => const DevocionalesPage(),
+        transitionDuration: const Duration(milliseconds: 300)));
     _initNonCriticalServices();
   }
 
@@ -279,14 +291,19 @@ class _AppInitializerState extends State<AppInitializer> {
       final FirebaseAuth auth = FirebaseAuth.instance;
       if (auth.currentUser == null) await auth.signInAnonymously();
     } catch (e) {}
-    try { tzdata.initializeTimeZones(); } catch (e) {}
+    try {
+      tzdata.initializeTimeZones();
+    } catch (e) {}
   }
 
   void _initNonCriticalServices() {
     Future.delayed(const Duration(seconds: 1), () async {
       try {
         if (!mounted) return;
-        final languageCode = Provider.of<LocalizationProvider>(context, listen: false).currentLocale.languageCode;
+        final languageCode =
+            Provider.of<LocalizationProvider>(context, listen: false)
+                .currentLocale
+                .languageCode;
         await getService<ITtsService>().initializeTtsOnAppStart(languageCode);
       } catch (e) {}
     });
@@ -304,7 +321,9 @@ class _AppInitializerState extends State<AppInitializer> {
           if (!mounted) return;
           final spiritualStatsService = SpiritualStatsService();
           await spiritualStatsService.getStats();
-          if (!await spiritualStatsService.isAutoBackupEnabled()) await spiritualStatsService.setAutoBackupEnabled(true);
+          if (!await spiritualStatsService.isAutoBackupEnabled()) {
+            await spiritualStatsService.setAutoBackupEnabled(true);
+          }
           if (!mounted) return;
           context.read<BackupBloc>().add(const CheckStartupBackup());
         } catch (e) {}
@@ -315,7 +334,8 @@ class _AppInitializerState extends State<AppInitializer> {
   Future<void> _initAppData() async {
     if (!mounted) return;
     try {
-      await Provider.of<DevocionalProvider>(context, listen: false).initializeData();
+      await Provider.of<DevocionalProvider>(context, listen: false)
+          .initializeData();
     } catch (e) {}
   }
 

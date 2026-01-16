@@ -49,30 +49,44 @@ class ServiceLocator {
     throw StateError('Service ${T.toString()} not registered.');
   }
 
-  bool isRegistered<T>() => _factories.containsKey(T) || _singletons.containsKey(T);
-  void reset() { _factories.clear(); _singletons.clear(); }
-  void unregister<T>() { _factories.remove(T); _singletons.remove(T); }
+  bool isRegistered<T>() =>
+      _factories.containsKey(T) || _singletons.containsKey(T);
+  void reset() {
+    _factories.clear();
+    _singletons.clear();
+  }
+
+  void unregister<T>() {
+    _factories.remove(T);
+    _singletons.remove(T);
+  }
 }
 
 void setupServiceLocator() {
   final locator = ServiceLocator();
 
-  locator.registerLazySingleton<LocalizationService>(() => LocalizationService());
-  locator.registerLazySingleton<VoiceSettingsService>(() => VoiceSettingsService());
+  locator
+      .registerLazySingleton<LocalizationService>(() => LocalizationService());
+  locator.registerLazySingleton<VoiceSettingsService>(
+      () => VoiceSettingsService());
   locator.registerLazySingleton<ITtsService>(() => TtsService());
   locator.registerLazySingleton<AnalyticsService>(() => AnalyticsService());
-  locator.registerLazySingleton<NotificationService>(NotificationService.create);
-  locator.registerLazySingleton<RemoteConfigService>(RemoteConfigService.create);
+  locator
+      .registerLazySingleton<NotificationService>(NotificationService.create);
+  locator
+      .registerLazySingleton<RemoteConfigService>(RemoteConfigService.create);
   locator.registerLazySingleton<http.Client>(() => http.Client());
-  
+
   locator.registerLazySingleton<DiscoveryRepository>(
     () => DiscoveryRepository(httpClient: locator.get<http.Client>()),
   );
 
-  locator.registerLazySingleton<DiscoveryProgressTracker>(() => DiscoveryProgressTracker());
-  
+  locator.registerLazySingleton<DiscoveryProgressTracker>(
+      () => DiscoveryProgressTracker());
+
   // ✅ REGISTER DISCOVERY FAVORITES SERVICE
-  locator.registerLazySingleton<DiscoveryFavoritesService>(() => DiscoveryFavoritesService());
+  locator.registerLazySingleton<DiscoveryFavoritesService>(
+      () => DiscoveryFavoritesService());
 }
 
 ServiceLocator get serviceLocator => ServiceLocator._instance;

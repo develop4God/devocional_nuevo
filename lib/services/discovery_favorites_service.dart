@@ -13,7 +13,7 @@ class DiscoveryFavoritesService {
     try {
       final prefs = await SharedPreferences.getInstance();
       final String? jsonString = prefs.getString(_favoritesKey);
-      
+
       if (jsonString != null && jsonString.isNotEmpty) {
         final List<dynamic> decoded = json.decode(jsonString);
         return decoded.cast<String>().toSet();
@@ -29,7 +29,7 @@ class DiscoveryFavoritesService {
     try {
       final prefs = await SharedPreferences.getInstance();
       final ids = await loadFavoriteIds();
-      
+
       bool wasAdded;
       if (ids.contains(studyId)) {
         ids.remove(studyId);
@@ -38,7 +38,7 @@ class DiscoveryFavoritesService {
         ids.add(studyId);
         wasAdded = true;
       }
-      
+
       await prefs.setString(_favoritesKey, json.encode(ids.toList()));
       debugPrint('⭐ Discovery Favorite toggled for $studyId: $wasAdded');
       return wasAdded;

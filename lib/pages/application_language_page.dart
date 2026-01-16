@@ -104,10 +104,12 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
       // Update DevocionalProvider with new language (pass context for UI locale update)
       if (mounted) {
         devocionalProvider.setSelectedLanguage(languageCode, context);
-        
+
         // Update DiscoveryBloc with new language
         if (Constants.enableDiscoveryFeature) {
-          context.read<DiscoveryBloc>().add(RefreshDiscoveryStudies(languageCode: languageCode));
+          context
+              .read<DiscoveryBloc>()
+              .add(RefreshDiscoveryStudies(languageCode: languageCode));
         }
       }
 

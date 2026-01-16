@@ -32,8 +32,10 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
     super.initState();
     // ✅ FIX: Pass selected language from provider instead of relying on default system locale
     final languageCode = context.read<DevocionalProvider>().selectedLanguage;
-    context.read<DiscoveryBloc>().add(LoadDiscoveryStudies(languageCode: languageCode));
-    
+    context
+        .read<DiscoveryBloc>()
+        .add(LoadDiscoveryStudies(languageCode: languageCode));
+
     _gridAnimationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 300),
@@ -101,14 +103,12 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
                     _buildProgressDots(sortedIds.length),
                     const SizedBox(height: 16),
                     Expanded(
-                      child: _buildCarousel(
-                          context, state, sortedIds),
+                      child: _buildCarousel(context, state, sortedIds),
                     ),
                     _buildActionBar(context, sortedIds),
                   ],
                 ),
-                if (_showGridOverlay)
-                  _buildGridOverlay(context, sortedIds),
+                if (_showGridOverlay) _buildGridOverlay(context, sortedIds),
               ],
             );
           }
@@ -152,7 +152,8 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
         final title = state.studyTitles[studyId] ?? _formatStudyTitle(studyId);
         final emoji = state.studyEmojis[studyId];
         final isCompleted = state.completedStudies[studyId] ?? false;
-        final isFavorite = state.favoriteStudyIds.contains(studyId); // Check favorite status
+        final isFavorite =
+            state.favoriteStudyIds.contains(studyId); // Check favorite status
 
         final mockDevocional = _createMockDevocional(studyId, emoji: emoji);
 
@@ -350,8 +351,11 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
             const SizedBox(height: 16),
             ElevatedButton.icon(
               onPressed: () {
-                final languageCode = context.read<DevocionalProvider>().selectedLanguage;
-                context.read<DiscoveryBloc>().add(LoadDiscoveryStudies(languageCode: languageCode));
+                final languageCode =
+                    context.read<DevocionalProvider>().selectedLanguage;
+                context
+                    .read<DiscoveryBloc>()
+                    .add(LoadDiscoveryStudies(languageCode: languageCode));
               },
               icon: const Icon(Icons.refresh),
               label: Text('app.retry'.tr()),

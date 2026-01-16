@@ -8,29 +8,50 @@ import 'package:devocional_nuevo/blocs/discovery/discovery_state.dart';
 import 'package:devocional_nuevo/models/discovery_devotional_model.dart';
 import 'package:devocional_nuevo/models/discovery_section_model.dart';
 import 'package:devocional_nuevo/repositories/discovery_repository.dart';
+import 'package:devocional_nuevo/services/discovery_favorites_service.dart';
 import 'package:devocional_nuevo/services/discovery_progress_tracker.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mocktail/mocktail.dart';
 import 'package:http/http.dart' as http;
+import 'package:mocktail/mocktail.dart';
 
 class MockDiscoveryRepository extends Mock implements DiscoveryRepository {}
 
 class MockDiscoveryProgressTracker extends Mock
     implements DiscoveryProgressTracker {}
 
+class MockDiscoveryFavoritesService extends Mock
+    implements DiscoveryFavoritesService {}
+
 class MockHttpClient extends Mock implements http.Client {}
 
 void main() {
   late MockDiscoveryRepository mockRepository;
   late MockDiscoveryProgressTracker mockProgressTracker;
+  late MockDiscoveryFavoritesService mockFavoritesService;
   late DiscoveryBloc bloc;
 
   setUp(() {
     mockRepository = MockDiscoveryRepository();
     mockProgressTracker = MockDiscoveryProgressTracker();
+    mockFavoritesService = MockDiscoveryFavoritesService();
+    
+    // Default stub for loadFavoriteIds
+    when(() => mockFavoritesService.loadFavoriteIds())
+        .thenAnswer((_) async => <String>{});
+    
+    // Default stub for getProgress - return uncompleted progress
+    when(() => mockProgressTracker.getProgress(any()))
+        .thenAnswer((_) async => DiscoveryProgress(
+              studyId: 'test',
+              completedSections: [],
+              answeredQuestions: {},
+              isCompleted: false,
+            ));
+    
     bloc = DiscoveryBloc(
       repository: mockRepository,
       progressTracker: mockProgressTracker,
+      favoritesService: mockFavoritesService,
     );
   });
 
@@ -45,12 +66,30 @@ void main() {
 
     group('LoadDiscoveryStudies', () {
       final studyIds = ['estrella-manana-001', 'estrella-manana-002'];
+      final mockIndex = {
+        'studies': [
+          {
+            'id': 'estrella-manana-001',
+            'version': '1.0',
+            'files': {'es': 'file1.json'},
+            'title': {'es': 'Study 1'},
+            'emoji': '📖',
+          },
+          {
+            'id': 'estrella-manana-002',
+            'version': '1.0',
+            'files': {'es': 'file2.json'},
+            'title': {'es': 'Study 2'},
+            'emoji': '✨',
+          },
+        ],
+      };
 
       blocTest<DiscoveryBloc, DiscoveryState>(
         'emits [DiscoveryLoading, DiscoveryLoaded] when studies load successfully',
         build: () {
-          when(() => mockRepository.fetchAvailableStudies())
-              .thenAnswer((_) async => studyIds);
+          when(() => mockRepository.fetchIndex(forceRefresh: any(named: 'forceRefresh')))
+              .thenAnswer((_) async => mockIndex);
           return bloc;
         },
         act: (bloc) => bloc.add(LoadDiscoveryStudies()),
@@ -61,14 +100,14 @@ void main() {
               .having((s) => s.loadedStudies, 'loadedStudies', isEmpty),
         ],
         verify: (_) {
-          verify(() => mockRepository.fetchAvailableStudies()).called(1);
+          verify(() => mockRepository.fetchIndex(forceRefresh: any(named: 'forceRefresh'))).called(1);
         },
       );
 
       blocTest<DiscoveryBloc, DiscoveryState>(
         'emits [DiscoveryLoading, DiscoveryError] when loading fails',
         build: () {
-          when(() => mockRepository.fetchAvailableStudies())
+          when(() => mockRepository.fetchIndex(forceRefresh: any(named: 'forceRefresh')))
               .thenThrow(Exception('Network error'));
           return bloc;
         },
@@ -151,6 +190,10 @@ void main() {
         seed: () => DiscoveryLoaded(
           availableStudyIds: [studyId],
           loadedStudies: {},
+          studyTitles: {},
+          studyEmojis: {},
+          completedStudies: {},
+          favoriteStudyIds: {},
         ),
         act: (bloc) => bloc.add(MarkSectionCompleted(studyId, sectionIndex)),
         verify: (_) {
@@ -176,6 +219,10 @@ void main() {
         seed: () => DiscoveryLoaded(
           availableStudyIds: [studyId],
           loadedStudies: {},
+          studyTitles: {},
+          studyEmojis: {},
+          completedStudies: {},
+          favoriteStudyIds: {},
         ),
         act: (bloc) =>
             bloc.add(AnswerDiscoveryQuestion(studyId, questionIndex, answer)),
@@ -199,6 +246,10 @@ void main() {
         seed: () => DiscoveryLoaded(
           availableStudyIds: [studyId],
           loadedStudies: {},
+          studyTitles: {},
+          studyEmojis: {},
+          completedStudies: {},
+          favoriteStudyIds: {},
         ),
         act: (bloc) => bloc.add(CompleteDiscoveryStudy(studyId)),
         verify: (_) {
@@ -209,17 +260,46 @@ void main() {
 
     group('RefreshDiscoveryStudies', () {
       final studyIds = ['study-1', 'study-2', 'study-3'];
+      final mockIndex = {
+        'studies': [
+          {
+            'id': 'study-1',
+            'version': '1.0',
+            'files': {'es': 'file1.json'},
+            'title': {'es': 'Study 1'},
+            'emoji': '📖',
+          },
+          {
+            'id': 'study-2',
+            'version': '1.0',
+            'files': {'es': 'file2.json'},
+            'title': {'es': 'Study 2'},
+            'emoji': '✨',
+          },
+          {
+            'id': 'study-3',
+            'version': '1.0',
+            'files': {'es': 'file3.json'},
+            'title': {'es': 'Study 3'},
+            'emoji': '🌟',
+          },
+        ],
+      };
 
       blocTest<DiscoveryBloc, DiscoveryState>(
         'refreshes available studies list',
         build: () {
-          when(() => mockRepository.fetchAvailableStudies())
-              .thenAnswer((_) async => studyIds);
+          when(() => mockRepository.fetchIndex(forceRefresh: true))
+              .thenAnswer((_) async => mockIndex);
           return bloc;
         },
         seed: () => DiscoveryLoaded(
           availableStudyIds: ['old-study'],
           loadedStudies: {},
+          studyTitles: {},
+          studyEmojis: {},
+          completedStudies: {},
+          favoriteStudyIds: {},
         ),
         act: (bloc) => bloc.add(RefreshDiscoveryStudies()),
         expect: () => [
@@ -236,6 +316,10 @@ void main() {
         seed: () => DiscoveryLoaded(
           availableStudyIds: [],
           loadedStudies: {},
+          studyTitles: {},
+          studyEmojis: {},
+          completedStudies: {},
+          favoriteStudyIds: {},
           errorMessage: 'Some error',
         ),
         act: (bloc) => bloc.add(ClearDiscoveryError()),
@@ -251,11 +335,19 @@ void main() {
         final state1 = DiscoveryLoaded(
           availableStudyIds: [],
           loadedStudies: {},
+          studyTitles: {},
+          studyEmojis: {},
+          completedStudies: {},
+          favoriteStudyIds: {},
         );
         await Future.delayed(const Duration(milliseconds: 10));
         final state2 = DiscoveryLoaded(
           availableStudyIds: [],
           loadedStudies: {},
+          studyTitles: {},
+          studyEmojis: {},
+          completedStudies: {},
+          favoriteStudyIds: {},
         );
         // Different timestamps make states distinct for Equatable
         expect(state1, isNot(equals(state2)));
@@ -266,11 +358,19 @@ void main() {
         final state1 = DiscoveryLoaded(
           availableStudyIds: ['test'],
           loadedStudies: {},
+          studyTitles: {},
+          studyEmojis: {},
+          completedStudies: {},
+          favoriteStudyIds: {},
           lastUpdated: now,
         );
         final state2 = DiscoveryLoaded(
           availableStudyIds: ['test'],
           loadedStudies: {},
+          studyTitles: {},
+          studyEmojis: {},
+          completedStudies: {},
+          favoriteStudyIds: {},
           lastUpdated: now,
         );
         expect(state1, equals(state2));

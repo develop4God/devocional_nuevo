@@ -47,54 +47,6 @@ class VoiceSettingsService {
     return _sampleTtsInstance!;
   }
 
-  /// Wrapper that handles TTS engine state inconsistencies
-  /// Validates voice exists in system before calling setVoice to prevent crashes
-  Future<void> _safeSetVoice(
-    FlutterTts tts,
-    Map<String, String> voice,
-  ) async {
-    final name = voice['name'];
-    final locale = voice['locale'];
-
-    if (name == null || name.isEmpty) {
-      debugPrint('⚠️ [TTS Shield] Voice name is empty, skipping setVoice');
-      return;
-    }
-
-    try {
-      // Fetch available voices from the system
-      final dynamic voices = await tts.getVoices;
-
-      // CRITICAL SHIELD: If system returns null or empty, abort to prevent native crash
-      if (voices == null || voices is! List || voices.isEmpty) {
-        debugPrint(
-          '⚠️ [TTS Shield] No voices available in system. Skipping setVoice for $name',
-        );
-        return;
-      }
-
-      // Validate voice exists in system (match by name, locale is optional)
-      final bool exists = voices.any((v) =>
-          v is Map &&
-          v['name'] == name &&
-          (locale == null || locale.isEmpty || v['locale'] == locale));
-
-      if (!exists) {
-        debugPrint(
-          '⚠️ [TTS Shield] Voice "$name" (locale: $locale) not found in system. Available voices: ${voices.length}',
-        );
-        return;
-      }
-
-      // Voice exists, safe to set
-      await tts.setVoice(voice);
-      debugPrint('✅ [TTS Shield] Successfully set voice: $name ($locale)');
-    } catch (e) {
-      debugPrint('❌ [TTS Shield] Error setting voice: $e');
-      // Don't rethrow - gracefully handle TTS engine errors
-    }
-  }
-
   /// Asigna automáticamente una voz válida por defecto para un idioma si no hay ninguna guardada o la guardada es inválida
   /// Asigna automáticamente una voz válida por defecto para un idioma si no hay ninguna guardada o la guardada es inválida
   Future<void> autoAssignDefaultVoice(String language) async {
@@ -268,8 +220,8 @@ class VoiceSettingsService {
 
       await prefs.setString('tts_voice_$language', voiceData.toString());
 
-      // Only apply voice globally to TTS when saving - use safe wrapper
-      await _safeSetVoice(_flutterTts, {'name': voiceName, 'locale': locale});
+      // Solo aplicar la voz globalmente al TTS al guardar
+      await _flutterTts.setVoice({'name': voiceName, 'locale': locale});
 
       debugPrint(
         '🔧🗂️ VoiceSettings: Saved & applied voice ${voiceData['friendly_name']} (${voiceData['technical_name']}) for language $language',
@@ -290,7 +242,7 @@ class VoiceSettingsService {
       // CRITICAL: Use dedicated sample TTS instance to prevent interference
       // with main playback and avoid triggering the mini-player modal
       await _sampleTts.stop();
-      await _safeSetVoice(_sampleTts, {'name': voiceName, 'locale': locale});
+      await _sampleTts.setVoice({'name': voiceName, 'locale': locale});
       // Siempre aplicar rate 1.0 para samples (voz natural)
       await _sampleTts.setSpeechRate(0.6);
       await _sampleTts.speak(sampleText);
@@ -366,8 +318,8 @@ class VoiceSettingsService {
         }
         // --- END NEW ---
 
-        // Apply voice to TTS using safe wrapper
-        await _safeSetVoice(_flutterTts, {'name': voiceName, 'locale': locale});
+        // Aplicar la voz al TTS
+        await _flutterTts.setVoice({'name': voiceName, 'locale': locale});
 
         debugPrint(
           '🔧 VoiceSettings: Loaded saved voice $voiceName for language $language (locale: $locale)',
