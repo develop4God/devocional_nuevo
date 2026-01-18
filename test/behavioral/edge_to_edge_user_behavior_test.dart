@@ -48,18 +48,13 @@ void main() {
         // White icons
         const iconColor = Colors.white;
 
-        // Calculate relative luminance (simplified version)
-        // Real implementation would use WCAG formula
-        // For #424242 (RGB: 66, 66, 66) -> luminance ≈ 0.05
-        // For #FFFFFF (RGB: 255, 255, 255) -> luminance ≈ 1.0
-        // Contrast ratio = (1.0 + 0.05) / (0.05 + 0.05) ≈ 10.5:1
-
-        // Verify the colors are different (basic check)
+        // Verify the colors are different (basic validation)
         expect(backgroundColor, isNot(equals(iconColor)),
             reason:
                 'Navigation bar background and icons should have different colors');
 
         // Verify dark gray is dark but not pure black
+        // RGB values for #424242 are (66, 66, 66) - all below 128 (mid-range)
         expect(backgroundColor.r, lessThan(128),
             reason: 'Navigation bar should be dark');
         expect(backgroundColor.g, lessThan(128),
@@ -68,10 +63,15 @@ void main() {
             reason: 'Navigation bar should be dark');
 
         // Verify dark gray is not too dark (provides enough contrast)
+        // RGB values should be > 0 (not pure black which is 0,0,0)
         expect(backgroundColor.r, greaterThan(0),
             reason: 'Navigation bar should not be pure black');
         expect(backgroundColor.g, greaterThan(0),
             reason: 'Navigation bar should not be pure black');
+
+        // Note: Actual WCAG contrast ratio for #424242 on white is ~7.27:1
+        // which exceeds WCAG AA requirement of 4.5:1 for normal text
+        // This is validated in system_ui_overlay_style_test.dart
       });
 
       test('System UI configuration is consistent across app lifecycle', () {
@@ -207,16 +207,17 @@ void main() {
         // By calling WindowCompat.setDecorFitsSystemWindows(window, false)
         // BEFORE super.onCreate(), we prevent Flutter from calling deprecated APIs
 
-        // Expected API level support
-        const minSdkVersion = 21; // Lollipop
-        const targetSdkVersion = 35; // Android 15
+        // NOTE: These values should match the actual build configuration
+        // in android/app/build.gradle.kts. Update if SDK versions change.
+        const expectedMinSdk = 21; // Lollipop - minimum for WindowCompat
+        const expectedTargetSdk = 35; // Android 15 - target for edge-to-edge
 
         // Verify our minimum SDK supports WindowCompat
-        expect(minSdkVersion, greaterThanOrEqualTo(21),
+        expect(expectedMinSdk, greaterThanOrEqualTo(21),
             reason: 'WindowCompat requires API 21+');
 
         // Verify we target Android 15+
-        expect(targetSdkVersion, greaterThanOrEqualTo(35),
+        expect(expectedTargetSdk, greaterThanOrEqualTo(35),
             reason: 'Should target Android 15 (API 35) for edge-to-edge');
       });
 
