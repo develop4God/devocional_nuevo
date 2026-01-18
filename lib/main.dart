@@ -187,7 +187,8 @@ class _MyAppState extends State<MyApp> {
       getService<http.Client>().close();
     } catch (e) {
       // HTTP client cleanup is non-critical during disposal
-      developer.log('HTTP client cleanup failed: $e', name: 'dispose', error: e);
+      developer.log('HTTP client cleanup failed: $e',
+          name: 'dispose', error: e);
     }
     super.dispose();
   }
