@@ -143,7 +143,10 @@ class DiscoveryRepository {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('$_cacheKeyPrefix$id', jsonEncode(json));
       await prefs.setString('$_cacheKeyPrefix${id}_version', version);
-    } catch (e) {}
+    } catch (e) {
+      // Cache write failure is non-critical, app continues with network data
+      // Silently ignore to avoid console spam
+    }
   }
 
   Future<Map<String, dynamic>> fetchIndex({bool forceRefresh = false}) async {
