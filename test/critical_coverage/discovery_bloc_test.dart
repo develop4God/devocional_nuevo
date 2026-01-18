@@ -34,11 +34,11 @@ void main() {
     mockRepository = MockDiscoveryRepository();
     mockProgressTracker = MockDiscoveryProgressTracker();
     mockFavoritesService = MockDiscoveryFavoritesService();
-    
+
     // Default stub for loadFavoriteIds
     when(() => mockFavoritesService.loadFavoriteIds())
         .thenAnswer((_) async => <String>{});
-    
+
     // Default stub for getProgress - return uncompleted progress
     when(() => mockProgressTracker.getProgress(any()))
         .thenAnswer((_) async => DiscoveryProgress(
@@ -47,7 +47,7 @@ void main() {
               answeredQuestions: {},
               isCompleted: false,
             ));
-    
+
     bloc = DiscoveryBloc(
       repository: mockRepository,
       progressTracker: mockProgressTracker,
@@ -88,7 +88,8 @@ void main() {
       blocTest<DiscoveryBloc, DiscoveryState>(
         'emits [DiscoveryLoading, DiscoveryLoaded] when studies load successfully',
         build: () {
-          when(() => mockRepository.fetchIndex(forceRefresh: any(named: 'forceRefresh')))
+          when(() => mockRepository.fetchIndex(
+                  forceRefresh: any(named: 'forceRefresh')))
               .thenAnswer((_) async => mockIndex);
           return bloc;
         },
@@ -100,14 +101,16 @@ void main() {
               .having((s) => s.loadedStudies, 'loadedStudies', isEmpty),
         ],
         verify: (_) {
-          verify(() => mockRepository.fetchIndex(forceRefresh: any(named: 'forceRefresh'))).called(1);
+          verify(() => mockRepository.fetchIndex(
+              forceRefresh: any(named: 'forceRefresh'))).called(1);
         },
       );
 
       blocTest<DiscoveryBloc, DiscoveryState>(
         'emits [DiscoveryLoading, DiscoveryError] when loading fails',
         build: () {
-          when(() => mockRepository.fetchIndex(forceRefresh: any(named: 'forceRefresh')))
+          when(() => mockRepository.fetchIndex(
+                  forceRefresh: any(named: 'forceRefresh')))
               .thenThrow(Exception('Network error'));
           return bloc;
         },
