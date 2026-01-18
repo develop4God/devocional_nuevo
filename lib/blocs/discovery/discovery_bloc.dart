@@ -2,6 +2,7 @@
 
 import 'package:devocional_nuevo/models/discovery_devotional_model.dart';
 import 'package:devocional_nuevo/repositories/discovery_repository.dart';
+import 'package:devocional_nuevo/services/discovery_favorites_service.dart';
 import 'package:devocional_nuevo/services/discovery_progress_tracker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -9,67 +10,118 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'discovery_event.dart';
 import 'discovery_state.dart';
 
-/// BLoC for managing Discovery studies.
-///
-/// Follows the pattern from prayer_bloc.dart with constructor injection
-/// of repository and progress tracker.
+/// BLoC for managing Discovery studies with intelligent version-based fetching.
 class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
   final DiscoveryRepository repository;
   final DiscoveryProgressTracker progressTracker;
+  final DiscoveryFavoritesService favoritesService;
 
   DiscoveryBloc({
     required this.repository,
     required this.progressTracker,
+    required this.favoritesService,
   }) : super(DiscoveryInitial()) {
     on<LoadDiscoveryStudies>(_onLoadDiscoveryStudies);
     on<LoadDiscoveryStudy>(_onLoadDiscoveryStudy);
     on<MarkSectionCompleted>(_onMarkSectionCompleted);
     on<AnswerDiscoveryQuestion>(_onAnswerDiscoveryQuestion);
     on<CompleteDiscoveryStudy>(_onCompleteDiscoveryStudy);
+    on<ToggleDiscoveryFavorite>(_onToggleDiscoveryFavorite);
+    on<ResetDiscoveryStudy>(_onResetDiscoveryStudy);
     on<RefreshDiscoveryStudies>(_onRefreshDiscoveryStudies);
     on<ClearDiscoveryError>(_onClearDiscoveryError);
   }
 
-  /// Handles loading all available Discovery studies
+  /// Handles loading all available Discovery studies on page entry.
   Future<void> _onLoadDiscoveryStudies(
     LoadDiscoveryStudies event,
     Emitter<DiscoveryState> emit,
   ) async {
     emit(DiscoveryLoading());
+    await _fetchAndEmitIndex(emit, languageCode: event.languageCode);
+  }
 
+  /// Shared logic to fetch index and emit loaded state
+  Future<void> _fetchAndEmitIndex(Emitter<DiscoveryState> emit,
+      {bool forceRefresh = false, String? languageCode}) async {
     try {
-      final studyIds = await repository.fetchAvailableStudies();
+      final index = await repository.fetchIndex(forceRefresh: forceRefresh);
+      final favoriteIds = await favoritesService.loadFavoriteIds();
+
+      // ✅ PRIORITY: Use provided languageCode, then platform locale, then fallback 'es'
+      String locale = languageCode ?? 'es';
+      if (languageCode == null) {
+        try {
+          locale =
+              WidgetsBinding.instance.platformDispatcher.locale.languageCode;
+        } catch (_) {}
+      }
+
+      debugPrint('🌐 Discovery: Building index for language: $locale');
+
+      final List<String> filteredStudyIds = [];
+      final Map<String, String> studyTitles = {};
+      final Map<String, String> studyEmojis = {};
+      final Map<String, bool> completedStudies = {};
+
+      final studies = index['studies'] as List<dynamic>? ?? [];
+      for (final s in studies) {
+        final id = s['id'] as String?;
+        if (id != null) {
+          final files = s['files'] as Map<String, dynamic>?;
+
+          // ✅ FIX: Only include studies that support the current locale
+          // This prevents showing Spanish studies when the app is in English
+          if (files != null && files.containsKey(locale)) {
+            filteredStudyIds.add(id);
+
+            final titles = s['titles'] as Map<String, dynamic>?;
+            final emoji = s['emoji'] as String?;
+
+            if (titles != null) {
+              studyTitles[id] = titles[locale] ?? titles['es'] ?? id;
+            }
+            if (emoji != null) {
+              studyEmojis[id] = emoji;
+            }
+
+            final progress = await progressTracker.getProgress(id);
+            completedStudies[id] = progress.isCompleted;
+          }
+        }
+      }
+
       emit(
         DiscoveryLoaded(
-          availableStudyIds: studyIds,
+          availableStudyIds: filteredStudyIds,
           loadedStudies: {},
+          studyTitles: studyTitles,
+          studyEmojis: studyEmojis,
+          completedStudies: completedStudies,
+          favoriteStudyIds: favoriteIds,
         ),
       );
     } catch (e) {
-      debugPrint('Error loading Discovery studies: $e');
-      emit(DiscoveryError('Error al cargar estudios Discovery: $e'));
+      debugPrint('Error loading Discovery studies index: $e');
+      emit(DiscoveryError('Error al cargar índice de estudios: $e'));
     }
   }
 
-  /// Handles loading a specific Discovery study
+  /// Handles loading a specific Discovery study content.
   Future<void> _onLoadDiscoveryStudy(
     LoadDiscoveryStudy event,
     Emitter<DiscoveryState> emit,
   ) async {
     final currentState = state;
-
-    // Show loading state for this specific study
     emit(DiscoveryStudyLoading(event.studyId));
 
     try {
-      // Default to Spanish if no language code provided
       final languageCode = event.languageCode ?? 'es';
       final study = await repository.fetchDiscoveryStudy(
         event.studyId,
         languageCode,
       );
 
-      // Restore previous state if available, or create new loaded state
       if (currentState is DiscoveryLoaded) {
         final updatedStudies =
             Map<String, DiscoveryDevotional>.from(currentState.loadedStudies);
@@ -82,154 +134,136 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
           ),
         );
       } else {
-        // Create new loaded state if we don't have one
+        final progress = await progressTracker.getProgress(event.studyId);
+        final favoriteIds = await favoritesService.loadFavoriteIds();
         emit(
           DiscoveryLoaded(
             availableStudyIds: [event.studyId],
             loadedStudies: {event.studyId: study},
+            studyTitles: {},
+            studyEmojis: {},
+            completedStudies: {event.studyId: progress.isCompleted},
+            favoriteStudyIds: favoriteIds,
           ),
         );
       }
     } catch (e) {
       debugPrint('Error loading Discovery study ${event.studyId}: $e');
-
-      // Restore previous state with error message
       if (currentState is DiscoveryLoaded) {
-        emit(
-          currentState.copyWith(
-            errorMessage: 'Error al cargar estudio: $e',
-          ),
-        );
+        emit(currentState.copyWith(
+            errorMessage: 'Error al cargar contenido del estudio: $e'));
       } else {
         emit(DiscoveryError('Error al cargar estudio: $e'));
       }
     }
   }
 
-  /// Handles marking a section as completed
   Future<void> _onMarkSectionCompleted(
     MarkSectionCompleted event,
     Emitter<DiscoveryState> emit,
   ) async {
     try {
       await progressTracker.markSectionCompleted(
-        event.studyId,
-        event.sectionIndex,
-      );
-
-      // Emit the same state to trigger UI refresh
+          event.studyId, event.sectionIndex);
       final currentState = state;
       if (currentState is DiscoveryLoaded) {
         emit(currentState.copyWith(
-          clearError: true,
-          lastUpdated: DateTime.now(),
-        ));
+            clearError: true, lastUpdated: DateTime.now()));
       }
     } catch (e) {
       debugPrint('Error marking section completed: $e');
-      final currentState = state;
-      if (currentState is DiscoveryLoaded) {
-        emit(
-          currentState.copyWith(
-            errorMessage: 'Error al marcar sección como completada: $e',
-          ),
-        );
-      }
     }
   }
 
-  /// Handles answering a discovery question
   Future<void> _onAnswerDiscoveryQuestion(
     AnswerDiscoveryQuestion event,
     Emitter<DiscoveryState> emit,
   ) async {
     try {
       await progressTracker.answerQuestion(
-        event.studyId,
-        event.questionIndex,
-        event.answer,
-      );
-
-      // Emit the same state to trigger UI refresh
+          event.studyId, event.questionIndex, event.answer);
       final currentState = state;
       if (currentState is DiscoveryLoaded) {
         emit(currentState.copyWith(
-          clearError: true,
-          lastUpdated: DateTime.now(),
-        ));
+            clearError: true, lastUpdated: DateTime.now()));
       }
     } catch (e) {
       debugPrint('Error saving answer: $e');
-      final currentState = state;
-      if (currentState is DiscoveryLoaded) {
-        emit(
-          currentState.copyWith(
-            errorMessage: 'Error al guardar respuesta: $e',
-          ),
-        );
-      }
     }
   }
 
-  /// Handles completing a Discovery study
   Future<void> _onCompleteDiscoveryStudy(
     CompleteDiscoveryStudy event,
     Emitter<DiscoveryState> emit,
   ) async {
     try {
       await progressTracker.completeStudy(event.studyId);
-
-      // Emit the same state to trigger UI refresh
       final currentState = state;
       if (currentState is DiscoveryLoaded) {
+        final updatedCompletion =
+            Map<String, bool>.from(currentState.completedStudies);
+        updatedCompletion[event.studyId] = true;
+
         emit(currentState.copyWith(
+          completedStudies: updatedCompletion,
           clearError: true,
           lastUpdated: DateTime.now(),
         ));
       }
     } catch (e) {
       debugPrint('Error completing study: $e');
-      final currentState = state;
-      if (currentState is DiscoveryLoaded) {
-        emit(
-          currentState.copyWith(
-            errorMessage: 'Error al completar estudio: $e',
-          ),
-        );
-      }
     }
   }
 
-  /// Handles refreshing Discovery studies
+  /// Handles toggling favorite status
+  Future<void> _onToggleDiscoveryFavorite(
+    ToggleDiscoveryFavorite event,
+    Emitter<DiscoveryState> emit,
+  ) async {
+    final currentState = state;
+    if (currentState is DiscoveryLoaded) {
+      await favoritesService.toggleFavorite(event.studyId);
+      final updatedIds = await favoritesService.loadFavoriteIds();
+
+      emit(currentState.copyWith(
+        favoriteStudyIds: updatedIds,
+        lastUpdated: DateTime.now(),
+      ));
+    }
+  }
+
+  Future<void> _onResetDiscoveryStudy(
+    ResetDiscoveryStudy event,
+    Emitter<DiscoveryState> emit,
+  ) async {
+    try {
+      await progressTracker.resetStudyProgress(event.studyId);
+      final currentState = state;
+      if (currentState is DiscoveryLoaded) {
+        final updatedCompletion =
+            Map<String, bool>.from(currentState.completedStudies);
+        updatedCompletion[event.studyId] = false; // Mark as incomplete
+
+        emit(currentState.copyWith(
+          completedStudies: updatedCompletion,
+          clearError: true,
+          lastUpdated: DateTime.now(),
+        ));
+      }
+    } catch (e) {
+      debugPrint('Error resetting study progress: $e');
+    }
+  }
+
   Future<void> _onRefreshDiscoveryStudies(
     RefreshDiscoveryStudies event,
     Emitter<DiscoveryState> emit,
   ) async {
-    try {
-      final studyIds = await repository.fetchAvailableStudies();
-      final currentState = state;
-
-      if (currentState is DiscoveryLoaded) {
-        emit(
-          currentState.copyWith(
-            availableStudyIds: studyIds,
-            clearError: true,
-          ),
-        );
-      } else {
-        emit(
-          DiscoveryLoaded(
-            availableStudyIds: studyIds,
-            loadedStudies: {},
-          ),
-        );
-      }
-    } catch (e) {
-      debugPrint('Error refreshing Discovery studies: $e');
-    }
+    // ✅ PASS THE LANGUAGE CODE FROM EVENT
+    await _fetchAndEmitIndex(emit,
+        forceRefresh: true, languageCode: event.languageCode);
   }
 
-  /// Handles clearing error messages
   void _onClearDiscoveryError(
     ClearDiscoveryError event,
     Emitter<DiscoveryState> emit,

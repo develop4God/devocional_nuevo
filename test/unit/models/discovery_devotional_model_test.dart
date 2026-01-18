@@ -1,3 +1,4 @@
+import 'package:devocional_nuevo/models/discovery_card_model.dart';
 import 'package:devocional_nuevo/models/discovery_devotional_model.dart';
 import 'package:devocional_nuevo/models/discovery_section_model.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -19,6 +20,7 @@ void main() {
         paraMeditar: [],
         oracion: 'Señor, ayúdanos...',
         date: DateTime(2026, 1, 15),
+        cards: [],
         secciones: [section],
         preguntasDiscovery: ['¿Qué te llama la atención?'],
         versiculoClave: 'Apocalipsis 22:16',
@@ -77,6 +79,7 @@ void main() {
         paraMeditar: [],
         oracion: 'Test prayer',
         date: DateTime(2026, 1, 1),
+        cards: [],
         secciones: [section],
         preguntasDiscovery: ['Test question?'],
         versiculoClave: 'Juan 1:1',
@@ -102,6 +105,7 @@ void main() {
         paraMeditar: [],
         oracion: 'Original prayer',
         date: DateTime(2026, 1, 1),
+        cards: [],
         secciones: [],
         preguntasDiscovery: [],
         versiculoClave: 'Original key',
@@ -126,6 +130,7 @@ void main() {
         paraMeditar: [],
         oracion: 'Test',
         date: DateTime(2026, 1, 1),
+        cards: [],
         secciones: [
           DiscoverySection(tipo: 'natural', contenido: 'Test 1'),
           DiscoverySection(tipo: 'scripture', pasajes: []),
@@ -172,6 +177,177 @@ void main() {
       expect(devotional.id, equals('invalid-date-001'));
       // Should default to current date when parsing fails
       expect(devotional.date, isNotNull);
+    });
+
+    test('should parse new JSON format with cards', () {
+      final json = {
+        'id': 'morning_star_001',
+        'type': 'discovery',
+        'date': '2026-01-15',
+        'title': 'El Heraldo de la Luz',
+        'subtitle': 'La conexión eterna',
+        'language': 'es',
+        'version': 'RVR1960',
+        'estimated_reading_minutes': 5,
+        'key_verse': {
+          'reference': '2 Pedro 1:19',
+          'text': 'Tenemos también la palabra profética más segura',
+        },
+        'cards': [
+          {
+            'order': 1,
+            'type': 'natural_revelation',
+            'icon': '🔭',
+            'title': 'El Testimonio de la Creación',
+            'content': 'Venus es conocido como el Lucero del Alba',
+            'revelation_key': 'Venus refleja la gloria del Sol',
+          },
+          {
+            'order': 2,
+            'type': 'discovery_activation',
+            'title': 'Descubrimiento Personal',
+            'discovery_questions': [
+              {
+                'category': 'Situación',
+                'question': '¿En qué área sientes oscuridad?',
+              },
+            ],
+            'prayer': {
+              'title': 'Oración de Sellado',
+              'content': 'Señor Jesús, mi Logos...',
+            },
+          },
+        ],
+        'tags': ['luz', 'esperanza', 'cristo'],
+        'metadata': {
+          'total_word_count': 850,
+        },
+      };
+
+      final devotional = DiscoveryDevotional.fromJson(json);
+
+      // Verify basic fields
+      expect(devotional.id, equals('morning_star_001'));
+      expect(devotional.reflexion, equals('El Heraldo de la Luz'));
+      expect(devotional.subtitle, equals('La conexión eterna'));
+      expect(devotional.estimatedReadingMinutes, equals(5));
+      expect(devotional.language, equals('es'));
+      expect(devotional.version, equals('RVR1960'));
+
+      // Verify key verse
+      expect(devotional.keyVerse, isNotNull);
+      expect(devotional.keyVerse!.reference, equals('2 Pedro 1:19'));
+      expect(devotional.keyVerse!.text, contains('palabra profética'));
+
+      // Verify cards
+      expect(devotional.cards, hasLength(2));
+      expect(devotional.cards[0].type, equals('natural_revelation'));
+      expect(devotional.cards[0].icon, equals('🔭'));
+      expect(devotional.cards[1].type, equals('discovery_activation'));
+      expect(devotional.cards[1].prayer, isNotNull);
+
+      // Verify prayer extraction
+      expect(devotional.oracion, equals('Señor Jesús, mi Logos...'));
+
+      // Verify metadata
+      expect(devotional.metadata, isNotNull);
+      expect(devotional.metadata!['total_word_count'], equals(850));
+
+      // Verify tags
+      expect(devotional.tags, hasLength(3));
+      expect(devotional.tags, contains('luz'));
+
+      // Verify counts work with new format
+      expect(devotional.totalSections, equals(2));
+      expect(devotional.totalQuestions, equals(1));
+    });
+
+    test('should maintain backward compatibility with old secciones format',
+        () {
+      final json = {
+        'id': 'old-format-001',
+        'fecha': '2026-01-15',
+        'titulo': 'Old Format Study',
+        'versiculo_clave': 'Juan 1:1',
+        'secciones': [
+          {
+            'tipo': 'natural',
+            'titulo': 'Old Section',
+            'contenido': 'Old content',
+          },
+        ],
+        'preguntas_discovery': ['¿Pregunta antigua?'],
+        'oracion': 'Oración antigua',
+      };
+
+      final devotional = DiscoveryDevotional.fromJson(json);
+
+      // Should parse as old format
+      expect(devotional.cards, isEmpty);
+      expect(devotional.secciones, hasLength(1));
+      expect(devotional.secciones![0].tipo, equals('natural'));
+      expect(devotional.preguntasDiscovery, hasLength(1));
+      expect(devotional.versiculoClave, equals('Juan 1:1'));
+      expect(devotional.oracion, equals('Oración antigua'));
+    });
+
+    test('should serialize new format to JSON correctly', () {
+      final devotional = DiscoveryDevotional(
+        id: 'test-new-001',
+        versiculo: 'Test verse',
+        reflexion: 'Test Title',
+        paraMeditar: [],
+        oracion: 'Test prayer',
+        date: DateTime(2026, 1, 15),
+        subtitle: 'Test Subtitle',
+        estimatedReadingMinutes: 5,
+        keyVerse: KeyVerse(
+          reference: 'Juan 1:1',
+          text: 'En el principio',
+        ),
+        cards: [
+          DiscoveryCard(
+            order: 1,
+            type: 'natural_revelation',
+            title: 'Test Card',
+          ),
+        ],
+        metadata: {'test': true},
+        tags: ['test'],
+      );
+
+      final json = devotional.toJson();
+
+      expect(json['type'], equals('discovery'));
+      expect(json['title'], equals('Test Title'));
+      expect(json['subtitle'], equals('Test Subtitle'));
+      expect(json['estimated_reading_minutes'], equals(5));
+      expect(json['key_verse'], isNotNull);
+      expect(json['cards'], hasLength(1));
+      expect(json['metadata'], isNotNull);
+    });
+
+    test('copyWith should work with new fields', () {
+      final original = DiscoveryDevotional(
+        id: 'original',
+        versiculo: 'Original',
+        reflexion: 'Original',
+        paraMeditar: [],
+        oracion: 'Original',
+        date: DateTime(2026, 1, 1),
+        cards: [],
+        subtitle: 'Original Subtitle',
+        estimatedReadingMinutes: 3,
+      );
+
+      final updated = original.copyWith(
+        subtitle: 'Updated Subtitle',
+        estimatedReadingMinutes: 5,
+      );
+
+      expect(updated.subtitle, equals('Updated Subtitle'));
+      expect(updated.estimatedReadingMinutes, equals(5));
+      expect(updated.reflexion, equals('Original')); // unchanged
     });
   });
 }

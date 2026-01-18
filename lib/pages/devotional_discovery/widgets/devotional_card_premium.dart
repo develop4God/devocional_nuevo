@@ -28,45 +28,54 @@ class _DiscoveryCacheManager {
 /// Premium devotional card with full background image (Glorify/YouVersion style)
 class DevotionalCardPremium extends StatelessWidget {
   final Devocional devocional;
+  final String title;
   final bool isFavorite;
+  final bool isCompleted;
   final VoidCallback onTap;
   final VoidCallback onFavoriteToggle;
   final bool isDark;
 
-  const DevotionalCardPremium({
+  DevotionalCardPremium({
     super.key,
     required this.devocional,
+    required this.title,
     required this.isFavorite,
+    this.isCompleted = false,
     required this.onTap,
     required this.onFavoriteToggle,
     required this.isDark,
-  });
+  }) {
+    // ✅ DEBUG PRINT: Review why Spanish text might be appearing when English is expected
+    debugPrint(
+        '🏗️ DevotionalCardPremium: Created for title: "$title", id: "${devocional.id}"');
+  }
 
   @override
   Widget build(BuildContext context) {
     final displayDate = _getDisplayDate();
     final verseReference = _extractVerseReference(devocional.versiculo);
-    final verseText = _extractVerseText(devocional.versiculo);
+    final topicEmoji = _getTopicEmoji();
+    final colors = _getGradientColors();
 
     return Semantics(
       label:
-          'Devotional card for $verseReference. $verseText. Posted $displayDate. ${isFavorite ? "In favorites" : "Not in favorites"}',
+          'Devotional card for $title. $verseReference. Posted $displayDate. ${isFavorite ? "In favorites" : "Not in favorites"}',
       button: true,
       child: Container(
-        height: 320,
+        height: 360,
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(28),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.15),
-              blurRadius: 20,
-              offset: const Offset(0, 10),
+              color: Colors.black.withAlpha(50),
+              blurRadius: 25,
+              offset: const Offset(0, 12),
             ),
           ],
         ),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(28),
           child: Material(
             color: Colors.transparent,
             child: InkWell(
@@ -74,137 +83,180 @@ class DevotionalCardPremium extends StatelessWidget {
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  // Background image
+                  // 1. Background Image
                   _buildBackgroundImage(),
 
-                  // Dark gradient overlay (bottom to top)
+                  // 2. Light Effect / Bloom
+                  Positioned.fill(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: RadialGradient(
+                          center: const Alignment(0, -0.1),
+                          radius: 0.8,
+                          colors: [
+                            colors[1].withValues(alpha: 0.4),
+                            colors[1].withValues(alpha: 0.1),
+                            Colors.transparent,
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  // 3. Bottom Scrim
                   Container(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                         colors: [
-                          Colors.transparent,
+                          Colors.black.withValues(alpha: 0.1),
                           Colors.black.withValues(alpha: 0.3),
-                          Colors.black.withValues(alpha: 0.7),
-                          Colors.black.withValues(alpha: 0.9),
+                          Colors.black.withValues(alpha: 0.85),
                         ],
-                        stops: const [0.0, 0.4, 0.7, 1.0],
+                        stops: const [0.0, 0.5, 1.0],
                       ),
                     ),
                   ),
 
-                  // Content
+                  // 4. Content Layer
                   Padding(
-                    padding: const EdgeInsets.all(20),
+                    padding: const EdgeInsets.all(28),
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        // Top row: Date badge only
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            // Date badge
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 6,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.25),
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Text(
-                                displayDate,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                ),
+                        // Top Badge
+                        Align(
+                          alignment: Alignment.topCenter,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 14, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                  color: Colors.white.withValues(alpha: 0.3),
+                                  width: 0.8),
+                            ),
+                            child: Text(
+                              displayDate.toUpperCase(),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                                letterSpacing: 1.5,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
-                          ],
+                          ),
                         ),
 
                         const Spacer(),
 
-                        // Bottom content
-                        // Theme tag chips (muestra hasta 2 tags)
-                        if (devocional.tags != null &&
-                            devocional.tags!.isNotEmpty)
-                          Row(
-                            children: devocional.tags!
-                                .take(2)
-                                .map((tag) => Container(
-                                      margin: const EdgeInsets.only(right: 8),
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 12, vertical: 6),
-                                      decoration: BoxDecoration(
-                                        color: _getTagColor(tag),
-                                        borderRadius: BorderRadius.circular(16),
-                                      ),
-                                      child: Text(
-                                        TagColorDictionary.getTagTranslation(
-                                          tag,
-                                          Localizations.localeOf(context)
-                                              .languageCode,
-                                        ),
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.w600,
-                                          fontSize: 13,
-                                        ),
-                                      ),
-                                    ))
-                                .toList(),
-                          ),
+                        // Hero Section
+                        Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            Container(
+                              width: 80,
+                              height: 80,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.white.withValues(alpha: 0.1),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: colors[0].withValues(alpha: 0.3),
+                                    blurRadius: 40,
+                                    spreadRadius: 10,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Text(
+                              topicEmoji,
+                              style: const TextStyle(fontSize: 56, shadows: [
+                                Shadow(
+                                    color: Colors.black26,
+                                    blurRadius: 10,
+                                    offset: Offset(0, 4))
+                              ]),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 20),
 
-                        const SizedBox(height: 12),
-
-                        // Verse reference (large and bold)
                         Text(
-                          verseReference,
+                          title,
+                          textAlign: TextAlign.center,
                           style: const TextStyle(
                             color: Colors.white,
-                            fontSize: 26,
-                            fontWeight: FontWeight.bold,
+                            fontSize: 28,
+                            fontWeight: FontWeight.w900,
                             height: 1.1,
+                            letterSpacing: -0.8,
                           ),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
 
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 14),
 
-                        // Verse preview text
-                        Text(
-                          _extractVerseText(devocional.versiculo),
-                          style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.9),
-                            fontSize: 14,
-                            height: 1.4,
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(30),
+                            border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.2),
+                                width: 0.5),
                           ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-
-                        const SizedBox(height: 12),
-
-                        // Reading time badge
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.timer_outlined,
-                              color: Colors.white.withValues(alpha: 0.8),
-                              size: 16,
+                          child: Text(
+                            verseReference,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              fontStyle: FontStyle.italic,
+                              letterSpacing: 0.3,
                             ),
-                            const SizedBox(width: 4),
+                          ),
+                        ),
+
+                        const Spacer(),
+
+                        // Bottom Row: Reading Info
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.menu_book_rounded,
+                                color: Colors.white.withValues(alpha: 0.9),
+                                size: 14),
+                            const SizedBox(width: 8),
                             Text(
-                              '5 min read',
+                              'DAILY BIBLE STUDY',
                               style: TextStyle(
-                                color: Colors.white.withValues(alpha: 0.8),
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
+                                color: Colors.white.withValues(alpha: 0.9),
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 1.2,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Container(
+                                width: 4,
+                                height: 4,
+                                decoration: const BoxDecoration(
+                                    color: Colors.white70,
+                                    shape: BoxShape.circle)),
+                            const SizedBox(width: 12),
+                            Text(
+                              '5 MIN',
+                              style: TextStyle(
+                                color: Colors.white.withValues(alpha: 0.9),
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 1.2,
                               ),
                             ),
                           ],
@@ -213,51 +265,55 @@ class DevotionalCardPremium extends StatelessWidget {
                     ),
                   ),
 
-                  // Floating heart button (FAB style) - top-right
+                  // ✅ COMPLETION CHECK - TOP LEFT
+                  if (isCompleted)
+                    Positioned(
+                      top: 20,
+                      left: 20,
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.2),
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white10),
+                        ),
+                        child: const Icon(
+                          Icons.verified_rounded,
+                          color: Colors.greenAccent,
+                          size: 24,
+                        ),
+                      ),
+                    ),
+
+                  // ✅ DYNAMIC FAVORITE BUTTON (Heart Empty -> Yellow Star) - TOP RIGHT
                   Positioned(
-                    top: 16,
-                    right: 16,
-                    child: Semantics(
-                      label: isFavorite
-                          ? 'Remove from favorites'
-                          : 'Add to favorites',
-                      button: true,
-                      child: Material(
-                        color: Colors.transparent,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.3),
-                                blurRadius: 12,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: IconButton(
-                            icon: AnimatedSwitcher(
-                              duration: const Duration(milliseconds: 250),
-                              transitionBuilder: (child, animation) {
-                                return ScaleTransition(
-                                  scale: animation,
-                                  child: child,
-                                );
-                              },
-                              child: Icon(
-                                isFavorite
-                                    ? Icons.favorite
-                                    : Icons.favorite_border,
-                                key: ValueKey(isFavorite),
-                                color: isFavorite
-                                    ? Colors.red[500]
-                                    : Colors.grey[700],
-                                size: 24,
-                              ),
+                    top: 20,
+                    right: 20,
+                    child: Material(
+                      color: Colors.transparent,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.2),
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white10),
+                        ),
+                        child: IconButton(
+                          icon: AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 300),
+                            transitionBuilder: (child, animation) =>
+                                ScaleTransition(scale: animation, child: child),
+                            child: Icon(
+                              isFavorite
+                                  ? Icons.star_rounded
+                                  : Icons.favorite_border_rounded,
+                              key: ValueKey<bool>(isFavorite),
+                              color: isFavorite
+                                  ? Colors.amberAccent
+                                  : Colors.white,
+                              size: 24,
                             ),
-                            onPressed: onFavoriteToggle,
                           ),
+                          onPressed: onFavoriteToggle,
                         ),
                       ),
                     ),
@@ -267,17 +323,32 @@ class DevotionalCardPremium extends StatelessWidget {
             ),
           ),
         ),
-      ), // Close Semantics
+      ),
     );
   }
 
-  Widget _buildBackgroundImage() {
-    // Use CachedNetworkImage with shimmer placeholder
-    // For now, we'll use a fallback gradient since we don't have image URLs
-    // In production, you'd fetch image URLs from your API or use Unsplash
-    final imageUrl = _getImageUrl();
+  String _getTopicEmoji() {
+    if (devocional.emoji != null && devocional.emoji!.isNotEmpty) {
+      return devocional.emoji!;
+    }
+    if (devocional.tags != null && devocional.tags!.isNotEmpty) {
+      final tag = devocional.tags!.first.toLowerCase();
+      if (tag.contains('amor') || tag.contains('love')) return '❤️';
+      if (tag.contains('paz') || tag.contains('peace')) return '🕊️';
+      if (tag.contains('fe') || tag.contains('faith')) return '⚓';
+      if (tag.contains('esperanza') || tag.contains('hope')) return '🌟';
+      if (tag.contains('sabiduria') || tag.contains('wisdom')) return '💡';
+      if (tag.contains('familia') || tag.contains('family')) return '🏠';
+      if (tag.contains('oracion') || tag.contains('prayer')) return '🙏';
+    }
+    return '📖';
+  }
 
-    if (imageUrl != null) {
+  Widget _buildBackgroundImage() {
+    final imageUrl = devocional.imageUrl;
+    final colors = _getGradientColors();
+
+    if (imageUrl != null && imageUrl.isNotEmpty) {
       return CachedNetworkImage(
         imageUrl: imageUrl,
         fit: BoxFit.cover,
@@ -285,198 +356,75 @@ class DevotionalCardPremium extends StatelessWidget {
         maxHeightDiskCache: 1080,
         maxWidthDiskCache: 1920,
         placeholder: (context, url) => Shimmer.fromColors(
-          baseColor: _getGradientColors()[0],
-          highlightColor: _getGradientColors()[1].withValues(alpha: 0.5),
-          child: Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: _getGradientColors(),
-              ),
-            ),
-          ),
+          baseColor: colors[0],
+          highlightColor: colors[1].withAlpha(128),
+          child: Container(color: Colors.black26),
         ),
         errorWidget: (context, url, error) => Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: _getGradientColors(),
+              colors: colors,
             ),
           ),
           child: const Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.image_not_supported_outlined,
-                  color: Colors.white70,
-                  size: 48,
-                ),
-                SizedBox(height: 8),
-                Text(
-                  'Tap to retry',
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 12,
-                  ),
-                ),
-              ],
-            ),
-          ),
+              child: Icon(Icons.book, color: Colors.white30, size: 48)),
         ),
       );
     }
-
-    // Fallback gradient with subtle shimmer effect
-    return Shimmer.fromColors(
-      baseColor: _getGradientColors()[0],
-      highlightColor: _getGradientColors()[1].withValues(alpha: 0.3),
-      period: const Duration(milliseconds: 2000),
-      child: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: _getGradientColors(),
-          ),
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: colors,
         ),
       ),
     );
   }
 
-  String? _getImageUrl() {
-    // In production, fetch image URLs from your devotional data.
-    // Images are stored at:
-    //   https://raw.githubusercontent.com/develop4God/Devocionales-assets/refs/heads/main/images
-    // Example usage (replace 'sample.jpg' with your actual image name):
-    return 'https://raw.githubusercontent.com/develop4God/Devocionales-assets/refs/heads/main/images/sample.jpg';
-    // For dynamic usage, add an "imageUrl" field to your Devocional model and return it here.
-  }
-
-  // Reemplaza el metodo _getTagColor para usar el diccionario centralizado
-  Color _getTagColor(String tagKey) {
-    return TagColorDictionary.getGradientForTag(tagKey).last;
-  }
-
-  // Reemplaza el metodo _getGradientColors para usar el diccionario centralizado
   List<Color> _getGradientColors() {
-    final tagKey = devocional.tags != null && devocional.tags!.isNotEmpty
-        ? devocional.tags!.first
-        : null;
-    return tagKey != null
-        ? TagColorDictionary.getGradientForTag(tagKey)
-        : [Color(0xFF607D8B), Color(0xFF455A64)];
+    if (devocional.tags != null && devocional.tags!.isNotEmpty) {
+      return TagColorDictionary.getGradientForTag(devocional.tags!.first);
+    }
+    return [const Color(0xFF37474F), const Color(0xFF102027)];
   }
 
   String _getDisplayDate() {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final devDate = DateTime(
-      devocional.date.year,
-      devocional.date.month,
-      devocional.date.day,
-    );
+        devocional.date.year, devocional.date.month, devocional.date.day);
 
-    if (devDate == today) {
-      return 'Today';
-    }
-
+    if (devDate == today) return 'Today';
     DateTime displayDate = devDate;
     while (displayDate.isBefore(today)) {
-      displayDate = DateTime(
-        displayDate.year + 1,
-        displayDate.month,
-        displayDate.day,
-      );
+      displayDate =
+          DateTime(displayDate.year + 1, displayDate.month, displayDate.day);
     }
-
     final tomorrow = today.add(const Duration(days: 1));
-    if (displayDate == tomorrow) {
-      return 'Tomorrow';
-    }
-
+    if (displayDate == tomorrow) return 'Tomorrow';
     final daysUntil = displayDate.difference(today).inDays;
     if (daysUntil <= 7 && daysUntil > 1) {
       return DateFormat('EEEE').format(displayDate);
     }
-
     return DateFormat('MMM dd').format(displayDate);
   }
 
-  /// Extract verse reference with comprehensive validation
   String _extractVerseReference(String? versiculo) {
-    // Handle null, empty, or whitespace-only input
-    if (versiculo == null || versiculo.trim().isEmpty) {
-      return 'Unknown Verse';
-    }
-
+    if (versiculo == null || versiculo.trim().isEmpty) return 'Bible Study';
     final trimmed = versiculo.trim();
-
-    // Extract reference before Bible version code (e.g., "RVR1960:")
     final parts = trimmed.split(RegExp(r'\s+[A-Z]{2,}[0-9]*:'));
     if (parts.isNotEmpty && parts[0].trim().isNotEmpty) {
       final reference = parts[0].trim();
-      // Validate minimum length (e.g., "Gn 1:1" is 6 chars)
-      if (reference.length >= 3) {
-        return reference;
-      }
+      if (reference.length >= 3) return reference;
     }
-
-    // Extract reference before quote
     final quoteIndex = trimmed.indexOf('"');
     if (quoteIndex > 0) {
       final reference = trimmed.substring(0, quoteIndex).trim();
-      if (reference.length >= 3) {
-        return reference;
-      }
+      if (reference.length >= 3) return reference;
     }
-
-    // If no pattern matches and input is reasonable length, return it
-    if (trimmed.length >= 3 && trimmed.length < 100) {
-      return trimmed;
-    }
-
-    return 'Unknown Verse';
-  }
-
-  /// Extract verse text with comprehensive validation
-  String _extractVerseText(String? versiculo) {
-    // Handle null, empty, or whitespace-only input
-    if (versiculo == null || versiculo.trim().isEmpty) {
-      return '';
-    }
-
-    final trimmed = versiculo.trim();
-
-    // Extract text between quotes
-    final quoteStart = trimmed.indexOf('"');
-    final quoteEnd = trimmed.lastIndexOf('"');
-
-    if (quoteStart != -1 && quoteEnd != -1 && quoteEnd > quoteStart) {
-      final text = trimmed.substring(quoteStart + 1, quoteEnd).trim();
-      // Validate extracted text has meaningful content (min 5 chars)
-      if (text.length >= 5) {
-        return text;
-      }
-    }
-
-    // If no quotes or invalid content, check if entire string is the text
-    // (after removing potential reference at start)
-    final parts = trimmed.split(RegExp(r'\s+[A-Z]{2,}[0-9]*:'));
-    if (parts.length > 1) {
-      final potentialText = parts.sublist(1).join(' ').trim();
-      if (potentialText.length >= 5) {
-        return potentialText;
-      }
-    }
-
-    // Fallback: return original if it's reasonable length
-    if (trimmed.length >= 5 && trimmed.length < 500) {
-      return trimmed;
-    }
-
-    return '';
+    return trimmed.length < 50 ? trimmed : 'Daily Verse';
   }
 }

@@ -30,7 +30,12 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
   @override
   void initState() {
     super.initState();
-    context.read<DiscoveryBloc>().add(LoadDiscoveryStudies());
+    // ✅ FIX: Pass selected language from provider instead of relying on default system locale
+    final languageCode = context.read<DevocionalProvider>().selectedLanguage;
+    context
+        .read<DiscoveryBloc>()
+        .add(LoadDiscoveryStudies(languageCode: languageCode));
+
     _gridAnimationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 300),
@@ -56,13 +61,10 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return Scaffold(
       appBar: CustomAppBar(
         titleText: 'discovery.discovery_studies'.tr(),
         actions: [
-          // Grid view toggle button
           IconButton(
             icon:
                 Icon(_showGridOverlay ? Icons.view_carousel : Icons.grid_view),
@@ -76,43 +78,40 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
           if (state is DiscoveryLoading) {
             return const Center(child: CircularProgressIndicator());
           }
-
           if (state is DiscoveryError) {
             return _buildErrorState(context, state.message);
           }
-
           if (state is DiscoveryLoaded) {
             if (state.availableStudyIds.isEmpty) {
               return _buildEmptyState(context);
             }
 
+            // Move completed studies to the end
+            final sortedIds = List<String>.from(state.availableStudyIds);
+            sortedIds.sort((a, b) {
+              final aCompleted = state.completedStudies[a] ?? false;
+              final bCompleted = state.completedStudies[b] ?? false;
+              if (aCompleted && !bCompleted) return 1;
+              if (!aCompleted && bCompleted) return -1;
+              return 0;
+            });
+
             return Stack(
               children: [
-                // Main carousel view
                 Column(
                   children: [
-                    // Progress dots
-                    _buildProgressDots(state.availableStudyIds.length),
+                    _buildProgressDots(sortedIds.length),
                     const SizedBox(height: 16),
-
-                    // Carousel
                     Expanded(
-                      child: _buildCarousel(
-                          context, state.availableStudyIds, isDark),
+                      child: _buildCarousel(context, state, sortedIds),
                     ),
-
-                    // Action bar
-                    _buildActionBar(context, state.availableStudyIds),
+                    _buildActionBar(context, sortedIds),
                   ],
                 ),
-
-                // Grid overlay (pull-down style)
-                if (_showGridOverlay)
-                  _buildGridOverlay(context, state.availableStudyIds, isDark),
+                if (_showGridOverlay) _buildGridOverlay(context, sortedIds),
               ],
             );
           }
-
           return const SizedBox.shrink();
         },
       ),
@@ -144,20 +143,30 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
   }
 
   Widget _buildCarousel(
-      BuildContext context, List<String> studyIds, bool isDark) {
+      BuildContext context, DiscoveryLoaded state, List<String> studyIds) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Swiper(
       itemBuilder: (context, index) {
         final studyId = studyIds[index];
-        // Create a mock Devocional object for the premium card
-        final mockDevocional = _createMockDevocional(studyId);
+        final title = state.studyTitles[studyId] ?? _formatStudyTitle(studyId);
+        final emoji = state.studyEmojis[studyId];
+        final isCompleted = state.completedStudies[studyId] ?? false;
+        final isFavorite =
+            state.favoriteStudyIds.contains(studyId); // Check favorite status
+
+        final mockDevocional = _createMockDevocional(studyId, emoji: emoji);
 
         return DevotionalCardPremium(
           devocional: mockDevocional,
-          isFavorite: false,
+          title: title,
+          isFavorite: isFavorite, // Pass correct favorite status
+          isCompleted: isCompleted,
           isDark: isDark,
           onTap: () => _navigateToDetail(context, studyId),
           onFavoriteToggle: () {
-            // TODO: Implement favorite toggle for Discovery studies
+            // ✅ ACTION LINKED: Toggle favorite in Bloc
+            context.read<DiscoveryBloc>().add(ToggleDiscoveryFavorite(studyId));
           },
         );
       },
@@ -178,7 +187,6 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
 
   Widget _buildActionBar(BuildContext context, List<String> studyIds) {
     final colorScheme = Theme.of(context).colorScheme;
-
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       decoration: BoxDecoration(
@@ -196,27 +204,16 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            // Share button
             _buildActionButton(
-              icon: Icons.share_outlined,
-              label: 'Share',
-              onTap: () {
-                // TODO: Implement share functionality
-              },
-              colorScheme: colorScheme,
-            ),
-
-            // Favorite button
+                icon: Icons.share_outlined,
+                label: 'Share',
+                onTap: () {},
+                colorScheme: colorScheme),
             _buildActionButton(
-              icon: Icons.favorite_border,
-              label: 'Save',
-              onTap: () {
-                // TODO: Implement favorite functionality
-              },
-              colorScheme: colorScheme,
-            ),
-
-            // Read button
+                icon: Icons.favorite_border,
+                label: 'Save',
+                onTap: () {},
+                colorScheme: colorScheme),
             _buildActionButton(
               icon: Icons.play_arrow,
               label: 'Read',
@@ -224,16 +221,11 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
               colorScheme: colorScheme,
               isPrimary: true,
             ),
-
-            // Next button
             _buildActionButton(
-              icon: Icons.skip_next,
-              label: 'Next',
-              onTap: () {
-                // TODO: Navigate to next study
-              },
-              colorScheme: colorScheme,
-            ),
+                icon: Icons.skip_next,
+                label: 'Next',
+                onTap: () {},
+                colorScheme: colorScheme),
           ],
         ),
       ),
@@ -263,29 +255,24 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
                     : colorScheme.primary.withAlpha(26),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(
-                icon,
-                color: isPrimary ? Colors.white : colorScheme.primary,
-                size: 24,
-              ),
+              child: Icon(icon,
+                  color: isPrimary ? Colors.white : colorScheme.primary,
+                  size: 24),
             ),
             const SizedBox(height: 4),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 12,
-                color: colorScheme.onSurface,
-                fontWeight: isPrimary ? FontWeight.bold : FontWeight.normal,
-              ),
-            ),
+            Text(label,
+                style: TextStyle(
+                    fontSize: 12,
+                    color: colorScheme.onSurface,
+                    fontWeight:
+                        isPrimary ? FontWeight.bold : FontWeight.normal)),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildGridOverlay(
-      BuildContext context, List<String> studyIds, bool isDark) {
+  Widget _buildGridOverlay(BuildContext context, List<String> studyIds) {
     return AnimatedBuilder(
       animation: _gridAnimationController,
       builder: (context, child) {
@@ -295,7 +282,6 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
           child: SafeArea(
             child: Column(
               children: [
-                // Header
                 Padding(
                   padding: const EdgeInsets.all(16),
                   child: Row(
@@ -303,21 +289,19 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
                     children: [
                       Text(
                         'All Studies',
-                        style:
-                            Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                        style: Theme.of(context)
+                            .textTheme
+                            .headlineSmall
+                            ?.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold),
                       ),
                       IconButton(
-                        icon: const Icon(Icons.close, color: Colors.white),
-                        onPressed: _toggleGridOverlay,
-                      ),
+                          icon: const Icon(Icons.close, color: Colors.white),
+                          onPressed: _toggleGridOverlay),
                     ],
                   ),
                 ),
-
-                // Grid
                 Expanded(
                   child: GridView.builder(
                     padding: const EdgeInsets.all(16),
@@ -359,21 +343,19 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.error_outline,
-              size: 64,
-              color: Colors.grey[400],
-            ),
+            Icon(Icons.error_outline, size: 64, color: Colors.grey[400]),
             const SizedBox(height: 16),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyLarge,
-            ),
+            Text(message,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodyLarge),
             const SizedBox(height: 16),
             ElevatedButton.icon(
               onPressed: () {
-                context.read<DiscoveryBloc>().add(LoadDiscoveryStudies());
+                final languageCode =
+                    context.read<DevocionalProvider>().selectedLanguage;
+                context
+                    .read<DiscoveryBloc>()
+                    .add(LoadDiscoveryStudies(languageCode: languageCode));
               },
               icon: const Icon(Icons.refresh),
               label: Text('app.retry'.tr()),
@@ -391,17 +373,11 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.explore_outlined,
-              size: 64,
-              color: Colors.grey[400],
-            ),
+            Icon(Icons.explore_outlined, size: 64, color: Colors.grey[400]),
             const SizedBox(height: 16),
-            Text(
-              'discovery.no_studies_available'.tr(),
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyLarge,
-            ),
+            Text('discovery.no_studies_available'.tr(),
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodyLarge),
           ],
         ),
       ),
@@ -410,22 +386,17 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
 
   void _navigateToDetail(BuildContext context, String studyId) {
     final languageCode = context.read<DevocionalProvider>().selectedLanguage;
-    context.read<DiscoveryBloc>().add(
-          LoadDiscoveryStudy(studyId, languageCode: languageCode),
-        );
+    context
+        .read<DiscoveryBloc>()
+        .add(LoadDiscoveryStudy(studyId, languageCode: languageCode));
     Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => DiscoveryDetailPage(studyId: studyId),
-      ),
-    );
+        context,
+        MaterialPageRoute(
+            builder: (_) => DiscoveryDetailPage(studyId: studyId)));
   }
 
-  Devocional _createMockDevocional(String studyId) {
-    // Create a mock devocional for the premium card display
-    // TODO: Replace with actual study data when available
+  Devocional _createMockDevocional(String studyId, {String? emoji}) {
     final title = _formatStudyTitle(studyId);
-
     return Devocional(
       id: studyId,
       date: DateTime.now(),
@@ -434,6 +405,7 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
       paraMeditar: [],
       oracion: '',
       tags: ['Discovery', 'Study', 'Growth'],
+      emoji: emoji,
     );
   }
 
@@ -447,22 +419,17 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
   }
 }
 
-/// Grid card for quick study selection
 class _StudyGridCard extends StatelessWidget {
   final String studyId;
   final bool isActive;
   final VoidCallback onTap;
 
-  const _StudyGridCard({
-    required this.studyId,
-    required this.isActive,
-    required this.onTap,
-  });
+  const _StudyGridCard(
+      {required this.studyId, required this.isActive, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
     return Card(
       elevation: isActive ? 8 : 2,
       shape: RoundedRectangleBorder(
@@ -481,16 +448,11 @@ class _StudyGridCard extends StatelessWidget {
               flex: 3,
               child: Container(
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.primary.withAlpha(51),
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(12),
-                  ),
-                ),
-                child: Icon(
-                  Icons.explore,
-                  size: 48,
-                  color: theme.colorScheme.primary,
-                ),
+                    color: theme.colorScheme.primary.withAlpha(51),
+                    borderRadius:
+                        const BorderRadius.vertical(top: Radius.circular(12))),
+                child: Icon(Icons.explore,
+                    size: 48, color: theme.colorScheme.primary),
               ),
             ),
             Expanded(
@@ -503,9 +465,8 @@ class _StudyGridCard extends StatelessWidget {
                     Text(
                       _formatStudyTitle(studyId),
                       style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: isActive ? theme.colorScheme.primary : null,
-                      ),
+                          fontWeight: FontWeight.bold,
+                          color: isActive ? theme.colorScheme.primary : null),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -513,19 +474,13 @@ class _StudyGridCard extends StatelessWidget {
                     if (isActive)
                       Row(
                         children: [
-                          Icon(
-                            Icons.check_circle,
-                            size: 14,
-                            color: theme.colorScheme.primary,
-                          ),
+                          Icon(Icons.check_circle,
+                              size: 14, color: theme.colorScheme.primary),
                           const SizedBox(width: 4),
-                          Text(
-                            'Current',
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.colorScheme.primary,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+                          Text('Current',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                  color: theme.colorScheme.primary,
+                                  fontWeight: FontWeight.bold)),
                         ],
                       ),
                   ],

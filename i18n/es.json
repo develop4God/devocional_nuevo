@@ -207,7 +207,7 @@
     "share_app": "Comparte app Devocionales Cristianos",
     "download_devotionals": "Descargar devocionales",
     "downloaded_devotionals": "Devocionales descargados",
-    "for_offline_use": "Para uso sin internet",
+    "for_offline_use": "Para uso offline",
     "offline_content_ready": "Disfruta contenido sin internet",
     "select_theme_color": "Selecciona color de tema",
     "download_dialog_title": "⬇️✨ Confirmar descarga",
@@ -677,16 +677,18 @@
     "thankful_for": "Agradezco por:"
   },
   "discovery": {
-    "discovery_studies": "Exploración Bíblica",
-    "discovery_load_error": "Error al cargar estudios Discovery",
+    "discovery_studies": "Estudios Bíblicos",
+    "discovery_load_error": "Error al cargar Estudios Bíblicos",
     "discovery_section_complete_error": "Error al marcar sección como completada",
     "discovery_answer_save_error": "Error al guardar respuesta",
     "discovery_study_complete_error": "Error al completar estudio",
     "discovery_refresh_error": "Error al actualizar estudios",
-    "no_studies_available": "No hay estudios Discovery disponibles",
-    "loading_studies": "Cargando estudios Discovery...",
+    "no_studies_available": "No hay Estudios Bíblicos disponibles",
+    "loading_studies": "Cargando Estudios Bíblicos...",
     "study_completed": "Estudio completado exitosamente",
     "section_completed": "Sección completada",
-    "answer_saved": "Respuesta guardada exitosamente"
+    "answer_saved": "Respuesta guardada exitosamente",
+    "mark_completed": "Completar estudio",
+    "completed_study": "Estudio completado"
   }
 }

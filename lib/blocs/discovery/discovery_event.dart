@@ -3,7 +3,11 @@
 abstract class DiscoveryEvent {}
 
 /// Event to load all available Discovery studies
-class LoadDiscoveryStudies extends DiscoveryEvent {}
+class LoadDiscoveryStudies extends DiscoveryEvent {
+  final String? languageCode;
+
+  LoadDiscoveryStudies({this.languageCode});
+}
 
 /// Event to load a specific Discovery study by ID
 class LoadDiscoveryStudy extends DiscoveryEvent {
@@ -37,8 +41,26 @@ class CompleteDiscoveryStudy extends DiscoveryEvent {
   CompleteDiscoveryStudy(this.studyId);
 }
 
+/// Event to toggle favorite status for a study
+class ToggleDiscoveryFavorite extends DiscoveryEvent {
+  final String studyId;
+
+  ToggleDiscoveryFavorite(this.studyId);
+}
+
+/// Event to reset a study progress (do it again)
+class ResetDiscoveryStudy extends DiscoveryEvent {
+  final String studyId;
+
+  ResetDiscoveryStudy(this.studyId);
+}
+
 /// Event to refresh Discovery studies
-class RefreshDiscoveryStudies extends DiscoveryEvent {}
+class RefreshDiscoveryStudies extends DiscoveryEvent {
+  final String? languageCode;
+
+  RefreshDiscoveryStudies({this.languageCode});
+}
 
 /// Event to clear error messages
 class ClearDiscoveryError extends DiscoveryEvent {}
