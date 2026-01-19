@@ -474,7 +474,7 @@ class _StudyGridCard extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: isActive
                           ? colorScheme.primaryContainer
-                          : colorScheme.surfaceVariant.withAlpha(128),
+                          : colorScheme.surfaceContainerHighest.withAlpha(128),
                     ),
                     child: Center(
                       child: Text(
