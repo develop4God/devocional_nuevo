@@ -689,6 +689,9 @@
     "section_completed": "Sección completada",
     "answer_saved": "Respuesta guardada exitosamente",
     "mark_completed": "Completar estudio",
-    "completed_study": "Estudio completado"
+    "completed_study": "Estudio completado",
+    "all_studies": "Todos los Estudios",
+    "current": "Actual",
+    "completed": "Completado"
   }
 }

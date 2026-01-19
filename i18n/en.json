@@ -692,6 +692,8 @@
     "completed_study": "Study completed",
     "no_favorites_title": "No saved studies",
     "no_favorites_description": "Tap the star on a study to save it here.",
+    "all_studies": "All Studies",
+    "current": "Current",
     "completed": "Completed"
   },
   "tags": {
