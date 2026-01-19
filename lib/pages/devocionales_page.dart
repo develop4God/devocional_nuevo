@@ -27,7 +27,6 @@ import 'package:devocional_nuevo/widgets/devocionales/devocionales_content_widge
 import 'package:devocional_nuevo/widgets/devocionales_page_drawer.dart';
 import 'package:devocional_nuevo/widgets/floating_font_control_buttons.dart';
 import 'package:devocional_nuevo/widgets/tts_miniplayer_modal.dart';
-import 'package:devocional_nuevo/widgets/tts_player_widget.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
