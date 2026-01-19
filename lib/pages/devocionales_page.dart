@@ -14,14 +14,12 @@ import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/pages/bible_reader_page.dart';
 import 'package:devocional_nuevo/pages/prayers_page.dart';
 import 'package:devocional_nuevo/pages/progress_page.dart';
-import 'package:devocional_nuevo/pages/settings_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/repositories/devocional_repository_impl.dart';
 import 'package:devocional_nuevo/repositories/navigation_repository_impl.dart';
 import 'package:devocional_nuevo/services/devocionales_tracking.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/update_service.dart';
-import 'package:devocional_nuevo/utils/bubble_constants.dart';
 import 'package:devocional_nuevo/widgets/add_prayer_modal.dart';
 import 'package:devocional_nuevo/widgets/add_thanksgiving_modal.dart';
 import 'package:devocional_nuevo/widgets/app_bar_constants.dart';
@@ -64,12 +62,6 @@ class DevocionalesPage extends StatefulWidget {
 class _DevocionalesPageState extends State<DevocionalesPage>
     with WidgetsBindingObserver, RouteAware {
   // Feature flag: Master switch to enable/disable Navigation BLoC
-  // Timeline: 30 days monitoring, then remove legacy code if stable
-  // Days 1-7: Monitor Crashlytics for BLoC errors
-  // Days 8-14: Analyze analytics data, verify BLoC adoption
-  // Days 15-21: Gradual rollout to 50%, 75%, 100% (if no issues)
-  // Days 22-30: Stability monitoring
-  // After Day 30: Remove legacy code (separate PR)
   static const bool _useNavigationBloc = true;
 
   final ScreenshotController screenshotController = ScreenshotController();
@@ -234,7 +226,6 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     } catch (e) {
       debugPrint('⚠️ Error precaching Lottie animations: $e');
     }
-    // Removed unnecessary mounted check and empty setState: precaching does not change UI
   }
 
   Future<int> _loadStreak() async {
@@ -1010,11 +1001,6 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     );
   }
 
-  String expandBibleVersion(String version, String language) {
-    final expansions = BibleTextFormatter.getBibleVersionExpansions(language);
-    return expansions[version] ?? version;
-  }
-
   // Helper para construir el texto usado por el selector de voz
   String _buildTtsTextForDevocional(Devocional devocional, String language) {
     final verseLabel = 'devotionals.verse'.tr().replaceAll(':', '');
@@ -1074,19 +1060,15 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     return Consumer<DevocionalProvider>(
       builder: (context, devocionalProvider, child) {
         // When devotionals change (language/version change), update BLoC
-        // Use hashCode comparison for O(1) performance instead of list comparison
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (_navigationBloc != null &&
               devocionalProvider.devocionales.isNotEmpty) {
             final currentState = _navigationBloc!.state;
             if (currentState is NavigationReady) {
-              // Efficient check: compare list length and hashCode
               final currentList = currentState.devocionales;
               final newList = devocionalProvider.devocionales;
               if (currentList.length != newList.length ||
                   currentList.hashCode != newList.hashCode) {
-                // Update BLoC with new devotionals list
-                // The BLoC will automatically clamp the current index
                 _navigationBloc!.add(
                   UpdateDevocionales(devocionalProvider.devocionales),
                 );
@@ -1126,8 +1108,6 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                 );
               }
 
-              // While BLoC is initializing, use provider data if available
-              // This prevents spinner on app start - shows first devotional immediately
               Devocional currentDevocional;
               bool canNavigateNext;
               bool canNavigatePrevious;
@@ -1137,12 +1117,10 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                 canNavigateNext = state.canNavigateNext;
                 canNavigatePrevious = state.canNavigatePrevious;
               } else if (devocionalProvider.devocionales.isNotEmpty) {
-                // Use provider data temporarily while BLoC initializes
                 currentDevocional = devocionalProvider.devocionales[0];
                 canNavigateNext = devocionalProvider.devocionales.length > 1;
                 canNavigatePrevious = false;
               } else {
-                // Only show spinner if provider is also loading
                 return Scaffold(
                   body: Center(
                     child: CircularProgressIndicator(
@@ -1152,7 +1130,6 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                 );
               }
 
-              // Listen to provider for isFavorite to rebuild when favorites change
               final bool isFavorite = devocionalProvider.isFavorite(
                 currentDevocional,
               );
@@ -1331,7 +1308,6 @@ class _DevocionalesPageState extends State<DevocionalesPage>
   /// Build UI using Legacy Provider pattern (when feature flag is false)
   Widget _buildLegacy(BuildContext context) {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
-    final TextTheme textTheme = Theme.of(context).textTheme;
     final themeState = context.watch<ThemeBloc>().state as ThemeLoaded;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
@@ -1362,12 +1338,9 @@ class _DevocionalesPageState extends State<DevocionalesPage>
           onPressed: _showAddPrayerOrThanksgivingChoice,
           text: 'prayer.add_prayer_thanksgiving_hint'.tr(),
           fabColor: colorScheme.primary,
-          // Color del círculo con el +
           backgroundColor: colorScheme.secondary,
-          // Color del fondo del texto
           textColor: colorScheme.onPrimaryContainer,
-          // Color del texto
-          iconColor: colorScheme.onPrimary, // Color del icono +
+          iconColor: colorScheme.onPrimary,
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
         body: Stack(
@@ -1382,9 +1355,9 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                     child: Text(
                       'devotionals.no_devotionals_available'.tr(),
                       textAlign: TextAlign.center,
-                      style: textTheme.bodyMedium?.copyWith(
-                        color: colorScheme.onSurface,
-                      ),
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: colorScheme.onSurface,
+                          ),
                     ),
                   );
                 }
@@ -1494,345 +1467,15 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                 ? devocionalProvider.isFavorite(currentDevocional)
                 : false;
 
-            final Color? appBarBackgroundColor = Theme.of(
-              context,
-            ).appBarTheme.backgroundColor;
+            if (currentDevocional == null) return const SizedBox.shrink();
 
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  decoration: const BoxDecoration(color: Colors.transparent),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 4,
-                  ),
-                  child: Column(
-                    children: [
-                      Consumer<AudioController>(
-                        builder: (context, audioController, _) {
-                          final progress = audioController.progress;
-                          // Eliminados chunkIndex y totalChunks
-                          return LinearProgressIndicator(
-                            value: progress,
-                            minHeight: 6, // Changed from 4
-                            backgroundColor: Colors.grey[300],
-                            color: colorScheme.primary,
-                            // If supported, add borderRadius
-                          );
-                        },
-                      ),
-                      Row(
-                        children: [
-                          Expanded(
-                            flex: 2,
-                            child: SizedBox(
-                              height: 45,
-                              child: OutlinedButton.icon(
-                                key: const Key('bottom_nav_previous_button'),
-                                onPressed: _currentDevocionalIndex > 0
-                                    ? _goToPreviousDevocional
-                                    : null,
-                                icon: Icon(
-                                  Icons.arrow_back_ios,
-                                  size: 16,
-                                  color: colorScheme.primary,
-                                ),
-                                label: Text(
-                                  'devotionals.previous'.tr(),
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
-                                    color: colorScheme.primary,
-                                  ),
-                                ),
-                                style: OutlinedButton.styleFrom(
-                                  side: BorderSide(
-                                    color: colorScheme.primary,
-                                    width: 1.5,
-                                  ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(22),
-                                  ),
-                                  foregroundColor: colorScheme.primary,
-                                  overlayColor: colorScheme.primary.withAlpha(
-                                    (0.1 * 255).round(),
-                                  ), // Added feedback
-                                ),
-                              ),
-                            ),
-                          ),
-                          Expanded(
-                            flex: 1,
-                            child: Center(
-                              child: currentDevocional != null
-                                  ? Builder(
-                                      builder: (context) {
-                                        return Column(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            // Original TtsPlayerWidget (unchanged)
-                                            TtsPlayerWidget(
-                                              key: const Key(
-                                                'bottom_nav_tts_player',
-                                              ),
-                                              devocional: currentDevocional,
-                                              audioController:
-                                                  _ttsAudioController,
-                                              onCompleted: () {
-                                                final provider = Provider.of<
-                                                        DevocionalProvider>(
-                                                    context,
-                                                    listen: false);
-                                                if (provider
-                                                    .showInvitationDialog) {
-                                                  _showInvitation(context);
-                                                }
-                                              },
-                                            ),
-                                          ],
-                                        );
-                                      },
-                                    )
-                                  : const SizedBox(width: 56, height: 56),
-                            ),
-                          ),
-                          Expanded(
-                            flex: 2,
-                            child: SizedBox(
-                              height: 45,
-                              child: OutlinedButton(
-                                key: const Key('bottom_nav_next_button'),
-                                onPressed: _currentDevocionalIndex <
-                                        devocionales.length - 1
-                                    ? _goToNextDevocional
-                                    : null,
-                                style: OutlinedButton.styleFrom(
-                                  side: BorderSide(
-                                    color: colorScheme.primary,
-                                    width: 1.5,
-                                  ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(22),
-                                  ),
-                                  foregroundColor: colorScheme.primary,
-                                  overlayColor: colorScheme.primary.withAlpha(
-                                    (0.1 * 255).round(),
-                                  ), // Added feedback
-                                ),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      'devotionals.next'.tr(),
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w600,
-                                        color: colorScheme.primary,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Icon(
-                                      Icons.arrow_forward_ios,
-                                      size: 16,
-                                      color: colorScheme.primary,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                SafeArea(
-                  top: false,
-                  child: BottomAppBar(
-                    height: 60,
-                    color: appBarBackgroundColor,
-                    padding: EdgeInsets.zero,
-                    child: Center(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [
-                          IconButton(
-                            key: const Key('bottom_appbar_favorite_icon'),
-                            tooltip: isFavorite
-                                ? 'devotionals.remove_from_favorites_short'.tr()
-                                : 'devotionals.save_as_favorite'.tr(),
-                            onPressed: () async {
-                              debugPrint('🔥 [BottomBar] Tap: favorite');
-                              getService<AnalyticsService>().logBottomBarAction(
-                                action: 'favorite',
-                              );
-                              final wasAdded =
-                                  await devocionalProvider.toggleFavorite(
-                                currentDevocional!.id,
-                              );
-                              _showFavoritesFeedback(wasAdded);
-                            },
-                            icon: Icon(
-                              isFavorite ? Icons.star : Icons.favorite_border,
-                              color: isFavorite ? Colors.amber : Colors.white,
-                              size: 32,
-                            ),
-                          ),
-                          IconButton(
-                            key: const Key('bottom_appbar_prayers_icon'),
-                            tooltip: 'tooltips.my_prayers'.tr(),
-                            onPressed: () async {
-                              debugPrint('🔥 [BottomBar] Tap: prayers');
-                              getService<AnalyticsService>().logBottomBarAction(
-                                action: 'prayers',
-                              );
-                              HapticFeedback.mediumImpact();
-                              await BubbleUtils.markAsShown(
-                                BubbleUtils.getIconBubbleId(
-                                  Icons.local_fire_department_outlined,
-                                  'new',
-                                ),
-                              );
-                              _goToPrayers();
-                            },
-                            icon: const Icon(
-                              Icons.local_fire_department_outlined,
-                              color: Colors.white,
-                              size: 35,
-                            ),
-                          ),
-                          IconButton(
-                            key: const Key('bottom_appbar_bible_icon'),
-                            tooltip: 'tooltips.bible'.tr(),
-                            onPressed: () async {
-                              debugPrint('🔥 [BottomBar] Tap: bible');
-                              getService<AnalyticsService>().logBottomBarAction(
-                                action: 'bible',
-                              );
-                              await BubbleUtils.markAsShown(
-                                BubbleUtils.getIconBubbleId(
-                                  Icons.auto_stories_outlined,
-                                  'new',
-                                ),
-                              );
-                              _goToBible();
-                            },
-                            icon: const Icon(
-                              Icons.auto_stories_outlined,
-                              color: Colors.white,
-                              size: 32,
-                            ),
-                          ),
-                          IconButton(
-                            key: const Key('bottom_appbar_share_icon'),
-                            tooltip: 'devotionals.share_devotional'.tr(),
-                            onPressed: () {
-                              debugPrint('🔥 [BottomBar] Tap: share');
-                              getService<AnalyticsService>().logBottomBarAction(
-                                action: 'share',
-                              );
-                              _shareAsText(currentDevocional!);
-                            },
-                            icon: Icon(
-                              Icons.share_outlined,
-                              color: colorScheme.onPrimary,
-                              size: 30,
-                            ),
-                          ),
-                          IconButton(
-                            key: const Key('bottom_appbar_progress_icon'),
-                            tooltip: 'tooltips.progress'.tr(),
-                            onPressed: () {
-                              debugPrint('🔥 [BottomBar] Tap: progress');
-                              getService<AnalyticsService>().logBottomBarAction(
-                                action: 'progress',
-                              );
-                              Navigator.push(
-                                context,
-                                PageRouteBuilder(
-                                  pageBuilder: (
-                                    context,
-                                    animation,
-                                    secondaryAnimation,
-                                  ) =>
-                                      const ProgressPage(),
-                                  transitionsBuilder: (
-                                    context,
-                                    animation,
-                                    secondaryAnimation,
-                                    child,
-                                  ) {
-                                    return FadeTransition(
-                                      opacity: animation,
-                                      child: child,
-                                    );
-                                  },
-                                  transitionDuration: const Duration(
-                                    milliseconds: 250,
-                                  ),
-                                ),
-                              );
-                            },
-                            icon: Icon(
-                              Icons.emoji_events_outlined,
-                              color: colorScheme.onPrimary,
-                              size: 30,
-                            ),
-                          ),
-                          IconButton(
-                            key: const Key('bottom_appbar_settings_icon'),
-                            tooltip: 'tooltips.settings'.tr(),
-                            onPressed: () async {
-                              debugPrint('🔥 [BottomBar] Tap: settings');
-                              getService<AnalyticsService>().logBottomBarAction(
-                                action: 'settings',
-                              );
-                              await BubbleUtils.markAsShown(
-                                BubbleUtils.getIconBubbleId(
-                                  Icons.app_settings_alt_outlined,
-                                  'new',
-                                ),
-                              );
-                              if (!context.mounted) return;
-                              Navigator.push(
-                                context,
-                                PageRouteBuilder(
-                                  pageBuilder: (
-                                    context,
-                                    animation,
-                                    secondaryAnimation,
-                                  ) =>
-                                      const SettingsPage(),
-                                  transitionsBuilder: (
-                                    context,
-                                    animation,
-                                    secondaryAnimation,
-                                    child,
-                                  ) {
-                                    return FadeTransition(
-                                      opacity: animation,
-                                      child: child,
-                                    );
-                                  },
-                                  transitionDuration: const Duration(
-                                    milliseconds: 250,
-                                  ),
-                                ),
-                              );
-                            },
-                            icon: Icon(
-                              Icons.app_settings_alt_outlined,
-                              color: colorScheme.onPrimary,
-                              size: 30,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+            return _buildBottomNavigationBar(
+              context,
+              currentDevocional,
+              isFavorite,
+              _currentDevocionalIndex < devocionales.length - 1,
+              _currentDevocionalIndex > 0,
+              colorScheme,
             );
           },
         ),
@@ -1844,9 +1487,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     try {
       final s = _ttsAudioController.state.value;
 
-      // Show modal when playback starts
       if (s == TtsPlayerState.playing && mounted && !_isTtsModalShowing) {
-        // Check if modal is not already showing to avoid duplicates
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (!mounted || _isTtsModalShowing) return;
           _showTtsModal();
@@ -1854,7 +1495,6 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       }
 
       if (s == TtsPlayerState.completed || s == TtsPlayerState.idle) {
-        // Mark modal as not showing when audio stops
         _isTtsModalShowing = false;
       }
     } catch (e) {
@@ -1863,7 +1503,6 @@ class _DevocionalesPageState extends State<DevocionalesPage>
   }
 
   void _showTtsModal() {
-    // Prevent showing multiple modals
     if (!mounted || _isTtsModalShowing) return;
 
     _isTtsModalShowing = true;
@@ -1878,8 +1517,6 @@ class _DevocionalesPageState extends State<DevocionalesPage>
         return ValueListenableBuilder<TtsPlayerState>(
           valueListenable: _ttsAudioController.state,
           builder: (context, state, _) {
-            // Auto-close modal when audio completes
-            // Don't close on idle to prevent closing during seek/speed change operations
             if (state == TtsPlayerState.completed) {
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 if (Navigator.canPop(ctx)) {
@@ -1918,20 +1555,17 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                             if (state == TtsPlayerState.playing) {
                               _ttsAudioController.pause();
                             } else {
-                              // Track TTS play button press with Firebase Analytics
                               try {
                                 getService<AnalyticsService>().logTtsPlay();
                               } catch (e) {
                                 debugPrint(
                                   '❌ Error logging TTS play analytics: $e',
                                 );
-                                // Fail silently - analytics should not block functionality
                               }
                               _ttsAudioController.play();
                             }
                           },
                           onCycleRate: () async {
-                            // CRITICAL: Pause before changing speed to avoid playback issues
                             if (state == TtsPlayerState.playing) {
                               await _ttsAudioController.pause();
                             }
@@ -1944,7 +1578,6 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                             }
                           },
                           onVoiceSelector: () async {
-                            // Capture context-dependent values BEFORE async gap
                             final languageCode = Localizations.localeOf(
                               context,
                             ).languageCode;
@@ -1958,14 +1591,10 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                               languageCode,
                             );
 
-                            // CRITICAL: Pause before opening voice selector to avoid playback issues
                             if (state == TtsPlayerState.playing) {
                               await _ttsAudioController.pause();
                             }
 
-                            // Safe to use ctx here: ctx is from the outer builder scope (line 1514),
-                            // not the widget context. Builder-provided contexts remain valid across
-                            // async gaps within their scope, unlike widget contexts.
                             await showModalBottomSheet(
                               // ignore: use_build_context_synchronously
                               context: ctx,
