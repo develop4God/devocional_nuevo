@@ -112,7 +112,11 @@ void main() async {
   try {
     final remoteConfigService = getService<RemoteConfigService>();
     await remoteConfigService.initialize();
-  } catch (e) {}
+  } catch (e) {
+    // Remote config is non-critical, app continues without it
+    developer.log('Remote config initialization failed: $e',
+        name: 'main', error: e);
+  }
 
   SystemChrome.setSystemUIOverlayStyle(systemUiOverlayStyle);
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
@@ -181,7 +185,11 @@ class _MyAppState extends State<MyApp> {
   void dispose() {
     try {
       getService<http.Client>().close();
-    } catch (e) {}
+    } catch (e) {
+      // HTTP client cleanup is non-critical during disposal
+      developer.log('HTTP client cleanup failed: $e',
+          name: 'dispose', error: e);
+    }
     super.dispose();
   }
 
@@ -290,10 +298,18 @@ class _AppInitializerState extends State<AppInitializer> {
     try {
       final FirebaseAuth auth = FirebaseAuth.instance;
       if (auth.currentUser == null) await auth.signInAnonymously();
-    } catch (e) {}
+    } catch (e) {
+      // Anonymous auth is non-critical, app works without it
+      developer.log('Anonymous auth failed: $e',
+          name: '_initializeApp', error: e);
+    }
     try {
       tzdata.initializeTimeZones();
-    } catch (e) {}
+    } catch (e) {
+      // Timezone initialization already has UTC fallback
+      developer.log('Timezone initialization failed: $e',
+          name: '_initializeApp', error: e);
+    }
   }
 
   void _initNonCriticalServices() {
@@ -305,14 +321,22 @@ class _AppInitializerState extends State<AppInitializer> {
                 .currentLocale
                 .languageCode;
         await getService<ITtsService>().initializeTtsOnAppStart(languageCode);
-      } catch (e) {}
+      } catch (e) {
+        // TTS is non-critical, app works without it
+        developer.log('TTS initialization failed: $e',
+            name: '_initNonCriticalServices', error: e);
+      }
     });
 
     Future.delayed(const Duration(seconds: 2), () async {
       try {
         await getService<NotificationService>().initialize();
         if (!kDebugMode) await FirebaseMessaging.instance.requestPermission();
-      } catch (e) {}
+      } catch (e) {
+        // Notification permissions are non-critical
+        developer.log('Notification initialization failed: $e',
+            name: '_initNonCriticalServices', error: e);
+      }
     });
 
     if (Constants.enableBackupFeature) {
@@ -326,7 +350,11 @@ class _AppInitializerState extends State<AppInitializer> {
           }
           if (!mounted) return;
           context.read<BackupBloc>().add(const CheckStartupBackup());
-        } catch (e) {}
+        } catch (e) {
+          // Backup is non-critical, app works without it
+          developer.log('Backup initialization failed: $e',
+              name: '_initNonCriticalServices', error: e);
+        }
       });
     }
   }
@@ -336,7 +364,11 @@ class _AppInitializerState extends State<AppInitializer> {
     try {
       await Provider.of<DevocionalProvider>(context, listen: false)
           .initializeData();
-    } catch (e) {}
+    } catch (e) {
+      // Data initialization errors are logged for debugging
+      developer.log('DevocionalProvider initialization failed: $e',
+          name: '_initAppData', error: e);
+    }
   }
 
   @override

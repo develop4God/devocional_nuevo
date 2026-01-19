@@ -1,6 +1,7 @@
 // lib/repositories/discovery_repository.dart
 
 import 'dart:convert';
+import 'dart:developer' as developer;
 
 import 'package:devocional_nuevo/models/discovery_devotional_model.dart';
 import 'package:devocional_nuevo/utils/constants.dart';
@@ -143,7 +144,11 @@ class DiscoveryRepository {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('$_cacheKeyPrefix$id', jsonEncode(json));
       await prefs.setString('$_cacheKeyPrefix${id}_version', version);
-    } catch (e) {}
+    } catch (e) {
+      // Cache write failure is non-critical, app continues with network data
+      developer.log('Failed to save discovery cache: $e',
+          name: 'DiscoveryRepository._saveToCache', error: e);
+    }
   }
 
   Future<Map<String, dynamic>> fetchIndex({bool forceRefresh = false}) async {
