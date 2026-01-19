@@ -108,7 +108,8 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
                     _buildActionBar(context, sortedIds),
                   ],
                 ),
-                if (_showGridOverlay) _buildGridOverlay(context, sortedIds),
+                if (_showGridOverlay)
+                  _buildGridOverlay(context, state, sortedIds),
               ],
             );
           }
@@ -272,7 +273,8 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
     );
   }
 
-  Widget _buildGridOverlay(BuildContext context, List<String> studyIds) {
+  Widget _buildGridOverlay(
+      BuildContext context, DiscoveryLoaded state, List<String> studyIds) {
     return AnimatedBuilder(
       animation: _gridAnimationController,
       builder: (context, child) {
@@ -288,7 +290,7 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'All Studies',
+                        'discovery.all_studies'.tr(),
                         style: Theme.of(context)
                             .textTheme
                             .headlineSmall
@@ -308,15 +310,24 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
                     gridDelegate:
                         const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 2,
-                      childAspectRatio: 0.75,
+                      childAspectRatio: 0.8,
                       crossAxisSpacing: 16,
                       mainAxisSpacing: 16,
                     ),
                     itemCount: studyIds.length,
                     itemBuilder: (context, index) {
                       final studyId = studyIds[index];
+                      final title = state.studyTitles[studyId] ??
+                          _formatStudyTitle(studyId);
+                      final emoji = state.studyEmojis[studyId];
+                      final isCompleted =
+                          state.completedStudies[studyId] ?? false;
+
                       return _StudyGridCard(
                         studyId: studyId,
+                        title: title,
+                        emoji: emoji,
+                        isCompleted: isCompleted,
                         isActive: index == _currentIndex,
                         onTap: () {
                           setState(() {
@@ -421,84 +432,141 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
 
 class _StudyGridCard extends StatelessWidget {
   final String studyId;
+  final String title;
+  final String? emoji;
+  final bool isCompleted;
   final bool isActive;
   final VoidCallback onTap;
 
-  const _StudyGridCard(
-      {required this.studyId, required this.isActive, required this.onTap});
+  const _StudyGridCard({
+    required this.studyId,
+    required this.title,
+    this.emoji,
+    required this.isCompleted,
+    required this.isActive,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Card(
       elevation: isActive ? 8 : 2,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         side: isActive
-            ? BorderSide(color: theme.colorScheme.primary, width: 2)
+            ? BorderSide(color: colorScheme.primary, width: 2)
             : BorderSide.none,
       ),
+      clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+        child: Stack(
           children: [
-            Expanded(
-              flex: 3,
-              child: Container(
-                decoration: BoxDecoration(
-                    color: theme.colorScheme.primary.withAlpha(51),
-                    borderRadius:
-                        const BorderRadius.vertical(top: Radius.circular(12))),
-                child: Icon(Icons.explore,
-                    size: 48, color: theme.colorScheme.primary),
-              ),
-            ),
-            Expanded(
-              flex: 2,
-              child: Padding(
-                padding: const EdgeInsets.all(12.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      _formatStudyTitle(studyId),
-                      style: theme.textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: isActive ? theme.colorScheme.primary : null),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(
+                  flex: 3,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: isActive
+                          ? colorScheme.primaryContainer
+                          : colorScheme.surfaceVariant.withAlpha(128),
                     ),
-                    const Spacer(),
-                    if (isActive)
-                      Row(
-                        children: [
-                          Icon(Icons.check_circle,
-                              size: 14, color: theme.colorScheme.primary),
-                          const SizedBox(width: 4),
-                          Text('Current',
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                  color: theme.colorScheme.primary,
-                                  fontWeight: FontWeight.bold)),
-                        ],
+                    child: Center(
+                      child: Text(
+                        emoji ?? '📖',
+                        style: const TextStyle(fontSize: 48),
                       ),
-                  ],
+                    ),
+                  ),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          title,
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: isActive ? colorScheme.primary : null,
+                            height: 1.2,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const Spacer(),
+                        if (isCompleted)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: Colors.green.withAlpha(40),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.check_circle,
+                                    size: 12, color: Colors.green),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'discovery.completed'.tr(),
+                                  style: theme.textTheme.labelSmall?.copyWith(
+                                    color: Colors.green,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        else if (isActive)
+                          Row(
+                            children: [
+                              Icon(Icons.play_circle_outline,
+                                  size: 14, color: colorScheme.primary),
+                              const SizedBox(width: 4),
+                              Text(
+                                'discovery.current'.tr(),
+                                style: theme.textTheme.labelSmall?.copyWith(
+                                  color: colorScheme.primary,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            if (isCompleted)
+              Positioned(
+                top: 8,
+                right: 8,
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                          color: Colors.black12, blurRadius: 4, spreadRadius: 1)
+                    ],
+                  ),
+                  child: const Icon(Icons.check, color: Colors.green, size: 16),
                 ),
               ),
-            ),
           ],
         ),
       ),
     );
-  }
-
-  String _formatStudyTitle(String studyId) {
-    return studyId
-        .replaceAll('_', ' ')
-        .split(' ')
-        .map((word) =>
-            word.isNotEmpty ? word[0].toUpperCase() + word.substring(1) : '')
-        .join(' ');
   }
 }
