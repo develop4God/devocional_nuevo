@@ -36,7 +36,7 @@ class _FavoritesPageState extends State<FavoritesPage>
   void initState() {
     super.initState();
     _tabController = TabController(
-      length: 2, 
+      length: 2,
       vsync: this,
       initialIndex: widget.initialIndex,
     );

@@ -189,10 +189,12 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
     );
   }
 
-  Widget _buildActionBar(BuildContext context, DiscoveryLoaded state, List<String> studyIds) {
+  Widget _buildActionBar(
+      BuildContext context, DiscoveryLoaded state, List<String> studyIds) {
     final colorScheme = Theme.of(context).colorScheme;
     final currentStudyId = studyIds[_currentIndex];
-    final currentTitle = state.studyTitles[currentStudyId] ?? _formatStudyTitle(currentStudyId);
+    final currentTitle =
+        state.studyTitles[currentStudyId] ?? _formatStudyTitle(currentStudyId);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
@@ -215,7 +217,8 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
                 icon: Icons.share_rounded,
                 label: 'Share',
                 onTap: () {
-                  Share.share('Check out this Bible Study: $currentTitle');
+                  SharePlus.instance.share(ShareParams(
+                      text: 'Check out this Bible Study: $currentTitle'));
                 },
                 colorScheme: colorScheme),
             _buildActionButton(
