@@ -217,7 +217,9 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
                 icon: Icons.share_rounded,
                 label: 'Share',
                 onTap: () {
-                  Share.share('Check out this Bible Study: $currentTitle');
+                  SharePlus.instance.share(
+                      'Check out this Bible Study: $currentTitle'
+                          as ShareParams);
                 },
                 colorScheme: colorScheme),
             _buildActionButton(
