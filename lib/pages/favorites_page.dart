@@ -21,7 +21,8 @@ import 'package:provider/provider.dart';
 import '../providers/devocional_provider.dart';
 
 class FavoritesPage extends StatefulWidget {
-  const FavoritesPage({super.key});
+  final int initialIndex;
+  const FavoritesPage({super.key, this.initialIndex = 0});
 
   @override
   State<FavoritesPage> createState() => _FavoritesPageState();
@@ -34,7 +35,11 @@ class _FavoritesPageState extends State<FavoritesPage>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(
+      length: 2, 
+      vsync: this,
+      initialIndex: widget.initialIndex,
+    );
   }
 
   @override

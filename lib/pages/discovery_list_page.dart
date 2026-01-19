@@ -8,10 +8,12 @@ import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/pages/devotional_discovery/widgets/devotional_card_premium.dart';
 import 'package:devocional_nuevo/pages/discovery_detail_page.dart';
+import 'package:devocional_nuevo/pages/favorites_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/widgets/app_bar_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:share_plus/share_plus.dart';
 
 /// Modern Discovery Studies page with carousel-based premium card experience
 class DiscoveryListPage extends StatefulWidget {
@@ -26,11 +28,11 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
   int _currentIndex = 0;
   bool _showGridOverlay = false;
   late AnimationController _gridAnimationController;
+  final SwiperController _swiperController = SwiperController();
 
   @override
   void initState() {
     super.initState();
-    // ✅ FIX: Pass selected language from provider instead of relying on default system locale
     final languageCode = context.read<DevocionalProvider>().selectedLanguage;
     context
         .read<DiscoveryBloc>()
@@ -45,6 +47,7 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
   @override
   void dispose() {
     _gridAnimationController.dispose();
+    _swiperController.dispose();
     super.dispose();
   }
 
@@ -86,7 +89,6 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
               return _buildEmptyState(context);
             }
 
-            // Move completed studies to the end
             final sortedIds = List<String>.from(state.availableStudyIds);
             sortedIds.sort((a, b) {
               final aCompleted = state.completedStudies[a] ?? false;
@@ -105,7 +107,9 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
                     Expanded(
                       child: _buildCarousel(context, state, sortedIds),
                     ),
-                    _buildActionBar(context, sortedIds),
+                    _buildActionBar(context, state, sortedIds),
+                    // We add extra space at bottom for the global navigation overlay if needed
+                    const SizedBox(height: 20),
                   ],
                 ),
                 if (_showGridOverlay)
@@ -148,25 +152,24 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Swiper(
+      controller: _swiperController,
       itemBuilder: (context, index) {
         final studyId = studyIds[index];
         final title = state.studyTitles[studyId] ?? _formatStudyTitle(studyId);
         final emoji = state.studyEmojis[studyId];
         final isCompleted = state.completedStudies[studyId] ?? false;
-        final isFavorite =
-            state.favoriteStudyIds.contains(studyId); // Check favorite status
+        final isFavorite = state.favoriteStudyIds.contains(studyId);
 
         final mockDevocional = _createMockDevocional(studyId, emoji: emoji);
 
         return DevotionalCardPremium(
           devocional: mockDevocional,
           title: title,
-          isFavorite: isFavorite, // Pass correct favorite status
+          isFavorite: isFavorite,
           isCompleted: isCompleted,
           isDark: isDark,
           onTap: () => _navigateToDetail(context, studyId),
           onFavoriteToggle: () {
-            // ✅ ACTION LINKED: Toggle favorite in Bloc
             context.read<DiscoveryBloc>().add(ToggleDiscoveryFavorite(studyId));
           },
         );
@@ -186,8 +189,11 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
     );
   }
 
-  Widget _buildActionBar(BuildContext context, List<String> studyIds) {
+  Widget _buildActionBar(BuildContext context, DiscoveryLoaded state, List<String> studyIds) {
     final colorScheme = Theme.of(context).colorScheme;
+    final currentStudyId = studyIds[_currentIndex];
+    final currentTitle = state.studyTitles[currentStudyId] ?? _formatStudyTitle(currentStudyId);
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       decoration: BoxDecoration(
@@ -206,26 +212,37 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             _buildActionButton(
-                icon: Icons.share_outlined,
+                icon: Icons.share_rounded,
                 label: 'Share',
-                onTap: () {},
+                onTap: () {
+                  Share.share('Check out this Bible Study: $currentTitle');
+                },
                 colorScheme: colorScheme),
             _buildActionButton(
-                icon: Icons.favorite_border,
-                label: 'Save',
-                onTap: () {},
+                icon: Icons.star_rounded,
+                label: 'Favorites',
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const FavoritesPage(initialIndex: 1),
+                    ),
+                  );
+                },
                 colorScheme: colorScheme),
             _buildActionButton(
-              icon: Icons.play_arrow,
+              icon: Icons.menu_book_rounded,
               label: 'Read',
-              onTap: () => _navigateToDetail(context, studyIds[_currentIndex]),
+              onTap: () => _navigateToDetail(context, currentStudyId),
               colorScheme: colorScheme,
               isPrimary: true,
             ),
             _buildActionButton(
-                icon: Icons.skip_next,
+                icon: Icons.arrow_forward_rounded,
                 label: 'Next',
-                onTap: () {},
+                onTap: () {
+                  _swiperController.next();
+                },
                 colorScheme: colorScheme),
           ],
         ),
@@ -330,16 +347,11 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
                         isCompleted: isCompleted,
                         isActive: index == _currentIndex,
                         onTap: () {
-                          // ✅ UPDATE: Navigate directly to detail page
                           _navigateToDetail(context, studyId);
-
-                          // Also sync the carousel index in the background
                           setState(() {
                             _currentIndex = index;
+                            _swiperController.move(index);
                           });
-
-                          // Close the overlay so the user sees the detail page immediately,
-                          // and if they return, they are back at the main carousel (at the right index)
                           _toggleGridOverlay();
                         },
                       );
