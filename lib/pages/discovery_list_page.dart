@@ -330,9 +330,16 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
                         isCompleted: isCompleted,
                         isActive: index == _currentIndex,
                         onTap: () {
+                          // ✅ UPDATE: Navigate directly to detail page
+                          _navigateToDetail(context, studyId);
+
+                          // Also sync the carousel index in the background
                           setState(() {
                             _currentIndex = index;
                           });
+
+                          // Close the overlay so the user sees the detail page immediately,
+                          // and if they return, they are back at the main carousel (at the right index)
                           _toggleGridOverlay();
                         },
                       );
@@ -474,7 +481,7 @@ class _StudyGridCard extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: isActive
                           ? colorScheme.primaryContainer
-                          : colorScheme.surfaceVariant.withAlpha(128),
+                          : colorScheme.surfaceContainerHighest.withAlpha(128),
                     ),
                     child: Center(
                       child: Text(
