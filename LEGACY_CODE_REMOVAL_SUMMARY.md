@@ -97,6 +97,27 @@ Both `_goToNextDevocional()` and `_goToPreviousDevocional()` were simplified:
 - **Removed**: Legacy index-based devotional access: `devocionales[_currentDevocionalIndex]`
 - **Now**: Gets current devotional from BLoC state: `currentState.currentDevocional`
 
+update (line 330):
+
+dart - _navigationBloc?.close();
+
++ _navigationBloc.close();
+
+TTS modal logic change (lines 1195-1204):
+
+Now uses BLoC state with fallback: currentState.currentDevocional ?? devocionales.first
+More defensive than MD suggests
+
+Specific error handling preserved:
+
+Both navigation methods still have try-catch with Crashlytics logging
+MD could emphasize error handling wasn't removed, just simplified
+
+DevocionalProvider update detection (lines 1854-1865):
+
+PostFrameCallback logic for syncing BLoC when provider changes
+Important for language/version switching mentioned in MD
+
 ## Code Quality Improvements
 
 ### Lines of Code Reduced
