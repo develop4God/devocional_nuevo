@@ -60,13 +60,8 @@ class DevocionalesPage extends StatefulWidget {
 
 class _DevocionalesPageState extends State<DevocionalesPage>
     with WidgetsBindingObserver, RouteAware {
-  // Feature flag: Master switch to enable/disable Navigation BLoC
-  static const bool _useNavigationBloc = true;
-
   final ScreenshotController screenshotController = ScreenshotController();
   final ScrollController _scrollController = ScrollController();
-  int _currentDevocionalIndex = 0;
-  static const String _lastDevocionalIndexKey = 'lastDevocionalIndex';
   final DevocionalesTracking _tracking = DevocionalesTracking();
   final FlutterTts _flutterTts = FlutterTts();
   late final TtsAudioController _ttsAudioController;
@@ -75,8 +70,8 @@ class _DevocionalesPageState extends State<DevocionalesPage>
   int _currentStreak = 0;
   late Future<int> _streakFuture;
 
-  // Navigation BLoC (only used when _useNavigationBloc = true)
-  DevocionalesNavigationBloc? _navigationBloc;
+  // Navigation BLoC
+  late DevocionalesNavigationBloc _navigationBloc;
 
   // Font control variables
   bool _showFontControls = false;
@@ -112,23 +107,18 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     });
     _loadFontSize();
 
-    // Feature flag: Choose between BLoC and legacy navigation
-    if (_useNavigationBloc) {
-      // Create BLoC immediately to avoid spinner on app start
-      _navigationBloc = DevocionalesNavigationBloc(
-        navigationRepository: NavigationRepositoryImpl(),
-        devocionalRepository: DevocionalRepositoryImpl(),
-      );
-      // Initialize asynchronously in background
-      _initializeNavigationBloc();
+    // Create BLoC immediately to avoid spinner on app start
+    _navigationBloc = DevocionalesNavigationBloc(
+      navigationRepository: NavigationRepositoryImpl(),
+      devocionalRepository: DevocionalRepositoryImpl(),
+    );
+    // Initialize asynchronously in background
+    _initializeNavigationBloc();
 
-      // Log analytics event for app initialization with BLoC
-      getService<AnalyticsService>().logAppInit(
-        parameters: {'use_navigation_bloc': 'true'},
-      );
-    } else {
-      _loadInitialDataLegacy();
-    }
+    // Log analytics event for app initialization with BLoC
+    getService<AnalyticsService>().logAppInit(
+      parameters: {'use_navigation_bloc': 'true'},
+    );
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       UpdateService.checkForUpdate();
@@ -192,10 +182,10 @@ class _DevocionalesPageState extends State<DevocionalesPage>
 
       // Initialize navigation with full devotionals list
       // Guard early and avoid race windows: check mounted and bloc state immediately
-      if (!mounted || _navigationBloc == null) return;
-      if (_navigationBloc!.isClosed) return;
+      if (!mounted) return;
+      if (_navigationBloc.isClosed) return;
       try {
-        _navigationBloc!.add(
+        _navigationBloc.add(
           InitializeNavigation(
             initialIndex: initialIndex,
             devocionales: devocionalProvider.devocionales,
@@ -337,7 +327,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     _ttsAudioController.dispose();
     _tracking.dispose();
     _scrollController.dispose();
-    _navigationBloc?.close(); // Clean up BLoC if initialized
+    _navigationBloc.close(); // Clean up BLoC
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -347,302 +337,119 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     setState(() {});
   }
 
-  Future<void> _loadInitialDataLegacy() async {
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
+  void _goToNextDevocional() async {
+    try {
+      // Stop audio/TTS before navigation
+      if (_audioController != null && _audioController!.isActive) {
+        debugPrint(
+          'DevocionalesPage: Stopping AudioController before navigation',
+        );
+        await _audioController!.stop();
+        if (!mounted) return;
+        await Future.delayed(const Duration(milliseconds: 100));
+      } else {
+        await _stopSpeaking();
+      }
+
       if (!mounted) return;
 
+      // Get current state for analytics
+      final currentState = _navigationBloc.state;
+      final currentIndex =
+          currentState is NavigationReady ? currentState.currentIndex : 0;
+      final totalDevocionales =
+          currentState is NavigationReady ? currentState.totalDevocionales : 0;
+
+      // Dispatch navigation event
+      _navigationBloc.add(const NavigateToNext());
+
+      // Scroll to top
+      _scrollToTop();
+
+      // Trigger haptic feedback
+      HapticFeedback.mediumImpact();
+
+      // Log analytics event
+      await getService<AnalyticsService>().logNavigationNext(
+        currentIndex: currentIndex,
+        totalDevocionales: totalDevocionales,
+        viaBloc: 'true',
+      );
+
+      // Check if we should show invitation dialog
+      if (!mounted) return;
       final devocionalProvider = Provider.of<DevocionalProvider>(
         context,
         listen: false,
       );
-
-      // Wait for devotionals to load
-      if (!devocionalProvider.isLoading &&
-          devocionalProvider.devocionales.isEmpty) {
-        await devocionalProvider.initializeData();
-        if (!mounted) return;
-      }
-
-      if (devocionalProvider.devocionales.isEmpty) {
-        developer.log('No devotionals available to initialize Navigation BLoC');
-        return;
-      }
-
-      // Record daily app visit
-      final spiritualStatsService = SpiritualStatsService();
-      await spiritualStatsService.recordDailyAppVisit();
-
-      // Get read devotional IDs for finding first unread
-      final stats = await spiritualStatsService.getStats();
-      final readDevocionalIds = stats.readDevocionalIds;
-
-      // Find first unread index or use saved index
-      int initialIndex = 0;
-      if (widget.initialDevocionalId != null) {
-        // Deep link - find index by ID
-        final index = devocionalProvider.devocionales.indexWhere(
-          (d) => d.id == widget.initialDevocionalId,
-        );
-        initialIndex = index != -1 ? index : 0;
-      } else {
-        // Find first unread using repository (pure logic, deterministic)
-        initialIndex =
-            DevocionalRepositoryImpl().findFirstUnreadDevocionalIndex(
-          devocionalProvider.devocionales,
-          readDevocionalIds,
-        );
-      }
-
-      // Initialize navigation with full devotionals list
-      // Guard early and avoid race windows: check mounted and bloc state immediately
-      if (!mounted || _navigationBloc == null) return;
-      if (_navigationBloc!.isClosed) return;
-      _navigationBloc!.add(
-        InitializeNavigation(
-          initialIndex: initialIndex,
-          devocionales: devocionalProvider.devocionales,
-        ),
-      );
-      developer.log('Navigation BLoC initialized at index: $initialIndex');
-    });
-  }
-
-  void _startTrackingCurrentDevocionalLegacy() {
-    final devocionalProvider = Provider.of<DevocionalProvider>(
-      context,
-      listen: false,
-    );
-    if (devocionalProvider.devocionales.isNotEmpty &&
-        _currentDevocionalIndex < devocionalProvider.devocionales.length) {
-      final currentDevocional =
-          devocionalProvider.devocionales[_currentDevocionalIndex];
-      _tracking.clearAutoCompletedExcept(currentDevocional.id);
-      _tracking.startDevocionalTracking(
-        currentDevocional.id,
-        _scrollController,
-      );
-    }
-  }
-
-  void _goToNextDevocional() async {
-    if (_useNavigationBloc) {
-      // BLoC mode: Dispatch NavigateToNext event with error handling and fallback
-      if (_navigationBloc == null) return;
-
-      try {
-        // Stop audio/TTS before navigation
-        if (_audioController != null && _audioController!.isActive) {
-          debugPrint(
-            'DevocionalesPage: Stopping AudioController before navigation',
-          );
-          await _audioController!.stop();
-          if (!mounted) return;
-          await Future.delayed(const Duration(milliseconds: 100));
-        } else {
-          await _stopSpeaking();
-        }
-
-        if (!mounted) return;
-
-        // Get current state for analytics
-        final currentState = _navigationBloc!.state;
-        final currentIndex =
-            currentState is NavigationReady ? currentState.currentIndex : 0;
-        final totalDevocionales = currentState is NavigationReady
-            ? currentState.totalDevocionales
-            : 0;
-
-        // Dispatch navigation event
-        _navigationBloc!.add(const NavigateToNext());
-
-        // Scroll to top
-        _scrollToTop();
-
-        // Trigger haptic feedback
-        HapticFeedback.mediumImpact();
-
-        // Log analytics event (BLoC path)
-        await getService<AnalyticsService>().logNavigationNext(
-          currentIndex: currentIndex,
-          totalDevocionales: totalDevocionales,
-          viaBloc: 'true',
-        );
-
-        // Check if we should show invitation dialog
-        if (!mounted) return;
-        final devocionalProvider = Provider.of<DevocionalProvider>(
-          context,
-          listen: false,
-        );
-        if (devocionalProvider.showInvitationDialog) {
-          _showInvitation(context);
-        }
-      } catch (e, stackTrace) {
-        // Log error to Crashlytics
-        debugPrint('❌ BLoC navigation error, falling back to legacy: $e');
-        await FirebaseCrashlytics.instance.recordError(
-          e,
-          stackTrace,
-          reason: 'NavigationBloc.NavigateToNext failed',
-          information: [
-            'Feature: Navigation BLoC',
-            'Action: Navigate to next devotional',
-            'Fallback: Legacy navigation activated',
-          ],
-          fatal: false,
-        );
-
-        // Fallback to legacy navigation
-        _goToNextDevocionalLegacy();
-
-        // Log analytics event (fallback path)
-        await getService<AnalyticsService>().logNavigationNext(
-          currentIndex: _currentDevocionalIndex,
-          totalDevocionales: 0,
-          viaBloc: 'false',
-          fallbackReason: 'bloc_error',
-        );
-      }
-    } else {
-      _goToNextDevocionalLegacy();
-    }
-  }
-
-  void _goToNextDevocionalLegacy() async {
-    if (!mounted) return;
-    final devocionalProvider = Provider.of<DevocionalProvider>(
-      context,
-      listen: false,
-    );
-    final List<Devocional> devocionales = devocionalProvider.devocionales;
-    if (_currentDevocionalIndex < devocionales.length - 1) {
-      if (_audioController != null && _audioController!.isActive) {
-        debugPrint(
-          'DevocionalesPage: Stopping AudioController before navigation',
-        );
-        await _audioController!.stop();
-        await Future.delayed(const Duration(milliseconds: 100));
-      } else {
-        await _stopSpeaking();
-      }
-      if (!mounted) return;
-      setState(() {
-        _currentDevocionalIndex++;
-      });
-
-      _scrollToTop();
-
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _startTrackingCurrentDevocionalLegacy();
-      });
-
-      HapticFeedback.mediumImpact(); // Changed from lightImpact
-
       if (devocionalProvider.showInvitationDialog) {
-        if (mounted) {
-          _showInvitation(context);
-        }
+        _showInvitation(context);
       }
-
-      _saveCurrentDevocionalIndexLegacy();
+    } catch (e, stackTrace) {
+      // Log error to Crashlytics
+      debugPrint('❌ BLoC navigation error: $e');
+      await FirebaseCrashlytics.instance.recordError(
+        e,
+        stackTrace,
+        reason: 'NavigationBloc.NavigateToNext failed',
+        information: [
+          'Feature: Navigation BLoC',
+          'Action: Navigate to next devotional',
+        ],
+        fatal: false,
+      );
     }
   }
 
   void _goToPreviousDevocional() async {
-    if (_useNavigationBloc) {
-      // BLoC mode: Dispatch NavigateToPrevious event with error handling and fallback
-      if (_navigationBloc == null) return;
-
-      try {
-        // Stop audio/TTS before navigation
-        if (_audioController != null && _audioController!.isActive) {
-          debugPrint(
-            'DevocionalesPage: Stopping AudioController before navigation',
-          );
-          await _audioController!.stop();
-          await Future.delayed(const Duration(milliseconds: 100));
-          if (!mounted) return;
-        } else {
-          await _stopSpeaking();
-        }
-
-        // Get current state for analytics
-        final currentState = _navigationBloc!.state;
-        final currentIndex =
-            currentState is NavigationReady ? currentState.currentIndex : 0;
-        final totalDevocionales = currentState is NavigationReady
-            ? currentState.totalDevocionales
-            : 0;
-
-        // Dispatch navigation event
-        _navigationBloc!.add(const NavigateToPrevious());
-
-        // Scroll to top
-        _scrollToTop();
-
-        // Trigger haptic feedback
-        HapticFeedback.mediumImpact();
-
-        // Log analytics event (BLoC path)
-        await getService<AnalyticsService>().logNavigationPrevious(
-          currentIndex: currentIndex,
-          totalDevocionales: totalDevocionales,
-          viaBloc: 'true',
-        );
-      } catch (e, stackTrace) {
-        // Log error to Crashlytics
-        debugPrint('❌ BLoC navigation error, falling back to legacy: $e');
-        await FirebaseCrashlytics.instance.recordError(
-          e,
-          stackTrace,
-          reason: 'NavigationBloc.NavigateToPrevious failed',
-          information: [
-            'Feature: Navigation BLoC',
-            'Action: Navigate to previous devotional',
-            'Fallback: Legacy navigation activated',
-          ],
-          fatal: false,
-        );
-
-        // Fallback to legacy navigation
-        _goToPreviousDevocionalLegacy();
-
-        // Log analytics event (fallback path)
-        await getService<AnalyticsService>().logNavigationPrevious(
-          currentIndex: _currentDevocionalIndex,
-          totalDevocionales: 0,
-          viaBloc: 'false',
-          fallbackReason: 'bloc_error',
-        );
-      }
-    } else {
-      _goToPreviousDevocionalLegacy();
-    }
-  }
-
-  void _goToPreviousDevocionalLegacy() async {
-    if (_currentDevocionalIndex > 0) {
+    try {
+      // Stop audio/TTS before navigation
       if (_audioController != null && _audioController!.isActive) {
         debugPrint(
           'DevocionalesPage: Stopping AudioController before navigation',
         );
         await _audioController!.stop();
         await Future.delayed(const Duration(milliseconds: 100));
+        if (!mounted) return;
       } else {
         await _stopSpeaking();
       }
-      if (!mounted) return;
-      setState(() {
-        _currentDevocionalIndex--;
-      });
 
+      // Get current state for analytics
+      final currentState = _navigationBloc.state;
+      final currentIndex =
+          currentState is NavigationReady ? currentState.currentIndex : 0;
+      final totalDevocionales =
+          currentState is NavigationReady ? currentState.totalDevocionales : 0;
+
+      // Dispatch navigation event
+      _navigationBloc.add(const NavigateToPrevious());
+
+      // Scroll to top
       _scrollToTop();
 
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _startTrackingCurrentDevocionalLegacy();
-      });
+      // Trigger haptic feedback
+      HapticFeedback.mediumImpact();
 
-      HapticFeedback.mediumImpact(); // Changed from lightImpact
+      // Log analytics event
+      await getService<AnalyticsService>().logNavigationPrevious(
+        currentIndex: currentIndex,
+        totalDevocionales: totalDevocionales,
+        viaBloc: 'true',
+      );
+    } catch (e, stackTrace) {
+      // Log error to Crashlytics
+      debugPrint('❌ BLoC navigation error: $e');
+      await FirebaseCrashlytics.instance.recordError(
+        e,
+        stackTrace,
+        reason: 'NavigationBloc.NavigateToPrevious failed',
+        information: [
+          'Feature: Navigation BLoC',
+          'Action: Navigate to previous devotional',
+        ],
+        fatal: false,
+      );
     }
   }
 
@@ -656,12 +463,6 @@ class _DevocionalesPageState extends State<DevocionalesPage>
         );
       }
     });
-  }
-
-  Future<void> _saveCurrentDevocionalIndexLegacy() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt(_lastDevocionalIndexKey, _currentDevocionalIndex);
-    developer.log('Índice de devocional guardado: $_currentDevocionalIndex');
   }
 
   void _showInvitation(BuildContext context) {
@@ -763,15 +564,6 @@ class _DevocionalesPageState extends State<DevocionalesPage>
         ),
       ),
     );
-  }
-
-  Devocional? getCurrentDevocional(List<Devocional> devocionales) {
-    if (devocionales.isNotEmpty &&
-        _currentDevocionalIndex >= 0 &&
-        _currentDevocionalIndex < devocionales.length) {
-      return devocionales[_currentDevocionalIndex];
-    }
-    return null;
   }
 
   DateFormat _getLocalizedDateFormat(BuildContext context) {
@@ -1045,11 +837,10 @@ class _DevocionalesPageState extends State<DevocionalesPage>
 
   @override
   Widget build(BuildContext context) {
-    // Delegate to BLoC or Legacy builder based on feature flag
-    return _useNavigationBloc ? _buildWithBloc(context) : _buildLegacy(context);
+    return _buildWithBloc(context);
   }
 
-  /// Build UI using Navigation BLoC (when feature flag is true)
+  /// Build UI using Navigation BLoC
   Widget _buildWithBloc(BuildContext context) {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
     final TextTheme textTheme = Theme.of(context).textTheme;
@@ -1060,15 +851,14 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       builder: (context, devocionalProvider, child) {
         // When devotionals change (language/version change), update BLoC
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (_navigationBloc != null &&
-              devocionalProvider.devocionales.isNotEmpty) {
-            final currentState = _navigationBloc!.state;
+          if (devocionalProvider.devocionales.isNotEmpty) {
+            final currentState = _navigationBloc.state;
             if (currentState is NavigationReady) {
               final currentList = currentState.devocionales;
               final newList = devocionalProvider.devocionales;
               if (currentList.length != newList.length ||
                   currentList.hashCode != newList.hashCode) {
-                _navigationBloc!.add(
+                _navigationBloc.add(
                   UpdateDevocionales(devocionalProvider.devocionales),
                 );
               }
@@ -1304,184 +1094,6 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     );
   }
 
-  /// Build UI using Legacy Provider pattern (when feature flag is false)
-  Widget _buildLegacy(BuildContext context) {
-    final ColorScheme colorScheme = Theme.of(context).colorScheme;
-    final themeState = context.watch<ThemeBloc>().state as ThemeLoaded;
-
-    return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: themeState.systemUiOverlayStyle,
-      child: Scaffold(
-        drawer: const DevocionalesDrawer(),
-        appBar: CustomAppBar(
-          titleWidget: AutoSizeText(
-            'devotionals.my_intimate_space_with_god'.tr(),
-            maxLines: 1,
-            minFontSize: 10,
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  color: Theme.of(context).colorScheme.onPrimary,
-                ),
-          ),
-          actions: [
-            IconButton(
-              icon: const Icon(
-                Icons.text_increase_outlined,
-                color: Colors.white,
-              ),
-              tooltip: 'bible.adjust_font_size'.tr(),
-              onPressed: _toggleFontControls,
-            ),
-          ],
-        ),
-        floatingActionButton: AnimatedFabWithText(
-          onPressed: _showAddPrayerOrThanksgivingChoice,
-          text: 'prayer.add_prayer_thanksgiving_hint'.tr(),
-          fabColor: colorScheme.primary,
-          backgroundColor: colorScheme.secondary,
-          textColor: colorScheme.onPrimaryContainer,
-          iconColor: colorScheme.onPrimary,
-        ),
-        floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-        body: Stack(
-          children: [
-            Consumer<DevocionalProvider>(
-              builder: (context, devocionalProvider, child) {
-                final List<Devocional> devocionales =
-                    devocionalProvider.devocionales;
-
-                if (devocionales.isEmpty) {
-                  return Center(
-                    child: Text(
-                      'devotionals.no_devotionals_available'.tr(),
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: colorScheme.onSurface,
-                          ),
-                    ),
-                  );
-                }
-
-                if (_currentDevocionalIndex >= devocionales.length ||
-                    _currentDevocionalIndex < 0) {
-                  _currentDevocionalIndex = 0;
-                }
-
-                final Devocional currentDevocional =
-                    devocionales[_currentDevocionalIndex];
-
-                return Column(
-                  children: [
-                    Expanded(
-                      child: Screenshot(
-                        controller: screenshotController,
-                        child: Container(
-                          color: Theme.of(context).scaffoldBackgroundColor,
-                          child: DevocionalesContentWidget(
-                            devocional: currentDevocional,
-                            fontSize: _fontSize,
-                            scrollController: _scrollController,
-                            onVerseCopy: () async {
-                              try {
-                                await Clipboard.setData(
-                                  ClipboardData(
-                                    text: currentDevocional.versiculo,
-                                  ),
-                                );
-                                if (!context.mounted) return;
-                                HapticFeedback.selectionClick();
-                                final messenger = ScaffoldMessenger.of(context);
-                                final ColorScheme colorScheme = Theme.of(
-                                  context,
-                                ).colorScheme;
-                                messenger.showSnackBar(
-                                  SnackBar(
-                                    backgroundColor: colorScheme.secondary,
-                                    duration: const Duration(seconds: 2),
-                                    content: Text(
-                                      'share.copied_to_clipboard'.tr(),
-                                      style: TextStyle(
-                                        color: colorScheme.onSecondary,
-                                      ),
-                                    ),
-                                  ),
-                                );
-                              } catch (e) {
-                                debugPrint(
-                                  '[DevocionalesPage] Error copying verse to clipboard: $e',
-                                );
-                              }
-                            },
-                            onStreakBadgeTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const ProgressPage(),
-                                ),
-                              );
-                            },
-                            currentStreak: _currentStreak,
-                            streakFuture: _streakFuture,
-                            getLocalizedDateFormat: (context) =>
-                                _getLocalizedDateFormat(
-                              context,
-                            ).format(DateTime.now()),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                );
-              },
-            ),
-            if (_showFontControls)
-              FloatingFontControlButtons(
-                currentFontSize: _fontSize,
-                onIncrease: _increaseFontSize,
-                onDecrease: _decreaseFontSize,
-                onClose: () => setState(() => _showFontControls = false),
-              ),
-            if (_showPostSplashAnimation)
-              Positioned(
-                top: MediaQuery.of(context).padding.top + kToolbarHeight,
-                right: 0,
-                child: IgnorePointer(
-                  child: Lottie.asset(
-                    _selectedLottieAsset ?? 'assets/lottie/happy_bird.json',
-                    width: 200,
-                    repeat: true,
-                    fit: BoxFit.contain,
-                  ),
-                ),
-              ),
-          ],
-        ),
-        bottomNavigationBar: Consumer<DevocionalProvider>(
-          builder: (context, devocionalProvider, child) {
-            final List<Devocional> devocionales =
-                devocionalProvider.devocionales;
-            final Devocional? currentDevocional = getCurrentDevocional(
-              devocionales,
-            );
-            final bool isFavorite = currentDevocional != null
-                ? devocionalProvider.isFavorite(currentDevocional)
-                : false;
-
-            if (currentDevocional == null) return const SizedBox.shrink();
-
-            return _buildBottomNavigationBar(
-              context,
-              currentDevocional,
-              isFavorite,
-              _currentDevocionalIndex < devocionales.length - 1,
-              _currentDevocionalIndex > 0,
-              colorScheme,
-            );
-          },
-        ),
-      ),
-    );
-  }
-
   void _handleTtsStateChange() {
     try {
       final s = _ttsAudioController.state.value;
@@ -1580,11 +1192,17 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                             final languageCode = Localizations.localeOf(
                               context,
                             ).languageCode;
+
+                            // Get current devotional from BLoC state
+                            final currentState = _navigationBloc.state;
                             final currentDevocional =
-                                Provider.of<DevocionalProvider>(
-                              context,
-                              listen: false,
-                            ).devocionales[_currentDevocionalIndex];
+                                currentState is NavigationReady
+                                    ? currentState.currentDevocional
+                                    : Provider.of<DevocionalProvider>(
+                                        context,
+                                        listen: false,
+                                      ).devocionales.first;
+
                             final sampleText = _buildTtsTextForDevocional(
                               currentDevocional,
                               languageCode,
