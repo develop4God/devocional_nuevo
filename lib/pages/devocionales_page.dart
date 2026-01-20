@@ -339,6 +339,12 @@ class _DevocionalesPageState extends State<DevocionalesPage>
 
   void _goToNextDevocional() async {
     try {
+      // Guard: Don't navigate if BLoC is not ready (prevents race condition)
+      if (_navigationBloc.state is! NavigationReady) {
+        debugPrint('⚠️ Navigation blocked: BLoC not ready yet');
+        return;
+      }
+
       // Stop audio/TTS before navigation
       if (_audioController != null && _audioController!.isActive) {
         debugPrint(
@@ -403,6 +409,12 @@ class _DevocionalesPageState extends State<DevocionalesPage>
 
   void _goToPreviousDevocional() async {
     try {
+      // Guard: Don't navigate if BLoC is not ready (prevents race condition)
+      if (_navigationBloc.state is! NavigationReady) {
+        debugPrint('⚠️ Navigation blocked: BLoC not ready yet');
+        return;
+      }
+
       // Stop audio/TTS before navigation
       if (_audioController != null && _audioController!.isActive) {
         debugPrint(
