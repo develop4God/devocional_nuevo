@@ -4,6 +4,8 @@ import 'package:card_swiper/card_swiper.dart';
 import 'package:devocional_nuevo/blocs/discovery/discovery_bloc.dart';
 import 'package:devocional_nuevo/blocs/discovery/discovery_event.dart';
 import 'package:devocional_nuevo/blocs/discovery/discovery_state.dart';
+import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
+import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/pages/devotional_discovery/widgets/devotional_card_premium.dart';
@@ -12,6 +14,7 @@ import 'package:devocional_nuevo/pages/favorites_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/widgets/devocionales/app_bar_constants.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -64,87 +67,94 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: CustomAppBar(
-        titleText: 'discovery.discovery_studies'.tr(),
-        actions: [
-          IconButton(
-            icon:
-                Icon(_showGridOverlay ? Icons.view_carousel : Icons.grid_view),
-            onPressed: _toggleGridOverlay,
-            tooltip: _showGridOverlay ? 'Carousel View' : 'Grid View',
-          ),
-        ],
-      ),
-      body: BlocBuilder<DiscoveryBloc, DiscoveryState>(
-        builder: (context, state) {
-          debugPrint(
-              '🟢 [DiscoveryListPage] BlocBuilder rebuilding with state: ${state.runtimeType}');
+    final themeState = context.watch<ThemeBloc>().state as ThemeLoaded;
 
-          if (state is DiscoveryLoading) {
-            debugPrint('🟢 [DiscoveryListPage] Showing loading indicator');
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (state is DiscoveryError) {
-            debugPrint('🔴 [DiscoveryListPage] Error state: ${state.message}');
-            return _buildErrorState(context, state.message);
-          }
-          if (state is DiscoveryLoaded) {
-            debugPrint('🟢 [DiscoveryListPage] DiscoveryLoaded state received');
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: themeState.systemUiOverlayStyle,
+      child: Scaffold(
+        appBar: CustomAppBar(
+          titleText: 'discovery.discovery_studies'.tr(),
+          actions: [
+            IconButton(
+              icon: Icon(
+                  _showGridOverlay ? Icons.view_carousel : Icons.grid_view),
+              onPressed: _toggleGridOverlay,
+              tooltip: _showGridOverlay ? 'Carousel View' : 'Grid View',
+            ),
+          ],
+        ),
+        body: BlocBuilder<DiscoveryBloc, DiscoveryState>(
+          builder: (context, state) {
             debugPrint(
-                '🟢 [DiscoveryListPage] availableStudyIds: ${state.availableStudyIds}');
-            debugPrint(
-                '🟢 [DiscoveryListPage] studyTitles: ${state.studyTitles}');
-            debugPrint(
-                '🟢 [DiscoveryListPage] studySubtitles: ${state.studySubtitles}');
-            debugPrint(
-                '🟢 [DiscoveryListPage] studyEmojis: ${state.studyEmojis}');
-            debugPrint(
-                '🟢 [DiscoveryListPage] studyReadingMinutes: ${state.studyReadingMinutes}');
+                '🟢 [DiscoveryListPage] BlocBuilder rebuilding with state: ${state.runtimeType}');
 
-            if (state.availableStudyIds.isEmpty) {
-              debugPrint(
-                  '⚠️ [DiscoveryListPage] availableStudyIds is EMPTY - showing empty state');
-              return _buildEmptyState(context);
+            if (state is DiscoveryLoading) {
+              debugPrint('🟢 [DiscoveryListPage] Showing loading indicator');
+              return const Center(child: CircularProgressIndicator());
             }
+            if (state is DiscoveryError) {
+              debugPrint(
+                  '🔴 [DiscoveryListPage] Error state: ${state.message}');
+              return _buildErrorState(context, state.message);
+            }
+            if (state is DiscoveryLoaded) {
+              debugPrint(
+                  '🟢 [DiscoveryListPage] DiscoveryLoaded state received');
+              debugPrint(
+                  '🟢 [DiscoveryListPage] availableStudyIds: ${state.availableStudyIds}');
+              debugPrint(
+                  '🟢 [DiscoveryListPage] studyTitles: ${state.studyTitles}');
+              debugPrint(
+                  '🟢 [DiscoveryListPage] studySubtitles: ${state.studySubtitles}');
+              debugPrint(
+                  '🟢 [DiscoveryListPage] studyEmojis: ${state.studyEmojis}');
+              debugPrint(
+                  '🟢 [DiscoveryListPage] studyReadingMinutes: ${state.studyReadingMinutes}');
 
+              if (state.availableStudyIds.isEmpty) {
+                debugPrint(
+                    '⚠️ [DiscoveryListPage] availableStudyIds is EMPTY - showing empty state');
+                return _buildEmptyState(context);
+              }
+
+              debugPrint(
+                  '🟢 [DiscoveryListPage] Building carousel with ${state.availableStudyIds.length} studies');
+
+              final sortedIds = List<String>.from(state.availableStudyIds);
+              sortedIds.sort((a, b) {
+                final aCompleted = state.completedStudies[a] ?? false;
+                final bCompleted = state.completedStudies[b] ?? false;
+                if (aCompleted && !bCompleted) return 1;
+                if (!aCompleted && bCompleted) return -1;
+                return 0;
+              });
+
+              debugPrint('🟢 [DiscoveryListPage] Sorted IDs: $sortedIds');
+
+              return Stack(
+                children: [
+                  Column(
+                    children: [
+                      _buildProgressDots(sortedIds.length),
+                      const SizedBox(height: 16),
+                      Expanded(
+                        child: _buildCarousel(context, state, sortedIds),
+                      ),
+                      _buildActionBar(context, state, sortedIds),
+                      // We add extra space at bottom for the global navigation overlay if needed
+                      const SizedBox(height: 20),
+                    ],
+                  ),
+                  if (_showGridOverlay)
+                    _buildGridOverlay(context, state, sortedIds),
+                ],
+              );
+            }
             debugPrint(
-                '🟢 [DiscoveryListPage] Building carousel with ${state.availableStudyIds.length} studies');
-
-            final sortedIds = List<String>.from(state.availableStudyIds);
-            sortedIds.sort((a, b) {
-              final aCompleted = state.completedStudies[a] ?? false;
-              final bCompleted = state.completedStudies[b] ?? false;
-              if (aCompleted && !bCompleted) return 1;
-              if (!aCompleted && bCompleted) return -1;
-              return 0;
-            });
-
-            debugPrint('🟢 [DiscoveryListPage] Sorted IDs: $sortedIds');
-
-            return Stack(
-              children: [
-                Column(
-                  children: [
-                    _buildProgressDots(sortedIds.length),
-                    const SizedBox(height: 16),
-                    Expanded(
-                      child: _buildCarousel(context, state, sortedIds),
-                    ),
-                    _buildActionBar(context, state, sortedIds),
-                    // We add extra space at bottom for the global navigation overlay if needed
-                    const SizedBox(height: 20),
-                  ],
-                ),
-                if (_showGridOverlay)
-                  _buildGridOverlay(context, state, sortedIds),
-              ],
-            );
-          }
-          debugPrint(
-              '⚠️ [DiscoveryListPage] Unknown state type: ${state.runtimeType}');
-          return const SizedBox.shrink();
-        },
+                '⚠️ [DiscoveryListPage] Unknown state type: ${state.runtimeType}');
+            return const SizedBox.shrink();
+          },
+        ),
       ),
     );
   }
