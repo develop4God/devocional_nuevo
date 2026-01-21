@@ -66,8 +66,8 @@
     "offline_mode": "Modo sin conexión",
     "online_mode": "Modo en línea",
     "choose_option": "Elige una opción",
-    "no_devotionals": "No hay devocionales disponibles",
-    "no_devotionals_available": "PENDING"
+    "no_devotionals": "No hay devocionales",
+    "no_devotionals_available": "No hay devocionales disponibles"
   },
   "prayer": {
     "invitation_title": "Invitación a Orar",
