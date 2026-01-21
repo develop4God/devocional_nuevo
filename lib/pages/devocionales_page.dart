@@ -24,7 +24,7 @@ import 'package:devocional_nuevo/widgets/add_prayer_modal.dart';
 import 'package:devocional_nuevo/widgets/add_thanksgiving_modal.dart';
 import 'package:devocional_nuevo/widgets/app_bar_constants.dart';
 import 'package:devocional_nuevo/widgets/devocionales/devocionales_content_widget.dart';
-import 'package:devocional_nuevo/widgets/devocionales_page_drawer.dart';
+import 'package:devocional_nuevo/widgets/devocionales/devocionales_page_drawer.dart';
 import 'package:devocional_nuevo/widgets/floating_font_control_buttons.dart';
 import 'package:devocional_nuevo/widgets/tts_miniplayer_modal.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
