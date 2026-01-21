@@ -255,9 +255,9 @@ class DevotionalCardPremium extends StatelessWidget {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.menu_book_rounded,
+                            Icon(Icons.auto_stories_outlined,
                                 color: Colors.white.withValues(alpha: 0.9),
-                                size: 14),
+                                size: 16),
                             const SizedBox(width: 8),
                             Text(
                               'discovery.daily_bible_study'.tr(),
@@ -269,12 +269,8 @@ class DevotionalCardPremium extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(width: 12),
-                            Container(
-                                width: 4,
-                                height: 4,
-                                decoration: const BoxDecoration(
-                                    color: Colors.white70,
-                                    shape: BoxShape.circle)),
+                            Icon(Icons.timer_outlined,
+                                color: Colors.white70, size: 16),
                             const SizedBox(width: 12),
                             Text(
                               '${readingMinutes ?? 5} ${'discovery.minutes_suffix'.tr()}',
