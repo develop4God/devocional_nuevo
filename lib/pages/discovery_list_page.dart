@@ -329,26 +329,57 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
     required ColorScheme colorScheme,
     bool isPrimary = false,
   }) {
+    // Only apply border/no fill for the requested icons
+    final bool isBorderedIcon = [
+      Icons.share_rounded,
+      Icons.star_rounded,
+      Icons.auto_stories_rounded,
+      Icons.arrow_forward_rounded,
+    ].contains(icon);
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(20),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: isPrimary
-                    ? colorScheme.primary
-                    : colorScheme.primary.withAlpha(26),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(icon,
-                  color: isPrimary ? Colors.white : colorScheme.primary,
-                  size: 24),
-            ),
+            isBorderedIcon
+                ? Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: isPrimary
+                            ? colorScheme.primary
+                            : colorScheme.primary.withAlpha(180),
+                        width: 2,
+                      ),
+                      color: Colors.transparent,
+                    ),
+                    child: Center(
+                      child: Icon(
+                        icon,
+                        color: isPrimary
+                            ? colorScheme.primary
+                            : colorScheme.primary,
+                        size: 22,
+                      ),
+                    ),
+                  )
+                : Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: isPrimary
+                          ? colorScheme.primary
+                          : colorScheme.primary.withAlpha(26),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(icon,
+                        color: isPrimary ? Colors.white : colorScheme.primary,
+                        size: 24),
+                  ),
             const SizedBox(height: 4),
             Text(label,
                 style: TextStyle(
