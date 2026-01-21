@@ -169,13 +169,22 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
           (index) => AnimatedContainer(
             duration: const Duration(milliseconds: 300),
             margin: const EdgeInsets.symmetric(horizontal: 4),
-            width: _currentIndex == index ? 24 : 8,
-            height: 8,
+            width: _currentIndex == index ? 28 : 10,
+            height: 10,
             decoration: BoxDecoration(
               color: _currentIndex == index
                   ? Theme.of(context).colorScheme.primary
-                  : Colors.grey.withAlpha(128),
-              borderRadius: BorderRadius.circular(4),
+                  : Colors.transparent,
+              border: Border.all(
+                color: _currentIndex == index
+                    ? Theme.of(context).colorScheme.primary
+                    : Theme.of(context)
+                        .colorScheme
+                        .outline
+                        .withValues(alpha: 0.4),
+                width: 2,
+              ),
+              borderRadius: BorderRadius.circular(5),
             ),
           ),
         ),
@@ -191,11 +200,9 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
 
     return Swiper(
       controller: _swiperController,
-      physics: const ClampingScrollPhysics(),
-      // Smoother, less bounce
+      physics: const BouncingScrollPhysics(),
+      // Fluid, smooth scrolling
       scrollDirection: Axis.horizontal,
-      outer: true,
-      // Allow swipe gestures outside card bounds
       itemBuilder: (context, index) {
         final studyId = studyIds[index];
         debugPrint(
@@ -230,22 +237,22 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
         );
       },
       itemCount: studyIds.length,
-      viewportFraction: 0.95,
-      // More visible, easier swipe
-      scale: 0.98,
-      // Minimal scaling for natural feel
-      curve: Curves.easeOutCubic,
-      // Smoother exit
-      duration: 220,
-      // Faster animation
+      viewportFraction: 0.88,
+      // Better visibility and smoother transition
+      scale: 0.92,
+      // More noticeable depth effect
+      curve: Curves.easeInOutCubic,
+      // Smooth entry and exit
+      duration: 350,
+      // Smoother, not rushed
       onIndexChanged: (index) {
         setState(() {
           _currentIndex = index;
         });
       },
-      layout: SwiperLayout.DEFAULT,
-      // More natural horizontal swipe
-      itemWidth: MediaQuery.of(context).size.width * 0.95,
+      layout: SwiperLayout.STACK,
+      // Smooth stacking layout
+      itemWidth: MediaQuery.of(context).size.width * 0.88,
       itemHeight: MediaQuery.of(context).size.height * 0.6,
     );
   }
@@ -357,6 +364,16 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
 
   Widget _buildGridOverlay(
       BuildContext context, DiscoveryLoaded state, List<String> studyIds) {
+    // Sort studies: incomplete first, completed last
+    final sortedStudyIds = List<String>.from(studyIds);
+    sortedStudyIds.sort((a, b) {
+      final aCompleted = state.completedStudies[a] ?? false;
+      final bCompleted = state.completedStudies[b] ?? false;
+      if (!aCompleted && bCompleted) return -1; // Incomplete first
+      if (aCompleted && !bCompleted) return 1; // Completed last
+      return 0;
+    });
+
     return AnimatedBuilder(
       animation: _gridAnimationController,
       builder: (context, child) {
@@ -396,26 +413,27 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
                       crossAxisSpacing: 16,
                       mainAxisSpacing: 16,
                     ),
-                    itemCount: studyIds.length,
+                    itemCount: sortedStudyIds.length,
                     itemBuilder: (context, index) {
-                      final studyId = studyIds[index];
+                      final studyId = sortedStudyIds[index];
                       final title = state.studyTitles[studyId] ??
                           _formatStudyTitle(studyId);
                       final emoji = state.studyEmojis[studyId];
                       final isCompleted =
                           state.completedStudies[studyId] ?? false;
+                      final originalIndex = studyIds.indexOf(studyId);
 
                       return _StudyGridCard(
                         studyId: studyId,
                         title: title,
                         emoji: emoji,
                         isCompleted: isCompleted,
-                        isActive: index == _currentIndex,
+                        isActive: originalIndex == _currentIndex,
                         onTap: () {
                           _navigateToDetail(context, studyId);
                           setState(() {
-                            _currentIndex = index;
-                            _swiperController.move(index);
+                            _currentIndex = originalIndex;
+                            _swiperController.move(originalIndex);
                           });
                           _toggleGridOverlay();
                         },
@@ -539,10 +557,15 @@ class _StudyGridCard extends StatelessWidget {
     return Card(
       elevation: isActive ? 8 : 2,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: isActive
-            ? BorderSide(color: colorScheme.primary, width: 2)
-            : BorderSide.none,
+        borderRadius: BorderRadius.circular(20),
+        side: BorderSide(
+          color: isActive
+              ? colorScheme.primary
+              : isCompleted
+                  ? colorScheme.primary.withValues(alpha: 0.3)
+                  : colorScheme.outline.withValues(alpha: 0.2),
+          width: isActive ? 2.5 : 1.5,
+        ),
       ),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
@@ -556,14 +579,56 @@ class _StudyGridCard extends StatelessWidget {
                   flex: 3,
                   child: Container(
                     decoration: BoxDecoration(
-                      color: isActive
-                          ? colorScheme.primaryContainer
-                          : colorScheme.surfaceContainerHighest.withAlpha(128),
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: isActive
+                            ? [
+                                colorScheme.primaryContainer,
+                                colorScheme.primaryContainer
+                                    .withValues(alpha: 0.7),
+                              ]
+                            : isCompleted
+                                ? [
+                                    colorScheme.surfaceContainerHighest
+                                        .withValues(alpha: 0.5),
+                                    colorScheme.surfaceContainerHighest
+                                        .withValues(alpha: 0.3),
+                                  ]
+                                : [
+                                    colorScheme.surfaceContainerHighest
+                                        .withValues(alpha: 0.8),
+                                    colorScheme.surfaceContainerHighest
+                                        .withValues(alpha: 0.6),
+                                  ],
+                      ),
                     ),
                     child: Center(
-                      child: Text(
-                        emoji ?? '📖',
-                        style: const TextStyle(fontSize: 48),
+                      child: Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: isActive
+                                ? colorScheme.primary.withValues(alpha: 0.3)
+                                : colorScheme.outline.withValues(alpha: 0.15),
+                            width: 2,
+                          ),
+                          color: Colors.white.withValues(alpha: 0.1),
+                        ),
+                        child: Text(
+                          emoji ?? '📖',
+                          style: TextStyle(
+                            fontSize: 42,
+                            shadows: [
+                              Shadow(
+                                color: Colors.black.withValues(alpha: 0.1),
+                                blurRadius: 4,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -571,7 +636,7 @@ class _StudyGridCard extends StatelessWidget {
                 Expanded(
                   flex: 2,
                   child: Padding(
-                    padding: const EdgeInsets.all(10.0),
+                    padding: const EdgeInsets.all(12.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -589,22 +654,27 @@ class _StudyGridCard extends StatelessWidget {
                         if (isCompleted)
                           Container(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 6, vertical: 2),
+                                horizontal: 8, vertical: 4),
                             decoration: BoxDecoration(
-                              color: Colors.green.withAlpha(40),
-                              borderRadius: BorderRadius.circular(4),
+                              color: colorScheme.primary.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color:
+                                    colorScheme.primary.withValues(alpha: 0.3),
+                                width: 1,
+                              ),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Icon(Icons.check_circle,
-                                    size: 12, color: Colors.green),
+                                Icon(Icons.check_circle_outline,
+                                    size: 14, color: colorScheme.primary),
                                 const SizedBox(width: 4),
                                 Text(
                                   'discovery.completed'.tr(),
                                   style: theme.textTheme.labelSmall?.copyWith(
-                                    color: Colors.green,
-                                    fontWeight: FontWeight.bold,
+                                    color: colorScheme.primary,
+                                    fontWeight: FontWeight.w600,
                                   ),
                                 ),
                               ],
@@ -633,19 +703,26 @@ class _StudyGridCard extends StatelessWidget {
             ),
             if (isCompleted)
               Positioned(
-                top: 8,
-                right: 8,
+                top: 10,
+                right: 10,
                 child: Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: colorScheme.primary,
                     shape: BoxShape.circle,
+                    border: Border.all(
+                      color: Colors.white,
+                      width: 2,
+                    ),
                     boxShadow: [
                       BoxShadow(
-                          color: Colors.black12, blurRadius: 4, spreadRadius: 1)
+                        color: colorScheme.primary.withValues(alpha: 0.3),
+                        blurRadius: 8,
+                        spreadRadius: 1,
+                      )
                     ],
                   ),
-                  child: const Icon(Icons.check, color: Colors.green, size: 16),
+                  child: const Icon(Icons.check, color: Colors.white, size: 14),
                 ),
               ),
           ],
