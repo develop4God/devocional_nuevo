@@ -67,27 +67,28 @@ class DevotionalCardPremium extends StatelessWidget {
 
     return Semantics(
       label:
-          'Devotional card for $title. $verseReference. Posted $displayDate. ${isFavorite ? "In favorites" : "Not in favorites"}',
+          'Devotional card for $title. $verseReference. Posted $displayDate. \\${isFavorite ? "In favorites" : "Not in favorites"}',
       button: true,
-      child: Container(
-        height: 380,
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(28),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withAlpha(50),
-              blurRadius: 25,
-              offset: const Offset(0, 12),
-            ),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(28),
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: onTap,
+      child: GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        onTap: onTap,
+        child: Container(
+          height: 380,
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(28),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withAlpha(50),
+                blurRadius: 25,
+                offset: const Offset(0, 12),
+              ),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(28),
+            child: Material(
+              color: Colors.transparent,
               child: Stack(
                 fit: StackFit.expand,
                 children: [

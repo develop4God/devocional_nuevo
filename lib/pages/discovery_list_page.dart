@@ -181,6 +181,11 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
 
     return Swiper(
       controller: _swiperController,
+      physics: const ClampingScrollPhysics(),
+      // Smoother, less bounce
+      scrollDirection: Axis.horizontal,
+      outer: true,
+      // Allow swipe gestures outside card bounds
       itemBuilder: (context, index) {
         final studyId = studyIds[index];
         debugPrint(
@@ -215,16 +220,22 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
         );
       },
       itemCount: studyIds.length,
-      viewportFraction: 0.85,
-      scale: 0.9,
-      curve: Curves.easeInOutCubic,
+      viewportFraction: 0.95,
+      // More visible, easier swipe
+      scale: 0.98,
+      // Minimal scaling for natural feel
+      curve: Curves.easeOutCubic,
+      // Smoother exit
+      duration: 220,
+      // Faster animation
       onIndexChanged: (index) {
         setState(() {
           _currentIndex = index;
         });
       },
-      layout: SwiperLayout.STACK,
-      itemWidth: MediaQuery.of(context).size.width * 0.85,
+      layout: SwiperLayout.DEFAULT,
+      // More natural horizontal swipe
+      itemWidth: MediaQuery.of(context).size.width * 0.95,
       itemHeight: MediaQuery.of(context).size.height * 0.6,
     );
   }
