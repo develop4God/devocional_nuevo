@@ -78,16 +78,38 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
       ),
       body: BlocBuilder<DiscoveryBloc, DiscoveryState>(
         builder: (context, state) {
+          debugPrint(
+              '🟢 [DiscoveryListPage] BlocBuilder rebuilding with state: ${state.runtimeType}');
+
           if (state is DiscoveryLoading) {
+            debugPrint('🟢 [DiscoveryListPage] Showing loading indicator');
             return const Center(child: CircularProgressIndicator());
           }
           if (state is DiscoveryError) {
+            debugPrint('🔴 [DiscoveryListPage] Error state: ${state.message}');
             return _buildErrorState(context, state.message);
           }
           if (state is DiscoveryLoaded) {
+            debugPrint('🟢 [DiscoveryListPage] DiscoveryLoaded state received');
+            debugPrint(
+                '🟢 [DiscoveryListPage] availableStudyIds: ${state.availableStudyIds}');
+            debugPrint(
+                '🟢 [DiscoveryListPage] studyTitles: ${state.studyTitles}');
+            debugPrint(
+                '🟢 [DiscoveryListPage] studySubtitles: ${state.studySubtitles}');
+            debugPrint(
+                '🟢 [DiscoveryListPage] studyEmojis: ${state.studyEmojis}');
+            debugPrint(
+                '🟢 [DiscoveryListPage] studyReadingMinutes: ${state.studyReadingMinutes}');
+
             if (state.availableStudyIds.isEmpty) {
+              debugPrint(
+                  '⚠️ [DiscoveryListPage] availableStudyIds is EMPTY - showing empty state');
               return _buildEmptyState(context);
             }
+
+            debugPrint(
+                '🟢 [DiscoveryListPage] Building carousel with ${state.availableStudyIds.length} studies');
 
             final sortedIds = List<String>.from(state.availableStudyIds);
             sortedIds.sort((a, b) {
@@ -97,6 +119,8 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
               if (!aCompleted && bCompleted) return -1;
               return 0;
             });
+
+            debugPrint('🟢 [DiscoveryListPage] Sorted IDs: $sortedIds');
 
             return Stack(
               children: [
@@ -117,6 +141,8 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
               ],
             );
           }
+          debugPrint(
+              '⚠️ [DiscoveryListPage] Unknown state type: ${state.runtimeType}');
           return const SizedBox.shrink();
         },
       ),
@@ -151,10 +177,15 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
       BuildContext context, DiscoveryLoaded state, List<String> studyIds) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
+    debugPrint('🎠 [Carousel] Building carousel with ${studyIds.length} items');
+
     return Swiper(
       controller: _swiperController,
       itemBuilder: (context, index) {
         final studyId = studyIds[index];
+        debugPrint(
+            '🎠 [Carousel] Building card at index $index for study: $studyId');
+
         final title = state.studyTitles[studyId] ?? _formatStudyTitle(studyId);
         final subtitle = state.studySubtitles[studyId]; // Added
         final emoji = state.studyEmojis[studyId];
@@ -162,13 +193,18 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
         final isCompleted = state.completedStudies[studyId] ?? false;
         final isFavorite = state.favoriteStudyIds.contains(studyId);
 
+        debugPrint(
+            '🎠 [Carousel] Card $index data - title: "$title", subtitle: "$subtitle", emoji: "$emoji", minutes: $readingMinutes');
+
         final mockDevocional = _createMockDevocional(studyId, emoji: emoji);
 
         return DevotionalCardPremium(
           devocional: mockDevocional,
           title: title,
-          subtitle: subtitle, // Added
-          readingMinutes: readingMinutes, // Added
+          subtitle: subtitle,
+          // Added
+          readingMinutes: readingMinutes,
+          // Added
           isFavorite: isFavorite,
           isCompleted: isCompleted,
           isDark: isDark,

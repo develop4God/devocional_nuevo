@@ -42,15 +42,26 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
   Future<void> _fetchAndEmitIndex(Emitter<DiscoveryState> emit,
       {bool forceRefresh = false, String? languageCode}) async {
     try {
+      debugPrint(
+          '🔵 [BLOC] _fetchAndEmitIndex START (languageCode: $languageCode, forceRefresh: $forceRefresh)');
+
       final index = await repository.fetchIndex(forceRefresh: forceRefresh);
+      debugPrint('🔵 [BLOC] Index fetched successfully');
+
       final favoriteIds = await favoritesService.loadFavoriteIds();
+      debugPrint('🔵 [BLOC] Favorites loaded: ${favoriteIds.length} items');
 
       String locale = languageCode ?? 'es';
       if (languageCode == null) {
         try {
           locale =
               WidgetsBinding.instance.platformDispatcher.locale.languageCode;
-        } catch (_) {}
+          debugPrint('🔵 [BLOC] Detected platform locale: $locale');
+        } catch (_) {
+          debugPrint('🔵 [BLOC] Failed to detect locale, using default: es');
+        }
+      } else {
+        debugPrint('🔵 [BLOC] Using provided locale: $locale');
       }
 
       final List<String> filteredStudyIds = [];
@@ -62,26 +73,53 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
 
       final studiesData = index['studies'];
       final List studies = studiesData is List ? studiesData : [];
+      debugPrint('🔵 [BLOC] Processing ${studies.length} studies from index');
 
       for (final s in studies) {
-        if (s is! Map<String, dynamic>) continue;
+        if (s is! Map<String, dynamic>) {
+          debugPrint('⚠️ [BLOC] Skipping non-map study entry');
+          continue;
+        }
 
         final id = s['id'] as String?;
-        if (id == null) continue;
+        if (id == null) {
+          debugPrint('⚠️ [BLOC] Skipping study with null ID');
+          continue;
+        }
+
+        debugPrint('🔍 [BLOC] Processing study: $id');
 
         final files = s['files'];
         final filesMap = files is Map ? files : null;
 
-        if (filesMap != null && filesMap.containsKey(locale)) {
+        if (filesMap != null) {
+          debugPrint('  📁 Files available: ${filesMap.keys.toList()}');
+        } else {
+          debugPrint('  ❌ No files map found for $id');
+        }
+
+        // Check if study has files for current locale OR fallback locales
+        final hasValidFile = filesMap != null &&
+            (filesMap.containsKey(locale) ||
+                filesMap.containsKey('es') ||
+                filesMap.containsKey('en'));
+
+        debugPrint(
+            '  ✓ hasValidFile: $hasValidFile (locale: $locale, has es: ${filesMap?.containsKey('es')}, has en: ${filesMap?.containsKey('en')})');
+
+        if (hasValidFile) {
           filteredStudyIds.add(id);
+          debugPrint('  ✅ Study $id ADDED to filtered list');
 
           // Safe Title extraction
           final titles = s['titles'];
           if (titles is Map) {
             studyTitles[id] =
                 titles[locale]?.toString() ?? titles['es']?.toString() ?? id;
+            debugPrint('  📝 Title: ${studyTitles[id]}');
           } else {
             studyTitles[id] = s['title']?.toString() ?? id;
+            debugPrint('  📝 Title (legacy): ${studyTitles[id]}');
           }
 
           // Safe Subtitle extraction
@@ -90,11 +128,14 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
             studySubtitles[id] = subtitles[locale]?.toString() ??
                 subtitles['es']?.toString() ??
                 '';
+            debugPrint('  📋 Subtitle: ${studySubtitles[id]}');
           } else {
             studySubtitles[id] = s['subtitle']?.toString() ?? '';
+            debugPrint('  📋 Subtitle (legacy): ${studySubtitles[id]}');
           }
 
           studyEmojis[id] = s['emoji']?.toString() ?? '📖';
+          debugPrint('  😀 Emoji: ${studyEmojis[id]}');
 
           // Safe Reading Minutes extraction
           final readingMinutes = s['estimated_reading_minutes'];
@@ -106,11 +147,21 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
           } else {
             studyReadingMinutes[id] = 5;
           }
+          debugPrint('  ⏱️ Reading minutes: ${studyReadingMinutes[id]}');
 
           final progress = await progressTracker.getProgress(id);
           completedStudies[id] = progress.isCompleted;
+          debugPrint('  🎯 Completed: ${completedStudies[id]}');
+        } else {
+          debugPrint('  ❌ Study $id SKIPPED (no valid files)');
         }
       }
+
+      debugPrint(
+          '🔵 [BLOC] Filtering complete: ${filteredStudyIds.length} studies passed filter');
+      debugPrint('🔵 [BLOC] Filtered IDs: $filteredStudyIds');
+      debugPrint('🔵 [BLOC] Titles: ${studyTitles.keys.toList()}');
+      debugPrint('🔵 [BLOC] Subtitles: ${studySubtitles.keys.toList()}');
 
       emit(
         DiscoveryLoaded(
@@ -126,8 +177,12 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
           favoriteStudyIds: favoriteIds,
         ),
       );
+
+      debugPrint(
+          '🔵 [BLOC] DiscoveryLoaded state emitted with ${filteredStudyIds.length} studies');
     } catch (e) {
-      debugPrint('Error loading Discovery index: $e');
+      debugPrint('❌ [BLOC] Error loading Discovery index: $e');
+      debugPrint('❌ [BLOC] Stack trace: ${StackTrace.current}');
       emit(DiscoveryError('Error: $e'));
     }
   }

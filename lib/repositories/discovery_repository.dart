@@ -101,14 +101,35 @@ class DiscoveryRepository {
 
       debugPrint(
           '🌐 Discovery: Buscando índice en la red (buster: $timestamp)...');
+      debugPrint('📍 Discovery: URL = $cacheBusterUrl');
+
       final response = await httpClient.get(Uri.parse(cacheBusterUrl));
+      debugPrint('📡 Discovery: Response status = ${response.statusCode}');
 
       if (response.statusCode == 200) {
+        debugPrint(
+            '✅ Discovery: Response body length = ${response.body.length}');
+        debugPrint(
+            '🔍 Discovery: First 500 chars of response: ${response.body.substring(0, response.body.length < 500 ? response.body.length : 500)}');
+
         final index = jsonDecode(response.body) as Map<String, dynamic>;
+        debugPrint('🔍 Discovery: Index keys = ${index.keys.toList()}');
+
+        final studiesCount = (index['studies'] as List?)?.length ?? 0;
+        debugPrint('📚 Discovery: Parsed $studiesCount studies from index');
+
+        if (studiesCount == 0) {
+          debugPrint(
+              '⚠️ Discovery: index["studies"] type = ${index['studies'].runtimeType}');
+          debugPrint('⚠️ Discovery: Full index = $index');
+        }
+
         // Guardar en cache para offline
         await prefs.setString(_indexCacheKey, response.body);
+        debugPrint('💾 Discovery: Index cached successfully');
         return index;
       } else {
+        debugPrint('❌ Discovery: Server error ${response.statusCode}');
         throw Exception('Server error: ${response.statusCode}');
       }
     } catch (e) {
@@ -116,8 +137,13 @@ class DiscoveryRepository {
           '⚠️ Discovery: Error de red al buscar índice, usando cache: $e');
       final cachedIndex = prefs.getString(_indexCacheKey);
       if (cachedIndex != null) {
-        return jsonDecode(cachedIndex) as Map<String, dynamic>;
+        debugPrint('📦 Discovery: Cache encontrado, parseando...');
+        final index = jsonDecode(cachedIndex) as Map<String, dynamic>;
+        final studiesCount = (index['studies'] as List?)?.length ?? 0;
+        debugPrint('📚 Discovery: Cached index has $studiesCount studies');
+        return index;
       }
+      debugPrint('🚫 Discovery: No cache disponible, relanzando error');
       rethrow;
     }
   }
