@@ -444,7 +444,7 @@
     "connected_to_google_drive": "Google Driveに接続されました",
     "connect_to_google_drive": "Google Driveに接続",
     "tap_to_connect_protect": "タップして接続し、霊的進歩を保護してください",
-    "description_title": "霊적進歩を保護",
+    "description_title": "霊的進歩を保護",
     "description_text": "お気に入りのデボーション、霊的統計、祈りをGoogle Driveに自動的に保存し、進歩を失うことがないようにします。",
     "google_drive_connection": "Google Drive接続",
     "automatic_backups": "自動バックアップ",
@@ -704,7 +704,9 @@
     "reflection_questions": "振り返りの質問",
     "meaning": "意味",
     "revelation": "啓示",
-    "activation_prayer": "活性化の祈り"
+    "activation_prayer": "活性化の祈り",
+    "share": "シェア",
+    "read": "読む"
   },
   "tags": {
     "love": "愛",

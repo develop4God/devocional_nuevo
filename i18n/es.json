@@ -29,7 +29,7 @@
     "app_title": "Devocionales Diarios",
     "my_intimate_space_with_god": "Mi espacio íntimo con Dios",
     "devotional_of_the_day": "Devocional del día",
-    "no_devotionals_available": "No hay devocionales disponibles para el idioma/versión seleccionados.",
+    "no_devocionales_available": "No hay devocionales disponibles para el idioma/versión seleccionados.",
     "verse": "Versículo:",
     "reflection": "Reflexión:",
     "to_meditate": "Para Meditar:",
@@ -704,7 +704,9 @@
     "reflection_questions": "Preguntas de Reflexión",
     "meaning": "Significado",
     "revelation": "Revelación",
-    "activation_prayer": "Oración de Activación"
+    "activation_prayer": "Oración de Activación",
+    "share": "Compartir",
+    "read": "Leer"
   },
   "tags": {
     "love": "Amor",

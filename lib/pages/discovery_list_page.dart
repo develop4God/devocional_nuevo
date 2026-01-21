@@ -283,7 +283,7 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
           children: [
             _buildActionButton(
                 icon: Icons.share_rounded,
-                label: 'Share',
+                label: 'discovery.share'.tr(),
                 onTap: () {
                   SharePlus.instance.share(
                       'Check out this Bible Study: $currentTitle'
@@ -292,7 +292,7 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
                 colorScheme: colorScheme),
             _buildActionButton(
                 icon: Icons.star_rounded,
-                label: 'Favorites',
+                label: 'navigation.favorites'.tr(),
                 onTap: () {
                   Navigator.push(
                     context,
@@ -304,14 +304,14 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
                 colorScheme: colorScheme),
             _buildActionButton(
               icon: Icons.auto_stories_rounded,
-              label: 'Read',
+              label: 'discovery.read'.tr(),
               onTap: () => _navigateToDetail(context, currentStudyId),
               colorScheme: colorScheme,
               isPrimary: true,
             ),
             _buildActionButton(
                 icon: Icons.arrow_forward_rounded,
-                label: 'Next',
+                label: 'navigation.next'.tr(),
                 onTap: () {
                   _swiperController.next();
                 },
