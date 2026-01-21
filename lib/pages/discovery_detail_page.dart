@@ -6,6 +6,7 @@ import 'package:devocional_nuevo/blocs/discovery/discovery_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/discovery_card_model.dart';
 import 'package:devocional_nuevo/models/discovery_devotional_model.dart';
+import 'package:devocional_nuevo/utils/copyright_utils.dart';
 import 'package:devocional_nuevo/widgets/app_bar_constants.dart';
 import 'package:devocional_nuevo/widgets/discovery_section_card.dart';
 import 'package:flutter/material.dart';
@@ -83,7 +84,7 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
               final study = state.getStudy(widget.studyId);
 
               if (study == null) {
-                return const Center(child: Text('Study not found.'));
+                return Center(child: Text('discovery.study_not_found'.tr()));
               }
 
               // Check if study is already marked as completed in the state
@@ -242,7 +243,7 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
           children: [
             if (study.cards.isNotEmpty)
               _buildCardContent(
-                  study.cards[index], isDark, isLast, isAlreadyCompleted)
+                  study.cards[index], study, isDark, isLast, isAlreadyCompleted)
             else if (study.secciones != null && study.secciones!.isNotEmpty)
               DiscoverySectionCard(
                 section: study.secciones![index],
@@ -257,8 +258,8 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
     );
   }
 
-  Widget _buildCardContent(
-      DiscoveryCard card, bool isDark, bool isLast, bool isAlreadyCompleted) {
+  Widget _buildCardContent(DiscoveryCard card, DiscoveryDevotional study,
+      bool isDark, bool isLast, bool isAlreadyCompleted) {
     final theme = Theme.of(context);
     return SingleChildScrollView(
       padding: const EdgeInsets.all(28),
@@ -348,8 +349,9 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
 
           if (card.discoveryQuestions != null) ...[
             const SizedBox(height: 32),
-            const Text('Preguntas de Reflexión',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
+            Text('discovery.reflection_questions'.tr(),
+                style:
+                    const TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
             const SizedBox(height: 16),
             ...card.discoveryQuestions!
                 .map((q) => _buildQuestionTile(q, theme)),
@@ -403,6 +405,10 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
               ),
             ),
           ],
+
+          // 📜 COPYRIGHT DISCLAIMER
+          const SizedBox(height: 48),
+          _buildCopyrightDisclaimer(study, theme),
 
           const SizedBox(height: 60),
         ],
@@ -465,11 +471,11 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
             ],
           ),
           const SizedBox(height: 12),
-          Text('Significado: ${word.meaning}',
+          Text('${'discovery.meaning'.tr()}: ${word.meaning}',
               style:
                   const TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
           const SizedBox(height: 8),
-          Text('Revelación: ${word.revelation}',
+          Text('${'discovery.revelation'.tr()}: ${word.revelation}',
               style: const TextStyle(fontStyle: FontStyle.italic)),
         ],
       ),
@@ -511,14 +517,55 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Oración de Activación',
-              style: TextStyle(
+          Text('discovery.activation_prayer'.tr(),
+              style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w900,
               )),
           const SizedBox(height: 12),
           Text(p.content,
               style: const TextStyle(fontStyle: FontStyle.italic, height: 1.6)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCopyrightDisclaimer(DiscoveryDevotional study, ThemeData theme) {
+    // Use the language and version from the already-fetched study data
+    final language = study.language ?? 'en';
+    final version = study.version ?? 'KJV';
+
+    // Get copyright text from CopyrightUtils
+    final copyrightText = CopyrightUtils.getCopyrightText(language, version);
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.2),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: theme.dividerColor.withValues(alpha: 0.15),
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            Icons.info_outline,
+            size: 16,
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              copyrightText,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                fontSize: 11,
+                height: 1.4,
+              ),
+            ),
+          ),
         ],
       ),
     );
