@@ -1,6 +1,7 @@
 // lib/pages/devotional_discovery/widgets/devotional_card_premium.dart
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:intl/intl.dart';
@@ -67,32 +68,34 @@ class DevotionalCardPremium extends StatelessWidget {
 
     return Semantics(
       label:
-          'Devotional card for $title. $verseReference. Posted $displayDate. \\${isFavorite ? "In favorites" : "Not in favorites"}',
+          'Devotional card for $title. $verseReference. Posted $displayDate. ${isFavorite ? "In favorites" : "Not in favorites"}',
       button: true,
-      child: GestureDetector(
-        behavior: HitTestBehavior.translucent,
-        onTap: onTap,
-        child: Container(
-          height: 380,
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(28),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withAlpha(50),
-                blurRadius: 25,
-                offset: const Offset(0, 12),
-              ),
-            ],
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(28),
-            child: Material(
-              color: Colors.transparent,
+      child: Container(
+        height: 380,
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(28),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withAlpha(50),
+              blurRadius: 25,
+              offset: const Offset(0, 12),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(28),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: onTap,
               child: Stack(
                 fit: StackFit.expand,
                 children: [
+                  // 1. Background Image
                   _buildBackgroundImage(),
+
+                  // 2. Light Effect / Bloom
                   Positioned.fill(
                     child: Container(
                       decoration: BoxDecoration(
@@ -108,6 +111,8 @@ class DevotionalCardPremium extends StatelessWidget {
                       ),
                     ),
                   ),
+
+                  // 3. Bottom Scrim
                   Container(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
@@ -122,12 +127,15 @@ class DevotionalCardPremium extends StatelessWidget {
                       ),
                     ),
                   ),
+
+                  // 4. Content Layer
                   Padding(
                     padding: const EdgeInsets.all(28),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
+                        // Top Badge
                         Align(
                           alignment: Alignment.topCenter,
                           child: Container(
@@ -151,7 +159,10 @@ class DevotionalCardPremium extends StatelessWidget {
                             ),
                           ),
                         ),
+
                         const Spacer(),
+
+                        // Hero Section
                         Stack(
                           alignment: Alignment.center,
                           children: [
@@ -182,6 +193,7 @@ class DevotionalCardPremium extends StatelessWidget {
                           ],
                         ),
                         const SizedBox(height: 20),
+
                         Text(
                           title,
                           textAlign: TextAlign.center,
@@ -195,6 +207,8 @@ class DevotionalCardPremium extends StatelessWidget {
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
+
+                        // Subtitle / Description Section
                         if (subtitle != null && subtitle!.isNotEmpty) ...[
                           const SizedBox(height: 12),
                           Text(
@@ -210,7 +224,34 @@ class DevotionalCardPremium extends StatelessWidget {
                             ),
                           ),
                         ],
+
+                        const SizedBox(height: 18),
+
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(30),
+                            border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.2),
+                                width: 0.5),
+                          ),
+                          child: Text(
+                            verseReference,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              fontStyle: FontStyle.italic,
+                              letterSpacing: 0.3,
+                            ),
+                          ),
+                        ),
+
                         const Spacer(),
+
+                        // Bottom Row: Reading Info
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
@@ -219,7 +260,7 @@ class DevotionalCardPremium extends StatelessWidget {
                                 size: 14),
                             const SizedBox(width: 8),
                             Text(
-                              'DAILY BIBLE STUDY',
+                              'discovery.daily_bible_study'.tr(),
                               style: TextStyle(
                                 color: Colors.white.withValues(alpha: 0.9),
                                 fontSize: 10,
@@ -236,7 +277,7 @@ class DevotionalCardPremium extends StatelessWidget {
                                     shape: BoxShape.circle)),
                             const SizedBox(width: 12),
                             Text(
-                              '${readingMinutes ?? 5} MIN',
+                              '${readingMinutes ?? 5} ${'discovery.minutes_suffix'.tr()}',
                               style: TextStyle(
                                 color: Colors.white.withValues(alpha: 0.9),
                                 fontSize: 10,
@@ -249,6 +290,8 @@ class DevotionalCardPremium extends StatelessWidget {
                       ],
                     ),
                   ),
+
+                  // ✅ COMPLETION CHECK - TOP LEFT
                   if (isCompleted)
                     Positioned(
                       top: 20,
@@ -267,6 +310,8 @@ class DevotionalCardPremium extends StatelessWidget {
                         ),
                       ),
                     ),
+
+                  // ✅ DYNAMIC FAVORITE BUTTON (Heart Empty -> Yellow Star) - TOP RIGHT
                   Positioned(
                     top: 20,
                     right: 20,
@@ -378,14 +423,14 @@ class DevotionalCardPremium extends StatelessWidget {
     final devDate = DateTime(
         devocional.date.year, devocional.date.month, devocional.date.day);
 
-    if (devDate == today) return 'Today';
+    if (devDate == today) return 'app.today'.tr();
     DateTime displayDate = devDate;
     while (displayDate.isBefore(today)) {
       displayDate =
           DateTime(displayDate.year + 1, displayDate.month, displayDate.day);
     }
     final tomorrow = today.add(const Duration(days: 1));
-    if (displayDate == tomorrow) return 'Tomorrow';
+    if (displayDate == tomorrow) return 'app.tomorrow'.tr();
     final daysUntil = displayDate.difference(today).inDays;
     if (daysUntil <= 7 && daysUntil > 1) {
       return DateFormat('EEEE').format(displayDate);
@@ -394,7 +439,9 @@ class DevotionalCardPremium extends StatelessWidget {
   }
 
   String _extractVerseReference(String? versiculo) {
-    if (versiculo == null || versiculo.trim().isEmpty) return 'Bible Study';
+    if (versiculo == null || versiculo.trim().isEmpty) {
+      return 'discovery.verse_fallback'.tr();
+    }
     final trimmed = versiculo.trim();
     final parts = trimmed.split(RegExp(r'\s+[A-Z]{2,}[0-9]*:'));
     if (parts.isNotEmpty && parts[0].trim().isNotEmpty) {
@@ -406,6 +453,6 @@ class DevotionalCardPremium extends StatelessWidget {
       final reference = trimmed.substring(0, quoteIndex).trim();
       if (reference.length >= 3) return reference;
     }
-    return trimmed.length < 50 ? trimmed : 'Daily Verse';
+    return trimmed.length < 50 ? trimmed : 'discovery.daily_verse'.tr();
   }
 }
