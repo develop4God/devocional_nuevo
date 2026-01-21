@@ -40,8 +40,7 @@ class DiscoveryLoaded extends DiscoveryState with EquatableMixin {
   DiscoveryDevotional? getStudy(String studyId) => loadedStudies[studyId];
   bool isStudyLoaded(String studyId) => loadedStudies.containsKey(studyId);
   bool isStudyCompleted(String studyId) => completedStudies[studyId] ?? false;
-  bool isStudyFavorite(String studyId) =>
-      favoriteStudyIds.contains(studyId);
+  bool isStudyFavorite(String studyId) => favoriteStudyIds.contains(studyId);
 
   int get availableStudiesCount => availableStudyIds.length;
   int get loadedStudiesCount => loadedStudies.length;
