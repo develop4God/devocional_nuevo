@@ -209,28 +209,6 @@ class DevotionalCardPremium extends StatelessWidget {
                             ),
                           ),
                         ],
-                        const SizedBox(height: 18),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(30),
-                            border: Border.all(
-                                color: Colors.white.withValues(alpha: 0.2),
-                                width: 0.5),
-                          ),
-                          child: Text(
-                            verseReference,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w700,
-                              fontStyle: FontStyle.italic,
-                              letterSpacing: 0.3,
-                            ),
-                          ),
-                        ),
                         const Spacer(),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
