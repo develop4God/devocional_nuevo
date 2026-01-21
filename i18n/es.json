@@ -9,6 +9,9 @@
     "save": "Guardar",
     "cancel": "Cancelar",
     "ok": "OK",
+    "today": "Hoy",
+    "tomorrow": "Mañana",
+    "yesterday": "Ayer",
     "yes": "Sí",
     "no": "No",
     "delete": "Eliminar",
@@ -692,6 +695,10 @@
     "completed_study": "Estudio completado",
     "all_studies": "Todos los Estudios",
     "current": "Actual",
-    "completed": "Completado"
+    "completed": "Completado",
+    "daily_bible_study": "ESTUDIO BÍBLICO DIARIO",
+    "minutes_suffix": "MIN",
+    "verse_fallback": "Estudio Bíblico",
+    "daily_verse": "Versículo Diario"
   }
 }
