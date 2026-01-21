@@ -8,7 +8,7 @@ import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/services/notification_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
-import 'package:devocional_nuevo/widgets/app_bar_constants.dart';
+import 'package:devocional_nuevo/widgets/devocionales/app_bar_constants.dart';
 // NEW IMPORTS for Firebase
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';

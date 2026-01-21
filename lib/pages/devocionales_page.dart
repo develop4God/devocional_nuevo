@@ -22,7 +22,7 @@ import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/update_service.dart';
 import 'package:devocional_nuevo/widgets/add_prayer_modal.dart';
 import 'package:devocional_nuevo/widgets/add_thanksgiving_modal.dart';
-import 'package:devocional_nuevo/widgets/app_bar_constants.dart';
+import 'package:devocional_nuevo/widgets/devocionales/app_bar_constants.dart';
 import 'package:devocional_nuevo/widgets/devocionales/devocionales_content_widget.dart';
 import 'package:devocional_nuevo/widgets/devocionales/devocionales_page_drawer.dart';
 import 'package:devocional_nuevo/widgets/floating_font_control_buttons.dart';
@@ -46,7 +46,7 @@ import '../services/spiritual_stats_service.dart';
 import '../services/tts/bible_text_formatter.dart';
 import '../widgets/animated_fab_with_text.dart';
 import '../widgets/app_gradient_bottom_sheet.dart';
-import '../widgets/devocionales_bottom_bar.dart';
+import '../widgets/devocionales/devocionales_bottom_bar.dart';
 import '../widgets/voice_selector_dialog.dart';
 
 class DevocionalesPage extends StatefulWidget {
