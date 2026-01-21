@@ -705,14 +705,17 @@
     "reflection_questions": "Perguntas para Reflexão",
     "meaning": "Significado",
     "revelation": "Revelação",
-    "activation_prayer": "Oração de Ativação"
+    "activation_prayer": "Oração de Ativação",
+    "share": "Compartilhar",
+    "read": "Ler"
   },
   "tags": {
     "love": "Amor",
     "hope": "Esperança",
     "faith": "Fé",
     "peace": "Paz",
-    "grace": "Graça",
+    "gratitude": "Gratidão",
+    "strength": "Força",
     "wisdom": "Sabedoria",
     "family": "Família",
     "prayer": "Oração",
