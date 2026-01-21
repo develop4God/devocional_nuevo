@@ -17,7 +17,10 @@
     "voice_feature_description": "デボーションの読み上げにさまざまな声を選べるようになりました。体験をカスタマイズして、より快適でモダンな読み上げをお楽しみください。😃🔊",
     "voice_feature_configure": "音声を設定",
     "voice_feature_continue": "続ける",
-    "audio_playing": "音声を再生中"
+    "audio_playing": "音声を再生中",
+    "today": "PENDING",
+    "tomorrow": "PENDING",
+    "yesterday": "PENDING"
   },
   "devotionals": {
     "modern_voice_title": "🎤✨ 新機能が利用可能になりました！ ✨🎤",
@@ -687,6 +690,33 @@
     "loading_studies": "聖書研究を読み込み中...",
     "study_completed": "研究が正常に完了しました",
     "section_completed": "セクション完了",
-    "answer_saved": "回答が正常に保存されました"
+    "answer_saved": "回答が正常に保存されました",
+    "mark_completed": "PENDING",
+    "completed_study": "PENDING",
+    "all_studies": "PENDING",
+    "current": "PENDING",
+    "completed": "PENDING",
+    "daily_bible_study": "PENDING",
+    "minutes_suffix": "PENDING",
+    "verse_fallback": "PENDING",
+    "daily_verse": "PENDING",
+    "study_not_found": "PENDING",
+    "reflection_questions": "PENDING",
+    "meaning": "PENDING",
+    "revelation": "PENDING",
+    "activation_prayer": "PENDING"
+  },
+  "tags": {
+    "love": "PENDING",
+    "hope": "PENDING",
+    "faith": "PENDING",
+    "peace": "PENDING",
+    "grace": "PENDING",
+    "wisdom": "PENDING",
+    "family": "PENDING",
+    "prayer": "PENDING",
+    "discovery": "PENDING",
+    "morning": "PENDING",
+    "night": "PENDING"
   }
 }

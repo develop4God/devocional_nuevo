@@ -17,7 +17,10 @@
     "voice_feature_description": "您现在可以为灵修阅读选择不同的声音。个性化您的体验，享受更愉快和现代的阅读。😃🔊",
     "voice_feature_configure": "配置声音",
     "voice_feature_continue": "继续",
-    "audio_playing": "正在播放音频"
+    "audio_playing": "正在播放音频",
+    "today": "PENDING",
+    "tomorrow": "PENDING",
+    "yesterday": "PENDING"
   },
   "devotionals": {
     "modern_voice_title": "🎤✨ 新功能可用！ ✨🎤",
@@ -687,6 +690,33 @@
     "loading_studies": "正在加载圣经研究...",
     "study_completed": "研究成功完成",
     "section_completed": "章节完成",
-    "answer_saved": "答案保存成功"
+    "answer_saved": "答案保存成功",
+    "mark_completed": "PENDING",
+    "completed_study": "PENDING",
+    "all_studies": "PENDING",
+    "current": "PENDING",
+    "completed": "PENDING",
+    "daily_bible_study": "PENDING",
+    "minutes_suffix": "PENDING",
+    "verse_fallback": "PENDING",
+    "daily_verse": "PENDING",
+    "study_not_found": "PENDING",
+    "reflection_questions": "PENDING",
+    "meaning": "PENDING",
+    "revelation": "PENDING",
+    "activation_prayer": "PENDING"
+  },
+  "tags": {
+    "love": "PENDING",
+    "hope": "PENDING",
+    "faith": "PENDING",
+    "peace": "PENDING",
+    "grace": "PENDING",
+    "wisdom": "PENDING",
+    "family": "PENDING",
+    "prayer": "PENDING",
+    "discovery": "PENDING",
+    "morning": "PENDING",
+    "night": "PENDING"
   }
 }

@@ -17,7 +17,10 @@
     "voice_feature_description": "Agora você pode escolher entre diferentes vozes para a leitura devocional. Personalize sua experiência e aproveite uma leitura mais agradável e moderna. 😃🔊",
     "voice_feature_configure": "Configurar vozes",
     "voice_feature_continue": "Continuar",
-    "audio_playing": "Reproduzindo áudio"
+    "audio_playing": "Reproduzindo áudio",
+    "today": "PENDING",
+    "tomorrow": "PENDING",
+    "yesterday": "PENDING"
   },
   "devotionals": {
     "modern_voice_title": "🎤✨ Novo recurso disponível! ✨🎤",
@@ -688,6 +691,33 @@
     "loading_studies": "Carregando estudos bíblicos...",
     "study_completed": "Estudo concluído com sucesso",
     "section_completed": "Seção concluída",
-    "answer_saved": "Resposta salva com sucesso"
+    "answer_saved": "Resposta salva com sucesso",
+    "mark_completed": "PENDING",
+    "completed_study": "PENDING",
+    "all_studies": "PENDING",
+    "current": "PENDING",
+    "completed": "PENDING",
+    "daily_bible_study": "PENDING",
+    "minutes_suffix": "PENDING",
+    "verse_fallback": "PENDING",
+    "daily_verse": "PENDING",
+    "study_not_found": "PENDING",
+    "reflection_questions": "PENDING",
+    "meaning": "PENDING",
+    "revelation": "PENDING",
+    "activation_prayer": "PENDING"
+  },
+  "tags": {
+    "love": "PENDING",
+    "hope": "PENDING",
+    "faith": "PENDING",
+    "peace": "PENDING",
+    "grace": "PENDING",
+    "wisdom": "PENDING",
+    "family": "PENDING",
+    "prayer": "PENDING",
+    "discovery": "PENDING",
+    "morning": "PENDING",
+    "night": "PENDING"
   }
 }

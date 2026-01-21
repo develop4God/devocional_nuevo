@@ -699,6 +699,24 @@
     "daily_bible_study": "ESTUDIO BÍBLICO DIARIO",
     "minutes_suffix": "MIN",
     "verse_fallback": "Estudio Bíblico",
-    "daily_verse": "Versículo Diario"
+    "daily_verse": "Versículo Diario",
+    "study_not_found": "Estudio no encontrado.",
+    "reflection_questions": "Preguntas de Reflexión",
+    "meaning": "Significado",
+    "revelation": "Revelación",
+    "activation_prayer": "Oración de Activación"
+  },
+  "tags": {
+    "love": "Amor",
+    "hope": "Esperanza",
+    "faith": "Fe",
+    "peace": "Paz",
+    "grace": "Gracia",
+    "wisdom": "Sabiduría",
+    "family": "Familia",
+    "prayer": "Oración",
+    "discovery": "Descubrimiento",
+    "morning": "Mañana",
+    "night": "Noche"
   }
 }
