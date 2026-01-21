@@ -156,7 +156,9 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
       itemBuilder: (context, index) {
         final studyId = studyIds[index];
         final title = state.studyTitles[studyId] ?? _formatStudyTitle(studyId);
+        final subtitle = state.studySubtitles[studyId]; // Added
         final emoji = state.studyEmojis[studyId];
+        final readingMinutes = state.studyReadingMinutes[studyId]; // Added
         final isCompleted = state.completedStudies[studyId] ?? false;
         final isFavorite = state.favoriteStudyIds.contains(studyId);
 
@@ -165,6 +167,8 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
         return DevotionalCardPremium(
           devocional: mockDevocional,
           title: title,
+          subtitle: subtitle, // Added
+          readingMinutes: readingMinutes, // Added
           isFavorite: isFavorite,
           isCompleted: isCompleted,
           isDark: isDark,

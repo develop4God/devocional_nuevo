@@ -29,6 +29,8 @@ class _DiscoveryCacheManager {
 class DevotionalCardPremium extends StatelessWidget {
   final Devocional devocional;
   final String title;
+  final String? subtitle;
+  final int? readingMinutes;
   final bool isFavorite;
   final bool isCompleted;
   final VoidCallback onTap;
@@ -39,15 +41,21 @@ class DevotionalCardPremium extends StatelessWidget {
     super.key,
     required this.devocional,
     required this.title,
+    this.subtitle,
+    this.readingMinutes,
     required this.isFavorite,
     this.isCompleted = false,
     required this.onTap,
     required this.onFavoriteToggle,
     required this.isDark,
   }) {
-    // ✅ DEBUG PRINT: Review why Spanish text might be appearing when English is expected
-    debugPrint(
-        '🏗️ DevotionalCardPremium: Created for title: "$title", id: "${devocional.id}"');
+    // ✨ DEBUG PRINT WITH EMOJIS
+    debugPrint('✨🎴 [Card Premium Instance] -------------------');
+    debugPrint('✨🏷️ Title: "$title"');
+    debugPrint('✨📝 Subtitle: "${subtitle ?? 'EMPTY'}"');
+    debugPrint('✨⏱️ Reading Time: ${readingMinutes ?? 'DEFAULT'} min');
+    debugPrint('✨🆔 ID: ${devocional.id}');
+    debugPrint('✨🎴 ------------------------------------------');
   }
 
   @override
@@ -62,7 +70,7 @@ class DevotionalCardPremium extends StatelessWidget {
           'Devotional card for $title. $verseReference. Posted $displayDate. ${isFavorite ? "In favorites" : "Not in favorites"}',
       button: true,
       child: Container(
-        height: 360,
+        height: 380,
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(28),
@@ -83,10 +91,7 @@ class DevotionalCardPremium extends StatelessWidget {
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  // 1. Background Image
                   _buildBackgroundImage(),
-
-                  // 2. Light Effect / Bloom
                   Positioned.fill(
                     child: Container(
                       decoration: BoxDecoration(
@@ -102,8 +107,6 @@ class DevotionalCardPremium extends StatelessWidget {
                       ),
                     ),
                   ),
-
-                  // 3. Bottom Scrim
                   Container(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
@@ -118,15 +121,12 @@ class DevotionalCardPremium extends StatelessWidget {
                       ),
                     ),
                   ),
-
-                  // 4. Content Layer
                   Padding(
                     padding: const EdgeInsets.all(28),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        // Top Badge
                         Align(
                           alignment: Alignment.topCenter,
                           child: Container(
@@ -150,10 +150,7 @@ class DevotionalCardPremium extends StatelessWidget {
                             ),
                           ),
                         ),
-
                         const Spacer(),
-
-                        // Hero Section
                         Stack(
                           alignment: Alignment.center,
                           children: [
@@ -184,7 +181,6 @@ class DevotionalCardPremium extends StatelessWidget {
                           ],
                         ),
                         const SizedBox(height: 20),
-
                         Text(
                           title,
                           textAlign: TextAlign.center,
@@ -198,9 +194,22 @@ class DevotionalCardPremium extends StatelessWidget {
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
-
-                        const SizedBox(height: 14),
-
+                        if (subtitle != null && subtitle!.isNotEmpty) ...[
+                          const SizedBox(height: 12),
+                          Text(
+                            subtitle!,
+                            textAlign: TextAlign.center,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.8),
+                              fontSize: 14,
+                              fontWeight: FontWeight.w400,
+                              height: 1.3,
+                            ),
+                          ),
+                        ],
+                        const SizedBox(height: 18),
                         Container(
                           padding: const EdgeInsets.symmetric(
                               horizontal: 16, vertical: 6),
@@ -222,10 +231,7 @@ class DevotionalCardPremium extends StatelessWidget {
                             ),
                           ),
                         ),
-
                         const Spacer(),
-
-                        // Bottom Row: Reading Info
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
@@ -251,7 +257,7 @@ class DevotionalCardPremium extends StatelessWidget {
                                     shape: BoxShape.circle)),
                             const SizedBox(width: 12),
                             Text(
-                              '5 MIN',
+                              '${readingMinutes ?? 5} MIN',
                               style: TextStyle(
                                 color: Colors.white.withValues(alpha: 0.9),
                                 fontSize: 10,
@@ -264,8 +270,6 @@ class DevotionalCardPremium extends StatelessWidget {
                       ],
                     ),
                   ),
-
-                  // ✅ COMPLETION CHECK - TOP LEFT
                   if (isCompleted)
                     Positioned(
                       top: 20,
@@ -284,8 +288,6 @@ class DevotionalCardPremium extends StatelessWidget {
                         ),
                       ),
                     ),
-
-                  // ✅ DYNAMIC FAVORITE BUTTON (Heart Empty -> Yellow Star) - TOP RIGHT
                   Positioned(
                     top: 20,
                     right: 20,

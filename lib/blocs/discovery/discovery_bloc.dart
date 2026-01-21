@@ -10,7 +10,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'discovery_event.dart';
 import 'discovery_state.dart';
 
-/// BLoC for managing Discovery studies with intelligent version-based fetching.
 class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
   final DiscoveryRepository repository;
   final DiscoveryProgressTracker progressTracker;
@@ -32,7 +31,6 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
     on<ClearDiscoveryError>(_onClearDiscoveryError);
   }
 
-  /// Handles loading all available Discovery studies on page entry.
   Future<void> _onLoadDiscoveryStudies(
     LoadDiscoveryStudies event,
     Emitter<DiscoveryState> emit,
@@ -41,14 +39,12 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
     await _fetchAndEmitIndex(emit, languageCode: event.languageCode);
   }
 
-  /// Shared logic to fetch index and emit loaded state
   Future<void> _fetchAndEmitIndex(Emitter<DiscoveryState> emit,
       {bool forceRefresh = false, String? languageCode}) async {
     try {
       final index = await repository.fetchIndex(forceRefresh: forceRefresh);
       final favoriteIds = await favoritesService.loadFavoriteIds();
 
-      // ✅ PRIORITY: Use provided languageCode, then platform locale, then fallback 'es'
       String locale = languageCode ?? 'es';
       if (languageCode == null) {
         try {
@@ -57,37 +53,62 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
         } catch (_) {}
       }
 
-      debugPrint('🌐 Discovery: Building index for language: $locale');
-
       final List<String> filteredStudyIds = [];
       final Map<String, String> studyTitles = {};
+      final Map<String, String> studySubtitles = {};
       final Map<String, String> studyEmojis = {};
+      final Map<String, int> studyReadingMinutes = {};
       final Map<String, bool> completedStudies = {};
 
-      final studies = index['studies'] as List<dynamic>? ?? [];
+      final studiesData = index['studies'];
+      final List studies = studiesData is List ? studiesData : [];
+
       for (final s in studies) {
+        if (s is! Map<String, dynamic>) continue;
+
         final id = s['id'] as String?;
-        if (id != null) {
-          final files = s['files'] as Map<String, dynamic>?;
+        if (id == null) continue;
 
-          // ✅ FIX: Only include studies that support the current locale
-          // This prevents showing Spanish studies when the app is in English
-          if (files != null && files.containsKey(locale)) {
-            filteredStudyIds.add(id);
+        final files = s['files'];
+        final filesMap = files is Map ? files : null;
 
-            final titles = s['titles'] as Map<String, dynamic>?;
-            final emoji = s['emoji'] as String?;
+        if (filesMap != null && filesMap.containsKey(locale)) {
+          filteredStudyIds.add(id);
 
-            if (titles != null) {
-              studyTitles[id] = titles[locale] ?? titles['es'] ?? id;
-            }
-            if (emoji != null) {
-              studyEmojis[id] = emoji;
-            }
-
-            final progress = await progressTracker.getProgress(id);
-            completedStudies[id] = progress.isCompleted;
+          // Safe Title extraction
+          final titles = s['titles'];
+          if (titles is Map) {
+            studyTitles[id] =
+                titles[locale]?.toString() ?? titles['es']?.toString() ?? id;
+          } else {
+            studyTitles[id] = s['title']?.toString() ?? id;
           }
+
+          // Safe Subtitle extraction
+          final subtitles = s['subtitles'];
+          if (subtitles is Map) {
+            studySubtitles[id] = subtitles[locale]?.toString() ??
+                subtitles['es']?.toString() ??
+                '';
+          } else {
+            studySubtitles[id] = s['subtitle']?.toString() ?? '';
+          }
+
+          studyEmojis[id] = s['emoji']?.toString() ?? '📖';
+
+          // Safe Reading Minutes extraction
+          final readingMinutes = s['estimated_reading_minutes'];
+          if (readingMinutes is Map) {
+            final val = readingMinutes[locale] ?? readingMinutes['es'] ?? 5;
+            studyReadingMinutes[id] = int.tryParse(val.toString()) ?? 5;
+          } else if (readingMinutes is int) {
+            studyReadingMinutes[id] = readingMinutes;
+          } else {
+            studyReadingMinutes[id] = 5;
+          }
+
+          final progress = await progressTracker.getProgress(id);
+          completedStudies[id] = progress.isCompleted;
         }
       }
 
@@ -96,18 +117,21 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
           availableStudyIds: filteredStudyIds,
           loadedStudies: {},
           studyTitles: studyTitles,
+          studySubtitles: studySubtitles,
+          // Ensure required parameter is passed
           studyEmojis: studyEmojis,
+          studyReadingMinutes: studyReadingMinutes,
+          // Ensure required parameter is passed
           completedStudies: completedStudies,
           favoriteStudyIds: favoriteIds,
         ),
       );
     } catch (e) {
-      debugPrint('Error loading Discovery studies index: $e');
-      emit(DiscoveryError('Error al cargar índice de estudios: $e'));
+      debugPrint('Error loading Discovery index: $e');
+      emit(DiscoveryError('Error: $e'));
     }
   }
 
-  /// Handles loading a specific Discovery study content.
   Future<void> _onLoadDiscoveryStudy(
     LoadDiscoveryStudy event,
     Emitter<DiscoveryState> emit,
@@ -141,14 +165,15 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
             availableStudyIds: [event.studyId],
             loadedStudies: {event.studyId: study},
             studyTitles: {},
+            studySubtitles: {},
             studyEmojis: {},
+            studyReadingMinutes: {},
             completedStudies: {event.studyId: progress.isCompleted},
             favoriteStudyIds: favoriteIds,
           ),
         );
       }
     } catch (e) {
-      debugPrint('Error loading Discovery study ${event.studyId}: $e');
       if (currentState is DiscoveryLoaded) {
         emit(currentState.copyWith(
             errorMessage: 'Error al cargar contenido del estudio: $e'));
@@ -215,7 +240,6 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
     }
   }
 
-  /// Handles toggling favorite status
   Future<void> _onToggleDiscoveryFavorite(
     ToggleDiscoveryFavorite event,
     Emitter<DiscoveryState> emit,
@@ -242,7 +266,7 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
       if (currentState is DiscoveryLoaded) {
         final updatedCompletion =
             Map<String, bool>.from(currentState.completedStudies);
-        updatedCompletion[event.studyId] = false; // Mark as incomplete
+        updatedCompletion[event.studyId] = false;
 
         emit(currentState.copyWith(
           completedStudies: updatedCompletion,
@@ -259,7 +283,6 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
     RefreshDiscoveryStudies event,
     Emitter<DiscoveryState> emit,
   ) async {
-    // ✅ PASS THE LANGUAGE CODE FROM EVENT
     await _fetchAndEmitIndex(emit,
         forceRefresh: true, languageCode: event.languageCode);
   }
