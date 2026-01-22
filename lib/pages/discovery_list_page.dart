@@ -29,7 +29,7 @@ class DiscoveryListPage extends StatefulWidget {
 
 class _DiscoveryListPageState extends State<DiscoveryListPage>
     with SingleTickerProviderStateMixin {
-  static const double _inactiveDotsAlpha = 0.2;
+  static const double _inactiveDotsAlpha = 0.3; // Increased visibility
 
   int _currentIndex = 0;
   bool _showGridOverlay = false;
@@ -182,6 +182,9 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
   }
 
   Widget _buildProgressDots(int count) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 16),
       child: Row(
@@ -195,19 +198,13 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
             height: 10,
             decoration: BoxDecoration(
               color: _currentIndex == index
-                  ? Theme.of(context).colorScheme.primary
-                  : Theme.of(context)
-                      .colorScheme
-                      .outline
-                      .withValues(alpha: _inactiveDotsAlpha),
+                  ? colorScheme.primary
+                  : colorScheme.primary.withValues(alpha: _inactiveDotsAlpha),
               border: Border.all(
                 color: _currentIndex == index
-                    ? Theme.of(context).colorScheme.primary
-                    : Theme.of(context)
-                        .colorScheme
-                        .outline
-                        .withValues(alpha: 0.4),
-                width: 2,
+                    ? colorScheme.primary
+                    : colorScheme.outline.withValues(alpha: 0.5),
+                width: 1.5,
               ),
               borderRadius: BorderRadius.circular(5),
             ),
