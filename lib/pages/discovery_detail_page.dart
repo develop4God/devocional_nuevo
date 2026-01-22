@@ -6,6 +6,7 @@ import 'package:devocional_nuevo/blocs/discovery/discovery_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/discovery_card_model.dart';
 import 'package:devocional_nuevo/models/discovery_devotional_model.dart';
+import 'package:devocional_nuevo/models/discovery_section_model.dart';
 import 'package:devocional_nuevo/utils/copyright_utils.dart';
 import 'package:devocional_nuevo/widgets/devocionales/app_bar_constants.dart';
 import 'package:devocional_nuevo/widgets/discovery_section_card.dart';
@@ -227,6 +228,8 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
 
   Widget _buildAnimatedCard(DiscoveryDevotional study, int index, bool isDark,
       bool isLast, bool isAlreadyCompleted) {
+    final isFirst = index == 0;
+
     return AnimatedContainer(
       duration: const Duration(milliseconds: 400),
       curve: Curves.easeOutQuart,
@@ -239,33 +242,179 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
         borderRadius: BorderRadius.circular(32),
         shadowColor: Colors.black.withValues(alpha: 0.08),
         clipBehavior: Clip.antiAlias,
-        child: Stack(
-          children: [
-            if (study.cards.isNotEmpty)
-              _buildCardContent(
-                  study.cards[index], study, isDark, isLast, isAlreadyCompleted)
-            else if (study.secciones != null && study.secciones!.isNotEmpty)
-              DiscoverySectionCard(
-                section: study.secciones![index],
-                studyId: widget.studyId,
-                sectionIndex: index,
-                isDark: isDark,
-                versiculoClave: study.versiculoClave,
-              ),
-          ],
+        child: study.cards.isNotEmpty
+            ? _buildCardContent(study.cards[index], study, isDark, isLast,
+                isAlreadyCompleted, isFirst)
+            : study.secciones != null && study.secciones!.isNotEmpty
+                ? _buildSectionCardWithButtons(
+                    study, study.secciones![index], isDark, isFirst, isLast)
+                : const SizedBox.shrink(),
+      ),
+    );
+  }
+
+  /// Wrapper for DiscoverySectionCard with navigation buttons at bottom
+  Widget _buildSectionCardWithButtons(DiscoveryDevotional study,
+      DiscoverySection section, bool isDark, bool isFirst, bool isLast) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Section content - expand to fill space
+        Expanded(
+          child: DiscoverySectionCard(
+            section: section,
+            studyId: widget.studyId,
+            sectionIndex: _currentSectionIndex,
+            isDark: isDark,
+            versiculoClave: study.versiculoClave,
+          ),
         ),
+
+        // Navigation buttons at bottom
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+          child: _buildNavigationButtons(isFirst, isLast),
+        ),
+      ],
+    );
+  }
+
+  /// Builds minimalistic navigation buttons at the end of content
+  /// - Previous button: appears from 2nd slice onwards (left side)
+  /// - Next button: appears on all slices except last (right side)
+  /// - Exit button: appears on last slice (right side, replaces Next)
+  Widget _buildNavigationButtons(bool isFirst, bool isLast) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+      child: Row(
+        children: [
+          // Previous button (left side) - shown from 2nd slice onwards
+          if (!isFirst)
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.only(right: 6),
+                child: SizedBox(
+                  height: 44,
+                  child: TextButton.icon(
+                    onPressed: () {
+                      _pageController.previousPage(
+                        duration: const Duration(milliseconds: 350),
+                        curve: Curves.easeInOut,
+                      );
+                    },
+                    icon: Icon(
+                      Icons.arrow_back_ios_rounded,
+                      size: 16,
+                      color: colorScheme.onSurface.withValues(alpha: 0.7),
+                    ),
+                    label: Text(
+                      'discovery.previous'.tr(),
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        color: colorScheme.onSurface.withValues(alpha: 0.7),
+                      ),
+                    ),
+                    style: TextButton.styleFrom(
+                      backgroundColor: colorScheme.surfaceContainerHighest
+                          .withValues(alpha: 0.3),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                    ),
+                  ),
+                ),
+              ),
+            )
+          else
+            // Empty space to balance layout when there's no Previous button
+            const Expanded(child: SizedBox.shrink()),
+
+          // Next button (right side) - shown on all slices except last
+          // Exit button (right side) - shown ONLY on last slice
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(left: 6),
+              child: SizedBox(
+                height: 44,
+                child: isLast
+                    ? TextButton.icon(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                        icon: Icon(
+                          Icons.check_circle_outline_rounded,
+                          size: 16,
+                          color: colorScheme.primary,
+                        ),
+                        label: Text(
+                          'discovery.exit'.tr(),
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                            color: colorScheme.primary,
+                          ),
+                        ),
+                        style: TextButton.styleFrom(
+                          backgroundColor: colorScheme.primaryContainer
+                              .withValues(alpha: 0.4),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                        ),
+                      )
+                    : TextButton.icon(
+                        onPressed: () {
+                          _pageController.nextPage(
+                            duration: const Duration(milliseconds: 350),
+                            curve: Curves.easeInOut,
+                          );
+                        },
+                        icon: Icon(
+                          Icons.arrow_forward_ios_rounded,
+                          size: 16,
+                          color: colorScheme.primary,
+                        ),
+                        label: Text(
+                          'discovery.next'.tr(),
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                            color: colorScheme.primary,
+                          ),
+                        ),
+                        iconAlignment: IconAlignment.end,
+                        style: TextButton.styleFrom(
+                          backgroundColor: colorScheme.primaryContainer
+                              .withValues(alpha: 0.4),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                        ),
+                      ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildCardContent(DiscoveryCard card, DiscoveryDevotional study,
-      bool isDark, bool isLast, bool isAlreadyCompleted) {
+      bool isDark, bool isLast, bool isAlreadyCompleted, bool isFirst) {
     final theme = Theme.of(context);
     return SingleChildScrollView(
       padding: const EdgeInsets.all(28),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // ...existing card content...
           if (card.icon != null) ...[
             Text(card.icon!, style: const TextStyle(fontSize: 52)),
             const SizedBox(height: 20),
@@ -412,7 +561,11 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
             _buildCopyrightDisclaimer(study, theme),
           ],
 
-          const SizedBox(height: 60),
+          // Navigation buttons at the bottom of content
+          const SizedBox(height: 32),
+          _buildNavigationButtons(isFirst, isLast),
+
+          const SizedBox(height: 20),
         ],
       ),
     );

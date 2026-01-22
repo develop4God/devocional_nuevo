@@ -14,6 +14,7 @@ import 'package:devocional_nuevo/pages/favorites_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/utils/discovery_share_helper.dart';
 import 'package:devocional_nuevo/widgets/devocionales/app_bar_constants.dart';
+import 'package:devocional_nuevo/widgets/discovery_grid_overlay.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -168,8 +169,21 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
                         const SizedBox(height: 20),
                       ],
                     ),
-                    if (_showGridOverlay)
-                      _buildGridOverlay(context, state, sortedIds),
+                    DiscoveryGridOverlay(
+                      state: state,
+                      studyIds: sortedIds,
+                      currentIndex: _currentIndex,
+                      onStudySelected: (studyId, originalIndex) {
+                        _navigateToDetail(context, studyId);
+                        setState(() {
+                          _currentIndex = originalIndex;
+                          _swiperController.move(originalIndex);
+                        });
+                        _toggleGridOverlay();
+                      },
+                      onClose: _toggleGridOverlay,
+                      animation: _gridAnimationController,
+                    ),
                   ],
                 );
               }
@@ -416,92 +430,6 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
     );
   }
 
-  Widget _buildGridOverlay(
-      BuildContext context, DiscoveryLoaded state, List<String> studyIds) {
-    final sortedStudyIds = List<String>.from(studyIds);
-    sortedStudyIds.sort((a, b) {
-      final aCompleted = state.completedStudies[a] ?? false;
-      final bCompleted = state.completedStudies[b] ?? false;
-      if (!aCompleted && bCompleted) return -1;
-      if (aCompleted && !bCompleted) return 1;
-      return 0;
-    });
-
-    return AnimatedBuilder(
-      animation: _gridAnimationController,
-      builder: (context, child) {
-        return Container(
-          color: Colors.black
-              .withAlpha((200 * _gridAnimationController.value).toInt()),
-          child: SafeArea(
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'discovery.all_studies'.tr(),
-                        style: Theme.of(context)
-                            .textTheme
-                            .headlineSmall
-                            ?.copyWith(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold),
-                      ),
-                      IconButton(
-                          icon: const Icon(Icons.close, color: Colors.white),
-                          onPressed: _toggleGridOverlay),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  child: GridView.builder(
-                    padding: const EdgeInsets.all(16),
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      childAspectRatio: 0.8,
-                      crossAxisSpacing: 16,
-                      mainAxisSpacing: 16,
-                    ),
-                    itemCount: sortedStudyIds.length,
-                    itemBuilder: (context, index) {
-                      final studyId = sortedStudyIds[index];
-                      final title = state.studyTitles[studyId] ??
-                          _formatStudyTitle(studyId);
-                      final emoji = state.studyEmojis[studyId];
-                      final isCompleted =
-                          state.completedStudies[studyId] ?? false;
-                      final originalIndex = studyIds.indexOf(studyId);
-
-                      return _StudyGridCard(
-                        studyId: studyId,
-                        title: title,
-                        emoji: emoji,
-                        isCompleted: isCompleted,
-                        isActive: originalIndex == _currentIndex,
-                        onTap: () {
-                          _navigateToDetail(context, studyId);
-                          setState(() {
-                            _currentIndex = originalIndex;
-                            _swiperController.move(originalIndex);
-                          });
-                          _toggleGridOverlay();
-                        },
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
   Widget _buildErrorState(BuildContext context, String message) {
     return Center(
       child: Padding(
@@ -669,205 +597,5 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
       if (!mounted) return;
       _showFeedbackSnackBar('share.share_error'.tr());
     }
-  }
-}
-
-class _StudyGridCard extends StatelessWidget {
-  final String studyId;
-  final String title;
-  final String? emoji;
-  final bool isCompleted;
-  final bool isActive;
-  final VoidCallback onTap;
-
-  const _StudyGridCard({
-    required this.studyId,
-    required this.title,
-    this.emoji,
-    required this.isCompleted,
-    required this.isActive,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    return Card(
-      elevation: isActive ? 8 : 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-        side: BorderSide(
-          color: isActive
-              ? colorScheme.primary
-              : isCompleted
-                  ? colorScheme.primary.withValues(alpha: 0.3)
-                  : colorScheme.outline.withValues(alpha: 0.2),
-          width: isActive ? 2.5 : 1.5,
-        ),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
-        child: Stack(
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Expanded(
-                  flex: 3,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: isActive
-                            ? [
-                                colorScheme.primaryContainer,
-                                colorScheme.primaryContainer
-                                    .withValues(alpha: 0.7),
-                              ]
-                            : isCompleted
-                                ? [
-                                    colorScheme.surfaceContainerHighest
-                                        .withValues(alpha: 0.5),
-                                    colorScheme.surfaceContainerHighest
-                                        .withValues(alpha: 0.3),
-                                  ]
-                                : [
-                                    colorScheme.surfaceContainerHighest
-                                        .withValues(alpha: 0.8),
-                                    colorScheme.surfaceContainerHighest
-                                        .withValues(alpha: 0.6),
-                                  ],
-                      ),
-                    ),
-                    child: Center(
-                      child: Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: isActive
-                                ? colorScheme.primary.withValues(alpha: 0.3)
-                                : colorScheme.outline.withValues(alpha: 0.15),
-                            width: 2,
-                          ),
-                          color: Colors.white.withValues(alpha: 0.1),
-                        ),
-                        child: Text(
-                          emoji ?? '📖',
-                          style: TextStyle(
-                            fontSize: 42,
-                            shadows: [
-                              Shadow(
-                                color: Colors.black.withValues(alpha: 0.1),
-                                blurRadius: 4,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                Expanded(
-                  flex: 2,
-                  child: Padding(
-                    padding: const EdgeInsets.all(12.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          title,
-                          style: theme.textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: isActive ? colorScheme.primary : null,
-                            height: 1.2,
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const Spacer(),
-                        if (isCompleted)
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: colorScheme.primary.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(
-                                color:
-                                    colorScheme.primary.withValues(alpha: 0.3),
-                                width: 1,
-                              ),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.check_circle_outline,
-                                    size: 14, color: colorScheme.primary),
-                                const SizedBox(width: 4),
-                                Text(
-                                  'discovery.completed'.tr(),
-                                  style: theme.textTheme.labelSmall?.copyWith(
-                                    color: colorScheme.primary,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          )
-                        else if (isActive)
-                          Row(
-                            children: [
-                              Icon(Icons.play_circle_outline,
-                                  size: 14, color: colorScheme.primary),
-                              const SizedBox(width: 4),
-                              Text(
-                                'discovery.current'.tr(),
-                                style: theme.textTheme.labelSmall?.copyWith(
-                                  color: colorScheme.primary,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            if (isCompleted)
-              Positioned(
-                top: 10,
-                right: 10,
-                child: Container(
-                  padding: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(
-                    color: colorScheme.primary,
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: Colors.white,
-                      width: 2,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: colorScheme.primary.withValues(alpha: 0.3),
-                        blurRadius: 8,
-                        spreadRadius: 1,
-                      )
-                    ],
-                  ),
-                  child: const Icon(Icons.check, color: Colors.white, size: 14),
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
   }
 }
