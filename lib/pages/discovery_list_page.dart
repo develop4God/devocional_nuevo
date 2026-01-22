@@ -36,6 +36,10 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
   late AnimationController _gridAnimationController;
   final SwiperController _swiperController = SwiperController();
 
+  // Track previous state values for comparison in the listener
+  Set<String>? _previousFavoriteIds;
+  Set<String>? _previousLoadedStudyIds;
+
   @override
   void initState() {
     super.initState();
@@ -87,29 +91,32 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
           ],
         ),
         body: BlocListener<DiscoveryBloc, DiscoveryState>(
-          listenWhen: (previous, current) =>
-              previous is DiscoveryLoaded && current is DiscoveryLoaded,
           listener: (context, state) {
-            final prev = context.read<DiscoveryBloc>().state as DiscoveryLoaded;
-            // Note: We use the local state passed to the listener
-            final curr = state as DiscoveryLoaded;
+            if (state is DiscoveryLoaded) {
+              final currentFavoriteIds = state.favoriteStudyIds;
+              final currentLoadedIds = state.loadedStudies.keys.toSet();
 
-            // Check favorites change
-            if (curr.favoriteStudyIds.length > prev.favoriteStudyIds.length) {
-              _showFeedbackSnackBar('devotionals_page.added_to_favorites'.tr());
-            } else if (curr.favoriteStudyIds.length <
-                prev.favoriteStudyIds.length) {
-              _showFeedbackSnackBar(
-                  'devotionals_page.removed_from_favorites'.tr());
-            }
+              // Check favorites change if we have previous data
+              if (_previousFavoriteIds != null) {
+                if (currentFavoriteIds.length > _previousFavoriteIds!.length) {
+                  _showFeedbackSnackBar('devotionals_page.added_to_favorites'.tr());
+                } else if (currentFavoriteIds.length < _previousFavoriteIds!.length) {
+                  _showFeedbackSnackBar('devotionals_page.removed_from_favorites'.tr());
+                }
+              }
 
-            // Check download complete
-            if (curr.loadedStudies.length > prev.loadedStudies.length) {
-              final addedId = curr.loadedStudies.keys
-                  .firstWhere((k) => !prev.loadedStudies.containsKey(k));
-              final title = curr.studyTitles[addedId] ?? addedId;
-              _showFeedbackSnackBar(
-                  '✅ $title ${'devotionals.offline_mode'.tr()}');
+              // Check download complete if we have previous data
+              if (_previousLoadedStudyIds != null) {
+                if (currentLoadedIds.length > _previousLoadedStudyIds!.length) {
+                  final addedId = currentLoadedIds.difference(_previousLoadedStudyIds!).first;
+                  final title = state.studyTitles[addedId] ?? addedId;
+                  _showFeedbackSnackBar('✅ $title ${'devotionals.offline_mode'.tr()}');
+                }
+              }
+
+              // Update tracked values for next change
+              _previousFavoriteIds = Set.from(currentFavoriteIds);
+              _previousLoadedStudyIds = Set.from(currentLoadedIds);
             }
           },
           child: BlocBuilder<DiscoveryBloc, DiscoveryState>(

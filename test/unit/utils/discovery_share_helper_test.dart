@@ -17,6 +17,8 @@ void main() {
         reflexion: 'Un estudio profundo sobre Cristo como nuestra luz',
         paraMeditar: [],
         oracion: 'Señor Jesús, ilumina mi vida...',
+        emoji: '🌟',
+        // Add emoji for the study
         subtitle: 'Cristo: Nuestra Esperanza Radiante',
         estimatedReadingMinutes: 15,
         keyVerse: KeyVerse(
@@ -84,13 +86,14 @@ void main() {
         resumen: true,
       );
 
-      // Verify title is present
-      expect(shareText, contains('📖 *La Estrella de la Mañana*'));
+      // Verify Bible Study header with emoji
+      expect(shareText, contains('🌟 *Estudio Biblico*'));
+      expect(shareText, contains('*La Estrella de la Mañana*'));
       expect(shareText, contains('_Cristo: Nuestra Esperanza Radiante_'));
 
-      // Verify key verse
-      expect(shareText, contains('🔑 *Versículo Clave:*'));
-      expect(shareText, contains('2 Pedro 1:19'));
+      // Verify key verse with reference shown FIRST
+      expect(shareText, contains('📖 *2 Pedro 1:19*'));
+      expect(shareText, contains('Tenemos también la palabra profética'));
 
       // Verify first card content
       expect(shareText, contains('🌟 *La Luz del Amanecer*'));
@@ -119,10 +122,10 @@ void main() {
         resumen: false,
       );
 
-      // Verify header
+      // Verify header with emoji
       expect(shareText,
-          contains('📖 *ESTUDIO BÍBLICO DISCOVERY: LA ESTRELLA DE LA MAÑANA*'));
-      expect(shareText, contains('🔍 *Pasaje:* 2 Pedro 1:19'));
+          contains('🌟 *ESTUDIO BÍBLICO DISCOVERY: LA ESTRELLA DE LA MAÑANA*'));
+      expect(shareText, contains('📖 *2 Pedro 1:19*'));
 
       // Verify all cards are included
       expect(shareText, contains('🌟 LA LUZ DEL AMANECER'));
@@ -168,8 +171,9 @@ void main() {
         resumen: true,
       );
 
-      // Should still generate valid text
-      expect(shareText, contains('📖 *Simple Study*'));
+      // Should still generate valid text with Estudio Biblico header
+      expect(shareText, contains('📖 *Estudio Biblico*'));
+      expect(shareText, contains('*Simple Study*'));
       expect(shareText, contains('Simple Card'));
       expect(shareText, contains('play.google.com'));
     });

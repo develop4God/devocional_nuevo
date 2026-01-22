@@ -41,14 +41,13 @@ class DiscoveryShareHelper {
 
     // Bible Study title with emoji
     final emoji = study.emoji ?? '📖';
-    buffer.writeln('$emoji *ESTUDIO BÍBLICO*');
-    buffer.writeln('*${study.versiculo}*');
+    buffer.writeln('$emoji *Estudio Biblico*');
     if (study.subtitle != null && study.subtitle!.isNotEmpty) {
       buffer.writeln('_${study.subtitle}_');
     }
     buffer.writeln();
 
-    // Key verse with reference FIRST
+    // Key verse with reference FIRST (only keep this, remove duplicated initial verse)
     if (keyVerse != null) {
       buffer.writeln('📖 *${keyVerse.reference}*');
       buffer.writeln('"${keyVerse.text}"');
