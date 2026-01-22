@@ -710,7 +710,10 @@
     "no_favorites_title": "お気に入りの研究はありません",
     "no_favorites_description": "まだお気に入りに聖書研究を追加していません。",
     "favorite_studies": "お気に入りの研究",
-    "download_study": "研究をダウンロード"
+    "download_study": "研究をダウンロード",
+    "previous": "前へ",
+    "next": "次へ",
+    "exit": "終了"
   },
   "tags": {
     "love": "愛",

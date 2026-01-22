@@ -709,7 +709,10 @@
     "no_favorites_title": "No favorite studies yet",
     "no_favorites_description": "Mark the star icon on a study to save it here.",
     "favorite_studies": "Favorite Studies",
-    "download_study": "Download"
+    "download_study": "Download",
+    "previous": "Previous",
+    "next": "Next",
+    "exit": "Exit"
   },
   "tags": {
     "love": "Love",

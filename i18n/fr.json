@@ -710,7 +710,10 @@
     "no_favorites_title": "Aucune étude favorite",
     "no_favorites_description": "Vous n'avez pas encore ajouté d'études bibliques à vos favoris.",
     "favorite_studies": "Études favorites",
-    "download_study": "Télécharger l'étude"
+    "download_study": "Télécharger l'étude",
+    "previous": "Précédent",
+    "next": "Suivant",
+    "exit": "Quitter"
   },
   "tags": {
     "love": "Amour",

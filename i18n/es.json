@@ -713,7 +713,10 @@
     "favorite_studies": "Estudios Favoritos",
     "download_study": "Descargar",
     "scripture_connections": "Conexiones Bíblicas",
-    "greek_words": "Palabras Griegas"
+    "greek_words": "Palabras Griegas",
+    "previous": "Anterior",
+    "next": "Siguiente",
+    "exit": "Salir"
   },
   "tags": {
     "love": "Amor",
