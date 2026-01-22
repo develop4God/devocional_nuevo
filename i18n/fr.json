@@ -706,7 +706,11 @@
     "revelation": "Révélation",
     "activation_prayer": "Prière d'Activation",
     "share": "Partager",
-    "read": "Lire"
+    "read": "Lire",
+    "no_favorites_title": "Aucune étude favorite",
+    "no_favorites_description": "Vous n'avez pas encore ajouté d'études bibliques à vos favoris.",
+    "favorite_studies": "Études favorites",
+    "download_study": "Télécharger l'étude"
   },
   "tags": {
     "love": "Amour",

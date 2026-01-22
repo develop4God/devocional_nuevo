@@ -706,7 +706,11 @@
     "revelation": "啓示",
     "activation_prayer": "活性化の祈り",
     "share": "シェア",
-    "read": "読む"
+    "read": "読む",
+    "no_favorites_title": "お気に入りの研究はありません",
+    "no_favorites_description": "まだお気に入りに聖書研究を追加していません。",
+    "favorite_studies": "お気に入りの研究",
+    "download_study": "研究をダウンロード"
   },
   "tags": {
     "love": "愛",

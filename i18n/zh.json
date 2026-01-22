@@ -706,7 +706,11 @@
     "revelation": "启示",
     "activation_prayer": "启动祷告",
     "share": "分享",
-    "read": "阅读"
+    "read": "阅读",
+    "no_favorites_title": "暂无收藏的研读",
+    "no_favorites_description": "您还没有将圣经研读添加到收藏夹。",
+    "favorite_studies": "收藏的研读",
+    "download_study": "下载研读"
   },
   "tags": {
     "love": "爱",

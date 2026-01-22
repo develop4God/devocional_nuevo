@@ -707,7 +707,11 @@
     "revelation": "Revelação",
     "activation_prayer": "Oração de Ativação",
     "share": "Compartilhar",
-    "read": "Ler"
+    "read": "Ler",
+    "no_favorites_title": "Nenhum estudo favorito",
+    "no_favorites_description": "Você ainda não adicionou estudos bíblicos aos favoritos.",
+    "favorite_studies": "Estudos favoritos",
+    "download_study": "Baixar estudo"
   },
   "tags": {
     "love": "Amor",
