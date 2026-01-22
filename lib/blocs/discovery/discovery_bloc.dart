@@ -19,6 +19,11 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
   final DiscoveryFavoritesService favoritesService;
 
   bool _disposed = false;
+  SharedPreferences? _prefs;
+
+  Future<SharedPreferences> get prefs async {
+    return _prefs ??= await SharedPreferences.getInstance();
+  }
 
   DiscoveryBloc({
     required this.repository,
@@ -211,16 +216,16 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
       if (_disposed) return;
 
       try {
-        final prefs = await SharedPreferences.getInstance();
+        final prefsInstance = await prefs;
         final downloadKey = '$_firstDownloadKeyPrefix$languageCode';
 
         // Check if we've already downloaded a study for this language
-        final alreadyDownloaded = prefs.getBool(downloadKey) ?? false;
+        final alreadyDownloaded = prefsInstance.getBool(downloadKey) ?? false;
 
         if (!alreadyDownloaded) {
           debugPrint('📥 [BLOC] Downloading first study for offline: $studyId');
           await repository.fetchDiscoveryStudy(studyId, languageCode);
-          await prefs.setBool(downloadKey, true);
+          await prefsInstance.setBool(downloadKey, true);
           debugPrint('✅ [BLOC] First study downloaded for offline access');
         } else {
           debugPrint(
