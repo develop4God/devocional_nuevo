@@ -285,6 +285,49 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             _buildActionButton(
+                icon: Icons.file_download_outlined,
+                label: 'discovery.download_study'.tr(),
+                onTap: () async {
+                  // Download study for offline access
+                  final languageCode =
+                      context.read<DevocionalProvider>().selectedLanguage;
+                  try {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('⬇️ ${'app.loading'.tr()}...'),
+                        duration: const Duration(seconds: 2),
+                      ),
+                    );
+                    await context
+                        .read<DiscoveryBloc>()
+                        .repository
+                        .fetchDiscoveryStudy(
+                          currentStudyId,
+                          languageCode,
+                        );
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                              '✅ $currentTitle ${'devotionals.offline_mode'.tr()}'),
+                          duration: const Duration(seconds: 2),
+                        ),
+                      );
+                    }
+                  } catch (e) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content:
+                              Text('❌ ${'devotionals.download_error'.tr()}'),
+                          duration: const Duration(seconds: 2),
+                        ),
+                      );
+                    }
+                  }
+                },
+                colorScheme: colorScheme),
+            _buildActionButton(
                 icon: Icons.share_rounded,
                 label: 'discovery.share'.tr(),
                 onTap: () {
@@ -312,13 +355,6 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
               colorScheme: colorScheme,
               isPrimary: true,
             ),
-            _buildActionButton(
-                icon: Icons.arrow_forward_rounded,
-                label: 'navigation.next'.tr(),
-                onTap: () {
-                  _swiperController.next();
-                },
-                colorScheme: colorScheme),
           ],
         ),
       ),

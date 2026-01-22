@@ -6,6 +6,7 @@ import 'package:devocional_nuevo/services/discovery_favorites_service.dart';
 import 'package:devocional_nuevo/services/discovery_progress_tracker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'discovery_event.dart';
 import 'discovery_state.dart';
@@ -48,9 +49,6 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
       final index = await repository.fetchIndex(forceRefresh: forceRefresh);
       debugPrint('🔵 [BLOC] Index fetched successfully');
 
-      final favoriteIds = await favoritesService.loadFavoriteIds(locale);
-      debugPrint('🔵 [BLOC] Favorites loaded: ${favoriteIds.length} items');
-
       String locale = languageCode ?? 'es';
       if (languageCode == null) {
         try {
@@ -63,6 +61,9 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
       } else {
         debugPrint('🔵 [BLOC] Using provided locale: $locale');
       }
+
+      final favoriteIds = await favoritesService.loadFavoriteIds(locale);
+      debugPrint('🔵 [BLOC] Favorites loaded: ${favoriteIds.length} items');
 
       final List<String> filteredStudyIds = [];
       final Map<String, String> studyTitles = {};
@@ -181,11 +182,42 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
 
       debugPrint(
           '🔵 [BLOC] DiscoveryLoaded state emitted with ${filteredStudyIds.length} studies');
+
+      // Background download of first study for offline access
+      if (filteredStudyIds.isNotEmpty) {
+        _downloadFirstStudyForOffline(filteredStudyIds.first, locale);
+      }
     } catch (e) {
       debugPrint('❌ [BLOC] Error loading Discovery index: $e');
       debugPrint('❌ [BLOC] Stack trace: ${StackTrace.current}');
       emit(DiscoveryError('Error: $e'));
     }
+  }
+
+  /// Download first study in background for offline access
+  void _downloadFirstStudyForOffline(String studyId, String languageCode) {
+    // Run in background without awaiting
+    Future.microtask(() async {
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        final downloadKey = 'discovery_first_downloaded_$languageCode';
+
+        // Check if we've already downloaded a study for this language
+        final alreadyDownloaded = prefs.getBool(downloadKey) ?? false;
+
+        if (!alreadyDownloaded) {
+          debugPrint('📥 [BLOC] Downloading first study for offline: $studyId');
+          await repository.fetchDiscoveryStudy(studyId, languageCode);
+          await prefs.setBool(downloadKey, true);
+          debugPrint('✅ [BLOC] First study downloaded for offline access');
+        } else {
+          debugPrint(
+              '✓ [BLOC] First study already downloaded for this language');
+        }
+      } catch (e) {
+        debugPrint('⚠️ [BLOC] Failed to download first study for offline: $e');
+      }
+    });
   }
 
   Future<void> _onLoadDiscoveryStudy(
@@ -313,8 +345,8 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
     if (currentState is DiscoveryLoaded) {
       await favoritesService.toggleFavorite(
           event.studyId, currentState.languageCode);
-      final updatedIds = await favoritesService.loadFavoriteIds(
-          currentState.languageCode);
+      final updatedIds =
+          await favoritesService.loadFavoriteIds(currentState.languageCode);
 
       emit(currentState.copyWith(
         favoriteStudyIds: updatedIds,

@@ -203,6 +203,7 @@ void main() {
           studyReadingMinutes: {},
           completedStudies: {},
           favoriteStudyIds: {},
+          languageCode: 'en',
         ),
         act: (bloc) => bloc.add(MarkSectionCompleted(studyId, sectionIndex)),
         verify: (_) {
@@ -234,6 +235,7 @@ void main() {
           studyReadingMinutes: {},
           completedStudies: {},
           favoriteStudyIds: {},
+          languageCode: 'en',
         ),
         act: (bloc) =>
             bloc.add(AnswerDiscoveryQuestion(studyId, questionIndex, answer)),
@@ -263,6 +265,7 @@ void main() {
           studyReadingMinutes: {},
           completedStudies: {},
           favoriteStudyIds: {},
+          languageCode: 'en',
         ),
         act: (bloc) => bloc.add(CompleteDiscoveryStudy(studyId)),
         verify: (_) {
@@ -321,6 +324,7 @@ void main() {
           studyReadingMinutes: {},
           completedStudies: {},
           favoriteStudyIds: {},
+          languageCode: 'en',
         ),
         act: (bloc) => bloc.add(RefreshDiscoveryStudies()),
         expect: () => [
@@ -344,6 +348,7 @@ void main() {
           completedStudies: {},
           favoriteStudyIds: {},
           errorMessage: 'Some error',
+          languageCode: 'en',
         ),
         act: (bloc) => bloc.add(ClearDiscoveryError()),
         expect: () => [
@@ -364,6 +369,7 @@ void main() {
           studyReadingMinutes: {},
           completedStudies: {},
           favoriteStudyIds: {},
+          languageCode: 'en',
         );
         await Future.delayed(const Duration(milliseconds: 10));
         final state2 = DiscoveryLoaded(
@@ -375,6 +381,7 @@ void main() {
           studyReadingMinutes: {},
           completedStudies: {},
           favoriteStudyIds: {},
+          languageCode: 'en',
         );
         // Different timestamps make states distinct for Equatable
         expect(state1, isNot(equals(state2)));
@@ -392,6 +399,7 @@ void main() {
           completedStudies: {},
           favoriteStudyIds: {},
           lastUpdated: now,
+          languageCode: 'en',
         );
         final state2 = DiscoveryLoaded(
           availableStudyIds: ['test'],
@@ -403,6 +411,7 @@ void main() {
           completedStudies: {},
           favoriteStudyIds: {},
           lastUpdated: now,
+          languageCode: 'en',
         );
         expect(state1, equals(state2));
       });
