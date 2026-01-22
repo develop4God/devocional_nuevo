@@ -38,7 +38,7 @@ class DevotionalCardPremium extends StatelessWidget {
   final VoidCallback onFavoriteToggle;
   final bool isDark;
 
-  DevotionalCardPremium({
+  const DevotionalCardPremium({
     super.key,
     required this.devocional,
     required this.title,
@@ -49,15 +49,7 @@ class DevotionalCardPremium extends StatelessWidget {
     required this.onTap,
     required this.onFavoriteToggle,
     required this.isDark,
-  }) {
-    // ✨ DEBUG PRINT WITH EMOJIS
-    debugPrint('✨🎴 [Card Premium Instance] -------------------');
-    debugPrint('✨🏷️ Title: "$title"');
-    debugPrint('✨📝 Subtitle: "${subtitle ?? 'EMPTY'}"');
-    debugPrint('✨⏱️ Reading Time: ${readingMinutes ?? 'DEFAULT'} min');
-    debugPrint('✨🆔 ID: ${devocional.id}');
-    debugPrint('✨🎴 ------------------------------------------');
-  }
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -65,7 +57,6 @@ class DevotionalCardPremium extends StatelessWidget {
     final verseReference = _extractVerseReference(devocional.versiculo);
     final topicEmoji = _getTopicEmoji();
     final colors = _getGradientColors();
-    final colorScheme = Theme.of(context).colorScheme;
 
     return Semantics(
       label:
@@ -220,20 +211,20 @@ class DevotionalCardPremium extends StatelessWidget {
                                 begin: Alignment.topLeft,
                                 end: Alignment.bottomRight,
                                 colors: [
-                                  colorScheme.primary.withValues(alpha: 0.25),
-                                  colorScheme.primary.withValues(alpha: 0.08),
-                                  colorScheme.secondary.withValues(alpha: 0.06),
+                                  colors[0].withValues(alpha: 0.25),
+                                  colors[0].withValues(alpha: 0.08),
+                                  colors[1].withValues(alpha: 0.06),
                                 ],
                                 stops: const [0.0, 0.6, 1.0],
                               ),
                               borderRadius: BorderRadius.circular(20),
                               border: Border.all(
-                                color: colorScheme.primary.withValues(alpha: 0.3),
+                                color: colors[0].withValues(alpha: 0.3),
                                 width: 1.5,
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: colorScheme.primary.withValues(alpha: 0.2),
+                                  color: colors[0].withValues(alpha: 0.2),
                                   blurRadius: 20,
                                   offset: const Offset(0, 8),
                                   spreadRadius: -4,
@@ -415,11 +406,15 @@ class DevotionalCardPremium extends StatelessWidget {
     );
   }
 
+  /// Helper to get gradient colors based on study completion status
   List<Color> _getGradientColors() {
-    if (devocional.tags != null && devocional.tags!.isNotEmpty) {
-      return TagColorDictionary.getGradientForTag(devocional.tags!.first);
+    if (isCompleted) {
+      // Completed studies stay Cyan/Blue (using dictionary 'esperanza' as reference)
+      return TagColorDictionary.getGradientForTag('esperanza');
+    } else {
+      // Incomplete studies use Amber/Gold (using dictionary 'luz' as reference)
+      return TagColorDictionary.getGradientForTag('luz');
     }
-    return [const Color(0xFF37474F), const Color(0xFF102027)];
   }
 
   String _getDisplayDate() {
