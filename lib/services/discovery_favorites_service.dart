@@ -59,9 +59,9 @@ class DiscoveryFavoritesService {
   }
 
   String _getFavoritesKey(String? languageCode) {
-    if (languageCode != null && languageCode.isNotEmpty) {
-      return '$_favoritesKeyPrefix$languageCode';
-    }
-    return '$_favoritesKeyPrefix$_defaultLanguage'; // Default to English if no language specified
+    // Normalize language code to base language (e.g., 'en-US' -> 'en')
+    final normalized =
+        languageCode?.split('-').first.toLowerCase() ?? _defaultLanguage;
+    return '$_favoritesKeyPrefix$normalized';
   }
 }

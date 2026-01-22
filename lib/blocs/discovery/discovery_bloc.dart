@@ -13,10 +13,12 @@ import 'discovery_state.dart';
 
 class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
   static const String _firstDownloadKeyPrefix = 'discovery_first_downloaded_';
-  
+
   final DiscoveryRepository repository;
   final DiscoveryProgressTracker progressTracker;
   final DiscoveryFavoritesService favoritesService;
+
+  bool _disposed = false;
 
   DiscoveryBloc({
     required this.repository,
@@ -32,6 +34,12 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
     on<ResetDiscoveryStudy>(_onResetDiscoveryStudy);
     on<RefreshDiscoveryStudies>(_onRefreshDiscoveryStudies);
     on<ClearDiscoveryError>(_onClearDiscoveryError);
+  }
+
+  @override
+  Future<void> close() {
+    _disposed = true;
+    return super.close();
   }
 
   Future<void> _onLoadDiscoveryStudies(
@@ -200,6 +208,8 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
   void _downloadFirstStudyForOffline(String studyId, String languageCode) {
     // Run in background without awaiting
     Future.microtask(() async {
+      if (_disposed) return;
+
       try {
         final prefs = await SharedPreferences.getInstance();
         final downloadKey = '$_firstDownloadKeyPrefix$languageCode';

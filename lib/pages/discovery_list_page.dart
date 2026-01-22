@@ -29,7 +29,7 @@ class DiscoveryListPage extends StatefulWidget {
 class _DiscoveryListPageState extends State<DiscoveryListPage>
     with SingleTickerProviderStateMixin {
   static const double _inactiveDotsAlpha = 0.2;
-  
+
   int _currentIndex = 0;
   bool _showGridOverlay = false;
   late AnimationController _gridAnimationController;
@@ -289,45 +289,7 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
             _buildActionButton(
                 icon: Icons.file_download_outlined,
                 label: 'discovery.download_study'.tr(),
-                onTap: () async {
-                  // Download study for offline access
-                  final languageCode =
-                      context.read<DevocionalProvider>().selectedLanguage;
-                  try {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('⬇️ ${'app.loading'.tr()}...'),
-                        duration: const Duration(seconds: 2),
-                      ),
-                    );
-                    await context
-                        .read<DiscoveryBloc>()
-                        .repository
-                        .fetchDiscoveryStudy(
-                          currentStudyId,
-                          languageCode,
-                        );
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                              '✅ $currentTitle ${'devotionals.offline_mode'.tr()}'),
-                          duration: const Duration(seconds: 2),
-                        ),
-                      );
-                    }
-                  } catch (e) {
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content:
-                              Text('❌ ${'devotionals.download_error'.tr()}'),
-                          duration: const Duration(seconds: 2),
-                        ),
-                      );
-                    }
-                  }
-                },
+                onTap: () => _handleDownloadStudy(currentStudyId, currentTitle),
                 colorScheme: colorScheme),
             _buildActionButton(
                 icon: Icons.share_rounded,
@@ -601,6 +563,35 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
         .map((word) =>
             word.isNotEmpty ? word[0].toUpperCase() + word.substring(1) : '')
         .join(' ');
+  }
+
+  void _showSnackBar(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  Future<void> _handleDownloadStudy(String studyId, String title) async {
+    final languageCode = context.read<DevocionalProvider>().selectedLanguage;
+    _showSnackBar('⬇️ ${'app.loading'.tr()}...');
+
+    try {
+      await context.read<DiscoveryBloc>().repository.fetchDiscoveryStudy(
+            studyId,
+            languageCode,
+          );
+      if (mounted) {
+        _showSnackBar('✅ $title ${'devotionals.offline_mode'.tr()}');
+      }
+    } catch (e) {
+      if (mounted) {
+        _showSnackBar('❌ ${'devotionals.download_error'.tr()}');
+      }
+    }
   }
 }
 
