@@ -268,6 +268,7 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
     final currentStudyId = studyIds[_currentIndex];
     final currentTitle =
         state.studyTitles[currentStudyId] ?? _formatStudyTitle(currentStudyId);
+    final isDownloaded = state.isStudyLoaded(currentStudyId);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
@@ -287,7 +288,7 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             _buildActionButton(
-                icon: Icons.file_download_outlined,
+                icon: isDownloaded ? Icons.file_download_done_rounded : Icons.file_download_outlined,
                 label: 'discovery.download_study'.tr(),
                 onTap: () => _handleDownloadStudy(currentStudyId, currentTitle),
                 colorScheme: colorScheme),
@@ -313,11 +314,11 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
                 },
                 colorScheme: colorScheme),
             _buildActionButton(
-              icon: Icons.auto_stories_rounded,
-              label: 'discovery.read'.tr(),
-              onTap: () => _navigateToDetail(context, currentStudyId),
-              colorScheme: colorScheme,
-              isPrimary: true,
+                icon: Icons.auto_stories_rounded,
+                label: 'discovery.read'.tr(),
+                onTap: () => _navigateToDetail(context, currentStudyId),
+                colorScheme: colorScheme,
+                isPrimary: true,
             ),
           ],
         ),
@@ -338,7 +339,10 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
       Icons.star_rounded,
       Icons.auto_stories_rounded,
       Icons.arrow_forward_rounded,
+      Icons.file_download_outlined,
+      Icons.file_download_done_rounded,
     ].contains(icon);
+
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(20),
@@ -359,14 +363,12 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
                             : colorScheme.primary.withAlpha(180),
                         width: 2,
                       ),
-                      color: Colors.transparent,
+                      color: isPrimary ? colorScheme.primary.withAlpha(26) : Colors.transparent,
                     ),
                     child: Center(
                       child: Icon(
                         icon,
-                        color: isPrimary
-                            ? colorScheme.primary
-                            : colorScheme.primary,
+                        color: colorScheme.primary,
                         size: 22,
                       ),
                     ),

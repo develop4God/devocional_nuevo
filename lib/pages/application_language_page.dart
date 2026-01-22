@@ -407,47 +407,67 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
     double progress,
     ThemeData theme,
   ) {
+    final colorScheme = theme.colorScheme;
+
     if (isDownloading) {
-      return SizedBox(
-        width: 60,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SizedBox(
-              width: 24,
-              height: 24,
-              child: CircularProgressIndicator(
-                value: progress,
-                strokeWidth: 2,
-                color: theme.colorScheme.primary,
-              ),
+      return Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: colorScheme.primary.withAlpha(100),
+            width: 2,
+          ),
+        ),
+        child: Center(
+          child: SizedBox(
+            width: 24,
+            height: 24,
+            child: CircularProgressIndicator(
+              value: progress,
+              strokeWidth: 2,
+              color: colorScheme.primary,
             ),
-            const SizedBox(height: 4),
-            Text(
-              '${(progress * 100).toInt()}%',
-              style: theme.textTheme.bodySmall,
-            ),
-          ],
+          ),
         ),
       );
     }
 
+    IconData iconData;
     if (isDownloaded) {
       // If it's the current language, show check mark, otherwise show switch icon
       if (languageCode == _currentLanguage) {
-        return Icon(
-          Icons.file_download_done_rounded,
-          color: theme.colorScheme.primary,
-        );
+        iconData = Icons.file_download_done_rounded;
       } else {
-        return Icon(
-          Icons.file_download_done_rounded,
-          color: theme.colorScheme.primary,
-        );
+        // Show switch icon for downloaded but not current language
+        iconData = Icons.swap_horiz_rounded;
       }
+    } else {
+      iconData = Icons.file_download_outlined;
     }
 
-    return Icon(Icons.file_download_outlined, color: theme.colorScheme.primary);
+    return Container(
+      width: 40,
+      height: 40,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: colorScheme.primary.withAlpha(180),
+          width: 2,
+        ),
+        color: isDownloaded && languageCode == _currentLanguage
+            ? colorScheme.primary.withAlpha(26)
+            : Colors.transparent,
+      ),
+      child: Center(
+        child: Icon(
+          iconData,
+          color: colorScheme.primary,
+          size: 20,
+        ),
+      ),
+    );
   }
 
   @override
