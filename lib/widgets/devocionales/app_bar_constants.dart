@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String? titleText;
-  final Widget? titleWidget; // <-- add this
+  final Widget? titleWidget;
+  final Widget? leading;
   final PreferredSizeWidget? bottom;
   final List<Widget>? actions;
 
@@ -10,6 +11,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     super.key,
     this.titleText,
     this.titleWidget,
+    this.leading,
     this.bottom,
     this.actions,
   });
@@ -33,6 +35,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
             titleText ?? '',
             style: textTheme.titleLarge?.copyWith(color: colorScheme.onPrimary),
           ),
+      leading: leading,
       actions: actions,
       backgroundColor: Colors.transparent,
       elevation: 0,
@@ -50,10 +53,3 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     );
   }
 }
-
-//como usarlo
-//return Scaffold(
-//appBar: CustomAppBar(
-//titleText: 'settings.title'.tr(),
-//),
-//+import 'package:devocional_nuevo/widgets/app_bar_constants.dart';
