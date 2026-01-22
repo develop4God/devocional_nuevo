@@ -96,7 +96,7 @@ dev_dependencies:
 
 
   firebase_analytics_platform_interface: ^4.4.3
-  test_api: ^0.7.7
+  test_api: ^0.7.4
 flutter:
   uses-material-design: true
   assets:
