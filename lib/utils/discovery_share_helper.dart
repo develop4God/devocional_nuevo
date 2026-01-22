@@ -1,5 +1,6 @@
 // lib/utils/discovery_share_helper.dart
 
+import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/discovery_devotional_model.dart';
 
 /// Utility class for generating shareable text from Discovery Bible Studies
@@ -39,9 +40,9 @@ class DiscoveryShareHelper {
 
     final buffer = StringBuffer();
 
-    // Bible Study title with emoji
+    // Bible Study title with emoji and translation key
     final emoji = study.emoji ?? '📖';
-    buffer.writeln('$emoji *Estudio Biblico*');
+    buffer.writeln('$emoji *${'daily_bible_study'.tr()}*');
     if (study.subtitle != null && study.subtitle!.isNotEmpty) {
       buffer.writeln('_${study.subtitle}_');
     }
@@ -98,11 +99,9 @@ class DiscoveryShareHelper {
   /// Generate complete study text for full sharing
   static String _generarEstudioCompleto(DiscoveryDevotional study) {
     final buffer = StringBuffer();
-
-    // Header with emoji
     final emoji = study.emoji ?? '📖';
     buffer.writeln(
-        '$emoji *ESTUDIO BÍBLICO DISCOVERY: ${study.versiculo.toUpperCase()}*');
+        '$emoji *${'daily_bible_study'.tr().toUpperCase()} DISCOVERY: ${study.versiculo.toUpperCase()}*');
     buffer.writeln();
 
     if (study.keyVerse != null) {

@@ -116,7 +116,9 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
                       .first;
                   final title = state.studyTitles[addedId] ?? addedId;
                   _showFeedbackSnackBar(
-                      '✅ $title ${'devotionals.offline_mode'.tr()}');
+                    '$title ${'devotionals.offline_mode'.tr()}',
+                    useIcon: true,
+                  );
                 }
               }
 
@@ -297,7 +299,9 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
                     : isDownloading
                         ? Icons.sync_rounded
                         : Icons.file_download_outlined,
-                label: 'discovery.download_study'.tr(),
+                label: isDownloaded
+                    ? 'devotionals.offline_mode'.tr()
+                    : 'discovery.download_study'.tr(),
                 onTap: () => _handleDownloadStudy(currentStudyId, currentTitle),
                 colorScheme: colorScheme,
                 isDownloading: isDownloading),
@@ -583,14 +587,28 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
         .join(' ');
   }
 
-  void _showFeedbackSnackBar(String message) {
+  void _showFeedbackSnackBar(String message, {bool useIcon = false}) {
     if (!mounted) return;
     final colorScheme = Theme.of(context).colorScheme;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(
-          message,
-          style: TextStyle(color: colorScheme.onSecondary),
+        content: Row(
+          children: [
+            if (useIcon) ...[
+              const Icon(
+                Icons.verified_rounded,
+                color: Colors.greenAccent,
+                size: 20,
+              ),
+              const SizedBox(width: 12),
+            ],
+            Expanded(
+              child: Text(
+                message,
+                style: TextStyle(color: colorScheme.onSecondary),
+              ),
+            ),
+          ],
         ),
         duration: const Duration(seconds: 2),
         backgroundColor: colorScheme.secondary,
