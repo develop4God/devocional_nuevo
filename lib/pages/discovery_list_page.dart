@@ -99,18 +99,24 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
               // Check favorites change if we have previous data
               if (_previousFavoriteIds != null) {
                 if (currentFavoriteIds.length > _previousFavoriteIds!.length) {
-                  _showFeedbackSnackBar('devotionals_page.added_to_favorites'.tr());
-                } else if (currentFavoriteIds.length < _previousFavoriteIds!.length) {
-                  _showFeedbackSnackBar('devotionals_page.removed_from_favorites'.tr());
+                  _showFeedbackSnackBar(
+                      'devotionals_page.added_to_favorites'.tr());
+                } else if (currentFavoriteIds.length <
+                    _previousFavoriteIds!.length) {
+                  _showFeedbackSnackBar(
+                      'devotionals_page.removed_from_favorites'.tr());
                 }
               }
 
               // Check download complete if we have previous data
               if (_previousLoadedStudyIds != null) {
                 if (currentLoadedIds.length > _previousLoadedStudyIds!.length) {
-                  final addedId = currentLoadedIds.difference(_previousLoadedStudyIds!).first;
+                  final addedId = currentLoadedIds
+                      .difference(_previousLoadedStudyIds!)
+                      .first;
                   final title = state.studyTitles[addedId] ?? addedId;
-                  _showFeedbackSnackBar('✅ $title ${'devotionals.offline_mode'.tr()}');
+                  _showFeedbackSnackBar(
+                      '✅ $title ${'devotionals.offline_mode'.tr()}');
                 }
               }
 
@@ -298,7 +304,7 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
             _buildActionButton(
                 icon: Icons.share_rounded,
                 label: 'discovery.share'.tr(),
-                onTap: () => _handleShareStudy(context, state, currentStudyId),
+                onTap: () => _handleShareStudy(state, currentStudyId),
                 colorScheme: colorScheme),
             _buildActionButton(
                 icon: Icons.star_rounded,
@@ -601,8 +607,8 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
         .add(LoadDiscoveryStudy(studyId, languageCode: languageCode));
   }
 
+  // Refactored: Do not use BuildContext across async gaps
   Future<void> _handleShareStudy(
-    BuildContext context,
     DiscoveryLoaded state,
     String studyId,
   ) async {
@@ -611,19 +617,17 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
     // If study not loaded, download it first
     if (study == null) {
       final languageCode = context.read<DevocionalProvider>().selectedLanguage;
-
       // Show downloading feedback
       _showFeedbackSnackBar('discovery.loading_studies'.tr());
-
       // Trigger download
       context
           .read<DiscoveryBloc>()
           .add(LoadDiscoveryStudy(studyId, languageCode: languageCode));
-
       // Wait a bit for the study to load (with timeout)
       int attempts = 0;
       while (attempts < 10) {
         await Future.delayed(const Duration(milliseconds: 300));
+        if (!mounted) return;
         final currentState = context.read<DiscoveryBloc>().state;
         if (currentState is DiscoveryLoaded) {
           study = currentState.loadedStudies[studyId];
@@ -631,9 +635,9 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
         }
         attempts++;
       }
-
-      // If still not loaded after waiting, show error
+      // If still not loaded after waiting, show error (only if still mounted)
       if (study == null) {
+        if (!mounted) return;
         _showFeedbackSnackBar('discovery.study_not_found'.tr());
         return;
       }
@@ -647,6 +651,7 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
       await SharePlus.instance.share(ShareParams(text: shareText));
     } catch (e) {
       debugPrint('Error sharing study: $e');
+      if (!mounted) return;
       _showFeedbackSnackBar('share.share_error'.tr());
     }
   }
