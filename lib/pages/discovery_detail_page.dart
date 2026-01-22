@@ -101,7 +101,23 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
               final study = state.getStudy(widget.studyId);
 
               if (study == null) {
-                return Center(child: Text('discovery.study_not_found'.tr()));
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      SizedBox(
+                        width: 120,
+                        height: 120,
+                        child: Lottie.asset('assets/lottie/book_stars.json'),
+                      ),
+                      const SizedBox(height: 24),
+                      Text(
+                        'discovery.loading_studies'.tr(),
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                    ],
+                  ),
+                );
               }
 
               // Check if study is already marked as completed in the state
