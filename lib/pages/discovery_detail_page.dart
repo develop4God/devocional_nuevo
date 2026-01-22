@@ -74,7 +74,23 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
         body: BlocBuilder<DiscoveryBloc, DiscoveryState>(
           builder: (context, state) {
             if (state is DiscoveryLoading || state is DiscoveryStudyLoading) {
-              return const Center(child: CircularProgressIndicator());
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SizedBox(
+                      width: 120,
+                      height: 120,
+                      child: Lottie.asset('assets/lottie/book_stars.json'),
+                    ),
+                    const SizedBox(height: 24),
+                    Text(
+                      'discovery.loading_studies'.tr(),
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                  ],
+                ),
+              );
             }
 
             if (state is DiscoveryError) {
