@@ -308,13 +308,13 @@ class _StudyGridCard extends StatelessWidget {
                         ),
                         const Spacer(),
                         if (isCompleted)
-                          const Row(
+                          Row(
                             children: [
-                              Icon(Icons.check_circle_rounded, size: 14, color: Colors.greenAccent),
-                              SizedBox(width: 4),
+                              const Icon(Icons.check_circle_rounded, size: 14, color: Colors.greenAccent),
+                              const SizedBox(width: 4),
                               Text(
-                                'OK',
-                                style: TextStyle(color: Colors.greenAccent, fontSize: 10, fontWeight: FontWeight.bold),
+                                'discovery.completed'.tr().toUpperCase(),
+                                style: const TextStyle(color: Colors.greenAccent, fontSize: 10, fontWeight: FontWeight.bold),
                               ),
                             ],
                           )
@@ -323,9 +323,9 @@ class _StudyGridCard extends StatelessWidget {
                             children: [
                               Icon(Icons.play_circle_fill_rounded, size: 14, color: colorScheme.primary),
                               const SizedBox(width: 4),
-                              const Text(
-                                'NOW',
-                                style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                              Text(
+                                'discovery.current'.tr().toUpperCase(),
+                                style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
                               ),
                             ],
                           ),

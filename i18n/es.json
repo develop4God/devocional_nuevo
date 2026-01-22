@@ -484,7 +484,7 @@
     "configuration": "Configuración",
     "more_options": "Más opciones",
     "optimization": "Optimización",
-    "account_management": "Gestión de Cuenta",
+    "account_management": "Gestão de Conta",
     "logout_google_drive": "Cerrar Sesión de Google Drive"
   },
   "review": {
@@ -695,6 +695,9 @@
     "mark_completed": "Completar estudio",
     "completed_study": "Estudio completado",
     "all_studies": "Todos los Estudios",
+    "all": "Todos",
+    "pending": "Pendientes",
+    "no_studies_found": "No se encontraron estudios",
     "current": "Actual",
     "completed": "Completado",
     "daily_bible_study": "ESTUDIO BÍBLICO DIARIO",

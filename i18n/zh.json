@@ -694,6 +694,9 @@
     "mark_completed": "完成研究",
     "completed_study": "已完成的研究",
     "all_studies": "全部研究",
+    "all": "全部",
+    "pending": "待处理",
+    "no_studies_found": "未找到研读",
     "current": "当前",
     "completed": "已完成",
     "daily_bible_study": "每日圣经研究",
@@ -710,7 +713,10 @@
     "no_favorites_title": "暂无收藏的研读",
     "no_favorites_description": "您还没有将圣经研读添加到收藏夹。",
     "favorite_studies": "收藏的研读",
-    "download_study": "下载研读"
+    "download_study": "下载研读",
+    "previous": "上一个",
+    "next": "下一个",
+    "exit": "退出"
   },
   "tags": {
     "love": "爱",
