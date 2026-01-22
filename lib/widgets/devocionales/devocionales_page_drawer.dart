@@ -457,7 +457,7 @@ class DevocionalesDrawer extends StatelessWidget {
                         if (Constants.enableDiscoveryFeature)
                           drawerRow(
                             key: const Key('drawer_discovery_studies'),
-                            icon: Icons.explore_outlined,
+                            icon: Icons.school_outlined,
                             iconColor: colorScheme.primary,
                             label: Text(
                               'discovery.discovery_studies'.tr(),
