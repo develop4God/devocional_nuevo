@@ -12,6 +12,7 @@ import 'package:devocional_nuevo/pages/devotional_discovery/widgets/devotional_c
 import 'package:devocional_nuevo/pages/discovery_detail_page.dart';
 import 'package:devocional_nuevo/pages/favorites_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
+import 'package:devocional_nuevo/utils/discovery_share_helper.dart';
 import 'package:devocional_nuevo/widgets/devocionales/app_bar_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -85,77 +86,81 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
             ),
           ],
         ),
-        body: BlocBuilder<DiscoveryBloc, DiscoveryState>(
-          builder: (context, state) {
-            debugPrint(
-                '🟢 [DiscoveryListPage] BlocBuilder rebuilding with state: ${state.runtimeType}');
+        body: BlocListener<DiscoveryBloc, DiscoveryState>(
+          listenWhen: (previous, current) =>
+              previous is DiscoveryLoaded && current is DiscoveryLoaded,
+          listener: (context, state) {
+            final prev = context.read<DiscoveryBloc>().state as DiscoveryLoaded;
+            // Note: We use the local state passed to the listener
+            final curr = state as DiscoveryLoaded;
 
-            if (state is DiscoveryLoading) {
-              debugPrint('🟢 [DiscoveryListPage] Showing loading indicator');
-              return const Center(child: CircularProgressIndicator());
+            // Check favorites change
+            if (curr.favoriteStudyIds.length > prev.favoriteStudyIds.length) {
+              _showFeedbackSnackBar('devotionals_page.added_to_favorites'.tr());
+            } else if (curr.favoriteStudyIds.length <
+                prev.favoriteStudyIds.length) {
+              _showFeedbackSnackBar(
+                  'devotionals_page.removed_from_favorites'.tr());
             }
-            if (state is DiscoveryError) {
-              debugPrint(
-                  '🔴 [DiscoveryListPage] Error state: ${state.message}');
-              return _buildErrorState(context, state.message);
+
+            // Check download complete
+            if (curr.loadedStudies.length > prev.loadedStudies.length) {
+              final addedId = curr.loadedStudies.keys
+                  .firstWhere((k) => !prev.loadedStudies.containsKey(k));
+              final title = curr.studyTitles[addedId] ?? addedId;
+              _showFeedbackSnackBar(
+                  '✅ $title ${'devotionals.offline_mode'.tr()}');
             }
-            if (state is DiscoveryLoaded) {
-              debugPrint(
-                  '🟢 [DiscoveryListPage] DiscoveryLoaded state received');
-              debugPrint(
-                  '🟢 [DiscoveryListPage] availableStudyIds: ${state.availableStudyIds}');
-              debugPrint(
-                  '🟢 [DiscoveryListPage] studyTitles: ${state.studyTitles}');
-              debugPrint(
-                  '🟢 [DiscoveryListPage] studySubtitles: ${state.studySubtitles}');
-              debugPrint(
-                  '🟢 [DiscoveryListPage] studyEmojis: ${state.studyEmojis}');
-              debugPrint(
-                  '🟢 [DiscoveryListPage] studyReadingMinutes: ${state.studyReadingMinutes}');
-
-              if (state.availableStudyIds.isEmpty) {
-                debugPrint(
-                    '⚠️ [DiscoveryListPage] availableStudyIds is EMPTY - showing empty state');
-                return _buildEmptyState(context);
-              }
-
-              debugPrint(
-                  '🟢 [DiscoveryListPage] Building carousel with ${state.availableStudyIds.length} studies');
-
-              final sortedIds = List<String>.from(state.availableStudyIds);
-              sortedIds.sort((a, b) {
-                final aCompleted = state.completedStudies[a] ?? false;
-                final bCompleted = state.completedStudies[b] ?? false;
-                if (aCompleted && !bCompleted) return 1;
-                if (!aCompleted && bCompleted) return -1;
-                return 0;
-              });
-
-              debugPrint('🟢 [DiscoveryListPage] Sorted IDs: $sortedIds');
-
-              return Stack(
-                children: [
-                  Column(
-                    children: [
-                      _buildProgressDots(sortedIds.length),
-                      const SizedBox(height: 16),
-                      Expanded(
-                        child: _buildCarousel(context, state, sortedIds),
-                      ),
-                      _buildActionBar(context, state, sortedIds),
-                      // We add extra space at bottom for the global navigation overlay if needed
-                      const SizedBox(height: 20),
-                    ],
-                  ),
-                  if (_showGridOverlay)
-                    _buildGridOverlay(context, state, sortedIds),
-                ],
-              );
-            }
-            debugPrint(
-                '⚠️ [DiscoveryListPage] Unknown state type: ${state.runtimeType}');
-            return const SizedBox.shrink();
           },
+          child: BlocBuilder<DiscoveryBloc, DiscoveryState>(
+            builder: (context, state) {
+              debugPrint(
+                  '🟢 [DiscoveryListPage] BlocBuilder rebuilding with state: ${state.runtimeType}');
+
+              if (state is DiscoveryLoading) {
+                debugPrint('🟢 [DiscoveryListPage] Showing loading indicator');
+                return const Center(child: CircularProgressIndicator());
+              }
+              if (state is DiscoveryError) {
+                debugPrint(
+                    '🔴 [DiscoveryListPage] Error state: ${state.message}');
+                return _buildErrorState(context, state.message);
+              }
+              if (state is DiscoveryLoaded) {
+                final sortedIds = List<String>.from(state.availableStudyIds);
+                sortedIds.sort((a, b) {
+                  final aCompleted = state.completedStudies[a] ?? false;
+                  final bCompleted = state.completedStudies[b] ?? false;
+                  if (aCompleted && !bCompleted) return 1;
+                  if (!aCompleted && bCompleted) return -1;
+                  return 0;
+                });
+
+                if (state.availableStudyIds.isEmpty) {
+                  return _buildEmptyState(context);
+                }
+
+                return Stack(
+                  children: [
+                    Column(
+                      children: [
+                        _buildProgressDots(sortedIds.length),
+                        const SizedBox(height: 16),
+                        Expanded(
+                          child: _buildCarousel(context, state, sortedIds),
+                        ),
+                        _buildActionBar(context, state, sortedIds),
+                        const SizedBox(height: 20),
+                      ],
+                    ),
+                    if (_showGridOverlay)
+                      _buildGridOverlay(context, state, sortedIds),
+                  ],
+                );
+              }
+              return const SizedBox.shrink();
+            },
+          ),
         ),
       ),
     );
@@ -201,27 +206,18 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
       BuildContext context, DiscoveryLoaded state, List<String> studyIds) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    debugPrint('🎠 [Carousel] Building carousel with ${studyIds.length} items');
-
     return Swiper(
       controller: _swiperController,
       physics: const BouncingScrollPhysics(),
-      // Fluid, smooth scrolling
       scrollDirection: Axis.horizontal,
       itemBuilder: (context, index) {
         final studyId = studyIds[index];
-        debugPrint(
-            '🎠 [Carousel] Building card at index $index for study: $studyId');
-
         final title = state.studyTitles[studyId] ?? _formatStudyTitle(studyId);
-        final subtitle = state.studySubtitles[studyId]; // Added
+        final subtitle = state.studySubtitles[studyId];
         final emoji = state.studyEmojis[studyId];
-        final readingMinutes = state.studyReadingMinutes[studyId]; // Added
+        final readingMinutes = state.studyReadingMinutes[studyId];
         final isCompleted = state.completedStudies[studyId] ?? false;
         final isFavorite = state.favoriteStudyIds.contains(studyId);
-
-        debugPrint(
-            '🎠 [Carousel] Card $index data - title: "$title", subtitle: "$subtitle", emoji: "$emoji", minutes: $readingMinutes');
 
         final mockDevocional = _createMockDevocional(studyId, emoji: emoji);
 
@@ -229,9 +225,7 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
           devocional: mockDevocional,
           title: title,
           subtitle: subtitle,
-          // Added
           readingMinutes: readingMinutes,
-          // Added
           isFavorite: isFavorite,
           isCompleted: isCompleted,
           isDark: isDark,
@@ -243,20 +237,15 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
       },
       itemCount: studyIds.length,
       viewportFraction: 0.88,
-      // Better visibility and smoother transition
       scale: 0.92,
-      // More noticeable depth effect
       curve: Curves.easeInOutCubic,
-      // Smooth entry and exit
       duration: 350,
-      // Smoother, not rushed
       onIndexChanged: (index) {
         setState(() {
           _currentIndex = index;
         });
       },
       layout: SwiperLayout.STACK,
-      // Smooth stacking layout
       itemWidth: MediaQuery.of(context).size.width * 0.88,
       itemHeight: MediaQuery.of(context).size.height * 0.6,
     );
@@ -268,7 +257,9 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
     final currentStudyId = studyIds[_currentIndex];
     final currentTitle =
         state.studyTitles[currentStudyId] ?? _formatStudyTitle(currentStudyId);
+
     final isDownloaded = state.isStudyLoaded(currentStudyId);
+    final isDownloading = state.isStudyDownloading(currentStudyId);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
@@ -288,18 +279,19 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             _buildActionButton(
-                icon: isDownloaded ? Icons.file_download_done_rounded : Icons.file_download_outlined,
+                icon: isDownloaded
+                    ? Icons.file_download_done_rounded
+                    : isDownloading
+                        ? Icons.sync_rounded
+                        : Icons.file_download_outlined,
                 label: 'discovery.download_study'.tr(),
                 onTap: () => _handleDownloadStudy(currentStudyId, currentTitle),
-                colorScheme: colorScheme),
+                colorScheme: colorScheme,
+                isDownloading: isDownloading),
             _buildActionButton(
                 icon: Icons.share_rounded,
                 label: 'discovery.share'.tr(),
-                onTap: () {
-                  SharePlus.instance.share(
-                      'Check out this Bible Study: $currentTitle'
-                          as ShareParams);
-                },
+                onTap: () => _handleShareStudy(context, state, currentStudyId),
                 colorScheme: colorScheme),
             _buildActionButton(
                 icon: Icons.star_rounded,
@@ -314,11 +306,11 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
                 },
                 colorScheme: colorScheme),
             _buildActionButton(
-                icon: Icons.auto_stories_rounded,
-                label: 'discovery.read'.tr(),
-                onTap: () => _navigateToDetail(context, currentStudyId),
-                colorScheme: colorScheme,
-                isPrimary: true,
+              icon: Icons.auto_stories_rounded,
+              label: 'discovery.read'.tr(),
+              onTap: () => _navigateToDetail(context, currentStudyId),
+              colorScheme: colorScheme,
+              isPrimary: true,
             ),
           ],
         ),
@@ -332,8 +324,8 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
     required VoidCallback onTap,
     required ColorScheme colorScheme,
     bool isPrimary = false,
+    bool isDownloading = false,
   }) {
-    // Only apply border/no fill for the requested icons
     final bool isBorderedIcon = [
       Icons.share_rounded,
       Icons.star_rounded,
@@ -341,10 +333,11 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
       Icons.arrow_forward_rounded,
       Icons.file_download_outlined,
       Icons.file_download_done_rounded,
+      Icons.sync_rounded,
     ].contains(icon);
 
     return InkWell(
-      onTap: onTap,
+      onTap: isDownloading ? null : onTap,
       borderRadius: BorderRadius.circular(20),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
@@ -363,14 +356,25 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
                             : colorScheme.primary.withAlpha(180),
                         width: 2,
                       ),
-                      color: isPrimary ? colorScheme.primary.withAlpha(26) : Colors.transparent,
+                      color: isPrimary
+                          ? colorScheme.primary.withAlpha(26)
+                          : Colors.transparent,
                     ),
                     child: Center(
-                      child: Icon(
-                        icon,
-                        color: colorScheme.primary,
-                        size: 22,
-                      ),
+                      child: isDownloading
+                          ? SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: colorScheme.primary,
+                              ),
+                            )
+                          : Icon(
+                              icon,
+                              color: colorScheme.primary,
+                              size: 22,
+                            ),
                     ),
                   )
                 : Container(
@@ -400,13 +404,12 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
 
   Widget _buildGridOverlay(
       BuildContext context, DiscoveryLoaded state, List<String> studyIds) {
-    // Sort studies: incomplete first, completed last
     final sortedStudyIds = List<String>.from(studyIds);
     sortedStudyIds.sort((a, b) {
       final aCompleted = state.completedStudies[a] ?? false;
       final bCompleted = state.completedStudies[b] ?? false;
-      if (!aCompleted && bCompleted) return -1; // Incomplete first
-      if (aCompleted && !bCompleted) return 1; // Completed last
+      if (!aCompleted && bCompleted) return -1;
+      if (aCompleted && !bCompleted) return 1;
       return 0;
     });
 
@@ -567,32 +570,77 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
         .join(' ');
   }
 
-  void _showSnackBar(String message) {
+  void _showFeedbackSnackBar(String message) {
     if (!mounted) return;
+    final colorScheme = Theme.of(context).colorScheme;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(message),
+        content: Text(
+          message,
+          style: TextStyle(color: colorScheme.onSecondary),
+        ),
         duration: const Duration(seconds: 2),
+        backgroundColor: colorScheme.secondary,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
     );
   }
 
   Future<void> _handleDownloadStudy(String studyId, String title) async {
     final languageCode = context.read<DevocionalProvider>().selectedLanguage;
-    _showSnackBar('⬇️ ${'app.loading'.tr()}...');
+    context
+        .read<DiscoveryBloc>()
+        .add(LoadDiscoveryStudy(studyId, languageCode: languageCode));
+  }
+
+  Future<void> _handleShareStudy(
+    BuildContext context,
+    DiscoveryLoaded state,
+    String studyId,
+  ) async {
+    var study = state.loadedStudies[studyId];
+
+    // If study not loaded, download it first
+    if (study == null) {
+      final languageCode = context.read<DevocionalProvider>().selectedLanguage;
+
+      // Show downloading feedback
+      _showFeedbackSnackBar('discovery.loading_studies'.tr());
+
+      // Trigger download
+      context
+          .read<DiscoveryBloc>()
+          .add(LoadDiscoveryStudy(studyId, languageCode: languageCode));
+
+      // Wait a bit for the study to load (with timeout)
+      int attempts = 0;
+      while (attempts < 10) {
+        await Future.delayed(const Duration(milliseconds: 300));
+        final currentState = context.read<DiscoveryBloc>().state;
+        if (currentState is DiscoveryLoaded) {
+          study = currentState.loadedStudies[studyId];
+          if (study != null) break;
+        }
+        attempts++;
+      }
+
+      // If still not loaded after waiting, show error
+      if (study == null) {
+        _showFeedbackSnackBar('discovery.study_not_found'.tr());
+        return;
+      }
+    }
 
     try {
-      await context.read<DiscoveryBloc>().repository.fetchDiscoveryStudy(
-            studyId,
-            languageCode,
-          );
-      if (mounted) {
-        _showSnackBar('✅ $title ${'devotionals.offline_mode'.tr()}');
-      }
+      final shareText = DiscoveryShareHelper.generarTextoParaCompartir(
+        study,
+        resumen: true,
+      );
+      await SharePlus.instance.share(ShareParams(text: shareText));
     } catch (e) {
-      if (mounted) {
-        _showSnackBar('❌ ${'devotionals.download_error'.tr()}');
-      }
+      debugPrint('Error sharing study: $e');
+      _showFeedbackSnackBar('share.share_error'.tr());
     }
   }
 }

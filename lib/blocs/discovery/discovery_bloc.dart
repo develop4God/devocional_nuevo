@@ -242,7 +242,20 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
     Emitter<DiscoveryState> emit,
   ) async {
     final currentState = state;
-    emit(DiscoveryStudyLoading(event.studyId));
+    
+    // If we're already in DiscoveryLoaded, we track downloading state per study
+    if (currentState is DiscoveryLoaded) {
+      final updatedDownloading = Set<String>.from(currentState.downloadingStudyIds);
+      updatedDownloading.add(event.studyId);
+      
+      emit(currentState.copyWith(
+        downloadingStudyIds: updatedDownloading,
+        clearError: true,
+      ));
+    } else {
+      // Fallback for initial load
+      emit(DiscoveryStudyLoading(event.studyId));
+    }
 
     try {
       final languageCode = event.languageCode ?? 'es';
@@ -251,18 +264,24 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
         languageCode,
       );
 
-      if (currentState is DiscoveryLoaded) {
+      final newState = state; // Get current state after async work
+      if (newState is DiscoveryLoaded) {
         final updatedStudies =
-            Map<String, DiscoveryDevotional>.from(currentState.loadedStudies);
+            Map<String, DiscoveryDevotional>.from(newState.loadedStudies);
         updatedStudies[event.studyId] = study;
+        
+        final updatedDownloading = Set<String>.from(newState.downloadingStudyIds);
+        updatedDownloading.remove(event.studyId);
 
         emit(
-          currentState.copyWith(
+          newState.copyWith(
             loadedStudies: updatedStudies,
+            downloadingStudyIds: updatedDownloading,
             clearError: true,
           ),
         );
       } else {
+        // Fallback if state changed drastically (shouldn't happen often)
         final progress =
             await progressTracker.getProgress(event.studyId, languageCode);
         final favoriteIds =
@@ -278,12 +297,18 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
             completedStudies: {event.studyId: progress.isCompleted},
             favoriteStudyIds: favoriteIds,
             languageCode: languageCode,
+            downloadingStudyIds: {},
           ),
         );
       }
     } catch (e) {
-      if (currentState is DiscoveryLoaded) {
-        emit(currentState.copyWith(
+      final newState = state;
+      if (newState is DiscoveryLoaded) {
+        final updatedDownloading = Set<String>.from(newState.downloadingStudyIds);
+        updatedDownloading.remove(event.studyId);
+        
+        emit(newState.copyWith(
+            downloadingStudyIds: updatedDownloading,
             errorMessage: 'Error al cargar contenido del estudio: $e'));
       } else {
         emit(DiscoveryError('Error al cargar estudio: $e'));
