@@ -28,6 +28,8 @@ class DiscoveryListPage extends StatefulWidget {
 
 class _DiscoveryListPageState extends State<DiscoveryListPage>
     with SingleTickerProviderStateMixin {
+  static const double _inactiveDotsAlpha = 0.2;
+
   int _currentIndex = 0;
   bool _showGridOverlay = false;
   late AnimationController _gridAnimationController;
@@ -174,7 +176,10 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
             decoration: BoxDecoration(
               color: _currentIndex == index
                   ? Theme.of(context).colorScheme.primary
-                  : Colors.transparent,
+                  : Theme.of(context)
+                      .colorScheme
+                      .outline
+                      .withValues(alpha: _inactiveDotsAlpha),
               border: Border.all(
                 color: _currentIndex == index
                     ? Theme.of(context).colorScheme.primary
@@ -282,6 +287,11 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             _buildActionButton(
+                icon: Icons.file_download_outlined,
+                label: 'discovery.download_study'.tr(),
+                onTap: () => _handleDownloadStudy(currentStudyId, currentTitle),
+                colorScheme: colorScheme),
+            _buildActionButton(
                 icon: Icons.share_rounded,
                 label: 'discovery.share'.tr(),
                 onTap: () {
@@ -309,13 +319,6 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
               colorScheme: colorScheme,
               isPrimary: true,
             ),
-            _buildActionButton(
-                icon: Icons.arrow_forward_rounded,
-                label: 'navigation.next'.tr(),
-                onTap: () {
-                  _swiperController.next();
-                },
-                colorScheme: colorScheme),
           ],
         ),
       ),
@@ -560,6 +563,35 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
         .map((word) =>
             word.isNotEmpty ? word[0].toUpperCase() + word.substring(1) : '')
         .join(' ');
+  }
+
+  void _showSnackBar(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  Future<void> _handleDownloadStudy(String studyId, String title) async {
+    final languageCode = context.read<DevocionalProvider>().selectedLanguage;
+    _showSnackBar('⬇️ ${'app.loading'.tr()}...');
+
+    try {
+      await context.read<DiscoveryBloc>().repository.fetchDiscoveryStudy(
+            studyId,
+            languageCode,
+          );
+      if (mounted) {
+        _showSnackBar('✅ $title ${'devotionals.offline_mode'.tr()}');
+      }
+    } catch (e) {
+      if (mounted) {
+        _showSnackBar('❌ ${'devotionals.download_error'.tr()}');
+      }
+    }
   }
 }
 

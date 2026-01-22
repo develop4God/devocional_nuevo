@@ -6,14 +6,24 @@ import 'package:devocional_nuevo/services/discovery_favorites_service.dart';
 import 'package:devocional_nuevo/services/discovery_progress_tracker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'discovery_event.dart';
 import 'discovery_state.dart';
 
 class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
+  static const String _firstDownloadKeyPrefix = 'discovery_first_downloaded_';
+
   final DiscoveryRepository repository;
   final DiscoveryProgressTracker progressTracker;
   final DiscoveryFavoritesService favoritesService;
+
+  bool _disposed = false;
+  SharedPreferences? _prefs;
+
+  Future<SharedPreferences> get prefs async {
+    return _prefs ??= await SharedPreferences.getInstance();
+  }
 
   DiscoveryBloc({
     required this.repository,
@@ -29,6 +39,12 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
     on<ResetDiscoveryStudy>(_onResetDiscoveryStudy);
     on<RefreshDiscoveryStudies>(_onRefreshDiscoveryStudies);
     on<ClearDiscoveryError>(_onClearDiscoveryError);
+  }
+
+  @override
+  Future<void> close() {
+    _disposed = true;
+    return super.close();
   }
 
   Future<void> _onLoadDiscoveryStudies(
@@ -48,9 +64,6 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
       final index = await repository.fetchIndex(forceRefresh: forceRefresh);
       debugPrint('🔵 [BLOC] Index fetched successfully');
 
-      final favoriteIds = await favoritesService.loadFavoriteIds();
-      debugPrint('🔵 [BLOC] Favorites loaded: ${favoriteIds.length} items');
-
       String locale = languageCode ?? 'es';
       if (languageCode == null) {
         try {
@@ -63,6 +76,9 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
       } else {
         debugPrint('🔵 [BLOC] Using provided locale: $locale');
       }
+
+      final favoriteIds = await favoritesService.loadFavoriteIds(locale);
+      debugPrint('🔵 [BLOC] Favorites loaded: ${favoriteIds.length} items');
 
       final List<String> filteredStudyIds = [];
       final Map<String, String> studyTitles = {};
@@ -149,7 +165,7 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
           }
           debugPrint('  ⏱️ Reading minutes: ${studyReadingMinutes[id]}');
 
-          final progress = await progressTracker.getProgress(id);
+          final progress = await progressTracker.getProgress(id, locale);
           completedStudies[id] = progress.isCompleted;
           debugPrint('  🎯 Completed: ${completedStudies[id]}');
         } else {
@@ -175,16 +191,50 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
           // Ensure required parameter is passed
           completedStudies: completedStudies,
           favoriteStudyIds: favoriteIds,
+          languageCode: locale,
         ),
       );
 
       debugPrint(
           '🔵 [BLOC] DiscoveryLoaded state emitted with ${filteredStudyIds.length} studies');
+
+      // Background download of first study for offline access
+      if (filteredStudyIds.isNotEmpty) {
+        _downloadFirstStudyForOffline(filteredStudyIds.first, locale);
+      }
     } catch (e) {
       debugPrint('❌ [BLOC] Error loading Discovery index: $e');
       debugPrint('❌ [BLOC] Stack trace: ${StackTrace.current}');
       emit(DiscoveryError('Error: $e'));
     }
+  }
+
+  /// Download first study in background for offline access
+  void _downloadFirstStudyForOffline(String studyId, String languageCode) {
+    // Run in background without awaiting
+    Future.microtask(() async {
+      if (_disposed) return;
+
+      try {
+        final prefsInstance = await prefs;
+        final downloadKey = '$_firstDownloadKeyPrefix$languageCode';
+
+        // Check if we've already downloaded a study for this language
+        final alreadyDownloaded = prefsInstance.getBool(downloadKey) ?? false;
+
+        if (!alreadyDownloaded) {
+          debugPrint('📥 [BLOC] Downloading first study for offline: $studyId');
+          await repository.fetchDiscoveryStudy(studyId, languageCode);
+          await prefsInstance.setBool(downloadKey, true);
+          debugPrint('✅ [BLOC] First study downloaded for offline access');
+        } else {
+          debugPrint(
+              '✓ [BLOC] First study already downloaded for this language');
+        }
+      } catch (e) {
+        debugPrint('⚠️ [BLOC] Failed to download first study for offline: $e');
+      }
+    });
   }
 
   Future<void> _onLoadDiscoveryStudy(
@@ -213,8 +263,10 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
           ),
         );
       } else {
-        final progress = await progressTracker.getProgress(event.studyId);
-        final favoriteIds = await favoritesService.loadFavoriteIds();
+        final progress =
+            await progressTracker.getProgress(event.studyId, languageCode);
+        final favoriteIds =
+            await favoritesService.loadFavoriteIds(languageCode);
         emit(
           DiscoveryLoaded(
             availableStudyIds: [event.studyId],
@@ -225,6 +277,7 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
             studyReadingMinutes: {},
             completedStudies: {event.studyId: progress.isCompleted},
             favoriteStudyIds: favoriteIds,
+            languageCode: languageCode,
           ),
         );
       }
@@ -243,9 +296,11 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
     Emitter<DiscoveryState> emit,
   ) async {
     try {
-      await progressTracker.markSectionCompleted(
-          event.studyId, event.sectionIndex);
       final currentState = state;
+      final languageCode =
+          currentState is DiscoveryLoaded ? currentState.languageCode : null;
+      await progressTracker.markSectionCompleted(
+          event.studyId, event.sectionIndex, languageCode);
       if (currentState is DiscoveryLoaded) {
         emit(currentState.copyWith(
             clearError: true, lastUpdated: DateTime.now()));
@@ -260,9 +315,11 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
     Emitter<DiscoveryState> emit,
   ) async {
     try {
-      await progressTracker.answerQuestion(
-          event.studyId, event.questionIndex, event.answer);
       final currentState = state;
+      final languageCode =
+          currentState is DiscoveryLoaded ? currentState.languageCode : null;
+      await progressTracker.answerQuestion(
+          event.studyId, event.questionIndex, event.answer, languageCode);
       if (currentState is DiscoveryLoaded) {
         emit(currentState.copyWith(
             clearError: true, lastUpdated: DateTime.now()));
@@ -277,8 +334,10 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
     Emitter<DiscoveryState> emit,
   ) async {
     try {
-      await progressTracker.completeStudy(event.studyId);
       final currentState = state;
+      final languageCode =
+          currentState is DiscoveryLoaded ? currentState.languageCode : null;
+      await progressTracker.completeStudy(event.studyId, languageCode);
       if (currentState is DiscoveryLoaded) {
         final updatedCompletion =
             Map<String, bool>.from(currentState.completedStudies);
@@ -301,8 +360,10 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
   ) async {
     final currentState = state;
     if (currentState is DiscoveryLoaded) {
-      await favoritesService.toggleFavorite(event.studyId);
-      final updatedIds = await favoritesService.loadFavoriteIds();
+      await favoritesService.toggleFavorite(
+          event.studyId, currentState.languageCode);
+      final updatedIds =
+          await favoritesService.loadFavoriteIds(currentState.languageCode);
 
       emit(currentState.copyWith(
         favoriteStudyIds: updatedIds,
@@ -316,8 +377,10 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
     Emitter<DiscoveryState> emit,
   ) async {
     try {
-      await progressTracker.resetStudyProgress(event.studyId);
       final currentState = state;
+      final languageCode =
+          currentState is DiscoveryLoaded ? currentState.languageCode : null;
+      await progressTracker.resetStudyProgress(event.studyId, languageCode);
       if (currentState is DiscoveryLoaded) {
         final updatedCompletion =
             Map<String, bool>.from(currentState.completedStudies);

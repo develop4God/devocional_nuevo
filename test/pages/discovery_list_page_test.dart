@@ -395,6 +395,7 @@ class MockDiscoveryBlocWithStudies extends Fake implements DiscoveryBloc {
           completedStudies: {},
           favoriteStudyIds: {},
           loadedStudies: {},
+          languageCode: 'en',
         ),
       );
 
@@ -424,6 +425,7 @@ class MockDiscoveryBlocWithStudies extends Fake implements DiscoveryBloc {
         completedStudies: {},
         favoriteStudyIds: {},
         loadedStudies: {},
+        languageCode: 'en',
       );
 
   @override
@@ -455,6 +457,7 @@ class MockDiscoveryBlocWithMixedStudies extends Fake implements DiscoveryBloc {
           },
           favoriteStudyIds: {},
           loadedStudies: {},
+          languageCode: 'en',
         ),
       );
 
@@ -478,6 +481,7 @@ class MockDiscoveryBlocWithMixedStudies extends Fake implements DiscoveryBloc {
         },
         favoriteStudyIds: {},
         loadedStudies: {},
+        languageCode: 'en',
       );
 
   @override
@@ -506,6 +510,7 @@ class MockDiscoveryBlocWithCompletedStudies extends Fake
           },
           favoriteStudyIds: {},
           loadedStudies: {},
+          languageCode: 'en',
         ),
       );
 
@@ -525,6 +530,7 @@ class MockDiscoveryBlocWithCompletedStudies extends Fake
         },
         favoriteStudyIds: {},
         loadedStudies: {},
+        languageCode: 'en',
       );
 
   @override
