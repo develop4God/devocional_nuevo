@@ -174,7 +174,10 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
             decoration: BoxDecoration(
               color: _currentIndex == index
                   ? Theme.of(context).colorScheme.primary
-                  : Colors.transparent,
+                  : Theme.of(context)
+                      .colorScheme
+                      .outline
+                      .withValues(alpha: 0.2),
               border: Border.all(
                 color: _currentIndex == index
                     ? Theme.of(context).colorScheme.primary

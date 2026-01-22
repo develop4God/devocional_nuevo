@@ -406,9 +406,11 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
             ),
           ],
 
-          // 📜 COPYRIGHT DISCLAIMER
-          const SizedBox(height: 48),
-          _buildCopyrightDisclaimer(study, theme),
+          // 📜 COPYRIGHT DISCLAIMER - only show on last section
+          if (isLast) ...[
+            const SizedBox(height: 48),
+            _buildCopyrightDisclaimer(study, theme),
+          ],
 
           const SizedBox(height: 60),
         ],

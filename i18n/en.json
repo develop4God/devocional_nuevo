@@ -705,7 +705,11 @@
     "revelation": "Revelation",
     "activation_prayer": "Activation Prayer",
     "share": "Share",
-    "read": "Read"
+    "read": "Read",
+    "no_favorites_title": "No favorite studies yet",
+    "no_favorites_description": "Mark the star icon on a study to save it here.",
+    "favorite_studies": "Favorite Studies",
+    "download_study": "Download for offline"
   },
   "tags": {
     "love": "Love",

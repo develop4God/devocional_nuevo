@@ -23,6 +23,7 @@ class DiscoveryLoaded extends DiscoveryState with EquatableMixin {
   final Set<String> favoriteStudyIds; // NEW: Set of favorited study IDs
   final String? errorMessage;
   final DateTime lastUpdated;
+  final String languageCode; // NEW: Track current language
 
   DiscoveryLoaded({
     required this.availableStudyIds,
@@ -35,6 +36,7 @@ class DiscoveryLoaded extends DiscoveryState with EquatableMixin {
     required this.favoriteStudyIds,
     this.errorMessage,
     DateTime? lastUpdated,
+    required this.languageCode,
   }) : lastUpdated = lastUpdated ?? DateTime.now();
 
   DiscoveryDevotional? getStudy(String studyId) => loadedStudies[studyId];
@@ -57,6 +59,7 @@ class DiscoveryLoaded extends DiscoveryState with EquatableMixin {
     String? errorMessage,
     bool clearError = false,
     DateTime? lastUpdated,
+    String? languageCode,
   }) {
     return DiscoveryLoaded(
       availableStudyIds: availableStudyIds ?? this.availableStudyIds,
@@ -69,6 +72,7 @@ class DiscoveryLoaded extends DiscoveryState with EquatableMixin {
       favoriteStudyIds: favoriteStudyIds ?? this.favoriteStudyIds,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
       lastUpdated: lastUpdated ?? DateTime.now(),
+      languageCode: languageCode ?? this.languageCode,
     );
   }
 
@@ -83,7 +87,8 @@ class DiscoveryLoaded extends DiscoveryState with EquatableMixin {
         completedStudies,
         favoriteStudyIds,
         errorMessage,
-        lastUpdated
+        lastUpdated,
+        languageCode,
       ];
 }
 

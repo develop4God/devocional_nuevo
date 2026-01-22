@@ -6,13 +6,14 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 /// Service to manage favorite Discovery studies using ID-based persistence.
 class DiscoveryFavoritesService {
-  static const String _favoritesKey = 'discovery_favorite_ids';
+  static const String _favoritesKeyPrefix = 'discovery_favorite_ids_';
 
-  /// Load favorited study IDs from SharedPreferences
-  Future<Set<String>> loadFavoriteIds() async {
+  /// Load favorited study IDs from SharedPreferences for a specific language
+  Future<Set<String>> loadFavoriteIds([String? languageCode]) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final String? jsonString = prefs.getString(_favoritesKey);
+      final key = _getFavoritesKey(languageCode);
+      final String? jsonString = prefs.getString(key);
 
       if (jsonString != null && jsonString.isNotEmpty) {
         final List<dynamic> decoded = json.decode(jsonString);
@@ -24,11 +25,11 @@ class DiscoveryFavoritesService {
     return {};
   }
 
-  /// Toggle favorite status and persist to storage
-  Future<bool> toggleFavorite(String studyId) async {
+  /// Toggle favorite status and persist to storage for a specific language
+  Future<bool> toggleFavorite(String studyId, [String? languageCode]) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final ids = await loadFavoriteIds();
+      final ids = await loadFavoriteIds(languageCode);
 
       bool wasAdded;
       if (ids.contains(studyId)) {
@@ -39,12 +40,21 @@ class DiscoveryFavoritesService {
         wasAdded = true;
       }
 
-      await prefs.setString(_favoritesKey, json.encode(ids.toList()));
-      debugPrint('⭐ Discovery Favorite toggled for $studyId: $wasAdded');
+      final key = _getFavoritesKey(languageCode);
+      await prefs.setString(key, json.encode(ids.toList()));
+      debugPrint(
+          '⭐ Discovery Favorite toggled for $studyId ($languageCode): $wasAdded');
       return wasAdded;
     } catch (e) {
       debugPrint('Error toggling discovery favorite: $e');
       return false;
     }
+  }
+
+  String _getFavoritesKey(String? languageCode) {
+    if (languageCode != null && languageCode.isNotEmpty) {
+      return '$_favoritesKeyPrefix$languageCode';
+    }
+    return '${_favoritesKeyPrefix}en'; // Default to English if no language specified
   }
 }
