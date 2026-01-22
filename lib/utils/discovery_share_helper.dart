@@ -23,6 +23,19 @@ class DiscoveryShareHelper {
     }
   }
 
+  static String _translateKey(String key, {String fallback = ''}) {
+    try {
+      final translated = key.tr();
+      if (translated == key) {
+        // If translation service is not available, fallback
+        return fallback.isNotEmpty ? fallback : key;
+      }
+      return translated;
+    } catch (_) {
+      return fallback.isNotEmpty ? fallback : key;
+    }
+  }
+
   /// Generate a summary version optimized for WhatsApp sharing
   static String _generarResumen(DiscoveryDevotional study) {
     final keyVerse = study.keyVerse;
@@ -42,7 +55,8 @@ class DiscoveryShareHelper {
 
     // Bible Study title with emoji and translation key
     final emoji = study.emoji ?? '📖';
-    buffer.writeln('$emoji *${'daily_bible_study'.tr()}*');
+    buffer.writeln(
+        '$emoji *${_translateKey('discovery.daily_bible_study', fallback: 'ESTUDIO BÍBLICO DIARIO')}*');
     if (study.subtitle != null && study.subtitle!.isNotEmpty) {
       buffer.writeln('_${study.subtitle}_');
     }
@@ -66,7 +80,8 @@ class DiscoveryShareHelper {
 
       // Revelation key
       if (firstCard.revelationKey != null) {
-        buffer.writeln('💡 *Descubrimiento:*');
+        buffer.writeln(
+            '💡 *${_translateKey('discovery.revelation', fallback: 'Revelación')}:*');
         buffer.writeln(firstCard.revelationKey);
         buffer.writeln();
       }
@@ -74,13 +89,15 @@ class DiscoveryShareHelper {
 
     // First discovery question
     if (firstQuestion != null) {
-      buffer.writeln('❓ *Pregunta para ti:*');
+      buffer.writeln(
+          '❓ *${_translateKey('discovery.reflection_questions', fallback: 'Preguntas de Reflexión')}:*');
       buffer.writeln(firstQuestion);
       buffer.writeln();
     }
 
     // App download link
-    buffer.writeln('📲 *Estudio completo:*');
+    buffer.writeln(
+        '📲 *${_translateKey('discovery.download_study', fallback: 'Descargar')}:*');
     buffer.writeln(
         'https://play.google.com/store/apps/details?id=com.develop4god.devocional_nuevo');
     buffer.writeln();
@@ -101,7 +118,7 @@ class DiscoveryShareHelper {
     final buffer = StringBuffer();
     final emoji = study.emoji ?? '📖';
     buffer.writeln(
-        '$emoji *${'daily_bible_study'.tr().toUpperCase()} DISCOVERY: ${study.versiculo.toUpperCase()}*');
+        '$emoji *${_translateKey('discovery.daily_bible_study', fallback: 'ESTUDIO BÍBLICO DIARIO').toUpperCase()} DISCOVERY: ${study.versiculo.toUpperCase()}*');
     buffer.writeln();
 
     if (study.keyVerse != null) {
@@ -137,7 +154,8 @@ class DiscoveryShareHelper {
       // Scripture connections - show reference FIRST
       if (card.scriptureConnections != null &&
           card.scriptureConnections!.isNotEmpty) {
-        buffer.writeln('📖 *Conexiones Bíblicas:*');
+        buffer.writeln(
+            '📖 *${_translateKey('discovery.scripture_connections', fallback: 'Conexiones Bíblicas')}:*');
         for (var connection in card.scriptureConnections!) {
           buffer.writeln('*${connection.reference}*');
           buffer.writeln('"${connection.text}"');
@@ -147,7 +165,8 @@ class DiscoveryShareHelper {
 
       // Greek words
       if (card.greekWords != null && card.greekWords!.isNotEmpty) {
-        buffer.writeln('🔤 *Palabras Griegas:*');
+        buffer.writeln(
+            '🔤 *${_translateKey('discovery.greek_words', fallback: 'Palabras Griegas')}:*');
         for (var word in card.greekWords!) {
           buffer.writeln(
               '• *${word.word}* (${word.transliteration ?? word.word}): ${word.meaning}');
@@ -157,7 +176,8 @@ class DiscoveryShareHelper {
 
       // Revelation key
       if (card.revelationKey != null) {
-        buffer.writeln('💡 *Clave de Revelación:*');
+        buffer.writeln(
+            '💡 *${_translateKey('discovery.revelation', fallback: 'Revelación')}:*');
         buffer.writeln(card.revelationKey);
         buffer.writeln();
       }
@@ -172,7 +192,8 @@ class DiscoveryShareHelper {
     if (discoveryCard.discoveryQuestions != null &&
         discoveryCard.discoveryQuestions!.isNotEmpty) {
       buffer.writeln('━━━━━━━━━━━━━━━━');
-      buffer.writeln('🙏 *PREGUNTAS DE DESCUBRIMIENTO:*');
+      buffer.writeln(
+          '🙏 *${_translateKey('discovery.reflection_questions', fallback: 'PREGUNTAS DE REFLEXIÓN').toUpperCase()}:*');
       buffer.writeln();
 
       int i = 1;
@@ -186,7 +207,8 @@ class DiscoveryShareHelper {
     // Prayer
     if (discoveryCard.prayer != null) {
       buffer.writeln('━━━━━━━━━━━━━━━━');
-      buffer.writeln('🙏 *${discoveryCard.prayer!.title ?? 'ORACIÓN'}*');
+      buffer.writeln(
+          '🙏 *${discoveryCard.prayer!.title ?? _translateKey('discovery.activation_prayer', fallback: 'ORACIÓN DE ACTIVACIÓN')}*');
       buffer.writeln();
       buffer.writeln(discoveryCard.prayer!.content);
       buffer.writeln();
@@ -194,7 +216,8 @@ class DiscoveryShareHelper {
 
     // Footer
     buffer.writeln('━━━━━━━━━━━━━━━━');
-    buffer.writeln('📲 *App con más estudios bíblicos:*');
+    buffer.writeln(
+        '📲 *${_translateKey('discovery.download_study', fallback: 'Descargar')}:*');
     buffer.writeln(
         'https://play.google.com/store/apps/details?id=com.develop4god.devocional_nuevo');
     buffer.writeln();

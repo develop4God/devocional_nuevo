@@ -65,6 +65,7 @@ class DevotionalCardPremium extends StatelessWidget {
     final verseReference = _extractVerseReference(devocional.versiculo);
     final topicEmoji = _getTopicEmoji();
     final colors = _getGradientColors();
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Semantics(
       label:
@@ -208,80 +209,88 @@ class DevotionalCardPremium extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
 
-                        // Subtitle / Description Section
+                        // Subtitle / Description Section - Styled with "Bible format"
                         if (subtitle != null && subtitle!.isNotEmpty) ...[
                           const SizedBox(height: 12),
-                          Text(
-                            subtitle!,
-                            textAlign: TextAlign.center,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.8),
-                              fontSize: 14,
-                              fontWeight: FontWeight.w400,
-                              height: 1.3,
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 8),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [
+                                  colorScheme.primary.withValues(alpha: 0.25),
+                                  colorScheme.primary.withValues(alpha: 0.08),
+                                  colorScheme.secondary.withValues(alpha: 0.06),
+                                ],
+                                stops: const [0.0, 0.6, 1.0],
+                              ),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: colorScheme.primary.withValues(alpha: 0.3),
+                                width: 1.5,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: colorScheme.primary.withValues(alpha: 0.2),
+                                  blurRadius: 20,
+                                  offset: const Offset(0, 8),
+                                  spreadRadius: -4,
+                                ),
+                              ],
+                            ),
+                            child: Text(
+                              subtitle!,
+                              textAlign: TextAlign.center,
+                              maxLines: 3,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                height: 1.2,
+                              ),
                             ),
                           ),
                         ],
 
-                        const SizedBox(height: 18),
-
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(30),
-                            border: Border.all(
-                                color: Colors.white.withValues(alpha: 0.2),
-                                width: 0.5),
-                          ),
-                          child: Text(
-                            verseReference,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w700,
-                              fontStyle: FontStyle.italic,
-                              letterSpacing: 0.3,
-                            ),
-                          ),
-                        ),
-
                         const Spacer(),
 
-                        // Bottom Row: Reading Info
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.auto_stories_outlined,
-                                color: Colors.white.withValues(alpha: 0.9),
-                                size: 16),
-                            const SizedBox(width: 8),
-                            Text(
-                              'discovery.daily_bible_study'.tr(),
-                              style: TextStyle(
-                                color: Colors.white.withValues(alpha: 0.9),
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 1.2,
+                        // Bottom Row: Reading Info - Added FittedBox to prevent overflow
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.auto_stories_outlined,
+                                  color: Colors.white.withValues(alpha: 0.9),
+                                  size: 16),
+                              const SizedBox(width: 8),
+                              Text(
+                                'discovery.daily_bible_study'.tr(),
+                                style: TextStyle(
+                                  color: Colors.white.withValues(alpha: 0.9),
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 1.2,
+                                ),
                               ),
-                            ),
-                            const SizedBox(width: 12),
-                            Icon(Icons.timer_outlined,
-                                color: Colors.white70, size: 16),
-                            const SizedBox(width: 12),
-                            Text(
-                              '${readingMinutes ?? 5} ${'discovery.minutes_suffix'.tr()}',
-                              style: TextStyle(
-                                color: Colors.white.withValues(alpha: 0.9),
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 1.2,
+                              const SizedBox(width: 12),
+                              Icon(Icons.timer_outlined,
+                                  color: Colors.white70, size: 16),
+                              const SizedBox(width: 12),
+                              Text(
+                                '${readingMinutes ?? 5} ${'discovery.minutes_suffix'.tr()}',
+                                style: TextStyle(
+                                  color: Colors.white.withValues(alpha: 0.9),
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 1.2,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ],
                     ),
