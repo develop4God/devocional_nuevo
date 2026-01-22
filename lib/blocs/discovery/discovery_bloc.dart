@@ -12,6 +12,8 @@ import 'discovery_event.dart';
 import 'discovery_state.dart';
 
 class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
+  static const String _firstDownloadKeyPrefix = 'discovery_first_downloaded_';
+  
   final DiscoveryRepository repository;
   final DiscoveryProgressTracker progressTracker;
   final DiscoveryFavoritesService favoritesService;
@@ -200,7 +202,7 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
     Future.microtask(() async {
       try {
         final prefs = await SharedPreferences.getInstance();
-        final downloadKey = 'discovery_first_downloaded_$languageCode';
+        final downloadKey = '$_firstDownloadKeyPrefix$languageCode';
 
         // Check if we've already downloaded a study for this language
         final alreadyDownloaded = prefs.getBool(downloadKey) ?? false;

@@ -28,6 +28,8 @@ class DiscoveryListPage extends StatefulWidget {
 
 class _DiscoveryListPageState extends State<DiscoveryListPage>
     with SingleTickerProviderStateMixin {
+  static const double _inactiveDotsAlpha = 0.2;
+  
   int _currentIndex = 0;
   bool _showGridOverlay = false;
   late AnimationController _gridAnimationController;
@@ -177,7 +179,7 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
                   : Theme.of(context)
                       .colorScheme
                       .outline
-                      .withValues(alpha: 0.2),
+                      .withValues(alpha: _inactiveDotsAlpha),
               border: Border.all(
                 color: _currentIndex == index
                     ? Theme.of(context).colorScheme.primary

@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// Service to manage favorite Discovery studies using ID-based persistence.
 class DiscoveryFavoritesService {
   static const String _favoritesKeyPrefix = 'discovery_favorite_ids_';
+  static const String _defaultLanguage = 'en';
 
   /// Load favorited study IDs from SharedPreferences for a specific language
   Future<Set<String>> loadFavoriteIds([String? languageCode]) async {
@@ -55,6 +56,6 @@ class DiscoveryFavoritesService {
     if (languageCode != null && languageCode.isNotEmpty) {
       return '$_favoritesKeyPrefix$languageCode';
     }
-    return '${_favoritesKeyPrefix}en'; // Default to English if no language specified
+    return '$_favoritesKeyPrefix$_defaultLanguage'; // Default to English if no language specified
   }
 }
