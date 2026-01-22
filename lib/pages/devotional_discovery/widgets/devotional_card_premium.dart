@@ -104,16 +104,16 @@ class DevotionalCardPremium extends StatelessWidget {
                     ),
                   ),
 
-                  // 3. Bottom Scrim
+                  // 3. Bottom Scrim - REDUCED DARKNESS
                   Container(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                         colors: [
-                          Colors.black.withValues(alpha: 0.1),
-                          Colors.black.withValues(alpha: 0.3),
-                          Colors.black.withValues(alpha: 0.85),
+                          Colors.black.withValues(alpha: 0.05),
+                          Colors.black.withValues(alpha: 0.2),
+                          Colors.black.withValues(alpha: 0.6),
                         ],
                         stops: const [0.0, 0.5, 1.0],
                       ),
@@ -248,7 +248,7 @@ class DevotionalCardPremium extends StatelessWidget {
 
                         const Spacer(),
 
-                        // Bottom Row: Reading Info - Added FittedBox to prevent overflow
+                        // Bottom Row: Reading Info
                         FittedBox(
                           fit: BoxFit.scaleDown,
                           child: Row(
@@ -307,36 +307,33 @@ class DevotionalCardPremium extends StatelessWidget {
                       ),
                     ),
 
-                  // ✅ DYNAMIC FAVORITE BUTTON (Heart Empty -> Yellow Star) - TOP RIGHT
+                  // ✅ DYNAMIC FAVORITE BUTTON - TOP RIGHT
                   Positioned(
                     top: 20,
                     right: 20,
-                    child: Material(
-                      color: Colors.transparent,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.2),
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white10),
-                        ),
-                        child: IconButton(
-                          icon: AnimatedSwitcher(
-                            duration: const Duration(milliseconds: 300),
-                            transitionBuilder: (child, animation) =>
-                                ScaleTransition(scale: animation, child: child),
-                            child: Icon(
-                              isFavorite
-                                  ? Icons.star_rounded
-                                  : Icons.favorite_border_rounded,
-                              key: ValueKey<bool>(isFavorite),
-                              color: isFavorite
-                                  ? Colors.amberAccent
-                                  : Colors.white,
-                              size: 24,
-                            ),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.2),
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white10),
+                      ),
+                      child: IconButton(
+                        icon: AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 300),
+                          transitionBuilder: (child, animation) =>
+                              ScaleTransition(scale: animation, child: child),
+                          child: Icon(
+                            isFavorite
+                                ? Icons.star_rounded
+                                : Icons.favorite_border_rounded,
+                            key: ValueKey<bool>(isFavorite),
+                            color: isFavorite
+                                ? Colors.amberAccent
+                                : Colors.white,
+                            size: 24,
                           ),
-                          onPressed: onFavoriteToggle,
                         ),
+                        onPressed: onFavoriteToggle,
                       ),
                     ),
                   ),
@@ -409,10 +406,10 @@ class DevotionalCardPremium extends StatelessWidget {
   /// Helper to get gradient colors based on study completion status
   List<Color> _getGradientColors() {
     if (isCompleted) {
-      // Completed studies stay Cyan/Blue (using dictionary 'esperanza' as reference)
+      // Completed studies use Cyan/Blue palette
       return TagColorDictionary.getGradientForTag('esperanza');
     } else {
-      // Incomplete studies use Amber/Gold (using dictionary 'luz' as reference)
+      // Incomplete studies use Amber/Gold palette
       return TagColorDictionary.getGradientForTag('luz');
     }
   }

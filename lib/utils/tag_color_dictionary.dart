@@ -58,7 +58,8 @@ class TagColorDictionary {
   /// Get gradient colors for a tag
   static List<Color> getGradientForTag(String tag) {
     final gradients = <String, List<Color>>{
-      'luz': [Colors.amber, Colors.orange],
+      // Changed second color from Colors.orange to Colors.amber.shade400 for a lighter "Gold" feel
+      'luz': [Colors.amber, Colors.amber.shade300],
       'esperanza': [Colors.blue, Colors.lightBlue],
       'fe': [Colors.purple, Colors.deepPurple],
       'amor': [Colors.pink, Colors.red],
