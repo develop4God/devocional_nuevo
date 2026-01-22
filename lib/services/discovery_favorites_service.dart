@@ -9,12 +9,18 @@ class DiscoveryFavoritesService {
   static const String _favoritesKeyPrefix = 'discovery_favorite_ids_';
   static const String _defaultLanguage = 'en';
 
+  SharedPreferences? _prefs;
+
+  Future<SharedPreferences> get prefs async {
+    return _prefs ??= await SharedPreferences.getInstance();
+  }
+
   /// Load favorited study IDs from SharedPreferences for a specific language
   Future<Set<String>> loadFavoriteIds([String? languageCode]) async {
     try {
-      final prefs = await SharedPreferences.getInstance();
+      final prefsInstance = await prefs;
       final key = _getFavoritesKey(languageCode);
-      final String? jsonString = prefs.getString(key);
+      final String? jsonString = prefsInstance.getString(key);
 
       if (jsonString != null && jsonString.isNotEmpty) {
         final List<dynamic> decoded = json.decode(jsonString);
@@ -29,7 +35,7 @@ class DiscoveryFavoritesService {
   /// Toggle favorite status and persist to storage for a specific language
   Future<bool> toggleFavorite(String studyId, [String? languageCode]) async {
     try {
-      final prefs = await SharedPreferences.getInstance();
+      final prefsInstance = await prefs;
       final ids = await loadFavoriteIds(languageCode);
 
       bool wasAdded;
@@ -42,7 +48,7 @@ class DiscoveryFavoritesService {
       }
 
       final key = _getFavoritesKey(languageCode);
-      await prefs.setString(key, json.encode(ids.toList()));
+      await prefsInstance.setString(key, json.encode(ids.toList()));
       debugPrint(
           '⭐ Discovery Favorite toggled for $studyId ($languageCode): $wasAdded');
       return wasAdded;
