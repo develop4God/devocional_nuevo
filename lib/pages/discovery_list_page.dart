@@ -96,14 +96,6 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
         child: Scaffold(
           appBar: CustomAppBar(
             titleText: 'discovery.discovery_studies'.tr(),
-            actions: [
-              IconButton(
-                icon: Icon(
-                    _showGridOverlay ? Icons.view_carousel : Icons.grid_view),
-                onPressed: _toggleGridOverlay,
-                tooltip: _showGridOverlay ? 'Carousel View' : 'Grid View',
-              ),
-            ],
           ),
           body: BlocListener<DiscoveryBloc, DiscoveryState>(
             listener: (context, state) {
@@ -182,6 +174,32 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
                           _buildActionBar(context, state, sortedIds),
                           const SizedBox(height: 20),
                         ],
+                      ),
+                      // Floating grid view toggle button
+                      Positioned(
+                        top: 8,
+                        right: 16,
+                        child: Material(
+                          elevation: 4,
+                          borderRadius: BorderRadius.circular(12),
+                          color: Theme.of(context).colorScheme.primaryContainer,
+                          child: InkWell(
+                            onTap: _toggleGridOverlay,
+                            borderRadius: BorderRadius.circular(12),
+                            child: Container(
+                              padding: const EdgeInsets.all(12),
+                              child: Icon(
+                                _showGridOverlay
+                                    ? Icons.view_carousel_rounded
+                                    : Icons.grid_view_rounded,
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onPrimaryContainer,
+                                size: 24,
+                              ),
+                            ),
+                          ),
+                        ),
                       ),
                       DiscoveryGridOverlay(
                         state: state,

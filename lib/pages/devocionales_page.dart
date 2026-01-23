@@ -222,10 +222,13 @@ class _DevocionalesPageState extends State<DevocionalesPage>
   Future<int> _loadStreak() async {
     final stats = await SpiritualStatsService().getStats();
     if (!mounted) return 0;
+    // Update the currentStreak state to ensure UI reflects latest value
+    final streak = stats.currentStreak;
     setState(() {
-      _currentStreak = stats.currentStreak;
+      _currentStreak = streak;
     });
-    return stats.currentStreak;
+    debugPrint('🔥 Streak loaded and updated: $streak');
+    return streak;
   }
 
   void _pickRandomLottie() {
@@ -306,6 +309,9 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       // Check for updates
       UpdateService.checkForUpdate();
 
+      // Refresh streak data to ensure fire lottie shows current value
+      _streakFuture = _loadStreak();
+
       // Refresh UI state to ensure everything is in sync
       if (mounted) {
         setState(() {
@@ -327,7 +333,10 @@ class _DevocionalesPageState extends State<DevocionalesPage>
   @override
   void didPopNext() {
     _tracking.resumeTracking();
-    debugPrint('📄 DevocionalesPage popped next → tracking resumed');
+    // Refresh streak when returning to this page (e.g., from ProgressPage)
+    _streakFuture = _loadStreak();
+    debugPrint(
+        '📄 DevocionalesPage popped next → tracking resumed & streak refreshed');
   }
 
   @override

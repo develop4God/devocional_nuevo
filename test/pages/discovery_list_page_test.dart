@@ -169,8 +169,8 @@ void main() {
 
         await tester.pumpAndSettle();
 
-        // Tap grid view button
-        final gridViewButton = find.byIcon(Icons.grid_view);
+        // Tap grid view button (now a floating button)
+        final gridViewButton = find.byIcon(Icons.grid_view_rounded);
         if (gridViewButton.evaluate().isNotEmpty) {
           await tester.tap(gridViewButton);
           await tester.pumpAndSettle();
@@ -206,8 +206,8 @@ void main() {
 
         await tester.pumpAndSettle();
 
-        // Toggle grid
-        final gridButton = find.byIcon(Icons.grid_view);
+        // Toggle grid (now a floating button)
+        final gridButton = find.byIcon(Icons.grid_view_rounded);
         if (gridButton.evaluate().isNotEmpty) {
           await tester.tap(gridButton);
           await tester.pumpAndSettle();
@@ -240,8 +240,8 @@ void main() {
 
         await tester.pumpAndSettle();
 
-        // Toggle grid
-        final gridButton = find.byIcon(Icons.grid_view);
+        // Toggle grid (now a floating button)
+        final gridButton = find.byIcon(Icons.grid_view_rounded);
         if (gridButton.evaluate().isNotEmpty) {
           await tester.tap(gridButton);
           await tester.pumpAndSettle();
@@ -309,15 +309,15 @@ void main() {
 
         await tester.pumpAndSettle();
 
-        // Initial state shows grid_view icon
-        expect(find.byIcon(Icons.grid_view), findsOneWidget);
+        // Initial state shows grid_view_rounded icon (floating button)
+        expect(find.byIcon(Icons.grid_view_rounded), findsOneWidget);
 
         // Tap to toggle
-        await tester.tap(find.byIcon(Icons.grid_view));
+        await tester.tap(find.byIcon(Icons.grid_view_rounded));
         await tester.pumpAndSettle();
 
-        // Should now show carousel icon
-        expect(find.byIcon(Icons.view_carousel), findsOneWidget);
+        // Should now show carousel_rounded icon
+        expect(find.byIcon(Icons.view_carousel_rounded), findsOneWidget);
       });
     });
   });
