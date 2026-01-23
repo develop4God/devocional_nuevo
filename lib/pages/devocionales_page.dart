@@ -20,6 +20,7 @@ import 'package:devocional_nuevo/repositories/navigation_repository_impl.dart';
 import 'package:devocional_nuevo/services/devocionales_tracking.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/update_service.dart';
+import 'package:devocional_nuevo/widgets/add_entry_choice_modal.dart';
 import 'package:devocional_nuevo/widgets/add_prayer_modal.dart';
 import 'package:devocional_nuevo/widgets/add_testimony_modal.dart';
 import 'package:devocional_nuevo/widgets/add_thanksgiving_modal.dart';
@@ -46,7 +47,6 @@ import '../services/analytics_service.dart';
 import '../services/spiritual_stats_service.dart';
 import '../services/tts/bible_text_formatter.dart';
 import '../widgets/animated_fab_with_text.dart';
-import '../widgets/app_gradient_bottom_sheet.dart';
 import '../widgets/devocionales/devocionales_bottom_bar.dart';
 import '../widgets/voice_selector_dialog.dart';
 
@@ -668,122 +668,17 @@ class _DevocionalesPageState extends State<DevocionalesPage>
   }
 
   void _showAddPrayerOrThanksgivingChoice() {
-    final ColorScheme colorScheme = Theme.of(context).colorScheme;
-    final TextTheme textTheme = Theme.of(context).textTheme;
-
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
       builder: (BuildContext context) {
-        return AppGradientBottomSheet(
-          padding: const EdgeInsets.all(20.0),
-          borderRadius: 20,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                'devotionals.choose_option'.tr(),
-                style: textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 24),
-              Row(
-                children: [
-                  _buildChoiceItem(
-                    context,
-                    icon: '🙏',
-                    label: 'prayer.prayer'.tr(),
-                    onTap: () {
-                      Navigator.pop(context);
-                      _showAddPrayerModal();
-                    },
-                  ),
-                  const SizedBox(width: 12),
-                  _buildChoiceItem(
-                    context,
-                    icon: '☺️',
-                    label: 'thanksgiving.thanksgiving'.tr(),
-                    onTap: () {
-                      Navigator.pop(context);
-                      _showAddThanksgivingModal();
-                    },
-                  ),
-                  const SizedBox(width: 12),
-                  _buildChoiceItem(
-                    context,
-                    icon: '✨',
-                    label: 'testimony.testimony'.tr(),
-                    onTap: () {
-                      Navigator.pop(context);
-                      _showAddTestimonyModal();
-                    },
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-            ],
-          ),
+        return AddEntryChoiceModal(
+          onAddPrayer: _showAddPrayerModal,
+          onAddThanksgiving: _showAddThanksgivingModal,
+          onAddTestimony: _showAddTestimonyModal,
         );
       },
-    );
-  }
-
-  Widget _buildChoiceItem(
-    BuildContext context, {
-    required String icon,
-    required String label,
-    required VoidCallback onTap,
-  }) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
-    return Expanded(
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
-          decoration: BoxDecoration(
-            border: Border.all(color: colorScheme.outline.withAlpha(80)),
-            borderRadius: BorderRadius.circular(12),
-            color: colorScheme.surface.withAlpha(100),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              FittedBox(
-                child: Text(icon, style: const TextStyle(fontSize: 40)),
-              ),
-              const SizedBox(height: 8),
-              AutoSizeText(
-                label,
-                style: textTheme.labelLarge?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 12,
-                ),
-                textAlign: TextAlign.center,
-                maxLines: 1,
-                minFontSize: 8,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 
@@ -882,7 +777,6 @@ class _DevocionalesPageState extends State<DevocionalesPage>
   /// Build UI using Navigation BLoC
   Widget _buildWithBloc(BuildContext context) {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
-    final TextTheme textTheme = Theme.of(context).textTheme;
     final themeState = context.watch<ThemeBloc>().state as ThemeLoaded;
 
     // Listen to DevocionalProvider changes to update BLoC when bible version or language changes
@@ -923,6 +817,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
             bloc: _navigationBloc,
             builder: (context, state) {
               if (state is NavigationError) {
+                final TextTheme textTheme = Theme.of(context).textTheme;
                 return Scaffold(
                   appBar: AppBar(title: Text('devotionals.error'.tr())),
                   body: Center(
