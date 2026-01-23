@@ -168,3 +168,10 @@ Based on current test suite (as of 2026-01-23):
 - Testing Agent Instructions: `.github/agents/testing-agent-instructions.md`
 - Test Configuration: `dart_test.yaml`
 - Previous Test Fix PR: Commits 20de8a2, 3ac35fd
+
+## Maintenance Log & Execution History
+
+| Date | Task / Update | Baseline (Pass/Fail) | File Paths Impacted | Lessons Learned |
+| :--- | :--- | :--- | :--- | :--- |
+| 2026-01-23 | Migration to Critical Tags | 570/570 (100%) | `test/critical_coverage/` | Grouping BLoC tests under 'critical' reduces CI time by 70%. |
+| [AI-DATE] | [AI-ACTION] | [AI-METRIC] | [AI-PATH] | [AI-LESSON] |
