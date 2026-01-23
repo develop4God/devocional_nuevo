@@ -317,57 +317,75 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
       ),
       child: SafeArea(
         top: false,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            _buildActionButton(
-                icon: isDownloaded
-                    ? Icons.file_download_done_rounded
-                    : isDownloading
-                        ? Icons.sync_rounded
-                        : Icons.file_download_outlined,
-                label: isDownloaded
-                    ? 'devotionals.offline_mode'.tr()
-                    : 'discovery.download_study'.tr(),
-                onTap: () => _handleDownloadStudy(currentStudyId, currentTitle),
-                colorScheme: colorScheme,
-                isDownloading: isDownloading),
-            _buildActionButton(
-                icon: Icons.share_rounded,
-                label: 'discovery.share'.tr(),
-                onTap: () => _handleShareStudy(state, currentStudyId),
-                colorScheme: colorScheme),
-            _buildActionButton(
-                icon: Icons.star_rounded,
-                label: 'navigation.favorites'.tr(),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const FavoritesPage(initialIndex: 1),
-                    ),
-                  );
-                },
-                colorScheme: colorScheme),
-            _buildActionButton(
-              icon: Icons.auto_stories_rounded,
-              label: 'discovery.read'.tr(),
-              onTap: () => _navigateToDetail(context, currentStudyId),
-              colorScheme: colorScheme,
-              isPrimary: true,
-            ),
-            // Requirement #1: Next arrow button (minimalistic round design)
-            _buildActionButton(
-              icon: Icons.arrow_forward_rounded,
-              label: 'discovery.next'.tr(),
-              onTap: () {
-                if (_currentIndex < studyIds.length - 1) {
-                  _swiperController.next();
-                }
-              },
-              colorScheme: colorScheme,
-            ),
-          ],
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            // Calculate the max width for each button
+            final buttonCount = 5;
+            // Subtract total padding (8px left + 8px right = 16px per button)
+            final maxButtonWidth =
+                (constraints.maxWidth - (16 * buttonCount)) / buttonCount;
+            return Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _buildActionButton(
+                  icon: isDownloaded
+                      ? Icons.file_download_done_rounded
+                      : isDownloading
+                          ? Icons.sync_rounded
+                          : Icons.file_download_outlined,
+                  label: (isDownloaded
+                          ? 'devotionals.offline_mode'.tr()
+                          : 'discovery.download_study'.tr())
+                      .replaceFirst(' ', '\n'), // Force wrap for first button
+                  onTap: () =>
+                      _handleDownloadStudy(currentStudyId, currentTitle),
+                  colorScheme: colorScheme,
+                  isDownloading: isDownloading,
+                  maxWidth: maxButtonWidth,
+                ),
+                _buildActionButton(
+                  icon: Icons.share_rounded,
+                  label: 'discovery.share'.tr(),
+                  onTap: () => _handleShareStudy(state, currentStudyId),
+                  colorScheme: colorScheme,
+                  maxWidth: maxButtonWidth,
+                ),
+                _buildActionButton(
+                  icon: Icons.star_rounded,
+                  label: 'navigation.favorites'.tr(),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const FavoritesPage(initialIndex: 1),
+                      ),
+                    );
+                  },
+                  colorScheme: colorScheme,
+                  maxWidth: maxButtonWidth,
+                ),
+                _buildActionButton(
+                  icon: Icons.auto_stories_rounded,
+                  label: 'discovery.read'.tr(),
+                  onTap: () => _navigateToDetail(context, currentStudyId),
+                  colorScheme: colorScheme,
+                  isPrimary: true,
+                  maxWidth: maxButtonWidth,
+                ),
+                _buildActionButton(
+                  icon: Icons.arrow_forward_rounded,
+                  label: 'discovery.next'.tr(),
+                  onTap: () {
+                    if (_currentIndex < studyIds.length - 1) {
+                      _swiperController.next();
+                    }
+                  },
+                  colorScheme: colorScheme,
+                  maxWidth: maxButtonWidth,
+                ),
+              ],
+            );
+          },
         ),
       ),
     );
@@ -380,6 +398,7 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
     required ColorScheme colorScheme,
     bool isPrimary = false,
     bool isDownloading = false,
+    double? maxWidth,
   }) {
     final bool isBorderedIcon = [
       Icons.share_rounded,
@@ -396,62 +415,76 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
       borderRadius: BorderRadius.circular(20),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            isBorderedIcon
-                ? Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
+        child: SizedBox(
+          width: maxWidth,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              isBorderedIcon
+                  ? Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: isPrimary
+                              ? colorScheme.primary
+                              : colorScheme.primary.withAlpha(180),
+                          width: 2,
+                        ),
+                        color: isPrimary
+                            ? colorScheme.primary.withAlpha(26)
+                            : Colors.transparent,
+                      ),
+                      child: Center(
+                        child: isDownloading
+                            ? SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: colorScheme.primary,
+                                ),
+                              )
+                            : Icon(
+                                icon,
+                                color: colorScheme.primary,
+                                size: 22,
+                              ),
+                      ),
+                    )
+                  : Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
                         color: isPrimary
                             ? colorScheme.primary
-                            : colorScheme.primary.withAlpha(180),
-                        width: 2,
+                            : colorScheme.primary.withAlpha(26),
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      color: isPrimary
-                          ? colorScheme.primary.withAlpha(26)
-                          : Colors.transparent,
+                      child: Icon(icon,
+                          color: isPrimary ? Colors.white : colorScheme.primary,
+                          size: 24),
                     ),
-                    child: Center(
-                      child: isDownloading
-                          ? SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: colorScheme.primary,
-                              ),
-                            )
-                          : Icon(
-                              icon,
-                              color: colorScheme.primary,
-                              size: 22,
-                            ),
+              const SizedBox(height: 4),
+              SizedBox(
+                height: 30, // Fixed height for 2 lines to keep buttons aligned
+                child: Center(
+                  child: Text(
+                    label,
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: colorScheme.onSurface,
+                      height: 1.1,
+                      fontWeight: isPrimary ? FontWeight.bold : FontWeight.normal,
                     ),
-                  )
-                : Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: isPrimary
-                          ? colorScheme.primary
-                          : colorScheme.primary.withAlpha(26),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(icon,
-                        color: isPrimary ? Colors.white : colorScheme.primary,
-                        size: 24),
                   ),
-            const SizedBox(height: 4),
-            Text(label,
-                style: TextStyle(
-                    fontSize: 12,
-                    color: colorScheme.onSurface,
-                    fontWeight:
-                        isPrimary ? FontWeight.bold : FontWeight.normal)),
-          ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
