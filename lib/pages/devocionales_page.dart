@@ -21,6 +21,7 @@ import 'package:devocional_nuevo/services/devocionales_tracking.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/update_service.dart';
 import 'package:devocional_nuevo/widgets/add_prayer_modal.dart';
+import 'package:devocional_nuevo/widgets/add_testimony_modal.dart';
 import 'package:devocional_nuevo/widgets/add_thanksgiving_modal.dart';
 import 'package:devocional_nuevo/widgets/devocionales/app_bar_constants.dart';
 import 'package:devocional_nuevo/widgets/devocionales/devocionales_content_widget.dart';
@@ -702,70 +703,87 @@ class _DevocionalesPageState extends State<DevocionalesPage>
               const SizedBox(height: 24),
               Row(
                 children: [
-                  Expanded(
-                    child: InkWell(
-                      onTap: () {
-                        Navigator.pop(context);
-                        _showAddPrayerModal();
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          border: Border.all(color: colorScheme.outline),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Column(
-                          children: [
-                            const Text('🙏', style: TextStyle(fontSize: 48)),
-                            const SizedBox(height: 12),
-                            Text(
-                              'prayer.prayer'.tr(),
-                              style: textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.w600,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
+                  _buildChoiceItem(
+                    context,
+                    icon: '🙏',
+                    label: 'prayer.prayer'.tr(),
+                    onTap: () {
+                      Navigator.pop(context);
+                      _showAddPrayerModal();
+                    },
                   ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: InkWell(
-                      onTap: () {
-                        Navigator.pop(context);
-                        _showAddThanksgivingModal();
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          border: Border.all(color: colorScheme.outline),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Column(
-                          children: [
-                            const Text('☺️', style: TextStyle(fontSize: 48)),
-                            const SizedBox(height: 12),
-                            Text(
-                              'thanksgiving.thanksgiving'.tr(),
-                              style: textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.w600,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
+                  const SizedBox(width: 12),
+                  _buildChoiceItem(
+                    context,
+                    icon: '☺️',
+                    label: 'thanksgiving.thanksgiving'.tr(),
+                    onTap: () {
+                      Navigator.pop(context);
+                      _showAddThanksgivingModal();
+                    },
+                  ),
+                  const SizedBox(width: 12),
+                  _buildChoiceItem(
+                    context,
+                    icon: '✨',
+                    label: 'testimony.testimony'.tr(),
+                    onTap: () {
+                      Navigator.pop(context);
+                      _showAddTestimonyModal();
+                    },
                   ),
                 ],
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 12),
             ],
           ),
         );
       },
+    );
+  }
+
+  Widget _buildChoiceItem(
+    BuildContext context, {
+    required String icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return Expanded(
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+          decoration: BoxDecoration(
+            border: Border.all(color: colorScheme.outline.withAlpha(80)),
+            borderRadius: BorderRadius.circular(12),
+            color: colorScheme.surface.withAlpha(100),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              FittedBox(
+                child: Text(icon, style: const TextStyle(fontSize: 40)),
+              ),
+              const SizedBox(height: 8),
+              AutoSizeText(
+                label,
+                style: textTheme.labelLarge?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 12,
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                minFontSize: 8,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -784,6 +802,15 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => const AddThanksgivingModal(),
+    );
+  }
+
+  void _showAddTestimonyModal() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => const AddTestimonyModal(),
     );
   }
 
