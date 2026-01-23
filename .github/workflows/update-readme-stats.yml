@@ -42,9 +42,11 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
       
-      - name: Update README statistics
+      - name: Update README statistics with full coverage
         run: dart scripts/update_readme_stats.dart
         continue-on-error: false
+        env:
+          FULL_STATS: 'true'
       
       - name: Check for changes
         id: verify
