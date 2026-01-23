@@ -96,11 +96,33 @@ class DiscoveryShareHelper {
     }
 
     // App download link
+    buffer.writeln('━━━━━━━━━━━━━━━━');
     buffer.writeln(
-        '📲 *${_translateKey('discovery.download_study', fallback: 'Descargar')}:*');
+        '🔥 *${_translateKey('discovery.share_footer_title', fallback: 'Esto es solo el comienzo...')}*');
+    buffer.writeln();
+    buffer.writeln(_translateKey(
+      'discovery.share_footer_complete_study',
+      fallback: 'El estudio completo incluye:',
+    ));
+    buffer.writeln(
+        '✓ ${_translateKey('discovery.share_footer_greek_analysis', fallback: 'Análisis de palabras en griego original')}');
+    buffer.writeln(
+        '✓ ${_translateKey('discovery.share_footer_historical_context', fallback: 'Contexto histórico profundo')}');
+    buffer.writeln(
+        '✓ ${_translateKey('discovery.share_footer_biblical_connections', fallback: 'Conexiones bíblicas reveladoras')}');
+    buffer.writeln(
+        '✓ ${_translateKey('discovery.share_footer_activation_questions', fallback: 'Preguntas de activación personal')}');
+    buffer.writeln();
+    buffer.writeln(
+        '📲 *${_translateKey('discovery.share_footer_download', fallback: 'Descarga: Devocionales Cristianos')}*');
+    buffer.writeln(_translateKey(
+      'discovery.share_footer_benefits',
+      fallback: '100% gratis | Sin anuncios | Uso offline',
+    ));
     buffer.writeln(
         'https://play.google.com/store/apps/details?id=com.develop4god.devocional_nuevo');
-    buffer.writeln();
+    buffer.write(_translateKey('discovery.share_footer_developer',
+        fallback: 'Develop4God'));
 
     return buffer.toString();
   }
@@ -209,10 +231,31 @@ class DiscoveryShareHelper {
     // Footer
     buffer.writeln('━━━━━━━━━━━━━━━━');
     buffer.writeln(
-        '📲 *${_translateKey('discovery.download_study', fallback: 'Descargar')}:*');
+        '🔥 *${_translateKey('discovery.share_footer_title', fallback: 'Esto es solo el comienzo...')}*');
+    buffer.writeln();
+    buffer.writeln(_translateKey(
+      'discovery.share_footer_complete_study',
+      fallback: 'El estudio completo incluye:',
+    ));
+    buffer.writeln(
+        '✓ ${_translateKey('discovery.share_footer_greek_analysis', fallback: 'Análisis de palabras en griego original')}');
+    buffer.writeln(
+        '✓ ${_translateKey('discovery.share_footer_historical_context', fallback: 'Contexto histórico profundo')}');
+    buffer.writeln(
+        '✓ ${_translateKey('discovery.share_footer_biblical_connections', fallback: 'Conexiones bíblicas reveladoras')}');
+    buffer.writeln(
+        '✓ ${_translateKey('discovery.share_footer_activation_questions', fallback: 'Preguntas de activación personal')}');
+    buffer.writeln();
+    buffer.writeln(
+        '📲 *${_translateKey('discovery.share_footer_download', fallback: 'Descarga: Devocionales Cristianos')}*');
+    buffer.writeln(_translateKey(
+      'discovery.share_footer_benefits',
+      fallback: '100% gratis | Sin anuncios | Uso offline',
+    ));
     buffer.writeln(
         'https://play.google.com/store/apps/details?id=com.develop4god.devocional_nuevo');
-    buffer.writeln();
+    buffer.write(_translateKey('discovery.share_footer_developer',
+        fallback: 'Develop4God'));
 
     return buffer.toString();
   }

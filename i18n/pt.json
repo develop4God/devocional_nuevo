@@ -723,7 +723,16 @@
     "download_study": "Baixar estudo",
     "previous": "Anterior",
     "next": "Próximo",
-    "exit": "Sair"
+    "exit": "Sair",
+    "share_footer_title": "Isto é apenas o começo...",
+    "share_footer_complete_study": "O estudo completo inclui:",
+    "share_footer_greek_analysis": "Análise de palavras em grego original",
+    "share_footer_historical_context": "Contexto histórico profundo",
+    "share_footer_biblical_connections": "Conexões bíblicas reveladoras",
+    "share_footer_activation_questions": "Perguntas de ativação pessoal",
+    "share_footer_download": "Baixar: Devocionais Cristãos",
+    "share_footer_benefits": "100% grátis | Sem anúncios | Uso offline",
+    "share_footer_developer": "Develop4God"
   },
   "tags": {
     "love": "Amor",

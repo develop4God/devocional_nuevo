@@ -722,7 +722,16 @@
     "download_study": "研究をダウンロード",
     "previous": "前へ",
     "next": "次へ",
-    "exit": "終了"
+    "exit": "終了",
+    "share_footer_title": "これは始まりに過ぎません...",
+    "share_footer_complete_study": "完全な研究には以下が含まれます:",
+    "share_footer_greek_analysis": "原語ギリシャ語の分析",
+    "share_footer_historical_context": "深い歴史的文脈",
+    "share_footer_biblical_connections": "啓示的な聖書のつながり",
+    "share_footer_activation_questions": "個人的な活性化の質問",
+    "share_footer_download": "ダウンロード: クリスチャンデボーション",
+    "share_footer_benefits": "100%無料 | 広告なし | オフライン使用",
+    "share_footer_developer": "Develop4God"
   },
   "tags": {
     "love": "愛",

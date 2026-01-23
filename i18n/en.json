@@ -724,7 +724,16 @@
     "greek_words": "Greek Words",
     "previous": "Previous",
     "next": "Next",
-    "exit": "Exit"
+    "exit": "Exit",
+    "share_footer_title": "This is just the beginning...",
+    "share_footer_complete_study": "The complete study includes:",
+    "share_footer_greek_analysis": "Analysis of original Greek words",
+    "share_footer_historical_context": "Deep historical context",
+    "share_footer_biblical_connections": "Revealing biblical connections",
+    "share_footer_activation_questions": "Personal activation questions",
+    "share_footer_download": "Download: Christian Devotionals",
+    "share_footer_benefits": "100% free | No ads | Offline use",
+    "share_footer_developer": "Develop4God"
   },
   "tags": {
     "love": "Love",

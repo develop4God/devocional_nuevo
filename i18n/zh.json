@@ -719,7 +719,16 @@
     "download_study": "下载研读",
     "previous": "上一个",
     "next": "下一个",
-    "exit": "退出"
+    "exit": "退出",
+    "share_footer_title": "这只是开始...",
+    "share_footer_complete_study": "完整的研究包括:",
+    "share_footer_greek_analysis": "希腊原文词汇分析",
+    "share_footer_historical_context": "深入的历史背景",
+    "share_footer_biblical_connections": "启发性的圣经联系",
+    "share_footer_activation_questions": "个人激活问题",
+    "share_footer_download": "下载: 基督教灵修",
+    "share_footer_benefits": "100%免费 | 无广告 | 离线使用",
+    "share_footer_developer": "Develop4God"
   },
   "tags": {
     "love": "爱",

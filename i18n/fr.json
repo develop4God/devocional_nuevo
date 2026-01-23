@@ -722,7 +722,16 @@
     "download_study": "Télécharger l'étude",
     "previous": "Précédent",
     "next": "Suivant",
-    "exit": "Quitter"
+    "exit": "Quitter",
+    "share_footer_title": "Ce n'est que le début...",
+    "share_footer_complete_study": "L'étude complète comprend:",
+    "share_footer_greek_analysis": "Analyse des mots en grec original",
+    "share_footer_historical_context": "Contexte historique approfondi",
+    "share_footer_biblical_connections": "Connexions bibliques révélatrices",
+    "share_footer_activation_questions": "Questions d'activation personnelle",
+    "share_footer_download": "Télécharger: Méditations Chrétiennes",
+    "share_footer_benefits": "100% gratuit | Sans publicité | Utilisation hors ligne",
+    "share_footer_developer": "Develop4God"
   },
   "tags": {
     "love": "Amour",

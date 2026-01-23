@@ -725,7 +725,16 @@
     "greek_words": "Palabras Griegas",
     "previous": "Anterior",
     "next": "Siguiente",
-    "exit": "Salir"
+    "exit": "Salir",
+    "share_footer_title": "Esto es solo el comienzo...",
+    "share_footer_complete_study": "El estudio completo incluye:",
+    "share_footer_greek_analysis": "Análisis de palabras en griego original",
+    "share_footer_historical_context": "Contexto histórico profundo",
+    "share_footer_biblical_connections": "Conexiones bíblicas reveladoras",
+    "share_footer_activation_questions": "Preguntas de activación personal",
+    "share_footer_download": "Descarga: Devocionales Cristianos",
+    "share_footer_benefits": "100% gratis | Sin anuncios | Uso offline",
+    "share_footer_developer": "Develop4God"
   },
   "tags": {
     "love": "Amor",
