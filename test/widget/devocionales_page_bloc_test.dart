@@ -292,7 +292,7 @@ void main() {
       when(() => mockBloc.add(any())).thenReturn(null);
 
       // Act
-      mockBloc.add(UpdateDevocionales(newDevocionales));
+      mockBloc.add(UpdateDevocionales(newDevocionales, []));
 
       // Assert
       final capturedEvent = verify(() => mockBloc.add(captureAny()))
