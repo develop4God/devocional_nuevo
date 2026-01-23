@@ -190,8 +190,9 @@ void main() {
             text: 'Prayer $i',
             createdDate: DateTime.now().subtract(Duration(days: i)),
             status: i.isEven ? PrayerStatus.active : PrayerStatus.answered,
-            answeredDate:
-                i.isEven ? null : DateTime.now().subtract(Duration(days: i ~/ 2)),
+            answeredDate: i.isEven
+                ? null
+                : DateTime.now().subtract(Duration(days: i ~/ 2)),
           ),
         );
 

@@ -110,7 +110,8 @@ void main() {
         bloc.add(EditThanksgiving(thanksId, 'Edited text'));
         await bloc.stream.firstWhere(
           (s) =>
-              s is ThanksgivingLoaded && s.thanksgivings[0].text == 'Edited text',
+              s is ThanksgivingLoaded &&
+              s.thanksgivings[0].text == 'Edited text',
         );
 
         // Delete it

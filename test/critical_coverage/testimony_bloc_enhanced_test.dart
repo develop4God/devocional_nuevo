@@ -143,14 +143,12 @@ void main() {
 
         bloc.add(EditTestimony(testimonyId, 'First edit'));
         await bloc.stream.firstWhere(
-          (s) =>
-              s is TestimonyLoaded && s.testimonies[0].text == 'First edit',
+          (s) => s is TestimonyLoaded && s.testimonies[0].text == 'First edit',
         );
 
         bloc.add(EditTestimony(testimonyId, 'Second edit'));
         await bloc.stream.firstWhere(
-          (s) =>
-              s is TestimonyLoaded && s.testimonies[0].text == 'Second edit',
+          (s) => s is TestimonyLoaded && s.testimonies[0].text == 'Second edit',
         );
 
         bloc.add(EditTestimony(testimonyId, 'Final edit'));
