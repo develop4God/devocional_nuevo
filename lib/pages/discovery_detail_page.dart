@@ -7,6 +7,8 @@ import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/discovery_card_model.dart';
 import 'package:devocional_nuevo/models/discovery_devotional_model.dart';
 import 'package:devocional_nuevo/models/discovery_section_model.dart';
+import 'package:devocional_nuevo/services/analytics_service.dart';
+import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/utils/copyright_utils.dart';
 import 'package:devocional_nuevo/widgets/devocionales/app_bar_constants.dart';
 import 'package:devocional_nuevo/widgets/discovery_section_card.dart';
@@ -45,6 +47,12 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
 
   void _onCompleteStudy() {
     if (_hasTriggeredCompletion) return;
+
+    // Log analytics event
+    getService<AnalyticsService>().logDiscoveryAction(
+      action: 'study_completed',
+      studyId: widget.studyId,
+    );
 
     setState(() {
       _isCelebrating = true;

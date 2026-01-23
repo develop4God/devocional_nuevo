@@ -682,12 +682,16 @@ class _DevocionalesPageState extends State<DevocionalesPage>
   }
 
   void _showAddPrayerOrThanksgivingChoice() {
+    // Log FAB tap event
+    getService<AnalyticsService>().logFabTapped(source: 'devocionales_page');
+
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       builder: (BuildContext context) {
         return AddEntryChoiceModal(
+          source: 'devocionales_page',
           onAddPrayer: _showAddPrayerModal,
           onAddThanksgiving: _showAddThanksgivingModal,
           onAddTestimony: _showAddTestimonyModal,

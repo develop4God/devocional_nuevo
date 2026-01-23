@@ -1,18 +1,23 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
+import 'package:devocional_nuevo/services/analytics_service.dart';
+import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:flutter/material.dart';
+
 import 'app_gradient_bottom_sheet.dart';
 
 class AddEntryChoiceModal extends StatelessWidget {
   final VoidCallback onAddPrayer;
   final VoidCallback onAddThanksgiving;
   final VoidCallback onAddTestimony;
+  final String source; // 'devocionales_page' or 'prayers_page'
 
   const AddEntryChoiceModal({
     super.key,
     required this.onAddPrayer,
     required this.onAddThanksgiving,
     required this.onAddTestimony,
+    this.source = 'unknown',
   });
 
   @override
@@ -47,6 +52,7 @@ class AddEntryChoiceModal extends StatelessWidget {
                 context,
                 icon: '🙏',
                 label: 'prayer.prayer'.tr(),
+                choice: 'prayer',
                 onTap: onAddPrayer,
               ),
               const SizedBox(width: 12),
@@ -54,6 +60,7 @@ class AddEntryChoiceModal extends StatelessWidget {
                 context,
                 icon: '☺️',
                 label: 'thanksgiving.thanksgiving'.tr(),
+                choice: 'thanksgiving',
                 onTap: onAddThanksgiving,
               ),
               const SizedBox(width: 12),
@@ -61,6 +68,7 @@ class AddEntryChoiceModal extends StatelessWidget {
                 context,
                 icon: '✨',
                 label: 'testimony.testimony'.tr(),
+                choice: 'testimony',
                 onTap: onAddTestimony,
               ),
             ],
@@ -75,6 +83,7 @@ class AddEntryChoiceModal extends StatelessWidget {
     BuildContext context, {
     required String icon,
     required String label,
+    required String choice,
     required VoidCallback onTap,
   }) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -83,6 +92,11 @@ class AddEntryChoiceModal extends StatelessWidget {
     return Expanded(
       child: InkWell(
         onTap: () {
+          // Log analytics event
+          getService<AnalyticsService>().logFabChoiceSelected(
+            source: source,
+            choice: choice,
+          );
           Navigator.pop(context);
           onTap();
         },

@@ -12,6 +12,8 @@ import 'package:devocional_nuevo/pages/devotional_discovery/widgets/devotional_c
 import 'package:devocional_nuevo/pages/discovery_detail_page.dart';
 import 'package:devocional_nuevo/pages/favorites_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
+import 'package:devocional_nuevo/services/analytics_service.dart';
+import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/utils/discovery_share_helper.dart';
 import 'package:devocional_nuevo/widgets/devocionales/app_bar_constants.dart';
 import 'package:devocional_nuevo/widgets/discovery_grid_overlay.dart';
@@ -62,6 +64,11 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
   }
 
   void _toggleGridOverlay() {
+    // Log analytics event
+    getService<AnalyticsService>().logDiscoveryAction(
+      action: _showGridOverlay ? 'toggle_carousel_view' : 'toggle_grid_view',
+    );
+
     setState(() {
       _showGridOverlay = !_showGridOverlay;
       if (_showGridOverlay) {
@@ -336,7 +343,8 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
                   label: (isDownloaded
                           ? 'devotionals.offline_mode'.tr()
                           : 'discovery.download_study'.tr())
-                      .replaceFirst(' ', '\n'), // Force wrap for first button
+                      .replaceFirst(' ', '\n'),
+                  // Force wrap for first button
                   onTap: () =>
                       _handleDownloadStudy(currentStudyId, currentTitle),
                   colorScheme: colorScheme,
@@ -540,6 +548,12 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
   }
 
   void _navigateToDetail(BuildContext context, String studyId) {
+    // Log analytics event
+    getService<AnalyticsService>().logDiscoveryAction(
+      action: 'study_opened',
+      studyId: studyId,
+    );
+
     final languageCode = context.read<DevocionalProvider>().selectedLanguage;
     context
         .read<DiscoveryBloc>()
@@ -605,6 +619,12 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
   }
 
   Future<void> _handleDownloadStudy(String studyId, String title) async {
+    // Log analytics event
+    getService<AnalyticsService>().logDiscoveryAction(
+      action: 'study_downloaded',
+      studyId: studyId,
+    );
+
     final languageCode = context.read<DevocionalProvider>().selectedLanguage;
     context
         .read<DiscoveryBloc>()
@@ -615,6 +635,12 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
     DiscoveryLoaded state,
     String studyId,
   ) async {
+    // Log analytics event
+    getService<AnalyticsService>().logDiscoveryAction(
+      action: 'study_shared',
+      studyId: studyId,
+    );
+
     var study = state.loadedStudies[studyId];
 
     if (study == null) {
