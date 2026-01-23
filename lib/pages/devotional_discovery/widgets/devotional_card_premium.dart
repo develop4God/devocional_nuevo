@@ -414,6 +414,11 @@ class DevotionalCardPremium extends StatelessWidget {
   }
 
   String _getDisplayDate() {
+    // Requirement #3: Show "COMPLETED" badge when study is completed
+    if (isCompleted) {
+      return 'discovery.completed'.tr();
+    }
+
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final devDate = DateTime(

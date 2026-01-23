@@ -143,7 +143,21 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
                   return _buildErrorState(context, state.message);
                 }
                 if (state is DiscoveryLoaded) {
+                  // Requirement #2: Auto-reorder - completed studies to the end
                   final sortedIds = List<String>.from(state.availableStudyIds);
+                  sortedIds.sort((a, b) {
+                    final aCompleted = state.completedStudies[a] ?? false;
+                    final bCompleted = state.completedStudies[b] ?? false;
+
+                    // Incomplete studies come first
+                    if (aCompleted != bCompleted) {
+                      return aCompleted ? 1 : -1;
+                    }
+                    // Within same completion status, maintain original order
+                    return state.availableStudyIds
+                        .indexOf(a)
+                        .compareTo(state.availableStudyIds.indexOf(b));
+                  });
 
                   if (state.availableStudyIds.isEmpty) {
                     return _buildEmptyState(context);
@@ -341,6 +355,17 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
               onTap: () => _navigateToDetail(context, currentStudyId),
               colorScheme: colorScheme,
               isPrimary: true,
+            ),
+            // Requirement #1: Next arrow button (minimalistic round design)
+            _buildActionButton(
+              icon: Icons.arrow_forward_rounded,
+              label: 'discovery.next'.tr(),
+              onTap: () {
+                if (_currentIndex < studyIds.length - 1) {
+                  _swiperController.next();
+                }
+              },
+              colorScheme: colorScheme,
             ),
           ],
         ),
