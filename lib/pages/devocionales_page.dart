@@ -20,6 +20,7 @@ import 'package:devocional_nuevo/repositories/navigation_repository_impl.dart';
 import 'package:devocional_nuevo/services/devocionales_tracking.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/update_service.dart';
+import 'package:devocional_nuevo/utils/devotional_share_helper.dart';
 import 'package:devocional_nuevo/widgets/add_entry_choice_modal.dart';
 import 'package:devocional_nuevo/widgets/add_prayer_modal.dart';
 import 'package:devocional_nuevo/widgets/add_testimony_modal.dart';
@@ -601,15 +602,8 @@ class _DevocionalesPageState extends State<DevocionalesPage>
   }
 
   Future<void> _shareAsText(Devocional devocional) async {
-    final meditationsText =
-        devocional.paraMeditar.map((p) => '${p.cita}: ${p.texto}').join('\n');
-
-    final devotionalText = "devotionals.share_text_format".tr({
-      'verse': devocional.versiculo,
-      'reflection': devocional.reflexion,
-      'meditations': meditationsText,
-      'prayer': devocional.oracion,
-    });
+    final devotionalText =
+        DevotionalShareHelper.generarTextoParaCompartir(devocional);
 
     await SharePlus.instance.share(ShareParams(text: devotionalText));
   }
