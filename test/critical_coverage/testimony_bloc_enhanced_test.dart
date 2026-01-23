@@ -4,7 +4,6 @@ library;
 // test/critical_coverage/testimony_bloc_enhanced_test.dart
 // Enhanced BLoC tests for Testimony - concurrent operations, batch operations, edge cases
 
-import 'package:bloc_test/bloc_test.dart';
 import 'package:devocional_nuevo/blocs/testimony_bloc.dart';
 import 'package:devocional_nuevo/blocs/testimony_event.dart';
 import 'package:devocional_nuevo/blocs/testimony_state.dart';

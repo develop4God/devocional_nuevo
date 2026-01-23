@@ -4,7 +4,6 @@ library;
 // test/critical_coverage/prayer_bloc_enhanced_test.dart
 // Enhanced BLoC tests for Prayer - concurrent operations, batch operations, edge cases
 
-import 'package:bloc_test/bloc_test.dart';
 import 'package:devocional_nuevo/blocs/prayer_bloc.dart';
 import 'package:devocional_nuevo/blocs/prayer_event.dart';
 import 'package:devocional_nuevo/blocs/prayer_state.dart';

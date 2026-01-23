@@ -4,7 +4,6 @@ library;
 // test/critical_coverage/thanksgiving_bloc_enhanced_test.dart
 // Enhanced BLoC tests for Thanksgiving - concurrent operations, batch operations, edge cases
 
-import 'package:bloc_test/bloc_test.dart';
 import 'package:devocional_nuevo/blocs/thanksgiving_bloc.dart';
 import 'package:devocional_nuevo/blocs/thanksgiving_event.dart';
 import 'package:devocional_nuevo/blocs/thanksgiving_state.dart';
