@@ -102,11 +102,6 @@ class DiscoveryShareHelper {
         'https://play.google.com/store/apps/details?id=com.develop4god.devocional_nuevo');
     buffer.writeln();
 
-    // Reading time and tags
-    if (study.estimatedReadingMinutes != null) {
-      buffer.write('⏱️ ${study.estimatedReadingMinutes} min');
-    }
-
     return buffer.toString();
   }
 
@@ -218,15 +213,6 @@ class DiscoveryShareHelper {
     buffer.writeln(
         'https://play.google.com/store/apps/details?id=com.develop4god.devocional_nuevo');
     buffer.writeln();
-
-    // Metadata
-    final metadata = <String>[];
-    if (study.estimatedReadingMinutes != null) {
-      metadata.add('⏱️ ${study.estimatedReadingMinutes} min');
-    }
-    if (metadata.isNotEmpty) {
-      buffer.writeln(metadata.join(' | '));
-    }
 
     return buffer.toString();
   }
