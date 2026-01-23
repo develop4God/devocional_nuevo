@@ -266,7 +266,8 @@
     "timeout_error": "Request timeout",
     "prayer_loading_error": "Error loading prayers",
     "thanksgiving_loading_error": "Error loading thanksgivings",
-    "update_favorite_failed": "Failed to update favorite"
+    "update_favorite_failed": "Failed to update favorite",
+    "testimony_loading_error": "Error loading testimonies"
   },
   "messages": {
     "welcome": "Welcome!",
@@ -729,5 +730,30 @@
     "discovery": "Discovery",
     "morning": "Morning",
     "night": "Night"
+  },
+  "testimony": {
+    "testimony": "Testimony",
+    "testimonies": "Testimonies",
+    "new_testimony": "New Testimony",
+    "edit_testimony": "Edit Testimony",
+    "delete_testimony": "Delete testimony",
+    "delete_confirmation": "Are you sure you want to delete this testimony? This action cannot be undone.",
+    "new_testimony_description": "Share how God has worked in your life.",
+    "edit_testimony_description": "Edit your personal testimony text.",
+    "new_placeholder": "God has blessed me with...\n\nI witnessed God's power when...\n\nMy life changed when...",
+    "edit_placeholder": "Edit your testimony...",
+    "enter_testimony_text_error": "Please enter the testimony text",
+    "testimony_min_length_error": "Testimony must have at least 10 characters",
+    "cancel": "Cancel",
+    "create_testimony": "Create Testimony",
+    "update_testimony": "Update Testimony",
+    "created": "Created: {date}",
+    "testimony_created": "Testimony created successfully",
+    "testimony_updated": "Testimony updated successfully",
+    "no_testimonies_title": "No testimonies",
+    "no_testimonies_description": "Create your first testimony to share how God has worked in your life.",
+    "days_old_single": "({days} day)",
+    "days_old_plural": "({days} days)",
+    "my_testimony": "My testimony:"
   }
 }

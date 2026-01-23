@@ -267,7 +267,8 @@
     "timeout_error": "Tempo de espera esgotado",
     "prayer_loading_error": "Erro ao carregar orações",
     "thanksgiving_loading_error": "Erro ao carregar agradecimentos",
-    "update_favorite_failed": "Falha ao atualizar favorito"
+    "update_favorite_failed": "Falha ao atualizar favorito",
+    "testimony_loading_error": "Erro ao carregar testemunhos"
   },
   "messages": {
     "welcome": "Bem-vindo!",
@@ -733,5 +734,30 @@
     "morning": "Manhã",
     "night": "Noite",
     "grace": "Graça"
+  },
+  "testimony": {
+    "testimony": "Testemunho",
+    "testimonies": "Testemunhos",
+    "new_testimony": "Novo Testemunho",
+    "edit_testimony": "Editar Testemunho",
+    "delete_testimony": "Excluir testemunho",
+    "delete_confirmation": "Tem certeza de que deseja excluir este testemunho? Esta ação não pode ser desfeita.",
+    "new_testimony_description": "Compartilhe como Deus tem trabalhado em sua vida.",
+    "edit_testimony_description": "Edite o texto do seu testemunho pessoal.",
+    "new_placeholder": "Deus me abençoou com...\n\nPresenciei o poder de Deus quando...\n\nMinha vida mudou quando...",
+    "edit_placeholder": "Edite seu testemunho...",
+    "enter_testimony_text_error": "Por favor, insira o texto do testemunho",
+    "testimony_min_length_error": "O testemunho deve ter pelo menos 10 caracteres",
+    "cancel": "Cancelar",
+    "create_testimony": "Criar Testemunho",
+    "update_testimony": "Atualizar Testemunho",
+    "created": "Criado: {date}",
+    "testimony_created": "Testemunho criado com sucesso",
+    "testimony_updated": "Testemunho atualizado com sucesso",
+    "no_testimonies_title": "Nenhum testemunho",
+    "no_testimonies_description": "Crie seu primeiro testemunho para compartilhar como Deus tem trabalhado em sua vida.",
+    "days_old_single": "({days} dia)",
+    "days_old_plural": "({days} dias)",
+    "my_testimony": "Meu testemunho:"
   }
 }

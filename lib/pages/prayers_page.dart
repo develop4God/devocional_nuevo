@@ -1,6 +1,9 @@
 import 'package:devocional_nuevo/blocs/prayer_bloc.dart';
 import 'package:devocional_nuevo/blocs/prayer_event.dart';
 import 'package:devocional_nuevo/blocs/prayer_state.dart';
+import 'package:devocional_nuevo/blocs/testimony_bloc.dart';
+import 'package:devocional_nuevo/blocs/testimony_event.dart';
+import 'package:devocional_nuevo/blocs/testimony_state.dart';
 import 'package:devocional_nuevo/blocs/thanksgiving_bloc.dart';
 import 'package:devocional_nuevo/blocs/thanksgiving_event.dart';
 import 'package:devocional_nuevo/blocs/thanksgiving_state.dart';
@@ -8,8 +11,10 @@ import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/prayer_model.dart';
+import 'package:devocional_nuevo/models/testimony_model.dart';
 import 'package:devocional_nuevo/models/thanksgiving_model.dart';
 import 'package:devocional_nuevo/widgets/add_prayer_modal.dart';
+import 'package:devocional_nuevo/widgets/add_testimony_modal.dart';
 import 'package:devocional_nuevo/widgets/add_thanksgiving_modal.dart';
 import 'package:devocional_nuevo/widgets/animated_fab_with_text.dart';
 import 'package:devocional_nuevo/widgets/answer_prayer_modal.dart';
@@ -34,12 +39,13 @@ class _PrayersPageState extends State<PrayersPage>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
 
-    // Trigger initial loading of prayers and thanksgivings
+    // Trigger initial loading of prayers, thanksgivings and testimonies
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<PrayerBloc>().add(LoadPrayers());
       context.read<ThanksgivingBloc>().add(LoadThanksgivings());
+      context.read<TestimonyBloc>().add(LoadTestimonies());
     });
   }
 
@@ -272,6 +278,54 @@ class _PrayersPageState extends State<PrayersPage>
                             },
                           ),
                         ),
+                        // Tab 4: Testimonies with count badge
+                        Tab(
+                          height: 72,
+                          child: BlocBuilder<TestimonyBloc, TestimonyState>(
+                            builder: (context, state) {
+                              final count = state is TestimonyLoaded
+                                  ? state.testimonies.length
+                                  : 0;
+                              return Stack(
+                                clipBehavior: Clip.none,
+                                children: [
+                                  Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Text(
+                                        '✨',
+                                        style: TextStyle(fontSize: 22),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      FittedBox(
+                                        fit: BoxFit.scaleDown,
+                                        child: Text(
+                                          'testimony.testimonies'.tr(),
+                                          textAlign: TextAlign.center,
+                                          style: const TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  if (count > 0)
+                                    Positioned(
+                                      right: -8,
+                                      top: -4,
+                                      child: _buildCountBadge(
+                                        count,
+                                        Colors.purple.shade200,
+                                      ),
+                                    ),
+                                ],
+                              );
+                            },
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -332,6 +386,25 @@ class _PrayersPageState extends State<PrayersPage>
                       }
                       if (state is ThanksgivingLoaded) {
                         return _buildThanksgivingsTab(context, state);
+                      }
+                      return const Center(child: CircularProgressIndicator());
+                    },
+                  ),
+                  // Tab 4: Testimonies
+                  BlocBuilder<TestimonyBloc, TestimonyState>(
+                    builder: (context, state) {
+                      if (state is TestimonyLoading) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+                      if (state is TestimonyError) {
+                        return _buildErrorState(context, state.message, () {
+                          context.read<TestimonyBloc>().add(
+                                RefreshTestimonies(),
+                              );
+                        });
+                      }
+                      if (state is TestimonyLoaded) {
+                        return _buildTestimoniesTab(context, state);
                       }
                       return const Center(child: CircularProgressIndicator());
                     },
@@ -875,6 +948,35 @@ class _PrayersPageState extends State<PrayersPage>
                       ),
                     ),
                   ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: InkWell(
+                      onTap: () {
+                        Navigator.pop(context);
+                        _showAddTestimonyModal(context);
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: colorScheme.outline),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Column(
+                          children: [
+                            const Text('✨', style: TextStyle(fontSize: 48)),
+                            const SizedBox(height: 12),
+                            Text(
+                              'testimony.testimony'.tr(),
+                              style: textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ],
@@ -1123,6 +1225,237 @@ class _PrayersPageState extends State<PrayersPage>
               Navigator.of(context).pop();
               context.read<ThanksgivingBloc>().add(
                     DeleteThanksgiving(thanksgiving.id),
+                  );
+            },
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: Text('app.delete'.tr()),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showAddTestimonyModal(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => const AddTestimonyModal(),
+    );
+  }
+
+  Widget _buildTestimoniesTab(
+    BuildContext context,
+    TestimonyLoaded state,
+  ) {
+    final testimonies = state.testimonies;
+
+    if (testimonies.isEmpty) {
+      return _buildEmptyState(
+        context,
+        icon: const Text('✨', style: TextStyle(fontSize: 60)),
+        title: 'testimony.no_testimonies_title'.tr(),
+        message: 'testimony.no_testimonies_description'.tr(),
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: () async {
+        context.read<TestimonyBloc>().add(RefreshTestimonies());
+      },
+      child: ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: testimonies.length,
+        itemBuilder: (context, index) {
+          final testimony = testimonies[index];
+          return _buildTestimonyCard(context, testimony);
+        },
+      ),
+    );
+  }
+
+  Widget _buildTestimonyCard(
+    BuildContext context,
+    Testimony testimony,
+  ) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      elevation: 2,
+      color: colorScheme.surface,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header con icono, texto y acciones
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.purple.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text('✨', style: TextStyle(fontSize: 16)),
+                      const SizedBox(width: 4),
+                      Text(
+                        'testimony.my_testimony'.tr(),
+                        style: textTheme.bodySmall?.copyWith(
+                          color: Colors.purple,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Spacer(),
+                Container(
+                  padding: const EdgeInsets.all(4),
+                  child: PopupMenuButton<String>(
+                    padding: const EdgeInsets.all(8),
+                    iconSize: 24,
+                    icon: Icon(
+                      Icons.more_vert,
+                      color: colorScheme.onSurface.withValues(alpha: 0.7),
+                    ),
+                    onSelected: (value) {
+                      switch (value) {
+                        case 'edit':
+                          _showEditTestimonyModal(context, testimony);
+                          break;
+                        case 'delete':
+                          _showDeleteTestimonyConfirmation(
+                            context,
+                            testimony,
+                          );
+                          break;
+                      }
+                    },
+                    itemBuilder: (context) => [
+                      PopupMenuItem(
+                        value: 'edit',
+                        child: Row(
+                          children: [
+                            const Icon(Icons.edit, size: 20),
+                            const SizedBox(width: 12),
+                            Text('testimony.edit_testimony'.tr()),
+                          ],
+                        ),
+                      ),
+                      PopupMenuItem(
+                        value: 'delete',
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.delete,
+                              size: 20,
+                              color: Colors.red,
+                            ),
+                            const SizedBox(width: 12),
+                            Text(
+                              'app.delete'.tr(),
+                              style: const TextStyle(color: Colors.red),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            // Mostrar el texto completo de testimony debajo del header
+            Text(
+              testimony.text,
+              style: textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurface,
+                height: 1.4,
+              ),
+            ),
+            const SizedBox(height: 8),
+
+            // Footer with date
+            Row(
+              children: [
+                Icon(
+                  Icons.calendar_month_outlined,
+                  size: 16,
+                  color: colorScheme.onSurface.withValues(alpha: 0.6),
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  'testimony.created'.tr({
+                    'date': DateFormat(
+                      'dd/MM/yyyy',
+                    ).format(testimony.createdDate),
+                  }),
+                  style: textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurface.withValues(alpha: 0.6),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  testimony.daysOld == 1
+                      ? 'testimony.days_old_single'.tr({
+                          'days': testimony.daysOld.toString(),
+                        })
+                      : 'testimony.days_old_plural'.tr({
+                          'days': testimony.daysOld.toString(),
+                        }),
+                  style: textTheme.bodySmall?.copyWith(
+                    color: Colors.purple.shade700,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showEditTestimonyModal(
+    BuildContext context,
+    Testimony testimony,
+  ) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => AddTestimonyModal(testimonyToEdit: testimony),
+    );
+  }
+
+  void _showDeleteTestimonyConfirmation(
+    BuildContext context,
+    Testimony testimony,
+  ) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('testimony.delete_testimony'.tr()),
+        content: Text('testimony.delete_confirmation'.tr()),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text('app.cancel'.tr()),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              context.read<TestimonyBloc>().add(
+                    DeleteTestimony(testimony.id),
                   );
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),

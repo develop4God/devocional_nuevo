@@ -266,7 +266,8 @@
     "timeout_error": "Délai d'attente dépassé",
     "prayer_loading_error": "Erreur lors du chargement des prières",
     "thanksgiving_loading_error": "Erreur lors du chargement des actions de grâce",
-    "update_favorite_failed": "Échec de the mise à jour du favori"
+    "update_favorite_failed": "Échec de the mise à jour du favori",
+    "testimony_loading_error": "Erreur lors du chargement des témoignages"
   },
   "messages": {
     "welcome": "Bienvenue !",
@@ -730,5 +731,30 @@
     "discovery": "Découverte",
     "morning": "Matin",
     "night": "Nuit"
+  },
+  "testimony": {
+    "testimony": "Témoignage",
+    "testimonies": "Témoignages",
+    "new_testimony": "Nouveau Témoignage",
+    "edit_testimony": "Modifier le Témoignage",
+    "delete_testimony": "Supprimer le témoignage",
+    "delete_confirmation": "Êtes-vous sûr de vouloir supprimer ce témoignage? Cette action est irréversible.",
+    "new_testimony_description": "Partagez comment Dieu a agi dans votre vie.",
+    "edit_testimony_description": "Modifiez le texte de votre témoignage personnel.",
+    "new_placeholder": "Dieu m'a béni avec...\n\nJ'ai été témoin de la puissance de Dieu quand...\n\nMa vie a changé quand...",
+    "edit_placeholder": "Modifiez votre témoignage...",
+    "enter_testimony_text_error": "Veuillez saisir le texte du témoignage",
+    "testimony_min_length_error": "Le témoignage doit avoir au moins 10 caractères",
+    "cancel": "Annuler",
+    "create_testimony": "Créer un Témoignage",
+    "update_testimony": "Mettre à jour le Témoignage",
+    "created": "Créé: {date}",
+    "testimony_created": "Témoignage créé avec succès",
+    "testimony_updated": "Témoignage mis à jour avec succès",
+    "no_testimonies_title": "Aucun témoignage",
+    "no_testimonies_description": "Créez votre premier témoignage pour partager comment Dieu a agi dans votre vie.",
+    "days_old_single": "({days} jour)",
+    "days_old_plural": "({days} jours)",
+    "my_testimony": "Mon témoignage:"
   }
 }

@@ -266,7 +266,8 @@
     "timeout_error": "タイムアウトエラー",
     "prayer_loading_error": "祈りの読み込みエラー",
     "thanksgiving_loading_error": "感謝の読み込みエラー",
-    "update_favorite_failed": "お気に入りの更新に失敗しました"
+    "update_favorite_failed": "お気に入りの更新に失敗しました",
+    "testimony_loading_error": "証の読み込みエラー"
   },
   "messages": {
     "welcome": "ようこそ！",
@@ -730,5 +731,30 @@
     "discovery": "発見",
     "morning": "朝",
     "night": "夜"
+  },
+  "testimony": {
+    "testimony": "証",
+    "testimonies": "証し",
+    "new_testimony": "新しい証",
+    "edit_testimony": "証を編集",
+    "delete_testimony": "証を削除",
+    "delete_confirmation": "この証を削除してもよろしいですか？この操作は元に戻せません。",
+    "new_testimony_description": "神があなたの人生でどのように働かれたかを共有してください。",
+    "edit_testimony_description": "個人的な証のテキストを編集します。",
+    "new_placeholder": "神は私を祝福してくださいました...\n\n神の力を目撃しました...\n\n私の人生が変わりました...",
+    "edit_placeholder": "証を編集...",
+    "enter_testimony_text_error": "証のテキストを入力してください",
+    "testimony_min_length_error": "証は少なくとも10文字必要です",
+    "cancel": "キャンセル",
+    "create_testimony": "証を作成",
+    "update_testimony": "証を更新",
+    "created": "作成日: {date}",
+    "testimony_created": "証が正常に作成されました",
+    "testimony_updated": "証が正常に更新されました",
+    "no_testimonies_title": "証がありません",
+    "no_testimonies_description": "神があなたの人生でどのように働かれたかを共有するために、最初の証を作成してください。",
+    "days_old_single": "({days}日)",
+    "days_old_plural": "({days}日)",
+    "my_testimony": "私の証:"
   }
 }
