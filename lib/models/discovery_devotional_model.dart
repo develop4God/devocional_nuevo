@@ -145,8 +145,11 @@ class DiscoveryDevotional extends Devocional {
         'metadata': metadata,
       };
     } else {
+      // Legacy format - include 'fecha' for backward compatibility
       return {
         ...base,
+        'fecha':
+            date.toIso8601String().split('T').first, // Legacy Spanish field
         'tipo': 'discovery',
         'titulo': reflexion,
         'versiculo_clave': versiculoClave,

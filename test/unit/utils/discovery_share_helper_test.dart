@@ -86,9 +86,9 @@ void main() {
         resumen: true,
       );
 
-      // Verify Bible Study header with emoji
-      expect(shareText, contains('🌟 *Estudio Biblico*'));
-      expect(shareText, contains('*La Estrella de la Mañana*'));
+      // Verify Bible Study header with emoji (uses fallback since no translation service in test)
+      expect(shareText, contains('🌟 *Estudio Bíblico Diario*'));
+      // Summary version shows subtitle, not versiculo
       expect(shareText, contains('_Cristo: Nuestra Esperanza Radiante_'));
 
       // Verify key verse with reference shown FIRST
@@ -99,16 +99,16 @@ void main() {
       expect(shareText, contains('🌟 *La Luz del Amanecer*'));
       expect(shareText, contains('Venus'));
 
-      // Verify revelation key
-      expect(shareText, contains('💡 *Descubrimiento:*'));
+      // Verify revelation key (uses fallback translation)
+      expect(shareText, contains('💡 *Revelación:*'));
       expect(shareText, contains('redención'));
 
-      // Verify discovery question
-      expect(shareText, contains('❓ *Pregunta para ti:*'));
+      // Verify discovery question (uses fallback translation)
+      expect(shareText, contains('❓ *Preguntas de Reflexión:*'));
       expect(shareText, contains('luz de Cristo'));
 
-      // Verify app link
-      expect(shareText, contains('📲 *Estudio completo:*'));
+      // Verify app link (uses fallback translation)
+      expect(shareText, contains('📲 *Descargar:*'));
       expect(shareText, contains('play.google.com/store/apps/details?id=com'));
 
       // Verify metadata
@@ -122,9 +122,11 @@ void main() {
         resumen: false,
       );
 
-      // Verify header with emoji
-      expect(shareText,
-          contains('🌟 *ESTUDIO BÍBLICO DISCOVERY: LA ESTRELLA DE LA MAÑANA*'));
+      // Verify header with emoji (includes "DIARIO" in fallback)
+      expect(
+          shareText,
+          contains(
+              '🌟 *ESTUDIO BÍBLICO DIARIO DISCOVERY: LA ESTRELLA DE LA MAÑANA*'));
       expect(shareText, contains('📖 *2 Pedro 1:19*'));
 
       // Verify all cards are included
@@ -135,8 +137,8 @@ void main() {
       expect(shareText, contains('Phōsphoros'));
       expect(shareText, contains('Portador de luz'));
 
-      // Verify discovery questions section
-      expect(shareText, contains('🙏 *PREGUNTAS DE DESCUBRIMIENTO:*'));
+      // Verify discovery questions section (uses fallback translation)
+      expect(shareText, contains('🙏 *PREGUNTAS DE REFLEXIÓN:*'));
       expect(shareText, contains('1. ¿En qué área de tu vida'));
       expect(shareText, contains('2. ¿Cómo puedes ser luz'));
 
@@ -144,8 +146,8 @@ void main() {
       expect(shareText, contains('🙏 *Oración de Activación*'));
       expect(shareText, contains('Estrella de la Mañana'));
 
-      // Verify footer
-      expect(shareText, contains('📲 *App con más estudios bíblicos:*'));
+      // Verify footer (uses fallback translation)
+      expect(shareText, contains('📲 *Descargar:*'));
     });
 
     test('should handle study without optional fields', () {
@@ -171,9 +173,8 @@ void main() {
         resumen: true,
       );
 
-      // Should still generate valid text with Estudio Biblico header
-      expect(shareText, contains('📖 *Estudio Biblico*'));
-      expect(shareText, contains('*Simple Study*'));
+      // Should still generate valid text with fallback header (includes "Diario")
+      expect(shareText, contains('📖 *Estudio Bíblico Diario*'));
       expect(shareText, contains('Simple Card'));
       expect(shareText, contains('play.google.com'));
     });

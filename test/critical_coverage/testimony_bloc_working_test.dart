@@ -4,22 +4,43 @@ library;
 import 'package:devocional_nuevo/blocs/testimony_bloc.dart';
 import 'package:devocional_nuevo/blocs/testimony_event.dart';
 import 'package:devocional_nuevo/blocs/testimony_state.dart';
+import 'package:devocional_nuevo/services/localization_service.dart';
+import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+// Mock LocalizationService for testing
+class MockLocalizationService extends Mock implements LocalizationService {}
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group('TestimonyBloc Tests', () {
     late TestimonyBloc bloc;
+    late MockLocalizationService mockLocalizationService;
+    late ServiceLocator locator;
 
     setUp(() {
       SharedPreferences.setMockInitialValues({});
+
+      // Set up service locator and mock localization service
+      locator = ServiceLocator();
+      locator.reset();
+
+      mockLocalizationService = MockLocalizationService();
+      when(() => mockLocalizationService.translate(any()))
+          .thenReturn('Mocked error message');
+
+      // Register the mock service in the service locator
+      locator.registerSingleton<LocalizationService>(mockLocalizationService);
+
       bloc = TestimonyBloc();
     });
 
     tearDown(() {
       bloc.close();
+      locator.reset();
     });
 
     test('initial state should be TestimonyInitial', () {

@@ -46,7 +46,8 @@ class ServiceLocator {
     if (_factories.containsKey(T)) {
       return _factories[T]!() as T;
     }
-    throw StateError('Service ${T.toString()} not registered.');
+    throw StateError(
+        'Service ${T.toString()} not registered. Did you forget to call setupServiceLocator() in main()?');
   }
 
   bool isRegistered<T>() =>
