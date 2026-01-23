@@ -106,9 +106,6 @@ class DiscoveryShareHelper {
     if (study.estimatedReadingMinutes != null) {
       buffer.write('⏱️ ${study.estimatedReadingMinutes} min');
     }
-    if (study.tags != null && study.tags!.isNotEmpty) {
-      buffer.write(' | 🏷️ #${study.tags!.join(' #')}');
-    }
 
     return buffer.toString();
   }
@@ -226,9 +223,6 @@ class DiscoveryShareHelper {
     final metadata = <String>[];
     if (study.estimatedReadingMinutes != null) {
       metadata.add('⏱️ ${study.estimatedReadingMinutes} min');
-    }
-    if (study.tags != null && study.tags!.isNotEmpty) {
-      metadata.add('🏷️ #${study.tags!.join(' #')}');
     }
     if (metadata.isNotEmpty) {
       buffer.writeln(metadata.join(' | '));
