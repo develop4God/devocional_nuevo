@@ -1,4 +1,3 @@
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:devocional_nuevo/blocs/prayer_bloc.dart';
 import 'package:devocional_nuevo/blocs/prayer_event.dart';
 import 'package:devocional_nuevo/blocs/prayer_state.dart';
@@ -14,12 +13,12 @@ import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/prayer_model.dart';
 import 'package:devocional_nuevo/models/testimony_model.dart';
 import 'package:devocional_nuevo/models/thanksgiving_model.dart';
+import 'package:devocional_nuevo/widgets/add_entry_choice_modal.dart';
 import 'package:devocional_nuevo/widgets/add_prayer_modal.dart';
 import 'package:devocional_nuevo/widgets/add_testimony_modal.dart';
 import 'package:devocional_nuevo/widgets/add_thanksgiving_modal.dart';
 import 'package:devocional_nuevo/widgets/animated_fab_with_text.dart';
 import 'package:devocional_nuevo/widgets/answer_prayer_modal.dart';
-import 'package:devocional_nuevo/widgets/app_gradient_bottom_sheet.dart';
 import 'package:devocional_nuevo/widgets/devocionales/app_bar_constants.dart';
 import 'package:devocional_nuevo/widgets/edit_answered_comment_modal.dart';
 import 'package:flutter/material.dart';
@@ -861,130 +860,17 @@ class _PrayersPageState extends State<PrayersPage>
   }
 
   void _showAddPrayerOrThanksgivingChoice() {
-    final TextTheme textTheme = Theme.of(context).textTheme;
-
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
       builder: (BuildContext context) {
-        return AppGradientBottomSheet(
-          padding: const EdgeInsets.all(20.0),
-          borderRadius: 20,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                'devotionals.choose_option'.tr(),
-                style: textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 24),
-              Row(
-                children: [
-                  _buildChoiceItem(
-                    context,
-                    icon: '🙏',
-                    label: 'prayer.prayer'.tr(),
-                    onTap: () {
-                      Navigator.pop(context);
-                      _showAddPrayerModal(context);
-                    },
-                  ),
-                  const SizedBox(width: 12),
-                  _buildChoiceItem(
-                    context,
-                    icon: '☺️',
-                    label: 'thanksgiving.thanksgiving'.tr(),
-                    onTap: () {
-                      Navigator.pop(context);
-                      _showAddThanksgivingModal(context);
-                    },
-                  ),
-                  const SizedBox(width: 12),
-                  _buildChoiceItem(
-                    context,
-                    icon: '✨',
-                    label: 'testimony.testimony'.tr(),
-                    onTap: () {
-                      Navigator.pop(context);
-                      _showAddTestimonyModal(context);
-                    },
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-            ],
-          ),
+        return AddEntryChoiceModal(
+          onAddPrayer: () => _showAddPrayerModal(context),
+          onAddThanksgiving: () => _showAddThanksgivingModal(context),
+          onAddTestimony: () => _showAddTestimonyModal(context),
         );
       },
-    );
-  }
-
-  Widget _buildChoiceItem(
-    BuildContext context, {
-    required String icon,
-    required String label,
-    required VoidCallback onTap,
-  }) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-
-    return Expanded(
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
-          decoration: BoxDecoration(
-            border: Border.all(color: colorScheme.outline.withAlpha(80)),
-            borderRadius: BorderRadius.circular(16),
-            color: colorScheme.surface.withAlpha(100),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ConstrainedBox(
-                constraints: const BoxConstraints(maxHeight: 48),
-                child: FittedBox(
-                  fit: BoxFit.contain,
-                  child: Text(icon, style: const TextStyle(fontSize: 40)),
-                ),
-              ),
-              const SizedBox(height: 8),
-              SizedBox(
-                height: 32, // Fixed height area for text to keep icons aligned
-                child: Center(
-                  child: AutoSizeText(
-                    label,
-                    style: textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 12,
-                    ),
-                    textAlign: TextAlign.center,
-                    maxLines: 2,
-                    minFontSize: 8,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 
