@@ -1,16 +1,16 @@
 @Tags(['slow'])
 library;
 
-// test/integration/devocionales_page_bugfix_validation_test.dart
-
-import 'package:flutter_test/flutter_test.dart';
-import 'package:mocktail/mocktail.dart';
 import 'package:devocional_nuevo/blocs/devocionales/devocionales_navigation_bloc.dart';
 import 'package:devocional_nuevo/blocs/devocionales/devocionales_navigation_event.dart';
 import 'package:devocional_nuevo/blocs/devocionales/devocionales_navigation_state.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
-import 'package:devocional_nuevo/repositories/navigation_repository.dart';
 import 'package:devocional_nuevo/repositories/devocional_repository.dart';
+import 'package:devocional_nuevo/repositories/navigation_repository.dart';
+// test/integration/devocionales_page_bugfix_validation_test.dart
+
+import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
 
 /// Mock classes
 
@@ -115,7 +115,7 @@ void main() {
 
         // Simulate bible version change to NIV (English)
         final englishDevocionales = createTestDevocionales(10, 'NIV');
-        bloc.add(UpdateDevocionales(englishDevocionales));
+        bloc.add(UpdateDevocionales(englishDevocionales, []));
 
         await expectLater(bloc.stream, emits(isA<NavigationReady>()));
 
@@ -152,7 +152,7 @@ void main() {
 
         // Change language to English - this triggers new devotionals
         final englishDevocionales = createTestDevocionales(15, 'NIV');
-        bloc.add(UpdateDevocionales(englishDevocionales));
+        bloc.add(UpdateDevocionales(englishDevocionales, []));
 
         await expectLater(bloc.stream, emits(isA<NavigationReady>()));
 
@@ -187,7 +187,7 @@ void main() {
 
         // Change to English with only 10 devotionals
         final englishDevocionales = createTestDevocionales(10, 'NIV');
-        bloc.add(UpdateDevocionales(englishDevocionales));
+        bloc.add(UpdateDevocionales(englishDevocionales, []));
 
         await expectLater(bloc.stream, emits(isA<NavigationReady>()));
 
@@ -219,7 +219,7 @@ void main() {
 
       // Change to NVI
       final nviDevocionales = createTestDevocionales(12, 'NVI');
-      bloc.add(UpdateDevocionales(nviDevocionales));
+      bloc.add(UpdateDevocionales(nviDevocionales, []));
 
       await expectLater(bloc.stream, emits(isA<NavigationReady>()));
 
@@ -231,7 +231,7 @@ void main() {
 
       // Change to NIV (English)
       final nivDevocionales = createTestDevocionales(12, 'NIV');
-      bloc.add(UpdateDevocionales(nivDevocionales));
+      bloc.add(UpdateDevocionales(nivDevocionales, []));
 
       await expectLater(bloc.stream, emits(isA<NavigationReady>()));
 
@@ -266,7 +266,7 @@ void main() {
       final stopwatch = Stopwatch()..start();
 
       final newDevotionales = createTestDevocionales(730, 'NIV');
-      bloc.add(UpdateDevocionales(newDevotionales));
+      bloc.add(UpdateDevocionales(newDevotionales, []));
 
       await expectLater(bloc.stream, emits(isA<NavigationReady>()));
 

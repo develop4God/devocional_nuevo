@@ -79,7 +79,9 @@ class DevotionalCardPremium extends StatelessWidget {
           borderRadius: BorderRadius.circular(28),
           child: Material(
             color: Colors.transparent,
-            child: InkWell(
+            child: GestureDetector(
+              // Use GestureDetector for better swipe compatibility
+              behavior: HitTestBehavior.translucent,
               onTap: onTap,
               child: Stack(
                 fit: StackFit.expand,

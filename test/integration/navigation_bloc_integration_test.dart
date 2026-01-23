@@ -1,16 +1,16 @@
 @Tags(['slow'])
 library;
 
-// test/integration/navigation_bloc_integration_test.dart
-// Integration tests for Navigation BLoC with feature flag parity verification
-
-import 'package:flutter_test/flutter_test.dart';
 import 'package:devocional_nuevo/blocs/devocionales/devocionales_navigation_bloc.dart';
 import 'package:devocional_nuevo/blocs/devocionales/devocionales_navigation_event.dart';
 import 'package:devocional_nuevo/blocs/devocionales/devocionales_navigation_state.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
-import 'package:devocional_nuevo/repositories/navigation_repository_impl.dart';
 import 'package:devocional_nuevo/repositories/devocional_repository_impl.dart';
+import 'package:devocional_nuevo/repositories/navigation_repository_impl.dart';
+// test/integration/navigation_bloc_integration_test.dart
+// Integration tests for Navigation BLoC with feature flag parity verification
+
+import 'package:flutter_test/flutter_test.dart';
 
 // Helper function to create test devotionals
 
@@ -525,7 +525,7 @@ void main() {
 
       // Update with smaller list
       final newDevocionales = createTestDevocionales(10);
-      bloc.add(UpdateDevocionales(newDevocionales));
+      bloc.add(UpdateDevocionales(newDevocionales, []));
       await Future.delayed(const Duration(milliseconds: 10));
 
       state = bloc.state as NavigationReady;

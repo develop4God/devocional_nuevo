@@ -1,17 +1,17 @@
 @Tags(['critical', 'bloc'])
 library;
 
-// test/critical_coverage/devocionales_navigation_bloc_test.dart
-// High-value tests for DevocionalesNavigationBloc - navigation user flows
-
-import 'package:flutter_test/flutter_test.dart';
+import 'package:bloc_test/bloc_test.dart';
 import 'package:devocional_nuevo/blocs/devocionales/devocionales_navigation_bloc.dart';
 import 'package:devocional_nuevo/blocs/devocionales/devocionales_navigation_event.dart';
 import 'package:devocional_nuevo/blocs/devocionales/devocionales_navigation_state.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
-import 'package:devocional_nuevo/repositories/navigation_repository.dart';
 import 'package:devocional_nuevo/repositories/devocional_repository.dart';
-import 'package:bloc_test/bloc_test.dart';
+import 'package:devocional_nuevo/repositories/navigation_repository.dart';
+// test/critical_coverage/devocionales_navigation_bloc_test.dart
+// High-value tests for DevocionalesNavigationBloc - navigation user flows
+
+import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
 // Mock classes for testing
@@ -245,7 +245,8 @@ void main() {
         );
       },
       act: (bloc) => bloc.add(const NavigateToNext()),
-      expect: () => [], // No state change
+      expect: () => [],
+      // No state change
       verify: (_) {
         verifyNever(() => mockNavigationRepository.saveCurrentIndex(any()));
       },
@@ -339,7 +340,8 @@ void main() {
         );
       },
       act: (bloc) => bloc.add(const NavigateToPrevious()),
-      expect: () => [], // No state change
+      expect: () => [],
+      // No state change
       verify: (_) {
         verifyNever(() => mockNavigationRepository.saveCurrentIndex(any()));
       },
@@ -482,7 +484,8 @@ void main() {
         );
       },
       act: (bloc) => bloc.add(const NavigateToIndex(5)),
-      expect: () => [], // No state change
+      expect: () => [],
+      // No state change
       verify: (_) {
         verifyNever(() => mockNavigationRepository.saveCurrentIndex(any()));
       },
@@ -557,7 +560,8 @@ void main() {
       },
       act: (bloc) =>
           bloc.add(const NavigateToFirstUnread(['dev_0', 'dev_1', 'dev_2'])),
-      expect: () => [], // No state change
+      expect: () => [],
+      // No state change
       verify: (_) {
         verifyNever(() => mockNavigationRepository.saveCurrentIndex(any()));
         verify(
@@ -587,7 +591,7 @@ void main() {
       },
       act: (bloc) {
         final newDevocionales = createTestDevocionales(20);
-        return bloc.add(UpdateDevocionales(newDevocionales));
+        return bloc.add(UpdateDevocionales(newDevocionales, []));
       },
       expect: () => [
         isA<NavigationReady>()
@@ -614,7 +618,7 @@ void main() {
       },
       act: (bloc) {
         final newDevocionales = createTestDevocionales(5);
-        return bloc.add(UpdateDevocionales(newDevocionales));
+        return bloc.add(UpdateDevocionales(newDevocionales, []));
       },
       expect: () => [
         isA<NavigationReady>()
@@ -648,7 +652,7 @@ void main() {
           devocionales: devocionales,
         );
       },
-      act: (bloc) => bloc.add(const UpdateDevocionales([])),
+      act: (bloc) => bloc.add(const UpdateDevocionales([], [])),
       expect: () => [
         isA<NavigationError>().having(
           (s) => s.message,

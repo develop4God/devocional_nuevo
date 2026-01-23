@@ -297,10 +297,17 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
         );
       },
       itemCount: studyIds.length,
-      viewportFraction: 0.88,
-      scale: 0.92,
-      curve: Curves.easeInOutCubic,
-      duration: 350,
+      viewportFraction: 0.85,
+      scale: 0.9,
+      // Use default layout for smoother, more responsive swiping
+      layout: SwiperLayout.DEFAULT,
+      // Enable control for better swipe responsiveness
+      control: null,
+      // Disable auto play
+      autoplay: false,
+      // Faster, smoother animation
+      curve: Curves.easeOutQuart,
+      duration: 280,
       onIndexChanged: (index) {
         if (mounted) {
           setState(() {
@@ -308,9 +315,6 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
           });
         }
       },
-      layout: SwiperLayout.STACK,
-      itemWidth: MediaQuery.of(context).size.width * 0.88,
-      itemHeight: MediaQuery.of(context).size.height * 0.6,
     );
   }
 
