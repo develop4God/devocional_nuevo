@@ -1,7 +1,14 @@
-# Test configuration
-# Exclude slow integration and critical tests by default
-# Run with: flutter test --tags=slow to include them
-
+# Test configuration - automatically used by flutter test
 tags:
+  critical:
+    timeout: 30s
+  unit:
+    timeout: 10s
   slow:
     timeout: 5m
+    skip: "Run explicitly with --tags=slow"
+  flaky:
+    skip: "Unstable - tracked in issues"
+
+# Default timeout for untagged tests
+timeout: 1m
