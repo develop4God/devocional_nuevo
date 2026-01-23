@@ -30,7 +30,6 @@ import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
 import 'package:devocional_nuevo/services/tts/i_tts_service.dart';
 import 'package:devocional_nuevo/splash_screen.dart';
 import 'package:devocional_nuevo/utils/constants.dart';
-import 'package:devocional_nuevo/utils/session_manager.dart';
 import 'package:devocional_nuevo/utils/theme_constants.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -122,9 +121,6 @@ void main() async {
 
   SystemChrome.setSystemUIOverlayStyle(systemUiOverlayStyle);
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-
-  // Initialize Session Manager
-  SessionManager().initialize();
 
   runApp(
     MultiProvider(

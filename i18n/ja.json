@@ -66,7 +66,17 @@
     "offline_mode": "offline",
     "online_mode": "オンラインモード",
     "choose_option": "オプションを選択",
-    "no_devocionales": "利用可能なデボーションがありません"
+    "no_devocionales": "利用可能なデボーションがありません",
+    "share_footer_title": "これは始まりに過ぎません...",
+    "share_footer_complete_app": "完全なアプリには以下が含まれます:",
+    "share_footer_daily_devotionals": "毎日更新されるデボーション",
+    "share_footer_audio_reading": "自然な音声による音声読み上げ",
+    "share_footer_bible_studies": "深い聖書研究",
+    "share_footer_bible_versions": "複数バージョンの完全な聖書",
+    "share_footer_and_more": "そしてさらに多くの機能...",
+    "share_footer_download": "ダウンロード: クリスチャンデボーション",
+    "share_footer_benefits": "100%無料 | 広告なし | オフライン使用",
+    "share_footer_developer": "Develop4God"
   },
   "prayer": {
     "invitation_title": "祈りへの招き",

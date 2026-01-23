@@ -67,7 +67,17 @@
     "online_mode": "Modo online",
     "choose_option": "Escolha uma opção",
     "no_devocionales": "Nenhum devocional disponível",
-    "no_devotionals_available": "Nenhum devocional disponível para o idioma/versão selecionados."
+    "no_devotionals_available": "Nenhum devocional disponível para o idioma/versão selecionados.",
+    "share_footer_title": "Isto é apenas o começo...",
+    "share_footer_complete_app": "O app completo inclui:",
+    "share_footer_daily_devotionals": "Devocionais diários atualizados",
+    "share_footer_audio_reading": "Leitura em áudio com vozes naturais",
+    "share_footer_bible_studies": "Estudos bíblicos profundos",
+    "share_footer_bible_versions": "Bíblia completa em múltiplas versões",
+    "share_footer_and_more": "E muito mais...",
+    "share_footer_download": "Baixar: Devocionais Cristãos",
+    "share_footer_benefits": "100% grátis | Sem anúncios | Uso offline",
+    "share_footer_developer": "Develop4God"
   },
   "prayer": {
     "invitation_title": "Convite à Oração",

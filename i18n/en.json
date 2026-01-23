@@ -66,7 +66,17 @@
     "offline_mode": "Offline",
     "online_mode": "Online mode",
     "choose_option": "Choose an option",
-    "no_devocionales": "No devotionals available"
+    "no_devocionales": "No devotionals available",
+    "share_footer_title": "This is just the beginning...",
+    "share_footer_complete_app": "The complete app includes:",
+    "share_footer_daily_devotionals": "Updated daily devotionals",
+    "share_footer_audio_reading": "Audio reading with natural voices",
+    "share_footer_bible_studies": "Deep Bible studies",
+    "share_footer_bible_versions": "Complete Bible in multiple versions",
+    "share_footer_and_more": "And much more...",
+    "share_footer_download": "Download: Christian Devotionals",
+    "share_footer_benefits": "100% free | No ads | Offline use",
+    "share_footer_developer": "Develop4God"
   },
   "prayer": {
     "invitation_title": "Invitation to Prayer",

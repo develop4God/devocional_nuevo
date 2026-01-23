@@ -66,7 +66,17 @@
     "offline_mode": "offline",
     "online_mode": "在线模式",
     "choose_option": "选择一个选项",
-    "no_devocionales": "没有可用的灵修"
+    "no_devocionales": "没有可用的灵修",
+    "share_footer_title": "这只是开始...",
+    "share_footer_complete_app": "完整应用包括:",
+    "share_footer_daily_devotionals": "每日更新的灵修",
+    "share_footer_audio_reading": "自然语音音频朗读",
+    "share_footer_bible_studies": "深入的圣经研究",
+    "share_footer_bible_versions": "多版本完整圣经",
+    "share_footer_and_more": "以及更多功能...",
+    "share_footer_download": "下载: 基督教灵修",
+    "share_footer_benefits": "100%免费 | 无广告 | 离线使用",
+    "share_footer_developer": "Develop4God"
   },
   "prayer": {
     "invitation_title": "祷告邀请",

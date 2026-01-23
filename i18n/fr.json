@@ -66,7 +66,17 @@
     "offline_mode": "offline",
     "online_mode": "Mode en ligne",
     "choose_option": "Choisir une option",
-    "no_devotionals": "Aucune méditation disponible"
+    "no_devotionals": "Aucune méditation disponible",
+    "share_footer_title": "Ce n'est que le début...",
+    "share_footer_complete_app": "L'application complète comprend:",
+    "share_footer_daily_devotionals": "Méditations quotidiennes mises à jour",
+    "share_footer_audio_reading": "Lecture audio avec voix naturelles",
+    "share_footer_bible_studies": "Études bibliques approfondies",
+    "share_footer_bible_versions": "Bible complète en plusieurs versions",
+    "share_footer_and_more": "Et bien plus encore...",
+    "share_footer_download": "Télécharger: Méditations Chrétiennes",
+    "share_footer_benefits": "100% gratuit | Sans publicité | Utilisation hors ligne",
+    "share_footer_developer": "Develop4God"
   },
   "prayer": {
     "invitation_title": "Invitation à la Prière",
