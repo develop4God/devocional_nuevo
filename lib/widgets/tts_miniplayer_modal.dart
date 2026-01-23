@@ -1,8 +1,10 @@
 import 'dart:math' as math;
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import '../extensions/string_extensions.dart';
+
 import '../controllers/tts_audio_controller.dart';
+import '../extensions/string_extensions.dart';
 
 /// Estado combinado para evitar múltiples builders anidados
 class _TtsPlayerSnapshot {
@@ -19,6 +21,7 @@ class _TtsPlayerSnapshot {
   });
 
   bool get isPlaying => state == TtsPlayerState.playing;
+
   bool get isLoading => state == TtsPlayerState.loading;
 }
 
@@ -276,6 +279,8 @@ class _TtsMiniplayerModalState extends State<TtsMiniplayerModal> {
       ),
       child: snapshot.isLoading
           ? const Center(
+              // ✅ LOADING SPINNER: Shows during TTS initialization (can take up to 7s)
+              // This provides immediate feedback when user presses play
               child: CircularProgressIndicator(
                 color: Colors.white,
                 strokeWidth: 3,
@@ -307,8 +312,10 @@ class _TtsMiniplayerModalState extends State<TtsMiniplayerModal> {
             trackHeight: 6,
             thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10),
             overlayShape: const RoundSliderOverlayShape(overlayRadius: 18),
-            activeTrackColor: Colors.grey[800], // Gris oscuro
-            inactiveTrackColor: Colors.grey[400], // Gris claro
+            activeTrackColor: Colors.grey[800],
+            // Gris oscuro
+            inactiveTrackColor: Colors.grey[400],
+            // Gris claro
             thumbColor: Colors.white,
           ),
           child: Slider(

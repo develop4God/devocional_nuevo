@@ -217,6 +217,8 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
         // If still no voice found, just use the first one
         bestVoice ??= voices.first;
 
+        debugPrint('🎵 Raw best voice selected: "$bestVoice"');
+
         // Parse voice name and locale
         if (bestVoice.contains(' (') && bestVoice.contains(')')) {
           final parts = bestVoice.split(' (');
@@ -226,14 +228,28 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
           final localeParts = localeWithGender.split(' ');
           bestVoiceLocale =
               localeParts.last; // Get the last part which should be locale
+          debugPrint(
+            '🎵 Parsed from format "name (locale)": name="$bestVoiceName", locale="$bestVoiceLocale"',
+          );
         } else {
           bestVoiceName = bestVoice;
           bestVoiceLocale = _getDefaultLocaleForLanguage(languageCode);
+          debugPrint(
+            '🎵 No standard format, using full string: name="$bestVoiceName", locale="$bestVoiceLocale"',
+          );
         }
 
         debugPrint(
           '🎵 Selected best voice: $bestVoiceName with locale: $bestVoiceLocale',
         );
+
+        // ✅ VALIDATION: Ensure voice name and locale are not empty
+        if (bestVoiceName.trim().isEmpty || bestVoiceLocale.trim().isEmpty) {
+          debugPrint(
+            '⚠️ Invalid voice parsed for $languageCode (name: "$bestVoiceName", locale: "$bestVoiceLocale"). Skipping auto-assignment.',
+          );
+          return;
+        }
 
         // Set the voice
         final voiceName = bestVoiceName;

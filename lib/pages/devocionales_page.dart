@@ -1048,16 +1048,22 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     try {
       final s = _ttsAudioController.state.value;
 
-      // Show modal ONCE when playback starts
-      if (s == TtsPlayerState.playing && mounted && !_isTtsModalShowing) {
+      // ✅ IMPROVED: Show modal immediately when LOADING starts (not waiting for playing)
+      // This provides instant feedback and shows spinner during TTS initialization (up to 7s)
+      if ((s == TtsPlayerState.loading || s == TtsPlayerState.playing) &&
+          mounted &&
+          !_isTtsModalShowing) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (!mounted || _isTtsModalShowing) return;
+          debugPrint(
+            '🎵 [Modal] Opening modal on state: $s (immediate feedback)',
+          );
           _showTtsModal();
         });
       }
 
       // Only mark modal as not showing when audio COMPLETES
-      // Keep modal open during pause (don't reset flag on idle/paused)
+      // Keep modal open during pause/loading (don't reset flag)
       if (s == TtsPlayerState.completed) {
         _isTtsModalShowing = false;
       }

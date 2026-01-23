@@ -210,6 +210,14 @@ class VoiceSettingsService {
     String locale,
   ) async {
     try {
+      // ✅ VALIDATION: Don't save empty or invalid voice names
+      if (voiceName.trim().isEmpty || locale.trim().isEmpty) {
+        debugPrint(
+          '⚠️ VoiceSettings: Attempted to save invalid voice (name: "$voiceName", locale: "$locale") for language $language. Skipping save.',
+        );
+        return;
+      }
+
       final prefs = await SharedPreferences.getInstance();
       // Guardar tanto el nombre técnico como el amigable
       final voiceData = {
@@ -239,10 +247,28 @@ class VoiceSettingsService {
     String sampleText,
   ) async {
     try {
+      // ✅ VALIDATION: Prevent null voice crashes (Crashlytics fix)
+      if (voiceName.trim().isEmpty || locale.trim().isEmpty) {
+        debugPrint(
+          '⚠️ VoiceSettings: Cannot play sample with invalid voice (name: "$voiceName", locale: "$locale"). Skipping.',
+        );
+        return;
+      }
+
       // CRITICAL: Use dedicated sample TTS instance to prevent interference
       // with main playback and avoid triggering the mini-player modal
       await _sampleTts.stop();
-      await _sampleTts.setVoice({'name': voiceName, 'locale': locale});
+
+      // ✅ Additional safety: Wrap setVoice in try-catch to handle native crashes
+      try {
+        await _sampleTts.setVoice({'name': voiceName, 'locale': locale});
+      } catch (e) {
+        debugPrint(
+          '⚠️ VoiceSettings: Failed to set voice for sample (name: "$voiceName", locale: "$locale"): $e. Voice may not be available.',
+        );
+        // Don't return - try to play with default voice
+      }
+
       // Siempre aplicar rate 1.0 para samples (voz natural)
       await _sampleTts.setSpeechRate(0.6);
       await _sampleTts.speak(sampleText);
@@ -305,18 +331,26 @@ class VoiceSettingsService {
               : _getDefaultLocaleForLanguage(language);
         }
 
-        // --- NEW: Validate voice for zh ---
-        if (language == 'zh' &&
-            (voiceName.trim().isEmpty ||
-                !locale.toLowerCase().startsWith('zh'))) {
+        // --- VALIDATION: Detect invalid saved voices for ALL languages ---
+        if (voiceName.trim().isEmpty || locale.trim().isEmpty) {
           debugPrint(
-            '⚠️ [VoiceSettings] Invalid saved voice for zh detected (name: "$voiceName", locale: "$locale"). Clearing and re-assigning.',
+            '⚠️ [VoiceSettings] Invalid saved voice detected for $language (name: "$voiceName", locale: "$locale"). Clearing and re-assigning.',
           );
           await clearSavedVoice(language);
           await autoAssignDefaultVoice(language);
           return await loadSavedVoice(language); // Try again after fix
         }
-        // --- END NEW ---
+
+        // Additional validation for Chinese to ensure correct locale
+        if (language == 'zh' && !locale.toLowerCase().startsWith('zh')) {
+          debugPrint(
+            '⚠️ [VoiceSettings] Invalid locale for zh detected (locale: "$locale"). Clearing and re-assigning.',
+          );
+          await clearSavedVoice(language);
+          await autoAssignDefaultVoice(language);
+          return await loadSavedVoice(language); // Try again after fix
+        }
+        // --- END VALIDATION ---
 
         // Aplicar la voz al TTS
         await _flutterTts.setVoice({'name': voiceName, 'locale': locale});
