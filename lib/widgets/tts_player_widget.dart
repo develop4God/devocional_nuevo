@@ -352,6 +352,8 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
     BoxDecoration decoration;
 
     if (state == TtsPlayerState.loading) {
+      // ✅ LOADING SPINNER: Shows during TTS initialization (can take up to 7s)
+      // Modal will open immediately, this button stays as spinner until modal takes over
       mainIcon = const SizedBox(
         width: 28,
         height: 28,
