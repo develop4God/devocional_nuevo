@@ -63,7 +63,7 @@
     "download_progress": "Téléchargement...",
     "download_complete": "Téléchargement terminé",
     "download_error": "Erreur de téléchargement",
-    "offline_mode": "Mode hors ligne",
+    "offline_mode": "offline",
     "online_mode": "Mode en ligne",
     "choose_option": "Choisir une option",
     "no_devotionals": "Aucune méditation disponible"

@@ -63,7 +63,7 @@
     "download_progress": "正在下载...",
     "download_complete": "下载完成",
     "download_error": "下载错误",
-    "offline_mode": "离线模式",
+    "offline_mode": "offline",
     "online_mode": "在线模式",
     "choose_option": "选择一个选项",
     "no_devocionales": "没有可用的灵修"

@@ -63,7 +63,7 @@
     "download_progress": "ダウンロード中...",
     "download_complete": "ダウンロード完了",
     "download_error": "ダウンロードエラー",
-    "offline_mode": "オフラインモード",
+    "offline_mode": "offline",
     "online_mode": "オンラインモード",
     "choose_option": "オプションを選択",
     "no_devocionales": "利用可能なデボーションがありません"
