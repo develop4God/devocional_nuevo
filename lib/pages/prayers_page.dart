@@ -959,7 +959,8 @@ class _PrayersPageState extends State<PrayersPage>
                     onSelected: (value) {
                       switch (value) {
                         case 'edit':
-                          AddThanksgivingModal.show(context, thanksgivingToEdit: thanksgiving);
+                          AddThanksgivingModal.show(context,
+                              thanksgivingToEdit: thanksgiving);
                           break;
                         case 'delete':
                           _showDeleteThanksgivingConfirmation(
@@ -1169,7 +1170,8 @@ class _PrayersPageState extends State<PrayersPage>
                     onSelected: (value) {
                       switch (value) {
                         case 'edit':
-                          AddTestimonyModal.show(context, testimonyToEdit: testimony);
+                          AddTestimonyModal.show(context,
+                              testimonyToEdit: testimony);
                           break;
                         case 'delete':
                           _showDeleteTestimonyConfirmation(
