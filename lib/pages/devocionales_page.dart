@@ -291,10 +291,30 @@ class _DevocionalesPageState extends State<DevocionalesPage>
         state == AppLifecycleState.inactive) {
       _tracking.pauseTracking();
       debugPrint('🔄 App paused - tracking and criteria timer paused');
+
+      // Stop audio when going to background to prevent resource issues
+      if (_audioController != null && _audioController!.isActive) {
+        debugPrint('🎵 Pausing audio due to app going to background');
+        _audioController!.pause();
+      }
     } else if (state == AppLifecycleState.resumed) {
+      debugPrint('🔄 App resumed - refreshing state');
+
+      // Resume tracking
       _tracking.resumeTracking();
-      debugPrint('🔄 App resumed - tracking and criteria timer resumed');
+
+      // Check for updates
       UpdateService.checkForUpdate();
+
+      // Refresh UI state to ensure everything is in sync
+      if (mounted) {
+        setState(() {
+          // Force rebuild to ensure UI is fresh
+          debugPrint('🔄 Forcing UI refresh after app resume');
+        });
+      }
+
+      debugPrint('✅ App resumed - tracking and UI refreshed');
     }
   }
 

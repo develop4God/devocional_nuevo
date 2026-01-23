@@ -172,19 +172,31 @@ class MyApp extends StatefulWidget {
   State<MyApp> createState() => _MyAppState();
 }
 
-class _MyAppState extends State<MyApp> {
+class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   late Future<bool> _initializationFuture;
   bool _developerMode = false;
+  DateTime? _lastPausedTime;
+
+  // 🔥 Community Best Practice: 2+ hours for devotional/Bible apps
+  static const Duration _staleThreshold = Duration(hours: 2);
+
+  // 🔥 CRITICAL: Persist to disk to survive process death
+  static const String _pauseTimeKey = 'app_last_paused_timestamp';
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _initializationFuture = _initializeApp();
     _loadDeveloperMode();
+
+    // 🔥 CRITICAL: Check on startup if we're stale from process death
+    _checkForStaleSession();
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     try {
       getService<http.Client>().close();
     } catch (e) {
@@ -193,6 +205,120 @@ class _MyAppState extends State<MyApp> {
           name: 'dispose', error: e);
     }
     super.dispose();
+  }
+
+  /// 🔥 Check on app startup if session was stale from process death
+  Future<void> _checkForStaleSession() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final savedTimestamp = prefs.getInt(_pauseTimeKey);
+
+      if (savedTimestamp != null) {
+        final savedTime = DateTime.fromMillisecondsSinceEpoch(savedTimestamp);
+        final elapsed = DateTime.now().difference(savedTime);
+
+        developer.log(
+          '⏱️ App restarted after ${elapsed.inMinutes} minutes (from disk)',
+          name: 'MyApp',
+        );
+
+        if (elapsed > _staleThreshold) {
+          developer.log(
+            '🔄 Session was stale (${elapsed.inHours}h) - cleared from disk',
+            name: 'MyApp',
+          );
+          await prefs.remove(_pauseTimeKey);
+          // Don't restart here - let app initialize fresh naturally
+        }
+      }
+    } catch (e) {
+      developer.log('Error checking stale session: $e',
+          name: 'MyApp', error: e);
+    }
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) async {
+    super.didChangeAppLifecycleState(state);
+
+    developer.log('🔄 App lifecycle state changed: $state', name: 'MyApp');
+
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive) {
+      // App going to background - record the time
+      _lastPausedTime = DateTime.now();
+
+      try {
+        // 🔥 SAVE TO DISK (critical for process death survival)
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setInt(
+          _pauseTimeKey,
+          _lastPausedTime!.millisecondsSinceEpoch,
+        );
+
+        developer.log(
+          '⏸️ App paused at: $_lastPausedTime and saved to disk',
+          name: 'MyApp',
+        );
+      } catch (e) {
+        developer.log(
+          'Error saving pause time: $e',
+          name: 'MyApp',
+          error: e,
+        );
+      }
+    } else if (state == AppLifecycleState.resumed) {
+      developer.log('▶️ App resumed', name: 'MyApp');
+
+      try {
+        // 🔥 Load from disk (in case process was killed and restarted)
+        final prefs = await SharedPreferences.getInstance();
+        final savedTimestamp = prefs.getInt(_pauseTimeKey);
+
+        if (savedTimestamp != null) {
+          _lastPausedTime = DateTime.fromMillisecondsSinceEpoch(savedTimestamp);
+
+          final timeInBackground = DateTime.now().difference(_lastPausedTime!);
+          developer.log(
+            '⏱️ App resumed after ${timeInBackground.inMinutes} minutes (from disk)',
+            name: 'MyApp',
+          );
+
+          if (timeInBackground > _staleThreshold) {
+            developer.log(
+              '🔄 Session stale (${timeInBackground.inHours}h) - refreshing data',
+              name: 'MyApp',
+            );
+            await prefs.remove(_pauseTimeKey);
+            _handleStaleSession();
+          } else {
+            developer.log(
+              '✅ Session fresh (${timeInBackground.inMinutes}m) - no refresh needed',
+              name: 'MyApp',
+            );
+          }
+        } else {
+          developer.log('✅ No saved pause time - fresh start', name: 'MyApp');
+        }
+      } catch (e) {
+        developer.log('Error restoring pause time: $e',
+            name: 'MyApp', error: e);
+      }
+
+      _lastPausedTime = null;
+    }
+  }
+
+  /// 🎯 DON'T restart navigation - just refresh data (community best practice)
+  void _handleStaleSession() {
+    if (!mounted) return;
+
+    // Refresh the initialization to reload all data
+    setState(() {
+      _initializationFuture = _initializeApp();
+    });
+
+    developer.log('🔄 Data refreshed due to stale session', name: 'MyApp');
   }
 
   Future<void> _loadDeveloperMode() async {
