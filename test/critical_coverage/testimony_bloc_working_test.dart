@@ -1,4 +1,4 @@
-@Tags(['slow'])
+@Tags(['critical', 'bloc'])
 library;
 
 import 'package:devocional_nuevo/blocs/testimony_bloc.dart';

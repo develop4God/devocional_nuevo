@@ -13,8 +13,9 @@ You are a testing specialist focused on improving code quality through comprehen
 
 ## B. Test Quality & Fixing
 - Run `flutter test` (uses dart_test.yaml config automatically)
-- Run `flutter test --tags=critical` for fast feedback on core logic
-- Run `flutter test --tags=slow` only before final commit
+- Run `flutter test --tags=critical` for fast feedback on core logic (~2-3 min, 570 tests)
+- Run `flutter test --exclude-tags=slow,flaky` before committing (~5-10 min)
+- Run `flutter test --tags=slow` only before final commit (> 15 min)
 - Fix ALL failing tests - both pre-existing and new failures
 
 ## C. Test Coverage
