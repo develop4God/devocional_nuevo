@@ -1,6 +1,5 @@
 // lib/widgets/discovery_grid_overlay.dart
 
-import 'dart:ui';
 import 'package:devocional_nuevo/blocs/discovery/discovery_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:flutter/material.dart';
@@ -78,16 +77,13 @@ class _DiscoveryGridOverlayState extends State<DiscoveryGridOverlay> {
 
         return Stack(
           children: [
-            // Background Blur
+            // Solid background instead of transparent blur for better UX
             Positioned.fill(
               child: GestureDetector(
                 onTap: widget.onClose,
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(
-                      sigmaX: 10 * opacity, sigmaY: 10 * opacity),
-                  child: Container(
-                    color: Colors.black.withValues(alpha: 0.6 * opacity),
-                  ),
+                child: Container(
+                  // Use theme surface color for proper light/dark mode support
+                  color: colorScheme.surface,
                 ),
               ),
             ),
@@ -118,15 +114,15 @@ class _DiscoveryGridOverlayState extends State<DiscoveryGridOverlay> {
         children: [
           Text(
             'discovery.all_studies'.tr(),
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+              color: colorScheme.onSurface,
               fontSize: 24,
               fontWeight: FontWeight.bold,
             ),
           ),
           IconButton(
-            icon:
-                const Icon(Icons.close_rounded, color: Colors.white, size: 28),
+            icon: Icon(Icons.close_rounded,
+                color: colorScheme.onSurface, size: 28),
             onPressed: widget.onClose,
           ),
         ],
@@ -140,22 +136,25 @@ class _DiscoveryGridOverlayState extends State<DiscoveryGridOverlay> {
       child: Container(
         padding: const EdgeInsets.all(4),
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.1),
+          color: colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(16),
         ),
         child: Row(
           children: [
-            _buildFilterButton(StudyFilter.all, 'discovery.all'.tr()),
-            _buildFilterButton(StudyFilter.pending, 'discovery.pending'.tr()),
             _buildFilterButton(
-                StudyFilter.completed, 'discovery.completed'.tr()),
+                StudyFilter.all, 'discovery.all'.tr(), colorScheme),
+            _buildFilterButton(
+                StudyFilter.pending, 'discovery.pending'.tr(), colorScheme),
+            _buildFilterButton(
+                StudyFilter.completed, 'discovery.completed'.tr(), colorScheme),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildFilterButton(StudyFilter filter, String label) {
+  Widget _buildFilterButton(
+      StudyFilter filter, String label, ColorScheme colorScheme) {
     final isActive = _activeFilter == filter;
     return Expanded(
       child: GestureDetector(
@@ -164,12 +163,12 @@ class _DiscoveryGridOverlayState extends State<DiscoveryGridOverlay> {
           duration: const Duration(milliseconds: 250),
           padding: const EdgeInsets.symmetric(vertical: 10),
           decoration: BoxDecoration(
-            color: isActive ? Colors.white : Colors.transparent,
+            color: isActive ? colorScheme.primaryContainer : Colors.transparent,
             borderRadius: BorderRadius.circular(12),
             boxShadow: isActive
                 ? [
                     BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.2),
+                        color: colorScheme.shadow.withValues(alpha: 0.1),
                         blurRadius: 4,
                         offset: const Offset(0, 2))
                   ]
@@ -179,7 +178,9 @@ class _DiscoveryGridOverlayState extends State<DiscoveryGridOverlay> {
             label,
             textAlign: TextAlign.center,
             style: TextStyle(
-              color: isActive ? Colors.black87 : Colors.white70,
+              color: isActive
+                  ? colorScheme.onPrimaryContainer
+                  : colorScheme.onSurface.withValues(alpha: 0.6),
               fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
               fontSize: 13,
             ),
@@ -198,11 +199,13 @@ class _DiscoveryGridOverlayState extends State<DiscoveryGridOverlay> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.search_off_rounded,
-                color: Colors.white.withValues(alpha: 0.5), size: 64),
+                color: colorScheme.onSurface.withValues(alpha: 0.3), size: 64),
             const SizedBox(height: 16),
             Text(
               'discovery.no_studies_found'.tr(),
-              style: const TextStyle(color: Colors.white70, fontSize: 16),
+              style: TextStyle(
+                  color: colorScheme.onSurface.withValues(alpha: 0.6),
+                  fontSize: 16),
             ),
           ],
         ),
@@ -268,11 +271,11 @@ class _StudyGridCard extends StatelessWidget {
         side: BorderSide(
           color: isActive
               ? colorScheme.primary
-              : Colors.white.withValues(alpha: 0.1),
+              : colorScheme.outline.withValues(alpha: 0.3),
           width: isActive ? 2.5 : 1,
         ),
       ),
-      color: Colors.white.withValues(alpha: 0.1),
+      color: colorScheme.surfaceContainerHigh,
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: onTap,
@@ -290,19 +293,21 @@ class _StudyGridCard extends StatelessWidget {
                         end: Alignment.bottomRight,
                         colors: isActive
                             ? [
-                                colorScheme.primary.withValues(alpha: 0.3),
-                                colorScheme.primary.withValues(alpha: 0.1)
+                                colorScheme.primary.withValues(alpha: 0.2),
+                                colorScheme.primary.withValues(alpha: 0.05)
                               ]
                             : [
-                                Colors.white.withValues(alpha: 0.05),
-                                Colors.white.withValues(alpha: 0.02)
+                                colorScheme.surfaceContainerHighest
+                                    .withValues(alpha: 0.5),
+                                colorScheme.surfaceContainer
                               ],
                       ),
                     ),
                     child: Center(
                       child: Text(
                         emoji ?? '📖',
-                        style: const TextStyle(fontSize: 40),
+                        style: TextStyle(
+                            fontSize: 40, color: colorScheme.onSurface),
                       ),
                     ),
                   ),
@@ -317,8 +322,8 @@ class _StudyGridCard extends StatelessWidget {
                       children: [
                         Text(
                           title,
-                          style: const TextStyle(
-                            color: Colors.white,
+                          style: TextStyle(
+                            color: colorScheme.onSurface,
                             fontSize: 13,
                             fontWeight: FontWeight.bold,
                             height: 1.2,
@@ -335,8 +340,8 @@ class _StudyGridCard extends StatelessWidget {
                               const SizedBox(width: 4),
                               Text(
                                 'discovery.completed'.tr().toUpperCase(),
-                                style: const TextStyle(
-                                    color: Colors.greenAccent,
+                                style: TextStyle(
+                                    color: colorScheme.secondary,
                                     fontSize: 10,
                                     fontWeight: FontWeight.bold),
                               ),
@@ -350,8 +355,8 @@ class _StudyGridCard extends StatelessWidget {
                               const SizedBox(width: 4),
                               Text(
                                 'discovery.current'.tr().toUpperCase(),
-                                style: const TextStyle(
-                                    color: Colors.white,
+                                style: TextStyle(
+                                    color: colorScheme.primary,
                                     fontSize: 10,
                                     fontWeight: FontWeight.bold),
                               ),
@@ -369,11 +374,12 @@ class _StudyGridCard extends StatelessWidget {
                 right: 8,
                 child: Container(
                   padding: const EdgeInsets.all(4),
-                  decoration: const BoxDecoration(
-                    color: Colors.greenAccent,
+                  decoration: BoxDecoration(
+                    color: colorScheme.secondary,
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.check, color: Colors.black, size: 10),
+                  child: Icon(Icons.check,
+                      color: colorScheme.onSecondary, size: 10),
                 ),
               ),
           ],
