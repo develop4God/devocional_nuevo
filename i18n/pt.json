@@ -268,7 +268,11 @@
     "prayer_loading_error": "Erro ao carregar orações",
     "thanksgiving_loading_error": "Erro ao carregar agradecimentos",
     "update_favorite_failed": "Falha ao atualizar favorito",
-    "testimony_loading_error": "Erro ao carregar testemunhos"
+    "testimony_loading_error": "Erro ao carregar testemunhos",
+    "testimony_add_error": "Erro ao adicionar testemunho",
+    "testimony_edit_error": "Erro ao editar testemunho",
+    "testimony_delete_error": "Erro ao excluir testemunho",
+    "testimony_save_error": "Erro ao {action} testemunho"
   },
   "messages": {
     "welcome": "Bem-vindo!",

@@ -267,7 +267,11 @@
     "prayer_loading_error": "加载祷告时出错",
     "thanksgiving_loading_error": "加载感恩时出错",
     "update_favorite_failed": "更新收藏失败",
-    "testimony_loading_error": "加载见证时出错"
+    "testimony_loading_error": "加载见证时出错",
+    "testimony_add_error": "添加见证时出错",
+    "testimony_edit_error": "编辑见证时出错",
+    "testimony_delete_error": "删除见证时出错",
+    "testimony_save_error": "{action}见证时出错"
   },
   "messages": {
     "welcome": "欢迎！",

@@ -267,7 +267,11 @@
     "prayer_loading_error": "Error loading prayers",
     "thanksgiving_loading_error": "Error loading thanksgivings",
     "update_favorite_failed": "Failed to update favorite",
-    "testimony_loading_error": "Error loading testimonies"
+    "testimony_loading_error": "Error loading testimonies",
+    "testimony_add_error": "Error adding testimony",
+    "testimony_edit_error": "Error editing testimony",
+    "testimony_delete_error": "Error deleting testimony",
+    "testimony_save_error": "Error {action}ing testimony"
   },
   "messages": {
     "welcome": "Welcome!",

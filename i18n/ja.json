@@ -267,7 +267,11 @@
     "prayer_loading_error": "祈りの読み込みエラー",
     "thanksgiving_loading_error": "感謝の読み込みエラー",
     "update_favorite_failed": "お気に入りの更新に失敗しました",
-    "testimony_loading_error": "証の読み込みエラー"
+    "testimony_loading_error": "証の読み込みエラー",
+    "testimony_add_error": "証の追加エラー",
+    "testimony_edit_error": "証の編集エラー",
+    "testimony_delete_error": "証の削除エラー",
+    "testimony_save_error": "証の{action}エラー"
   },
   "messages": {
     "welcome": "ようこそ！",

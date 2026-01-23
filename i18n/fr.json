@@ -267,7 +267,11 @@
     "prayer_loading_error": "Erreur lors du chargement des prières",
     "thanksgiving_loading_error": "Erreur lors du chargement des actions de grâce",
     "update_favorite_failed": "Échec de the mise à jour du favori",
-    "testimony_loading_error": "Erreur lors du chargement des témoignages"
+    "testimony_loading_error": "Erreur lors du chargement des témoignages",
+    "testimony_add_error": "Erreur lors de l'ajout du témoignage",
+    "testimony_edit_error": "Erreur lors de la modification du témoignage",
+    "testimony_delete_error": "Erreur lors de la suppression du témoignage",
+    "testimony_save_error": "Erreur lors de la {action} du témoignage"
   },
   "messages": {
     "welcome": "Bienvenue !",

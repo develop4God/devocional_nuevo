@@ -51,9 +51,12 @@ class TestimonyBloc extends Bloc<TestimonyEvent, TestimonyState> {
     if (event.text.trim().isEmpty) {
       final currentState = state;
       if (currentState is TestimonyLoaded) {
+        final errorMessage = getService<LocalizationService>().translate(
+          'testimony.enter_testimony_text_error',
+        );
         emit(
           currentState.copyWith(
-            errorMessage: 'El texto del testimonio no puede estar vacío',
+            errorMessage: errorMessage,
           ),
         );
       }
@@ -82,9 +85,12 @@ class TestimonyBloc extends Bloc<TestimonyEvent, TestimonyState> {
     } catch (e) {
       final currentState = state;
       if (currentState is TestimonyLoaded) {
+        final errorMessage = getService<LocalizationService>().translate(
+          'errors.testimony_add_error',
+        );
         emit(
           currentState.copyWith(
-            errorMessage: 'Error al añadir el testimonio: $e',
+            errorMessage: errorMessage,
           ),
         );
       }
@@ -100,9 +106,12 @@ class TestimonyBloc extends Bloc<TestimonyEvent, TestimonyState> {
     if (event.newText.trim().isEmpty) {
       final currentState = state;
       if (currentState is TestimonyLoaded) {
+        final errorMessage = getService<LocalizationService>().translate(
+          'testimony.enter_testimony_text_error',
+        );
         emit(
           currentState.copyWith(
-            errorMessage: 'El texto del testimonio no puede estar vacío',
+            errorMessage: errorMessage,
           ),
         );
       }
@@ -132,9 +141,12 @@ class TestimonyBloc extends Bloc<TestimonyEvent, TestimonyState> {
     } catch (e) {
       final currentState = state;
       if (currentState is TestimonyLoaded) {
+        final errorMessage = getService<LocalizationService>().translate(
+          'errors.testimony_edit_error',
+        );
         emit(
           currentState.copyWith(
-            errorMessage: 'Error al editar el testimonio: $e',
+            errorMessage: errorMessage,
           ),
         );
       }
@@ -160,9 +172,12 @@ class TestimonyBloc extends Bloc<TestimonyEvent, TestimonyState> {
     } catch (e) {
       final currentState = state;
       if (currentState is TestimonyLoaded) {
+        final errorMessage = getService<LocalizationService>().translate(
+          'errors.testimony_delete_error',
+        );
         emit(
           currentState.copyWith(
-            errorMessage: 'Error al eliminar el testimonio: $e',
+            errorMessage: errorMessage,
           ),
         );
       }
