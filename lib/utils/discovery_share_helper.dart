@@ -56,7 +56,7 @@ class DiscoveryShareHelper {
     // Bible Study title with emoji and translation key
     final emoji = study.emoji ?? '📖';
     buffer.writeln(
-        '$emoji *${_translateKey('discovery.daily_bible_study', fallback: 'ESTUDIO BÍBLICO DIARIO')}*');
+        '$emoji *${_translateKey('discovery.daily_bible_study', fallback: 'Estudio Bíblico Diario')}*');
     if (study.subtitle != null && study.subtitle!.isNotEmpty) {
       buffer.writeln('_${study.subtitle}_');
     }

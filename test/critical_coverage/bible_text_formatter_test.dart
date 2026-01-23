@@ -1,4 +1,4 @@
-@Tags(['slow'])
+@Tags(['critical', 'bloc'])
 library;
 
 // test/critical_coverage/bible_text_formatter_test.dart

@@ -1,4 +1,4 @@
-@Tags(['slow'])
+@Tags(['critical', 'bloc'])
 library;
 
 // test/critical_coverage/devocional_model_user_flows_test.dart

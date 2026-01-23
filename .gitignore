@@ -93,3 +93,9 @@ windows/flutter/generated_plugin_registrant.h
 
 # Ignore Patrol generated test bundle (auto-generated, should not be versioned)
 patrol_test/test_bundle.dart
+
+# Test output files
+test_output.txt
+full_test_output.txt
+test_results.json
+extract_failures.sh

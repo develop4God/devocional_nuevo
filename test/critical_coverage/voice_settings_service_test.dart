@@ -1,4 +1,4 @@
-@Tags(['slow'])
+@Tags(['critical', 'bloc'])
 library;
 
 // test/critical_coverage/voice_settings_service_test.dart

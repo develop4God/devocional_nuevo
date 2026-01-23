@@ -1,4 +1,4 @@
-@Tags(['slow'])
+@Tags(['critical', 'bloc'])
 library;
 
 // test/critical_coverage/devocionales_navigation_bloc_test.dart

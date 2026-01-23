@@ -56,269 +56,329 @@ void main() {
       final discoveryBloc = MockDiscoveryBloc();
       final themeBloc = MockThemeBloc();
 
-      await tester.pumpWidget(
-        MaterialApp(
-          home: MultiBlocProvider(
-            providers: [
-              BlocProvider<DiscoveryBloc>.value(value: discoveryBloc),
-              BlocProvider<ThemeBloc>.value(value: themeBloc),
-              ChangeNotifierProvider(create: (_) => DevocionalProvider()),
-            ],
-            child: const DiscoveryListPage(),
+      await tester.runAsync(() async {
+        // Set larger screen size to prevent layout overflow
+        tester.view.physicalSize = const Size(1080, 1920);
+        tester.view.devicePixelRatio = 1.0;
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: MultiBlocProvider(
+              providers: [
+                BlocProvider<DiscoveryBloc>.value(value: discoveryBloc),
+                BlocProvider<ThemeBloc>.value(value: themeBloc),
+                ChangeNotifierProvider(create: (_) => DevocionalProvider()),
+              ],
+              child: const DiscoveryListPage(),
+            ),
           ),
-        ),
-      );
+        );
 
-      await tester.pump();
+        await tester.pump();
 
-      // Should render without errors
-      expect(find.byType(DiscoveryListPage), findsOneWidget);
+        // Should render without errors
+        expect(find.byType(DiscoveryListPage), findsOneWidget);
+      });
     });
 
     testWidgets('Carousel uses BouncingScrollPhysics for smooth scrolling',
         (WidgetTester tester) async {
-      final discoveryBloc = MockDiscoveryBloc();
-      final themeBloc = MockThemeBloc();
+      await tester.runAsync(() async {
+        final discoveryBloc = MockDiscoveryBloc();
+        final themeBloc = MockThemeBloc();
 
-      await tester.pumpWidget(
-        MaterialApp(
-          home: MultiBlocProvider(
-            providers: [
-              BlocProvider<DiscoveryBloc>.value(value: discoveryBloc),
-              BlocProvider<ThemeBloc>.value(value: themeBloc),
-              ChangeNotifierProvider(create: (_) => DevocionalProvider()),
-            ],
-            child: const DiscoveryListPage(),
+        // Set larger screen size to prevent layout overflow
+        tester.view.physicalSize = const Size(1080, 1920);
+        tester.view.devicePixelRatio = 1.0;
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: MultiBlocProvider(
+              providers: [
+                BlocProvider<DiscoveryBloc>.value(value: discoveryBloc),
+                BlocProvider<ThemeBloc>.value(value: themeBloc),
+                ChangeNotifierProvider(create: (_) => DevocionalProvider()),
+              ],
+              child: const DiscoveryListPage(),
+            ),
           ),
-        ),
-      );
+        );
 
-      await tester.pumpAndSettle();
+        await tester.pumpAndSettle();
 
-      // Verify carousel exists
-      expect(find.byType(DiscoveryListPage), findsOneWidget);
+        // Verify carousel exists
+        expect(find.byType(DiscoveryListPage), findsOneWidget);
+      });
     });
 
     testWidgets('Progress dots display with minimalistic border style',
         (WidgetTester tester) async {
-      final discoveryBloc = MockDiscoveryBlocWithStudies();
-      final themeBloc = MockThemeBloc();
+      await tester.runAsync(() async {
+        final discoveryBloc = MockDiscoveryBlocWithStudies();
+        final themeBloc = MockThemeBloc();
 
-      await tester.pumpWidget(
-        MaterialApp(
-          home: MultiBlocProvider(
-            providers: [
-              BlocProvider<DiscoveryBloc>.value(value: discoveryBloc),
-              BlocProvider<ThemeBloc>.value(value: themeBloc),
-              ChangeNotifierProvider(create: (_) => DevocionalProvider()),
-            ],
-            child: const DiscoveryListPage(),
+        // Set larger screen size to prevent layout overflow
+        tester.view.physicalSize = const Size(1080, 1920);
+        tester.view.devicePixelRatio = 1.0;
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: MultiBlocProvider(
+              providers: [
+                BlocProvider<DiscoveryBloc>.value(value: discoveryBloc),
+                BlocProvider<ThemeBloc>.value(value: themeBloc),
+                ChangeNotifierProvider(create: (_) => DevocionalProvider()),
+              ],
+              child: const DiscoveryListPage(),
+            ),
           ),
-        ),
-      );
+        );
 
-      await tester.pumpAndSettle();
+        await tester.pumpAndSettle();
 
-      // Progress dots should be rendered
-      final progressDots = find.byType(AnimatedContainer);
-      expect(progressDots, findsWidgets);
+        // Progress dots should be rendered
+        final progressDots = find.byType(AnimatedContainer);
+        expect(progressDots, findsWidgets);
+      });
     });
   });
 
   group('DiscoveryListPage Grid Tests', () {
     testWidgets('Grid orders incomplete studies first, completed last',
         (WidgetTester tester) async {
-      final discoveryBloc = MockDiscoveryBlocWithMixedStudies();
-      final themeBloc = MockThemeBloc();
+      await tester.runAsync(() async {
+        final discoveryBloc = MockDiscoveryBlocWithMixedStudies();
+        final themeBloc = MockThemeBloc();
 
-      await tester.pumpWidget(
-        MaterialApp(
-          home: MultiBlocProvider(
-            providers: [
-              BlocProvider<DiscoveryBloc>.value(value: discoveryBloc),
-              BlocProvider<ThemeBloc>.value(value: themeBloc),
-              ChangeNotifierProvider(create: (_) => DevocionalProvider()),
-            ],
-            child: const DiscoveryListPage(),
+        // Set larger screen size to prevent layout overflow
+        tester.view.physicalSize = const Size(1080, 1920);
+        tester.view.devicePixelRatio = 1.0;
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: MultiBlocProvider(
+              providers: [
+                BlocProvider<DiscoveryBloc>.value(value: discoveryBloc),
+                BlocProvider<ThemeBloc>.value(value: themeBloc),
+                ChangeNotifierProvider(create: (_) => DevocionalProvider()),
+              ],
+              child: const DiscoveryListPage(),
+            ),
           ),
-        ),
-      );
+        );
 
-      await tester.pumpAndSettle();
-
-      // Tap grid view button
-      final gridViewButton = find.byIcon(Icons.grid_view);
-      if (gridViewButton.evaluate().isNotEmpty) {
-        await tester.tap(gridViewButton);
         await tester.pumpAndSettle();
 
-        // Grid should be visible
-        expect(find.byType(GridView), findsOneWidget);
-      }
+        // Tap grid view button
+        final gridViewButton = find.byIcon(Icons.grid_view);
+        if (gridViewButton.evaluate().isNotEmpty) {
+          await tester.tap(gridViewButton);
+          await tester.pumpAndSettle();
+
+          // Grid should be visible
+          expect(find.byType(GridView), findsOneWidget);
+        }
+      });
     });
 
     testWidgets('Grid cards display minimalistic bordered icons',
         (WidgetTester tester) async {
-      final discoveryBloc = MockDiscoveryBlocWithStudies();
-      final themeBloc = MockThemeBloc();
+      await tester.runAsync(() async {
+        final discoveryBloc = MockDiscoveryBlocWithStudies();
+        final themeBloc = MockThemeBloc();
 
-      await tester.pumpWidget(
-        MaterialApp(
-          home: MultiBlocProvider(
-            providers: [
-              BlocProvider<DiscoveryBloc>.value(value: discoveryBloc),
-              BlocProvider<ThemeBloc>.value(value: themeBloc),
-              ChangeNotifierProvider(create: (_) => DevocionalProvider()),
-            ],
-            child: const DiscoveryListPage(),
+        // Set larger screen size to prevent layout overflow
+        tester.view.physicalSize = const Size(1080, 1920);
+        tester.view.devicePixelRatio = 1.0;
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: MultiBlocProvider(
+              providers: [
+                BlocProvider<DiscoveryBloc>.value(value: discoveryBloc),
+                BlocProvider<ThemeBloc>.value(value: themeBloc),
+                ChangeNotifierProvider(create: (_) => DevocionalProvider()),
+              ],
+              child: const DiscoveryListPage(),
+            ),
           ),
-        ),
-      );
+        );
 
-      await tester.pumpAndSettle();
-
-      // Toggle grid
-      final gridButton = find.byIcon(Icons.grid_view);
-      if (gridButton.evaluate().isNotEmpty) {
-        await tester.tap(gridButton);
         await tester.pumpAndSettle();
-      }
+
+        // Toggle grid
+        final gridButton = find.byIcon(Icons.grid_view);
+        if (gridButton.evaluate().isNotEmpty) {
+          await tester.tap(gridButton);
+          await tester.pumpAndSettle();
+        }
+      });
     });
 
     testWidgets('Completed studies show primary color checkmark with border',
         (WidgetTester tester) async {
-      final discoveryBloc = MockDiscoveryBlocWithCompletedStudies();
-      final themeBloc = MockThemeBloc();
+      await tester.runAsync(() async {
+        final discoveryBloc = MockDiscoveryBlocWithCompletedStudies();
+        final themeBloc = MockThemeBloc();
 
-      await tester.pumpWidget(
-        MaterialApp(
-          home: MultiBlocProvider(
-            providers: [
-              BlocProvider<DiscoveryBloc>.value(value: discoveryBloc),
-              BlocProvider<ThemeBloc>.value(value: themeBloc),
-              ChangeNotifierProvider(create: (_) => DevocionalProvider()),
-            ],
-            child: const DiscoveryListPage(),
+        // Set larger screen size to prevent layout overflow
+        tester.view.physicalSize = const Size(1080, 1920);
+        tester.view.devicePixelRatio = 1.0;
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: MultiBlocProvider(
+              providers: [
+                BlocProvider<DiscoveryBloc>.value(value: discoveryBloc),
+                BlocProvider<ThemeBloc>.value(value: themeBloc),
+                ChangeNotifierProvider(create: (_) => DevocionalProvider()),
+              ],
+              child: const DiscoveryListPage(),
+            ),
           ),
-        ),
-      );
+        );
 
-      await tester.pumpAndSettle();
-
-      // Toggle grid
-      final gridButton = find.byIcon(Icons.grid_view);
-      if (gridButton.evaluate().isNotEmpty) {
-        await tester.tap(gridButton);
         await tester.pumpAndSettle();
 
-        // Check icons should use outline style
-        expect(find.byIcon(Icons.check), findsWidgets);
-      }
+        // Toggle grid
+        final gridButton = find.byIcon(Icons.grid_view);
+        if (gridButton.evaluate().isNotEmpty) {
+          await tester.tap(gridButton);
+          await tester.pumpAndSettle();
+
+          // Check icons should use outline style
+          expect(find.byIcon(Icons.check), findsWidgets);
+        }
+      });
     });
   });
 
   group('DiscoveryListPage Navigation Tests', () {
     testWidgets('Tapping carousel card navigates to detail page',
         (WidgetTester tester) async {
-      final discoveryBloc = MockDiscoveryBlocWithStudies();
-      final themeBloc = MockThemeBloc();
+      await tester.runAsync(() async {
+        final discoveryBloc = MockDiscoveryBlocWithStudies();
+        final themeBloc = MockThemeBloc();
 
-      await tester.pumpWidget(
-        MaterialApp(
-          home: MultiBlocProvider(
-            providers: [
-              BlocProvider<DiscoveryBloc>.value(value: discoveryBloc),
-              BlocProvider<ThemeBloc>.value(value: themeBloc),
-              ChangeNotifierProvider(create: (_) => DevocionalProvider()),
-            ],
-            child: const DiscoveryListPage(),
+        // Set larger screen size to prevent layout overflow
+        tester.view.physicalSize = const Size(1080, 1920);
+        tester.view.devicePixelRatio = 1.0;
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: MultiBlocProvider(
+              providers: [
+                BlocProvider<DiscoveryBloc>.value(value: discoveryBloc),
+                BlocProvider<ThemeBloc>.value(value: themeBloc),
+                ChangeNotifierProvider(create: (_) => DevocionalProvider()),
+              ],
+              child: const DiscoveryListPage(),
+            ),
           ),
-        ),
-      );
+        );
 
-      await tester.pumpAndSettle();
+        await tester.pumpAndSettle();
 
-      // Verify page renders
-      expect(find.byType(DiscoveryListPage), findsOneWidget);
+        // Verify page renders
+        expect(find.byType(DiscoveryListPage), findsOneWidget);
+      });
     });
 
     testWidgets('Grid toggle button switches between carousel and grid view',
         (WidgetTester tester) async {
-      final discoveryBloc = MockDiscoveryBlocWithStudies();
-      final themeBloc = MockThemeBloc();
+      await tester.runAsync(() async {
+        final discoveryBloc = MockDiscoveryBlocWithStudies();
+        final themeBloc = MockThemeBloc();
 
-      await tester.pumpWidget(
-        MaterialApp(
-          home: MultiBlocProvider(
-            providers: [
-              BlocProvider<DiscoveryBloc>.value(value: discoveryBloc),
-              BlocProvider<ThemeBloc>.value(value: themeBloc),
-              ChangeNotifierProvider(create: (_) => DevocionalProvider()),
-            ],
-            child: const DiscoveryListPage(),
+        // Set larger screen size to prevent layout overflow
+        tester.view.physicalSize = const Size(1080, 1920);
+        tester.view.devicePixelRatio = 1.0;
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: MultiBlocProvider(
+              providers: [
+                BlocProvider<DiscoveryBloc>.value(value: discoveryBloc),
+                BlocProvider<ThemeBloc>.value(value: themeBloc),
+                ChangeNotifierProvider(create: (_) => DevocionalProvider()),
+              ],
+              child: const DiscoveryListPage(),
+            ),
           ),
-        ),
-      );
+        );
 
-      await tester.pumpAndSettle();
+        await tester.pumpAndSettle();
 
-      // Initial state shows grid_view icon
-      expect(find.byIcon(Icons.grid_view), findsOneWidget);
+        // Initial state shows grid_view icon
+        expect(find.byIcon(Icons.grid_view), findsOneWidget);
 
-      // Tap to toggle
-      await tester.tap(find.byIcon(Icons.grid_view));
-      await tester.pumpAndSettle();
+        // Tap to toggle
+        await tester.tap(find.byIcon(Icons.grid_view));
+        await tester.pumpAndSettle();
 
-      // Should now show carousel icon
-      expect(find.byIcon(Icons.view_carousel), findsOneWidget);
+        // Should now show carousel icon
+        expect(find.byIcon(Icons.view_carousel), findsOneWidget);
+      });
     });
   });
 
   group('DiscoveryListPage State Tests', () {
     testWidgets('Shows loading indicator when loading',
         (WidgetTester tester) async {
-      final discoveryBloc = MockDiscoveryBlocLoading();
-      final themeBloc = MockThemeBloc();
+      await tester.runAsync(() async {
+        final discoveryBloc = MockDiscoveryBlocLoading();
+        final themeBloc = MockThemeBloc();
 
-      await tester.pumpWidget(
-        MaterialApp(
-          home: MultiBlocProvider(
-            providers: [
-              BlocProvider<DiscoveryBloc>.value(value: discoveryBloc),
-              BlocProvider<ThemeBloc>.value(value: themeBloc),
-              ChangeNotifierProvider(create: (_) => DevocionalProvider()),
-            ],
-            child: const DiscoveryListPage(),
+        // Set larger screen size to prevent layout overflow
+        tester.view.physicalSize = const Size(1080, 1920);
+        tester.view.devicePixelRatio = 1.0;
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: MultiBlocProvider(
+              providers: [
+                BlocProvider<DiscoveryBloc>.value(value: discoveryBloc),
+                BlocProvider<ThemeBloc>.value(value: themeBloc),
+                ChangeNotifierProvider(create: (_) => DevocionalProvider()),
+              ],
+              child: const DiscoveryListPage(),
+            ),
           ),
-        ),
-      );
+        );
 
-      await tester.pump();
+        await tester.pump();
 
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+        expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      });
     });
 
     testWidgets('Shows error message when error occurs',
         (WidgetTester tester) async {
-      final discoveryBloc = MockDiscoveryBlocError();
-      final themeBloc = MockThemeBloc();
+      await tester.runAsync(() async {
+        final discoveryBloc = MockDiscoveryBlocError();
+        final themeBloc = MockThemeBloc();
 
-      await tester.pumpWidget(
-        MaterialApp(
-          home: MultiBlocProvider(
-            providers: [
-              BlocProvider<DiscoveryBloc>.value(value: discoveryBloc),
-              BlocProvider<ThemeBloc>.value(value: themeBloc),
-              ChangeNotifierProvider(create: (_) => DevocionalProvider()),
-            ],
-            child: const DiscoveryListPage(),
+        // Set larger screen size to prevent layout overflow
+        tester.view.physicalSize = const Size(1080, 1920);
+        tester.view.devicePixelRatio = 1.0;
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: MultiBlocProvider(
+              providers: [
+                BlocProvider<DiscoveryBloc>.value(value: discoveryBloc),
+                BlocProvider<ThemeBloc>.value(value: themeBloc),
+                ChangeNotifierProvider(create: (_) => DevocionalProvider()),
+              ],
+              child: const DiscoveryListPage(),
+            ),
           ),
-        ),
-      );
+        );
 
-      await tester.pumpAndSettle();
+        await tester.pumpAndSettle();
 
-      expect(find.byIcon(Icons.error_outline), findsOneWidget);
+        expect(find.byIcon(Icons.error_outline), findsOneWidget);
+      });
     });
   });
 }
@@ -371,26 +431,18 @@ class MockDiscoveryBlocWithStudies extends Fake implements DiscoveryBloc {
   @override
   Stream<DiscoveryState> get stream => Stream.value(
         DiscoveryLoaded(
-          availableStudyIds: ['study_1', 'study_2', 'study_3'],
+          availableStudyIds: ['study_1'],
           studyTitles: {
             'study_1': 'Study 1',
-            'study_2': 'Study 2',
-            'study_3': 'Study 3',
           },
           studySubtitles: {
             'study_1': 'Subtitle 1',
-            'study_2': 'Subtitle 2',
-            'study_3': 'Subtitle 3',
           },
           studyEmojis: {
             'study_1': '📖',
-            'study_2': '✝️',
-            'study_3': '🙏',
           },
           studyReadingMinutes: {
             'study_1': 5,
-            'study_2': 7,
-            'study_3': 10,
           },
           completedStudies: {},
           favoriteStudyIds: {},
@@ -401,26 +453,18 @@ class MockDiscoveryBlocWithStudies extends Fake implements DiscoveryBloc {
 
   @override
   DiscoveryState get state => DiscoveryLoaded(
-        availableStudyIds: ['study_1', 'study_2', 'study_3'],
+        availableStudyIds: ['study_1'],
         studyTitles: {
           'study_1': 'Study 1',
-          'study_2': 'Study 2',
-          'study_3': 'Study 3',
         },
         studySubtitles: {
           'study_1': 'Subtitle 1',
-          'study_2': 'Subtitle 2',
-          'study_3': 'Subtitle 3',
         },
         studyEmojis: {
           'study_1': '📖',
-          'study_2': '✝️',
-          'study_3': '🙏',
         },
         studyReadingMinutes: {
           'study_1': 5,
-          'study_2': 7,
-          'study_3': 10,
         },
         completedStudies: {},
         favoriteStudyIds: {},

@@ -1,4 +1,4 @@
-@Tags(['slow'])
+@Tags(['critical', 'bloc'])
 library;
 
 import 'package:bloc_test/bloc_test.dart';
@@ -35,12 +35,13 @@ void main() {
     mockProgressTracker = MockDiscoveryProgressTracker();
     mockFavoritesService = MockDiscoveryFavoritesService();
 
-    // Default stub for loadFavoriteIds
-    when(() => mockFavoritesService.loadFavoriteIds())
+    // Default stub for loadFavoriteIds - takes optional languageCode parameter
+    when(() => mockFavoritesService.loadFavoriteIds(any()))
         .thenAnswer((_) async => <String>{});
 
     // Default stub for getProgress - return uncompleted progress
-    when(() => mockProgressTracker.getProgress(any()))
+    // Fixed: getProgress takes 2 parameters (studyId, languageCode)
+    when(() => mockProgressTracker.getProgress(any(), any()))
         .thenAnswer((_) async => DiscoveryProgress(
               studyId: 'test',
               completedSections: [],
@@ -190,8 +191,10 @@ void main() {
       blocTest<DiscoveryBloc, DiscoveryState>(
         'calls progressTracker.markSectionCompleted',
         build: () {
+          // Fixed: markSectionCompleted takes optional languageCode parameter
           when(() => mockProgressTracker.markSectionCompleted(
-              studyId, sectionIndex)).thenAnswer((_) async => Future.value());
+                  studyId, sectionIndex, any()))
+              .thenAnswer((_) async => Future.value());
           return bloc;
         },
         seed: () => DiscoveryLoaded(
@@ -208,7 +211,7 @@ void main() {
         act: (bloc) => bloc.add(MarkSectionCompleted(studyId, sectionIndex)),
         verify: (_) {
           verify(() => mockProgressTracker.markSectionCompleted(
-              studyId, sectionIndex)).called(1);
+              studyId, sectionIndex, any())).called(1);
         },
       );
     });
@@ -221,8 +224,9 @@ void main() {
       blocTest<DiscoveryBloc, DiscoveryState>(
         'calls progressTracker.answerQuestion',
         build: () {
+          // Fixed: answerQuestion takes optional languageCode parameter
           when(() => mockProgressTracker.answerQuestion(
-                  studyId, questionIndex, answer))
+                  studyId, questionIndex, answer, any()))
               .thenAnswer((_) async => Future.value());
           return bloc;
         },
@@ -241,7 +245,7 @@ void main() {
             bloc.add(AnswerDiscoveryQuestion(studyId, questionIndex, answer)),
         verify: (_) {
           verify(() => mockProgressTracker.answerQuestion(
-              studyId, questionIndex, answer)).called(1);
+              studyId, questionIndex, answer, any())).called(1);
         },
       );
     });
@@ -252,7 +256,8 @@ void main() {
       blocTest<DiscoveryBloc, DiscoveryState>(
         'calls progressTracker.completeStudy',
         build: () {
-          when(() => mockProgressTracker.completeStudy(studyId))
+          // Fixed: completeStudy takes optional languageCode parameter
+          when(() => mockProgressTracker.completeStudy(studyId, any()))
               .thenAnswer((_) async => Future.value());
           return bloc;
         },
@@ -269,7 +274,8 @@ void main() {
         ),
         act: (bloc) => bloc.add(CompleteDiscoveryStudy(studyId)),
         verify: (_) {
-          verify(() => mockProgressTracker.completeStudy(studyId)).called(1);
+          verify(() => mockProgressTracker.completeStudy(studyId, any()))
+              .called(1);
         },
       );
     });
