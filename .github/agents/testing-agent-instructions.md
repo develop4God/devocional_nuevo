@@ -12,12 +12,10 @@ You are a testing specialist focused on improving code quality through comprehen
 - Code must be 100% clean on test and static validations
 
 ## B. Test Quality & Fixing
-- Run `flutter test` to identify failing tests
+- Run `flutter test` (uses dart_test.yaml config automatically)
+- Run `flutter test --tags=critical` for fast feedback on core logic
+- Run `flutter test --tags=slow` only before final commit
 - Fix ALL failing tests - both pre-existing and new failures
-- If a test shows a real code bug, fix the bug and document it
-- Ensure tests are isolated, deterministic, use DI, and are well-documented
-- Focus on user behavior tests over implementation details
-- **Never skip tests due to "hard to mock" - refactor for testability instead**
 
 ## C. Test Coverage
 - Analyze existing tests and identify coverage gaps
