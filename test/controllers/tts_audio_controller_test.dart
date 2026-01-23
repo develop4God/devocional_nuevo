@@ -332,11 +332,11 @@ void main() {
       // Capture logs to verify workaround activation
       await controller.pause();
 
-      // When ratio > 1.5, stop() is called instead of pause()
-      // stop() sets state to idle
-      expect(controller.state.value, TtsPlayerState.idle);
+      // When ratio > 1.5, stop() is called but state is set to paused (not idle)
+      // to preserve position for resume
+      expect(controller.state.value, TtsPlayerState.paused);
       debugPrint(
-          'Multibyte detection test: state is ${controller.state.value}');
+          'Multibyte detection test: state is ${controller.state.value} (position preserved)');
     });
 
     test('multibyte detection does not activate for ASCII text', () async {

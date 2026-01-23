@@ -1048,6 +1048,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     try {
       final s = _ttsAudioController.state.value;
 
+      // Show modal ONCE when playback starts
       if (s == TtsPlayerState.playing && mounted && !_isTtsModalShowing) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (!mounted || _isTtsModalShowing) return;
@@ -1055,7 +1056,9 @@ class _DevocionalesPageState extends State<DevocionalesPage>
         });
       }
 
-      if (s == TtsPlayerState.completed || s == TtsPlayerState.idle) {
+      // Only mark modal as not showing when audio COMPLETES
+      // Keep modal open during pause (don't reset flag on idle/paused)
+      if (s == TtsPlayerState.completed) {
         _isTtsModalShowing = false;
       }
     } catch (e) {
