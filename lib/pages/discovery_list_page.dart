@@ -478,7 +478,8 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
                       fontSize: 11,
                       color: colorScheme.onSurface,
                       height: 1.1,
-                      fontWeight: isPrimary ? FontWeight.bold : FontWeight.normal,
+                      fontWeight:
+                          isPrimary ? FontWeight.bold : FontWeight.normal,
                     ),
                   ),
                 ),
