@@ -783,7 +783,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     return Consumer<DevocionalProvider>(
       builder: (context, devocionalProvider, child) {
         // When devotionals change (language/version change), update BLoC
-        WidgetsBinding.instance.addPostFrameCallback((_) {
+        WidgetsBinding.instance.addPostFrameCallback((_) async {
           if (devocionalProvider.devocionales.isNotEmpty) {
             final currentState = _navigationBloc.state;
             if (currentState is NavigationReady) {
@@ -791,8 +791,10 @@ class _DevocionalesPageState extends State<DevocionalesPage>
               final newList = devocionalProvider.devocionales;
               if (currentList.length != newList.length ||
                   currentList.hashCode != newList.hashCode) {
+                // Get fresh stats to find correct unread index in the new version
+                final stats = await SpiritualStatsService().getStats();
                 _navigationBloc.add(
-                  UpdateDevocionales(devocionalProvider.devocionales),
+                  UpdateDevocionales(newList, stats.readDevocionalIds),
                 );
               }
             }
