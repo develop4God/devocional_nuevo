@@ -242,12 +242,13 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
     Emitter<DiscoveryState> emit,
   ) async {
     final currentState = state;
-    
+
     // If we're already in DiscoveryLoaded, we track downloading state per study
     if (currentState is DiscoveryLoaded) {
-      final updatedDownloading = Set<String>.from(currentState.downloadingStudyIds);
+      final updatedDownloading =
+          Set<String>.from(currentState.downloadingStudyIds);
       updatedDownloading.add(event.studyId);
-      
+
       emit(currentState.copyWith(
         downloadingStudyIds: updatedDownloading,
         clearError: true,
@@ -269,8 +270,9 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
         final updatedStudies =
             Map<String, DiscoveryDevotional>.from(newState.loadedStudies);
         updatedStudies[event.studyId] = study;
-        
-        final updatedDownloading = Set<String>.from(newState.downloadingStudyIds);
+
+        final updatedDownloading =
+            Set<String>.from(newState.downloadingStudyIds);
         updatedDownloading.remove(event.studyId);
 
         emit(
@@ -304,9 +306,10 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
     } catch (e) {
       final newState = state;
       if (newState is DiscoveryLoaded) {
-        final updatedDownloading = Set<String>.from(newState.downloadingStudyIds);
+        final updatedDownloading =
+            Set<String>.from(newState.downloadingStudyIds);
         updatedDownloading.remove(event.studyId);
-        
+
         emit(newState.copyWith(
             downloadingStudyIds: updatedDownloading,
             errorMessage: 'Error al cargar contenido del estudio: $e'));
