@@ -221,7 +221,8 @@
     "download_success": "デボーションが正常にダウンロードされました",
     "download_error": "ダウンロードエラー。接続を確認して再試行してください。",
     "offline_access_ready": "インターネットなしでコンテンツにアクセスできるようになりました",
-    "share_message": "もしあなたが人生に日々の平安のひと時を求めているなら、クリスチャンデボーションをお勧めします。\n\n霊的成長のための神の言葉で完全に無料です。こちらからダウンロードできます:\nhttps://play.google.com/store/apps/details?id=com.develop4god.devocional_nuevo"
+    "share_message": "もしあなたが人生に日々の平安のひと時を求めているなら、クリスチャンデボーションをお勧めします。\n\n霊的成長のための神の言葉で完全に無料です。こちらからダウンロードできます:\nhttps://play.google.com/store/apps/details?id=com.develop4god.devocional_nuevo",
+    "switching_version": "聖書バージョンを切り替えています..."
   },
   "progress": {
     "title": "私の霊的進歩",

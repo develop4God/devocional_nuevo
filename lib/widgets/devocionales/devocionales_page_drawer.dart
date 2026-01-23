@@ -30,6 +30,71 @@ class DevocionalesDrawer extends StatelessWidget {
     _showDownloadConfirmationDialog(context);
   }
 
+  void _changeBibleVersion(BuildContext context, String newVersion) async {
+    final devocionalProvider =
+        Provider.of<DevocionalProvider>(context, listen: false);
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    // Show blocking loading dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) {
+        return PopScope(
+          canPop: false,
+          child: AppGradientDialog(
+            maxWidth: 300,
+            dismissible: false,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(color: Colors.white),
+                const SizedBox(height: 20),
+                Text(
+                  'drawer.switching_version'.tr(),
+                  textAlign: TextAlign.center,
+                  style: textTheme.bodyMedium?.copyWith(color: Colors.white),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+
+    try {
+      await devocionalProvider.setSelectedVersion(newVersion);
+      if (context.mounted) {
+        // Close loading dialog
+        Navigator.of(context).pop();
+        // Close drawer
+        Navigator.of(context).pop();
+
+        final error = devocionalProvider.errorMessage;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(error ?? 'settings.version_changed'.tr()),
+            backgroundColor:
+                error != null ? colorScheme.error : colorScheme.primary,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint('Error switching version: $e');
+      if (context.mounted) {
+        Navigator.of(context).pop(); // Close dialog if still open
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('errors.unknown_error'.tr()),
+            backgroundColor: colorScheme.error,
+          ),
+        );
+      }
+    }
+  }
+
   // NUEVO METODO AJUSTADO:
   void _showDownloadConfirmationDialog(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -361,50 +426,52 @@ class DevocionalesDrawer extends StatelessWidget {
                           icon: Icons.auto_stories_outlined,
                           iconColor: colorScheme.primary,
                           label: DropdownButtonHideUnderline(
-                            child: DropdownButton<String>(
-                              value: selectedVersion,
-                              icon: Icon(
-                                Icons.arrow_drop_down,
-                                color: colorScheme.onSurface,
-                              ),
-                              dropdownColor: colorScheme.surface,
-                              isExpanded: true,
-                              onChanged: (String? newValue) {
-                                if (newValue != null) {
-                                  devocionalProvider.setSelectedVersion(
-                                    newValue,
-                                  );
-                                  Navigator.of(context).pop();
-                                }
-                              },
-                              selectedItemBuilder: (BuildContext context) {
-                                return versions.map<Widget>((String itemValue) {
-                                  return Row(
-                                    children: [
-                                      Text(
-                                        itemValue,
-                                        style: TextStyle(
-                                          color: colorScheme.onSurface,
-                                          fontSize: 16,
+                            child: AbsorbPointer(
+                              absorbing: devocionalProvider.isSwitchingVersion,
+                              child: DropdownButton<String>(
+                                value: selectedVersion,
+                                icon: Icon(
+                                  Icons.arrow_drop_down,
+                                  color: colorScheme.onSurface,
+                                ),
+                                dropdownColor: colorScheme.surface,
+                                isExpanded: true,
+                                onChanged: (String? newValue) {
+                                  if (newValue != null) {
+                                    _changeBibleVersion(context, newValue);
+                                  }
+                                },
+                                selectedItemBuilder: (BuildContext context) {
+                                  return versions
+                                      .map<Widget>((String itemValue) {
+                                    return Row(
+                                      children: [
+                                        Text(
+                                          itemValue,
+                                          style: TextStyle(
+                                            color: colorScheme.onSurface,
+                                            fontSize: 16,
+                                          ),
                                         ),
+                                      ],
+                                    );
+                                  }).toList();
+                                },
+                                items: versions
+                                    .map<DropdownMenuItem<String>>((
+                                  String itemValue,
+                                ) {
+                                  return DropdownMenuItem<String>(
+                                    value: itemValue,
+                                    child: Text(
+                                      itemValue,
+                                      style: TextStyle(
+                                        color: colorScheme.onSurface,
                                       ),
-                                    ],
-                                  );
-                                }).toList();
-                              },
-                              items: versions.map<DropdownMenuItem<String>>((
-                                String itemValue,
-                              ) {
-                                return DropdownMenuItem<String>(
-                                  value: itemValue,
-                                  child: Text(
-                                    itemValue,
-                                    style: TextStyle(
-                                      color: colorScheme.onSurface,
                                     ),
-                                  ),
-                                );
-                              }).toList(),
+                                  );
+                                }).toList(),
+                              ),
                             ),
                           ),
                         ),

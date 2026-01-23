@@ -221,7 +221,8 @@
     "download_success": "灵修下载成功",
     "download_error": "下载错误。检查您的连接并重试。",
     "offline_access_ready": "您现在可以在没有互联网的情况下访问您的内容",
-    "share_message": "如果您正在寻找生活中每日的平安时刻，我推荐基督教灵修。\n\n神的话语促进属灵成长，完全免费。您可以在这里下载：\nhttps://play.google.com/store/apps/details?id=com.develop4god.devocional_nuevo"
+    "share_message": "如果您正在寻找生活中每日的平安时刻，我推荐基督教灵修。\n\n神的话语促进属灵成长，完全免费。您可以在这里下载：\nhttps://play.google.com/store/apps/details?id=com.develop4god.devocional_nuevo",
+    "switching_version": "正在切换圣经版本..."
   },
   "progress": {
     "title": "我的属灵进展",
@@ -404,10 +405,7 @@
     "reset_stats": "重置统计",
     "reset_confirmation": "您确定要重置所有统计吗？",
     "stats_reset": "统计已重置",
-    "first_read": "第一次阅读",
-    "first_favorite": "第一个收藏",
-    "dedicated_reader": "专注读者",
-    "achievement_unlocked": "成就解锁！"
+    "streak": "连续"
   },
   "achievements": {
     "first_read_title": "第一步",
