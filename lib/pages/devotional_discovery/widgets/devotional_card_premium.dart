@@ -327,9 +327,8 @@ class DevotionalCardPremium extends StatelessWidget {
                                 ? Icons.star_rounded
                                 : Icons.favorite_border_rounded,
                             key: ValueKey<bool>(isFavorite),
-                            color: isFavorite
-                                ? Colors.amberAccent
-                                : Colors.white,
+                            color:
+                                isFavorite ? Colors.amberAccent : Colors.white,
                             size: 24,
                           ),
                         ),

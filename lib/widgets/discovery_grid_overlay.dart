@@ -34,7 +34,7 @@ class _DiscoveryGridOverlayState extends State<DiscoveryGridOverlay> {
 
   List<String> get _filteredIds {
     final ids = List<String>.from(widget.studyIds);
-    
+
     // Apply status filter
     List<String> result;
     switch (_activeFilter) {
@@ -42,10 +42,14 @@ class _DiscoveryGridOverlayState extends State<DiscoveryGridOverlay> {
         result = ids;
         break;
       case StudyFilter.pending:
-        result = ids.where((id) => !(widget.state.completedStudies[id] ?? false)).toList();
+        result = ids
+            .where((id) => !(widget.state.completedStudies[id] ?? false))
+            .toList();
         break;
       case StudyFilter.completed:
-        result = ids.where((id) => widget.state.completedStudies[id] ?? false).toList();
+        result = ids
+            .where((id) => widget.state.completedStudies[id] ?? false)
+            .toList();
         break;
     }
 
@@ -79,7 +83,8 @@ class _DiscoveryGridOverlayState extends State<DiscoveryGridOverlay> {
               child: GestureDetector(
                 onTap: widget.onClose,
                 child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 10 * opacity, sigmaY: 10 * opacity),
+                  filter: ImageFilter.blur(
+                      sigmaX: 10 * opacity, sigmaY: 10 * opacity),
                   child: Container(
                     color: Colors.black.withValues(alpha: 0.6 * opacity),
                   ),
@@ -120,7 +125,8 @@ class _DiscoveryGridOverlayState extends State<DiscoveryGridOverlay> {
             ),
           ),
           IconButton(
-            icon: const Icon(Icons.close_rounded, color: Colors.white, size: 28),
+            icon:
+                const Icon(Icons.close_rounded, color: Colors.white, size: 28),
             onPressed: widget.onClose,
           ),
         ],
@@ -141,7 +147,8 @@ class _DiscoveryGridOverlayState extends State<DiscoveryGridOverlay> {
           children: [
             _buildFilterButton(StudyFilter.all, 'discovery.all'.tr()),
             _buildFilterButton(StudyFilter.pending, 'discovery.pending'.tr()),
-            _buildFilterButton(StudyFilter.completed, 'discovery.completed'.tr()),
+            _buildFilterButton(
+                StudyFilter.completed, 'discovery.completed'.tr()),
           ],
         ),
       ),
@@ -159,9 +166,14 @@ class _DiscoveryGridOverlayState extends State<DiscoveryGridOverlay> {
           decoration: BoxDecoration(
             color: isActive ? Colors.white : Colors.transparent,
             borderRadius: BorderRadius.circular(12),
-            boxShadow: isActive 
-              ? [BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 4, offset: const Offset(0, 2))]
-              : null,
+            boxShadow: isActive
+                ? [
+                    BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.2),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2))
+                  ]
+                : null,
           ),
           child: Text(
             label,
@@ -185,7 +197,8 @@ class _DiscoveryGridOverlayState extends State<DiscoveryGridOverlay> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.search_off_rounded, color: Colors.white.withValues(alpha: 0.5), size: 64),
+            Icon(Icons.search_off_rounded,
+                color: Colors.white.withValues(alpha: 0.5), size: 64),
             const SizedBox(height: 16),
             Text(
               'discovery.no_studies_found'.tr(),
@@ -276,8 +289,14 @@ class _StudyGridCard extends StatelessWidget {
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                         colors: isActive
-                            ? [colorScheme.primary.withValues(alpha: 0.3), colorScheme.primary.withValues(alpha: 0.1)]
-                            : [Colors.white.withValues(alpha: 0.05), Colors.white.withValues(alpha: 0.02)],
+                            ? [
+                                colorScheme.primary.withValues(alpha: 0.3),
+                                colorScheme.primary.withValues(alpha: 0.1)
+                              ]
+                            : [
+                                Colors.white.withValues(alpha: 0.05),
+                                Colors.white.withValues(alpha: 0.02)
+                              ],
                       ),
                     ),
                     child: Center(
@@ -291,7 +310,8 @@ class _StudyGridCard extends StatelessWidget {
                 Expanded(
                   flex: 2,
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -310,22 +330,30 @@ class _StudyGridCard extends StatelessWidget {
                         if (isCompleted)
                           Row(
                             children: [
-                              const Icon(Icons.check_circle_rounded, size: 14, color: Colors.greenAccent),
+                              const Icon(Icons.check_circle_rounded,
+                                  size: 14, color: Colors.greenAccent),
                               const SizedBox(width: 4),
                               Text(
                                 'discovery.completed'.tr().toUpperCase(),
-                                style: const TextStyle(color: Colors.greenAccent, fontSize: 10, fontWeight: FontWeight.bold),
+                                style: const TextStyle(
+                                    color: Colors.greenAccent,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold),
                               ),
                             ],
                           )
                         else if (isActive)
                           Row(
                             children: [
-                              Icon(Icons.play_circle_fill_rounded, size: 14, color: colorScheme.primary),
+                              Icon(Icons.play_circle_fill_rounded,
+                                  size: 14, color: colorScheme.primary),
                               const SizedBox(width: 4),
                               Text(
                                 'discovery.current'.tr().toUpperCase(),
-                                style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                                style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold),
                               ),
                             ],
                           ),

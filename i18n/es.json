@@ -267,7 +267,12 @@
     "timeout_error": "Tiempo de espera agotado",
     "prayer_loading_error": "Error al cargar las oraciones",
     "thanksgiving_loading_error": "Error al cargar agradecimientos",
-    "update_favorite_failed": "Error al actualizar favorito"
+    "update_favorite_failed": "Error al actualizar favorito",
+    "testimony_loading_error": "Error al cargar los testimonios",
+    "testimony_add_error": "Error al añadir el testimonio",
+    "testimony_edit_error": "Error al editar el testimonio",
+    "testimony_delete_error": "Error al eliminar el testimonio",
+    "testimony_save_error": "Error al {action} el testimonio"
   },
   "messages": {
     "welcome": "¡Bienvenido!",
@@ -733,5 +738,30 @@
     "discovery": "Descubrimiento",
     "morning": "Mañana",
     "night": "Noche"
+  },
+  "testimony": {
+    "testimony": "Testimonio",
+    "testimonies": "Testimonios",
+    "new_testimony": "Nuevo Testimonio",
+    "edit_testimony": "Editar Testimonio",
+    "delete_testimony": "Eliminar testimonio",
+    "delete_confirmation": "¿Estás seguro de que quieres eliminar este testimonio? Esta acción no se puede deshacer.",
+    "new_testimony_description": "Comparte cómo Dios ha obrado en tu vida.",
+    "edit_testimony_description": "Edita el texto de tu testimonio personal.",
+    "new_placeholder": "Dios me ha bendecido con...\n\nFui testigo del poder de Dios cuando...\n\nMi vida cambió cuando...",
+    "edit_placeholder": "Edita tu testimonio...",
+    "enter_testimony_text_error": "Por favor ingresa el texto del testimonio",
+    "testimony_min_length_error": "El testimonio debe tener al menos 10 caracteres",
+    "cancel": "Cancelar",
+    "create_testimony": "Crear Testimonio",
+    "update_testimony": "Actualizar Testimonio",
+    "created": "Creado: {date}",
+    "testimony_created": "Testimonio creado exitosamente",
+    "testimony_updated": "Testimonio actualizado exitosamente",
+    "no_testimonies_title": "No hay testimonios",
+    "no_testimonies_description": "Crea tu primer testimonio para compartir cómo Dios ha obrado en tu vida.",
+    "days_old_single": "({days} día)",
+    "days_old_plural": "({days} días)",
+    "my_testimony": "Mi testimonio:"
   }
 }

@@ -266,7 +266,12 @@
     "timeout_error": "请求超时",
     "prayer_loading_error": "加载祷告时出错",
     "thanksgiving_loading_error": "加载感恩时出错",
-    "update_favorite_failed": "更新收藏失败"
+    "update_favorite_failed": "更新收藏失败",
+    "testimony_loading_error": "加载见证时出错",
+    "testimony_add_error": "添加见证时出错",
+    "testimony_edit_error": "编辑见证时出错",
+    "testimony_delete_error": "删除见证时出错",
+    "testimony_save_error": "{action}见证时出错"
   },
   "messages": {
     "welcome": "欢迎！",
@@ -730,5 +735,30 @@
     "discovery": "发现",
     "morning": "早晨",
     "night": "夜晚"
+  },
+  "testimony": {
+    "testimony": "见证",
+    "testimonies": "见证",
+    "new_testimony": "新见证",
+    "edit_testimony": "编辑见证",
+    "delete_testimony": "删除见证",
+    "delete_confirmation": "您确定要删除此见证吗？此操作无法撤消。",
+    "new_testimony_description": "分享神在你生命中的作为。",
+    "edit_testimony_description": "编辑您的个人见证文本。",
+    "new_placeholder": "神祝福了我...\n\n我见证了神的大能...\n\n我的生命改变了...",
+    "edit_placeholder": "编辑您的见证...",
+    "enter_testimony_text_error": "请输入见证文本",
+    "testimony_min_length_error": "见证必须至少包含10个字符",
+    "cancel": "取消",
+    "create_testimony": "创建见证",
+    "update_testimony": "更新见证",
+    "created": "创建于: {date}",
+    "testimony_created": "见证创建成功",
+    "testimony_updated": "见证更新成功",
+    "no_testimonies_title": "没有见证",
+    "no_testimonies_description": "创建您的第一个见证，分享神在您生命中的作为。",
+    "days_old_single": "({days}天)",
+    "days_old_plural": "({days}天)",
+    "my_testimony": "我的见证:"
   }
 }

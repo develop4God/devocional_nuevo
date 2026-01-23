@@ -105,7 +105,8 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
                 final currentLoadedIds = state.loadedStudies.keys.toSet();
 
                 if (_previousFavoriteIds != null) {
-                  if (currentFavoriteIds.length > _previousFavoriteIds!.length) {
+                  if (currentFavoriteIds.length >
+                      _previousFavoriteIds!.length) {
                     _showFeedbackSnackBar(
                         'devotionals_page.added_to_favorites'.tr());
                   } else if (currentFavoriteIds.length <
@@ -116,7 +117,8 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
                 }
 
                 if (_previousLoadedStudyIds != null) {
-                  if (currentLoadedIds.length > _previousLoadedStudyIds!.length) {
+                  if (currentLoadedIds.length >
+                      _previousLoadedStudyIds!.length) {
                     final addedId = currentLoadedIds
                         .difference(_previousLoadedStudyIds!)
                         .first;
@@ -142,7 +144,7 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
                 }
                 if (state is DiscoveryLoaded) {
                   final sortedIds = List<String>.from(state.availableStudyIds);
-                  
+
                   if (state.availableStudyIds.isEmpty) {
                     return _buildEmptyState(context);
                   }
@@ -169,7 +171,7 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
                             _currentIndex = originalIndex;
                             _swiperController.move(originalIndex);
                           });
-                          
+
                           _toggleGridOverlay();
                           _navigateToDetail(context, studyId);
                         },
@@ -275,8 +277,10 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
 
   Widget _buildActionBar(
       BuildContext context, DiscoveryLoaded state, List<String> studyIds) {
-    if (studyIds.isEmpty || _currentIndex >= studyIds.length) return const SizedBox.shrink();
-    
+    if (studyIds.isEmpty || _currentIndex >= studyIds.length) {
+      return const SizedBox.shrink();
+    }
+
     final colorScheme = Theme.of(context).colorScheme;
     final currentStudyId = studyIds[_currentIndex];
     final currentTitle =
