@@ -606,7 +606,7 @@ class _PrayersPageState extends State<PrayersPage>
                           }
                           break;
                         case 'edit':
-                          _showEditPrayerModal(context, prayer);
+                          AddPrayerModal.show(context, prayerToEdit: prayer);
                           break;
                         case 'edit_answer':
                           _showEditAnsweredCommentModal(context, prayer);
@@ -790,24 +790,6 @@ class _PrayersPageState extends State<PrayersPage>
     );
   }
 
-  void _showAddPrayerModal(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => const AddPrayerModal(),
-    );
-  }
-
-  void _showEditPrayerModal(BuildContext context, Prayer prayer) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => AddPrayerModal(prayerToEdit: prayer),
-    );
-  }
-
   void _showAnswerPrayerModal(BuildContext context, Prayer prayer) {
     showModalBottomSheet(
       context: context,
@@ -850,15 +832,6 @@ class _PrayersPageState extends State<PrayersPage>
     );
   }
 
-  void _showAddThanksgivingModal(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => const AddThanksgivingModal(),
-    );
-  }
-
   void _showAddPrayerOrThanksgivingChoice() {
     showModalBottomSheet(
       context: context,
@@ -866,9 +839,9 @@ class _PrayersPageState extends State<PrayersPage>
       isScrollControlled: true,
       builder: (BuildContext context) {
         return AddEntryChoiceModal(
-          onAddPrayer: () => _showAddPrayerModal(context),
-          onAddThanksgiving: () => _showAddThanksgivingModal(context),
-          onAddTestimony: () => _showAddTestimonyModal(context),
+          onAddPrayer: () => AddPrayerModal.show(context),
+          onAddThanksgiving: () => AddThanksgivingModal.show(context),
+          onAddTestimony: () => AddTestimonyModal.show(context),
         );
       },
     );
@@ -986,7 +959,7 @@ class _PrayersPageState extends State<PrayersPage>
                     onSelected: (value) {
                       switch (value) {
                         case 'edit':
-                          _showEditThanksgivingModal(context, thanksgiving);
+                          AddThanksgivingModal.show(context, thanksgivingToEdit: thanksgiving);
                           break;
                         case 'delete':
                           _showDeleteThanksgivingConfirmation(
@@ -1081,19 +1054,6 @@ class _PrayersPageState extends State<PrayersPage>
     );
   }
 
-  void _showEditThanksgivingModal(
-    BuildContext context,
-    Thanksgiving thanksgiving,
-  ) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) =>
-          AddThanksgivingModal(thanksgivingToEdit: thanksgiving),
-    );
-  }
-
   void _showDeleteThanksgivingConfirmation(
     BuildContext context,
     Thanksgiving thanksgiving,
@@ -1120,15 +1080,6 @@ class _PrayersPageState extends State<PrayersPage>
           ),
         ],
       ),
-    );
-  }
-
-  void _showAddTestimonyModal(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => const AddTestimonyModal(),
     );
   }
 
@@ -1218,7 +1169,7 @@ class _PrayersPageState extends State<PrayersPage>
                     onSelected: (value) {
                       switch (value) {
                         case 'edit':
-                          _showEditTestimonyModal(context, testimony);
+                          AddTestimonyModal.show(context, testimonyToEdit: testimony);
                           break;
                         case 'delete':
                           _showDeleteTestimonyConfirmation(
@@ -1310,18 +1261,6 @@ class _PrayersPageState extends State<PrayersPage>
           ],
         ),
       ),
-    );
-  }
-
-  void _showEditTestimonyModal(
-    BuildContext context,
-    Testimony testimony,
-  ) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => AddTestimonyModal(testimonyToEdit: testimony),
     );
   }
 

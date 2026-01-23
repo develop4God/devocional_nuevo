@@ -12,6 +12,16 @@ class AddPrayerModal extends StatefulWidget {
 
   const AddPrayerModal({super.key, this.prayerToEdit});
 
+  /// Static method to show the modal in a clean way
+  static Future<void> show(BuildContext context, {Prayer? prayerToEdit}) {
+    return showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => AddPrayerModal(prayerToEdit: prayerToEdit),
+    );
+  }
+
   @override
   State<AddPrayerModal> createState() => _AddPrayerModalState();
 }

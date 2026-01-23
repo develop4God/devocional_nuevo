@@ -12,6 +12,16 @@ class AddThanksgivingModal extends StatefulWidget {
 
   const AddThanksgivingModal({super.key, this.thanksgivingToEdit});
 
+  /// Static method to show the modal in a clean way
+  static Future<void> show(BuildContext context, {Thanksgiving? thanksgivingToEdit}) {
+    return showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => AddThanksgivingModal(thanksgivingToEdit: thanksgivingToEdit),
+    );
+  }
+
   @override
   State<AddThanksgivingModal> createState() => _AddThanksgivingModalState();
 }

@@ -14,6 +14,16 @@ class AddTestimonyModal extends StatefulWidget {
 
   const AddTestimonyModal({super.key, this.testimonyToEdit});
 
+  /// Static method to show the modal in a clean way
+  static Future<void> show(BuildContext context, {Testimony? testimonyToEdit}) {
+    return showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => AddTestimonyModal(testimonyToEdit: testimonyToEdit),
+    );
+  }
+
   @override
   State<AddTestimonyModal> createState() => _AddTestimonyModalState();
 }
