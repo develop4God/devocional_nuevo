@@ -184,9 +184,10 @@ class DevocionalesNavigationBloc
       return;
     }
 
-    // FIX: When devotionals update (language/version change), 
+    // FIX: When devotionals update (language/version change),
     // we must find the first unread in the NEW list, instead of just keeping the index.
-    final firstUnreadIndex = _devocionalRepository.findFirstUnreadDevocionalIndex(
+    final firstUnreadIndex =
+        _devocionalRepository.findFirstUnreadDevocionalIndex(
       event.devocionales,
       event.readDevocionalIds,
     );

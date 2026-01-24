@@ -457,8 +457,7 @@ class DevocionalesDrawer extends StatelessWidget {
                                     );
                                   }).toList();
                                 },
-                                items: versions
-                                    .map<DropdownMenuItem<String>>((
+                                items: versions.map<DropdownMenuItem<String>>((
                                   String itemValue,
                                 ) {
                                   return DropdownMenuItem<String>(

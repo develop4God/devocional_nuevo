@@ -65,7 +65,7 @@ class DevocionalProvider with ChangeNotifier {
   List<Devocional> get devocionales => _filteredDevocionales;
 
   bool get isLoading => _isLoading;
-  
+
   bool get isSwitchingVersion => _isSwitchingVersion;
 
   String? get errorMessage => _errorMessage;
@@ -495,9 +495,10 @@ class DevocionalProvider with ChangeNotifier {
             if (yearDevocionales.isNotEmpty) {
               loadedApiYears.add(year);
               allDevocionales.addAll(yearDevocionales);
-              
+
               // AUTO-DOWNLOAD: Save the fetched API data to local storage for offline use
-              _saveToLocalStorage(year, _selectedLanguage, responseBody, _selectedVersion);
+              _saveToLocalStorage(
+                  year, _selectedLanguage, responseBody, _selectedVersion);
             }
           } else {
             debugPrint(
@@ -607,7 +608,8 @@ class DevocionalProvider with ChangeNotifier {
   }
 
   // ========== LANGUAGE & VERSION SETTINGS ==========
-  Future<void> setSelectedLanguage(String language, BuildContext? context) async {
+  Future<void> setSelectedLanguage(
+      String language, BuildContext? context) async {
     String supportedLanguage = _getSupportedLanguageWithFallback(language);
 
     if (_selectedLanguage != supportedLanguage) {
@@ -657,7 +659,7 @@ class DevocionalProvider with ChangeNotifier {
     if (_selectedVersion != version) {
       _isSwitchingVersion = true;
       notifyListeners();
-      
+
       try {
         _selectedVersion = version;
         final prefs = await SharedPreferences.getInstance();
@@ -1098,7 +1100,8 @@ class DevocionalProvider with ChangeNotifier {
   }
 
   /// Internal helper to save content to local storage
-  Future<void> _saveToLocalStorage(int year, String language, String content, [String? version]) async {
+  Future<void> _saveToLocalStorage(int year, String language, String content,
+      [String? version]) async {
     try {
       final String filePath = await _getLocalFilePath(year, language, version);
       final File file = File(filePath);
@@ -1148,7 +1151,8 @@ class DevocionalProvider with ChangeNotifier {
         throw Exception('Invalid JSON structure: missing "data" field');
       }
 
-      await _saveToLocalStorage(year, _selectedLanguage, response.body, _selectedVersion);
+      await _saveToLocalStorage(
+          year, _selectedLanguage, response.body, _selectedVersion);
 
       _downloadStatus = 'Devocionales del año $year descargados exitosamente';
       return true;
