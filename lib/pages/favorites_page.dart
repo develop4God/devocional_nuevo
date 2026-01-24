@@ -152,8 +152,26 @@ class _FavoritesPageState extends State<FavoritesPage>
   }
 
   Widget _buildBibleStudiesFavorites(BuildContext context, ThemeData theme) {
-    return BlocBuilder<DiscoveryBloc, DiscoveryState>(
+    return BlocConsumer<DiscoveryBloc, DiscoveryState>(
+      listener: (context, state) {
+        // Trigger loading if in initial state
+        if (state is DiscoveryInitial) {
+          context.read<DiscoveryBloc>().add(LoadDiscoveryStudies());
+        }
+      },
       builder: (context, state) {
+        // Handle initial state - trigger load
+        if (state is DiscoveryInitial) {
+          // Will trigger load in listener, show loading indicator
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        // Handle loading state
+        if (state is DiscoveryLoading) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        // Handle loaded state
         if (state is DiscoveryLoaded) {
           final favoritedIds = state.favoriteStudyIds.toList();
 
@@ -183,6 +201,19 @@ class _FavoritesPageState extends State<FavoritesPage>
             },
           );
         }
+
+        // Handle error state
+        if (state is DiscoveryError) {
+          return _buildEmptyState(
+            context,
+            icon: Icon(Icons.error_outline,
+                size: 72, color: theme.colorScheme.error),
+            title: 'discovery.error'.tr(),
+            message: state.message,
+          );
+        }
+
+        // Fallback for unknown states
         return const Center(child: CircularProgressIndicator());
       },
     );
