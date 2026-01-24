@@ -1326,10 +1326,21 @@ class _DevocionalesPageState extends State<DevocionalesPage>
         });
       }
 
-      // Only mark modal as not showing when audio COMPLETES
-      // Keep modal open during pause/loading (don't reset flag)
-      if (s == TtsPlayerState.completed) {
-        _isTtsModalShowing = false;
+      // Close modal when audio completes or goes to idle
+      // This ensures cleanup and proper modal closure
+      if (s == TtsPlayerState.completed || s == TtsPlayerState.idle) {
+        if (_isTtsModalShowing) {
+          _isTtsModalShowing = false;
+          // Close modal if it's still open
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted && Navigator.canPop(context)) {
+              debugPrint(
+                '🏁 [Modal] Closing modal on state: $s (auto-cleanup)',
+              );
+              Navigator.of(context).pop();
+            }
+          });
+        }
       }
     } catch (e) {
       debugPrint('[DevocionalesPage] Error en _handleTtsStateChange: $e');
