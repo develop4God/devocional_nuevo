@@ -32,20 +32,26 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
     with WidgetsBindingObserver {
   bool _hasRegisteredHeard = false;
   late VoidCallback _stateListener;
+  String? _ttsText;
+  String? _currentLanguage;
+
+  void _updateTtsText(String language) {
+    _currentLanguage = language;
+    _ttsText = _buildTtsText(language);
+    if (_ttsText != null) {
+      widget.audioController.setText(_ttsText!, languageCode: language);
+    }
+    setState(() {});
+  }
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    // Set initial TTS text after first frame to avoid notifying during build
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         final language = Localizations.localeOf(context).languageCode;
-        final ttsText = _buildTtsText(language);
-        debugPrint(
-          '[TTS Widget] 📝 Configurando texto inicial - Idioma: $language, Longitud: ${ttsText.length} caracteres',
-        );
-        widget.audioController.setText(ttsText, languageCode: language);
+        _updateTtsText(language);
         debugPrint('[TTS Widget] ✅ Texto configurado correctamente');
       }
     });
@@ -95,18 +101,23 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
     super.didUpdateWidget(oldWidget);
     if (oldWidget.devocional.id != widget.devocional.id) {
       debugPrint(
-        '[TTS Widget] Cambio de devocional detectado, deteniendo audio',
-      );
+          '[TTS Widget] Cambio de devocional detectado, deteniendo audio');
       widget.audioController.stop();
-      // Resetear flag para permitir registro en el nuevo devocional
       _hasRegisteredHeard = false;
-      // Update text for new devocional after frame to avoid rebuild issues
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
         final language = Localizations.localeOf(context).languageCode;
-        final ttsText = _buildTtsText(language);
-        widget.audioController.setText(ttsText, languageCode: language);
+        _updateTtsText(language);
       });
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final newLang = Localizations.localeOf(context).languageCode;
+    if (newLang != _currentLanguage) {
+      _updateTtsText(newLang);
     }
   }
 
@@ -187,10 +198,9 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
     debugPrint(
       '[TTS Widget] build() llamado para devocional: ${widget.devocional.id}',
     );
-    final language = Localizations.localeOf(context).languageCode;
-    final ttsText = _buildTtsText(language);
+    // Solo usar el valor cacheado, nunca recalcular ni llamar setText aquí
     debugPrint(
-      '[TTS Widget] Texto TTS armado: ${ttsText.length > 80 ? '${ttsText.substring(0, 80)}...' : ttsText}',
+      '[TTS Widget] Texto TTS armado: ${_ttsText != null && _ttsText!.length > 80 ? '${_ttsText!.substring(0, 80)}...' : _ttsText}',
     );
 
     // Restore dynamic visuals: show spinner while loading, pause when playing, play otherwise.
@@ -202,7 +212,12 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
           elevation: 0,
           child: InkWell(
             customBorder: const CircleBorder(),
-            onTap: () => _handlePlayPause(context, state, language, ttsText),
+            onTap: () => _handlePlayPause(
+                context,
+                state,
+                _currentLanguage ??
+                    Localizations.localeOf(context).languageCode,
+                _ttsText ?? ''),
             child: _buildButton(context, state),
           ),
         );
@@ -337,6 +352,8 @@ class _TtsPlayerWidgetState extends State<TtsPlayerWidget>
     BoxDecoration decoration;
 
     if (state == TtsPlayerState.loading) {
+      // ✅ LOADING SPINNER: Shows during TTS initialization (can take up to 7s)
+      // Modal will open immediately, this button stays as spinner until modal takes over
       mainIcon = const SizedBox(
         width: 28,
         height: 28,

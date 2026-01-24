@@ -20,6 +20,7 @@ Multilingual mobile application for reading daily devotionals with advanced audi
 ### ✨ Main Features
 
 - **📖 Daily Devotionals**: Updated spiritual content
+- **🔍 Discovery Studies**: Interactive learning studies with progress tracking (NEW!)
 - **📖 Integrated Bible**: Complete offline Bible access with search and share functionality
 - **🌍 Multilingual Support**: Spanish, English, Portuguese, French with complete localization
 - **🔊 Audio TTS**: Text-to-speech reading of devotionals
@@ -48,8 +49,8 @@ Multilingual mobile application for reading daily devotionals with advanced audi
 
 | Metric | Value |
 |--------|-------|
-| Source Files (lib/) | 118 Dart files |
-| Test Files | 118 test files |
+| Source Files (lib/) | 143 Dart files |
+| Test Files | 136 test files |
 | Total Tests | 1,318 tests (100% passing ✅) |
 | Test Coverage | 44.06% (3,455/7,841 lines) |
 | Supported Languages | 6 (es, en, pt, fr, ja, zh) |
@@ -61,20 +62,25 @@ The application follows a **hybrid Provider + BLoC Pattern** architecture with c
 
 ```
 lib/
-├── blocs/           # BLoC state management (9 files)
+├── blocs/           # BLoC state management (12 files)
 │   ├── devocionales/
+│   ├── discovery/   # Discovery Studies feature
 │   ├── onboarding/
 │   └── theme/
 ├── controllers/     # Application controllers (2 files)
 ├── extensions/      # Dart extensions (1 file)
-├── models/          # Data models (5 files)
-├── pages/           # Application screens (11 files)
-│   └── onboarding/
+├── models/          # Data models (8 files)
+│   └── discovery/   # Discovery models
+├── pages/           # Application screens (15+ files)
+│   ├── devotional_discovery/
+│   ├── onboarding/
+│   └── discovery/
 ├── providers/       # State providers (2 files)
-├── services/        # Core services (14 files)
+├── repositories/    # Data repositories (3 files)
+├── services/        # Core services (16 files)
 │   └── tts/
-├── utils/           # Utilities and constants (5 files)
-└── widgets/         # Reusable UI components (19 files)
+├── utils/           # Utilities and constants (8 files)
+└── widgets/         # Reusable UI components (22+ files)
     └── donate/
 ```
 
@@ -169,7 +175,10 @@ patrol_test/                 # 🆕 Patrol framework tests (native automation)
 
 All documentation is organized in the [docs/](./docs/) folder:
 
+📖 **[Documentation Index](./docs/INDEX.md)** - Complete documentation navigation
+
 - [Architecture Documentation](./docs/architecture/) - Technical architecture and decisions
+- [Discovery Feature](./docs/discovery/) - Discovery Studies feature documentation
 - [Feature Documentation](./docs/features/) - Feature-specific guides
 - [Testing Documentation](./docs/testing/) - Test coverage reports
 - [Guides](./docs/guides/) - Development and testing guides
@@ -185,6 +194,7 @@ Aplicación móvil multilingüe para leer devocionales diarios con funcionalidad
 ### ✨ Características Principales
 
 - **📖 Devocionales Diarios**: Contenido espiritual actualizado
+- **🔍 Estudios Discovery**: Estudios interactivos con seguimiento de progreso (¡NUEVO!)
 - **📖 Biblia Integrada**: Acceso completo a la Biblia offline con búsqueda y compartir
 - **🌍 Soporte Multilingüe**: Español, Inglés, Portugués, Francés con localización completa
 - **🔊 Audio TTS**: Lectura de devocionales con síntesis de voz
@@ -213,8 +223,8 @@ Aplicación móvil multilingüe para leer devocionales diarios con funcionalidad
 
 | Métrica | Valor |
 |---------|-------|
-| Archivos Fuente (lib/) | 118 archivos Dart |
-| Archivos de Test | 118 archivos |
+| Archivos Fuente (lib/) | 143 archivos Dart |
+| Archivos de Test | 136 archivos |
 | Total de Tests | 1,318 tests (100% aprobados ✅) |
 | Cobertura de Tests | 44.06% (3,455/7,841 líneas) |
 | Idiomas Soportados | 6 (es, en, pt, fr, ja, zh) |
@@ -226,20 +236,25 @@ La aplicación sigue una arquitectura **híbrida Provider + Patrón BLoC** con c
 
 ```
 lib/
-├── blocs/           # Gestión de estado BLoC (9 archivos)
+├── blocs/           # Gestión de estado BLoC (12 archivos)
 │   ├── devocionales/
+│   ├── discovery/   # Feature Discovery Studies
 │   ├── onboarding/
 │   └── theme/
 ├── controllers/     # Controladores de aplicación (2 archivos)
 ├── extensions/      # Extensiones de Dart (1 archivo)
-├── models/          # Modelos de datos (5 archivos)
-├── pages/           # Pantallas de la aplicación (11 archivos)
-│   └── onboarding/
+├── models/          # Modelos de datos (8 archivos)
+│   └── discovery/   # Modelos Discovery
+├── pages/           # Pantallas de la aplicación (15+ archivos)
+│   ├── devotional_discovery/
+│   ├── onboarding/
+│   └── discovery/
 ├── providers/       # Proveedores de estado (2 archivos)
-├── services/        # Servicios centrales (14 archivos)
+├── repositories/    # Repositorios de datos (3 archivos)
+├── services/        # Servicios centrales (16 archivos)
 │   └── tts/
-├── utils/           # Utilidades y constantes (5 archivos)
-└── widgets/         # Componentes UI reutilizables (19 archivos)
+├── utils/           # Utilidades y constantes (8 archivos)
+└── widgets/         # Componentes UI reutilizables (22+ archivos)
     └── donate/
 ```
 
@@ -334,7 +349,10 @@ patrol_test/                 # 🆕 Tests con framework Patrol (automatización 
 
 Toda la documentación está organizada en la carpeta [docs/](./docs/):
 
+📖 **[Índice de Documentación](./docs/INDEX.md)** - Navegación completa de documentación
+
 - [Documentación de Arquitectura](./docs/architecture/) - Arquitectura técnica y decisiones
+- [Feature Discovery](./docs/discovery/) - Documentación de la función Discovery Studies
 - [Documentación de Features](./docs/features/) - Guías específicas de características
 - [Documentación de Testing](./docs/testing/) - Reportes de cobertura de tests
 - [Guías](./docs/guides/) - Guías de desarrollo y pruebas

@@ -39,6 +39,7 @@ class DevocionalProvider with ChangeNotifier {
   Set<String> _favoriteIds = {}; // ID-based favorites storage
 
   bool _isLoading = false;
+  bool _isSwitchingVersion = false;
   String? _errorMessage;
   String _selectedLanguage = 'es';
   String _selectedVersion = 'RVR1960';
@@ -64,6 +65,8 @@ class DevocionalProvider with ChangeNotifier {
   List<Devocional> get devocionales => _filteredDevocionales;
 
   bool get isLoading => _isLoading;
+
+  bool get isSwitchingVersion => _isSwitchingVersion;
 
   String? get errorMessage => _errorMessage;
 
@@ -492,6 +495,10 @@ class DevocionalProvider with ChangeNotifier {
             if (yearDevocionales.isNotEmpty) {
               loadedApiYears.add(year);
               allDevocionales.addAll(yearDevocionales);
+
+              // AUTO-DOWNLOAD: Save the fetched API data to local storage for offline use
+              _saveToLocalStorage(
+                  year, _selectedLanguage, responseBody, _selectedVersion);
             }
           } else {
             debugPrint(
@@ -601,7 +608,8 @@ class DevocionalProvider with ChangeNotifier {
   }
 
   // ========== LANGUAGE & VERSION SETTINGS ==========
-  void setSelectedLanguage(String language, BuildContext? context) async {
+  Future<void> setSelectedLanguage(
+      String language, BuildContext? context) async {
     String supportedLanguage = _getSupportedLanguageWithFallback(language);
 
     if (_selectedLanguage != supportedLanguage) {
@@ -647,19 +655,27 @@ class DevocionalProvider with ChangeNotifier {
     }
   }
 
-  void setSelectedVersion(String version) async {
+  Future<void> setSelectedVersion(String version) async {
     if (_selectedVersion != version) {
-      _selectedVersion = version;
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('selectedVersion', version);
-      // Actualizar el contexto de TTS al cambiar la versión
-      if (_audioController != null) {
-        _audioController!.ttsService.setLanguageContext(
-          _selectedLanguage,
-          _selectedVersion,
-        );
+      _isSwitchingVersion = true;
+      notifyListeners();
+
+      try {
+        _selectedVersion = version;
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('selectedVersion', version);
+        // Actualizar el contexto de TTS al cambiar la versión
+        if (_audioController != null) {
+          _audioController!.ttsService.setLanguageContext(
+            _selectedLanguage,
+            _selectedVersion,
+          );
+        }
+        await _fetchAllDevocionalesForLanguage();
+      } finally {
+        _isSwitchingVersion = false;
+        notifyListeners();
       }
-      await _fetchAllDevocionalesForLanguage();
     }
   }
 
@@ -1083,6 +1099,19 @@ class DevocionalProvider with ChangeNotifier {
     }
   }
 
+  /// Internal helper to save content to local storage
+  Future<void> _saveToLocalStorage(int year, String language, String content,
+      [String? version]) async {
+    try {
+      final String filePath = await _getLocalFilePath(year, language, version);
+      final File file = File(filePath);
+      await file.writeAsString(content);
+      debugPrint('✅ Data saved to local storage: $filePath');
+    } catch (e) {
+      debugPrint('❌ Error saving to local storage: $e');
+    }
+  }
+
   Future<bool> downloadAndStoreDevocionales(int year) async {
     if (_isDownloading) return false;
 
@@ -1122,16 +1151,10 @@ class DevocionalProvider with ChangeNotifier {
         throw Exception('Invalid JSON structure: missing "data" field');
       }
 
-      final String filePath = await _getLocalFilePath(
-        year,
-        _selectedLanguage,
-        _selectedVersion,
-      );
-      final File file = File(filePath);
-      await file.writeAsString(response.body);
+      await _saveToLocalStorage(
+          year, _selectedLanguage, response.body, _selectedVersion);
 
       _downloadStatus = 'Devocionales del año $year descargados exitosamente';
-      debugPrint('✅ File saved to: $filePath');
       return true;
     } catch (e) {
       _downloadStatus = 'Error al descargar devocionales: $e';

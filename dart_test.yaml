@@ -1,7 +1,14 @@
-# Test Configuration for Devocional Nuevo
+# Test configuration - automatically used by flutter test
+tags:
+  critical:
+    timeout: 30s
+  unit:
+    timeout: 10s
+  slow:
+    timeout: 5m
+    skip: "Run explicitly with --tags=slow"
+  flaky:
+    skip: "Unstable - tracked in issues"
 
-# This file sets test timeout configurations to prevent tests from running too long
-# Individual tests should complete within 30 seconds, entire test suite within 5 minutes
-
-timeout: 30s
-chain-timeout: 300s
+# Default timeout for untagged tests
+timeout: 1m

@@ -18,6 +18,7 @@ class AnalyticsService {
 
   // Analytics error telemetry
   static int _analyticsErrorCount = 0;
+
   static int get analyticsErrorCount => _analyticsErrorCount;
 
   /// Constructor with optional FirebaseAnalytics instance (for testing)
@@ -280,6 +281,77 @@ class AnalyticsService {
       debugPrint('📊 Analytics: navigation_previous event logged');
     } catch (e) {
       _logAnalyticsError('navigation_previous', e);
+    }
+  }
+
+  /// Log FAB (Floating Action Button) tap event
+  ///
+  /// Event name: `fab_tapped`
+  /// Parameters:
+  /// - `source`: Where the FAB was tapped ('devocionales_page' or 'prayers_page')
+  Future<void> logFabTapped({required String source}) async {
+    try {
+      debugPrint('🔥 [FAB] Tapped on: $source');
+      await _analytics.logEvent(
+        name: 'fab_tapped',
+        parameters: {'source': source},
+      );
+      debugPrint('📊 Analytics: fab_tapped event logged ($source)');
+    } catch (e) {
+      _logAnalyticsError('fab_tapped', e);
+    }
+  }
+
+  /// Log FAB choice selection event
+  ///
+  /// Event name: `fab_choice_selected`
+  /// Parameters:
+  /// - `source`: Where the choice was made ('devocionales_page' or 'prayers_page')
+  /// - `choice`: What was selected ('prayer', 'thanksgiving', or 'testimony')
+  Future<void> logFabChoiceSelected({
+    required String source,
+    required String choice,
+  }) async {
+    try {
+      debugPrint('🔥 [FAB] Choice selected: $choice on $source');
+      await _analytics.logEvent(
+        name: 'fab_choice_selected',
+        parameters: {
+          'source': source,
+          'choice': choice,
+        },
+      );
+      debugPrint(
+        '📊 Analytics: fab_choice_selected event logged ($choice on $source)',
+      );
+    } catch (e) {
+      _logAnalyticsError('fab_choice_selected', e);
+    }
+  }
+
+  /// Log Discovery page actions
+  ///
+  /// Event name: `discovery_action`
+  /// Parameters:
+  /// - `action`: The action performed (e.g., 'study_opened', 'study_completed', 'study_shared', 'toggle_view')
+  /// - `study_id`: ID of the study (optional, for study-specific actions)
+  Future<void> logDiscoveryAction({
+    required String action,
+    String? studyId,
+  }) async {
+    try {
+      debugPrint('🔥 [Discovery] Action: $action');
+      final parameters = <String, Object>{'action': action};
+      if (studyId != null) {
+        parameters['study_id'] = studyId;
+      }
+      await _analytics.logEvent(
+        name: 'discovery_action',
+        parameters: parameters,
+      );
+      debugPrint('📊 Analytics: discovery_action event logged ($action)');
+    } catch (e) {
+      _logAnalyticsError('discovery_action', e);
     }
   }
 }

@@ -2,11 +2,13 @@ import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_event.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
+import 'package:devocional_nuevo/pages/discovery_list_page.dart';
 import 'package:devocional_nuevo/pages/favorites_page.dart';
 import 'package:devocional_nuevo/pages/notification_config_page.dart';
 import 'package:devocional_nuevo/pages/prayers_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/utils/bubble_constants.dart';
+import 'package:devocional_nuevo/utils/constants.dart';
 import 'package:devocional_nuevo/widgets/app_gradient_dialog.dart';
 import 'package:devocional_nuevo/widgets/theme_selector.dart';
 import 'package:flutter/material.dart';
@@ -26,6 +28,71 @@ class DevocionalesDrawer extends StatelessWidget {
 
   void _showOfflineManagerDialog(BuildContext context) {
     _showDownloadConfirmationDialog(context);
+  }
+
+  void _changeBibleVersion(BuildContext context, String newVersion) async {
+    final devocionalProvider =
+        Provider.of<DevocionalProvider>(context, listen: false);
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    // Show blocking loading dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) {
+        return PopScope(
+          canPop: false,
+          child: AppGradientDialog(
+            maxWidth: 300,
+            dismissible: false,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(color: Colors.white),
+                const SizedBox(height: 20),
+                Text(
+                  'drawer.switching_version'.tr(),
+                  textAlign: TextAlign.center,
+                  style: textTheme.bodyMedium?.copyWith(color: Colors.white),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+
+    try {
+      await devocionalProvider.setSelectedVersion(newVersion);
+      if (context.mounted) {
+        // Close loading dialog
+        Navigator.of(context).pop();
+        // Close drawer
+        Navigator.of(context).pop();
+
+        final error = devocionalProvider.errorMessage;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(error ?? 'settings.version_changed'.tr()),
+            backgroundColor:
+                error != null ? colorScheme.error : colorScheme.primary,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint('Error switching version: $e');
+      if (context.mounted) {
+        Navigator.of(context).pop(); // Close dialog if still open
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('errors.unknown_error'.tr()),
+            backgroundColor: colorScheme.error,
+          ),
+        );
+      }
+    }
   }
 
   // NUEVO METODO AJUSTADO:
@@ -359,50 +426,51 @@ class DevocionalesDrawer extends StatelessWidget {
                           icon: Icons.auto_stories_outlined,
                           iconColor: colorScheme.primary,
                           label: DropdownButtonHideUnderline(
-                            child: DropdownButton<String>(
-                              value: selectedVersion,
-                              icon: Icon(
-                                Icons.arrow_drop_down,
-                                color: colorScheme.onSurface,
-                              ),
-                              dropdownColor: colorScheme.surface,
-                              isExpanded: true,
-                              onChanged: (String? newValue) {
-                                if (newValue != null) {
-                                  devocionalProvider.setSelectedVersion(
-                                    newValue,
-                                  );
-                                  Navigator.of(context).pop();
-                                }
-                              },
-                              selectedItemBuilder: (BuildContext context) {
-                                return versions.map<Widget>((String itemValue) {
-                                  return Row(
-                                    children: [
-                                      Text(
-                                        itemValue,
-                                        style: TextStyle(
-                                          color: colorScheme.onSurface,
-                                          fontSize: 16,
+                            child: AbsorbPointer(
+                              absorbing: devocionalProvider.isSwitchingVersion,
+                              child: DropdownButton<String>(
+                                value: selectedVersion,
+                                icon: Icon(
+                                  Icons.arrow_drop_down,
+                                  color: colorScheme.onSurface,
+                                ),
+                                dropdownColor: colorScheme.surface,
+                                isExpanded: true,
+                                onChanged: (String? newValue) {
+                                  if (newValue != null) {
+                                    _changeBibleVersion(context, newValue);
+                                  }
+                                },
+                                selectedItemBuilder: (BuildContext context) {
+                                  return versions
+                                      .map<Widget>((String itemValue) {
+                                    return Row(
+                                      children: [
+                                        Text(
+                                          itemValue,
+                                          style: TextStyle(
+                                            color: colorScheme.onSurface,
+                                            fontSize: 16,
+                                          ),
                                         ),
+                                      ],
+                                    );
+                                  }).toList();
+                                },
+                                items: versions.map<DropdownMenuItem<String>>((
+                                  String itemValue,
+                                ) {
+                                  return DropdownMenuItem<String>(
+                                    value: itemValue,
+                                    child: Text(
+                                      itemValue,
+                                      style: TextStyle(
+                                        color: colorScheme.onSurface,
                                       ),
-                                    ],
-                                  );
-                                }).toList();
-                              },
-                              items: versions.map<DropdownMenuItem<String>>((
-                                String itemValue,
-                              ) {
-                                return DropdownMenuItem<String>(
-                                  value: itemValue,
-                                  child: Text(
-                                    itemValue,
-                                    style: TextStyle(
-                                      color: colorScheme.onSurface,
                                     ),
-                                  ),
-                                );
-                              }).toList(),
+                                  );
+                                }).toList(),
+                              ),
                             ),
                           ),
                         ),
@@ -451,6 +519,30 @@ class DevocionalesDrawer extends StatelessWidget {
                           },
                         ),
                         const SizedBox(height: 5),
+                        // --- Discovery Studies ---
+                        if (Constants.enableDiscoveryFeature)
+                          drawerRow(
+                            key: const Key('drawer_discovery_studies'),
+                            icon: Icons.school_outlined,
+                            iconColor: colorScheme.primary,
+                            label: Text(
+                              'discovery.discovery_studies'.tr(),
+                              style: textTheme.bodyMedium?.copyWith(
+                                fontSize: 16,
+                                color: colorScheme.onSurface,
+                              ),
+                            ),
+                            onTap: () {
+                              Navigator.of(context).pop();
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => const DiscoveryListPage(),
+                                ),
+                              );
+                            },
+                          ),
+                        if (Constants.enableDiscoveryFeature)
+                          const SizedBox(height: 5),
                         // --- Switch modo oscuro ---
                         drawerRow(
                           key: const Key('drawer_dark_mode_toggle'),

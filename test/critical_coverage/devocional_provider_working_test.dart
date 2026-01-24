@@ -1,3 +1,6 @@
+@Tags(['critical', 'bloc'])
+library;
+
 import 'dart:convert';
 
 import 'package:devocional_nuevo/models/devocional_model.dart';

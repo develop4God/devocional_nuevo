@@ -159,14 +159,14 @@ void main() {
       expect(find.byType(AddThanksgivingModal), findsNothing);
     });
 
-    testWidgets('should respect max length of 500 characters', (
+    testWidgets('should respect max length of 850 characters', (
       WidgetTester tester,
     ) async {
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pumpAndSettle();
 
       final textField = tester.widget<TextField>(find.byType(TextField));
-      expect(textField.maxLength, equals(700));
+      expect(textField.maxLength, equals(850));
     });
 
     testWidgets('should have 6 lines for text input', (

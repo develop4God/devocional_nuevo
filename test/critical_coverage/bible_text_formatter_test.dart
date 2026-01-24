@@ -1,3 +1,6 @@
+@Tags(['critical', 'bloc'])
+library;
+
 // test/critical_coverage/bible_text_formatter_test.dart
 // High-value tests for Bible text formatting for TTS across all languages
 

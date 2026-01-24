@@ -58,9 +58,10 @@ class InitializeNavigation extends DevocionalesNavigationEvent {
 /// Update devotionals list (when list changes)
 class UpdateDevocionales extends DevocionalesNavigationEvent {
   final List<Devocional> devocionales;
+  final List<String> readDevocionalIds;
 
-  const UpdateDevocionales(this.devocionales);
+  const UpdateDevocionales(this.devocionales, this.readDevocionalIds);
 
   @override
-  List<Object?> get props => [devocionales];
+  List<Object?> get props => [devocionales, readDevocionalIds];
 }

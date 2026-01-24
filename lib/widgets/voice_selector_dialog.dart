@@ -333,6 +333,14 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
       return;
     }
 
+    // ✅ VALIDATION: Prevent null voice crashes (Crashlytics fix)
+    if (name.trim().isEmpty || locale.trim().isEmpty) {
+      debugPrint(
+        '[VoiceSelector] ⚠️ Invalid voice data (name: "$name", locale: "$locale"), skipping sample',
+      );
+      return;
+    }
+
     setState(() {
       _playingIndex = index;
     });

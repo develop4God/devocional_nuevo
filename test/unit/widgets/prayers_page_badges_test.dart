@@ -1,5 +1,7 @@
 import 'package:devocional_nuevo/blocs/prayer_bloc.dart';
 import 'package:devocional_nuevo/blocs/prayer_state.dart';
+import 'package:devocional_nuevo/blocs/testimony_bloc.dart';
+import 'package:devocional_nuevo/blocs/testimony_state.dart';
 import 'package:devocional_nuevo/blocs/thanksgiving_bloc.dart';
 import 'package:devocional_nuevo/blocs/thanksgiving_state.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
@@ -20,11 +22,14 @@ class MockPrayerBloc extends Mock implements PrayerBloc {}
 
 class MockThanksgivingBloc extends Mock implements ThanksgivingBloc {}
 
+class MockTestimonyBloc extends Mock implements TestimonyBloc {}
+
 class MockThemeBloc extends Mock implements ThemeBloc {}
 
 void main() {
   late MockPrayerBloc mockPrayerBloc;
   late MockThanksgivingBloc mockThanksgivingBloc;
+  late MockTestimonyBloc mockTestimonyBloc;
   late MockThemeBloc mockThemeBloc;
 
   setUp(() {
@@ -33,7 +38,13 @@ void main() {
     registerTestServices();
     mockPrayerBloc = MockPrayerBloc();
     mockThanksgivingBloc = MockThanksgivingBloc();
+    mockTestimonyBloc = MockTestimonyBloc();
     mockThemeBloc = MockThemeBloc();
+
+    // Default testimony state
+    when(() => mockTestimonyBloc.state)
+        .thenReturn(TestimonyLoaded(testimonies: []));
+    when(() => mockTestimonyBloc.stream).thenAnswer((_) => Stream.empty());
 
     // Default theme state
     when(() => mockThemeBloc.state).thenReturn(
@@ -62,6 +73,7 @@ void main() {
           providers: [
             BlocProvider<PrayerBloc>.value(value: mockPrayerBloc),
             BlocProvider<ThanksgivingBloc>.value(value: mockThanksgivingBloc),
+            BlocProvider<TestimonyBloc>.value(value: mockTestimonyBloc),
             BlocProvider<ThemeBloc>.value(value: mockThemeBloc),
           ],
           child: const PrayersPage(),

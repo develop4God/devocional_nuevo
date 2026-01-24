@@ -83,6 +83,19 @@ full_test.txt
 
 # Ignore Flutter generated plugin registrant (auto-generated, should not be versioned)
 android/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.java
+ios/Runner/GeneratedPluginRegistrant.h
+ios/Runner/GeneratedPluginRegistrant.m
+macos/Flutter/GeneratedPluginRegistrant.swift
+linux/flutter/generated_plugin_registrant.cc
+linux/flutter/generated_plugin_registrant.h
+windows/flutter/generated_plugin_registrant.cc
+windows/flutter/generated_plugin_registrant.h
 
 # Ignore Patrol generated test bundle (auto-generated, should not be versioned)
 patrol_test/test_bundle.dart
+
+# Test output files
+test_output.txt
+full_test_output.txt
+test_results.json
+extract_failures.sh

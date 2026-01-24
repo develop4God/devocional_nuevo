@@ -1,3 +1,6 @@
+@Tags(['critical', 'bloc'])
+library;
+
 // test/critical_coverage/localization_service_user_flows_test.dart
 
 import 'dart:ui';
@@ -8,6 +11,7 @@ import 'package:intl/date_symbol_data_local.dart';
 
 /// High-value user flow tests for LocalizationService
 /// Tests real user behavior for multi-language support
+
 void main() {
   setUpAll(() async {
     // Initialize date formatting for all supported locales

@@ -275,9 +275,28 @@ class TtsAudioController {
           '⚠️ [TTS Controller] Multibyte ratio: $ratio (${_currentText!.length} chars → $byteLength bytes)',
         );
         debugPrint(
-          '⚠️ [TTS Controller] Using stop() instead of pause() to prevent native crash',
+          '⚠️ [TTS Controller] Using stop() with position preservation instead of pause()',
         );
-        await stop();
+
+        // CRITICAL FIX: Preserve position before stopping
+        // This allows resume to continue from current position
+        final positionBeforeStop = currentPosition.value;
+
+        await flutterTts.stop();
+
+        // Set state to paused (not idle) to indicate we can resume
+        state.value = TtsPlayerState.paused;
+        _pauseProgressTimer();
+
+        // Preserve the position for resume
+        if (positionBeforeStop > _accumulatedPosition) {
+          _accumulatedPosition = positionBeforeStop;
+        }
+
+        debugPrint(
+          '⏸️ [TTS Controller] Position preserved: ${_accumulatedPosition.inSeconds}s for multibyte text',
+        );
+        debugPrint('⏸️ [TTS Controller] ========== FIN PAUSE() ==========');
         return;
       }
     }

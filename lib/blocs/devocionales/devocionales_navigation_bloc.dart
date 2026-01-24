@@ -179,29 +179,27 @@ class DevocionalesNavigationBloc
   ) async {
     if (state is! NavigationReady) return;
 
-    final currentState = state as NavigationReady;
-
     if (event.devocionales.isEmpty) {
       emit(const NavigationError('No devotionals available'));
       return;
     }
 
-    // Ensure current index is still valid with the new list
-    final validIndex = _clampIndex(
-      currentState.currentIndex,
-      event.devocionales.length,
+    // FIX: When devotionals update (language/version change),
+    // we must find the first unread in the NEW list, instead of just keeping the index.
+    final firstUnreadIndex =
+        _devocionalRepository.findFirstUnreadDevocionalIndex(
+      event.devocionales,
+      event.readDevocionalIds,
     );
 
     emit(
       NavigationReady.calculate(
-        currentIndex: validIndex,
+        currentIndex: firstUnreadIndex,
         devocionales: event.devocionales,
       ),
     );
 
-    if (validIndex != currentState.currentIndex) {
-      await _navigationRepository.saveCurrentIndex(validIndex);
-    }
+    await _navigationRepository.saveCurrentIndex(firstUnreadIndex);
   }
 
   /// Clamp index to valid range [0, totalDevocionales - 1]

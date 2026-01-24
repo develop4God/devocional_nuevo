@@ -1,10 +1,12 @@
+import 'package:devocional_nuevo/blocs/discovery/discovery_bloc.dart';
+import 'package:devocional_nuevo/blocs/discovery/discovery_event.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/providers/localization_provider.dart';
 import 'package:devocional_nuevo/utils/constants.dart';
-import 'package:devocional_nuevo/widgets/app_bar_constants.dart';
+import 'package:devocional_nuevo/widgets/devocionales/app_bar_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -102,6 +104,13 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
       // Update DevocionalProvider with new language (pass context for UI locale update)
       if (mounted) {
         devocionalProvider.setSelectedLanguage(languageCode, context);
+
+        // Update DiscoveryBloc with new language
+        if (Constants.enableDiscoveryFeature) {
+          context
+              .read<DiscoveryBloc>()
+              .add(RefreshDiscoveryStudies(languageCode: languageCode));
+        }
       }
 
       // Set default version for the language
@@ -208,6 +217,8 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
         // If still no voice found, just use the first one
         bestVoice ??= voices.first;
 
+        debugPrint('🎵 Raw best voice selected: "$bestVoice"');
+
         // Parse voice name and locale
         if (bestVoice.contains(' (') && bestVoice.contains(')')) {
           final parts = bestVoice.split(' (');
@@ -217,14 +228,28 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
           final localeParts = localeWithGender.split(' ');
           bestVoiceLocale =
               localeParts.last; // Get the last part which should be locale
+          debugPrint(
+            '🎵 Parsed from format "name (locale)": name="$bestVoiceName", locale="$bestVoiceLocale"',
+          );
         } else {
           bestVoiceName = bestVoice;
           bestVoiceLocale = _getDefaultLocaleForLanguage(languageCode);
+          debugPrint(
+            '🎵 No standard format, using full string: name="$bestVoiceName", locale="$bestVoiceLocale"',
+          );
         }
 
         debugPrint(
           '🎵 Selected best voice: $bestVoiceName with locale: $bestVoiceLocale',
         );
+
+        // ✅ VALIDATION: Ensure voice name and locale are not empty
+        if (bestVoiceName.trim().isEmpty || bestVoiceLocale.trim().isEmpty) {
+          debugPrint(
+            '⚠️ Invalid voice parsed for $languageCode (name: "$bestVoiceName", locale: "$bestVoiceLocale"). Skipping auto-assignment.',
+          );
+          return;
+        }
 
         // Set the voice
         final voiceName = bestVoiceName;
@@ -398,47 +423,67 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
     double progress,
     ThemeData theme,
   ) {
+    final colorScheme = theme.colorScheme;
+
     if (isDownloading) {
-      return SizedBox(
-        width: 60,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SizedBox(
-              width: 24,
-              height: 24,
-              child: CircularProgressIndicator(
-                value: progress,
-                strokeWidth: 2,
-                color: theme.colorScheme.primary,
-              ),
+      return Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: colorScheme.primary.withAlpha(100),
+            width: 2,
+          ),
+        ),
+        child: Center(
+          child: SizedBox(
+            width: 24,
+            height: 24,
+            child: CircularProgressIndicator(
+              value: progress,
+              strokeWidth: 2,
+              color: colorScheme.primary,
             ),
-            const SizedBox(height: 4),
-            Text(
-              '${(progress * 100).toInt()}%',
-              style: theme.textTheme.bodySmall,
-            ),
-          ],
+          ),
         ),
       );
     }
 
+    IconData iconData;
     if (isDownloaded) {
       // If it's the current language, show check mark, otherwise show switch icon
       if (languageCode == _currentLanguage) {
-        return Icon(
-          Icons.file_download_done_rounded,
-          color: theme.colorScheme.primary,
-        );
+        iconData = Icons.file_download_done_rounded;
       } else {
-        return Icon(
-          Icons.file_download_done_rounded,
-          color: theme.colorScheme.primary,
-        );
+        // Show switch icon for downloaded but not current language
+        iconData = Icons.swap_horiz_rounded;
       }
+    } else {
+      iconData = Icons.file_download_outlined;
     }
 
-    return Icon(Icons.file_download_outlined, color: theme.colorScheme.primary);
+    return Container(
+      width: 40,
+      height: 40,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: colorScheme.primary.withAlpha(180),
+          width: 2,
+        ),
+        color: isDownloaded && languageCode == _currentLanguage
+            ? colorScheme.primary.withAlpha(26)
+            : Colors.transparent,
+      ),
+      child: Center(
+        child: Icon(
+          iconData,
+          color: colorScheme.primary,
+          size: 20,
+        ),
+      ),
+    );
   }
 
   @override

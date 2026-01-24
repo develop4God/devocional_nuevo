@@ -1,3 +1,6 @@
+@Tags(['critical', 'bloc'])
+library;
+
 // test/critical_coverage/prayer_user_flows_test.dart
 // High-value user behavior tests for Prayer functionality
 

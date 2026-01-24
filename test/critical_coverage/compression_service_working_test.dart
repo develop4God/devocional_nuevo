@@ -1,3 +1,6 @@
+@Tags(['critical', 'bloc'])
+library;
+
 // test/critical_coverage/compression_service_working_test.dart
 // High-value tests for CompressionService - real user flows and edge cases
 

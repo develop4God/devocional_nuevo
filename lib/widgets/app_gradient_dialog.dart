@@ -10,6 +10,7 @@ class AppGradientDialog extends StatelessWidget {
   final double borderRadius;
   final Color? borderColor;
   final double borderWidth;
+  final bool dismissible;
 
   const AppGradientDialog({
     super.key,
@@ -22,6 +23,7 @@ class AppGradientDialog extends StatelessWidget {
     this.borderRadius = 28,
     this.borderColor,
     this.borderWidth = 2,
+    this.dismissible = true,
   });
 
   @override
@@ -42,7 +44,9 @@ class AppGradientDialog extends StatelessWidget {
           GestureDetector(
             behavior: HitTestBehavior.opaque,
             onTap: () {
-              Navigator.of(context).maybePop();
+              if (dismissible) {
+                Navigator.of(context).maybePop();
+              }
             },
             child: Container(
               color: Colors.transparent,

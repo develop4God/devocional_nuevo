@@ -22,7 +22,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-    
+      pull-requests: write
+      issues: write
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -40,9 +42,11 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
       
-      - name: Update README statistics
+      - name: Update README statistics with full coverage
         run: dart scripts/update_readme_stats.dart
         continue-on-error: false
+        env:
+          FULL_STATS: 'true'
       
       - name: Check for changes
         id: verify
@@ -53,6 +57,10 @@ jobs:
           else
             echo "changed=true" >> $GITHUB_OUTPUT
             echo "README.md has been updated"
+            # save the diff for later PR comment
+            echo "diff<<EOF" >> $GITHUB_OUTPUT
+            git --no-pager diff README.md >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
           fi
       
       - name: Show README changes
@@ -68,7 +76,8 @@ jobs:
           git config --local user.name "github-actions[bot]"
           git add README.md
           git commit -m "docs: Auto-update README statistics [skip ci]"
-          git push
+          # Push using HEAD so it works from detached head
+          git push origin HEAD:${GITHUB_REF#refs/heads/}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
@@ -78,19 +87,19 @@ jobs:
         with:
           script: |
             const output = `### 📊 README Statistics Update
-            
+
             The README.md statistics have been automatically updated based on the current codebase.
-            
+
             **What changed:**
             - File counts updated from actual codebase
             - Language support updated from i18n directory
-            
+
             **To apply these changes:**
             Run \`dart scripts/update_readme_stats.dart\` locally and commit the changes.
-            
+
             <details>
             <summary>View changes</summary>
-            
+
             \`\`\`diff
             ${process.env.DIFF_OUTPUT}
             \`\`\`

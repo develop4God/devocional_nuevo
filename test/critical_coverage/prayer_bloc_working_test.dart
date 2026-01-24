@@ -1,3 +1,6 @@
+@Tags(['critical', 'bloc'])
+library;
+
 // test/critical_coverage/prayer_bloc_working_test.dart
 import 'package:flutter_test/flutter_test.dart';
 import 'package:bloc_test/bloc_test.dart';
