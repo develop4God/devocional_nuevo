@@ -419,10 +419,10 @@
     "reset_confirmation": "您确定要重置所有统计吗？",
     "stats_reset": "统计已重置",
     "streak": "连续",
-    "first_read": "PENDING",
-    "first_favorite": "PENDING",
-    "dedicated_reader": "PENDING",
-    "achievement_unlocked": "PENDING"
+    "first_read": "首次阅读",
+    "first_favorite": "首次收藏",
+    "dedicated_reader": "专注读者",
+    "achievement_unlocked": "成就解锁！"
   },
   "achievements": {
     "first_read_title": "第一步",
@@ -746,8 +746,8 @@
     "share_footer_download": "下载: 基督教灵修",
     "share_footer_benefits": "100%免费 | 无广告 | 离线使用",
     "share_footer_developer": "Develop4God",
-    "scripture_connections": "PENDING",
-    "greek_words": "PENDING"
+    "scripture_connections": "圣经关联",
+    "greek_words": "希腊语词汇"
   },
   "tags": {
     "love": "爱",
