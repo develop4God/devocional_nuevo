@@ -89,6 +89,7 @@ echo "3) patch - Bug fixes (${CURRENT_VERSION_NAME} → ${MAJOR}.${MINOR}.$((PAT
 echo ""
 
 while true; do
+    # shellcheck disable=SC2162
     read -p "Choice [1-3]: " CHOICE
     case $CHOICE in
         1)
@@ -128,6 +129,7 @@ print_info "New version will be: ${GREEN}${NEW_FULL_VERSION}${NC}"
 echo ""
 
 # 7. Get commit message
+# shellcheck disable=SC2162
 read -p "Commit message: " COMMIT_MESSAGE
 
 if [[ -z "$COMMIT_MESSAGE" ]]; then
