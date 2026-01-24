@@ -2,6 +2,26 @@
 
 set -e
 
+# --- Find project root (directory containing pubspec.yaml) ---
+find_project_root() {
+    SEARCH_DIR="$PWD"
+    while [[ "$SEARCH_DIR" != "/" ]]; do
+        if [[ -f "$SEARCH_DIR/pubspec.yaml" ]]; then
+            echo "$SEARCH_DIR"
+            return 0
+        fi
+        SEARCH_DIR="$(dirname "$SEARCH_DIR")"
+    done
+    return 1
+}
+
+PROJECT_ROOT=$(find_project_root)
+if [[ -z "$PROJECT_ROOT" ]]; then
+    echo -e "\033[0;31m❌ pubspec.yaml not found in this or any parent directory\033[0m"
+    exit 1
+fi
+cd "$PROJECT_ROOT"
+
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
