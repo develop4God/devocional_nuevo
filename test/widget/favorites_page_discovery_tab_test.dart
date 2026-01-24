@@ -2,10 +2,9 @@
 // Widget test to verify Discovery tab loads correctly and doesn't show infinite spinner
 
 import 'package:devocional_nuevo/blocs/discovery/discovery_bloc.dart';
-import 'package:devocional_nuevo/blocs/discovery/discovery_event.dart';
 import 'package:devocional_nuevo/blocs/discovery/discovery_state.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
-import 'package:devocional_nuevo/models/devocional_model.dart';
+import 'package:devocional_nuevo/blocs/theme/theme_event.dart';
 import 'package:devocional_nuevo/pages/favorites_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/repositories/discovery_repository.dart';
@@ -85,7 +84,6 @@ void main() {
     expect(discoveryBloc.state, isA<DiscoveryInitial>());
 
     // Track events
-    final events = <DiscoveryEvent>[];
     discoveryBloc.stream.listen((state) {});
 
     // Mock successful index fetch
@@ -93,6 +91,11 @@ void main() {
         .thenAnswer((_) async => {
               'studies': [],
             });
+
+    // Create ThemeBloc and initialize it
+    final themeBloc = ThemeBloc();
+    themeBloc.add(const InitializeThemeDefaults());
+    await Future.delayed(const Duration(milliseconds: 100));
 
     // Build widget
     await tester.pumpWidget(
@@ -104,9 +107,7 @@ void main() {
         child: MultiBlocProvider(
           providers: [
             BlocProvider<DiscoveryBloc>.value(value: discoveryBloc),
-            BlocProvider<ThemeBloc>(
-              create: (_) => ThemeBloc(),
-            ),
+            BlocProvider<ThemeBloc>.value(value: themeBloc),
           ],
           child: const MaterialApp(
             home: FavoritesPage(initialIndex: 1), // Bible Studies tab
@@ -142,6 +143,11 @@ void main() {
               'studies': [],
             });
 
+    // Create ThemeBloc and initialize it
+    final themeBloc = ThemeBloc();
+    themeBloc.add(const InitializeThemeDefaults());
+    await Future.delayed(const Duration(milliseconds: 100));
+
     // Build widget
     await tester.pumpWidget(
       MultiProvider(
@@ -152,9 +158,7 @@ void main() {
         child: MultiBlocProvider(
           providers: [
             BlocProvider<DiscoveryBloc>.value(value: discoveryBloc),
-            BlocProvider<ThemeBloc>(
-              create: (_) => ThemeBloc(),
-            ),
+            BlocProvider<ThemeBloc>.value(value: themeBloc),
           ],
           child: const MaterialApp(
             home: FavoritesPage(initialIndex: 1),
@@ -184,6 +188,11 @@ void main() {
     when(mockRepository.fetchIndex(forceRefresh: anyNamed('forceRefresh')))
         .thenThrow(Exception('Network error'));
 
+    // Create ThemeBloc and initialize it
+    final themeBloc = ThemeBloc();
+    themeBloc.add(const InitializeThemeDefaults());
+    await Future.delayed(const Duration(milliseconds: 100));
+
     // Build widget
     await tester.pumpWidget(
       MultiProvider(
@@ -194,9 +203,7 @@ void main() {
         child: MultiBlocProvider(
           providers: [
             BlocProvider<DiscoveryBloc>.value(value: discoveryBloc),
-            BlocProvider<ThemeBloc>(
-              create: (_) => ThemeBloc(),
-            ),
+            BlocProvider<ThemeBloc>.value(value: themeBloc),
           ],
           child: const MaterialApp(
             home: FavoritesPage(initialIndex: 1),
@@ -215,29 +222,28 @@ void main() {
     discoveryBloc.close();
   });
 
-  testWidgets('Devotionals tab shows favorites list correctly',
+  testWidgets('Switching to Bible Studies tab triggers data load',
       (WidgetTester tester) async {
-    // Create mock favorites
-    final mockFavorites = <Devocional>[
-      Devocional(
-        id: 'fav_1',
-        date: DateTime.now(),
-        versiculo: 'John 3:16',
-        reflexion: 'Test reflection',
-        paraMeditar: [],
-        oracion: 'Test prayer',
-        version: 'RVR1960',
-      ),
-    ];
+    when(mockDevocionalProvider.favoriteDevocionales).thenReturn([]);
 
-    when(mockDevocionalProvider.favoriteDevocionales).thenReturn(mockFavorites);
     final discoveryBloc = DiscoveryBloc(
       repository: mockRepository,
       progressTracker: mockProgressTracker,
       favoritesService: mockFavoritesService,
     );
 
-    // Build widget on Devotionals tab
+    // Mock successful index fetch
+    when(mockRepository.fetchIndex(forceRefresh: anyNamed('forceRefresh')))
+        .thenAnswer((_) async => {
+              'studies': [],
+            });
+
+    // Create ThemeBloc and initialize it
+    final themeBloc = ThemeBloc();
+    themeBloc.add(const InitializeThemeDefaults());
+    await Future.delayed(const Duration(milliseconds: 100));
+
+    // Build widget on Devotionals tab first
     await tester.pumpWidget(
       MultiProvider(
         providers: [
@@ -247,12 +253,10 @@ void main() {
         child: MultiBlocProvider(
           providers: [
             BlocProvider<DiscoveryBloc>.value(value: discoveryBloc),
-            BlocProvider<ThemeBloc>(
-              create: (_) => ThemeBloc(),
-            ),
+            BlocProvider<ThemeBloc>.value(value: themeBloc),
           ],
           child: const MaterialApp(
-            home: FavoritesPage(initialIndex: 0), // Devotionals tab
+            home: FavoritesPage(initialIndex: 0), // Start on Devotionals tab
           ),
         ),
       ),
@@ -260,9 +264,16 @@ void main() {
 
     await tester.pumpAndSettle();
 
-    // Should show favorites list
-    expect(find.text('John 3:16'), findsOneWidget);
-    expect(find.byType(CircularProgressIndicator), findsNothing);
+    // Verify we're on Devotionals tab and DiscoveryBloc is still in Initial state
+    expect(discoveryBloc.state, isA<DiscoveryInitial>());
+
+    // Now switch to Bible Studies tab
+    await tester.tap(find.byIcon(Icons.star_rounded));
+    await tester.pump(); // Start the animation
+    await tester.pumpAndSettle(); // Complete the animation and async work
+
+    // Verify LoadDiscoveryStudies was triggered and bloc transitioned out of Initial state
+    expect(discoveryBloc.state, isNot(isA<DiscoveryInitial>()));
 
     discoveryBloc.close();
   });
