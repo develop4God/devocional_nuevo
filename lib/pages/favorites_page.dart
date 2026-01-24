@@ -154,15 +154,18 @@ class _FavoritesPageState extends State<FavoritesPage>
   Widget _buildBibleStudiesFavorites(BuildContext context, ThemeData theme) {
     return BlocConsumer<DiscoveryBloc, DiscoveryState>(
       listener: (context, state) {
-        // Trigger loading if in initial state
-        if (state is DiscoveryInitial) {
-          context.read<DiscoveryBloc>().add(LoadDiscoveryStudies());
-        }
+        // Listener fires on state changes only
+        // Initial state handling is done in builder
       },
       builder: (context, state) {
-        // Handle initial state - trigger load
+        // Handle initial state - trigger load immediately
         if (state is DiscoveryInitial) {
-          // Will trigger load in listener, show loading indicator
+          // Dispatch event on first build when in initial state
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (context.mounted) {
+              context.read<DiscoveryBloc>().add(LoadDiscoveryStudies());
+            }
+          });
           return const Center(child: CircularProgressIndicator());
         }
 

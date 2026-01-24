@@ -63,14 +63,18 @@ Widget _buildBibleStudiesFavorites(BuildContext context, ThemeData theme) {
 Widget _buildBibleStudiesFavorites(BuildContext context, ThemeData theme) {
   return BlocConsumer<DiscoveryBloc, DiscoveryState>(
     listener: (context, state) {
-      // ✅ Trigger loading if in initial state
-      if (state is DiscoveryInitial) {
-        context.read<DiscoveryBloc>().add(LoadDiscoveryStudies());
-      }
+      // Listener fires on state changes only
+      // Initial state handling is done in builder
     },
     builder: (context, state) {
-      // ✅ Handle initial state - trigger load
+      // ✅ Handle initial state - trigger load on first build
       if (state is DiscoveryInitial) {
+        // Use postFrameCallback to avoid dispatching during build
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (context.mounted) {
+            context.read<DiscoveryBloc>().add(LoadDiscoveryStudies());
+          }
+        });
         return const Center(child: CircularProgressIndicator());
       }
 
@@ -124,30 +128,34 @@ Widget _buildBibleStudiesFavorites(BuildContext context, ThemeData theme) {
 
 ---
 
-### 2. Listener for Event Dispatch ✅
+### 2. PostFrameCallback for Event Dispatch ✅
 
 ```dart
-listener: (context, state) {
-// Trigger loading if in initial state
-if
-(
-state is DiscoveryInitial) {
+if (state is DiscoveryInitial) {
+// Use postFrameCallback to avoid dispatching during build
+WidgetsBinding.instance.addPostFrameCallback((_) {
+if (context.mounted) {
 context.read<DiscoveryBloc>().add(LoadDiscoveryStudies());
 }
+});
+return const Center(child: CircularProgressIndicator());
 }
-,
 ```
 
 **Why:**
 
-- Automatically loads studies when first entering the tab
-- No manual trigger needed from user
-- Follows reactive programming principles
+- BlocConsumer listener only fires on **state changes**, not on initial build
+- If DiscoveryBloc is already in `DiscoveryInitial` when widget builds, listener won't fire
+- Must check state in `builder` and dispatch event there
+- Use `postFrameCallback` to avoid dispatching events during build phase
+- Include `context.mounted` check for safety
 
 **Benefit:**
 
-- Seamless UX - data loads automatically
-- No infinite spinner
+- Automatically loads studies when first entering the tab
+- Works even when DiscoveryBloc is in initial state on first build
+- No manual trigger needed from user
+- Follows reactive programming principles and Flutter best practices
 
 ---
 
