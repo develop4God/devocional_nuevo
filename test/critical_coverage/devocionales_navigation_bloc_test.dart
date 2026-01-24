@@ -49,6 +49,14 @@ void main() {
     when(
       () => mockNavigationRepository.saveCurrentIndex(any()),
     ).thenAnswer((_) async => {});
+
+    // Default stub for findFirstUnreadDevocionalIndex to prevent null errors
+    when(
+      () => mockDevocionalRepository.findFirstUnreadDevocionalIndex(
+        any(),
+        any(),
+      ),
+    ).thenReturn(0);
   });
 
   group('DevocionalesNavigationBloc - Initial State', () {
@@ -595,11 +603,13 @@ void main() {
       },
       expect: () => [
         isA<NavigationReady>()
-            .having((s) => s.currentIndex, 'currentIndex', 5)
+            // FIX: UpdateDevocionales now finds first unread (0) instead of preserving index (5)
+            .having((s) => s.currentIndex, 'currentIndex', 0)
             .having((s) => s.totalDevocionales, 'totalDevocionales', 20),
       ],
       verify: (_) {
-        verifyNever(() => mockNavigationRepository.saveCurrentIndex(any()));
+        // FIX: Now DOES save because it navigates to first unread (0)
+        verify(() => mockNavigationRepository.saveCurrentIndex(0)).called(1);
       },
     );
 
@@ -622,20 +632,18 @@ void main() {
       },
       expect: () => [
         isA<NavigationReady>()
-            .having(
-              (s) => s.currentIndex,
-              'currentIndex',
-              4,
-            ) // Clamped to new last
+            // FIX: UpdateDevocionales now finds first unread (0) instead of clamping to 4
+            .having((s) => s.currentIndex, 'currentIndex', 0)
             .having((s) => s.totalDevocionales, 'totalDevocionales', 5)
             .having(
               (s) => s.currentDevocional.id,
               'currentDevocional.id',
-              'dev_4',
+              'dev_0', // First unread, not clamped index
             ),
       ],
       verify: (_) {
-        verify(() => mockNavigationRepository.saveCurrentIndex(4)).called(1);
+        // FIX: Now saves because it navigates to first unread (0)
+        verify(() => mockNavigationRepository.saveCurrentIndex(0)).called(1);
       },
     );
 
