@@ -31,6 +31,7 @@ import 'package:devocional_nuevo/widgets/devocionales/devocionales_page_drawer.d
 import 'package:devocional_nuevo/widgets/floating_font_control_buttons.dart';
 import 'package:devocional_nuevo/widgets/tts_miniplayer_modal.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -50,6 +51,52 @@ import '../services/tts/bible_text_formatter.dart';
 import '../widgets/animated_fab_with_text.dart';
 import '../widgets/devocionales/devocionales_bottom_bar.dart';
 import '../widgets/voice_selector_dialog.dart';
+
+/// Initialization state for the devotionals page
+/// Following Flutter state management best practices
+enum _PageInitializationState {
+  /// Initial state - waiting to start initialization
+  notStarted,
+
+  /// Loading devotionals and initializing BLoC
+  loading,
+
+  /// Successfully initialized and ready to display content
+  ready,
+
+  /// Initialization failed - can retry
+  error,
+}
+
+/// Configuration constants for the devotionals page
+/// Avoiding magic numbers as per Flutter style guide
+class _PageConstants {
+  const _PageConstants._();
+
+  /// Duration for post-splash animation display
+  static const postSplashAnimationDuration = Duration(seconds: 7);
+
+  /// Duration for scroll-to-top animation
+  static const scrollToTopDuration = Duration(milliseconds: 300);
+
+  /// Minimum font size allowed
+  static const minFontSize = 12.0;
+
+  /// Maximum font size allowed
+  static const maxFontSize = 28.0;
+
+  /// Default font size
+  static const defaultFontSize = 16.0;
+
+  /// Font size adjustment step
+  static const fontSizeStep = 1.0;
+
+  /// Lottie animation width
+  static const lottieAnimationWidth = 200.0;
+
+  /// Delay before stopping audio on navigation
+  static const audioStopDelay = Duration(milliseconds: 100);
+}
 
 class DevocionalesPage extends StatefulWidget {
   final String? initialDevocionalId;
@@ -72,12 +119,23 @@ class _DevocionalesPageState extends State<DevocionalesPage>
   int _currentStreak = 0;
   late Future<int> _streakFuture;
 
-  // Navigation BLoC
-  late DevocionalesNavigationBloc _navigationBloc;
+  // Navigation BLoC and initialization state
+  DevocionalesNavigationBloc? _navigationBloc;
+  _PageInitializationState _initState = _PageInitializationState.notStarted;
+  String? _initErrorMessage;
+
+  // Track last processed devotionals to prevent duplicate updates
+  List<Devocional>? _lastProcessedDevocionales;
+
+  // Repository instances - reused to avoid re-instantiation
+  late final NavigationRepositoryImpl _navigationRepository =
+      NavigationRepositoryImpl();
+  late final DevocionalRepositoryImpl _devocionalRepository =
+      DevocionalRepositoryImpl();
 
   // Font control variables
   bool _showFontControls = false;
-  double _fontSize = 16.0;
+  double _fontSize = _PageConstants.defaultFontSize;
 
   static bool _postSplashAnimationShown =
       false; // Controla mostrar solo una vez
@@ -109,12 +167,8 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     });
     _loadFontSize();
 
-    // Create BLoC immediately to avoid spinner on app start
-    _navigationBloc = DevocionalesNavigationBloc(
-      navigationRepository: NavigationRepositoryImpl(),
-      devocionalRepository: DevocionalRepositoryImpl(),
-    );
-    // Initialize asynchronously in background
+    // Initialize BLoC asynchronously after devotionals load
+    // This prevents 30-second spinner on app start
     _initializeNavigationBloc();
 
     // Log analytics event for app initialization with BLoC
@@ -130,14 +184,27 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     if (!_postSplashAnimationShown) {
       _showPostSplashAnimation = true;
       _postSplashAnimationShown = true;
-      Future.delayed(const Duration(seconds: 7), () {
+      Future.delayed(_PageConstants.postSplashAnimationDuration, () {
         if (mounted) setState(() => _showPostSplashAnimation = false);
       });
     }
   }
 
   Future<void> _initializeNavigationBloc() async {
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
+    // Prevent multiple simultaneous initialization attempts
+    if (_initState == _PageInitializationState.loading) {
+      developer
+          .log('Initialization already in progress, skipping duplicate call');
+      return;
+    }
+
+    setState(() {
+      _initState = _PageInitializationState.loading;
+      _initErrorMessage = null;
+    });
+
+    // Direct async initialization - no postFrameCallback needed for Provider access
+    try {
       if (!mounted) return;
 
       final devocionalProvider = Provider.of<DevocionalProvider>(
@@ -145,17 +212,23 @@ class _DevocionalesPageState extends State<DevocionalesPage>
         listen: false,
       );
 
-      // Wait for devotionals to load
+      // Wait for devotionals to load if needed
       if (!devocionalProvider.isLoading &&
           devocionalProvider.devocionales.isEmpty) {
         await devocionalProvider.initializeData();
         if (!mounted) return;
       }
 
+      // Validate devotionals are available
       if (devocionalProvider.devocionales.isEmpty) {
-        developer.log('No devotionals available to initialize Navigation BLoC');
-        return;
+        throw StateError('No devotionals available after initialization');
       }
+
+      // Create BLoC with reused repository instances (avoids re-instantiation)
+      _navigationBloc = DevocionalesNavigationBloc(
+        navigationRepository: _navigationRepository,
+        devocionalRepository: _devocionalRepository,
+      );
 
       // Record daily app visit
       final spiritualStatsService = SpiritualStatsService();
@@ -165,44 +238,104 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       final stats = await spiritualStatsService.getStats();
       final readDevocionalIds = stats.readDevocionalIds;
 
-      // Find first unread index or use saved index
-      int initialIndex = 0;
-      if (widget.initialDevocionalId != null) {
-        // Deep link - find index by ID
-        final index = devocionalProvider.devocionales.indexWhere(
-          (d) => d.id == widget.initialDevocionalId,
-        );
-        initialIndex = index != -1 ? index : 0;
-      } else {
-        // Find first unread using repository (pure logic, deterministic)
-        initialIndex =
-            DevocionalRepositoryImpl().findFirstUnreadDevocionalIndex(
-          devocionalProvider.devocionales,
-          readDevocionalIds,
-        );
-      }
+      // Determine initial index
+      final initialIndex = _calculateInitialIndex(
+        devocionalProvider.devocionales,
+        readDevocionalIds,
+      );
 
       // Initialize navigation with full devotionals list
-      // Guard early and avoid race windows: check mounted and bloc state immediately
-      if (!mounted) return;
-      if (_navigationBloc.isClosed) return;
-      try {
-        _navigationBloc.add(
-          InitializeNavigation(
-            initialIndex: initialIndex,
-            devocionales: devocionalProvider.devocionales,
-          ),
-        );
-        developer.log('Navigation BLoC initialized at index: $initialIndex');
-      } catch (e, st) {
-        developer.log('Failed to initialize BLoC: $e');
-        try {
-          FirebaseCrashlytics.instance.recordError(e, st);
-        } catch (_) {
-          developer.log('Failed to report initialization error to Crashlytics');
-        }
+      if (!mounted || _navigationBloc == null || _navigationBloc!.isClosed) {
+        return;
       }
-    });
+
+      _navigationBloc!.add(
+        InitializeNavigation(
+          initialIndex: initialIndex,
+          devocionales: devocionalProvider.devocionales,
+        ),
+      );
+
+      // Mark as successfully initialized
+      if (mounted) {
+        setState(() {
+          _initState = _PageInitializationState.ready;
+        });
+      }
+
+      developer.log(
+          'Navigation BLoC initialized successfully at index: $initialIndex');
+    } catch (error, stackTrace) {
+      // Log raw error for debugging
+      developer.log('Failed to initialize BLoC: $error');
+      developer.log('Stack trace: $stackTrace');
+
+      // CRITICAL FIX: Close BLoC before nulling to prevent memory leak
+      try {
+        await _navigationBloc?.close();
+      } catch (e) {
+        developer.log('Error closing BLoC during cleanup: $e');
+      }
+      _navigationBloc = null;
+
+      // Record error for debugging
+      try {
+        await FirebaseCrashlytics.instance.recordError(
+          error,
+          stackTrace,
+          reason: 'Failed to initialize DevocionalesNavigationBloc',
+          fatal: false,
+        );
+      } catch (_) {
+        developer.log('Failed to report initialization error to Crashlytics');
+      }
+
+      // Update state to error with user-friendly message
+      if (mounted) {
+        setState(() {
+          _initState = _PageInitializationState.error;
+          // Show raw error only in debug mode, otherwise show friendly localized message
+          _initErrorMessage =
+              kDebugMode ? error.toString() : 'devotionals.generic_error'.tr();
+        });
+      }
+    }
+  }
+
+  /// Calculate the initial devotional index based on user state
+  /// Returns the first unread devotional or deep link index
+  int _calculateInitialIndex(
+    List<Devocional> devocionales,
+    List<String> readDevocionalIds,
+  ) {
+    // Handle deep link scenario
+    if (widget.initialDevocionalId != null) {
+      final index = devocionales.indexWhere(
+        (d) => d.id == widget.initialDevocionalId,
+      );
+      return index != -1 ? index : 0;
+    }
+
+    // Find first unread using reused repository instance
+    return _devocionalRepository.findFirstUnreadDevocionalIndex(
+      devocionales,
+      readDevocionalIds,
+    );
+  }
+
+  /// Reliably compare two devotional lists by their IDs
+  /// Avoids hashCode collision bugs
+  bool _areDevocionalListsEqual(
+    List<Devocional> list1,
+    List<Devocional> list2,
+  ) {
+    if (list1.length != list2.length) return false;
+
+    for (int i = 0; i < list1.length; i++) {
+      if (list1[i].id != list2[i].id) return false;
+    }
+
+    return true;
   }
 
   Future<void> _precacheLottieAnimations() async {
@@ -243,7 +376,8 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     final prefs = await SharedPreferences.getInstance();
     if (!mounted) return;
     setState(() {
-      _fontSize = prefs.getDouble('devocional_font_size') ?? 16.0;
+      _fontSize = prefs.getDouble('devocional_font_size') ??
+          _PageConstants.defaultFontSize;
     });
   }
 
@@ -254,9 +388,9 @@ class _DevocionalesPageState extends State<DevocionalesPage>
   }
 
   Future<void> _increaseFontSize() async {
-    if (_fontSize < 28.0) {
+    if (_fontSize < _PageConstants.maxFontSize) {
       setState(() {
-        _fontSize += 1;
+        _fontSize += _PageConstants.fontSizeStep;
       });
       final prefs = await SharedPreferences.getInstance();
       await prefs.setDouble('devocional_font_size', _fontSize);
@@ -264,9 +398,9 @@ class _DevocionalesPageState extends State<DevocionalesPage>
   }
 
   Future<void> _decreaseFontSize() async {
-    if (_fontSize > 12.0) {
+    if (_fontSize > _PageConstants.minFontSize) {
       setState(() {
-        _fontSize -= 1;
+        _fontSize -= _PageConstants.fontSizeStep;
       });
       final prefs = await SharedPreferences.getInstance();
       await prefs.setDouble('devocional_font_size', _fontSize);
@@ -312,10 +446,18 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       // Refresh streak data to ensure fire lottie shows current value
       _streakFuture = _loadStreak();
 
+      // Retry initialization if needed based on state
+      if (_initState == _PageInitializationState.notStarted ||
+          _initState == _PageInitializationState.error) {
+        debugPrint(
+          '🔄 Retrying BLoC initialization on resume (current state: $_initState)',
+        );
+        _initializeNavigationBloc();
+      }
+
       // Refresh UI state to ensure everything is in sync
       if (mounted) {
         setState(() {
-          // Force rebuild to ensure UI is fresh
           debugPrint('🔄 Forcing UI refresh after app resume');
         });
       }
@@ -358,7 +500,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     _ttsAudioController.dispose();
     _tracking.dispose();
     _scrollController.dispose();
-    _navigationBloc.close(); // Clean up BLoC
+    _navigationBloc?.close(); // Clean up BLoC if it was created
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -371,7 +513,8 @@ class _DevocionalesPageState extends State<DevocionalesPage>
   void _goToNextDevocional() async {
     try {
       // Guard: Don't navigate if BLoC is not ready (prevents race condition)
-      if (_navigationBloc.state is! NavigationReady) {
+      if (_navigationBloc == null ||
+          _navigationBloc!.state is! NavigationReady) {
         debugPrint('⚠️ Navigation blocked: BLoC not ready yet');
         return;
       }
@@ -383,7 +526,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
         );
         await _audioController!.stop();
         if (!mounted) return;
-        await Future.delayed(const Duration(milliseconds: 100));
+        await Future.delayed(_PageConstants.audioStopDelay);
       } else {
         await _stopSpeaking();
       }
@@ -391,14 +534,14 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       if (!mounted) return;
 
       // Get current state for analytics
-      final currentState = _navigationBloc.state;
+      final currentState = _navigationBloc!.state;
       final currentIndex =
           currentState is NavigationReady ? currentState.currentIndex : 0;
       final totalDevocionales =
           currentState is NavigationReady ? currentState.totalDevocionales : 0;
 
       // Dispatch navigation event
-      _navigationBloc.add(const NavigateToNext());
+      _navigationBloc!.add(const NavigateToNext());
 
       // Scroll to top
       _scrollToTop();
@@ -441,7 +584,8 @@ class _DevocionalesPageState extends State<DevocionalesPage>
   void _goToPreviousDevocional() async {
     try {
       // Guard: Don't navigate if BLoC is not ready (prevents race condition)
-      if (_navigationBloc.state is! NavigationReady) {
+      if (_navigationBloc == null ||
+          _navigationBloc!.state is! NavigationReady) {
         debugPrint('⚠️ Navigation blocked: BLoC not ready yet');
         return;
       }
@@ -452,21 +596,21 @@ class _DevocionalesPageState extends State<DevocionalesPage>
           'DevocionalesPage: Stopping AudioController before navigation',
         );
         await _audioController!.stop();
-        await Future.delayed(const Duration(milliseconds: 100));
+        await Future.delayed(_PageConstants.audioStopDelay);
         if (!mounted) return;
       } else {
         await _stopSpeaking();
       }
 
       // Get current state for analytics
-      final currentState = _navigationBloc.state;
+      final currentState = _navigationBloc!.state;
       final currentIndex =
           currentState is NavigationReady ? currentState.currentIndex : 0;
       final totalDevocionales =
           currentState is NavigationReady ? currentState.totalDevocionales : 0;
 
       // Dispatch navigation event
-      _navigationBloc.add(const NavigateToPrevious());
+      _navigationBloc!.add(const NavigateToPrevious());
 
       // Scroll to top
       _scrollToTop();
@@ -501,8 +645,8 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       if (_scrollController.hasClients && mounted) {
         _scrollController.animateTo(
           0.0,
-          duration: const Duration(milliseconds: 300), // Changed from 400ms
-          curve: Curves.easeInOutCubic, // Changed from easeOutQuart
+          duration: _PageConstants.scrollToTopDuration,
+          curve: Curves.easeInOutCubic,
         );
       }
     });
@@ -801,6 +945,79 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     return _buildWithBloc(context);
   }
 
+  /// Build loading scaffold while devotionals are initializing
+  Widget _buildLoadingScaffold(BuildContext context) {
+    return Scaffold(
+      appBar: CustomAppBar(
+        titleText: 'devotionals.my_intimate_space_with_god'.tr(),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const CircularProgressIndicator(),
+            const SizedBox(height: 24),
+            Text(
+              'devotionals.loading'.tr(),
+              style: Theme.of(context).textTheme.bodyLarge,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Build error scaffold when initialization fails
+  Widget _buildErrorScaffold(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Scaffold(
+      appBar: CustomAppBar(
+        titleText: 'devotionals.my_intimate_space_with_god'.tr(),
+      ),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.error_outline,
+                size: 64,
+                color: colorScheme.error,
+              ),
+              const SizedBox(height: 24),
+              Text(
+                'devotionals.error_loading'.tr(),
+                style: Theme.of(context).textTheme.titleLarge,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              // Show user-friendly error message
+              if (_initErrorMessage != null)
+                Text(
+                  _initErrorMessage!,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.onSurface.withValues(alpha: 0.7),
+                      ),
+                  textAlign: TextAlign.center,
+                ),
+              const SizedBox(height: 32),
+              FilledButton.icon(
+                onPressed: () {
+                  developer.log('🔄 User manually triggered retry');
+                  _initializeNavigationBloc();
+                },
+                icon: const Icon(Icons.refresh),
+                label: Text('devotionals.retry'.tr()),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   /// Build UI using Navigation BLoC
   Widget _buildWithBloc(BuildContext context) {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
@@ -809,28 +1026,62 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     // Listen to DevocionalProvider changes to update BLoC when bible version or language changes
     return Consumer<DevocionalProvider>(
       builder: (context, devocionalProvider, child) {
-        // When devotionals change (language/version change), update BLoC
-        WidgetsBinding.instance.addPostFrameCallback((_) async {
-          if (devocionalProvider.devocionales.isNotEmpty) {
-            final currentState = _navigationBloc.state;
-            if (currentState is NavigationReady) {
-              final currentList = currentState.devocionales;
-              final newList = devocionalProvider.devocionales;
-              if (currentList.length != newList.length ||
-                  currentList.hashCode != newList.hashCode) {
+        // CRITICAL FIX: Check for devotional changes synchronously (no postFrameCallback)
+        // Only update if list actually changed (avoid hashCode collision bug)
+        if (_navigationBloc != null &&
+            _initState == _PageInitializationState.ready &&
+            devocionalProvider.devocionales.isNotEmpty) {
+          final currentState = _navigationBloc!.state;
+
+          if (currentState is NavigationReady) {
+            final newList = devocionalProvider.devocionales;
+
+            // Use reference equality check instead of unreliable hashCode
+            final bool listsAreDifferent =
+                !identical(_lastProcessedDevocionales, newList) &&
+                    (_lastProcessedDevocionales == null ||
+                        _lastProcessedDevocionales!.length != newList.length ||
+                        !_areDevocionalListsEqual(
+                            _lastProcessedDevocionales!, newList));
+
+            if (listsAreDifferent) {
+              // Schedule update after this build completes (only once per change)
+              _lastProcessedDevocionales = newList;
+              WidgetsBinding.instance.addPostFrameCallback((_) async {
+                if (!mounted || _navigationBloc == null) return;
+
                 // Get fresh stats to find correct unread index in the new version
                 final stats = await SpiritualStatsService().getStats();
-                _navigationBloc.add(
+                _navigationBloc!.add(
                   UpdateDevocionales(newList, stats.readDevocionalIds),
                 );
-              }
+              });
             }
           }
-        });
+        }
+
+        // Handle initialization states with proper UI feedback
+        switch (_initState) {
+          case _PageInitializationState.notStarted:
+          case _PageInitializationState.loading:
+            return _buildLoadingScaffold(context);
+
+          case _PageInitializationState.error:
+            return _buildErrorScaffold(context);
+
+          case _PageInitializationState.ready:
+            // Continue to BLoC builder if ready
+            break;
+        }
+
+        // Verify BLoC is actually ready (defensive check)
+        if (_navigationBloc == null) {
+          return _buildLoadingScaffold(context);
+        }
 
         return BlocListener<DevocionalesNavigationBloc,
             DevocionalesNavigationState>(
-          bloc: _navigationBloc,
+          bloc: _navigationBloc!,
           listener: (context, state) {
             if (state is NavigationReady) {
               // Start tracking when navigation state changes
@@ -843,7 +1094,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
           },
           child: BlocBuilder<DevocionalesNavigationBloc,
               DevocionalesNavigationState>(
-            bloc: _navigationBloc,
+            bloc: _navigationBloc!,
             builder: (context, state) {
               if (state is NavigationError) {
                 final TextTheme textTheme = Theme.of(context).textTheme;
@@ -1007,7 +1258,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                             child: Lottie.asset(
                               _selectedLottieAsset ??
                                   'assets/lottie/happy_bird.json',
-                              width: 200,
+                              width: _PageConstants.lottieAnimationWidth,
                               repeat: true,
                               fit: BoxFit.contain,
                             ),
@@ -1166,7 +1417,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                             ).languageCode;
 
                             // Get current devotional from BLoC state
-                            final currentState = _navigationBloc.state;
+                            final currentState = _navigationBloc?.state;
                             final currentDevocional =
                                 currentState is NavigationReady
                                     ? currentState.currentDevocional
