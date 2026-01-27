@@ -350,8 +350,8 @@ void main() {
       expect(updated.reflexion, equals('Original')); // unchanged
     });
 
-    test('should require key_verse for new format with cards', () {
-      // Test case from the problem statement
+    test('should parse key_verse field when present in new format', () {
+      // Example from the problem statement: ascension_victory_001
       final json = {
         'id': 'ascension_victory_001',
         'type': 'discovery',
@@ -391,8 +391,8 @@ void main() {
       expect(devotional.cards, hasLength(1));
     });
 
-    test('key_verse should be displayed prominently in UI context', () {
-      // This test ensures the key verse is a critical part of the study
+    test('should serialize and access key_verse correctly', () {
+      // Verifies key verse is accessible and properly serialized
       final devotional = DiscoveryDevotional(
         id: 'test-001',
         versiculo: '',
@@ -413,7 +413,7 @@ void main() {
         ],
       );
 
-      // Key verse should be accessible for UI display
+      // Verify key verse is accessible for model usage
       expect(devotional.keyVerse, isNotNull);
       expect(devotional.keyVerse!.reference, isNotEmpty);
       expect(devotional.keyVerse!.text, isNotEmpty);
