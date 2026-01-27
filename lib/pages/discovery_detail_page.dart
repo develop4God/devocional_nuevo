@@ -166,11 +166,18 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
                             // Adjust index for actual cards/sections
                             final contentIndex =
                                 _hasKeyVerseCard(study) ? index - 1 : index;
-                            final isLast = contentIndex == study.totalSections - 1;
-                            final isFirstPage = index == 0; // First page in the entire PageView
+                            final isLast =
+                                contentIndex == study.totalSections - 1;
+                            final isFirstPage =
+                                index == 0; // First page in the entire PageView
 
-                            return _buildAnimatedCard(study, contentIndex, isDark,
-                                isLast, isAlreadyCompleted, isFirstPage);
+                            return _buildAnimatedCard(
+                                study,
+                                contentIndex,
+                                isDark,
+                                isLast,
+                                isAlreadyCompleted,
+                                isFirstPage);
                           },
                         ),
                       ),
@@ -333,8 +340,7 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
     final isFirst = isFirstPage;
 
     // Calculate the actual page index in the PageView
-    final pageIndex =
-        _hasKeyVerseCard(study) ? contentIndex + 1 : contentIndex;
+    final pageIndex = _hasKeyVerseCard(study) ? contentIndex + 1 : contentIndex;
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 400),
@@ -352,8 +358,8 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
             ? _buildCardContent(study.cards[contentIndex], study, isDark,
                 isLast, isAlreadyCompleted, isFirst)
             : study.secciones != null && study.secciones!.isNotEmpty
-                ? _buildSectionCardWithButtons(
-                    study, study.secciones![contentIndex], isDark, isFirst, isLast)
+                ? _buildSectionCardWithButtons(study,
+                    study.secciones![contentIndex], isDark, isFirst, isLast)
                 : const SizedBox.shrink(),
       ),
     );
