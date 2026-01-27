@@ -16,10 +16,27 @@ class DiscoveryShareHelper {
     DiscoveryDevotional study, {
     bool resumen = true,
   }) {
-    if (resumen) {
-      return _generarResumen(study);
-    } else {
-      return _generarEstudioCompleto(study);
+    try {
+      final result =
+          resumen ? _generarResumen(study) : _generarEstudioCompleto(study);
+
+      // Validate that we actually generated text
+      if (result.isEmpty) {
+        throw Exception('Generated share text is empty');
+      }
+
+      return result;
+    } catch (e) {
+      // Fallback to a minimal share text if generation fails
+      return '''
+📖 ${_translateKey('discovery.daily_bible_study', fallback: 'Estudio Bíblico Diario')}
+
+${study.versiculo}
+
+━━━━━━━━━━━━━━━━
+📲 ${_translateKey('discovery.share_footer_download', fallback: 'Descarga: Devocionales Cristianos')}
+https://play.google.com/store/apps/details?id=com.develop4god.devocional_nuevo
+''';
     }
   }
 
@@ -41,14 +58,16 @@ class DiscoveryShareHelper {
     final keyVerse = study.keyVerse;
     final firstCard = study.cards.isNotEmpty ? study.cards[0] : null;
 
-    // Find discovery activation card
-    final discoveryCard = study.cards.firstWhere(
-      (card) => card.type == 'discovery_activation',
-      orElse: () => study.cards.last,
-    );
+    // Find discovery activation card - add safety check for empty cards
+    final discoveryCard = study.cards.isNotEmpty
+        ? study.cards.firstWhere(
+            (card) => card.type == 'discovery_activation',
+            orElse: () => study.cards.last,
+          )
+        : null;
 
-    final firstQuestion = discoveryCard.discoveryQuestions?.isNotEmpty == true
-        ? discoveryCard.discoveryQuestions!.first.question
+    final firstQuestion = discoveryCard?.discoveryQuestions?.isNotEmpty == true
+        ? discoveryCard!.discoveryQuestions!.first.question
         : null;
 
     final buffer = StringBuffer();

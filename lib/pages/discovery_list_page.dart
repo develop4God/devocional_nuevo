@@ -8,6 +8,7 @@ import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
+import 'package:devocional_nuevo/models/discovery_devotional_model.dart';
 import 'package:devocional_nuevo/pages/devotional_discovery/widgets/devotional_card_premium.dart';
 import 'package:devocional_nuevo/pages/discovery_detail_page.dart';
 import 'package:devocional_nuevo/pages/favorites_page.dart';
@@ -663,7 +664,8 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
       studyId: studyId,
     );
 
-    var study = state.loadedStudies[studyId];
+    // Explicitly type the study variable to avoid type inference issues
+    DiscoveryDevotional? study = state.loadedStudies[studyId];
 
     if (study == null) {
       final languageCode = context.read<DevocionalProvider>().selectedLanguage;
@@ -689,14 +691,29 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
       }
     }
 
+    // At this point, study is guaranteed to be non-null by Dart's flow analysis
     try {
-      final shareText = DiscoveryShareHelper.generarTextoParaCompartir(
+      final String shareText = DiscoveryShareHelper.generarTextoParaCompartir(
         study,
         resumen: true,
       );
-      await SharePlus.instance.share(ShareParams(text: shareText));
-    } catch (e) {
-      debugPrint('Error sharing study: $e');
+
+      // Validate that shareText is indeed a String and not empty
+      if (shareText.isEmpty) {
+        debugPrint('Error: Generated share text is empty');
+        if (!mounted) return;
+        _showFeedbackSnackBar('share.share_error'.tr());
+        return;
+      }
+
+      // Create ShareParams explicitly and share
+      final shareParams = ShareParams(text: shareText);
+      await SharePlus.instance.share(shareParams);
+
+      debugPrint('✅ Study shared successfully: $studyId');
+    } catch (e, stackTrace) {
+      debugPrint('❌ Error sharing study: $e');
+      debugPrint('Stack trace: $stackTrace');
       if (!mounted) return;
       _showFeedbackSnackBar('share.share_error'.tr());
     }
