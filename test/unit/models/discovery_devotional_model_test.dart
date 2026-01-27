@@ -349,5 +349,79 @@ void main() {
       expect(updated.estimatedReadingMinutes, equals(5));
       expect(updated.reflexion, equals('Original')); // unchanged
     });
+
+    test('should require key_verse for new format with cards', () {
+      // Test case from the problem statement
+      final json = {
+        'id': 'ascension_victory_001',
+        'type': 'discovery',
+        'date': '2026-01-30',
+        'title': 'La Ascensión Victoriosa',
+        'subtitle': 'Cuando el Rey conquista el trono y envía el Espíritu',
+        'language': 'es',
+        'version': 'RVR1960',
+        'estimated_reading_minutes': 7,
+        'key_verse': {
+          'reference': 'Hechos 1:9',
+          'text':
+              'Y habiendo dicho estas cosas, viéndolo ellos, fue alzado, y le recibió una nube que le ocultó de sus ojos.',
+        },
+        'cards': [
+          {
+            'order': 1,
+            'type': 'natural_revelation',
+            'title': 'Test Card',
+          },
+        ],
+      };
+
+      final devotional = DiscoveryDevotional.fromJson(json);
+
+      // Verify key verse is parsed
+      expect(devotional.keyVerse, isNotNull);
+      expect(devotional.keyVerse!.reference, equals('Hechos 1:9'));
+      expect(devotional.keyVerse!.text, contains('fue alzado'));
+
+      // Verify other fields
+      expect(devotional.id, equals('ascension_victory_001'));
+      expect(devotional.reflexion, equals('La Ascensión Victoriosa'));
+      expect(devotional.subtitle,
+          equals('Cuando el Rey conquista el trono y envía el Espíritu'));
+      expect(devotional.estimatedReadingMinutes, equals(7));
+      expect(devotional.cards, hasLength(1));
+    });
+
+    test('key_verse should be displayed prominently in UI context', () {
+      // This test ensures the key verse is a critical part of the study
+      final devotional = DiscoveryDevotional(
+        id: 'test-001',
+        versiculo: '',
+        reflexion: 'Test Study',
+        paraMeditar: [],
+        oracion: 'Test prayer',
+        date: DateTime(2026, 1, 30),
+        keyVerse: KeyVerse(
+          reference: 'Juan 3:16',
+          text: 'Porque de tal manera amó Dios al mundo...',
+        ),
+        cards: [
+          DiscoveryCard(
+            order: 1,
+            type: 'natural_revelation',
+            title: 'Test',
+          ),
+        ],
+      );
+
+      // Key verse should be accessible for UI display
+      expect(devotional.keyVerse, isNotNull);
+      expect(devotional.keyVerse!.reference, isNotEmpty);
+      expect(devotional.keyVerse!.text, isNotEmpty);
+
+      // Should be part of serialization
+      final json = devotional.toJson();
+      expect(json['key_verse'], isNotNull);
+      expect(json['key_verse']['reference'], equals('Juan 3:16'));
+    });
   });
 }
