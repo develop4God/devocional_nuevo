@@ -1,5 +1,6 @@
 // lib/widgets/key_verse_card.dart
 
+import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/discovery_card_model.dart';
 import 'package:flutter/material.dart';
 
@@ -97,7 +98,7 @@ class KeyVerseCard extends StatelessWidget {
                         ),
                         const SizedBox(width: 10),
                         Text(
-                          'VERSÍCULO CLAVE',
+                          'discovery.key_verse'.tr(),
                           style: theme.textTheme.labelSmall?.copyWith(
                             fontWeight: FontWeight.w800,
                             letterSpacing: 1.8,

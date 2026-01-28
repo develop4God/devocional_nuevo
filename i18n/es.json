@@ -432,8 +432,8 @@
     "connected_to_google_drive": "Conectado a Google Drive",
     "connect_to_google_drive": "Activar respaldo automático",
     "tap_to_connect_protect": "Crea copia de seguridad",
-    "description_title": "Nunca pierdas tu progreso espiritual",
-    "description_text": "Aunque cambies de celular o reinstales la aplicación.",
+    "description_title": "Nunca pierda su progreso espiritual",
+    "description_text": "Aunque cambie de teléfono o reinstale la aplicación.",
     "google_drive_connection": "Conectar a Google Drive",
     "automatic_backups": "Copias de seguridad automáticas",
     "enable_auto_backup": "Respaldo automático (recomendado)",
@@ -503,7 +503,7 @@
     "configuration": "Configuración",
     "more_options": "Más opciones",
     "optimization": "Optimización",
-    "account_management": "Gestão de Conta",
+    "account_management": "Gestión de Cuenta",
     "logout_google_drive": "Cerrar Sesión de Google Drive"
   },
   "review": {
@@ -723,6 +723,7 @@
     "minutes_suffix": "MIN",
     "verse_fallback": "Estudio Bíblico",
     "daily_verse": "Versículo Diario",
+    "key_verse": "VERSÍCULO CLAVE",
     "study_not_found": "Estudio no encontrado.",
     "reflection_questions": "Preguntas de Reflexión",
     "meaning": "Significado",
