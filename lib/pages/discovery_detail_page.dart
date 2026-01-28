@@ -36,6 +36,7 @@ class DiscoveryDetailPage extends StatefulWidget {
 
 class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
   int _currentSectionIndex = 0;
+
   // Reduced fraction to 0.88 to make the "peeking" of next/prev cards much more obvious
   late final PageController _pageController =
       PageController(viewportFraction: 0.88);
@@ -691,19 +692,27 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
         children: [
           Row(
             children: [
-              Text(word.word,
-                  style: TextStyle(
-                    fontSize: 26,
-                    fontWeight: FontWeight.w900,
-                    color: theme.colorScheme.onSecondaryContainer,
-                  )),
+              Flexible(
+                child: Text(word.word,
+                    style: TextStyle(
+                      fontSize: 26,
+                      fontWeight: FontWeight.w900,
+                      color: theme.colorScheme.onSecondaryContainer,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis),
+              ),
               if (word.transliteration != null) ...[
                 const SizedBox(width: 8),
-                Text('(${word.transliteration})',
-                    style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: theme.colorScheme.primary)),
+                Flexible(
+                  child: Text('(${word.transliteration})',
+                      style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: theme.colorScheme.primary),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis),
+                ),
               ],
             ],
           ),
