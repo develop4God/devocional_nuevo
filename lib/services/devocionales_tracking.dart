@@ -51,22 +51,36 @@ class DevocionalesTracking {
   /// Inicializa el servicio de tracking con el contexto necesario
   void initialize(BuildContext context) {
     _context = context;
-    debugPrint('🔄 DevocionalesTracking initialized');
+    debugPrint('[TRACKING] 🔄 DevocionalesTracking inicializando...');
+
+    // Test simple: verificar que los timers funcionen
+    Timer(const Duration(seconds: 2), () {
+      debugPrint(
+          '[TRACKING] ✅ Timer de prueba funcionó - sistema de timers OK');
+    });
+
+    debugPrint('[TRACKING] ✅ DevocionalesTracking inicializado correctamente');
   }
 
   /// Inicia el timer de evaluación de criterios
   void startCriteriaCheckTimer() {
     _criteriaCheckTimer?.cancel();
+    debugPrint('[TRACKING] 🔄 Creando timer de evaluación de criterios...');
     _criteriaCheckTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
+      debugPrint(
+          '[TRACKING] ⏲️ Timer tick #${timer.tick} - evaluando criterios...');
       _checkReadingCriteria();
     });
-    debugPrint('🔄 Criteria check timer started');
+    final isActive = _criteriaCheckTimer?.isActive ?? false;
+    debugPrint(
+      '[TRACKING] 🔄 Timer de evaluación de criterios CREADO - isActive: $isActive (cada 5s)',
+    );
   }
 
   /// Detiene el timer de evaluación de criterios
   void stopCriteriaCheckTimer() {
     _criteriaCheckTimer?.cancel();
-    debugPrint('🔄 Criteria check timer stopped');
+    debugPrint('[TRACKING] 🛑 Timer de evaluación de criterios DETENIDO');
   }
 
   /// Inicia el tracking para un devocional específico
@@ -74,8 +88,13 @@ class DevocionalesTracking {
     String devocionalId,
     ScrollController scrollController,
   ) {
+    debugPrint(
+      '[TRACKING] 🚀 startDevocionalTracking() llamado para $devocionalId',
+    );
+
     if (_context == null) {
-      debugPrint('❌ DevocionalesTracking not initialized');
+      debugPrint(
+          '[TRACKING] ❌ DevocionalesTracking no inicializado (context null)');
       return;
     }
 
@@ -85,11 +104,7 @@ class DevocionalesTracking {
     );
 
     debugPrint(
-      '[TRACKING] startDevocionalTracking() llamado para $devocionalId',
-    );
-
-    debugPrint(
-      '[TRACKING] Antes de start: trackedId=${devocionalProvider.currentTrackedDevocionalId}, segundos=${devocionalProvider.currentReadingSeconds}',
+      '[TRACKING] 📊 Antes de start: trackedId=${devocionalProvider.currentTrackedDevocionalId}, segundos=${devocionalProvider.currentReadingSeconds}',
     );
 
     devocionalProvider.startDevocionalTracking(
@@ -100,16 +115,22 @@ class DevocionalesTracking {
     // Start criteria check timer when tracking begins
     startCriteriaCheckTimer();
 
-    debugPrint('📖 Started tracking for devotional: $devocionalId');
+    debugPrint(
+        '[TRACKING] 📖 Tracking iniciado para devocional: $devocionalId');
 
     debugPrint(
-      '[TRACKING] Después de start: trackedId=${devocionalProvider.currentTrackedDevocionalId}, segundos=${devocionalProvider.currentReadingSeconds}',
+      '[TRACKING] 📊 Después de start: trackedId=${devocionalProvider.currentTrackedDevocionalId}, segundos=${devocionalProvider.currentReadingSeconds}',
     );
   }
 
   /// Evalúa criterios de lectura automáticamente
   void _checkReadingCriteria() {
-    if (_context == null || !_context!.mounted) return;
+    debugPrint('[TRACKING] 🔄 _checkReadingCriteria() ejecutándose...');
+
+    if (_context == null || !_context!.mounted) {
+      debugPrint('[TRACKING] ❌ Context null o no mounted');
+      return;
+    }
 
     final devocionalProvider = Provider.of<DevocionalProvider>(
       _context!,
@@ -117,11 +138,17 @@ class DevocionalesTracking {
     );
 
     final devocionales = devocionalProvider.devocionales;
-    if (devocionales.isEmpty) return;
+    if (devocionales.isEmpty) {
+      debugPrint('[TRACKING] ❌ Lista de devocionales vacía');
+      return;
+    }
 
     // Obtener el ID del devocional actualmente siendo tracked
     final currentDevocionalId = devocionalProvider.currentTrackedDevocionalId;
-    if (currentDevocionalId == null) return;
+    if (currentDevocionalId == null) {
+      debugPrint('[TRACKING] ❌ No hay devocional siendo trackeado');
+      return;
+    }
 
     final currentDevocional = devocionales.firstWhere(
       (d) => d.id == currentDevocionalId,
@@ -130,6 +157,9 @@ class DevocionalesTracking {
 
     // Si este devocional ya fue auto-completado, no evaluar de nuevo
     if (_autoCompletedDevocionals.contains(currentDevocional.id)) {
+      debugPrint(
+        '[TRACKING] ⏭️ Devocional ${currentDevocional.id} ya fue auto-completado, saltando evaluación',
+      );
       return;
     }
 
@@ -137,13 +167,15 @@ class DevocionalesTracking {
     final readingTime = devocionalProvider.currentReadingSeconds;
     final scrollPercentage = devocionalProvider.currentScrollPercentage;
 
-    debugPrint('Devotional read attempt: ${currentDevocional.id}');
     debugPrint(
-      'Reading time: ${readingTime}s, Scroll: ${(scrollPercentage * 100).toStringAsFixed(1)}%',
+      '[TRACKING] 📖 Evaluando devocional: ${currentDevocional.id}',
+    );
+    debugPrint(
+      '[TRACKING] ⏱️ Tiempo de lectura: ${readingTime}s, Scroll: ${(scrollPercentage * 100).toStringAsFixed(1)}%',
     );
 
     final meetsCriteria = readingTime >= 40 && scrollPercentage >= 0.6;
-    debugPrint('Meets criteria: $meetsCriteria');
+    debugPrint('[TRACKING] ✔️ ¿Cumple criterios?: $meetsCriteria');
     developer.log(
       '[TRACKING] Intento de lectura: ${currentDevocional.id}, tiempo: ${readingTime}s, scroll: ${(scrollPercentage * 100).toStringAsFixed(1)}%',
       name: 'DevocionalesTracking',
@@ -154,12 +186,18 @@ class DevocionalesTracking {
     );
 
     if (meetsCriteria) {
-      debugPrint('✅ Criteria met automatically - updating stats immediately');
+      debugPrint(
+        '[TRACKING] ✅ Criterios cumplidos automáticamente - actualizando stats inmediatamente',
+      );
       developer.log(
         '[TRACKING] Criterio cumplido, actualizando stats para: ${currentDevocional.id}',
         name: 'DevocionalesTracking',
       );
       _updateReadingStats(currentDevocional.id);
+    } else {
+      debugPrint(
+        '[TRACKING] ⏳ Criterios aún no cumplidos (necesita: 40s y 60% scroll)',
+      );
     }
   }
 
@@ -343,9 +381,17 @@ class DevocionalesTracking {
     debugPrint(
       '[TRACKING] Antes de resume: trackedId=${devocionalProvider.currentTrackedDevocionalId}, segundos=${devocionalProvider.currentReadingSeconds}',
     );
-    devocionalProvider.resumeTracking();
-    startCriteriaCheckTimer();
-    debugPrint('▶️ Tracking resumed');
+
+    // Only resume tracking and start timer if there's actually a devotional being tracked
+    if (devocionalProvider.currentTrackedDevocionalId != null) {
+      devocionalProvider.resumeTracking();
+      startCriteriaCheckTimer();
+      debugPrint(
+          '▶️ Tracking resumed for: ${devocionalProvider.currentTrackedDevocionalId}');
+    } else {
+      debugPrint('⏭️ No devotional being tracked - skipping resume');
+    }
+
     debugPrint(
       '[TRACKING] Después de resume: trackedId=${devocionalProvider.currentTrackedDevocionalId}, segundos=${devocionalProvider.currentReadingSeconds}',
     );
