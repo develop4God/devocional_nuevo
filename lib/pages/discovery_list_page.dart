@@ -284,8 +284,8 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
           child: SingleChildScrollView(
             controller: _dotsScrollController,
             scrollDirection: Axis.horizontal,
-            physics:
-                const NeverScrollableScrollPhysics(), // Sliding is controlled by Swiper
+            physics: const NeverScrollableScrollPhysics(),
+            // Sliding is controlled by Swiper
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: List.generate(
@@ -297,9 +297,11 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
                   double scale = 1.0;
                   if (distance == 1) {
                     scale = 0.85;
-                  } else if (distance == 2)
+                  } else if (distance == 2) {
                     scale = 0.65;
-                  else if (distance >= 3) scale = 0.45;
+                  } else if (distance >= 3) {
+                    scale = 0.45;
+                  }
 
                   return AnimatedContainer(
                     duration: const Duration(milliseconds: 300),
