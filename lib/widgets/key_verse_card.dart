@@ -3,132 +3,168 @@
 import 'package:devocional_nuevo/models/discovery_card_model.dart';
 import 'package:flutter/material.dart';
 
-/// A beautiful card widget for displaying the key verse of a discovery study.
+/// A beautiful, modern card widget for displaying the key verse of a discovery study.
 ///
-/// This card is displayed at the beginning of the study to set the context
-/// and theme before the other content cards.
+/// Designed with a premium aesthetic featuring subtle gradients, glassmorphism
+/// elements, and centered typography for a more impactful reading experience.
 class KeyVerseCard extends StatelessWidget {
   final KeyVerse keyVerse;
+  final String? version;
+  final EdgeInsetsGeometry? margin;
 
   const KeyVerseCard({
     super.key,
     required this.keyVerse,
+    this.version,
+    this.margin,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
 
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      margin: margin ?? EdgeInsets.zero,
       decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(32),
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            colorScheme.primary.withValues(alpha: 0.15),
-            colorScheme.primaryContainer.withValues(alpha: 0.25),
-            colorScheme.tertiaryContainer.withValues(alpha: 0.2),
+            isDark 
+                ? colorScheme.surfaceContainerHighest.withValues(alpha: 0.2)
+                : Colors.white.withValues(alpha: 0.9),
+            colorScheme.surface,
           ],
-        ),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: colorScheme.primary.withValues(alpha: 0.2),
-          width: 1.5,
         ),
         boxShadow: [
           BoxShadow(
-            color: colorScheme.primary.withValues(alpha: 0.08),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
           ),
         ],
+        border: Border.all(
+          color: isDark 
+              ? Colors.white.withValues(alpha: 0.1) 
+              : colorScheme.primary.withValues(alpha: 0.05),
+          width: 1,
+        ),
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(32),
+        child: Stack(
           children: [
-            // Header with icon and label
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: colorScheme.primary.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(
-                    Icons.auto_stories_rounded,
-                    size: 24,
-                    color: colorScheme.primary,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    'VERSÍCULO CLAVE',
-                    style: theme.textTheme.labelLarge?.copyWith(
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 1.2,
-                      color: colorScheme.primary,
+            // Decorative background quote icon
+            Positioned(
+              top: -20,
+              left: -10,
+              child: Icon(
+                Icons.format_quote_rounded,
+                size: 140,
+                color: colorScheme.primary.withValues(alpha: 0.03),
+              ),
+            ),
+
+            Padding(
+              padding: const EdgeInsets.all(32),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Top Label - Cleaner, more white version
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: isDark 
+                          ? Colors.white.withValues(alpha: 0.05) 
+                          : Colors.grey[50],
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: isDark 
+                            ? Colors.white.withValues(alpha: 0.1) 
+                            : Colors.grey[200]!,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.auto_stories_rounded,
+                          size: 14,
+                          color: colorScheme.primary.withValues(alpha: 0.6),
+                        ),
+                        const SizedBox(width: 10),
+                        Text(
+                          'VERSÍCULO CLAVE',
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 1.8,
+                            color: colorScheme.onSurface.withValues(alpha: 0.6),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ),
-              ],
-            ),
 
-            const SizedBox(height: 20),
+                  const SizedBox(height: 36),
 
-            // Verse reference
-            Text(
-              keyVerse.reference,
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w800,
-                color: colorScheme.primary,
-                fontSize: 16,
-              ),
-            ),
+                  // Verse Text
+                  Text(
+                    '"${keyVerse.text}"',
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      fontStyle: FontStyle.italic,
+                      height: 1.5,
+                      letterSpacing: -0.2,
+                      color: colorScheme.onSurface.withValues(alpha: 0.9),
+                    ),
+                  ),
 
-            const SizedBox(height: 12),
+                  const SizedBox(height: 28),
 
-            // Verse text
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: theme.scaffoldBackgroundColor.withValues(alpha: 0.8),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Text(
-                '"${keyVerse.text}"',
-                style: theme.textTheme.bodyLarge?.copyWith(
-                  fontSize: 18,
-                  height: 1.6,
-                  fontStyle: FontStyle.italic,
-                  fontWeight: FontWeight.w500,
-                  color: colorScheme.onSurface.withValues(alpha: 0.95),
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 16),
-
-            // Decorative element
-            Center(
-              child: Container(
-                width: 60,
-                height: 4,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      colorScheme.primary.withValues(alpha: 0.3),
-                      colorScheme.primary,
-                      colorScheme.primary.withValues(alpha: 0.3),
+                  // Reference and Version
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        height: 1,
+                        width: 24,
+                        color: colorScheme.primary.withValues(alpha: 0.2),
+                      ),
+                      const SizedBox(width: 16),
+                      Flexible(
+                        child: Text(
+                          keyVerse.reference.toUpperCase(),
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 1.0,
+                            color: colorScheme.primary,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                      if (version != null && version!.isNotEmpty) ...[
+                        const SizedBox(width: 8),
+                        Text(
+                          version!,
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            fontWeight: FontWeight.w500,
+                            color: colorScheme.onSurface.withValues(alpha: 0.4),
+                          ),
+                        ),
+                      ],
+                      const SizedBox(width: 16),
+                      Container(
+                        height: 1,
+                        width: 24,
+                        color: colorScheme.primary.withValues(alpha: 0.2),
+                      ),
                     ],
                   ),
-                  borderRadius: BorderRadius.circular(2),
-                ),
+                ],
               ),
             ),
           ],

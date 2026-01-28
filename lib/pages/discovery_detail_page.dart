@@ -319,7 +319,10 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Key verse card
-              KeyVerseCard(keyVerse: study.keyVerse!),
+              KeyVerseCard(
+                keyVerse: study.keyVerse!,
+                version: study.version,
+              ),
 
               const SizedBox(height: 32),
 
