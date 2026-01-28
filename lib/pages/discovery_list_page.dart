@@ -8,6 +8,7 @@ import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
+import 'package:devocional_nuevo/models/discovery_devotional_model.dart';
 import 'package:devocional_nuevo/pages/devotional_discovery/widgets/devotional_card_premium.dart';
 import 'package:devocional_nuevo/pages/discovery_detail_page.dart';
 import 'package:devocional_nuevo/pages/favorites_page.dart';
@@ -38,6 +39,7 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
   bool _showGridOverlay = false;
   late AnimationController _gridAnimationController;
   final SwiperController _swiperController = SwiperController();
+  final ScrollController _dotsScrollController = ScrollController();
 
   Set<String>? _previousFavoriteIds;
   Set<String>? _previousLoadedStudyIds;
@@ -60,6 +62,7 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
   void dispose() {
     _gridAnimationController.dispose();
     _swiperController.dispose();
+    _dotsScrollController.dispose();
     super.dispose();
   }
 
@@ -77,6 +80,36 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
         _gridAnimationController.reverse();
       }
     });
+  }
+
+  /// Animates the progress dots scroll position to keep the current index centered
+  /// Uses device-adaptive sizing to maintain a clean "Instagram-style" sliding window
+  void _animateDotsToIndex(int index) {
+    if (!_dotsScrollController.hasClients) return;
+
+    final double screenWidth = MediaQuery.of(context).size.width;
+
+    // Use the same sizing logic as _buildProgressDots
+    final double baseDotSize = (screenWidth / 32).clamp(8.0, 11.0);
+    final double activeDotWidth = baseDotSize * 2.6;
+    final double dotSpacing = baseDotSize * 0.8;
+    final double visibleWindowWidth = screenWidth * 0.45;
+
+    // Calculate the scroll offset to center the target dot
+    double offset = 0;
+    for (int i = 0; i < index; i++) {
+      offset += baseDotSize + dotSpacing;
+    }
+
+    // Target the center of the visible window
+    final double targetOffset =
+        offset - (visibleWindowWidth / 2) + (activeDotWidth / 2);
+
+    _dotsScrollController.animateTo(
+      targetOffset.clamp(0.0, _dotsScrollController.position.maxScrollExtent),
+      duration: const Duration(milliseconds: 400),
+      curve: Curves.easeOutQuart,
+    );
   }
 
   @override
@@ -212,6 +245,7 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
                           });
 
                           _toggleGridOverlay();
+                          _animateDotsToIndex(originalIndex);
                           _navigateToDetail(context, studyId);
                         },
                         onClose: _toggleGridOverlay,
@@ -229,32 +263,70 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
     );
   }
 
+  /// Builds a modern, device-adaptive dot indicator with Instagram-style scaling
   Widget _buildProgressDots(int count) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final double screenWidth = MediaQuery.of(context).size.width;
+
+    // Design parameters relative to device screen size (No magic pixel numbers)
+    final double baseDotSize = (screenWidth / 32).clamp(8.0, 11.0);
+    final double activeDotWidth = baseDotSize * 2.6;
+    final double dotSpacing = baseDotSize * 0.8;
+    final double visibleWindowWidth = screenWidth * 0.45;
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 16),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: List.generate(
-          count,
-          (index) => AnimatedContainer(
-            duration: const Duration(milliseconds: 300),
-            margin: const EdgeInsets.symmetric(horizontal: 4),
-            width: _currentIndex == index ? 28 : 10,
-            height: 10,
-            decoration: BoxDecoration(
-              color: _currentIndex == index
-                  ? colorScheme.primary
-                  : colorScheme.primary.withValues(alpha: _inactiveDotsAlpha),
-              border: Border.all(
-                color: _currentIndex == index
-                    ? colorScheme.primary
-                    : colorScheme.outline.withValues(alpha: 0.5),
-                width: 1.5,
+      child: Center(
+        child: Container(
+          constraints: BoxConstraints(maxWidth: visibleWindowWidth),
+          height: baseDotSize + 4,
+          child: SingleChildScrollView(
+            controller: _dotsScrollController,
+            scrollDirection: Axis.horizontal,
+            physics: const NeverScrollableScrollPhysics(),
+            // Sliding is controlled by Swiper
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: List.generate(
+                count,
+                (index) {
+                  final int distance = (index - _currentIndex).abs();
+
+                  // Adaptive scale based on distance from current index (Instagram-style)
+                  double scale = 1.0;
+                  if (distance == 1) {
+                    scale = 0.85;
+                  } else if (distance == 2) {
+                    scale = 0.65;
+                  } else if (distance >= 3) {
+                    scale = 0.45;
+                  }
+
+                  return AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    margin: EdgeInsets.symmetric(horizontal: dotSpacing / 2),
+                    width: index == _currentIndex
+                        ? activeDotWidth
+                        : baseDotSize * scale,
+                    height: baseDotSize * scale,
+                    decoration: BoxDecoration(
+                      color: index == _currentIndex
+                          ? colorScheme.primary
+                          : colorScheme.primary
+                              .withValues(alpha: _inactiveDotsAlpha * scale),
+                      borderRadius: BorderRadius.circular(baseDotSize / 2),
+                      border: Border.all(
+                        color: index == _currentIndex
+                            ? colorScheme.primary
+                            : colorScheme.outline
+                                .withValues(alpha: 0.5 * scale),
+                        width: 1.2 * scale,
+                      ),
+                    ),
+                  );
+                },
               ),
-              borderRadius: BorderRadius.circular(5),
             ),
           ),
         ),
@@ -313,6 +385,7 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
           setState(() {
             _currentIndex = index;
           });
+          _animateDotsToIndex(index);
         }
       },
     );
@@ -663,7 +736,8 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
       studyId: studyId,
     );
 
-    var study = state.loadedStudies[studyId];
+    // Explicitly type the study variable to avoid type inference issues
+    DiscoveryDevotional? study = state.loadedStudies[studyId];
 
     if (study == null) {
       final languageCode = context.read<DevocionalProvider>().selectedLanguage;
@@ -689,14 +763,29 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
       }
     }
 
+    // At this point, study is guaranteed to be non-null by Dart's flow analysis
     try {
-      final shareText = DiscoveryShareHelper.generarTextoParaCompartir(
+      final String shareText = DiscoveryShareHelper.generarTextoParaCompartir(
         study,
         resumen: true,
       );
-      await SharePlus.instance.share(ShareParams(text: shareText));
-    } catch (e) {
-      debugPrint('Error sharing study: $e');
+
+      // Validate that shareText is indeed a String and not empty
+      if (shareText.isEmpty) {
+        debugPrint('Error: Generated share text is empty');
+        if (!mounted) return;
+        _showFeedbackSnackBar('share.share_error'.tr());
+        return;
+      }
+
+      // Create ShareParams explicitly and share
+      final shareParams = ShareParams(text: shareText);
+      await SharePlus.instance.share(shareParams);
+
+      debugPrint('✅ Study shared successfully: $studyId');
+    } catch (e, stackTrace) {
+      debugPrint('❌ Error sharing study: $e');
+      debugPrint('Stack trace: $stackTrace');
       if (!mounted) return;
       _showFeedbackSnackBar('share.share_error'.tr());
     }

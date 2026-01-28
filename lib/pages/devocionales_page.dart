@@ -263,6 +263,22 @@ class _DevocionalesPageState extends State<DevocionalesPage>
         });
       }
 
+      // CRITICAL FIX: Start tracking explicitly after BLoC initialization
+      // BlocListener only triggers on state CHANGES, not initial state
+      // So we need to manually start tracking for the initial devotional
+      if (mounted &&
+          initialIndex >= 0 &&
+          initialIndex < devocionalProvider.devocionales.length) {
+        final initialDevocional = devocionalProvider.devocionales[initialIndex];
+        debugPrint(
+            '[DEVOCIONALES_PAGE] 🚀 Starting tracking for initial devotional: ${initialDevocional.id}');
+        _tracking.clearAutoCompletedExcept(initialDevocional.id);
+        _tracking.startDevocionalTracking(
+          initialDevocional.id,
+          _scrollController,
+        );
+      }
+
       developer.log(
           'Navigation BLoC initialized successfully at index: $initialIndex');
     } catch (error, stackTrace) {
@@ -468,17 +484,38 @@ class _DevocionalesPageState extends State<DevocionalesPage>
 
   @override
   void didPush() {
-    _tracking.resumeTracking();
-    debugPrint('📄 DevocionalesPage pushed → tracking resumed');
+    // Only resume if there's actually something being tracked
+    // Otherwise we'll start an empty criteria timer
+    debugPrint(
+        '📄 DevocionalesPage pushed → checking if tracking should resume');
+    final devocionalProvider =
+        Provider.of<DevocionalProvider>(context, listen: false);
+    if (devocionalProvider.currentTrackedDevocionalId != null) {
+      _tracking.resumeTracking();
+      debugPrint(
+          '📄 Tracking resumed for: ${devocionalProvider.currentTrackedDevocionalId}');
+    } else {
+      debugPrint(
+          '📄 No active tracking to resume - waiting for BLoC to initialize');
+    }
   }
 
   @override
   void didPopNext() {
-    _tracking.resumeTracking();
     // Refresh streak when returning to this page (e.g., from ProgressPage)
     _streakFuture = _loadStreak();
-    debugPrint(
-        '📄 DevocionalesPage popped next → tracking resumed & streak refreshed');
+
+    // Only resume if there's actually something being tracked
+    final devocionalProvider =
+        Provider.of<DevocionalProvider>(context, listen: false);
+    if (devocionalProvider.currentTrackedDevocionalId != null) {
+      _tracking.resumeTracking();
+      debugPrint(
+          '📄 DevocionalesPage popped next → tracking resumed & streak refreshed');
+    } else {
+      debugPrint(
+          '📄 DevocionalesPage popped next → no tracking to resume, streak refreshed');
+    }
   }
 
   @override
@@ -1083,12 +1120,22 @@ class _DevocionalesPageState extends State<DevocionalesPage>
             DevocionalesNavigationState>(
           bloc: _navigationBloc!,
           listener: (context, state) {
+            debugPrint(
+              '[DEVOCIONALES_PAGE] 🔔 BlocListener triggered - state: ${state.runtimeType}',
+            );
             if (state is NavigationReady) {
+              debugPrint(
+                '[DEVOCIONALES_PAGE] ✅ NavigationReady - starting tracking for: ${state.currentDevocional.id}',
+              );
               // Start tracking when navigation state changes
               _tracking.clearAutoCompletedExcept(state.currentDevocional.id);
               _tracking.startDevocionalTracking(
                 state.currentDevocional.id,
                 _scrollController,
+              );
+            } else {
+              debugPrint(
+                '[DEVOCIONALES_PAGE] ⏭️ State is not NavigationReady, skipping tracking',
               );
             }
           },

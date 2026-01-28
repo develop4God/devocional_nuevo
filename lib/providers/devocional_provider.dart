@@ -1445,15 +1445,24 @@ class ReadingTracker {
     String devocionalId, {
     ScrollController? scrollController,
   }) {
+    debugPrint(
+      '[TRACKER] startTracking() llamado para $devocionalId (current: $_currentDevocionalId)',
+    );
+
     if (_currentDevocionalId == devocionalId) {
+      debugPrint('[TRACKER] Mismo devocional, solo resumiendo timer');
       _resumeTimer();
       return;
     }
 
     if (_currentDevocionalId != null) {
+      debugPrint(
+        '[TRACKER] Finalizando tracking anterior: $_currentDevocionalId',
+      );
       _finalizeCurrentTracking();
     }
 
+    debugPrint('[TRACKER] Inicializando nuevo tracking para: $devocionalId');
     _initializeTracking(devocionalId, scrollController);
   }
 
@@ -1466,6 +1475,10 @@ class ReadingTracker {
     _pausedTime = null;
     _accumulatedSeconds = 0;
     _maxScrollPercentage = 0.0;
+
+    debugPrint(
+      '[TRACKER] Tracking inicializado - ID: $devocionalId, startTime: $_startTime',
+    );
 
     _setupScrollController(scrollController);
     _startTimer();
@@ -1495,9 +1508,18 @@ class ReadingTracker {
 
   void _startTimer() {
     _timer?.cancel();
+    int tickCount = 0;
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      tickCount++;
       // Timer just keeps running, calculations are done on demand
+      // Log every 5 seconds for debugging
+      if (tickCount % 5 == 0) {
+        debugPrint(
+          '[TRACKER] ⏲️ Timer activo - ID: $_currentDevocionalId, tiempo: ${currentReadingSeconds}s, scroll: ${(_maxScrollPercentage * 100).toStringAsFixed(1)}%',
+        );
+      }
     });
+    debugPrint('[TRACKER] ⏱️ Timer de lectura INICIADO');
   }
 
   void pause() {

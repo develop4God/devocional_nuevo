@@ -12,6 +12,7 @@ import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/utils/copyright_utils.dart';
 import 'package:devocional_nuevo/widgets/devocionales/app_bar_constants.dart';
 import 'package:devocional_nuevo/widgets/discovery_section_card.dart';
+import 'package:devocional_nuevo/widgets/key_verse_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -35,9 +36,23 @@ class DiscoveryDetailPage extends StatefulWidget {
 
 class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
   int _currentSectionIndex = 0;
-  final PageController _pageController = PageController();
+
+  // Reduced fraction to 0.88 to make the "peeking" of next/prev cards much more obvious
+  late final PageController _pageController =
+      PageController(viewportFraction: 0.88);
   bool _isCelebrating = false;
   bool _hasTriggeredCompletion = false;
+
+  /// Helper to check if the study has a key verse card to display
+  bool _hasKeyVerseCard(DiscoveryDevotional study) {
+    return study.cards.isNotEmpty && study.keyVerse != null;
+  }
+
+  /// Get total pages including key verse card if present
+  int _getTotalPages(DiscoveryDevotional study) {
+    final baseCount = study.totalSections;
+    return _hasKeyVerseCard(study) ? baseCount + 1 : baseCount;
+  }
 
   @override
   void dispose() {
@@ -48,7 +63,6 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
   void _onCompleteStudy() {
     if (_hasTriggeredCompletion) return;
 
-    // Log analytics event
     getService<AnalyticsService>().logDiscoveryAction(
       action: 'study_completed',
       studyId: widget.studyId,
@@ -128,7 +142,6 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
                 );
               }
 
-              // Check if study is already marked as completed in the state
               final bool isAlreadyCompleted =
                   state.isStudyCompleted(widget.studyId) ||
                       _hasTriggeredCompletion;
@@ -137,18 +150,38 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
                 children: [
                   Column(
                     children: [
+                      _buildSegmentedProgressBar(study, theme),
                       _buildStudyHeader(study, theme),
-                      _buildProgressIndicator(study, theme),
                       Expanded(
                         child: PageView.builder(
                           controller: _pageController,
                           onPageChanged: (index) =>
                               setState(() => _currentSectionIndex = index),
-                          itemCount: study.totalSections,
+                          itemCount: _getTotalPages(study),
+                          physics: const BouncingScrollPhysics(),
                           itemBuilder: (context, index) {
-                            final isLast = index == study.totalSections - 1;
-                            return _buildAnimatedCard(study, index, isDark,
-                                isLast, isAlreadyCompleted);
+                            return AnimatedBuilder(
+                              animation: _pageController,
+                              builder: (context, child) {
+                                double value = 1.0;
+                                if (_pageController.position.haveDimensions) {
+                                  value = _pageController.page! - index;
+                                  // Subtle scale and fade for cards as they move away from center
+                                  value = (1 - (value.abs() * 0.12))
+                                      .clamp(0.0, 1.0);
+                                }
+                                return Transform.scale(
+                                  scale: value,
+                                  child: Opacity(
+                                    opacity: value.clamp(
+                                        0.5, 1.0), // Keep peeked cards visible
+                                    child: child,
+                                  ),
+                                );
+                              },
+                              child: _buildContentForIndex(
+                                  study, index, isDark, isAlreadyCompleted),
+                            );
                           },
                         ),
                       ),
@@ -156,8 +189,6 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
                           height: MediaQuery.of(context).padding.bottom + 20),
                     ],
                   ),
-
-                  // Bottom Scrim Overlay
                   Positioned(
                     left: 0,
                     right: 0,
@@ -181,8 +212,6 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
                       ),
                     ),
                   ),
-
-                  // 🎊 CELEBRATION OVERLAY
                   if (_isCelebrating)
                     IgnorePointer(
                       child: Center(
@@ -204,10 +233,53 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
     );
   }
 
+  Widget _buildContentForIndex(DiscoveryDevotional study, int index,
+      bool isDark, bool isAlreadyCompleted) {
+    if (_hasKeyVerseCard(study) && index == 0) {
+      return _buildKeyVerseCardPage(study, Theme.of(context));
+    }
+
+    final contentIndex = _hasKeyVerseCard(study) ? index - 1 : index;
+    final isLast = contentIndex == study.totalSections - 1;
+    final isFirstPage = index == 0;
+
+    return _buildAnimatedCard(
+        study, contentIndex, isDark, isLast, isAlreadyCompleted, isFirstPage);
+  }
+
+  Widget _buildSegmentedProgressBar(
+      DiscoveryDevotional study, ThemeData theme) {
+    final totalPages = _getTotalPages(study);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Row(
+        children: List.generate(
+          totalPages,
+          (index) => Expanded(
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              margin: const EdgeInsets.symmetric(horizontal: 2),
+              height: 4,
+              decoration: BoxDecoration(
+                color: index <= _currentSectionIndex
+                    ? theme.colorScheme.primary
+                    : theme.colorScheme.primary.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildStudyHeader(DiscoveryDevotional study, ThemeData theme) {
+    final totalPages = _getTotalPages(study);
+
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(24, 12, 24, 12),
+      padding: const EdgeInsets.fromLTRB(24, 4, 24, 12),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -217,21 +289,21 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
               style: theme.textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.w900,
                 letterSpacing: -0.8,
-                fontSize: 22,
+                fontSize: 20,
               ),
             ),
           ),
           const SizedBox(width: 16),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
-              color: theme.colorScheme.primary.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
+              color: theme.colorScheme.primary.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(8),
             ),
             child: Text(
-              '${_currentSectionIndex + 1}/${study.totalSections}',
+              '${_currentSectionIndex + 1}/$totalPages',
               style: TextStyle(
-                fontSize: 13,
+                fontSize: 12,
                 fontWeight: FontWeight.w800,
                 color: theme.colorScheme.primary,
               ),
@@ -242,64 +314,63 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
     );
   }
 
-  Widget _buildProgressIndicator(DiscoveryDevotional study, ThemeData theme) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: List.generate(
-          study.totalSections,
-          (index) => AnimatedContainer(
-            duration: const Duration(milliseconds: 300),
-            margin: const EdgeInsets.symmetric(horizontal: 3),
-            width: _currentSectionIndex == index ? 24 : 6,
-            height: 6,
-            decoration: BoxDecoration(
-              color: _currentSectionIndex == index
-                  ? theme.colorScheme.primary
-                  : theme.colorScheme.primary.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(3),
-            ),
+  Widget _buildKeyVerseCardPage(DiscoveryDevotional study, ThemeData theme) {
+    return Container(
+      // Removed horizontal margin to allow the card to take full Page width
+      // and let the PageView viewportFraction handle the gap/peeking.
+      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+      child: Material(
+        elevation: 4,
+        borderRadius: BorderRadius.circular(32),
+        shadowColor: Colors.black.withValues(alpha: 0.08),
+        clipBehavior: Clip.antiAlias,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              KeyVerseCard(
+                keyVerse: study.keyVerse!,
+                version: study.version,
+              ),
+              const SizedBox(height: 32),
+              _buildNavigationButtons(true, false),
+              const SizedBox(height: 20),
+            ],
           ),
         ),
       ),
     );
   }
 
-  Widget _buildAnimatedCard(DiscoveryDevotional study, int index, bool isDark,
-      bool isLast, bool isAlreadyCompleted) {
-    final isFirst = index == 0;
+  Widget _buildAnimatedCard(DiscoveryDevotional study, int contentIndex,
+      bool isDark, bool isLast, bool isAlreadyCompleted, bool isFirstPage) {
+    final isFirst = isFirstPage;
 
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 400),
-      curve: Curves.easeOutQuart,
-      margin: EdgeInsets.symmetric(
-        horizontal: _currentSectionIndex == index ? 12 : 28,
-        vertical: _currentSectionIndex == index ? 4 : 24,
-      ),
+    return Container(
+      // Removed horizontal margin to allow the card to take full Page width
+      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
       child: Material(
-        elevation: _currentSectionIndex == index ? 8 : 1,
+        elevation: 4,
         borderRadius: BorderRadius.circular(32),
         shadowColor: Colors.black.withValues(alpha: 0.08),
         clipBehavior: Clip.antiAlias,
         child: study.cards.isNotEmpty
-            ? _buildCardContent(study.cards[index], study, isDark, isLast,
-                isAlreadyCompleted, isFirst)
+            ? _buildCardContent(study.cards[contentIndex], study, isDark,
+                isLast, isAlreadyCompleted, isFirst)
             : study.secciones != null && study.secciones!.isNotEmpty
-                ? _buildSectionCardWithButtons(
-                    study, study.secciones![index], isDark, isFirst, isLast)
+                ? _buildSectionCardWithButtons(study,
+                    study.secciones![contentIndex], isDark, isFirst, isLast)
                 : const SizedBox.shrink(),
       ),
     );
   }
 
-  /// Wrapper for DiscoverySectionCard with navigation buttons at bottom
   Widget _buildSectionCardWithButtons(DiscoveryDevotional study,
       DiscoverySection section, bool isDark, bool isFirst, bool isLast) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Section content - expand to fill space
         Expanded(
           child: DiscoverySectionCard(
             section: section,
@@ -309,8 +380,6 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
             versiculoClave: study.versiculoClave,
           ),
         ),
-
-        // Navigation buttons at bottom
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
           child: _buildNavigationButtons(isFirst, isLast),
@@ -319,10 +388,6 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
     );
   }
 
-  /// Builds minimalistic navigation buttons at the end of content
-  /// - Previous button: appears from 2nd slice onwards (left side)
-  /// - Next button: appears on all slices except last (right side)
-  /// - Exit button: appears on last slice (right side, replaces Next)
   Widget _buildNavigationButtons(bool isFirst, bool isLast) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
@@ -331,7 +396,6 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
       child: Row(
         children: [
-          // Previous button (left side) - shown from 2nd slice onwards
           if (!isFirst)
             Expanded(
               child: Padding(
@@ -371,11 +435,7 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
               ),
             )
           else
-            // Empty space to balance layout when there's no Previous button
             const Expanded(child: SizedBox.shrink()),
-
-          // Next button (right side) - shown on all slices except last
-          // Exit button (right side) - shown ONLY on last slice
           Expanded(
             child: Padding(
               padding: const EdgeInsets.only(left: 6),
@@ -454,18 +514,15 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ...existing card content...
           if (card.icon != null) ...[
             Text(card.icon!, style: const TextStyle(fontSize: 52)),
             const SizedBox(height: 20),
           ],
-
           Text(
             card.title,
             style: theme.textTheme.headlineSmall
                 ?.copyWith(fontWeight: FontWeight.w800, letterSpacing: -0.5),
           ),
-
           if (card.subtitle != null) ...[
             const SizedBox(height: 6),
             Text(
@@ -477,9 +534,7 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
               ),
             ),
           ],
-
           const SizedBox(height: 24),
-
           if (card.content != null)
             Text(
               card.content!,
@@ -487,7 +542,6 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
                   height: 1.6,
                   color: theme.colorScheme.onSurface.withValues(alpha: 0.9)),
             ),
-
           if (card.revelationKey != null) ...[
             const SizedBox(height: 32),
             Container(
@@ -524,18 +578,15 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
               ),
             ),
           ],
-
           if (card.scriptureConnections != null) ...[
             const SizedBox(height: 32),
             ...card.scriptureConnections!
                 .map((scripture) => _buildScriptureTile(scripture, theme)),
           ],
-
           if (card.greekWords != null) ...[
             const SizedBox(height: 32),
             ...card.greekWords!.map((word) => _buildGreekWordTile(word, theme)),
           ],
-
           if (card.discoveryQuestions != null) ...[
             const SizedBox(height: 32),
             Text('discovery.reflection_questions'.tr(),
@@ -545,13 +596,10 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
             ...card.discoveryQuestions!
                 .map((q) => _buildQuestionTile(q, theme)),
           ],
-
           if (card.prayer != null) ...[
             const SizedBox(height: 32),
             _buildPrayerTile(card.prayer!, theme),
           ],
-
-          // ✨ MODERN MINIMALIST COMPLETE BUTTON
           if (isLast) ...[
             const SizedBox(height: 48),
             Center(
@@ -594,17 +642,12 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
               ),
             ),
           ],
-
-          // 📜 COPYRIGHT DISCLAIMER - only show on last section
           if (isLast) ...[
             const SizedBox(height: 48),
             _buildCopyrightDisclaimer(study, theme),
           ],
-
-          // Navigation buttons at the bottom of content
           const SizedBox(height: 32),
           _buildNavigationButtons(isFirst, isLast),
-
           const SizedBox(height: 20),
         ],
       ),
@@ -649,19 +692,27 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
         children: [
           Row(
             children: [
-              Text(word.word,
-                  style: TextStyle(
-                    fontSize: 26,
-                    fontWeight: FontWeight.w900,
-                    color: theme.colorScheme.onSecondaryContainer,
-                  )),
+              Flexible(
+                child: Text(word.word,
+                    style: TextStyle(
+                      fontSize: 26,
+                      fontWeight: FontWeight.w900,
+                      color: theme.colorScheme.onSecondaryContainer,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis),
+              ),
               if (word.transliteration != null) ...[
                 const SizedBox(width: 8),
-                Text('(${word.transliteration})',
-                    style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: theme.colorScheme.primary)),
+                Flexible(
+                  child: Text('(${word.transliteration})',
+                      style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: theme.colorScheme.primary),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis),
+                ),
               ],
             ],
           ),
@@ -726,11 +777,8 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
   }
 
   Widget _buildCopyrightDisclaimer(DiscoveryDevotional study, ThemeData theme) {
-    // Use the language and version from the already-fetched study data
     final language = study.language ?? 'en';
     final version = study.version ?? 'KJV';
-
-    // Get copyright text from CopyrightUtils
     final copyrightText = CopyrightUtils.getCopyrightText(language, version);
 
     return Container(
