@@ -99,6 +99,7 @@ dev_dependencies:
   # Downgraded from 0.7.7 to 0.7.4 due to dependency conflict with integration_test from Flutter SDK
   # integration_test package pins test_api to 0.7.4, causing version resolution failure
   test_api: ^0.7.4
+  firebase_remote_config_platform_interface: any
 flutter:
   uses-material-design: true
   assets:

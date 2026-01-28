@@ -537,7 +537,7 @@ packages:
     source: hosted
     version: "5.5.0"
   firebase_remote_config_platform_interface:
-    dependency: transitive
+    dependency: "direct dev"
     description:
       name: firebase_remote_config_platform_interface
       sha256: ce836c5c62056edbe23ef501e6876691ee32476afd12fe95b76e57bba9d25485
