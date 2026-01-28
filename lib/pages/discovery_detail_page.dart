@@ -12,6 +12,7 @@ import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/utils/copyright_utils.dart';
 import 'package:devocional_nuevo/widgets/devocionales/app_bar_constants.dart';
 import 'package:devocional_nuevo/widgets/discovery_section_card.dart';
+import 'package:devocional_nuevo/widgets/key_verse_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -38,6 +39,17 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
   final PageController _pageController = PageController();
   bool _isCelebrating = false;
   bool _hasTriggeredCompletion = false;
+
+  /// Helper to check if the study has a key verse card to display
+  bool _hasKeyVerseCard(DiscoveryDevotional study) {
+    return study.cards.isNotEmpty && study.keyVerse != null;
+  }
+
+  /// Get total pages including key verse card if present
+  int _getTotalPages(DiscoveryDevotional study) {
+    final baseCount = study.totalSections;
+    return _hasKeyVerseCard(study) ? baseCount + 1 : baseCount;
+  }
 
   @override
   void dispose() {
@@ -144,11 +156,28 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
                           controller: _pageController,
                           onPageChanged: (index) =>
                               setState(() => _currentSectionIndex = index),
-                          itemCount: study.totalSections,
+                          itemCount: _getTotalPages(study),
                           itemBuilder: (context, index) {
-                            final isLast = index == study.totalSections - 1;
-                            return _buildAnimatedCard(study, index, isDark,
-                                isLast, isAlreadyCompleted);
+                            // If study has key verse card and this is first page, show it
+                            if (_hasKeyVerseCard(study) && index == 0) {
+                              return _buildKeyVerseCardPage(study, theme);
+                            }
+
+                            // Adjust index for actual cards/sections
+                            final contentIndex =
+                                _hasKeyVerseCard(study) ? index - 1 : index;
+                            final isLast =
+                                contentIndex == study.totalSections - 1;
+                            final isFirstPage =
+                                index == 0; // First page in the entire PageView
+
+                            return _buildAnimatedCard(
+                                study,
+                                contentIndex,
+                                isDark,
+                                isLast,
+                                isAlreadyCompleted,
+                                isFirstPage);
                           },
                         ),
                       ),
@@ -205,6 +234,8 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
   }
 
   Widget _buildStudyHeader(DiscoveryDevotional study, ThemeData theme) {
+    final totalPages = _getTotalPages(study);
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(24, 12, 24, 12),
@@ -229,7 +260,7 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
-              '${_currentSectionIndex + 1}/${study.totalSections}',
+              '${_currentSectionIndex + 1}/$totalPages',
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w800,
@@ -243,12 +274,14 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
   }
 
   Widget _buildProgressIndicator(DiscoveryDevotional study, ThemeData theme) {
+    final totalPages = _getTotalPages(study);
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: List.generate(
-          study.totalSections,
+          totalPages,
           (index) => AnimatedContainer(
             duration: const Duration(milliseconds: 300),
             margin: const EdgeInsets.symmetric(horizontal: 3),
@@ -266,28 +299,67 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
     );
   }
 
-  Widget _buildAnimatedCard(DiscoveryDevotional study, int index, bool isDark,
-      bool isLast, bool isAlreadyCompleted) {
-    final isFirst = index == 0;
+  /// Builds the key verse card page with navigation buttons
+  Widget _buildKeyVerseCardPage(DiscoveryDevotional study, ThemeData theme) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 400),
+      curve: Curves.easeOutQuart,
+      margin: EdgeInsets.symmetric(
+        horizontal: _currentSectionIndex == 0 ? 12 : 28,
+        vertical: _currentSectionIndex == 0 ? 4 : 24,
+      ),
+      child: Material(
+        elevation: _currentSectionIndex == 0 ? 8 : 1,
+        borderRadius: BorderRadius.circular(32),
+        shadowColor: Colors.black.withValues(alpha: 0.08),
+        clipBehavior: Clip.antiAlias,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(28),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Key verse card
+              KeyVerseCard(keyVerse: study.keyVerse!),
+
+              const SizedBox(height: 32),
+
+              // Navigation buttons - only Next button on first page
+              _buildNavigationButtons(true, false),
+
+              const SizedBox(height: 20),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAnimatedCard(DiscoveryDevotional study, int contentIndex,
+      bool isDark, bool isLast, bool isAlreadyCompleted, bool isFirstPage) {
+    // isFirst means no Previous button should show
+    final isFirst = isFirstPage;
+
+    // Calculate the actual page index in the PageView
+    final pageIndex = _hasKeyVerseCard(study) ? contentIndex + 1 : contentIndex;
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 400),
       curve: Curves.easeOutQuart,
       margin: EdgeInsets.symmetric(
-        horizontal: _currentSectionIndex == index ? 12 : 28,
-        vertical: _currentSectionIndex == index ? 4 : 24,
+        horizontal: _currentSectionIndex == pageIndex ? 12 : 28,
+        vertical: _currentSectionIndex == pageIndex ? 4 : 24,
       ),
       child: Material(
-        elevation: _currentSectionIndex == index ? 8 : 1,
+        elevation: _currentSectionIndex == pageIndex ? 8 : 1,
         borderRadius: BorderRadius.circular(32),
         shadowColor: Colors.black.withValues(alpha: 0.08),
         clipBehavior: Clip.antiAlias,
         child: study.cards.isNotEmpty
-            ? _buildCardContent(study.cards[index], study, isDark, isLast,
-                isAlreadyCompleted, isFirst)
+            ? _buildCardContent(study.cards[contentIndex], study, isDark,
+                isLast, isAlreadyCompleted, isFirst)
             : study.secciones != null && study.secciones!.isNotEmpty
-                ? _buildSectionCardWithButtons(
-                    study, study.secciones![index], isDark, isFirst, isLast)
+                ? _buildSectionCardWithButtons(study,
+                    study.secciones![contentIndex], isDark, isFirst, isLast)
                 : const SizedBox.shrink(),
       ),
     );
