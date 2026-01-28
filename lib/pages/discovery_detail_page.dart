@@ -37,7 +37,8 @@ class DiscoveryDetailPage extends StatefulWidget {
 class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
   int _currentSectionIndex = 0;
   // Reduced fraction to 0.88 to make the "peeking" of next/prev cards much more obvious
-  late final PageController _pageController = PageController(viewportFraction: 0.88);
+  late final PageController _pageController =
+      PageController(viewportFraction: 0.88);
   bool _isCelebrating = false;
   bool _hasTriggeredCompletion = false;
 
@@ -165,17 +166,20 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
                                 if (_pageController.position.haveDimensions) {
                                   value = _pageController.page! - index;
                                   // Subtle scale and fade for cards as they move away from center
-                                  value = (1 - (value.abs() * 0.12)).clamp(0.0, 1.0);
+                                  value = (1 - (value.abs() * 0.12))
+                                      .clamp(0.0, 1.0);
                                 }
                                 return Transform.scale(
                                   scale: value,
                                   child: Opacity(
-                                    opacity: value.clamp(0.5, 1.0), // Keep peeked cards visible
+                                    opacity: value.clamp(
+                                        0.5, 1.0), // Keep peeked cards visible
                                     child: child,
                                   ),
                                 );
                               },
-                              child: _buildContentForIndex(study, index, isDark, isAlreadyCompleted),
+                              child: _buildContentForIndex(
+                                  study, index, isDark, isAlreadyCompleted),
                             );
                           },
                         ),
@@ -184,7 +188,6 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
                           height: MediaQuery.of(context).padding.bottom + 20),
                     ],
                   ),
-
                   Positioned(
                     left: 0,
                     right: 0,
@@ -208,7 +211,6 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
                       ),
                     ),
                   ),
-
                   if (_isCelebrating)
                     IgnorePointer(
                       child: Center(
@@ -230,7 +232,8 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
     );
   }
 
-  Widget _buildContentForIndex(DiscoveryDevotional study, int index, bool isDark, bool isAlreadyCompleted) {
+  Widget _buildContentForIndex(DiscoveryDevotional study, int index,
+      bool isDark, bool isAlreadyCompleted) {
     if (_hasKeyVerseCard(study) && index == 0) {
       return _buildKeyVerseCardPage(study, Theme.of(context));
     }
@@ -240,17 +243,13 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
     final isFirstPage = index == 0;
 
     return _buildAnimatedCard(
-        study,
-        contentIndex,
-        isDark,
-        isLast,
-        isAlreadyCompleted,
-        isFirstPage);
+        study, contentIndex, isDark, isLast, isAlreadyCompleted, isFirstPage);
   }
 
-  Widget _buildSegmentedProgressBar(DiscoveryDevotional study, ThemeData theme) {
+  Widget _buildSegmentedProgressBar(
+      DiscoveryDevotional study, ThemeData theme) {
     final totalPages = _getTotalPages(study);
-    
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
@@ -436,7 +435,6 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
             )
           else
             const Expanded(child: SizedBox.shrink()),
-
           Expanded(
             child: Padding(
               padding: const EdgeInsets.only(left: 6),
@@ -519,13 +517,11 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
             Text(card.icon!, style: const TextStyle(fontSize: 52)),
             const SizedBox(height: 20),
           ],
-
           Text(
             card.title,
             style: theme.textTheme.headlineSmall
                 ?.copyWith(fontWeight: FontWeight.w800, letterSpacing: -0.5),
           ),
-
           if (card.subtitle != null) ...[
             const SizedBox(height: 6),
             Text(
@@ -537,9 +533,7 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
               ),
             ),
           ],
-
           const SizedBox(height: 24),
-
           if (card.content != null)
             Text(
               card.content!,
@@ -547,7 +541,6 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
                   height: 1.6,
                   color: theme.colorScheme.onSurface.withValues(alpha: 0.9)),
             ),
-
           if (card.revelationKey != null) ...[
             const SizedBox(height: 32),
             Container(
@@ -584,18 +577,15 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
               ),
             ),
           ],
-
           if (card.scriptureConnections != null) ...[
             const SizedBox(height: 32),
             ...card.scriptureConnections!
                 .map((scripture) => _buildScriptureTile(scripture, theme)),
           ],
-
           if (card.greekWords != null) ...[
             const SizedBox(height: 32),
             ...card.greekWords!.map((word) => _buildGreekWordTile(word, theme)),
           ],
-
           if (card.discoveryQuestions != null) ...[
             const SizedBox(height: 32),
             Text('discovery.reflection_questions'.tr(),
@@ -605,12 +595,10 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
             ...card.discoveryQuestions!
                 .map((q) => _buildQuestionTile(q, theme)),
           ],
-
           if (card.prayer != null) ...[
             const SizedBox(height: 32),
             _buildPrayerTile(card.prayer!, theme),
           ],
-
           if (isLast) ...[
             const SizedBox(height: 48),
             Center(
@@ -653,15 +641,12 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
               ),
             ),
           ],
-
           if (isLast) ...[
             const SizedBox(height: 48),
             _buildCopyrightDisclaimer(study, theme),
           ],
-
           const SizedBox(height: 32),
           _buildNavigationButtons(isFirst, isLast),
-
           const SizedBox(height: 20),
         ],
       ),

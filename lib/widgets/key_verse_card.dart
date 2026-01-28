@@ -29,33 +29,45 @@ class KeyVerseCard extends StatelessWidget {
     return Container(
       margin: margin ?? EdgeInsets.zero,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(32),
+        // Match Devocionales main verse background, but a little darker
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            isDark 
-                ? colorScheme.surfaceContainerHighest.withValues(alpha: 0.2)
-                : Colors.white.withValues(alpha: 0.9),
-            colorScheme.surface,
+            colorScheme.primary.withAlpha((0.40 * 255).round()),
+            // darker
+            colorScheme.primary.withAlpha((0.18 * 255).round()),
+            // darker
+            colorScheme.secondary.withAlpha((0.12 * 255).round()),
+            // slightly darker
           ],
+          stops: const [0.0, 0.6, 1.0],
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: colorScheme.primary.withAlpha((0.4 * 255).round()),
+          // slightly darker border
+          width: 1.5,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: colorScheme.primary.withAlpha((0.25 * 255).round()),
+            // slightly darker shadow
             blurRadius: 20,
-            offset: const Offset(0, 10),
+            offset: const Offset(0, 8),
+            spreadRadius: -4,
+          ),
+          BoxShadow(
+            color: Colors.black.withAlpha((0.08 * 255).round()),
+            // slightly darker
+            blurRadius: 40,
+            offset: const Offset(0, 16),
+            spreadRadius: -8,
           ),
         ],
-        border: Border.all(
-          color: isDark 
-              ? Colors.white.withValues(alpha: 0.1) 
-              : colorScheme.primary.withValues(alpha: 0.05),
-          width: 1,
-        ),
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(32),
+        borderRadius: BorderRadius.circular(20),
         child: Stack(
           children: [
             // Decorative background quote icon
@@ -76,15 +88,16 @@ class KeyVerseCard extends StatelessWidget {
                 children: [
                   // Top Label - Cleaner, more white version
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                     decoration: BoxDecoration(
-                      color: isDark 
-                          ? Colors.white.withValues(alpha: 0.05) 
+                      color: isDark
+                          ? Colors.white.withValues(alpha: 0.05)
                           : Colors.grey[50],
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                        color: isDark 
-                            ? Colors.white.withValues(alpha: 0.1) 
+                        color: isDark
+                            ? Colors.white.withValues(alpha: 0.1)
                             : Colors.grey[200]!,
                       ),
                     ),
@@ -115,12 +128,9 @@ class KeyVerseCard extends StatelessWidget {
                   Text(
                     '"${keyVerse.text}"',
                     textAlign: TextAlign.center,
-                    style: theme.textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.w700,
-                      fontStyle: FontStyle.italic,
-                      height: 1.5,
-                      letterSpacing: -0.2,
-                      color: colorScheme.onSurface.withValues(alpha: 0.9),
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: colorScheme.onSurface,
                     ),
                   ),
 
