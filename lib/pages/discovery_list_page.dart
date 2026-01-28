@@ -88,13 +88,13 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
     if (!_dotsScrollController.hasClients) return;
 
     final double screenWidth = MediaQuery.of(context).size.width;
-    
+
     // Use the same sizing logic as _buildProgressDots
     final double baseDotSize = (screenWidth / 32).clamp(8.0, 11.0);
     final double activeDotWidth = baseDotSize * 2.6;
     final double dotSpacing = baseDotSize * 0.8;
     final double visibleWindowWidth = screenWidth * 0.45;
-    
+
     // Calculate the scroll offset to center the target dot
     double offset = 0;
     for (int i = 0; i < index; i++) {
@@ -102,7 +102,8 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
     }
 
     // Target the center of the visible window
-    final double targetOffset = offset - (visibleWindowWidth / 2) + (activeDotWidth / 2);
+    final double targetOffset =
+        offset - (visibleWindowWidth / 2) + (activeDotWidth / 2);
 
     _dotsScrollController.animateTo(
       targetOffset.clamp(0.0, _dotsScrollController.position.maxScrollExtent),
@@ -283,34 +284,41 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
           child: SingleChildScrollView(
             controller: _dotsScrollController,
             scrollDirection: Axis.horizontal,
-            physics: const NeverScrollableScrollPhysics(), // Sliding is controlled by Swiper
+            physics:
+                const NeverScrollableScrollPhysics(), // Sliding is controlled by Swiper
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: List.generate(
                 count,
                 (index) {
                   final int distance = (index - _currentIndex).abs();
-                  
+
                   // Adaptive scale based on distance from current index (Instagram-style)
                   double scale = 1.0;
-                  if (distance == 1) scale = 0.85;
-                  else if (distance == 2) scale = 0.65;
+                  if (distance == 1) {
+                    scale = 0.85;
+                  } else if (distance == 2)
+                    scale = 0.65;
                   else if (distance >= 3) scale = 0.45;
 
                   return AnimatedContainer(
                     duration: const Duration(milliseconds: 300),
                     margin: EdgeInsets.symmetric(horizontal: dotSpacing / 2),
-                    width: index == _currentIndex ? activeDotWidth : baseDotSize * scale,
+                    width: index == _currentIndex
+                        ? activeDotWidth
+                        : baseDotSize * scale,
                     height: baseDotSize * scale,
                     decoration: BoxDecoration(
                       color: index == _currentIndex
                           ? colorScheme.primary
-                          : colorScheme.primary.withValues(alpha: _inactiveDotsAlpha * scale),
+                          : colorScheme.primary
+                              .withValues(alpha: _inactiveDotsAlpha * scale),
                       borderRadius: BorderRadius.circular(baseDotSize / 2),
                       border: Border.all(
                         color: index == _currentIndex
                             ? colorScheme.primary
-                            : colorScheme.outline.withValues(alpha: 0.5 * scale),
+                            : colorScheme.outline
+                                .withValues(alpha: 0.5 * scale),
                         width: 1.2 * scale,
                       ),
                     ),
