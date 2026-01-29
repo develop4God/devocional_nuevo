@@ -6,9 +6,8 @@ tags:
     timeout: 10s
   slow:
     timeout: 5m
-    skip: "Run explicitly with --tags=slow"
   flaky:
-    skip: "Unstable - tracked in issues"
+    timeout: 2m
 
 # Default timeout for untagged tests
 timeout: 1m
