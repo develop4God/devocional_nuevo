@@ -38,14 +38,10 @@ timeout: 1m  # Default for untagged tests
 - **Target**: Should complete in < 5 seconds
 
 ### `@Tags(['slow', 'widget'])`
-- **Location**: `test/pages/`, `test/widgets/`
-- **Purpose**: Widget tests with animations/timers
+- **Location**: `test/pages/`, `test/widgets/`, `test/integration/`
+- **Purpose**: Widget tests with animations/timers and integration tests
 - **Timeout**: 5 minutes
-- **Note**: Runs by default (no longer skipped)
-
-### `@Tags(['flaky'])`
-- **Purpose**: Previously unstable tests, now stabilized
-- **Timeout**: 2 minutes
+- **Count**: 6 integration tests
 - **Note**: Runs by default (no longer skipped)
 
 ## Recommended Workflow Commands
@@ -174,4 +170,4 @@ Based on current test suite (as of 2026-01-23):
 | Date | Task / Update | Baseline (Pass/Fail) | File Paths Impacted | Lessons Learned |
 | :--- | :--- | :--- | :--- | :--- |
 | 2026-01-23 | Migration to Critical Tags | 570/570 (100%) | `test/critical_coverage/` | Grouping BLoC tests under 'critical' reduces CI time by 70%. |
-| 2026-01-28 | Remove skip directives for 100% test coverage | 1536/1536 (100%) | `dart_test.yaml`, all test files | Removing skip directives for 'slow' and 'flaky' tags ensures all tests run. No tests should be skipped to maintain code quality. |
+| 2026-01-28 | Remove skip directives for 100% test coverage | 1536/1536 (100%) | `dart_test.yaml`, `docs/testing/reports/TEST_WORKFLOW_GUIDE.md` | Removing skip directives for 'slow' and 'flaky' tags ensures all tests run. No tests should be skipped to maintain code quality. |

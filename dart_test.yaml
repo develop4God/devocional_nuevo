@@ -6,8 +6,9 @@ tags:
     timeout: 10s
   slow:
     timeout: 5m
-  flaky:
-    timeout: 2m
+  bloc:
+    # Used alongside critical/unit/slow tags for organization
+    # Example: @Tags(['critical', 'bloc'])
 
 # Default timeout for untagged tests
 timeout: 1m
