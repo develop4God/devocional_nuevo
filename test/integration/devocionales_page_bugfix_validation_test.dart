@@ -51,7 +51,7 @@ void main() {
       when(
         () => mockNavigationRepository.loadCurrentIndex(),
       ).thenAnswer((_) async => 0);
-      
+
       // Mock findFirstUnreadDevocionalIndex to implement actual logic
       when(
         () => mockDevocionalRepository.findFirstUnreadDevocionalIndex(
@@ -59,11 +59,12 @@ void main() {
           any(),
         ),
       ).thenAnswer((invocation) {
-        final devocionales = invocation.positionalArguments[0] as List<Devocional>;
+        final devocionales =
+            invocation.positionalArguments[0] as List<Devocional>;
         final readIds = invocation.positionalArguments[1] as List<String>;
-        
+
         if (devocionales.isEmpty) return 0;
-        
+
         final readSet = readIds.toSet();
         for (int i = 0; i < devocionales.length; i++) {
           if (!readSet.contains(devocionales[i].id)) {
