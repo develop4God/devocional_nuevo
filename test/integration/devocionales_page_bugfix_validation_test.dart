@@ -51,12 +51,27 @@ void main() {
       when(
         () => mockNavigationRepository.loadCurrentIndex(),
       ).thenAnswer((_) async => 0);
+      
+      // Mock findFirstUnreadDevocionalIndex to implement actual logic
       when(
         () => mockDevocionalRepository.findFirstUnreadDevocionalIndex(
           any(),
           any(),
         ),
-      ).thenReturn(0);
+      ).thenAnswer((invocation) {
+        final devocionales = invocation.positionalArguments[0] as List<Devocional>;
+        final readIds = invocation.positionalArguments[1] as List<String>;
+        
+        if (devocionales.isEmpty) return 0;
+        
+        final readSet = readIds.toSet();
+        for (int i = 0; i < devocionales.length; i++) {
+          if (!readSet.contains(devocionales[i].id)) {
+            return i;
+          }
+        }
+        return 0;
+      });
 
       bloc = DevocionalesNavigationBloc(
         navigationRepository: mockNavigationRepository,
@@ -114,15 +129,17 @@ void main() {
         expect(state.currentIndex, equals(5));
 
         // Simulate bible version change to NIV (English)
+        // Mark first 5 devotionals as read so index stays at 5
+        final readIds = List.generate(5, (i) => 'devocional_NIV_$i');
         final englishDevocionales = createTestDevocionales(10, 'NIV');
-        bloc.add(UpdateDevocionales(englishDevocionales, []));
+        bloc.add(UpdateDevocionales(englishDevocionales, readIds));
 
         await expectLater(bloc.stream, emits(isA<NavigationReady>()));
 
         state = bloc.state as NavigationReady;
         expect(state.currentDevocional.version, equals('NIV'));
         expect(state.currentDevocional.language, equals('en'));
-        // Index should be preserved (clamped if necessary)
+        // Index should be at first unread (5 read, so index 5)
         expect(state.currentIndex, equals(5));
         expect(state.devocionales.length, equals(10));
       },
@@ -151,15 +168,17 @@ void main() {
         expect(state.totalDevocionales, equals(15));
 
         // Change language to English - this triggers new devotionals
+        // Mark first 7 devotionals as read so index stays at 7
+        final readIds = List.generate(7, (i) => 'devocional_NIV_$i');
         final englishDevocionales = createTestDevocionales(15, 'NIV');
-        bloc.add(UpdateDevocionales(englishDevocionales, []));
+        bloc.add(UpdateDevocionales(englishDevocionales, readIds));
 
         await expectLater(bloc.stream, emits(isA<NavigationReady>()));
 
         state = bloc.state as NavigationReady;
         expect(state.currentDevocional.language, equals('en'));
         expect(state.currentDevocional.version, equals('NIV'));
-        expect(state.currentIndex, equals(7)); // Preserved
+        expect(state.currentIndex, equals(7)); // At first unread
         expect(state.totalDevocionales, equals(15));
         expect(state.devocionales, equals(englishDevocionales));
       },
@@ -186,13 +205,15 @@ void main() {
         expect(state.totalDevocionales, equals(20));
 
         // Change to English with only 10 devotionals
+        // Mark first 9 devotionals as read (would clamp from 18 to 9)
+        final readIds = List.generate(9, (i) => 'devocional_NIV_$i');
         final englishDevocionales = createTestDevocionales(10, 'NIV');
-        bloc.add(UpdateDevocionales(englishDevocionales, []));
+        bloc.add(UpdateDevocionales(englishDevocionales, readIds));
 
         await expectLater(bloc.stream, emits(isA<NavigationReady>()));
 
         state = bloc.state as NavigationReady;
-        expect(state.currentIndex, equals(9)); // Clamped to last valid index
+        expect(state.currentIndex, equals(9)); // At first unread (last item)
         expect(state.totalDevocionales, equals(10));
         expect(state.currentDevocional.version, equals('NIV'));
       },
@@ -217,9 +238,10 @@ void main() {
         equals('RVR1960'),
       );
 
-      // Change to NVI
+      // Change to NVI - mark first 3 as read
+      final readIdsNvi = List.generate(3, (i) => 'devocional_NVI_$i');
       final nviDevocionales = createTestDevocionales(12, 'NVI');
-      bloc.add(UpdateDevocionales(nviDevocionales, []));
+      bloc.add(UpdateDevocionales(nviDevocionales, readIdsNvi));
 
       await expectLater(bloc.stream, emits(isA<NavigationReady>()));
 
@@ -229,9 +251,10 @@ void main() {
       );
       expect((bloc.state as NavigationReady).currentIndex, equals(3));
 
-      // Change to NIV (English)
+      // Change to NIV (English) - mark first 3 as read
+      final readIdsNiv = List.generate(3, (i) => 'devocional_NIV_$i');
       final nivDevocionales = createTestDevocionales(12, 'NIV');
-      bloc.add(UpdateDevocionales(nivDevocionales, []));
+      bloc.add(UpdateDevocionales(nivDevocionales, readIdsNiv));
 
       await expectLater(bloc.stream, emits(isA<NavigationReady>()));
 
