@@ -1,6 +1,12 @@
 name: 🚀Flutter CI
 
 on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches: [ "main", "develop" ]
   workflow_dispatch:
     inputs:
       target_branch:
@@ -12,9 +18,6 @@ on:
         required: false
         default: true
         type: boolean
-
-  pull_request:
-    branches: [ "main", "develop" ]
 
 jobs:
   analyze:
@@ -47,9 +50,15 @@ jobs:
       - name: 🎨 Check and auto-format code
         run: |
           echo "🎨 Checking Dart code formatting..."
+          # Enable auto_format by default on push, or respect workflow_dispatch inputs
+          AUTO_FORMAT="${{ github.event.inputs.auto_format }}"
+          if [ "${{ github.event_name }}" = "push" ]; then
+            AUTO_FORMAT="true"
+          fi
+
           if ! dart format --set-exit-if-changed . 2>/dev/null; then
             echo "📝 Formatting issues detected!"
-            if [ "${{ github.event.inputs.auto_format }}" = "true" ]; then
+            if [ "$AUTO_FORMAT" = "true" ]; then
               echo "🔧 Auto-formatting enabled. Applying fixes..."
               dart format .
               git config --local user.email "action@github.com"
@@ -194,7 +203,7 @@ jobs:
                 default: return '🔄';
               }
             };
-            const autoFormatEnabled = '${{ github.event.inputs.auto_format }}' === 'true';
+            const autoFormatEnabled = '${{ github.event.inputs.auto_format }}' === 'true' || '${{ github.event_name }}' === 'push';
             const formatNote = autoFormatEnabled ? '🎨 Auto-format: Enabled' : '⚠️ Auto-format: Disabled';
             const comment = `## 🎉 CI Results for PR #${{ github.event.number }}
 
