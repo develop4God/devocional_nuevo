@@ -1,5 +1,9 @@
+@Tags(['slow', 'widget'])
+library;
+
 // test/widget/favorites_page_discovery_tab_test.dart
 // Widget test to verify Discovery tab loads correctly and doesn't show infinite spinner
+// Tagged as 'slow' due to complex widget initialization and async BLoC operations
 
 import 'package:devocional_nuevo/blocs/discovery/discovery_bloc.dart';
 import 'package:devocional_nuevo/blocs/discovery/discovery_state.dart';
@@ -119,8 +123,10 @@ void main() {
     // Initial build shows spinner
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
 
-    // Wait for postFrameCallback to execute
-    await tester.pumpAndSettle();
+    // Wait for postFrameCallback to execute and async work
+    await tester.pump(); // Initial frame
+    await tester.pump(const Duration(milliseconds: 100)); // Allow async work
+    await tester.pump(const Duration(milliseconds: 100)); // Additional frame
 
     // Verify LoadDiscoveryStudies event was dispatched
     // The bloc should transition from Initial to Loading
@@ -168,7 +174,9 @@ void main() {
     );
 
     // Wait for loading to complete
-    await tester.pumpAndSettle();
+    await tester.pump(); // Initial frame
+    await tester.pump(const Duration(milliseconds: 100)); // Allow async work
+    await tester.pump(const Duration(milliseconds: 100)); // Additional frame
 
     // Should show empty state, not infinite spinner
     expect(find.byType(CircularProgressIndicator), findsNothing);
@@ -213,7 +221,9 @@ void main() {
     );
 
     // Wait for error state
-    await tester.pumpAndSettle();
+    await tester.pump(); // Initial frame
+    await tester.pump(const Duration(milliseconds: 100)); // Allow async work
+    await tester.pump(const Duration(milliseconds: 100)); // Additional frame
 
     // Should show error state with error icon, not infinite spinner
     expect(find.byType(CircularProgressIndicator), findsNothing);
@@ -262,7 +272,9 @@ void main() {
       ),
     );
 
-    await tester.pumpAndSettle();
+    await tester.pump(); // Initial frame
+    await tester.pump(const Duration(milliseconds: 100)); // Allow async work
+    await tester.pump(const Duration(milliseconds: 100)); // Additional frame
 
     // Verify we're on Devotionals tab and DiscoveryBloc is still in Initial state
     expect(discoveryBloc.state, isA<DiscoveryInitial>());
@@ -270,7 +282,8 @@ void main() {
     // Now switch to Bible Studies tab
     await tester.tap(find.byIcon(Icons.star_rounded));
     await tester.pump(); // Start the animation
-    await tester.pumpAndSettle(); // Complete the animation and async work
+    await tester.pump(const Duration(milliseconds: 100)); // Continue animation
+    await tester.pump(const Duration(milliseconds: 100)); // Complete animation and async work
 
     // Verify LoadDiscoveryStudies was triggered and bloc transitioned out of Initial state
     expect(discoveryBloc.state, isNot(isA<DiscoveryInitial>()));
