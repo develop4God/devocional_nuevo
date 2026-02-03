@@ -101,10 +101,11 @@ void main() {
       expect(study.cards, hasLength(1));
 
       final prefs = await SharedPreferences.getInstance();
+      // Cache key now includes branch (tests run with kDebugMode=false, so always 'main')
       final cached =
-          prefs.getString('discovery_cache_${studyId}_$languageCode');
-      final cachedVersion =
-          prefs.getString('discovery_cache_${studyId}_${languageCode}_version');
+          prefs.getString('discovery_cache_${studyId}_${languageCode}_main');
+      final cachedVersion = prefs
+          .getString('discovery_cache_${studyId}_${languageCode}_main_version');
 
       expect(cached, isNotNull);
       expect(cachedVersion, equals(version1));
@@ -112,12 +113,13 @@ void main() {
 
     test('should use cache when version matches', () async {
       final prefs = await SharedPreferences.getInstance();
+      // Cache key now includes branch (tests run with kDebugMode=false, so always 'main')
       await prefs.setString(
-        'discovery_cache_${studyId}_$languageCode',
+        'discovery_cache_${studyId}_${languageCode}_main',
         jsonEncode(studyJsonV1),
       );
       await prefs.setString(
-        'discovery_cache_${studyId}_${languageCode}_version',
+        'discovery_cache_${studyId}_${languageCode}_main_version',
         version1,
       );
 
@@ -138,12 +140,13 @@ void main() {
     test('should invalidate cache and fetch new version when version changes',
         () async {
       final prefs = await SharedPreferences.getInstance();
+      // Cache key now includes branch (tests run with kDebugMode=false, so always 'main')
       await prefs.setString(
-        'discovery_cache_${studyId}_$languageCode',
+        'discovery_cache_${studyId}_${languageCode}_main',
         jsonEncode(studyJsonV1),
       );
       await prefs.setString(
-        'discovery_cache_${studyId}_${languageCode}_version',
+        'discovery_cache_${studyId}_${languageCode}_main_version',
         version1,
       );
 
@@ -161,8 +164,8 @@ void main() {
       expect(study.reflexion, equals('Study Version 1.1 - Updated'));
       expect(study.cards[0].title, equals('Card 1 Updated'));
 
-      final cachedVersion =
-          prefs.getString('discovery_cache_${studyId}_${languageCode}_version');
+      final cachedVersion = prefs
+          .getString('discovery_cache_${studyId}_${languageCode}_main_version');
       expect(cachedVersion, equals(version2));
 
       verify(() => mockHttpClient.get(any())).called(2);

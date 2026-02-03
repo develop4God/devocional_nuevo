@@ -5,7 +5,7 @@ import 'dart:developer' as developer;
 
 import 'package:devocional_nuevo/models/discovery_devotional_model.dart';
 import 'package:devocional_nuevo/utils/constants.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -23,6 +23,9 @@ class DiscoveryRepository {
     String languageCode,
   ) async {
     try {
+      // Get current branch (debug mode can switch, production always 'main')
+      final branch = kDebugMode ? Constants.debugBranch : 'main';
+
       // 1. Obtener el índice (siempre intenta red primero para saber la versión actual)
       final index = await _fetchIndex();
       final studyInfo = index['studies']?.firstWhere(
@@ -32,18 +35,19 @@ class DiscoveryRepository {
 
       final String expectedVersion = studyInfo?['version'] as String? ?? '1.0';
 
-      // 2. Intentar cargar desde cache
-      final cacheKey = '${id}_$languageCode';
+      // 2. Intentar cargar desde cache (CRITICAL: include branch in cache key)
+      final cacheKey = '${id}_${languageCode}_$branch';
       final cached = await _loadFromCache(cacheKey, expectedVersion);
 
       if (cached != null) {
-        debugPrint('✅ Discovery: Usando cache para $id (v$expectedVersion)');
+        debugPrint(
+            '✅ Discovery: Usando cache para $id (v$expectedVersion) [branch: $branch]');
         return cached;
       }
 
       // 3. Si no hay cache o versión difiere, descargar
       debugPrint(
-          '🚀 Discovery: Descargando nueva versión para $id (v$expectedVersion)');
+          '🚀 Discovery: Descargando nueva versión para $id (v$expectedVersion) [branch: $branch]');
       String filename;
       final files = studyInfo?['files'] as Map<String, dynamic>?;
       if (files != null) {
@@ -90,17 +94,19 @@ class DiscoveryRepository {
   /// Estrategia: Network-First con Fallback a Cache y Cache-Busting.
   Future<Map<String, dynamic>> _fetchIndex({bool forceRefresh = false}) async {
     final prefs = await SharedPreferences.getInstance();
+    // Get current branch (debug mode can switch, production always 'main')
+    final branch = kDebugMode ? Constants.debugBranch : 'main';
 
     try {
       // Agregar cache-buster (timestamp) para ignorar CDNs de GitHub y proxies locales
       final timestamp = DateTime.now().millisecondsSinceEpoch;
-      final baseUrl = Constants.discoveryIndexUrl;
-      final cacheBusterUrl = baseUrl.contains('?')
-          ? '$baseUrl&cb=$timestamp'
-          : '$baseUrl?cb=$timestamp';
+      final indexUrl = Constants.getDiscoveryIndexUrl();
+      final cacheBusterUrl = indexUrl.contains('?')
+          ? '$indexUrl&cb=$timestamp'
+          : '$indexUrl?cb=$timestamp';
 
       debugPrint(
-          '🌐 Discovery: Buscando índice en la red (buster: $timestamp)...');
+          '🌐 Discovery: Buscando índice en la red [branch: $branch] (buster: $timestamp)...');
       debugPrint('📍 Discovery: URL = $cacheBusterUrl');
 
       final response = await httpClient.get(Uri.parse(cacheBusterUrl));
@@ -116,7 +122,8 @@ class DiscoveryRepository {
         debugPrint('🔍 Discovery: Index keys = ${index.keys.toList()}');
 
         final studiesCount = (index['studies'] as List?)?.length ?? 0;
-        debugPrint('📚 Discovery: Parsed $studiesCount studies from index');
+        debugPrint(
+            '📚 Discovery: Parsed $studiesCount studies from index [branch: $branch]');
 
         if (studiesCount == 0) {
           debugPrint(
@@ -124,9 +131,11 @@ class DiscoveryRepository {
           debugPrint('⚠️ Discovery: Full index = $index');
         }
 
-        // Guardar en cache para offline
-        await prefs.setString(_indexCacheKey, response.body);
-        debugPrint('💾 Discovery: Index cached successfully');
+        // CRITICAL: Guardar en cache con branch incluido en la key
+        final indexCacheKey = '${_indexCacheKey}_$branch';
+        await prefs.setString(indexCacheKey, response.body);
+        debugPrint(
+            '💾 Discovery: Index cached successfully for branch: $branch');
         return index;
       } else {
         debugPrint('❌ Discovery: Server error ${response.statusCode}');
@@ -134,16 +143,21 @@ class DiscoveryRepository {
       }
     } catch (e) {
       debugPrint(
-          '⚠️ Discovery: Error de red al buscar índice, usando cache: $e');
-      final cachedIndex = prefs.getString(_indexCacheKey);
+          '⚠️ Discovery: Error de red al buscar índice [branch: $branch], usando cache: $e');
+      // CRITICAL: Buscar cache con branch incluido en la key
+      final indexCacheKey = '${_indexCacheKey}_$branch';
+      final cachedIndex = prefs.getString(indexCacheKey);
       if (cachedIndex != null) {
-        debugPrint('📦 Discovery: Cache encontrado, parseando...');
+        debugPrint(
+            '📦 Discovery: Cache encontrado para branch: $branch, parseando...');
         final index = jsonDecode(cachedIndex) as Map<String, dynamic>;
         final studiesCount = (index['studies'] as List?)?.length ?? 0;
-        debugPrint('📚 Discovery: Cached index has $studiesCount studies');
+        debugPrint(
+            '📚 Discovery: Cached index has $studiesCount studies [branch: $branch]');
         return index;
       }
-      debugPrint('🚫 Discovery: No cache disponible, relanzando error');
+      debugPrint(
+          '🚫 Discovery: No cache disponible para branch: $branch, relanzando error');
       rethrow;
     }
   }

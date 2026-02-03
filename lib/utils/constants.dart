@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 /// Clase de constantes globales para devocionales
@@ -86,14 +87,24 @@ class Constants {
   /// Feature flag for Discovery Studies feature
   static const bool enableDiscoveryFeature = true;
 
-  /// DISCOVERY STUDIES URLS
-  static const String discoveryIndexUrl =
-      'https://raw.githubusercontent.com/develop4God/Devocionales-json/refs/heads/main/discovery/index.json';
+  /// Branch para debug (solo kDebugMode)
+  static String debugBranch = 'main';
 
-  /// Returns the URL for a Discovery Study JSON file for a specific language.
-  static String getDiscoveryStudyFileUrl(String fileName, String languageCode) {
-    return 'https://raw.githubusercontent.com/develop4God/Devocionales-json/refs/heads/main/discovery/$languageCode/$fileName';
+  /// Obtiene la URL del índice de Discovery
+  static String getDiscoveryIndexUrl() {
+    final branch = kDebugMode ? debugBranch : 'main';
+    return 'https://raw.githubusercontent.com/develop4God/Devocionales-json/refs/heads/$branch/discovery/index.json';
   }
+
+  /// Obtiene la URL de un archivo de estudio
+  static String getDiscoveryStudyFileUrl(String fileName, String languageCode) {
+    final branch = kDebugMode ? debugBranch : 'main';
+    return 'https://raw.githubusercontent.com/develop4God/Devocionales-json/refs/heads/$branch/discovery/$languageCode/$fileName';
+  }
+
+  /// Legacy constant for backward compatibility (deprecated)
+  @Deprecated('Use getDiscoveryIndexUrl() instead')
+  static String get discoveryIndexUrl => getDiscoveryIndexUrl();
 }
 
 /// Schema versioning and migration constants for favorites storage

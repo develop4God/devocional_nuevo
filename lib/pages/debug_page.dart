@@ -1,12 +1,59 @@
+import 'dart:convert';
+
+import 'package:devocional_nuevo/blocs/discovery/discovery_bloc.dart';
+import 'package:devocional_nuevo/blocs/discovery/discovery_event.dart';
+import 'package:devocional_nuevo/services/in_app_review_service.dart';
+import 'package:devocional_nuevo/utils/constants.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:firebase_crashlytics/firebase_crashlytics.dart';
-import 'package:devocional_nuevo/services/in_app_review_service.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:http/http.dart' as http;
 
 /// Página de debug solo visible en modo desarrollo.
-class DebugPage extends StatelessWidget {
+class DebugPage extends StatefulWidget {
   const DebugPage({super.key});
+
+  @override
+  State<DebugPage> createState() => _DebugPageState();
+}
+
+class _DebugPageState extends State<DebugPage> {
+  List<String> _branches = ['main', 'dev'];
+  bool _loadingBranches = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchBranches();
+  }
+
+  Future<void> _fetchBranches() async {
+    setState(() => _loadingBranches = true);
+    try {
+      final response = await http.get(
+        Uri.parse(
+            'https://api.github.com/repos/develop4God/Devocionales-json/branches'),
+        headers: {'Accept': 'application/vnd.github.v3+json'},
+      );
+
+      if (response.statusCode == 200) {
+        final List branches = jsonDecode(response.body);
+        setState(() {
+          _branches = branches.map((b) => b['name'] as String).toList();
+        });
+      } else if (response.statusCode == 403) {
+        debugPrint('⚠️ GitHub rate limit hit, using fallback branches');
+        // Keep the default fallback branches ['main', 'dev']
+      } else {
+        debugPrint('⚠️ GitHub API error: ${response.statusCode}');
+      }
+    } catch (e) {
+      debugPrint('❌ Error fetching branches: $e');
+    }
+    setState(() => _loadingBranches = false);
+  }
 
   // MethodChannel para Crashlytics nativo
   static const platform = MethodChannel(
@@ -70,29 +117,93 @@ class DebugPage extends StatelessWidget {
         backgroundColor: Colors.red.shade700,
       ),
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text(
-              'Presiona el botón para forzar un fallo de Crashlytics:',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 16),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () => _forceCrash(context),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 30,
-                  vertical: 15,
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Branch Selector
+              if (Constants.enableDiscoveryFeature) ...[
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.deepOrange.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                        color: Colors.deepOrange.withValues(alpha: 0.3)),
+                  ),
+                  child: Column(
+                    children: [
+                      const Icon(Icons.fork_right,
+                          size: 48, color: Colors.deepOrange),
+                      const SizedBox(height: 8),
+                      const Text(
+                        'Discovery Branch',
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 16),
+                      if (_loadingBranches)
+                        const CircularProgressIndicator()
+                      else
+                        DropdownButton<String>(
+                          // CRITICAL: Prevent crash if debugBranch not in fetched list
+                          value: _branches.contains(Constants.debugBranch)
+                              ? Constants.debugBranch
+                              : _branches.first,
+                          isExpanded: true,
+                          items: _branches
+                              .map((branch) => DropdownMenuItem(
+                                  value: branch, child: Text(branch)))
+                              .toList(),
+                          onChanged: (newBranch) {
+                            setState(() => Constants.debugBranch = newBranch!);
+                            // Trigger refresh
+                            if (mounted && context.mounted) {
+                              context
+                                  .read<DiscoveryBloc>()
+                                  .add(RefreshDiscoveryStudies());
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                    content: Text('Cambiado a: $newBranch')),
+                              );
+                            }
+                          },
+                        ),
+                      const SizedBox(height: 8),
+                      TextButton.icon(
+                        onPressed: _fetchBranches,
+                        icon: const Icon(Icons.refresh),
+                        label: const Text('Refresh Branches'),
+                      ),
+                    ],
+                  ),
                 ),
-                textStyle: const TextStyle(fontSize: 18),
+                const SizedBox(height: 32),
+              ],
+
+              // Crashlytics test
+              const Text(
+                'Presiona el botón para forzar un fallo de Crashlytics:',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 16),
               ),
-              child: const Text('FORZAR FALLO AHORA'),
-            ),
-          ],
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () => _forceCrash(context),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 30,
+                    vertical: 15,
+                  ),
+                  textStyle: const TextStyle(fontSize: 18),
+                ),
+                child: const Text('FORZAR FALLO AHORA'),
+              ),
+            ],
+          ),
         ),
       ),
       floatingActionButton: FloatingActionButton(
