@@ -523,13 +523,14 @@ void main() {
       var state = bloc.state as NavigationReady;
       expect(state.currentIndex, 15);
 
-      // Update with smaller list
+      // Update with smaller list - mark first 9 as read to get index 9
+      final readIds = List.generate(9, (i) => 'dev_$i');
       final newDevocionales = createTestDevocionales(10);
-      bloc.add(UpdateDevocionales(newDevocionales, []));
+      bloc.add(UpdateDevocionales(newDevocionales, readIds));
       await Future.delayed(const Duration(milliseconds: 10));
 
       state = bloc.state as NavigationReady;
-      expect(state.currentIndex, 9); // Clamped to new maximum
+      expect(state.currentIndex, 9); // At first unread (last item)
       expect(state.totalDevocionales, 10);
 
       bloc.close();

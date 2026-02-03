@@ -6,9 +6,9 @@ tags:
     timeout: 10s
   slow:
     timeout: 5m
-    skip: "Run explicitly with --tags=slow"
-  flaky:
-    skip: "Unstable - tracked in issues"
+  bloc:
+    # Used alongside critical/unit/slow tags for organization
+    # Example: @Tags(['critical', 'bloc'])
 
 # Default timeout for untagged tests
 timeout: 1m
