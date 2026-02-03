@@ -1,5 +1,6 @@
 // lib/pages/devotional_discovery/widgets/devotional_card_premium.dart
 
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:flutter/material.dart';
@@ -92,7 +93,7 @@ class DevotionalCardPremium extends StatelessWidget {
                   // 2. Gradient Overlays
                   _buildGradientOverlay(colors),
 
-                  // 3. Content Layer (Optimized for full expansion)
+                  // 3. Content Layer (Using AutoSizeText for multi-device safety)
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
                     child: Column(
@@ -102,11 +103,9 @@ class DevotionalCardPremium extends StatelessWidget {
 
                         const Spacer(flex: 1),
 
-                        // Central Hero Section (Emoji + Title + Subtitle)
-                        // Using a Flexible instead of Expanded flex:8 to allow it to only take what it needs
-                        // while having a maximum budget.
+                        // Central Hero Section
                         Flexible(
-                          flex: 12, 
+                          flex: 15, // Increased flex budget for text
                           child: Center(
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
@@ -114,7 +113,9 @@ class DevotionalCardPremium extends StatelessWidget {
                               children: [
                                 _buildHeroEmoji(topicEmoji, colors),
                                 const SizedBox(height: 16),
-                                Text(
+                                
+                                // Optimized Title with AutoSize
+                                AutoSizeText(
                                   title,
                                   textAlign: TextAlign.center,
                                   style: const TextStyle(
@@ -127,11 +128,14 @@ class DevotionalCardPremium extends StatelessWidget {
                                       Shadow(color: Colors.black45, blurRadius: 10, offset: Offset(0, 2))
                                     ],
                                   ),
-                                  maxLines: 4, // Title gets up to 4 lines
+                                  maxLines: 4,
+                                  minFontSize: 18, // Safety for small devices
+                                  stepGranularity: 1,
                                   overflow: TextOverflow.ellipsis,
                                 ),
+                                
                                 if (subtitle != null && subtitle!.isNotEmpty) ...[
-                                  const SizedBox(height: 10),
+                                  const SizedBox(height: 12),
                                   _buildSubtitleSection(colors),
                                 ],
                               ],
@@ -204,7 +208,7 @@ class DevotionalCardPremium extends StatelessWidget {
       alignment: Alignment.center,
       children: [
         Container(
-          width: 70, // Slightly smaller to give text more space
+          width: 70, 
           height: 70,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
@@ -230,7 +234,7 @@ class DevotionalCardPremium extends StatelessWidget {
 
   Widget _buildSubtitleSection(List<Color> colors) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
@@ -247,13 +251,12 @@ class DevotionalCardPremium extends StatelessWidget {
           width: 1.0,
         ),
       ),
-      child: Text(
+      child: AutoSizeText(
         subtitle!,
         textAlign: TextAlign.center,
-        // Removed strict maxLines to allow natural expansion
-        // or increased to 3 to be safe while avoiding overflow.
         maxLines: 3, 
-        overflow: TextOverflow.ellipsis,
+        minFontSize: 11,
+        stepGranularity: 0.5,
         style: const TextStyle(
           color: Colors.white,
           fontSize: 13,
