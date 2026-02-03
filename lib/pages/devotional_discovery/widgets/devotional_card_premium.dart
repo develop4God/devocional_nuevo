@@ -56,13 +56,12 @@ class DevotionalCardPremium extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final displayDate = _getDisplayDate();
-    final verseReference = _extractVerseReference(devocional.versiculo);
     final topicEmoji = _getTopicEmoji();
     final colors = _getGradientColors();
 
     return Semantics(
       label:
-          'Devotional card for $title. $verseReference. Posted $displayDate. ${isFavorite ? "In favorites" : "Not in favorites"}',
+          'Devotional card for $title. Posted $displayDate. ${isFavorite ? "In favorites" : "Not in favorites"}',
       button: true,
       child: Container(
         height: 380,
@@ -82,7 +81,6 @@ class DevotionalCardPremium extends StatelessWidget {
           child: Material(
             color: Colors.transparent,
             child: GestureDetector(
-              // Use GestureDetector for better swipe compatibility
               behavior: HitTestBehavior.translucent,
               onTap: onTap,
               child: Stack(
@@ -91,289 +89,295 @@ class DevotionalCardPremium extends StatelessWidget {
                   // 1. Background Image
                   _buildBackgroundImage(),
 
-                  // 2. Light Effect / Bloom
-                  Positioned.fill(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        gradient: RadialGradient(
-                          center: const Alignment(0, -0.1),
-                          radius: 0.8,
-                          colors: [
-                            colors[1].withValues(alpha: 0.4),
-                            colors[1].withValues(alpha: 0.1),
-                            Colors.transparent,
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
+                  // 2. Gradient Overlays
+                  _buildGradientOverlay(colors),
 
-                  // 3. Bottom Scrim - REDUCED DARKNESS
-                  Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Colors.black.withValues(alpha: 0.05),
-                          Colors.black.withValues(alpha: 0.2),
-                          Colors.black.withValues(alpha: 0.6),
-                        ],
-                        stops: const [0.0, 0.5, 1.0],
-                      ),
-                    ),
-                  ),
-
-                  // 4. Content Layer
+                  // 3. Content Layer (Optimized for full expansion)
                   Padding(
-                    padding: const EdgeInsets.all(28),
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
                     child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        // Top Badge - Replaces "Today" with "NEW" if applicable
-                        Align(
-                          alignment: Alignment.topCenter,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 14, vertical: 6),
-                            decoration: BoxDecoration(
-                              gradient: isNew && !isCompleted
-                                  ? const LinearGradient(
-                                      colors: [
-                                        Color(0xFFFFD700),
-                                        Color(0xFFFF8C00)
-                                      ],
-                                    )
-                                  : null,
-                              color: isNew && !isCompleted
-                                  ? null
-                                  : Colors.white.withValues(alpha: 0.2),
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                  color: Colors.white.withValues(alpha: 0.3),
-                                  width: 0.8),
-                              boxShadow: isNew && !isCompleted
-                                  ? [
-                                      BoxShadow(
-                                        color: Colors.orange
-                                            .withValues(alpha: 0.3),
-                                        blurRadius: 8,
-                                        offset: const Offset(0, 2),
-                                      )
-                                    ]
-                                  : null,
-                            ),
-                            child: Row(
+                        // Top Badge
+                        _buildTopBadge(displayDate),
+
+                        const Spacer(flex: 1),
+
+                        // Central Hero Section (Emoji + Title + Subtitle)
+                        // Using a Flexible instead of Expanded flex:8 to allow it to only take what it needs
+                        // while having a maximum budget.
+                        Flexible(
+                          flex: 12, 
+                          child: Center(
+                            child: Column(
                               mainAxisSize: MainAxisSize.min,
+                              mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                if (isNew && !isCompleted) ...[
-                                  const Icon(Icons.auto_awesome_rounded,
-                                      color: Colors.white, size: 12),
-                                  const SizedBox(width: 6),
-                                ],
+                                _buildHeroEmoji(topicEmoji, colors),
+                                const SizedBox(height: 16),
                                 Text(
-                                  displayDate.toUpperCase(),
+                                  title,
+                                  textAlign: TextAlign.center,
                                   style: const TextStyle(
                                     color: Colors.white,
-                                    fontSize: 10,
-                                    letterSpacing: 1.5,
-                                    fontWeight: FontWeight.bold,
+                                    fontSize: 28,
+                                    fontWeight: FontWeight.w900,
+                                    height: 1.1,
+                                    letterSpacing: -0.8,
+                                    shadows: [
+                                      Shadow(color: Colors.black45, blurRadius: 10, offset: Offset(0, 2))
+                                    ],
                                   ),
+                                  maxLines: 4, // Title gets up to 4 lines
+                                  overflow: TextOverflow.ellipsis,
                                 ),
+                                if (subtitle != null && subtitle!.isNotEmpty) ...[
+                                  const SizedBox(height: 10),
+                                  _buildSubtitleSection(colors),
+                                ],
                               ],
                             ),
                           ),
                         ),
 
-                        const Spacer(),
-
-                        // Hero Section
-                        Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            Container(
-                              width: 80,
-                              height: 80,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Colors.white.withValues(alpha: 0.1),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: colors[0].withValues(alpha: 0.3),
-                                    blurRadius: 40,
-                                    spreadRadius: 10,
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Text(
-                              topicEmoji,
-                              style: const TextStyle(fontSize: 56, shadows: [
-                                Shadow(
-                                    color: Colors.black26,
-                                    blurRadius: 10,
-                                    offset: Offset(0, 4))
-                              ]),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 20),
-
-                        Text(
-                          title,
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 28,
-                            fontWeight: FontWeight.w900,
-                            height: 1.1,
-                            letterSpacing: -0.8,
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-
-                        // Subtitle / Description Section - Styled with "Bible format"
-                        if (subtitle != null && subtitle!.isNotEmpty) ...[
-                          const SizedBox(height: 12),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 8),
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                                colors: [
-                                  colors[0].withValues(alpha: 0.25),
-                                  colors[0].withValues(alpha: 0.08),
-                                  colors[1].withValues(alpha: 0.06),
-                                ],
-                                stops: const [0.0, 0.6, 1.0],
-                              ),
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                color: colors[0].withValues(alpha: 0.3),
-                                width: 1.5,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: colors[0].withValues(alpha: 0.2),
-                                  blurRadius: 20,
-                                  offset: const Offset(0, 8),
-                                  spreadRadius: -4,
-                                ),
-                              ],
-                            ),
-                            child: Text(
-                              subtitle!,
-                              textAlign: TextAlign.center,
-                              maxLines: 3,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                height: 1.2,
-                              ),
-                            ),
-                          ),
-                        ],
-
-                        const Spacer(),
+                        const Spacer(flex: 1),
 
                         // Bottom Row: Reading Info
-                        FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.auto_stories_outlined,
-                                  color: Colors.white.withValues(alpha: 0.9),
-                                  size: 16),
-                              const SizedBox(width: 8),
-                              Text(
-                                'discovery.daily_bible_study'.tr(),
-                                style: TextStyle(
-                                  color: Colors.white.withValues(alpha: 0.9),
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                  letterSpacing: 1.2,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Icon(Icons.timer_outlined,
-                                  color: Colors.white70, size: 16),
-                              const SizedBox(width: 12),
-                              Text(
-                                '${readingMinutes ?? 5} ${'discovery.minutes_suffix'.tr()}',
-                                style: TextStyle(
-                                  color: Colors.white.withValues(alpha: 0.9),
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                  letterSpacing: 1.2,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
+                        _buildReadingInfo(),
                       ],
                     ),
                   ),
 
                   // ✅ COMPLETION CHECK - TOP LEFT
-                  if (isCompleted)
-                    Positioned(
-                      top: 20,
-                      left: 20,
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.2),
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white10),
-                        ),
-                        child: const Icon(
-                          Icons.verified_rounded,
-                          color: Colors.greenAccent,
-                          size: 24,
-                        ),
-                      ),
-                    ),
+                  if (isCompleted) _buildCompletionBadge(),
 
                   // ✅ DYNAMIC FAVORITE BUTTON - TOP RIGHT
-                  Positioned(
-                    top: 20,
-                    right: 20,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.2),
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white10),
-                      ),
-                      child: IconButton(
-                        icon: AnimatedSwitcher(
-                          duration: const Duration(milliseconds: 300),
-                          transitionBuilder: (child, animation) =>
-                              ScaleTransition(scale: animation, child: child),
-                          child: Icon(
-                            isFavorite
-                                ? Icons.star_rounded
-                                : Icons.favorite_border_rounded,
-                            key: ValueKey<bool>(isFavorite),
-                            color:
-                                isFavorite ? Colors.amberAccent : Colors.white,
-                            size: 24,
-                          ),
-                        ),
-                        onPressed: onFavoriteToggle,
-                      ),
-                    ),
-                  ),
+                  _buildFavoriteButton(),
                 ],
               ),
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTopBadge(String displayDate) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+      decoration: BoxDecoration(
+        gradient: isNew && !isCompleted
+            ? const LinearGradient(
+                colors: [Color(0xFFFFD700), Color(0xFFFF8C00)],
+              )
+            : null,
+        color: isNew && !isCompleted
+            ? null
+            : Colors.white.withValues(alpha: 0.2),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+            color: Colors.white.withValues(alpha: 0.3), width: 0.8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (isNew && !isCompleted) ...[
+            const Icon(Icons.auto_awesome_rounded,
+                color: Colors.white, size: 12),
+            const SizedBox(width: 6),
+          ],
+          Text(
+            displayDate.toUpperCase(),
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 10,
+              letterSpacing: 1.5,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHeroEmoji(String topicEmoji, List<Color> colors) {
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        Container(
+          width: 70, // Slightly smaller to give text more space
+          height: 70,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: Colors.white.withValues(alpha: 0.1),
+            boxShadow: [
+              BoxShadow(
+                color: colors[0].withValues(alpha: 0.3),
+                blurRadius: 40,
+                spreadRadius: 10,
+              ),
+            ],
+          ),
+        ),
+        Text(
+          topicEmoji,
+          style: const TextStyle(fontSize: 48, shadows: [
+            Shadow(color: Colors.black26, blurRadius: 10, offset: Offset(0, 4))
+          ]),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSubtitleSection(List<Color> colors) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            colors[0].withValues(alpha: 0.2),
+            colors[0].withValues(alpha: 0.05),
+            colors[1].withValues(alpha: 0.05),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.15),
+          width: 1.0,
+        ),
+      ),
+      child: Text(
+        subtitle!,
+        textAlign: TextAlign.center,
+        // Removed strict maxLines to allow natural expansion
+        // or increased to 3 to be safe while avoiding overflow.
+        maxLines: 3, 
+        overflow: TextOverflow.ellipsis,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 13,
+          fontWeight: FontWeight.w500,
+          height: 1.2,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildReadingInfo() {
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.auto_stories_outlined,
+              color: Colors.white.withValues(alpha: 0.9), size: 14),
+          const SizedBox(width: 6),
+          Text(
+            'discovery.daily_bible_study'.tr(),
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.9),
+              fontSize: 9,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1.0,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Icon(Icons.timer_outlined, color: Colors.white70, size: 14),
+          const SizedBox(width: 6),
+          Text(
+            '${readingMinutes ?? 5} ${'discovery.minutes_suffix'.tr()}',
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.9),
+              fontSize: 9,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1.0,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGradientOverlay(List<Color> colors) {
+    return Stack(
+      children: [
+        Positioned.fill(
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: RadialGradient(
+                center: const Alignment(0, -0.1),
+                radius: 0.8,
+                colors: [
+                  colors[1].withValues(alpha: 0.4),
+                  colors[1].withValues(alpha: 0.1),
+                  Colors.transparent,
+                ],
+              ),
+            ),
+          ),
+        ),
+        Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Colors.black.withValues(alpha: 0.05),
+                Colors.black.withValues(alpha: 0.25),
+                Colors.black.withValues(alpha: 0.65),
+              ],
+              stops: const [0.0, 0.5, 1.0],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFavoriteButton() {
+    return Positioned(
+      top: 20,
+      right: 20,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.black.withValues(alpha: 0.2),
+          shape: BoxShape.circle,
+          border: Border.all(color: Colors.white10),
+        ),
+        child: IconButton(
+          icon: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 300),
+            transitionBuilder: (child, animation) =>
+                ScaleTransition(scale: animation, child: child),
+            child: Icon(
+              isFavorite ? Icons.star_rounded : Icons.favorite_border_rounded,
+              key: ValueKey<bool>(isFavorite),
+              color: isFavorite ? Colors.amberAccent : Colors.white,
+              size: 22,
+            ),
+          ),
+          onPressed: onFavoriteToggle,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCompletionBadge() {
+    return Positioned(
+      top: 20,
+      left: 20,
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Colors.black.withValues(alpha: 0.2),
+          shape: BoxShape.circle,
+          border: Border.all(color: Colors.white10),
+        ),
+        child: const Icon(
+          Icons.verified_rounded,
+          color: Colors.greenAccent,
+          size: 22,
         ),
       ),
     );
@@ -436,28 +440,21 @@ class DevotionalCardPremium extends StatelessWidget {
     );
   }
 
-  /// Helper to get gradient colors based on study completion status
   List<Color> _getGradientColors() {
     if (isCompleted) {
-      // Completed studies use Cyan/Blue palette
       return TagColorDictionary.getGradientForTag('esperanza');
     } else {
-      // Incomplete studies use Amber/Gold palette
       return TagColorDictionary.getGradientForTag('luz');
     }
   }
 
   String _getDisplayDate() {
-    // 1. Prioritize "COMPLETED" status
     if (isCompleted) {
       return 'discovery.completed'.tr();
     }
-
-    // 2. Prioritize "NEW" status instead of "Today" (as requested)
     if (isNew) {
       return 'bubble_constants.new_feature'.tr();
     }
-
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final devDate = DateTime(
@@ -476,23 +473,5 @@ class DevotionalCardPremium extends StatelessWidget {
       return DateFormat('EEEE').format(displayDate);
     }
     return DateFormat('MMM dd').format(displayDate);
-  }
-
-  String _extractVerseReference(String? versiculo) {
-    if (versiculo == null || versiculo.trim().isEmpty) {
-      return 'discovery.verse_fallback'.tr();
-    }
-    final trimmed = versiculo.trim();
-    final parts = trimmed.split(RegExp(r'\s+[A-Z]{2,}[0-9]*:'));
-    if (parts.isNotEmpty && parts[0].trim().isNotEmpty) {
-      final reference = parts[0].trim();
-      if (reference.length >= 3) return reference;
-    }
-    final quoteIndex = trimmed.indexOf('"');
-    if (quoteIndex > 0) {
-      final reference = trimmed.substring(0, quoteIndex).trim();
-      if (reference.length >= 3) return reference;
-    }
-    return trimmed.length < 50 ? trimmed : 'discovery.daily_verse'.tr();
   }
 }
