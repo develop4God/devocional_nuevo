@@ -671,8 +671,7 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
                   fontWeight: FontWeight.w900,
                   color: theme.colorScheme.primary)),
           const SizedBox(height: 8),
-          Text(s.text,
-              style: const TextStyle(height: 1.5)),
+          Text(s.text, style: const TextStyle(height: 1.5)),
         ],
       ),
     );
@@ -767,8 +766,7 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
                 fontWeight: FontWeight.w900,
               )),
           const SizedBox(height: 12),
-          Text(p.content,
-              style: const TextStyle(height: 1.6)),
+          Text(p.content, style: const TextStyle(height: 1.6)),
         ],
       ),
     );

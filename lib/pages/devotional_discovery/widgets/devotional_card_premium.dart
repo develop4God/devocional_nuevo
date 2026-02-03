@@ -95,7 +95,8 @@ class DevotionalCardPremium extends StatelessWidget {
 
                   // 3. Content Layer (Using AutoSizeText for multi-device safety)
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 24, vertical: 24),
                     child: Column(
                       children: [
                         // Top Badge
@@ -113,7 +114,7 @@ class DevotionalCardPremium extends StatelessWidget {
                               children: [
                                 _buildHeroEmoji(topicEmoji, colors),
                                 const SizedBox(height: 16),
-                                
+
                                 // Optimized Title with AutoSize
                                 AutoSizeText(
                                   title,
@@ -125,7 +126,10 @@ class DevotionalCardPremium extends StatelessWidget {
                                     height: 1.1,
                                     letterSpacing: -0.8,
                                     shadows: [
-                                      Shadow(color: Colors.black45, blurRadius: 10, offset: Offset(0, 2))
+                                      Shadow(
+                                          color: Colors.black45,
+                                          blurRadius: 10,
+                                          offset: Offset(0, 2))
                                     ],
                                   ),
                                   maxLines: 4,
@@ -133,8 +137,9 @@ class DevotionalCardPremium extends StatelessWidget {
                                   stepGranularity: 1,
                                   overflow: TextOverflow.ellipsis,
                                 ),
-                                
-                                if (subtitle != null && subtitle!.isNotEmpty) ...[
+
+                                if (subtitle != null &&
+                                    subtitle!.isNotEmpty) ...[
                                   const SizedBox(height: 12),
                                   _buildSubtitleSection(colors),
                                 ],
@@ -174,12 +179,11 @@ class DevotionalCardPremium extends StatelessWidget {
                 colors: [Color(0xFFFFD700), Color(0xFFFF8C00)],
               )
             : null,
-        color: isNew && !isCompleted
-            ? null
-            : Colors.white.withValues(alpha: 0.2),
+        color:
+            isNew && !isCompleted ? null : Colors.white.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-            color: Colors.white.withValues(alpha: 0.3), width: 0.8),
+        border:
+            Border.all(color: Colors.white.withValues(alpha: 0.3), width: 0.8),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -208,7 +212,7 @@ class DevotionalCardPremium extends StatelessWidget {
       alignment: Alignment.center,
       children: [
         Container(
-          width: 70, 
+          width: 70,
           height: 70,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
@@ -254,7 +258,7 @@ class DevotionalCardPremium extends StatelessWidget {
       child: AutoSizeText(
         subtitle!,
         textAlign: TextAlign.center,
-        maxLines: 3, 
+        maxLines: 3,
         minFontSize: 11,
         stepGranularity: 0.5,
         style: const TextStyle(

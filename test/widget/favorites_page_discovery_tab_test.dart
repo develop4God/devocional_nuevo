@@ -283,7 +283,8 @@ void main() {
     await tester.tap(find.byIcon(Icons.star_rounded));
     await tester.pump(); // Start the animation
     await tester.pump(const Duration(milliseconds: 100)); // Continue animation
-    await tester.pump(const Duration(milliseconds: 100)); // Complete animation and async work
+    await tester.pump(
+        const Duration(milliseconds: 100)); // Complete animation and async work
 
     // Verify LoadDiscoveryStudies was triggered and bloc transitioned out of Initial state
     expect(discoveryBloc.state, isNot(isA<DiscoveryInitial>()));
