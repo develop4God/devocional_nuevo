@@ -351,6 +351,7 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
         final readingMinutes = state.studyReadingMinutes[studyId];
         final isCompleted = state.completedStudies[studyId] ?? false;
         final isFavorite = state.favoriteStudyIds.contains(studyId);
+        final isNew = state.newStudyIds.contains(studyId); // Pass NEW status
 
         final mockDevocional = _createMockDevocional(studyId, emoji: emoji);
 
@@ -361,6 +362,7 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
           readingMinutes: readingMinutes,
           isFavorite: isFavorite,
           isCompleted: isCompleted,
+          isNew: isNew, // Inject isNew
           isDark: isDark,
           onTap: () => _navigateToDetail(context, studyId),
           onFavoriteToggle: () {

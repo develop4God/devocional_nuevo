@@ -22,6 +22,7 @@ class DiscoveryLoaded extends DiscoveryState with EquatableMixin {
   final Map<String, bool> completedStudies; // study ID to completion status
   final Set<String> favoriteStudyIds; // NEW: Set of favorited study IDs
   final Set<String> downloadingStudyIds; // NEW: Track background downloads
+  final Set<String> newStudyIds; // NEW: Track studies never seen by the user
   final String? errorMessage;
   final DateTime lastUpdated;
   final String languageCode; // NEW: Track current language
@@ -36,6 +37,7 @@ class DiscoveryLoaded extends DiscoveryState with EquatableMixin {
     required this.completedStudies,
     required this.favoriteStudyIds,
     this.downloadingStudyIds = const {},
+    this.newStudyIds = const {},
     this.errorMessage,
     DateTime? lastUpdated,
     required this.languageCode,
@@ -47,6 +49,7 @@ class DiscoveryLoaded extends DiscoveryState with EquatableMixin {
   bool isStudyFavorite(String studyId) => favoriteStudyIds.contains(studyId);
   bool isStudyDownloading(String studyId) =>
       downloadingStudyIds.contains(studyId);
+  bool isStudyNew(String studyId) => newStudyIds.contains(studyId);
 
   int get availableStudiesCount => availableStudyIds.length;
   int get loadedStudiesCount => loadedStudies.length;
@@ -61,6 +64,7 @@ class DiscoveryLoaded extends DiscoveryState with EquatableMixin {
     Map<String, bool>? completedStudies,
     Set<String>? favoriteStudyIds,
     Set<String>? downloadingStudyIds,
+    Set<String>? newStudyIds,
     String? errorMessage,
     bool clearError = false,
     DateTime? lastUpdated,
@@ -76,6 +80,7 @@ class DiscoveryLoaded extends DiscoveryState with EquatableMixin {
       completedStudies: completedStudies ?? this.completedStudies,
       favoriteStudyIds: favoriteStudyIds ?? this.favoriteStudyIds,
       downloadingStudyIds: downloadingStudyIds ?? this.downloadingStudyIds,
+      newStudyIds: newStudyIds ?? this.newStudyIds,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
       lastUpdated: lastUpdated ?? DateTime.now(),
       languageCode: languageCode ?? this.languageCode,
@@ -93,6 +98,7 @@ class DiscoveryLoaded extends DiscoveryState with EquatableMixin {
         completedStudies,
         favoriteStudyIds,
         downloadingStudyIds,
+        newStudyIds,
         errorMessage,
         lastUpdated,
         languageCode,

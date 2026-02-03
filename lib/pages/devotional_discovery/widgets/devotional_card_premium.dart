@@ -34,6 +34,7 @@ class DevotionalCardPremium extends StatelessWidget {
   final int? readingMinutes;
   final bool isFavorite;
   final bool isCompleted;
+  final bool isNew; // NEW: Track if study is "New" (unseen)
   final VoidCallback onTap;
   final VoidCallback onFavoriteToggle;
   final bool isDark;
@@ -46,6 +47,7 @@ class DevotionalCardPremium extends StatelessWidget {
     this.readingMinutes,
     required this.isFavorite,
     this.isCompleted = false,
+    this.isNew = false,
     required this.onTap,
     required this.onFavoriteToggle,
     required this.isDark,
@@ -129,27 +131,57 @@ class DevotionalCardPremium extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        // Top Badge
+                        // Top Badge - Replaces "Today" with "NEW" if applicable
                         Align(
                           alignment: Alignment.topCenter,
                           child: Container(
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 14, vertical: 6),
                             decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.2),
+                              gradient: isNew && !isCompleted
+                                  ? const LinearGradient(
+                                      colors: [
+                                        Color(0xFFFFD700),
+                                        Color(0xFFFF8C00)
+                                      ],
+                                    )
+                                  : null,
+                              color: isNew && !isCompleted
+                                  ? null
+                                  : Colors.white.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(20),
                               border: Border.all(
                                   color: Colors.white.withValues(alpha: 0.3),
                                   width: 0.8),
+                              boxShadow: isNew && !isCompleted
+                                  ? [
+                                      BoxShadow(
+                                        color: Colors.orange
+                                            .withValues(alpha: 0.3),
+                                        blurRadius: 8,
+                                        offset: const Offset(0, 2),
+                                      )
+                                    ]
+                                  : null,
                             ),
-                            child: Text(
-                              displayDate.toUpperCase(),
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 10,
-                                letterSpacing: 1.5,
-                                fontWeight: FontWeight.bold,
-                              ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                if (isNew && !isCompleted) ...[
+                                  const Icon(Icons.auto_awesome_rounded,
+                                      color: Colors.white, size: 12),
+                                  const SizedBox(width: 6),
+                                ],
+                                Text(
+                                  displayDate.toUpperCase(),
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 10,
+                                    letterSpacing: 1.5,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ),
@@ -416,9 +448,14 @@ class DevotionalCardPremium extends StatelessWidget {
   }
 
   String _getDisplayDate() {
-    // Requirement #3: Show "COMPLETED" badge when study is completed
+    // 1. Prioritize "COMPLETED" status
     if (isCompleted) {
       return 'discovery.completed'.tr();
+    }
+
+    // 2. Prioritize "NEW" status instead of "Today" (as requested)
+    if (isNew) {
+      return 'bubble_constants.new_feature'.tr();
     }
 
     final now = DateTime.now();
