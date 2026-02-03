@@ -530,7 +530,6 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.primary.withValues(alpha: 0.7),
                 fontWeight: FontWeight.w600,
-                fontStyle: FontStyle.italic,
               ),
             ),
           ],
@@ -673,7 +672,7 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
                   color: theme.colorScheme.primary)),
           const SizedBox(height: 8),
           Text(s.text,
-              style: const TextStyle(fontStyle: FontStyle.italic, height: 1.5)),
+              style: const TextStyle(height: 1.5)),
         ],
       ),
     );
@@ -721,8 +720,7 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
               style:
                   const TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
           const SizedBox(height: 8),
-          Text('${'discovery.revelation'.tr()}: ${word.revelation}',
-              style: const TextStyle(fontStyle: FontStyle.italic)),
+          Text('${'discovery.revelation'.tr()}: ${word.revelation}'),
         ],
       ),
     );
@@ -770,7 +768,7 @@ class _DiscoveryDetailPageState extends State<DiscoveryDetailPage> {
               )),
           const SizedBox(height: 12),
           Text(p.content,
-              style: const TextStyle(fontStyle: FontStyle.italic, height: 1.6)),
+              style: const TextStyle(height: 1.6)),
         ],
       ),
     );

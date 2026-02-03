@@ -13,6 +13,7 @@ import 'discovery_state.dart';
 
 class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
   static const String _firstDownloadKeyPrefix = 'discovery_first_downloaded_';
+  static const String _seenStudiesKey = 'discovery_seen_studies';
 
   final DiscoveryRepository repository;
   final DiscoveryProgressTracker progressTracker;
@@ -80,6 +81,12 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
       final favoriteIds = await favoritesService.loadFavoriteIds(locale);
       debugPrint('🔵 [BLOC] Favorites loaded: ${favoriteIds.length} items');
 
+      // Load seen studies to identify "New" ones
+      final prefsInstance = await prefs;
+      final seenStudyIds =
+          prefsInstance.getStringList(_seenStudiesKey)?.toSet() ?? {};
+      final Set<String> newStudyIds = {};
+
       final List<String> filteredStudyIds = [];
       final Map<String, String> studyTitles = {};
       final Map<String, String> studySubtitles = {};
@@ -108,34 +115,27 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
         final files = s['files'];
         final filesMap = files is Map ? files : null;
 
-        if (filesMap != null) {
-          debugPrint('  📁 Files available: ${filesMap.keys.toList()}');
-        } else {
-          debugPrint('  ❌ No files map found for $id');
-        }
-
         // Check if study has files for current locale OR fallback locales
         final hasValidFile = filesMap != null &&
             (filesMap.containsKey(locale) ||
                 filesMap.containsKey('es') ||
                 filesMap.containsKey('en'));
 
-        debugPrint(
-            '  ✓ hasValidFile: $hasValidFile (locale: $locale, has es: ${filesMap?.containsKey('es')}, has en: ${filesMap?.containsKey('en')})');
-
         if (hasValidFile) {
           filteredStudyIds.add(id);
-          debugPrint('  ✅ Study $id ADDED to filtered list');
+
+          // Mark as "New" if never seen before
+          if (!seenStudyIds.contains(id)) {
+            newStudyIds.add(id);
+          }
 
           // Safe Title extraction
           final titles = s['titles'];
           if (titles is Map) {
             studyTitles[id] =
                 titles[locale]?.toString() ?? titles['es']?.toString() ?? id;
-            debugPrint('  📝 Title: ${studyTitles[id]}');
           } else {
             studyTitles[id] = s['title']?.toString() ?? id;
-            debugPrint('  📝 Title (legacy): ${studyTitles[id]}');
           }
 
           // Safe Subtitle extraction
@@ -144,14 +144,11 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
             studySubtitles[id] = subtitles[locale]?.toString() ??
                 subtitles['es']?.toString() ??
                 '';
-            debugPrint('  📋 Subtitle: ${studySubtitles[id]}');
           } else {
             studySubtitles[id] = s['subtitle']?.toString() ?? '';
-            debugPrint('  📋 Subtitle (legacy): ${studySubtitles[id]}');
           }
 
           studyEmojis[id] = s['emoji']?.toString() ?? '📖';
-          debugPrint('  😀 Emoji: ${studyEmojis[id]}');
 
           // Safe Reading Minutes extraction
           final readingMinutes = s['estimated_reading_minutes'];
@@ -163,21 +160,11 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
           } else {
             studyReadingMinutes[id] = 5;
           }
-          debugPrint('  ⏱️ Reading minutes: ${studyReadingMinutes[id]}');
 
           final progress = await progressTracker.getProgress(id, locale);
           completedStudies[id] = progress.isCompleted;
-          debugPrint('  🎯 Completed: ${completedStudies[id]}');
-        } else {
-          debugPrint('  ❌ Study $id SKIPPED (no valid files)');
         }
       }
-
-      debugPrint(
-          '🔵 [BLOC] Filtering complete: ${filteredStudyIds.length} studies passed filter');
-      debugPrint('🔵 [BLOC] Filtered IDs: $filteredStudyIds');
-      debugPrint('🔵 [BLOC] Titles: ${studyTitles.keys.toList()}');
-      debugPrint('🔵 [BLOC] Subtitles: ${studySubtitles.keys.toList()}');
 
       emit(
         DiscoveryLoaded(
@@ -185,18 +172,14 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
           loadedStudies: {},
           studyTitles: studyTitles,
           studySubtitles: studySubtitles,
-          // Ensure required parameter is passed
           studyEmojis: studyEmojis,
           studyReadingMinutes: studyReadingMinutes,
-          // Ensure required parameter is passed
           completedStudies: completedStudies,
           favoriteStudyIds: favoriteIds,
           languageCode: locale,
+          newStudyIds: newStudyIds,
         ),
       );
-
-      debugPrint(
-          '🔵 [BLOC] DiscoveryLoaded state emitted with ${filteredStudyIds.length} studies');
 
       // Background download of first study for offline access
       if (filteredStudyIds.isNotEmpty) {
@@ -204,7 +187,6 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
       }
     } catch (e) {
       debugPrint('❌ [BLOC] Error loading Discovery index: $e');
-      debugPrint('❌ [BLOC] Stack trace: ${StackTrace.current}');
       emit(DiscoveryError('Error: $e'));
     }
   }
@@ -227,9 +209,6 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
           await repository.fetchDiscoveryStudy(studyId, languageCode);
           await prefsInstance.setBool(downloadKey, true);
           debugPrint('✅ [BLOC] First study downloaded for offline access');
-        } else {
-          debugPrint(
-              '✓ [BLOC] First study already downloaded for this language');
         }
       } catch (e) {
         debugPrint('⚠️ [BLOC] Failed to download first study for offline: $e');
@@ -243,14 +222,33 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
   ) async {
     final currentState = state;
 
+    // Mark as seen when loaded/opened
+    try {
+      final prefsInstance = await prefs;
+      final seenStudyIds =
+          prefsInstance.getStringList(_seenStudiesKey)?.toSet() ?? {};
+      if (!seenStudyIds.contains(event.studyId)) {
+        seenStudyIds.add(event.studyId);
+        await prefsInstance.setStringList(
+            _seenStudiesKey, seenStudyIds.toList());
+      }
+    } catch (e) {
+      debugPrint('⚠️ [BLOC] Failed to update seen studies: $e');
+    }
+
     // If we're already in DiscoveryLoaded, we track downloading state per study
     if (currentState is DiscoveryLoaded) {
       final updatedDownloading =
           Set<String>.from(currentState.downloadingStudyIds);
       updatedDownloading.add(event.studyId);
 
+      // Also remove from newStudyIds set in state immediately for UI feedback
+      final updatedNewStudyIds = Set<String>.from(currentState.newStudyIds);
+      updatedNewStudyIds.remove(event.studyId);
+
       emit(currentState.copyWith(
         downloadingStudyIds: updatedDownloading,
+        newStudyIds: updatedNewStudyIds,
         clearError: true,
       ));
     } else {
@@ -283,7 +281,7 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
           ),
         );
       } else {
-        // Fallback if state changed drastically (shouldn't happen often)
+        // Fallback if state changed drastically
         final progress =
             await progressTracker.getProgress(event.studyId, languageCode);
         final favoriteIds =
@@ -300,6 +298,7 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
             favoriteStudyIds: favoriteIds,
             languageCode: languageCode,
             downloadingStudyIds: {},
+            newStudyIds: {},
           ),
         );
       }
