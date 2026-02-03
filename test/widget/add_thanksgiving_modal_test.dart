@@ -4,11 +4,22 @@ import 'package:devocional_nuevo/widgets/add_thanksgiving_modal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../helpers/test_helpers.dart';
 
+class FakePathProviderPlatform extends PathProviderPlatform {
+  @override
+  Future<String> getApplicationDocumentsPath() async {
+    return '.';
+  }
+}
+
 void main() {
+  setUpAll(() {
+    PathProviderPlatform.instance = FakePathProviderPlatform();
+  });
   group('AddThanksgivingModal Widget Tests', () {
     late ThanksgivingBloc bloc;
 

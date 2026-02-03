@@ -1,9 +1,13 @@
 import 'package:devocional_nuevo/models/discovery_card_model.dart';
+import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/widgets/key_verse_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  setUp(() {
+    setupServiceLocator();
+  });
   group('KeyVerseCard Widget Tests', () {
     testWidgets('should display key verse reference and text',
         (WidgetTester tester) async {
