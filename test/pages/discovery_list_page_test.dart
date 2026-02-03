@@ -8,6 +8,7 @@ import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/pages/discovery_list_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -15,9 +16,86 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+void setupFirebaseMocks() {
+  // Mock Firebase legacy channel
+  const MethodChannel firebaseCoreChannel =
+      MethodChannel('plugins.flutter.io/firebase_core');
+  TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+      .setMockMethodCallHandler(firebaseCoreChannel,
+          (MethodCall methodCall) async {
+    switch (methodCall.method) {
+      case 'Firebase#initializeCore':
+        return [
+          {
+            'name': '[DEFAULT]',
+            'options': {
+              'apiKey': 'fake-api-key',
+              'appId': 'fake-app-id',
+              'messagingSenderId': 'fake-sender-id',
+              'projectId': 'fake-project-id',
+            },
+            'pluginConstants': {},
+          }
+        ];
+      case 'Firebase#initializeApp':
+        return {
+          'name': '[DEFAULT]',
+          'options': {
+            'apiKey': 'fake-api-key',
+            'appId': 'fake-app-id',
+            'messagingSenderId': 'fake-sender-id',
+            'projectId': 'fake-project-id',
+          },
+          'pluginConstants': {},
+        };
+      default:
+        return null;
+    }
+  });
+
+  // Mock Firebase pigeon channel for core
+  const MethodChannel firebasePigeonChannel = MethodChannel(
+      'dev.flutter.pigeon.firebase_core_platform_interface.FirebaseCoreHostApi');
+  TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+      .setMockMethodCallHandler(firebasePigeonChannel,
+          (MethodCall methodCall) async {
+    switch (methodCall.method) {
+      case 'initializeCore':
+        return [
+          {
+            'name': '[DEFAULT]',
+            'options': {
+              'apiKey': 'fake-api-key',
+              'appId': 'fake-app-id',
+              'messagingSenderId': 'fake-sender-id',
+              'projectId': 'fake-project-id',
+            },
+            'pluginConstants': {},
+          }
+        ];
+      case 'initializeApp':
+        return {
+          'name': '[DEFAULT]',
+          'options': {
+            'apiKey': 'fake-api-key',
+            'appId': 'fake-app-id',
+            'messagingSenderId': 'fake-sender-id',
+            'projectId': 'fake-project-id',
+          },
+          'pluginConstants': {},
+        };
+      default:
+        return null;
+    }
+  });
+}
+
 void main() {
-  setUpAll(() {
-    TestWidgetsFlutterBinding.ensureInitialized();
+  TestWidgetsFlutterBinding.ensureInitialized();
+  setupFirebaseMocks();
+
+  setUpAll(() async {
+    await Firebase.initializeApp();
 
     // Mock path provider
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
