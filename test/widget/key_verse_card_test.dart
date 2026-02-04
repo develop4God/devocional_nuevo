@@ -1,4 +1,5 @@
 import 'package:devocional_nuevo/models/discovery_card_model.dart';
+import 'package:devocional_nuevo/services/localization_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/widgets/key_verse_card.dart';
 import 'package:flutter/material.dart';
@@ -7,6 +8,11 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   setUp(() {
     setupServiceLocator();
+
+    // Replace LocalizationService with a test stub that returns deterministic translations
+    ServiceLocator().registerSingleton<LocalizationService>(
+      _TestLocalizationService(),
+    );
   });
   group('KeyVerseCard Widget Tests', () {
     testWidgets('should display key verse reference and text',
@@ -29,7 +35,7 @@ void main() {
 
       // Assert
       expect(find.text('VERSÍCULO CLAVE'), findsOneWidget);
-      expect(find.text('Hechos 1:9'), findsOneWidget);
+      expect(find.text('HECHOS 1:9'), findsOneWidget);
       expect(find.textContaining('fue alzado'), findsOneWidget);
       expect(find.byIcon(Icons.auto_stories_rounded), findsOneWidget);
     });
@@ -75,8 +81,9 @@ void main() {
 
       // Assert - find containers and verify structure
       expect(find.byType(Container), findsWidgets);
-      expect(find.byType(Icon), findsOneWidget);
-      expect(find.text('2 Pedro 1:19'), findsOneWidget);
+      // There is a decorative quote Icon and the small auto_stories icon; assert the latter
+      expect(find.byIcon(Icons.auto_stories_rounded), findsOneWidget);
+      expect(find.text('2 PEDRO 1:19'), findsOneWidget);
     });
 
     testWidgets('should render in dark mode', (WidgetTester tester) async {
@@ -98,7 +105,7 @@ void main() {
 
       // Assert - should render without errors
       expect(find.text('VERSÍCULO CLAVE'), findsOneWidget);
-      expect(find.text('Mateo 5:16'), findsOneWidget);
+      expect(find.text('MATEO 5:16'), findsOneWidget);
     });
 
     testWidgets('should handle long verse text', (WidgetTester tester) async {
@@ -121,8 +128,20 @@ void main() {
       );
 
       // Assert - should render without overflow
-      expect(find.text('Juan 1:1-3'), findsOneWidget);
+      expect(find.text('JUAN 1:1-3'), findsOneWidget);
       expect(find.textContaining('En el principio'), findsOneWidget);
     });
   });
+}
+
+// Test-only localization stub
+class _TestLocalizationService extends LocalizationService {
+  @override
+  String translate(String key, [Map<String, dynamic>? params]) {
+    // Provide only keys used in these tests
+    const map = {
+      'discovery.key_verse': 'VERSÍCULO CLAVE',
+    };
+    return map[key] ?? key;
+  }
 }
