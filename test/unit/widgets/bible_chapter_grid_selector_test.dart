@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../helpers/test_helpers.dart';
 
+@Tags(['unit', 'widgets'])
 void main() {
   group('Bible Chapter Grid Selector Tests', () {
     setUp(() {

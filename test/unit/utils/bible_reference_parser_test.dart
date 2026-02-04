@@ -1,6 +1,7 @@
 import 'package:bible_reader_core/bible_reader_core.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+@Tags(['unit', 'utils'])
 void main() {
   group('BibleReferenceParser Tests', () {
     test('should parse reference with verse in Spanish (Juan 3:16)', () {

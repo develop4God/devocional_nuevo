@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+@Tags(['unit', 'blocs'])
 void main() {
   group('ThemeBloc - Comprehensive Real User Behavior Tests', () {
     late ThemeBloc bloc;

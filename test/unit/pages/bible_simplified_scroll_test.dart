@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// Tests for simplified Bible verse scrolling using GlobalKey and Scrollable.ensureVisible
+
+@Tags(['unit', 'pages'])
 void main() {
   group('Simplified Verse Scroll Tests', () {
     test('GlobalKey approach uses Scrollable.ensureVisible', () {

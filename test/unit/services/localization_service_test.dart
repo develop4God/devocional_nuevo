@@ -4,6 +4,7 @@ import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:ui';
 
+@Tags(['unit', 'services'])
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 

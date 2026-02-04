@@ -8,6 +8,7 @@ import 'package:flutter_tts/flutter_tts.dart';
 import '../helpers/tts_controller_test_helpers.dart';
 import '../helpers/tts_test_setup.dart';
 
+@Tags(['behavioral'])
 void main() {
   // Initialize Flutter bindings for tests that use platform channels
   TestWidgetsFlutterBinding.ensureInitialized();

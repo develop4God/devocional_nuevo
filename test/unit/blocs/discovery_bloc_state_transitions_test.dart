@@ -12,6 +12,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../helpers/bloc_test_helper.dart';
 
+@Tags(['unit', 'blocs'])
 void main() {
   group('DiscoveryBloc State Transitions - Fast Unit Tests', () {
     late DiscoveryBlocTestBase testBase;

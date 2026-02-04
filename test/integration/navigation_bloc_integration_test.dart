@@ -1,4 +1,4 @@
-@Tags(['slow'])
+@Tags(['integration'])
 library;
 
 import 'package:devocional_nuevo/blocs/devocionales/devocionales_navigation_bloc.dart';

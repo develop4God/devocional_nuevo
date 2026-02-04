@@ -1,6 +1,7 @@
 import 'package:devocional_nuevo/models/spiritual_stats_model.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+@Tags(['unit', 'models'])
 void main() {
   group('SpiritualStats Model Tests', () {
     test('should create and serialize SpiritualStats correctly', () {

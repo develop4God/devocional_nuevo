@@ -6,6 +6,8 @@ import 'package:flutter_test/flutter_test.dart';
 /// for Android 15 edge-to-edge support. The actual Kotlin implementation
 /// in MainActivity.kt cannot be directly tested from Dart, but we can
 /// verify the app configuration and expected behaviors.
+
+@Tags(['unit', 'android'])
 void main() {
   group('Android 15 Edge-to-Edge Configuration Tests', () {
     test('Android SDK version constants are properly defined', () {

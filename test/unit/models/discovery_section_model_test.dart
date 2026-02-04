@@ -1,6 +1,7 @@
 import 'package:devocional_nuevo/models/discovery_section_model.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+@Tags(['unit', 'models'])
 void main() {
   group('DiscoverySection Model Tests', () {
     test('should create natural section with required fields', () {

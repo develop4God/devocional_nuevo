@@ -13,6 +13,8 @@ import '../helpers/test_helpers.dart';
 
 /// Real user behavior tests for favorites functionality
 /// Focuses on common user scenarios without complex mocking
+
+@Tags(['behavioral'])
 void main() {
   group('Favorites - Real User Behavior Tests', () {
     late DevocionalProvider provider;

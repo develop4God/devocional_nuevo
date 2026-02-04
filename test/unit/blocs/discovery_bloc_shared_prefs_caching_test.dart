@@ -9,6 +9,7 @@ import 'package:http/http.dart' as http;
 import 'package:mocktail/mocktail.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+@Tags(['unit', 'blocs'])
 class MockHttpClient extends Mock implements http.Client {}
 
 class MockDiscoveryProgressTracker extends Mock

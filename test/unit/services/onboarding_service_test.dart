@@ -2,6 +2,7 @@ import 'package:devocional_nuevo/services/onboarding_service.dart';
 import 'package:devocional_nuevo/utils/constants.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+@Tags(['unit', 'services'])
 void main() {
   group('Onboarding Feature Flag Tests', () {
     test('Onboarding feature should be disabled by default', () {

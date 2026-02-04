@@ -7,6 +7,8 @@ import '../../helpers/test_helpers.dart';
 
 /// Helper function to get drawer translations from JSON
 /// Handles different structures: 'drawer.my_prayers' or 'settings.drawer.my_prayers'
+
+@Tags(['unit', 'translations'])
 Map<String, dynamic>? getDrawer(Map<String, dynamic> json) {
   if (json.containsKey('drawer')) {
     return json['drawer'] as Map<String, dynamic>;

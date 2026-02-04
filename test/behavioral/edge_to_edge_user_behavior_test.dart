@@ -9,6 +9,8 @@ import 'package:flutter_test/flutter_test.dart';
 /// 2. System UI (status bar, navigation bar) is consistently styled
 /// 3. No deprecated APIs are being used (validated through configuration)
 /// 4. Users experience consistent UI regardless of theme or page
+
+@Tags(['behavioral'])
 void main() {
   group('Edge-to-Edge User Behavior Tests', () {
     group('System UI Configuration', () {

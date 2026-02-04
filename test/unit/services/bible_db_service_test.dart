@@ -1,6 +1,7 @@
 import 'package:bible_reader_core/src/bible_db_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+@Tags(['unit', 'services'])
 void main() {
   group('BibleDbService Tests', () {
     test('should create BibleDbService instance', () {

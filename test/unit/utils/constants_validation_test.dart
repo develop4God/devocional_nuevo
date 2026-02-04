@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:devocional_nuevo/utils/constants.dart';
 
+@Tags(['unit', 'utils'])
 void main() {
   group('Constants Configuration Validation', () {
     test('all supported languages have default versions', () {

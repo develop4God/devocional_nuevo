@@ -4,6 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 
 /// Tests for the new thanksgiving feature user behavior
 /// Validates that users can add thanksgivings through the FAB
+
+@Tags(['unit', 'features'])
 void main() {
   group('Thanksgiving Feature User Behavior Tests', () {
     late ThanksgivingBloc bloc;

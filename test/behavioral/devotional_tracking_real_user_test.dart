@@ -5,6 +5,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 /// Comprehensive tests for devotional tracking and completion logic
 /// Tests real user behavior patterns and edge cases
+
+@Tags(['behavioral'])
 void main() {
   group('Devotional Tracking - Real User Behavior Tests', () {
     late SpiritualStatsService statsService;

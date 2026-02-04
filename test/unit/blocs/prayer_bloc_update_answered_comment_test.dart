@@ -3,6 +3,7 @@
 import 'package:devocional_nuevo/blocs/prayer_event.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+@Tags(['unit', 'blocs'])
 void main() {
   group('PrayerBloc - UpdateAnsweredComment Event', () {
     test('UpdateAnsweredComment event should exist and be callable', () {

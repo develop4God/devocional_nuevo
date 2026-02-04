@@ -2,6 +2,8 @@ import 'package:flutter_test/flutter_test.dart';
 
 /// Test suite for multi-word and multi-phrase Bible search
 /// Ensures search doesn't hang or crash with multiple words
+
+@Tags(['unit', 'services'])
 void main() {
   group('Multi-Word Search Tests', () {
     test('SQL exclusion list should handle empty results', () {

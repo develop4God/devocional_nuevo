@@ -1,3 +1,6 @@
+@Tags(['integration'])
+library;
+
 // test/unit/chinese_language_integration_test.dart
 
 import 'dart:convert';

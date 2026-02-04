@@ -1,6 +1,7 @@
 import 'package:devocional_nuevo/models/discovery_card_model.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+@Tags(['unit', 'models'])
 void main() {
   group('DiscoveryCard Model Tests', () {
     test('should create natural_revelation card from JSON', () {

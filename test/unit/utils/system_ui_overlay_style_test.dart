@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+@Tags(['unit', 'utils'])
 void main() {
   group('System UI Overlay Style Configuration', () {
     test('systemUiOverlayStyle should be defined', () {

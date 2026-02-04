@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+@Tags(['unit', 'pages'])
 void main() {
   group('Bible Reader Font Size Tests', () {
     setUp(() async {

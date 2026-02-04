@@ -18,6 +18,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../helpers/test_helpers.dart';
 
 // Mock classes
+
+@Tags(['unit', 'widgets'])
 class MockPrayerBloc extends Mock implements PrayerBloc {}
 
 class MockThanksgivingBloc extends Mock implements ThanksgivingBloc {}

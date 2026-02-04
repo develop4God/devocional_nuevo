@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+@Tags(['unit', 'pages'])
 void main() {
   group('Prayers Page Tab Logic Tests', () {
     test('Tab labels are properly formatted with line breaks', () {

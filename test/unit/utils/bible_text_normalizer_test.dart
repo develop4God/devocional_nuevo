@@ -1,6 +1,7 @@
 import 'package:bible_reader_core/src/bible_text_normalizer.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+@Tags(['unit', 'utils'])
 void main() {
   group('BibleTextNormalizer Tests', () {
     test('should return empty string for null input', () {

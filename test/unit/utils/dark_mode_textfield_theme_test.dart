@@ -2,6 +2,7 @@ import 'package:devocional_nuevo/utils/theme_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+@Tags(['unit', 'utils'])
 void main() {
   group('Theme Constants Dark Mode TextField Tests', () {
     group('Dark Mode Input Decoration Theme', () {

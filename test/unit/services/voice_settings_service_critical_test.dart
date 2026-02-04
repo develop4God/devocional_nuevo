@@ -6,6 +6,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 /// Critical unit tests for VoiceSettingsService
 /// Focuses on voice assignment logic, save/load flows, and edge cases
+
+@Tags(['unit', 'services'])
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
 

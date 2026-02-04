@@ -1,4 +1,4 @@
-@Tags(['slow'])
+@Tags(['integration'])
 library;
 
 // test/integration/navigation_analytics_fallback_test.dart

@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 /// Test suite for consecutive verse navigation in Bible reader
 /// Tests that verse dropdown works correctly multiple times in a row
 /// Specifically tests with Psalm 119 (176 verses) as requested
+
+@Tags(['unit', 'pages'])
 void main() {
   group('Consecutive Verse Navigation Tests', () {
     test('Verse keys should be created for all verses in chapter', () {

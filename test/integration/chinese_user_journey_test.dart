@@ -1,4 +1,4 @@
-@Tags(['slow'])
+@Tags(['integration'])
 library;
 
 import 'package:devocional_nuevo/providers/localization_provider.dart';

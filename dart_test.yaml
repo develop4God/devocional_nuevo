@@ -1,14 +1,53 @@
 # Test configuration - automatically used by flutter test
 tags:
+  # Performance tiers
   critical:
     timeout: 30s
   unit:
     timeout: 10s
   slow:
     timeout: 5m
+  
+  # Test categories (used alongside critical/unit/slow tags)
+  blocs:
+    # BLoC and state management tests
+    # Example: @Tags(['unit', 'blocs'])
+  services:
+    # Service layer tests (API, database, external services)
+    # Example: @Tags(['unit', 'services'])
+  models:
+    # Data model and business logic tests
+    # Example: @Tags(['unit', 'models'])
+  widgets:
+    # Widget and UI component tests
+    # Example: @Tags(['unit', 'widgets'])
+  pages:
+    # Full page/screen tests
+    # Example: @Tags(['unit', 'pages'])
+  controllers:
+    # Controller tests (audio, TTS, etc.)
+    # Example: @Tags(['unit', 'controllers'])
+  providers:
+    # Provider tests (state management)
+    # Example: @Tags(['unit', 'providers'])
+  features:
+    # User flow and feature tests
+    # Example: @Tags(['unit', 'features'])
+  utils:
+    # Utility and helper function tests
+    # Example: @Tags(['unit', 'utils'])
+  integration:
+    # Integration tests across multiple components
+    # Example: @Tags(['integration'])
+    timeout: 2m
+  behavioral:
+    # Real user behavior and journey tests
+    # Example: @Tags(['behavioral'])
+    timeout: 2m
+  
+  # Legacy tag (kept for backward compatibility)
   bloc:
-    # Used alongside critical/unit/slow tags for organization
-    # Example: @Tags(['critical', 'bloc'])
+    # Deprecated: Use 'blocs' instead
 
 # Default timeout for untagged tests
 timeout: 1m

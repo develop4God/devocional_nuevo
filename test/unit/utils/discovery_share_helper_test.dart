@@ -5,6 +5,7 @@ import 'package:devocional_nuevo/models/discovery_devotional_model.dart';
 import 'package:devocional_nuevo/utils/discovery_share_helper.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+@Tags(['unit', 'utils'])
 void main() {
   group('DiscoveryShareHelper', () {
     late DiscoveryDevotional testStudy;

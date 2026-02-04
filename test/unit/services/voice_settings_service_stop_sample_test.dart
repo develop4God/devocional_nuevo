@@ -8,6 +8,7 @@ import 'package:mockito/mockito.dart';
 
 import 'voice_settings_service_stop_sample_test.mocks.dart';
 
+@Tags(['unit', 'services'])
 @GenerateMocks([FlutterTts])
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();

@@ -8,6 +8,8 @@ import '../../helpers/test_helpers.dart';
 /// Test suite for Bible verse grid selector widget
 /// Tests grid-based verse selection with multiple books and chapters
 /// including Psalm 119 (176 verses) as requested
+
+@Tags(['unit', 'widgets'])
 void main() {
   group('Bible Verse Grid Selector Tests', () {
     setUp(() {
