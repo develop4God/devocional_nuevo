@@ -2,6 +2,7 @@
 // Reusable test helpers for BLoC testing with mocked dependencies
 
 import 'package:devocional_nuevo/models/devocional_model.dart';
+import 'package:devocional_nuevo/models/discovery_devotional_model.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/repositories/discovery_repository.dart';
 import 'package:devocional_nuevo/services/discovery_favorites_service.dart';
@@ -46,7 +47,35 @@ class DiscoveryBlocTestBase {
     when(mockFavoritesService.loadFavoriteIds(any))
         .thenAnswer((_) async => <String>{});
     when(mockProgressTracker.getProgress(any, any))
-        .thenAnswer((_) async => null);
+        .thenAnswer((invocation) async {
+      final studyId = invocation.positionalArguments[0] as String;
+      final languageCode = invocation.positionalArguments.length > 1
+          ? invocation.positionalArguments[1] as String?
+          : null;
+      return DiscoveryProgress(studyId: studyId, languageCode: languageCode);
+    });
+
+    // Default stub for fetchDiscoveryStudy to prevent MissingStubError and type errors
+    when(mockRepository.fetchDiscoveryStudy(any, any))
+        .thenAnswer((invocation) async {
+      final studyId = invocation.positionalArguments[0] as String;
+      final languageCode = invocation.positionalArguments.length > 1
+          ? invocation.positionalArguments[1] as String?
+          : null;
+      return DiscoveryDevotional(
+        id: studyId,
+        versiculo: 'Dummy verse',
+        reflexion: 'Dummy title',
+        paraMeditar: [],
+        oracion: 'Dummy prayer',
+        date: DateTime.now(),
+        cards: [],
+        secciones: [],
+        preguntasDiscovery: [],
+        versiculoClave: 'Dummy key verse',
+        language: languageCode ?? 'es',
+      );
+    });
   }
 
   /// Mock successful index fetch with empty studies

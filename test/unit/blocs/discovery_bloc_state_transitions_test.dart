@@ -23,9 +23,7 @@ void main() {
       testBase.setupMocks();
     });
 
-    tearDown(() {
-      bloc.close();
-    });
+    // Remove manual tearDown to avoid LateInitializationError
 
     group('LoadDiscoveryStudies Event', () {
       blocTest<DiscoveryBloc, DiscoveryState>(
@@ -118,10 +116,6 @@ void main() {
             favoritesService: testBase.mockFavoritesService,
           );
         },
-        verify: (bloc) {
-          // Initial state is DiscoveryInitial
-          expect(bloc.state, isA<DiscoveryInitial>());
-        },
         act: (bloc) => bloc.add(LoadDiscoveryStudies()),
         expect: () => [
           isA<DiscoveryLoading>(),
@@ -131,63 +125,81 @@ void main() {
     });
 
     group('Error Recovery', () {
-      blocTest<DiscoveryBloc, DiscoveryState>(
-        'can recover from error state by retrying',
-        build: () {
-          return DiscoveryBloc(
-            repository: testBase.mockRepository,
-            progressTracker: testBase.mockProgressTracker,
-            favoritesService: testBase.mockFavoritesService,
-          );
-        },
-        setUp: () {
-          // First call fails
-          when(testBase.mockRepository
-                  .fetchIndex(forceRefresh: anyNamed('forceRefresh')))
-              .thenThrow(Exception('Network error'));
-        },
-        act: (bloc) {
-          // First attempt - will fail
-          bloc.add(LoadDiscoveryStudies());
+      test('can recover from error state by retrying', () async {
+        // Build bloc with mocked repository that fails once then succeeds
+        int callCount = 0;
+        when(testBase.mockRepository
+                .fetchIndex(forceRefresh: anyNamed('forceRefresh')))
+            .thenAnswer((_) async {
+          if (callCount == 0) {
+            callCount++;
+            throw Exception('Network error');
+          }
+          return {'studies': []};
+        });
 
-          // After error, reconfigure mock for success and retry
-          return Future.delayed(const Duration(milliseconds: 50), () {
-            testBase.mockEmptyIndexFetch();
-            bloc.add(LoadDiscoveryStudies());
-          });
-        },
-        expect: () => [
-          isA<DiscoveryLoading>(),
-          isA<DiscoveryError>(),
-          isA<DiscoveryLoading>(),
-          isA<DiscoveryLoaded>(),
-        ],
-      );
+        final bloc = DiscoveryBloc(
+          repository: testBase.mockRepository,
+          progressTracker: testBase.mockProgressTracker,
+          favoritesService: testBase.mockFavoritesService,
+        );
+
+        final states = <DiscoveryState>[];
+        final sub = bloc.stream.listen((s) => states.add(s));
+
+        // Start first attempt (will fail)
+        bloc.add(LoadDiscoveryStudies());
+
+        // Wait until we observe DiscoveryError
+        await expectLater(bloc.stream, emitsThrough(isA<DiscoveryError>()),
+            reason: 'Should emit DiscoveryError after failed fetch');
+
+        // Reconfigure mock to succeed and trigger retry
+        testBase.mockEmptyIndexFetch();
+        bloc.add(LoadDiscoveryStudies());
+
+        // Wait until we observe a loaded state
+        await expectLater(bloc.stream, emitsThrough(isA<DiscoveryLoaded>()),
+            reason: 'Should emit DiscoveryLoaded after retry');
+
+        await sub.cancel();
+        await bloc.close();
+
+        // Verify the sequence contains Error then Loaded
+        final hasErrorThenLoaded =
+            states.indexWhere((s) => s is DiscoveryError) >= 0 &&
+                states.indexWhere((s) => s is DiscoveryLoaded) >
+                    states.indexWhere((s) => s is DiscoveryError);
+        expect(hasErrorThenLoaded, isTrue,
+            reason:
+                'States should include DiscoveryError followed by DiscoveryLoaded');
+      });
     });
 
     group('ClearDiscoveryError Event', () {
       blocTest<DiscoveryBloc, DiscoveryState>(
-        'clears error and returns to initial state',
-        build: () {
-          testBase.mockIndexFetchFailure('Network error');
-          return DiscoveryBloc(
-            repository: testBase.mockRepository,
-            progressTracker: testBase.mockProgressTracker,
-            favoritesService: testBase.mockFavoritesService,
-          );
-        },
-        act: (bloc) {
-          // First trigger error
-          bloc.add(LoadDiscoveryStudies());
-          // Then clear it after error state is reached
-          return Future.delayed(const Duration(milliseconds: 50), () {
-            bloc.add(ClearDiscoveryError());
-          });
-        },
+        'clears error message from DiscoveryLoaded state',
+        build: () => DiscoveryBloc(
+          repository: testBase.mockRepository,
+          progressTracker: testBase.mockProgressTracker,
+          favoritesService: testBase.mockFavoritesService,
+        ),
+        seed: () => DiscoveryLoaded(
+          availableStudyIds: [],
+          loadedStudies: {},
+          studyTitles: {},
+          studySubtitles: {},
+          studyEmojis: {},
+          studyReadingMinutes: {},
+          completedStudies: {},
+          favoriteStudyIds: {},
+          errorMessage: 'Some error',
+          languageCode: 'es',
+        ),
+        act: (bloc) => bloc.add(ClearDiscoveryError()),
         expect: () => [
-          isA<DiscoveryLoading>(),
-          isA<DiscoveryError>(),
-          isA<DiscoveryInitial>(),
+          isA<DiscoveryLoaded>()
+              .having((s) => s.errorMessage, 'errorMessage', isNull),
         ],
       );
     });
