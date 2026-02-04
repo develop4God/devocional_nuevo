@@ -276,6 +276,12 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      - name: Download coverage artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+
       - name: Update README statistics with full coverage
         run: dart scripts/update_readme_stats.dart
         env:
