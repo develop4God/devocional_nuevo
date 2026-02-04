@@ -12,6 +12,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'bloc_test_helper.mocks.dart';
 
+export 'bloc_test_helper.mocks.dart';
+
 // Note: we import the generated mocks so types like MockDiscoveryRepository
 // are available inside this helper file. The generated file is
 // `test/helpers/bloc_test_helper.mocks.dart` and is created by build_runner.
