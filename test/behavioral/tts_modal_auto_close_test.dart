@@ -5,6 +5,9 @@ import 'package:devocional_nuevo/controllers/tts_audio_controller.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 
+import '../helpers/tts_controller_test_helpers.dart';
+import '../helpers/tts_test_setup.dart';
+
 void main() {
   // Initialize Flutter bindings for tests that use platform channels
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -14,15 +17,22 @@ void main() {
     late FlutterTts flutterTts;
 
     setUp(() {
+      // Centralized test setup
+      TtsTestSetup.initialize();
+
+      // Create FlutterTts instance and a controller that mixes in test hooks
       flutterTts = FlutterTts();
-      controller = TtsAudioController(flutterTts: flutterTts);
+      controller = _TestableTtsAudioController(flutterTts: flutterTts);
     });
 
-    tearDown(() {
+    tearDown(() async {
+      // Dispose controller resources
       controller.state.dispose();
       controller.currentPosition.dispose();
       controller.totalDuration.dispose();
       controller.playbackRate.dispose();
+
+      await TtsTestSetup.cleanup();
     });
 
     test('TTS state changes to completed when audio finishes', () async {
@@ -41,9 +51,9 @@ void main() {
         anyOf(TtsPlayerState.loading, TtsPlayerState.playing),
       );
 
-      // Simulate completion by calling the completion handler
+      // Simulate completion by calling the safe completion helper
       // In real scenario, FlutterTTS triggers this when audio finishes
-      controller.state.value = TtsPlayerState.completed;
+      (controller as TtsControllerTestHooks).completePlayback();
 
       // Verify state is completed
       expect(controller.state.value, TtsPlayerState.completed);
@@ -67,7 +77,8 @@ void main() {
       expect(controller.currentPosition.value, Duration.zero);
     });
 
-    test('Modal should close when TTS completes (state transition test)', () {
+    test('Modal should close when TTS completes (state transition test)',
+        () async {
       // This tests the state transition that triggers modal closure
       bool modalClosed = false;
 
@@ -79,7 +90,7 @@ void main() {
       });
 
       // Simulate completion
-      controller.state.value = TtsPlayerState.completed;
+      (controller as TtsControllerTestHooks).completePlayback();
 
       // Verify listener was triggered
       expect(modalClosed, isTrue);
@@ -98,6 +109,10 @@ void main() {
         });
 
         // Give listener time to attach
+        await Future.delayed(const Duration(milliseconds: 10));
+
+        // Change to a different state to ensure listener will be triggered when moving to idle
+        controller.state.value = TtsPlayerState.playing;
         await Future.delayed(const Duration(milliseconds: 10));
 
         // Simulate stop
@@ -163,4 +178,11 @@ void main() {
       expect(true, isTrue); // Empty state handler in favorites_page.dart
     });
   });
+}
+
+// Define a local testable controller class that mixes in test hooks
+class _TestableTtsAudioController extends TtsAudioController
+    with TtsControllerTestHooks {
+  _TestableTtsAudioController({required FlutterTts flutterTts})
+      : super(flutterTts: flutterTts);
 }
