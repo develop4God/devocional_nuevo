@@ -7,8 +7,8 @@ import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/pages/discovery_list_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
+import 'package:devocional_nuevo/services/analytics_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -95,7 +95,14 @@ void main() {
   setupFirebaseMocks();
 
   setUpAll(() async {
-    await Firebase.initializeApp();
+    // Mock Crashlytics platform channel to prevent real plugin calls during tests
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+      const MethodChannel('plugins.flutter.io/firebase_crashlytics'),
+      (call) async => null,
+    );
+
+    // Firebase.initializeApp() is skipped; platform channels are mocked above.
 
     // Mock path provider
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
@@ -122,6 +129,12 @@ void main() {
     );
 
     setupServiceLocator();
+
+    // Override AnalyticsService with a test no-op implementation to avoid
+    // FirebaseAnalytics.instance access during widget tests.
+    ServiceLocator().registerSingleton<AnalyticsService>(
+      TestAnalyticsService(),
+    );
   });
 
   setUp(() {
@@ -684,4 +697,70 @@ class MockThemeBloc extends Fake implements ThemeBloc {
 
   @override
   Future<void> close() async {}
+}
+
+// Test AnalyticsService stub to avoid touching Firebase during widget tests
+class TestAnalyticsService extends AnalyticsService {
+  TestAnalyticsService() : super(analytics: null);
+
+  @override
+  Future<void> logDiscoveryAction(
+      {required String action, String? studyId}) async {
+    // no-op in tests
+    return;
+  }
+
+  @override
+  Future<void> logTtsPlay() async => Future.value();
+
+  @override
+  Future<void> logDevocionalComplete({
+    required String devocionalId,
+    required String campaignTag,
+    String source = 'read',
+    int? readingTimeSeconds,
+    double? scrollPercentage,
+    double? listenedPercentage,
+  }) async {}
+
+  @override
+  Future<void> logCustomEvent(
+      {required String eventName, Map<String, Object>? parameters}) async {}
+
+  @override
+  Future<void> setUserProperty(
+      {required String name, required String value}) async {}
+
+  @override
+  Future<void> setUserId(String? userId) async {}
+
+  @override
+  Future<void> resetAnalyticsData() async {}
+
+  @override
+  Future<void> logBottomBarAction({required String action}) async {}
+
+  @override
+  Future<void> logAppInit({Map<String, Object>? parameters}) async {}
+
+  @override
+  Future<void> logNavigationNext(
+      {required int currentIndex,
+      required int totalDevocionales,
+      required String viaBloc,
+      String? fallbackReason}) async {}
+
+  @override
+  Future<void> logNavigationPrevious(
+      {required int currentIndex,
+      required int totalDevocionales,
+      required String viaBloc,
+      String? fallbackReason}) async {}
+
+  @override
+  Future<void> logFabTapped({required String source}) async {}
+
+  @override
+  Future<void> logFabChoiceSelected(
+      {required String source, required String choice}) async {}
 }
