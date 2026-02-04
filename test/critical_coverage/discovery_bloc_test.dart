@@ -10,9 +10,11 @@ import 'package:devocional_nuevo/models/discovery_section_model.dart';
 import 'package:devocional_nuevo/repositories/discovery_repository.dart';
 import 'package:devocional_nuevo/services/discovery_favorites_service.dart';
 import 'package:devocional_nuevo/services/discovery_progress_tracker.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:mocktail/mocktail.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class MockDiscoveryRepository extends Mock implements DiscoveryRepository {}
 
@@ -25,6 +27,31 @@ class MockDiscoveryFavoritesService extends Mock
 class MockHttpClient extends Mock implements http.Client {}
 
 void main() {
+  setUpAll(() {
+    TestWidgetsFlutterBinding.ensureInitialized();
+    SharedPreferences.setMockInitialValues({});
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+      const MethodChannel('plugins.flutter.io/shared_preferences'),
+      (MethodCall methodCall) async {
+        switch (methodCall.method) {
+          case 'getAll':
+            return <String, Object?>{};
+          case 'setBool':
+          case 'setDouble':
+          case 'setInt':
+          case 'setString':
+          case 'setStringList':
+          case 'remove':
+          case 'clear':
+            return true;
+          default:
+            return null;
+        }
+      },
+    );
+  });
+
   late MockDiscoveryRepository mockRepository;
   late MockDiscoveryProgressTracker mockProgressTracker;
   late MockDiscoveryFavoritesService mockFavoritesService;
@@ -54,6 +81,21 @@ void main() {
       progressTracker: mockProgressTracker,
       favoritesService: mockFavoritesService,
     );
+
+    // IMPORTANT: This catch-all stub must be last, after any test-specific stubs
+    when(() => mockRepository.fetchDiscoveryStudy(any(), any()))
+        .thenAnswer((invocation) async => DiscoveryDevotional(
+              id: 'dummy',
+              versiculo: 'Dummy verse',
+              reflexion: 'Dummy title',
+              paraMeditar: [],
+              oracion: 'Dummy prayer',
+              date: DateTime(2026, 1, 1),
+              cards: [],
+              secciones: [],
+              preguntasDiscovery: [],
+              versiculoClave: 'Dummy key verse',
+            ));
   });
 
   tearDown(() {
