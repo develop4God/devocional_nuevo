@@ -1,7 +1,7 @@
 # Test Coverage Analysis
 
 ## Date
-February 4, 2025
+February 4, 2025 (Updated after adding widget tests)
 
 ## Overview
 This document identifies critical areas with low or no test coverage after the test reorganization.
@@ -15,36 +15,42 @@ This document identifies critical areas with low or no test coverage after the t
 | Models | 9 | 10 | 111% | ✅ Excellent |
 | Pages | 21 | 16 | 76% | ⚠️ Good but gaps exist |
 | Providers | 2 | 4 | 200% | ✅ Excellent |
-| Widgets | 39 | 12 | 31% | ❌ Critical gap |
+| **Widgets** | **39** | **20** | **51%** | **✅ Improved** (was 31% ❌) |
 | Controllers | 2 | 4 | 200% | ✅ Excellent |
 
-## Critical Coverage Gaps
+## Recent Improvements ✅
 
-### 1. Widgets (31% coverage - CRITICAL) ❌
+### Widget Coverage Increased (31% → 51%)
+Added 8 new high-value widget tests:
+- `discovery_action_bar_test.dart` (18 tests) - Discovery user actions
+- `discovery_section_card_test.dart` (14 tests) - Discovery content display
+- `discovery_bottom_nav_bar_test.dart` (15 tests) - Discovery navigation
+- `add_prayer_modal_test.dart` (18 tests) - Prayer creation/editing
+- `add_testimony_modal_test.dart` (20 tests) - Testimony creation/editing
+- `theme_selector_test.dart` (12 tests) - Theme switching
+- `animated_fab_with_text_test.dart` (15 tests) - Animated FAB
+- `app_gradient_dialog_test.dart` (15 tests) - Gradient dialogs
 
-**Gap:** 39 production widget files but only 12 test files
+**Total new tests added: 127 widget tests**
+**All tests passing: 218/218 (100%)**
 
-**Missing Coverage:**
-- Discovery-related widgets (many untested)
-- Devotional widgets (partial coverage)
-- Prayer/Testimony widgets (limited coverage)
-- Navigation components
-- Custom UI components
+## Coverage Gaps (Updated)
 
-**Impact:** High - Widgets are user-facing and UI bugs affect UX
+### 1. Widgets (51% coverage - IMPROVED ✅)
 
-**Recommendation:**
-```
-Priority: HIGH
-Action: Add widget tests for:
-- test/unit/widgets/discovery/ (NEW)
-- test/unit/widgets/devotional/ (NEW)
-- test/unit/widgets/prayer/ (NEW)
-- test/unit/widgets/navigation/ (NEW)
-Target: Increase to 60%+ coverage (24+ test files)
-```
+**Status:** Significantly improved from 31% to 51% coverage
 
-**Existing Widget Tests:**
+**Recently Added (8 new test files):**
+- `discovery_action_bar_test.dart` - User actions for discovery studies
+- `discovery_section_card_test.dart` - Discovery content display
+- `discovery_bottom_nav_bar_test.dart` - Discovery navigation
+- `add_prayer_modal_test.dart` - Prayer creation and editing
+- `add_testimony_modal_test.dart` - Testimony creation and editing
+- `theme_selector_test.dart` - Theme switching functionality
+- `animated_fab_with_text_test.dart` - Animated floating action button
+- `app_gradient_dialog_test.dart` - Gradient dialog component
+
+**Existing Widget Tests (12 files):**
 - `test/unit/widgets/add_thanksgiving_modal_test.dart`
 - `test/unit/widgets/answer_prayer_modal_test.dart`
 - `test/unit/widgets/devocionales_content_widget_test.dart`
@@ -54,7 +60,27 @@ Target: Increase to 60%+ coverage (24+ test files)
 - `test/unit/widgets/tts_player_widget_test.dart`
 - `test/unit/widgets/tts_player_widget_user_flow_test.dart`
 - `test/unit/widgets/voice_selector_dialog_test.dart`
-- Additional 3 widget tests in other locations
+- `test/unit/widgets/bible_chapter_grid_selector_test.dart`
+- `test/unit/widgets/bible_verse_grid_selector_test.dart`
+- `test/unit/widgets/prayers_page_badges_test.dart`
+
+**Still Missing Coverage (19 widgets):**
+- TTS mini player modal
+- Bible search widgets
+- Backup settings widgets
+- Donation widgets (6 files)
+- Edit answered comment modal
+- And others
+
+**Recommendation:**
+```
+Priority: MEDIUM (improved from HIGH)
+Action: Continue adding tests for:
+- TTS miniplayer (medium priority)
+- Bible search components (low priority)
+- Donation widgets (low priority - non-critical feature)
+Target: Maintain 50%+ coverage, prioritize high-value user flows
+```
 
 ### 2. Pages (76% coverage - NEEDS IMPROVEMENT) ⚠️
 
