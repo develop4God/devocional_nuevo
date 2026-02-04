@@ -1,4 +1,4 @@
-@Tags(['slow'])
+@Tags(['integration'])
 library;
 
 import 'package:devocional_nuevo/providers/devocional_provider.dart';

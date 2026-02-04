@@ -1,16 +1,16 @@
-@Tags(['slow'])
+@Tags(['integration'])
 library;
 
-// test/integration/navigation_analytics_fallback_test.dart
-// Tests for Navigation BLoC Analytics integration and fallback scenarios
-
-import 'package:flutter_test/flutter_test.dart';
 import 'package:devocional_nuevo/blocs/devocionales/devocionales_navigation_bloc.dart';
 import 'package:devocional_nuevo/blocs/devocionales/devocionales_navigation_event.dart';
 import 'package:devocional_nuevo/blocs/devocionales/devocionales_navigation_state.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
-import 'package:devocional_nuevo/repositories/navigation_repository.dart';
 import 'package:devocional_nuevo/repositories/devocional_repository.dart';
+import 'package:devocional_nuevo/repositories/navigation_repository.dart';
+// test/integration/navigation_analytics_fallback_test.dart
+// Tests for Navigation BLoC Analytics integration and fallback scenarios
+
+import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
 // Mock classes for testing
