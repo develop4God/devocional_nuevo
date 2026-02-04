@@ -10,7 +10,11 @@ import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-export 'bloc_test_helper.mocks.dart';
+import 'bloc_test_helper.mocks.dart';
+
+// Note: we import the generated mocks so types like MockDiscoveryRepository
+// are available inside this helper file. The generated file is
+// `test/helpers/bloc_test_helper.mocks.dart` and is created by build_runner.
 
 @GenerateMocks([
   DiscoveryRepository,
@@ -22,9 +26,12 @@ class BlocTestHelper {}
 
 /// Base class for BLoC tests with common setup
 class DiscoveryBlocTestBase {
-  late MockDiscoveryRepository mockRepository;
-  late MockDiscoveryProgressTracker mockProgressTracker;
-  late MockDiscoveryFavoritesService mockFavoritesService;
+  // Use dynamic here to avoid analyzer issues when the generated mocks
+  // aren't visible to certain analyzer runs. The helper constructs
+  // the actual mock instances via the generated constructors.
+  late dynamic mockRepository;
+  late dynamic mockProgressTracker;
+  late dynamic mockFavoritesService;
 
   /// Setup mocks with default behaviors
   void setupMocks() {
@@ -79,7 +86,7 @@ class DiscoveryBlocTestBase {
 }
 
 /// Helper to create a MockDevocionalProvider with default behaviors
-MockDevocionalProvider createMockDevocionalProvider({
+dynamic createMockDevocionalProvider({
   List<Devocional>? favoriteDevocionales,
   String? selectedLanguage,
 }) {
