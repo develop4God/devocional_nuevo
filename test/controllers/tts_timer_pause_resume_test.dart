@@ -11,8 +11,7 @@ import '../helpers/tts_controller_test_helpers.dart';
 // Test-only subclass that mixes in the test hooks so tests can call protected APIs
 class TestableTtsAudioController extends TtsAudioController
     with TtsControllerTestHooks {
-  TestableTtsAudioController({required FlutterTts flutterTts})
-      : super(flutterTts: flutterTts);
+  TestableTtsAudioController({required super.flutterTts});
 }
 
 /// Comprehensive test for TTS timer pause/resume behavior

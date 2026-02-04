@@ -183,6 +183,5 @@ void main() {
 // Define a local testable controller class that mixes in test hooks
 class _TestableTtsAudioController extends TtsAudioController
     with TtsControllerTestHooks {
-  _TestableTtsAudioController({required FlutterTts flutterTts})
-      : super(flutterTts: flutterTts);
+  _TestableTtsAudioController({required super.flutterTts});
 }
