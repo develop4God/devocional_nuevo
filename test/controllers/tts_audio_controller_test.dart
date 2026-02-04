@@ -1,4 +1,6 @@
 import 'package:devocional_nuevo/controllers/tts_audio_controller.dart';
+import 'package:devocional_nuevo/services/service_locator.dart';
+import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -16,6 +18,11 @@ void main() {
 
     setUp(() {
       registerTestServices();
+      // Ensure VoiceSettingsService is registered (defensive)
+      if (!ServiceLocator().isRegistered<VoiceSettingsService>()) {
+        ServiceLocator().registerLazySingleton<VoiceSettingsService>(
+            () => VoiceSettingsService());
+      }
       // Mock SharedPreferences
       SharedPreferences.setMockInitialValues({});
 

@@ -1,11 +1,18 @@
 import 'package:devocional_nuevo/controllers/tts_audio_controller.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
-
+import 'package:fake_async/fake_async.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:fake_async/fake_async.dart';
+
+import '../helpers/tts_controller_test_helpers.dart';
+
+// Test-only subclass that mixes in the test hooks so tests can call protected APIs
+class TestableTtsAudioController extends TtsAudioController
+    with TtsControllerTestHooks {
+  TestableTtsAudioController({required super.flutterTts});
+}
 
 /// Comprehensive test for TTS timer pause/resume behavior
 /// Tests the critical bug where timer doesn't properly resume after pause
@@ -64,7 +71,7 @@ void main() {
 
     setUp(() {
       mockTts = FlutterTts();
-      controller = TtsAudioController(flutterTts: mockTts);
+      controller = TestableTtsAudioController(flutterTts: mockTts);
     });
 
     tearDown(() async {
@@ -101,7 +108,7 @@ void main() {
         async.elapse(const Duration(milliseconds: 600));
 
         // Start the progress timer explicitly for test (simulates start handler)
-        controller.startProgressTimerForTest();
+        (controller as TtsControllerTestHooks).startTimer();
 
         // Let a small amount of virtual time pass to simulate playback progress
         async.elapse(const Duration(milliseconds: 1600));
@@ -129,7 +136,7 @@ void main() {
         controller.play();
         async.flushMicrotasks();
         async.elapse(const Duration(milliseconds: 600));
-        controller.startProgressTimerForTest();
+        (controller as TtsControllerTestHooks).startTimer();
 
         // Advance more virtual time
         async.elapse(const Duration(milliseconds: 1600));
@@ -157,7 +164,7 @@ void main() {
         controller.play();
         async.flushMicrotasks();
         async.elapse(const Duration(milliseconds: 600));
-        controller.startProgressTimerForTest();
+        (controller as TtsControllerTestHooks).startTimer();
 
         // Cycle 1
         async.elapse(const Duration(milliseconds: 600));
@@ -170,7 +177,7 @@ void main() {
         controller.play();
         async.flushMicrotasks();
         async.elapse(const Duration(milliseconds: 600));
-        controller.startProgressTimerForTest();
+        (controller as TtsControllerTestHooks).startTimer();
         async.elapse(const Duration(milliseconds: 600));
         positions.add(controller.currentPosition.value);
         controller.pause();
@@ -181,7 +188,7 @@ void main() {
         controller.play();
         async.flushMicrotasks();
         async.elapse(const Duration(milliseconds: 600));
-        controller.startProgressTimerForTest();
+        (controller as TtsControllerTestHooks).startTimer();
         async.elapse(const Duration(milliseconds: 600));
         positions.add(controller.currentPosition.value);
 
@@ -202,7 +209,7 @@ void main() {
         controller.play();
         async.flushMicrotasks();
         async.elapse(const Duration(milliseconds: 600));
-        controller.startProgressTimerForTest();
+        (controller as TtsControllerTestHooks).startTimer();
         async.elapse(const Duration(milliseconds: 900));
 
         final positionBeforeStop = controller.currentPosition.value;
@@ -218,7 +225,7 @@ void main() {
         controller.play();
         async.flushMicrotasks();
         async.elapse(const Duration(milliseconds: 600));
-        controller.startProgressTimerForTest();
+        (controller as TtsControllerTestHooks).startTimer();
         async.elapse(const Duration(milliseconds: 900));
 
         final positionAfterRestart = controller.currentPosition.value;
@@ -240,7 +247,7 @@ void main() {
         controller.play();
         async.flushMicrotasks();
         async.elapse(const Duration(milliseconds: 600));
-        controller.startProgressTimerForTest();
+        (controller as TtsControllerTestHooks).startTimer();
 
         // Quick pause
         async.elapse(const Duration(milliseconds: 120));
@@ -253,7 +260,7 @@ void main() {
         controller.play();
         async.flushMicrotasks();
         async.elapse(const Duration(milliseconds: 600));
-        controller.startProgressTimerForTest();
+        (controller as TtsControllerTestHooks).startTimer();
         async.elapse(const Duration(milliseconds: 900));
 
         final positionAfterResume = controller.currentPosition.value;

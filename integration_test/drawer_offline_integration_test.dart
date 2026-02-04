@@ -11,11 +11,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../test/helpers/test_helpers.dart';
 
-// Mock para DevocionalProvider
-class MockDevocionalProvider extends Mock implements DevocionalProvider {}
+// Integration-specific mock for DevocionalProvider
+// Named differently to avoid colliding with generated MockDevocionalProvider
+class IntegrationMockDevocionalProvider extends Mock
+    implements DevocionalProvider {}
 
 void main() {
-  late MockDevocionalProvider mockDevocionalProvider;
+  late IntegrationMockDevocionalProvider mockDevocionalProvider;
 
   setUp(() {
     // Initialize Flutter binding for tests
@@ -26,7 +28,7 @@ void main() {
     // Register all services including LocalizationService
     registerTestServices();
 
-    mockDevocionalProvider = MockDevocionalProvider();
+    mockDevocionalProvider = IntegrationMockDevocionalProvider();
 
     // Stubs para los getters requeridos
     when(() => mockDevocionalProvider.selectedVersion).thenReturn('RVR1960');

@@ -1,4 +1,4 @@
-@Tags(['slow'])
+@Tags(['integration'])
 library;
 
 // test/integration/multi_year_devotionals_integration_test.dart

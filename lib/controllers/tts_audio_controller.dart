@@ -32,7 +32,8 @@ class TtsAudioController {
 
   Timer? _progressTimer;
   DateTime? _playStartTime;
-  Duration _accumulatedPosition = Duration.zero;
+  @protected
+  Duration accumulatedPosition = Duration.zero;
 
   // Solo usar los rates permitidos y lógica de VoiceSettingsService
   static const double _defaultMiniRate = 1.0;
@@ -100,11 +101,11 @@ class TtsAudioController {
       debugPrint(
         '🏁 [TTS Controller] COMPLETION HANDLER - Audio completado, cambiando estado a COMPLETED',
       );
-      _stopProgressTimer();
+      stopProgressTimer();
       currentPosition.value = totalDuration.value;
       state.value = TtsPlayerState.completed;
       // CRITICAL FIX: Reset accumulated position to allow replay from beginning
-      _accumulatedPosition = Duration.zero;
+      accumulatedPosition = Duration.zero;
       debugPrint(
         '🏁 [TTS Controller] Posición acumulada reseteada a 0 para permitir replay desde el inicio',
       );
@@ -118,7 +119,7 @@ class TtsAudioController {
         );
         return;
       }
-      _stopProgressTimer();
+      stopProgressTimer();
       state.value = TtsPlayerState.idle;
     });
   }
@@ -151,7 +152,7 @@ class TtsAudioController {
     _fullDuration = Duration(seconds: estimatedSeconds);
     totalDuration.value = _fullDuration;
     currentPosition.value = Duration.zero;
-    _accumulatedPosition = Duration.zero;
+    accumulatedPosition = Duration.zero;
     debugPrint(
       '📝 [TTS Controller] Duración total estimada: ${_fullDuration.inSeconds}s',
     );
@@ -162,7 +163,7 @@ class TtsAudioController {
     debugPrint('▶️ [TTS Controller] ========== PLAY() LLAMADO ==========');
     debugPrint('▶️ [TTS Controller] Estado previo: ${state.value.toString()}');
     debugPrint(
-      '▶️ [TTS Controller] Posición acumulada: ${_accumulatedPosition.inSeconds}s',
+      '▶️ [TTS Controller] Posición acumulada: ${accumulatedPosition.inSeconds}s',
     );
     debugPrint(
       '▶️ [TTS Controller] Texto completo: ${_fullText?.length ?? 0} caracteres',
@@ -194,10 +195,10 @@ class TtsAudioController {
 
     // CRITICAL FIX: If resuming from pause (accumulated position > 0),
     // calculate which part of text to speak from accumulated position
-    if (_accumulatedPosition > Duration.zero &&
-        _accumulatedPosition < _fullDuration) {
+    if (accumulatedPosition > Duration.zero &&
+        accumulatedPosition < _fullDuration) {
       debugPrint(
-        '▶️ [TTS Controller] REANUDANDO desde posición: ${_accumulatedPosition.inSeconds}s',
+        '▶️ [TTS Controller] REANUDANDO desde posición: ${accumulatedPosition.inSeconds}s',
       );
 
       // Calculate which words to skip based on accumulated position
@@ -205,7 +206,7 @@ class TtsAudioController {
           _fullText!.split(RegExp(r"\s+")).where((w) => w.isNotEmpty).toList();
       final fullSeconds =
           _fullDuration.inSeconds > 0 ? _fullDuration.inSeconds : 1;
-      final ratio = _accumulatedPosition.inSeconds / fullSeconds;
+      final ratio = accumulatedPosition.inSeconds / fullSeconds;
       final skipWords =
           (fullWords.length * ratio).clamp(0, fullWords.length).round();
 
@@ -214,7 +215,7 @@ class TtsAudioController {
       _currentText = remainingWords.join(' ');
 
       // Update position tracking for resume (will be used by _startProgressTimer)
-      currentPosition.value = _accumulatedPosition;
+      currentPosition.value = accumulatedPosition;
 
       debugPrint(
         '▶️ [TTS Controller] Saltando $skipWords/${fullWords.length} palabras, quedan ${remainingWords.length} palabras',
@@ -223,7 +224,7 @@ class TtsAudioController {
       // Starting fresh from beginning
       debugPrint('▶️ [TTS Controller] INICIANDO desde el principio');
       _currentText = _fullText;
-      _accumulatedPosition = Duration.zero;
+      accumulatedPosition = Duration.zero;
       currentPosition.value = Duration.zero;
     }
 
@@ -289,12 +290,12 @@ class TtsAudioController {
         _pauseProgressTimer();
 
         // Preserve the position for resume
-        if (positionBeforeStop > _accumulatedPosition) {
-          _accumulatedPosition = positionBeforeStop;
+        if (positionBeforeStop > accumulatedPosition) {
+          accumulatedPosition = positionBeforeStop;
         }
 
         debugPrint(
-          '⏸️ [TTS Controller] Position preserved: ${_accumulatedPosition.inSeconds}s for multibyte text',
+          '⏸️ [TTS Controller] Position preserved: ${accumulatedPosition.inSeconds}s for multibyte text',
         );
         debugPrint('⏸️ [TTS Controller] ========== FIN PAUSE() ==========');
         return;
@@ -307,16 +308,16 @@ class TtsAudioController {
       _pauseProgressTimer();
 
       // CRITICAL: Fallback position capture for test environments or edge cases
-      if (currentPosition.value > _accumulatedPosition) {
-        _accumulatedPosition = currentPosition.value;
+      if (currentPosition.value > accumulatedPosition) {
+        accumulatedPosition = currentPosition.value;
         debugPrint(
-          '⏸️ [TTS Controller] Capturada posición actual en pause: ${_accumulatedPosition.inSeconds}s',
+          '⏸️ [TTS Controller] Capturada posición actual en pause: ${accumulatedPosition.inSeconds}s',
         );
       }
 
       debugPrint('⏸️ [TTS Controller] Estado final: ${state.value.toString()}');
       debugPrint(
-        '⏸️ [TTS Controller] Posición acumulada guardada: ${_accumulatedPosition.inSeconds}s',
+        '⏸️ [TTS Controller] Posición acumulada guardada: ${accumulatedPosition.inSeconds}s',
       );
     } catch (e, stackTrace) {
       debugPrint('❌ [TTS Controller] ERROR en pause(): $e');
@@ -325,8 +326,8 @@ class TtsAudioController {
       state.value = TtsPlayerState.paused;
       _pauseProgressTimer();
       // Capture position even on error
-      if (currentPosition.value > _accumulatedPosition) {
-        _accumulatedPosition = currentPosition.value;
+      if (currentPosition.value > accumulatedPosition) {
+        accumulatedPosition = currentPosition.value;
       }
     }
 
@@ -339,9 +340,9 @@ class TtsAudioController {
     );
     await flutterTts.stop();
     state.value = TtsPlayerState.idle;
-    _stopProgressTimer();
+    stopProgressTimer();
     currentPosition.value = Duration.zero;
-    _accumulatedPosition = Duration.zero;
+    accumulatedPosition = Duration.zero;
     debugPrint('[TTS Controller] estado actual: ${state.value.toString()}');
   }
 
@@ -349,10 +350,10 @@ class TtsAudioController {
     debugPrint(
       '[TTS Controller] complete() llamado, estado previo: ${state.value.toString()}',
     );
-    _stopProgressTimer();
+    stopProgressTimer();
     state.value = TtsPlayerState.completed;
     currentPosition.value = totalDuration.value;
-    _accumulatedPosition = Duration.zero;
+    accumulatedPosition = Duration.zero;
     debugPrint('[TTS Controller] estado actual: ${state.value.toString()}');
   }
 
@@ -361,7 +362,7 @@ class TtsAudioController {
       '[TTS Controller] error() llamado, estado previo: ${state.value.toString()}',
     );
     state.value = TtsPlayerState.error;
-    _stopProgressTimer();
+    stopProgressTimer();
     debugPrint('[TTS Controller] estado actual: ${state.value.toString()}');
   }
 
@@ -392,7 +393,7 @@ class TtsAudioController {
       '⏱️ [TTS Controller] Hora de inicio: ${_playStartTime!.toIso8601String()}',
     );
     debugPrint(
-      '⏱️ [TTS Controller] Posición acumulada: ${_accumulatedPosition.inSeconds}s',
+      '⏱️ [TTS Controller] Posición acumulada: ${accumulatedPosition.inSeconds}s',
     );
     debugPrint(
       '⏱️ [TTS Controller] Duración total: ${totalDuration.value.inSeconds}s',
@@ -401,7 +402,7 @@ class TtsAudioController {
     _progressTimer = Timer.periodic(const Duration(milliseconds: 500), (_) {
       final now = clock.now();
       // Calculate elapsed time from when playback started, plus any accumulated position
-      final elapsed = now.difference(_playStartTime!) + _accumulatedPosition;
+      final elapsed = now.difference(_playStartTime!) + accumulatedPosition;
 
       debugPrint(
         '⏱️ [TTS Controller] TICK - Posición: ${elapsed.inSeconds}s / ${totalDuration.value.inSeconds}s',
@@ -410,7 +411,7 @@ class TtsAudioController {
       if (elapsed >= totalDuration.value) {
         debugPrint('⏱️ [TTS Controller] Llegó al final - deteniendo timer');
         currentPosition.value = totalDuration.value;
-        _stopProgressTimer();
+        stopProgressTimer();
         // Let completion handler manage state
       } else {
         currentPosition.value = elapsed;
@@ -421,9 +422,8 @@ class TtsAudioController {
     debugPrint('⏱️ [TTS Controller] ========== TIMER INICIADO ==========');
   }
 
-  @visibleForTesting
-  void startProgressTimerForTest() {
-    // Expose a safe helper for tests to start the internal timer deterministically
+  @protected
+  void startProgressTimer() {
     _startProgressTimer();
   }
 
@@ -433,19 +433,20 @@ class TtsAudioController {
     // This preserves the playback position for resume
     if (_playStartTime != null) {
       final sessionElapsed = clock.now().difference(_playStartTime!);
-      _accumulatedPosition += sessionElapsed;
+      accumulatedPosition += sessionElapsed;
       debugPrint(
-        '[TTS Controller] Pausing timer - session elapsed: ${sessionElapsed.inSeconds}s, total accumulated: ${_accumulatedPosition.inSeconds}s',
+        '[TTS Controller] Pausing timer - session elapsed: ${sessionElapsed.inSeconds}s, total accumulated: ${accumulatedPosition.inSeconds}s',
       );
       _playStartTime = null;
     } else {
       debugPrint(
-        '[TTS Controller] Pausing timer - no active session, accumulated remains: ${_accumulatedPosition.inSeconds}s',
+        '[TTS Controller] Pausing timer - no active session, accumulated remains: ${accumulatedPosition.inSeconds}s',
       );
     }
   }
 
-  void _stopProgressTimer() {
+  @protected
+  void stopProgressTimer() {
     _progressTimer?.cancel();
     _progressTimer = null;
     _playStartTime = null;
@@ -486,7 +487,7 @@ class TtsAudioController {
     // Keep totalDuration as the full duration for UI slider consistency
     totalDuration.value = _fullDuration;
     currentPosition.value = position;
-    _accumulatedPosition = position;
+    accumulatedPosition = position;
     _playStartTime = clock.now();
 
     // If currently playing, restart TTS from the remaining text
@@ -552,7 +553,7 @@ class TtsAudioController {
 
       // Mantener posición actual sin ajustes de ratio
       currentPosition.value = previousPosition;
-      _accumulatedPosition = previousPosition;
+      accumulatedPosition = previousPosition;
 
       debugPrint(
         '🔧 [TTS Controller] Duración FIJA: ${_fullDuration.inSeconds}s (no recalculada), pos=${previousPosition.inSeconds}s',
@@ -601,6 +602,6 @@ class TtsAudioController {
     currentPosition.dispose();
     totalDuration.dispose();
     playbackRate.dispose();
-    _stopProgressTimer();
+    stopProgressTimer();
   }
 }

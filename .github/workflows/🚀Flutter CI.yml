@@ -5,6 +5,12 @@ on:
     branches:
       - main
       - develop
+    paths:
+      - 'lib/**'
+      - 'test/**'
+      - 'i18n/**'
+      - 'pubspec.yaml'
+    # Always enable auto_format on push (handled in job logic)
   pull_request:
     branches: [ "main", "develop" ]
   workflow_dispatch:
@@ -176,10 +182,20 @@ jobs:
           name: coverage-report
           path: coverage/
 
+      - name: Commit and push README update
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action [bot]"
+          git add README.md
+          if ! git diff --cached --quiet; then
+            git commit -m "📊 Update README stats [skip ci]"
+            git push
+          fi
+
   comment:
     name: 💬 PR Comment
     runs-on: ubuntu-latest
-    needs: [analyze, test]
+    needs: [ analyze, test ]
     if: github.event_name == 'pull_request' && always()
     steps:
       - name: 📥 Download coverage

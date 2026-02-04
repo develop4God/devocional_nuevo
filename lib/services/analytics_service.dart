@@ -14,7 +14,7 @@ import 'package:flutter/foundation.dart';
 /// await analytics.logDevocionalComplete(devocionalId: 'dev_123', campaignTag: 'custom_1');
 /// ```
 class AnalyticsService {
-  final FirebaseAnalytics _analytics;
+  FirebaseAnalytics? _analytics;
 
   // Analytics error telemetry
   static int _analyticsErrorCount = 0;
@@ -22,11 +22,10 @@ class AnalyticsService {
   static int get analyticsErrorCount => _analyticsErrorCount;
 
   /// Constructor with optional FirebaseAnalytics instance (for testing)
-  AnalyticsService({FirebaseAnalytics? analytics})
-      : _analytics = analytics ?? FirebaseAnalytics.instance;
+  AnalyticsService({FirebaseAnalytics? analytics}) : _analytics = analytics;
 
   /// Get the FirebaseAnalytics instance (for navigation observers, etc.)
-  FirebaseAnalytics get analytics => _analytics;
+  FirebaseAnalytics get analytics => _analytics ??= FirebaseAnalytics.instance;
 
   /// Validates campaign tag format (Firebase requirements: alphanumeric + underscore)
   static bool isValidCampaignTag(String tag) {
@@ -61,7 +60,7 @@ class AnalyticsService {
   /// Helps measure engagement with the audio feature.
   Future<void> logTtsPlay() async {
     try {
-      await _analytics.logEvent(name: 'tts_play', parameters: null);
+      await analytics.logEvent(name: 'tts_play', parameters: null);
       debugPrint('📊 Analytics: tts_play event logged');
     } catch (e) {
       _logAnalyticsError('tts_play', e);
@@ -117,7 +116,7 @@ class AnalyticsService {
         parameters['listened_percentage'] = (listenedPercentage * 100).round();
       }
 
-      await _analytics.logEvent(
+      await analytics.logEvent(
         name: 'devotional_read_complete',
         parameters: parameters,
       );
@@ -138,7 +137,7 @@ class AnalyticsService {
     Map<String, Object>? parameters,
   }) async {
     try {
-      await _analytics.logEvent(name: eventName, parameters: parameters);
+      await analytics.logEvent(name: eventName, parameters: parameters);
       debugPrint('📊 Analytics: $eventName event logged');
     } catch (e) {
       _logAnalyticsError(eventName, e);
@@ -154,7 +153,7 @@ class AnalyticsService {
     required String value,
   }) async {
     try {
-      await _analytics.setUserProperty(name: name, value: value);
+      await analytics.setUserProperty(name: name, value: value);
       debugPrint('📊 Analytics: User property set - $name: $value');
     } catch (e) {
       debugPrint('❌ Analytics error setting user property: $e');
@@ -165,7 +164,7 @@ class AnalyticsService {
   /// Set user ID
   Future<void> setUserId(String? userId) async {
     try {
-      await _analytics.setUserId(id: userId);
+      await analytics.setUserId(id: userId);
       debugPrint('📊 Analytics: User ID set - $userId');
     } catch (e) {
       debugPrint('❌ Analytics error setting user ID: $e');
@@ -176,7 +175,7 @@ class AnalyticsService {
   /// Reset analytics data (for testing or logout)
   Future<void> resetAnalyticsData() async {
     try {
-      await _analytics.resetAnalyticsData();
+      await analytics.resetAnalyticsData();
       debugPrint('📊 Analytics: Data reset');
     } catch (e) {
       debugPrint('❌ Analytics error resetting data: $e');
@@ -191,7 +190,7 @@ class AnalyticsService {
   Future<void> logBottomBarAction({required String action}) async {
     try {
       debugPrint('🔥 [BottomBar] Tap: $action');
-      await _analytics.logEvent(
+      await analytics.logEvent(
         name: 'bottom_bar_action',
         parameters: {'action': action},
       );
@@ -207,7 +206,7 @@ class AnalyticsService {
   /// Parameters: Additional context parameters (e.g., use_navigation_bloc)
   Future<void> logAppInit({Map<String, Object>? parameters}) async {
     try {
-      await _analytics.logEvent(name: 'app_init', parameters: parameters);
+      await analytics.logEvent(name: 'app_init', parameters: parameters);
       debugPrint('📊 Analytics: app_init event logged');
     } catch (e) {
       _logAnalyticsError('app_init', e);
@@ -239,7 +238,7 @@ class AnalyticsService {
         parameters['fallback_reason'] = fallbackReason;
       }
 
-      await _analytics.logEvent(
+      await analytics.logEvent(
         name: 'navigation_next',
         parameters: parameters,
       );
@@ -274,7 +273,7 @@ class AnalyticsService {
         parameters['fallback_reason'] = fallbackReason;
       }
 
-      await _analytics.logEvent(
+      await analytics.logEvent(
         name: 'navigation_previous',
         parameters: parameters,
       );
@@ -292,7 +291,7 @@ class AnalyticsService {
   Future<void> logFabTapped({required String source}) async {
     try {
       debugPrint('🔥 [FAB] Tapped on: $source');
-      await _analytics.logEvent(
+      await analytics.logEvent(
         name: 'fab_tapped',
         parameters: {'source': source},
       );
@@ -314,7 +313,7 @@ class AnalyticsService {
   }) async {
     try {
       debugPrint('🔥 [FAB] Choice selected: $choice on $source');
-      await _analytics.logEvent(
+      await analytics.logEvent(
         name: 'fab_choice_selected',
         parameters: {
           'source': source,
@@ -345,7 +344,7 @@ class AnalyticsService {
       if (studyId != null) {
         parameters['study_id'] = studyId;
       }
-      await _analytics.logEvent(
+      await analytics.logEvent(
         name: 'discovery_action',
         parameters: parameters,
       );
