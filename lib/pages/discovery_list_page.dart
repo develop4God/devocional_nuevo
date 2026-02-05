@@ -9,7 +9,6 @@ import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/models/discovery_devotional_model.dart';
-import 'package:devocional_nuevo/pages/devotional_discovery/widgets/devotional_card_premium.dart';
 import 'package:devocional_nuevo/pages/discovery_detail_page.dart';
 import 'package:devocional_nuevo/pages/favorites_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
@@ -17,6 +16,7 @@ import 'package:devocional_nuevo/services/analytics_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/utils/discovery_share_helper.dart';
 import 'package:devocional_nuevo/widgets/devocionales/app_bar_constants.dart';
+import 'package:devocional_nuevo/widgets/devotional_card_premium.dart';
 import 'package:devocional_nuevo/widgets/discovery_grid_overlay.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -362,7 +362,8 @@ class _DiscoveryListPageState extends State<DiscoveryListPage>
           readingMinutes: readingMinutes,
           isFavorite: isFavorite,
           isCompleted: isCompleted,
-          isNew: isNew, // Inject isNew
+          isNew: isNew,
+          // Inject isNew
           isDark: isDark,
           onTap: () => _navigateToDetail(context, studyId),
           onFavoriteToggle: () {

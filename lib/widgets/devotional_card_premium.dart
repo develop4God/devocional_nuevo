@@ -8,8 +8,8 @@ import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:intl/intl.dart';
 import 'package:shimmer/shimmer.dart';
 
-import '../../../models/devocional_model.dart';
-import '../../../utils/tag_color_dictionary.dart';
+import '../models/devocional_model.dart';
+import '../utils/tag_color_dictionary.dart';
 
 // Singleton cache manager for Discovery images with size and TTL limits
 class _DiscoveryCacheManager {
@@ -133,7 +133,8 @@ class DevotionalCardPremium extends StatelessWidget {
                                     ],
                                   ),
                                   maxLines: 4,
-                                  minFontSize: 18, // Safety for small devices
+                                  minFontSize: 18,
+                                  // Safety for small devices
                                   stepGranularity: 1,
                                   overflow: TextOverflow.ellipsis,
                                 ),
