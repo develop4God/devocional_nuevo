@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:devocional_nuevo/blocs/discovery/discovery_bloc.dart';
 import 'package:devocional_nuevo/blocs/discovery/discovery_event.dart';
+import 'package:devocional_nuevo/pages/backup_settings_page.dart';
 import 'package:devocional_nuevo/services/in_app_review_service.dart';
 import 'package:devocional_nuevo/utils/constants.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
@@ -201,6 +202,63 @@ class _DebugPageState extends State<DebugPage> {
                   textStyle: const TextStyle(fontSize: 18),
                 ),
                 child: const Text('FORZAR FALLO AHORA'),
+              ),
+
+              const SizedBox(height: 32),
+
+              // Backup Settings Test Button (Debug Mode Only)
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.blue.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.blue.withValues(alpha: 0.3)),
+                ),
+                child: Column(
+                  children: [
+                    const Icon(Icons.backup, size: 48, color: Colors.blue),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Test Backup Settings',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const BackupSettingsPage(),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.settings_backup_restore),
+                      label: const Text('Open Backup Page'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 12,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Debug mode only - not visible in production',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontStyle: FontStyle.italic,
+                        color: Colors.grey,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
