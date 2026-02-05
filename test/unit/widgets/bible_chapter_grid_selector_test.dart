@@ -1,3 +1,6 @@
+@Tags(['unit', 'widgets'])
+library;
+
 // test/unit/widgets/bible_chapter_grid_selector_test.dart
 import 'package:devocional_nuevo/widgets/bible_chapter_grid_selector.dart';
 import 'package:flutter/material.dart';

@@ -1,3 +1,6 @@
+@Tags(['unit', 'blocs'])
+library;
+
 // test/unit/blocs/prayer_bloc_update_answered_comment_test.dart
 
 import 'package:devocional_nuevo/blocs/prayer_event.dart';

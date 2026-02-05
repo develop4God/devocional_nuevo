@@ -1,3 +1,6 @@
+@Tags(['unit', 'pages'])
+library;
+
 import 'package:bible_reader_core/src/bible_version.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_state.dart';

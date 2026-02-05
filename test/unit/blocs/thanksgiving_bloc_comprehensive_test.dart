@@ -1,3 +1,6 @@
+@Tags(['unit', 'blocs'])
+library;
+
 // test/unit/blocs/thanksgiving_bloc_comprehensive_test.dart
 
 import 'dart:io';

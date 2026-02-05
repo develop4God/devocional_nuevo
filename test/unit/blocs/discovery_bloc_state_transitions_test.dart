@@ -1,3 +1,6 @@
+@Tags(['unit', 'blocs'])
+library;
+
 // test/unit/blocs/discovery_bloc_state_transitions_test.dart
 // Fast unit tests for DiscoveryBloc state transitions
 // Tests BLoC logic without widget rendering overhead

@@ -1,3 +1,6 @@
+@Tags(['unit', 'repositories'])
+library;
+
 import 'dart:convert';
 
 import 'package:devocional_nuevo/repositories/discovery_repository.dart';

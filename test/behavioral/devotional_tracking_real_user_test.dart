@@ -1,3 +1,6 @@
+@Tags(['behavioral'])
+library;
+
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -5,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 /// Comprehensive tests for devotional tracking and completion logic
 /// Tests real user behavior patterns and edge cases
+
 void main() {
   group('Devotional Tracking - Real User Behavior Tests', () {
     late SpiritualStatsService statsService;

@@ -1,3 +1,6 @@
+@Tags(['unit', 'services'])
+library;
+
 // test/unit/services/connectivity_service_comprehensive_test.dart
 
 import 'dart:async';

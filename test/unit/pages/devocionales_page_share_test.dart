@@ -1,8 +1,12 @@
+@Tags(['unit', 'pages'])
+library;
+
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// Tests for DevocionalesPage sharing functionality
 /// Validates the fix for duplicate message bug when sharing devotionals
+
 void main() {
   group('Devotional Sharing Logic Tests', () {
     late Devocional testDevocional;

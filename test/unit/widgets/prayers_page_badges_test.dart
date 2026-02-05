@@ -1,3 +1,6 @@
+@Tags(['unit', 'widgets'])
+library;
+
 import 'package:devocional_nuevo/blocs/prayer_bloc.dart';
 import 'package:devocional_nuevo/blocs/prayer_state.dart';
 import 'package:devocional_nuevo/blocs/testimony_bloc.dart';
@@ -18,6 +21,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../helpers/test_helpers.dart';
 
 // Mock classes
+
 class MockPrayerBloc extends Mock implements PrayerBloc {}
 
 class MockThanksgivingBloc extends Mock implements ThanksgivingBloc {}

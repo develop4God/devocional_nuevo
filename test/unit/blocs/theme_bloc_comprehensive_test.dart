@@ -1,3 +1,6 @@
+@Tags(['unit', 'blocs'])
+library;
+
 // test/unit/blocs/theme_bloc_comprehensive_test.dart
 
 import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';

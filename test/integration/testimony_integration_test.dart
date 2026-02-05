@@ -1,3 +1,6 @@
+@Tags(['integration'])
+library;
+
 import 'package:devocional_nuevo/blocs/testimony_bloc.dart';
 import 'package:devocional_nuevo/blocs/testimony_event.dart';
 import 'package:devocional_nuevo/blocs/testimony_state.dart';

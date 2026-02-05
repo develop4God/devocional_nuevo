@@ -1,3 +1,6 @@
+@Tags(['unit', 'utils'])
+library;
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:devocional_nuevo/utils/constants.dart';
 

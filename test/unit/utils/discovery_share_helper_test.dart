@@ -1,3 +1,6 @@
+@Tags(['unit', 'utils'])
+library;
+
 // test/unit/utils/discovery_share_helper_test.dart
 
 import 'package:devocional_nuevo/models/discovery_card_model.dart';

@@ -1,9 +1,13 @@
+@Tags(['unit', 'features'])
+library;
+
 import 'package:devocional_nuevo/blocs/thanksgiving_bloc.dart';
 import 'package:devocional_nuevo/models/thanksgiving_model.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// Tests for the new thanksgiving feature user behavior
 /// Validates that users can add thanksgivings through the FAB
+
 void main() {
   group('Thanksgiving Feature User Behavior Tests', () {
     late ThanksgivingBloc bloc;

@@ -1,3 +1,6 @@
+@Tags(['unit', 'models'])
+library;
+
 import 'package:devocional_nuevo/models/thanksgiving_model.dart';
 import 'package:flutter_test/flutter_test.dart';
 

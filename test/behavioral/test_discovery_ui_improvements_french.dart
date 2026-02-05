@@ -1,3 +1,6 @@
+@Tags(['behavioral'])
+library;
+
 // test/behavioral/test_discovery_ui_improvements_french.dart
 
 import 'package:flutter_test/flutter_test.dart';
@@ -8,6 +11,7 @@ import 'package:flutter_test/flutter_test.dart';
 /// 1. Next arrow button appears in action bar
 /// 2. Completed studies auto-reorder to end of list
 /// 3. Completed badge appears on completed studies
+
 void main() {
   group('Discovery UI Improvements - French Language', () {
     test('French translation for "next" button exists', () {
