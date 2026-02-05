@@ -1,3 +1,6 @@
+@Tags(['unit', 'services'])
+library;
+
 import 'package:devocional_nuevo/services/notification_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';

@@ -1,3 +1,6 @@
+@Tags(['unit', 'models'])
+library;
+
 import 'package:devocional_nuevo/models/discovery_section_model.dart';
 import 'package:flutter_test/flutter_test.dart';
 

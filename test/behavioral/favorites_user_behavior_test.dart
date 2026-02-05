@@ -1,3 +1,6 @@
+@Tags(['behavioral'])
+library;
+
 import 'dart:convert';
 
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
@@ -13,6 +16,7 @@ import '../helpers/test_helpers.dart';
 
 /// Real user behavior tests for favorites functionality
 /// Focuses on common user scenarios without complex mocking
+
 void main() {
   group('Favorites - Real User Behavior Tests', () {
     late DevocionalProvider provider;

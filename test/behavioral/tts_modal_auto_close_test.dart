@@ -1,3 +1,6 @@
+@Tags(['behavioral'])
+library;
+
 // test/behavioral/tts_modal_auto_close_test.dart
 // Tests for real user behavior: TTS modal auto-close on completion
 

@@ -1,3 +1,6 @@
+@Tags(['unit', 'blocs'])
+library;
+
 // test/unit/blocs/discovery_bloc_shared_prefs_caching_test.dart
 
 import 'package:devocional_nuevo/blocs/discovery/discovery_bloc.dart';

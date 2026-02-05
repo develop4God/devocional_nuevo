@@ -1,3 +1,6 @@
+@Tags(['unit', 'models'])
+library;
+
 // test/unit/models/devocional_model_simple_test.dart
 
 import 'package:devocional_nuevo/models/devocional_model.dart';

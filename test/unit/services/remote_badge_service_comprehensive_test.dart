@@ -1,3 +1,6 @@
+@Tags(['unit', 'services'])
+library;
+
 // test/unit/services/remote_badge_service_comprehensive_test.dart
 
 import 'package:devocional_nuevo/services/remote_badge_service.dart';

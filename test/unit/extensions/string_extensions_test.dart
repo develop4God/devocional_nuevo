@@ -1,3 +1,6 @@
+@Tags(['unit', 'extensions'])
+library;
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/services/localization_service.dart';

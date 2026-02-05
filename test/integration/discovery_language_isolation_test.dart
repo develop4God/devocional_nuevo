@@ -1,3 +1,6 @@
+@Tags(['integration'])
+library;
+
 // test/integration/discovery_language_isolation_test.dart
 
 import 'package:devocional_nuevo/services/discovery_favorites_service.dart';

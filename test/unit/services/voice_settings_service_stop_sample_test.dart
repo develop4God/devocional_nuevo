@@ -1,3 +1,6 @@
+@Tags(['unit', 'services'])
+library;
+
 // test/unit/services/voice_settings_service_stop_sample_test.dart
 
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';

@@ -1,3 +1,6 @@
+@Tags(['unit', 'services'])
+library;
+
 import 'package:devocional_nuevo/services/onboarding_service.dart';
 import 'package:devocional_nuevo/utils/constants.dart';
 import 'package:flutter_test/flutter_test.dart';
