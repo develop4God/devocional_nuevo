@@ -13,9 +13,11 @@
 ---
 
 <a name="english"></a>
+
 ## 🇺🇸 English
 
-Multilingual mobile application for reading daily devotionals with advanced audio features, favorites, spiritual tracking, and intelligent review system.
+Multilingual mobile application for reading daily devotionals with advanced audio features,
+favorites, spiritual tracking, and intelligent review system.
 
 ### ✨ Main Features
 
@@ -47,18 +49,19 @@ Multilingual mobile application for reading daily devotionals with advanced audi
 
 ### 📊 Project Statistics
 
-| Metric | Value |
-|--------|-------|
-| Source Files (lib/) | 145 Dart files |
-| Test Files | 142 test files |
-| Total Tests | 1,318 tests (100% passing ✅) |
-| Test Coverage | 44.06% (3,455/7,841 lines) |
-| Supported Languages | 6 (es, en, pt, fr, ja, zh) |
-| Static Analysis | ✅ All checks passing |
+| Metric              | Value                        |
+|---------------------|------------------------------|
+| Source Files (lib/) | 145 Dart files               |
+| Test Files          | 142 test files               |
+| Total Tests         | 1,318 tests (100% passing ✅) |
+| Test Coverage       | 44.06% (3,455/7,841 lines)   |
+| Supported Languages | 6 (es, en, pt, fr, ja, zh)   |
+| Static Analysis     | ✅ All checks passing         |
 
 ### 🏗️ Architecture
 
-The application follows a **hybrid Provider + BLoC Pattern** architecture with clear separation of concerns:
+The application follows a **hybrid Provider + BLoC Pattern** architecture with clear separation of
+concerns:
 
 ```
 lib/
@@ -86,9 +89,11 @@ lib/
 
 ### 🧪 Testing
 
-The project has comprehensive test coverage across multiple layers with a clean, organized structure:
+The project has comprehensive test coverage across multiple layers with a clean, organized
+structure:
 
 **Test Statistics:**
+
 - **136 test files** (100% passing ✅)
 - **1,680+ tests** with full pass rate
 - **44.06% code coverage** (3,455 of 7,841 lines)
@@ -130,6 +135,7 @@ dart fix --apply
 ```
 
 **Test Structure (Reorganized Feb 2025):**
+
 ```
 test/
 ├── behavioral/              (5 tests)  - Real user behavior & journey tests
@@ -159,21 +165,24 @@ patrol_test/                 # 🆕 Patrol framework tests (native automation)
 ```
 
 **🆕 Test Organization Features:**
+
 - ✅ Clean directory structure (19 directories, down from 24)
 - ✅ All tests properly tagged for selective execution
 - ✅ Fast critical tests for quick feedback (~1-2 minutes)
 - ✅ Organized by type (BLoCs, Services, Models, Widgets, etc.)
 - ✅ Easy to find where to add new tests
 - ✅ No duplicate or scattered tests
-- 📄 See [TEST_REORGANIZATION_SUMMARY.md](./TEST_REORGANIZATION_SUMMARY.md) for details
+- 📄 See [TEST_REORGANIZATION_SUMMARY.md](docs/testing/TEST_REORGANIZATION_SUMMARY.md) for details
 
 **🆕 Patrol Integration Tests:**
+
 - Modern testing framework with native automation
 - Supports permissions, notifications, back button
-- Cleaner syntax with `$` shorthand  
+- Cleaner syntax with `$` shorthand
 - See [`patrol_test/README.md`](./patrol_test/README.md) for details
 
 **Coverage Highlights:**
+
 - ✅ Core devotional reading logic
 - ✅ TTS (Text-to-Speech) functionality
 - ✅ Offline mode and data persistence
@@ -214,9 +223,11 @@ All documentation is organized in the [docs/](./docs/) folder:
 ---
 
 <a name="español"></a>
+
 ## 🇪🇸 Español
 
-Aplicación móvil multilingüe para leer devocionales diarios con funcionalidades avanzadas de audio, favoritos, tracking espiritual y sistema inteligente de reseñas.
+Aplicación móvil multilingüe para leer devocionales diarios con funcionalidades avanzadas de audio,
+favoritos, tracking espiritual y sistema inteligente de reseñas.
 
 ### ✨ Características Principales
 
@@ -248,18 +259,19 @@ Aplicación móvil multilingüe para leer devocionales diarios con funcionalidad
 
 ### 📊 Estadísticas del Proyecto
 
-| Métrica | Valor |
-|---------|-------|
-| Archivos Fuente (lib/) | 145 archivos Dart |
-| Archivos de Test | 142 archivos |
-| Total de Tests | 1,318 tests (100% aprobados ✅) |
-| Cobertura de Tests | 44.06% (3,455/7,841 líneas) |
-| Idiomas Soportados | 6 (es, en, pt, fr, ja, zh) |
-| Análisis Estático | ✅ Todas las verificaciones pasando |
+| Métrica                | Valor                              |
+|------------------------|------------------------------------|
+| Archivos Fuente (lib/) | 145 archivos Dart                  |
+| Archivos de Test       | 142 archivos                       |
+| Total de Tests         | 1,318 tests (100% aprobados ✅)     |
+| Cobertura de Tests     | 44.06% (3,455/7,841 líneas)        |
+| Idiomas Soportados     | 6 (es, en, pt, fr, ja, zh)         |
+| Análisis Estático      | ✅ Todas las verificaciones pasando |
 
 ### 🏗️ Arquitectura
 
-La aplicación sigue una arquitectura **híbrida Provider + Patrón BLoC** con clara separación de responsabilidades:
+La aplicación sigue una arquitectura **híbrida Provider + Patrón BLoC** con clara separación de
+responsabilidades:
 
 ```
 lib/
@@ -287,9 +299,11 @@ lib/
 
 ### 🧪 Testing / Pruebas
 
-El proyecto cuenta con cobertura completa de pruebas en múltiples capas con una estructura limpia y organizada:
+El proyecto cuenta con cobertura completa de pruebas en múltiples capas con una estructura limpia y
+organizada:
 
 **Estadísticas de Pruebas:**
+
 - **136 archivos de prueba** (100% aprobados ✅)
 - **1,680+ tests** con 100% de tasa de aprobación
 - **44.06% de cobertura** (3,455 de 7,841 líneas)
@@ -331,6 +345,7 @@ dart fix --apply
 ```
 
 **Estructura de Tests (Reorganizada Feb 2025):**
+
 ```
 test/
 ├── behavioral/              (5 tests)  - Tests de comportamiento real del usuario
@@ -360,21 +375,24 @@ patrol_test/                 # 🆕 Tests del framework Patrol (automatización 
 ```
 
 **🆕 Características de Organización de Tests:**
+
 - ✅ Estructura de directorios limpia (19 directorios, reducido de 24)
 - ✅ Todos los tests etiquetados para ejecución selectiva
 - ✅ Tests críticos rápidos para retroalimentación rápida (~1-2 minutos)
 - ✅ Organizados por tipo (BLoCs, Services, Models, Widgets, etc.)
 - ✅ Fácil encontrar dónde añadir nuevos tests
 - ✅ Sin tests duplicados o dispersos
-- 📄 Ver [TEST_REORGANIZATION_SUMMARY.md](./TEST_REORGANIZATION_SUMMARY.md) para detalles
+- 📄 Ver [TEST_REORGANIZATION_SUMMARY.md](docs/testing/TEST_REORGANIZATION_SUMMARY.md) para detalles
 
 **🆕 Tests de Integración con Patrol:**
+
 - Framework de testing moderno con automatización nativa
 - Soporta permisos, notificaciones, botón atrás
 - Sintaxis más limpia con shorthand `$`
 - Ver [`patrol_test/README.md`](./patrol_test/README.md) para detalles
 
 **Áreas Cubiertas:**
+
 - ✅ Lógica central de lectura de devocionales
 - ✅ Funcionalidad TTS (Text-to-Speech)
 - ✅ Modo offline y persistencia de datos
@@ -386,6 +404,7 @@ patrol_test/                 # 🆕 Tests del framework Patrol (automatización 
 - ✅ Validación de modelos y lógica de negocio
 
 **Estructura de Tests:**
+
 ```
 test/
 ├── behavioral/              # Tests de comportamiento real de usuario
@@ -411,12 +430,14 @@ patrol_test/                 # 🆕 Tests con framework Patrol (automatización 
 ```
 
 **🆕 Tests de Integración con Patrol:**
+
 - Framework moderno con automatización nativa
 - Soporta permisos, notificaciones, botón atrás
 - Sintaxis más limpia con atajo `$`
 - Ver [`patrol_test/README.md`](./patrol_test/README.md) para detalles
 
 **Aspectos Destacados de Cobertura:**
+
 - ✅ Lógica central de lectura devocional
 - ✅ Funcionalidad TTS (Text-to-Speech)
 - ✅ Modo offline y persistencia de datos
@@ -509,33 +530,43 @@ flutter build ios --release  # iOS
 
 ### English
 
-This work is licensed under the [Creative Commons Attribution-NonCommercial 4.0 International License (CC BY-NC 4.0)](https://creativecommons.org/licenses/by-nc/4.0/).
+This work is licensed under
+the [Creative Commons Attribution-NonCommercial 4.0 International License (CC BY-NC 4.0)](https://creativecommons.org/licenses/by-nc/4.0/).
 
 You are free to:
+
 - **Share** — copy and redistribute the material in any medium or format
 - **Adapt** — remix, transform, and build upon the material
 
 Under the following terms:
-- **Attribution (BY)** — You must give appropriate credit, provide a link to the license, and indicate if changes were made.
+
+- **Attribution (BY)** — You must give appropriate credit, provide a link to the license, and
+  indicate if changes were made.
 - **NonCommercial (NC)** — You may not use the material for commercial purposes.
 
 For the full license text, see the [LICENSE](./LICENSE) file or visit:
+
 - Summary: https://creativecommons.org/licenses/by-nc/4.0/
 - Legal Code: https://creativecommons.org/licenses/by-nc/4.0/legalcode
 
 ### Español
 
-Este trabajo está licenciado bajo la [Licencia Creative Commons Atribución-NoComercial 4.0 Internacional (CC BY-NC 4.0)](https://creativecommons.org/licenses/by-nc/4.0/deed.es).
+Este trabajo está licenciado bajo
+la [Licencia Creative Commons Atribución-NoComercial 4.0 Internacional (CC BY-NC 4.0)](https://creativecommons.org/licenses/by-nc/4.0/deed.es).
 
 Puedes:
+
 - **Compartir** — copiar y redistribuir el material en cualquier medio o formato
 - **Adaptar** — remezclar, transformar y construir sobre el material
 
 Bajo las siguientes condiciones:
-- **Atribución (BY)** — Debes dar crédito adecuado, proporcionar un enlace a la licencia e indicar si se realizaron cambios.
+
+- **Atribución (BY)** — Debes dar crédito adecuado, proporcionar un enlace a la licencia e indicar
+  si se realizaron cambios.
 - **NoComercial (NC)** — No puedes utilizar el material con fines comerciales.
 
 Para el texto completo de la licencia, ver el archivo [LICENSE](./LICENSE) o visitar:
+
 - Resumen: https://creativecommons.org/licenses/by-nc/4.0/deed.es
 - Código Legal: https://creativecommons.org/licenses/by-nc/4.0/legalcode.es
 
