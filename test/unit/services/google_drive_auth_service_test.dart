@@ -1,7 +1,9 @@
+@Tags(['unit', 'services'])
+library;
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:devocional_nuevo/services/google_drive_auth_service.dart';
 
-@Tags(['unit', 'services'])
 void main() {
   group('GoogleDriveAuthService', () {
     late GoogleDriveAuthService service;

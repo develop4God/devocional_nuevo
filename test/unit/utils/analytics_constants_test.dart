@@ -1,7 +1,9 @@
+@Tags(['unit', 'utils'])
+library;
+
 import 'package:devocional_nuevo/utils/analytics_constants.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-@Tags(['unit', 'utils'])
 void main() {
   group('AnalyticsConstants', () {
     group('defaultCampaignTag', () {

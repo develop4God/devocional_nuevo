@@ -1,10 +1,12 @@
+@Tags(['critical', 'unit', 'services'])
+library;
+
 import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../helpers/test_helpers.dart';
+import '../../helpers/test_helpers.dart';
 
-@Tags(['critical', 'unit', 'services'])
 void main() {
   group('SpiritualStatsService user behavior', () {
     late SpiritualStatsService statsService;

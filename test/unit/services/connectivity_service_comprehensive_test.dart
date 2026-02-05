@@ -1,3 +1,6 @@
+@Tags(['unit', 'services'])
+library;
+
 // test/unit/services/connectivity_service_comprehensive_test.dart
 
 import 'dart:async';
@@ -5,7 +8,6 @@ import 'dart:async';
 import 'package:devocional_nuevo/services/connectivity_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-@Tags(['unit', 'services'])
 void main() {
   group('ConnectivityService - Comprehensive Real User Behavior Tests', () {
     late ConnectivityService service;

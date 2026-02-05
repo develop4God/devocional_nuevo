@@ -1,3 +1,6 @@
+@Tags(['unit', 'widgets'])
+library;
+
 import 'package:devocional_nuevo/blocs/prayer_bloc.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/widgets/discovery_action_bar.dart';
@@ -9,7 +12,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../helpers/test_helpers.dart';
 
-@Tags(['unit', 'widgets'])
 void main() {
   setUpAll(() {
     PathProviderPlatform.instance = MockPathProviderPlatform();

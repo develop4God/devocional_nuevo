@@ -1,3 +1,6 @@
+@Tags(['unit', 'widgets'])
+library;
+
 import 'package:devocional_nuevo/controllers/tts_audio_controller.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
@@ -12,7 +15,6 @@ import '../../helpers/test_helpers.dart';
 
 // MockFlutterTts para pruebas
 
-@Tags(['unit', 'widgets'])
 class MockFlutterTts extends FlutterTts {
   bool speakCalled = false;
   @override

@@ -1,3 +1,6 @@
+@Tags(['unit', 'providers'])
+library;
+
 import 'package:devocional_nuevo/providers/localization_provider.dart';
 import 'package:devocional_nuevo/services/localization_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
@@ -7,7 +10,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 /// Mock VoiceSettingsService that doesn't use FlutterTts (which is not available in unit tests)
 
-@Tags(['unit', 'providers'])
 class MockVoiceSettingsService extends VoiceSettingsService {
   bool _proactiveAssignCalled = false;
   String? _lastLanguageCode;

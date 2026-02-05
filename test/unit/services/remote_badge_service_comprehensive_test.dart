@@ -1,10 +1,12 @@
+@Tags(['unit', 'services'])
+library;
+
 // test/unit/services/remote_badge_service_comprehensive_test.dart
 
 import 'package:devocional_nuevo/services/remote_badge_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-@Tags(['unit', 'services'])
 void main() {
   group('RemoteBadgeService - Comprehensive Real User Behavior Tests', () {
     late RemoteBadgeService service;

@@ -1,8 +1,10 @@
+@Tags(['unit', 'widgets'])
+library;
+
 import 'package:devocional_nuevo/widgets/theme_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-@Tags(['unit', 'widgets'])
 void main() {
   group('ThemeSelectorCircleGrid Widget Tests', () {
     late String selectedTheme;

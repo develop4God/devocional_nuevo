@@ -1,10 +1,12 @@
+@Tags(['integration'])
+library;
+
 import 'package:devocional_nuevo/blocs/testimony_bloc.dart';
 import 'package:devocional_nuevo/blocs/testimony_event.dart';
 import 'package:devocional_nuevo/blocs/testimony_state.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-@Tags(['integration'])
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 

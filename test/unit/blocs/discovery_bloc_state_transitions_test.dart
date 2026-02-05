@@ -1,3 +1,6 @@
+@Tags(['unit', 'blocs'])
+library;
+
 // test/unit/blocs/discovery_bloc_state_transitions_test.dart
 // Fast unit tests for DiscoveryBloc state transitions
 // Tests BLoC logic without widget rendering overhead
@@ -12,7 +15,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../helpers/bloc_test_helper.dart';
 
-@Tags(['unit', 'blocs'])
 void main() {
   group('DiscoveryBloc State Transitions - Fast Unit Tests', () {
     late DiscoveryBlocTestBase testBase;

@@ -1,8 +1,10 @@
+@Tags(['unit', 'widgets'])
+library;
+
 import 'package:devocional_nuevo/widgets/animated_fab_with_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-@Tags(['unit', 'widgets'])
 void main() {
   group('AnimatedFabWithText Widget Tests', () {
     late bool callbackInvoked;

@@ -1,3 +1,6 @@
+@Tags(['unit', 'widgets'])
+library;
+
 import 'package:devocional_nuevo/models/prayer_model.dart';
 import 'package:devocional_nuevo/widgets/answer_prayer_modal.dart';
 import 'package:flutter/material.dart';
@@ -8,7 +11,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../helpers/test_helpers.dart';
 
-@Tags(['unit', 'widgets'])
 void main() {
   setUp(() {
     TestWidgetsFlutterBinding.ensureInitialized();

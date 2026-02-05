@@ -1,8 +1,10 @@
+@Tags(['unit', 'pages'])
+library;
+
 import 'package:devocional_nuevo/utils/theme_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-@Tags(['unit', 'pages'])
 void main() {
   group('BibleReaderPage Border Theme Integration Tests', () {
     testWidgets('OutlinedButton respects theme border color in light mode', (

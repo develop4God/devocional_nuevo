@@ -1,3 +1,6 @@
+@Tags(['unit', 'pages'])
+library;
+
 // test/pages/discovery_list_page_test.dart
 
 import 'package:devocional_nuevo/blocs/discovery/discovery_bloc.dart';
@@ -16,7 +19,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-@Tags(['unit', 'pages'])
 void setupFirebaseMocks() {
   // Mock Firebase legacy channel
   const MethodChannel firebaseCoreChannel =

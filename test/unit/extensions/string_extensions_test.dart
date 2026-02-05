@@ -1,3 +1,6 @@
+@Tags(['unit', 'extensions'])
+library;
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/services/localization_service.dart';
@@ -5,7 +8,6 @@ import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:ui';
 
-@Tags(['unit', 'extensions'])
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   group('String Extensions Tests', () {

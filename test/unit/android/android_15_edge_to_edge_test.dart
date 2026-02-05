@@ -1,3 +1,6 @@
+@Tags(['unit', 'android'])
+library;
+
 import 'package:flutter_test/flutter_test.dart';
 
 /// Tests for Android 15 Edge-to-Edge compatibility
@@ -7,7 +10,6 @@ import 'package:flutter_test/flutter_test.dart';
 /// in MainActivity.kt cannot be directly tested from Dart, but we can
 /// verify the app configuration and expected behaviors.
 
-@Tags(['unit', 'android'])
 void main() {
   group('Android 15 Edge-to-Edge Configuration Tests', () {
     test('Android SDK version constants are properly defined', () {

@@ -1,3 +1,6 @@
+@Tags(['unit', 'providers'])
+library;
+
 import 'dart:async';
 import 'dart:convert';
 
@@ -12,7 +15,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 /// Minimal fake implementation of ITtsService to satisfy provider constructor
 
-@Tags(['unit', 'providers'])
 class FakeTtsService implements ITtsService {
   final StreamController<TtsState> _stateController =
       StreamController.broadcast();

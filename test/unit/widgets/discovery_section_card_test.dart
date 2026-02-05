@@ -1,9 +1,11 @@
+@Tags(['unit', 'widgets'])
+library;
+
 import 'package:devocional_nuevo/models/discovery_section_model.dart';
 import 'package:devocional_nuevo/widgets/discovery_section_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-@Tags(['unit', 'widgets'])
 void main() {
   group('DiscoverySectionCard Widget Tests', () {
     late DiscoverySection testSection;

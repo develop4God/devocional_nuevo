@@ -1,3 +1,6 @@
+@Tags(['unit', 'widgets'])
+library;
+
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/widgets/discovery_bottom_nav_bar.dart';
 import 'package:flutter/material.dart';
@@ -7,7 +10,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../helpers/test_helpers.dart';
 
-@Tags(['unit', 'widgets'])
 void main() {
   group('DiscoveryBottomNavBar Widget Tests', () {
     setUp(() {

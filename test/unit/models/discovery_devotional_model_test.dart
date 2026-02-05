@@ -1,9 +1,11 @@
+@Tags(['unit', 'models'])
+library;
+
 import 'package:devocional_nuevo/models/discovery_card_model.dart';
 import 'package:devocional_nuevo/models/discovery_devotional_model.dart';
 import 'package:devocional_nuevo/models/discovery_section_model.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-@Tags(['unit', 'models'])
 void main() {
   group('DiscoveryDevotional Model Tests', () {
     test('should create Discovery devotional with required fields', () {

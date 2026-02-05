@@ -1,3 +1,6 @@
+@Tags(['behavioral'])
+library;
+
 import 'package:devocional_nuevo/utils/theme_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -10,7 +13,6 @@ import 'package:flutter_test/flutter_test.dart';
 /// 3. No deprecated APIs are being used (validated through configuration)
 /// 4. Users experience consistent UI regardless of theme or page
 
-@Tags(['behavioral'])
 void main() {
   group('Edge-to-Edge User Behavior Tests', () {
     group('System UI Configuration', () {

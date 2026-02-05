@@ -1,3 +1,6 @@
+@Tags(['unit', 'widgets'])
+library;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:devocional_nuevo/widgets/devocionales/devocionales_content_widget.dart';
@@ -7,7 +10,6 @@ import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/localization_service.dart';
 
-@Tags(['unit', 'widgets'])
 class FakeDevocionalProvider extends ChangeNotifier
     implements DevocionalProvider {
   @override

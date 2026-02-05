@@ -1,3 +1,6 @@
+@Tags(['unit', 'providers'])
+library;
+
 // test/providers/favorites_provider_test.dart
 // High-value user behavior tests for favorites functionality
 
@@ -12,12 +15,11 @@ import 'package:http/testing.dart';
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../helpers/test_helpers.dart';
+import '../../helpers/test_helpers.dart';
 
 /// Real user behavior tests for favorites
 /// Focuses on common scenarios without implementation details
 
-@Tags(['unit', 'providers'])
 void main() {
   late DevocionalProvider provider;
 

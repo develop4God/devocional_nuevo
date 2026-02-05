@@ -1,3 +1,6 @@
+@Tags(['unit', 'blocs'])
+library;
+
 // test/widget/devocionales_page_bloc_test.dart
 // Widget tests for DevocionalesPage with Navigation BLoC integration
 
@@ -11,7 +14,6 @@ import 'package:devocional_nuevo/models/devocional_model.dart';
 
 // Mocks
 
-@Tags(['unit', 'blocs'])
 class MockDevocionalesNavigationBloc extends Mock
     implements DevocionalesNavigationBloc {}
 

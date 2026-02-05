@@ -1,10 +1,12 @@
+@Tags(['unit', 'utils'])
+library;
+
 // test/multi_year_devotionals_test.dart
 
 import 'package:devocional_nuevo/constants/devocional_years.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-@Tags(['unit', 'utils'])
 void main() {
   group('Multi-Year Devotionals Logic Tests', () {
     test('Devotionals from different years can be merged and sorted', () {

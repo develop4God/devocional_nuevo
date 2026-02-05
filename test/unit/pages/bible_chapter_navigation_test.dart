@@ -1,6 +1,8 @@
+@Tags(['unit', 'pages'])
+library;
+
 import 'package:flutter_test/flutter_test.dart';
 
-@Tags(['unit', 'pages'])
 void main() {
   group('Bible Chapter Navigation Tests', () {
     test('Verse navigation works consecutively (20+ times)', () {

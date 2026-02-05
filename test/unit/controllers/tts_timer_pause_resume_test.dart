@@ -1,3 +1,6 @@
+@Tags(['unit', 'controllers'])
+library;
+
 import 'package:devocional_nuevo/controllers/tts_audio_controller.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:fake_async/fake_async.dart';
@@ -6,11 +9,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../helpers/tts_controller_test_helpers.dart';
+import '../../helpers/tts_controller_test_helpers.dart';
 
 // Test-only subclass that mixes in the test hooks so tests can call protected APIs
 
-@Tags(['unit', 'controllers'])
 class TestableTtsAudioController extends TtsAudioController
     with TtsControllerTestHooks {
   TestableTtsAudioController({required super.flutterTts});

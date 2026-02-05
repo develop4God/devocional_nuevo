@@ -1,3 +1,6 @@
+@Tags(['unit', 'services'])
+library;
+
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 import 'package:flutter/widgets.dart';
@@ -7,7 +10,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// Critical unit tests for VoiceSettingsService
 /// Focuses on voice assignment logic, save/load flows, and edge cases
 
-@Tags(['unit', 'services'])
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
 

@@ -1,3 +1,6 @@
+@Tags(['unit', 'pages'])
+library;
+
 import 'dart:convert';
 
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
@@ -7,7 +10,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-@Tags(['unit', 'pages'])
 void main() {
   setUpAll(() {
     TestWidgetsFlutterBinding.ensureInitialized();

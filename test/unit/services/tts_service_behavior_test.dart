@@ -1,3 +1,6 @@
+@Tags(['unit', 'services'])
+library;
+
 // ignore_for_file: dangling_library_doc_comments
 /// Comprehensive TTS Service Behavior Tests
 ///
@@ -12,7 +15,6 @@
 /// - Language changes → TTS adapts voice and pronunciation
 /// - Multiple rapid commands → TTS handles gracefully without crashes
 /// - Service lifecycle → Proper initialization and disposal
-library;
 
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
@@ -22,7 +24,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-@Tags(['unit', 'services'])
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 

@@ -1,10 +1,12 @@
+@Tags(['unit', 'services'])
+library;
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:devocional_nuevo/services/localization_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:ui';
 
-@Tags(['unit', 'services'])
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 

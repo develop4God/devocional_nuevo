@@ -1,6 +1,8 @@
+@Tags(['unit', 'pages'])
+library;
+
 import 'package:flutter_test/flutter_test.dart';
 
-@Tags(['unit', 'pages'])
 void main() {
   group('Bible Verse Scroll Precision Tests', () {
     test('should calculate accurate scroll position based on text length', () {

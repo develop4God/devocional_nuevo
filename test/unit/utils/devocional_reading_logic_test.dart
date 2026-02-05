@@ -1,12 +1,14 @@
+@Tags(['unit', 'utils'])
+library;
+
 // test/devocional_reading_logic_test.dart
 
 import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'helpers/test_helpers.dart';
+import '../../helpers/test_helpers.dart';
 
-@Tags(['unit', 'utils'])
 void main() {
   group('Devotional Reading Logic Tests', () {
     setUp(() {

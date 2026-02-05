@@ -1,3 +1,6 @@
+@Tags(['unit', 'services'])
+library;
+
 import 'package:devocional_nuevo/services/remote_config_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
@@ -9,7 +12,6 @@ import 'package:mockito/mockito.dart';
 @GenerateMocks([FirebaseRemoteConfig])
 import 'remote_config_service_test.mocks.dart';
 
-@Tags(['unit', 'services'])
 void main() {
   group('RemoteConfigService', () {
     late ServiceLocator locator;

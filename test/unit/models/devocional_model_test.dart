@@ -1,9 +1,11 @@
+@Tags(['unit', 'models'])
+library;
+
 // test/unit/models/devocional_model_simple_test.dart
 
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-@Tags(['unit', 'models'])
 void main() {
   group('DevocionalModel Simple Tests', () {
     test('should create devotional model with required fields', () {

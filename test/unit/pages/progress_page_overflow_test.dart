@@ -1,10 +1,12 @@
+@Tags(['unit', 'pages'])
+library;
+
 // test/progress_page_overflow_test.dart
 // Tests for verifying responsive layout behavior without overflow errors
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-@Tags(['unit', 'pages'])
 void main() {
   group('Progress Page Responsive Layout Tests - Real User Behavior', () {
     setUp(() {

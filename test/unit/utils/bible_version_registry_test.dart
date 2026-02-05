@@ -1,7 +1,9 @@
+@Tags(['unit', 'utils'])
+library;
+
 import 'package:bible_reader_core/src/bible_version_registry.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-@Tags(['unit', 'utils'])
 void main() {
   group('BibleVersionRegistry Tests', () {
     test('should get supported languages', () {

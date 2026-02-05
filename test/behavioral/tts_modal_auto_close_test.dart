@@ -1,3 +1,6 @@
+@Tags(['behavioral'])
+library;
+
 // test/behavioral/tts_modal_auto_close_test.dart
 // Tests for real user behavior: TTS modal auto-close on completion
 
@@ -8,7 +11,6 @@ import 'package:flutter_tts/flutter_tts.dart';
 import '../helpers/tts_controller_test_helpers.dart';
 import '../helpers/tts_test_setup.dart';
 
-@Tags(['behavioral'])
 void main() {
   // Initialize Flutter bindings for tests that use platform channels
   TestWidgetsFlutterBinding.ensureInitialized();

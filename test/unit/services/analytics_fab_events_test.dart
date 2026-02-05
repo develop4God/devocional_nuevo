@@ -1,3 +1,6 @@
+@Tags(['unit', 'services'])
+library;
+
 import 'package:devocional_nuevo/services/analytics_service.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -6,7 +9,6 @@ import 'package:mockito/mockito.dart';
 
 import 'analytics_service_test.mocks.dart';
 
-@Tags(['unit', 'services'])
 @GenerateMocks([FirebaseAnalytics])
 void main() {
   group('AnalyticsService - FAB and Discovery Events', () {

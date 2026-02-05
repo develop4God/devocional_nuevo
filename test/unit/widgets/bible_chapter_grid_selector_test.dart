@@ -1,3 +1,6 @@
+@Tags(['unit', 'widgets'])
+library;
+
 // test/unit/widgets/bible_chapter_grid_selector_test.dart
 import 'package:devocional_nuevo/widgets/bible_chapter_grid_selector.dart';
 import 'package:flutter/material.dart';
@@ -6,7 +9,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../helpers/test_helpers.dart';
 
-@Tags(['unit', 'widgets'])
 void main() {
   group('Bible Chapter Grid Selector Tests', () {
     setUp(() {

@@ -1,3 +1,6 @@
+@Tags(['unit', 'controllers'])
+library;
+
 import 'package:devocional_nuevo/controllers/tts_audio_controller.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
@@ -7,9 +10,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../helpers/test_helpers.dart';
+import '../../helpers/test_helpers.dart';
 
-@Tags(['unit', 'controllers'])
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 

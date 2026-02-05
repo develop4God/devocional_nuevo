@@ -1,3 +1,6 @@
+@Tags(['unit', 'widgets'])
+library;
+
 import 'package:devocional_nuevo/blocs/thanksgiving_bloc.dart';
 import 'package:devocional_nuevo/models/thanksgiving_model.dart';
 import 'package:devocional_nuevo/widgets/add_thanksgiving_modal.dart';
@@ -9,7 +12,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../helpers/test_helpers.dart';
 
-@Tags(['unit', 'widgets'])
 class FakePathProviderPlatform extends PathProviderPlatform {
   @override
   Future<String> getApplicationDocumentsPath() async {

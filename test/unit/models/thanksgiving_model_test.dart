@@ -1,7 +1,9 @@
+@Tags(['unit', 'models'])
+library;
+
 import 'package:devocional_nuevo/models/thanksgiving_model.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-@Tags(['unit', 'models'])
 void main() {
   group('Thanksgiving Model Tests', () {
     test('should create thanksgiving with required fields', () {

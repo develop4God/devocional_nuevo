@@ -1,3 +1,6 @@
+@Tags(['unit', 'services'])
+library;
+
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 import 'package:devocional_nuevo/services/tts_service.dart';
@@ -6,9 +9,8 @@ import 'package:flutter_tts/flutter_tts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/services.dart';
 
-import '../helpers/test_helpers.dart';
+import '../../helpers/test_helpers.dart';
 
-@Tags(['unit', 'services'])
 class MockFlutterTts extends FlutterTts {
   bool speakCalled = false;
   String? lastText;

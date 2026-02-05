@@ -1,3 +1,6 @@
+@Tags(['integration'])
+library;
+
 // test/integration/discovery_language_isolation_test.dart
 
 import 'package:devocional_nuevo/services/discovery_favorites_service.dart';
@@ -5,7 +8,6 @@ import 'package:devocional_nuevo/services/discovery_progress_tracker.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-@Tags(['integration'])
 void main() {
   group('Discovery Language Isolation Integration Tests', () {
     late DiscoveryFavoritesService favoritesService;

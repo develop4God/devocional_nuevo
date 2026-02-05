@@ -1,3 +1,6 @@
+@Tags(['unit', 'widgets'])
+library;
+
 import 'dart:async';
 import 'dart:developer' as developer;
 
@@ -10,7 +13,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// A minimal test widget that demonstrates the mounted check pattern
 /// used in lib/main.dart's _initializeApp() method
 
-@Tags(['unit', 'widgets'])
 class TestMountedCheckWidget extends StatefulWidget {
   final Completer<String> resultCompleter;
 
