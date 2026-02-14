@@ -190,7 +190,7 @@ void main() {
       await tester.pump(const Duration(seconds: 4));
     });
 
-    testWidgets('should display 99+ for counts over 99', (
+    testWidgets('should display actual count for counts over 99', (
       WidgetTester tester,
     ) async {
       // Create 100 active prayers
@@ -212,8 +212,96 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Verify 99+ is displayed instead of 100
-      expect(find.text('99+'), findsOneWidget);
+      // Verify actual count is displayed instead of 99+
+      expect(find.text('100'), findsOneWidget);
+      expect(find.text('99+'), findsNothing);
+
+      // Wait for AnimatedFabWithText timer to complete
+      await tester.pump(const Duration(seconds: 4));
+    });
+
+    testWidgets('should display exact count for 150 prayers', (
+      WidgetTester tester,
+    ) async {
+      // Create 150 active prayers - realistic scenario for active user
+      final prayers = List.generate(
+        150,
+        (i) => Prayer(
+          id: 'prayer_$i',
+          text: 'Test prayer $i',
+          createdDate: DateTime.now(),
+          status: PrayerStatus.active,
+        ),
+      );
+
+      await tester.pumpWidget(
+        createWidgetUnderTest(
+          prayerState: PrayerLoaded(prayers: prayers),
+          thanksgivingState: ThanksgivingLoaded(thanksgivings: []),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Verify exact count is displayed
+      expect(find.text('150'), findsOneWidget);
+
+      // Wait for AnimatedFabWithText timer to complete
+      await tester.pump(const Duration(seconds: 4));
+    });
+
+    testWidgets('should display exact count for 250 thanksgivings', (
+      WidgetTester tester,
+    ) async {
+      // Create 250 thanksgivings - power user scenario
+      final thanksgivings = List.generate(
+        250,
+        (i) => Thanksgiving(
+          id: 'thanksgiving_$i',
+          text: 'Test thanksgiving $i',
+          createdDate: DateTime.now(),
+        ),
+      );
+
+      await tester.pumpWidget(
+        createWidgetUnderTest(
+          prayerState: PrayerLoaded(prayers: []),
+          thanksgivingState: ThanksgivingLoaded(thanksgivings: thanksgivings),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Verify exact count is displayed
+      expect(find.text('250'), findsOneWidget);
+
+      // Wait for AnimatedFabWithText timer to complete
+      await tester.pump(const Duration(seconds: 4));
+    });
+
+    testWidgets('should display exact count for large numbers (500+)', (
+      WidgetTester tester,
+    ) async {
+      // Create 500 answered prayers - long-term user scenario
+      final prayers = List.generate(
+        500,
+        (i) => Prayer(
+          id: 'prayer_$i',
+          text: 'Test prayer $i',
+          createdDate: DateTime.now(),
+          status: PrayerStatus.answered,
+          answeredDate: DateTime.now(),
+        ),
+      );
+
+      await tester.pumpWidget(
+        createWidgetUnderTest(
+          prayerState: PrayerLoaded(prayers: prayers),
+          thanksgivingState: ThanksgivingLoaded(thanksgivings: []),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Verify exact count is displayed for large numbers
+      expect(find.text('500'), findsOneWidget);
 
       // Wait for AnimatedFabWithText timer to complete
       await tester.pump(const Duration(seconds: 4));

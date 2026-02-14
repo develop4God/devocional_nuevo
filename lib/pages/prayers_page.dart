@@ -77,7 +77,7 @@ class _PrayersPageState extends State<PrayersPage>
       ),
       constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
       child: Text(
-        count > 99 ? '99+' : count.toString(),
+        count.toString(),
         style: const TextStyle(
           color: Colors.white,
           fontSize: 11,
