@@ -96,13 +96,18 @@ service.initDb
 ('assets/biblia/RVR1960_es.SQLite3
 '
 ,
-'
-RVR1960_es.SQLite3
+'RVR1960_es.SQLite3
 '
 );
 
 // Search for verses
-final results = await service.searchVerses('amor');
+final results = await service.
+searchVerses
+(
+'
+amor
+'
+);
 // Returns: List of up to 100 matching verses with book info
 ```
 
@@ -112,19 +117,29 @@ final results = await service.searchVerses('amor');
 |------------|------|--------------------|
 | Spanish    | es   | RVR1960, NVI       |
 | English    | en   | KJV, NIV           |
-| Portuguese | pt   | ARC                |
-| French     | fr   | LSG1910            |
+| Portuguese | pt   | ARC, NVI           |
+| French     | fr   | LSG1910, BDS       |
+| Japanese   | ja   | 新改訳2003, リビングバイブル  |
+| Chinese    | zh   | 和合本1919, 新译本       |
 
 ### Database Files
 
-All Bible databases are located in `assets/biblia/`:
+All Bible databases are located in `assets/biblia/` and compressed with gzip:
 
-- `RVR1960_es.SQLite3`
-- `NVI_es.SQLite3`
-- `KJV_en.SQLite3`
-- `NIV_en.SQLite3`
-- `ARC_pt.SQLite3`
-- `LSG1910_fr.SQLite3`
+- `RVR1960_es.SQLite3.gz` (Spanish)
+- `NVI_es.SQLite3.gz` (Spanish)
+- `KJV_en.SQLite3.gz` (English)
+- `NIV_en.SQLite3.gz` (English)
+- `ARC_pt.SQLite3.gz` (Portuguese)
+- `NVI_pt.SQLite3.gz` (Portuguese)
+- `LSG1910_fr.SQLite3.gz` (French - Louis Segond)
+- `BDS.SQLite3.gz` (French - Bible du Semeur)
+- `SK2003_ja.SQLite3.gz` (Japanese)
+- `JCB_ja.SQLite3.gz` (Japanese)
+- `CUV1919_zh.SQLite3.gz` (Chinese)
+- `CNVS_zh.SQLite3.gz` (Chinese)
+
+**Note**: All databases are compressed with gzip to reduce app size by ~65%.
 
 ### Integration Example
 

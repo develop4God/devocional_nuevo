@@ -31,6 +31,7 @@ class BibleVersionRegistry {
     ],
     'fr': [
       {'name': 'LSG1910', 'dbFile': 'LSG1910_fr.SQLite3'},
+      {'name': 'BDS', 'dbFile': 'BDS_fr.SQLite3'},
     ],
     'ja': [
       {'name': '新改訳2003', 'dbFile': 'SK2003_ja.SQLite3'},

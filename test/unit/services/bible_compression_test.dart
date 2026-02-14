@@ -152,7 +152,7 @@ void main() {
     // List of all compressed Bible versions
     const compressedBibleVersions = [
       'ARC_pt.SQLite3.gz',
-      'BDS.SQLite3.gz', // Bible du Semeur (French)
+      'BDS.SQLite3_fr.gz', // Bible du Semeur (French)
       'CNVS_zh.SQLite3.gz',
       'CUV1919_zh.SQLite3.gz',
       'JCB_ja.SQLite3.gz',
@@ -224,7 +224,7 @@ void main() {
     });
 
     test('BDS (Bible du Semeur) should be properly compressed', () async {
-      const assetPath = 'assets/biblia/BDS.SQLite3.gz';
+      const assetPath = 'assets/biblia/BDS_fr.SQLite3.gz';
 
       final data = await rootBundle.load(assetPath);
       final compressedBytes = data.buffer.asUint8List();

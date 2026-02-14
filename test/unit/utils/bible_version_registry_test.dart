@@ -71,11 +71,12 @@ void main() {
       final versions = await BibleVersionRegistry.getAllVersions();
 
       expect(versions, isNotEmpty);
-      expect(versions.length, greaterThanOrEqualTo(6)); // At least 6 versions
+      expect(versions.length, greaterThanOrEqualTo(12)); // At least 12 versions
       expect(versions.any((v) => v.name == 'RVR1960'), isTrue);
       expect(versions.any((v) => v.name == 'KJV'), isTrue);
       expect(versions.any((v) => v.name == 'ARC'), isTrue);
       expect(versions.any((v) => v.name == 'LSG1910'), isTrue);
+      expect(versions.any((v) => v.name == 'BDS'), isTrue);
     });
 
     test('all versions should have proper metadata', () async {
