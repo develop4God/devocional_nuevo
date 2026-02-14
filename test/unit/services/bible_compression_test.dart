@@ -1,11 +1,13 @@
 @Tags(['unit', 'bible'])
 library;
 
-import 'dart:typed_data';
 import 'package:archive/archive.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   group('Bible Database Compression Tests', () {
     test('should compress and decompress data correctly', () {
       // Create sample data representing a database
@@ -143,6 +145,130 @@ void main() {
 
       // This validates our compression results are within expected range
       // for SQLite database files containing Bible text
+    });
+  });
+
+  group('Bible Asset Compression - All Versions', () {
+    // List of all compressed Bible versions
+    const compressedBibleVersions = [
+      'ARC_pt.SQLite3.gz',
+      'BDS.SQLite3.gz', // Bible du Semeur (French)
+      'CNVS_zh.SQLite3.gz',
+      'CUV1919_zh.SQLite3.gz',
+      'JCB_ja.SQLite3.gz',
+      'KJV_en.SQLite3.gz',
+      'LSG1910_fr.SQLite3.gz',
+      'NIV_en.SQLite3.gz',
+      'NVI_es.SQLite3.gz',
+      'NVI_pt.SQLite3.gz',
+      'RVR1960_es.SQLite3.gz',
+      'SK2003_ja.SQLite3.gz',
+    ];
+
+    test('all Bible versions should exist as compressed .gz files', () async {
+      for (final fileName in compressedBibleVersions) {
+        final assetPath = 'assets/biblia/$fileName';
+
+        // Try to load the asset
+        bool assetExists = true;
+        try {
+          await rootBundle.load(assetPath);
+        } catch (e) {
+          assetExists = false;
+        }
+
+        expect(
+          assetExists,
+          isTrue,
+          reason: 'Bible asset $fileName should exist at $assetPath',
+        );
+      }
+    });
+
+    test('all compressed Bible assets should be valid gzip files', () async {
+      for (final fileName in compressedBibleVersions) {
+        final assetPath = 'assets/biblia/$fileName';
+
+        try {
+          // Load the compressed asset
+          final data = await rootBundle.load(assetPath);
+          final compressedBytes = data.buffer.asUint8List();
+
+          // Should be able to decompress without errors
+          final decompressed = GZipDecoder().decodeBytes(compressedBytes);
+
+          expect(
+            decompressed,
+            isNotEmpty,
+            reason: '$fileName should decompress to non-empty data',
+          );
+
+          // Decompressed data should be larger than compressed
+          expect(
+            decompressed.length,
+            greaterThan(compressedBytes.length),
+            reason: '$fileName decompressed should be larger than compressed',
+          );
+
+          // Check for SQLite header (first 16 bytes should be "SQLite format 3\0")
+          final header = String.fromCharCodes(decompressed.sublist(0, 15));
+          expect(
+            header,
+            equals('SQLite format 3'),
+            reason: '$fileName should decompress to valid SQLite database',
+          );
+        } catch (e) {
+          fail('Failed to process $fileName: $e');
+        }
+      }
+    });
+
+    test('BDS (Bible du Semeur) should be properly compressed', () async {
+      const assetPath = 'assets/biblia/BDS.SQLite3.gz';
+
+      final data = await rootBundle.load(assetPath);
+      final compressedBytes = data.buffer.asUint8List();
+      final decompressed = GZipDecoder().decodeBytes(compressedBytes);
+
+      // Verify it's a SQLite database
+      final header = String.fromCharCodes(decompressed.sublist(0, 15));
+      expect(header, equals('SQLite format 3'));
+
+      // Should achieve good compression ratio (less than 40% of original)
+      expect(
+        compressedBytes.length / decompressed.length,
+        lessThan(0.40),
+        reason: 'BDS should be compressed to less than 40% of original size',
+      );
+    });
+
+    test('all versions should have consistent compression ratios', () async {
+      final ratios = <String, double>{};
+
+      for (final fileName in compressedBibleVersions) {
+        final assetPath = 'assets/biblia/$fileName';
+
+        try {
+          final data = await rootBundle.load(assetPath);
+          final compressedBytes = data.buffer.asUint8List();
+          final decompressed = GZipDecoder().decodeBytes(compressedBytes);
+
+          final ratio = compressedBytes.length / decompressed.length;
+          ratios[fileName] = ratio;
+
+          // All Bible databases should compress to 25-45% of original size
+          expect(
+            ratio,
+            inInclusiveRange(0.25, 0.45),
+            reason: '$fileName compression ratio should be between 25-45%',
+          );
+        } catch (e) {
+          fail('Failed to check compression ratio for $fileName: $e');
+        }
+      }
+
+      // Verify ratios were calculated for all versions
+      expect(ratios.length, equals(compressedBibleVersions.length));
     });
   });
 }
