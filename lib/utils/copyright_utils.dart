@@ -28,6 +28,9 @@ class CopyrightUtils {
         'LSG1910': 'Le texte biblique Louis Segond 1910® Domaine Public.',
         'TOB':
             'Le texte biblique Traduction Oecuménique de la Bible® © Société Biblique Française et Éditions du Cerf.',
+        // BDS - Bible du Semeur (new)
+        'BDS':
+            'Le texte biblique Bible du Semeur® © Éditions Semeur. Tous droits réservés.',
         'default': 'Le texte biblique Louis Segond 1910® Domaine Public.',
       },
       'ja': {
@@ -61,6 +64,8 @@ class CopyrightUtils {
       'fr': {
         'LSG1910': 'Louis Segond 1910',
         'TOB': 'Traduction Oecuménique de la Bible',
+        // BDS display name
+        'BDS': 'Bible du Semeur',
       },
       'ja': {
         '新改訳2003': '新改訳2003聖書',
