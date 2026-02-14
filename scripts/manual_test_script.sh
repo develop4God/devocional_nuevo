@@ -94,7 +94,7 @@ if [ "$SKIP_BUILD" = false ] && [ "$FROM_INSTALL" = false ] && [ "$FROM_MIGRATIO
 
   # Step 2: Build new version
   echo "=== Step 2: Building NEW version (fix branch) ==="
-  git checkout fix/favorites-no-read
+  git checkout copilot/fix-prayers-badge-quantity
   flutter build apk --release
   echo "Current working directory: $(pwd)"
   echo "Listing APK output directory after build (new version):"
