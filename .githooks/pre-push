@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+# Pre-push git hook to run repository checks (format -> fix -> analyze)
+# This hook will run `scripts/continuous_analyze.sh --once` and abort the push
+# if the script fails.
+
+set -euo pipefail
+
+# Resolve repository root (works when hook is run from .git/hooks or .githooks)
+REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || true)"
+if [[ -z "$REPO_ROOT" ]]; then
+  REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+fi
+
+HOOK_SCRIPT="$REPO_ROOT/scripts/continuous_analyze.sh"
+
+if [[ ! -x "$HOOK_SCRIPT" ]]; then
+  echo "[pre-push] Hook script not found or not executable: $HOOK_SCRIPT"
+  echo "Make sure the repository has scripts/continuous_analyze.sh and it's executable."
+  exit 1
+fi
+
+echo "[pre-push] Running repository checks: $HOOK_SCRIPT --once"
+if "$HOOK_SCRIPT" --once; then
+  echo "[pre-push] Checks passed — continuing push."
+  exit 0
+else
+  echo "[pre-push] Checks failed. Aborting push. See output above for details." >&2
+  exit 1
+fi
