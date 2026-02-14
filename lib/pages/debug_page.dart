@@ -1,3 +1,5 @@
+// ignore_for_file: public_member_api_docs, prefer_const_constructors, prefer_const_literals_to_create_immutables, prefer_final_locals, use_build_context_synchronously, unnecessary_this, avoid_print
+
 import 'dart:convert';
 import 'dart:math';
 
@@ -244,7 +246,7 @@ class _DebugPageState extends State<DebugPage> {
       for (int i = 0; i < count; i++) {
         final text = '${samples[i % samples.length]} (fast #${i + 1})';
         // Use a safer unique id: timestamp + random suffix
-        final id = '${now.millisecondsSinceEpoch}_${rnd.nextInt(100000)}_${i}';
+        final id = '${now.millisecondsSinceEpoch}_${rnd.nextInt(100000)}_$i';
         final prayer = Prayer(
           id: id,
           text: text,
@@ -301,7 +303,7 @@ class _DebugPageState extends State<DebugPage> {
 
       for (int i = 0; i < count; i++) {
         final text = '${samples[i % samples.length]} (fast #${i + 1})';
-        final id = '${now.millisecondsSinceEpoch}_${rnd.nextInt(100000)}_${i}';
+        final id = '${now.millisecondsSinceEpoch}_${rnd.nextInt(100000)}_$i';
         final thanksgiving = Thanksgiving(
           id: id,
           text: text,
@@ -354,7 +356,7 @@ class _DebugPageState extends State<DebugPage> {
 
       for (int i = 0; i < count; i++) {
         final text = '${samples[i % samples.length]} (fast #${i + 1})';
-        final id = '${now.millisecondsSinceEpoch}_${rnd.nextInt(100000)}_${i}';
+        final id = '${now.millisecondsSinceEpoch}_${rnd.nextInt(100000)}_$i';
         final testimony = Testimony(
           id: id,
           text: text,
@@ -733,7 +735,7 @@ class _DebugPageState extends State<DebugPage> {
                                 : const Icon(Icons.volunteer_activism_outlined),
                             label: Text(_isAddingTestimonies
                                 ? 'Adding...'
-                                : 'Add Testimonies (${_bulkCount})'),
+                                : 'Add Testimonies ($_bulkCount)'),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.indigo,
                               foregroundColor: Colors.white,
@@ -744,7 +746,7 @@ class _DebugPageState extends State<DebugPage> {
                           ElevatedButton.icon(
                             onPressed: () => _fastAddManyPrayers(_bulkCount),
                             icon: const Icon(Icons.flash_on),
-                            label: Text('Fast Add Prayers (${_bulkCount})'),
+                            label: Text('Fast Add Prayers ($_bulkCount)'),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.green.shade700,
                               foregroundColor: Colors.white,
@@ -755,8 +757,7 @@ class _DebugPageState extends State<DebugPage> {
                             onPressed: () =>
                                 _fastAddManyThanksgivings(_bulkCount),
                             icon: const Icon(Icons.flash_on),
-                            label:
-                                Text('Fast Add Thanksgivings (${_bulkCount})'),
+                            label: Text('Fast Add Thanksgivings ($_bulkCount)'),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.teal.shade700,
                               foregroundColor: Colors.white,
@@ -767,7 +768,7 @@ class _DebugPageState extends State<DebugPage> {
                             onPressed: () =>
                                 _fastAddManyTestimonies(_bulkCount),
                             icon: const Icon(Icons.flash_on),
-                            label: Text('Fast Add Testimonies (${_bulkCount})'),
+                            label: Text('Fast Add Testimonies ($_bulkCount)'),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.indigo.shade700,
                               foregroundColor: Colors.white,
