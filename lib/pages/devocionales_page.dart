@@ -161,6 +161,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     _ttsAudioController.state.addListener(_handleTtsStateChange);
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       _audioController = Provider.of<AudioController>(context, listen: false);
       _tracking.initialize(context);
       _precacheLottieAnimations();
@@ -544,6 +545,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
 
   Future<void> _stopSpeaking() async {
     await _flutterTts.stop();
+    if (!mounted) return;
     setState(() {});
   }
 
@@ -564,6 +566,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
         await _audioController!.stop();
         if (!mounted) return;
         await Future.delayed(_PageConstants.audioStopDelay);
+        if (!mounted) return; // Check again after delay
       } else {
         await _stopSpeaking();
       }
@@ -633,11 +636,14 @@ class _DevocionalesPageState extends State<DevocionalesPage>
           'DevocionalesPage: Stopping AudioController before navigation',
         );
         await _audioController!.stop();
-        await Future.delayed(_PageConstants.audioStopDelay);
         if (!mounted) return;
+        await Future.delayed(_PageConstants.audioStopDelay);
+        if (!mounted) return; // Check again after delay
       } else {
         await _stopSpeaking();
       }
+
+      if (!mounted) return;
 
       // Get current state for analytics
       final currentState = _navigationBloc!.state;
@@ -696,6 +702,9 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       context,
       listen: false,
     );
+
+    // Guard: Don't show if user has opted out
+    if (!devocionalProvider.showInvitationDialog) return;
 
     bool doNotShowAgainChecked = !devocionalProvider.showInvitationDialog;
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
@@ -845,7 +854,8 @@ class _DevocionalesPageState extends State<DevocionalesPage>
         await BibleVersionRegistry.getVersionsForLanguage(appLanguage);
 
     debugPrint(
-      '🟩 [Bible] Versions for app language ($appLanguage): ${versions.map((v) => '${v.name} (${v.languageCode}) - downloaded: ${v.isDownloaded}').join(', ')}',
+      '🟩 [Bible] Versions for app language ($appLanguage): '
+      '${versions.map((v) => "${v.name} (${v.languageCode}) - downloaded: ${v.isDownloaded}").join(', ')}',
     );
 
     if (versions.isEmpty) {
@@ -1121,12 +1131,10 @@ class _DevocionalesPageState extends State<DevocionalesPage>
           bloc: _navigationBloc!,
           listener: (context, state) {
             debugPrint(
-              '[DEVOCIONALES_PAGE] 🔔 BlocListener triggered - state: ${state.runtimeType}',
-            );
+                '[DEVOCIONALES_PAGE] 🔔 BlocListener triggered - state: ${state.runtimeType}');
             if (state is NavigationReady) {
               debugPrint(
-                '[DEVOCIONALES_PAGE] ✅ NavigationReady - starting tracking for: ${state.currentDevocional.id}',
-              );
+                  '[DEVOCIONALES_PAGE] ✅ NavigationReady - starting tracking for: ${state.currentDevocional.id}');
               // Start tracking when navigation state changes
               _tracking.clearAutoCompletedExcept(state.currentDevocional.id);
               _tracking.startDevocionalTracking(
@@ -1135,8 +1143,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
               );
             } else {
               debugPrint(
-                '[DEVOCIONALES_PAGE] ⏭️ State is not NavigationReady, skipping tracking',
-              );
+                  '[DEVOCIONALES_PAGE] ⏭️ State is not NavigationReady, skipping tracking');
             }
           },
           child: BlocBuilder<DevocionalesNavigationBloc,
@@ -1282,6 +1289,14 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                       _getLocalizedDateFormat(
                                     context,
                                   ).format(DateTime.now()),
+                                  isFavorite: isFavorite,
+                                  onFavoriteToggle: () async {
+                                    final wasAdded = await devocionalProvider
+                                        .toggleFavorite(currentDevocional.id);
+                                    _showFavoritesFeedback(wasAdded);
+                                  },
+                                  onShare: () =>
+                                      _shareAsText(currentDevocional),
                                 ),
                               ),
                             ),
@@ -1341,7 +1356,6 @@ class _DevocionalesPageState extends State<DevocionalesPage>
   ) {
     return DevocionalesBottomBar(
       currentDevocional: currentDevocional,
-      isFavorite: isFavorite,
       canNavigateNext: canNavigateNext,
       canNavigatePrevious: canNavigatePrevious,
       ttsAudioController: _ttsAudioController,
@@ -1349,9 +1363,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       onNext: _goToNextDevocional,
       onShowInvitation: () => _showInvitation(context),
       onBible: _goToBible,
-      onShare: () => _shareAsText(currentDevocional),
       onPrayers: _goToPrayers,
-      onFavoriteToggled: _showFavoritesFeedback,
     );
   }
 
@@ -1493,9 +1505,13 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                               await _ttsAudioController.pause();
                             }
 
+                            // Check that the local builder context is still mounted
+                            // before using it after the `await` above.
+                            if (!context.mounted) return;
+                            final modalContext = context;
+
                             await showModalBottomSheet(
-                              // ignore: use_build_context_synchronously
-                              context: ctx,
+                              context: modalContext,
                               isScrollControlled: true,
                               shape: const RoundedRectangleBorder(
                                 borderRadius: BorderRadius.vertical(

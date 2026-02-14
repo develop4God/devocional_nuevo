@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:archive/archive.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
@@ -13,9 +14,15 @@ class BibleDbService {
     final dbPath = join(documentsDirectory.path, dbName);
 
     if (!File(dbPath).existsSync()) {
-      // Read the asset correctly using rootBundle
-      final data = await rootBundle.load(dbAssetPath);
-      final bytes = data.buffer.asUint8List();
+      // Load compressed asset (append .gz to path)
+      final compressedAssetPath = '$dbAssetPath.gz';
+      final data = await rootBundle.load(compressedAssetPath);
+      final compressedBytes = data.buffer.asUint8List();
+
+      // Decompress using GZip decoder
+      final bytes = GZipDecoder().decodeBytes(compressedBytes);
+
+      // Write decompressed database to local storage
       await File(dbPath).writeAsBytes(bytes, flush: true);
     }
 

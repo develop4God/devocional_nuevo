@@ -31,6 +31,8 @@ class BibleVersionRegistry {
     ],
     'fr': [
       {'name': 'LSG1910', 'dbFile': 'LSG1910_fr.SQLite3'},
+      // Use _fr suffix to identify French database asset
+      {'name': 'BDS', 'dbFile': 'BDS_fr.SQLite3'},
     ],
     'ja': [
       {'name': '新改訳2003', 'dbFile': 'SK2003_ja.SQLite3'},
@@ -38,7 +40,8 @@ class BibleVersionRegistry {
     ],
     'zh': [
       {'name': '和合本1919', 'dbFile': 'CUV1919_zh.SQLite3'},
-      {'name': '新译本', 'dbFile': 'CNV_zh.SQLite3'},
+      // Asset filename uses CNVS_zh.SQLite3.gz (note the extra 'S'), match the asset
+      {'name': '新译本', 'dbFile': 'CNVS_zh.SQLite3'},
     ], // Add Chinese
   };
 

@@ -3,8 +3,8 @@ import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/utils/copyright_utils.dart';
+import 'package:devocional_nuevo/widgets/devocionales/devocional_header_widget.dart';
 import 'package:flutter/material.dart';
-import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 
 /// Widget that displays the content of a devotional.
@@ -26,6 +26,9 @@ class DevocionalesContentWidget extends StatelessWidget {
   final Future<int> streakFuture;
   final String Function(BuildContext) getLocalizedDateFormat;
   final ScrollController? scrollController;
+  final bool isFavorite;
+  final VoidCallback onFavoriteToggle;
+  final VoidCallback onShare;
 
   const DevocionalesContentWidget({
     super.key,
@@ -37,6 +40,9 @@ class DevocionalesContentWidget extends StatelessWidget {
     required this.streakFuture,
     required this.getLocalizedDateFormat,
     this.scrollController,
+    required this.isFavorite,
+    required this.onFavoriteToggle,
+    required this.onShare,
   });
 
   @override
@@ -50,45 +56,14 @@ class DevocionalesContentWidget extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.only(bottom: 12.0),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Expanded(
-                  child: Center(
-                    child: Text(
-                      getLocalizedDateFormat(context),
-                      style: textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: colorScheme.primary,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                FutureBuilder<int>(
-                  future: streakFuture,
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const SizedBox(
-                        width: 40,
-                        height: 40,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      );
-                    }
-                    final streak = snapshot.data ?? currentStreak;
-                    if (streak <= 0) {
-                      return const SizedBox.shrink();
-                    }
-                    final isDark =
-                        Theme.of(context).brightness == Brightness.dark;
-                    return _buildStreakBadge(context, isDark, streak);
-                  },
-                ),
-              ],
-            ),
+          DevocionalHeaderWidget(
+            date: getLocalizedDateFormat(context),
+            currentStreak: currentStreak,
+            streakFuture: streakFuture,
+            isFavorite: isFavorite,
+            onFavoriteToggle: onFavoriteToggle,
+            onShare: onShare,
+            onStreakTap: onStreakBadgeTap,
           ),
           GestureDetector(
             onTap: onVerseCopy,
@@ -264,75 +239,6 @@ class DevocionalesContentWidget extends StatelessWidget {
               ],
             ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildStreakBadge(BuildContext context, bool isDark, int streak) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textColor = colorScheme.onSurface;
-    // Slight background for the whole badge using theme surfaceContainerHighest
-    final backgroundColor = colorScheme.surfaceContainerHighest.withValues(
-      alpha: 0.06,
-    );
-
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(20),
-        onTap: onStreakBadgeTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            color: backgroundColor,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: colorScheme.primary.withValues(alpha: 0.18),
-                blurRadius: 8,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Lottie with themed circular background
-              Padding(
-                padding: const EdgeInsets.only(bottom: 6),
-                child: Container(
-                  width: 28,
-                  height: 28,
-                  decoration: BoxDecoration(
-                    color: colorScheme.primary.withValues(alpha: 0.12),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Center(
-                    child: SizedBox(
-                      width: 40,
-                      height: 40,
-                      child: Lottie.asset(
-                        'assets/lottie/fire.json',
-                        repeat: true,
-                        animate: true,
-                        fit: BoxFit.contain,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                '${'progress.streak'.tr()} $streak',
-                style: TextStyle(
-                  color: textColor,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 14,
-                ),
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }
