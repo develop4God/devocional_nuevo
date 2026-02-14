@@ -152,7 +152,7 @@ void main() {
     // List of all compressed Bible versions
     const compressedBibleVersions = [
       'ARC_pt.SQLite3.gz',
-      'BDS.SQLite3_fr.gz', // Bible du Semeur (French)
+      'BDS_fr.SQLite3.gz', // Bible du Semeur (French) - use _fr suffix
       'CNVS_zh.SQLite3.gz',
       'CUV1919_zh.SQLite3.gz',
       'JCB_ja.SQLite3.gz',
