@@ -54,6 +54,7 @@ done
 if [ "$SKIP_BUILD" = false ] && [ "$FROM_INSTALL" = false ] && [ "$FROM_MIGRATION" = false ] && [ "$FROM_ANALYSIS" = false ]; then
   if [ -f old-version.apk ] && [ -f new-version.apk ]; then
     echo "Both old-version.apk and new-version.apk exist. Skip build step? (y/n)"
+    # shellcheck disable=SC2162
     read SKIP
     if [ "$SKIP" = "y" ]; then
       SKIP_BUILD=true
