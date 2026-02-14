@@ -1505,9 +1505,10 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                               await _ttsAudioController.pause();
                             }
 
-                            // Check mounted and capture context before showing modal
-                            if (!mounted) return;
-                            final modalContext = ctx;
+                            // Check that the local builder context is still mounted
+                            // before using it after the `await` above.
+                            if (!context.mounted) return;
+                            final modalContext = context;
 
                             await showModalBottomSheet(
                               context: modalContext,
