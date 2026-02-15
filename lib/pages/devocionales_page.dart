@@ -8,6 +8,7 @@ import 'package:devocional_nuevo/blocs/devocionales/devocionales_navigation_even
 import 'package:devocional_nuevo/blocs/devocionales/devocionales_navigation_state.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
+import 'package:devocional_nuevo/controllers/font_size_controller.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/main.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
@@ -21,6 +22,7 @@ import 'package:devocional_nuevo/services/devocionales_tracking.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/update_service.dart';
 import 'package:devocional_nuevo/utils/devotional_share_helper.dart';
+import 'package:devocional_nuevo/utils/localized_date_formatter.dart';
 import 'package:devocional_nuevo/widgets/add_entry_choice_modal.dart';
 import 'package:devocional_nuevo/widgets/add_prayer_modal.dart';
 import 'package:devocional_nuevo/widgets/add_testimony_modal.dart';
@@ -28,29 +30,26 @@ import 'package:devocional_nuevo/widgets/add_thanksgiving_modal.dart';
 import 'package:devocional_nuevo/widgets/devocionales/app_bar_constants.dart';
 import 'package:devocional_nuevo/widgets/devocionales/devocionales_content_widget.dart';
 import 'package:devocional_nuevo/widgets/devocionales/devocionales_page_drawer.dart';
+import 'package:devocional_nuevo/widgets/devocionales/salvation_prayer_dialog.dart';
+import 'package:devocional_nuevo/widgets/devocionales/tts_modal_manager.dart';
 import 'package:devocional_nuevo/widgets/floating_font_control_buttons.dart';
-import 'package:devocional_nuevo/widgets/tts_miniplayer_modal.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_tts/flutter_tts.dart';
-import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart'; // Re-agregado para animación post-splash
 import 'package:provider/provider.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../controllers/audio_controller.dart';
 import '../controllers/tts_audio_controller.dart';
 import '../services/analytics_service.dart';
 import '../services/spiritual_stats_service.dart';
-import '../services/tts/bible_text_formatter.dart';
 import '../widgets/animated_fab_with_text.dart';
 import '../widgets/devocionales/devocionales_bottom_bar.dart';
-import '../widgets/voice_selector_dialog.dart';
 
 /// Initialization state for the devotionals page
 /// Following Flutter state management best practices
@@ -79,18 +78,6 @@ class _PageConstants {
   /// Duration for scroll-to-top animation
   static const scrollToTopDuration = Duration(milliseconds: 300);
 
-  /// Minimum font size allowed
-  static const minFontSize = 12.0;
-
-  /// Maximum font size allowed
-  static const maxFontSize = 28.0;
-
-  /// Default font size
-  static const defaultFontSize = 16.0;
-
-  /// Font size adjustment step
-  static const fontSizeStep = 1.0;
-
   /// Lottie animation width
   static const lottieAnimationWidth = 200.0;
 
@@ -114,6 +101,8 @@ class _DevocionalesPageState extends State<DevocionalesPage>
   final DevocionalesTracking _tracking = DevocionalesTracking();
   final FlutterTts _flutterTts = FlutterTts();
   late final TtsAudioController _ttsAudioController;
+  late final TtsModalManager _ttsModalManager;
+  final FontSizeController _fontSizeController = FontSizeController();
   AudioController? _audioController;
   bool _routeSubscribed = false;
   int _currentStreak = 0;
@@ -133,14 +122,9 @@ class _DevocionalesPageState extends State<DevocionalesPage>
   late final DevocionalRepositoryImpl _devocionalRepository =
       DevocionalRepositoryImpl();
 
-  // Font control variables
-  bool _showFontControls = false;
-  double _fontSize = _PageConstants.defaultFontSize;
-
   static bool _postSplashAnimationShown =
       false; // Controla mostrar solo una vez
   bool _showPostSplashAnimation = false; // Estado local
-  bool _isTtsModalShowing = false; // Prevent multiple TTS modals
 
   // Lista de animaciones Lottie disponibles
   final List<String> _lottieAssets = [
@@ -157,8 +141,10 @@ class _DevocionalesPageState extends State<DevocionalesPage>
   void initState() {
     super.initState();
     _ttsAudioController = TtsAudioController(flutterTts: _flutterTts);
+    _ttsModalManager = TtsModalManager(ttsAudioController: _ttsAudioController);
     // Listener para cerrar miniplayer automáticamente cuando el TTS complete
     _ttsAudioController.state.addListener(_handleTtsStateChange);
+    _fontSizeController.addListener(_onFontSizeChanged);
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
@@ -166,7 +152,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       _tracking.initialize(context);
       _precacheLottieAnimations();
     });
-    _loadFontSize();
+    _fontSizeController.load();
 
     // Initialize BLoC asynchronously after devotionals load
     // This prevents 30-second spinner on app start
@@ -189,6 +175,10 @@ class _DevocionalesPageState extends State<DevocionalesPage>
         if (mounted) setState(() => _showPostSplashAnimation = false);
       });
     }
+  }
+
+  void _onFontSizeChanged() {
+    if (mounted) setState(() {});
   }
 
   Future<void> _initializeNavigationBloc() async {
@@ -389,41 +379,6 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     });
   }
 
-  Future<void> _loadFontSize() async {
-    final prefs = await SharedPreferences.getInstance();
-    if (!mounted) return;
-    setState(() {
-      _fontSize = prefs.getDouble('devocional_font_size') ??
-          _PageConstants.defaultFontSize;
-    });
-  }
-
-  void _toggleFontControls() {
-    setState(() {
-      _showFontControls = !_showFontControls;
-    });
-  }
-
-  Future<void> _increaseFontSize() async {
-    if (_fontSize < _PageConstants.maxFontSize) {
-      setState(() {
-        _fontSize += _PageConstants.fontSizeStep;
-      });
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setDouble('devocional_font_size', _fontSize);
-    }
-  }
-
-  Future<void> _decreaseFontSize() async {
-    if (_fontSize > _PageConstants.minFontSize) {
-      setState(() {
-        _fontSize -= _PageConstants.fontSizeStep;
-      });
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setDouble('devocional_font_size', _fontSize);
-    }
-  }
-
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -536,6 +491,9 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       _ttsAudioController.state.removeListener(_handleTtsStateChange);
     } catch (_) {}
     _ttsAudioController.dispose();
+    _ttsModalManager.dispose();
+    _fontSizeController.removeListener(_onFontSizeChanged);
+    _fontSizeController.dispose();
     _tracking.dispose();
     _scrollController.dispose();
     _navigationBloc?.close(); // Clean up BLoC if it was created
@@ -696,128 +654,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
   }
 
   void _showInvitation(BuildContext context) {
-    if (!mounted) return;
-
-    final devocionalProvider = Provider.of<DevocionalProvider>(
-      context,
-      listen: false,
-    );
-
-    // Guard: Don't show if user has opted out
-    if (!devocionalProvider.showInvitationDialog) return;
-
-    bool doNotShowAgainChecked = !devocionalProvider.showInvitationDialog;
-    final ColorScheme colorScheme = Theme.of(context).colorScheme;
-    final TextTheme textTheme = Theme.of(context).textTheme;
-
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (dialogContext) => StatefulBuilder(
-        builder: (context, setDialogState) => AlertDialog(
-          key: const Key('salvation_prayer_dialog'),
-          backgroundColor: colorScheme.surface,
-          title: Text(
-            "devotionals.salvation_prayer_title".tr(),
-            textAlign: TextAlign.center,
-            style: textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: colorScheme.onSurface,
-            ),
-          ),
-          content: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  "devotionals.salvation_prayer_intro".tr(),
-                  textAlign: TextAlign.justify,
-                  style: textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.onSurface,
-                  ),
-                ),
-                Text(
-                  "devotionals.salvation_prayer".tr(),
-                  textAlign: TextAlign.justify,
-                  style: textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: colorScheme.onSurface,
-                  ),
-                ),
-                Text(
-                  "devotionals.salvation_promise".tr(),
-                  textAlign: TextAlign.justify,
-                  style: textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.onSurface,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            Row(
-              children: [
-                Checkbox(
-                  value: doNotShowAgainChecked,
-                  onChanged: (val) {
-                    setDialogState(() {
-                      doNotShowAgainChecked = val ?? false;
-                    });
-                  },
-                  activeColor: colorScheme.primary,
-                ),
-                Expanded(
-                  child: Text(
-                    'prayer.already_prayed'.tr(),
-                    style: textTheme.bodyMedium?.copyWith(
-                      color: colorScheme.onSurface,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            Align(
-              alignment: Alignment.center,
-              child: TextButton(
-                key: const Key('salvation_prayer_continue_button'),
-                onPressed: () {
-                  devocionalProvider.setInvitationDialogVisibility(
-                    !doNotShowAgainChecked,
-                  );
-                  Navigator.of(dialogContext).pop();
-                },
-                child: Text(
-                  "devotionals.continue".tr(),
-                  style: TextStyle(color: colorScheme.primary),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  DateFormat _getLocalizedDateFormat(BuildContext context) {
-    final locale = Localizations.localeOf(context).languageCode;
-    switch (locale) {
-      case 'es':
-        return DateFormat("EEEE, d 'de' MMMM", 'es');
-      case 'en':
-        return DateFormat('EEEE, MMMM d', 'en');
-      case 'fr':
-        return DateFormat('EEEE d MMMM', 'fr');
-      case 'pt':
-        return DateFormat("EEEE, d 'de' MMMM", 'pt');
-      case 'ja':
-        return DateFormat('y年M月d日 EEEE', 'ja');
-      case 'zh':
-        // Chinese date format: e.g. 2025年12月29日 星期一
-        return DateFormat('y年M月d日 EEEE', 'zh');
-      default:
-        return DateFormat('EEEE, MMMM d', 'en');
-    }
+    SalvationPrayerDialog.show(context);
   }
 
   Future<void> _shareAsText(Devocional devocional) async {
@@ -942,49 +779,6 @@ class _DevocionalesPageState extends State<DevocionalesPage>
         backgroundColor: colorScheme.secondary,
       ),
     );
-  }
-
-  // Helper para construir el texto usado por el selector de voz
-  String _buildTtsTextForDevocional(Devocional devocional, String language) {
-    final verseLabel = 'devotionals.verse'.tr().replaceAll(':', '');
-    final reflectionLabel = 'devotionals.reflection'.tr().replaceAll(':', '');
-    final meditateLabel = 'devotionals.to_meditate'.tr().replaceAll(':', '');
-    final prayerLabel = 'devotionals.prayer'.tr().replaceAll(':', '');
-
-    final StringBuffer ttsBuffer = StringBuffer();
-    ttsBuffer.write('$verseLabel: ');
-    ttsBuffer.write(
-      BibleTextFormatter.normalizeTtsText(
-        devocional.versiculo,
-        language,
-        devocional.version,
-      ),
-    );
-    ttsBuffer.write('\n$reflectionLabel: ');
-    ttsBuffer.write(
-      BibleTextFormatter.normalizeTtsText(
-        devocional.reflexion,
-        language,
-        devocional.version,
-      ),
-    );
-    if (devocional.paraMeditar.isNotEmpty) {
-      ttsBuffer.write('\n$meditateLabel: ');
-      ttsBuffer.write(
-        devocional.paraMeditar.map((m) {
-          return '${BibleTextFormatter.normalizeTtsText(m.cita, language, devocional.version)}: ${m.texto}';
-        }).join('\n'),
-      );
-    }
-    ttsBuffer.write('\n$prayerLabel: ');
-    ttsBuffer.write(
-      BibleTextFormatter.normalizeTtsText(
-        devocional.oracion,
-        language,
-        devocional.version,
-      ),
-    );
-    return ttsBuffer.toString();
   }
 
   @override
@@ -1211,7 +1005,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                           color: Colors.white,
                         ),
                         tooltip: 'bible.adjust_font_size'.tr(),
-                        onPressed: _toggleFontControls,
+                        onPressed: _fontSizeController.toggleControls,
                       ),
                     ],
                   ),
@@ -1238,7 +1032,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                 ).scaffoldBackgroundColor,
                                 child: DevocionalesContentWidget(
                                   devocional: currentDevocional,
-                                  fontSize: _fontSize,
+                                  fontSize: _fontSizeController.fontSize,
                                   scrollController: _scrollController,
                                   onVerseCopy: () async {
                                     try {
@@ -1286,9 +1080,9 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                                   currentStreak: _currentStreak,
                                   streakFuture: _streakFuture,
                                   getLocalizedDateFormat: (context) =>
-                                      _getLocalizedDateFormat(
+                                      LocalizedDateFormatter.formatForContext(
                                     context,
-                                  ).format(DateTime.now()),
+                                  ),
                                   isFavorite: isFavorite,
                                   onFavoriteToggle: () async {
                                     final wasAdded = await devocionalProvider
@@ -1303,13 +1097,12 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                           ),
                         ],
                       ),
-                      if (_showFontControls)
+                      if (_fontSizeController.showControls)
                         FloatingFontControlButtons(
-                          currentFontSize: _fontSize,
-                          onIncrease: _increaseFontSize,
-                          onDecrease: _decreaseFontSize,
-                          onClose: () =>
-                              setState(() => _showFontControls = false),
+                          currentFontSize: _fontSizeController.fontSize,
+                          onIncrease: _fontSizeController.increase,
+                          onDecrease: _fontSizeController.decrease,
+                          onClose: _fontSizeController.hideControls,
                         ),
                       if (_showPostSplashAnimation)
                         Positioned(
@@ -1371,26 +1164,23 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     try {
       final s = _ttsAudioController.state.value;
 
-      // ✅ IMPROVED: Show modal immediately when LOADING starts (not waiting for playing)
-      // This provides instant feedback and shows spinner during TTS initialization (up to 7s)
+      // Show modal immediately when LOADING starts (instant feedback)
       if ((s == TtsPlayerState.loading || s == TtsPlayerState.playing) &&
           mounted &&
-          !_isTtsModalShowing) {
+          !_ttsModalManager.isShowing) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!mounted || _isTtsModalShowing) return;
+          if (!mounted || _ttsModalManager.isShowing) return;
           debugPrint(
             '🎵 [Modal] Opening modal on state: $s (immediate feedback)',
           );
-          _showTtsModal();
+          _ttsModalManager.showTtsModal(context, _getCurrentDevocional);
         });
       }
 
       // Close modal when audio completes or goes to idle
-      // This ensures cleanup and proper modal closure
       if (s == TtsPlayerState.completed || s == TtsPlayerState.idle) {
-        if (_isTtsModalShowing) {
-          _isTtsModalShowing = false;
-          // Close modal if it's still open
+        if (_ttsModalManager.isShowing) {
+          _ttsModalManager.dispose();
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (mounted && Navigator.canPop(context)) {
               debugPrint(
@@ -1406,147 +1196,15 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     }
   }
 
-  void _showTtsModal() {
-    if (!mounted || _isTtsModalShowing) return;
-
-    _isTtsModalShowing = true;
-
-    showModalBottomSheet(
-      context: context,
-      isDismissible: true,
-      enableDrag: true,
-      isScrollControlled: false,
-      backgroundColor: Colors.transparent,
-      builder: (BuildContext ctx) {
-        return ValueListenableBuilder<TtsPlayerState>(
-          valueListenable: _ttsAudioController.state,
-          builder: (context, state, _) {
-            if (state == TtsPlayerState.completed) {
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (Navigator.canPop(ctx)) {
-                  Navigator.of(ctx).pop();
-                }
-              });
-            }
-
-            return ValueListenableBuilder<Duration>(
-              valueListenable: _ttsAudioController.currentPosition,
-              builder: (context, currentPos, __) {
-                return ValueListenableBuilder<Duration>(
-                  valueListenable: _ttsAudioController.totalDuration,
-                  builder: (context, totalDur, ___) {
-                    return ValueListenableBuilder<double>(
-                      valueListenable: _ttsAudioController.playbackRate,
-                      builder: (context, rate, ____) {
-                        return TtsMiniplayerModal(
-                          positionListenable:
-                              _ttsAudioController.currentPosition,
-                          totalDurationListenable:
-                              _ttsAudioController.totalDuration,
-                          stateListenable: _ttsAudioController.state,
-                          playbackRateListenable:
-                              _ttsAudioController.playbackRate,
-                          playbackRates: _ttsAudioController.supportedRates,
-                          onStop: () {
-                            _ttsAudioController.stop();
-                            _isTtsModalShowing = false;
-                            if (Navigator.canPop(ctx)) {
-                              Navigator.of(ctx).pop();
-                            }
-                          },
-                          onSeek: (d) => _ttsAudioController.seek(d),
-                          onTogglePlay: () {
-                            if (state == TtsPlayerState.playing) {
-                              _ttsAudioController.pause();
-                            } else {
-                              try {
-                                getService<AnalyticsService>().logTtsPlay();
-                              } catch (e) {
-                                debugPrint(
-                                  '❌ Error logging TTS play analytics: $e',
-                                );
-                              }
-                              _ttsAudioController.play();
-                            }
-                          },
-                          onCycleRate: () async {
-                            if (state == TtsPlayerState.playing) {
-                              await _ttsAudioController.pause();
-                            }
-                            try {
-                              await _ttsAudioController.cyclePlaybackRate();
-                            } catch (e) {
-                              debugPrint(
-                                '[DevocionalesPage] cyclePlaybackRate failed: $e',
-                              );
-                            }
-                          },
-                          onVoiceSelector: () async {
-                            final languageCode = Localizations.localeOf(
-                              context,
-                            ).languageCode;
-
-                            // Get current devotional from BLoC state
-                            final currentState = _navigationBloc?.state;
-                            final currentDevocional =
-                                currentState is NavigationReady
-                                    ? currentState.currentDevocional
-                                    : Provider.of<DevocionalProvider>(
-                                        context,
-                                        listen: false,
-                                      ).devocionales.first;
-
-                            final sampleText = _buildTtsTextForDevocional(
-                              currentDevocional,
-                              languageCode,
-                            );
-
-                            if (state == TtsPlayerState.playing) {
-                              await _ttsAudioController.pause();
-                            }
-
-                            // Check that the local builder context is still mounted
-                            // before using it after the `await` above.
-                            if (!context.mounted) return;
-                            final modalContext = context;
-
-                            await showModalBottomSheet(
-                              context: modalContext,
-                              isScrollControlled: true,
-                              shape: const RoundedRectangleBorder(
-                                borderRadius: BorderRadius.vertical(
-                                  top: Radius.circular(28),
-                                ),
-                              ),
-                              builder: (voiceCtx) => FractionallySizedBox(
-                                heightFactor: 0.8,
-                                child: Padding(
-                                  padding: EdgeInsets.only(
-                                    bottom: MediaQuery.of(
-                                      voiceCtx,
-                                    ).viewInsets.bottom,
-                                  ),
-                                  child: VoiceSelectorDialog(
-                                    language: languageCode,
-                                    sampleText: sampleText,
-                                    onVoiceSelected: (name, locale) async {},
-                                  ),
-                                ),
-                              ),
-                            );
-                          },
-                        );
-                      },
-                    );
-                  },
-                );
-              },
-            );
-          },
-        );
-      },
-    ).whenComplete(() {
-      _isTtsModalShowing = false;
-    });
+  /// Get the current devotional from BLoC or provider fallback
+  Devocional? _getCurrentDevocional() {
+    final currentState = _navigationBloc?.state;
+    if (currentState is NavigationReady) {
+      return currentState.currentDevocional;
+    }
+    final provider = Provider.of<DevocionalProvider>(context, listen: false);
+    return provider.devocionales.isNotEmpty
+        ? provider.devocionales.first
+        : null;
   }
 }
