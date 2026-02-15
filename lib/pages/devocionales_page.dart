@@ -1180,7 +1180,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       // Close modal when audio completes or goes to idle
       if (s == TtsPlayerState.completed || s == TtsPlayerState.idle) {
         if (_ttsModalManager.isShowing) {
-          _ttsModalManager.dispose();
+          _ttsModalManager.resetModalState();
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (mounted && Navigator.canPop(context)) {
               debugPrint(

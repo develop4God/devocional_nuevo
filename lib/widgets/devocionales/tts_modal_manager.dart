@@ -94,7 +94,9 @@ class TtsModalManager {
           debugPrint(
             '🎵 [Modal] Opening modal on state: $s (immediate feedback)',
           );
-          showTtsModal(ctx, () => _getCurrentDevocional(ctx));
+          // Note: when used via addStateListener, the caller must provide
+          // getCurrentDevocional through showTtsModal directly.
+          showTtsModal(ctx, () => null);
         });
       }
 
@@ -117,10 +119,6 @@ class TtsModalManager {
       debugPrint('[TtsModalManager] Error en _handleTtsStateChange: $e');
     }
   }
-
-  /// Returns null - subclasses or callers should provide the actual devotional.
-  /// This is a placeholder for the state change listener.
-  Devocional? _getCurrentDevocional(BuildContext context) => null;
 
   /// Show the TTS mini-player modal.
   ///
@@ -262,6 +260,14 @@ class TtsModalManager {
     ).whenComplete(() {
       _isTtsModalShowing = false;
     });
+  }
+
+  /// Reset the modal showing state without disposing resources.
+  ///
+  /// Use this when the modal needs to be closed externally (e.g., on TTS
+  /// completion). Use [dispose] only during widget teardown.
+  void resetModalState() {
+    _isTtsModalShowing = false;
   }
 
   /// Clean up resources.
