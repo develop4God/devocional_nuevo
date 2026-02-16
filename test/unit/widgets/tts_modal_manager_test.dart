@@ -1,11 +1,12 @@
 import 'package:devocional_nuevo/models/devocional_model.dart';
-import 'package:devocional_nuevo/widgets/devocionales/tts_modal_manager.dart';
+import 'package:devocional_nuevo/services/tts/devocional_tts_text_builder.dart';
+import 'package:devocional_nuevo/widgets/devocionales/devocional_tts_miniplayer_presenter.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../helpers/test_helpers.dart';
 
 void main() {
-  group('TtsModalManager.buildTtsTextForDevocional', () {
+  group('DevocionalTtsTextBuilder.build', () {
     setUp(() {
       registerTestServices();
     });
@@ -22,10 +23,7 @@ void main() {
         date: DateTime(2025, 1, 1),
       );
 
-      final result = TtsModalManager.buildTtsTextForDevocional(
-        devocional,
-        'es',
-      );
+      final result = DevocionalTtsTextBuilder.build(devocional, 'es');
 
       // Should contain all parts of the devotional (note: BibleTextFormatter
       // normalizes verse references like "3:16" to "capítulo 3 versículo 16")
@@ -46,10 +44,7 @@ void main() {
         date: DateTime(2025, 1, 1),
       );
 
-      final result = TtsModalManager.buildTtsTextForDevocional(
-        devocional,
-        'en',
-      );
+      final result = DevocionalTtsTextBuilder.build(devocional, 'en');
 
       expect(result, contains('Test verse'));
       expect(result, contains('Test reflection'));
@@ -70,10 +65,7 @@ void main() {
         date: DateTime(2025, 1, 1),
       );
 
-      final result = TtsModalManager.buildTtsTextForDevocional(
-        devocional,
-        'en',
-      );
+      final result = DevocionalTtsTextBuilder.build(devocional, 'en');
 
       expect(result, contains('Meditation 1'));
       expect(result, contains('Meditation 2'));
@@ -90,21 +82,17 @@ void main() {
         date: DateTime(2025, 1, 1),
       );
 
-      final result = TtsModalManager.buildTtsTextForDevocional(
-        devocional,
-        'es',
-      );
+      final result = DevocionalTtsTextBuilder.build(devocional, 'es');
 
       expect(result, isNotEmpty);
     });
   });
 
-  group('TtsModalManager lifecycle', () {
+  group('DevocionalTtsMiniplayerPresenter lifecycle', () {
     test('isShowing defaults to false', () {
-      // We can't easily test the full modal flow without widget tests,
-      // but we can verify the initial state
-      // This serves as a smoke test for the constructor
-      expect(true, isTrue); // Manager instantiation tested implicitly
+      // Smoke test for constructor - modal state management
+      // Full widget tests require a scaffold context
+      expect(true, isTrue);
     });
   });
 }

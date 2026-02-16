@@ -2,135 +2,40 @@ import 'package:devocional_nuevo/controllers/tts_audio_controller.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/services/analytics_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
-import 'package:devocional_nuevo/services/tts/bible_text_formatter.dart';
+import 'package:devocional_nuevo/services/tts/devocional_tts_text_builder.dart';
 import 'package:devocional_nuevo/widgets/tts_miniplayer_modal.dart';
 import 'package:devocional_nuevo/widgets/voice_selector_dialog.dart';
 import 'package:flutter/material.dart';
 
-import '../../extensions/string_extensions.dart';
-
-/// Manages the TTS mini-player modal lifecycle.
+/// Presents and manages the TTS mini-player modal for devotionals.
 ///
-/// Encapsulates showing/hiding the TTS modal, preventing duplicates,
-/// and coordinating voice selector dialogs. Follows Single Responsibility
-/// Principle by handling only TTS modal presentation logic.
-class TtsModalManager {
+/// Encapsulates showing/hiding the [TtsMiniplayerModal], preventing
+/// duplicate modals, and coordinating the voice selector dialog.
+/// Follows Single Responsibility Principle: only manages modal presentation.
+///
+/// Works with [TtsAudioController] for playback state and
+/// [DevocionalTtsTextBuilder] for text formatting.
+class DevocionalTtsMiniplayerPresenter {
   final TtsAudioController ttsAudioController;
 
-  bool _isTtsModalShowing = false;
+  bool _isModalShowing = false;
 
-  /// Whether the TTS modal is currently showing
-  bool get isShowing => _isTtsModalShowing;
+  /// Whether the TTS mini-player modal is currently visible
+  bool get isShowing => _isModalShowing;
 
-  TtsModalManager({required this.ttsAudioController});
-
-  /// Listen to TTS state changes and show/close modal as needed.
-  ///
-  /// Call this from initState and pair with [removeStateListener] in dispose.
-  void addStateListener(BuildContext Function() getContext) {
-    ttsAudioController.state.addListener(() {
-      _handleTtsStateChange(getContext);
-    });
-  }
-
-  /// Build TTS text from a devotional for voice playback.
-  static String buildTtsTextForDevocional(
-    Devocional devocional,
-    String language,
-  ) {
-    final verseLabel = 'devotionals.verse'.tr().replaceAll(':', '');
-    final reflectionLabel = 'devotionals.reflection'.tr().replaceAll(':', '');
-    final meditateLabel = 'devotionals.to_meditate'.tr().replaceAll(':', '');
-    final prayerLabel = 'devotionals.prayer'.tr().replaceAll(':', '');
-
-    final StringBuffer ttsBuffer = StringBuffer();
-    ttsBuffer.write('$verseLabel: ');
-    ttsBuffer.write(
-      BibleTextFormatter.normalizeTtsText(
-        devocional.versiculo,
-        language,
-        devocional.version,
-      ),
-    );
-    ttsBuffer.write('\n$reflectionLabel: ');
-    ttsBuffer.write(
-      BibleTextFormatter.normalizeTtsText(
-        devocional.reflexion,
-        language,
-        devocional.version,
-      ),
-    );
-    if (devocional.paraMeditar.isNotEmpty) {
-      ttsBuffer.write('\n$meditateLabel: ');
-      ttsBuffer.write(
-        devocional.paraMeditar.map((m) {
-          return '${BibleTextFormatter.normalizeTtsText(m.cita, language, devocional.version)}: ${m.texto}';
-        }).join('\n'),
-      );
-    }
-    ttsBuffer.write('\n$prayerLabel: ');
-    ttsBuffer.write(
-      BibleTextFormatter.normalizeTtsText(
-        devocional.oracion,
-        language,
-        devocional.version,
-      ),
-    );
-    return ttsBuffer.toString();
-  }
-
-  void _handleTtsStateChange(BuildContext Function() getContext) {
-    try {
-      final s = ttsAudioController.state.value;
-      final context = getContext();
-      if (!context.mounted) return;
-
-      // Show modal immediately when LOADING starts (instant feedback)
-      if ((s == TtsPlayerState.loading || s == TtsPlayerState.playing) &&
-          !_isTtsModalShowing) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          final ctx = getContext();
-          if (!ctx.mounted || _isTtsModalShowing) return;
-          debugPrint(
-            '🎵 [Modal] Opening modal on state: $s (immediate feedback)',
-          );
-          // Note: when used via addStateListener, the caller must provide
-          // getCurrentDevocional through showTtsModal directly.
-          showTtsModal(ctx, () => null);
-        });
-      }
-
-      // Close modal when audio completes or goes to idle
-      if (s == TtsPlayerState.completed || s == TtsPlayerState.idle) {
-        if (_isTtsModalShowing) {
-          _isTtsModalShowing = false;
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            final ctx = getContext();
-            if (ctx.mounted && Navigator.canPop(ctx)) {
-              debugPrint(
-                '🏁 [Modal] Closing modal on state: $s (auto-cleanup)',
-              );
-              Navigator.of(ctx).pop();
-            }
-          });
-        }
-      }
-    } catch (e) {
-      debugPrint('[TtsModalManager] Error en _handleTtsStateChange: $e');
-    }
-  }
+  DevocionalTtsMiniplayerPresenter({required this.ttsAudioController});
 
   /// Show the TTS mini-player modal.
   ///
   /// [getCurrentDevocional] should return the currently displayed devotional
   /// for the voice selector dialog.
-  void showTtsModal(
+  void showMiniplayerModal(
     BuildContext context,
     Devocional? Function() getCurrentDevocional,
   ) {
-    if (!context.mounted || _isTtsModalShowing) return;
+    if (!context.mounted || _isModalShowing) return;
 
-    _isTtsModalShowing = true;
+    _isModalShowing = true;
 
     showModalBottomSheet(
       context: context,
@@ -170,7 +75,7 @@ class TtsModalManager {
                           playbackRates: ttsAudioController.supportedRates,
                           onStop: () {
                             ttsAudioController.stop();
-                            _isTtsModalShowing = false;
+                            _isModalShowing = false;
                             if (Navigator.canPop(ctx)) {
                               Navigator.of(ctx).pop();
                             }
@@ -198,7 +103,7 @@ class TtsModalManager {
                               await ttsAudioController.cyclePlaybackRate();
                             } catch (e) {
                               debugPrint(
-                                '[TtsModalManager] cyclePlaybackRate failed: $e',
+                                '[DevocionalTtsMiniplayerPresenter] cyclePlaybackRate failed: $e',
                               );
                             }
                           },
@@ -210,7 +115,7 @@ class TtsModalManager {
                             final currentDevocional = getCurrentDevocional();
                             if (currentDevocional == null) return;
 
-                            final sampleText = buildTtsTextForDevocional(
+                            final sampleText = DevocionalTtsTextBuilder.build(
                               currentDevocional,
                               languageCode,
                             );
@@ -258,7 +163,7 @@ class TtsModalManager {
         );
       },
     ).whenComplete(() {
-      _isTtsModalShowing = false;
+      _isModalShowing = false;
     });
   }
 
@@ -267,11 +172,11 @@ class TtsModalManager {
   /// Use this when the modal needs to be closed externally (e.g., on TTS
   /// completion). Use [dispose] only during widget teardown.
   void resetModalState() {
-    _isTtsModalShowing = false;
+    _isModalShowing = false;
   }
 
   /// Clean up resources.
   void dispose() {
-    _isTtsModalShowing = false;
+    _isModalShowing = false;
   }
 }

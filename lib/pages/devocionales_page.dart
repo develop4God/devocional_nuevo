@@ -31,7 +31,7 @@ import 'package:devocional_nuevo/widgets/devocionales/app_bar_constants.dart';
 import 'package:devocional_nuevo/widgets/devocionales/devocionales_content_widget.dart';
 import 'package:devocional_nuevo/widgets/devocionales/devocionales_page_drawer.dart';
 import 'package:devocional_nuevo/widgets/devocionales/salvation_prayer_dialog.dart';
-import 'package:devocional_nuevo/widgets/devocionales/tts_modal_manager.dart';
+import 'package:devocional_nuevo/widgets/devocionales/devocional_tts_miniplayer_presenter.dart';
 import 'package:devocional_nuevo/widgets/floating_font_control_buttons.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
@@ -101,7 +101,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
   final DevocionalesTracking _tracking = DevocionalesTracking();
   final FlutterTts _flutterTts = FlutterTts();
   late final TtsAudioController _ttsAudioController;
-  late final TtsModalManager _ttsModalManager;
+  late final DevocionalTtsMiniplayerPresenter _ttsMiniplayerPresenter;
   final FontSizeController _fontSizeController = FontSizeController();
   AudioController? _audioController;
   bool _routeSubscribed = false;
@@ -141,7 +141,8 @@ class _DevocionalesPageState extends State<DevocionalesPage>
   void initState() {
     super.initState();
     _ttsAudioController = TtsAudioController(flutterTts: _flutterTts);
-    _ttsModalManager = TtsModalManager(ttsAudioController: _ttsAudioController);
+    _ttsMiniplayerPresenter = DevocionalTtsMiniplayerPresenter(
+        ttsAudioController: _ttsAudioController);
     // Listener para cerrar miniplayer automáticamente cuando el TTS complete
     _ttsAudioController.state.addListener(_handleTtsStateChange);
     _fontSizeController.addListener(_onFontSizeChanged);
@@ -491,7 +492,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       _ttsAudioController.state.removeListener(_handleTtsStateChange);
     } catch (_) {}
     _ttsAudioController.dispose();
-    _ttsModalManager.dispose();
+    _ttsMiniplayerPresenter.dispose();
     _fontSizeController.removeListener(_onFontSizeChanged);
     _fontSizeController.dispose();
     _tracking.dispose();
@@ -1167,20 +1168,21 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       // Show modal immediately when LOADING starts (instant feedback)
       if ((s == TtsPlayerState.loading || s == TtsPlayerState.playing) &&
           mounted &&
-          !_ttsModalManager.isShowing) {
+          !_ttsMiniplayerPresenter.isShowing) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!mounted || _ttsModalManager.isShowing) return;
+          if (!mounted || _ttsMiniplayerPresenter.isShowing) return;
           debugPrint(
             '🎵 [Modal] Opening modal on state: $s (immediate feedback)',
           );
-          _ttsModalManager.showTtsModal(context, _getCurrentDevocional);
+          _ttsMiniplayerPresenter.showMiniplayerModal(
+              context, _getCurrentDevocional);
         });
       }
 
       // Close modal when audio completes or goes to idle
       if (s == TtsPlayerState.completed || s == TtsPlayerState.idle) {
-        if (_ttsModalManager.isShowing) {
-          _ttsModalManager.resetModalState();
+        if (_ttsMiniplayerPresenter.isShowing) {
+          _ttsMiniplayerPresenter.resetModalState();
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (mounted && Navigator.canPop(context)) {
               debugPrint(
