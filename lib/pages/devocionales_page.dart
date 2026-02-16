@@ -1,5 +1,4 @@
 import 'dart:developer' as developer;
-import 'dart:math';
 
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:bible_reader_core/bible_reader_core.dart';
@@ -9,6 +8,7 @@ import 'package:devocional_nuevo/blocs/devocionales/devocionales_navigation_stat
 import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/controllers/font_size_controller.dart';
+import 'package:devocional_nuevo/controllers/post_splash_animation_controller.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/helpers/devocional_navigation_helper.dart';
 import 'package:devocional_nuevo/main.dart';
@@ -68,18 +68,6 @@ enum _PageInitializationState {
   error,
 }
 
-/// Configuration constants for the devotionals page
-/// Avoiding magic numbers as per Flutter style guide
-class _PageConstants {
-  const _PageConstants._();
-
-  /// Duration for post-splash animation display
-  static const postSplashAnimationDuration = Duration(seconds: 7);
-
-  /// Lottie animation width
-  static const lottieAnimationWidth = 200.0;
-}
-
 class DevocionalesPage extends StatefulWidget {
   final String? initialDevocionalId;
 
@@ -98,6 +86,8 @@ class _DevocionalesPageState extends State<DevocionalesPage>
   late final TtsAudioController _ttsAudioController;
   late final DevocionalTtsMiniplayerPresenter _ttsMiniplayerPresenter;
   final FontSizeController _fontSizeController = FontSizeController();
+  final PostSplashAnimationController _splashAnimController =
+      PostSplashAnimationController();
   late final DevocionalNavigationHelper _navigationHelper;
   AudioController? _audioController;
   bool _routeSubscribed = false;
@@ -117,21 +107,6 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       NavigationRepositoryImpl();
   late final DevocionalRepositoryImpl _devocionalRepository =
       DevocionalRepositoryImpl();
-
-  static bool _postSplashAnimationShown =
-      false; // Controla mostrar solo una vez
-  bool _showPostSplashAnimation = false; // Estado local
-
-  // Lista de animaciones Lottie disponibles
-  final List<String> _lottieAssets = [
-    'assets/lottie/bird_love.json',
-    'assets/lottie/confetti.json',
-    'assets/lottie/happy_bird.json',
-    'assets/lottie/dog_walking.json',
-    'assets/lottie/book_animation.json',
-    'assets/lottie/plant.json',
-  ];
-  String? _selectedLottieAsset;
 
   @override
   void initState() {
@@ -153,7 +128,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
       if (!mounted) return;
       _audioController = Provider.of<AudioController>(context, listen: false);
       _tracking.initialize(context);
-      _precacheLottieAnimations();
+      _splashAnimController.precacheAnimations();
     });
     _fontSizeController.load();
 
@@ -169,15 +144,12 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       UpdateService.checkForUpdate();
     });
-    _pickRandomLottie();
     _streakFuture = _loadStreak();
-    if (!_postSplashAnimationShown) {
-      _showPostSplashAnimation = true;
-      _postSplashAnimationShown = true;
-      Future.delayed(_PageConstants.postSplashAnimationDuration, () {
-        if (mounted) setState(() => _showPostSplashAnimation = false);
-      });
-    }
+    _splashAnimController.initialize(
+      onDismiss: () {
+        if (mounted) setState(() {});
+      },
+    );
   }
 
   void _onFontSizeChanged() {
@@ -348,20 +320,6 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     return true;
   }
 
-  Future<void> _precacheLottieAnimations() async {
-    try {
-      // Precache the fire.json animation to ensure it loads on first app start
-      await Future.wait([
-        rootBundle.load('assets/lottie/fire.json'),
-        // Precache other frequently used animations
-        ..._lottieAssets.map((asset) => rootBundle.load(asset)),
-      ]);
-      debugPrint('✅ Lottie animations precached successfully');
-    } catch (e) {
-      debugPrint('⚠️ Error precaching Lottie animations: $e');
-    }
-  }
-
   Future<int> _loadStreak() async {
     final stats = await SpiritualStatsService().getStats();
     if (!mounted) return 0;
@@ -372,14 +330,6 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     });
     debugPrint('🔥 Streak loaded and updated: $streak');
     return streak;
-  }
-
-  void _pickRandomLottie() {
-    final random = Random();
-    setState(() {
-      _selectedLottieAsset =
-          _lottieAssets[random.nextInt(_lottieAssets.length)];
-    });
   }
 
   @override
@@ -497,6 +447,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     _ttsMiniplayerPresenter.dispose();
     _fontSizeController.removeListener(_onFontSizeChanged);
     _fontSizeController.dispose();
+    _splashAnimController.dispose();
     _tracking.dispose();
     _scrollController.dispose();
     _navigationBloc?.close(); // Clean up BLoC if it was created
@@ -980,16 +931,16 @@ class _DevocionalesPageState extends State<DevocionalesPage>
                           onDecrease: _fontSizeController.decrease,
                           onClose: _fontSizeController.hideControls,
                         ),
-                      if (_showPostSplashAnimation)
+                      if (_splashAnimController.isVisible)
                         Positioned(
                           top: MediaQuery.of(context).padding.top +
                               kToolbarHeight,
                           right: 0,
                           child: IgnorePointer(
                             child: Lottie.asset(
-                              _selectedLottieAsset ??
-                                  'assets/lottie/happy_bird.json',
-                              width: _PageConstants.lottieAnimationWidth,
+                              _splashAnimController.selectedAsset,
+                              width:
+                                  PostSplashAnimationController.animationWidth,
                               repeat: true,
                               fit: BoxFit.contain,
                             ),
