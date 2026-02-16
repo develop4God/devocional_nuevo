@@ -10,6 +10,7 @@ import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/controllers/font_size_controller.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
+import 'package:devocional_nuevo/helpers/devocional_navigation_helper.dart';
 import 'package:devocional_nuevo/main.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/pages/bible_reader_page.dart';
@@ -75,14 +76,8 @@ class _PageConstants {
   /// Duration for post-splash animation display
   static const postSplashAnimationDuration = Duration(seconds: 7);
 
-  /// Duration for scroll-to-top animation
-  static const scrollToTopDuration = Duration(milliseconds: 300);
-
   /// Lottie animation width
   static const lottieAnimationWidth = 200.0;
-
-  /// Delay before stopping audio on navigation
-  static const audioStopDelay = Duration(milliseconds: 100);
 }
 
 class DevocionalesPage extends StatefulWidget {
@@ -103,6 +98,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
   late final TtsAudioController _ttsAudioController;
   late final DevocionalTtsMiniplayerPresenter _ttsMiniplayerPresenter;
   final FontSizeController _fontSizeController = FontSizeController();
+  late final DevocionalNavigationHelper _navigationHelper;
   AudioController? _audioController;
   bool _routeSubscribed = false;
   int _currentStreak = 0;
@@ -143,6 +139,12 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     _ttsAudioController = TtsAudioController(flutterTts: _flutterTts);
     _ttsMiniplayerPresenter = DevocionalTtsMiniplayerPresenter(
         ttsAudioController: _ttsAudioController);
+    _navigationHelper = DevocionalNavigationHelper(
+      getBloc: () => _navigationBloc!,
+      getAudioController: () => _audioController,
+      flutterTts: _flutterTts,
+      scrollController: _scrollController,
+    );
     // Listener para cerrar miniplayer automáticamente cuando el TTS complete
     _ttsAudioController.state.addListener(_handleTtsStateChange);
     _fontSizeController.addListener(_onFontSizeChanged);
@@ -502,156 +504,29 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     super.dispose();
   }
 
-  Future<void> _stopSpeaking() async {
-    await _flutterTts.stop();
-    if (!mounted) return;
-    setState(() {});
-  }
-
   void _goToNextDevocional() async {
-    try {
-      // Guard: Don't navigate if BLoC is not ready (prevents race condition)
-      if (_navigationBloc == null ||
-          _navigationBloc!.state is! NavigationReady) {
-        debugPrint('⚠️ Navigation blocked: BLoC not ready yet');
-        return;
-      }
-
-      // Stop audio/TTS before navigation
-      if (_audioController != null && _audioController!.isActive) {
-        debugPrint(
-          'DevocionalesPage: Stopping AudioController before navigation',
+    if (_navigationBloc == null) return;
+    await _navigationHelper.navigate(
+      direction: DevocionalNavigationDirection.next,
+      isMounted: () => mounted,
+      onPostNavigation: () {
+        final devocionalProvider = Provider.of<DevocionalProvider>(
+          context,
+          listen: false,
         );
-        await _audioController!.stop();
-        if (!mounted) return;
-        await Future.delayed(_PageConstants.audioStopDelay);
-        if (!mounted) return; // Check again after delay
-      } else {
-        await _stopSpeaking();
-      }
-
-      if (!mounted) return;
-
-      // Get current state for analytics
-      final currentState = _navigationBloc!.state;
-      final currentIndex =
-          currentState is NavigationReady ? currentState.currentIndex : 0;
-      final totalDevocionales =
-          currentState is NavigationReady ? currentState.totalDevocionales : 0;
-
-      // Dispatch navigation event
-      _navigationBloc!.add(const NavigateToNext());
-
-      // Scroll to top
-      _scrollToTop();
-
-      // Trigger haptic feedback
-      HapticFeedback.mediumImpact();
-
-      // Log analytics event
-      await getService<AnalyticsService>().logNavigationNext(
-        currentIndex: currentIndex,
-        totalDevocionales: totalDevocionales,
-        viaBloc: 'true',
-      );
-
-      // Check if we should show invitation dialog
-      if (!mounted) return;
-      final devocionalProvider = Provider.of<DevocionalProvider>(
-        context,
-        listen: false,
-      );
-      if (devocionalProvider.showInvitationDialog) {
-        _showInvitation(context);
-      }
-    } catch (e, stackTrace) {
-      // Log error to Crashlytics
-      debugPrint('❌ BLoC navigation error: $e');
-      await FirebaseCrashlytics.instance.recordError(
-        e,
-        stackTrace,
-        reason: 'NavigationBloc.NavigateToNext failed',
-        information: [
-          'Feature: Navigation BLoC',
-          'Action: Navigate to next devotional',
-        ],
-        fatal: false,
-      );
-    }
+        if (devocionalProvider.showInvitationDialog) {
+          _showInvitation(context);
+        }
+      },
+    );
   }
 
   void _goToPreviousDevocional() async {
-    try {
-      // Guard: Don't navigate if BLoC is not ready (prevents race condition)
-      if (_navigationBloc == null ||
-          _navigationBloc!.state is! NavigationReady) {
-        debugPrint('⚠️ Navigation blocked: BLoC not ready yet');
-        return;
-      }
-
-      // Stop audio/TTS before navigation
-      if (_audioController != null && _audioController!.isActive) {
-        debugPrint(
-          'DevocionalesPage: Stopping AudioController before navigation',
-        );
-        await _audioController!.stop();
-        if (!mounted) return;
-        await Future.delayed(_PageConstants.audioStopDelay);
-        if (!mounted) return; // Check again after delay
-      } else {
-        await _stopSpeaking();
-      }
-
-      if (!mounted) return;
-
-      // Get current state for analytics
-      final currentState = _navigationBloc!.state;
-      final currentIndex =
-          currentState is NavigationReady ? currentState.currentIndex : 0;
-      final totalDevocionales =
-          currentState is NavigationReady ? currentState.totalDevocionales : 0;
-
-      // Dispatch navigation event
-      _navigationBloc!.add(const NavigateToPrevious());
-
-      // Scroll to top
-      _scrollToTop();
-
-      // Trigger haptic feedback
-      HapticFeedback.mediumImpact();
-
-      // Log analytics event
-      await getService<AnalyticsService>().logNavigationPrevious(
-        currentIndex: currentIndex,
-        totalDevocionales: totalDevocionales,
-        viaBloc: 'true',
-      );
-    } catch (e, stackTrace) {
-      // Log error to Crashlytics
-      debugPrint('❌ BLoC navigation error: $e');
-      await FirebaseCrashlytics.instance.recordError(
-        e,
-        stackTrace,
-        reason: 'NavigationBloc.NavigateToPrevious failed',
-        information: [
-          'Feature: Navigation BLoC',
-          'Action: Navigate to previous devotional',
-        ],
-        fatal: false,
-      );
-    }
-  }
-
-  void _scrollToTop() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_scrollController.hasClients && mounted) {
-        _scrollController.animateTo(
-          0.0,
-          duration: _PageConstants.scrollToTopDuration,
-          curve: Curves.easeInOutCubic,
-        );
-      }
-    });
+    if (_navigationBloc == null) return;
+    await _navigationHelper.navigate(
+      direction: DevocionalNavigationDirection.previous,
+      isMounted: () => mounted,
+    );
   }
 
   void _showInvitation(BuildContext context) {
