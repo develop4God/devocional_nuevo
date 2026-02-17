@@ -45,8 +45,8 @@ class BibleVersionRegistry {
       {'name': '新译本', 'dbFile': 'CNVS_zh.SQLite3'},
     ], // Add Chinese
     'hi': [
-      {'name': 'पवित्र बाइबिल (ओ.वी.)', 'dbFile': 'ERV_hi.SQLite3'},
-      {'name': 'पवित्र बाइबिल', 'dbFile': 'BDS_hi.SQLite3'},
+      {'name': 'पवित्र बाइबिल (ओ.वी.)', 'dbFile': 'HIOV_hi.SQLite3'},
+      {'name': 'पवित्र बाइबिल', 'dbFile': 'ERV_hi.SQLite3'},
     ], // Add Hindi
   };
 
