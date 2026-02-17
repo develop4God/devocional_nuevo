@@ -12,6 +12,28 @@ void main() {
       expect(displayName, equals('Bible du Semeur'));
     });
 
+    test('returns Hindi ERV disclaimer and display name', () {
+      final text = CopyrightUtils.getCopyrightText('hi', 'पवित्र बाइबिल (ओ.वी.)');
+      expect(text, contains('आसान हिंदी संस्करण'));
+      expect(text, contains('ERV'));
+
+      final displayName = CopyrightUtils.getBibleVersionDisplayName(
+        'hi',
+        'पवित्र बाइबिल (ओ.वी.)',
+      );
+      expect(displayName, equals('आसान हिंदी संस्करण'));
+    });
+
+    test('returns Hindi BDS disclaimer and display name', () {
+      final text = CopyrightUtils.getCopyrightText('hi', 'पवित्र बाइबिल');
+      expect(text, contains('पवित्र बाइबिल'));
+      expect(text, contains('BDS'));
+
+      final displayName =
+          CopyrightUtils.getBibleVersionDisplayName('hi', 'पवित्र बाइबिल');
+      expect(displayName, equals('पवित्र बाइबिल'));
+    });
+
     test('falls back to default when version missing', () {
       final text = CopyrightUtils.getCopyrightText('fr', 'UNKNOWN');
       expect(text, anyOf(contains('Louis Segond'), contains('Bible')));
