@@ -1080,14 +1080,15 @@ class _DevocionalesPageState extends State<DevocionalesPage>
         });
       }
 
-      // Close modal when audio completes or goes to idle
-      if (s == TtsPlayerState.completed || s == TtsPlayerState.idle) {
+      // Close modal ONLY when audio completes (not on idle/pause/stop)
+      // CRITICAL: idle state happens during voice selection, must keep modal open
+      if (s == TtsPlayerState.completed) {
         if (_ttsMiniplayerPresenter.isShowing) {
           _ttsMiniplayerPresenter.resetModalState();
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (mounted && Navigator.canPop(context)) {
               debugPrint(
-                '🏁 [Modal] Closing modal on state: $s (auto-cleanup)',
+                '🏁 [Modal] Closing modal on COMPLETED state (audio finished)',
               );
               Navigator.of(context).pop();
             }
