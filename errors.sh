@@ -1,11 +1,13 @@
 #!/bin/bash
-# errors.sh - Format Dart code, analyze, and grep for errors/warnings
+# errors.sh - Run formatting, analysis, and grep for errors, warnings, and info
 
 set -e
 
 echo "Running dart format..."
 dart format .
 
-echo "Running flutter analyze --fatal-infos..."
-flutter analyze 2>&1 | grep -E "(\bE\b|error|warning)" || echo "No errors or warnings found."
+echo "Running flutter analyze with info level (including warnings and errors)..."
+flutter analyze --fatal-infos
 
+echo "Grep for errors, warnings, and info in analysis output..."
+flutter analyze --fatal-infos | grep -E 'error|warning|info' || true
