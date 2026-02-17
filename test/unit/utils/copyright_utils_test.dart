@@ -13,7 +13,8 @@ void main() {
     });
 
     test('returns Hindi HIOV disclaimer and display name', () {
-      final text = CopyrightUtils.getCopyrightText('hi', 'पवित्र बाइबिल (ओ.वी.)');
+      final text =
+          CopyrightUtils.getCopyrightText('hi', 'पवित्र बाइबिल (ओ.वी.)');
       expect(text, contains('हिन्दी ओ.वी. संस्करण'));
       expect(text, contains('HIOV'));
 

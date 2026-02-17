@@ -87,7 +87,8 @@ void main() {
       final versions = await BibleVersionRegistry.getAllVersions();
 
       expect(versions, isNotEmpty);
-      expect(versions.length, greaterThanOrEqualTo(14)); // At least 14 versions (including Hindi)
+      expect(versions.length,
+          greaterThanOrEqualTo(14)); // At least 14 versions (including Hindi)
       expect(versions.any((v) => v.name == 'RVR1960'), isTrue);
       expect(versions.any((v) => v.name == 'KJV'), isTrue);
       expect(versions.any((v) => v.name == 'ARC'), isTrue);
