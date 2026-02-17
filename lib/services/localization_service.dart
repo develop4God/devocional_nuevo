@@ -214,6 +214,8 @@ class LocalizationService {
         return 'ja-JP';
       case 'zh':
         return 'zh-CN';
+      case 'hi':
+        return 'hi-IN';
       default:
         return 'es-ES';
     }
@@ -234,6 +236,8 @@ class LocalizationService {
         return '日本語';
       case 'zh':
         return '中文';
+      case 'hi':
+        return 'हिन्दी';
       default:
         return languageCode;
     }
