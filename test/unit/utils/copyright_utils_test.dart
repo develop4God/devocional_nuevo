@@ -12,26 +12,26 @@ void main() {
       expect(displayName, equals('Bible du Semeur'));
     });
 
-    test('returns Hindi ERV disclaimer and display name', () {
+    test('returns Hindi HIOV disclaimer and display name', () {
       final text = CopyrightUtils.getCopyrightText('hi', 'पवित्र बाइबिल (ओ.वी.)');
-      expect(text, contains('आसान हिंदी संस्करण'));
-      expect(text, contains('ERV'));
+      expect(text, contains('हिन्दी ओ.वी. संस्करण'));
+      expect(text, contains('HIOV'));
 
       final displayName = CopyrightUtils.getBibleVersionDisplayName(
         'hi',
         'पवित्र बाइबिल (ओ.वी.)',
       );
-      expect(displayName, equals('आसान हिंदी संस्करण'));
+      expect(displayName, equals('हिन्दी ओ.वी. संस्करण'));
     });
 
-    test('returns Hindi BDS disclaimer and display name', () {
+    test('returns Hindi ERV disclaimer and display name', () {
       final text = CopyrightUtils.getCopyrightText('hi', 'पवित्र बाइबिल');
-      expect(text, contains('पवित्र बाइबिल'));
-      expect(text, contains('BDS'));
+      expect(text, contains('आसान हिंदी संस्करण'));
+      expect(text, contains('ERV'));
 
       final displayName =
           CopyrightUtils.getBibleVersionDisplayName('hi', 'पवित्र बाइबिल');
-      expect(displayName, equals('पवित्र बाइबिल'));
+      expect(displayName, equals('आसान हिंदी संस्करण'));
     });
 
     test('falls back to default when version missing', () {

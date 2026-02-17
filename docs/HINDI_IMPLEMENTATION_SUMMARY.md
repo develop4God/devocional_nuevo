@@ -37,13 +37,13 @@
 - ✅ `bible_reader_core/lib/src/bible_version_registry.dart`
   - Added Hindi language name: `'हिन्दी'`
   - Registered Bible versions with database mappings:
-    - ERV: `{'name': 'पवित्र बाइबिल (ओ.वी.)', 'dbFile': 'ERV_hi.SQLite3'}`
-    - BDS: `{'name': 'पवित्र बाइबिल', 'dbFile': 'BDS_hi.SQLite3'}`
+    - HIOV: `{'name': 'पवित्र बाइबिल (ओ.वी.)', 'dbFile': 'HIOV_hi.SQLite3'}` (Primary)
+    - ERV: `{'name': 'पवित्र बाइबिल', 'dbFile': 'ERV_hi.SQLite3'}` (Secondary)
 
 #### Copyright & Attribution
 - ✅ `lib/utils/copyright_utils.dart`
+  - Added HIOV copyright (in Hindi): "पवित्र बाइबिल हिन्दी ओ.वी. संस्करण (HIOV) © Bible Society of India. सभी अधिकार सुरक्षित।"
   - Added ERV copyright (in Hindi): "पवित्र बाइबिल आसान हिंदी संस्करण (ERV) © 2010 World Bible Translation Center. सभी अधिकार सुरक्षित।"
-  - Added BDS copyright (in Hindi): "पवित्र बाइबिल (BDS) © Bible Society of India. सभी अधिकार सुरक्षित।"
   - Added display names for Hindi versions
 
 #### Localization & TTS
@@ -83,7 +83,7 @@
 #### Updated Test Files
 - ✅ `test/unit/utils/copyright_utils_test.dart`
   - Added 2 Hindi copyright tests
-  - Tests ERV and BDS copyright text
+  - Tests HIOV and ERV copyright text
   - Tests display names
   - **All 5 tests passing** ✅
 
@@ -128,18 +128,18 @@
 
 ### MASTER_LANG and MASTER_VERSION
 ✅ **MASTER_LANG**: `"hi"` (Hindi)  
-✅ **MASTER_VERSION**: `"पवित्र बाइबिल (ओ.वी.)"` (Easy-to-Read Version)
+✅ **MASTER_VERSION**: `"पवित्र बाइबिल (ओ.वी.)"` (Hindi O.V. Version)
 
 ### Bible Versions
-1. **पवित्र बाइबिल (ओ.वी.)** (ERV - Easy-to-Read Version)
-   - Database file: `ERV_hi.SQLite3.gz`
+1. **पवित्र बाइबिल (ओ.वी.)** (HIOV - Hindi O.V. Version)
+   - Database file: `HIOV_hi.SQLite3.gz`
    - Set as default/master version
-   - Copyright: World Bible Translation Center
-
-2. **पवित्र बाइबिल** (BDS - Bible Society version)
-   - Database file: `BDS_hi.SQLite3.gz`
-   - Secondary version
    - Copyright: Bible Society of India
+
+2. **पवित्र बाइबिल** (ERV - Easy-to-Read Version)
+   - Database file: `ERV_hi.SQLite3.gz`
+   - Secondary version
+   - Copyright: World Bible Translation Center
 
 ### TTS Support
 ✅ Locale: `hi-IN` (Hindi - India)  
@@ -156,23 +156,16 @@
 
 ---
 
-## ⏳ What's Pending
+## ✅ What's Complete
 
-### 1. Bible Database Files (High Priority)
-**Action Required**: Download and add to repository
+### Bible Database Files (Already Added)
+The Bible database files have been added to the repository:
 
-Files needed:
-- `assets/biblia/ERV_hi.SQLite3.gz` (Master version)
-- `assets/biblia/BDS_hi.SQLite3.gz` (Secondary version)
+Files present:
+- `assets/biblia/HIOV_hi.SQLite3.gz` (Master version) ✅
+- `assets/biblia/ERV_hi.SQLite3.gz` (Secondary version) ✅
 
-**How to add**:
-1. Download `BDS.zip` and `ERV-hi.zip` from issue attachments
-2. Follow detailed instructions in `docs/ADDING_HINDI_BIBLE_FILES.md`
-3. Rename to match schema: `{VERSION}_hi.SQLite3`
-4. Compress to `.gz` format
-5. Add to `assets/biblia/` directory
-
-**Estimated time**: 30 minutes
+**Status**: Complete - files are in place and ready to use.
 
 ### 2. Hindi UI Translations (Medium Priority)
 **Action Required**: Translate `i18n/hi.json`

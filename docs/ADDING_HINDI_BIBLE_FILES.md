@@ -1,12 +1,18 @@
 # Adding Hindi Bible Database Files
 
-This guide explains how to add the Hindi Bible database files (BDS and ERV-hi) to the application.
+**Note**: The Hindi Bible files have already been added to the repository as of the latest update. This document is kept for reference purposes.
 
-## Overview
+## Current Status
 
-The issue provides two Bible database files:
-1. **BDS.zip** - पवित्र बाइबिल (Bible Society version)
-2. **ERV-hi.zip** - पवित्र बाइबिल (ओ.वी.) (Easy-to-Read Version in Hindi)
+The following files are already present in `assets/biblia/`:
+1. **HIOV_hi.SQLite3.gz** - पवित्र बाइबिल (ओ.वी.) (Hindi O.V. Version) - PRIMARY/DEFAULT
+2. **ERV_hi.SQLite3.gz** - पवित्र बाइबिल (Easy-to-Read Version) - SECONDARY
+
+## Overview (Historical)
+
+The original issue mentioned two Bible database files, but the correct versions are:
+1. **HIOV** - पवित्र बाइबिल (ओ.वी.) (Hindi O.V. Version) - Primary version
+2. **ERV-hi** - पवित्र बाइबिल (Easy-to-Read Version) - Secondary version
 
 These need to be:
 1. Downloaded from the GitHub issue attachments
@@ -121,8 +127,8 @@ The following configuration has already been added to the codebase:
 ### Bible Version Registry (`bible_reader_core/lib/src/bible_version_registry.dart`)
 ```dart
 'hi': [
-  {'name': 'पवित्र बाइबिल (ओ.वी.)', 'dbFile': 'ERV_hi.SQLite3'},
-  {'name': 'पवित्र बाइबिल', 'dbFile': 'BDS_hi.SQLite3'},
+  {'name': 'पवित्र बाइबिल (ओ.वी.)', 'dbFile': 'HIOV_hi.SQLite3'},
+  {'name': 'पवित्र बाइबिल', 'dbFile': 'ERV_hi.SQLite3'},
 ],
 ```
 
@@ -148,11 +154,11 @@ static const Map<String, String> defaultVersionByLanguage = {
 ```dart
 'hi': {
   'पवित्र बाइबिल (ओ.वी.)':
-      'पवित्र बाइबिल आसान हिंदी संस्करण (ERV) © 2010 World Bible Translation Center. सभी अधिकार सुरक्षित।',
+      'पवित्र बाइबिल हिन्दी ओ.वी. संस्करण (HIOV) © Bible Society of India. सभी अधिकार सुरक्षित।',
   'पवित्र बाइबिल':
-      'पवित्र बाइबिल (BDS) © Bible Society of India. सभी अधिकार सुरक्षित।',
-  'default':
       'पवित्र बाइबिल आसान हिंदी संस्करण (ERV) © 2010 World Bible Translation Center. सभी अधिकार सुरक्षित।',
+  'default':
+      'पवित्र बाइबिल हिन्दी ओ.वी. संस्करण (HIOV) © Bible Society of India. सभी अधिकार सुरक्षित।',
 },
 ```
 
