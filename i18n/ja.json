@@ -234,7 +234,7 @@
     "download_success": "デボーションが正常にダウンロードされました",
     "download_error": "ダウンロードエラー。接続を確認して再試行してください。",
     "offline_access_ready": "インターネットなしでコンテンツにアクセスできるようになりました",
-    "share_message": "もしあなたが人生に日々の平安のひと時を求めているなら、クリスチャンデボーションをお勧めします。\n\n霊的成長のための神の言葉で完全に無料です。こちらからダウンロードできます:\nhttps://play.google.com/store/apps/details?id=com.develop4god.devocional_nuevo",
+    "share_message": "📖 *クリスチャンデボーション*\n\nもしあなたが人生に日々の平安のひと時を求めているなら、このアプリをお勧めします。🙏\n\n霊的成長のための神の言葉で完全に無料です。✨\n\n⬇️ *こちらからダウンロードできます:*\nhttps://play.google.com/store/apps/details?id=com.develop4god.devocional_nuevo\n\n🔥 _100% 無料 | 広告なし | オフライン使用_",
     "switching_version": "聖書バージョンを切り替えています..."
   },
   "progress": {
@@ -418,6 +418,7 @@
     "reset_stats": "統計をリセット",
     "reset_confirmation": "すべての統計をリセットしてもよろしいですか？",
     "stats_reset": "統計がリセットされました",
+    "streak": "連続記録",
     "first_read": "初回読書",
     "first_favorite": "初回お気に入り",
     "dedicated_reader": "熱心な読者",
@@ -581,7 +582,7 @@
     "select_amount_and_badge": "金額とバッジを選択してください",
     "badge_selected": "選択済み",
     "select_badge": "選択",
-    "badge_gratitude_message": "✨ バッジは、あなたの寛大さと奉仕への支援に対する私たちの感謝の気持ちです。それぞれがあなたのコレクションのための霊的な美徳を表しています。",
+    "badge_gratitude_message": "✨ バッジ are our 感謝の印として、あなたの寛大さと奉仕への支援に対する私たちの気持ちです。それぞれがあなたのコレクションのための霊的な美徳を表しています。",
     "custom_amount_label": "カスタム金額"
   },
   "badges": {
