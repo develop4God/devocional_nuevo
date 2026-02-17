@@ -1,4 +1,10 @@
 {
+  "common": {
+    "home": "Home",
+    "bible": "Bible",
+    "prayers": "Prayers",
+    "settings": "Settings"
+  },
   "app": {
     "title": "Christian Devotionals",
     "loading": "Loading...",
@@ -47,6 +53,9 @@
     "continue": "Continue",
     "no_devotionals": "No devotionals available",
     "error_loading": "Error loading devotionals",
+    "error_no_content": "Unable to load devotional content. Please check your internet connection or try changing the language/version in settings.",
+    "content_not_available_in_language": "Content not available in selected language. Showing default language instead.",
+    "go_to_settings": "Go to Settings",
     "generic_error": "An error occurred while loading devotionals. Please try again.",
     "retry": "Retry",
     "share_devotional": "Share devotional",

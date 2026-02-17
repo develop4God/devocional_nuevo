@@ -556,7 +556,69 @@ class _DebugPageState extends State<DebugPage> {
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 16),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 32),
+
+                // Devotionals Branch Selector
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border:
+                        Border.all(color: Colors.blue.withValues(alpha: 0.3)),
+                  ),
+                  child: Column(
+                    children: [
+                      const Icon(Icons.menu_book, size: 48, color: Colors.blue),
+                      const SizedBox(height: 8),
+                      const Text(
+                        'Devotionals Branch',
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 16),
+                      if (_loadingBranches)
+                        const CircularProgressIndicator()
+                      else
+                        DropdownButton<String>(
+                          // CRITICAL: Prevent crash if debugBranchDevotionals not in fetched list
+                          value: _branches
+                                  .contains(Constants.debugBranchDevotionals)
+                              ? Constants.debugBranchDevotionals
+                              : _branches.first,
+                          isExpanded: true,
+                          items: _branches
+                              .map((branch) => DropdownMenuItem(
+                                  value: branch, child: Text(branch)))
+                              .toList(),
+                          onChanged: (newBranch) {
+                            setState(() =>
+                                Constants.debugBranchDevotionals = newBranch!);
+                            // Show confirmation
+                            if (mounted && context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                    content: Text(
+                                        'Devotionals branch cambiado a: $newBranch\nReload app to fetch from new branch')),
+                              );
+                            }
+                          },
+                        ),
+                      const SizedBox(height: 8),
+                      const Text(
+                        'Note: Reload app to fetch devotionals from selected branch',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontStyle: FontStyle.italic,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 32),
                 ElevatedButton(
                   onPressed: () => _forceCrash(context),
                   style: ElevatedButton.styleFrom(

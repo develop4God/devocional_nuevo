@@ -106,7 +106,7 @@ class DevocionalProvider with ChangeNotifier {
   String? get currentTrackedDevocionalId =>
       _readingTracker.currentTrackedDevocionalId;
 
-  // Supported languages - Updated to include Chinese
+  // Supported languages - Updated to include Chinese and Hindi
   static const List<String> _supportedLanguages = [
     'es',
     'en',
@@ -114,6 +114,7 @@ class DevocionalProvider with ChangeNotifier {
     'fr',
     'ja',
     'zh', // Add Chinese
+    'hi', // Add Hindi
   ];
   static const String _fallbackLanguage = 'es';
 
@@ -186,8 +187,22 @@ class DevocionalProvider with ChangeNotifier {
       String savedVersion = prefs.getString('selectedVersion') ?? '';
       String defaultVersion =
           Constants.defaultVersionByLanguage[_selectedLanguage] ?? 'RVR1960';
-      _selectedVersion =
-          savedVersion.isNotEmpty ? savedVersion : defaultVersion;
+
+      // CRITICAL FIX: Validate that saved version is valid for current language
+      // This prevents language/version mismatches (e.g., Spanish + Hindi version)
+      List<String> validVersions =
+          Constants.bibleVersionsByLanguage[_selectedLanguage] ?? ['RVR1960'];
+
+      if (savedVersion.isNotEmpty && validVersions.contains(savedVersion)) {
+        _selectedVersion = savedVersion;
+      } else {
+        // Invalid version for this language, reset to default
+        _selectedVersion = defaultVersion;
+        await prefs.setString('selectedVersion', defaultVersion);
+        debugPrint(
+          '⚠️ Version "$savedVersion" not valid for language "$_selectedLanguage", reset to "$defaultVersion"',
+        );
+      }
 
       await _loadFavorites();
       await _loadInvitationDialogPreference();
@@ -512,7 +527,51 @@ class DevocionalProvider with ChangeNotifier {
       }
 
       if (allDevocionales.isEmpty) {
-        throw Exception('No devotionals loaded from any year');
+        // CRITICAL FIX: If no devotionals found for selected language, try fallback language
+        if (_selectedLanguage != _fallbackLanguage) {
+          debugPrint(
+            '⚠️ No devotionals available for language "$_selectedLanguage", trying fallback to "$_fallbackLanguage"',
+          );
+
+          // Try loading from fallback language
+          for (final year in yearsToLoad) {
+            try {
+              final String url = Constants.getDevocionalesApiUrlMultilingual(
+                year,
+                _fallbackLanguage,
+                Constants.defaultVersionByLanguage[_fallbackLanguage] ??
+                    'RVR1960',
+              );
+              debugPrint('🔄 Fallback: Requesting URL: $url');
+              final response = await httpClient.get(Uri.parse(url));
+
+              if (response.statusCode == 200) {
+                final String responseBody = response.body;
+                final Map<String, dynamic> data = json.decode(responseBody);
+                final List<Devocional> yearDevocionales =
+                    await _extractDevocionalesFromData(data);
+                if (yearDevocionales.isNotEmpty) {
+                  allDevocionales.addAll(yearDevocionales);
+                  debugPrint(
+                      '✅ Loaded ${yearDevocionales.length} devotionals from fallback language for year $year');
+                }
+              }
+            } catch (e) {
+              debugPrint('⚠️ Error loading fallback for year $year: $e');
+            }
+          }
+
+          if (allDevocionales.isNotEmpty) {
+            _errorMessage =
+                'Content not available in selected language. Showing $_fallbackLanguage instead.';
+            debugPrint('✅ Using fallback language: $_fallbackLanguage');
+          }
+        }
+
+        // If still no devotionals after fallback, throw error
+        if (allDevocionales.isEmpty) {
+          throw Exception('No devotionals loaded from any year');
+        }
       }
 
       // Sort all devotionals by date

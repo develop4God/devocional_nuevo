@@ -345,12 +345,36 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
 
   bool get _isAnyDownloading => _isDownloading.values.any((v) => v == true);
 
+  String _getFlagEmoji(String languageCode) {
+    switch (languageCode) {
+      case 'es':
+        return '🇪🇸';
+      case 'en':
+        return '🇺🇸🇬🇧';
+      case 'pt':
+        return '🇧🇷🇵🇹';
+      case 'fr':
+        return '🇫🇷';
+      case 'ja':
+        return '🇯🇵';
+      case 'zh':
+        return '🇨🇳';
+      case 'hi':
+        return '🇮🇳';
+      default:
+        return '🌐';
+    }
+  }
+
   Widget _buildLanguageItem(String languageCode, String languageName) {
     final theme = Theme.of(context);
     final isDownloaded = _downloadStatus[languageCode] ?? false;
     final isCurrentLanguage = languageCode == _currentLanguage;
     final isDownloading = _isDownloading[languageCode] ?? false;
     final progress = _downloadProgress[languageCode] ?? 0.0;
+
+    final flagEmoji = _getFlagEmoji(languageCode);
+    final bool isMultiFlag = flagEmoji.length > 4;
 
     final bool disableTap = _isAnyDownloading ||
         (isDownloaded && isCurrentLanguage) ||
@@ -363,11 +387,14 @@ class _ApplicationLanguagePageState extends State<ApplicationLanguagePage> {
           backgroundColor: isCurrentLanguage
               ? theme.colorScheme.primary
               : theme.colorScheme.surfaceContainerHighest,
-          child: Icon(
-            Icons.language,
-            color: isCurrentLanguage
-                ? theme.colorScheme.onPrimary
-                : theme.colorScheme.onSurfaceVariant,
+          child: Text(
+            flagEmoji,
+            style: TextStyle(
+              fontSize: isMultiFlag ? 16 : 22,
+              color: isCurrentLanguage
+                  ? theme.colorScheme.onPrimary
+                  : theme.colorScheme.onSurfaceVariant,
+            ),
           ),
         ),
         title: Text(

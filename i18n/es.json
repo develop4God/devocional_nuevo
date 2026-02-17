@@ -1,4 +1,10 @@
 {
+  "common": {
+    "home": "Inicio",
+    "bible": "Biblia",
+    "prayers": "Oraciones",
+    "settings": "Configuración"
+  },
   "app": {
     "title": "Devocionales Cristianos",
     "loading": "Cargando...",
@@ -47,6 +53,9 @@
     "loading": "Cargando devocionales...",
     "no_devocionales": "No hay devocionales disponibles",
     "error_loading": "Error al cargar devocionales",
+    "error_no_content": "No se pudo cargar el contenido devocional. Por favor verifica tu conexión a internet o intenta cambiar el idioma/versión en configuración.",
+    "content_not_available_in_language": "Contenido no disponible en el idioma seleccionado. Mostrando idioma predeterminado en su lugar.",
+    "go_to_settings": "Ir a Configuración",
     "generic_error": "Ocurrió un error al cargar los devocionales. Por favor, intenta nuevamente.",
     "retry": "Reintentar",
     "share_devotional": "Compartir devocional",

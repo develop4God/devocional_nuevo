@@ -603,6 +603,12 @@ class TtsService implements ITtsService {
       case 'ja':
         ttsLocale = 'ja-JP';
         break;
+      case 'zh':
+        ttsLocale = 'zh-CN';
+        break;
+      case 'hi':
+        ttsLocale = 'hi-IN';
+        break;
       default:
         ttsLocale = 'es-ES';
     }
