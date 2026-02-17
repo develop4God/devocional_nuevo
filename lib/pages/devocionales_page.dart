@@ -29,10 +29,10 @@ import 'package:devocional_nuevo/widgets/add_prayer_modal.dart';
 import 'package:devocional_nuevo/widgets/add_testimony_modal.dart';
 import 'package:devocional_nuevo/widgets/add_thanksgiving_modal.dart';
 import 'package:devocional_nuevo/widgets/devocionales/app_bar_constants.dart';
+import 'package:devocional_nuevo/widgets/devocionales/devocional_tts_miniplayer_presenter.dart';
 import 'package:devocional_nuevo/widgets/devocionales/devocionales_content_widget.dart';
 import 'package:devocional_nuevo/widgets/devocionales/devocionales_page_drawer.dart';
 import 'package:devocional_nuevo/widgets/devocionales/salvation_prayer_dialog.dart';
-import 'package:devocional_nuevo/widgets/devocionales/devocional_tts_miniplayer_presenter.dart';
 import 'package:devocional_nuevo/widgets/floating_font_control_buttons.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
@@ -227,6 +227,30 @@ class _DevocionalesPageState extends State<DevocionalesPage>
         setState(() {
           _initState = _PageInitializationState.ready;
         });
+
+        // Show notification if fallback language was used
+        if (devocionalProvider.errorMessage != null &&
+            devocionalProvider.errorMessage!
+                .contains('not available in selected language')) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    'devotionals.content_not_available_in_language'.tr(),
+                  ),
+                  duration: const Duration(seconds: 5),
+                  action: SnackBarAction(
+                    label: 'devotionals.go_to_settings'.tr(),
+                    onPressed: () {
+                      Navigator.pushNamed(context, '/settings');
+                    },
+                  ),
+                ),
+              );
+            }
+          });
+        }
       }
 
       // CRITICAL FIX: Start tracking explicitly after BLoC initialization
@@ -640,6 +664,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
+      key: const Key('devocionales_error_scaffold'),
       appBar: CustomAppBar(
         titleText: 'devotionals.my_intimate_space_with_god'.tr(),
       ),
@@ -650,7 +675,7 @@ class _DevocionalesPageState extends State<DevocionalesPage>
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(
-                Icons.error_outline,
+                Icons.cloud_off_outlined,
                 size: 64,
                 color: colorScheme.error,
               ),
@@ -662,25 +687,75 @@ class _DevocionalesPageState extends State<DevocionalesPage>
               ),
               const SizedBox(height: 16),
               // Show user-friendly error message
-              if (_initErrorMessage != null)
-                Text(
-                  _initErrorMessage!,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: colorScheme.onSurface.withValues(alpha: 0.7),
-                      ),
-                  textAlign: TextAlign.center,
-                ),
+              Text(
+                _initErrorMessage ?? 'devotionals.error_no_content'.tr(),
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: colorScheme.onSurface.withValues(alpha: 0.7),
+                    ),
+                textAlign: TextAlign.center,
+              ),
               const SizedBox(height: 32),
-              FilledButton.icon(
-                onPressed: () {
-                  developer.log('🔄 User manually triggered retry');
-                  _initializeNavigationBloc();
-                },
-                icon: const Icon(Icons.refresh),
-                label: Text('devotionals.retry'.tr()),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  FilledButton.icon(
+                    onPressed: () {
+                      developer.log('🔄 User manually triggered retry');
+                      _initializeNavigationBloc();
+                    },
+                    icon: const Icon(Icons.refresh),
+                    label: Text('devotionals.retry'.tr()),
+                  ),
+                  const SizedBox(width: 16),
+                  OutlinedButton.icon(
+                    onPressed: () {
+                      // Navigate to settings to change language/version
+                      Navigator.pushNamed(context, '/settings');
+                    },
+                    icon: const Icon(Icons.settings),
+                    label: Text('devotionals.go_to_settings'.tr()),
+                  ),
+                ],
               ),
             ],
           ),
+        ),
+      ),
+      // CRITICAL: Add bottom navigation bar so users can navigate away
+      bottomNavigationBar: BottomAppBar(
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            IconButton(
+              key: const Key('error_nav_home'),
+              icon: const Icon(Icons.home),
+              tooltip: 'common.home'.tr(),
+              onPressed: () {
+                // Already on home, just retry
+                _initializeNavigationBloc();
+              },
+            ),
+            IconButton(
+              key: const Key('error_nav_bible'),
+              icon: const Icon(Icons.menu_book),
+              tooltip: 'common.bible'.tr(),
+              onPressed: _goToBible,
+            ),
+            IconButton(
+              key: const Key('error_nav_prayers'),
+              icon: const Icon(Icons.favorite),
+              tooltip: 'common.prayers'.tr(),
+              onPressed: _goToPrayers,
+            ),
+            IconButton(
+              key: const Key('error_nav_settings'),
+              icon: const Icon(Icons.settings),
+              tooltip: 'common.settings'.tr(),
+              onPressed: () {
+                Navigator.pushNamed(context, '/settings');
+              },
+            ),
+          ],
         ),
       ),
     );

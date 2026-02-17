@@ -7,7 +7,8 @@ class Constants {
 
   // ✅ ORIGINAL METHOD - DO NOT MODIFY (Backward Compatibility)
   static String getDevocionalesApiUrl(int year) {
-    return 'https://raw.githubusercontent.com/develop4God/Devocionales-json/refs/heads/main/Devocional_year_$year.json';
+    final branch = kDebugMode ? debugBranchDevotionals : 'main';
+    return 'https://raw.githubusercontent.com/develop4God/Devocionales-json/refs/heads/$branch/Devocional_year_$year.json';
   }
 
   // ✅ NEW METHOD for multilingual support
@@ -16,13 +17,15 @@ class Constants {
     String languageCode,
     String versionCode,
   ) {
+    final branch = kDebugMode ? debugBranchDevotionals : 'main';
+
     // Backward compatibility for Spanish RVR1960
     if (languageCode == 'es' && versionCode == 'RVR1960') {
       return getDevocionalesApiUrl(year); // Use original method
     }
 
     // New format for other languages/versions
-    return 'https://raw.githubusercontent.com/develop4God/Devocionales-json/refs/heads/main/Devocional_year_${year}_${languageCode}_$versionCode.json';
+    return 'https://raw.githubusercontent.com/develop4God/Devocionales-json/refs/heads/$branch/Devocional_year_${year}_${languageCode}_$versionCode.json';
   }
 
   /// MAPAS DE IDIOMAS Y VERSIONES
@@ -37,6 +40,22 @@ class Constants {
     'zh': '中文', // Habilitar chino
     'hi': 'हिन्दी', // Habilitar hindi
   };
+
+  // Banderas emoji para cada idioma
+  static const Map<String, String> languageFlags = {
+    'es': '🇪🇸',
+    'en': '🇺🇸🇬🇧',
+    'pt': '🇧🇷🇵🇹',
+    'fr': '🇫🇷',
+    'ja': '🇯🇵',
+    'zh': '🇨🇳',
+    'hi': '🇮🇳',
+  };
+
+  /// Obtiene el emoji de la bandera para un idioma
+  static String getLanguageFlag(String languageCode) {
+    return languageFlags[languageCode] ?? '🌐';
+  }
 
   // Versiones de la Biblia disponibles por idioma
   static const Map<String, List<String>> bibleVersionsByLanguage = {
@@ -90,8 +109,11 @@ class Constants {
   /// Feature flag for Discovery Studies feature
   static const bool enableDiscoveryFeature = true;
 
-  /// Branch para debug (solo kDebugMode)
+  /// Branch para debug Discovery (solo kDebugMode)
   static String debugBranch = 'main';
+
+  /// Branch para debug Devotionals (solo kDebugMode)
+  static String debugBranchDevotionals = 'main';
 
   /// Obtiene la URL del índice de Discovery
   static String getDiscoveryIndexUrl() {
