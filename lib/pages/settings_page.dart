@@ -142,6 +142,7 @@ class _SettingsPageState extends State<SettingsPage> {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
     final TextTheme textTheme = Theme.of(context).textTheme;
     final themeState = context.watch<ThemeBloc>().state as ThemeLoaded;
+    final currentLangCode = localizationProvider.currentLocale.languageCode;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: themeState.systemUiOverlayStyle,
@@ -214,16 +215,23 @@ class _SettingsPageState extends State<SettingsPage> {
                                 ),
                               ),
                               const SizedBox(height: 4),
-                              Text(
-                                Constants.supportedLanguages[
-                                        localizationProvider
-                                            .currentLocale.languageCode] ??
-                                    localizationProvider
-                                        .currentLocale.languageCode,
-                                style: textTheme.bodySmall?.copyWith(
-                                  color: colorScheme.onSurfaceVariant,
-                                  fontSize: 12,
-                                ),
+                              Row(
+                                children: [
+                                  Text(
+                                    Constants.getLanguageFlag(currentLangCode),
+                                    style: const TextStyle(fontSize: 14),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    Constants.supportedLanguages[
+                                            currentLangCode] ??
+                                        currentLangCode,
+                                    style: textTheme.bodySmall?.copyWith(
+                                      color: colorScheme.onSurfaceVariant,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
                               ),
                               // Mostrar solo el idioma, sin versión bíblica
                             ],
