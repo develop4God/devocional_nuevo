@@ -110,6 +110,8 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
         return 'この声を保存するか、別の声を選択することができます。お好みに合わせて';
       case 'zh':
         return '您可以保存此语音或选择其他语音，按您的喜好';
+      case 'hi':
+        return 'आप इस आवाज़ को सहेज सकते हैं या अपनी पसंद के अनुसार दूसरी आवाज़ चुन सकते हैं';
       default:
         return template;
     }
@@ -204,9 +206,12 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
   }
 
   Future<void> _loadVoices() async {
+    debugPrint(
+        '[VoiceSelector] 🎤 Loading voices for language: ${widget.language}');
     final voices = await _voiceSettingsService.getAvailableVoicesForLanguage(
       widget.language,
     );
+    debugPrint('[VoiceSelector] 📋 Raw voices from service: ${voices.length}');
 
     List<Map<String, String>> premiumVoices = [];
     List<Map<String, String>> fallbackVoices = [];
@@ -232,6 +237,9 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
       case 'zh':
         premiumMap = chineseVoiceMap;
         break;
+      default:
+        debugPrint(
+            '[VoiceSelector] ℹ️ No premium map for ${widget.language}, will use all available voices');
     }
 
     if (premiumMap != null) {
@@ -250,8 +258,8 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
       // Si no hay suficientes voces premium (menos de 2), agregar fallback
       if (premiumVoices.length < 2 || _shouldForceFallback) {
         debugPrint(
-          '[VoiceSelector] 🔄 Activando fallback para \\${widget.language}: '
-          'premium=\${premiumVoices.length}, forced=\$_shouldForceFallback',
+          '[VoiceSelector] 🔄 Activating fallback for ${widget.language}: '
+          'premium=${premiumVoices.length}, forced=$_shouldForceFallback',
         );
 
         // Definir locales prioritarios por idioma (los más comunes)
@@ -262,6 +270,7 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
           'fr': ['fr-FR', 'fr-CA'],
           'ja': ['ja-JP'],
           'zh': ['zh-CN', 'zh-TW'],
+          'hi': ['hi-IN'], // Add Hindi priority locales
         };
 
         final priorities = priorityLocales[widget.language] ?? [];
@@ -307,6 +316,11 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
           'distribuidas en \${voicesByLocale.length} locales (máx 2 por locale)',
         );
       }
+    } else {
+      // CRITICAL FIX: NO PREMIUM MAP (e.g., Hindi) - SHOW ALL AVAILABLE VOICES
+      debugPrint(
+          '[VoiceSelector] 🌐 No premium map - showing ALL ${voices.length} available voices');
+      fallbackVoices = voices;
     }
 
     setState(() {
@@ -318,9 +332,14 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
       _initialVoiceLocale = null;
 
       debugPrint(
-        '[VoiceSelector] 📋 Total voces cargadas: \${_voices.length} '
-        '(premium: \${premiumVoices.length}, fallback: \${fallbackVoices.length})',
+        '[VoiceSelector] 📋 Total voces cargadas: ${_voices.length} '
+        '(premium: ${premiumVoices.length}, fallback: ${fallbackVoices.length})',
       );
+
+      if (_voices.isEmpty) {
+        debugPrint(
+            '[VoiceSelector] ⚠️ WARNING: No voices loaded! This will show empty list to user.');
+      }
     });
   }
 

@@ -115,14 +115,14 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
         final files = s['files'];
         final filesMap = files is Map ? files : null;
 
-        // Check if study has files for current locale OR fallback locales
-        final hasValidFile = filesMap != null &&
-            (filesMap.containsKey(locale) ||
-                filesMap.containsKey('es') ||
-                filesMap.containsKey('en'));
+        // CRITICAL FIX: Only show studies available in the selected language
+        // Don't show fallback languages - user selected a specific language
+        final hasFileInSelectedLanguage =
+            filesMap != null && filesMap.containsKey(locale);
 
-        if (hasValidFile) {
+        if (hasFileInSelectedLanguage) {
           filteredStudyIds.add(id);
+          debugPrint('✅ [BLOC] Study $id has file for language: $locale');
 
           // Mark as "New" if never seen before
           if (!seenStudyIds.contains(id)) {
@@ -163,6 +163,9 @@ class DiscoveryBloc extends Bloc<DiscoveryEvent, DiscoveryState> {
 
           final progress = await progressTracker.getProgress(id, locale);
           completedStudies[id] = progress.isCompleted;
+        } else {
+          debugPrint(
+              '⏭️ [BLOC] Skipping study $id - no file for language: $locale');
         }
       }
 

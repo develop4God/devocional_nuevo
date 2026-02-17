@@ -30,6 +30,8 @@ class BibleTextFormatter {
         return _formatBibleBookJapanese(reference);
       case 'zh':
         return _formatBibleBookChinese(reference);
+      case 'hi':
+        return _formatBibleBookHindi(reference);
       default:
         debugPrint(
           '[BibleTextFormatter] Unknown language "$language", using Spanish as default',
@@ -136,6 +138,12 @@ class BibleTextFormatter {
     return reference.trim();
   }
 
+  /// Formato para libros bíblicos en hindi (sin ordinales, solo limpieza básica)
+  static String _formatBibleBookHindi(String reference) {
+    // En hindi, los libros bíblicos no usan ordinales, solo se devuelve el texto tal cual
+    return reference.trim();
+  }
+
   /// Get Bible version expansions based on language
   static Map<String, String> getBibleVersionExpansions(String language) {
     switch (language) {
@@ -161,6 +169,11 @@ class BibleTextFormatter {
         };
       case 'zh':
         return {'和合本1919': '和合本一九一九', '新译本': '新译本'};
+      case 'hi':
+        return {
+          'पवित्र बाइबिल (ओ.वी.)': 'पवित्र बाइबिल ओ वी',
+          'पवित्र बाइबिल': 'पवित्र बाइबिल',
+        };
       default:
         return {'RVR1960': 'Reina Valera mil novecientos sesenta'};
     }
@@ -195,8 +208,12 @@ class BibleTextFormatter {
       'en': 'chapter|verse',
       'pt': 'capítulo|versículo',
       'fr': 'chapitre|verset',
-      'ja': '章|節', // Japonés: capítulo=章, versículo=節
-      'zh': '章|节', // Chino: capítulo=章, versículo=节
+      'ja': '章|節',
+      // Japonés: capítulo=章, versículo=節
+      'zh': '章|节',
+      // Chino: capítulo=章, versículo=节
+      'hi': 'अध्याय|पद',
+      // Hindi: capítulo=अध्याय (adhyāya), versículo=पद (pada)
     };
 
     final words = referenceWords[language] ?? referenceWords['es']!;
