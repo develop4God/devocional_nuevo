@@ -859,17 +859,44 @@ class _VoiceSelectorDialogState extends State<VoiceSelectorDialog> {
                                                     left: 36,
                                                     top: 2,
                                                   ),
-                                                  child: Text(
-                                                    _getVoiceDescription(
-                                                      voice['name']!,
-                                                      voice['locale']!,
-                                                      widget.language,
-                                                    ),
-                                                    style: TextStyle(
-                                                      fontSize: 13,
-                                                      color:
-                                                          colorScheme.onSurface,
-                                                    ),
+                                                  child: Column(
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
+                                                    children: [
+                                                      Text(
+                                                        _getVoiceDescription(
+                                                          voice['name']!,
+                                                          voice['locale']!,
+                                                          widget.language,
+                                                        ),
+                                                        style: TextStyle(
+                                                          fontSize: 13,
+                                                          color: colorScheme
+                                                              .onSurface,
+                                                        ),
+                                                      ),
+                                                      if (kDebugMode)
+                                                        Padding(
+                                                          padding:
+                                                              const EdgeInsets
+                                                                  .only(top: 4),
+                                                          child: Text(
+                                                            // Show technical name and locale for debug
+                                                            ' 0${voice['name']} (${voice['locale']})',
+                                                            style: TextStyle(
+                                                              fontSize: 10,
+                                                              color: colorScheme
+                                                                  .onSurface
+                                                                  .withValues(
+                                                                      alpha:
+                                                                          0.6),
+                                                              fontFamily:
+                                                                  'monospace',
+                                                            ),
+                                                          ),
+                                                        ),
+                                                    ],
                                                   ),
                                                 ),
                                               ],
