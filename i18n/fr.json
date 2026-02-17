@@ -234,7 +234,7 @@
     "download_success": "Méditations téléchargées avec succès",
     "download_error": "Erreur de téléchargement. Vérifiez votre connexion et réessayez.",
     "offline_access_ready": "Vous pouvez maintenant accéder à votre contenu sans internet",
-    "share_message": "Si vous cherchez un moment de paix quotidienne dans votre vie, je vous recommande Méditations Chrétiennes.\n\nLa Parole de Dieu pour the croissance spirituelle et totalement gratuit. Vous pouvez le télécharger ici :\nhttps://play.google.com/store/apps/details?id=com.develop4god.devocional_nuevo",
+    "share_message": "📖 *Méditations Chrétiennes*\n\nSi vous cherchez un moment de paix quotidienne dans votre vie, je vous recommande cette application. 🙏\n\nLa Parole de Dieu pour la croissance spirituelle et totalement gratuite. ✨\n\n⬇️ *Téléchargez-la ici :*\nhttps://play.google.com/store/apps/details?id=com.develop4god.devocional_nuevo\n\n🔥 _100% Gratuit | Sans Publicité | Utilisation Hors Ligne_",
     "switching_version": "Changement de version biblique..."
   },
   "progress": {
@@ -549,7 +549,7 @@
     "select_amount_and_badge": "Veuillez sélectionner un montant et un badge",
     "badge_selected": "Sélectionné",
     "select_badge": "Sélectionner",
-    "badge_gratitude_message": "✨ Les badges sont notre façon de vous remercier pour votre générosité et votre soutien au ministère. Chacun représente une vertu spirituelle pour votre collection.",
+    "badge_gratitude_message": "✨ Les badges are our façon de vous remercier pour votre générosité et votre soutien au ministère. Chacun représente une vertu spirituelle pour votre collection.",
     "custom_amount_label": "Montant personnalisé"
   },
   "badges": {
