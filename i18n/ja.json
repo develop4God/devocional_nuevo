@@ -815,6 +815,8 @@
     "billing_unavailable_title": "支払い不可",
     "billing_unavailable_body": "このデバイスでは課金が利用できません。",
     "disclaimer": "支払いはGoogle Playによって処理されます。各レベルは一回限りの購入で、ミニストリーへのサポートへの感謝のしるしとしてデジタルバッジが授与されます。",
-    "thanks_section_title": "ミニストリーパートナーへの感謝"
+    "thanks_section_title": "ミニストリーパートナーへの感謝",
+    "gold_name_hint": "「感謝」セクションにどのように表示されたいですか？",
+    "gold_name_helper": "任意: あなたの名前はアバウトページに表示されます"
   }
 }

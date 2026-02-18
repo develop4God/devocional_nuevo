@@ -816,6 +816,8 @@
     "billing_unavailable_title": "Pago no disponible",
     "billing_unavailable_body": "La facturación no está disponible en este dispositivo. Por favor verifica tu conexión a Google Play.",
     "disclaimer": "Los pagos son procesados por Google Play. Cada nivel es una compra única que te otorga una insignia digital como señal de agradecimiento por tu apoyo al ministerio.",
-    "thanks_section_title": "Gracias a nuestros Socios del Ministerio"
+    "thanks_section_title": "Gracias a nuestros Socios del Ministerio",
+    "gold_name_hint": "¿Cómo quieres aparecer en la sección Gracias?",
+    "gold_name_helper": "Opcional: tu nombre se mostrará en la página Acerca de"
   }
 }

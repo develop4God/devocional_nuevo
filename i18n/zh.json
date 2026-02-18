@@ -816,6 +816,8 @@
     "billing_unavailable_title": "付款不可用",
     "billing_unavailable_body": "此设备不支持付款功能。",
     "disclaimer": "付款由 Google Play 处理。每个级别都是一次性购买，将授予您一枚数字徽章，作为对您支持事工的感谢象征。",
-    "thanks_section_title": "感谢我们的事工伙伴"
+    "thanks_section_title": "感谢我们的事工伙伴",
+    "gold_name_hint": "您希望如何出现在感谢部分？",
+    "gold_name_helper": "可选：您的名字将显示在关于页面中"
   }
 }

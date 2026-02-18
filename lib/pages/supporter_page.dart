@@ -165,6 +165,14 @@ class _SupporterPageState extends State<SupporterPage>
   }
 
   void _showSuccessDialog(SupporterTier tier) {
+    if (tier.level == SupporterTierLevel.gold) {
+      _showGoldSuccessDialog(tier);
+    } else {
+      _showBasicSuccessDialog(tier);
+    }
+  }
+
+  void _showBasicSuccessDialog(SupporterTier tier) {
     showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
@@ -203,6 +211,83 @@ class _SupporterPageState extends State<SupporterPage>
         actions: [
           ElevatedButton(
             onPressed: () => Navigator.pop(context),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: tier.badgeColor,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: Text('app.ok'.tr()),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showGoldSuccessDialog(SupporterTier tier) {
+    final nameController = TextEditingController();
+
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 8),
+              Text(
+                tier.emoji,
+                style: const TextStyle(fontSize: 52),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'supporter.purchase_success_title'.tr(),
+                style: Theme.of(dialogContext).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: tier.badgeColor,
+                    ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'supporter.purchase_success_body'.tr(),
+                style: Theme.of(dialogContext).textTheme.bodyMedium?.copyWith(
+                      color: Theme.of(dialogContext)
+                          .colorScheme
+                          .onSurface
+                          .withValues(alpha: 0.8),
+                    ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: nameController,
+                decoration: InputDecoration(
+                  labelText: 'supporter.gold_name_hint'.tr(),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  helperText: 'supporter.gold_name_helper'.tr(),
+                  helperMaxLines: 2,
+                ),
+                maxLength: 40,
+                textCapitalization: TextCapitalization.words,
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () {
+              final name = nameController.text.trim();
+              if (name.isNotEmpty) {
+                _iapService.saveGoldSupporterName(name);
+              }
+              Navigator.pop(dialogContext);
+            },
             style: ElevatedButton.styleFrom(
               backgroundColor: tier.badgeColor,
               foregroundColor: Colors.white,

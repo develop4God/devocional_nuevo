@@ -815,6 +815,8 @@
     "billing_unavailable_title": "Paiement non disponible",
     "billing_unavailable_body": "La facturation n'est pas disponible sur cet appareil.",
     "disclaimer": "Les paiements sont traités par Google Play. Chaque niveau est un achat unique qui vous accorde un badge numérique en guise de remerciement pour votre soutien au ministère.",
-    "thanks_section_title": "Merci à nos Partenaires du Ministère"
+    "thanks_section_title": "Merci à nos Partenaires du Ministère",
+    "gold_name_hint": "Comment souhaitez-vous apparaître dans la section Merci?",
+    "gold_name_helper": "Optionnel: votre nom sera affiché dans la page À propos"
   }
 }

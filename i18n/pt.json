@@ -818,6 +818,8 @@
     "billing_unavailable_title": "Pagamento não disponível",
     "billing_unavailable_body": "A cobrança não está disponível neste dispositivo.",
     "disclaimer": "Os pagamentos são processados pelo Google Play. Cada nível é uma compra única que concede um distintivo digital como símbolo de gratidão pelo seu apoio ao ministério.",
-    "thanks_section_title": "Obrigado aos nossos Parceiros do Ministério"
+    "thanks_section_title": "Obrigado aos nossos Parceiros do Ministério",
+    "gold_name_hint": "Como você gostaria de aparecer na seção Obrigado?",
+    "gold_name_helper": "Opcional: seu nome será exibido na página Sobre"
   }
 }
