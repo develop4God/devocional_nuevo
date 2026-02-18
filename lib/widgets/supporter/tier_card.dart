@@ -86,62 +86,82 @@ class TierCard extends StatelessWidget {
   ) {
     final displayPrice = storePrice ?? tier.priceDisplay;
     
-    // Increased size and improved styling to make it more visible
-    // and avoid the "circle inside a circle" look.
-    const double badgeSize = 64.0;
+    // Significantly increased size for maximum visibility
+    const double badgeSize = 72.0;
     
     Widget badgeContent;
     bool isLottie = false;
 
     if (tier.level == SupporterTierLevel.bronze) {
       isLottie = true;
-      badgeContent = Lottie.asset(
-        'assets/lottie/coffee_enter.json',
-        width: badgeSize,
-        height: badgeSize,
-        fit: BoxFit.cover,
-        repeat: true,
-        animate: true,
+      // Coffee Lottie: Increased scale to 2.1 to make it look bigger and fill more space
+      badgeContent = Transform.scale(
+        scale: 2.1, 
+        child: Lottie.asset(
+          'assets/lottie/coffee_enter.json',
+          width: badgeSize,
+          height: badgeSize,
+          fit: BoxFit.cover,
+          repeat: true,
+          animate: true,
+        ),
+      );
+    } else if (tier.level == SupporterTierLevel.silver) {
+      isLottie = true;
+      // Plant Lottie for Silver tier
+      badgeContent = Transform.scale(
+        scale: 1.4,
+        child: Lottie.asset(
+          'assets/lottie/plant.json',
+          width: badgeSize,
+          height: badgeSize,
+          fit: BoxFit.contain,
+          repeat: true,
+          animate: true,
+        ),
       );
     } else if (tier.level == SupporterTierLevel.gold) {
       isLottie = true;
-      badgeContent = Lottie.asset(
-        'assets/lottie/hearts_love.json',
-        width: badgeSize,
-        height: badgeSize,
-        fit: BoxFit.contain,
-        repeat: true,
-        animate: true,
+      // Heart Lottie: Scaled to 1.1 for consistency
+      badgeContent = Transform.scale(
+        scale: 1.1,
+        child: Lottie.asset(
+          'assets/lottie/hearts_love.json',
+          width: badgeSize,
+          height: badgeSize,
+          fit: BoxFit.contain,
+          repeat: true,
+          animate: true,
+        ),
       );
     } else {
       badgeContent = Center(
         child: Text(
           tier.emoji,
-          style: const TextStyle(fontSize: 28),
+          style: const TextStyle(fontSize: 32),
         ),
       );
     }
 
     return Row(
       children: [
-        // Unified Badge Circle
+        // Unified Badge Circle with a thicker border
         Container(
           width: badgeSize,
           height: badgeSize,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            // Only use background color for non-Lottie to keep Lottie clean
             color: isLottie 
                 ? Colors.transparent 
                 : tier.badgeColor.withValues(alpha: 0.15),
             border: Border.all(
               color: tier.badgeColor, 
-              width: 2.5,
+              width: 3.0,
             ),
             boxShadow: [
               BoxShadow(
-                color: tier.badgeColor.withValues(alpha: 0.1),
-                blurRadius: 8,
+                color: tier.badgeColor.withValues(alpha: 0.15),
+                blurRadius: 10,
                 spreadRadius: 1,
               ),
             ],
