@@ -5,7 +5,9 @@ import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/pages/discovery_list_page.dart';
 import 'package:devocional_nuevo/pages/progress_page.dart';
 import 'package:devocional_nuevo/pages/settings_page.dart';
+import 'package:devocional_nuevo/pages/supporter_page.dart';
 import 'package:devocional_nuevo/services/analytics_service.dart';
+import 'package:devocional_nuevo/services/remote_config_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/utils/bubble_constants.dart';
 import 'package:devocional_nuevo/utils/constants.dart';
@@ -338,6 +340,38 @@ class DevocionalesBottomBar extends StatelessWidget {
                   size: 35,
                 ),
               ),
+              // 6. Support/Donate (Conditional - Remote Config)
+              if (getService<RemoteConfigService>().featureSupporter)
+                IconButton(
+                  key: const Key('bottom_appbar_supporter_icon'),
+                  tooltip: 'tooltips.support'.tr(),
+                  onPressed: () {
+                    debugPrint('❤️ [BottomBar] Tap: supporter');
+                    getService<AnalyticsService>().logBottomBarAction(
+                      action: 'supporter',
+                    );
+                    Navigator.push(
+                      context,
+                      PageRouteBuilder(
+                        pageBuilder: (context, animation, secondaryAnimation) =>
+                            const SupporterPage(),
+                        transitionsBuilder:
+                            (context, animation, secondaryAnimation, child) {
+                          return FadeTransition(
+                            opacity: animation,
+                            child: child,
+                          );
+                        },
+                        transitionDuration: const Duration(milliseconds: 250),
+                      ),
+                    );
+                  },
+                  icon: Icon(
+                    Icons.volunteer_activism,
+                    color: colorScheme.onPrimary,
+                    size: 32,
+                  ),
+                ),
             ],
           ),
         ),

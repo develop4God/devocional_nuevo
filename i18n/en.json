@@ -171,6 +171,8 @@
     "paypal_launch_error": "Could not open PayPal. The system could not launch the URL.",
     "paypal_error": "Error opening PayPal: {error}",
     "paypal_no_app_error": "Could not open PayPal. Make sure you have a web browser or PayPal app installed.",
+    "cannot_open_url": "Cannot open support link",
+    "url_error": "Error opening link",
     "backup_option": "Backup",
     "backup_subtitle": "Backup and restore your data securely",
     "voice_sample_text": "Tap to listen to an audio sample. Then save your preference."
@@ -323,6 +325,7 @@
     "share_as_image": "Share as image",
     "progress": "Progress",
     "settings": "Settings",
+    "support": "Support the Ministry",
     "bible": "Bible",
     "add_prayer_or_thanksgiving": "Add prayer or thanksgiving"
   },
