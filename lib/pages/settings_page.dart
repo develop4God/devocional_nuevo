@@ -7,6 +7,7 @@ import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/pages/about_page.dart';
 import 'package:devocional_nuevo/pages/application_language_page.dart';
 import 'package:devocional_nuevo/pages/contact_page.dart';
+import 'package:devocional_nuevo/pages/supporter_page.dart';
 import 'package:devocional_nuevo/providers/localization_provider.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
@@ -16,7 +17,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -88,42 +88,6 @@ class _SettingsPageState extends State<SettingsPage> {
     prefs.getString('tts_voice_name_$language');
   }
 
-  // Original PayPal method - preserved exactly
-  Future<void> _launchPaypal() async {
-    final Uri url = Uri.parse('https://paypal.me/develop4God');
-
-    developer.log('Launching PayPal URL: $url', name: 'PayPalLaunch');
-
-    try {
-      if (await canLaunchUrl(url)) {
-        final launched = await launchUrl(
-          url,
-          mode: LaunchMode.externalApplication,
-        );
-
-        if (!launched) {
-          developer.log('launchUrl returned false', name: 'PayPalLaunch');
-          _showErrorSnackBar('settings.paypal_launch_error'.tr());
-        } else {
-          developer.log('PayPal opened successfully', name: 'PayPalLaunch');
-        }
-      } else {
-        developer.log('canLaunchUrl returned false', name: 'PayPalLaunch');
-        _showErrorSnackBar('settings.paypal_no_app_error'.tr());
-      }
-    } catch (e) {
-      developer.log('Error launching PayPal: $e', name: 'PayPalLaunch');
-      _showErrorSnackBar('settings.paypal_error'.tr({'error': e.toString()}));
-    }
-  }
-
-  // Simple decision method - senior approach
-  Future<void> _handleDonateAction() async {
-    developer.log('Donate action triggered with mode: $_donationMode');
-    // Only PayPal available
-    await _launchPaypal();
-  }
-
   void _showErrorSnackBar(String message) {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -153,12 +117,19 @@ class _SettingsPageState extends State<SettingsPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Support/Donation Button (PayPal always)
+                // Support/Donation Button (navigates to SupporterPage)
                 SizedBox(
                   child: Align(
                     alignment: Alignment.topRight,
                     child: OutlinedButton.icon(
-                      onPressed: _handleDonateAction,
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const SupporterPage(),
+                          ),
+                        );
+                      },
                       style: OutlinedButton.styleFrom(
                         foregroundColor: colorScheme.onSurface,
                         side: BorderSide(
