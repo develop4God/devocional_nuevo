@@ -2,7 +2,10 @@ import 'package:bible_reader_core/bible_reader_core.dart';
 import 'package:devocional_nuevo/pages/bible_reader_page.dart';
 import 'package:devocional_nuevo/pages/progress_page.dart';
 import 'package:devocional_nuevo/pages/settings_page.dart';
+import 'package:devocional_nuevo/pages/supporter_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
+import 'package:devocional_nuevo/services/remote_config_service.dart';
+import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/utils/page_transitions.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -122,6 +125,21 @@ class DiscoveryBottomNavBar extends StatelessWidget {
                     icon: Icon(Icons.app_settings_alt_outlined,
                         color: appBarForegroundColor, size: 30),
                   ),
+                  // Support/Donate (Conditional - Remote Config)
+                  if (getService<RemoteConfigService>().featureSupporter)
+                    IconButton(
+                      key: const Key('bottom_appbar_supporter_icon'),
+                      tooltip: 'Apoyo',
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const SupporterPage()),
+                        );
+                      },
+                      icon: Icon(Icons.volunteer_activism,
+                          color: appBarForegroundColor, size: 32),
+                    ),
                 ],
               ),
             ),

@@ -7,7 +7,6 @@ import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/pages/about_page.dart';
 import 'package:devocional_nuevo/pages/application_language_page.dart';
 import 'package:devocional_nuevo/pages/contact_page.dart';
-import 'package:devocional_nuevo/pages/supporter_page.dart';
 import 'package:devocional_nuevo/providers/localization_provider.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
@@ -17,6 +16,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -117,18 +117,45 @@ class _SettingsPageState extends State<SettingsPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Support/Donation Button (navigates to SupporterPage)
+                // Support/Donation Button (opens external website)
                 SizedBox(
                   child: Align(
                     alignment: Alignment.topRight,
                     child: OutlinedButton.icon(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const SupporterPage(),
-                          ),
-                        );
+                      onPressed: () async {
+                        final Uri url =
+                            Uri.parse('https://www.develop4god.com/apoyanos');
+                        try {
+                          if (await canLaunchUrl(url)) {
+                            await launchUrl(
+                              url,
+                              mode: LaunchMode.externalApplication,
+                            );
+                          } else {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content:
+                                      Text('settings.cannot_open_url'.tr()),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                            }
+                          }
+                        } catch (e) {
+                          developer.log(
+                            'Error launching support URL: $e',
+                            name: 'SettingsPage',
+                          );
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('settings.url_error'.tr()),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          }
+                        }
                       },
                       style: OutlinedButton.styleFrom(
                         foregroundColor: colorScheme.onSurface,
@@ -140,6 +167,7 @@ class _SettingsPageState extends State<SettingsPage> {
                           borderRadius: BorderRadius.circular(20.0),
                         ),
                       ),
+                      icon: const Icon(Icons.volunteer_activism),
                       label: Text(
                         'settings.donate'.tr(),
                         style: textTheme.bodyMedium?.copyWith(

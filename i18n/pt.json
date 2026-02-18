@@ -172,6 +172,8 @@
     "paypal_launch_error": "Não foi possível abrir o PayPal. O sistema não conseguiu iniciar a URL.",
     "paypal_error": "Erro ao abrir o PayPal: {error}",
     "paypal_no_app_error": "Não foi possível abrir o PayPal. Certifique-se de ter um navegador web ou aplicativo PayPal instalado.",
+    "cannot_open_url": "Não é possível abrir o link de apoio",
+    "url_error": "Erro ao abrir o link",
     "backup_option": "Cópia de segurança",
     "backup_subtitle": "Faça backup e restaure seus dados com segurança",
     "voice_sample_text": "Toque para ouvir uma amostra de áudio. Depois salve sua preferência."
