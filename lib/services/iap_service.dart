@@ -13,6 +13,7 @@ enum IapResult { success, cancelled, error, pending }
 /// Service that manages Google Play Billing / App Store IAP lifecycle.
 class IapService {
   static const String _purchasedKeyPrefix = 'iap_purchased_';
+  static const String _goldSupporterNameKey = 'iap_gold_supporter_name';
 
   // Singleton
   static final IapService _instance = IapService._internal();
@@ -30,9 +31,13 @@ class IapService {
 
   bool _isAvailable = false;
   bool _isInitialized = false;
+  String? _goldSupporterName;
 
   /// Whether the billing service is available on this device.
   bool get isAvailable => _isAvailable;
+
+  /// The display name for the Gold supporter (set by user after purchase).
+  String? get goldSupporterName => _goldSupporterName;
 
   /// Whether a given tier has already been purchased.
   bool isPurchased(SupporterTierLevel level) =>
@@ -191,6 +196,18 @@ class IapService {
     debugPrint('✅ [IapService] Delivered product: $productId (${tier.level})');
   }
 
+  /// Save the display name for the Gold supporter to SharedPreferences.
+  Future<void> saveGoldSupporterName(String name) async {
+    try {
+      _goldSupporterName = name;
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_goldSupporterNameKey, name);
+      debugPrint('✅ [IapService] Saved gold supporter name: $name');
+    } catch (e) {
+      debugPrint('❌ [IapService] Error saving gold supporter name: $e');
+    }
+  }
+
   /// Load purchased tiers from SharedPreferences.
   Future<void> _loadPurchasedFromPrefs() async {
     try {
@@ -204,6 +221,7 @@ class IapService {
           );
         }
       }
+      _goldSupporterName = prefs.getString(_goldSupporterNameKey);
     } catch (e) {
       debugPrint('❌ [IapService] Error loading purchased from prefs: $e');
     }
@@ -235,5 +253,6 @@ class IapService {
     _products.clear();
     _isAvailable = false;
     _isInitialized = false;
+    _goldSupporterName = null;
   }
 }

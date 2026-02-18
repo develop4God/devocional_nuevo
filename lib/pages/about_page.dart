@@ -2,6 +2,8 @@
 import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
+import 'package:devocional_nuevo/models/supporter_tier.dart';
+import 'package:devocional_nuevo/services/iap_service.dart';
 import 'package:devocional_nuevo/widgets/devocionales/app_bar_constants.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -23,12 +25,15 @@ class _AboutPageState extends State<AboutPage> {
   int _iconTapCount = 0;
   static const int _tapThreshold = 7;
   bool _developerMode = false;
+  String? _goldSupporterName;
+  bool _isGoldSupporter = false;
 
   @override
   void initState() {
     super.initState();
     _initPackageInfo();
     _loadDeveloperMode();
+    _loadSupporterStatus();
   }
 
   // Metodo para obtener la versión de la aplicación
@@ -51,6 +56,16 @@ class _AboutPageState extends State<AboutPage> {
     await prefs.setBool('developerMode', enabled);
     setState(() {
       _developerMode = enabled;
+    });
+  }
+
+  Future<void> _loadSupporterStatus() async {
+    final iapService = IapService();
+    await iapService.initialize();
+    if (!mounted) return;
+    setState(() {
+      _isGoldSupporter = iapService.isPurchased(SupporterTierLevel.gold);
+      _goldSupporterName = iapService.goldSupporterName;
     });
   }
 
@@ -203,6 +218,12 @@ class _AboutPageState extends State<AboutPage> {
               ),
               const SizedBox(height: 12),
 
+              // Gold Supporter "Gracias" section
+              if (_isGoldSupporter) ...[
+                _buildGraciasSection(colorScheme, textTheme),
+                const SizedBox(height: 12),
+              ],
+
               // Desarrollado por
               Text(
                 'about.developed_by'.tr(),
@@ -271,6 +292,56 @@ class _AboutPageState extends State<AboutPage> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildGraciasSection(ColorScheme colorScheme, TextTheme textTheme) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        gradient: LinearGradient(
+          colors: [
+            const Color(0xFFFFD700).withValues(alpha: 0.15),
+            const Color(0xFFFFD700).withValues(alpha: 0.05),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        border: Border.all(
+          color: const Color(0xFFFFD700).withValues(alpha: 0.4),
+        ),
+      ),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text('❤️', style: TextStyle(fontSize: 18)),
+              const SizedBox(width: 8),
+              Text(
+                'supporter.thanks_section_title'.tr(),
+                style: textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: const Color(0xFFB8860B),
+                ),
+              ),
+            ],
+          ),
+          if (_goldSupporterName != null && _goldSupporterName!.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(
+              _goldSupporterName!,
+              style: textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurface.withValues(alpha: 0.85),
+                fontWeight: FontWeight.w600,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ],
       ),
     );
   }
