@@ -1,9 +1,13 @@
 // lib/pages/supporter_page.dart
 import 'dart:async';
 
+import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
+import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:lottie/lottie.dart';
 
@@ -345,32 +349,36 @@ class _SupporterPageState extends State<SupporterPage>
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final themeState = context.watch<ThemeBloc>().state as ThemeLoaded;
 
-    return Scaffold(
-      appBar: CustomAppBar(titleText: 'supporter.page_title'.tr()),
-      body: FadeTransition(
-        opacity: _headerFadeIn,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildMissionHeader(colorScheme, textTheme),
-              const SizedBox(height: 20),
-              _buildMinistryMessage(colorScheme, textTheme),
-              const SizedBox(height: 20),
-              if (_isLoadingProducts)
-                _buildLoadingState()
-              else
-                _buildTiersList(colorScheme, textTheme),
-              const SizedBox(height: 16),
-              _buildRestorePurchases(colorScheme, textTheme),
-              const SizedBox(height: 8),
-              _buildDisclaimerText(colorScheme, textTheme),
-              const SizedBox(height: 24),
-            ],
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: themeState.systemUiOverlayStyle,
+      child: Scaffold(
+        appBar: CustomAppBar(titleText: 'supporter.page_title'.tr()),
+        body: FadeTransition(
+          opacity: _headerFadeIn,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildMissionHeader(colorScheme, textTheme),
+                const SizedBox(height: 20),
+                _buildMinistryMessage(colorScheme, textTheme),
+                const SizedBox(height: 20),
+                if (_isLoadingProducts)
+                  _buildLoadingState()
+                else
+                  _buildTiersList(colorScheme, textTheme),
+                const SizedBox(height: 16),
+                _buildRestorePurchases(colorScheme, textTheme),
+                const SizedBox(height: 8),
+                _buildDisclaimerText(colorScheme, textTheme),
+                const SizedBox(height: 24),
+              ],
+            ),
           ),
         ),
       ),
