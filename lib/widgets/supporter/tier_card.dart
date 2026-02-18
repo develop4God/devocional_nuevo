@@ -1,6 +1,7 @@
 // lib/widgets/supporter/tier_card.dart
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:flutter/material.dart';
+import 'package:lottie/lottie.dart';
 
 import '../../models/supporter_tier.dart';
 
@@ -84,24 +85,48 @@ class TierCard extends StatelessWidget {
     TextTheme textTheme,
   ) {
     final displayPrice = storePrice ?? tier.priceDisplay;
-
+    Widget badgeWidget;
+    if (tier.level == SupporterTierLevel.bronze) {
+      // Lottie covers the entire circle, no inner padding/centering
+      badgeWidget = ClipOval(
+        child: Lottie.asset(
+          'assets/lottie/coffee_enter.json',
+          width: 60,
+          height: 60,
+          fit: BoxFit.cover,
+          repeat: true,
+          animate: true,
+        ),
+      );
+    } else if (tier.level == SupporterTierLevel.gold) {
+      badgeWidget = SizedBox(
+        width: 52,
+        height: 52,
+        child: Lottie.asset(
+          'assets/lottie/hearts_love.json',
+          repeat: true,
+          animate: true,
+          fit: BoxFit.contain,
+        ),
+      );
+    } else {
+      badgeWidget = Text(
+        tier.emoji,
+        style: const TextStyle(fontSize: 24),
+      );
+    }
     return Row(
       children: [
         // Badge circle with tier color
         Container(
-          width: 52,
-          height: 52,
+          width: 60,
+          height: 60,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: tier.badgeColor.withValues(alpha: 0.15),
             border: Border.all(color: tier.badgeColor, width: 2),
           ),
-          child: Center(
-            child: Text(
-              tier.emoji,
-              style: const TextStyle(fontSize: 24),
-            ),
-          ),
+          child: badgeWidget,
         ),
         const SizedBox(width: 12),
         Expanded(

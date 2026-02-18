@@ -4,6 +4,7 @@ import 'dart:async';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
+import 'package:lottie/lottie.dart';
 
 import '../models/supporter_tier.dart';
 import '../services/iap_service.dart';
@@ -394,7 +395,16 @@ class _SupporterPageState extends State<SupporterPage>
       ),
       child: Column(
         children: [
-          const Text('❤️', style: TextStyle(fontSize: 40)),
+          // Replace heart emoji with Lottie hands_heart.json
+          SizedBox(
+            height: 60,
+            width: 60,
+            child: Lottie.asset(
+              'assets/lottie/hands_heart.json',
+              repeat: true,
+              animate: true,
+            ),
+          ),
           const SizedBox(height: 8),
           Text(
             'supporter.header_title'.tr(),
