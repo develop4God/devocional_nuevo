@@ -362,12 +362,12 @@ class _SupporterPageState extends State<SupporterPage>
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(16),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center, // Centered page content
               children: [
                 _buildMissionHeader(colorScheme, textTheme),
                 const SizedBox(height: 20),
                 _buildMinistryMessage(colorScheme, textTheme),
-                const SizedBox(height: 20),
+                const SizedBox(height: 24),
                 if (_isLoadingProducts)
                   _buildLoadingState()
                 else
@@ -408,18 +408,20 @@ class _SupporterPageState extends State<SupporterPage>
         ],
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Replace heart emoji with Lottie hands_heart.json
+          // Centered Lottie
           SizedBox(
-            height: 60,
-            width: 60,
+            height: 64,
+            width: 64,
             child: Lottie.asset(
               'assets/lottie/hands_heart.json',
               repeat: true,
               animate: true,
+              fit: BoxFit.contain,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
           Text(
             'supporter.header_title'.tr(),
             style: textTheme.headlineSmall?.copyWith(
@@ -435,7 +437,7 @@ class _SupporterPageState extends State<SupporterPage>
             ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 8),
           Text(
             'supporter.header_subtitle'.tr(),
             style: textTheme.bodyMedium?.copyWith(
@@ -450,29 +452,22 @@ class _SupporterPageState extends State<SupporterPage>
 
   Widget _buildMinistryMessage(ColorScheme colorScheme, TextTheme textTheme) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(14),
-        color: colorScheme.primaryContainer.withValues(alpha: 0.3),
+        borderRadius: BorderRadius.circular(16),
+        color: colorScheme.primaryContainer.withValues(alpha: 0.25),
         border: Border.all(
-          color: colorScheme.primary.withValues(alpha: 0.2),
+          color: colorScheme.primary.withValues(alpha: 0.15),
         ),
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(Icons.format_quote, color: colorScheme.primary, size: 28),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              'supporter.ministry_message'.tr(),
-              style: textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurface.withValues(alpha: 0.85),
-                height: 1.5,
-              ),
-            ),
-          ),
-        ],
+      child: Text(
+        'supporter.ministry_message'.tr(),
+        textAlign: TextAlign.center, // Centered text
+        style: textTheme.bodyMedium?.copyWith(
+          color: colorScheme.onSurface.withValues(alpha: 0.85),
+          height: 1.6,
+          // Removed cursive (italic)
+        ),
       ),
     );
   }
@@ -488,19 +483,20 @@ class _SupporterPageState extends State<SupporterPage>
 
   Widget _buildTiersList(ColorScheme colorScheme, TextTheme textTheme) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center, // Center the title and list
       children: [
         Text(
           'supporter.choose_tier'.tr(),
+          textAlign: TextAlign.center,
           style: textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.bold,
             color: colorScheme.onSurface,
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 16),
         ...SupporterTier.tiers.map(
           (tier) => Padding(
-            padding: const EdgeInsets.only(bottom: 16),
+            padding: const EdgeInsets.only(bottom: 20),
             child: TierCard(
               tier: tier,
               storePrice: _storePrices[tier.productId],
@@ -534,13 +530,16 @@ class _SupporterPageState extends State<SupporterPage>
   }
 
   Widget _buildDisclaimerText(ColorScheme colorScheme, TextTheme textTheme) {
-    return Text(
-      'supporter.disclaimer'.tr(),
-      style: textTheme.bodySmall?.copyWith(
-        color: colorScheme.onSurface.withValues(alpha: 0.45),
-        fontSize: 11,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Text(
+        'supporter.disclaimer'.tr(),
+        style: textTheme.bodySmall?.copyWith(
+          color: colorScheme.onSurface.withValues(alpha: 0.45),
+          fontSize: 11,
+        ),
+        textAlign: TextAlign.center,
       ),
-      textAlign: TextAlign.center,
     );
   }
 }
