@@ -2,6 +2,7 @@
 import 'dart:async';
 
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:lottie/lottie.dart';
@@ -62,6 +63,11 @@ class _SupporterPageState extends State<SupporterPage>
       await _iapService.initialize();
 
       if (!mounted) return;
+
+      // Print diagnostics in debug mode
+      if (kDebugMode) {
+        _iapService.printDiagnostics();
+      }
 
       setState(() {
         _isBillingAvailable = _iapService.isAvailable;
@@ -454,7 +460,6 @@ class _SupporterPageState extends State<SupporterPage>
               'supporter.ministry_message'.tr(),
               style: textTheme.bodyMedium?.copyWith(
                 color: colorScheme.onSurface.withValues(alpha: 0.85),
-                fontStyle: FontStyle.italic,
                 height: 1.5,
               ),
             ),
