@@ -394,7 +394,7 @@ class _SupporterPageState extends State<SupporterPage>
                   thumbVisibility: true,
                   child: SingleChildScrollView(
                     controller: _scrollController,
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 100), // Increased bottom padding for hint
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 100), 
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
@@ -416,39 +416,20 @@ class _SupporterPageState extends State<SupporterPage>
                   ),
                 ),
               ),
-              // Intuitive Scroll Hint
+              // Intuitive Scroll Hint (Icon only, raised slightly)
               if (_showScrollHint)
                 Positioned(
-                  bottom: 20,
+                  bottom: 40, // Raised from 20 to 40 to avoid system navigation
                   left: 0,
                   right: 0,
                   child: IgnorePointer(
                     child: AnimatedOpacity(
                       opacity: _showScrollHint ? 1.0 : 0.0,
                       duration: const Duration(milliseconds: 300),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.keyboard_arrow_down_rounded,
-                            color: colorScheme.primary.withValues(alpha: 0.7),
-                            size: 32,
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.8),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Text(
-                              'app.scroll_for_more'.tr(),
-                              style: textTheme.labelSmall?.copyWith(
-                                color: colorScheme.primary,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ],
+                      child: Icon(
+                        Icons.keyboard_arrow_down_rounded,
+                        color: colorScheme.primary.withValues(alpha: 0.7),
+                        size: 40,
                       ),
                     ),
                   ),
