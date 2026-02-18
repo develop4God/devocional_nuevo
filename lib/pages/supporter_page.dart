@@ -29,6 +29,7 @@ class _SupporterPageState extends State<SupporterPage>
     with SingleTickerProviderStateMixin {
   final IapService _iapService = IapService();
   StreamSubscription<List<PurchaseDetails>>? _purchaseSubscription;
+  final ScrollController _scrollController = ScrollController();
 
   late AnimationController _headerAnimController;
   late Animation<double> _headerFadeIn;
@@ -37,6 +38,7 @@ class _SupporterPageState extends State<SupporterPage>
   bool _isBillingAvailable = false;
   String? _loadingProductId;
   Set<SupporterTierLevel> _purchasedLevels = {};
+  bool _showScrollHint = true;
 
   // Prices from the store (if available)
   final Map<String, String> _storePrices = {};
@@ -56,6 +58,22 @@ class _SupporterPageState extends State<SupporterPage>
 
     _initIap();
     _listenToPurchaseStream();
+    
+    _scrollController.addListener(_scrollListener);
+  }
+
+  void _scrollListener() {
+    if (_scrollController.hasClients) {
+      if (_scrollController.offset > 50 && _showScrollHint) {
+        setState(() {
+          _showScrollHint = false;
+        });
+      } else if (_scrollController.offset <= 50 && !_showScrollHint) {
+        setState(() {
+          _showScrollHint = true;
+        });
+      }
+    }
   }
 
   Future<void> _initIap() async {
@@ -344,6 +362,8 @@ class _SupporterPageState extends State<SupporterPage>
   void dispose() {
     _headerAnimController.dispose();
     _purchaseSubscription?.cancel();
+    _scrollController.removeListener(_scrollListener);
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -359,26 +379,81 @@ class _SupporterPageState extends State<SupporterPage>
         appBar: CustomAppBar(titleText: 'supporter.page_title'.tr()),
         body: FadeTransition(
           opacity: _headerFadeIn,
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center, // Centered page content
-              children: [
-                _buildMissionHeader(colorScheme, textTheme),
-                const SizedBox(height: 20),
-                _buildMinistryMessage(colorScheme, textTheme),
-                const SizedBox(height: 24),
-                if (_isLoadingProducts)
-                  _buildLoadingState()
-                else
-                  _buildTiersList(colorScheme, textTheme),
-                const SizedBox(height: 16),
-                _buildRestorePurchases(colorScheme, textTheme),
-                const SizedBox(height: 8),
-                _buildDisclaimerText(colorScheme, textTheme),
-                const SizedBox(height: 24),
-              ],
-            ),
+          child: Stack(
+            children: [
+              Theme(
+                data: Theme.of(context).copyWith(
+                  scrollbarTheme: ScrollbarThemeData(
+                    thumbColor: WidgetStateProperty.all(colorScheme.primary.withValues(alpha: 0.5)),
+                    thickness: WidgetStateProperty.all(6.0),
+                    radius: const Radius.circular(10),
+                  ),
+                ),
+                child: Scrollbar(
+                  controller: _scrollController,
+                  thumbVisibility: true,
+                  child: SingleChildScrollView(
+                    controller: _scrollController,
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 100), // Increased bottom padding for hint
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        _buildMissionHeader(colorScheme, textTheme),
+                        const SizedBox(height: 20),
+                        _buildMinistryMessage(colorScheme, textTheme),
+                        const SizedBox(height: 24),
+                        if (_isLoadingProducts)
+                          _buildLoadingState()
+                        else
+                          _buildTiersList(colorScheme, textTheme),
+                        const SizedBox(height: 16),
+                        _buildRestorePurchases(colorScheme, textTheme),
+                        const SizedBox(height: 8),
+                        _buildDisclaimerText(colorScheme, textTheme),
+                        const SizedBox(height: 24),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              // Intuitive Scroll Hint
+              if (_showScrollHint)
+                Positioned(
+                  bottom: 20,
+                  left: 0,
+                  right: 0,
+                  child: IgnorePointer(
+                    child: AnimatedOpacity(
+                      opacity: _showScrollHint ? 1.0 : 0.0,
+                      duration: const Duration(milliseconds: 300),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.keyboard_arrow_down_rounded,
+                            color: colorScheme.primary.withValues(alpha: 0.7),
+                            size: 32,
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.8),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(
+                              'app.scroll_for_more'.tr(),
+                              style: textTheme.labelSmall?.copyWith(
+                                color: colorScheme.primary,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+            ],
           ),
         ),
       ),
@@ -466,7 +541,6 @@ class _SupporterPageState extends State<SupporterPage>
         style: textTheme.bodyMedium?.copyWith(
           color: colorScheme.onSurface.withValues(alpha: 0.85),
           height: 1.6,
-          // Removed cursive (italic)
         ),
       ),
     );

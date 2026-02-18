@@ -94,9 +94,9 @@ class TierCard extends StatelessWidget {
 
     if (tier.level == SupporterTierLevel.bronze) {
       isLottie = true;
-      // Coffee Lottie: Increased scale to 2.8 to make it look even larger
+      // Coffee Lottie: Increased scale to 3.2 to make it even larger and fill more space
       badgeContent = Transform.scale(
-        scale: 2.8,
+        scale: 3.2,
         child: Lottie.asset(
           'assets/lottie/coffee_enter.json',
           width: badgeSize,
@@ -108,7 +108,7 @@ class TierCard extends StatelessWidget {
       );
     } else if (tier.level == SupporterTierLevel.silver) {
       isLottie = true;
-      // Plant Lottie for Silver tier - scaled down as requested
+      // Plant Lottie for Silver tier - scaled to fit perfectly within the border
       badgeContent = Transform.scale(
         scale: 0.85,
         child: Lottie.asset(
@@ -228,7 +228,7 @@ class TierCard extends StatelessWidget {
           textAlign: TextAlign.center,
           style: textTheme.bodySmall?.copyWith(
             color: colorScheme.onSurface.withValues(alpha: 0.7),
-            // Removed cursive (italic) as requested
+            // Removed cursive (italic)
           ),
         ),
         const SizedBox(height: 12),
