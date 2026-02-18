@@ -85,50 +85,72 @@ class TierCard extends StatelessWidget {
     TextTheme textTheme,
   ) {
     final displayPrice = storePrice ?? tier.priceDisplay;
-    Widget badgeWidget;
+    
+    // Increased size and improved styling to make it more visible
+    // and avoid the "circle inside a circle" look.
+    const double badgeSize = 64.0;
+    
+    Widget badgeContent;
+    bool isLottie = false;
+
     if (tier.level == SupporterTierLevel.bronze) {
-      // Lottie covers the entire circle, no inner padding/centering
-      badgeWidget = ClipOval(
-        child: Lottie.asset(
-          'assets/lottie/coffee_enter.json',
-          width: 60,
-          height: 60,
-          fit: BoxFit.cover,
-          repeat: true,
-          animate: true,
-        ),
+      isLottie = true;
+      badgeContent = Lottie.asset(
+        'assets/lottie/coffee_enter.json',
+        width: badgeSize,
+        height: badgeSize,
+        fit: BoxFit.cover,
+        repeat: true,
+        animate: true,
       );
     } else if (tier.level == SupporterTierLevel.gold) {
-      badgeWidget = SizedBox(
-        width: 52,
-        height: 52,
-        child: Lottie.asset(
-          'assets/lottie/hearts_love.json',
-          repeat: true,
-          animate: true,
-          fit: BoxFit.contain,
-        ),
+      isLottie = true;
+      badgeContent = Lottie.asset(
+        'assets/lottie/hearts_love.json',
+        width: badgeSize,
+        height: badgeSize,
+        fit: BoxFit.contain,
+        repeat: true,
+        animate: true,
       );
     } else {
-      badgeWidget = Text(
-        tier.emoji,
-        style: const TextStyle(fontSize: 24),
+      badgeContent = Center(
+        child: Text(
+          tier.emoji,
+          style: const TextStyle(fontSize: 28),
+        ),
       );
     }
+
     return Row(
       children: [
-        // Badge circle with tier color
+        // Unified Badge Circle
         Container(
-          width: 60,
-          height: 60,
+          width: badgeSize,
+          height: badgeSize,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: tier.badgeColor.withValues(alpha: 0.15),
-            border: Border.all(color: tier.badgeColor, width: 2),
+            // Only use background color for non-Lottie to keep Lottie clean
+            color: isLottie 
+                ? Colors.transparent 
+                : tier.badgeColor.withValues(alpha: 0.15),
+            border: Border.all(
+              color: tier.badgeColor, 
+              width: 2.5,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: tier.badgeColor.withValues(alpha: 0.1),
+                blurRadius: 8,
+                spreadRadius: 1,
+              ),
+            ],
           ),
-          child: badgeWidget,
+          child: ClipOval(
+            child: badgeContent,
+          ),
         ),
-        const SizedBox(width: 12),
+        const SizedBox(width: 16),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
