@@ -85,10 +85,10 @@ class TierCard extends StatelessWidget {
     TextTheme textTheme,
   ) {
     final displayPrice = storePrice ?? tier.priceDisplay;
-    
+
     // Significantly increased size for maximum visibility
     const double badgeSize = 72.0;
-    
+
     Widget badgeContent;
     bool isLottie = false;
 
@@ -96,7 +96,7 @@ class TierCard extends StatelessWidget {
       isLottie = true;
       // Coffee Lottie: Increased scale to 2.1 to make it look bigger and fill more space
       badgeContent = Transform.scale(
-        scale: 2.1, 
+        scale: 2.1,
         child: Lottie.asset(
           'assets/lottie/coffee_enter.json',
           width: badgeSize,
@@ -151,11 +151,11 @@ class TierCard extends StatelessWidget {
           height: badgeSize,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: isLottie 
-                ? Colors.transparent 
+            color: isLottie
+                ? Colors.transparent
                 : tier.badgeColor.withValues(alpha: 0.15),
             border: Border.all(
-              color: tier.badgeColor, 
+              color: tier.badgeColor,
               width: 3.0,
             ),
             boxShadow: [
