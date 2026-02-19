@@ -3,17 +3,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../providers/devocional_provider.dart';
-import '../services/google_drive_backup_service.dart';
+import '../services/i_google_drive_backup_service.dart';
 import 'backup_event.dart';
 import 'backup_state.dart';
 
 /// BLoC for managing Google Drive backup functionality
 class BackupBloc extends Bloc<BackupEvent, BackupState> {
-  final GoogleDriveBackupService _backupService;
+  final IGoogleDriveBackupService _backupService;
   DevocionalProvider? _devocionalProvider;
 
   BackupBloc({
-    required GoogleDriveBackupService backupService,
+    required IGoogleDriveBackupService backupService,
     DevocionalProvider? devocionalProvider,
     dynamic prayerBloc,
   })  : _backupService = backupService,
@@ -118,12 +118,12 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
         final currentFrequency = await _backupService.getBackupFrequency();
         debugPrint('🔍 [BLOC] Frecuencia actual: $currentFrequency');
 
-        if (currentFrequency == GoogleDriveBackupService.frequencyDeactivated) {
+        if (currentFrequency == kBackupFrequencyDeactivated) {
           debugPrint(
             '🔧 [BLOC] Auto-backup activado con frecuencia "deactivated", cambiando a "daily"',
           );
           await _backupService.setBackupFrequency(
-            GoogleDriveBackupService.frequencyDaily,
+            kBackupFrequencyDaily,
           );
           debugPrint('✅ [BLOC] Frecuencia cambiada automáticamente a "daily"');
         }
@@ -165,7 +165,7 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
     try {
       await _backupService.setBackupFrequency(event.frequency);
 
-      if (event.frequency == GoogleDriveBackupService.frequencyDeactivated) {
+      if (event.frequency == kBackupFrequencyDeactivated) {
         debugPrint('🚪 [BLOC] Frecuencia desactivada, cerrando sesión...');
         await _backupService.signOut();
       }
@@ -175,10 +175,9 @@ class BackupBloc extends Bloc<BackupEvent, BackupState> {
         final nextBackupTime = await _backupService.getNextBackupTime();
         debugPrint('📊 [BLOC] Próximo backup recalculado: $nextBackupTime');
 
-        final isAuthenticated =
-            event.frequency == GoogleDriveBackupService.frequencyDeactivated
-                ? false
-                : currentState.isAuthenticated;
+        final isAuthenticated = event.frequency == kBackupFrequencyDeactivated
+            ? false
+            : currentState.isAuthenticated;
 
         emit(
           currentState.copyWith(

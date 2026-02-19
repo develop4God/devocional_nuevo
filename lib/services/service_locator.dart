@@ -5,13 +5,21 @@ library;
 import 'package:devocional_nuevo/repositories/discovery_repository.dart';
 import 'package:devocional_nuevo/repositories/supporter_profile_repository.dart';
 import 'package:devocional_nuevo/services/analytics_service.dart';
+import 'package:devocional_nuevo/services/connectivity_service.dart';
 import 'package:devocional_nuevo/services/discovery_favorites_service.dart'; // NEW
 import 'package:devocional_nuevo/services/discovery_progress_tracker.dart';
+import 'package:devocional_nuevo/services/google_drive_auth_service.dart';
+import 'package:devocional_nuevo/services/google_drive_backup_service.dart';
+import 'package:devocional_nuevo/services/i_connectivity_service.dart';
+import 'package:devocional_nuevo/services/i_google_drive_auth_service.dart';
+import 'package:devocional_nuevo/services/i_google_drive_backup_service.dart';
+import 'package:devocional_nuevo/services/i_spiritual_stats_service.dart';
 import 'package:devocional_nuevo/services/iap/i_iap_service.dart';
 import 'package:devocional_nuevo/services/iap/iap_service.dart';
 import 'package:devocional_nuevo/services/localization_service.dart';
 import 'package:devocional_nuevo/services/notification_service.dart';
 import 'package:devocional_nuevo/services/remote_config_service.dart';
+import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
 import 'package:devocional_nuevo/services/tts/i_tts_service.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 import 'package:devocional_nuevo/services/tts_service.dart';
@@ -19,7 +27,9 @@ import 'package:http/http.dart' as http;
 
 class ServiceLocator {
   static final ServiceLocator _instance = ServiceLocator._internal();
+
   factory ServiceLocator() => _instance;
+
   ServiceLocator._internal();
 
   final Map<Type, dynamic Function()> _factories = {};
@@ -55,6 +65,7 @@ class ServiceLocator {
 
   bool isRegistered<T>() =>
       _factories.containsKey(T) || _singletons.containsKey(T);
+
   void reset() {
     _factories.clear();
     _singletons.clear();
@@ -98,7 +109,29 @@ void setupServiceLocator() {
   // ✅ REGISTER SUPPORTER PROFILE REPOSITORY
   locator.registerLazySingleton<SupporterProfileRepository>(
       () => SupporterProfileRepository());
+
+  // ✅ REGISTER SPIRITUAL STATS SERVICE (via interface)
+  locator.registerLazySingleton<ISpiritualStatsService>(
+      () => SpiritualStatsService());
+
+  // ✅ REGISTER CONNECTIVITY SERVICE (via interface)
+  locator
+      .registerLazySingleton<IConnectivityService>(() => ConnectivityService());
+
+  // ✅ REGISTER GOOGLE DRIVE AUTH SERVICE (via interface)
+  locator.registerLazySingleton<IGoogleDriveAuthService>(
+      () => GoogleDriveAuthService());
+
+  // ✅ REGISTER GOOGLE DRIVE BACKUP SERVICE (via interface)
+  locator.registerLazySingleton<IGoogleDriveBackupService>(
+    () => GoogleDriveBackupService(
+      authService: locator.get<IGoogleDriveAuthService>(),
+      connectivityService: locator.get<IConnectivityService>(),
+      statsService: locator.get<ISpiritualStatsService>(),
+    ),
+  );
 }
 
 ServiceLocator get serviceLocator => ServiceLocator._instance;
+
 T getService<T>() => ServiceLocator().get<T>();
