@@ -19,7 +19,7 @@ void main() {
   );
   const MethodChannel ttsChannel = MethodChannel('flutter_tts');
 
-  setUpAll(() {
+  setUpAll(() async {
     TestWidgetsFlutterBinding.ensureInitialized();
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(pathProviderChannel, (
@@ -77,7 +77,7 @@ void main() {
     setUp(() async {
       SharedPreferences.setMockInitialValues({});
       ServiceLocator().reset();
-      setupServiceLocator();
+      await setupServiceLocator();
       provider = DevocionalProvider();
     });
 

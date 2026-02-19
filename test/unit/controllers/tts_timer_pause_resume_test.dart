@@ -26,13 +26,13 @@ void main() {
   // Mock FlutterTTS method channel
   const MethodChannel ttsChannel = MethodChannel('flutter_tts');
 
-  setUpAll(() {
+  setUpAll(() async {
     // Mock SharedPreferences
     SharedPreferences.setMockInitialValues({});
 
     // Setup service locator for dependencies
     ServiceLocator().reset();
-    setupServiceLocator();
+    await setupServiceLocator();
 
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(ttsChannel, (MethodCall call) async {
@@ -73,7 +73,7 @@ void main() {
     late TtsAudioController controller;
     late FlutterTts mockTts;
 
-    setUp(() {
+    setUp(() async {
       mockTts = FlutterTts();
       controller = TestableTtsAudioController(flutterTts: mockTts);
     });

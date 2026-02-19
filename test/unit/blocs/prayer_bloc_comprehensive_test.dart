@@ -19,9 +19,9 @@ void main() {
     late PrayerBloc bloc;
     late Directory tempDir;
 
-    setUpAll(() {
+    setUpAll(() async {
       TestWidgetsFlutterBinding.ensureInitialized();
-      setupServiceLocator();
+      await setupServiceLocator();
     });
 
     setUp(() async {

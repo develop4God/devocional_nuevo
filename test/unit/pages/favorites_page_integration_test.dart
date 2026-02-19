@@ -11,7 +11,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
-  setUpAll(() {
+  setUpAll(() async {
     TestWidgetsFlutterBinding.ensureInitialized();
 
     // Path provider mock setup FIRST
@@ -64,10 +64,10 @@ void main() {
       },
     );
 
-    setupServiceLocator();
+    await setupServiceLocator();
   });
 
-  setUp(() {
+  setUp(() async {
     SharedPreferences.setMockInitialValues({});
   });
 

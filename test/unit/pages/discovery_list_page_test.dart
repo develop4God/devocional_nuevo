@@ -131,7 +131,7 @@ void main() {
       (call) async => null,
     );
 
-    setupServiceLocator();
+    await setupServiceLocator();
 
     // Override AnalyticsService with a test no-op implementation to avoid
     // FirebaseAnalytics.instance access during widget tests.
@@ -140,7 +140,7 @@ void main() {
     );
   });
 
-  setUp(() {
+  setUp(() async {
     SharedPreferences.setMockInitialValues({});
   });
 
