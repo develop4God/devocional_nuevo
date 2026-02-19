@@ -6,7 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../models/supporter_tier.dart';
-import '../../repositories/supporter_profile_repository.dart';
+import '../../repositories/i_supporter_profile_repository.dart';
 import '../../services/iap/i_iap_service.dart';
 import 'supporter_event.dart';
 import 'supporter_state.dart';
@@ -15,6 +15,7 @@ import 'supporter_state.dart';
 /// Defined here (not in supporter_event.dart) so it stays package-private.
 class _PurchaseDelivered extends SupporterEvent {
   final SupporterTier tier;
+
   _PurchaseDelivered(this.tier);
 }
 
@@ -22,15 +23,15 @@ class _PurchaseDelivered extends SupporterEvent {
 ///
 /// Depends on:
 /// - [IIapService] — purchase lifecycle & delivery stream
-/// - [SupporterProfileRepository] — Gold supporter name persistence
+/// - [ISupporterProfileRepository] — Gold supporter name persistence
 class SupporterBloc extends Bloc<SupporterEvent, SupporterState> {
   final IIapService _iapService;
-  final SupporterProfileRepository _profileRepo;
+  final ISupporterProfileRepository _profileRepo;
   StreamSubscription<SupporterTier>? _deliveredSubscription;
 
   SupporterBloc({
     required IIapService iapService,
-    required SupporterProfileRepository profileRepository,
+    required ISupporterProfileRepository profileRepository,
   })  : _iapService = iapService,
         _profileRepo = profileRepository,
         super(SupporterInitial()) {
@@ -39,6 +40,7 @@ class SupporterBloc extends Bloc<SupporterEvent, SupporterState> {
     on<RestorePurchases>(_onRestorePurchases);
     on<_PurchaseDelivered>(_onPurchaseDelivered);
     on<SaveGoldSupporterName>(_onSaveGoldName);
+    on<EditGoldSupporterName>(_onEditGoldName);
     on<ClearSupporterError>(_onClearError);
 
     // Subscribe to delivered-product events from the service.
@@ -181,5 +183,18 @@ class SupporterBloc extends Bloc<SupporterEvent, SupporterState> {
     if (current is SupporterLoaded) {
       emit(current.copyWith(clearError: true, clearJustDelivered: true));
     }
+  }
+
+  /// Signals the UI to open the edit-name dialog for Gold supporters who
+  /// dismissed the success dialog without entering a name, or who want to
+  /// update an existing name.  The actual persistence happens via
+  /// [SaveGoldSupporterName] after the user confirms.
+  void _onEditGoldName(
+    EditGoldSupporterName event,
+    Emitter<SupporterState> emit,
+  ) {
+    final current = state;
+    if (current is! SupporterLoaded) return;
+    emit(current.copyWith(isEditingGoldName: true));
   }
 }

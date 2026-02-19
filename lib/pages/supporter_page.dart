@@ -65,8 +65,14 @@ class _SupporterPageState extends State<SupporterPage>
 
     _scrollController.addListener(_scrollListener);
 
-    // Kick off IAP initialization.
-    context.read<SupporterBloc>().add(InitializeSupporter());
+    // Kick off IAP initialization only if the bloc is not yet loaded.
+    // The SupporterBloc is hoisted to main.dart so it lives across navigations;
+    // firing InitializeSupporter when already SupporterLoaded would cause an
+    // unnecessary Loading → Loaded flicker.
+    final bloc = context.read<SupporterBloc>();
+    if (bloc.state is! SupporterLoaded) {
+      bloc.add(InitializeSupporter());
+    }
   }
 
   void _scrollListener() {
@@ -303,6 +309,71 @@ class _SupporterPageState extends State<SupporterPage>
     context.read<SupporterBloc>().add(ClearSupporterError());
   }
 
+  /// Edit-name dialog for Gold supporters who dismissed the success dialog
+  /// without setting a name, or who want to update their existing name.
+  /// Fixes Gap #4 — no way to enter/edit the Gold supporter name after dismiss.
+  void _showEditNameDialog({String? currentName}) {
+    final nameController = TextEditingController(text: currentName ?? '');
+    final goldColor =
+        SupporterTier.fromLevel(SupporterTierLevel.gold).badgeColor;
+
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: Row(
+          children: [
+            Text(
+              SupporterTier.fromLevel(SupporterTierLevel.gold).emoji,
+              style: const TextStyle(fontSize: 24),
+            ),
+            const SizedBox(width: 8),
+            Text('supporter.gold_name_edit_title'.tr()),
+          ],
+        ),
+        content: TextField(
+          controller: nameController,
+          autofocus: true,
+          decoration: InputDecoration(
+            labelText: 'supporter.gold_name_hint'.tr(),
+            helperText: 'supporter.gold_name_helper'.tr(),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(color: goldColor, width: 2),
+            ),
+            prefixIcon: Icon(Icons.person, color: goldColor),
+          ),
+          maxLength: 40,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text('app.cancel'.tr()),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final name = nameController.text.trim();
+              if (name.isNotEmpty) {
+                context.read<SupporterBloc>().add(SaveGoldSupporterName(name));
+              }
+              Navigator.pop(dialogContext);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: goldColor,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16)),
+            ),
+            child: Text('app.save'.tr()),
+          ),
+        ],
+      ),
+    );
+  }
+
   // ── Build ─────────────────────────────────────────────────────────────────
 
   @override
@@ -321,6 +392,12 @@ class _SupporterPageState extends State<SupporterPage>
               setState(() => _showConfetti = true);
               _confettiController.forward();
               _showSuccessDialog(state.justDeliveredTier!);
+            }
+
+            // Handle edit-name request (Gap #4 — re-entry flow for Gold supporters)
+            if (state.isEditingGoldName) {
+              _showEditNameDialog(currentName: state.goldSupporterName);
+              context.read<SupporterBloc>().add(ClearSupporterError());
             }
 
             // Handle errors
@@ -535,6 +612,9 @@ class _SupporterPageState extends State<SupporterPage>
     ColorScheme colorScheme,
     TextTheme textTheme,
   ) {
+    final goldTier = SupporterTier.fromLevel(SupporterTierLevel.gold);
+    final isGoldPurchased = state.isPurchased(SupporterTierLevel.gold);
+
     return Column(
       children: [
         Text(
@@ -557,6 +637,25 @@ class _SupporterPageState extends State<SupporterPage>
             ),
           ),
         ),
+        // Gap #4 — edit name re-entry: Gold supporters can update or set
+        // their display name at any time after purchase.
+        if (isGoldPurchased) ...[
+          const SizedBox(height: 4),
+          TextButton.icon(
+            onPressed: () =>
+                context.read<SupporterBloc>().add(EditGoldSupporterName()),
+            icon: Icon(Icons.edit, size: 16, color: goldTier.badgeColor),
+            label: Text(
+              state.goldSupporterName != null
+                  ? 'supporter.gold_name_edit_cta'.tr()
+                  : 'supporter.gold_name_set_cta'.tr(),
+              style: TextStyle(
+                color: goldTier.badgeColor,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
       ],
     );
   }

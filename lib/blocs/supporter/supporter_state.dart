@@ -39,6 +39,10 @@ class SupporterLoaded extends SupporterState {
   /// showing the success dialog, then null.
   final SupporterTier? justDeliveredTier;
 
+  /// True when the UI should present the edit-name dialog for Gold supporters.
+  /// Set by [EditGoldSupporterName] event; cleared after the dialog is shown.
+  final bool isEditingGoldName;
+
   SupporterLoaded({
     required this.purchasedLevels,
     required this.isBillingAvailable,
@@ -49,6 +53,7 @@ class SupporterLoaded extends SupporterState {
     this.isRestoring = false,
     this.purchasingProductId,
     this.justDeliveredTier,
+    this.isEditingGoldName = false,
   });
 
   bool isPurchased(SupporterTierLevel level) => purchasedLevels.contains(level);
@@ -66,6 +71,7 @@ class SupporterLoaded extends SupporterState {
     bool clearPurchasing = false,
     SupporterTier? justDeliveredTier,
     bool clearJustDelivered = false,
+    bool? isEditingGoldName,
   }) {
     return SupporterLoaded(
       purchasedLevels: purchasedLevels ?? this.purchasedLevels,
@@ -81,6 +87,7 @@ class SupporterLoaded extends SupporterState {
       justDeliveredTier: clearJustDelivered
           ? null
           : (justDeliveredTier ?? this.justDeliveredTier),
+      isEditingGoldName: isEditingGoldName ?? false,
     );
   }
 }
@@ -88,5 +95,6 @@ class SupporterLoaded extends SupporterState {
 /// A fatal error before/during initialization.
 class SupporterError extends SupporterState {
   final String message;
+
   SupporterError(this.message);
 }

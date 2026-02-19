@@ -123,7 +123,8 @@ class _SettingsPageState extends State<SettingsPage> {
                     alignment: Alignment.topRight,
                     child: OutlinedButton.icon(
                       onPressed: () async {
-                        final Uri url = Uri.parse('https://www.develop4god.com/apoyanos');
+                        final Uri url =
+                            Uri.parse('https://www.develop4god.com/apoyanos');
                         try {
                           if (await canLaunchUrl(url)) {
                             await launchUrl(
@@ -132,13 +133,15 @@ class _SettingsPageState extends State<SettingsPage> {
                             );
                           } else {
                             if (mounted) {
-                              _showErrorSnackBar('settings.cannot_open_url'.tr());
+                              _showErrorSnackBar(
+                                  'settings.cannot_open_url'.tr());
                             }
                           }
                         } catch (e) {
                           developer.log('Could not launch $url: $e');
                           if (mounted) {
-                            _showErrorSnackBar('${'settings.url_error'.tr()}: $e');
+                            _showErrorSnackBar(
+                                '${'settings.url_error'.tr()}: $e');
                           }
                         }
                       },

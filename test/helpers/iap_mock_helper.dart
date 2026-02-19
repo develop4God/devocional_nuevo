@@ -1,15 +1,15 @@
 // test/helpers/iap_mock_helper.dart
 //
 // Centralised IAP test utilities:
-//   - [MockIIapService]            — Mockito-generated mock of [IIapService]
-//   - [FakeIapService]             — Lightweight in-memory fake (no Mockito needed)
-//   - [FakeSupporterProfileRepo]   — In-memory SupporterProfileRepository fake
-//   - [IapPurchaseScenarios]       — Pre-built stream scenarios
+//   - [MockIIapService]                     — Mockito-generated mock of [IIapService]
+//   - [FakeIapService]                      — Lightweight in-memory fake (no Mockito needed)
+//   - [FakeSupporterProfileRepository]      — In-memory ISupporterProfileRepository fake
+//   - [IapPurchaseScenarios]                — Pre-built stream scenarios
 
 import 'dart:async';
 
 import 'package:devocional_nuevo/models/supporter_tier.dart';
-import 'package:devocional_nuevo/repositories/supporter_profile_repository.dart';
+import 'package:devocional_nuevo/repositories/i_supporter_profile_repository.dart';
 import 'package:devocional_nuevo/services/iap/i_iap_service.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:mockito/annotations.dart';
@@ -122,8 +122,9 @@ class FakeIapService implements IIapService {
 
 // ── FakeSupporterProfileRepository ───────────────────────────────────────────
 
-/// In-memory [SupporterProfileRepository] fake for unit tests.
-class FakeSupporterProfileRepository implements SupporterProfileRepository {
+/// In-memory [ISupporterProfileRepository] fake for unit tests.
+/// Implements the interface (DIP) so [SupporterBloc] never sees the concrete class.
+class FakeSupporterProfileRepository implements ISupporterProfileRepository {
   String? _goldName;
 
   @override
