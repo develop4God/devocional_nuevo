@@ -98,7 +98,7 @@ class TierCard extends StatelessWidget {
                       ],
                     ),
                     child: Text(
-                      'supporter.purchased'.tr().toUpperCase(),
+                      'supporter.purchased'.tr(),
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 9,
@@ -357,11 +357,10 @@ class TierCard extends StatelessWidget {
                   ),
                 )
               : Text(
-                  'supporter.get_tier'.tr().toUpperCase(),
+                  'supporter.get_tier'.tr(),
                   style: textTheme.labelLarge?.copyWith(
                     fontWeight: FontWeight.w900,
                     color: Colors.white,
-                    letterSpacing: 1.1,
                   ),
                 ),
         ),
