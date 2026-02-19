@@ -16,7 +16,7 @@ void main() {
     setUp(() async {
       ServiceLocator().reset();
       SharedPreferences.setMockInitialValues({});
-      setupServiceLocator();
+      await setupServiceLocator();
 
       localizationService = getService<LocalizationService>();
       await localizationService.initialize();

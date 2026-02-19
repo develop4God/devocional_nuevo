@@ -22,7 +22,7 @@ void main() {
       SharedPreferences.setMockInitialValues({});
 
       // Use the centralized setup to register all services (DI approach)
-      setupServiceLocator();
+      await setupServiceLocator();
 
       // Acquire the localization service and initialize translations
       localizationService = getService<LocalizationService>();
@@ -174,7 +174,7 @@ void main() {
     setUp(() async {
       ServiceLocator().reset();
       SharedPreferences.setMockInitialValues({});
-      setupServiceLocator();
+      await setupServiceLocator();
       localizationService = getService<LocalizationService>();
     });
 
@@ -189,7 +189,7 @@ void main() {
         ServiceLocator().reset();
         SharedPreferences.setMockInitialValues({'locale': 'en'});
         // Use centralized setup so all dependent services are registered
-        setupServiceLocator();
+        await setupServiceLocator();
 
         localizationService = getService<LocalizationService>();
         await localizationService.initialize();
@@ -205,7 +205,7 @@ void main() {
         // Set up with unsupported locale
         ServiceLocator().reset();
         SharedPreferences.setMockInitialValues({'locale': 'xx'});
-        setupServiceLocator();
+        await setupServiceLocator();
         localizationService = getService<LocalizationService>();
         await localizationService.initialize();
 
@@ -347,7 +347,7 @@ void main() {
         ServiceLocator().reset();
         // Do NOT reset SharedPreferences - persistence should survive
         // Re-create the full locator as the app would on startup
-        setupServiceLocator();
+        await setupServiceLocator();
         final newService = getService<LocalizationService>();
         await newService.initialize();
 
@@ -452,7 +452,7 @@ void main() {
     setUp(() async {
       ServiceLocator().reset();
       SharedPreferences.setMockInitialValues({});
-      setupServiceLocator();
+      await setupServiceLocator();
       localizationService = getService<LocalizationService>();
     });
 
@@ -484,7 +484,7 @@ void main() {
       SharedPreferences.setMockInitialValues({'locale': 'es'});
 
       // Re-create service with new SharedPreferences state using setupServiceLocator
-      setupServiceLocator();
+      await setupServiceLocator();
       final service = getService<LocalizationService>();
 
       await service.initialize();

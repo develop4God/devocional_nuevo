@@ -63,7 +63,7 @@ void main() {
           .setMockMethodCallHandler(ttsChannel, (_) async => null);
 
       PathProviderPlatform.instance = MockPathProviderPlatform();
-      setupServiceLocator();
+      await setupServiceLocator();
     });
 
     setUp(() async {

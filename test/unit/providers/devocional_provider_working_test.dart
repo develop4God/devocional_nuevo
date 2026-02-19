@@ -154,7 +154,7 @@ void main() {
 
     // Setup service locator for DI
     ServiceLocator().reset();
-    setupServiceLocator();
+    await setupServiceLocator();
 
     provider = DevocionalProvider();
     await provider.initializeData();
@@ -454,7 +454,7 @@ void main() {
 
       // Create new provider
       ServiceLocator().reset();
-      setupServiceLocator();
+      await setupServiceLocator();
       final newProvider = DevocionalProvider();
       await newProvider.initializeData();
 
@@ -481,7 +481,7 @@ void main() {
 
       // Create new provider
       ServiceLocator().reset();
-      setupServiceLocator();
+      await setupServiceLocator();
       final newProvider = DevocionalProvider();
       await newProvider.initializeData();
 
@@ -500,7 +500,7 @@ void main() {
 
       // Create new provider
       ServiceLocator().reset();
-      setupServiceLocator();
+      await setupServiceLocator();
       final newProvider = DevocionalProvider();
       await newProvider.initializeData();
 
@@ -519,7 +519,7 @@ void main() {
 
       // Create new provider
       ServiceLocator().reset();
-      setupServiceLocator();
+      await setupServiceLocator();
       final newProvider = DevocionalProvider();
 
       // Initialize - this will load IDs first, then devotionals, then sync

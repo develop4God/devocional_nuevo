@@ -82,7 +82,7 @@ void main() {
     SharedPreferences.setMockInitialValues({});
 
     // Setup ServiceLocator with required services
-    setupServiceLocator();
+    await setupServiceLocator();
   });
 
   tearDown(() {

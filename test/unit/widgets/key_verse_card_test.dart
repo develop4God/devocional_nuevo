@@ -9,8 +9,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  setUp(() {
-    setupServiceLocator();
+  setUp(() async {
+    await setupServiceLocator();
 
     // Replace LocalizationService with a test stub that returns deterministic translations
     ServiceLocator().registerSingleton<LocalizationService>(
