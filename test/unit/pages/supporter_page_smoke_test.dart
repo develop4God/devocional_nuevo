@@ -5,22 +5,10 @@ library;
 //
 // TASK 9 — SupporterPage smoke tests
 //
-// NOTE on full widget render tests:
-//   SupporterPage renders `Lottie.asset()` via `TickerProviderStateMixin` +
-//   `AnimationController.forward()` in initState. This combination causes
-//   `tester.pumpWidget()` to block indefinitely in the standard test runner
-//   because the animation ticker keeps scheduling frames.
-//
-//   A dedicated pump helper (e.g. `pumpSupporterPage(tester, bloc)` that calls
-//   `tester.pumpWidget(...)` then `tester.pump(Duration.zero)` with explicit
-//   ticker teardown) or an integration test is the correct vehicle for full UI
-//   coverage.  Add that helper to `test/helpers/widget_pump_helper.dart` once
-//   the team decides on the pattern.
-//
-// What IS covered here (runs fast, no widget tree):
-//   • BLoC state wiring for each of the 3 AC scenarios
-//   • SupporterPage class can be imported without compilation error
-//   • BlocBuilder state transitions that the page relies on
+// Widget render tests use [pumpSupporterPage] from test/helpers/widget_pump_helper.dart.
+// This helper wraps the page in a minimal MaterialApp + BlocProvider and calls
+// tester.pump(Duration.zero) to drain the first animation frame without running
+// the full Lottie animation — resolving the AnimationController.forward() hang.
 
 import 'package:devocional_nuevo/blocs/supporter/supporter_bloc.dart';
 import 'package:devocional_nuevo/blocs/supporter/supporter_event.dart';
@@ -28,11 +16,13 @@ import 'package:devocional_nuevo/blocs/supporter/supporter_state.dart';
 import 'package:devocional_nuevo/models/supporter_tier.dart';
 import 'package:devocional_nuevo/pages/supporter_page.dart';
 import 'package:devocional_nuevo/services/iap/i_iap_service.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../helpers/iap_mock_helper.dart';
 import '../../helpers/test_helpers.dart';
+import '../../helpers/widget_pump_helper.dart';
 
 void main() {
   setUpAll(() {
@@ -45,6 +35,26 @@ void main() {
 
   test('SupporterPage class can be referenced — import smoke', () {
     expect(SupporterPage, isNotNull);
+  });
+
+  // ── Scenario 0: full widget render ────────────────────────────────────────
+
+  testWidgets(
+      'Scenario 0 — SupporterPage renders Scaffold and AppBar without hang',
+      (tester) async {
+    final fakeIap = FakeIapService();
+    final bloc = SupporterBloc(
+      iapService: fakeIap,
+      profileRepository: FakeSupporterProfileRepository(),
+    );
+
+    await pumpSupporterPage(tester, bloc);
+
+    expect(find.byType(Scaffold), findsOneWidget);
+    expect(find.byType(AppBar), findsOneWidget);
+
+    await bloc.close();
+    await fakeIap.dispose();
   });
 
   // ── Scenario 1: initial / loading state ──────────────────────────────────

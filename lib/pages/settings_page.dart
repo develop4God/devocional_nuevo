@@ -1,7 +1,6 @@
 // lib/pages/settings_page.dart - SENIOR SIMPLE APPROACH (HARD DISABLE badges, backup, force PayPal donation)
 import 'dart:developer' as developer;
 
-import 'package:devocional_nuevo/blocs/supporter/supporter_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
@@ -10,15 +9,12 @@ import 'package:devocional_nuevo/pages/application_language_page.dart';
 import 'package:devocional_nuevo/pages/contact_page.dart';
 import 'package:devocional_nuevo/pages/supporter_page.dart';
 import 'package:devocional_nuevo/providers/localization_provider.dart';
-import 'package:devocional_nuevo/repositories/supporter_profile_repository.dart';
-import 'package:devocional_nuevo/services/iap/i_iap_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 import 'package:devocional_nuevo/utils/constants.dart';
 import 'package:devocional_nuevo/widgets/devocionales/app_bar_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -130,14 +126,7 @@ class _SettingsPageState extends State<SettingsPage> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) => BlocProvider(
-                              create: (_) => SupporterBloc(
-                                iapService: getService<IIapService>(),
-                                profileRepository:
-                                    getService<SupporterProfileRepository>(),
-                              ),
-                              child: const SupporterPage(),
-                            ),
+                            builder: (_) => const SupporterPage(),
                           ),
                         );
                       },
@@ -258,14 +247,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => BlocProvider(
-                          create: (_) => SupporterBloc(
-                            iapService: getService<IIapService>(),
-                            profileRepository:
-                                getService<SupporterProfileRepository>(),
-                          ),
-                          child: const AboutPage(),
-                        ),
+                        builder: (_) => const AboutPage(),
                       ),
                     );
                   },
