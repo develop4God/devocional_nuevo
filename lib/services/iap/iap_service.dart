@@ -129,8 +129,7 @@ class IapService implements IIapService {
 
     try {
       final purchaseParam = PurchaseParam(productDetails: product);
-      final started =
-          await _iap.buyNonConsumable(purchaseParam: purchaseParam);
+      final started = await _iap.buyNonConsumable(purchaseParam: purchaseParam);
       if (!started) {
         debugPrint(
             '⚠️ [IapService] Purchase not started for ${tier.productId}');
@@ -192,8 +191,7 @@ class IapService implements IIapService {
 
       for (final product in response.productDetails) {
         _products[product.id] = product;
-        debugPrint(
-            '✅ [IapService] Loaded: ${product.id} — ${product.price}');
+        debugPrint('✅ [IapService] Loaded: ${product.id} — ${product.price}');
       }
 
       if (response.notFoundIDs.isNotEmpty) {

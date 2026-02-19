@@ -153,8 +153,8 @@ void main() {
         final bronze = SupporterTier.fromLevel(SupporterTierLevel.bronze);
         availBloc.add(PurchaseTier(bronze));
         await Future<void>.delayed(const Duration(milliseconds: 5));
-        availBloc
-            .add(PurchaseTier(SupporterTier.fromLevel(SupporterTierLevel.gold)));
+        availBloc.add(
+            PurchaseTier(SupporterTier.fromLevel(SupporterTierLevel.gold)));
         await Future<void>.delayed(const Duration(milliseconds: 10));
 
         final state = availBloc.state as SupporterLoaded;
@@ -180,9 +180,7 @@ void main() {
 
       test('purchasingProductId is cleared after delivery', () async {
         final autoIap = FakeIapService(
-            purchaseShouldSucceed: true,
-            autoDeliver: true,
-            isAvailable: true);
+            purchaseShouldSucceed: true, autoDeliver: true, isAvailable: true);
         final autoBloc = _makeBloc(autoIap, FakeSupporterProfileRepository());
         autoBloc.add(InitializeSupporter());
         await Future<void>.delayed(const Duration(milliseconds: 50));
@@ -308,8 +306,7 @@ void main() {
             .deliver(SupporterTier.fromLevel(SupporterTierLevel.bronze));
         await Future<void>.delayed(const Duration(milliseconds: 20));
 
-        expect(
-            (bloc.state as SupporterLoaded).justDeliveredTier, isNotNull);
+        expect((bloc.state as SupporterLoaded).justDeliveredTier, isNotNull);
 
         bloc.add(ClearSupporterError());
         await Future<void>.delayed(const Duration(milliseconds: 10));

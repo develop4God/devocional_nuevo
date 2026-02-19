@@ -26,8 +26,7 @@ class IapDiagnosticsService {
     final loadedCount = SupporterTier.tiers
         .where((t) => _iapService.getProduct(t.productId) != null)
         .length;
-    debugPrint(
-        'Products Loaded: $loadedCount/${SupporterTier.tiers.length}');
+    debugPrint('Products Loaded: $loadedCount/${SupporterTier.tiers.length}');
 
     if (loadedCount == 0) {
       debugPrint('⚠️  NO PRODUCTS LOADED');
@@ -39,8 +38,7 @@ class IapDiagnosticsService {
       for (final tier in SupporterTier.tiers) {
         final product = _iapService.getProduct(tier.productId);
         if (product != null) {
-          debugPrint(
-              '   ✅ ${product.id}: ${product.title} — ${product.price}');
+          debugPrint('   ✅ ${product.id}: ${product.title} — ${product.price}');
         }
       }
     }

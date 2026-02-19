@@ -44,8 +44,7 @@ void main() {
         () async {
       await repo.saveGoldSupporterName('María José');
       final prefs = await SharedPreferences.getInstance();
-      expect(prefs.getString('iap_gold_supporter_name'),
-          equals('María José'));
+      expect(prefs.getString('iap_gold_supporter_name'), equals('María José'));
     });
 
     test('loadGoldSupporterName() reads from pre-seeded SharedPreferences',
@@ -56,8 +55,8 @@ void main() {
       final seededRepo = SupporterProfileRepository(
         prefsFactory: SharedPreferences.getInstance,
       );
-      expect(await seededRepo.loadGoldSupporterName(),
-          equals('Pre-seeded Name'));
+      expect(
+          await seededRepo.loadGoldSupporterName(), equals('Pre-seeded Name'));
     });
 
     // ── Unicode & special characters ─────────────────────────────────────────

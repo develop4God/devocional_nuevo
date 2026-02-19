@@ -20,8 +20,7 @@ class _MockIap extends Mock implements InAppPurchase {
   Future<bool> isAvailable() async => false;
 
   @override
-  Stream<List<PurchaseDetails>> get purchaseStream =>
-      const Stream.empty();
+  Stream<List<PurchaseDetails>> get purchaseStream => const Stream.empty();
 
   @override
   Future<ProductDetailsResponse> queryProductDetails(
@@ -84,12 +83,14 @@ void main() {
     });
 
     test('IapInitStatus enum has all expected values', () {
-      expect(IapInitStatus.values, containsAll([
-        IapInitStatus.notStarted,
-        IapInitStatus.success,
-        IapInitStatus.billingUnavailable,
-        IapInitStatus.loadFailed,
-      ]));
+      expect(
+          IapInitStatus.values,
+          containsAll([
+            IapInitStatus.notStarted,
+            IapInitStatus.success,
+            IapInitStatus.billingUnavailable,
+            IapInitStatus.loadFailed,
+          ]));
     });
   });
 }

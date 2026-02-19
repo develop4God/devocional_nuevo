@@ -209,8 +209,7 @@ class _AboutPageState extends State<AboutPage> {
                   ),
                   const SizedBox(height: 12),
                   if (isGold) ...[
-                    _buildGraciasSection(
-                        colorScheme, textTheme, goldName),
+                    _buildGraciasSection(colorScheme, textTheme, goldName),
                     const SizedBox(height: 12),
                   ],
                   Text(
@@ -241,8 +240,7 @@ class _AboutPageState extends State<AboutPage> {
                     child: ElevatedButton.icon(
                       onPressed: () =>
                           _launchURL('https://www.develop4god.com/'),
-                      icon:
-                          Icon(Icons.public, color: colorScheme.onPrimary),
+                      icon: Icon(Icons.public, color: colorScheme.onPrimary),
                       label: Text(
                         'about.terms_copyright'.tr(),
                         style: TextStyle(color: colorScheme.onPrimary),
@@ -261,11 +259,9 @@ class _AboutPageState extends State<AboutPage> {
                   ),
                   if (_developerMode)
                     Padding(
-                      padding:
-                          const EdgeInsets.only(top: 16.0, bottom: 8.0),
+                      padding: const EdgeInsets.only(top: 16.0, bottom: 8.0),
                       child: ElevatedButton.icon(
-                        icon: const Icon(Icons.bug_report,
-                            color: Colors.white),
+                        icon: const Icon(Icons.bug_report, color: Colors.white),
                         label: const Text('Debug Tools'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.red.shade700,

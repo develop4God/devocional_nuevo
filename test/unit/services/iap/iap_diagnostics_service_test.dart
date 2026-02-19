@@ -15,7 +15,8 @@ import '../../../helpers/iap_mock_helper.dart';
 
 void main() {
   group('IapDiagnosticsService', () {
-    test('printDiagnostics() does not throw when 0 products loaded '
+    test(
+        'printDiagnostics() does not throw when 0 products loaded '
         '(covers ⚠️ NO PRODUCTS LOADED branch)', () {
       final fakeIap = FakeIapService();
       final diagnostics = IapDiagnosticsService(fakeIap);
