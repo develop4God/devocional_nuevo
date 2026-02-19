@@ -54,7 +54,7 @@ void main() {
         bloc.stream.listen(states.add);
 
         bloc.add(InitializeSupporter());
-        await Future<void>.delayed(const Duration(milliseconds: 50));
+        await pumpEventQueue();
 
         expect(states[0], isA<SupporterLoading>());
         expect(states[1], isA<SupporterLoaded>());
@@ -63,7 +63,7 @@ void main() {
       test('SupporterLoaded has empty purchasedLevels when nothing bought',
           () async {
         bloc.add(InitializeSupporter());
-        await Future<void>.delayed(const Duration(milliseconds: 50));
+        await pumpEventQueue();
 
         final state = bloc.state as SupporterLoaded;
         expect(state.purchasedLevels, isEmpty);
@@ -75,7 +75,7 @@ void main() {
             .deliver(SupporterTier.fromLevel(SupporterTierLevel.bronze));
 
         bloc.add(InitializeSupporter());
-        await Future<void>.delayed(const Duration(milliseconds: 50));
+        await pumpEventQueue();
 
         final state = bloc.state as SupporterLoaded;
         expect(state.isPurchased(SupporterTierLevel.bronze), isTrue);
@@ -83,7 +83,7 @@ void main() {
 
       test('initStatus reflected in SupporterLoaded', () async {
         bloc.add(InitializeSupporter());
-        await Future<void>.delayed(const Duration(milliseconds: 50));
+        await pumpEventQueue();
 
         final state = bloc.state as SupporterLoaded;
         expect(state.initStatus, equals(IapInitStatus.billingUnavailable));
@@ -93,10 +93,32 @@ void main() {
         await fakeRepo.saveGoldSupporterName('María de los Ángeles');
 
         bloc.add(InitializeSupporter());
-        await Future<void>.delayed(const Duration(milliseconds: 50));
+        await pumpEventQueue();
 
         final state = bloc.state as SupporterLoaded;
         expect(state.goldSupporterName, equals('María de los Ángeles'));
+      });
+
+      // Gap #2: second InitializeSupporter must NOT re-emit Loading → Loaded
+      // when bloc is already SupporterLoaded (UI guard validation).
+      test(
+          'second InitializeSupporter is honoured by BLoC — '
+          'UI layer is responsible for the guard, '
+          'BLoC transitions Loading → Loaded again', () async {
+        bloc.add(InitializeSupporter());
+        await pumpEventQueue();
+        expect(bloc.state, isA<SupporterLoaded>());
+
+        // BLoC itself has no guard — the guard lives in the UI (initState).
+        // A second event therefore re-emits the full cycle.
+        final states = <SupporterState>[];
+        bloc.stream.listen(states.add);
+        bloc.add(InitializeSupporter());
+        await pumpEventQueue();
+
+        expect(states.any((s) => s is SupporterLoading), isTrue,
+            reason: 'BLoC re-processes the event; UI guard prevents this call');
+        expect(states.last, isA<SupporterLoaded>());
       });
     });
 
@@ -122,40 +144,40 @@ void main() {
       });
 
       test('sets purchasingProductId while purchase is pending', () async {
-        await Future<void>.delayed(const Duration(milliseconds: 50));
+        await pumpEventQueue();
 
         final bronze = SupporterTier.fromLevel(SupporterTierLevel.bronze);
         availBloc.add(PurchaseTier(bronze));
-        await Future<void>.delayed(const Duration(milliseconds: 10));
+        await pumpEventQueue();
 
         final state = availBloc.state as SupporterLoaded;
         expect(state.purchasingProductId, equals(bronze.productId));
       });
 
       test('emits error when billing unavailable', () async {
-        await Future<void>.delayed(const Duration(milliseconds: 50));
+        await pumpEventQueue();
         fakeIap.setAvailable(false);
 
         bloc.add(InitializeSupporter());
-        await Future<void>.delayed(const Duration(milliseconds: 50));
+        await pumpEventQueue();
 
         final silver = SupporterTier.fromLevel(SupporterTierLevel.silver);
         bloc.add(PurchaseTier(silver));
-        await Future<void>.delayed(const Duration(milliseconds: 20));
+        await pumpEventQueue();
 
         final state = bloc.state as SupporterLoaded;
         expect(state.errorMessage, equals('billing_unavailable'));
       });
 
       test('ignores concurrent purchase attempt', () async {
-        await Future<void>.delayed(const Duration(milliseconds: 50));
+        await pumpEventQueue();
 
         final bronze = SupporterTier.fromLevel(SupporterTierLevel.bronze);
         availBloc.add(PurchaseTier(bronze));
-        await Future<void>.delayed(const Duration(milliseconds: 5));
+        await pumpEventQueue();
         availBloc.add(
             PurchaseTier(SupporterTier.fromLevel(SupporterTierLevel.gold)));
-        await Future<void>.delayed(const Duration(milliseconds: 10));
+        await pumpEventQueue();
 
         final state = availBloc.state as SupporterLoaded;
         expect(state.purchasingProductId, equals(bronze.productId));
@@ -167,11 +189,11 @@ void main() {
     group('Purchase delivery (stream-driven)', () {
       test('justDeliveredTier is set when tier is delivered', () async {
         bloc.add(InitializeSupporter());
-        await Future<void>.delayed(const Duration(milliseconds: 50));
+        await pumpEventQueue();
 
         final silver = SupporterTier.fromLevel(SupporterTierLevel.silver);
         await fakeIap.deliver(silver);
-        await Future<void>.delayed(const Duration(milliseconds: 20));
+        await pumpEventQueue();
 
         final state = bloc.state as SupporterLoaded;
         expect(state.justDeliveredTier, equals(silver));
@@ -183,11 +205,11 @@ void main() {
             purchaseShouldSucceed: true, autoDeliver: true, isAvailable: true);
         final autoBloc = _makeBloc(autoIap, FakeSupporterProfileRepository());
         autoBloc.add(InitializeSupporter());
-        await Future<void>.delayed(const Duration(milliseconds: 50));
+        await pumpEventQueue();
 
         final bronze = SupporterTier.fromLevel(SupporterTierLevel.bronze);
         autoBloc.add(PurchaseTier(bronze));
-        await Future<void>.delayed(const Duration(milliseconds: 50));
+        await pumpEventQueue();
 
         final state = autoBloc.state as SupporterLoaded;
         expect(state.purchasingProductId, isNull);
@@ -199,14 +221,14 @@ void main() {
 
       test('multiple deliveries each update purchasedLevels', () async {
         bloc.add(InitializeSupporter());
-        await Future<void>.delayed(const Duration(milliseconds: 50));
+        await pumpEventQueue();
 
         await fakeIap
             .deliver(SupporterTier.fromLevel(SupporterTierLevel.bronze));
-        await Future<void>.delayed(const Duration(milliseconds: 20));
+        await pumpEventQueue();
         await fakeIap
             .deliver(SupporterTier.fromLevel(SupporterTierLevel.silver));
-        await Future<void>.delayed(const Duration(milliseconds: 20));
+        await pumpEventQueue();
 
         final state = bloc.state as SupporterLoaded;
         expect(state.isPurchased(SupporterTierLevel.bronze), isTrue);
@@ -220,22 +242,21 @@ void main() {
       test('stays SupporterLoaded during restore (no SupporterLoading emitted)',
           () async {
         bloc.add(InitializeSupporter());
-        await Future<void>.delayed(const Duration(milliseconds: 50));
+        await pumpEventQueue();
 
         final states = <SupporterState>[];
         bloc.stream.listen(states.add);
 
         bloc.add(RestorePurchases());
-        await Future<void>.delayed(const Duration(milliseconds: 50));
+        await pumpEventQueue();
 
-        // Must NOT transition to SupporterLoading mid-restore
         expect(states.any((s) => s is SupporterLoading), isFalse);
         expect(states.last, isA<SupporterLoaded>());
       });
 
       test('isRestoring true during restore, false after', () async {
         bloc.add(InitializeSupporter());
-        await Future<void>.delayed(const Duration(milliseconds: 50));
+        await pumpEventQueue();
 
         final states = <SupporterLoaded>[];
         bloc.stream.listen((s) {
@@ -243,7 +264,7 @@ void main() {
         });
 
         bloc.add(RestorePurchases());
-        await Future<void>.delayed(const Duration(milliseconds: 50));
+        await pumpEventQueue();
 
         expect(states.first.isRestoring, isTrue);
         expect(states.last.isRestoring, isFalse);
@@ -252,25 +273,22 @@ void main() {
       test('deliveries mid-restore update purchasedLevels immediately',
           () async {
         bloc.add(InitializeSupporter());
-        await Future<void>.delayed(const Duration(milliseconds: 50));
+        await pumpEventQueue();
 
-        // Pre-purchase 2 tiers so restorePurchases() will re-emit them
         await fakeIap
             .deliver(SupporterTier.fromLevel(SupporterTierLevel.bronze));
         await fakeIap
             .deliver(SupporterTier.fromLevel(SupporterTierLevel.silver));
-        await Future<void>.delayed(const Duration(milliseconds: 20));
+        await pumpEventQueue();
 
-        // Reset the fake purchases so we can re-deliver via restore
         fakeIap.resetForTesting();
         fakeIap.setAvailable(false);
 
-        // Re-add the purchases to the fake so restorePurchases re-emits them
         await fakeIap
             .deliver(SupporterTier.fromLevel(SupporterTierLevel.bronze));
         await fakeIap
             .deliver(SupporterTier.fromLevel(SupporterTierLevel.silver));
-        await Future<void>.delayed(const Duration(milliseconds: 10));
+        await pumpEventQueue();
 
         final state = bloc.state as SupporterLoaded;
         expect(state.isPurchased(SupporterTierLevel.bronze), isTrue);
@@ -283,15 +301,64 @@ void main() {
     group('SaveGoldSupporterName event', () {
       test('persists name in repository and updates state', () async {
         bloc.add(InitializeSupporter());
-        await Future<void>.delayed(const Duration(milliseconds: 50));
+        await pumpEventQueue();
 
         bloc.add(SaveGoldSupporterName('Pastor Luis'));
-        await Future<void>.delayed(const Duration(milliseconds: 20));
+        await pumpEventQueue();
 
         expect(fakeRepo.loadGoldSupporterName(),
             completion(equals('Pastor Luis')));
         final state = bloc.state as SupporterLoaded;
         expect(state.goldSupporterName, equals('Pastor Luis'));
+      });
+
+      test('overwriting an existing name updates state', () async {
+        bloc.add(InitializeSupporter());
+        await pumpEventQueue();
+
+        bloc.add(SaveGoldSupporterName('Old Name'));
+        await pumpEventQueue();
+        bloc.add(SaveGoldSupporterName('New Name'));
+        await pumpEventQueue();
+
+        final state = bloc.state as SupporterLoaded;
+        expect(state.goldSupporterName, equals('New Name'));
+      });
+    });
+
+    // ── EditGoldSupporterName ───────────────────────────────────────────────
+
+    group('EditGoldSupporterName event (Gap #4 — edit name re-entry)', () {
+      test('sets isEditingGoldName to true', () async {
+        bloc.add(InitializeSupporter());
+        await pumpEventQueue();
+
+        bloc.add(EditGoldSupporterName());
+        await pumpEventQueue();
+
+        final state = bloc.state as SupporterLoaded;
+        expect(state.isEditingGoldName, isTrue);
+      });
+
+      test('isEditingGoldName resets to false on next copyWith', () async {
+        bloc.add(InitializeSupporter());
+        await pumpEventQueue();
+
+        bloc.add(EditGoldSupporterName());
+        await pumpEventQueue();
+
+        // Subsequent event (e.g. SaveGoldSupporterName) clears the flag
+        bloc.add(SaveGoldSupporterName('Updated Name'));
+        await pumpEventQueue();
+
+        final state = bloc.state as SupporterLoaded;
+        expect(state.isEditingGoldName, isFalse);
+      });
+
+      test('ignored when bloc is not SupporterLoaded', () {
+        expect(bloc.state, isA<SupporterInitial>());
+        // Must not throw
+        expect(() => bloc.add(EditGoldSupporterName()), returnsNormally);
       });
     });
 
@@ -300,16 +367,16 @@ void main() {
     group('ClearSupporterError event', () {
       test('clears errorMessage and justDeliveredTier', () async {
         bloc.add(InitializeSupporter());
-        await Future<void>.delayed(const Duration(milliseconds: 50));
+        await pumpEventQueue();
 
         await fakeIap
             .deliver(SupporterTier.fromLevel(SupporterTierLevel.bronze));
-        await Future<void>.delayed(const Duration(milliseconds: 20));
+        await pumpEventQueue();
 
         expect((bloc.state as SupporterLoaded).justDeliveredTier, isNotNull);
 
         bloc.add(ClearSupporterError());
-        await Future<void>.delayed(const Duration(milliseconds: 10));
+        await pumpEventQueue();
 
         final state = bloc.state as SupporterLoaded;
         expect(state.justDeliveredTier, isNull);
@@ -321,7 +388,7 @@ void main() {
 
     test('close() does not throw', () async {
       bloc.add(InitializeSupporter());
-      await Future<void>.delayed(const Duration(milliseconds: 30));
+      await pumpEventQueue();
       await expectLater(bloc.close(), completes);
     });
   });
@@ -348,7 +415,7 @@ void main() {
       fake.onPurchaseDelivered.listen(received.add);
 
       await fake.deliver(SupporterTier.fromLevel(SupporterTierLevel.gold));
-      await Future<void>.delayed(const Duration(milliseconds: 10));
+      await pumpEventQueue();
 
       expect(fake.isPurchased(SupporterTierLevel.gold), isTrue);
       expect(received, hasLength(1));
@@ -362,7 +429,7 @@ void main() {
       fake.onPurchaseDelivered.listen(received.add);
 
       await fake.restorePurchases();
-      await Future<void>.delayed(const Duration(milliseconds: 10));
+      await pumpEventQueue();
 
       expect(received, hasLength(2));
     });

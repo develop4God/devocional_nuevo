@@ -37,8 +37,12 @@ class _AboutPageState extends State<AboutPage> {
     _initPackageInfo();
     _loadDeveloperMode();
     // Kick off IAP initialization via the BLoC — no direct IIapService call.
-    // The BlocProvider<SupporterBloc> is set up by the caller in settings_page.dart.
-    context.read<SupporterBloc>().add(InitializeSupporter());
+    // The BlocProvider<SupporterBloc> is set up at app level (main.dart).
+    // Guard prevents a redundant Loading → Loaded flicker on re-navigation.
+    final bloc = context.read<SupporterBloc>();
+    if (bloc.state is! SupporterLoaded) {
+      bloc.add(InitializeSupporter());
+    }
   }
 
   Future<void> _initPackageInfo() async {

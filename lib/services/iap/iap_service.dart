@@ -7,6 +7,7 @@ import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../models/supporter_tier.dart';
+import 'i_iap_diagnostics_service.dart';
 import 'i_iap_service.dart';
 import 'iap_diagnostics_service.dart';
 
@@ -23,15 +24,27 @@ class IapService implements IIapService {
   final InAppPurchase _iap;
   final Future<SharedPreferences> Function() _prefsFactory;
 
+  /// Optional diagnostics printer. Defaults to [IapDiagnosticsService] in
+  /// debug builds; pass a custom [IIapDiagnosticsService] in tests to silence
+  /// or inspect output. Null disables diagnostics entirely.
+  final IIapDiagnosticsService? _diagnosticsService;
+
   /// Creates an [IapService].
   ///
   /// [inAppPurchase] defaults to [InAppPurchase.instance]; override in tests.
   /// [prefsFactory] defaults to [SharedPreferences.getInstance]; override in tests.
+  /// [diagnosticsService] is only active in debug builds; pass a no-op in
+  /// tests or production to suppress output.
   IapService({
     InAppPurchase? inAppPurchase,
     Future<SharedPreferences> Function()? prefsFactory,
+    IIapDiagnosticsService? diagnosticsService,
   })  : _iap = inAppPurchase ?? InAppPurchase.instance,
-        _prefsFactory = prefsFactory ?? SharedPreferences.getInstance;
+        _prefsFactory = prefsFactory ?? SharedPreferences.getInstance,
+        // Lazily wire the concrete diagnostics impl only in debug builds.
+        // Production builds receive null → no diagnostics overhead.
+        _diagnosticsService =
+            diagnosticsService ?? (kDebugMode ? _LazyDiagnostics() : null);
 
   // ── Broadcast stream ──────────────────────────────────────────────────────
   final StreamController<SupporterTier> _deliveredController =
@@ -101,9 +114,11 @@ class IapService implements IIapService {
       await _loadProducts();
 
       // Wire diagnostics in debug builds after products are loaded.
-      if (kDebugMode) {
-        IapDiagnosticsService(this).printDiagnostics();
+      // _diagnosticsService is injected (null in production, no-op in tests).
+      if (_diagnosticsService is _LazyDiagnostics) {
+        (_diagnosticsService as _LazyDiagnostics).wire(this);
       }
+      _diagnosticsService?.printDiagnostics();
 
       _initStatus = IapInitStatus.success;
       debugPrint('✅ [IapService] Initialization complete');
@@ -233,6 +248,13 @@ class IapService implements IIapService {
 
     if (purchase.status == PurchaseStatus.purchased ||
         purchase.status == PurchaseStatus.restored) {
+      // ⚠️ RECEIPT VALIDATION NOTE (Gap #1 — acknowledged trade-off):
+      // Delivery is trusted based on PurchaseStatus alone.  For a devotional
+      // app with one-time tiers and no server-managed entitlements this is an
+      // accepted risk: the worst-case scenario is a user unlocking a cosmetic
+      // badge without paying.  If revenue grows, add server-side receipt
+      // validation here (Google Play Developer API / Apple App Store Server
+      // Notifications) before calling _deliverProduct().
       await _deliverProduct(purchase.productID);
     } else if (purchase.status == PurchaseStatus.error) {
       debugPrint('❌ [IapService] Purchase error: ${purchase.error}');
@@ -287,4 +309,30 @@ class IapService implements IIapService {
       debugPrint('❌ [IapService] Error saving prefs: $e');
     }
   }
+}
+
+// ── Private diagnostics bridge ─────────────────────────────────────────────
+
+/// Bridges the lazy default diagnostics wiring: defers constructing
+/// [IapDiagnosticsService] until [printDiagnostics] is first called, so the
+/// [IapService] constructor stays clean while the default debug path still
+/// uses the concrete implementation.
+///
+/// This is package-private (file-scoped underscore prefix) and is only
+/// created when [kDebugMode] is true — it is never instantiated in production.
+class _LazyDiagnostics implements IIapDiagnosticsService {
+  IIapService? _service;
+
+  /// Called once after [IapService.initialize] completes so the diagnostics
+  /// printer can read the fully-initialised service state.
+  @override
+  void printDiagnostics() {
+    // _service is wired by IapService after initialization completes.
+    // If not yet wired (e.g. dispose raced), silently skip.
+    if (_service == null) return;
+    IapDiagnosticsService(_service!).printDiagnostics();
+  }
+
+  /// Called by [IapService] to provide itself as the service reference.
+  void wire(IIapService service) => _service = service;
 }

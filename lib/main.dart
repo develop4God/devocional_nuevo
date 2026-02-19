@@ -18,7 +18,7 @@ import 'package:devocional_nuevo/pages/settings_page.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
 import 'package:devocional_nuevo/providers/localization_provider.dart';
 import 'package:devocional_nuevo/repositories/discovery_repository.dart';
-import 'package:devocional_nuevo/repositories/supporter_profile_repository.dart';
+import 'package:devocional_nuevo/repositories/i_supporter_profile_repository.dart';
 import 'package:devocional_nuevo/services/discovery_favorites_service.dart';
 import 'package:devocional_nuevo/services/discovery_progress_tracker.dart';
 import 'package:devocional_nuevo/services/i_google_drive_backup_service.dart';
@@ -159,7 +159,7 @@ void main() async {
         BlocProvider(
           create: (context) => SupporterBloc(
             iapService: getService<IIapService>(),
-            profileRepository: getService<SupporterProfileRepository>(),
+            profileRepository: getService<ISupporterProfileRepository>(),
           ),
         ),
       ],

@@ -3,18 +3,23 @@
 import 'package:flutter/foundation.dart';
 
 import '../../models/supporter_tier.dart';
+import 'i_iap_diagnostics_service.dart';
 import 'i_iap_service.dart';
 
 /// Prints diagnostic information about IAP status.
 ///
 /// Extracted from [IapService] to satisfy SRP — this class has
 /// no purchasing logic, only debugging output.
-class IapDiagnosticsService {
+///
+/// Implements [IIapDiagnosticsService] so that [IapService] can depend on
+/// the abstraction rather than the concrete type (Dependency Inversion).
+class IapDiagnosticsService implements IIapDiagnosticsService {
   final IIapService _iapService;
 
   IapDiagnosticsService(this._iapService);
 
   /// Prints a formatted diagnostic report to the debug console.
+  @override
   void printDiagnostics() {
     debugPrint('═══════════════════════════════════════════');
     debugPrint('📊 [IAP] Diagnostics Report');
