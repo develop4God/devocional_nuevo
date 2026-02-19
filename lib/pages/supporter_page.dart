@@ -4,7 +4,6 @@ import 'dart:async';
 import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -233,19 +232,21 @@ class _SupporterPageState extends State<SupporterPage>
                 const SizedBox(height: 8),
                 Text(
                   'supporter.purchase_success_title'.tr(),
-                  style: Theme.of(dialogContext).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.w900,
-                        color: tier.badgeColor,
-                      ),
+                  style:
+                      Theme.of(dialogContext).textTheme.headlineSmall?.copyWith(
+                            fontWeight: FontWeight.w900,
+                            color: tier.badgeColor,
+                          ),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 12),
                 Text(
                   'supporter.purchase_success_subtitle'.tr(),
-                  style: Theme.of(dialogContext).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(dialogContext).colorScheme.primary,
-                      ),
+                  style:
+                      Theme.of(dialogContext).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(dialogContext).colorScheme.primary,
+                          ),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 16),
@@ -264,29 +265,40 @@ class _SupporterPageState extends State<SupporterPage>
                 Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: Theme.of(dialogContext).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                    color: Theme.of(dialogContext)
+                        .colorScheme
+                        .surfaceContainerHighest
+                        .withValues(alpha: 0.3),
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: tier.badgeColor.withValues(alpha: 0.2)),
+                    border: Border.all(
+                        color: tier.badgeColor.withValues(alpha: 0.2)),
                   ),
                   child: Column(
                     children: [
                       Text(
                         'supporter.purchase_success_verse'.tr(),
-                        style: Theme.of(dialogContext).textTheme.bodyMedium?.copyWith(
-                          fontStyle: FontStyle.italic,
-                          fontWeight: FontWeight.w600,
-                          color: Theme.of(dialogContext).colorScheme.onSurface,
-                        ),
+                        style: Theme.of(dialogContext)
+                            .textTheme
+                            .bodyMedium
+                            ?.copyWith(
+                              fontStyle: FontStyle.italic,
+                              fontWeight: FontWeight.w600,
+                              color:
+                                  Theme.of(dialogContext).colorScheme.onSurface,
+                            ),
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 8),
                       Text(
                         'supporter.purchase_success_verse_ref'.tr(),
-                        style: Theme.of(dialogContext).textTheme.labelSmall?.copyWith(
-                          color: tier.badgeColor,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 0.5,
-                        ),
+                        style: Theme.of(dialogContext)
+                            .textTheme
+                            .labelSmall
+                            ?.copyWith(
+                              color: tier.badgeColor,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.5,
+                            ),
                       ),
                     ],
                   ),
@@ -302,11 +314,13 @@ class _SupporterPageState extends State<SupporterPage>
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(16),
-                        borderSide: BorderSide(color: tier.badgeColor.withValues(alpha: 0.3)),
+                        borderSide: BorderSide(
+                            color: tier.badgeColor.withValues(alpha: 0.3)),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(16),
-                        borderSide: BorderSide(color: tier.badgeColor, width: 2),
+                        borderSide:
+                            BorderSide(color: tier.badgeColor, width: 2),
                       ),
                       helperText: 'supporter.gold_name_helper'.tr(),
                       prefixIcon: Icon(Icons.person, color: tier.badgeColor),
@@ -331,13 +345,15 @@ class _SupporterPageState extends State<SupporterPage>
                       backgroundColor: tier.badgeColor,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 18),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20)),
                       elevation: 4,
                       shadowColor: tier.badgeColor.withValues(alpha: 0.5),
                     ),
                     child: Text(
                       'supporter.purchase_success_button'.tr(),
-                      style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18),
+                      style: const TextStyle(
+                          fontWeight: FontWeight.w900, fontSize: 18),
                     ),
                   ),
                 ),
@@ -434,23 +450,53 @@ class _SupporterPageState extends State<SupporterPage>
                   fit: BoxFit.cover,
                 ),
               ),
-            if (_showScrollHint)
-              Positioned(
-                bottom: 40,
-                left: 0,
-                right: 0,
-                child: IgnorePointer(
-                  child: AnimatedOpacity(
-                    opacity: _showScrollHint ? 1.0 : 0.0,
-                    duration: const Duration(milliseconds: 300),
-                    child: Icon(
-                      Icons.keyboard_arrow_down_rounded,
-                      color: colorScheme.primary.withValues(alpha: 0.7),
-                      size: 40,
+            Positioned(
+              bottom: 24,
+              left: 0,
+              right: 0,
+              child: IgnorePointer(
+                ignoring: !_showScrollHint,
+                child: AnimatedOpacity(
+                  opacity: _showScrollHint ? 1.0 : 0.0,
+                  duration: const Duration(milliseconds: 300),
+                  child: Center(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: colorScheme.primaryContainer.withValues(alpha: 0.9),
+                        borderRadius: BorderRadius.circular(30),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.1),
+                            blurRadius: 8,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.keyboard_arrow_down_rounded,
+                            color: colorScheme.onPrimaryContainer,
+                            size: 24,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            'discovery.read'.tr(),
+                            style: textTheme.labelMedium?.copyWith(
+                              color: colorScheme.onPrimaryContainer,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
               ),
+            ),
           ],
         ),
       ),
