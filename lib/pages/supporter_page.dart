@@ -17,7 +17,6 @@ import '../widgets/devocionales/app_bar_constants.dart';
 import '../widgets/supporter/tier_card.dart';
 
 /// Page that shows the 3 supporter tiers with Google Play Billing integration.
-/// Users can purchase a tier to receive a supporter badge (digital item).
 class SupporterPage extends StatefulWidget {
   const SupporterPage({super.key});
 
@@ -26,21 +25,22 @@ class SupporterPage extends StatefulWidget {
 }
 
 class _SupporterPageState extends State<SupporterPage>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   final IapService _iapService = IapService();
   StreamSubscription<List<PurchaseDetails>>? _purchaseSubscription;
   final ScrollController _scrollController = ScrollController();
 
   late AnimationController _headerAnimController;
   late Animation<double> _headerFadeIn;
+  late AnimationController _confettiController;
 
   bool _isLoadingProducts = true;
   bool _isBillingAvailable = false;
   String? _loadingProductId;
   Set<SupporterTierLevel> _purchasedLevels = {};
   bool _showScrollHint = true;
+  bool _showConfetti = false;
 
-  // Prices from the store (if available)
   final Map<String, String> _storePrices = {};
 
   @override
@@ -55,6 +55,16 @@ class _SupporterPageState extends State<SupporterPage>
       curve: Curves.easeOut,
     );
     _headerAnimController.forward();
+
+    _confettiController = AnimationController(
+      duration: const Duration(seconds: 4),
+      vsync: this,
+    )..addStatusListener((status) {
+        if (status == AnimationStatus.completed) {
+          setState(() => _showConfetti = false);
+          _confettiController.reset();
+        }
+      });
 
     _initIap();
     _listenToPurchaseStream();
@@ -86,16 +96,10 @@ class _SupporterPageState extends State<SupporterPage>
 
       if (!mounted) return;
 
-      // Print diagnostics in debug mode
-      if (kDebugMode) {
-        _iapService.printDiagnostics();
-      }
-
       setState(() {
         _isBillingAvailable = _iapService.isAvailable;
         _purchasedLevels = _iapService.purchasedLevels;
 
-        // Collect store prices
         for (final tier in SupporterTier.tiers) {
           final product = _iapService.getProduct(tier.productId);
           if (product != null) {
@@ -137,7 +141,9 @@ class _SupporterPageState extends State<SupporterPage>
           setState(() {
             _purchasedLevels = _iapService.purchasedLevels;
             _loadingProductId = null;
+            _showConfetti = true;
           });
+          _confettiController.forward();
           _showSuccessDialog(tier);
         }
       } else if (purchase.status == PurchaseStatus.error) {
@@ -147,7 +153,6 @@ class _SupporterPageState extends State<SupporterPage>
         setState(() => _loadingProductId = null);
       }
     }
-    // Refresh purchased state after stream update
     if (mounted) {
       setState(() {
         _purchasedLevels = _iapService.purchasedLevels;
@@ -174,7 +179,6 @@ class _SupporterPageState extends State<SupporterPage>
       setState(() => _loadingProductId = null);
       _showErrorSnackBar('supporter.purchase_error'.tr());
     }
-    // For IapResult.pending, keep showing loading until stream update
   }
 
   Future<void> _onRestorePurchases() async {
@@ -194,139 +198,153 @@ class _SupporterPageState extends State<SupporterPage>
   }
 
   void _showSuccessDialog(SupporterTier tier) {
-    if (tier.level == SupporterTierLevel.gold) {
-      _showGoldSuccessDialog(tier);
-    } else {
-      _showBasicSuccessDialog(tier);
-    }
-  }
-
-  void _showBasicSuccessDialog(SupporterTier tier) {
-    showDialog<void>(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(height: 8),
-            Text(
-              tier.emoji,
-              style: const TextStyle(fontSize: 52),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'supporter.purchase_success_title'.tr(),
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: tier.badgeColor,
-                  ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'supporter.purchase_success_body'.tr(),
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .onSurface
-                        .withValues(alpha: 0.8),
-                  ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-        actions: [
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: tier.badgeColor,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            child: Text('app.ok'.tr()),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showGoldSuccessDialog(SupporterTier tier) {
+    final isGold = tier.level == SupporterTierLevel.gold;
     final nameController = TextEditingController();
 
     showDialog<void>(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const SizedBox(height: 8),
-              Text(
-                tier.emoji,
-                style: const TextStyle(fontSize: 52),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'supporter.purchase_success_title'.tr(),
-                style: Theme.of(dialogContext).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: tier.badgeColor,
+      barrierDismissible: false,
+      builder: (dialogContext) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Lottie.asset(
+                      'assets/lottie/success_check_celebration.json',
+                      width: 180,
+                      height: 180,
+                      repeat: false,
                     ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'supporter.purchase_success_body'.tr(),
-                style: Theme.of(dialogContext).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(dialogContext)
-                          .colorScheme
-                          .onSurface
-                          .withValues(alpha: 0.8),
+                    Positioned(
+                      bottom: 40,
+                      child: Text(
+                        tier.emoji,
+                        style: const TextStyle(fontSize: 40),
+                      ),
                     ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: nameController,
-                decoration: InputDecoration(
-                  labelText: 'supporter.gold_name_hint'.tr(),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  helperText: 'supporter.gold_name_helper'.tr(),
-                  helperMaxLines: 2,
+                  ],
                 ),
-                maxLength: 40,
-                textCapitalization: TextCapitalization.words,
-              ),
-            ],
+                const SizedBox(height: 8),
+                Text(
+                  'supporter.purchase_success_title'.tr(),
+                  style: Theme.of(dialogContext).textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.w900,
+                        color: tier.badgeColor,
+                      ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'supporter.purchase_success_subtitle'.tr(),
+                  style: Theme.of(dialogContext).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(dialogContext).colorScheme.primary,
+                      ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'supporter.purchase_success_body'.tr(),
+                  style: Theme.of(dialogContext).textTheme.bodyMedium?.copyWith(
+                        color: Theme.of(dialogContext)
+                            .colorScheme
+                            .onSurface
+                            .withValues(alpha: 0.8),
+                        height: 1.5,
+                      ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Theme.of(dialogContext).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: tier.badgeColor.withValues(alpha: 0.2)),
+                  ),
+                  child: Column(
+                    children: [
+                      Text(
+                        'supporter.purchase_success_verse'.tr(),
+                        style: Theme.of(dialogContext).textTheme.bodyMedium?.copyWith(
+                          fontStyle: FontStyle.italic,
+                          fontWeight: FontWeight.w600,
+                          color: Theme.of(dialogContext).colorScheme.onSurface,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'supporter.purchase_success_verse_ref'.tr(),
+                        style: Theme.of(dialogContext).textTheme.labelSmall?.copyWith(
+                          color: tier.badgeColor,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (isGold) ...[
+                  const SizedBox(height: 24),
+                  TextField(
+                    controller: nameController,
+                    decoration: InputDecoration(
+                      labelText: 'supporter.gold_name_hint'.tr(),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: BorderSide(color: tier.badgeColor.withValues(alpha: 0.3)),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: BorderSide(color: tier.badgeColor, width: 2),
+                      ),
+                      helperText: 'supporter.gold_name_helper'.tr(),
+                      prefixIcon: Icon(Icons.person, color: tier.badgeColor),
+                    ),
+                    maxLength: 40,
+                  ),
+                ],
+                const SizedBox(height: 32),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      if (isGold) {
+                        final name = nameController.text.trim();
+                        if (name.isNotEmpty) {
+                          _iapService.saveGoldSupporterName(name);
+                        }
+                      }
+                      Navigator.pop(dialogContext);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: tier.badgeColor,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 18),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                      elevation: 4,
+                      shadowColor: tier.badgeColor.withValues(alpha: 0.5),
+                    ),
+                    child: Text(
+                      'supporter.purchase_success_button'.tr(),
+                      style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
-        actions: [
-          ElevatedButton(
-            onPressed: () {
-              final name = nameController.text.trim();
-              if (name.isNotEmpty) {
-                _iapService.saveGoldSupporterName(name);
-              }
-              Navigator.pop(dialogContext);
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: tier.badgeColor,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            child: Text('app.ok'.tr()),
-          ),
-        ],
       ),
     );
   }
@@ -361,6 +379,7 @@ class _SupporterPageState extends State<SupporterPage>
   @override
   void dispose() {
     _headerAnimController.dispose();
+    _confettiController.dispose();
     _purchaseSubscription?.cancel();
     _scrollController.removeListener(_scrollListener);
     _scrollController.dispose();
@@ -377,66 +396,62 @@ class _SupporterPageState extends State<SupporterPage>
       value: themeState.systemUiOverlayStyle,
       child: Scaffold(
         appBar: CustomAppBar(titleText: 'supporter.page_title'.tr()),
-        body: FadeTransition(
-          opacity: _headerFadeIn,
-          child: Stack(
-            children: [
-              Theme(
-                data: Theme.of(context).copyWith(
-                  scrollbarTheme: ScrollbarThemeData(
-                    thumbColor: WidgetStateProperty.all(
-                        colorScheme.primary.withValues(alpha: 0.5)),
-                    thickness: WidgetStateProperty.all(6.0),
-                    radius: const Radius.circular(10),
+        body: Stack(
+          children: [
+            FadeTransition(
+              opacity: _headerFadeIn,
+              child: Scrollbar(
+                controller: _scrollController,
+                child: SingleChildScrollView(
+                  controller: _scrollController,
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+                  child: Column(
+                    children: [
+                      _buildMissionHeader(colorScheme, textTheme),
+                      const SizedBox(height: 24),
+                      _buildMinistryMessage(colorScheme, textTheme),
+                      const SizedBox(height: 32),
+                      if (_isLoadingProducts)
+                        _buildLoadingState()
+                      else
+                        _buildTiersList(colorScheme, textTheme),
+                      const SizedBox(height: 24),
+                      _buildRestorePurchases(colorScheme, textTheme),
+                      const SizedBox(height: 16),
+                      _buildDisclaimerText(colorScheme, textTheme),
+                    ],
                   ),
                 ),
-                child: Scrollbar(
-                  controller: _scrollController,
-                  thumbVisibility: true,
-                  child: SingleChildScrollView(
-                    controller: _scrollController,
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        _buildMissionHeader(colorScheme, textTheme),
-                        const SizedBox(height: 20),
-                        _buildMinistryMessage(colorScheme, textTheme),
-                        const SizedBox(height: 24),
-                        if (_isLoadingProducts)
-                          _buildLoadingState()
-                        else
-                          _buildTiersList(colorScheme, textTheme),
-                        const SizedBox(height: 16),
-                        _buildRestorePurchases(colorScheme, textTheme),
-                        const SizedBox(height: 8),
-                        _buildDisclaimerText(colorScheme, textTheme),
-                        const SizedBox(height: 24),
-                      ],
+              ),
+            ),
+            if (_showConfetti)
+              IgnorePointer(
+                child: Lottie.asset(
+                  'assets/lottie/confetti.json',
+                  controller: _confettiController,
+                  width: double.infinity,
+                  height: double.infinity,
+                  fit: BoxFit.cover,
+                ),
+              ),
+            if (_showScrollHint)
+              Positioned(
+                bottom: 40,
+                left: 0,
+                right: 0,
+                child: IgnorePointer(
+                  child: AnimatedOpacity(
+                    opacity: _showScrollHint ? 1.0 : 0.0,
+                    duration: const Duration(milliseconds: 300),
+                    child: Icon(
+                      Icons.keyboard_arrow_down_rounded,
+                      color: colorScheme.primary.withValues(alpha: 0.7),
+                      size: 40,
                     ),
                   ),
                 ),
               ),
-              // Intuitive Scroll Hint (Icon only, raised slightly)
-              if (_showScrollHint)
-                Positioned(
-                  bottom: 40, // Raised from 20 to 40 to avoid system navigation
-                  left: 0,
-                  right: 0,
-                  child: IgnorePointer(
-                    child: AnimatedOpacity(
-                      opacity: _showScrollHint ? 1.0 : 0.0,
-                      duration: const Duration(milliseconds: 300),
-                      child: Icon(
-                        Icons.keyboard_arrow_down_rounded,
-                        color: colorScheme.primary.withValues(alpha: 0.7),
-                        size: 40,
-                      ),
-                    ),
-                  ),
-                ),
-            ],
-          ),
+          ],
         ),
       ),
     );
@@ -445,13 +460,13 @@ class _SupporterPageState extends State<SupporterPage>
   Widget _buildMissionHeader(ColorScheme colorScheme, TextTheme textTheme) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(28),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(32),
         gradient: LinearGradient(
           colors: [
-            colorScheme.primary.withValues(alpha: 0.85),
-            colorScheme.tertiary.withValues(alpha: 0.75),
+            colorScheme.primary,
+            colorScheme.tertiary,
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -459,46 +474,40 @@ class _SupporterPageState extends State<SupporterPage>
         boxShadow: [
           BoxShadow(
             color: colorScheme.primary.withValues(alpha: 0.3),
-            blurRadius: 16,
-            offset: const Offset(0, 6),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
           ),
         ],
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Centered Lottie
-          SizedBox(
-            height: 64,
-            width: 64,
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.2),
+              shape: BoxShape.circle,
+            ),
             child: Lottie.asset(
               'assets/lottie/hands_heart.json',
-              repeat: true,
-              animate: true,
-              fit: BoxFit.contain,
+              height: 60,
+              width: 60,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 20),
           Text(
             'supporter.header_title'.tr(),
             style: textTheme.headlineSmall?.copyWith(
               color: Colors.white,
-              fontWeight: FontWeight.bold,
-              shadows: [
-                Shadow(
-                  color: Colors.black.withValues(alpha: 0.3),
-                  offset: const Offset(0, 1),
-                  blurRadius: 3,
-                ),
-              ],
+              fontWeight: FontWeight.w900,
             ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
           Text(
             'supporter.header_subtitle'.tr(),
             style: textTheme.bodyMedium?.copyWith(
               color: Colors.white.withValues(alpha: 0.9),
+              fontWeight: FontWeight.w500,
             ),
             textAlign: TextAlign.center,
           ),
@@ -509,20 +518,21 @@ class _SupporterPageState extends State<SupporterPage>
 
   Widget _buildMinistryMessage(ColorScheme colorScheme, TextTheme textTheme) {
     return Container(
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        color: colorScheme.primaryContainer.withValues(alpha: 0.25),
+        borderRadius: BorderRadius.circular(24),
+        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
         border: Border.all(
-          color: colorScheme.primary.withValues(alpha: 0.15),
+          color: colorScheme.outline.withValues(alpha: 0.1),
         ),
       ),
       child: Text(
         'supporter.ministry_message'.tr(),
-        textAlign: TextAlign.center, // Centered text
+        textAlign: TextAlign.center,
         style: textTheme.bodyMedium?.copyWith(
-          color: colorScheme.onSurface.withValues(alpha: 0.85),
+          color: colorScheme.onSurface.withValues(alpha: 0.8),
           height: 1.6,
+          fontWeight: FontWeight.w500,
         ),
       ),
     );
@@ -531,7 +541,7 @@ class _SupporterPageState extends State<SupporterPage>
   Widget _buildLoadingState() {
     return const Center(
       child: Padding(
-        padding: EdgeInsets.all(40.0),
+        padding: EdgeInsets.all(60.0),
         child: CircularProgressIndicator(),
       ),
     );
@@ -539,21 +549,18 @@ class _SupporterPageState extends State<SupporterPage>
 
   Widget _buildTiersList(ColorScheme colorScheme, TextTheme textTheme) {
     return Column(
-      crossAxisAlignment:
-          CrossAxisAlignment.center, // Center the title and list
       children: [
         Text(
           'supporter.choose_tier'.tr(),
-          textAlign: TextAlign.center,
-          style: textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.bold,
+          style: textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.w900,
             color: colorScheme.onSurface,
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 24),
         ...SupporterTier.tiers.map(
           (tier) => Padding(
-            padding: const EdgeInsets.only(bottom: 20),
+            padding: const EdgeInsets.only(bottom: 24),
             child: TierCard(
               tier: tier,
               storePrice: _storePrices[tier.productId],
@@ -568,32 +575,24 @@ class _SupporterPageState extends State<SupporterPage>
   }
 
   Widget _buildRestorePurchases(ColorScheme colorScheme, TextTheme textTheme) {
-    return Center(
-      child: TextButton.icon(
-        onPressed: _isLoadingProducts ? null : _onRestorePurchases,
-        icon: Icon(
-          Icons.restore,
-          size: 16,
-          color: colorScheme.primary.withValues(alpha: 0.7),
-        ),
-        label: Text(
-          'supporter.restore_purchases'.tr(),
-          style: textTheme.bodySmall?.copyWith(
-            color: colorScheme.primary.withValues(alpha: 0.7),
-          ),
-        ),
+    return TextButton.icon(
+      onPressed: _isLoadingProducts ? null : _onRestorePurchases,
+      icon: const Icon(Icons.restore, size: 18),
+      label: Text(
+        'supporter.restore_purchases'.tr(),
+        style: const TextStyle(fontWeight: FontWeight.bold),
       ),
     );
   }
 
   Widget _buildDisclaimerText(ColorScheme colorScheme, TextTheme textTheme) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Text(
         'supporter.disclaimer'.tr(),
         style: textTheme.bodySmall?.copyWith(
-          color: colorScheme.onSurface.withValues(alpha: 0.45),
-          fontSize: 11,
+          color: colorScheme.onSurface.withValues(alpha: 0.5),
+          fontSize: 10,
         ),
         textAlign: TextAlign.center,
       ),
