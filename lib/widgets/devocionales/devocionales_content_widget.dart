@@ -2,7 +2,6 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/devocional_model.dart';
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
-import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/supporter_pet_service.dart';
 import 'package:devocional_nuevo/utils/copyright_utils.dart';
 import 'package:devocional_nuevo/widgets/devocionales/devocional_header_widget.dart';
@@ -24,6 +23,10 @@ class DevocionalesContentWidget extends StatelessWidget {
   final VoidCallback onFavoriteToggle;
   final VoidCallback onShare;
 
+  /// Pet service injected by the caller — keeps [build] free of service-locator
+  /// calls, which violates the project's DI rules.
+  final SupporterPetService petService;
+
   const DevocionalesContentWidget({
     super.key,
     required this.devocional,
@@ -37,13 +40,13 @@ class DevocionalesContentWidget extends StatelessWidget {
     required this.isFavorite,
     required this.onFavoriteToggle,
     required this.onShare,
+    required this.petService,
   });
 
   @override
   Widget build(BuildContext context) {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
     final TextTheme textTheme = Theme.of(context).textTheme;
-    final petService = getService<SupporterPetService>();
 
     return SingleChildScrollView(
       controller: scrollController,
@@ -63,7 +66,8 @@ class DevocionalesContentWidget extends StatelessWidget {
                 selectedPet: petService.selectedPet,
                 selectedTheme: (
                   colors: [colorScheme.primary, colorScheme.tertiary]
-                ), // Simple theme for now
+                ),
+                // Simple theme for now
                 introMessage: 'messages.welcome'.tr(),
               ),
             ),

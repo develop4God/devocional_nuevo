@@ -251,21 +251,25 @@ class _SupporterPageState extends State<SupporterPage>
                   width: double.infinity,
                   child: ElevatedButton(
                     onPressed: () async {
+                      // Capture the bloc reference before any async gaps.
+                      final bloc = context.read<SupporterBloc>();
+
                       if (isGold) {
                         final name = nameController.text.trim();
                         if (name.isNotEmpty) {
-                          context
-                              .read<SupporterBloc>()
-                              .add(SaveGoldSupporterName(name));
+                          bloc.add(SaveGoldSupporterName(name));
                         }
 
                         // Unlock pet feature and show selection
                         await getService<SupporterPetService>()
                             .unlockPetFeature();
+
+                        // Guard against widget being unmounted during await
+                        if (!context.mounted) return;
                       }
 
                       // Clear the just-delivered tier from state
-                      context.read<SupporterBloc>().add(ClearSupporterError());
+                      bloc.add(ClearSupporterError());
 
                       if (isGold) {
                         Navigator.pop(dialogContext);
@@ -347,6 +351,7 @@ class _SupporterPageState extends State<SupporterPage>
                     return InkWell(
                       onTap: () async {
                         await petService.setSelectedPet(pet.id);
+                        if (!context.mounted) return;
                         Navigator.pop(dialogContext);
                         _showFinalCelebration(pet);
                       },
@@ -450,6 +455,29 @@ class _SupporterPageState extends State<SupporterPage>
     );
   }
 
+  /// Opens the edit-name dialog for Gold supporters who want to set or update
+  /// their display name.  Sends [AcknowledgeGoldNameEdit] before the dialog so
+  /// the BLoC signal is consumed and won't re-open on state rebuilds.
+  void _showEditNameDialog() {
+    final bloc = context.read<SupporterBloc>();
+    // Consume the signal immediately to prevent re-entry on rebuild.
+    bloc.add(AcknowledgeGoldNameEdit());
+
+    final currentName = (bloc.state is SupporterLoaded)
+        ? (bloc.state as SupporterLoaded).goldSupporterName ?? ''
+        : '';
+
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) => _GoldNameEditDialog(
+        currentName: currentName,
+        onSave: (name) {
+          context.read<SupporterBloc>().add(SaveGoldSupporterName(name));
+        },
+      ),
+    );
+  }
+
   void _showErrorSnackBar(String message) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
@@ -480,6 +508,11 @@ class _SupporterPageState extends State<SupporterPage>
               setState(() => _showConfetti = true);
               _confettiController.forward();
               _showSuccessDialog(state.justDeliveredTier!);
+            }
+
+            // Handle Gold supporter edit-name request
+            if (state.isEditingGoldName) {
+              _showEditNameDialog();
             }
 
             // Handle errors
@@ -694,6 +727,9 @@ class _SupporterPageState extends State<SupporterPage>
     ColorScheme colorScheme,
     TextTheme textTheme,
   ) {
+    const goldColor = Color(0xFFFFD700);
+    final isGoldPurchased = state.isPurchased(SupporterTierLevel.gold);
+
     return Column(
       children: [
         Text(
@@ -716,6 +752,29 @@ class _SupporterPageState extends State<SupporterPage>
             ),
           ),
         ),
+        // Gold supporter: show edit-name button when Gold is purchased.
+        if (isGoldPurchased) ...[
+          const SizedBox(height: 8),
+          OutlinedButton.icon(
+            key: const ValueKey('gold_edit_name_button'),
+            onPressed: () =>
+                context.read<SupporterBloc>().add(EditGoldSupporterName()),
+            icon: const Icon(Icons.edit_rounded, color: goldColor, size: 18),
+            label: Text(
+              state.goldSupporterName != null
+                  ? 'supporter.gold_edit_name_button'.tr()
+                  : 'supporter.gold_set_name_button'.tr(),
+              style: const TextStyle(
+                  color: goldColor, fontWeight: FontWeight.bold),
+            ),
+            style: OutlinedButton.styleFrom(
+              side: const BorderSide(color: goldColor),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20)),
+            ),
+          ),
+          const SizedBox(height: 8),
+        ],
       ],
     );
   }
@@ -747,6 +806,98 @@ class _SupporterPageState extends State<SupporterPage>
         ),
         textAlign: TextAlign.center,
       ),
+    );
+  }
+}
+
+// ── Gold name edit dialog ─────────────────────────────────────────────────────
+
+/// A [StatefulWidget] dialog for editing the Gold supporter display name.
+///
+/// Owns its [TextEditingController] so it is properly disposed when the dialog
+/// is dismissed — prevents the "A TextEditingController was garbage collected
+/// while still attached to a TextField" warning.
+class _GoldNameEditDialog extends StatefulWidget {
+  const _GoldNameEditDialog({
+    required this.currentName,
+    required this.onSave,
+  });
+
+  final String currentName;
+  final void Function(String name) onSave;
+
+  @override
+  State<_GoldNameEditDialog> createState() => _GoldNameEditDialogState();
+}
+
+class _GoldNameEditDialogState extends State<_GoldNameEditDialog> {
+  late final TextEditingController _controller;
+
+  static const _goldColor = Color(0xFFFFD700);
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.currentName);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      title: Row(
+        children: [
+          const Icon(Icons.person_pin_rounded, color: _goldColor),
+          const SizedBox(width: 8),
+          Text('supporter.gold_edit_name_title'.tr()),
+        ],
+      ),
+      content: TextField(
+        key: const ValueKey('gold_name_text_field'),
+        controller: _controller,
+        decoration: InputDecoration(
+          labelText: 'supporter.gold_name_hint'.tr(),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: const BorderSide(color: _goldColor, width: 2),
+          ),
+          helperText: 'supporter.gold_name_helper'.tr(),
+          prefixIcon: const Icon(Icons.person, color: _goldColor),
+        ),
+        maxLength: 40,
+        autofocus: true,
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text('app.cancel'.tr()),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            final name = _controller.text.trim();
+            if (name.isNotEmpty) {
+              widget.onSave(name);
+            }
+            Navigator.pop(context);
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: _goldColor,
+            foregroundColor: Colors.black87,
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          ),
+          child: Text('app.save'.tr()),
+        ),
+      ],
     );
   }
 }

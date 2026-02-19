@@ -229,6 +229,52 @@ void main() {
             'ServiceLocator should mention LocalizationService in comments or registration',
       );
     });
+
+    // ── SupporterPetService singleton registration ─────────────────────────
+
+    test(
+        'SupporterPetService is registered as lazy singleton in ServiceLocator',
+        () async {
+      final file = File('lib/services/service_locator.dart');
+      expect(
+        await file.exists(),
+        isTrue,
+        reason: 'ServiceLocator source file should exist',
+      );
+
+      final content = await file.readAsString();
+
+      expect(
+        content.contains('registerLazySingleton<SupporterPetService>'),
+        isTrue,
+        reason:
+            'SupporterPetService should be registered as lazy singleton in ServiceLocator',
+      );
+    });
+
+    test('SupporterPetService does not use static singleton antipattern',
+        () async {
+      final file = File('lib/services/supporter_pet_service.dart');
+      expect(
+        await file.exists(),
+        isTrue,
+        reason: 'SupporterPetService source file should exist',
+      );
+
+      final content = await file.readAsString();
+
+      expect(
+        content.contains('static SupporterPetService? _instance'),
+        isFalse,
+        reason: 'SupporterPetService should not have static _instance field',
+      );
+
+      expect(
+        content.contains('static SupporterPetService get instance'),
+        isFalse,
+        reason: 'SupporterPetService should not have static instance getter',
+      );
+    });
   });
 }
 

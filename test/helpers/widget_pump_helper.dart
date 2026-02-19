@@ -27,12 +27,14 @@ import 'package:flutter_test/flutter_test.dart';
 
 /// Test-only [ThemeBloc] fake that immediately provides a loaded theme state.
 class _FakeThemeBloc extends Fake implements ThemeBloc {
-  @override
-  Stream<ThemeState> get stream => const Stream.empty();
+  final ThemeState _state = ThemeLoaded.withThemeData(
+      themeFamily: 'Deep Purple', brightness: Brightness.light);
 
   @override
-  ThemeState get state => ThemeLoaded.withThemeData(
-      themeFamily: 'Deep Purple', brightness: Brightness.light);
+  Stream<ThemeState> get stream => Stream.value(_state);
+
+  @override
+  ThemeState get state => _state;
 
   @override
   bool get isClosed => false;

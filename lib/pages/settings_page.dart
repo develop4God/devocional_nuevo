@@ -48,13 +48,10 @@ class _SettingsViewState extends State<_SettingsView> {
   late final SupporterPetService _petService =
       getService<SupporterPetService>();
 
-  bool _showBackupSection = false;
-
   @override
   void initState() {
     super.initState();
     _loadTtsSettings();
-    _loadFeatureFlags();
   }
 
   Future<void> _loadTtsSettings() async {
@@ -69,12 +66,6 @@ class _SettingsViewState extends State<_SettingsView> {
     } catch (e) {
       developer.log('Error loading TTS settings: $e');
     }
-  }
-
-  Future<void> _loadFeatureFlags() async {
-    setState(() {
-      _showBackupSection = true;
-    });
   }
 
   void _showErrorSnackBar(String message) {
