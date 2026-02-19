@@ -10,6 +10,7 @@ import '../../models/supporter_tier.dart';
 import 'i_iap_diagnostics_service.dart';
 import 'i_iap_service.dart';
 import 'iap_diagnostics_service.dart';
+import 'iap_prefs_keys.dart';
 
 /// Concrete implementation of [IIapService] that wraps the
 /// `in_app_purchase` plugin for Google Play Billing and the App Store.
@@ -18,8 +19,6 @@ import 'iap_diagnostics_service.dart';
 /// `registerLazySingleton`. Gold-supporter name persistence lives in
 /// [SupporterProfileRepository] (injected into [SupporterBloc]).
 class IapService implements IIapService {
-  static const String _purchasedKeyPrefix = 'iap_purchased_';
-
   // Injected dependencies (allow substitution in tests)
   final InAppPurchase _iap;
   final Future<SharedPreferences> Function() _prefsFactory;
@@ -290,7 +289,7 @@ class IapService implements IIapService {
     try {
       final prefs = await _prefsFactory();
       for (final tier in SupporterTier.tiers) {
-        final key = '$_purchasedKeyPrefix${tier.productId}';
+        final key = IapPrefsKeys.purchasedKey(tier.productId);
         if (prefs.getBool(key) == true) {
           _purchasedLevels.add(tier.level);
         }
@@ -304,7 +303,7 @@ class IapService implements IIapService {
     try {
       final prefs = await _prefsFactory();
       final tier = SupporterTier.fromLevel(level);
-      await prefs.setBool('$_purchasedKeyPrefix${tier.productId}', true);
+      await prefs.setBool(IapPrefsKeys.purchasedKey(tier.productId), true);
     } catch (e) {
       debugPrint('❌ [IapService] Error saving prefs: $e');
     }

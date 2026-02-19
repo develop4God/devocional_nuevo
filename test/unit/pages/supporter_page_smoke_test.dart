@@ -25,10 +25,10 @@ import '../../helpers/test_helpers.dart';
 import '../../helpers/widget_pump_helper.dart';
 
 void main() {
-  setUpAll(() {
+  setUpAll(() async {
     TestWidgetsFlutterBinding.ensureInitialized();
     SharedPreferences.setMockInitialValues({});
-    registerTestServices();
+    await registerTestServices();
   });
 
   // ── Import smoke ──────────────────────────────────────────────────────────
@@ -47,6 +47,11 @@ void main() {
       iapService: fakeIap,
       profileRepository: FakeSupporterProfileRepository(),
     );
+
+    // Pre-initialize the bloc so SupporterPage.initState doesn't dispatch
+    // InitializeSupporter (which triggers async work that can hang pump).
+    bloc.add(InitializeSupporter());
+    await Future<void>.delayed(const Duration(milliseconds: 50));
 
     await pumpSupporterPage(tester, bloc);
 
