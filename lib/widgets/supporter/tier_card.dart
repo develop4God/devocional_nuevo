@@ -1,6 +1,7 @@
 // lib/widgets/supporter/tier_card.dart
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
+import 'package:devocional_nuevo/models/supporter_pet.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 
@@ -121,6 +122,10 @@ class TierCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   _buildHeader(context, colorScheme, textTheme),
+                  if (isGold) ...[
+                    const SizedBox(height: 20),
+                    _buildPetPreview(colorScheme, textTheme),
+                  ],
                   const SizedBox(height: 24),
                   Divider(
                     color: tier.badgeColor.withValues(alpha: 0.15),
@@ -136,6 +141,74 @@ class TierCard extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildPetPreview(ColorScheme colorScheme, TextTheme textTheme) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: tier.badgeColor.withValues(alpha: 0.2)),
+      ),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.auto_awesome, color: Colors.amber, size: 16),
+              const SizedBox(width: 8),
+              Text(
+                '¡REGALO EXCLUSIVO!'.toUpperCase(),
+                style: textTheme.labelSmall?.copyWith(
+                  color: tier.badgeColor,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 1.2,
+                ),
+              ),
+              const SizedBox(width: 8),
+              const Icon(Icons.auto_awesome, color: Colors.amber, size: 16),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Desbloquea una mascota para tu devocional diario',
+            textAlign: TextAlign.center,
+            style: textTheme.bodySmall?.copyWith(
+              color: colorScheme.onSurface.withValues(alpha: 0.8),
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            height: 60,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: SupporterPet.allPets.take(4).map((pet) {
+                return Container(
+                  width: 50,
+                  height: 50,
+                  decoration: BoxDecoration(
+                    color: colorScheme.surface,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.05),
+                        blurRadius: 4,
+                      )
+                    ],
+                  ),
+                  child: Center(
+                    child:
+                        Text(pet.emoji, style: const TextStyle(fontSize: 24)),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -364,14 +437,14 @@ class TierCard extends StatelessWidget {
             child: isLoading
                 ? Center(
                     child: SizedBox(
-                      width: 28,
-                      height: 28,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 3.5,
-                        valueColor: const AlwaysStoppedAnimation<Color>(Colors.black87),
-                      ),
-                    )
-                  )
+                    width: 28,
+                    height: 28,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 3.5,
+                      valueColor:
+                          const AlwaysStoppedAnimation<Color>(Colors.black87),
+                    ),
+                  ))
                 : Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [

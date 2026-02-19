@@ -31,5 +31,27 @@ class SaveGoldSupporterName extends SupporterEvent {
 /// via the UI — it exists to signal intent and keep the event log readable.
 class EditGoldSupporterName extends SupporterEvent {}
 
+/// Acknowledges that the UI has consumed the [isEditingGoldName] signal and
+/// clears it — prevents the edit dialog from re-opening on state rebuilds.
+/// Use this instead of [ClearSupporterError] for this specific purpose.
+class AcknowledgeGoldNameEdit extends SupporterEvent {}
+
 /// Clear any transient error message / just-delivered state.
 class ClearSupporterError extends SupporterEvent {}
+
+// ── Debug-only events (kDebugMode guard — zero production impact) ──────────
+
+/// Simulates a successful purchase delivery for [tier] via the BLoC stream.
+/// Only available in debug builds — dispatching in release has no effect
+/// because the handler returns early when [kDebugMode] is false.
+class DebugSimulatePurchase extends SupporterEvent {
+  final SupporterTier tier;
+
+  DebugSimulatePurchase(this.tier);
+}
+
+/// Resets all locally-stored IAP state for retesting.
+/// Useful for re-testing the full purchase flow without uninstalling.
+/// Only available in debug builds — dispatching in release has no effect
+/// because the handler returns early when [kDebugMode] is false.
+class DebugResetIapState extends SupporterEvent {}
