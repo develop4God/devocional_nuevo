@@ -157,17 +157,18 @@ class SupporterBloc extends Bloc<SupporterEvent, SupporterState> {
     // _PurchaseDelivered events that arrive while restoring can still
     // update purchasedLevels in the SupporterLoaded state.
     emit(current.copyWith(isRestoring: true));
-    await _iapService.restorePurchases();
-
-    // After the restore call returns, update with final purchased set.
-    // If _onPurchaseDelivered already updated state mid-restore, read
-    // the latest purchased levels from the service.
-    final afterState = state;
-    if (afterState is SupporterLoaded) {
-      emit(afterState.copyWith(
-        purchasedLevels: _iapService.purchasedLevels,
-        isRestoring: false,
-      ));
+    try {
+      await _iapService.restorePurchases();
+    } finally {
+      // Always reset isRestoring — prevents an infinite spinner when
+      // restorePurchases() throws a Google Billing error.
+      final afterState = state;
+      if (!isClosed && afterState is SupporterLoaded) {
+        emit(afterState.copyWith(
+          purchasedLevels: _iapService.purchasedLevels,
+          isRestoring: false,
+        ));
+      }
     }
   }
 
