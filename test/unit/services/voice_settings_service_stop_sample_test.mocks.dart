@@ -23,6 +23,7 @@ import 'package:mockito/mockito.dart' as _i1;
 // ignore_for_file: unnecessary_parenthesis
 // ignore_for_file: camel_case_types
 // ignore_for_file: subtype_of_sealed_class
+// ignore_for_file: invalid_use_of_internal_member
 
 class _FakeSpeechRateValidRange_0 extends _i1.SmartFake
     implements _i2.SpeechRateValidRange {
@@ -91,66 +92,64 @@ class MockFlutterTts extends _i1.Mock implements _i2.FlutterTts {
       ) as _i3.Future<_i2.SpeechRateValidRange>);
 
   @override
-  set startHandler(_i4.VoidCallback? _startHandler) => super.noSuchMethod(
+  set startHandler(_i4.VoidCallback? value) => super.noSuchMethod(
         Invocation.setter(
           #startHandler,
-          _startHandler,
+          value,
         ),
         returnValueForMissingStub: null,
       );
 
   @override
-  set completionHandler(_i4.VoidCallback? _completionHandler) =>
-      super.noSuchMethod(
+  set completionHandler(_i4.VoidCallback? value) => super.noSuchMethod(
         Invocation.setter(
           #completionHandler,
-          _completionHandler,
+          value,
         ),
         returnValueForMissingStub: null,
       );
 
   @override
-  set pauseHandler(_i4.VoidCallback? _pauseHandler) => super.noSuchMethod(
+  set pauseHandler(_i4.VoidCallback? value) => super.noSuchMethod(
         Invocation.setter(
           #pauseHandler,
-          _pauseHandler,
+          value,
         ),
         returnValueForMissingStub: null,
       );
 
   @override
-  set continueHandler(_i4.VoidCallback? _continueHandler) => super.noSuchMethod(
+  set continueHandler(_i4.VoidCallback? value) => super.noSuchMethod(
         Invocation.setter(
           #continueHandler,
-          _continueHandler,
+          value,
         ),
         returnValueForMissingStub: null,
       );
 
   @override
-  set cancelHandler(_i4.VoidCallback? _cancelHandler) => super.noSuchMethod(
+  set cancelHandler(_i4.VoidCallback? value) => super.noSuchMethod(
         Invocation.setter(
           #cancelHandler,
-          _cancelHandler,
+          value,
         ),
         returnValueForMissingStub: null,
       );
 
   @override
-  set progressHandler(_i2.ProgressHandler? _progressHandler) =>
-      super.noSuchMethod(
+  set progressHandler(_i2.ProgressHandler? value) => super.noSuchMethod(
         Invocation.setter(
           #progressHandler,
-          _progressHandler,
+          value,
         ),
         returnValueForMissingStub: null,
       );
 
   @override
-  set errorHandler(_i2.ErrorHandler? _errorHandler) => super.noSuchMethod(
+  set errorHandler(_i2.ErrorHandler? value) => super.noSuchMethod(
         Invocation.setter(
           #errorHandler,
-          _errorHandler,
+          value,
         ),
         returnValueForMissingStub: null,
       );
