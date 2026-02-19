@@ -12,11 +12,28 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../helpers/test_helpers.dart';
 
-// Use a minimal fake that implements only the needed getter
+// Use a minimal fake that implements all required members
 class FakeRemoteConfigService implements RemoteConfigService {
   @override
   bool get featureSupporter => true;
-// Add any other members if needed for the widget
+
+  @override
+  bool get featureLegacy => false;
+
+  @override
+  bool get featureBloc => false;
+
+  @override
+  bool get isReady => true;
+
+  @override
+  Future<void> initialize() async {}
+
+  @override
+  Future<void> refresh() async {}
+
+  @override
+  void resetForTesting() {}
 }
 
 void main() {
