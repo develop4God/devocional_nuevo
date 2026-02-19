@@ -188,31 +188,31 @@ class TierCard extends StatelessWidget {
 
     return Column(
       children: [
-        Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: (isPurchased || isLoading) ? null : onPurchase,
-            borderRadius: BorderRadius.circular(badgeSize / 2),
-            child: Container(
-              width: badgeSize,
-              height: badgeSize,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: isLottie
-                    ? tier.badgeColor.withValues(alpha: 0.05)
-                    : tier.badgeColor.withValues(alpha: 0.15),
-                border: Border.all(
-                  color: tier.badgeColor.withValues(alpha: 0.8),
-                  width: 2.5,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: tier.badgeColor.withValues(alpha: 0.2),
-                    blurRadius: 12,
-                    spreadRadius: 2,
-                  ),
-                ],
+        Container(
+          width: badgeSize,
+          height: badgeSize,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: isLottie
+                ? tier.badgeColor.withValues(alpha: 0.05)
+                : tier.badgeColor.withValues(alpha: 0.15),
+            border: Border.all(
+              color: tier.badgeColor.withValues(alpha: 0.8),
+              width: 2.5,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: tier.badgeColor.withValues(alpha: 0.2),
+                blurRadius: 12,
+                spreadRadius: 2,
               ),
+            ],
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: (isPurchased || isLoading) ? null : onPurchase,
+              borderRadius: BorderRadius.circular(badgeSize / 2),
               child: ClipOval(
                 child: badgeContent,
               ),

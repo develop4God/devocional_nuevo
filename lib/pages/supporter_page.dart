@@ -450,54 +450,60 @@ class _SupporterPageState extends State<SupporterPage>
                   fit: BoxFit.cover,
                 ),
               ),
-            Positioned(
-              bottom: 24,
-              left: 0,
-              right: 0,
-              child: IgnorePointer(
-                ignoring: !_showScrollHint,
-                child: AnimatedOpacity(
-                  opacity: _showScrollHint ? 1.0 : 0.0,
-                  duration: const Duration(milliseconds: 300),
-                  child: Center(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 8),
-                      decoration: BoxDecoration(
-                        color:
-                            colorScheme.primaryContainer.withValues(alpha: 0.9),
-                        borderRadius: BorderRadius.circular(30),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.1),
-                            blurRadius: 8,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.keyboard_arrow_down_rounded,
-                            color: colorScheme.onPrimaryContainer,
-                            size: 24,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            'discovery.read'.tr(),
-                            style: textTheme.labelMedium?.copyWith(
-                              color: colorScheme.onPrimaryContainer,
-                              fontWeight: FontWeight.bold,
+            if (_showScrollHint)
+              Positioned(
+                bottom: 24,
+                left: 0,
+                right: 0,
+                child: IgnorePointer(
+                  ignoring: !_showScrollHint,
+                  child: AnimatedOpacity(
+                    opacity: _showScrollHint ? 1.0 : 0.0,
+                    duration: const Duration(milliseconds: 300),
+                    child: Center(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 10),
+                        decoration: BoxDecoration(
+                          color:
+                              colorScheme.primaryContainer.withValues(alpha: 0.95),
+                          borderRadius: BorderRadius.circular(30),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.15),
+                              blurRadius: 12,
+                              offset: const Offset(0, 6),
                             ),
+                          ],
+                          border: Border.all(
+                            color: colorScheme.primary.withValues(alpha: 0.2),
+                            width: 1,
                           ),
-                        ],
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.keyboard_arrow_down_rounded,
+                              color: colorScheme.onPrimaryContainer,
+                              size: 28,
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              'discovery.read'.tr(),
+                              style: textTheme.labelLarge?.copyWith(
+                                color: colorScheme.onPrimaryContainer,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
-            ),
           ],
         ),
       ),
