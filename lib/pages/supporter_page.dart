@@ -464,7 +464,8 @@ class _SupporterPageState extends State<SupporterPage>
                       padding: const EdgeInsets.symmetric(
                           horizontal: 16, vertical: 8),
                       decoration: BoxDecoration(
-                        color: colorScheme.primaryContainer.withValues(alpha: 0.9),
+                        color:
+                            colorScheme.primaryContainer.withValues(alpha: 0.9),
                         borderRadius: BorderRadius.circular(30),
                         boxShadow: [
                           BoxShadow(
