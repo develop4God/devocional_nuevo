@@ -7,15 +7,21 @@ import 'package:devocional_nuevo/blocs/discovery/discovery_bloc.dart';
 import 'package:devocional_nuevo/blocs/discovery/discovery_event.dart';
 import 'package:devocional_nuevo/blocs/prayer_bloc.dart';
 import 'package:devocional_nuevo/blocs/prayer_event.dart';
+import 'package:devocional_nuevo/blocs/supporter/supporter_bloc.dart';
+import 'package:devocional_nuevo/blocs/supporter/supporter_event.dart';
+import 'package:devocional_nuevo/blocs/supporter/supporter_state.dart';
 import 'package:devocional_nuevo/blocs/testimony_bloc.dart';
 import 'package:devocional_nuevo/blocs/testimony_event.dart';
 import 'package:devocional_nuevo/blocs/thanksgiving_bloc.dart';
 import 'package:devocional_nuevo/blocs/thanksgiving_event.dart';
 import 'package:devocional_nuevo/models/prayer_model.dart';
+import 'package:devocional_nuevo/models/supporter_tier.dart';
 import 'package:devocional_nuevo/models/testimony_model.dart';
 import 'package:devocional_nuevo/models/thanksgiving_model.dart';
 import 'package:devocional_nuevo/pages/backup_settings_page.dart';
+import 'package:devocional_nuevo/services/iap/i_iap_service.dart';
 import 'package:devocional_nuevo/services/in_app_review_service.dart';
+import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/utils/constants.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
@@ -811,6 +817,129 @@ class _DebugPageState extends State<DebugPage> {
                 ),
 
                 const SizedBox(height: 32),
+
+                // ── IAP Debug Tools (kDebugMode only) ──────────────────────
+                // These controls simulate purchase delivery and reset IAP state
+                // entirely through the SupporterBloc event bus.
+                // They are ONLY compiled and visible in debug builds — the
+                // `if (kDebugMode)` guard ensures zero impact on production.
+                if (kDebugMode) ...[
+                  Card(
+                    color: Colors.orange.shade50,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      side: BorderSide(color: Colors.orange.shade300),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(Icons.payments_outlined,
+                                  color: Colors.orange.shade800),
+                              const SizedBox(width: 8),
+                              Text(
+                                '🛒 IAP Debug Tools',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                  color: Colors.orange.shade800,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Simulate purchases via BLoC events only.\n'
+                            'No real billing is triggered. Debug builds only.',
+                            style: TextStyle(
+                                fontSize: 11, color: Colors.orange.shade700),
+                          ),
+                          const SizedBox(height: 12),
+                          BlocBuilder<SupporterBloc, SupporterState>(
+                            builder: (context, supporterState) {
+                              final purchased =
+                                  supporterState is SupporterLoaded
+                                      ? supporterState.purchasedLevels
+                                      : <SupporterTierLevel>{};
+                              return Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                children: [
+                                  // Simulate purchase for each tier
+                                  ...SupporterTier.tiers.map((tier) {
+                                    final alreadyOwned =
+                                        purchased.contains(tier.level);
+                                    return ElevatedButton.icon(
+                                      onPressed: alreadyOwned
+                                          ? null
+                                          : () {
+                                              context.read<SupporterBloc>().add(
+                                                  DebugSimulatePurchase(tier));
+                                              ScaffoldMessenger.of(context)
+                                                  .showSnackBar(SnackBar(
+                                                content: Text(
+                                                    '🛒 Simulated: ${tier.productId}'),
+                                                duration:
+                                                    const Duration(seconds: 2),
+                                              ));
+                                            },
+                                      icon: Text(tier.emoji,
+                                          style: const TextStyle(fontSize: 16)),
+                                      label: Text(alreadyOwned
+                                          ? '${tier.productId} ✅'
+                                          : tier.productId),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: alreadyOwned
+                                            ? Colors.grey.shade400
+                                            : tier.badgeColor,
+                                        foregroundColor: Colors.white,
+                                      ),
+                                    );
+                                  }),
+                                  // Reset all IAP state
+                                  OutlinedButton.icon(
+                                    onPressed: () async {
+                                      // Evict the IIapService singleton so the
+                                      // next getService<>() creates a fresh
+                                      // instance — infrastructure concern that
+                                      // belongs here, not in the BLoC.
+                                      try {
+                                        serviceLocator
+                                            .unregister<IIapService>();
+                                      } catch (_) {
+                                        // Already unregistered — safe to skip.
+                                      }
+                                      context
+                                          .read<SupporterBloc>()
+                                          .add(DebugResetIapState());
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(const SnackBar(
+                                        content: Text(
+                                            '🔄 IAP state reset — re-run restore to re-purchase'),
+                                        duration: Duration(seconds: 3),
+                                      ));
+                                    },
+                                    icon: const Icon(Icons.restart_alt,
+                                        color: Colors.red),
+                                    label: const Text('Reset IAP State',
+                                        style: TextStyle(color: Colors.red)),
+                                    style: OutlinedButton.styleFrom(
+                                      side: const BorderSide(color: Colors.red),
+                                    ),
+                                  ),
+                                ],
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
 
                 // Floating action button for review
                 FloatingActionButton(

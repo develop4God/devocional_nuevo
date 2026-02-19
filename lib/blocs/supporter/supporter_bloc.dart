@@ -4,10 +4,12 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../models/supporter_tier.dart';
 import '../../repositories/i_supporter_profile_repository.dart';
 import '../../services/iap/i_iap_service.dart';
+import '../../services/iap/iap_prefs_keys.dart';
 import 'supporter_event.dart';
 import 'supporter_state.dart';
 
@@ -41,7 +43,11 @@ class SupporterBloc extends Bloc<SupporterEvent, SupporterState> {
     on<_PurchaseDelivered>(_onPurchaseDelivered);
     on<SaveGoldSupporterName>(_onSaveGoldName);
     on<EditGoldSupporterName>(_onEditGoldName);
+    on<AcknowledgeGoldNameEdit>(_onAcknowledgeGoldNameEdit);
     on<ClearSupporterError>(_onClearError);
+    // Debug-only handlers — no-ops in release builds.
+    on<DebugSimulatePurchase>(_onDebugSimulatePurchase);
+    on<DebugResetIapState>(_onDebugResetIapState);
 
     // Subscribe to delivered-product events from the service.
     _deliveredSubscription = _iapService.onPurchaseDelivered.listen(
@@ -76,6 +82,21 @@ class SupporterBloc extends Bloc<SupporterEvent, SupporterState> {
         final product = _iapService.getProduct(tier.productId);
         if (product != null) {
           storePrices[tier.productId] = product.price;
+        }
+      }
+
+      // Task 3 — Auto-restore on clean install:
+      // Only fires when billing is available AND SharedPreferences shows no
+      // previously purchased tiers (distinguishes a genuine clean install /
+      // reinstall from a user who simply hasn't bought anything yet).
+      if (_iapService.isAvailable && _iapService.purchasedLevels.isEmpty) {
+        final prefs = await SharedPreferences.getInstance();
+        final hasAnyLocalPurchase = SupporterTier.tiers.any(
+          (t) => prefs.getBool(IapPrefsKeys.purchasedKey(t.productId)) == true,
+        );
+        if (!hasAnyLocalPurchase) {
+          debugPrint('🔄 [SupporterBloc] No local purchases — auto-restoring…');
+          await _iapService.restorePurchases();
         }
       }
 
@@ -196,5 +217,57 @@ class SupporterBloc extends Bloc<SupporterEvent, SupporterState> {
     final current = state;
     if (current is! SupporterLoaded) return;
     emit(current.copyWith(isEditingGoldName: true));
+  }
+
+  /// Clears the [isEditingGoldName] signal after the UI has consumed it.
+  /// Dedicated event — does NOT touch [errorMessage] or [justDeliveredTier].
+  void _onAcknowledgeGoldNameEdit(
+    AcknowledgeGoldNameEdit event,
+    Emitter<SupporterState> emit,
+  ) {
+    final current = state;
+    if (current is! SupporterLoaded) return;
+    emit(current.copyWith(isEditingGoldName: false));
+  }
+
+  // ── Debug-only handlers ───────────────────────────────────────────────────
+
+  /// Simulates a purchase delivery via the BLoC stream.
+  /// No-op in release builds (guarded by [kDebugMode]).
+  Future<void> _onDebugSimulatePurchase(
+    DebugSimulatePurchase event,
+    Emitter<SupporterState> emit,
+  ) async {
+    if (!kDebugMode) return;
+    final current = state;
+    if (current is! SupporterLoaded) return;
+    // Directly add the internal delivery event — bypasses real billing.
+    add(_PurchaseDelivered(event.tier));
+    debugPrint(
+        '🛒 [SupporterBloc] DEBUG: simulated purchase for ${event.tier.productId}');
+  }
+
+  /// Resets all locally-stored IAP state for retesting.
+  /// No-op in release builds (guarded by [kDebugMode]).
+  ///
+  /// Clears SharedPreferences keys so the next [InitializeSupporter] starts
+  /// from a clean slate.  The [ServiceLocator] teardown (evicting the
+  /// [IIapService] singleton) is handled by the caller (e.g. debug_page.dart)
+  /// because it is an infrastructure concern that doesn't belong in the BLoC.
+  Future<void> _onDebugResetIapState(
+    DebugResetIapState event,
+    Emitter<SupporterState> emit,
+  ) async {
+    if (!kDebugMode) return;
+
+    // Clear the IAP SharedPreferences keys so auto-restore won't skip.
+    final prefs = await SharedPreferences.getInstance();
+    for (final tier in SupporterTier.tiers) {
+      await prefs.remove(IapPrefsKeys.purchasedKey(tier.productId));
+    }
+
+    debugPrint('🔄 [SupporterBloc] DEBUG: IAP state reset — prefs cleared');
+    // Re-initialize so the page reflects the cleared state.
+    add(InitializeSupporter());
   }
 }
