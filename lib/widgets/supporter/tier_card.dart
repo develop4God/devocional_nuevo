@@ -82,29 +82,32 @@ class TierCard extends StatelessWidget {
           children: [
             if (isPurchased)
               Positioned(
-                right: -10,
-                top: -10,
+                right: -32,
+                top: 12,
                 child: RotationTransition(
-                  turns: const AlwaysStoppedAnimation(15 / 360),
+                  turns: const AlwaysStoppedAnimation(45 / 360),
                   child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
+                    width: 120,
+                    padding: const EdgeInsets.symmetric(vertical: 4),
                     decoration: BoxDecoration(
                       color: tier.badgeColor,
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.1),
+                          color: Colors.black.withValues(alpha: 0.2),
                           blurRadius: 4,
+                          offset: const Offset(0, 2),
                         )
                       ],
                     ),
-                    child: Text(
-                      'supporter.purchased'.tr(),
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 9,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 1.2,
+                    child: Center(
+                      child: Text(
+                        'supporter.purchased'.tr().toUpperCase(),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 9,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 1.0,
+                        ),
                       ),
                     ),
                   ),
