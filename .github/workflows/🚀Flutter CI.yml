@@ -53,7 +53,28 @@ jobs:
       - name: 📦 Get dependencies
         run: flutter pub get
 
-      - name: 🎨 Check and auto-format code
+      - name: 🔒 Assert minimum Dart SDK floor
+        run: |
+          DART_VERSION=$(dart --version 2>&1 | grep -oP '\d+\.\d+\.\d+' | head -1)
+          REQUIRED="3.8.1"
+          if [ "$(printf '%s\n' "$REQUIRED" "$DART_VERSION" | sort -V | head -1)" != "$REQUIRED" ]; then
+            echo "❌ Dart SDK $DART_VERSION is below required minimum $REQUIRED"
+            exit 1
+          fi
+          echo "✅ Dart SDK $DART_VERSION >= $REQUIRED"
+
+      - name: 🔨 Regenerate mocks (build_runner)
+        run: flutter pub run build_runner build --delete-conflicting-outputs
+
+      - name: 🔍 Assert no diff after build_runner
+        run: |
+          if ! git diff --exit-code -- '**/*.mocks.dart'; then
+            echo "❌ Mock files are out of date. Run build_runner locally and commit."
+            exit 1
+          fi
+          echo "✅ Mocks are up to date"
+
+
         run: |
           echo "🎨 Checking Dart code formatting..."
           # Enable auto_format by default on push, or respect workflow_dispatch inputs
@@ -143,6 +164,19 @@ jobs:
 
       - name: 📦 Get dependencies
         run: flutter pub get
+
+      - name: 🔒 Assert minimum Dart SDK floor
+        run: |
+          DART_VERSION=$(dart --version 2>&1 | grep -oP '\d+\.\d+\.\d+' | head -1)
+          REQUIRED="3.8.1"
+          if [ "$(printf '%s\n' "$REQUIRED" "$DART_VERSION" | sort -V | head -1)" != "$REQUIRED" ]; then
+            echo "❌ Dart SDK $DART_VERSION is below required minimum $REQUIRED"
+            exit 1
+          fi
+          echo "✅ Dart SDK $DART_VERSION >= $REQUIRED"
+
+      - name: 🔨 Regenerate mocks (build_runner)
+        run: flutter pub run build_runner build --delete-conflicting-outputs
 
       - name: 📦 Cache dependencies
         uses: actions/cache@v4

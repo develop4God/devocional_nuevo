@@ -3,6 +3,7 @@
 library;
 
 import 'package:devocional_nuevo/repositories/discovery_repository.dart';
+import 'package:devocional_nuevo/repositories/supporter_profile_repository.dart';
 import 'package:devocional_nuevo/services/analytics_service.dart';
 import 'package:devocional_nuevo/services/discovery_favorites_service.dart'; // NEW
 import 'package:devocional_nuevo/services/discovery_progress_tracker.dart';
@@ -93,6 +94,10 @@ void setupServiceLocator() {
 
   // ✅ REGISTER IAP SERVICE
   locator.registerLazySingleton<IIapService>(() => IapService());
+
+  // ✅ REGISTER SUPPORTER PROFILE REPOSITORY
+  locator.registerLazySingleton<SupporterProfileRepository>(
+      () => SupporterProfileRepository());
 }
 
 ServiceLocator get serviceLocator => ServiceLocator._instance;

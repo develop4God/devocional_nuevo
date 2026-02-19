@@ -2,13 +2,27 @@
 
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 
 import '../../models/supporter_tier.dart';
 
 /// Result of a purchase initiation call.
 enum IapResult { success, cancelled, error, pending }
+
+/// Describes the outcome of [IIapService.initialize].
+enum IapInitStatus {
+  /// initialize() has not been called yet.
+  notStarted,
+
+  /// Billing is available and products loaded successfully.
+  success,
+
+  /// The device does not support billing (emulator, no Play Services, etc.).
+  billingUnavailable,
+
+  /// Billing is available but loading products from the store failed.
+  loadFailed,
+}
 
 /// Abstract interface for the IAP service.
 ///
@@ -25,8 +39,8 @@ abstract class IIapService {
   /// All supporter tier levels that have already been purchased.
   Set<SupporterTierLevel> get purchasedLevels;
 
-  /// The display name the Gold supporter chose (may be null).
-  String? get goldSupporterName;
+  /// Status after the last [initialize] call.
+  IapInitStatus get initStatus;
 
   /// Whether a given tier has already been purchased.
   bool isPurchased(SupporterTierLevel level);
@@ -43,13 +57,6 @@ abstract class IIapService {
   /// Restore all previous non-consumable purchases.
   Future<void> restorePurchases();
 
-  /// Persist the Gold supporter's chosen display name.
-  Future<void> saveGoldSupporterName(String name);
-
   /// Cancel active stream subscriptions and free resources.
   Future<void> dispose();
-
-  // Testing support
-  @visibleForTesting
-  void resetForTesting();
 }

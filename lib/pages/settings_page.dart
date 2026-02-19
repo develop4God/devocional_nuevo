@@ -10,6 +10,7 @@ import 'package:devocional_nuevo/pages/application_language_page.dart';
 import 'package:devocional_nuevo/pages/contact_page.dart';
 import 'package:devocional_nuevo/pages/supporter_page.dart';
 import 'package:devocional_nuevo/providers/localization_provider.dart';
+import 'package:devocional_nuevo/repositories/supporter_profile_repository.dart';
 import 'package:devocional_nuevo/services/iap/i_iap_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
@@ -132,6 +133,8 @@ class _SettingsPageState extends State<SettingsPage> {
                             builder: (_) => BlocProvider(
                               create: (_) => SupporterBloc(
                                 iapService: getService<IIapService>(),
+                                profileRepository:
+                                    getService<SupporterProfileRepository>(),
                               ),
                               child: const SupporterPage(),
                             ),
@@ -255,7 +258,14 @@ class _SettingsPageState extends State<SettingsPage> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const AboutPage(),
+                        builder: (_) => BlocProvider(
+                          create: (_) => SupporterBloc(
+                            iapService: getService<IIapService>(),
+                            profileRepository:
+                                getService<SupporterProfileRepository>(),
+                          ),
+                          child: const AboutPage(),
+                        ),
                       ),
                     );
                   },

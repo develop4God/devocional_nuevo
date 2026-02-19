@@ -1,13 +1,14 @@
 // lib/blocs/supporter/supporter_state.dart
 
 import '../../models/supporter_tier.dart';
+import '../../services/iap/i_iap_service.dart';
 
 abstract class SupporterState {}
 
 /// Before initialization has started.
 class SupporterInitial extends SupporterState {}
 
-/// Initialization or restore in progress.
+/// Initialization in progress (only shown during first load).
 class SupporterLoading extends SupporterState {}
 
 /// Initialization complete; ready for interaction.
@@ -21,6 +22,14 @@ class SupporterLoaded extends SupporterState {
 
   final String? goldSupporterName;
   final String? errorMessage;
+
+  /// Status of the last [IIapService.initialize] call.
+  final IapInitStatus initStatus;
+
+  /// True while a RestorePurchases operation is in progress.
+  /// The UI keeps showing tier cards (no loading skeleton) but may show
+  /// a loading indicator in the restore button area.
+  final bool isRestoring;
 
   /// The product ID currently being purchased (shows a loading state on the
   /// matching tier card). Null when no purchase is in flight.
@@ -36,6 +45,8 @@ class SupporterLoaded extends SupporterState {
     required this.storePrices,
     this.goldSupporterName,
     this.errorMessage,
+    this.initStatus = IapInitStatus.notStarted,
+    this.isRestoring = false,
     this.purchasingProductId,
     this.justDeliveredTier,
   });
@@ -49,6 +60,8 @@ class SupporterLoaded extends SupporterState {
     String? goldSupporterName,
     String? errorMessage,
     bool clearError = false,
+    IapInitStatus? initStatus,
+    bool? isRestoring,
     String? purchasingProductId,
     bool clearPurchasing = false,
     SupporterTier? justDeliveredTier,
@@ -60,6 +73,8 @@ class SupporterLoaded extends SupporterState {
       storePrices: storePrices ?? this.storePrices,
       goldSupporterName: goldSupporterName ?? this.goldSupporterName,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
+      initStatus: initStatus ?? this.initStatus,
+      isRestoring: isRestoring ?? this.isRestoring,
       purchasingProductId: clearPurchasing
           ? null
           : (purchasingProductId ?? this.purchasingProductId),
