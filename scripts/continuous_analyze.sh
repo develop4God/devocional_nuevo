@@ -4,6 +4,9 @@
 
 set -e  # Exit on any command failure
 
+# Add Dart and Flutter to PATH for all environments (fixes Android Studio UI push)
+export PATH="$PATH:/home/develop4god/development/flutter/bin"
+
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
