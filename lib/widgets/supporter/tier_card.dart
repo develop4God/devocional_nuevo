@@ -1,4 +1,5 @@
 // lib/widgets/supporter/tier_card.dart
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
@@ -31,14 +32,15 @@ class TierCard extends StatelessWidget {
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
+      margin: const EdgeInsets.symmetric(vertical: 8),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(32),
         gradient: isGold
             ? LinearGradient(
                 colors: [
-                  const Color(0xFFFFD700).withValues(alpha: 0.25),
+                  const Color(0xFFFFD700).withValues(alpha: 0.3),
                   colorScheme.surface,
-                  const Color(0xFFFFD700).withValues(alpha: 0.05),
+                  const Color(0xFFFFD700).withValues(alpha: 0.1),
                 ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
@@ -46,9 +48,9 @@ class TierCard extends StatelessWidget {
             : isSilver
                 ? LinearGradient(
                     colors: [
-                      const Color(0xFFC0C0C0).withValues(alpha: 0.2),
+                      const Color(0xFFC0C0C0).withValues(alpha: 0.25),
                       colorScheme.surface,
-                      const Color(0xFFC0C0C0).withValues(alpha: 0.05),
+                      const Color(0xFFC0C0C0).withValues(alpha: 0.1),
                     ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
@@ -63,38 +65,38 @@ class TierCard extends StatelessWidget {
               : (isGold || isSilver)
                   ? tier.badgeColor.withValues(alpha: 0.6)
                   : colorScheme.outline.withValues(alpha: 0.2),
-          width: isPurchased ? 2.5 : 1.5,
+          width: isPurchased ? 3.0 : 1.5,
         ),
         boxShadow: isGold || isPurchased || isSilver
             ? [
                 BoxShadow(
-                  color: tier.badgeColor.withValues(alpha: 0.15),
-                  blurRadius: 15,
-                  spreadRadius: 1,
-                  offset: const Offset(0, 4),
+                  color: tier.badgeColor.withValues(alpha: 0.2),
+                  blurRadius: 20,
+                  spreadRadius: 2,
+                  offset: const Offset(0, 8),
                 ),
               ]
             : null,
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(32),
         child: Stack(
           children: [
             if (isPurchased)
               Positioned(
-                right: -32,
-                top: 12,
+                right: -35,
+                top: 15,
                 child: RotationTransition(
                   turns: const AlwaysStoppedAnimation(45 / 360),
                   child: Container(
-                    width: 120,
-                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    width: 140,
+                    padding: const EdgeInsets.symmetric(vertical: 6),
                     decoration: BoxDecoration(
                       color: tier.badgeColor,
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black.withValues(alpha: 0.2),
-                          blurRadius: 4,
+                          blurRadius: 8,
                           offset: const Offset(0, 2),
                         )
                       ],
@@ -104,9 +106,9 @@ class TierCard extends StatelessWidget {
                         'supporter.purchased'.tr().toUpperCase(),
                         style: const TextStyle(
                           color: Colors.white,
-                          fontSize: 9,
+                          fontSize: 10,
                           fontWeight: FontWeight.w900,
-                          letterSpacing: 1.0,
+                          letterSpacing: 1.5,
                         ),
                       ),
                     ),
@@ -119,14 +121,15 @@ class TierCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   _buildHeader(context, colorScheme, textTheme),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 24),
                   Divider(
-                    color: tier.badgeColor.withValues(alpha: 0.1),
+                    color: tier.badgeColor.withValues(alpha: 0.15),
+                    thickness: 1,
                     height: 1,
                   ),
-                  const SizedBox(height: 20),
-                  _buildBenefits(colorScheme, textTheme),
                   const SizedBox(height: 24),
+                  _buildBenefits(colorScheme, textTheme),
+                  const SizedBox(height: 32),
                   _buildPurchaseButton(context, colorScheme, textTheme),
                 ],
               ),
@@ -143,7 +146,7 @@ class TierCard extends StatelessWidget {
     TextTheme textTheme,
   ) {
     final displayPrice = storePrice ?? tier.priceDisplay;
-    const double badgeSize = 80.0;
+    const double badgeSize = 90.0;
 
     Widget badgeContent;
     bool isLottie = false;
@@ -185,7 +188,7 @@ class TierCard extends StatelessWidget {
       badgeContent = Center(
         child: Text(
           tier.emoji,
-          style: const TextStyle(fontSize: 36),
+          style: const TextStyle(fontSize: 42),
         ),
       );
     }
@@ -198,17 +201,17 @@ class TierCard extends StatelessWidget {
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: isLottie
-                ? tier.badgeColor.withValues(alpha: 0.05)
-                : tier.badgeColor.withValues(alpha: 0.15),
+                ? tier.badgeColor.withValues(alpha: 0.08)
+                : tier.badgeColor.withValues(alpha: 0.2),
             border: Border.all(
-              color: tier.badgeColor.withValues(alpha: 0.8),
-              width: 2.5,
+              color: tier.badgeColor.withValues(alpha: 0.9),
+              width: 3.0,
             ),
             boxShadow: [
               BoxShadow(
-                color: tier.badgeColor.withValues(alpha: 0.2),
-                blurRadius: 12,
-                spreadRadius: 2,
+                color: tier.badgeColor.withValues(alpha: 0.25),
+                blurRadius: 16,
+                spreadRadius: 4,
               ),
             ],
           ),
@@ -223,11 +226,11 @@ class TierCard extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 20),
         Text(
           tier.nameKey.tr(),
           textAlign: TextAlign.center,
-          style: textTheme.titleLarge?.copyWith(
+          style: textTheme.headlineSmall?.copyWith(
             fontWeight: FontWeight.w900,
             color: colorScheme.onSurface,
             letterSpacing: -0.5,
@@ -237,9 +240,10 @@ class TierCard extends StatelessWidget {
         Text(
           displayPrice,
           textAlign: TextAlign.center,
-          style: textTheme.headlineSmall?.copyWith(
+          style: textTheme.headlineMedium?.copyWith(
             color: tier.badgeColor,
             fontWeight: FontWeight.w900,
+            letterSpacing: -1,
           ),
         ),
       ],
@@ -253,38 +257,40 @@ class TierCard extends StatelessWidget {
         Text(
           tier.descriptionKey.tr(),
           textAlign: TextAlign.center,
-          style: textTheme.bodyMedium?.copyWith(
-            color: colorScheme.onSurface.withValues(alpha: 0.7),
-            fontWeight: FontWeight.w500,
+          style: textTheme.bodyLarge?.copyWith(
+            color: colorScheme.onSurface.withValues(alpha: 0.8),
+            fontWeight: FontWeight.w600,
+            height: 1.3,
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 20),
         ...tier.benefitKeys.map(
           (key) => Padding(
-            padding: const EdgeInsets.only(bottom: 10),
+            padding: const EdgeInsets.only(bottom: 12),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
                   padding: const EdgeInsets.all(4),
                   decoration: BoxDecoration(
-                    color: tier.badgeColor.withValues(alpha: 0.15),
+                    color: tier.badgeColor.withValues(alpha: 0.2),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
-                    Icons.check,
-                    size: 10,
+                    Icons.check_rounded,
+                    size: 14,
                     color: tier.badgeColor,
                   ),
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: 12),
                 Flexible(
                   child: Text(
                     key.tr(),
-                    textAlign: TextAlign.center,
-                    style: textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurface.withValues(alpha: 0.9),
-                      fontWeight: FontWeight.w600,
+                    textAlign: TextAlign.left,
+                    style: textTheme.bodyMedium?.copyWith(
+                      color: colorScheme.onSurface.withValues(alpha: 0.95),
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                 ),
@@ -304,22 +310,22 @@ class TierCard extends StatelessWidget {
     if (isPurchased) {
       return Container(
         width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 14),
+        padding: const EdgeInsets.symmetric(vertical: 18),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: tier.badgeColor.withValues(alpha: 0.3)),
-          color: tier.badgeColor.withValues(alpha: 0.05),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: tier.badgeColor, width: 2),
+          color: tier.badgeColor.withValues(alpha: 0.08),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.workspace_premium, color: tier.badgeColor, size: 20),
-            const SizedBox(width: 8),
+            Icon(Icons.stars_rounded, color: tier.badgeColor, size: 24),
+            const SizedBox(width: 10),
             Text(
               'supporter.badge_active'.tr(),
-              style: textTheme.bodyLarge?.copyWith(
+              style: textTheme.titleMedium?.copyWith(
                 color: tier.badgeColor,
-                fontWeight: FontWeight.w800,
+                fontWeight: FontWeight.w900,
               ),
             ),
           ],
@@ -327,46 +333,75 @@ class TierCard extends StatelessWidget {
       );
     }
 
-    return SizedBox(
+    return Container(
       width: double.infinity,
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: tier.badgeColor.withValues(alpha: 0.3),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
+      height: 64,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        gradient: LinearGradient(
+          colors: [
+            tier.badgeColor,
+            Color.lerp(tier.badgeColor, Colors.white, 0.2)!,
           ],
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
         ),
-        child: ElevatedButton(
-          onPressed: isLoading ? null : onPurchase,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: tier.badgeColor,
-            foregroundColor: Colors.black87,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            elevation: 0,
+        boxShadow: [
+          BoxShadow(
+            color: tier.badgeColor.withValues(alpha: 0.4),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
           ),
-          child: isLoading
-              ? const SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 3,
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.black87),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: isLoading ? null : onPurchase,
+          borderRadius: BorderRadius.circular(20),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: isLoading
+                ? Center(
+                    child: SizedBox(
+                      width: 28,
+                      height: 28,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 3.5,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          tier.level == SupporterTierLevel.gold
+                              ? Colors.black87
+                              : Colors.white,
+                        ),
+                      ),
+                    ),
+                  )
+                : Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        tier.emoji,
+                        style: const TextStyle(fontSize: 28),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: AutoSizeText(
+                          'supporter.get_tier'.tr(),
+                          maxLines: 1,
+                          minFontSize: 12,
+                          textAlign: TextAlign.center,
+                          style: textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w900,
+                            color: tier.level == SupporterTierLevel.gold
+                                ? Colors.black87
+                                : Colors.white,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                )
-              : Text(
-                  '${tier.emoji} ${'supporter.get_tier'.tr()}',
-                  style: textTheme.labelLarge?.copyWith(
-                    fontWeight: FontWeight.w900,
-                    color: Colors.black87,
-                  ),
-                ),
+          ),
         ),
       ),
     );
