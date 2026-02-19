@@ -26,10 +26,10 @@ import '../../helpers/test_helpers.dart';
 import '../../helpers/widget_pump_helper.dart';
 
 void main() {
-  setUpAll(() {
+  setUpAll(() async {
     TestWidgetsFlutterBinding.ensureInitialized();
     SharedPreferences.setMockInitialValues({});
-    registerTestServices();
+    await registerTestServices();
   });
 
   // ── helpers ───────────────────────────────────────────────────────────────

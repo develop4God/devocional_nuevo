@@ -21,10 +21,12 @@ import 'package:devocional_nuevo/services/localization_service.dart';
 import 'package:devocional_nuevo/services/notification_service.dart';
 import 'package:devocional_nuevo/services/remote_config_service.dart';
 import 'package:devocional_nuevo/services/spiritual_stats_service.dart';
+import 'package:devocional_nuevo/services/supporter_pet_service.dart';
 import 'package:devocional_nuevo/services/tts/i_tts_service.dart';
 import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 import 'package:devocional_nuevo/services/tts_service.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ServiceLocator {
   static final ServiceLocator _instance = ServiceLocator._internal();
@@ -78,8 +80,11 @@ class ServiceLocator {
   }
 }
 
-void setupServiceLocator() {
+Future<void> setupServiceLocator() async {
   final locator = ServiceLocator();
+  final prefs = await SharedPreferences.getInstance();
+
+  locator.registerSingleton<SharedPreferences>(prefs);
 
   locator
       .registerLazySingleton<LocalizationService>(() => LocalizationService());
@@ -131,6 +136,9 @@ void setupServiceLocator() {
       statsService: locator.get<ISpiritualStatsService>(),
     ),
   );
+
+  locator.registerLazySingleton<SupporterPetService>(
+      () => SupporterPetService(locator.get<SharedPreferences>()));
 }
 
 ServiceLocator get serviceLocator => ServiceLocator._instance;
