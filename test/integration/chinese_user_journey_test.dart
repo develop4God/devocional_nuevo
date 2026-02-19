@@ -16,6 +16,7 @@ void main() {
 
     setUp(() async {
       TestWidgetsFlutterBinding.ensureInitialized();
+      SharedPreferences.setMockInitialValues({});
 
       // Use helper to mock flutter_tts plugin channel
       FlutterTtsMockHelper.setupMockFlutterTts();

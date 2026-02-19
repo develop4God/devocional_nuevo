@@ -10,6 +10,7 @@ import 'dart:ui';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+      SharedPreferences.setMockInitialValues({});
   group('String Extensions Tests', () {
     late LocalizationService localizationService;
 

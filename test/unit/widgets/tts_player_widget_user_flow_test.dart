@@ -87,6 +87,7 @@ void main() {
     setUp(() async {
       TestWidgetsFlutterBinding.ensureInitialized();
       SharedPreferences.setMockInitialValues({});
+      SharedPreferences.setMockInitialValues({});
       ServiceLocator().reset();
       await setupServiceLocator();
       mockTts = MockFlutterTts();

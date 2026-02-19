@@ -73,6 +73,7 @@ class _TestMountedCheckWidgetState extends State<TestMountedCheckWidget> {
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+      SharedPreferences.setMockInitialValues({});
 
   setUp(() async {
     // Reset ServiceLocator for clean test state

@@ -12,6 +12,7 @@ void main() {
   group('NotificationService Critical Business Logic Tests', () {
     setUpAll(() async {
       TestWidgetsFlutterBinding.ensureInitialized();
+      SharedPreferences.setMockInitialValues({});
     });
 
     setUp(() async {

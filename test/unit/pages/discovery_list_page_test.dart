@@ -95,6 +95,7 @@ void setupFirebaseMocks() {
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+      SharedPreferences.setMockInitialValues({});
   setupFirebaseMocks();
 
   setUpAll(() async {
