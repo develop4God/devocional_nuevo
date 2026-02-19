@@ -1,15 +1,16 @@
 // test/helpers/iap_mock_helper.dart
 //
 // Centralised IAP test utilities:
-//   - [MockIIapService]          — Mockito-generated mock of [IIapService]
-//   - [FakeIapService]           — Lightweight in-memory fake (no Mockito needed)
-//   - [IapPurchaseScenarios]     — Pre-built stream scenarios
+//   - [MockIIapService]            — Mockito-generated mock of [IIapService]
+//   - [FakeIapService]             — Lightweight in-memory fake (no Mockito needed)
+//   - [FakeSupporterProfileRepo]   — In-memory SupporterProfileRepository fake
+//   - [IapPurchaseScenarios]       — Pre-built stream scenarios
 
 import 'dart:async';
 
 import 'package:devocional_nuevo/models/supporter_tier.dart';
+import 'package:devocional_nuevo/repositories/supporter_profile_repository.dart';
 import 'package:devocional_nuevo/services/iap/i_iap_service.dart';
-import 'package:flutter/foundation.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:mockito/annotations.dart';
 
@@ -20,7 +21,7 @@ export 'iap_mock_helper.mocks.dart';
 @GenerateMocks([IIapService])
 class IapMockAnnotationTarget {}
 
-// ── Fake implementation ───────────────────────────────────────────────────────
+// ── FakeIapService ────────────────────────────────────────────────────────────
 
 /// In-memory [IIapService] fake suitable for unit tests that need full
 /// lifecycle control without Mockito stubs.
@@ -31,7 +32,7 @@ class FakeIapService implements IIapService {
   final Set<SupporterTierLevel> _purchasedLevels = {};
   bool _isAvailable;
   bool _isInitialized = false;
-  String? _goldName;
+  IapInitStatus _initStatus = IapInitStatus.notStarted;
 
   /// Whether the next [purchaseTier] call should succeed.
   bool purchaseShouldSucceed;
@@ -57,7 +58,7 @@ class FakeIapService implements IIapService {
       Set.unmodifiable(_purchasedLevels);
 
   @override
-  String? get goldSupporterName => _goldName;
+  IapInitStatus get initStatus => _initStatus;
 
   @override
   bool isPurchased(SupporterTierLevel level) =>
@@ -69,6 +70,8 @@ class FakeIapService implements IIapService {
   @override
   Future<void> initialize() async {
     _isInitialized = true;
+    _initStatus =
+        _isAvailable ? IapInitStatus.success : IapInitStatus.billingUnavailable;
   }
 
   @override
@@ -90,22 +93,17 @@ class FakeIapService implements IIapService {
   }
 
   @override
-  Future<void> saveGoldSupporterName(String name) async {
-    _goldName = name;
-  }
-
-  @override
   Future<void> dispose() async {
     await _deliveredController.close();
   }
 
-  @override
-  @visibleForTesting
+  /// Reset state for testing. Not part of [IIapService] — call only on
+  /// the concrete [FakeIapService] reference.
   void resetForTesting() {
     _purchasedLevels.clear();
-    _goldName = null;
     _isAvailable = false;
     _isInitialized = false;
+    _initStatus = IapInitStatus.notStarted;
   }
 
   // ── Test helpers ──────────────────────────────────────────────────────────
@@ -122,13 +120,24 @@ class FakeIapService implements IIapService {
   bool get isInitialized => _isInitialized;
 }
 
+// ── FakeSupporterProfileRepository ───────────────────────────────────────────
+
+/// In-memory [SupporterProfileRepository] fake for unit tests.
+class FakeSupporterProfileRepository implements SupporterProfileRepository {
+  String? _goldName;
+
+  @override
+  Future<String?> loadGoldSupporterName() async => _goldName;
+
+  @override
+  Future<void> saveGoldSupporterName(String name) async {
+    _goldName = name;
+  }
+}
+
 // ── Stream scenario helpers ───────────────────────────────────────────────────
 
-/// Factory for [PurchaseDetails]-like objects used in stream tests.
-///
-/// Note: [PurchaseDetails] is a sealed class from `in_app_purchase`, so we
-/// use the [FakeIapService] stream helpers above for most tests.
-/// These helpers document the expected scenarios.
+/// Factory for test scenarios used with [FakeIapService].
 class IapPurchaseScenarios {
   IapPurchaseScenarios._();
 

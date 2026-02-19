@@ -51,6 +51,12 @@ class MockIIapService extends _i1.Mock implements _i2.IIapService {
       ) as Set<_i4.SupporterTierLevel>);
 
   @override
+  _i2.IapInitStatus get initStatus => (super.noSuchMethod(
+        Invocation.getter(#initStatus),
+        returnValue: _i2.IapInitStatus.notStarted,
+      ) as _i2.IapInitStatus);
+
+  @override
   bool isPurchased(_i4.SupporterTierLevel? level) => (super.noSuchMethod(
         Invocation.method(
           #isPurchased,
@@ -97,16 +103,6 @@ class MockIIapService extends _i1.Mock implements _i2.IIapService {
       ) as _i3.Future<void>);
 
   @override
-  _i3.Future<void> saveGoldSupporterName(String? name) => (super.noSuchMethod(
-        Invocation.method(
-          #saveGoldSupporterName,
-          [name],
-        ),
-        returnValue: _i3.Future<void>.value(),
-        returnValueForMissingStub: _i3.Future<void>.value(),
-      ) as _i3.Future<void>);
-
-  @override
   _i3.Future<void> dispose() => (super.noSuchMethod(
         Invocation.method(
           #dispose,
@@ -115,13 +111,4 @@ class MockIIapService extends _i1.Mock implements _i2.IIapService {
         returnValue: _i3.Future<void>.value(),
         returnValueForMissingStub: _i3.Future<void>.value(),
       ) as _i3.Future<void>);
-
-  @override
-  void resetForTesting() => super.noSuchMethod(
-        Invocation.method(
-          #resetForTesting,
-          [],
-        ),
-        returnValueForMissingStub: null,
-      );
 }

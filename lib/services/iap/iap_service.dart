@@ -8,15 +8,16 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../models/supporter_tier.dart';
 import 'i_iap_service.dart';
+import 'iap_diagnostics_service.dart';
 
 /// Concrete implementation of [IIapService] that wraps the
 /// `in_app_purchase` plugin for Google Play Billing and the App Store.
 ///
-/// This is a plain class — the singleton lifecycle is managed by
-/// [ServiceLocator] via `registerLazySingleton`.
+/// Singleton lifecycle is managed by [ServiceLocator] via
+/// `registerLazySingleton`. Gold-supporter name persistence lives in
+/// [SupporterProfileRepository] (injected into [SupporterBloc]).
 class IapService implements IIapService {
   static const String _purchasedKeyPrefix = 'iap_purchased_';
-  static const String _goldSupporterNameKey = 'iap_gold_supporter_name';
 
   // Injected dependencies (allow substitution in tests)
   final InAppPurchase _iap;
@@ -47,15 +48,13 @@ class IapService implements IIapService {
 
   bool _isAvailable = false;
   bool _isInitialized = false;
-  String? _goldSupporterName;
+  bool _disposed = false;
+  IapInitStatus _initStatus = IapInitStatus.notStarted;
 
   // ── Public getters ────────────────────────────────────────────────────────
 
   @override
   bool get isAvailable => _isAvailable;
-
-  @override
-  String? get goldSupporterName => _goldSupporterName;
 
   @override
   bool isPurchased(SupporterTierLevel level) =>
@@ -64,6 +63,9 @@ class IapService implements IIapService {
   @override
   Set<SupporterTierLevel> get purchasedLevels =>
       Set.unmodifiable(_purchasedLevels);
+
+  @override
+  IapInitStatus get initStatus => _initStatus;
 
   @override
   ProductDetails? getProduct(String productId) => _products[productId];
@@ -84,7 +86,10 @@ class IapService implements IIapService {
 
       debugPrint('📱 [IapService] Billing available: $_isAvailable');
 
-      if (!_isAvailable) return;
+      if (!_isAvailable) {
+        _initStatus = IapInitStatus.billingUnavailable;
+        return;
+      }
 
       _purchaseSubscription = _iap.purchaseStream.listen(
         _onPurchaseUpdate,
@@ -94,10 +99,18 @@ class IapService implements IIapService {
       );
 
       await _loadProducts();
+
+      // Wire diagnostics in debug builds after products are loaded.
+      if (kDebugMode) {
+        IapDiagnosticsService(this).printDiagnostics();
+      }
+
+      _initStatus = IapInitStatus.success;
       debugPrint('✅ [IapService] Initialization complete');
     } catch (e) {
       debugPrint('❌ [IapService] Initialization error: $e');
       _isAvailable = false;
+      _initStatus = IapInitStatus.loadFailed;
     }
   }
 
@@ -116,7 +129,8 @@ class IapService implements IIapService {
 
     try {
       final purchaseParam = PurchaseParam(productDetails: product);
-      final started = await _iap.buyNonConsumable(purchaseParam: purchaseParam);
+      final started =
+          await _iap.buyNonConsumable(purchaseParam: purchaseParam);
       if (!started) {
         debugPrint(
             '⚠️ [IapService] Purchase not started for ${tier.productId}');
@@ -140,33 +154,28 @@ class IapService implements IIapService {
   }
 
   @override
-  Future<void> saveGoldSupporterName(String name) async {
-    try {
-      _goldSupporterName = name;
-      final prefs = await _prefsFactory();
-      await prefs.setString(_goldSupporterNameKey, name);
-      debugPrint('✅ [IapService] Saved gold supporter name: $name');
-    } catch (e) {
-      debugPrint('❌ [IapService] Error saving gold supporter name: $e');
-    }
-  }
-
-  @override
   Future<void> dispose() async {
+    // Set _disposed BEFORE cancelling the subscription so any in-flight
+    // _handlePurchase callback is silently dropped.
+    _disposed = true;
     await _purchaseSubscription?.cancel();
     _purchaseSubscription = null;
-    await _deliveredController.close();
+    if (!_deliveredController.isClosed) {
+      await _deliveredController.close();
+    }
     _isInitialized = false;
   }
 
-  @override
+  /// Reset all state for testing. Not part of [IIapService]; call only on
+  /// the concrete [IapService] reference in tests.
   @visibleForTesting
   void resetForTesting() {
     _purchasedLevels.clear();
     _products.clear();
     _isAvailable = false;
     _isInitialized = false;
-    _goldSupporterName = null;
+    _disposed = false;
+    _initStatus = IapInitStatus.notStarted;
   }
 
   // ── Private helpers ───────────────────────────────────────────────────────
@@ -183,7 +192,8 @@ class IapService implements IIapService {
 
       for (final product in response.productDetails) {
         _products[product.id] = product;
-        debugPrint('✅ [IapService] Loaded: ${product.id} — ${product.price}');
+        debugPrint(
+            '✅ [IapService] Loaded: ${product.id} — ${product.price}');
       }
 
       if (response.notFoundIDs.isNotEmpty) {
@@ -192,6 +202,7 @@ class IapService implements IIapService {
       }
     } catch (e) {
       debugPrint('❌ [IapService] Error loading products: $e');
+      rethrow; // Allow initialize() to set loadFailed status
     }
   }
 
@@ -202,11 +213,25 @@ class IapService implements IIapService {
   }
 
   Future<void> _handlePurchase(PurchaseDetails purchase) async {
+    // Guard: ignore events that arrive after dispose() was called.
+    if (_disposed) {
+      debugPrint(
+          '⚠️ [IapService] Ignoring purchase update after dispose: ${purchase.productID}');
+      return;
+    }
+
     debugPrint(
       '🛍️ [IapService] Update: ${purchase.productID} status=${purchase.status}',
     );
 
-    if (purchase.status == PurchaseStatus.pending) return;
+    if (purchase.status == PurchaseStatus.pending) {
+      // pendingCompletePurchase must still be honoured for pending status
+      // to avoid store retry loops on some platforms.
+      if (purchase.pendingCompletePurchase) {
+        await _iap.completePurchase(purchase);
+      }
+      return;
+    }
 
     if (purchase.status == PurchaseStatus.purchased ||
         purchase.status == PurchaseStatus.restored) {
@@ -215,6 +240,9 @@ class IapService implements IIapService {
       debugPrint('❌ [IapService] Purchase error: ${purchase.error}');
     }
 
+    // Google Play (and App Store) require completePurchase to be called for
+    // ALL terminal statuses (purchased, restored, error) with
+    // pendingCompletePurchase == true, to prevent the store from retrying.
     if (purchase.pendingCompletePurchase) {
       await _iap.completePurchase(purchase);
     }
@@ -230,7 +258,7 @@ class IapService implements IIapService {
     _purchasedLevels.add(tier.level);
     await _savePurchasedToPrefs(tier.level);
 
-    // Notify listeners via broadcast stream
+    // Notify listeners via broadcast stream (guarded against closed controller)
     if (!_deliveredController.isClosed) {
       _deliveredController.add(tier);
     }
@@ -247,7 +275,6 @@ class IapService implements IIapService {
           _purchasedLevels.add(tier.level);
         }
       }
-      _goldSupporterName = prefs.getString(_goldSupporterNameKey);
     } catch (e) {
       debugPrint('❌ [IapService] Error loading prefs: $e');
     }

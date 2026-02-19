@@ -20,12 +20,14 @@ class IapDiagnosticsService {
     debugPrint('📊 [IAP] Diagnostics Report');
     debugPrint('═══════════════════════════════════════════');
     debugPrint('Billing Available: ${_iapService.isAvailable}');
+    debugPrint('Init Status: ${_iapService.initStatus}');
     debugPrint('Purchased Tiers: ${_iapService.purchasedLevels.length}');
 
     final loadedCount = SupporterTier.tiers
         .where((t) => _iapService.getProduct(t.productId) != null)
         .length;
-    debugPrint('Products Loaded: $loadedCount/${SupporterTier.tiers.length}');
+    debugPrint(
+        'Products Loaded: $loadedCount/${SupporterTier.tiers.length}');
 
     if (loadedCount == 0) {
       debugPrint('⚠️  NO PRODUCTS LOADED');
@@ -37,17 +39,14 @@ class IapDiagnosticsService {
       for (final tier in SupporterTier.tiers) {
         final product = _iapService.getProduct(tier.productId);
         if (product != null) {
-          debugPrint('   ✅ ${product.id}: ${product.title} — ${product.price}');
+          debugPrint(
+              '   ✅ ${product.id}: ${product.title} — ${product.price}');
         }
       }
     }
 
     for (final level in _iapService.purchasedLevels) {
       debugPrint('   🏆 $level');
-    }
-
-    if (_iapService.goldSupporterName != null) {
-      debugPrint('Gold Name: ${_iapService.goldSupporterName}');
     }
 
     debugPrint('═══════════════════════════════════════════');

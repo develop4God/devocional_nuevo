@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../models/supporter_tier.dart';
+import '../../repositories/supporter_profile_repository.dart';
 import '../../services/iap/i_iap_service.dart';
 import 'supporter_event.dart';
 import 'supporter_state.dart';
@@ -19,14 +20,19 @@ class _PurchaseDelivered extends SupporterEvent {
 
 /// BLoC that orchestrates the supporter / IAP flow.
 ///
-/// It depends on [IIapService] (injected) and listens to
-/// [IIapService.onPurchaseDelivered] to react to successful purchases.
+/// Depends on:
+/// - [IIapService] — purchase lifecycle & delivery stream
+/// - [SupporterProfileRepository] — Gold supporter name persistence
 class SupporterBloc extends Bloc<SupporterEvent, SupporterState> {
   final IIapService _iapService;
+  final SupporterProfileRepository _profileRepo;
   StreamSubscription<SupporterTier>? _deliveredSubscription;
 
-  SupporterBloc({required IIapService iapService})
-      : _iapService = iapService,
+  SupporterBloc({
+    required IIapService iapService,
+    required SupporterProfileRepository profileRepository,
+  })  : _iapService = iapService,
+        _profileRepo = profileRepository,
         super(SupporterInitial()) {
     on<InitializeSupporter>(_onInitialize);
     on<PurchaseTier>(_onPurchaseTier);
@@ -61,6 +67,8 @@ class SupporterBloc extends Bloc<SupporterEvent, SupporterState> {
     try {
       await _iapService.initialize();
 
+      final goldName = await _profileRepo.loadGoldSupporterName();
+
       final storePrices = <String, String>{};
       for (final tier in SupporterTier.tiers) {
         final product = _iapService.getProduct(tier.productId);
@@ -73,7 +81,8 @@ class SupporterBloc extends Bloc<SupporterEvent, SupporterState> {
         purchasedLevels: _iapService.purchasedLevels,
         isBillingAvailable: _iapService.isAvailable,
         storePrices: storePrices,
-        goldSupporterName: _iapService.goldSupporterName,
+        goldSupporterName: goldName,
+        initStatus: _iapService.initStatus,
       ));
     } catch (e) {
       debugPrint('❌ [SupporterBloc] Initialize error: $e');
@@ -121,15 +130,22 @@ class SupporterBloc extends Bloc<SupporterEvent, SupporterState> {
     final current = state;
     if (current is! SupporterLoaded) return;
 
-    emit(SupporterLoading());
+    // Use isRestoring flag instead of SupporterLoading so that any
+    // _PurchaseDelivered events that arrive while restoring can still
+    // update purchasedLevels in the SupporterLoaded state.
+    emit(current.copyWith(isRestoring: true));
     await _iapService.restorePurchases();
 
-    emit(SupporterLoaded(
-      purchasedLevels: _iapService.purchasedLevels,
-      isBillingAvailable: _iapService.isAvailable,
-      storePrices: current.storePrices,
-      goldSupporterName: _iapService.goldSupporterName,
-    ));
+    // After the restore call returns, update with final purchased set.
+    // If _onPurchaseDelivered already updated state mid-restore, read
+    // the latest purchased levels from the service.
+    final afterState = state;
+    if (afterState is SupporterLoaded) {
+      emit(afterState.copyWith(
+        purchasedLevels: _iapService.purchasedLevels,
+        isRestoring: false,
+      ));
+    }
   }
 
   void _onPurchaseDelivered(
@@ -143,7 +159,6 @@ class SupporterBloc extends Bloc<SupporterEvent, SupporterState> {
       purchasedLevels: _iapService.purchasedLevels,
       clearPurchasing: true,
       justDeliveredTier: event.tier,
-      goldSupporterName: _iapService.goldSupporterName,
     ));
   }
 
@@ -151,7 +166,7 @@ class SupporterBloc extends Bloc<SupporterEvent, SupporterState> {
     SaveGoldSupporterName event,
     Emitter<SupporterState> emit,
   ) async {
-    await _iapService.saveGoldSupporterName(event.name);
+    await _profileRepo.saveGoldSupporterName(event.name);
     final current = state;
     if (current is SupporterLoaded) {
       emit(current.copyWith(goldSupporterName: event.name));
