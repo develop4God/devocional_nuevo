@@ -61,11 +61,19 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     'BackgroundServiceCallback: Manejando mensaje FCM en segundo plano: ${message.messageId}',
     name: 'BackgroundServiceCallback',
   );
+  // Ensure Firebase is initialized in the background isolate before using any
+  // Firebase-dependent services. If you have generated DefaultFirebaseOptions,
+  // prefer using `Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform)`.
   await Firebase.initializeApp();
 
   try {
-    setupServiceLocator();
+    // setupServiceLocator is async now — await it so services are registered
+    // before we call getService<T>().
+    await setupServiceLocator();
   } catch (e) {
+    // If the locator setup fails for any reason (e.g. SharedPreferences not
+    // available in this isolate), ensure NotificationService is at least
+    // registered so we can show notifications.
     final locator = ServiceLocator();
     locator
         .registerLazySingleton<NotificationService>(NotificationService.create);
@@ -109,7 +117,9 @@ void main() async {
     inAppMessaging.triggerEvent('app_launch');
   });
 
-  setupServiceLocator();
+  // setupServiceLocator() returns a Future now — await to ensure services
+  // are registered before any call to getService<T>().
+  await setupServiceLocator();
 
   try {
     final remoteConfigService = getService<RemoteConfigService>();
