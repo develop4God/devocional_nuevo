@@ -68,14 +68,6 @@ jobs:
 
       - name: 🔍 Assert no diff after build_runner
         run: |
-          if ! git diff --exit-code -- '**/*.mocks.dart'; then
-            echo "❌ Mock files are out of date. Run build_runner locally and commit."
-            exit 1
-          fi
-          echo "✅ Mocks are up to date"
-
-
-        run: |
           echo "🎨 Checking Dart code formatting..."
           # Enable auto_format by default on push, or respect workflow_dispatch inputs
           AUTO_FORMAT="${{ github.event.inputs.auto_format }}"
@@ -278,6 +270,9 @@ jobs:
   security:
     name: 🔒 Security Scan
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
