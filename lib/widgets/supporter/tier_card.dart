@@ -368,13 +368,9 @@ class TierCard extends StatelessWidget {
                       height: 28,
                       child: CircularProgressIndicator(
                         strokeWidth: 3.5,
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          tier.level == SupporterTierLevel.gold
-                              ? Colors.black87
-                              : Colors.white,
-                        ),
+                        valueColor: const AlwaysStoppedAnimation<Color>(Colors.black87),
                       ),
-                    ),
+                    )
                   )
                 : Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -392,9 +388,7 @@ class TierCard extends StatelessWidget {
                           textAlign: TextAlign.center,
                           style: textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.w900,
-                            color: tier.level == SupporterTierLevel.gold
-                                ? Colors.black87
-                                : Colors.white,
+                            color: Colors.black87,
                             letterSpacing: 0.5,
                           ),
                         ),
