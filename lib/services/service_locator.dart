@@ -6,6 +6,8 @@ import 'package:devocional_nuevo/repositories/discovery_repository.dart';
 import 'package:devocional_nuevo/services/analytics_service.dart';
 import 'package:devocional_nuevo/services/discovery_favorites_service.dart'; // NEW
 import 'package:devocional_nuevo/services/discovery_progress_tracker.dart';
+import 'package:devocional_nuevo/services/iap/i_iap_service.dart';
+import 'package:devocional_nuevo/services/iap/iap_service.dart';
 import 'package:devocional_nuevo/services/localization_service.dart';
 import 'package:devocional_nuevo/services/notification_service.dart';
 import 'package:devocional_nuevo/services/remote_config_service.dart';
@@ -88,6 +90,9 @@ void setupServiceLocator() {
   // ✅ REGISTER DISCOVERY FAVORITES SERVICE
   locator.registerLazySingleton<DiscoveryFavoritesService>(
       () => DiscoveryFavoritesService());
+
+  // ✅ REGISTER IAP SERVICE
+  locator.registerLazySingleton<IIapService>(() => IapService());
 }
 
 ServiceLocator get serviceLocator => ServiceLocator._instance;

@@ -3,7 +3,8 @@ import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:devocional_nuevo/models/supporter_tier.dart';
-import 'package:devocional_nuevo/services/iap_service.dart';
+import 'package:devocional_nuevo/services/iap/i_iap_service.dart';
+import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/widgets/devocionales/app_bar_constants.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -60,7 +61,7 @@ class _AboutPageState extends State<AboutPage> {
   }
 
   Future<void> _loadSupporterStatus() async {
-    final iapService = IapService();
+    final iapService = getService<IIapService>();
     await iapService.initialize();
     if (!mounted) return;
     setState(() {
