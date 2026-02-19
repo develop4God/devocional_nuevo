@@ -42,7 +42,7 @@ class SupporterTier {
   static const SupporterTier _silver = SupporterTier(
     level: SupporterTierLevel.silver,
     productId: 'supporter_silver',
-    emoji: '🙏',
+    emoji: '🌱',
     nameKey: 'supporter.tier_silver_name',
     descriptionKey: 'supporter.tier_silver_description',
     priceDisplay: '\$4.99',
