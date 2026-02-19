@@ -291,7 +291,14 @@ class TierCard extends StatelessWidget {
           child: Material(
             color: Colors.transparent,
             child: InkWell(
-              onTap: (isPurchased || isLoading) ? null : onPurchase,
+              onTap: (isPurchased || isLoading)
+                  ? null
+                  : () {
+                      // Log the tap with emoji to help tracing purchase flow
+                      debugPrint(
+                          '🛒 [SupporterPage] Tap purchase -> productId=${tier.productId}, tier=${tier.nameKey.tr()}');
+                      onPurchase?.call();
+                    },
               borderRadius: BorderRadius.circular(badgeSize / 2),
               child: ClipOval(
                 child: badgeContent,
@@ -430,7 +437,13 @@ class TierCard extends StatelessWidget {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: isLoading ? null : onPurchase,
+          onTap: isLoading
+              ? null
+              : () {
+                  debugPrint(
+                      '🛒 [SupporterPage] Tap purchase button -> productId=${tier.productId}, tier=${tier.nameKey.tr()}');
+                  onPurchase?.call();
+                },
           borderRadius: BorderRadius.circular(20),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
