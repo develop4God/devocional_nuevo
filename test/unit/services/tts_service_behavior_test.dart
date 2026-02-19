@@ -26,6 +26,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+      SharedPreferences.setMockInitialValues({});
 
   group('TTS Service - Real User Behavior Tests', () {
     late ITtsService ttsService;
@@ -467,6 +468,7 @@ void main() {
     test('Service can be injected into AudioController', () async {
       // Given: A TTS service instance
       TestWidgetsFlutterBinding.ensureInitialized();
+      SharedPreferences.setMockInitialValues({});
       SharedPreferences.setMockInitialValues({});
 
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger

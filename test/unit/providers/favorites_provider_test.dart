@@ -34,6 +34,7 @@ void main() {
 
   setUpAll(() async {
     TestWidgetsFlutterBinding.ensureInitialized();
+      SharedPreferences.setMockInitialValues({});
 
     // Mock Firebase
     const firebaseCoreChannel =

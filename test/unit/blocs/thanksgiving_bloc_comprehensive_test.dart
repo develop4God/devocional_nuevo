@@ -20,6 +20,8 @@ void main() {
 
     setUpAll(() async {
       TestWidgetsFlutterBinding.ensureInitialized();
+      SharedPreferences.setMockInitialValues({});
+      SharedPreferences.setMockInitialValues({});
       await setupServiceLocator();
     });
 

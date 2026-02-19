@@ -16,6 +16,7 @@ void main() {
     setUp(() async {
       TestWidgetsFlutterBinding.ensureInitialized();
       SharedPreferences.setMockInitialValues({});
+      SharedPreferences.setMockInitialValues({});
 
       // Initialize ServiceLocator for dependencies
       ServiceLocator().reset();

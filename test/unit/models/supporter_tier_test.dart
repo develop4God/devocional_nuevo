@@ -50,7 +50,7 @@ void main() {
 
       final silver = SupporterTier.fromLevel(SupporterTierLevel.silver);
       expect(silver.productId, equals('supporter_silver'));
-      expect(silver.emoji, equals('🙏'));
+      expect(silver.emoji, equals('🌱'));
 
       final gold = SupporterTier.fromLevel(SupporterTierLevel.gold);
       expect(gold.productId, equals('supporter_gold'));
