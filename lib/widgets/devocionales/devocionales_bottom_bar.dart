@@ -346,30 +346,21 @@ class DevocionalesBottomBar extends StatelessWidget {
                   key: const Key('bottom_appbar_supporter_icon'),
                   tooltip: 'tooltips.support'.tr(),
                   onPressed: () {
-                    debugPrint('❤️ [BottomBar] Tap: supporter');
+                    debugPrint('\u2764\ufe0f [BottomBar] Tap: supporter');
                     getService<AnalyticsService>().logBottomBarAction(
                       action: 'supporter',
                     );
                     Navigator.push(
                       context,
-                      PageRouteBuilder(
-                        pageBuilder: (context, animation, secondaryAnimation) =>
-                            const SupporterPage(),
-                        transitionsBuilder:
-                            (context, animation, secondaryAnimation, child) {
-                          return FadeTransition(
-                            opacity: animation,
-                            child: child,
-                          );
-                        },
-                        transitionDuration: const Duration(milliseconds: 250),
+                      MaterialPageRoute(
+                        builder: (context) => const SupporterPage(),
                       ),
                     );
                   },
                   icon: Icon(
                     Icons.volunteer_activism,
                     color: colorScheme.onPrimary,
-                    size: 32,
+                    size: 35,
                   ),
                 ),
             ],
