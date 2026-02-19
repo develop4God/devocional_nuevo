@@ -103,10 +103,13 @@ class _SupporterPageState extends State<SupporterPage>
   // ── Event callbacks ───────────────────────────────────────────────────────
 
   void _onPurchaseTier(SupporterTier tier) {
+    debugPrint(
+        '🛒 [SupporterPage] Request purchase -> ${tier.productId} (${tier.nameKey.tr()})');
     context.read<SupporterBloc>().add(PurchaseTier(tier));
   }
 
   void _onRestorePurchases() {
+    debugPrint('🔄 [SupporterPage] Restore purchases requested');
     context.read<SupporterBloc>().add(RestorePurchases());
   }
 
@@ -502,7 +505,12 @@ class _SupporterPageState extends State<SupporterPage>
       value: themeState.systemUiOverlayStyle,
       child: BlocListener<SupporterBloc, SupporterState>(
         listener: (context, state) {
+          // Log key state transitions for easier debugging of spinner/infinite loops
+          debugPrint(
+              '🔔 [SupporterPage] SupporterBloc state -> ${state.runtimeType}');
           if (state is SupporterLoaded) {
+            debugPrint(
+                '📦 [SupporterPage] purchasedLevels=${state.purchasedLevels}, purchasingProductId=${state.purchasingProductId}, isRestoring=${state.isRestoring}, error=${state.errorMessage}');
             // Handle successful delivery
             if (state.justDeliveredTier != null) {
               setState(() => _showConfetti = true);

@@ -51,7 +51,11 @@ class SupporterBloc extends Bloc<SupporterEvent, SupporterState> {
 
     // Subscribe to delivered-product events from the service.
     _deliveredSubscription = _iapService.onPurchaseDelivered.listen(
-      (tier) => add(_PurchaseDelivered(tier)),
+      (tier) {
+        debugPrint(
+            '✅ [SupporterBloc] onPurchaseDelivered -> ${tier.productId}');
+        add(_PurchaseDelivered(tier));
+      },
       onError: (Object error) {
         debugPrint('❌ [SupporterBloc] Delivered stream error: $error');
       },
@@ -130,9 +134,13 @@ class SupporterBloc extends Bloc<SupporterEvent, SupporterState> {
       return;
     }
 
+    debugPrint(
+        '🛒 [SupporterBloc] Starting purchase -> ${event.tier.productId}');
     emit(current.copyWith(purchasingProductId: event.tier.productId));
 
     final result = await _iapService.purchaseTier(event.tier);
+    debugPrint(
+        '🛒 [SupporterBloc] Purchase result for ${event.tier.productId} -> $result');
 
     if (!isClosed) {
       if (result == IapResult.error) {
@@ -156,9 +164,14 @@ class SupporterBloc extends Bloc<SupporterEvent, SupporterState> {
     // Use isRestoring flag instead of SupporterLoading so that any
     // _PurchaseDelivered events that arrive while restoring can still
     // update purchasedLevels in the SupporterLoaded state.
+    debugPrint('🔄 [SupporterBloc] restorePurchases() called');
     emit(current.copyWith(isRestoring: true));
     try {
       await _iapService.restorePurchases();
+      debugPrint('🔄 [SupporterBloc] restorePurchases() completed');
+    } catch (e) {
+      debugPrint('❌ [SupporterBloc] restorePurchases error: $e');
+      rethrow;
     } finally {
       // Always reset isRestoring — prevents an infinite spinner when
       // restorePurchases() throws a Google Billing error.
@@ -179,6 +192,8 @@ class SupporterBloc extends Bloc<SupporterEvent, SupporterState> {
     final current = state;
     if (current is! SupporterLoaded) return;
 
+    debugPrint(
+        '✅ [SupporterBloc] purchase delivered -> ${event.tier.productId}');
     emit(current.copyWith(
       purchasedLevels: _iapService.purchasedLevels,
       clearPurchasing: true,
