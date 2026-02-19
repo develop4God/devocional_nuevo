@@ -31,8 +31,7 @@ class SupporterTier {
   static const SupporterTier _bronze = SupporterTier(
     level: SupporterTierLevel.bronze,
     productId: 'supporter_bronze',
-    emoji: '',
-    // replaced by Lottie in UI
+    emoji: '☕',
     nameKey: 'supporter.tier_bronze_name',
     descriptionKey: 'supporter.tier_bronze_description',
     priceDisplay: '\$1.99',
@@ -57,8 +56,7 @@ class SupporterTier {
   static const SupporterTier _gold = SupporterTier(
     level: SupporterTierLevel.gold,
     productId: 'supporter_gold',
-    emoji: '',
-    // replaced by Lottie in UI
+    emoji: '❤️',
     nameKey: 'supporter.tier_gold_name',
     descriptionKey: 'supporter.tier_gold_description',
     priceDisplay: '\$9.99',

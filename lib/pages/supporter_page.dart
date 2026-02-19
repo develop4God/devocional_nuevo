@@ -58,7 +58,7 @@ class _SupporterPageState extends State<SupporterPage>
 
     _initIap();
     _listenToPurchaseStream();
-    
+
     _scrollController.addListener(_scrollListener);
   }
 
@@ -384,7 +384,8 @@ class _SupporterPageState extends State<SupporterPage>
               Theme(
                 data: Theme.of(context).copyWith(
                   scrollbarTheme: ScrollbarThemeData(
-                    thumbColor: WidgetStateProperty.all(colorScheme.primary.withValues(alpha: 0.5)),
+                    thumbColor: WidgetStateProperty.all(
+                        colorScheme.primary.withValues(alpha: 0.5)),
                     thickness: WidgetStateProperty.all(6.0),
                     radius: const Radius.circular(10),
                   ),
@@ -394,7 +395,7 @@ class _SupporterPageState extends State<SupporterPage>
                   thumbVisibility: true,
                   child: SingleChildScrollView(
                     controller: _scrollController,
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 100), 
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
@@ -538,7 +539,8 @@ class _SupporterPageState extends State<SupporterPage>
 
   Widget _buildTiersList(ColorScheme colorScheme, TextTheme textTheme) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.center, // Center the title and list
+      crossAxisAlignment:
+          CrossAxisAlignment.center, // Center the title and list
       children: [
         Text(
           'supporter.choose_tier'.tr(),

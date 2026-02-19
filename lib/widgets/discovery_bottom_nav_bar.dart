@@ -26,7 +26,7 @@ class DiscoveryBottomNavBar extends StatelessWidget {
     this.onProgress,
     this.onSettings,
     this.ttsPlayerWidget,
-    this.appBarForegroundColor,
+    this.appBarForegroundColor = Colors.white,
     this.appBarBackgroundColor,
   });
 

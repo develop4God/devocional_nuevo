@@ -2,6 +2,8 @@
 library;
 
 import 'package:devocional_nuevo/providers/devocional_provider.dart';
+import 'package:devocional_nuevo/services/remote_config_service.dart';
+import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/widgets/discovery_bottom_nav_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -10,12 +12,25 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../helpers/test_helpers.dart';
 
+// Use a minimal fake that implements only the needed getter
+class FakeRemoteConfigService implements RemoteConfigService {
+  @override
+  bool get featureSupporter => true;
+// Add any other members if needed for the widget
+}
+
 void main() {
   group('DiscoveryBottomNavBar Widget Tests', () {
     setUp(() {
       TestWidgetsFlutterBinding.ensureInitialized();
       SharedPreferences.setMockInitialValues({});
       registerTestServices();
+      // Override RemoteConfigService with fake
+      final locator = ServiceLocator();
+      if (locator.isRegistered<RemoteConfigService>()) {
+        locator.unregister<RemoteConfigService>();
+      }
+      locator.registerSingleton<RemoteConfigService>(FakeRemoteConfigService());
     });
 
     Widget createWidgetUnderTest({
