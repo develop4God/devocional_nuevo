@@ -344,7 +344,7 @@ class TierCard extends StatelessWidget {
           onPressed: isLoading ? null : onPurchase,
           style: ElevatedButton.styleFrom(
             backgroundColor: tier.badgeColor,
-            foregroundColor: Colors.white,
+            foregroundColor: Colors.black87,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
             ),
@@ -357,14 +357,14 @@ class TierCard extends StatelessWidget {
                   height: 24,
                   child: CircularProgressIndicator(
                     strokeWidth: 3,
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.black87),
                   ),
                 )
               : Text(
-                  'supporter.get_tier'.tr(),
+                  '${tier.emoji} ${'supporter.get_tier'.tr()}',
                   style: textTheme.labelLarge?.copyWith(
                     fontWeight: FontWeight.w900,
-                    color: Colors.white,
+                    color: Colors.black87,
                   ),
                 ),
         ),
