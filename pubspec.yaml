@@ -110,6 +110,7 @@ flutter:
     - assets/icons/
     - assets/badges/
     - assets/lottie/
+    - assets/lottie/pets/
     - assets/biblia/
     - assets/fonts/DancingScript-Bold.ttf
     # Add Poppins font files here when available
