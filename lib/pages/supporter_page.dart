@@ -1,21 +1,26 @@
 // lib/pages/supporter_page.dart
-import 'dart:async';
+//
+// Uses [SupporterBloc] for all IAP state management.
+// The bloc is provided by the caller (see settings_page.dart).
 
+import 'package:devocional_nuevo/blocs/supporter/supporter_bloc.dart';
+import 'package:devocional_nuevo/blocs/supporter/supporter_event.dart';
+import 'package:devocional_nuevo/blocs/supporter/supporter_state.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
+import 'package:devocional_nuevo/models/supporter_tier.dart';
+import 'package:devocional_nuevo/widgets/devocionales/app_bar_constants.dart';
+import 'package:devocional_nuevo/widgets/supporter/tier_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:lottie/lottie.dart';
 
-import '../models/supporter_tier.dart';
-import '../services/iap_service.dart';
-import '../widgets/devocionales/app_bar_constants.dart';
-import '../widgets/supporter/tier_card.dart';
-
 /// Page that shows the 3 supporter tiers with Google Play Billing integration.
+///
+/// Requires a [SupporterBloc] ancestor in the widget tree
+/// (provided by [settings_page.dart] navigation).
 class SupporterPage extends StatefulWidget {
   const SupporterPage({super.key});
 
@@ -25,26 +30,19 @@ class SupporterPage extends StatefulWidget {
 
 class _SupporterPageState extends State<SupporterPage>
     with TickerProviderStateMixin {
-  final IapService _iapService = IapService();
-  StreamSubscription<List<PurchaseDetails>>? _purchaseSubscription;
   final ScrollController _scrollController = ScrollController();
 
   late AnimationController _headerAnimController;
   late Animation<double> _headerFadeIn;
   late AnimationController _confettiController;
 
-  bool _isLoadingProducts = true;
-  bool _isBillingAvailable = false;
-  String? _loadingProductId;
-  Set<SupporterTierLevel> _purchasedLevels = {};
   bool _showScrollHint = true;
   bool _showConfetti = false;
-
-  final Map<String, String> _storePrices = {};
 
   @override
   void initState() {
     super.initState();
+
     _headerAnimController = AnimationController(
       duration: const Duration(milliseconds: 800),
       vsync: this,
@@ -65,140 +63,48 @@ class _SupporterPageState extends State<SupporterPage>
         }
       });
 
-    _initIap();
-    _listenToPurchaseStream();
-
     _scrollController.addListener(_scrollListener);
+
+    // Kick off IAP initialization.
+    context.read<SupporterBloc>().add(InitializeSupporter());
   }
 
   void _scrollListener() {
     if (_scrollController.hasClients) {
-      if (_scrollController.offset > 50 && _showScrollHint) {
-        setState(() {
-          _showScrollHint = false;
-        });
-      } else if (_scrollController.offset <= 50 && !_showScrollHint) {
-        setState(() {
-          _showScrollHint = true;
-        });
+      final offset = _scrollController.offset;
+      if (offset > 50 && _showScrollHint) {
+        setState(() => _showScrollHint = false);
+      } else if (offset <= 50 && !_showScrollHint) {
+        setState(() => _showScrollHint = true);
       }
     }
   }
 
-  Future<void> _initIap() async {
-    setState(() {
-      _isLoadingProducts = true;
-    });
-
-    try {
-      await _iapService.initialize();
-
-      if (!mounted) return;
-
-      setState(() {
-        _isBillingAvailable = _iapService.isAvailable;
-        _purchasedLevels = _iapService.purchasedLevels;
-
-        for (final tier in SupporterTier.tiers) {
-          final product = _iapService.getProduct(tier.productId);
-          if (product != null) {
-            _storePrices[tier.productId] = product.price;
-          }
-        }
-
-        _isLoadingProducts = false;
-      });
-    } catch (e) {
-      debugPrint('❌ [SupporterPage] IAP init error: $e');
-      if (!mounted) return;
-      setState(() {
-        _isLoadingProducts = false;
-        _isBillingAvailable = false;
-      });
-    }
+  @override
+  void dispose() {
+    _headerAnimController.dispose();
+    _confettiController.dispose();
+    _scrollController
+      ..removeListener(_scrollListener)
+      ..dispose();
+    super.dispose();
   }
 
-  void _listenToPurchaseStream() {
-    _purchaseSubscription = InAppPurchase.instance.purchaseStream.listen(
-      (purchaseDetailsList) {
-        _handlePurchaseUpdates(purchaseDetailsList);
-      },
-      onError: (Object error) {
-        debugPrint('❌ [SupporterPage] Purchase stream error: $error');
-      },
-    );
+  // ── Event callbacks ───────────────────────────────────────────────────────
+
+  void _onPurchaseTier(SupporterTier tier) {
+    context.read<SupporterBloc>().add(PurchaseTier(tier));
   }
 
-  void _handlePurchaseUpdates(List<PurchaseDetails> purchaseDetailsList) {
-    for (final purchase in purchaseDetailsList) {
-      if (!mounted) return;
-
-      if (purchase.status == PurchaseStatus.purchased ||
-          purchase.status == PurchaseStatus.restored) {
-        final tier = SupporterTier.fromProductId(purchase.productID);
-        if (tier != null) {
-          setState(() {
-            _purchasedLevels = _iapService.purchasedLevels;
-            _loadingProductId = null;
-            _showConfetti = true;
-          });
-          _confettiController.forward();
-          _showSuccessDialog(tier);
-        }
-      } else if (purchase.status == PurchaseStatus.error) {
-        setState(() => _loadingProductId = null);
-        _showErrorSnackBar('supporter.purchase_error'.tr());
-      } else if (purchase.status == PurchaseStatus.canceled) {
-        setState(() => _loadingProductId = null);
-      }
-    }
-    if (mounted) {
-      setState(() {
-        _purchasedLevels = _iapService.purchasedLevels;
-      });
-    }
+  void _onRestorePurchases() {
+    context.read<SupporterBloc>().add(RestorePurchases());
   }
 
-  Future<void> _onPurchaseTier(SupporterTier tier) async {
-    if (_loadingProductId != null) return;
-
-    setState(() => _loadingProductId = tier.productId);
-
-    if (!_isBillingAvailable) {
-      setState(() => _loadingProductId = null);
-      _showBillingUnavailableDialog();
-      return;
-    }
-
-    final result = await _iapService.purchaseTier(tier);
-
-    if (!mounted) return;
-
-    if (result == IapResult.error) {
-      setState(() => _loadingProductId = null);
-      _showErrorSnackBar('supporter.purchase_error'.tr());
-    }
-  }
-
-  Future<void> _onRestorePurchases() async {
-    setState(() => _isLoadingProducts = true);
-    await _iapService.restorePurchases();
-    if (!mounted) return;
-    setState(() {
-      _purchasedLevels = _iapService.purchasedLevels;
-      _isLoadingProducts = false;
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('supporter.restore_complete'.tr()),
-        duration: const Duration(seconds: 2),
-      ),
-    );
-  }
+  // ── Success dialog ────────────────────────────────────────────────────────
 
   void _showSuccessDialog(SupporterTier tier) {
-    final isGold = tier.level == SupporterTierLevel.gold;
     final nameController = TextEditingController();
+    final isGold = tier.level == SupporterTierLevel.gold;
 
     showDialog<void>(
       context: context,
@@ -336,9 +242,13 @@ class _SupporterPageState extends State<SupporterPage>
                       if (isGold) {
                         final name = nameController.text.trim();
                         if (name.isNotEmpty) {
-                          _iapService.saveGoldSupporterName(name);
+                          context
+                              .read<SupporterBloc>()
+                              .add(SaveGoldSupporterName(name));
                         }
                       }
+                      // Clear the just-delivered tier from state
+                      context.read<SupporterBloc>().add(ClearSupporterError());
                       Navigator.pop(dialogContext);
                     },
                     style: ElevatedButton.styleFrom(
@@ -368,12 +278,12 @@ class _SupporterPageState extends State<SupporterPage>
   void _showBillingUnavailableDialog() {
     showDialog<void>(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (ctx) => AlertDialog(
         title: Text('supporter.billing_unavailable_title'.tr()),
         content: Text('supporter.billing_unavailable_body'.tr()),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(ctx),
             child: Text('app.ok'.tr()),
           ),
         ],
@@ -390,125 +300,148 @@ class _SupporterPageState extends State<SupporterPage>
         duration: const Duration(seconds: 3),
       ),
     );
+    context.read<SupporterBloc>().add(ClearSupporterError());
   }
 
-  @override
-  void dispose() {
-    _headerAnimController.dispose();
-    _confettiController.dispose();
-    _purchaseSubscription?.cancel();
-    _scrollController.removeListener(_scrollListener);
-    _scrollController.dispose();
-    super.dispose();
-  }
+  // ── Build ─────────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
-    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+    final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final themeState = context.watch<ThemeBloc>().state as ThemeLoaded;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: themeState.systemUiOverlayStyle,
-      child: Scaffold(
-        appBar: CustomAppBar(titleText: 'supporter.page_title'.tr()),
-        body: Stack(
-          children: [
-            FadeTransition(
-              opacity: _headerFadeIn,
-              child: Scrollbar(
-                controller: _scrollController,
-                child: SingleChildScrollView(
+      child: BlocListener<SupporterBloc, SupporterState>(
+        listener: (context, state) {
+          if (state is SupporterLoaded) {
+            // Handle successful delivery
+            if (state.justDeliveredTier != null) {
+              setState(() => _showConfetti = true);
+              _confettiController.forward();
+              _showSuccessDialog(state.justDeliveredTier!);
+            }
+
+            // Handle errors
+            if (state.errorMessage != null) {
+              if (state.errorMessage == 'billing_unavailable') {
+                _showBillingUnavailableDialog();
+                context.read<SupporterBloc>().add(ClearSupporterError());
+              } else {
+                _showErrorSnackBar('supporter.purchase_error'.tr());
+              }
+            }
+          }
+        },
+        child: Scaffold(
+          appBar: CustomAppBar(titleText: 'supporter.page_title'.tr()),
+          body: Stack(
+            children: [
+              FadeTransition(
+                opacity: _headerFadeIn,
+                child: Scrollbar(
                   controller: _scrollController,
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
-                  child: Column(
-                    children: [
-                      _buildMissionHeader(colorScheme, textTheme),
-                      const SizedBox(height: 24),
-                      _buildMinistryMessage(colorScheme, textTheme),
-                      const SizedBox(height: 32),
-                      if (_isLoadingProducts)
-                        _buildLoadingState()
-                      else
-                        _buildTiersList(colorScheme, textTheme),
-                      const SizedBox(height: 24),
-                      _buildRestorePurchases(colorScheme, textTheme),
-                      const SizedBox(height: 16),
-                      _buildDisclaimerText(colorScheme, textTheme),
-                    ],
+                  child: SingleChildScrollView(
+                    controller: _scrollController,
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+                    child: BlocBuilder<SupporterBloc, SupporterState>(
+                      builder: (context, state) {
+                        return Column(
+                          children: [
+                            _buildMissionHeader(colorScheme, textTheme),
+                            const SizedBox(height: 24),
+                            _buildMinistryMessage(colorScheme, textTheme),
+                            const SizedBox(height: 32),
+                            if (state is SupporterLoading)
+                              _buildLoadingState()
+                            else if (state is SupporterLoaded)
+                              _buildTiersList(state, colorScheme, textTheme)
+                            else
+                              _buildLoadingState(),
+                            const SizedBox(height: 24),
+                            _buildRestorePurchases(
+                                state, colorScheme, textTheme),
+                            const SizedBox(height: 16),
+                            _buildDisclaimerText(colorScheme, textTheme),
+                          ],
+                        );
+                      },
+                    ),
                   ),
                 ),
               ),
-            ),
-            if (_showConfetti)
-              IgnorePointer(
-                child: Lottie.asset(
-                  'assets/lottie/confetti.json',
-                  controller: _confettiController,
-                  width: double.infinity,
-                  height: double.infinity,
-                  fit: BoxFit.cover,
+              if (_showConfetti)
+                IgnorePointer(
+                  child: Lottie.asset(
+                    'assets/lottie/confetti.json',
+                    controller: _confettiController,
+                    width: double.infinity,
+                    height: double.infinity,
+                    fit: BoxFit.cover,
+                  ),
                 ),
-              ),
-            if (_showScrollHint)
-              Positioned(
-                bottom: 24,
-                left: 0,
-                right: 0,
-                child: IgnorePointer(
-                  ignoring: !_showScrollHint,
-                  child: AnimatedOpacity(
-                    opacity: _showScrollHint ? 1.0 : 0.0,
-                    duration: const Duration(milliseconds: 300),
-                    child: Center(
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 10),
-                        decoration: BoxDecoration(
-                          color: colorScheme.primaryContainer
-                              .withValues(alpha: 0.95),
-                          borderRadius: BorderRadius.circular(30),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.15),
-                              blurRadius: 12,
-                              offset: const Offset(0, 6),
-                            ),
-                          ],
-                          border: Border.all(
-                            color: colorScheme.primary.withValues(alpha: 0.2),
-                            width: 1,
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.keyboard_arrow_down_rounded,
-                              color: colorScheme.onPrimaryContainer,
-                              size: 28,
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              'discovery.read'.tr(),
-                              style: textTheme.labelLarge?.copyWith(
-                                color: colorScheme.onPrimaryContainer,
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: 0.5,
+              if (_showScrollHint)
+                Positioned(
+                  bottom: 24,
+                  left: 0,
+                  right: 0,
+                  child: IgnorePointer(
+                    child: AnimatedOpacity(
+                      opacity: _showScrollHint ? 1.0 : 0.0,
+                      duration: const Duration(milliseconds: 300),
+                      child: Center(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 10),
+                          decoration: BoxDecoration(
+                            color: colorScheme.primaryContainer
+                                .withValues(alpha: 0.95),
+                            borderRadius: BorderRadius.circular(30),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.15),
+                                blurRadius: 12,
+                                offset: const Offset(0, 6),
                               ),
+                            ],
+                            border: Border.all(
+                              color: colorScheme.primary.withValues(alpha: 0.2),
+                              width: 1,
                             ),
-                          ],
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.keyboard_arrow_down_rounded,
+                                color: colorScheme.onPrimaryContainer,
+                                size: 28,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                'discovery.read'.tr(),
+                                style: textTheme.labelLarge?.copyWith(
+                                  color: colorScheme.onPrimaryContainer,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
                   ),
                 ),
-              ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
+
+  // ── Sub-builders ──────────────────────────────────────────────────────────
 
   Widget _buildMissionHeader(ColorScheme colorScheme, TextTheme textTheme) {
     return Container(
@@ -517,10 +450,7 @@ class _SupporterPageState extends State<SupporterPage>
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(32),
         gradient: LinearGradient(
-          colors: [
-            colorScheme.primary,
-            colorScheme.tertiary,
-          ],
+          colors: [colorScheme.primary, colorScheme.tertiary],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -600,7 +530,11 @@ class _SupporterPageState extends State<SupporterPage>
     );
   }
 
-  Widget _buildTiersList(ColorScheme colorScheme, TextTheme textTheme) {
+  Widget _buildTiersList(
+    SupporterLoaded state,
+    ColorScheme colorScheme,
+    TextTheme textTheme,
+  ) {
     return Column(
       children: [
         Text(
@@ -616,9 +550,9 @@ class _SupporterPageState extends State<SupporterPage>
             padding: const EdgeInsets.only(bottom: 24),
             child: TierCard(
               tier: tier,
-              storePrice: _storePrices[tier.productId],
-              isPurchased: _purchasedLevels.contains(tier.level),
-              isLoading: _loadingProductId == tier.productId,
+              storePrice: state.storePrices[tier.productId],
+              isPurchased: state.isPurchased(tier.level),
+              isLoading: state.purchasingProductId == tier.productId,
               onPurchase: () => _onPurchaseTier(tier),
             ),
           ),
@@ -627,9 +561,14 @@ class _SupporterPageState extends State<SupporterPage>
     );
   }
 
-  Widget _buildRestorePurchases(ColorScheme colorScheme, TextTheme textTheme) {
+  Widget _buildRestorePurchases(
+    SupporterState state,
+    ColorScheme colorScheme,
+    TextTheme textTheme,
+  ) {
+    final isLoading = state is SupporterLoading;
     return TextButton.icon(
-      onPressed: _isLoadingProducts ? null : _onRestorePurchases,
+      onPressed: isLoading ? null : _onRestorePurchases,
       icon: const Icon(Icons.restore, size: 18),
       label: Text(
         'supporter.restore_purchases'.tr(),
