@@ -4,6 +4,7 @@ import 'package:devocional_nuevo/services/analytics_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:devocional_nuevo/services/tts/voice_settings_service.dart';
 
 /// Sets up all required services for testing
 /// This ensures tests have access to all necessary dependencies

@@ -22,7 +22,7 @@ class TestableTtsAudioController extends TtsAudioController
 /// Tests the critical bug where timer doesn't properly resume after pause
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
-      SharedPreferences.setMockInitialValues({});
+  SharedPreferences.setMockInitialValues({});
 
   // Mock FlutterTTS method channel
   const MethodChannel ttsChannel = MethodChannel('flutter_tts');

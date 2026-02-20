@@ -13,7 +13,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 void main() {
   setUpAll(() async {
     TestWidgetsFlutterBinding.ensureInitialized();
-      SharedPreferences.setMockInitialValues({});
+    SharedPreferences.setMockInitialValues({});
 
     // Path provider mock setup FIRST
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
