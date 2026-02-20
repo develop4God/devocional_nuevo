@@ -27,7 +27,7 @@ import '../../helpers/test_helpers.dart';
 class _ThrowingIapService extends FakeIapService {
   final Object error;
 
-  _ThrowingIapService({this.error = 'iap_init_failed'});
+  _ThrowingIapService({required this.error});
 
   @override
   Future<void> initialize() async => throw error;
@@ -63,9 +63,10 @@ void main() {
 
   // ── Scenario 4: initialize throws → SupporterError ───────────────────────
 
-  test('Scenario 4 — InitializeSupporter emits SupporterError when initialize throws',
+  test(
+      'Scenario 4 — InitializeSupporter emits SupporterError when initialize throws',
       () async {
-    final fakeIap = _ThrowingIapService();
+    final fakeIap = _ThrowingIapService(error: 'iap_init_failed');
     final bloc = SupporterBloc(
       iapService: fakeIap,
       profileRepository: FakeSupporterProfileRepository(),

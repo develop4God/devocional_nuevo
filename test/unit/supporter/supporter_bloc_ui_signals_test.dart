@@ -31,7 +31,7 @@ void main() {
 
   // ── Helper: initialize bloc to SupporterLoaded ───────────────────────────
 
-  Future<SupporterBloc> _initBloc(FakeIapService fakeIap) async {
+  Future<SupporterBloc> initBloc(FakeIapService fakeIap) async {
     final bloc = SupporterBloc(
       iapService: fakeIap,
       profileRepository: FakeSupporterProfileRepository(),
@@ -78,7 +78,7 @@ void main() {
       'Scenario 9 — ClearSupporterError clears errorMessage '
       'and justDeliveredTier from state', () async {
     final fakeIap = FakeIapService();
-    final bloc = await _initBloc(fakeIap);
+    final bloc = await initBloc(fakeIap);
 
     // Deliver a tier to set justDeliveredTier.
     await fakeIap.deliver(SupporterTier.fromLevel(SupporterTierLevel.bronze));
@@ -105,7 +105,7 @@ void main() {
       'Scenario 10 — EditGoldSupporterName sets isEditingGoldName true; '
       'AcknowledgeGoldNameEdit clears it', () async {
     final fakeIap = FakeIapService();
-    final bloc = await _initBloc(fakeIap);
+    final bloc = await initBloc(fakeIap);
 
     expect((bloc.state as SupporterLoaded).isEditingGoldName, isFalse);
 
@@ -129,7 +129,7 @@ void main() {
       'Scenario 11 — close() cancels the delivery stream subscription; '
       'no state updates after close', () async {
     final fakeIap = FakeIapService();
-    final bloc = await _initBloc(fakeIap);
+    final bloc = await initBloc(fakeIap);
 
     final statesAfterClose = <SupporterState>[];
 
