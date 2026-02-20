@@ -135,13 +135,15 @@ class _SettingsViewState extends State<_SettingsView> {
                           await launchUrl(url,
                               mode: LaunchMode.externalApplication);
                         } else {
-                          if (mounted)
+                          if (mounted) {
                             _showErrorSnackBar('settings.cannot_open_url'.tr());
+                          }
                         }
                       } catch (e) {
-                        if (mounted)
+                        if (mounted) {
                           _showErrorSnackBar(
                               '${'settings.url_error'.tr()}: $e');
+                        }
                       }
                     },
                     style: OutlinedButton.styleFrom(
