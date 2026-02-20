@@ -26,7 +26,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
-      SharedPreferences.setMockInitialValues({});
+  SharedPreferences.setMockInitialValues({});
 
   group('TTS Service - Real User Behavior Tests', () {
     late ITtsService ttsService;

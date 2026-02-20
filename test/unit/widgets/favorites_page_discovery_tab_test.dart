@@ -33,7 +33,7 @@ void main() {
   late dynamic mockDevocionalProvider;
   setUpAll(() async {
     TestWidgetsFlutterBinding.ensureInitialized();
-      SharedPreferences.setMockInitialValues({});
+    SharedPreferences.setMockInitialValues({});
     // Mock platform channels
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(

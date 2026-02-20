@@ -47,7 +47,7 @@ class MockVoiceSettingsService extends VoiceSettingsService {
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
-      SharedPreferences.setMockInitialValues({});
+  SharedPreferences.setMockInitialValues({});
 
   group('LocalizationProvider Tests', () {
     late LocalizationProvider provider;
