@@ -1,14 +1,13 @@
 // lib/repositories/i_supporter_profile_repository.dart
-//
-// Interface for Gold supporter display-name persistence.
-// Extracted so that [SupporterBloc] depends on an abstraction (DIP),
-// not on the concrete [SupporterProfileRepository].
 
-/// Contract for persisting and loading the Gold supporter display name.
+/// Interface for persisting and retrieving supporter profile data.
+///
+/// Following the Dependency Inversion Principle, this allows callers
+/// to depend on an abstraction, not a concrete implementation.
 abstract class ISupporterProfileRepository {
-  /// Returns the stored Gold supporter display name, or null if not set.
-  Future<String?> loadGoldSupporterName();
+  /// Load the stored profile display name (may be null).
+  Future<String?> loadProfileName();
 
-  /// Persists the Gold supporter display name.
-  Future<void> saveGoldSupporterName(String name);
+  /// Persist the profile display name.
+  Future<void> saveProfileName(String name);
 }
