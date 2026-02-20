@@ -5,15 +5,15 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'i_supporter_profile_repository.dart';
 
-/// Persists and retrieves the Gold supporter's chosen display name.
+/// Persists and retrieves the Gold supporter's profile name.
 ///
-/// Extracted from [IapService] so that name-management concerns are
-/// separate from the purchase lifecycle (Single Responsibility).
-///
-/// Implements [ISupporterProfileRepository] for Dependency Inversion —
-/// callers (e.g. [SupporterBloc]) depend on the interface, not this class.
+/// Implements [ISupporterProfileRepository] for Dependency Inversion.
 class SupporterProfileRepository implements ISupporterProfileRepository {
-  static const String _goldNameKey = 'iap_gold_supporter_name';
+  // Current preferred key
+  static const String _profileNameKey = 'profile_display_name';
+
+  // Legacy key used by older releases (kept for migration)
+  static const String _legacyGoldNameKey = 'iap_gold_supporter_name';
 
   final Future<SharedPreferences> Function() _prefsFactory;
 
@@ -21,27 +21,56 @@ class SupporterProfileRepository implements ISupporterProfileRepository {
     Future<SharedPreferences> Function()? prefsFactory,
   }) : _prefsFactory = prefsFactory ?? SharedPreferences.getInstance;
 
-  /// Load the stored Gold supporter display name (may be null).
+  /// Load the stored profile display name (may be null).
+  ///
+  /// This method will attempt to read the current key first. If nothing is
+  /// present, it will look for the legacy key and migrate the value to the
+  /// new key (removing the legacy entry) so migration happens once.
   @override
-  Future<String?> loadGoldSupporterName() async {
+  Future<String?> loadProfileName() async {
     try {
       final prefs = await _prefsFactory();
-      return prefs.getString(_goldNameKey);
+
+      // Prefer the new key
+      final current = prefs.getString(_profileNameKey);
+      if (current != null) return current;
+
+      // Attempt migration from legacy key
+      final legacy = prefs.getString(_legacyGoldNameKey);
+      if (legacy != null) {
+        // Migrate to the new key and remove legacy entry
+        await prefs.setString(_profileNameKey, legacy);
+        await prefs.remove(_legacyGoldNameKey);
+        debugPrint('🔁 [SupporterProfileRepository] Migrated legacy gold name');
+        return legacy;
+      }
+
+      return null;
     } catch (e) {
       debugPrint('❌ [SupporterProfileRepository] Error loading name: $e');
       return null;
     }
   }
 
-  /// Persist the Gold supporter display name.
+  /// Persist the profile display name.
   @override
-  Future<void> saveGoldSupporterName(String name) async {
+  Future<void> saveProfileName(String name) async {
     try {
       final prefs = await _prefsFactory();
-      await prefs.setString(_goldNameKey, name);
-      debugPrint('✅ [SupporterProfileRepository] Saved name: $name');
+      await prefs.setString(_profileNameKey, name);
+      debugPrint('✅ [SupporterProfileRepository] Saved profile name: $name');
     } catch (e) {
       debugPrint('❌ [SupporterProfileRepository] Error saving name: $e');
     }
   }
+
+  // TODO(tech-debt): remove these shims once every caller has been migrated
+  // to depend on ISupporterProfileRepository (loadProfileName / saveProfileName)
+  // directly.  No caller should hold a concrete SupporterProfileRepository
+  // reference — they should all go through the interface.
+
+  Future<String?> loadGoldSupporterName() async => loadProfileName();
+
+  Future<void> saveGoldSupporterName(String name) async =>
+      saveProfileName(name);
 }

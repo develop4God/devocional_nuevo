@@ -1,22 +1,21 @@
+import 'package:devocional_nuevo/extensions/string_extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 
 class PetHeroSection extends StatelessWidget {
-  final String formattedDate;
+  final String? profileName;
   final bool showPetHint;
   final VoidCallback onTap;
   final dynamic selectedPet; // Using dynamic or your Pet model
   final dynamic selectedTheme; // Using dynamic or your Theme model
-  final String introMessage;
 
   const PetHeroSection({
     super.key,
-    required this.formattedDate,
+    this.profileName,
     required this.showPetHint,
     required this.onTap,
     required this.selectedPet,
     required this.selectedTheme,
-    required this.introMessage,
   });
 
   @override
@@ -64,21 +63,14 @@ class PetHeroSection extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            introMessage,
+                            'messages.welcome_name'.tr(
+                              {'name': profileName ?? ''},
+                            ),
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 20,
                               fontWeight: FontWeight.w900,
                               letterSpacing: -0.5,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            formattedDate,
-                            style: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.8),
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
                             ),
                           ),
                         ],

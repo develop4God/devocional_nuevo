@@ -17,6 +17,7 @@ import 'supporter_state.dart';
 /// Defined here (not in supporter_event.dart) so it stays package-private.
 class _PurchaseFailed extends SupporterEvent {
   final String productId;
+
   _PurchaseFailed(this.productId);
 }
 
@@ -35,6 +36,7 @@ class SupporterBloc extends Bloc<SupporterEvent, SupporterState> {
   final IIapService _iapService;
   final ISupporterProfileRepository _profileRepo;
   StreamSubscription<SupporterTier>? _deliveredSubscription;
+  StreamSubscription<String>? _errorSubscription;
 
   SupporterBloc({
     required IIapService iapService,
@@ -56,7 +58,8 @@ class SupporterBloc extends Bloc<SupporterEvent, SupporterState> {
     on<DebugResetIapState>(_onDebugResetIapState);
 
     // Subscribe to delivered-product events from the service.
-    _iapService.onPurchaseError.listen(
+    // Both subscriptions are stored so they can be cancelled in close().
+    _errorSubscription = _iapService.onPurchaseError.listen(
       (productId) => add(_PurchaseFailed(productId)),
       onError: (Object e) => debugPrint('❌ [SupporterBloc] Error stream: $e'),
     );
@@ -76,6 +79,8 @@ class SupporterBloc extends Bloc<SupporterEvent, SupporterState> {
   Future<void> close() async {
     await _deliveredSubscription?.cancel();
     _deliveredSubscription = null;
+    await _errorSubscription?.cancel();
+    _errorSubscription = null;
     return super.close();
   }
 
@@ -89,7 +94,10 @@ class SupporterBloc extends Bloc<SupporterEvent, SupporterState> {
     try {
       await _iapService.initialize();
 
-      final goldName = await _profileRepo.loadGoldSupporterName();
+      // Use the new interface method name (loadProfileName) — the repository
+      // also provides a legacy wrapper loadGoldSupporterName() for callers
+      // that have not yet been migrated.
+      final goldName = await _profileRepo.loadProfileName();
 
       final storePrices = <String, String>{};
       for (final tier in SupporterTier.tiers) {
@@ -134,13 +142,11 @@ class SupporterBloc extends Bloc<SupporterEvent, SupporterState> {
     final current = state;
     if (current is! SupporterLoaded) return;
 
-    // Guard: don't allow concurrent purchases
+    // Guard: don't allow concurrent purchases.
     if (current.purchasingProductId != null) return;
 
     if (!current.isBillingAvailable) {
-      emit(current.copyWith(
-        errorMessage: 'billing_unavailable',
-      ));
+      emit(current.copyWith(errorMessage: 'billing_unavailable'));
       return;
     }
 
@@ -159,8 +165,8 @@ class SupporterBloc extends Bloc<SupporterEvent, SupporterState> {
           errorMessage: 'purchase_error',
         ));
       }
-      // For IapResult.pending: keep showing the loading indicator
-      // until _onPurchaseDelivered fires from the stream.
+      // For IapResult.pending: keep the loading indicator until
+      // _onPurchaseDelivered fires from the stream.
     }
   }
 
@@ -202,7 +208,8 @@ class SupporterBloc extends Bloc<SupporterEvent, SupporterState> {
     final current = state;
     if (current is! SupporterLoaded) return;
     debugPrint('❌ [SupporterBloc] Purchase failed -> ${event.productId}');
-    emit(current.copyWith(clearPurchasing: true, errorMessage: 'purchase_error'));
+    emit(current.copyWith(
+        clearPurchasing: true, errorMessage: 'purchase_error'));
   }
 
   void _onPurchaseDelivered(
@@ -225,7 +232,8 @@ class SupporterBloc extends Bloc<SupporterEvent, SupporterState> {
     SaveGoldSupporterName event,
     Emitter<SupporterState> emit,
   ) async {
-    await _profileRepo.saveGoldSupporterName(event.name);
+    // Use the new interface method name (saveProfileName).
+    await _profileRepo.saveProfileName(event.name);
     final current = state;
     if (current is SupporterLoaded) {
       emit(current.copyWith(goldSupporterName: event.name));
