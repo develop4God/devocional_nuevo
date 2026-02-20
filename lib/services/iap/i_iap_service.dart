@@ -33,6 +33,9 @@ abstract class IIapService {
   /// product is successfully delivered (purchased or restored).
   Stream<SupporterTier> get onPurchaseDelivered;
 
+  /// Broadcast stream that emits a product ID when a purchase fails at store level.
+  Stream<String> get onPurchaseError;
+
   /// Whether the Google Play / App Store billing is available on this device.
   bool get isAvailable;
 

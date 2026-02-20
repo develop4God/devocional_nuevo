@@ -15,6 +15,11 @@ import 'supporter_state.dart';
 
 /// Internal event: a product was delivered by the IAP service stream.
 /// Defined here (not in supporter_event.dart) so it stays package-private.
+class _PurchaseFailed extends SupporterEvent {
+  final String productId;
+  _PurchaseFailed(this.productId);
+}
+
 class _PurchaseDelivered extends SupporterEvent {
   final SupporterTier tier;
 
@@ -41,6 +46,7 @@ class SupporterBloc extends Bloc<SupporterEvent, SupporterState> {
     on<PurchaseTier>(_onPurchaseTier);
     on<RestorePurchases>(_onRestorePurchases);
     on<_PurchaseDelivered>(_onPurchaseDelivered);
+    on<_PurchaseFailed>(_onPurchaseFailed);
     on<SaveGoldSupporterName>(_onSaveGoldName);
     on<EditGoldSupporterName>(_onEditGoldName);
     on<AcknowledgeGoldNameEdit>(_onAcknowledgeGoldNameEdit);
@@ -50,6 +56,10 @@ class SupporterBloc extends Bloc<SupporterEvent, SupporterState> {
     on<DebugResetIapState>(_onDebugResetIapState);
 
     // Subscribe to delivered-product events from the service.
+    _iapService.onPurchaseError.listen(
+      (productId) => add(_PurchaseFailed(productId)),
+      onError: (Object e) => debugPrint('❌ [SupporterBloc] Error stream: $e'),
+    );
     _deliveredSubscription = _iapService.onPurchaseDelivered.listen(
       (tier) {
         debugPrint(
@@ -183,6 +193,16 @@ class SupporterBloc extends Bloc<SupporterEvent, SupporterState> {
         ));
       }
     }
+  }
+
+  void _onPurchaseFailed(
+    _PurchaseFailed event,
+    Emitter<SupporterState> emit,
+  ) {
+    final current = state;
+    if (current is! SupporterLoaded) return;
+    debugPrint('❌ [SupporterBloc] Purchase failed -> ${event.productId}');
+    emit(current.copyWith(clearPurchasing: true, errorMessage: 'purchase_error'));
   }
 
   void _onPurchaseDelivered(

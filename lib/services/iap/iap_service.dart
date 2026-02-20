@@ -46,11 +46,17 @@ class IapService implements IIapService {
             diagnosticsService ?? (kDebugMode ? _LazyDiagnostics() : null);
 
   // ── Broadcast stream ──────────────────────────────────────────────────────
+  final StreamController<String> _errorController =
+      StreamController<String>.broadcast();
+
   final StreamController<SupporterTier> _deliveredController =
       StreamController<SupporterTier>.broadcast();
 
   @override
   Stream<SupporterTier> get onPurchaseDelivered => _deliveredController.stream;
+
+  @override
+  Stream<String> get onPurchaseError => _errorController.stream;
 
   // ── Internal state ────────────────────────────────────────────────────────
   StreamSubscription<List<PurchaseDetails>>? _purchaseSubscription;
@@ -175,6 +181,7 @@ class IapService implements IIapService {
     _purchaseSubscription = null;
     if (!_deliveredController.isClosed) {
       await _deliveredController.close();
+      await _errorController.close();
     }
     _isInitialized = false;
   }
@@ -257,6 +264,9 @@ class IapService implements IIapService {
       await _deliverProduct(purchase.productID);
     } else if (purchase.status == PurchaseStatus.error) {
       debugPrint('❌ [IapService] Purchase error: ${purchase.error}');
+      if (!_errorController.isClosed) {
+        _errorController.add(purchase.productID);
+      }
     }
 
     // Google Play (and App Store) require completePurchase to be called for
