@@ -50,6 +50,12 @@ class FakeIapService implements IIapService {
   @override
   Stream<SupporterTier> get onPurchaseDelivered => _deliveredController.stream;
 
+  final StreamController<String> _errorController =
+      StreamController<String>.broadcast();
+
+  @override
+  Stream<String> get onPurchaseError => _errorController.stream;
+
   @override
   bool get isAvailable => _isAvailable;
 
@@ -95,6 +101,7 @@ class FakeIapService implements IIapService {
   @override
   Future<void> dispose() async {
     await _deliveredController.close();
+    await _errorController.close();
   }
 
   /// Reset state for testing. Not part of [IIapService] — call only on
