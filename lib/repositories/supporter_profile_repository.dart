@@ -64,7 +64,6 @@ class SupporterProfileRepository implements ISupporterProfileRepository {
     }
   }
 
-  // TODO(tech-debt): remove these shims once every caller has been migrated
   // to depend on ISupporterProfileRepository (loadProfileName / saveProfileName)
   // directly.  No caller should hold a concrete SupporterProfileRepository
   // reference — they should all go through the interface.
