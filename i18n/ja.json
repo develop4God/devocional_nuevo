@@ -173,7 +173,10 @@
     "paypal_launch_error": "PayPalを開けませんでした。システムがURLを起動できませんでした。",
     "paypal_error": "PayPalを開く際にエラーが発生しました: {error}",
     "paypal_no_app_error": "PayPalを開けませんでした。ウェブブラウザまたはPayPalアプリがインストールされていることを確認してください。",
-    "backup_option": "バックアップ"
+    "backup_option": "バックアップ",
+    "cannot_open_url": "PENDING",
+    "url_error": "PENDING",
+    "backup_subtitle": "PENDING"
   },
   "notifications_config_page": {
     "notifications_config": "通知の設定",
@@ -825,6 +828,13 @@
     "purchase_success_verse": "「惜しみなく蒔く者は、惜しみなく刈り取り、喜んで与える者は、喜んで受ける。」🙏",
     "purchase_success_verse_ref": "2コリント9:6",
     "purchase_success_button": "アーメン！🙌",
-    "no_new_restores": "復元する新しい購入は見つかりませんでした。"
+    "no_new_restores": "復元する新しい購入は見つかりませんでした。",
+    "exclusive_gift": "PENDING",
+    "pet_preview_description": "PENDING",
+    "final_celebration_title": "PENDING",
+    "final_celebration_message": "PENDING",
+    "final_celebration_button": "PENDING",
+    "status_title": "PENDING",
+    "status_thanks": "PENDING"
   }
 }
