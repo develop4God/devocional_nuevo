@@ -65,7 +65,7 @@ void main() {
     expect(state.goldSupporterName, equals('Ana María'));
 
     // Verify persistence via repository.
-    final persisted = await fakeRepo.loadGoldSupporterName();
+    final persisted = await fakeRepo.loadProfileName();
     expect(persisted, equals('Ana María'));
 
     await bloc.close();

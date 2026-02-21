@@ -90,7 +90,7 @@ void main() {
       });
 
       test('goldSupporterName loaded from profile repository', () async {
-        await fakeRepo.saveGoldSupporterName('María de los Ángeles');
+        await fakeRepo.saveProfileName('María de los Ángeles');
 
         bloc.add(InitializeSupporter());
         await pumpEventQueue();
@@ -306,8 +306,7 @@ void main() {
         bloc.add(SaveGoldSupporterName('Pastor Luis'));
         await pumpEventQueue();
 
-        expect(fakeRepo.loadGoldSupporterName(),
-            completion(equals('Pastor Luis')));
+        expect(fakeRepo.loadProfileName(), completion(equals('Pastor Luis')));
         final state = bloc.state as SupporterLoaded;
         expect(state.goldSupporterName, equals('Pastor Luis'));
       });
