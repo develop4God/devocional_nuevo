@@ -815,6 +815,8 @@
     "purchase_success_title": "Obrigado, Parceiro!",
     "purchase_success_body": "Seu apoio torna possível que continuemos servindo. Deus te abençoe grandemente!",
     "select_pet_button": "Escolher meu animal de estimação 🎁",
+    "pet_selection_title": "Excelente escolha!",
+    "pet_selection_message": "{petName} agora aparecerá em sua página de devocional.",
     "purchase_error": "Erro ao processar o pagamento. Por favor, tente novamente.",
     "restore_purchases": "Sincronizar minhas compras do Google Play",
     "restore_complete": "Compras restauradas com sucesso",
