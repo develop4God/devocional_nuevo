@@ -9,8 +9,10 @@ import 'package:devocional_nuevo/blocs/supporter/supporter_state.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_bloc.dart';
 import 'package:devocional_nuevo/blocs/theme/theme_state.dart';
 import 'package:devocional_nuevo/extensions/string_extensions.dart';
+import 'package:devocional_nuevo/models/spiritual_stats_model.dart';
 import 'package:devocional_nuevo/models/supporter_pet.dart';
 import 'package:devocional_nuevo/models/supporter_tier.dart';
+import 'package:devocional_nuevo/services/i_spiritual_stats_service.dart';
 import 'package:devocional_nuevo/services/service_locator.dart';
 import 'package:devocional_nuevo/services/supporter_pet_service.dart';
 import 'package:devocional_nuevo/widgets/devocionales/app_bar_constants.dart';
@@ -98,6 +100,29 @@ class _SupporterPageState extends State<SupporterPage>
       ..removeListener(_scrollListener)
       ..dispose();
     super.dispose();
+  }
+
+  // ── Unlock Logic ──────────────────────────────────────────────────────────
+
+  Future<void> _unlockSupporterBadge(SupporterTierLevel level) async {
+    final statsService = getService<ISpiritualStatsService>();
+    final stats = await statsService.getStats();
+    final badgeId = 'supporter_${level.name}';
+
+    // Check if already unlocked
+    if (stats.unlockedAchievements.any((a) => a.id == badgeId)) return;
+
+    // Find the badge definition
+    final badgeTemplate = PredefinedAchievements.supporterBadges
+        .firstWhere((a) => a.id == badgeId);
+
+    final updatedAchievements =
+        List<Achievement>.from(stats.unlockedAchievements)
+          ..add(badgeTemplate.copyWith(isUnlocked: true));
+
+    await statsService.saveStats(stats.copyWith(
+      unlockedAchievements: updatedAchievements,
+    ));
   }
 
   // ── Event callbacks ───────────────────────────────────────────────────────
@@ -246,6 +271,9 @@ class _SupporterPageState extends State<SupporterPage>
                     onPressed: () async {
                       // Capture the bloc reference before any async gaps.
                       final bloc = context.read<SupporterBloc>();
+
+                      // ✅ Register the badge unlock
+                      await _unlockSupporterBadge(tier.level);
 
                       if (isGold) {
                         final name = nameController.text.trim();

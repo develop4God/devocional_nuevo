@@ -737,6 +737,9 @@ class SpiritualStatsService implements ISpiritualStatsService {
           case AchievementType.favorites:
             shouldUnlock = favoritesCount >= achievement.threshold;
             break;
+          case AchievementType.special:
+            // TODO: Handle this case.
+            throw UnimplementedError();
         }
 
         if (shouldUnlock) {
